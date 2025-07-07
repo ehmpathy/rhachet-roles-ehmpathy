@@ -5,8 +5,9 @@ import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/A
 import { RoleContext } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
 import { genStepImagineViaTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
 import { genTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
+import { getTemplateVarsFromRoleInherit } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
+import { getTemplateVarsFromStashScene } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromStashScene';
 import { ContextOpenAI, sdkOpenAi } from '../../../data/sdk/sdkOpenAi';
-import { castCodeRefsToTemplateScene } from '../../context/castCodeRefsToTemplateScene';
 import { genStepArtSet } from '../artifact/genStepArtSet';
 
 type StitcherDesired = GStitcher<
@@ -28,20 +29,8 @@ const template = genTemplate<StitcherDesired['threads']>({
   ref: { uri: __dirname + '/genRouteStudyAsk.template.md' },
   getVariables: async ({ threads }) => ({
     ask: threads.student.context.stash.ask,
-    context: {
-      role: {
-        traits: threads.student.context.inherit.traits
-          .map((trait) => trait.content)
-          .join('\n\n'),
-        skills: threads.student.context.inherit.skills
-          .map((skill) => skill.content)
-          .join('\n\n'),
-      },
-      scene: await castCodeRefsToTemplateScene({
-        threads,
-        stitchee: 'student' as const,
-      }),
-    },
+    ...(await getTemplateVarsFromRoleInherit({ thread: threads.student })),
+    ...(await getTemplateVarsFromStashScene({ thread: threads.student })),
   }),
 });
 

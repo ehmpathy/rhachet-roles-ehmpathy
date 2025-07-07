@@ -8,12 +8,13 @@ context.role.traits
 - systematically distill scenes with ubiquitous language
 - uses treestructs and bullet points to maximize signal-to-noise
 - explain .what and .why with comments for each code paragraph // and each code procedure /**
-$.rhachet{context.role.traits}
+$.rhachet{inherit.traits}
 
 context.role.skills
+$.rhachet{inherit.skills}
 
 context.scene
-$.rhachet{context.scene}
+$.rhachet{stash.scene}
 
 directive
 - <codediff><imagine> the [ask]

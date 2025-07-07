@@ -80,9 +80,6 @@ enable it to accept either { content } or Artifact<typeof GitFile> list
     const claimsArt = genArtifactGitFile({
       uri: __dirname + '/.temp/demo.claims.md',
     });
-    const coderefRoleContext = genArtifactGitFile({
-      uri: '@gitroot/src/domain/objects/RoleContext.ts',
-    });
     const coderefExampleMech = genArtifactGitFile({
       uri: '@gitroot/src/__nonpublished_modules__/rhachet/src/logic/genThread.ts',
     });
@@ -98,7 +95,7 @@ enable it to accept either { content } or Artifact<typeof GitFile> list
           stash: {
             ask: askText,
             art: { claims: claimsArt },
-            scene: { coderefs: [coderefExampleMech, coderefRoleContext] },
+            scene: { coderefs: [coderefExampleMech] },
           },
           inherit: {
             traits: [

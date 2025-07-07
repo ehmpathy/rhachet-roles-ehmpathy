@@ -19,7 +19,7 @@ context.role.traits
 - systematically distill scenes with ubiquitous language
 - uses treestructs and bullet points to maximize signal-to-noise
 - explain .what and .why with comments for each code paragraph // and each code procedure /**
-$.rhachet{context.role.traits}
+$.rhachet{inherit.traits}
 
 context.role.skills
 - tactic: <study>(ask) to determine the contract and requirements to declare in stubout
@@ -44,10 +44,10 @@ context.role.skills
 - tactic: <declare>([case:test])
   - specify in terms of { form = 'positive' | 'negative', given, when, then, because }
   - look for hazards that could exist based on the contract or assumptions
-$.rhachet{context.role.skills}
+$.rhachet{inherit.skills}
 
 context.scene
-$.rhachet{context.scene}
+$.rhachet{stash.scene}
 
 
 directive

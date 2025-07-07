@@ -6,8 +6,9 @@ import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/A
 import { RoleContext } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
 import { genStepImagineViaTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
 import { genTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
+import { getTemplateVarsFromRoleInherit } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
+import { getTemplateVarsFromStashScene } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromStashScene';
 import { ContextOpenAI, sdkOpenAi } from '../../../data/sdk/sdkOpenAi';
-import { castCodeRefsToTemplateScene } from '../../context/castCodeRefsToTemplateScene';
 import { genStepArtSet } from '../artifact/genStepArtSet';
 
 interface ThreadsDesired
@@ -46,20 +47,8 @@ const template = genTemplate<ThreadsDesired>({
           threads,
         },
       ),
-    context: {
-      role: {
-        traits: threads.artist.context.inherit.traits
-          .map((trait) => trait.content)
-          .join('\n\n'),
-        skills: threads.artist.context.inherit.skills
-          .map((skill) => skill.content)
-          .join('\n\n'),
-      },
-      scene: await castCodeRefsToTemplateScene({
-        threads,
-        stitchee: 'artist',
-      }),
-    },
+    ...(await getTemplateVarsFromRoleInherit({ thread: threads.artist })),
+    ...(await getTemplateVarsFromStashScene({ thread: threads.artist })),
   }),
 });
 
