@@ -1,0 +1,10 @@
+{
+  "version": "v1",
+  "packages": {
+    "rhachet": {
+      "signature": "56a9dfe8701dff593e8c075861c024e8",
+      "file": true,
+      "replaced": "1.1.0"
+    }
+  }
+}
