@@ -1,7 +1,11 @@
+import { UnexpectedCodePathError } from 'helpful-errors';
 import { enweaveOneStitcher } from 'rhachet';
 import { given, when, then } from 'test-fns';
 
 import { genArtifactGitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
+import { genThread } from '../../../__nonpublished_modules__/rhachet/src/logic/genThread';
+import { addRoleTraits } from '../../../__nonpublished_modules__/rhachet/src/logic/role/addRoleTraits';
+import { usePrep } from '../../../__nonpublished_modules__/test-fns/src/usePrep';
 import { genContextLogTrail } from '../../../__test_assets__/genContextLogTrail';
 import { genContextStitchTrail } from '../../../__test_assets__/genContextStitchTrail';
 import { getContextOpenAI } from '../../../__test_assets__/getContextOpenAI';
@@ -33,7 +37,7 @@ describe('genRouteStudyAsk (integration)', () => {
       await coderefArt.set({ content: coderefContent });
     });
 
-    when('excuted', () => {
+    when('executed', () => {
       const threads = {
         mechanic: {
           context: {
@@ -55,7 +59,9 @@ describe('genRouteStudyAsk (integration)', () => {
         );
         console.log(JSON.stringify(outcome, null, 2));
 
-        const content = await claimsArt.get();
+        const { content } =
+          (await claimsArt.get()) ??
+          UnexpectedCodePathError.throw('expected file');
         expect(content).toContain('subtract');
       });
     });
@@ -63,41 +69,51 @@ describe('genRouteStudyAsk (integration)', () => {
 
   given.only('a mechanic with ask, claim, and coderefs', () => {
     const askText = `
-stubout genRouteArtistCodeDiffImagine
+declare addRoleTraits, which adds traits to any role
 
-assume the artist thread will have .ask and .art.claims in the context
+enable it to accept either { content } or Artifact<typeof GitFile> list
 `;
 
     const claimsArt = genArtifactGitFile({
       uri: __dirname + '/.temp/demo.claims.md',
     });
-    const coderefExampleMech = genArtifactGitFile({
-      uri: '@gitroot/src/logic/tactics/study/genRouteStudyAsk.ts',
+    const coderefRoleContext = genArtifactGitFile({
+      uri: '@gitroot/src/domain/objects/RoleContext.ts',
     });
-    const coderefExampleTest = genArtifactGitFile({
-      uri: '@gitroot/src/logic/tactics/study/genRouteStudyAsk.integration.test.ts',
+    const coderefExampleMech = genArtifactGitFile({
+      uri: '@gitroot/src/__nonpublished_modules__/rhachet/src/logic/genThread.ts',
     });
 
     beforeEach(async () => {
       await claimsArt.del();
     });
 
-    when('excuted', () => {
-      const threads = {
-        mechanic: {
-          context: {
-            role: 'mechanic' as const,
-            ask: askText,
-            art: { claims: claimsArt },
-            scene: { coderefs: [coderefExampleMech, coderefExampleTest] },
-            traits: [],
-            skills: [],
-          },
-          stitches: [],
-        },
-      };
+    when('executed', () => {
+      const mechanic = genThread({
+        role: 'mechanic' as const,
+        ask: askText,
+        art: { claims: claimsArt },
+        scene: { coderefs: [coderefExampleMech, coderefRoleContext] },
+        traits: [],
+        skills: [],
+      });
+      const threads = usePrep(async () => {
+        return {
+          mechanic: await addRoleTraits({
+            thread: mechanic,
+            from: {
+              artifacts: [
+                genArtifactGitFile({
+                  uri: '@gitroot/src/logic/tactics/codediff/.refs/style.compressed.md',
+                }),
+              ],
+            },
+          }),
+        };
+      });
 
       then('updates the claims artifact', async () => {
+        console.log({ threads });
         const outcome = await enweaveOneStitcher(
           { stitcher: route, threads },
           context,

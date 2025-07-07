@@ -4,6 +4,7 @@ directive
   - output =
   ```json
   {
+      ask: { summary: string },
       claims: { lessons[], assumptions[], questions[] },
       cases: {
         use: { who, when, what }[],
@@ -28,7 +29,9 @@ context.role.skills
   - output =
   ```json
   {
+      ask: { summary: string },
       claims: { lessons[], assumptions[], questions[] },
+      contract: { input, output },
       cases: {
         use: { who, when, what }[],
         test: { form = 'positive' | 'negative', given, when, then, because }[]
@@ -53,6 +56,7 @@ directive
   - output =
   ```json
   {
+      ask: { summary: string },
       claims: { lessons[], assumptions[], questions[] },
       cases: {
         use: { who, when, what }[],

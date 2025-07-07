@@ -6,7 +6,9 @@
  *   - treat consistency as top priority
  *   - prefer given/when/then test suites
  */
-export interface RoleTrait {}
+export interface RoleTrait {
+  content: string;
+}
 
 /**
  * .what = a skill which is learned and accessible to any agent which assumes the role
@@ -15,7 +17,9 @@ export interface RoleTrait {}
  *   - domain distillation is a process where you extract domain terms and clarify their relationships; here's how to use
  *   - given/when/then enables test suites with behavior-driven structure; here's how to use
  */
-export interface RoleSkill {}
+export interface RoleSkill {
+  content: string;
+}
 
 /**
  * .what = the context that each role carries with it
