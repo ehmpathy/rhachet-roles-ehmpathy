@@ -29,8 +29,9 @@ export const useTemplate = async <TVariables = any>(input: {
       BadRequestError.throw(
         `missing variable for $.rhachet{${key}} in template`,
         {
-          key,
-          ref,
+          desired: key,
+          template: ref,
+          provided: variables,
         },
       ),
   );

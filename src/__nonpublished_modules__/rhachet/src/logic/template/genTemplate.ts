@@ -6,6 +6,7 @@ import { useTemplate } from './useTemplate';
 /**
  * .what = creates a Template that hydrates from a thread context
  * .why = enables loading + variable projection in one step
+ *    - transforms from Template<TVariables> to Template<{ threads: TThreads }>, so you can just template.use({ threads }), and abstract away the transform
  */
 export const genTemplate = <
   TThreads extends Threads<any>,

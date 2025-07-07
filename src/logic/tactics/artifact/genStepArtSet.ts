@@ -3,35 +3,51 @@ import { GStitcher, Stitch, StitchStepCompute, Thread, Threads } from 'rhachet';
 
 import { GitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
 import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
+import { RoleContext } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
 import { getStitch } from '../../../__nonpublished_modules__/rhachet/src/logic/getStitch';
 
-type WithArt<TArtee extends string> = {
-  art: Record<TArtee, Artifact<typeof GitFile>>;
-};
-
+/**
+ * .what = creates a compute step that sets content onto a thread's stashed artifact
+ * .why  = allows downstream steps to persist imagined or computed content into code artifacts
+ */
 export const genStepArtSet = <
-  TThreads extends Threads<any, 'single'>,
-  TStitchee extends keyof TThreads & string,
-  TThread extends Thread<WithArt<any>> = TThreads[TStitchee],
-  TArtee extends keyof TThread['context']['art'] &
-    string = keyof TThread['context']['art'] & string,
->(input: {
+  TStitchee extends string,
+  TArtee extends string,
+  TThreads extends Threads<{
+    [K in TStitchee]: RoleContext<
+      K,
+      {
+        art: {
+          [P in TArtee]: Artifact<typeof GitFile>;
+        };
+      }
+    >;
+  }>,
+>({
+  stitchee,
+  artee,
+}: {
   stitchee: TStitchee;
   artee: TArtee;
 }) =>
   new StitchStepCompute<GStitcher<TThreads, GStitcher['context'], GitFile>>({
     form: 'COMPUTE',
     readme: null,
-    slug: `[${input.stitchee}]<artifact:set>[${input.artee}]`,
-    stitchee: input.stitchee,
+    slug: `[${stitchee}]<artifact:set>[${artee}]`,
+    stitchee,
     invoke: async ({ threads }) => {
-      // grab the target thread
-      const thread = threads[input.stitchee] as Thread<WithArt<TArtee>>;
+      const thread = threads[stitchee] as any as Thread<
+        RoleContext<
+          typeof stitchee,
+          {
+            art: {
+              [P in typeof artee]: Artifact<typeof GitFile>;
+            };
+          }
+        >
+      >;
+      const artifact = thread.context.stash.art[artee];
 
-      // lookup the target artifact
-      const artifact = thread.context.art[input.artee];
-
-      // lookup the latest content stitch, to set to the art
       const content =
         getStitch({
           from: thread.stitches,
@@ -44,7 +60,6 @@ export const genStepArtSet = <
           { thread },
         );
 
-      // set the content to the artifact
       const output = await artifact.set({ content });
       return { input: { artifact, content }, output };
     },

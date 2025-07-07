@@ -9,7 +9,9 @@ import { RoleContext, RoleTrait } from '../../domain/RoleContext';
  * .what = injects new RoleTrait(s) into a thread's context
  * .why = enables dynamic role adaptation from inline traits or artifact sources
  */
-export const addRoleTraits = async <TThread extends Thread<RoleContext>>({
+export const addRoleTraits = async <
+  TThread extends Thread<{ inherit: RoleContext<any, any>['inherit'] }>,
+>({
   thread,
   from,
 }: {
@@ -37,7 +39,10 @@ export const addRoleTraits = async <TThread extends Thread<RoleContext>>({
     ...thread,
     context: {
       ...thread.context,
-      traits: [...(thread.context.traits ?? []), ...parsed],
+      inherit: {
+        ...thread.context.inherit,
+        traits: [...(thread.context.inherit.traits ?? []), ...parsed],
+      },
     },
   };
 };

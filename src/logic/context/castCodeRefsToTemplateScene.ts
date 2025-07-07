@@ -1,12 +1,16 @@
 import { Threads } from 'rhachet';
 
 import { GitFile } from '../../__nonpublished_modules__/rhachet-artifact-git/src';
+import { getGitRepoRoot } from '../../__nonpublished_modules__/rhachet-artifact-git/src/logic/repo/getGitRepoRoot';
 import { Artifact } from '../../__nonpublished_modules__/rhachet/src/domain/Artifact';
 
 export const castCodeRefsToTemplateScene = async <
   TStitchee extends string,
   TThreads extends Threads<
-    Record<TStitchee, { scene: { coderefs: Artifact<typeof GitFile>[] } }>
+    Record<
+      TStitchee,
+      { stash: { scene: { coderefs: Artifact<typeof GitFile>[] } } }
+    >
   >,
 >({
   threads,
@@ -19,13 +23,18 @@ export const castCodeRefsToTemplateScene = async <
     await Promise.all(
       (
         threads[stitchee] as {
-          context: { scene: { coderefs: Artifact<typeof GitFile>[] } };
+          context: {
+            stash: { scene: { coderefs: Artifact<typeof GitFile>[] } };
+          };
         }
-      ).context.scene.coderefs.map(async (ref) =>
+      ).context.stash.scene.coderefs.map(async (ref) =>
         [
           '',
           '```ts',
-          `// ${ref.ref.uri}`,
+          `// ${ref.ref.uri.replace(
+            await getGitRepoRoot({ from: process.cwd() }),
+            '@gitroot',
+          )}`,
           (await ref.get())?.content,
           '```',
         ].join('\n'),

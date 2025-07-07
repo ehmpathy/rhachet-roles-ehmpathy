@@ -16,8 +16,10 @@ describe('castCodeRefsToTemplateScene', () => {
     const threads = {
       artist: genThread({
         role: 'artist' as const,
-        scene: {
-          coderefs: [genArtifactGitFile({ uri: __filename })],
+        stash: {
+          scene: {
+            coderefs: [genArtifactGitFile({ uri: __filename })],
+          },
         },
       }),
     };
@@ -42,9 +44,11 @@ describe('castCodeRefsToTemplateScene', () => {
     () => {
       type MyThreads = Threads<{
         artist: {
-          ask: string;
-          art: { claim: Artifact<typeof GitFile> };
-          scene: { coderefs: Artifact<typeof GitFile>[] };
+          stash: {
+            ask: string;
+            art: { claim: Artifact<typeof GitFile> };
+            scene: { coderefs: Artifact<typeof GitFile>[] };
+          };
         };
         critic: Empty;
       }>;
@@ -52,12 +56,14 @@ describe('castCodeRefsToTemplateScene', () => {
       const threads: MyThreads = {
         artist: genThread({
           role: 'artist' as const,
-          ask: 'refactor to use hooks',
-          art: {
-            claim: mockArtifact('/src/App.tsx'),
-          },
-          scene: {
-            coderefs: [mockArtifact('/src/App.tsx')],
+          stash: {
+            ask: 'refactor to use hooks',
+            art: {
+              claim: mockArtifact('/src/App.tsx'),
+            },
+            scene: {
+              coderefs: [mockArtifact('/src/App.tsx')],
+            },
           },
         }),
         critic: genThread({ role: 'critic' as const }),

@@ -1,14 +1,13 @@
 import { readFile } from 'fs/promises';
-import { enweaveOneStitcher, Stitch, Thread } from 'rhachet';
+import { enweaveOneStitcher, GStitcherOf, Stitch } from 'rhachet';
 import { given, when, then } from 'test-fns';
 
 import { genArtifactGitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
+import { enrollThread } from '../../../__nonpublished_modules__/rhachet/src/logic/enrollThread';
+import { usePrep } from '../../../__nonpublished_modules__/test-fns/src/usePrep';
 import { genContextLogTrail } from '../../../__test_assets__/genContextLogTrail';
 import { genContextStitchTrail } from '../../../__test_assets__/genContextStitchTrail';
 import { genStepArtSet } from './genStepArtSet';
-
-const genThread = <C extends { role: string }>(context: C): Thread<C> =>
-  new Thread({ context, stitches: [] });
 
 describe('genStepArtSet (integration)', () => {
   const stitchedContent = 'Generated content for artifact';
@@ -23,15 +22,90 @@ describe('genStepArtSet (integration)', () => {
     });
     const route = genStepArtSet({ stitchee: 'coder', artee: 'summary' });
 
-    const threads = {
-      coder: genThread({
-        role: 'coder',
-        art: { summary: claimsArt },
-      }),
-    };
-    threads.coder.stitches.push({
-      output: { content: stitchedContent },
-    } as Stitch<any>);
+    then('it should infer threads with stash.art.summary correctly', () => {
+      type Threads = GStitcherOf<typeof route>['threads'];
+
+      // ✅ correct
+      const valid: Threads = {
+        coder: {
+          context: {
+            role: 'coder' as const,
+            inherit: { traits: [], skills: [] },
+            stash: {
+              art: {
+                summary: claimsArt,
+              },
+            },
+          },
+          stitches: [],
+        },
+      };
+      expect(valid);
+    });
+
+    then('it should error if stash is missing', () => {
+      type Threads = GStitcherOf<typeof route>['threads'];
+
+      const missingstash: Threads = {
+        coder: {
+          // @ts-expect-error: stash is missing
+          context: { role: 'coder' },
+          stitches: [],
+        },
+      };
+      expect(missingstash);
+    });
+
+    then('it should error if art is missing', () => {
+      type Threads = GStitcherOf<typeof route>['threads'];
+
+      const missingArt: Threads = {
+        coder: {
+          context: {
+            role: 'coder',
+            // @ts-expect-error: art is missing
+            stash: {},
+          },
+          stitches: [],
+        },
+      };
+      expect(missingArt);
+    });
+
+    then('it should error if summary is not an artifact', () => {
+      type Threads = GStitcherOf<typeof route>['threads'];
+
+      const badSummary: Threads = {
+        coder: {
+          role: 'coder',
+          context: {
+            stash: {
+              art: {
+                // @ts-expect-error: content dne on artifact
+                summary: { content: 'not an artifact' },
+              },
+            },
+          },
+          stitches: [],
+        },
+      };
+      expect(badSummary);
+    });
+
+    const threads = usePrep(async () => {
+      const inflight = {
+        coder: await enrollThread({
+          role: 'coder',
+          stash: {
+            art: { summary: claimsArt },
+          },
+        }),
+      };
+      threads.coder.stitches.push({
+        output: { content: stitchedContent },
+      } as Stitch<any>);
+      return inflight;
+    });
 
     // afterAll(async () => {
     //   await claimsArt.del();
@@ -61,15 +135,20 @@ describe('genStepArtSet (integration)', () => {
       await claimsArt.set({ content: 'old-content' });
     });
 
-    const threads = {
-      coder: genThread({
-        role: 'coder',
-        art: { summary: claimsArt },
-      }),
-    };
-    threads.coder.stitches.push({
-      output: { content: stitchedContent },
-    } as Stitch<any>);
+    const threads = usePrep(async () => {
+      const inflight = {
+        coder: await enrollThread({
+          role: 'coder',
+          stash: {
+            art: { summary: claimsArt },
+          },
+        }),
+      };
+      threads.coder.stitches.push({
+        output: { content: stitchedContent },
+      } as Stitch<any>);
+      return inflight;
+    });
 
     // afterAll(async () => {
     //   await claimsArt.del();

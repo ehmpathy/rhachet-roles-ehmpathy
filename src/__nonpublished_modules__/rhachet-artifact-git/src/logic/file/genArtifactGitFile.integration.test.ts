@@ -2,7 +2,7 @@ import { readFile, unlink, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { asSerialJSON } from 'serde-fns';
-import { given, then } from 'test-fns';
+import { given, then, when } from 'test-fns';
 
 import { GitFile } from '../../domain/GitFile';
 import { genArtifactGitFile } from './genArtifactGitFile';
@@ -24,34 +24,59 @@ describe('genArtifactGitFile (integration)', () => {
       } catch {}
     });
 
-    then('artifact.get() reads the existing GitFile', async () => {
-      const artifact = genArtifactGitFile(ref);
-      const got = await artifact.get();
+    when('readwrite', () => {
+      then('artifact.get() reads the existing GitFile', async () => {
+        const artifact = genArtifactGitFile(ref);
+        const got = await artifact.get();
 
-      expect(got).toBeInstanceOf(GitFile);
-      expect(got?.uri).toBe(ref.uri);
-      expect(got?.content).toBe(initialContent);
-      expect(got?.hash).toMatch(/^[a-f0-9]{64}$/);
+        expect(got).toBeInstanceOf(GitFile);
+        expect(got?.uri).toBe(ref.uri);
+        expect(got?.content).toBe(initialContent);
+        expect(got?.hash).toMatch(/^[a-f0-9]{64}$/);
+      });
+
+      then('artifact.set({ content }) writes new GitFile content', async () => {
+        const artifact = genArtifactGitFile(ref);
+        const written = await artifact.set({ content: updatedContent });
+
+        expect(written).toBeInstanceOf(GitFile);
+        expect(written.uri).toBe(ref.uri);
+        expect(written.content).toBe(updatedContent);
+        expect(written.hash).toMatch(/^[a-f0-9]{64}$/);
+
+        const onDisk = await readFile(ref.uri, 'utf-8');
+        expect(onDisk).toBe(updatedContent);
+      });
+
+      then('artifact.del() deletes the file', async () => {
+        const artifact = genArtifactGitFile(ref);
+        await artifact.del();
+
+        await expect(readFile(ref.uri, 'utf-8')).rejects.toThrow(/ENOENT/);
+      });
     });
+    when('readonly', () => {
+      then('readonly artifact.get() still works', async () => {
+        await writeFile(ref.uri, initialContent, 'utf-8');
+        const artifact = genArtifactGitFile(ref, { access: 'readonly' });
 
-    then('artifact.set({ content }) writes new GitFile content', async () => {
-      const artifact = genArtifactGitFile(ref);
-      const written = await artifact.set({ content: updatedContent });
+        const got = await artifact.get();
+        expect(got?.content).toBe(initialContent);
+      });
 
-      expect(written).toBeInstanceOf(GitFile);
-      expect(written.uri).toBe(ref.uri);
-      expect(written.content).toBe(updatedContent);
-      expect(written.hash).toMatch(/^[a-f0-9]{64}$/);
+      then('readonly artifact.set() throws error', async () => {
+        const artifact = genArtifactGitFile(ref, { access: 'readonly' });
 
-      const onDisk = await readFile(ref.uri, 'utf-8');
-      expect(onDisk).toBe(updatedContent);
-    });
+        await expect(artifact.set({ content: updatedContent })).rejects.toThrow(
+          /readonly/,
+        );
+      });
 
-    then('artifact.del() deletes the file', async () => {
-      const artifact = genArtifactGitFile(ref);
-      await artifact.del();
+      then('readonly artifact.del() throws error', async () => {
+        const artifact = genArtifactGitFile(ref, { access: 'readonly' });
 
-      await expect(readFile(ref.uri, 'utf-8')).rejects.toThrow(/ENOENT/);
+        await expect(artifact.del()).rejects.toThrow(/readonly/);
+      });
     });
   });
 

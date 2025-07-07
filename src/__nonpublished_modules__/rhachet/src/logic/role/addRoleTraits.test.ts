@@ -20,7 +20,7 @@ const makeFakeArtifact = (content: string): Artifact<typeof GitFile> => ({
 describe('addRoleTraits', () => {
   given('a thread with empty traits', () => {
     const thread = {
-      context: { traits: [], skills: [] },
+      context: { inherit: { traits: [], skills: [] } },
       stitches: [],
     };
 
@@ -32,7 +32,7 @@ describe('addRoleTraits', () => {
 
       then('should append those traits to the context', async () => {
         const updated = await addRoleTraits({ thread, from: { traits } });
-        expect(updated.context.traits).toEqual(traits);
+        expect(updated.context.inherit.traits).toEqual(traits);
       });
     });
 
@@ -44,7 +44,7 @@ describe('addRoleTraits', () => {
 
       then('should extract and append traits from files', async () => {
         const updated = await addRoleTraits({ thread, from: { artifacts } });
-        expect(updated.context.traits).toEqual([
+        expect(updated.context.inherit.traits).toEqual([
           { content: 'treat consistency as top priority' },
           { content: 'prefer given/when/then structure' },
         ]);
@@ -55,24 +55,29 @@ describe('addRoleTraits', () => {
       const traits: RoleTrait[] = [{ content: 'always test behavior' }];
       const artifacts = [makeFakeArtifact('capture domain terms')];
 
-      then('should merge both sources into context.traits', async () => {
-        const updated = await addRoleTraits({
-          thread,
-          from: { traits, artifacts },
-        });
-        expect(updated.context.traits).toEqual([
-          { content: 'always test behavior' },
-          { content: 'capture domain terms' },
-        ]);
-      });
+      then(
+        'should merge both sources into context.inherit.traits',
+        async () => {
+          const updated = await addRoleTraits({
+            thread,
+            from: { traits, artifacts },
+          });
+          expect(updated.context.inherit.traits).toEqual([
+            { content: 'always test behavior' },
+            { content: 'capture domain terms' },
+          ]);
+        },
+      );
     });
   });
 
   given('a thread with pre-existing traits', () => {
     const thread = {
       context: {
-        traits: [{ content: 'existing trait' }],
-        skills: [],
+        inherit: {
+          traits: [{ content: 'existing trait' }],
+          skills: [],
+        },
       },
       stitches: [],
     };
@@ -82,7 +87,7 @@ describe('addRoleTraits', () => {
 
       then('should preserve existing traits and append new ones', async () => {
         const updated = await addRoleTraits({ thread, from: { artifacts } });
-        expect(updated.context.traits).toEqual([
+        expect(updated.context.inherit.traits).toEqual([
           { content: 'existing trait' },
           { content: 'new trait added' },
         ]);
@@ -92,7 +97,7 @@ describe('addRoleTraits', () => {
 
   given('an invalid input with neither traits nor artifacts', () => {
     const thread = {
-      context: { traits: [], skills: [] },
+      context: { inherit: { traits: [], skills: [] } },
       stitches: [],
     };
 

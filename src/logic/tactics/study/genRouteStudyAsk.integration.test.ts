@@ -3,15 +3,14 @@ import { enweaveOneStitcher } from 'rhachet';
 import { given, when, then } from 'test-fns';
 
 import { genArtifactGitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { genThread } from '../../../__nonpublished_modules__/rhachet/src/logic/genThread';
-import { addRoleTraits } from '../../../__nonpublished_modules__/rhachet/src/logic/role/addRoleTraits';
+import { enrollThread } from '../../../__nonpublished_modules__/rhachet/src/logic/enrollThread';
 import { usePrep } from '../../../__nonpublished_modules__/test-fns/src/usePrep';
 import { genContextLogTrail } from '../../../__test_assets__/genContextLogTrail';
 import { genContextStitchTrail } from '../../../__test_assets__/genContextStitchTrail';
 import { getContextOpenAI } from '../../../__test_assets__/getContextOpenAI';
 import { genRouteStudyAsk } from './genRouteStudyAsk';
 
-describe('genRouteStudyAsk (integration)', () => {
+describe('genRouteStudyAsk ', () => {
   const context = {
     ...genContextLogTrail(),
     ...genContextStitchTrail(),
@@ -19,14 +18,14 @@ describe('genRouteStudyAsk (integration)', () => {
   };
   const route = genRouteStudyAsk();
 
-  given('a mechanic with ask, claim, and coderefs', () => {
-    const askText = 'stubout the ability to subtract';
+  given('a student with ask, claim, and coderefs', () => {
+    const askText = 'stubout the ability to multiply';
 
     const claimsArt = genArtifactGitFile({
-      uri: __dirname + '/.temp/subtract.claims.md',
+      uri: __dirname + '/.temp/multiply.claims.md',
     });
     const coderefArt = genArtifactGitFile({
-      uri: __dirname + '/.temp/subtract.coderef.md',
+      uri: __dirname + '/.temp/multiply.coderef.md',
     });
 
     const coderefContent =
@@ -38,19 +37,23 @@ describe('genRouteStudyAsk (integration)', () => {
     });
 
     when('executed', () => {
-      const threads = {
-        mechanic: {
-          context: {
-            role: 'mechanic' as const,
+      const threads = usePrep(async () => ({
+        student: await enrollThread({
+          role: 'student',
+          stash: {
             ask: askText,
             art: { claims: claimsArt },
             scene: { coderefs: [coderefArt] },
-            traits: [],
-            skills: [],
           },
-          stitches: [],
-        },
-      };
+          inherit: {
+            traits: [
+              genArtifactGitFile({
+                uri: '@gitroot/src/logic/tactics/codediff/.refs/style.compressed.md',
+              }),
+            ],
+          },
+        }),
+      }));
 
       then('updates the claims artifact', async () => {
         const outcome = await enweaveOneStitcher(
@@ -62,12 +65,12 @@ describe('genRouteStudyAsk (integration)', () => {
         const { content } =
           (await claimsArt.get()) ??
           UnexpectedCodePathError.throw('expected file');
-        expect(content).toContain('subtract');
+        expect(content).toContain('multiply');
       });
     });
   });
 
-  given.only('a mechanic with ask, claim, and coderefs', () => {
+  given.only('a student with ask, claim, and coderefs', () => {
     const askText = `
 declare addRoleTraits, which adds traits to any role
 
@@ -89,26 +92,24 @@ enable it to accept either { content } or Artifact<typeof GitFile> list
     });
 
     when('executed', () => {
-      const mechanic = genThread({
-        role: 'mechanic' as const,
-        ask: askText,
-        art: { claims: claimsArt },
-        scene: { coderefs: [coderefExampleMech, coderefRoleContext] },
-        traits: [],
-        skills: [],
-      });
       const threads = usePrep(async () => {
+        const student = await enrollThread({
+          role: 'student',
+          stash: {
+            ask: askText,
+            art: { claims: claimsArt },
+            scene: { coderefs: [coderefExampleMech, coderefRoleContext] },
+          },
+          inherit: {
+            traits: [
+              genArtifactGitFile({
+                uri: '@gitroot/src/logic/tactics/codediff/.refs/style.compressed.md',
+              }),
+            ],
+          },
+        });
         return {
-          mechanic: await addRoleTraits({
-            thread: mechanic,
-            from: {
-              artifacts: [
-                genArtifactGitFile({
-                  uri: '@gitroot/src/logic/tactics/codediff/.refs/style.compressed.md',
-                }),
-              ],
-            },
-          }),
+          student,
         };
       });
 

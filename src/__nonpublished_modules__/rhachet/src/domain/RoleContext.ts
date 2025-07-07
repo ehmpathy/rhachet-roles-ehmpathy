@@ -1,3 +1,5 @@
+import { ThreadContextRole, ThreadRole } from 'rhachet';
+
 /**
  * .what = a trait which is adopted as an inherent truth of any agent which assumes the role
  * .why = defines the default mindset or behavioral axioms that persist across all tasks performed in the role
@@ -27,7 +29,24 @@ export interface RoleSkill {
  *
  * todo = lift to be a primitive of rhachet itself
  */
-export interface RoleContext {
-  traits: RoleTrait[];
-  skills: RoleSkill[];
+export interface RoleContext<
+  TRole extends ThreadRole,
+  TStash extends Record<string, any> | undefined,
+> extends ThreadContextRole<TRole> {
+  role: TRole;
+
+  /**
+   * .what = the persistent traits and skills that define how this role behaves
+   * .why  = allows role-specific behavior, reasoning styles, and tool usage to persist across steps
+   */
+  inherit: {
+    traits: RoleTrait[];
+    skills: RoleSkill[];
+  };
+
+  /**
+   * .what = short-lived or dynamic data needed for the current task
+   * .why  = gives the thread situational context without polluting long-term role identity
+   */
+  stash: TStash;
 }
