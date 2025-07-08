@@ -8,6 +8,7 @@ import { usePrep } from '../../../__nonpublished_modules__/test-fns/src/usePrep'
 import { genContextLogTrail } from '../../../__test_assets__/genContextLogTrail';
 import { genContextStitchTrail } from '../../../__test_assets__/genContextStitchTrail';
 import { getContextOpenAI } from '../../../__test_assets__/getContextOpenAI';
+import { getRefOrgPatterns } from './getRefOrgPatterns';
 import { routeMechanicCodeIterate } from './routeMechanicCodeIterate';
 
 describe('routeMechanicCodeIterate', () => {
@@ -153,15 +154,7 @@ export const multiply = ({ a, b }: { a: number, b: number }): number => {
               ask: 'multiply two numbers',
               art: { inflight: inflightArt },
               org: {
-                patterns: [
-                  genArtifactGitFile({
-                    uri:
-                      __dirname + '/.refs/pattern.mech.args.input-context.md',
-                  }),
-                  genArtifactGitFile({
-                    uri: __dirname + '/.refs/pattern.mech.arrowonly.md',
-                  }),
-                ],
+                patterns: getRefOrgPatterns({ purpose: 'produce' }),
               },
               scene: { coderefs: [inflightArt] },
             },
@@ -171,15 +164,7 @@ export const multiply = ({ a, b }: { a: number, b: number }): number => {
             stash: {
               art: { feedback: feedbackArt },
               org: {
-                patterns: [
-                  genArtifactGitFile({
-                    uri:
-                      __dirname + '/.refs/pattern.mech.args.input-context.md',
-                  }),
-                  genArtifactGitFile({
-                    uri: __dirname + '/.refs/pattern.mech.arrowonly.md',
-                  }),
-                ],
+                patterns: getRefOrgPatterns({ purpose: 'produce' }),
               },
             },
           }),

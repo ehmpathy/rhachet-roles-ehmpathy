@@ -23,10 +23,10 @@ export const getTemplateValFromArtifacts = async (input: {
           });
         return [
           '',
-          '```ts',
-          `// ${ref.ref.uri.replace(root, '@gitroot')}`,
-          content,
-          '```',
+          '    ```ts',
+          `    // ${ref.ref.uri.replace(root, '@gitroot')}`,
+          ...content.split('\n').map((line) => `    ${line}`), // indents by 4 chars
+          '    ```',
         ].join('\n');
       }),
     )

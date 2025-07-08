@@ -37,7 +37,7 @@ const getName = (input) => input.name;
 
 ###### .negative
 ```ts
-function setCustomerPhone(customer, phone) {   // ⛔ function keyword
+function setCustomerPhone({ customer, phone }) {   // ⛔ function keyword
   return { ...customer, phone };
 }
 

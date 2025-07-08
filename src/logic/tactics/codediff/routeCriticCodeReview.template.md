@@ -72,6 +72,7 @@ directive
   - avoid repetition and verbosity
   - compare against the claims for this ask, included below
   - limit praise to cases of notable imagination, not to adherence to systemic standards
+  - note: focus on the subject. use the scene only to learn about consistency
 
 --------------------------
 

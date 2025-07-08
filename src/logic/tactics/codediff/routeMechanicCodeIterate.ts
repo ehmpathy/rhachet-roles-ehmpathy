@@ -42,7 +42,7 @@ interface ThreadsDesired
     >;
   }> {}
 
-type StitcherDesired = GStitcher<
+export type RouteMechanicCodeIterateStitcher = GStitcher<
   ThreadsDesired,
   ContextOpenAI & GStitcher['context'],
   { content: string }
@@ -61,14 +61,15 @@ type StitcherDesired = GStitcher<
  *   - mechanic.critic reviews the code
  *   - mechanic.judge decides release readiness
  */
-export const routeMechanicCodeIterate = asStitcherFlat<StitcherDesired>(
-  genStitchRoute({
-    slug: '[mechanic]<code><iterate>',
-    readme: '@[artist]<diff> -> @[critic]<review> -> @[judge]<release>',
-    sequence: [
-      routeArtistCodeDiff,
-      routeCriticCodeReview,
-      routeJudgeReleasable,
-    ],
-  }),
-);
+export const routeMechanicCodeIterate =
+  asStitcherFlat<RouteMechanicCodeIterateStitcher>(
+    genStitchRoute({
+      slug: '[mechanic]<code><iterate>',
+      readme: '@[artist]<diff> -> @[critic]<review> -> @[judge]<release>',
+      sequence: [
+        routeArtistCodeDiff,
+        routeCriticCodeReview,
+        routeJudgeReleasable,
+      ],
+    }),
+  );
