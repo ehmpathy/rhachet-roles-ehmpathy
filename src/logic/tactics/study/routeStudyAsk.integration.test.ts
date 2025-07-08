@@ -8,15 +8,15 @@ import { usePrep } from '../../../__nonpublished_modules__/test-fns/src/usePrep'
 import { genContextLogTrail } from '../../../__test_assets__/genContextLogTrail';
 import { genContextStitchTrail } from '../../../__test_assets__/genContextStitchTrail';
 import { getContextOpenAI } from '../../../__test_assets__/getContextOpenAI';
-import { genRouteStudyAsk } from './genRouteStudyAsk';
+import { routeStudyAsk } from './routeStudyAsk';
 
-describe('genRouteStudyAsk ', () => {
+describe('routeStudyAsk ', () => {
   const context = {
     ...genContextLogTrail(),
     ...genContextStitchTrail(),
     ...getContextOpenAI(),
   };
-  const route = genRouteStudyAsk();
+  const route = routeStudyAsk;
 
   given('a student with ask, claim, and coderefs', () => {
     const askText = 'stubout the ability to multiply';

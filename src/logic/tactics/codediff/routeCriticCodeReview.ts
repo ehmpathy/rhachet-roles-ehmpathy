@@ -48,7 +48,7 @@ type StitcherDesired = GStitcher<
 >;
 
 const template = genTemplate<ThreadsDesired>({
-  ref: { uri: __dirname + '/genRouteCriticCodeReview.template.md' },
+  ref: { uri: __dirname + '/routeCriticCodeReview.template.md' },
   getVariables: async ({ threads }) => ({
     diff:
       (await threads.artist.context.stash.art.inflight.get())?.content ??
@@ -94,5 +94,3 @@ export const routeCriticCodeReview = asStitcherFlat<StitcherDesired>(
     sequence: [stepImagineFeedback, stepArtSet],
   }),
 );
-
-export const genRouteCriticCodeReview = () => routeCriticCodeReview;

@@ -1,4 +1,3 @@
-import { UnexpectedCodePathError } from 'helpful-errors';
 import { asStitcherFlat, genStitchRoute, GStitcher, Threads } from 'rhachet';
 
 import { GitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
@@ -43,12 +42,14 @@ type StitcherDesired = GStitcher<
 >;
 
 const template = genTemplate<ThreadsDesired>({
-  ref: { uri: __dirname + '/genRouteArtistCodeDiff.template.md' },
+  ref: { uri: __dirname + '/routeArtistCodeDiff.template.md' },
   getVariables: async ({ threads }) => ({
     ask: threads.artist.context.stash.ask,
     claims: (
       await threads.student.context.stash.art.claims.get().expect('isPresent')
     ).content,
+    inflight:
+      (await threads.artist.context.stash.art.inflight.get())?.content ?? '',
     // todo: remove the below example, once we confirm that .isPresent is observable enough
     // ??
     //   UnexpectedCodePathError.throw(
@@ -86,12 +87,10 @@ const stepArtSet = genStepArtSet({
   artee: 'inflight',
 });
 
-export const routeArtistCodeDiffPropose = asStitcherFlat<StitcherDesired>(
+export const routeArtistCodeDiff = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
     slug: '[artist]<codediff>',
     readme: '@[artist]<codediff><imagine> -> [target]',
     sequence: [stepImagineCodeDiff, stepArtSet],
   }),
 );
-
-export const genRouteArtistCodeDiffPropose = () => routeArtistCodeDiffPropose;

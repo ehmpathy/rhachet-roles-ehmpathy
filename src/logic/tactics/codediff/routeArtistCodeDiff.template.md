@@ -1,7 +1,7 @@
 directive
-- <codediff><imagine> the [ask]
-  - input = [ask], [claims], [feedback]?
-  - output = .ts contents (all thoughts should go in comments, output should be valid typescript); no markdown codeblock, just code
+- <codediff><imagine> the [ask] against the [inflight]
+  - input = [inflight], [ask], [claims], [feedback]?
+    - output = new [inflight] .ts contents (all thoughts should go in comments, output should be valid typescript); no markdown codeblock, just code
 
 context.role.traits
 - maximally concise; prefer treestructs and outlines; maximize signal, minimize words
@@ -17,9 +17,9 @@ context.scene
 $.rhachet{scene}
 
 directive
-- <codediff><imagine> the [ask]
+- <codediff><imagine> the [ask] against the [inflight]
   - input = [ask], [claims], [feedback]?
-  - output = .ts contents (all thoughts should go in comments, output should be valid typescript); no markdown codeblock, just code
+  - output = new [inflight] .ts contents (all thoughts should go in comments, output should be valid typescript); no markdown codeblock, just code
 
 --------------------------
 
@@ -31,3 +31,10 @@ $.rhachet{feedback}
 
 ask =
 $.rhachet{ask}
+
+--------------------------
+
+inflight =
+```ts
+$.rhachet{inflight}
+```

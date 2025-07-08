@@ -26,10 +26,10 @@ type StitcherDesired = GStitcher<
 >;
 
 const template = genTemplate<StitcherDesired['threads']>({
-  ref: { uri: __dirname + '/genRouteStudyAsk.template.md' },
+  ref: { uri: __dirname + '/routeStudyAsk.template.md' },
   getVariables: async ({ threads }) => ({
-    ask: threads.student.context.stash.ask,
     ...(await getTemplateVarsFromRoleInherit({ thread: threads.student })),
+    ask: threads.student.context.stash.ask,
     scene: await getTemplateValFromArtifacts({
       artifacts: threads.student.context.stash.scene.coderefs,
     }),
@@ -46,12 +46,10 @@ const stepStudyAskImagine = genStepImagineViaTemplate<StitcherDesired>({
 
 const stepArtSet = genStepArtSet({ stitchee: 'student', artee: 'claims' });
 
-const routeStudyAsk = asStitcherFlat<StitcherDesired>(
+export const routeStudyAsk = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
     slug: '[student]<study>[ask]',
     readme: '@[student]<study>[ask] -> [[claim]]s',
     sequence: [stepStudyAskImagine, stepArtSet],
   }),
 );
-
-export const genRouteStudyAsk = () => routeStudyAsk;

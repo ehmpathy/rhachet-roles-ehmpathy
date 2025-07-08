@@ -1,7 +1,7 @@
 import { genStitchRoute } from 'rhachet';
 
-import { routeArtistCodeDiffPropose } from './genRouteArtistCodeDiff';
-import { routeCriticCodeReview } from './genRouteCriticCodeReview';
+import { routeArtistCodeDiffPropose } from './routeArtistCodeDiff';
+import { routeCriticCodeReview } from './routeCriticCodeReview';
 
 /**
  * .what = a route where a mechanic's threads iterate on code
