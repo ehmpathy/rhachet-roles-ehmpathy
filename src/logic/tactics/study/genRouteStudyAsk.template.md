@@ -47,7 +47,7 @@ context.role.skills
 $.rhachet{inherit.skills}
 
 context.scene
-$.rhachet{stash.scene}
+$.rhachet{scene}
 
 
 directive

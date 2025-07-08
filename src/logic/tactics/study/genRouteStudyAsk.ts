@@ -5,8 +5,8 @@ import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/A
 import { RoleContext } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
 import { genStepImagineViaTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
 import { genTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
+import { getTemplateValFromArtifacts } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateValFromArtifacts';
 import { getTemplateVarsFromRoleInherit } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
-import { getTemplateVarsFromStashScene } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromStashScene';
 import { ContextOpenAI, sdkOpenAi } from '../../../data/sdk/sdkOpenAi';
 import { genStepArtSet } from '../artifact/genStepArtSet';
 
@@ -30,7 +30,9 @@ const template = genTemplate<StitcherDesired['threads']>({
   getVariables: async ({ threads }) => ({
     ask: threads.student.context.stash.ask,
     ...(await getTemplateVarsFromRoleInherit({ thread: threads.student })),
-    ...(await getTemplateVarsFromStashScene({ thread: threads.student })),
+    scene: await getTemplateValFromArtifacts({
+      artifacts: threads.student.context.stash.scene.coderefs,
+    }),
   }),
 });
 

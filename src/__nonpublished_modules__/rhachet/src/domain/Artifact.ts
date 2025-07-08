@@ -1,3 +1,4 @@
+import { WithExpectOutput } from 'as-procedure';
 import { DomainEntity, Refable, RefByUnique } from 'domain-objects';
 
 /**
@@ -15,7 +16,7 @@ export interface Artifact<TRefable extends Refable<any, any, any>> {
    * .what = loads the resource if it exists, else returns null
    * .why  = avoids throwing on missing files; supports optional or lazy creation
    */
-  get: () => Promise<InstanceType<TRefable> | null>;
+  get: WithExpectOutput<() => Promise<InstanceType<TRefable> | null>>;
 
   /**
    * .what = writes or replaces the resource with new content

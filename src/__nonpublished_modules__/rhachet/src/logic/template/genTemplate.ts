@@ -1,4 +1,5 @@
 import { Threads } from 'rhachet';
+import { Serializable } from 'serde-fns';
 
 import { Template } from '../../domain/Template';
 import { useTemplate } from './useTemplate';
@@ -10,7 +11,7 @@ import { useTemplate } from './useTemplate';
  */
 export const genTemplate = <
   TThreads extends Threads<any>,
-  TVariables extends Record<string, unknown> = Record<string, unknown>,
+  TVariables extends Serializable = Serializable,
 >(input: {
   ref: Template<TVariables>['ref'];
   getVariables: (input: {

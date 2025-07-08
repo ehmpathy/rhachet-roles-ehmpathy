@@ -6,8 +6,8 @@ import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/A
 import { RoleContext } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
 import { genStepImagineViaTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
 import { genTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
+import { getTemplateValFromArtifacts } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateValFromArtifacts';
 import { getTemplateVarsFromRoleInherit } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
-import { getTemplateVarsFromStashScene } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromStashScene';
 import { ContextOpenAI, sdkOpenAi } from '../../../data/sdk/sdkOpenAi';
 import { genStepArtSet } from '../artifact/genStepArtSet';
 
@@ -18,6 +18,7 @@ interface ThreadsDesired
       {
         ask: string;
         art: { inflight: Artifact<typeof GitFile> };
+        org: { patterns: Artifact<typeof GitFile>[] };
         scene: { coderefs: Artifact<typeof GitFile>[] };
       }
     >;
@@ -25,6 +26,12 @@ interface ThreadsDesired
       'student',
       {
         art: { claims: Artifact<typeof GitFile> };
+      }
+    >;
+    critic: RoleContext<
+      'critic',
+      {
+        art: { feedback: Artifact<typeof GitFile> | null };
       }
     >;
   }> {}
@@ -36,19 +43,33 @@ type StitcherDesired = GStitcher<
 >;
 
 const template = genTemplate<ThreadsDesired>({
-  ref: { uri: __dirname + '/genRouteArtistCodeDiffImagine.template.md' },
+  ref: { uri: __dirname + '/genRouteArtistCodeDiff.template.md' },
   getVariables: async ({ threads }) => ({
     ask: threads.artist.context.stash.ask,
-    claims:
-      (await threads.student.context.stash.art.claims.get())?.content ??
-      UnexpectedCodePathError.throw(
-        'could not get claims from student. file?.content does not exist',
-        {
-          threads,
-        },
-      ),
+    claims: (
+      await threads.student.context.stash.art.claims.get().expect('isPresent')
+    ).content,
+    // todo: remove the below example, once we confirm that .isPresent is observable enough
+    // ??
+    //   UnexpectedCodePathError.throw(
+    //     'could not get claims from student. file?.content does not exist',
+    //     {
+    //       threads,
+    //     },
+    //   ),
+    feedback:
+      (
+        await threads.critic.context.stash.art.feedback
+          ?.get()
+          .expect('isPresent')
+      )?.content ?? 'not reviewed yet', // no feedback yet is possible
     ...(await getTemplateVarsFromRoleInherit({ thread: threads.artist })),
-    ...(await getTemplateVarsFromStashScene({ thread: threads.artist })),
+    scene: await getTemplateValFromArtifacts({
+      artifacts: threads.artist.context.stash.scene.coderefs,
+    }),
+    patterns: await getTemplateValFromArtifacts({
+      artifacts: threads.artist.context.stash.org.patterns,
+    }),
   }),
 });
 
@@ -65,7 +86,7 @@ const stepArtSet = genStepArtSet({
   artee: 'inflight',
 });
 
-const routeArtistCodeDiffPropose = asStitcherFlat<StitcherDesired>(
+export const routeArtistCodeDiffPropose = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
     slug: '[artist]<codediff>',
     readme: '@[artist]<codediff><imagine> -> [target]',

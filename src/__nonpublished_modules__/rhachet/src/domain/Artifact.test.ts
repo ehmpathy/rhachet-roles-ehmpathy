@@ -1,3 +1,4 @@
+import { withExpectOutput } from 'as-procedure';
 import { given, when, then } from 'test-fns';
 
 import { GitCommit } from '../../../rhachet-artifact-git/src/domain/GitCommit';
@@ -17,13 +18,14 @@ describe('Artifact', () => {
 
     const artifact: Artifact<typeof GitFile> = {
       ref: { uri: 'file-001' },
-      get: async () =>
+      get: withExpectOutput(async () =>
         currentContent === null
           ? null
           : {
               ...initialFile,
               content: currentContent,
             },
+      ),
       set: async () => {
         currentContent = 'console.log("updated")';
         return { ...initialFile, content: currentContent };
@@ -89,13 +91,14 @@ describe('Artifact', () => {
 
     const artifact: Artifact<typeof GitRepo> = {
       ref: { slug: 'repo-001' },
-      get: async () =>
+      get: withExpectOutput(async () =>
         localCommit === null
           ? null
           : new GitRepo({
               ...initialRepo,
               local: { ...initialRepo.local, commit: localCommit },
             }),
+      ),
       set: async () => {
         localCommit = commitB;
         return new GitRepo({

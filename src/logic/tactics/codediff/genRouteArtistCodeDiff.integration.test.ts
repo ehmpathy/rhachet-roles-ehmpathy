@@ -25,6 +25,12 @@ describe('genRouteArtistCodeDiffImagine', () => {
     },
     { access: 'readonly' }, // this is a fixture, dont allow overwrite
   );
+  const feedbackArt = genArtifactGitFile(
+    {
+      uri: __dirname + '/.test/multiply.feedback.md',
+    },
+    { access: 'readonly' }, // this is a fixture, dont allow overwrite
+  );
 
   given('we want to multiply', () => {
     const coderefArt = genArtifactGitFile({
@@ -54,6 +60,19 @@ describe('genRouteArtistCodeDiffImagine', () => {
                 ask: askText,
                 art: { inflight: inflightArt },
                 scene: { coderefs: [coderefArt] },
+                org: {
+                  patterns: [
+                    // todo: centralize the access
+                    genArtifactGitFile({
+                      uri:
+                        __dirname + '/.refs/pattern.mech.args.input-context.md',
+                    }),
+                    genArtifactGitFile({
+                      uri: __dirname + '/.refs/pattern.mech.arrowonly.md',
+                    }),
+                    // note how we dont include the test patterns, since this isn't for a test -> <distill>[context]
+                  ],
+                },
               },
               inherit: {
                 traits: [
@@ -67,6 +86,12 @@ describe('genRouteArtistCodeDiffImagine', () => {
               role: 'student',
               stash: {
                 art: { claims: claimsArt },
+              },
+            }),
+            critic: await enrollThread({
+              role: 'critic',
+              stash: {
+                art: { feedback: null }, // no feedback yet
               },
             }),
           };
@@ -120,6 +145,19 @@ export const add = (input: [number, number]) => input[0] + input[1];
               ask: askText,
               art: { inflight: inflightArt },
               scene: { coderefs: [coderefArt] },
+              org: {
+                patterns: [
+                  // todo: centralize the access
+                  genArtifactGitFile({
+                    uri:
+                      __dirname + '/.refs/pattern.mech.args.input-context.md',
+                  }),
+                  genArtifactGitFile({
+                    uri: __dirname + '/.refs/pattern.mech.arrowonly.md',
+                  }),
+                  // note how we dont include the test patterns, since this isn't for a test -> <distill>[context]
+                ],
+              },
             },
             inherit: {
               traits: [
@@ -133,6 +171,12 @@ export const add = (input: [number, number]) => input[0] + input[1];
             role: 'student',
             stash: {
               art: { claims: claimsArt },
+            },
+          }),
+          critic: await enrollThread({
+            role: 'critic',
+            stash: {
+              art: { feedback: null }, // no feedback yet
             },
           }),
         }));
@@ -150,6 +194,79 @@ export const add = (input: [number, number]) => input[0] + input[1];
           expect(content).toMatch(/multiply/);
           expect(result.threads.artist.stitches.length).toBeGreaterThan(0);
         });
+      });
+    });
+  });
+
+  given('inflightArt has prior content, responds to critic feedback', () => {
+    const askText = 'improve the readability of the multiply function';
+
+    const inflightArt = genArtifactGitFile({
+      uri: __dirname + '/.temp/multiply.feedbacked.ts',
+    });
+
+    beforeEach(async () => {
+      await inflightArt.set({
+        content: 'export const multiply=(a,b)=>a*b;',
+      });
+    });
+
+    when('executing the route', () => {
+      const threads = usePrep(async () => ({
+        artist: await enrollThread({
+          role: 'artist',
+          stash: {
+            ask: askText,
+            art: { inflight: inflightArt },
+            scene: { coderefs: [] },
+            org: {
+              patterns: [
+                // todo: centralize the access
+                genArtifactGitFile({
+                  uri: __dirname + '/.refs/pattern.mech.args.input-context.md',
+                }),
+                genArtifactGitFile({
+                  uri: __dirname + '/.refs/pattern.mech.arrowonly.md',
+                }),
+                // note how we dont include the test patterns, since this isn't for a test -> <distill>[context]
+              ],
+            },
+          },
+          inherit: {
+            traits: [
+              genArtifactGitFile({
+                uri: '@gitroot/src/logic/tactics/codediff/.refs/style.compressed.md',
+              }),
+            ],
+          },
+        }),
+        student: await enrollThread({
+          role: 'student',
+          stash: {
+            art: { claims: claimsArt },
+          },
+        }),
+        critic: await enrollThread({
+          role: 'critic',
+          stash: {
+            art: { feedback: feedbackArt },
+          },
+        }),
+      }));
+
+      then('responds to feedback', async () => {
+        const result = await enweaveOneStitcher(
+          { stitcher: route, threads },
+          context,
+        );
+
+        const file = await inflightArt.get();
+        const content =
+          file?.content ?? UnexpectedCodePathError.throw('expected file');
+
+        expect(content).toMatch(/multiply/);
+        expect(content).toMatch(/\}\)/); // should have context input
+        expect(result.threads.artist.stitches.length).toBeGreaterThan(0);
       });
     });
   });

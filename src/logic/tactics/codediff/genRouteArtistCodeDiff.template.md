@@ -1,6 +1,6 @@
 directive
 - <codediff><imagine> the [ask]
-  - input = [ask], [claims]
+  - input = [ask], [claims], [feedback]?
   - output = .ts contents (all thoughts should go in comments, output should be valid typescript); no markdown codeblock, just code
 
 context.role.traits
@@ -14,17 +14,20 @@ context.role.skills
 $.rhachet{inherit.skills}
 
 context.scene
-$.rhachet{stash.scene}
+$.rhachet{scene}
 
 directive
 - <codediff><imagine> the [ask]
-  - input = [ask], [claims]
+  - input = [ask], [claims], [feedback]?
   - output = .ts contents (all thoughts should go in comments, output should be valid typescript); no markdown codeblock, just code
 
 --------------------------
 
 claims =
 $.rhachet{claims}
+
+feedback =
+$.rhachet{feedback}
 
 ask =
 $.rhachet{ask}

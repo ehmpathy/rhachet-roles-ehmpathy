@@ -1,3 +1,4 @@
+import { withExpectOutput } from 'as-procedure';
 import { RefByUnique } from 'domain-objects';
 import { HelpfulError } from 'helpful-errors';
 
@@ -29,7 +30,9 @@ export const genArtifactGitFile = (
 
   return new Artifact<typeof GitFile>({
     ref,
-    get: async () => await gitFileGet({ ref: await uniRefPromise }),
+    get: withExpectOutput(
+      async () => await gitFileGet({ ref: await uniRefPromise }),
+    ),
     set: async ({ content }) => {
       if (access === 'readonly')
         ArtifactAccessDeniedError.throw(

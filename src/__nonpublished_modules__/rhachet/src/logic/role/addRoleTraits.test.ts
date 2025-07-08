@@ -1,3 +1,4 @@
+import { withExpectOutput } from 'as-procedure';
 import { UnexpectedCodePathError } from 'helpful-errors';
 import { given, when, then } from 'test-fns';
 
@@ -8,11 +9,11 @@ import { addRoleTraits } from './addRoleTraits';
 
 const makeFakeArtifact = (content: string): Artifact<typeof GitFile> => ({
   ref: { uri: `/fake/${Math.random()}` },
-  get: async () => ({
+  get: withExpectOutput(async () => ({
     uri: '/fake/file.md',
     hash: 'hash123',
     content,
-  }),
+  })),
   set: () => UnexpectedCodePathError.throw('todo'),
   del: () => UnexpectedCodePathError.throw('todo'),
 });

@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.842.0",
-    "as-procedure": "1.1.6",
+    "as-procedure": "1.1.7",
     "domain-objects": "0.25.2",
     "find-up": "5.0.0",
     "flattie": "1.1.1",
