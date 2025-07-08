@@ -50,20 +50,9 @@ const template = genTemplate<ThreadsDesired>({
     ).content,
     inflight:
       (await threads.artist.context.stash.art.inflight.get())?.content ?? '',
-    // todo: remove the below example, once we confirm that .isPresent is observable enough
-    // ??
-    //   UnexpectedCodePathError.throw(
-    //     'could not get claims from student. file?.content does not exist',
-    //     {
-    //       threads,
-    //     },
-    //   ),
     feedback:
-      (
-        await threads.critic.context.stash.art.feedback
-          ?.get()
-          .expect('isPresent')
-      )?.content ?? 'not reviewed yet', // no feedback yet is possible
+      (await threads.critic.context.stash.art.feedback?.get())?.content ??
+      'not reviewed yet', // no feedback yet is possible
     ...(await getTemplateVarsFromRoleInherit({ thread: threads.artist })),
     scene: await getTemplateValFromArtifacts({
       artifacts: threads.artist.context.stash.scene.coderefs,
