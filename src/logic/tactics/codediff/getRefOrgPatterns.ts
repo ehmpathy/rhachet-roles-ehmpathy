@@ -20,11 +20,11 @@ export const getRefOrgPatterns = (input: {
     //   uri: __dirname + '/.refs/pattern.mech.what-why.md',
     // }),
     genArtifactGitFile({
-      uri: __dirname + '/.refs/patterm.mech.compressed.md', // compresses the 3 above
+      uri: __dirname + '/.refs/codestyle/.mech.compressed.md', // compresses the 3 above
     }),
     input.purpose === 'prepare'
       ? genArtifactGitFile({
-          uri: __dirname + '/.refs/pattern.tests.given-when-then.md',
+          uri: __dirname + '/.refs/codestyle/pattern.tests.given-when-then.md',
         })
       : undefined,
   ].filter(isPresent);

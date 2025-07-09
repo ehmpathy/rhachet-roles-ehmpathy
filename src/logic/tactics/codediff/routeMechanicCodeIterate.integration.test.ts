@@ -32,19 +32,24 @@ describe('routeMechanicCodeIterate', () => {
       const inflightArt = genArtifactGitFile({
         uri:
           __dirname +
-          '/.temp/mechanicCodeIterate/multiply.iterate.hasblockers.ts',
+          '/.temp/mechanicCodeIterate/multiply.hasblockers.inflight.ts',
       });
 
       const feedbackArt = genArtifactGitFile({
         uri:
           __dirname +
-          '/.temp/mechanicCodeIterate/multiply.feedback.hasblockers.json',
+          '/.temp/mechanicCodeIterate/multiply.hasblockers.feedback.json',
+      });
+      const feedbackCodestyleArt = genArtifactGitFile({
+        uri:
+          __dirname +
+          '/.temp/mechanicCodeIterate/multiply.hasblockers.feedback.codestyle.json',
       });
 
       const judgementArt = genArtifactGitFile({
         uri:
           __dirname +
-          '/.temp/mechanicCodeIterate/multiply.judgement.hasblockers.json',
+          '/.temp/mechanicCodeIterate/multiply.hasblockers.judgement.json',
       });
 
       beforeEach(async () => {
@@ -69,17 +74,12 @@ describe('routeMechanicCodeIterate', () => {
           critic: await enrollThread({
             role: 'critic',
             stash: {
-              art: { feedback: feedbackArt },
+              art: {
+                feedback: feedbackArt,
+                feedbackCodestyle: feedbackCodestyleArt,
+              },
               org: {
-                patterns: [
-                  genArtifactGitFile({
-                    uri:
-                      __dirname + '/.refs/pattern.mech.args.input-context.md',
-                  }),
-                  genArtifactGitFile({
-                    uri: __dirname + '/.refs/pattern.mech.arrowonly.md',
-                  }),
-                ],
+                patterns: await getRefOrgPatterns({ purpose: 'produce' }),
               },
             },
           }),
@@ -120,19 +120,24 @@ describe('routeMechanicCodeIterate', () => {
       const inflightArt = genArtifactGitFile({
         uri:
           __dirname +
-          '/.temp/mechanicCodeIterate/multiply.iterate.noblockers.ts',
+          '/.temp/mechanicCodeIterate/multiply.nonblockers.inflight.ts',
       });
 
       const feedbackArt = genArtifactGitFile({
         uri:
           __dirname +
-          '/.temp/mechanicCodeIterate/multiply.feedback.noblockers.json',
+          '/.temp/mechanicCodeIterate/multiply.nonblockers.feedback.json',
+      });
+      const feedbackCodestyleArt = genArtifactGitFile({
+        uri:
+          __dirname +
+          '/.temp/mechanicCodeIterate/multiply.nonblockers.feedback.codestyle.json',
       });
 
       const judgementArt = genArtifactGitFile({
         uri:
           __dirname +
-          '/.temp/mechanicCodeIterate/multiply.judgement.noblockers.json',
+          '/.temp/mechanicCodeIterate/multiply.nonblockers.judgement.json',
       });
 
       beforeEach(async () => {
@@ -162,7 +167,10 @@ export const multiply = ({ a, b }: { a: number, b: number }): number => {
           critic: await enrollThread({
             role: 'critic',
             stash: {
-              art: { feedback: feedbackArt },
+              art: {
+                feedback: feedbackArt,
+                feedbackCodestyle: feedbackCodestyleArt,
+              },
               org: {
                 patterns: getRefOrgPatterns({ purpose: 'produce' }),
               },

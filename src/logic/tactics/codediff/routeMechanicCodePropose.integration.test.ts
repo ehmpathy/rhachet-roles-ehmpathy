@@ -1,4 +1,4 @@
-// routeMechanicCodePropose.integration.test.ts
+import { toMilliseconds } from '@ehmpathy/uni-time';
 import { enweaveOneStitcher } from 'rhachet';
 import { given, when, then } from 'test-fns';
 
@@ -10,6 +10,8 @@ import { genContextStitchTrail } from '../../../__test_assets__/genContextStitch
 import { getContextOpenAI } from '../../../__test_assets__/getContextOpenAI';
 import { getRefOrgPatterns } from './getRefOrgPatterns';
 import { routeMechanicCodePropose } from './routeMechanicCodePropose';
+
+jest.setTimeout(toMilliseconds({ minutes: 5 }));
 
 describe('routeMechanicCodePropose', () => {
   const context = {
@@ -34,6 +36,11 @@ describe('routeMechanicCodePropose', () => {
       });
       const feedbackArt = genArtifactGitFile({
         uri: __dirname + '/.temp/mechanicCodePropose/fromgood.feedback.json',
+      });
+      const feedbackCodestyleArt = genArtifactGitFile({
+        uri:
+          __dirname +
+          '/.temp/mechanicCodePropose/fromgood.feedback.codestyle.json',
       });
       const judgementArt = genArtifactGitFile({
         uri: __dirname + '/.temp/mechanicCodePropose/fromgood.judgement.json',
@@ -76,14 +83,31 @@ export const subtract = ({ a, b }: { a: number, b: number }): number => {
               },
               scene: { coderefs: [coderefArt] },
             },
+            inherit: {
+              traits: [
+                genArtifactGitFile({
+                  uri: __dirname + '/.refs/style.compressed.md',
+                }),
+              ],
+            },
           }),
           critic: await enrollThread({
             role: 'critic',
             stash: {
-              art: { feedback: feedbackArt },
+              art: {
+                feedback: feedbackArt,
+                feedbackCodestyle: feedbackCodestyleArt,
+              },
               org: {
                 patterns: getRefOrgPatterns({ purpose: 'produce' }),
               },
+            },
+            inherit: {
+              traits: [
+                genArtifactGitFile({
+                  uri: __dirname + '/.refs/style.compressed.md',
+                }),
+              ],
             },
           }),
           student: await enrollThread({
@@ -128,6 +152,11 @@ export const subtract = ({ a, b }: { a: number, b: number }): number => {
       const feedbackArt = genArtifactGitFile({
         uri: __dirname + '/.temp/mechanicCodePropose/fromempty.feedback.json',
       });
+      const feedbackCodestyleArt = genArtifactGitFile({
+        uri:
+          __dirname +
+          '/.temp/mechanicCodePropose/fromempty.feedback.codestyle.json',
+      });
       const judgementArt = genArtifactGitFile({
         uri: __dirname + '/.temp/mechanicCodePropose/fromempty.judgement.json',
       });
@@ -150,14 +179,31 @@ export const subtract = ({ a, b }: { a: number, b: number }): number => {
               },
               scene: { coderefs: [] },
             },
+            inherit: {
+              traits: [
+                genArtifactGitFile({
+                  uri: __dirname + '/.refs/style.compressed.md',
+                }),
+              ],
+            },
           }),
           critic: await enrollThread({
             role: 'critic',
             stash: {
-              art: { feedback: feedbackArt },
+              art: {
+                feedback: feedbackArt,
+                feedbackCodestyle: feedbackCodestyleArt,
+              },
               org: {
                 patterns: getRefOrgPatterns({ purpose: 'produce' }),
               },
+            },
+            inherit: {
+              traits: [
+                genArtifactGitFile({
+                  uri: __dirname + '/.refs/style.compressed.md',
+                }),
+              ],
             },
           }),
           student: await enrollThread({

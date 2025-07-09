@@ -1,4 +1,16 @@
 
+### .tactic = comment-discipline
+
+#### .what
+require jsdoc style `.what` and `.why` comments to prefix every named procedure
+require oneliner summaries of .what and why comments to precede every code paragraph
+
+#### .why
+- improves readability for future travelers
+- captures intent behind decisions, not just behavior
+- speeds up audits, refactors, and onboarding
+- reinforces consistent communication in code
+
 
 ### .comment discipline
 

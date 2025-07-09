@@ -9,37 +9,37 @@ import { genContextLogTrail } from '../../../__test_assets__/genContextLogTrail'
 import { genContextStitchTrail } from '../../../__test_assets__/genContextStitchTrail';
 import { getContextOpenAI } from '../../../__test_assets__/getContextOpenAI';
 import { getRefOrgPatterns } from './getRefOrgPatterns';
-import { routeCriticCodeReview } from './routeCriticCodeReview';
+import { routeCriticCodeReviewArchitecture } from './routeCriticCodeReviewArchitecture';
 
-describe('routeCriticCodeReview', () => {
+describe('routeCriticCodeReviewArchitecture', () => {
   const context = {
     ...genContextLogTrail(),
     ...genContextStitchTrail(),
     ...getContextOpenAI(),
   };
 
-  const route = routeCriticCodeReview;
+  const route = routeCriticCodeReviewArchitecture;
 
   const claimsArt = genArtifactGitFile(
     {
       uri: __dirname + '/.test/multiply.claims.md',
     },
-    { access: 'readonly' }, // this is a fixture, dont allow overwrite
+    { access: 'readonly' },
   );
 
-  given('inflight has code to be reviewed, expected to have blockers', () => {
+  given('inflight has code with architectural violations', () => {
     const inflightArt = genArtifactGitFile({
-      uri: __dirname + '/.temp/review/all/multiply.hasblockers.toreview.ts',
+      uri:
+        __dirname +
+        '/.temp/review/architecture/multiply.hasblockers.toreview.ts',
     });
 
     const feedbackArt = genArtifactGitFile({
-      uri: __dirname + '/.temp/review/all/multiply.hasblockers.feedback.md',
-    });
-    const feedbackCodestyleArt = genArtifactGitFile({
       uri:
         __dirname +
-        '/.temp/review/all/multiply.noblockers.feedback.codestyle.md',
+        '/.temp/review/architecture/multiply.hasblockers.feedback.md',
     });
+
     beforeEach(async () => {
       await inflightArt.set({
         content: 'export const multiply=(a,b)=>a*b;',
@@ -52,10 +52,7 @@ describe('routeCriticCodeReview', () => {
         critic: await enrollThread({
           role: 'critic',
           stash: {
-            art: {
-              feedback: feedbackArt,
-              feedbackCodestyle: feedbackCodestyleArt,
-            },
+            art: { feedbackArchitecture: feedbackArt },
             org: {
               patterns: await getRefOrgPatterns({ purpose: 'produce' }),
             },
@@ -63,7 +60,7 @@ describe('routeCriticCodeReview', () => {
           inherit: {
             traits: [
               genArtifactGitFile({
-                uri: __dirname + '/.refs/style.compressed.md',
+                uri: __dirname + '/.refs/architecture.compressed.md',
               }),
             ],
           },
@@ -78,12 +75,12 @@ describe('routeCriticCodeReview', () => {
         student: await enrollThread({
           role: 'student',
           stash: {
-            art: { claims: claimsArt },
+            art: { claims: claimsArt, domainBounds: null, domainTerms: null },
           },
         }),
       }));
 
-      then('writes feedback about the inflight diff', async () => {
+      then('writes architectural feedback on the inflight diff', async () => {
         const result = await enweaveOneStitcher(
           { stitcher: route, threads },
           context,
@@ -100,22 +97,26 @@ describe('routeCriticCodeReview', () => {
     });
   });
 
-  given('inflight has code to be reviewed, expected no blockers', () => {
+  given.only('inflight has architecturally clean code', () => {
     const inflightArt = genArtifactGitFile({
-      uri: __dirname + '/.temp/review/all/multiply.noblockers.toreview.ts',
+      uri:
+        __dirname +
+        '/.temp/review/architecture/multiply.noblockers.toreview.ts',
     });
 
     const feedbackArt = genArtifactGitFile({
-      uri: __dirname + '/.temp/review/all/multiply.noblockers.feedback.md',
-    });
-    const feedbackCodestyleArt = genArtifactGitFile({
       uri:
         __dirname +
-        '/.temp/review/all/multiply.noblockers.feedback.codestyle.md',
+        '/.temp/review/architecture/multiply.noblockers.feedback.md',
     });
+
     beforeEach(async () => {
       await inflightArt.set({
         content: `
+/**
+ * .what = multiplies two numbers
+ * .why = aligns with system contract for stateless numeric ops
+ */
 export const multiply = ({ a, b }: { a: number, b: number }): number => {
     return a * b;
 };
@@ -129,10 +130,7 @@ export const multiply = ({ a, b }: { a: number, b: number }): number => {
         critic: await enrollThread({
           role: 'critic',
           stash: {
-            art: {
-              feedback: feedbackArt,
-              feedbackCodestyle: feedbackCodestyleArt,
-            },
+            art: { feedbackArchitecture: feedbackArt },
             org: {
               patterns: await getRefOrgPatterns({ purpose: 'produce' }),
             },
@@ -140,7 +138,7 @@ export const multiply = ({ a, b }: { a: number, b: number }): number => {
           inherit: {
             traits: [
               genArtifactGitFile({
-                uri: __dirname + '/.refs/style.compressed.md',
+                uri: __dirname + '/.refs/architecture.compressed.md',
               }),
             ],
           },
@@ -155,12 +153,12 @@ export const multiply = ({ a, b }: { a: number, b: number }): number => {
         student: await enrollThread({
           role: 'student',
           stash: {
-            art: { claims: claimsArt },
+            art: { claims: claimsArt, domainBounds: null, domainTerms: null },
           },
         }),
       }));
 
-      then('writes feedback about the inflight diff', async () => {
+      then('writes praise or no-blockers feedback', async () => {
         const result = await enweaveOneStitcher(
           { stitcher: route, threads },
           context,

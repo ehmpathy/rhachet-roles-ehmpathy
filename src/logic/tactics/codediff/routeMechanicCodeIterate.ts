@@ -19,7 +19,12 @@ interface ThreadsDesired
     critic: RoleContext<
       'critic',
       {
-        art: { feedback: Artifact<typeof GitFile> };
+        art: {
+          feedback: Artifact<typeof GitFile>;
+          feedbackCodestyle: Artifact<typeof GitFile>;
+          // feedbackBehavior: Artifact<typeof GitFile>;
+          // feedbackArchitecture: Artifact<typeof GitFile>;
+        };
         org: {
           patterns: Artifact<typeof GitFile>[];
         };

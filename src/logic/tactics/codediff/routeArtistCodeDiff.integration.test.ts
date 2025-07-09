@@ -8,6 +8,7 @@ import { usePrep } from '../../../__nonpublished_modules__/test-fns/src/usePrep'
 import { genContextLogTrail } from '../../../__test_assets__/genContextLogTrail';
 import { genContextStitchTrail } from '../../../__test_assets__/genContextStitchTrail';
 import { getContextOpenAI } from '../../../__test_assets__/getContextOpenAI';
+import { getRefOrgPatterns } from './getRefOrgPatterns';
 import { routeArtistCodeDiff } from './routeArtistCodeDiff';
 
 describe('routeArtistCodeDiff', () => {
@@ -55,17 +56,7 @@ describe('routeArtistCodeDiff', () => {
                 art: { inflight: inflightArt },
                 scene: { coderefs: [coderefArt] },
                 org: {
-                  patterns: [
-                    // todo: centralize the access
-                    genArtifactGitFile({
-                      uri:
-                        __dirname + '/.refs/pattern.mech.args.input-context.md',
-                    }),
-                    genArtifactGitFile({
-                      uri: __dirname + '/.refs/pattern.mech.arrowonly.md',
-                    }),
-                    // note how we dont include the test patterns, since this isn't for a test -> <distill>[context]
-                  ],
+                  patterns: await getRefOrgPatterns({ purpose: 'produce' }),
                 },
               },
               inherit: {
@@ -140,17 +131,7 @@ export const add = (input: [number, number]) => input[0] + input[1];
               art: { inflight: inflightArt },
               scene: { coderefs: [coderefArt] },
               org: {
-                patterns: [
-                  // todo: centralize the access
-                  genArtifactGitFile({
-                    uri:
-                      __dirname + '/.refs/pattern.mech.args.input-context.md',
-                  }),
-                  genArtifactGitFile({
-                    uri: __dirname + '/.refs/pattern.mech.arrowonly.md',
-                  }),
-                  // note how we dont include the test patterns, since this isn't for a test -> <distill>[context]
-                ],
+                patterns: await getRefOrgPatterns({ purpose: 'produce' }),
               },
             },
             inherit: {
@@ -222,17 +203,7 @@ export const add = (input: [number, number]) => input[0] + input[1];
                 art: { inflight: inflightArt },
                 scene: { coderefs: [] },
                 org: {
-                  patterns: [
-                    // todo: centralize the access
-                    genArtifactGitFile({
-                      uri:
-                        __dirname + '/.refs/pattern.mech.args.input-context.md',
-                    }),
-                    genArtifactGitFile({
-                      uri: __dirname + '/.refs/pattern.mech.arrowonly.md',
-                    }),
-                    // note how we dont include the test patterns, since this isn't for a test -> <distill>[context]
-                  ],
+                  patterns: await getRefOrgPatterns({ purpose: 'produce' }),
                 },
               },
               inherit: {
@@ -310,17 +281,7 @@ export const add = (input: [number, number]) => input[0] + input[1];
                 art: { inflight: inflightArt },
                 scene: { coderefs: [] },
                 org: {
-                  patterns: [
-                    // todo: centralize the access
-                    genArtifactGitFile({
-                      uri:
-                        __dirname + '/.refs/pattern.mech.args.input-context.md',
-                    }),
-                    genArtifactGitFile({
-                      uri: __dirname + '/.refs/pattern.mech.arrowonly.md',
-                    }),
-                    // note how we dont include the test patterns, since this isn't for a test -> <distill>[context]
-                  ],
+                  patterns: await getRefOrgPatterns({ purpose: 'produce' }),
                 },
               },
               inherit: {

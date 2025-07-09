@@ -1,22 +1,28 @@
-import { UnexpectedCodePathError } from 'helpful-errors';
-import { asStitcherFlat, genStitchRoute, GStitcher, Threads } from 'rhachet';
+import {
+  asStitcherFlat,
+  genStitchRoute,
+  GStitcher,
+  StitchStepCompute,
+  Threads,
+} from 'rhachet';
 
 import { GitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
 import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
 import { RoleContext } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
-import { genStepImagineViaTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
-import { genTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
-import { getTemplateValFromArtifacts } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateValFromArtifacts';
-import { getTemplateVarsFromRoleInherit } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
-import { ContextOpenAI, sdkOpenAi } from '../../../data/sdk/sdkOpenAi';
-import { genStepArtSet } from '../artifact/genStepArtSet';
+import { ContextOpenAI } from '../../../data/sdk/sdkOpenAi';
+import { routeCriticCodeReviewCodestyle } from './routeCriticCodeReviewCodestyle';
 
 interface ThreadsDesired
   extends Threads<{
     critic: RoleContext<
       'critic',
       {
-        art: { feedback: Artifact<typeof GitFile> };
+        art: {
+          feedback: Artifact<typeof GitFile>;
+          feedbackCodestyle: Artifact<typeof GitFile>;
+          // feedbackBehavior: Artifact<typeof GitFile>;
+          // feedbackArchitecture: Artifact<typeof GitFile>;
+        };
         org: {
           patterns: Artifact<typeof GitFile>[];
         };
@@ -47,50 +53,40 @@ type StitcherDesired = GStitcher<
   { content: string }
 >;
 
-const template = genTemplate<ThreadsDesired>({
-  ref: { uri: __dirname + '/routeCriticCodeReview.template.md' },
-  getVariables: async ({ threads }) => ({
-    diff:
-      (await threads.artist.context.stash.art.inflight.get())?.content ??
-      UnexpectedCodePathError.throw(
-        'could not get inflight artifact from artist',
-        { threads },
-      ),
-    claims:
-      (await threads.student.context.stash.art.claims.get())?.content ??
-      UnexpectedCodePathError.throw(
-        'could not get claims from student. file?.content does not exist',
-        {
-          threads,
-        },
-      ),
-    scene: await getTemplateValFromArtifacts({
-      artifacts: threads.artist.context.stash.scene.coderefs,
-    }),
-    patterns: await getTemplateValFromArtifacts({
-      artifacts: threads.critic.context.stash.org.patterns,
-    }),
-    ...(await getTemplateVarsFromRoleInherit({ thread: threads.artist })),
-  }),
-});
-
-const stepImagineFeedback = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '[critic]<codediff><review>',
+const stepMergeFeedbacks = new StitchStepCompute<
+  GStitcher<ThreadsDesired, ContextOpenAI & GStitcher['context'], GitFile>
+>({
+  slug: '[critic]<merge>feedbacks',
+  form: 'COMPUTE',
   stitchee: 'critic',
-  readme: 'intent(reviews artist inflight diff)',
-  template,
-  imagine: sdkOpenAi.imagine,
-});
+  readme:
+    'intent(merge codestyle, behavior, and architecture feedback into a single file)',
+  invoke: async ({ threads }) => {
+    // grab & merge the contents
+    const contents = await Promise.all(
+      [threads.critic.context.stash.art.feedbackCodestyle].map(async (art) => {
+        const content = (await art.get())?.content;
+        return content ?? '';
+      }),
+    );
+    const concatted = contents.join('\n\n');
 
-const stepArtSet = genStepArtSet({
-  stitchee: 'critic',
-  artee: 'feedback',
+    // set the the merged feedback
+    const updated = await threads.critic.context.stash.art.feedback.set({
+      content: concatted,
+    });
+
+    return {
+      input: null,
+      output: updated,
+    };
+  },
 });
 
 export const routeCriticCodeReview = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '[critic]<codereview>',
-    readme: '@[critic]<codediff><review> -> [feedback]',
-    sequence: [stepImagineFeedback, stepArtSet],
+    slug: '[critic]<review>',
+    readme: '@[critic]<review> -> [feedback]',
+    sequence: [routeCriticCodeReviewCodestyle, stepMergeFeedbacks],
   }),
 );
