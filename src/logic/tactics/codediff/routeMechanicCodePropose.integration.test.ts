@@ -30,7 +30,7 @@ describe('routeMechanicCodePropose', () => {
       { access: 'readonly' },
     );
 
-    given.only('well-structured code without blockers', () => {
+    given('well-structured code without blockers', () => {
       const inflightArt = genArtifactGitFile({
         uri: __dirname + '/.temp/mechanicCodePropose/fromgood.inflight.ts',
       });
@@ -164,6 +164,7 @@ export const subtract = ({ a, b }: { a: number, b: number }): number => {
       beforeEach(async () => {
         await inflightArt.del();
         await feedbackArt.del();
+        await feedbackCodestyleArt.del();
         await judgementArt.del();
       });
 
@@ -239,4 +240,16 @@ export const subtract = ({ a, b }: { a: number, b: number }): number => {
       });
     });
   });
+
+
+
+  given('we want to get schedulable appointment windows for a pro', () => {
+    const claimsArt = genArtifactGitFile(
+      {
+        uri: __dirname + '/.test/getSchedulableWindows.claims.md',
+      },
+      { access: 'readonly' },
+    );
+
+  })
 });

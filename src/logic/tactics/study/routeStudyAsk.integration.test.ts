@@ -18,7 +18,7 @@ describe('routeStudyAsk ', () => {
   };
   const route = routeStudyAsk;
 
-  given('a student with ask, claim, and coderefs', () => {
+  given('we want to multiply', () => {
     const askText = 'stubout the ability to multiply';
 
     const claimsArt = genArtifactGitFile({
@@ -70,18 +70,21 @@ describe('routeStudyAsk ', () => {
     });
   });
 
-  given.only('a student with ask, claim, and coderefs', () => {
+  given.only('we want to getSchedulableWindows for a crew', () => {
     const askText = `
-declare addRoleTraits, which adds traits to any role
+    * .what = returns available time windows for appointment scheduling
+    * .why = enables customers to book with pros during valid, conflict-free slots
 
-enable it to accept either { content } or Artifact<typeof GitFile> list
+background:
+- pro.crews set their schedule's availability
+- appointment windows are computed from the daily availability windows
+- each appointment window is 30min wide
+- neighbors and pros then book appointment windows from these availabilities
+- we only want to show windows that are
 `;
 
     const claimsArt = genArtifactGitFile({
-      uri: __dirname + '/.temp/demo.claims.md',
-    });
-    const coderefExampleMech = genArtifactGitFile({
-      uri: '@gitroot/src/__nonpublished_modules__/rhachet/src/logic/genThread.ts',
+      uri: __dirname + '/.temp/getSchedulableWindows.claims.md',
     });
 
     beforeEach(async () => {
@@ -95,7 +98,7 @@ enable it to accept either { content } or Artifact<typeof GitFile> list
           stash: {
             ask: askText,
             art: { claims: claimsArt },
-            scene: { coderefs: [coderefExampleMech] },
+            scene: { coderefs: [] },
           },
           inherit: {
             traits: [

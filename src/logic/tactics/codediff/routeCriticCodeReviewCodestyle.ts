@@ -50,14 +50,15 @@ const template = genTemplate<ThreadsDesired>({
     )?.content,
     codestyle: await getTemplateValFromArtifacts({
       artifacts: [
+        'mech.what-why.v2.md',
+        'flow.single-responsibility.md',
+        'mech.args.input-context.md',
+        'mech.arrowonly.md',
+        'mech.clear-contracts.md',
         'flow.failfast.md',
         'flow.idempotency.md',
         'flow.immutability.md',
         'flow.narratives.md',
-        'mech.args.input-context.md',
-        'mech.arrowonly.md',
-        'mech.clear-contracts.md',
-        'mech.what-why.v2.md',
       ].map((key) =>
         genArtifactGitFile({
           uri: __dirname + `/.refs/codestyle/${key}`,

@@ -30,7 +30,7 @@ context.role.skills
   ```json
   {
       ask: { summary: string },
-      claims: { lessons[], assumptions[], questions[] },
+      claims: { lessons: { what, why }[], assumptions: { what, why }[], questions: { what, why }[] },
       contract: { input, output },
       cases: {
         use: { who, when, what }[],

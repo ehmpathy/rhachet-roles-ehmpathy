@@ -1,5 +1,6 @@
 import { asStitcherFlat, genStitchRoute, GStitcher, Threads } from 'rhachet';
 
+import { genArtifactGitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
 import { GitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
 import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
 import { RoleContext } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
@@ -59,6 +60,25 @@ const template = genTemplate<ThreadsDesired>({
     }),
     patterns: await getTemplateValFromArtifacts({
       artifacts: threads.artist.context.stash.org.patterns,
+    }),
+    codestyle: await getTemplateValFromArtifacts({
+      // todo: compress?
+      // todo: enforce insync w/ codestyle reviewer?
+      artifacts: [
+        'mech.what-why.v2.md',
+        'flow.single-responsibility.md',
+        'mech.args.input-context.md',
+        'mech.arrowonly.md',
+        'mech.clear-contracts.md',
+        'flow.failfast.md',
+        'flow.idempotency.md',
+        'flow.immutability.md',
+        'flow.narratives.md',
+      ].map((key) =>
+        genArtifactGitFile({
+          uri: __dirname + `/.refs/codestyle/${key}`,
+        }),
+      ),
     }),
   }),
 });

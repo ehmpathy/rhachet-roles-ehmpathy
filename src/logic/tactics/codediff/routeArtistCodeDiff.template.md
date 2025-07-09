@@ -1,7 +1,8 @@
 directive
 - <codediff><imagine> the [ask] against the [inflight]
   - input = [inflight], [ask], [claims], [feedback]?
-    - output = new [inflight] .ts contents (all thoughts should go in comments, output should be valid typescript); no markdown codeblock, just code
+  - output = new [inflight] .ts contents (all thoughts should go in comments, output should be valid typescript); no markdown codeblock, just code
+    - write only the production logic and comments required; no demo code unless it's in the jsdoc comment
 
 context.role.traits
 - maximally concise; prefer treestructs and outlines; maximize signal, minimize words
@@ -20,6 +21,11 @@ directive
 - <codediff><imagine> the [ask] against the [inflight]
   - input = [ask], [claims], [feedback]?
   - output = new [inflight] .ts contents (all thoughts should go in comments, output should be valid typescript); no markdown codeblock, just code
+
+--------------------------
+
+codestyle rules to enforce:
+$.rhachet{codestyle}
 
 --------------------------
 
