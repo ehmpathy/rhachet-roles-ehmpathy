@@ -1,15 +1,16 @@
 import { asStitcherFlat, genStitchRoute, GStitcher, Threads } from 'rhachet';
 
-import { genArtifactGitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { GitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
-import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
-import { RoleContext } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
-import { genStepImagineViaTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
-import { genTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
-import { getTemplateValFromArtifacts } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateValFromArtifacts';
-import { getTemplateVarsFromRoleInherit } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
-import { ContextOpenAI, sdkOpenAi } from '../../../data/sdk/sdkOpenAi';
-import { genStepArtSet } from '../artifact/genStepArtSet';
+import { genArtifactGitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src';
+import { GitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
+import { Artifact } from '../../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
+import { RoleContext } from '../../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
+import { genStepImagineViaTemplate } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
+import { genTemplate } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
+import { getTemplateValFromArtifacts } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateValFromArtifacts';
+import { getTemplateVarsFromRoleInherit } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
+import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
+import { genStepArtSet } from '../../../artifact/genStepArtSet';
+import { getMechanicBriefs } from '../getMechanicBrief';
 
 interface ThreadsDesired
   extends Threads<{
@@ -64,27 +65,23 @@ const template = genTemplate<ThreadsDesired>({
     codestyle: await getTemplateValFromArtifacts({
       // todo: compress?
       // todo: enforce insync w/ codestyle reviewer?
-      artifacts: [
-        'mech.what-why.v2.md',
-        'flow.single-responsibility.md',
-        'mech.args.input-context.md',
-        'mech.arrowonly.md',
-        'mech.clear-contracts.md',
-        'flow.failfast.md',
-        'flow.idempotency.md',
-        'flow.immutability.md',
-        'flow.narratives.md',
-      ].map((key) =>
-        genArtifactGitFile({
-          uri: __dirname + `/.refs/codestyle/${key}`,
-        }),
-      ),
+      artifacts: getMechanicBriefs([
+        'codestyle/mech.what-why.v2.md',
+        'codestyle/flow.single-responsibility.md',
+        'codestyle/mech.args.input-context.md',
+        'codestyle/mech.arrowonly.md',
+        'codestyle/mech.clear-contracts.md',
+        'codestyle/flow.failfast.md',
+        'codestyle/flow.idempotency.md',
+        'codestyle/flow.immutability.md',
+        'codestyle/flow.narratives.md',
+      ]),
     }),
   }),
 });
 
 const stepImagineCodeDiff = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '[artist]<codediff><imagine>',
+  slug: '[artist]<produce><imagine>',
   stitchee: 'artist',
   readme: 'intent(imagines a code diff based on artist.ask)',
   template,
@@ -98,8 +95,8 @@ const stepArtSet = genStepArtSet({
 
 export const routeArtistCodeDiff = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '[artist]<codediff>',
-    readme: '@[artist]<codediff><imagine> -> [target]',
+    slug: '[artist]<produce>',
+    readme: '@[artist]<produce><imagine> -> [proposal]',
     sequence: [stepImagineCodeDiff, stepArtSet],
   }),
 );

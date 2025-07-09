@@ -1,10 +1,8 @@
 import { isPresent } from 'type-fns';
 
-import {
-  genArtifactGitFile,
-  GitFile,
-} from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
+import { GitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src';
+import { Artifact } from '../../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
+import { getMechanicBrief } from '../getMechanicBrief';
 
 export const getRefOrgPatterns = (input: {
   purpose: 'prepare' | 'produce';
@@ -19,12 +17,8 @@ export const getRefOrgPatterns = (input: {
     // genArtifactGitFile({
     //   uri: __dirname + '/.refs/pattern.mech.what-why.md',
     // }),
-    genArtifactGitFile({
-      uri: __dirname + '/.refs/codestyle/.mech.compressed.md', // compresses the 3 above
-    }),
+    getMechanicBrief('codestyle/_mech.compressed.md'),
     input.purpose === 'prepare'
-      ? genArtifactGitFile({
-          uri: __dirname + '/.refs/codestyle/pattern.tests.given-when-then.md',
-        })
+      ? getMechanicBrief('codestyle/mech.tests.given-when-then.md')
       : undefined,
   ].filter(isPresent);

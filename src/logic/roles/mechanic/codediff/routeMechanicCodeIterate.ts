@@ -1,9 +1,9 @@
 import { asStitcherFlat, genStitchRoute, GStitcher, Threads } from 'rhachet';
 
-import { GitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
-import { RoleContext } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
-import { ContextOpenAI } from '../../../data/sdk/sdkOpenAi';
+import { GitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src';
+import { Artifact } from '../../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
+import { RoleContext } from '../../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
+import { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
 import { routeArtistCodeDiff } from './routeArtistCodeDiff';
 import { routeCriticCodeReview } from './routeCriticCodeReview';
 import { routeJudgeReleasable } from './routeJudgeReleasable';

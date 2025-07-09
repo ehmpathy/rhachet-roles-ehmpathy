@@ -1,14 +1,14 @@
 import { asStitcherFlat, genStitchRoute, GStitcher, Threads } from 'rhachet';
 
-import { GitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
-import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
-import { RoleContext } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
-import { genStepImagineViaTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
-import { genTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
-import { getTemplateValFromArtifacts } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateValFromArtifacts';
-import { getTemplateVarsFromRoleInherit } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
-import { ContextOpenAI, sdkOpenAi } from '../../../data/sdk/sdkOpenAi';
-import { genStepArtSet } from '../artifact/genStepArtSet';
+import { GitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
+import { Artifact } from '../../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
+import { RoleContext } from '../../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
+import { genStepImagineViaTemplate } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
+import { genTemplate } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
+import { getTemplateValFromArtifacts } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateValFromArtifacts';
+import { getTemplateVarsFromRoleInherit } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
+import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
+import { genStepArtSet } from '../../../artifact/genStepArtSet';
 
 type StitcherDesired = GStitcher<
   Threads<{

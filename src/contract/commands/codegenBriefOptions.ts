@@ -1,0 +1,59 @@
+import { asCommand } from '@ehmpathy/as-command';
+import fs from 'fs';
+import { glob } from 'glob';
+import path from 'path';
+
+import { getGitRepoRoot } from '../../__nonpublished_modules__/rhachet-artifact-git/src/logic/repo/getGitRepoRoot';
+
+const command = asCommand(
+  {
+    name: path.basename(__filename),
+    stage: 'prep',
+    dir: __dirname + '/.temp',
+    log: console,
+  },
+  async (input: { role: 'Mechanic' | 'Designer' | 'Architect' }) => {
+    // lookup the briefs available in the expected dir
+    const briefsDir = path.join(
+      (await getGitRepoRoot({ from: __dirname })) +
+        '/src/logic/roles/mechanic/.briefs',
+    );
+    const pattern = path.join(briefsDir, '**/*');
+    const filePaths = await glob(pattern, { nodir: true });
+
+    // declare each path as a key
+    const keys = filePaths
+      .filter((file) => !path.basename(file).startsWith('.'))
+      .map(
+        (file) => path.relative(briefsDir, file).replace(/\\/g, '/'), // preserve file extension
+      );
+    const asConstLines = keys.map((k) => `  '${k}',`).join('\n');
+
+    const fileContents = `
+/**
+ * .what = the options for the briefs available to role ${input.role}
+ * .note = codegened via:
+ * \`\`\`sh
+ *  npx tsx src/contract/commands/${path.basename(__filename)}
+ * \`\`\`
+ */
+const options = [
+${asConstLines}
+] as const;
+
+export type BriefOption${input.role} = typeof options[number];
+`;
+
+    // persist the output
+    const outputFile = path.join(
+      briefsDir,
+      `../get${input.role}Breif.Options.codegen.ts`,
+    );
+    fs.writeFileSync(outputFile, fileContents.trimStart());
+    console.info(`✅ wrote ${outputFile}`);
+    return { outputFile, fileContents };
+  },
+);
+
+// npx tsx src/contract/commands/codegenBriefOptions.ts
+if (require.main === module) void command({ role: 'Mechanic' });

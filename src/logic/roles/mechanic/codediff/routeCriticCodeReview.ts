@@ -6,10 +6,10 @@ import {
   Threads,
 } from 'rhachet';
 
-import { GitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
-import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
-import { RoleContext } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
-import { ContextOpenAI } from '../../../data/sdk/sdkOpenAi';
+import { GitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
+import { Artifact } from '../../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
+import { RoleContext } from '../../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
+import { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
 import { routeCriticCodeReviewCodestyle } from './routeCriticCodeReviewCodestyle';
 
 interface ThreadsDesired

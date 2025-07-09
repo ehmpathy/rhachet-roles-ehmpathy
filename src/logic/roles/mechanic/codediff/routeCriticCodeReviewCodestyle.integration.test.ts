@@ -2,12 +2,13 @@ import { UnexpectedCodePathError } from 'helpful-errors';
 import { enweaveOneStitcher } from 'rhachet';
 import { given, when, then } from 'test-fns';
 
-import { genArtifactGitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { enrollThread } from '../../../__nonpublished_modules__/rhachet/src/logic/enrollThread';
-import { usePrep } from '../../../__nonpublished_modules__/test-fns/src/usePrep';
-import { genContextLogTrail } from '../../../__test_assets__/genContextLogTrail';
-import { genContextStitchTrail } from '../../../__test_assets__/genContextStitchTrail';
-import { getContextOpenAI } from '../../../__test_assets__/getContextOpenAI';
+import { genArtifactGitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src';
+import { enrollThread } from '../../../../__nonpublished_modules__/rhachet/src/logic/enrollThread';
+import { usePrep } from '../../../../__nonpublished_modules__/test-fns/src/usePrep';
+import { genContextLogTrail } from '../../../../__test_assets__/genContextLogTrail';
+import { genContextStitchTrail } from '../../../../__test_assets__/genContextStitchTrail';
+import { getContextOpenAI } from '../../../../__test_assets__/getContextOpenAI';
+import { getMechanicBrief } from '../getMechanicBrief';
 import { getRefOrgPatterns } from './getRefOrgPatterns';
 import { routeCriticCodeReviewCodestyle } from './routeCriticCodeReviewCodestyle';
 
@@ -58,11 +59,7 @@ describe('routeCriticCodeReviewCodestyle', () => {
               },
             },
             inherit: {
-              traits: [
-                genArtifactGitFile({
-                  uri: __dirname + '/.refs/style.compressed.md',
-                }),
-              ],
+              traits: [getMechanicBrief('style.compressed.md')],
             },
           }),
           artist: await enrollThread({
@@ -133,11 +130,7 @@ export const multiply = ({ a, b }: { a: number, b: number }): number => {
               },
             },
             inherit: {
-              traits: [
-                genArtifactGitFile({
-                  uri: __dirname + '/.refs/style.compressed.md',
-                }),
-              ],
+              traits: [getMechanicBrief('style.compressed.md')],
             },
           }),
           artist: await enrollThread({
@@ -236,11 +229,7 @@ export const getSchedulableWindows = async ({
               },
             },
             inherit: {
-              traits: [
-                genArtifactGitFile({
-                  uri: __dirname + '/.refs/style.compressed.md',
-                }),
-              ],
+              traits: [getMechanicBrief('style.compressed.md')],
             },
           }),
           artist: await enrollThread({
@@ -327,11 +316,7 @@ export const getSchedulableWindows = async (
               },
             },
             inherit: {
-              traits: [
-                genArtifactGitFile({
-                  uri: __dirname + '/.refs/style.compressed.md',
-                }),
-              ],
+              traits: [getMechanicBrief('style.compressed.md')],
             },
           }),
           artist: await enrollThread({

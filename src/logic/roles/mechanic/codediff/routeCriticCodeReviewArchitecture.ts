@@ -1,15 +1,16 @@
 import { asStitcherFlat, genStitchRoute, GStitcher, Threads } from 'rhachet';
 
-import { genArtifactGitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { GitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
-import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
-import { RoleContext } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
-import { genStepImagineViaTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
-import { genTemplate } from '../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
-import { getTemplateValFromArtifacts } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateValFromArtifacts';
-import { getTemplateVarsFromRoleInherit } from '../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
-import { ContextOpenAI, sdkOpenAi } from '../../../data/sdk/sdkOpenAi';
-import { genStepArtSet } from '../artifact/genStepArtSet';
+import { genArtifactGitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src';
+import { GitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
+import { Artifact } from '../../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
+import { RoleContext } from '../../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
+import { genStepImagineViaTemplate } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
+import { genTemplate } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
+import { getTemplateValFromArtifacts } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateValFromArtifacts';
+import { getTemplateVarsFromRoleInherit } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
+import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
+import { genStepArtSet } from '../../../artifact/genStepArtSet';
+import { getMechanicBriefs } from '../getMechanicBrief';
 
 interface ThreadsDesired
   extends Threads<{
@@ -59,17 +60,12 @@ const template = genTemplate<ThreadsDesired>({
     ).content,
     architecture: {
       rules: await getTemplateValFromArtifacts({
-        artifacts: [
-          genArtifactGitFile({
-            uri: __dirname + '/.refs/architecture/ubiquitous-language.md',
-          }),
-          genArtifactGitFile({
-            uri: __dirname + '/.refs/architecture/domain-driven-design.md',
-          }),
-          genArtifactGitFile({
-            uri: __dirname + '/.refs/codestyle/single-responsibility.md',
-          }),
-        ],
+        artifacts: getMechanicBriefs([
+          'architecture/ubiqlang.md',
+          'architecture/domain-driven-design.md',
+          'architecture/bounded-contexts.md',
+          'architecture/directional-dependencies.md',
+        ]),
       }),
       domain: {
         terms:

@@ -2,11 +2,11 @@ import { readFile } from 'fs/promises';
 import { enweaveOneStitcher, GStitcherOf, Stitch } from 'rhachet';
 import { given, when, then } from 'test-fns';
 
-import { genArtifactGitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { enrollThread } from '../../../__nonpublished_modules__/rhachet/src/logic/enrollThread';
-import { usePrep } from '../../../__nonpublished_modules__/test-fns/src/usePrep';
-import { genContextLogTrail } from '../../../__test_assets__/genContextLogTrail';
-import { genContextStitchTrail } from '../../../__test_assets__/genContextStitchTrail';
+import { genArtifactGitFile } from '../../__nonpublished_modules__/rhachet-artifact-git/src';
+import { enrollThread } from '../../__nonpublished_modules__/rhachet/src/logic/enrollThread';
+import { usePrep } from '../../__nonpublished_modules__/test-fns/src/usePrep';
+import { genContextLogTrail } from '../../__test_assets__/genContextLogTrail';
+import { genContextStitchTrail } from '../../__test_assets__/genContextStitchTrail';
 import { genStepArtSet } from './genStepArtSet';
 
 describe('genStepArtSet (integration)', () => {

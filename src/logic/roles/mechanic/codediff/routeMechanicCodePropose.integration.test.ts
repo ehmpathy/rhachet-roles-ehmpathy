@@ -2,12 +2,12 @@ import { toMilliseconds } from '@ehmpathy/uni-time';
 import { enweaveOneStitcher } from 'rhachet';
 import { given, when, then } from 'test-fns';
 
-import { genArtifactGitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { enrollThread } from '../../../__nonpublished_modules__/rhachet/src/logic/enrollThread';
-import { usePrep } from '../../../__nonpublished_modules__/test-fns/src/usePrep';
-import { genContextLogTrail } from '../../../__test_assets__/genContextLogTrail';
-import { genContextStitchTrail } from '../../../__test_assets__/genContextStitchTrail';
-import { getContextOpenAI } from '../../../__test_assets__/getContextOpenAI';
+import { genArtifactGitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src';
+import { enrollThread } from '../../../../__nonpublished_modules__/rhachet/src/logic/enrollThread';
+import { usePrep } from '../../../../__nonpublished_modules__/test-fns/src/usePrep';
+import { genContextLogTrail } from '../../../../__test_assets__/genContextLogTrail';
+import { genContextStitchTrail } from '../../../../__test_assets__/genContextStitchTrail';
+import { getContextOpenAI } from '../../../../__test_assets__/getContextOpenAI';
 import { getRefOrgPatterns } from './getRefOrgPatterns';
 import { routeMechanicCodePropose } from './routeMechanicCodePropose';
 
@@ -84,11 +84,7 @@ export const subtract = ({ a, b }: { a: number, b: number }): number => {
               scene: { coderefs: [coderefArt] },
             },
             inherit: {
-              traits: [
-                genArtifactGitFile({
-                  uri: __dirname + '/.refs/style.compressed.md',
-                }),
-              ],
+              traits: [getMechanicBrief('style.compressed.md')],
             },
           }),
           critic: await enrollThread({
@@ -103,11 +99,7 @@ export const subtract = ({ a, b }: { a: number, b: number }): number => {
               },
             },
             inherit: {
-              traits: [
-                genArtifactGitFile({
-                  uri: __dirname + '/.refs/style.compressed.md',
-                }),
-              ],
+              traits: [getMechanicBrief('style.compressed.md')],
             },
           }),
           student: await enrollThread({
@@ -181,11 +173,7 @@ export const subtract = ({ a, b }: { a: number, b: number }): number => {
               scene: { coderefs: [] },
             },
             inherit: {
-              traits: [
-                genArtifactGitFile({
-                  uri: __dirname + '/.refs/style.compressed.md',
-                }),
-              ],
+              traits: [getMechanicBrief('style.compressed.md')],
             },
           }),
           critic: await enrollThread({
@@ -200,11 +188,7 @@ export const subtract = ({ a, b }: { a: number, b: number }): number => {
               },
             },
             inherit: {
-              traits: [
-                genArtifactGitFile({
-                  uri: __dirname + '/.refs/style.compressed.md',
-                }),
-              ],
+              traits: [getMechanicBrief('style.compressed.md')],
             },
           }),
           student: await enrollThread({
@@ -241,8 +225,6 @@ export const subtract = ({ a, b }: { a: number, b: number }): number => {
     });
   });
 
-
-
   given('we want to get schedulable appointment windows for a pro', () => {
     const claimsArt = genArtifactGitFile(
       {
@@ -250,6 +232,5 @@ export const subtract = ({ a, b }: { a: number, b: number }): number => {
       },
       { access: 'readonly' },
     );
-
-  })
+  });
 });
