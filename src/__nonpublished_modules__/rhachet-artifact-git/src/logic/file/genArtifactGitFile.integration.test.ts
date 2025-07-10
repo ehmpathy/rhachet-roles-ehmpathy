@@ -1,6 +1,7 @@
+import { promises as fs } from 'fs';
 import { readFile, unlink, writeFile } from 'fs/promises';
 import { tmpdir } from 'os';
-import { join } from 'path';
+import path, { join } from 'path';
 import { asSerialJSON } from 'serde-fns';
 import { given, then, when } from 'test-fns';
 
@@ -140,6 +141,87 @@ describe('genArtifactGitFile (integration)', () => {
       try {
         if (artifactPath) await unlink(artifactPath);
       } catch {}
+    });
+  });
+  given('a file with versions.retain enabled', () => {
+    const ref = { uri: join(tmpdir(), `artifact-${Date.now()}-versioned.txt`) };
+    const content = 'versioned content';
+
+    const versionDir = (() => {
+      const dirname = path.dirname(ref.uri);
+      const fileKey = path.basename(ref.uri, path.extname(ref.uri));
+      return join(dirname, '.rhachet/artifact', fileKey);
+    })();
+
+    afterAll(async () => {
+      try {
+        await unlink(ref.uri);
+      } catch {}
+      try {
+        const files = await fs.readdir(versionDir);
+        for (const f of files) {
+          await unlink(path.join(versionDir, f));
+        }
+      } catch {}
+    });
+
+    then('artifact.set() writes both main and versioned copy', async () => {
+      const artifact = genArtifactGitFile(ref, {
+        versions: { retain: './.rhachet/artifact/{key}/{unidatetime}.{ext}' },
+      });
+
+      await artifact.set({ content });
+
+      // original file should exist
+      const raw = await readFile(ref.uri, 'utf-8');
+      expect(raw).toBe(content);
+
+      // versioned directory should contain exactly one file with matching content
+      const versionFiles = await fs.readdir(versionDir);
+      console.log({ versionFiles });
+      expect(versionFiles.length).toBe(1);
+
+      const versionedPath = path.join(versionDir, versionFiles[0]!);
+      const versionedRaw = await readFile(versionedPath, 'utf-8');
+      expect(versionedRaw).toBe(content);
+    });
+  });
+
+  given('a file with no versioning enabled', () => {
+    const ref = { uri: join(tmpdir(), `artifact-${Date.now()}-noversion.txt`) };
+    const content = 'no versioned copy';
+    const versionDir = (() => {
+      const dirname = path.dirname(ref.uri);
+      const fileKey = path.basename(ref.uri, path.extname(ref.uri));
+      return join(dirname, '.rhachet/artifact', fileKey);
+    })();
+
+    afterAll(async () => {
+      try {
+        await unlink(ref.uri);
+      } catch {}
+    });
+
+    then('artifact.set() does not write to version path', async () => {
+      const artifact = genArtifactGitFile(ref); // no versions enabled
+      await artifact.set({ content });
+
+      const raw = await readFile(ref.uri, 'utf-8');
+      expect(raw).toBe(content);
+
+      // version path should not exist or be empty
+      let versionFiles: string[] = [];
+      try {
+        versionFiles = await fs.readdir(versionDir);
+      } catch (err) {
+        if ((err as NodeJS.ErrnoException).code === 'ENOENT') {
+          versionFiles = [];
+        } else {
+          throw err;
+        }
+      }
+
+      expect(versionFiles.length).toBe(0);
     });
   });
 });

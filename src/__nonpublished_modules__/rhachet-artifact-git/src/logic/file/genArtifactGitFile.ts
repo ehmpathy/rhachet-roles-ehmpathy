@@ -1,6 +1,9 @@
+import { asUniDateTime } from '@ehmpathy/uni-time';
 import { withExpectOutput } from 'as-procedure';
 import { RefByUnique } from 'domain-objects';
-import { HelpfulError } from 'helpful-errors';
+import { HelpfulError, UnexpectedCodePathError } from 'helpful-errors';
+import path from 'path';
+import { isPresent, PickOne } from 'type-fns';
 
 import { Artifact } from '../../../../rhachet/src/domain/Artifact';
 import { GitFile } from '../../domain/GitFile';
@@ -17,10 +20,17 @@ export class ArtifactAccessDeniedError extends HelpfulError {}
  * .note =
  *   - supports @gitroot/... url scheme
  *   - access mode 'readonly' disables write/delete
+ *   - versioned copies written to retain path if enabled
  */
 export const genArtifactGitFile = (
   ref: RefByUnique<typeof GitFile>,
-  options?: { access?: 'readwrite' | 'readonly' },
+  options?: {
+    access?: 'readwrite' | 'readonly';
+    versions?: PickOne<{
+      retain: './.rhachet/artifact/{key}/{unidatetime}.{ext}';
+      omit: true;
+    }>;
+  },
 ): Artifact<typeof GitFile> => {
   const access = options?.access ?? 'readwrite';
 
@@ -39,7 +49,36 @@ export const genArtifactGitFile = (
           `artifact.access=readonly, can not .set`,
           { ref },
         );
-      return await gitFileSet({ ref: await uniRefPromise, content });
+
+      const { uri } = await uniRefPromise;
+      const fileKey = path.basename(uri, path.extname(uri)); // removes extension
+      const fileExtension = path.extname(uri); // includes the dot (e.g. '.ts')
+      const [setLatestResult] = await Promise.all(
+        [
+          gitFileSet({ ref: { uri }, content }),
+          options?.versions?.retain
+            ? gitFileSet({
+                ref: {
+                  uri: path.join(
+                    path.dirname(uri),
+                    options.versions.retain
+                      .replace('{key}', fileKey)
+                      .replace('{unidatetime}', asUniDateTime(new Date()))
+                      .replace('{ext}', fileExtension),
+                  ),
+                },
+                content,
+              })
+            : null,
+        ].filter(isPresent),
+      );
+
+      return (
+        setLatestResult ??
+        UnexpectedCodePathError.throw(
+          'should have atleast had the latest write',
+        )
+      );
     },
     del: async () => {
       if (access === 'readonly')

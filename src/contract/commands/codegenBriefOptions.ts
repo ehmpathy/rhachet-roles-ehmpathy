@@ -12,11 +12,13 @@ const command = asCommand(
     dir: __dirname + '/.temp',
     log: console,
   },
-  async (input: { role: 'Mechanic' | 'Designer' | 'Architect' }) => {
+  async (input: {
+    role: 'Mechanic' | 'Designer' | 'Architect' | 'Ecologist';
+  }) => {
     // lookup the briefs available in the expected dir
     const briefsDir = path.join(
       (await getGitRepoRoot({ from: __dirname })) +
-        '/src/logic/roles/mechanic/.briefs',
+        `/src/logic/roles/${input.role.toLowerCase()}/.briefs`,
     );
     const pattern = path.join(briefsDir, '**/*');
     const filePaths = await glob(pattern, { nodir: true });
@@ -56,4 +58,8 @@ export type BriefOption${input.role} = typeof options[number];
 );
 
 // npx tsx src/contract/commands/codegenBriefOptions.ts
-if (require.main === module) void command({ role: 'Mechanic' });
+if (require.main === module) {
+  void command({ role: 'Ecologist' });
+  // void command({ role: 'Architect' });
+  void command({ role: 'Mechanic' });
+}
