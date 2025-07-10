@@ -9,6 +9,7 @@ import { getTemplateValFromArtifacts } from '../../../../__nonpublished_modules_
 import { getTemplateVarsFromRoleInherit } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
 import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
 import { genStepArtSet } from '../../../artifact/genStepArtSet';
+import { getMechanicBriefs } from '../../mechanic/getMechanicBrief';
 import { getEcologistBriefs } from '../getEcologistBrief';
 
 type StitcherDesired = GStitcher<
@@ -36,19 +37,25 @@ const template = genTemplate<StitcherDesired['threads']>({
     ask: threads.student.context.stash.ask,
     ecologist: {
       briefs: await getTemplateValFromArtifacts({
-        artifacts: getEcologistBriefs([
-          'distilisys.md',
-          'distilisys.usecases.v2.md',
-          'analysis.behavior-reveals-system.md',
-          'core.term.price.v2.md',
-          'eco001.overview.md',
-          'eco101.core-system-understanding.md', // todo: do we need to expand into the p1-p4?
-          'eco505.systems-thinking.md',
-          'econ001.overview.md',
-          'econ101.core-mechanics.md',
-          'econ501.p1.game-theory.md',
-          'econ501.p4.behavioral-economics.md',
-        ]),
+        artifacts: [
+          ...getMechanicBriefs([
+            'architecture/ubiqlang.md',
+            'style.names.treestruct.md',
+          ]),
+          ...getEcologistBriefs([
+            'distilisys.md',
+            'distilisys.usecases.v2.md',
+            'analysis.behavior-reveals-system.md',
+            'core.term.price.v2.md',
+            'eco001.overview.md',
+            'eco101.core-system-understanding.md', // todo: do we need to expand into the p1-p4?
+            'eco505.systems-thinking.md',
+            'econ001.overview.md',
+            'econ101.core-mechanics.md',
+            'econ501.p1.game-theory.md',
+            'econ501.p4.behavioral-economics.md',
+          ]),
+        ],
       }),
     },
     domain: {

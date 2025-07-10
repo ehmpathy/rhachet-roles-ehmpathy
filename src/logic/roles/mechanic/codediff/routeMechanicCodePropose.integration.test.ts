@@ -8,6 +8,7 @@ import { usePrep } from '../../../../__nonpublished_modules__/test-fns/src/usePr
 import { genContextLogTrail } from '../../../../__test_assets__/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../__test_assets__/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../__test_assets__/getContextOpenAI';
+import { getMechanicBrief } from '../getMechanicBrief';
 import { getRefOrgPatterns } from './getRefOrgPatterns';
 import { routeMechanicCodePropose } from './routeMechanicCodePropose';
 

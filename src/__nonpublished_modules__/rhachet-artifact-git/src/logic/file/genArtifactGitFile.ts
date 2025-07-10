@@ -1,6 +1,7 @@
 import { asUniDateTime } from '@ehmpathy/uni-time';
 import { withExpectOutput } from 'as-procedure';
 import { RefByUnique } from 'domain-objects';
+import { asHashShake256 } from 'hash-fns';
 import { HelpfulError, UnexpectedCodePathError } from 'helpful-errors';
 import path from 'path';
 import { isPresent, PickOne } from 'type-fns';
@@ -14,6 +15,9 @@ import { gitFileSet } from './gitFileSet';
 
 export class ArtifactAccessDeniedError extends HelpfulError {}
 
+const VERSION_ROUTE_STANDARD =
+  './.rhachet/artifact/{key}/{unidatetime}.{hash}.{ext}' as const;
+
 /**
  * .what = generates a GitFile-backed Artifact
  * .why  = enables typed read/write of file content using GitFile semantics
@@ -26,10 +30,12 @@ export const genArtifactGitFile = (
   ref: RefByUnique<typeof GitFile>,
   options?: {
     access?: 'readwrite' | 'readonly';
-    versions?: PickOne<{
-      retain: './.rhachet/artifact/{key}/{unidatetime}.{ext}';
-      omit: true;
-    }>;
+    versions?:
+      | true
+      | PickOne<{
+          retain: typeof VERSION_ROUTE_STANDARD; // allow custom paths?
+          omit: true;
+        }>;
   },
 ): Artifact<typeof GitFile> => {
   const access = options?.access ?? 'readwrite';
@@ -53,18 +59,26 @@ export const genArtifactGitFile = (
       const { uri } = await uniRefPromise;
       const fileKey = path.basename(uri, path.extname(uri)); // removes extension
       const fileExtension = path.extname(uri); // includes the dot (e.g. '.ts')
+      const setVersionRoute =
+        options?.versions === true
+          ? VERSION_ROUTE_STANDARD
+          : options?.versions?.retain ?? null;
       const [setLatestResult] = await Promise.all(
         [
           gitFileSet({ ref: { uri }, content }),
-          options?.versions?.retain
+          setVersionRoute
             ? gitFileSet({
                 ref: {
                   uri: path.join(
                     path.dirname(uri),
-                    options.versions.retain
+                    setVersionRoute
                       .replace('{key}', fileKey)
                       .replace('{unidatetime}', asUniDateTime(new Date()))
-                      .replace('{ext}', fileExtension),
+                      .replace(
+                        '{hash}',
+                        await asHashShake256(content, { bytes: 8 }), // for easy grokability of like contents
+                      )
+                      .replace('.{ext}', fileExtension),
                   ),
                 },
                 content,
