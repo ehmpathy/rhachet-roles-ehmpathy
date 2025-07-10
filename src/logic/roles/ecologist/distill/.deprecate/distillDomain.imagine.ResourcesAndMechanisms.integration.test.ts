@@ -7,7 +7,7 @@ import { usePrep } from '../../../../__nonpublished_modules__/test-fns/src/usePr
 import { genContextLogTrail } from '../../../../__test_assets__/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../__test_assets__/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../__test_assets__/getContextOpenAI';
-import { distillDomainResourcesAndMechanisms } from './distillDomain.ResourcesAndMechanisms';
+import { distillDomainImagineResourcesAndMechanisms } from './distillDomain.imagine.ResourcesAndMechanisms';
 
 describe('distillDomainResourcesAndMechanisms', () => {
   const context = {
@@ -15,7 +15,7 @@ describe('distillDomainResourcesAndMechanisms', () => {
     ...genContextStitchTrail(),
     ...getContextOpenAI(),
   };
-  const route = distillDomainResourcesAndMechanisms;
+  const route = distillDomainImagineResourcesAndMechanisms;
 
   given('we want to getSchedulableWindows for a pro', () => {
     const askText = `

@@ -1,15 +1,16 @@
 import { asStitcherFlat, genStitchRoute, GStitcher, Threads } from 'rhachet';
 
-import { GitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
-import { Artifact } from '../../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
-import { RoleContext } from '../../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
-import { genStepImagineViaTemplate } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
-import { genTemplate } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
-import { getTemplateValFromArtifacts } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateValFromArtifacts';
-import { getTemplateVarsFromRoleInherit } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
-import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
-import { genStepArtSet } from '../../../artifact/genStepArtSet';
-import { getEcologistBriefs } from '../getEcologistBrief';
+import { GitFile } from '../../../../../__nonpublished_modules__/rhachet-artifact-git/src/domain/GitFile';
+import { Artifact } from '../../../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
+import { RoleContext } from '../../../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
+import { genStepImagineViaTemplate } from '../../../../../__nonpublished_modules__/rhachet/src/logic/template/genStepImagineViaTemplate';
+import { genTemplate } from '../../../../../__nonpublished_modules__/rhachet/src/logic/template/genTemplate';
+import { getTemplateValFromArtifacts } from '../../../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateValFromArtifacts';
+import { getTemplateVarsFromRoleInherit } from '../../../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
+import { ContextOpenAI, sdkOpenAi } from '../../../../../data/sdk/sdkOpenAi';
+import { genStepArtSet } from '../../../../artifact/genStepArtSet';
+import { getMechanicBriefs } from '../../../mechanic/getMechanicBrief';
+import { getEcologistBriefs } from '../../getEcologistBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{
@@ -36,19 +37,25 @@ const template = genTemplate<StitcherDesired['threads']>({
     ask: threads.student.context.stash.ask,
     ecologist: {
       briefs: await getTemplateValFromArtifacts({
-        artifacts: getEcologistBriefs([
-          'distilisys.md',
-          // 'distilisys.usecases.v2.md', // todo: check if this helps
-          'analysis.behavior-reveals-system.md',
-          'core.term.price.v2.md',
-          'eco001.overview.md',
-          'eco101.core-system-understanding.md', // todo: do we need to expand into the p1-p4?
-          'eco505.systems-thinking.md',
-          'econ001.overview.md',
-          'econ101.core-mechanics.md',
-          'econ501.p1.game-theory.md',
-          'econ501.p4.behavioral-economics.md',
-        ]),
+        artifacts: [
+          ...getMechanicBriefs([
+            'architecture/ubiqlang.md',
+            'architecture/domain-driven-design.md',
+          ]),
+          ...getEcologistBriefs([
+            'distilisys.md',
+            'distill.refine.terms.ubiqlang.md',
+            'analysis.behavior-reveals-system.md',
+            'core.term.price.v2.md',
+            // 'eco001.overview.md',
+            'eco101.core-system-understanding.md',
+            'eco505.systems-thinking.md',
+            // 'econ001.overview.md',
+            'econ101.core-mechanics.md',
+            'econ501.p1.game-theory.md',
+            'econ501.p4.behavioral-economics.md',
+          ]),
+        ],
       }),
     },
     domain: {
@@ -81,7 +88,7 @@ const stepArtSet = genStepArtSet({
   artee: 'distilledResourcesAndMechanisms',
 });
 
-export const distillDomainResourcesAndMechanisms =
+export const distillDomainImagineResourcesAndMechanisms =
   asStitcherFlat<StitcherDesired>(
     genStitchRoute({
       slug: '[student]<distill>[domain][resources+mechanisms]',

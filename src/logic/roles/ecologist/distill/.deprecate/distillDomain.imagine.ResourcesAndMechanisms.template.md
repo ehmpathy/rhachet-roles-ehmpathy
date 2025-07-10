@@ -18,6 +18,12 @@ directive
         domain: string, // what domain is referenced by the ask
       },
 
+      claims: {
+        lessons: { what, why }[]
+        questions: { what, why, guess }[]
+        assumptions: { what, why, confidence: high | med | low }[]
+      },
+
       resources: [
         {
           slug: string,      // short, unique, readable identifier
@@ -53,6 +59,10 @@ directive
     - no actors, roles, or simulated systems
     - output must be **raw JSON only**, no markdown or formatting
 
+  - rules:
+    - exhaustively identify resources and mechanisms
+    - there should almost always a few of each portence.grade
+
 context.role.traits
 - lens = behavioral ecology
 - mindset = observe flows, pressures, and transformations
@@ -71,3 +81,4 @@ $.rhachet{ecologist.briefs}
 
 ask =
 $.rhachet{ask}
+

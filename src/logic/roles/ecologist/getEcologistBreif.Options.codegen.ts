@@ -25,6 +25,8 @@ const options = [
   'eco101.p1.ecosystem-structure.md',
   'eco101.core-system-understanding.md',
   'eco001.overview.md',
+  'distill.refine.terms.ubiqlang.md',
+  'distill.refine.terms.symmetry.md',
   'distilisys.usecases.v2.md',
   'distilisys.usecases.v1.md',
   'distilisys.md',

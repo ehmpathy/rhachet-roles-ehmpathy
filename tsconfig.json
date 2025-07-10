@@ -17,7 +17,12 @@
   },
   "extends": "@tsconfig/node-lts-strictest/tsconfig.json",
   "include": [
-    "**/*.ts"
+    "**/*.ts",
+    "src/logic/roles/ecologist/distill/.deprecate/distillDomain.imagine.ResourcesAndMechanisms.ts",
+    "src/logic/roles/ecologist/distill/.deprecate/distillDomain.refine.ResourcesAndMechanisms.integration.test.ts",
+    "src/logic/roles/ecologist/distill/.deprecate/distillDomain.expand.ResourcesAndMechanisms.ts",
+    "src/logic/roles/ecologist/distill/.deprecate/distillDomain.expand.ResourcesAndMechanisms.integration.test.ts",
+    "src/logic/roles/ecologist/distill/.deprecate/distillDomain.refine.ResourcesAndMechanisms.ts"
   ],
   "exclude": [
     "dist",
