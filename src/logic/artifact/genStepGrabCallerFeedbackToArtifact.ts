@@ -74,14 +74,35 @@ export const genStepGrabCallerFeedbackToArtifact = <
         };
       }
 
-      // prompt for feedback content
-      const { feedback } = await inquirer.prompt<{ feedback: string }>([
-        {
-          type: 'input',
-          name: 'feedback',
-          message: 'enter feedback:',
-        },
-      ]);
+      // grab feedback using inline input or open editor via ':edit'
+      const feedback = await (async () => {
+        // prompt inline first
+        const { fromInline } = await inquirer.prompt<{ fromInline: string }>([
+          {
+            type: 'input',
+            name: 'fromInline',
+            message: 'enter feedback (type ":edit" to open editor):',
+          },
+        ]);
+
+        const isEditorRequest = fromInline.trim() === ':edit';
+        if (!isEditorRequest) {
+          // return inline input directly (support \n)
+          return fromInline.replace(/\\n/g, '\n');
+        }
+
+        // fallback to editor if requested
+        const { fromEditor } = await inquirer.prompt<{ fromEditor: string }>([
+          {
+            type: 'editor',
+            name: 'fromEditor',
+            message: 'enter feedback in editor:',
+            default: '# write your feedback above this line\n',
+          },
+        ]);
+
+        return fromEditor;
+      })();
 
       // write the feedback to caller.art.feedback
       const updated = await feedbackArt.set({
