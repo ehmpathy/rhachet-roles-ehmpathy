@@ -1,5 +1,6 @@
 import { flattie } from 'flattie';
 import { BadRequestError } from 'helpful-errors';
+import { Serializable } from 'serde-fns';
 
 import { genArtifactGitFile } from '../../../../rhachet-artifact-git/src';
 import { Template } from '../../domain/Template';
@@ -8,7 +9,9 @@ import { Template } from '../../domain/Template';
  * .what = hydrates a template file with given variables
  * .why = reusable interpolation engine for Template<T>.use(...)
  */
-export const useTemplate = async <TVariables = any>(input: {
+export const useTemplate = async <
+  TVariables extends Serializable = any,
+>(input: {
   ref: Template<TVariables>['ref'];
   variables: TVariables;
 }): Promise<string> => {
@@ -31,7 +34,7 @@ export const useTemplate = async <TVariables = any>(input: {
         {
           desired: key,
           template: ref,
-          provided: variables,
+          provided: Object.keys(flattened),
         },
       ),
   );

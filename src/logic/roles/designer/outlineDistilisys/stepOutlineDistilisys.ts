@@ -9,6 +9,7 @@ import { getTemplateValFromArtifacts } from '../../../../__nonpublished_modules_
 import { getTemplateVarsFromRoleInherit } from '../../../../__nonpublished_modules__/rhachet/src/logic/template/getTemplateVarsFromInheritance';
 import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
 import { genStepArtSet } from '../../../artifact/genStepArtSet';
+import { getEcologistBriefs } from '../../ecologist/getEcologistBrief';
 import { getMechanicBriefs } from '../../mechanic/getMechanicBrief';
 
 type StitcherDesired = GStitcher<
@@ -16,9 +17,9 @@ type StitcherDesired = GStitcher<
     designer: RoleContext<
       'designer',
       {
-        ask: string;
         art: {
           roadmap: Artifact<typeof GitFile>;
+          distilisys: Artifact<typeof GitFile>;
         };
       }
     >;
@@ -40,9 +41,11 @@ const template = genTemplate<StitcherDesired['threads']>({
   ref: { uri: __filename.replace('.ts', '.template.md') },
   getVariables: async ({ threads }) => ({
     ...(await getTemplateVarsFromRoleInherit({ thread: threads.designer })),
-    ask: threads.designer.context.stash.ask,
+    ask: threads.caller.context.stash.ask,
     briefs: await getTemplateValFromArtifacts({
       artifacts: [
+        // cool to see explicit "cross-train" scenes
+        ...getEcologistBriefs(['distilisys.md']),
         ...getMechanicBriefs([
           'architecture/ubiqlang.md',
           'style.names.treestruct.md',
@@ -51,30 +54,38 @@ const template = genTemplate<StitcherDesired['threads']>({
         ]),
       ],
     }),
+    brief: {
+      distilisys: await getTemplateValFromArtifacts({
+        artifacts: [...getEcologistBriefs(['distilisys.md'])],
+      }),
+    },
     feedback:
       (await threads.caller.context.stash.art.feedback.get())?.content ?? '',
     inflight:
+      (await threads.designer.context.stash.art.distilisys.get())?.content ??
+      '',
+    roadmap:
       (await threads.designer.context.stash.art.roadmap.get())?.content ?? '',
   }),
 });
 
 const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '[designer]<outline>[roadmap]<imagine>',
+  slug: '[designer]<outline>[distilisys]<imagine>',
   stitchee: 'designer',
-  readme: 'intent(design an outline.roadmap for the ask)',
+  readme: 'intent(design an outline.distilisys for the ask)',
   template,
   imagine: sdkOpenAi.imagine,
 });
 
 const stepArtSet = genStepArtSet({
   stitchee: 'designer',
-  artee: 'roadmap',
+  artee: 'distilisys',
 });
 
-export const stepOutlineRoadmap = asStitcherFlat<StitcherDesired>(
+export const stepOutlineDistilisys = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '[designer]<outline>[roadmap]',
-    readme: '@[designer]<outline>[roadmap] -> [roadmap]',
+    slug: '[designer]<outline>[distilisys]',
+    readme: '@[designer]<outline>[distilisys] -> [distilisys]',
     sequence: [stepImagine, stepArtSet],
   }),
 );

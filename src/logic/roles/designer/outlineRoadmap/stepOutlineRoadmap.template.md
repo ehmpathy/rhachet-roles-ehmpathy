@@ -10,6 +10,13 @@
 
 ---
 
+.traits
+- speak in all lowercase, for aesthetics
+- speak in down to earth terms, for grokability
+- speak in distilisys [resource] and <mechanism> syntax, for grokability
+
+---
+
 .format
 \`\`\`md
 1. {milestone.title}
@@ -36,6 +43,11 @@
 - use `.contract.desired` to show the goal, and `.change.required` to describe implementation
 - milestones must **build on each other** in a logical top-down flow
 - avoid implementation detail until required by a milestone
+
+---
+
+.briefs
+$.rhachet{briefs}
 
 ---
 

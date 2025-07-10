@@ -8,19 +8,19 @@ import { usePrep } from '../../../../__nonpublished_modules__/test-fns/src/usePr
 import { genContextLogTrail } from '../../../../__test_assets__/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../__test_assets__/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../__test_assets__/getContextOpenAI';
-import { stepOutlineRoadmap } from './stepOutlineRoadmap';
+import { stepOutlineDistilisys } from './stepOutlineDistilisys';
 
 jest.setTimeout(toMilliseconds({ minutes: 3 }));
 
-describe('stepOutlineRoadmap', () => {
+describe('stepOutlineDistilisys', () => {
   const context = {
     ...genContextLogTrail(),
     ...genContextStitchTrail(),
     ...getContextOpenAI(),
   };
-  const route = stepOutlineRoadmap;
+  const route = stepOutlineDistilisys;
 
-  given('we want to create the rhachet cli, from scratch', () => {
+  given.only('we want to create the rhachet cli, from scratch', () => {
     const askText = `
 i need to outline a design for a npm typescript cli which calls an existingp rocedure within my repo
 
@@ -28,13 +28,23 @@ the product spec is
 
 1. register the "roles" and "skills" that we can access (w/ readme's)
 2. invoke the roles and skills via cli (e.g., \`npx rhachet -r mechanic -s produce -t target/file/path -a "the ask to execute against\`)
-    `.trim();
 
-    const roadmapArt = genArtifactGitFile(
+note
+- no dynamic registration. we'll register the skills and roles at devtime
+- at registration, each skill and role shoudl get a mini readme, declared at the registration point
+    `.trim();
+    const roadmapPriorArt = genArtifactGitFile(
+      {
+        uri:
+          __dirname + '/.test/rhachetCli.outline.roadmap.nofeedback.example.md',
+      },
+      { access: 'readonly' },
+    );
+    const distilisysArt = genArtifactGitFile(
       {
         uri:
           __dirname +
-          '/.temp/stepOutlineRoadmap/rhachetCli.fromscratch.roadmap.md',
+          '/.temp/stepOutlineDistilisys/rhachetCli.fromscratch.distilisys.md',
       },
       { versions: true },
     );
@@ -42,13 +52,14 @@ the product spec is
       {
         uri:
           __dirname +
-          '/.temp/stepOutlineRoadmap/rhachetCli.fromscratch.feedback.md',
+          '/.temp/stepOutlineDistilisys/rhachetCli.fromscratch.feedback.md',
       },
       { versions: true },
     );
 
     beforeEach(async () => {
-      await roadmapArt.del();
+      await distilisysArt.del();
+      await feedbackArt.del();
     });
 
     when('executed', () => {
@@ -56,9 +67,9 @@ the product spec is
         designer: await enrollThread({
           role: 'designer',
           stash: {
-            ask: askText,
             art: {
-              roadmap: roadmapArt,
+              distilisys: distilisysArt,
+              roadmap: roadmapPriorArt,
             },
           },
         }),
@@ -81,7 +92,7 @@ the product spec is
 
         console.log(JSON.stringify(outcome, null, 2));
 
-        const { content } = await roadmapArt.get().expect('isPresent');
+        const { content } = await distilisysArt.get().expect('isPresent');
         expect(content).toMatch(/cli/i);
         expect(content).toMatch(/role/i);
       });
@@ -92,26 +103,37 @@ the product spec is
     'we want to create the rhachet cli, with feedback on prior proposal',
     () => {
       const askText = `
-i need to outline a design for a npm typescript cli which calls an existingp rocedure within my repo
+    i need to outline a design for a npm typescript cli which calls an existingp rocedure within my repo
 
-the product spec is
+    the product spec is
 
-1. register the "roles" and "skills" that we can access (w/ readme's)
-2. invoke the roles and skills via cli (e.g., \`npx rhachet -r mechanic -s produce -t target/file/path -a "the ask to execute against\`)
-    `.trim();
+    1. register the "roles" and "skills" that we can access (w/ readme's)
+    2. invoke the roles and skills via cli (e.g., \`npx rhachet -r mechanic -s produce -t target/file/path -a "the ask to execute against\`)
 
+    note
+    - no dynamic registration. we'll register the skills and roles at devtime
+    - at registration, each skill and role shoudl get a mini readme, declared at the registration point
+        `.trim();
       const roadmapPriorArt = genArtifactGitFile(
         {
-          uri: __dirname + '/.test/rhachetCli.roadmap.example.md',
+          uri:
+            __dirname +
+            '/.test/rhachetCli.outline.roadmap.nofeedback.example.md',
+        },
+        { access: 'readonly' },
+      );
+      const distilisysPriorArt = genArtifactGitFile(
+        {
+          uri: __dirname + '/.test/rhachetCli.distilisys.example.md',
         },
         { access: 'readonly' },
       );
 
-      const roadmapArt = genArtifactGitFile(
+      const distilisysArt = genArtifactGitFile(
         {
           uri:
             __dirname +
-            '/.temp/stepOutlineRoadmap/rhachetCli.withfeedback.roadmap.md',
+            '/.temp/stepOutlineDistilisys/rhachetCli.withfeedback.distilisys.md',
         },
         { versions: true },
       );
@@ -119,13 +141,15 @@ the product spec is
         {
           uri:
             __dirname +
-            '/.temp/stepOutlineRoadmap/rhachetCli.withfeedback.feedback.md',
+            '/.temp/stepOutlineDistilisys/rhachetCli.withfeedback.feedback.md',
         },
         { versions: true },
       );
 
       beforeEach(async () => {
-        await roadmapArt.set(await roadmapPriorArt.get().expect('isPresent')); // bootstrap the prior roadmap
+        await distilisysArt.set(
+          await distilisysPriorArt.get().expect('isPresent'),
+        ); // bootstrap the prior distilisys
         await feedbackArt.set({
           content:
             'move the registry under /contract/cli/registry.ts, since its only used for the cli',
@@ -137,9 +161,9 @@ the product spec is
           designer: await enrollThread({
             role: 'designer',
             stash: {
-              ask: askText,
               art: {
-                roadmap: roadmapArt,
+                roadmap: roadmapPriorArt,
+                distilisys: distilisysArt,
               },
             },
           }),
@@ -162,7 +186,7 @@ the product spec is
 
           console.log(JSON.stringify(outcome, null, 2));
 
-          const { content } = await roadmapArt.get().expect('isPresent');
+          const { content } = await distilisysArt.get().expect('isPresent');
           expect(content).toMatch(/cli/i);
           expect(content).toMatch(/role/i);
         });
