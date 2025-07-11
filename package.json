@@ -50,6 +50,7 @@
     "@ehmpathy/as-command": "1.0.3",
     "@ehmpathy/uni-time": "1.8.1",
     "as-procedure": "1.1.7",
+    "commander": "14.0.0",
     "domain-objects": "0.25.2",
     "fast-glob": "3.3.3",
     "find-up": "5.0.0",
