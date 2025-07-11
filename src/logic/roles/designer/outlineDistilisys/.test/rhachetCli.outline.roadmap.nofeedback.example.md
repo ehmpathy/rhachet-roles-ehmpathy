@@ -5,7 +5,7 @@
       .ordered: central to the functioning of the CLI and must be defined prior to implementing CLI registration mechanisms
    .where
       .layer: domain
-      .pathExample: src/domain/objects/RoleSkillTypes.ts
+      .pathExample: src/domain/objects/Role.ts
    .what
      .contract.desired
        input = none

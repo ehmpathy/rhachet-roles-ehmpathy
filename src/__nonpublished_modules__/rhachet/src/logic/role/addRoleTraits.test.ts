@@ -4,7 +4,7 @@ import { given, when, then } from 'test-fns';
 
 import { GitFile } from '../../../../rhachet-artifact-git/src';
 import { Artifact } from '../../domain/Artifact';
-import { RoleTrait } from '../../domain/RoleContext';
+import { RoleContextTrait } from '../../domain/RoleContext';
 import { addRoleTraits } from './addRoleTraits';
 
 const makeFakeArtifact = (content: string): Artifact<typeof GitFile> => ({
@@ -26,7 +26,7 @@ describe('addRoleTraits', () => {
     };
 
     when('adding traits from direct RoleTrait content', () => {
-      const traits: RoleTrait[] = [
+      const traits: RoleContextTrait[] = [
         { content: 'treat consistency as top priority' },
         { content: 'prefer ubiquitous language' },
       ];
@@ -53,7 +53,7 @@ describe('addRoleTraits', () => {
     });
 
     when('adding traits from both RoleTrait and Artifact', () => {
-      const traits: RoleTrait[] = [{ content: 'always test behavior' }];
+      const traits: RoleContextTrait[] = [{ content: 'always test behavior' }];
       const artifacts = [makeFakeArtifact('capture domain terms')];
 
       then(

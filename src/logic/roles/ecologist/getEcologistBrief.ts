@@ -3,7 +3,7 @@ import {
   genArtifactGitFile,
 } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
 import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
-import { BriefOptionEcologist } from './getEcologistBreif.Options.codegen';
+import { BriefOptionEcologist } from './getEcologistBrief.Options.codegen';
 
 /**
  * .what = loads an artifact:brief distilled for the mechanic to reference, from the `.briefs` directory

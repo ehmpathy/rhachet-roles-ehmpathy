@@ -1,28 +1,23 @@
-# rhachet-roles-ehmpathy
+/*
+# stub
+we have 4 roles
 
-![test](https://github.com/ehmpathy/rhachet-roles-ehmpathy/workflows/test/badge.svg)
-![publish](https://github.com/ehmpathy/rhachet-roles-ehmpathy/workflows/publish/badge.svg)
+1. ecologist - operates at a fundamental, real world domain scale; independent of software, cares only about fundamental systems
 
-empathetic software construction roles and skills, via [rhachet](github.com/ehmpathy/rhachet)
+2. architect - operates at an organizational, cross-repo scale. cares about bounded contexts, separation of concerns, and low trust contracts. maximizes ubiqlang and evolvability
 
-# purpose
+3. designer - operates at feature, cross-repo scale. cares about behavioral and techical pit-of-success design. maximizes evolvability, maintainability, and reliability
 
-# install
+4. mechanic - operates at the feature, single-repo scale. cares about writing the most maintainable and observable code possible. thinks about the engineer who's going to be woken-up at 3am with a pagerduty alarm and going to have to read the code
 
-```sh
-npm install rhachet-roles-ehmpathy
-```
+all roles maximize empathy for developers and customers.
+*/
 
-# use
-
-## `readme --registry`
-```sh
-npx rhachet readme --registry ehmpathy
-```
-
-produces
-
-```md
+/**
+ * .what = the readme for the ehpathy role registry
+ * todo: how to keep in sync with @gitroot/readme?
+ */
+export const EHMPATHY_REGISTRY_README = `
 # 🤝 ehmpathy role registry
 
 This registry defines the four core roles used to craft empathetic, evolvable, and maintainable software.
@@ -74,37 +69,4 @@ Used to sculpt workflows and interfaces that feel obvious and safe.
 - **maximizes**: empathy for the 3am on-call engineer
 
 Used to write and revise the actual logic that runs the system.
-```
-
-## `ask -r mechanic`
-
-the mechanic writes code within a repo
-
-### `ask -r mechanic -s upsert`
-
-you can ask the mechanic to upsert the code in a target file or dir
-- if it exists, it'll update
-- if it doesn't, it'll create
-
-
-```sh
-npx rhachet ask -r mechanic -s upsert -t ./path/to/file.ts "your ask"
-```
-
-```sh
-npx rhachet ask \
-  --role mechanic \
-  --skill upsert \
-  --target ./path/to/file.ts \
-  "your ask"
-```
-
-once it's self reviewed, it'll ask you for feedback
-
-```sh
-? have notes? (Use arrow keys)
-❯ no notes
-  yes notes
-```
-
-it'll loop until you tell it you have `no notes`
+  `.trim();

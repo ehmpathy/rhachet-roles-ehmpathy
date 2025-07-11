@@ -51,6 +51,7 @@
     "@ehmpathy/uni-time": "1.8.1",
     "as-procedure": "1.1.7",
     "domain-objects": "0.25.2",
+    "fast-glob": "3.3.3",
     "find-up": "5.0.0",
     "flattie": "1.1.1",
     "glob": "11.0.3",

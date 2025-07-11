@@ -3,7 +3,7 @@ import { PickAny } from 'type-fns';
 
 import { GitFile } from '../../../../rhachet-artifact-git/src';
 import { Artifact } from '../../domain/Artifact';
-import { RoleContext, RoleTrait } from '../../domain/RoleContext';
+import { RoleContext, RoleContextTrait } from '../../domain/RoleContext';
 
 /**
  * .what = injects new RoleTrait(s) into a thread's context
@@ -17,11 +17,11 @@ export const addRoleTraits = async <
 }: {
   thread: TThread;
   from: PickAny<{
-    traits: RoleTrait[];
+    traits: RoleContextTrait[];
     artifacts: Artifact<typeof GitFile>[];
   }>;
 }): Promise<TThread> => {
-  const parsed: RoleTrait[] = [];
+  const parsed: RoleContextTrait[] = [];
 
   if ('traits' in from && from.traits) {
     parsed.push(...from.traits);

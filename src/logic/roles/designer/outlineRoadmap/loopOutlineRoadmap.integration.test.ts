@@ -28,6 +28,9 @@ the product spec is
 
 1. register the "roles" and "skills" that we can access (w/ readme's)
 2. invoke the roles and skills via cli (e.g., \`npx rhachet -r mechanic -s produce -t target/file/path -a "the ask to execute against\`)
+
+note
+- dynamic registration is NOT required. we can declare the RoleRegistry at devtime. the cli can then getRoleRegistry and use it at runtime.
     `.trim();
 
     const roadmapArt = genArtifactGitFile(

@@ -1,25 +1,29 @@
 import { ThreadContextRole, ThreadRole } from 'rhachet';
 
 /**
- * .what = a trait which is adopted as an inherent truth of any agent which assumes the role
+ * .what = a resolved RoleTrait, accessible in a thread's context
  * .why = defines the default mindset or behavioral axioms that persist across all tasks performed in the role
- * .cases =
+ * .examples =
  *   - treat ubiquitous language as top priority
  *   - treat consistency as top priority
  *   - prefer given/when/then test suites
+ * todo:
+ *   - ensure that traits are always leveraged in every template that uses a role'd thread?
  */
-export interface RoleTrait {
+export interface RoleContextTrait {
   content: string;
 }
 
 /**
- * .what = a skill which is learned and accessible to any agent which assumes the role
+ * .what = a reference to a skill which is learned and accessible to any actor which assumes the role
  * .why = enables agents to perform tasks within the role using repeatable methods, patterns, or strategies
  * .cases =
  *   - domain distillation is a process where you extract domain terms and clarify their relationships; here's how to use
  *   - given/when/then enables test suites with behavior-driven structure; here's how to use
+ * todo:
+ *   - update this to a shape that actually helps dynamic subskill execution, once we get to fluid routes
  */
-export interface RoleSkill {
+export interface RoleContextSkill {
   content: string;
 }
 
@@ -40,8 +44,8 @@ export interface RoleContext<
    * .why  = allows role-specific behavior, reasoning styles, and tool usage to persist across steps
    */
   inherit: {
-    traits: RoleTrait[];
-    skills: RoleSkill[];
+    traits: RoleContextTrait[];
+    skills: RoleContextSkill[];
   };
 
   /**

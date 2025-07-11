@@ -1,6 +1,6 @@
 import { asCommand } from '@ehmpathy/as-command';
+import glob from 'fast-glob';
 import fs from 'fs';
-import { glob } from 'glob';
 import path from 'path';
 
 import { getGitRepoRoot } from '../../__nonpublished_modules__/rhachet-artifact-git/src/logic/repo/getGitRepoRoot';
@@ -20,8 +20,11 @@ const command = asCommand(
       (await getGitRepoRoot({ from: __dirname })) +
         `/src/logic/roles/${input.role.toLowerCase()}/.briefs`,
     );
-    const pattern = path.join(briefsDir, '**/*');
-    const filePaths = await glob(pattern, { nodir: true });
+    const patterns = [
+      path.join(briefsDir, '**/*'), // include all
+      '!' + path.join(briefsDir, '**/*.stub.*'), // exclude .stub.* files, since those were the stubs that the full briefs were expanded from
+    ];
+    const filePaths = await glob(patterns, { onlyFiles: true });
 
     // declare each path as a key
     const keys = filePaths
@@ -49,7 +52,7 @@ export type BriefOption${input.role} = typeof options[number];
     // persist the output
     const outputFile = path.join(
       briefsDir,
-      `../get${input.role}Breif.Options.codegen.ts`,
+      `../get${input.role}Brief.Options.codegen.ts`,
     );
     fs.writeFileSync(outputFile, fileContents.trimStart());
     console.info(`✅ wrote ${outputFile}`);
@@ -61,5 +64,6 @@ export type BriefOption${input.role} = typeof options[number];
 if (require.main === module) {
   void command({ role: 'Ecologist' });
   // void command({ role: 'Architect' });
+  void command({ role: 'Designer' });
   void command({ role: 'Mechanic' });
 }

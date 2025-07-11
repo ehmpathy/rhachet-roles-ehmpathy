@@ -11,6 +11,7 @@ import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
 import { genStepArtSet } from '../../../artifact/genStepArtSet';
 import { getEcologistBriefs } from '../../ecologist/getEcologistBrief';
 import { getMechanicBriefs } from '../../mechanic/getMechanicBrief';
+import { getDesignerBriefs } from '../getDesignerBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{
@@ -46,6 +47,7 @@ const template = genTemplate<StitcherDesired['threads']>({
       artifacts: [
         // cool to see explicit "cross-train" scenes
         ...getEcologistBriefs(['distilisys.md']),
+        ...getDesignerBriefs(['declarative-over-imperative.md']),
         ...getMechanicBriefs([
           'architecture/ubiqlang.md',
           'style.names.treestruct.md',
