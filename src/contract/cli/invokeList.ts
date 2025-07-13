@@ -1,37 +1,59 @@
 import { Command } from 'commander';
+import { BadRequestError } from 'helpful-errors';
 
-import { RoleRegistry } from '../../domain/objects/RoleRegistry';
+import { RoleRegistry } from '../../__nonpublished_modules__/rhachet/src/domain/RoleRegistry';
+import { invokeFindRole } from './invokeFindRole';
 
+/**
+ * .what = adds the "list" command to the CLI
+ * .why = lets users list all available roles or skills across multiple registries
+ */
 export const invokeList = ({
   program,
-  registry,
+  registries,
 }: {
   program: Command;
-  registry: RoleRegistry;
+  registries: RoleRegistry[];
 }) => {
   program
     .command('list')
     .description('list available roles or skills under a role')
-    .option('--role <slug>', 'list skills under this role')
-    .action((opts: { role?: string }) => {
-      if (!opts.role) {
-        console.log('# available roles:');
-        for (const role of registry.roles) {
-          console.log(`- ${role.slug}`);
-        }
+    .option('--registry <slug>', 'list roles under this registry')
+    .option('--role <slug>', 'list skills under this role (registry optional)')
+    .action((opts: { registry?: string; role?: string }) => {
+      if (opts.role) {
+        const role = invokeFindRole({ registries, slug: opts.role });
+        if (!role) BadRequestError.throw(`no role named "${opts.role}"`);
+
+        console.log(``);
+        console.log(`📖 ${role.slug}.skills =`);
+        for (const skill of role.skills)
+          console.log(`  - ${role.slug}.${skill.slug}`);
+        console.log(``);
         return;
       }
 
-      const role = registry.roles.find((r) => r.slug === opts.role);
-      if (!role) {
-        console.error(`no role named "${opts.role}"`);
-        process.exit(1);
+      if (opts.registry) {
+        const registry = registries.find((r) => r.slug === opts.registry);
+        if (!registry)
+          BadRequestError.throw(`no registry named "${opts.registry}"`);
+
+        console.log(``);
+        console.log(`📖 ${registry.slug}.roles =`);
+        for (const role of registry.roles)
+          console.log(`  - ${role.slug}; purpose = ${role.purpose}`);
+        console.log(``);
+        return;
       }
 
-      console.log(`# skills under "${opts.role}":`);
-      for (const skill of role.skills) {
-        const summary = skill.readme.split('\n')[0];
-        console.log(`- ${skill.slug}: ${summary}`);
-      }
+      console.log(``);
+      console.log(`📖 all.roles =`);
+      const allRoles = registries.flatMap((registry) =>
+        registry.roles.map(
+          (role) => `${registry.slug}.${role.slug}; purpose = ${role.purpose}`,
+        ),
+      );
+      for (const name of allRoles.sort()) console.log(`  - ${name}`);
+      console.log(``);
     });
 };

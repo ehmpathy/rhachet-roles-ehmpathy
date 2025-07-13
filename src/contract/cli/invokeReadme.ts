@@ -1,13 +1,19 @@
 import { Command } from 'commander';
+import { BadRequestError } from 'helpful-errors';
 
-import { RoleRegistry } from '../../domain/objects/RoleRegistry';
+import { RoleRegistry } from '../../__nonpublished_modules__/rhachet/src/domain/RoleRegistry';
+import { invokeFindRole } from './invokeFindRole';
 
+/**
+ * .what = main entrypoint for `readme` CLI command
+ * .why = allows devs to introspect registry, role, or skill documentation from the CLI
+ */
 export const invokeReadme = ({
   program,
-  registry,
+  registries,
 }: {
   program: Command;
-  registry: RoleRegistry;
+  registries: RoleRegistry[];
 }) => {
   program
     .command('readme')
@@ -16,32 +22,68 @@ export const invokeReadme = ({
     .option('--role <slug>', 'which role to inspect')
     .option('--skill <slug>', 'which skill to inspect')
     .action((opts: { registry?: string; role?: string; skill?: string }) => {
-      if (opts.registry) {
-        if (opts.registry !== registry.slug) {
-          console.error(`no registry named "${opts.registry}"`);
-          process.exit(1);
-        }
-        console.log(registry.readme);
-        return;
+      // no inputs provided
+      if (!opts.registry && !opts.role)
+        BadRequestError.throw('must provide --registry or --role');
+
+      // resolve registry
+      const registry = opts.registry
+        ? registries.find((r) => r.slug === opts.registry)
+        : null;
+      if (!opts.role) {
+        if (!registry)
+          BadRequestError.throw(`no registry matches given options`);
+
+        // registry level readme
+        return printReadme(`${registry.slug}`, registry.readme);
       }
 
-      const role = registry.roles.find((r) => r.slug === opts.role);
-      if (!role) {
-        console.error(`no role named "${opts.role}"`);
-        process.exit(1);
-      }
+      // resolve role
+      const role = invokeFindRole({ registries, slug: opts.role });
+      if (!role)
+        BadRequestError.throw(
+          `no role named "${opts.role}" in configured registries`,
+          {
+            registries: registries.map((thisRegistry) => thisRegistry.slug),
+          },
+        );
 
-      if (!opts.skill) {
-        console.log(role.readme);
-        return;
-      }
+      // role-level readme
+      if (!opts.skill) return printReadme(`${role.slug}`, role.readme);
 
+      // resolve skill
       const skill = role.skills.find((s) => s.slug === opts.skill);
-      if (!skill) {
-        console.error(`no skill "${opts.skill}" in role "${opts.role}"`);
-        process.exit(1);
-      }
+      if (!skill)
+        BadRequestError.throw(
+          `no skill "${opts.skill}" in role "${opts.role}"`,
+          { skills: role.skills.map((thisSkill) => thisSkill.slug) },
+        );
 
-      console.log(skill.readme);
+      // skill-level readme
+      return printReadme(`${role.slug}.${skill.slug}`, skill.readme);
     });
+};
+
+/**
+ * .what = logs a formatted markdown readme block with label
+ * .why = standardizes output for registry/role/skill readmes in CLI
+ */
+const printReadme = (slug: string, markdown: string) => {
+  console.log('');
+  console.log(`📜 ${slug}.readme`);
+  console.log('');
+  console.log(indentLines(markdown));
+  console.log('');
+};
+
+/**
+ * .what = indents each line of a string by a fixed number of spaces
+ * .why = ensures markdown blocks are consistently readable in nested output
+ */
+export const indentLines = (text: string, spaces = 4): string => {
+  const prefix = ' '.repeat(spaces);
+  return text
+    .split('\n')
+    .map((line) => `${prefix}${line}`)
+    .join('\n');
 };

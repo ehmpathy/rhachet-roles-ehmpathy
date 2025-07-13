@@ -47,9 +47,8 @@ const template = genTemplate<ThreadsDesired>({
   ref: { uri: __dirname + '/routeArtistCodeDiff.template.md' },
   getVariables: async ({ threads }) => ({
     ask: threads.artist.context.stash.ask,
-    claims: (
-      await threads.student.context.stash.art.claims.get().expect('isPresent')
-    ).content,
+    claims:
+      (await threads.student.context.stash.art.claims.get())?.content ?? '',
     inflight:
       (await threads.artist.context.stash.art.inflight.get())?.content ?? '',
     feedback:

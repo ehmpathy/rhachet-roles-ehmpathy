@@ -58,9 +58,8 @@ const template = genTemplate<ThreadsDesired>({
     diff: (
       await threads.artist.context.stash.art.inflight.get().expect('isPresent')
     ).content,
-    claims: (
-      await threads.student.context.stash.art.claims.get().expect('isPresent')
-    ).content,
+    claims:
+      (await threads.student.context.stash.art.claims.get())?.content ?? '',
     feedback: (
       await threads.critic.context.stash.art.feedback.get().expect('isPresent')
     ).content,

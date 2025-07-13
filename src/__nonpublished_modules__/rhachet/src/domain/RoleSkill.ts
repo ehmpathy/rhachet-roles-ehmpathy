@@ -1,6 +1,11 @@
 import { DomainEntity } from 'domain-objects';
 import { GStitcher, Stitcher } from 'rhachet';
 
+import {
+  RoleSkillContextGetter,
+  RoleSkillThreadsGetter,
+} from './RoleSkillArgGetter';
+
 /**
  * .what = a skill is an action a role can perform; a route it can weave
  * .why =
@@ -28,28 +33,14 @@ export interface RoleSkill<TStitcher extends GStitcher> {
   route: Stitcher<TStitcher>;
 
   /**
-   * .what = the input that the skill requires to operate on
-   * .example = { target: { char: t, desc: "the target file or dir to upsert against", shape: "string" } }
+   * .what = how to instantiate the threads for this skill
    */
-  input: Record<
-    Exclude<string, 'ask'>, // .ask input is a standard, non-overridable input
-    {
-      /**
-       * .what = the single character alias via which we can reference this input
-       */
-      char: string;
+  threads: RoleSkillThreadsGetter<TStitcher['threads'], any>;
 
-      /**
-       * .what = the type of this input
-       */
-      shape: 'string'; // todo: support others?
-
-      /**
-       * .what = a short description of this input
-       */
-      desc: string;
-    }
-  >;
+  /**
+   * .what = how to instantiate the context for this skill
+   */
+  context: RoleSkillContextGetter<TStitcher['context'], any>;
 }
 export class RoleSkill<TStitcher extends GStitcher>
   extends DomainEntity<RoleSkill<TStitcher>>
