@@ -1,4 +1,5 @@
-import { RoleRegistry } from '../../__nonpublished_modules__/rhachet/src/domain/RoleRegistry';
+import { RoleRegistry } from 'rhachet';
+
 import { EHMPATHY_REGISTRY_README } from './getRoleRegistry.readme';
 import { ROLE_MECHANIC } from './mechanic/getMechanicRole';
 

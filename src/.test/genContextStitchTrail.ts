@@ -1,4 +1,4 @@
-import { ContextStitchTrail } from 'rhachet/dist/logic/stitch/withStitchTrail';
+import { ContextStitchTrail } from 'rhachet';
 
 export const genContextStitchTrail = (): ContextStitchTrail => ({
   stitch: { trail: [] },
