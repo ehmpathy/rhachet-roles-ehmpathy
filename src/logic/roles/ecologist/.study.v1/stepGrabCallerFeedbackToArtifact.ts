@@ -1,9 +1,8 @@
 import inquirer from 'inquirer';
 import { StitchStepCompute, GStitcher, Threads } from 'rhachet';
-
-import { GitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { Artifact } from '../../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
-import { RoleContext } from '../../../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
+import { RoleContext } from 'rhachet';
+import { Artifact } from 'rhachet-artifact';
+import { GitFile } from 'rhachet-artifact-git';
 
 export const stepGrabCallerFeedbackToArtifact = new StitchStepCompute<
   GStitcher<

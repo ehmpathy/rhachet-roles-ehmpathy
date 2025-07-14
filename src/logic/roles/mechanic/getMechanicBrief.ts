@@ -1,8 +1,6 @@
-import {
-  GitFile,
-  genArtifactGitFile,
-} from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { Artifact } from '../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
+import { Artifact } from 'rhachet-artifact';
+import { GitFile, genArtifactGitFile } from 'rhachet-artifact-git';
+
 import { BriefOptionMechanic } from './getMechanicBrief.Options.codegen';
 
 /**

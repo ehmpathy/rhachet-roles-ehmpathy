@@ -1,9 +1,13 @@
 import inquirer from 'inquirer';
-import { StitchStepCompute, GStitcher, Threads, Thread } from 'rhachet';
-
-import { GitFile } from '../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { Artifact } from '../../__nonpublished_modules__/rhachet/src/domain/Artifact';
-import { RoleContext } from '../../__nonpublished_modules__/rhachet/src/domain/RoleContext';
+import {
+  StitchStepCompute,
+  GStitcher,
+  Threads,
+  Thread,
+  RoleContext,
+} from 'rhachet';
+import { Artifact } from 'rhachet-artifact';
+import { GitFile } from 'rhachet-artifact-git';
 
 /**
  * .what = creates a compute step where the static 'caller' gives feedback on another role's artifact

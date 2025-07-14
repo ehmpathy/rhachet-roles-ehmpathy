@@ -1,12 +1,9 @@
-import { GStitcherOf } from 'rhachet';
+import { GStitcherOf, Role, RoleSkill, enrollThread } from 'rhachet';
+import { genArtifactGitFile } from 'rhachet-artifact-git';
 
-import { genArtifactGitFile } from '../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { Role } from '../../../__nonpublished_modules__/rhachet/src/domain/Role';
-import { RoleSkill } from '../../../__nonpublished_modules__/rhachet/src/domain/RoleSkill';
-import { enrollThread } from '../../../__nonpublished_modules__/rhachet/src/logic/enrollThread';
-import { genContextLogTrail } from '../../../__test_assets__/genContextLogTrail';
-import { genContextStitchTrail } from '../../../__test_assets__/genContextStitchTrail';
-import { getContextOpenAI } from '../../../__test_assets__/getContextOpenAI';
+import { genContextLogTrail } from '../../../.test/genContextLogTrail';
+import { genContextStitchTrail } from '../../../.test/genContextStitchTrail';
+import { getContextOpenAI } from '../../../.test/getContextOpenAI';
 import { getRefOrgPatterns } from './codediff/getRefOrgPatterns';
 import { routeMechanicCodePropose } from './codediff/routeMechanicCodePropose';
 import { getMechanicBrief } from './getMechanicBrief';

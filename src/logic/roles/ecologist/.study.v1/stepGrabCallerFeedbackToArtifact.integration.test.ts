@@ -1,9 +1,9 @@
 import inquirer from 'inquirer';
 import { enweaveOneStitcher } from 'rhachet';
+import { enrollThread } from 'rhachet';
+import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { given, when, then } from 'test-fns';
 
-import { genArtifactGitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { enrollThread } from '../../../../__nonpublished_modules__/rhachet/src/logic/enrollThread';
 import { genContextLogTrail } from '../../../../__test_assets__/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../__test_assets__/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../__test_assets__/getContextOpenAI';

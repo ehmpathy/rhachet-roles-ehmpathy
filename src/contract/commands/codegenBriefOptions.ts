@@ -2,8 +2,7 @@ import { asCommand } from '@ehmpathy/as-command';
 import glob from 'fast-glob';
 import fs from 'fs';
 import path from 'path';
-
-import { getGitRepoRoot } from '../../__nonpublished_modules__/rhachet-artifact-git/src/logic/repo/getGitRepoRoot';
+import { getGitRepoRoot } from 'rhachet-artifact-git';
 
 const command = asCommand(
   {

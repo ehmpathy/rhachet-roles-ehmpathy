@@ -1,7 +1,7 @@
+import { Artifact } from 'rhachet-artifact';
+import { GitFile } from 'rhachet-artifact-git';
 import { isPresent } from 'type-fns';
 
-import { GitFile } from '../../../../__nonpublished_modules__/rhachet-artifact-git/src';
-import { Artifact } from '../../../../__nonpublished_modules__/rhachet/src/domain/Artifact';
 import { getMechanicBrief } from '../getMechanicBrief';
 
 export const getRefOrgPatterns = (input: {
