@@ -3,7 +3,7 @@
 ![test](https://github.com/ehmpathy/rhachet-roles-ehmpathy/workflows/test/badge.svg)
 ![publish](https://github.com/ehmpathy/rhachet-roles-ehmpathy/workflows/publish/badge.svg)
 
-empathetic software construction roles and skills, via [rhachet](github.com/ehmpathy/rhachet)
+empathetic software construction roles and skills, via [rhachet](https://github.com/ehmpathy/rhachet)
 
 # purpose
 
