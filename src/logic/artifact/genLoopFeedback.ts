@@ -1,0 +1,113 @@
+import {
+  StitchStepCompute,
+  genStitchRoute,
+  genStitchCycle,
+  asStitcherFlat,
+  GStitcher,
+  Threads,
+  RoleContext,
+  StitchCycle,
+  Stitcher,
+  Thread,
+  asStitcher,
+  GStitcherOf,
+} from 'rhachet';
+import { Artifact } from 'rhachet-artifact';
+import { GitFile } from 'rhachet-artifact-git';
+
+import { genStepGrabCallerFeedbackToArtifact } from './genStepGrabCallerFeedbackToArtifact';
+
+export const genLoopFeedback = <
+  TStitchee extends string,
+  TArtee extends string,
+  TThreads extends Threads<{
+    [K in TStitchee | 'caller']: RoleContext<
+      K,
+      K extends 'caller'
+        ? { ask: string; art: { feedback: Artifact<typeof GitFile> } }
+        : { art: { [P in TArtee]: Artifact<typeof GitFile> } }
+    >;
+  }>,
+  TContext extends GStitcher['context'],
+>({
+  stitchee,
+  artee,
+  repeatee,
+  halter,
+}: {
+  stitchee: TStitchee;
+  artee: TArtee;
+  repeatee: Stitcher<GStitcher<TThreads, TContext, { content: string }>>;
+  halter?: StitchCycle<any>['halter'];
+}): Stitcher<
+  GStitcher<
+    TThreads,
+    GStitcherOf<typeof repeatee>['context'],
+    {
+      feedback: GitFile | null;
+    }
+  >
+> => {
+  const stepGetFeedback = genStepGrabCallerFeedbackToArtifact<
+    TStitchee,
+    TArtee,
+    TThreads
+  >({
+    stitchee,
+    artee,
+  });
+
+  const route = asStitcherFlat<
+    GStitcher<
+      TThreads,
+      GStitcherOf<typeof repeatee>['context'],
+      {
+        feedback: GitFile | null;
+      }
+    >
+  >(
+    genStitchRoute({
+      slug: `[${stitchee}]<write>(<repeatee>-><write>-><feedback>)`,
+      readme: `@[${stitchee}] imagines, writes, then @[caller] gives feedback`,
+      sequence: [
+        repeatee as any, // todo: why are the types off?
+        asStitcher(stepGetFeedback),
+      ],
+    }) as any, // todo: why are the types off?
+  );
+
+  const stepDecide = new StitchStepCompute<
+    GStitcher<
+      TThreads,
+      GStitcher['context'],
+      { choice: 'release' | 'repeat' | 'halt' }
+    >
+  >({
+    form: 'COMPUTE',
+    slug: `[caller]<feedback><hasNotes?>`,
+    stitchee: 'caller' as const,
+    readme: `check if feedback has content`,
+    invoke: async ({ threads }) => {
+      const thread = threads.caller as Thread<
+        RoleContext<'caller', { art: { feedback: Artifact<typeof GitFile> } }>
+      >;
+      const feedback = await thread.context.stash.art.feedback.get();
+      return {
+        input: { feedback },
+        output: { choice: feedback ? 'repeat' : 'release' },
+      };
+    },
+  });
+
+  const cycle = asStitcher(
+    genStitchCycle({
+      slug: `${repeatee.slug}<🌀loop:feedback>`,
+      readme: `@${repeatee.slug} -> @[caller]<feedback> -> { notes? repeat, none?: <release> }`,
+      repeatee: asStitcher(route),
+      decider: asStitcher(stepDecide),
+      halter,
+    }),
+  );
+
+  return cycle as any;
+};

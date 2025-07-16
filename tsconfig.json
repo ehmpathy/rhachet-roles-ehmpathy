@@ -18,15 +18,11 @@
   "extends": "@tsconfig/node-lts-strictest/tsconfig.json",
   "include": [
     "**/*.ts",
-    "src/logic/roles/ecologist/distill/.deprecate/distillDomain.imagine.ResourcesAndMechanisms.ts",
-    "src/logic/roles/ecologist/distill/.deprecate/distillDomain.refine.ResourcesAndMechanisms.integration.test.ts",
-    "src/logic/roles/ecologist/distill/.deprecate/distillDomain.expand.ResourcesAndMechanisms.ts",
-    "src/logic/roles/ecologist/distill/.deprecate/distillDomain.expand.ResourcesAndMechanisms.integration.test.ts",
-    "src/logic/roles/ecologist/distill/.deprecate/distillDomain.refine.ResourcesAndMechanisms.ts"
   ],
   "exclude": [
     "dist",
     "coverage",
-    "node_modules"
+    "node_modules",
+    "**/.scratch/**/*.ts", // track them in git for reference, but no longer attempt to compile them
   ]
 }

@@ -1,0 +1,73 @@
+{
+  "ask": {
+    "summary": "Develop an endpoint for obtaining available scheduling windows for professionals based on the availability of their specific crews, and managing appointments with those crews.",
+    "domain": "scheduling system"
+  },
+  "resources": [
+    {
+      "slug": "crew-availability",
+      "what": "Availability of a crew",
+      "why": "Determines when a crew can be scheduled for jobs and directly influences the scheduling capacity.",
+      "attributes": ["crewID", "availableTimeSlots", "timeZone", "exceptions"],
+      "portence": {
+        "grade": "musthave"
+      }
+    },
+    {
+      "slug": "appointment-schedule",
+      "what": "Schedule of appointments",
+      "why": "Existing appointments need to be considered to determine new schedulable windows without conflicts.",
+      "attributes": ["appointmentID", "crewID", "startTime", "endTime", "status"],
+      "portence": {
+        "grade": "musthave"
+      }
+    },
+    {
+      "slug": "job-duration",
+      "what": "Required job duration",
+      "why": "Knowing the duration of a job helps align crew availability with the specific window needed for the task.",
+      "attributes": ["jobType", "duration"],
+      "portence": {
+        "grade": "musthave"
+      }
+    }
+  ],
+  "mechanisms": [
+    {
+      "slug": "compute-available-windows",
+      "what": "Compute available time windows",
+      "why": "Establishes what specific times are available for new appointments based on the comparison of existing appointments and overall availability.",
+      "contract": {
+        "input": "Crew availability, job duration, existing appointments",
+        "output": "List of schedulable windows"
+      },
+      "portence": {
+        "grade": "musthave"
+      }
+    },
+    {
+      "slug": "identify-conflicts",
+      "what": "Identify scheduling conflicts",
+      "why": "Prevents the double-booking of a crew and ensures smooth operation without scheduling errors.",
+      "contract": {
+        "input": "Proposed scheduling times, existing appointment schedule",
+        "output": "Conflict status and details"
+      },
+      "portence": {
+        "grade": "hugetohave"
+      }
+    },
+    {
+      "slug": "update-appointment-status",
+      "what": "Update the status of appointments",
+      "why": "Allows for dynamic changes to the appointment state, facilitating easier rescheduling and cancellations.",
+      "contract": {
+        "input": "Appointment updates (reschedule, cancellation)",
+        "output": "Updated schedule"
+      },
+      "portence": {
+        "grade": "nicetohave"
+      }
+    }
+  ]
+}
