@@ -19,14 +19,19 @@ import { getEcologistBriefs } from '../getEcologistBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{
-    student: RoleContext<
-      'student',
+    caller: RoleContext<
+      'caller',
       {
         ask: string;
         art: {
-          /**
-           * the background identified throughout the process
-           */
+          feedback: Artifact<typeof GitFile> | null;
+        };
+      }
+    >;
+    student: RoleContext<
+      'student',
+      {
+        art: {
           domain: Artifact<typeof GitFile>;
         };
       }
@@ -40,7 +45,9 @@ const template = genTemplate<StitcherDesired['threads']>({
   ref: { uri: __filename.replace('.ts', '.template.md') },
   getVariables: async ({ threads }) => ({
     ...(await getTemplateVarsFromRoleInherit({ thread: threads.student })),
-    ask: threads.student.context.stash.ask,
+    ask:
+      (await threads.caller.context.stash.art.feedback?.get())?.content ||
+      threads.caller.context.stash.ask,
     briefs: await getTemplateValFromArtifacts({
       artifacts: [
         ...getMechanicBriefs([
@@ -73,7 +80,7 @@ const template = genTemplate<StitcherDesired['threads']>({
 });
 
 const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '[student]<explore>[domain]<imagine>',
+  slug: '[student]<study>[domain]<imagine>',
   stitchee: 'student',
   readme: '',
   template,
@@ -87,10 +94,10 @@ const stepPersist = genStepArtSet({
 
 // todo: expand into separation of domain discovery vs vision discovery
 
-export const stepExploreDomain = asStitcherFlat<StitcherDesired>(
+export const stepStudyDomain = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '[student]<explore>[domain]',
-    readme: '@[student]<explore>[domain] -> [[claim]]s',
+    slug: '[student]<study>[domain]',
+    readme: '@[student]<study>[domain] -> [[claim]]s',
     sequence: [stepImagine, stepPersist],
   }),
 );

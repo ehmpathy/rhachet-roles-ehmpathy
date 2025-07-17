@@ -5,15 +5,15 @@ import { given, when, then, usePrep } from 'test-fns';
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { stepExploreDomain } from './stepExploreDomain';
+import { loopStudyDomain } from './loopStudyDomain';
 
-describe('distillDomainActorsAndActions', () => {
+describe('loopStudyDomain', () => {
   const context = {
     ...genContextLogTrail(),
     ...genContextStitchTrail(),
     ...getContextOpenAI(),
   };
-  const route = stepExploreDomain;
+  const route = loopStudyDomain;
 
   given('we want to explore the home service domain', () => {
     const askText = `
@@ -25,27 +25,33 @@ home service domain
 neighbors need to schedule with providers
     `.trim();
 
-    const domainArt = genArtifactGitFile(
-      {
-        uri: __dirname + '/.temp/exploreDomain.homeServices.domain.md',
-      },
-      {
-        versions: true,
-      },
+    const inflightArt = genArtifactGitFile(
+      { uri: __dirname + '/.temp/loopStudyDomain/homeService.inflight.md' },
+      { versions: true },
+    );
+    const feedbackArt = genArtifactGitFile(
+      { uri: __dirname + '/.temp/loopStudyDomain/homeService.feedback.md' },
+      { versions: true },
     );
 
     beforeEach(async () => {
-      await domainArt.del();
+      await inflightArt.del();
     });
 
     when('executed', () => {
       const threads = usePrep(async () => ({
+        caller: await enrollThread({
+          role: 'caller',
+          stash: {
+            ask: askText,
+            art: { feedback: feedbackArt },
+          },
+        }),
         student: await enrollThread({
           role: 'student',
           stash: {
-            ask: askText,
             art: {
-              domain: domainArt,
+              domain: inflightArt,
             },
           },
         }),
@@ -54,9 +60,8 @@ neighbors need to schedule with providers
       then('upserts the artifact', async () => {
         await enweaveOneStitcher({ stitcher: route, threads }, context);
 
-        const { content } = await domainArt.get().expect('isPresent');
-        expect(content).toContain('"resources":');
-        expect(content).toContain('"mechanisms":');
+        const { content } = await inflightArt.get().expect('isPresent');
+        expect(content).toContain('precise');
       });
     });
   });

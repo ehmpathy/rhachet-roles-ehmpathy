@@ -15,7 +15,6 @@ const options = [
   'architecture/directional-dependencies.md',
   'architecture/domain-driven-design.md',
   'architecture/ubiqlang.md',
-  'engineer/dependency-injection.md',
   'codestyle/_mech.compressed.md',
   'codestyle/_mech.compressed.prompt.md',
   'codestyle/flow.failfast.md',
@@ -29,6 +28,7 @@ const options = [
   'codestyle/mech.tests.given-when-then.md',
   'codestyle/mech.what-why.md',
   'codestyle/mech.what-why.v2.md',
+  'engineer/dependency-injection.md',
 ] as const;
 
 export type BriefOptionMechanic = typeof options[number];

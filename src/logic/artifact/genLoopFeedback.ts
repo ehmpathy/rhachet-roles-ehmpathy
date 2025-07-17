@@ -24,7 +24,13 @@ export const genLoopFeedback = <
     [K in TStitchee | 'caller']: RoleContext<
       K,
       K extends 'caller'
-        ? { ask: string; art: { feedback: Artifact<typeof GitFile> } }
+        ? {
+            ask: string;
+            art: {
+              feedback: Artifact<typeof GitFile>;
+              [index: string]: Artifact<any> | null;
+            };
+          }
         : { art: { [P in TArtee]: Artifact<typeof GitFile> } }
     >;
   }>,

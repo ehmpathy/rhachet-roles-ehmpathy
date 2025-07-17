@@ -6,6 +6,7 @@
  * ```
  */
 const options = [
+  'term.distillation.md',
   'distilisys/sys101.distilisys.grammar.md',
   'distilisys/sys201.actor.motive._.summary.md',
   'distilisys/sys201.actor.motive.p1.reversibility.entropy.md',

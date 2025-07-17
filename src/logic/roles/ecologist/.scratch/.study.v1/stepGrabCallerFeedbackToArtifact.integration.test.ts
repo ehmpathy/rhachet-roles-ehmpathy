@@ -4,9 +4,9 @@ import { enrollThread } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { given, when, then } from 'test-fns';
 
-import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
-import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
+import { genContextLogTrail } from '../../../../../.test/genContextLogTrail';
+import { genContextStitchTrail } from '../../../../../.test/genContextStitchTrail';
+import { getContextOpenAI } from '../../../../../.test/getContextOpenAI';
 import { stepGrabCallerFeedbackToArtifact } from './stepGrabCallerFeedbackToArtifact';
 
 describe('stepGrabCallerFeedbackToArtifact', () => {

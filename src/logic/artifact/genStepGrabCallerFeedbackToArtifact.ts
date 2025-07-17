@@ -113,6 +113,14 @@ export const genStepGrabCallerFeedbackToArtifact = <
         content: feedback,
       });
 
+      console.log('');
+      console.log('🎙️  heard');
+      console.log('');
+      console.log(feedback);
+      console.log('');
+      console.log('🫡  on it!');
+      console.log('');
+
       // return the feedback file
       return {
         input: target,
