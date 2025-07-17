@@ -12,6 +12,9 @@
     "codegen",
     "coderef",
     "datetime",
+    "Enanswer",
+    "endialogue",
+    "Enquestion",
     "rhachet",
     "Schedulable",
     "stitchee"

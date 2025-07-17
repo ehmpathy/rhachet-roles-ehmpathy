@@ -114,7 +114,7 @@ export const genStepGrabCallerFeedbackToArtifact = <
       });
 
       console.log('');
-      console.log('🎙️  heard');
+      console.log(`🎙️  heard, saved to ${feedbackArt.ref.uri}`);
       console.log('');
       console.log(feedback);
       console.log('');

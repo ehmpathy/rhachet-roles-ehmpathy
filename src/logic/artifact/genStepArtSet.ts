@@ -31,9 +31,11 @@ export const genStepArtSet = <
 >({
   stitchee,
   artee,
+  mode = 'upsert',
 }: {
   stitchee: TStitchee;
   artee: TArtee;
+  mode?: 'upsert' | 'append';
 }) =>
   new StitchStepCompute<GStitcher<TThreads, GStitcher['context'], GitFile>>({
     form: 'COMPUTE',
@@ -53,7 +55,8 @@ export const genStepArtSet = <
       >;
       const artifact = thread.context.stash.art[artee];
 
-      const content =
+      // grab the content to write
+      const contentAddition =
         getStitch({
           from: thread.stitches,
           where: (stitch): stitch is Stitch<{ content: string }> =>
@@ -65,7 +68,26 @@ export const genStepArtSet = <
           { thread },
         );
 
-      const output = await artifact.set({ content });
-      return { input: { artifact, content }, output };
+      // decide what to set to the artifact
+      const contentOutcome = await (async () => {
+        // if its an upsert, then replace the content
+        if (mode === 'upsert') return contentAddition;
+
+        // if its an append, then append the content
+        if (mode === 'append')
+          return [
+            (await artifact.get())?.content,
+            '',
+            '---',
+            '',
+            contentAddition,
+          ].join('\n');
+
+        // otherwise, unexpected
+        throw new UnexpectedCodePathError('unsupported mode', { mode });
+      })();
+
+      const output = await artifact.set({ content: contentOutcome });
+      return { input: { mode, artifact, content: contentAddition }, output };
     },
   });
