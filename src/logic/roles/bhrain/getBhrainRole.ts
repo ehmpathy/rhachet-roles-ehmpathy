@@ -1,6 +1,6 @@
 import { Role } from 'rhachet';
 
-import { SKILL_ENDIALOGUE } from './endialogue/stepEndialogue.skill';
+import { SKILL_ENDIALOGUE } from './endialogue.v1/stepEndialogue.skill';
 
 export const ROLE_BHRAIN = Role.build({
   slug: 'bhrain',
