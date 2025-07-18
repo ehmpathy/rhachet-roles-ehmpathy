@@ -20,21 +20,9 @@ import { genStepGrabCallerFeedbackToArtifact } from './genStepGrabCallerFeedback
 export const genLoopFeedback = <
   TStitchee extends string,
   TArtee extends string,
-  TThreads extends Threads<{
-    [K in TStitchee | 'caller']: RoleContext<
-      K,
-      K extends 'caller'
-        ? {
-            ask: string;
-            art: {
-              feedback: Artifact<typeof GitFile>;
-              [index: string]: Artifact<any> | null;
-            };
-          }
-        : { art: { [P in TArtee]: Artifact<typeof GitFile> } }
-    >;
-  }>,
-  TContext extends GStitcher['context'],
+  TRepeatee extends Stitcher<GStitcher<any, any, any>>,
+  TThreads extends GStitcherOf<TRepeatee>['threads'],
+  TContext extends GStitcherOf<TRepeatee>['context'],
 >({
   stitchee,
   artee,
@@ -43,15 +31,30 @@ export const genLoopFeedback = <
 }: {
   stitchee: TStitchee;
   artee: TArtee;
-  repeatee: Stitcher<GStitcher<TThreads, TContext, { content: string }>>;
+  repeatee: TRepeatee;
   halter?: StitchCycle<any>['halter'];
 }): Stitcher<
   GStitcher<
-    TThreads,
-    GStitcherOf<typeof repeatee>['context'],
-    {
-      feedback: GitFile | null;
-    }
+    // extend the threads to require these minimums for these roles
+    Threads<{
+      [K in keyof TThreads & string]: RoleContext<
+        K,
+        K extends 'caller'
+          ? TThreads['caller']['context']['stash'] & {
+              ask: string;
+              art: {
+                feedback: Artifact<typeof GitFile>;
+              };
+            }
+          : K extends TStitchee
+          ? TThreads[TStitchee]['context']['stash'] & {
+              art: { [P in TArtee]: Artifact<typeof GitFile> };
+            }
+          : TThreads[K]['context']['stash']
+      >;
+    }>,
+    TContext,
+    { feedback: GitFile | null }
   >
 > => {
   const stepGetFeedback = genStepGrabCallerFeedbackToArtifact<
@@ -63,23 +66,12 @@ export const genLoopFeedback = <
     artee,
   });
 
-  const route = asStitcherFlat<
-    GStitcher<
-      TThreads,
-      GStitcherOf<typeof repeatee>['context'],
-      {
-        feedback: GitFile | null;
-      }
-    >
-  >(
+  const route = asStitcherFlat(
     genStitchRoute({
       slug: `[${stitchee}]<write>(<repeatee>-><write>-><feedback>)`,
       readme: `@[${stitchee}] imagines, writes, then @[caller] gives feedback`,
-      sequence: [
-        repeatee as any, // todo: why are the types off?
-        asStitcher(stepGetFeedback),
-      ],
-    }) as any, // todo: why are the types off?
+      sequence: [repeatee as any, asStitcher(stepGetFeedback)],
+    }) as any,
   );
 
   const stepDecide = new StitchStepCompute<

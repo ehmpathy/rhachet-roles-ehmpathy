@@ -11,9 +11,9 @@ import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
 import { withRetry, withTimeout } from 'wrapper-fns';
 
-import { ContextOpenAI, sdkOpenAi } from '../../../../../data/sdk/sdkOpenAi';
-import { getEcologistBriefs } from '../../../ecologist/getEcologistBrief';
-import { getMechanicBriefs } from '../../../mechanic/getMechanicBrief';
+import { ContextOpenAI, sdkOpenAi } from '../../../../../../data/sdk/sdkOpenAi';
+import { getEcologistBriefs } from '../../../../ecologist/getEcologistBrief';
+import { getMechanicBriefs } from '../../../../mechanic/getMechanicBrief';
 import { stepEnquestion } from '../enquestion/stepEnquestion';
 
 type StitcherDesired = GStitcher<

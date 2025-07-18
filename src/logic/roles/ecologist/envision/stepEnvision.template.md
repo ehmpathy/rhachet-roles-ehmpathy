@@ -4,15 +4,86 @@ output the updated ```md of the "vision", only. update the [vision] doc based on
 
 ---
 
-here's some .briefs on the skills you have, as a refresher
+\`\`\`
+# summary
 
+.what =
+  - ...
+  - ...
+  - ...
+
+.why =
+  - ...
+  - ...
+  - ...
+
+.when =
+  - ...
+  - ...
+  - ...
+
+.who =
+  - ...
+  - ...
+  - ...
+
+.examples =
+  - ...
+  - ...
+  - ...
+
+
+# outline
+
+> Compose a concise, technical narrative that elaborates on the vision. Walk us through it.
+
+-
+  -
+  -
+  -
+-
+  -
+  -
+  -
+-
+  -
+  -
+  -
+
+
+# narrative
+
+-
+  -
+  -
+  -
+-
+  -
+  -
+  -
+-
+  -
+  -
+  -
+
+
+\`\`\`
+
+---
+
+here are the .traits you have
+$.rhachet{inherit.traits}
+
+---
+
+here are the .briefs on the skills you strive to use
 $.rhachet{briefs}
 
 ---
 
-[vision] =
+@[thinker][vision] =
 ```md
-$.rhachet{vision}
+$.rhachet{inflight}
 ```
 
 @[caller][comment] =

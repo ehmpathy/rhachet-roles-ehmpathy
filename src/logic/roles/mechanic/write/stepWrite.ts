@@ -11,6 +11,7 @@ import {
 } from 'rhachet';
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
+import { withRetry, withTimeout } from 'wrapper-fns';
 
 import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
 import { genStepArtSet } from '../../../artifact/genStepArtSet';
@@ -25,6 +26,7 @@ type StitcherDesired = GStitcher<
         ask: string;
         art: {
           feedback: Artifact<typeof GitFile> | null;
+          references: Artifact<typeof GitFile>[];
         };
       }
     >;
@@ -48,6 +50,9 @@ const template = genTemplate<StitcherDesired['threads']>({
     ask:
       (await threads.caller.context.stash.art.feedback?.get())?.content ||
       threads.caller.context.stash.ask,
+    references: await getTemplateValFromArtifacts({
+      artifacts: threads.caller.context.stash.art.references ?? [],
+    }),
     briefs: await getTemplateValFromArtifacts({
       artifacts: [
         ...getMechanicBriefs([
@@ -70,7 +75,9 @@ const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
   stitchee: 'mechanic',
   readme: '',
   template,
-  imagine: sdkOpenAi.imagine,
+  imagine: withRetry(
+    withTimeout(sdkOpenAi.imagine, { threshold: { seconds: 60 } }), // allow up to 60 sec, for longer files
+  ),
 });
 
 const stepPersist = genStepArtSet({

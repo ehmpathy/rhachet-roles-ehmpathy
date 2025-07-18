@@ -6,17 +6,23 @@ import { given, when, then, usePrep } from 'test-fns';
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { stepEnvision } from './stepEnvision';
+import { stepEnbranch } from './stepEnbranch';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));
 
-describe('stepEnvision', () => {
+describe('stepEnbranch', () => {
   const context = {
     ...genContextLogTrail(),
     ...genContextStitchTrail(),
     ...getContextOpenAI(),
   };
-  const route = stepEnvision;
+  const route = stepEnbranch;
+  const purposeText = `
+explore the fundamental scenarios that need to be supported by the mechanisms referenced by the @[caller].
+
+focus on primitive <get> and <set> operations on the [resource]s referenced
+    `.trim();
+  const grammar = `@[actor]<mechanism> -> [resource] -> {drive:<<effect>>[motive]}`;
 
   given('we want to explore the home service domain', () => {
     const askText =
@@ -26,7 +32,7 @@ describe('stepEnvision', () => {
       {
         uri:
           __dirname +
-          '/.temp/stepEnvision/updated/homeservice.schedule.term.vision.md',
+          '/.temp/stepEnbranch/updated/homeservice.schedule.term.usecases.md',
       },
       {
         versions: true,
@@ -37,7 +43,7 @@ describe('stepEnvision', () => {
       {
         uri:
           __dirname +
-          '/.temp/stepEnvision/updated/homeservice.schedule.term.feedback.md',
+          '/.temp/stepEnbranch/updated/homeservice.schedule.term.feedback.md',
       },
       {
         versions: true,
@@ -58,6 +64,7 @@ describe('stepEnvision', () => {
             ask: askText,
             art: {
               feedback: feedbackArtifact,
+              domainSketch: null,
             },
           },
         }),
@@ -67,6 +74,8 @@ describe('stepEnvision', () => {
             art: {
               inflight: inflightArtifact,
             },
+            purpose: purposeText,
+            grammar,
           },
         }),
       }));

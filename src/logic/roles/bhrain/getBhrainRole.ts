@@ -1,6 +1,6 @@
 import { Role } from 'rhachet';
 
-import { SKILL_ENDIALOGUE } from './endialogue.v1/stepEndialogue.skill';
+import { SKILL_CLARIFY } from './.scratch/clarify/stepClarify.skill';
 
 export const ROLE_BHRAIN = Role.build({
   slug: 'bhrain',
@@ -13,5 +13,5 @@ export const ROLE_BHRAIN = Role.build({
 thought tactics; intent = be composed into other roles
   `.trim(),
   traits: [],
-  skills: [SKILL_ENDIALOGUE],
+  skills: [SKILL_CLARIFY],
 });

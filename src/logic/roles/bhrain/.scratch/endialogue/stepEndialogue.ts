@@ -8,9 +8,9 @@ import {
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
 
-import { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
-import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
-import { genStepArtSet } from '../../../artifact/genStepArtSet';
+import { ContextOpenAI } from '../../../../../data/sdk/sdkOpenAi';
+import { genLoopFeedback } from '../../../../artifact/genLoopFeedback';
+import { genStepArtSet } from '../../../../artifact/genStepArtSet';
 import { stepSummarize } from '../summarize/stepSummarize';
 import { stepEnanswer } from './enanswer/stepEnanswer';
 import { stepEnquestion } from './enquestion/stepEnquestion';

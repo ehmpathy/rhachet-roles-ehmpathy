@@ -43,7 +43,7 @@ use the word precise at least once
           role: 'caller',
           stash: {
             ask: askText,
-            art: { feedback: null },
+            art: { feedback: null, references: [] },
           },
         }),
         mechanic: await enrollThread({
@@ -95,7 +95,7 @@ use the word precise at least once
           role: 'caller',
           stash: {
             ask: askText,
-            art: { feedback: feedbackArt },
+            art: { feedback: feedbackArt, references: [] },
           },
         }),
         mechanic: await enrollThread({
@@ -156,7 +156,7 @@ update the template to ask the ecologist to explore the domain the caller is tal
           role: 'caller',
           stash: {
             ask: askText,
-            art: { feedback: null },
+            art: { feedback: null, references: [] },
           },
         }),
         mechanic: await enrollThread({
@@ -180,6 +180,67 @@ update the template to ask the ecologist to explore the domain the caller is tal
 
         const { content } = await inflightArt.get().expect('isPresent');
         expect(content).toContain('[domain]');
+      });
+    });
+  });
+
+  given.only('create a new template from a prior template reference', () => {
+    const askText = `
+create a template to ask the ecologist to explore the domain the caller is talking about. reference the prior one. replace all concepts of "vision" and "options" with [domain]
+    `.trim();
+
+    const priorArt = genArtifactGitFile(
+      {
+        uri: __dirname + '/.test/prior.template.md',
+      },
+      {
+        access: 'readonly',
+      },
+    );
+
+    const inflightArt = genArtifactGitFile(
+      {
+        uri: __dirname + '/.temp/stepWrite/new.template.inflight.md',
+      },
+      {
+        versions: true,
+      },
+    );
+
+    beforeEach(async () => {
+      await inflightArt.del();
+    });
+
+    when('executed', () => {
+      const threads = usePrep(async () => ({
+        caller: await enrollThread({
+          role: 'caller',
+          stash: {
+            ask: askText,
+            art: { feedback: null, references: [priorArt] },
+          },
+        }),
+        mechanic: await enrollThread({
+          role: 'mechanic',
+          stash: {
+            ask: askText,
+            art: {
+              inflight: inflightArt,
+            },
+          },
+        }),
+      }));
+
+      then('creates a new template artifact', async () => {
+        const outcome = await enweaveOneStitcher(
+          { stitcher: route, threads },
+          context,
+        );
+
+        console.log(JSON.stringify({ stitch: outcome.stitch }, null, 2));
+
+        const { content } = await inflightArt.get().expect('isPresent');
+        expect(content).toContain('ecologist');
       });
     });
   });

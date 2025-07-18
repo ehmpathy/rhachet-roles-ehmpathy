@@ -1,7 +1,7 @@
 import { Role } from 'rhachet';
 
 import { SKILL_CODE_PROPOSE } from './skills/getSkillCodePropose';
-import { SKILL_WRITE } from './skills/getSkillWrite';
+import { SKILL_WRITE } from './write/loopWrite.skill';
 
 export const ROLE_MECHANIC = Role.build({
   slug: 'mechanic',

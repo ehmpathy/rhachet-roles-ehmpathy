@@ -1,18 +1,15 @@
-import { RoleSkill, GStitcherOf, enrollThread } from 'rhachet';
+import { enrollThread, genRoleSkill } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
 import { asDotRhachetDir } from '../../../artifact/asDotRhachetFile';
-import { getMechanicBrief } from '../getMechanicBrief';
-import { loopWrite } from '../write/loopWrite';
+import { loopClarify } from './stepCollect';
 
-export const SKILL_WRITE = RoleSkill.build<
-  RoleSkill<GStitcherOf<typeof loopWrite>>
->({
-  slug: 'write',
-  route: loopWrite,
+export const SKILL_CLARIFY = genRoleSkill({
+  slug: 'clarify',
+  route: loopClarify,
   threads: {
     lookup: {
       target: {
@@ -24,10 +21,7 @@ export const SKILL_WRITE = RoleSkill.build<
     },
     assess: (input): input is { target: string; ask: string } =>
       typeof input.target === 'string',
-    instantiate: async (input: {
-      target: string;
-      ask: string;
-    }): Promise<GStitcherOf<typeof loopWrite>['threads']> => {
+    instantiate: async (input: { target: string; ask: string }) => {
       const targetArt = genArtifactGitFile(
         { uri: input.target },
         { versions: true },
@@ -44,14 +38,10 @@ export const SKILL_WRITE = RoleSkill.build<
             art: { feedback: feedbackArt },
           },
         }),
-        mechanic: await enrollThread({
-          role: 'mechanic',
+        thinker: await enrollThread({
+          role: 'thinker',
           stash: {
-            ask: input.ask,
             art: { inflight: targetArt },
-          },
-          inherit: {
-            traits: [getMechanicBrief('style.compressed.md')],
           },
         }),
       };
@@ -68,9 +58,7 @@ export const SKILL_WRITE = RoleSkill.build<
     },
     assess: (input): input is { apiKeyOpenai: string } =>
       typeof input.apiKeyOpenai === 'string',
-    instantiate: (input: {
-      apiKeyOpenai: string;
-    }): GStitcherOf<typeof loopWrite>['context'] => {
+    instantiate: () => {
       return {
         ...getContextOpenAI(), // todo: use the input api key
         ...genContextLogTrail(), // todo: passthrough ?
@@ -78,26 +66,5 @@ export const SKILL_WRITE = RoleSkill.build<
       };
     },
   },
-  readme: `
-### \`ask -r mechanic -s write\`
-
-you can ask the mechanic to write anything to a target file
-- if it exists, it'll update
-- if it doesn't, it'll create
-
-
-\`\`\`sh
-npx rhachet ask -r mechanic -s write -t ./path/to/file.ts --ask "your ask"
-\`\`\`
-
-once it's written, it'll ask you for feedback
-
-\`\`\`sh
-? have notes? (Use arrow keys)
-❯ no notes
-yes notes
-\`\`\`
-
-it'll loop until you tell it you have \`no notes\`
-`.trim(),
+  readme: '',
 });

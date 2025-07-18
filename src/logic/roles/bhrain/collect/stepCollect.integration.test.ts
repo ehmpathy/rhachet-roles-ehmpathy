@@ -6,42 +6,72 @@ import { given, when, then, usePrep } from 'test-fns';
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { stepEnvision } from './stepEnvision';
+import { stepCollect } from './stepCollect';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));
 
-describe('stepEnvision', () => {
+describe('stepCollect', () => {
   const context = {
     ...genContextLogTrail(),
     ...genContextStitchTrail(),
     ...getContextOpenAI(),
   };
-  const route = stepEnvision;
+  const route = stepCollect;
+
+  const grammar = `
+structure:
+@[actor]<mechanism> -> [resource] -> {drive:<<effect>>[motive]}
+
+standards:
+- all <verb>s should be declared as <mechanism>s
+- all [noun]s should be declared as [resource]s
+- all <mechanism>s should be prefixed with their root operation
+  - <get> for reads
+  - <set> for dobj mutations
+  - <rec> for event emissions
+- use <mechanism>[resource] syntax for brevity, when applicable
+- scope [resources] within [domain]s when needed for specificity
+  - [domain][resource]
+- leverage [resources] .attributes when needed
+  - [resource].attribute
+`;
 
   given('we want to explore the home service domain', () => {
-    const askText =
-      'appointment scheduler in the home service domain. use @[provider] and @[neighbor] actors involved';
+    const askText = `
+home service domain. scheduler system for @[provider]s to enable @[neighbor]s to book appointments on their own, automatically
+
+@[provider]s <set>[reservable] work hours
+
+@[provider]s <set>[reservation]s, <pull>ed from external calendars, which
+ block out reservable time
+
+@[customer]s <get>[appointable] times, from which they can book new [appo
+intment]s
+
+@[customer]s <set>[appointment]s, .status=requested, for when they want a
+ new appointment
+
+@[provider]s <set>[appointment].status = approved | rejected. optionally,
+ they can auto-approve all appointments
+
+@[provider]s <get>[appointment]s on their schedule
+    `.trim();
 
     const inflightArtifact = genArtifactGitFile(
       {
         uri:
           __dirname +
-          '/.temp/stepEnvision/updated/homeservice.schedule.term.vision.md',
+          '/.temp/stepCollect/updated/homeservice.schedule.inflight.md',
       },
-      {
-        versions: true,
-      },
+      { versions: true },
     );
-
     const feedbackArtifact = genArtifactGitFile(
       {
         uri:
           __dirname +
-          '/.temp/stepEnvision/updated/homeservice.schedule.term.feedback.md',
+          '/.temp/stepCollect/updated/homeservice.schedule.feedback.md',
       },
-      {
-        versions: true,
-      },
+      { versions: true },
     );
 
     beforeEach(async () => {
@@ -56,17 +86,14 @@ describe('stepEnvision', () => {
           role: 'caller',
           stash: {
             ask: askText,
-            art: {
-              feedback: feedbackArtifact,
-            },
+            art: { feedback: feedbackArtifact },
           },
         }),
         thinker: await enrollThread({
           role: 'thinker',
           stash: {
-            art: {
-              inflight: inflightArtifact,
-            },
+            art: { inflight: inflightArtifact },
+            grammar,
           },
         }),
       }));

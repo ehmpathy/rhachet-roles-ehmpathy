@@ -3,20 +3,20 @@ import { enweaveOneStitcher, enrollThread } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { given, when, then, usePrep } from 'test-fns';
 
-import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
-import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { stepEnvision } from './stepEnvision';
+import { genContextLogTrail } from '../../../../../.test/genContextLogTrail';
+import { genContextStitchTrail } from '../../../../../.test/genContextStitchTrail';
+import { getContextOpenAI } from '../../../../../.test/getContextOpenAI';
+import { stepClarify } from './stepClarify';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));
 
-describe('stepEnvision', () => {
+describe('stepClarify', () => {
   const context = {
     ...genContextLogTrail(),
     ...genContextStitchTrail(),
     ...getContextOpenAI(),
   };
-  const route = stepEnvision;
+  const route = stepClarify;
 
   given('we want to explore the home service domain', () => {
     const askText =
@@ -26,22 +26,17 @@ describe('stepEnvision', () => {
       {
         uri:
           __dirname +
-          '/.temp/stepEnvision/updated/homeservice.schedule.term.vision.md',
+          '/.temp/stepClarify/updated/homeservice.schedule.inflight.md',
       },
-      {
-        versions: true,
-      },
+      { versions: true },
     );
-
     const feedbackArtifact = genArtifactGitFile(
       {
         uri:
           __dirname +
-          '/.temp/stepEnvision/updated/homeservice.schedule.term.feedback.md',
+          '/.temp/stepClarify/updated/homeservice.schedule.feedback.md',
       },
-      {
-        versions: true,
-      },
+      { versions: true },
     );
 
     beforeEach(async () => {
@@ -56,17 +51,13 @@ describe('stepEnvision', () => {
           role: 'caller',
           stash: {
             ask: askText,
-            art: {
-              feedback: feedbackArtifact,
-            },
+            art: { feedback: feedbackArtifact },
           },
         }),
         thinker: await enrollThread({
           role: 'thinker',
           stash: {
-            art: {
-              inflight: inflightArtifact,
-            },
+            art: { inflight: inflightArtifact },
           },
         }),
       }));

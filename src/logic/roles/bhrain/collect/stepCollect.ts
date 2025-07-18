@@ -1,11 +1,12 @@
 import {
+  asStitcherFlat,
+  genStitchRoute,
   GStitcher,
   Threads,
   RoleContext,
   genStepImagineViaTemplate,
   genTemplate,
-  genStitchRoute,
-  asStitcherFlat,
+  getTemplateVarsFromRoleInherit,
   getTemplateValFromArtifacts,
 } from 'rhachet';
 import { Artifact } from 'rhachet-artifact';
@@ -13,16 +14,30 @@ import { GitFile } from 'rhachet-artifact-git';
 import { withRetry, withTimeout } from 'wrapper-fns';
 
 import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
+import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
 import { genStepArtSet } from '../../../artifact/genStepArtSet';
 import { getEcologistBriefs } from '../../ecologist/getEcologistBrief';
 import { getMechanicBriefs } from '../../mechanic/getMechanicBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{
-    thinker: RoleContext<'thinker'>;
-    summarizer: RoleContext<
-      'summarizer',
-      { art: { summary: Artifact<typeof GitFile> } }
+    caller: RoleContext<
+      'caller',
+      {
+        ask: string;
+        art: {
+          feedback: Artifact<typeof GitFile>; // required to facilitate loop
+        };
+      }
+    >;
+    thinker: RoleContext<
+      'thinker',
+      {
+        art: {
+          inflight: Artifact<typeof GitFile>;
+        };
+        grammar: string | null;
+      }
     >;
   }>,
   ContextOpenAI & GStitcher['context'],
@@ -32,25 +47,25 @@ type StitcherDesired = GStitcher<
 const template = genTemplate<StitcherDesired['threads']>({
   ref: { uri: __filename.replace('.ts', '.template.md') },
   getVariables: async ({ threads }) => ({
-    thread: threads.thinker.stitches
-      .filter((stitch) => stitch.stitcher?.form === 'IMAGINE')
-      .map((stitch) => stitch.output.content)
-      .join('\n\n\n--\n\n\n'),
-
+    ...(await getTemplateVarsFromRoleInherit({ thread: threads.thinker })),
+    ask:
+      (await threads.caller.context.stash.art.feedback?.get())?.content ||
+      threads.caller.context.stash.ask,
+    inflight:
+      (await threads.thinker.context.stash.art.inflight.get())?.content || '',
+    grammar: threads.thinker.context.stash.grammar,
     briefs: await getTemplateValFromArtifacts({
       artifacts: [
+        ...getMechanicBriefs([
+          'architecture/ubiqlang.md',
+          'style.names.treestruct.md',
+        ]),
         ...getEcologistBriefs([
-          // 'term.distillation.md',
-
           'distilisys/sys101.distilisys.grammar.md',
           'distilisys/sys201.actor.motive._.summary.md',
           'distilisys/sys201.actor.motive.p5.motive.grammar.md',
           'ecology/eco001.overview.md',
           'economy/econ001.overview.md',
-        ]),
-        ...getMechanicBriefs([
-          'architecture/ubiqlang.md',
-          'style.names.treestruct.md',
         ]),
       ],
     }),
@@ -58,8 +73,8 @@ const template = genTemplate<StitcherDesired['threads']>({
 });
 
 const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '[summarizer]<summarize>',
-  stitchee: 'summarizer',
+  slug: '[thinker]<collect>',
+  stitchee: 'thinker',
   readme: '',
   template,
   imagine: withRetry(
@@ -67,18 +82,23 @@ const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
   ),
 });
 
-const stepWrite = genStepArtSet({
-  stitchee: 'summarizer',
-  artee: 'summary',
-  mode: 'upsert',
+const stepPersist = genStepArtSet({
+  stitchee: 'thinker',
+  artee: 'inflight',
 });
 
-const route = asStitcherFlat<StitcherDesired>(
+// todo: expand into separation of domain discovery vs vision discovery
+
+export const stepCollect = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '[summarizer]<summarize>',
-    readme: '@[summarizer]<imagine> -> @[summarizer]<write>',
-    sequence: [stepImagine, stepWrite],
+    slug: '@[thinker]<collect>',
+    readme: '@[thinker]<collect> -> [[idea]]',
+    sequence: [stepImagine, stepPersist],
   }),
 );
 
-export const stepSummarize = route;
+export const loopCollect = genLoopFeedback({
+  stitchee: 'thinker',
+  artee: 'inflight',
+  repeatee: stepCollect,
+});
