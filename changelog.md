@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.0.0...v1.1.0) (2025-07-19)
+
+
+### Features
+
+* **bhrain:** &lt;collect&gt; ideas generic skill; <enbranch> ideas generic skill ([a047df8](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/a047df8e0fa64cbb24252b5f6740d6dbbc212e0d))
+* **bhrain:** endialogue and summarize ([76805ea](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/76805ea4ebe4dcc98ab21feb6cde12dfbd68bb69))
+* **bhrain:** interpret and diverge ([a3828ed](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/a3828ed9adb4697ec2175e311ae73d0e15a8e783))
+* **brain:** halt on &lt;think&gt;, declare .route.chances ([cfa2758](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/cfa27586ef78f096d306d7d11555b81e8eb10a28))
+* **ecologist:** distilisys briefs ++ ([dc1a207](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/dc1a2072c5295b8e0d29754d4a5ca0d3502aad9a))
+* **ecologist:** study domain sketch and domain terms ([d7b6f03](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/d7b6f0349b45242317bec6411a748a732eb71976))
+* **mechanic:** add skill mechanic.write; also genLoopFeedback ([8a2c46c](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/8a2c46c575c8b7ea016ea135e4cb162eec7f6300))
+
 ## 1.0.0 (2025-07-14)
 
 
