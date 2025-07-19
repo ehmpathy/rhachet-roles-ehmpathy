@@ -12,7 +12,7 @@ const command = asCommand(
     log: console,
   },
   async (input: {
-    role: 'Mechanic' | 'Designer' | 'Architect' | 'Ecologist';
+    role: 'Mechanic' | 'Designer' | 'Architect' | 'Ecologist' | 'Bhrain';
   }) => {
     // lookup the briefs available in the expected dir
     const briefsDir = path.join(
@@ -65,4 +65,5 @@ if (require.main === module) {
   // void command({ role: 'Architect' });
   void command({ role: 'Designer' });
   void command({ role: 'Mechanic' });
+  void command({ role: 'Bhrain' });
 }

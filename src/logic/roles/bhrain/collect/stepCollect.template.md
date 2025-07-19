@@ -23,6 +23,8 @@ output the updated `document`, only.
 ---
 
 here are the .traits you have
+- you are obsessive about grammar adherence
+- you are obsessive over detail retention. you leave no detail behind
 $.rhachet{inherit.traits}
 
 ---
@@ -49,18 +51,25 @@ use this structure to express collected ideas:
   - one idea per line, using declared grammar
   - preserve verb-object-role structure from caller
   - remove filler, preserve function
+  - preserve all details, use sub-bullets when subideas are present
 
 .ideas.collapsed =
   - unify duplicate ideas that express the same meaning
   - rephrase only if grammar fidelity is preserved
 
-.ideas.innovative =
+.ideas.inspired =
   - highlight rare or unusually insightful entries
   - these may inspire new branches later
+  - rephrase only if grammar fidelity is preserved
 
 .notes =
   - comment on areas of confusion, overlap, or blurring
   - note any unclear use of roles, verbs, or objects
+
+---
+
+.changelog =
+  - v0 = ...
 \`\`\`
 
 ---
@@ -72,6 +81,7 @@ use this structure to express collected ideas:
 - grammar is not optional — **it is the lens**
 - leave sorting or naming to future stages
 - this is the core purpose of `<collect>` — expose the raw tree
+- you rigidly adhere to the grammar
 
 ---
 

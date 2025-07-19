@@ -1,4 +1,4 @@
-import { asProcedure, ContextLogTrail } from 'as-procedure';
+import { ContextLogTrail } from 'as-procedure';
 import { UnexpectedCodePathError } from 'helpful-errors';
 import OpenAI from 'openai';
 import { ChatModel } from 'openai/resources/index';
@@ -47,7 +47,12 @@ const imagine = async (
     throw new UnexpectedCodePathError('no content provided in response', {
       response,
     });
-  return response.choices[0].message.content;
+  const content = response.choices[0].message.content.trim();
+  const stripped =
+    content.startsWith('```') && content.endsWith('```') // strip ```{ext} automatically if its just the exterior surround
+      ? content.split('\n').slice(1, -1).join('\n').trim()
+      : content;
+  return stripped;
 };
 
 export const sdkOpenAi = {
