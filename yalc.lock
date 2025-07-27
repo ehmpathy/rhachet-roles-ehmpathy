@@ -2,7 +2,7 @@
   "version": "v1",
   "packages": {
     "rhachet": {
-      "signature": "0920378bf33d8b019e6f71e6695fba9d",
+      "signature": "2f3f794107462a3d97afa637383af0bd",
       "file": true,
       "replaced": "1.3.3"
     },

@@ -1,5 +1,3 @@
-
-
 so,
 - <expand> = <diverge> -> <collect>
 - <exhaust> = <loop>(repeatee=<expand>, until=<converge>)

@@ -1,15 +1,35 @@
 import { enrollThread, genRoleSkill } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 
-import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
-import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { asDotRhachetDir } from '../../../artifact/asDotRhachetFile';
-import { loopInterpret } from './stepInterpret';
+import { genContextLogTrail } from '../../../../../.test/genContextLogTrail';
+import { genContextStitchTrail } from '../../../../../.test/genContextStitchTrail';
+import { getContextOpenAI } from '../../../../../.test/getContextOpenAI';
+import { asDotRhachetDir } from '../../../../artifact/asDotRhachetFile';
+import { loopCollect } from './stepCollect';
 
-export const SKILL_INTERPRET = genRoleSkill({
-  slug: 'interpret',
-  route: loopInterpret,
+const GRAMMAR_DEFAULT_DISTILISYS = `
+
+structure:
+@[actor]<mechanism> -> [resource] -> {drive:<<effect>>[motive]}
+
+standards:
+- all <verb>s should be declared as <mechanism>s
+- all [noun]s should be declared as [resource]s
+- all <mechanism>s should be prefixed with their root operation
+  - <get> for reads
+  - <set> for dobj mutations
+  - <rec> for event emissions
+- use <mechanism>[resource] syntax for brevity, when applicable
+- scope [resources] within [domain]s when needed for specificity
+  - [domain][resource]
+- leverage [resources] .attributes when needed
+  - [resource].attribute
+
+`.trim();
+
+export const SKILL_COLLECT = genRoleSkill({
+  slug: 'collect',
+  route: loopCollect,
   threads: {
     lookup: {
       target: {
@@ -27,7 +47,7 @@ export const SKILL_INTERPRET = genRoleSkill({
         { versions: true },
       );
       const feedbackArt = genArtifactGitFile(
-        { uri: asDotRhachetDir(input.target) + '.feedback.md' },
+        { uri: asDotRhachetDir(input.target) + '/feedback.md' },
         { versions: true },
       );
       return {
@@ -42,6 +62,7 @@ export const SKILL_INTERPRET = genRoleSkill({
           role: 'thinker',
           stash: {
             art: { inflight: targetArt },
+            grammar: GRAMMAR_DEFAULT_DISTILISYS,
           },
         }),
       };

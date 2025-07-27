@@ -1,6 +1,5 @@
 import { GStitcherOf, enrollThread, genRoleSkill } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
-import { isPresent } from 'type-fns';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
@@ -24,7 +23,7 @@ export const SKILL_WRITE = genRoleSkill({
         source: 'process.argv',
         char: 'p',
         desc: 'reference files to to use',
-        type: 'string', // todo: string []
+        type: '?string', // todo: string []
       },
     },
     assess: (
@@ -33,7 +32,7 @@ export const SKILL_WRITE = genRoleSkill({
       typeof input.target === 'string',
     instantiate: async (input: {
       target: string;
-      references: string;
+      references?: string;
       ask: string;
     }): Promise<GStitcherOf<typeof loopWrite>['threads']> => {
       const targetArt = genArtifactGitFile(
@@ -44,12 +43,13 @@ export const SKILL_WRITE = genRoleSkill({
         { uri: asDotRhachetDir(input.target) + '.feedback.md' },
         { versions: true },
       );
-      const referenceArts = input.references
-        .split(',')
-        .filter((uri) => !!uri) // allows , // todo: support optional vars
-        .map((reference) =>
-          genArtifactGitFile({ uri: reference }, { access: 'readonly' }),
-        );
+      const referenceArts =
+        input.references
+          ?.split(',')
+          .filter((uri) => !!uri) // allows , // todo: support optional vars
+          .map((reference) =>
+            genArtifactGitFile({ uri: reference }, { access: 'readonly' }),
+          ) ?? [];
       return {
         caller: await enrollThread({
           role: 'caller',

@@ -1,7 +1,7 @@
 import { Role, RoleTrait } from 'rhachet';
 
 import { getBhrainBrief } from './getBhrainBrief';
-import { SKILL_INTERPRET } from './interpret/stepInterpret.skill';
+import { SKILL_INTERPRET } from './primitive.strategic.atomic/interpret/stepInterpret.skill';
 
 export const ROLE_BHRAIN = Role.build({
   slug: 'bhrain',

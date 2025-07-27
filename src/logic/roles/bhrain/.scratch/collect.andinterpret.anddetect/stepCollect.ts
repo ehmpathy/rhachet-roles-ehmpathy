@@ -11,13 +11,13 @@ import {
 } from 'rhachet';
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
+import { withRetry, withTimeout } from 'wrapper-fns';
 
-import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
-import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
-import { genStepArtSet } from '../../../artifact/genStepArtSet';
-import { getEcologistBriefs } from '../../ecologist/getEcologistBrief';
-import { getMechanicBriefs } from '../../mechanic/getMechanicBrief';
-import { getBhrainBrief, getBhrainBriefs } from '../getBhrainBrief';
+import { ContextOpenAI, sdkOpenAi } from '../../../../../data/sdk/sdkOpenAi';
+import { genLoopFeedback } from '../../../../artifact/genLoopFeedback';
+import { genStepArtSet } from '../../../../artifact/genStepArtSet';
+import { getEcologistBriefs } from '../../../ecologist/getEcologistBrief';
+import { getMechanicBriefs } from '../../../mechanic/getMechanicBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{
@@ -36,6 +36,7 @@ type StitcherDesired = GStitcher<
         art: {
           inflight: Artifact<typeof GitFile>;
         };
+        grammar: string | null;
       }
     >;
   }>,
@@ -52,6 +53,7 @@ const template = genTemplate<StitcherDesired['threads']>({
       threads.caller.context.stash.ask,
     inflight:
       (await threads.thinker.context.stash.art.inflight.get())?.content || '',
+    grammar: threads.thinker.context.stash.grammar,
     briefs: await getTemplateValFromArtifacts({
       artifacts: [
         ...getMechanicBriefs([
@@ -67,18 +69,17 @@ const template = genTemplate<StitcherDesired['threads']>({
         ]),
       ],
     }),
-    grammar: await getTemplateValFromArtifacts({
-      artifacts: getBhrainBriefs(['distilisys.grammar.compressed.md']),
-    }),
   }),
 });
 
 const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '[thinker]<interpret>',
+  slug: '[thinker]<collect>',
   stitchee: 'thinker',
   readme: '',
   template,
-  imagine: sdkOpenAi.imagine,
+  imagine: withRetry(
+    withTimeout(sdkOpenAi.imagine, { threshold: { seconds: 30 } }),
+  ),
 });
 
 const stepPersist = genStepArtSet({
@@ -86,16 +87,18 @@ const stepPersist = genStepArtSet({
   artee: 'inflight',
 });
 
-export const stepInterpret = asStitcherFlat<StitcherDesired>(
+// todo: expand into separation of domain discovery vs vision discovery
+
+export const stepCollect = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '@[thinker]<interpret>',
-    readme: '@[thinker]<interpret> -> [[intent], [goal], [motive]]',
+    slug: '@[thinker]<collect>',
+    readme: '@[thinker]<collect> -> [[idea]]',
     sequence: [stepImagine, stepPersist],
   }),
 );
 
-export const loopInterpret = genLoopFeedback({
+export const loopCollect = genLoopFeedback({
   stitchee: 'thinker',
   artee: 'inflight',
-  repeatee: stepInterpret,
+  repeatee: stepCollect,
 });

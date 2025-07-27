@@ -12,11 +12,12 @@ import {
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
 
-import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
-import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
-import { genStepArtSet } from '../../../artifact/genStepArtSet';
-import { getEcologistBriefs } from '../../ecologist/getEcologistBrief';
-import { getMechanicBriefs } from '../../mechanic/getMechanicBrief';
+import { ContextOpenAI, sdkOpenAi } from '../../../../../data/sdk/sdkOpenAi';
+import { genLoopFeedback } from '../../../../artifact/genLoopFeedback';
+import { genStepArtSet } from '../../../../artifact/genStepArtSet';
+import { getEcologistBriefs } from '../../../ecologist/getEcologistBrief';
+import { getMechanicBriefs } from '../../../mechanic/getMechanicBrief';
+import { getBhrainBriefs } from '../../getBhrainBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{
@@ -35,8 +36,6 @@ type StitcherDesired = GStitcher<
         art: {
           inflight: Artifact<typeof GitFile>;
         };
-        purpose: string;
-        grammar: string;
       }
     >;
   }>,
@@ -51,9 +50,6 @@ const template = genTemplate<StitcherDesired['threads']>({
     ask:
       (await threads.caller.context.stash.art.feedback?.get())?.content ||
       threads.caller.context.stash.ask,
-    motive: threads.caller.context.stash.ask, // motive pulled from caller stash.ask
-    purpose: threads.thinker.context.stash.purpose,
-    grammar: threads.thinker.context.stash.grammar,
     inflight:
       (await threads.thinker.context.stash.art.inflight.get())?.content || '',
     briefs: await getTemplateValFromArtifacts({
@@ -71,11 +67,14 @@ const template = genTemplate<StitcherDesired['threads']>({
         ]),
       ],
     }),
+    grammar: await getTemplateValFromArtifacts({
+      artifacts: getBhrainBriefs(['distilisys.grammar.compressed.md']),
+    }),
   }),
 });
 
 const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '[thinker]<diverge>',
+  slug: '[thinker]<interpret>',
   stitchee: 'thinker',
   readme: '',
   template,
@@ -87,18 +86,16 @@ const stepPersist = genStepArtSet({
   artee: 'inflight',
 });
 
-// todo: expand into separation of domain discovery vs vision discovery
-
-export const stepDiverge = asStitcherFlat<StitcherDesired>(
+export const stepInterpret = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '@[thinker]<diverge>',
-    readme: '@[thinker]<diverge> -> [[idea]]',
+    slug: '@[thinker]<interpret>',
+    readme: '@[thinker]<interpret> -> [[intent], [goal], [motive]]',
     sequence: [stepImagine, stepPersist],
   }),
 );
 
-export const loopDiverge = genLoopFeedback({
+export const loopInterpret = genLoopFeedback({
   stitchee: 'thinker',
   artee: 'inflight',
-  repeatee: stepDiverge,
+  repeatee: stepInterpret,
 });

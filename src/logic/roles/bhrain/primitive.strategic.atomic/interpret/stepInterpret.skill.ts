@@ -1,15 +1,15 @@
 import { enrollThread, genRoleSkill } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 
-import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
-import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { asDotRhachetDir } from '../../../artifact/asDotRhachetFile';
-import { loopClarify } from './stepCollect';
+import { genContextLogTrail } from '../../../../../.test/genContextLogTrail';
+import { genContextStitchTrail } from '../../../../../.test/genContextStitchTrail';
+import { getContextOpenAI } from '../../../../../.test/getContextOpenAI';
+import { asDotRhachetDir } from '../../../../artifact/asDotRhachetFile';
+import { loopInterpret } from './stepInterpret';
 
-export const SKILL_CLARIFY = genRoleSkill({
-  slug: 'clarify',
-  route: loopClarify,
+export const SKILL_INTERPRET = genRoleSkill({
+  slug: 'interpret',
+  route: loopInterpret,
   threads: {
     lookup: {
       target: {
@@ -27,7 +27,7 @@ export const SKILL_CLARIFY = genRoleSkill({
         { versions: true },
       );
       const feedbackArt = genArtifactGitFile(
-        { uri: asDotRhachetDir(input.target) + '/feedback.md' },
+        { uri: asDotRhachetDir(input.target) + '.feedback.md' },
         { versions: true },
       );
       return {

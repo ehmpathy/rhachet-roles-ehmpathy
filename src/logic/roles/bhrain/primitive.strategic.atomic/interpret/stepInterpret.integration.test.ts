@@ -3,9 +3,9 @@ import { enweaveOneStitcher, enrollThread } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { given, when, then, usePrep } from 'test-fns';
 
-import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
-import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
+import { genContextLogTrail } from '../../../../../.test/genContextLogTrail';
+import { genContextStitchTrail } from '../../../../../.test/genContextStitchTrail';
+import { getContextOpenAI } from '../../../../../.test/getContextOpenAI';
 import { stepInterpret } from './stepInterpret';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));

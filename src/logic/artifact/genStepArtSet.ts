@@ -9,7 +9,7 @@ import {
   getStitch,
 } from 'rhachet';
 import { Artifact } from 'rhachet-artifact';
-import { GitFile } from 'rhachet-artifact-git';
+import { getGitRepoRoot, GitFile } from 'rhachet-artifact-git';
 
 /**
  * .what = creates a compute step that sets content onto a thread's stashed artifact
@@ -88,6 +88,14 @@ export const genStepArtSet = <
       })();
 
       const output = await artifact.set({ content: contentOutcome });
+
+      console.log(
+        `🎨️  art.${mode}ed, saved to ${artifact.ref.uri.replace(
+          await getGitRepoRoot({ from: process.cwd() }),
+          '',
+        )}\n`,
+      );
+
       return { input: { mode, artifact, content: contentAddition }, output };
     },
   });

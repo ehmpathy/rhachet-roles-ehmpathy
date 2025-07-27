@@ -57,7 +57,7 @@
     "openai": "5.8.2",
     "rhachet": "file:.yalc/rhachet",
     "rhachet-artifact": "1.0.0",
-    "rhachet-artifact-git": "file:.yalc/rhachet-artifact-git",
+    "rhachet-artifact-git": "1.0.2",
     "serde-fns": "1.2.0",
     "type-fns": "1.19.0",
     "wrapper-fns": "1.1.0"
