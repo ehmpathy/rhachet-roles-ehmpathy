@@ -1,0 +1,191 @@
+[
+  {
+    "slug": "getNeighborSchedulePreferences",
+    "title": "Retrieve Neighbor's Schedule Preferences",
+    "summary": "Fetch the scheduling preferences and constraints specified by a neighbor for optimal appointment planning.",
+    "rationale": "Understanding a neighbor's preferences and availability will help create an appointment schedule that minimizes conflicts and maximizes satisfaction.",
+    "grammar": "@[neighbor]<getSchedulePreferences> -> [neighbor][preferences] -> {drive:<<gain>>[satisfaction]}"
+  },
+  {
+    "slug": "getProviderAvailability",
+    "title": "Retrieve Provider's Availability",
+    "summary": "Access the available time slots of a provider for scheduling services.",
+    "rationale": "Knowing the provider's availability ensures that appointments are scheduled within feasible times, improving efficiency and reducing scheduling errors.",
+    "grammar": "@[provider]<getAvailability> -> [provider][availability] -> {drive:<<gain>>[efficiency]}"
+  },
+  {
+    "slug": "setAppointmentBooking",
+    "title": "Set New Appointment Booking",
+    "summary": "Record a new appointment on the provider's schedule and confirm it with the neighbor.",
+    "rationale": "Setting the appointment closes the loop of scheduling by allocating a specific time for the service, ensuring commitment from both parties.",
+    "grammar": "@[platform]<setAppointment> -> [provider][schedule] -> {drive:<<gain>>[commitment]}"
+  },
+  {
+    "slug": "recNotificationToProvider",
+    "title": "Send Notification to Provider",
+    "summary": "Emit an alert to the provider regarding newly booked appointments or changes in the schedule.",
+    "rationale": "Keeping the provider informed about bookings and changes enables them to prepare accordingly, enhancing service reliability.",
+    "grammar": "@[platform]<recNotification> -> [provider][alert] -> {drive:<<gain>>[reliability]}"
+  },
+  {
+    "slug": "recFeedbackFromNeighbor",
+    "title": "Record Feedback from Neighbor",
+    "summary": "Collect and document feedback from a neighbor post-service to evaluate satisfaction levels.",
+    "rationale": "Feedback gives insights into the neighbor's satisfaction, enabling quality improvements and service adjustments.",
+    "grammar": "@[neighbor]<recFeedback> -> [platform][feedback] -> {drive:<<gain>>[quality]}"
+  },
+  {
+    "slug": "setProviderScheduleConflict",
+    "title": "Manage Provider Schedule Conflicts",
+    "summary": "Adjust existing appointments when scheduling conflicts are identified, ensuring no overlap in service times.",
+    "rationale": "Resolving conflicts before they occur prevents last-minute disruptions and maintains a smooth scheduling process.",
+    "grammar": "@[platform]<setConflictResolution> -> [provider][schedule] -> {drive:<<drop>>[conflict]}"
+  },
+  {
+    "slug": "getProviderPerformanceMetrics",
+    "title": "Retrieve Provider's Performance Metrics",
+    "summary": "Gather data on provider performance, such as punctuality, service quality, and client ratings.",
+    "rationale": "Metrics offer a basis for analyzing the provider's service level, shaping incentives and potential optimizations.",
+    "grammar": "@[platform]<getPerformanceMetrics> -> [provider][performance] -> {drive:<<gain>>[incentive]}"
+  },
+  {
+    "slug": "recCancellationByNeighbor",
+    "title": "Record Appointment Cancellation by Neighbor",
+    "summary": "Document an appointment's cancellation initiated by the neighbor, freeing the time slot for others.",
+    "rationale": "Capturing cancellations promptly ensures updated availability, providing flexibility and dynamic rescheduling opportunities.",
+    "grammar": "@[neighbor]<recCancellation> -> [platform][schedule] -> {drive:<<gain>>[flexibility]}"
+  },
+  {
+    "slug": "setPricingAdjustmentsBasedOnDemand",
+    "title": "Set Pricing Adjustments Based on Demand",
+    "summary": "Modify the service pricing dynamically in response to demand fluctuations, increasing or decreasing rates accordingly.",
+    "rationale": "Adapting pricing to demand maximizes revenue potential for providers and ensures fair value alignment for neighbors.",
+    "grammar": "@[platform]<setPricingAdjustment> -> [service][price] -> {drive:<<gain>>[revenue]}"
+  },
+  {
+    "slug": "getNeighborHistory",
+    "title": "Retrieve Neighbor's Service History",
+    "summary": "Access past service interactions for a neighbor to inform scheduling or personalization decisions.",
+    "rationale": "Historical data helps understand patterns and preferences, enhancing future service offers and relationship management.",
+    "grammar": "@[platform]<getHistory> -> [neighbor][record] -> {drive:<<gain>>[engagement]}"
+  },
+  {
+    "slug": "setDynamicRecommendationsForNeighbors",
+    "title": "Set Dynamic Recommendations for Neighbors",
+    "summary": "Provide tailored service recommendations to neighbors based on their preferences and historical data.",
+    "rationale": "Personalized recommendations enhance service relevancy and improve the likelihood of bookings.",
+    "grammar": "@[platform]<setRecommendation> -> [neighbor][suggestions] -> {drive:<<gain>>[bookings]}"
+  },
+  {
+    "slug": "setProviderAvailabilityUpdate",
+    "title": "Update Provider's Availability",
+    "summary": "Change the availability time slots of a provider to reflect up-to-date schedule changes or service offerings.",
+    "rationale": "Updating availability ensures that the scheduler operates on current data, reducing scheduling errors and improving service delivery.",
+    "grammar": "@[provider]<setAvailability> -> [provider][availability] -> {drive:<<gain>>[accuracy]}"
+  },
+  {
+    "slug": "getNeighborParticipationStatus",
+    "title": "Retrieve Neighbor's Participation Status",
+    "summary": "Determine whether the neighbor is actively engaging with the scheduling platform for service bookings.",
+    "rationale": "Understanding a neighbor's engagement helps enhance outreach strategies and tailor subsequent interactions.",
+    "grammar": "@[neighbor]<getStatus> -> [neighbor][participation] -> {drive:<<gain>>[engagement]}"
+  },
+  {
+    "slug": "recProviderServiceCompletion",
+    "title": "Record Provider's Service Completion",
+    "summary": "Document when a provider has completed a scheduled service, updating the service log.",
+    "rationale": "Recording service completion provides a basis for evaluating service effectiveness and tracking provider punctuality.",
+    "grammar": "@[provider]<recCompletion> -> [service][log] -> {drive:<<gain>>[validation]}"
+  },
+  {
+    "slug": "setPromotionForService",
+    "title": "Set Promotion for Service",
+    "summary": "Introduce promotional pricing or packages to encourage bookings during low-demand periods.",
+    "rationale": "Strategic promotions can stimulate demand, balance workload, and enhance customer acquisition.",
+    "grammar": "@[platform]<setPromotion> -> [service][price] -> {drive:<<gain>>[demand]}"
+  },
+  {
+    "slug": "getProviderExperienceDetails",
+    "title": "Retrieve Provider's Experience Details",
+    "summary": "Access detailed records of a provider's service history, skill set, and specializations.",
+    "rationale": "A detailed view of provider experience assists in matching service requests to the most suitable providers, enhancing service outcome quality.",
+    "grammar": "@[platform]<getExperienceDetails> -> [provider][profile] -> {drive:<<gain>>[quality]}"
+  },
+  {
+    "slug": "setProviderFeedbackAcknowledgment",
+    "title": "Acknowledge Feedback Given by Provider",
+    "summary": "Record receipt of feedback from providers about scheduling processes, operational challenges, and potential improvements.",
+    "rationale": "Feedback acknowledgment allows platform improvements and strengthens the provider's connection to the service ecosystem.",
+    "grammar": "@[platform]<setFeedbackAcknowledgment> -> [provider][input] -> {drive:<<gain>>[trust]}"
+  },
+  {
+    "slug": "recAutomaticPaymentProcess",
+    "title": "Record Automatic Payment Process for Completed Services",
+    "summary": "Maintain records of successful automatic payments processed after service completion to streamline financial operations.",
+    "rationale": "Clear payment records enhance financial visibility and accuracy in transaction reporting for both providers and neighbors.",
+    "grammar": "@[platform]<recPayment> -> [service][transaction] -> {drive:<<gain>>[efficiency]}"
+  },
+  {
+    "slug": "setIncentiveForRepeatBookings",
+    "title": "Set Incentive for Repeat Bookings",
+    "summary": "Offer benefits for neighbors who engage in repeat bookings to encourage loyalty and stability in demand.",
+    "rationale": "Incentives for repeat bookings nurture long-term relationships, ensuring a steady stream of engagements.",
+    "grammar": "@[platform]<setIncentive> -> [neighbor][loyalty] -> {drive:<<gain>>[stability]}"
+  },
+  {
+    "slug": "getProviderSchedulingConstraints",
+    "title": "Retrieve Provider's Scheduling Constraints",
+    "summary": "Access constraints that limit a provider's scheduling options, such as travel time, geographic zones, or service capacity.",
+    "rationale": "Recognizing scheduling constraints enables conflict-free appointment planning and workload management optimization.",
+    "grammar": "@[provider]<getSchedulingConstraints> -> [provider][constraints] -> {drive:<<gain>>[optimization]}"
+  },
+  {
+    "slug": "recServiceRatingByNeighbor",
+    "title": "Record Service Rating by Neighbor",
+    "summary": "Capture the neighbor's rating of a service received, contributing to a provider's overall service score.",
+    "rationale": "Compiling service ratings assists in maintaining high service standards and fosters accountability in the provider network.",
+    "grammar": "@[neighbor]<recRating> -> [provider][rating] -> {drive:<<gain>>[accountability]}"
+  },
+  {
+    "slug": "setFlexibleReschedulingOptions",
+    "title": "Set Flexible Rescheduling Options for Appointments",
+    "summary": "Enable neighbors to reschedule services easily without financial penalties, accommodating unexpected changes.",
+    "rationale": "Providing rescheduling flexibility aligns the service with client needs, thus enhancing the overall customer experience.",
+    "grammar": "@[platform]<setReschedulingOptions> -> [appointment][options] -> {drive:<<gain>>[flexibility]}"
+  },
+  {
+    "slug": "getServiceDemandForecast",
+    "title": "Retrieve Service Demand Forecast",
+    "summary": "Access predicted demand levels for upcoming weeks or months based on historical data and trends.",
+    "rationale": "Forecasting demand supports better resource planning and staffing to ensure service readiness and capital efficiency.",
+    "grammar": "@[platform]<getForecast> -> [service][demand] -> {drive:<<gain>>[readiness]}"
+  },
+  {
+    "slug": "recFeedbackFromProvider",
+    "title": "Record Feedback from Provider",
+    "summary": "Capture feedback from providers about their experiences and suggestions for service improvements.",
+    "rationale": "Incorporating provider feedback directly into platform improvements strengthens the relationship and optimizes service delivery.",
+    "grammar": "@[provider]<recFeedback> -> [platform][feedback] -> {drive:<<gain>>[improvement]}"
+  },
+  {
+    "slug": "setCancellationPolicy",
+    "title": "Establish Cancellation Policy for Appointments",
+    "summary": "Define rules and considerations around when a neighbor or provider can cancel an appointment without repercussion.",
+    "rationale": "A clear cancellation policy helps manage expectations, reduce no-shows, and maintain professional courtesy.",
+    "grammar": "@[platform]<setPolicy> -> [appointment][cancellation] -> {drive:<<gain>>[order]}"
+  },
+  {
+    "slug": "getDynamicPricingModelParameters",
+    "title": "Retrieve Dynamic Pricing Model Parameters",
+    "summary": "Access the criteria governing dynamic pricing adjustments for services based on variables like time of day and market conditions.",
+    "rationale": "A clear understanding of pricing parameters allows for strategic pricing decisions that align with market demand and profitability goals.",
+    "grammar": "@[platform]<getPricingParameters> -> [service][pricing] -> {drive:<<gain>>[profitability]}"
+  },
+  {
+    "slug": "recSystemMaintenanceAlert",
+    "title": "Record System Maintenance Alert",
+    "summary": "Emit a notification about scheduled maintenance times, ensuring all users are informed and can adjust their schedules accordingly.",
+    "rationale": "Clear communication about maintenance prevents user inconvenience and maintains system reliability.",
+    "grammar": "@[platform]<recMaintenance> -> [system][alert] -> {drive:<<gain>>[reliability]}"
+  }
+]
