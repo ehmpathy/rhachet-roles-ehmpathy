@@ -1,6 +1,6 @@
 import { Role } from 'rhachet';
 
-import { SKILL_ENVISION } from './envision/stepEnvision.skill';
+// import { SKILL_ENVISION } from './envision/stepEnvision.skill';
 
 export const ROLE_ECOLOGIST = Role.build({
   slug: 'ecologist',
@@ -19,7 +19,7 @@ Used to understand the physics, incentives, and causal flows beneath the system.
   `.trim(),
   traits: [],
   skills: [
-    SKILL_ENVISION,
+    // SKILL_ENVISION_JOURNEY,
     // SKILL_STUDY_DOMAIN,
     // SKILL_DOMAIN_TERM_COLLECT_USECASES,
     // SKILL_DOMAIN_TERM_DISTILL,

@@ -51,7 +51,7 @@ const template = genTemplate<StitcherDesired['threads']>({
     briefs: await getTemplateValFromArtifacts({
       artifacts: [
         // cool to see explicit "cross-train" scenes
-        ...getEcologistBriefs(['distilisys.md']),
+        ...getEcologistBriefs(['distilisys/sys101.distilisys.grammar.md']),
         ...getDesignerBriefs(['declarative-over-imperative.md']),
         ...getMechanicBriefs([
           'architecture/ubiqlang.md',

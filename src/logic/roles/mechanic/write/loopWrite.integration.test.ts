@@ -43,7 +43,7 @@ use the word precise at least once
           role: 'caller',
           stash: {
             ask: askText,
-            art: { feedback: feedbackArt },
+            art: { feedback: feedbackArt, references: [] },
           },
         }),
         mechanic: await enrollThread({
