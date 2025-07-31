@@ -24,5 +24,6 @@
     "coverage",
     "node_modules",
     "**/.scratch/**/*.ts", // track them in git for reference, but no longer attempt to compile them
+    "**/.temp/**/*.ts",
   ]
 }

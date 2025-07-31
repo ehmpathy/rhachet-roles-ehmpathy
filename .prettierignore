@@ -1,1 +1,4 @@
 *.md
+**/.temp/**
+**/.rhachet/**
+**/.scratch/**
