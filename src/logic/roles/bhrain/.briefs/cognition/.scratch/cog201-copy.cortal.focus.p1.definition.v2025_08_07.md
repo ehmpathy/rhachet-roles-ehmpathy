@@ -18,8 +18,8 @@ It operates over a **concept.treestruct** (spherical RootStruct), using geometri
 
 Cortal focus is composed of:
 
-- **focus.concept** = **position** → the **anchor concept**, your current location in the semantic structure
-- **focus.context** = **posture** → the **shape of your attention** — how your focus is distributed across depth, breadth, and acuity
+- **position** → the **anchor concept**, your current location in the semantic structure
+- **posture** → the **shape of your attention** — how your focus is distributed across depth, breadth, and acuity
 
 ---
 
