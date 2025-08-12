@@ -6,75 +6,81 @@ to identify the **most strategic [question]s** needed to unlock progress toward 
 your task is to:
 
 1. **<ponder>** the provided goal and focus
-   - Answer all `contextualize` and `conceptualize` questions
-   - These answers must be used to guide your reasoning
+   - answer all `ponder.contextualize` and `ponder.conceptualize` questions
+   - each answer must include both the **answer** and a **reason** showing why it matters in this case
 2. **<enquestion>** — generate a list of high-leverage [question]s that could be asked next
-   - Use your answers from `<ponder>` to determine relevance and priority
-3. Return your full reasoning and result in structured output
+   - use your answers from `<ponder>` to guide your focus
+   - return atleast 7 questions for each .conceptualize and .contextualize
+3. return your full reasoning and result in structured JSON output
 
 ---
 
 ## 🧠 what you must output
 
-You must return a single JSON object with the following schema:
+return a single JSON object with this schema:
 
 \`\`\`ts
 {
   ponder: {
-    contextualize: { [question]: { answer, reason } },
-    conceptualize: { [question]: { answer, reason } }
+    contextualize: { [Question]: Answer[] },
+    conceptualize: { [Question]: Answer[] } }
   },
   produce: {
     questions: {
-      what: {
-        question: string,
-        priority: "MUST" | "SHOULD" | "COULD"
-      },
-      why: {
-        rationale: string
-      }
-    }[]
+      contextualize: Question[],
+      conceptualize: Question[]
+    }
   }
 }
 \`\`\`
+
+where both `Question` and `Answer` are `string`
+
+produce atleast 7 questions for both conceptualize and contextualize
 
 ---
 
 ## 🧠 mental model
 
-- *ponder* = stabilize your conceptual footing — clarify context and intent
-- *enquestion* = identify the next question(s) worth asking
-- *priority* = reflect how essential the question is for advancing the goal
-- *rationale* = explain why this question matters
+- **ponder** = stabilize your footing — clarify context and intent
+- **enquestion** = identify the most strategic next [question]s to ask
+- **priority** = how essential this [question] is for advancing the goal
 
 ---
 
-## 🧬 you strive for:
-- questions that are **strategically useful**
-- answers that are **semantically aware**
-- output that is **structurally correct** and **reasoned through**
+## 🧬 you strive for
+- [questions] that are **strategically useful** and context-aware
+- [answers] that are **grounded in the provided inputs**
+- output that is **structurally correct JSON** and **fully reasoned**
 
 ---
 
 ## ✅ reminders
+- all `ponder` questions **must be answered**
+- each `produce.questions` item must include both `what` and `why`
+- prioritize meaningfully — not all questions are equally essential
+- **no prose, commentary, or extra formatting** — return a JSON object only
 
-- All `ponder` questions **must be answered**
-- Each `produce.questions` item must have `what` and `why` sections
-- Prioritize meaningfully — not all questions are equally essential
-- No prose, commentary, or formatting — return a JSON object only
+---
+
+### 📚 briefs
+
+here are the .briefs you've studied for this skill and actively strive to leverage
+
+\`\`\`json
+$.rhachet{skill.briefs}
+\`\`\`
 
 ---
 
 ## 📥 inputs
 
-Use the following inputs to guide your reasoning.
-Each one defines part of the semantic frame for the `<ponder>` and `<enquestion>` process.
+the following inputs define the semantic frame for `<ponder>` and `<enquestion>`:
 
 ---
 
 ### 🧩 @[ponder.contextualize]
-> A list of **situation-refining questions**.
-> Answering these helps reveal uncertainties, dependencies, or blindspots.
+> situation-refining questions that reveal uncertainties, dependencies, or blindspots
 
 \`\`\`json
 $.rhachet{ponder.contextualize}
@@ -83,8 +89,7 @@ $.rhachet{ponder.contextualize}
 ---
 
 ### 🧠 @[ponder.conceptualize]
-> A list of **model-forming or abstraction-guiding questions**.
-> Answering these helps you form hypotheses, patterns, or organizing principles.
+> model-forming or abstraction-guiding questions that shape hypotheses or organizing principles
 
 \`\`\`json
 $.rhachet{ponder.conceptualize}
@@ -93,8 +98,7 @@ $.rhachet{ponder.conceptualize}
 ---
 
 ### 🧘 @[focus.context]
-> The current **inflight document of context** — this is the **surrounding semantic environment**.
-> It informs how you interpret the goal, assess gaps, and shape inquiry direction.
+> the **inflight document of context** — the surrounding semantic environment that informs interpretation, gap assessment, and inquiry direction
 
 \`\`\`md
 $.rhachet{focus.context}
@@ -103,8 +107,7 @@ $.rhachet{focus.context}
 ---
 
 ### 🫐 @[focus.concept]
-> The current **inflight document of output** — this represents the list of [questions]
-> you are constructing and refining through this `<enquestion>` mechanism.
+> the **inflight document of output** — the evolving list of [questions] being constructed and refined by `<enquestion>`
 
 \`\`\`md
 $.rhachet{focus.concept}
@@ -113,8 +116,7 @@ $.rhachet{focus.concept}
 ---
 
 ### 🎯 @[guide.goal]
-> Defines the **desired outcome or transformation** that the questions are meant to serve.
-> This is the strategic intent driving your inquiry.
+> the **desired outcome or transformation** — the strategic intent driving the inquiry
 
 \`\`\`md
 $.rhachet{guide.goal}
@@ -123,8 +125,7 @@ $.rhachet{guide.goal}
 ---
 
 ### 💬 @[guide.feedback]
-> Caller-supplied **adjustments, constraints, or reflections**.
-> Consider this when refining your perspective or tuning the priorities of your questions.
+> caller-supplied **adjustments, constraints, or reflections** to consider when refining priorities and shaping the [questions]
 
 \`\`\`md
 $.rhachet{guide.feedback}

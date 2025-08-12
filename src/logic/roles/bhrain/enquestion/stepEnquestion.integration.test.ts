@@ -3,115 +3,101 @@ import { enweaveOneStitcher, enrollThread } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { given, when, then, usePrep } from 'test-fns';
 
-import { genContextLogTrail } from '../../../../../.test/genContextLogTrail';
-import { genContextStitchTrail } from '../../../../../.test/genContextStitchTrail';
-import { getContextOpenAI } from '../../../../../.test/getContextOpenAI';
-import { getBhrainBriefs } from '../../getBhrainBrief';
-import { stepEnvision } from './stepEnquestion';
+import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
+import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
+import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
+import { getBhrainBriefs } from '../getBhrainBrief';
+import { enquestionPonderCatalog } from './ponder.catalog';
+import { stepEnquestion } from './stepEnquestion';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));
 
-describe('stepEnvision', () => {
+describe('stepEnquestion', () => {
   const context = {
     ...genContextLogTrail(),
     ...genContextStitchTrail(),
     ...getContextOpenAI(),
   };
-  const route = stepEnvision;
-  const purpose = `
-envision the usecase from the upstream as a timeline, with the output format structure
-    `.trim();
+  const route = stepEnquestion;
 
-  const grammar = `
-  structure:
-  @[actor]<mechanism> -> [resource] -> {drive:<<effect>>[motive]}
+  const goal = `
+catalog questions which are essential to envision a product journey
+  `.trim();
 
-  standards:
-  - all <verb>s should be declared as <mechanism>s
-  - all [noun]s should be declared as [resource]s
-  - all <mechanism>s should be prefixed with their root operation
-    - <get> for reads
-    - <set> for dobj mutations
-    - <rec> for event emissions
-  - use <mechanism>[resource] syntax for brevity, when applicable
-  - scope [resources] within [domain]s when needed for specificity
-    - [domain][resource]
-  - leverage [resources] .attributes when needed
-    - [resource].attribute
-  `;
+  // all artifacts in one place
+  const artifacts = {
+    caller: {
+      goal: genArtifactGitFile(
+        { uri: __dirname + '/.temp/stepEnquestion/caller.goal.md' },
+        { versions: true },
+      ),
+      feedback: genArtifactGitFile(
+        { uri: __dirname + '/.temp/stepEnquestion/caller.feedback.md' },
+        { versions: true },
+      ),
+    },
+    thinker: {
+      'focus.context': genArtifactGitFile(
+        { uri: __dirname + '/.temp/stepEnquestion/thinker.focus.context.md' },
+        { versions: true },
+      ),
+      'focus.concept': genArtifactGitFile(
+        { uri: __dirname + '/.temp/stepEnquestion/thinker.focus.concept.md' },
+        { versions: true },
+      ),
+      'ponder.contextualize': genArtifactGitFile(
+        {
+          uri:
+            __dirname + '/.temp/stepEnquestion/thinker.ponder.contextualize.md',
+        },
+        { versions: true },
+      ),
+      'ponder.conceptualize': genArtifactGitFile(
+        {
+          uri:
+            __dirname + '/.temp/stepEnquestion/thinker.ponder.conceptualize.md',
+        },
+        { versions: true },
+      ),
+    },
+  };
 
-  given('we want to explore the home service domain', () => {
-    const inflightArtifact = genArtifactGitFile(
-      {
-        uri:
-          __dirname +
-          '/.temp/stepEnvision/homeservice.schedule.usecases.usecases.md',
-      },
-      { versions: true },
-    );
-
-    const feedbackArtifact = genArtifactGitFile(
-      {
-        uri:
-          __dirname +
-          '/.temp/stepEnvision/homeservice.schedule.usecases.feedback.md',
-      },
-      { versions: true },
-    );
-
-    const motiveArtifact = genArtifactGitFile(
-      {
-        uri:
-          __dirname +
-          '/.temp/stepEnvision/homeservice.schedule.journey.motive.md',
-      },
-      { versions: true },
-    );
-
-    const upstreamArtifact = genArtifactGitFile(
-      {
-        uri: __dirname + '/.test/homeservice.schedule.journey.upstream.md',
-      },
-      { access: 'readonly' },
-    );
-
-    const structureArtifact = genArtifactGitFile(
-      {
-        uri:
-          __dirname +
-          '/.temp/stepEnvision/homeservice.schedule.journey.structure.json',
-      },
-      { versions: true },
-    );
-
+  given('we want to envision a product journey', () => {
     beforeEach(async () => {
-      await inflightArtifact.del();
-      await feedbackArtifact.del();
-      await motiveArtifact.set({
-        content: 'gather usecases for a product vision',
+      // reset + seed inputs
+      await artifacts.caller.goal.set({ content: goal });
+      await artifacts.caller.feedback.set({ content: '' });
+
+      await artifacts.thinker['focus.context'].set({
+        content: [
+          '# focus.context',
+          '',
+          '- domain: generic (any domain)',
+          '- constraints: quick triage; low-friction onboarding',
+          '- audience: cross-functional team (product/design/eng/gtm) needing clarity fast',
+        ].join('\n'),
       });
-      await structureArtifact.set({
+
+      await artifacts.thinker['focus.concept'].set({
+        content: [
+          '# focus.concept',
+          '',
+          'we are composing a question set for "envisioning a product journey" in a generic domain.',
+          'the output will be a curated list of questions grouped by purpose.',
+        ].join('\n'),
+      });
+
+      await artifacts.thinker['ponder.contextualize'].set({
         content: JSON.stringify(
-          {
-            journey: { title: 'string', summary: 'string' },
-            timeline: [
-              {
-                who: '@[actor]',
-                what: {
-                  grammar: 'string',
-                  summary: 'string',
-                },
-                when: {
-                  time: 't+$duration, where $duration = n.min | n.hrs | n.days | ...',
-                  trigger: 'string',
-                },
-                why: {
-                  grammar: 'string',
-                  summary: 'string',
-                },
-              },
-            ],
-          },
+          enquestionPonderCatalog.contextualize.P0,
+          null,
+          2,
+        ),
+      });
+
+      await artifacts.thinker['ponder.conceptualize'].set({
+        content: JSON.stringify(
+          enquestionPonderCatalog.conceptualize.P0,
           null,
           2,
         ),
@@ -123,22 +109,13 @@ envision the usecase from the upstream as a timeline, with the output format str
         caller: await enrollThread({
           role: 'caller',
           stash: {
-            art: {
-              motive: motiveArtifact,
-              feedback: feedbackArtifact,
-            },
+            art: artifacts.caller,
           },
         }),
         thinker: await enrollThread({
           role: 'thinker',
           stash: {
-            art: {
-              inflight: inflightArtifact,
-              upstream: upstreamArtifact,
-              structure: structureArtifact,
-            },
-            purpose,
-            grammar,
+            art: artifacts.thinker,
           },
           inherit: {
             traits: getBhrainBriefs(['trait.ocd.md']),
@@ -146,17 +123,20 @@ envision the usecase from the upstream as a timeline, with the output format str
         }),
       }));
 
-      then('upserts the artifact', async () => {
+      then('upserts the thinker output', async () => {
         const result = await enweaveOneStitcher(
           { stitcher: route, threads },
           context,
         );
-
         console.log(JSON.stringify(result.stitch, null, 2));
-        console.log(inflightArtifact);
+        console.log(artifacts);
+        console.log(artifacts.thinker['focus.concept']);
 
-        const { content } = await inflightArtifact.get().expect('isPresent');
-        expect(content).toContain('pro');
+        const { content } = await artifacts.thinker['focus.concept']
+          .get()
+          .expect('isPresent');
+
+        expect(content.toLowerCase()).toContain('question');
       });
     });
   });

@@ -16,8 +16,7 @@ import { GitFile } from 'rhachet-artifact-git';
 import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
 import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
 import { genStepArtSet } from '../../../artifact/genStepArtSet';
-import { getEcologistBriefs } from '../../ecologist/getEcologistBrief';
-import { getMechanicBriefs } from '../../mechanic/getMechanicBrief';
+import { getBhrainBriefs } from '../getBhrainBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{
@@ -67,40 +66,44 @@ const template = genTemplate<StitcherDesired['threads']>({
 
     // the focus present
     focus: {
-      concept:
-        (await threads.thinker.context.stash.art['focus.concept'].get())
-          ?.content || '',
       context:
         (await threads.thinker.context.stash.art['focus.context'].get())
+          ?.content || '',
+      concept:
+        (await threads.thinker.context.stash.art['focus.concept'].get())
           ?.content || '',
     },
 
     // the ponder plugins to leverage
     ponder: {
-      conceptualize:
-        (await threads.thinker.context.stash.art['focus.concept'].get())
-          ?.content || '',
       contextualize:
-        (await threads.thinker.context.stash.art['focus.context'].get())
+        (await threads.thinker.context.stash.art['ponder.contextualize'].get())
+          ?.content || '',
+      conceptualize:
+        (await threads.thinker.context.stash.art['ponder.conceptualize'].get())
           ?.content || '',
     },
 
     // the briefs to frame perspective
-    briefs: await getTemplateValFromArtifacts({
-      artifacts: [
-        ...getMechanicBriefs([
-          'architecture/ubiqlang.md',
-          'style.names.treestruct.md',
-        ]),
-        ...getEcologistBriefs([
-          'distilisys/sys101.distilisys.grammar.md',
-          'distilisys/sys201.actor.motive._.summary.md',
-          'distilisys/sys201.actor.motive.p5.motive.grammar.md',
-          'ecology/eco001.overview.md',
-          'economy/econ001.overview.md',
-        ]),
-      ],
-    }),
+    skill: {
+      briefs: await getTemplateValFromArtifacts({
+        artifacts: [
+          ...getBhrainBriefs([
+            'trait.ocd.md',
+            'cognition/cog401.questions.._.md',
+            'cognition/cog000.overview.and.premise.md',
+            'cognition/cog101.concept.treestruct._.md',
+            'cognition/cog201.cortal.focus.p1.definition.md',
+            'cognition/cog301.traversal.1.motion.primitives._.md',
+            'cognition/cog401.questions.._.md',
+            'cognition/cog401.questions.2.1.primitives.rough._.md',
+            'cognition/cog501.cortal.assemblylang.4.structure._.ponder.md',
+            'cognition/cog501.cortal.assemblylang.4.structure.ponder.[article].usage.md',
+            'thinker.tactics/<enquestion>._.[article].md',
+          ]),
+        ],
+      }),
+    },
   }),
 });
 
