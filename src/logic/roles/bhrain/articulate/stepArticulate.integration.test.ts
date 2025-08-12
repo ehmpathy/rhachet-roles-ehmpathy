@@ -7,100 +7,77 @@ import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
 import { getBhrainBriefs } from '../getBhrainBrief';
-import { enquestionPonderCatalog } from './ponder.catalog';
-import { stepEnquestion } from './stepEnquestion';
+import { articulatePonderCatalog } from './ponder.catalog';
+import { stepArticulate } from './stepArticulate';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));
 
-describe('stepEnquestion', () => {
+describe('stepArticulate', () => {
   const context = {
     ...genContextLogTrail(),
     ...genContextStitchTrail(),
     ...getContextOpenAI(),
   };
-  const route = stepEnquestion;
+  const route = stepArticulate;
 
   const goal = `
-catalog questions which are essential to envision a product journey
+articulate the term "joke"; declare both the etymology and definition; include examples
   `.trim();
 
-  // all artifacts in one place
   const artifacts = {
     caller: {
       goal: genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepEnquestion/caller.goal.md' },
+        { uri: __dirname + '/.temp/stepArticulate/caller.goal.md' },
         { versions: true },
       ),
       feedback: genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepEnquestion/caller.feedback.md' },
+        { uri: __dirname + '/.temp/stepArticulate/caller.feedback.md' },
         { versions: true },
       ),
     },
     thinker: {
       'focus.context': genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepEnquestion/thinker.focus.context.md' },
+        { uri: __dirname + '/.temp/stepArticulate/thinker.focus.context.md' },
         { versions: true },
       ),
       'focus.concept': genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepEnquestion/thinker.focus.concept.md' },
+        { uri: __dirname + '/.temp/stepArticulate/thinker.focus.concept.md' },
         { versions: true },
       ),
       'ponder.context': genArtifactGitFile(
         {
-          uri:
-            __dirname + '/.temp/stepEnquestion/thinker.ponder.contextualize.md',
+          uri: __dirname + '/.temp/stepArticulate/thinker.ponder.context.md',
         },
         { versions: true },
       ),
       'ponder.concept': genArtifactGitFile(
         {
-          uri:
-            __dirname + '/.temp/stepEnquestion/thinker.ponder.conceptualize.md',
+          uri: __dirname + '/.temp/stepArticulate/thinker.ponder.concept.md',
         },
         { versions: true },
       ),
     },
   };
 
-  given('we want to envision a product journey', () => {
+  given('we want to articulate term joke', () => {
     beforeEach(async () => {
-      // reset + seed inputs
       await artifacts.caller.goal.set({ content: goal });
       await artifacts.caller.feedback.set({ content: '' });
 
       await artifacts.thinker['focus.context'].set({
-        content: [
-          '# focus.context',
-          '',
-          '- domain: generic (any domain)',
-          '- constraints: quick triage; low-friction onboarding',
-          '- audience: cross-functional team (product/design/eng/gtm) needing clarity fast',
-        ].join('\n'),
+        content: ['psychology', 'evolution', 'ecology'].join('\n'),
       });
 
       await artifacts.thinker['focus.concept'].set({
-        content: [
-          '# focus.concept',
-          '',
-          'we are composing a question set for "envisioning a product journey" in a generic domain.',
-          'the output will be a curated list of questions grouped by purpose.',
-        ].join('\n'),
+        content: [].join('\n'),
       });
 
       await artifacts.thinker['ponder.context'].set({
-        content: JSON.stringify(
-          enquestionPonderCatalog.contextualize.P0,
-          null,
-          2,
-        ),
+        content: JSON.stringify(articulatePonderCatalog.contextualize, null, 2),
       });
 
       await artifacts.thinker['ponder.concept'].set({
-        content: JSON.stringify(
-          enquestionPonderCatalog.conceptualize.P0,
-          null,
-          2,
-        ),
+        content: JSON.stringify(articulatePonderCatalog.conceptualize, null, 2),
       });
     });
 
@@ -137,7 +114,7 @@ catalog questions which are essential to envision a product journey
           .get()
           .expect('isPresent');
 
-        expect(content.toLowerCase()).toContain('question');
+        expect(content.toLowerCase()).toContain('joke');
       });
     });
   });

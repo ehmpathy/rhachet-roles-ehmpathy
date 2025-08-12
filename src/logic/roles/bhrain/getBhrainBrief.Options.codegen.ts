@@ -85,6 +85,8 @@ const options = [
   'thinker.tactics/<enquestion>._.[gallery].thinker.enquestion.md',
   'cognition/inflight/concept.vs.idea.md',
   'cognition/inflight/core.concept.adjectives.md',
+  'thinker.tactics/<articulate>._.[article].md',
+  'thinker.preferences/[brief].verbiage.outline.over.narrative.md',
 ] as const;
 
 export type BriefOptionBhrain = typeof options[number];

@@ -100,7 +100,10 @@ const template = genTemplate<StitcherDesired['threads']>({
             'cognition/cog401.questions.2.1.primitives.rough._.md',
             'cognition/cog501.cortal.assemblylang.4.structure._.ponder.md',
             'cognition/cog501.cortal.assemblylang.4.structure.ponder.[article].usage.md',
-            'thinker.tactics/<enquestion>._.[article].md',
+            'thinker.tactics/<articulate>._.[article].md',
+            'cognition/cog201.cortal.focus.p2.acuity.md',
+            'cognition/cog301.traversal.1.motion.primitives.acuity.md',
+            'thinker.preferences/[brief].verbiage.outline.over.narrative.md',
           ]),
         ],
       }),
@@ -114,7 +117,7 @@ const template = genTemplate<StitcherDesired['threads']>({
 });
 
 const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '@[thinker]<enquestion>',
+  slug: '@[thinker]<articulate>',
   stitchee: 'thinker',
   readme: '',
   template,
@@ -126,16 +129,16 @@ const stepPersist = genStepArtSet({
   artee: 'focus.concept', // the latest set of questions
 });
 
-export const stepEnquestion = asStitcherFlat<StitcherDesired>(
+export const stepArticulate = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '@[thinker]<enquestion>',
-    readme: '@[thinker]<enquestion> -> [[question]]',
+    slug: '@[thinker]<articulate>',
+    readme: '@[thinker]<articulate> -> [[question]]',
     sequence: [stepImagine, stepPersist],
   }),
 );
 
-export const loopEnquestion = genLoopFeedback({
+export const loopArticulate = genLoopFeedback({
   stitchee: 'thinker',
   artee: 'focus.concept',
-  repeatee: stepEnquestion,
+  repeatee: stepArticulate,
 });

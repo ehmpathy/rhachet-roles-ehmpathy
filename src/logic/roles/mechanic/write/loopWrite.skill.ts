@@ -21,7 +21,7 @@ export const SKILL_WRITE = genRoleSkill({
       },
       references: {
         source: 'process.argv',
-        char: 'p',
+        char: 'f',
         desc: 'reference files to to use',
         type: '?string', // todo: string []
       },

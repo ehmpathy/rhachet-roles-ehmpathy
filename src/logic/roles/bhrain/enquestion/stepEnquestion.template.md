@@ -63,13 +63,19 @@ produce atleast 7 questions for both conceptualize and contextualize
 
 ---
 
-### 📚 briefs
+## 📚 briefs
 
 here are the .briefs you've studied for this skill and actively strive to leverage
 
-\`\`\`json
 $.rhachet{skill.briefs}
-\`\`\`
+
+---
+
+## 📎 references
+
+here are possibly relevant references you may need
+
+$.rhachet{references}
 
 ---
 
