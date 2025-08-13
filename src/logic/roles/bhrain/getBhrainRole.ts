@@ -1,8 +1,8 @@
 import { Role, RoleTrait } from 'rhachet';
 
-import { SKILL_ENQUESTION } from './enquestion/stepEnquestion.skill';
 import { getBhrainBrief } from './getBhrainBrief';
-import { SKILL_PONDER } from './ponder/stepPonder.skill';
+import { SKILL_ENQUESTION } from './khue.enquestion/stepEnquestion.skill';
+import { SKILL_PONDER } from './khue.ponder/stepPonder.skill';
 
 // import { SKILL_INTERPRET } from './primitive.strategic.atomic/interpret/stepInterpret.skill';
 
