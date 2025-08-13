@@ -4,12 +4,11 @@ import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { enquestionPonderCatalog } from './ponder.catalog';
-import { loopEnquestion } from './stepEnquestion';
+import { loopPonder } from './stepPonder';
 
-export const SKILL_ENQUESTION = genRoleSkill({
-  slug: 'enquestion',
-  route: loopEnquestion,
+export const SKILL_PONDER = genRoleSkill({
+  slug: 'ponder',
+  route: loopPonder,
   threads: {
     lookup: {
       goal: {
@@ -30,19 +29,43 @@ export const SKILL_ENQUESTION = genRoleSkill({
         desc: 'reference files to to use, if any; delimit with commas',
         type: '?string', // todo: string []
       },
+      briefs: {
+        source: 'process.argv',
+        char: 'b',
+        desc: 'brief files to to use, if any; delimit with commas',
+        type: '?string', // todo: string []
+      },
+      'ponder.context': {
+        source: 'process.argv',
+        char: 'u', // todo: drop
+        desc: 'the context ponder questions artifact path',
+        type: 'string',
+      },
+      'ponder.concept': {
+        source: 'process.argv',
+        char: 'v', // todo: drop
+        desc: 'the concept ponder questions artifact path',
+        type: 'string',
+      },
     },
     assess: (
       input,
     ): input is {
-      target: string;
       goal: string;
+      target: string;
       references: string;
+      briefs: string;
+      'ponder.context': string;
+      'ponder.concept': string;
       ask: string;
     } => typeof input.target === 'string',
     instantiate: async (input: {
-      target: string;
       goal: string;
+      target: string;
       references: string;
+      briefs: string;
+      'ponder.context': string;
+      'ponder.concept': string;
       ask: string;
     }) => {
       const obsDir = getArtifactObsDir({ uri: input.target });
@@ -76,12 +99,12 @@ export const SKILL_ENQUESTION = genRoleSkill({
           { versions: true },
         ),
         'ponder.context': genArtifactGitFile(
-          { uri: obsDir + '.ponder.context.md' },
-          { versions: true },
+          { uri: input['ponder.context'] },
+          { access: 'readonly' },
         ),
         'ponder.concept': genArtifactGitFile(
-          { uri: obsDir + '.ponder.concept.md' },
-          { versions: true },
+          { uri: input['ponder.concept'] },
+          { access: 'readonly' },
         ),
         references:
           input.references
@@ -90,23 +113,14 @@ export const SKILL_ENQUESTION = genRoleSkill({
             .map((reference) =>
               genArtifactGitFile({ uri: reference }, { access: 'readonly' }),
             ) ?? [],
+        briefs:
+          input.briefs
+            ?.split(',')
+            .filter((uri) => !!uri) // allows , // todo: support optional vars
+            .map((brief) =>
+              genArtifactGitFile({ uri: brief }, { access: 'readonly' }),
+            ) ?? [],
       };
-
-      // todo: if ponder artifacts already exist, dont overwrite; for now, we assume they'll never exist
-      await artifacts['ponder.concept'].set({
-        content: JSON.stringify(
-          enquestionPonderCatalog.conceptualize.P0,
-          null,
-          2,
-        ),
-      });
-      await artifacts['ponder.context'].set({
-        content: JSON.stringify(
-          enquestionPonderCatalog.contextualize.P0,
-          null,
-          2,
-        ),
-      });
 
       // and return the threads
       return {
@@ -130,6 +144,7 @@ export const SKILL_ENQUESTION = genRoleSkill({
               'ponder.context': artifacts['ponder.context'],
               'ponder.concept': artifacts['ponder.concept'],
             },
+            briefs: [],
           },
         }),
       };

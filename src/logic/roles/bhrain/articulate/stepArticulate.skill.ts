@@ -12,17 +12,17 @@ export const SKILL_ENQUESTION = genRoleSkill({
   route: loopEnquestion,
   threads: {
     lookup: {
-      goal: {
-        source: 'process.argv',
-        char: 'g',
-        desc: 'the goal to use; if not specified, assumes ask is goal',
-        type: '?string',
-      },
       target: {
         source: 'process.argv',
         char: 't',
         desc: 'the target file or dir to write against',
         type: 'string',
+      },
+      goal: {
+        source: 'process.argv',
+        char: 'g',
+        desc: 'the goal to use; if not specified, assumes ask is goal',
+        type: '?string',
       },
       references: {
         source: 'process.argv',
