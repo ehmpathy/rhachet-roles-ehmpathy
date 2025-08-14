@@ -1,20 +1,22 @@
-export const articulatePonderCatalog = {
+// todo: iterate w/ <enquestion> to compile better and better questions
+
+export const thisPonderCatalog = {
   contextualize: [
-    'What do we already have that talks about our limits and guesses when coming up with these questions?',
-    'How should we switch things up if we hit some speed bumps in hitting the goal?',
-    'Which words or ideas have to be crystal clear before jumping into defining things?',
-    'Whose opinions do we need to bring in to make sure we’re on target?',
-    "How might shifts in what's around us shake up our plan?",
-    "Where lie the gaps between what we think and what's really happening in laying out the context?",
-    "What's gotta be checked to keep everything flowing smoothly in our outline?",
+    'what is the article’s purpose right now?',
+    'who will read it, and what do they already know?',
+    'what constraints (time, scope, tone, format) must it follow?',
+    'what’s the triggering event or need that started this?',
+    'what existing materials or sources will feed into it?',
+    'what assumptions am i making about the reader or context?',
+    'what success looks like — how will i know it works?',
   ],
   conceptualize: [
-    'What easy-to-grasp plans can help get big ideas across clearly?',
-    "What stories or examples can nail down what we're talking about?",
-    'What trends pop up that link our idea into one piece?',
-    'What tried-and-true ideas can push our message to fit what people already know?',
-    'What other views show a clearer picture of what we’re working with?',
-    'How can we amp up the main parts to stand out better?',
-    'How new ways of laying things out could improve how folks get what we mean?',
+    'what is the central concept or claim to convey?',
+    'what sub-points or dimensions does it naturally break into?',
+    'what terms or concepts must be defined for clarity?',
+    'what perspective or stance will it take?',
+    'what real-world examples or analogies will anchor it?',
+    'what’s the narrative arc — how should it unfold?',
+    'what’s the unique value or insight it adds vs. other sources?',
   ],
 };

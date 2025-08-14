@@ -23,8 +23,10 @@ type StitcherDesired = GStitcher<
     caller: RoleContext<
       'caller',
       {
+        ask: string;
         art: {
-          goal: Artifact<typeof GitFile>;
+          'foci.goal.context': Artifact<typeof GitFile>;
+          'foci.goal.concept': Artifact<typeof GitFile>;
           feedback: Artifact<typeof GitFile>;
         };
         refs: Artifact<typeof GitFile>[];
@@ -34,13 +36,10 @@ type StitcherDesired = GStitcher<
       'thinker',
       {
         art: {
-          // where we start from; uses the [focus] structure for representation
-          'focus.context': Artifact<typeof GitFile>; // the context inflight
-          'focus.concept': Artifact<typeof GitFile>; // the concept inflight
-
-          // how we'll traverse; use's the <ponder> structure for question assembly
-          'ponder.context': Artifact<typeof GitFile>; // the questions to contextualize with
-          'ponder.concept': Artifact<typeof GitFile>; // the questions to conceptualize with
+          'focus.context': Artifact<typeof GitFile>;
+          'focus.concept': Artifact<typeof GitFile>;
+          'foci.ponder.que.context': Artifact<typeof GitFile>;
+          'foci.ponder.que.concept': Artifact<typeof GitFile>;
         };
 
         // any briefs that should be added for this usecase; enables extension of context
@@ -60,9 +59,10 @@ const template = genTemplate<StitcherDesired['threads']>({
     // the guidance provided
     guide: {
       goal:
-        (await threads.caller.context.stash.art.goal.get())?.content ||
-        UnexpectedCodePathError.throw('goal not declared', {
-          art: threads.caller.context.stash.art.goal,
+        (await threads.caller.context.stash.art['foci.goal.concept'].get())
+          ?.content ||
+        UnexpectedCodePathError.throw('goal context not declared', {
+          art: threads.caller.context.stash.art['foci.goal.concept'],
         }),
       feedback:
         (await threads.caller.context.stash.art.feedback.get())?.content || '',
@@ -81,11 +81,17 @@ const template = genTemplate<StitcherDesired['threads']>({
     // the ponder plugins to leverage
     ponder: {
       contextualize:
-        (await threads.thinker.context.stash.art['ponder.context'].get())
-          ?.content || '',
+        (
+          await threads.thinker.context.stash.art[
+            'foci.ponder.que.context'
+          ].get()
+        )?.content || '',
       conceptualize:
-        (await threads.thinker.context.stash.art['ponder.concept'].get())
-          ?.content || '',
+        (
+          await threads.thinker.context.stash.art[
+            'foci.ponder.que.concept'
+          ].get()
+        )?.content || '',
     },
 
     // the briefs to frame perspective
@@ -130,7 +136,7 @@ const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
 
 const stepPersist = genStepArtSet({
   stitchee: 'thinker',
-  artee: 'focus.concept', // the latest set of questions
+  artee: 'focus.concept',
 });
 
 export const stepPonder = asStitcherFlat<StitcherDesired>(

@@ -58,6 +58,7 @@ const template = genTemplate<StitcherDesired['threads']>({
         ...getMechanicBriefs([
           'architecture/ubiqlang.md',
           'style.names.treestruct.md',
+          'codestyle/mech.what-why.v2.md',
         ]),
         ...getEcologistBriefs([
           'distilisys/sys101.distilisys.grammar.md',

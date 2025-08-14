@@ -114,7 +114,7 @@ export const genStepSwapArtifact = <
  *   - streamlines definition of multiple swaps in routes without type repetition
  *
  * @example
- * const swapArt = enthreadGenStepSwapArtifact<StitcherDesired['threads']>();
+ * const swapArt = useGenStepSwapArtifactFor<StitcherDesired['threads']>();
  * swapArt({
  *   // set @thinker[inflight] = @thinker.inflights.diverge
  *   use: { stitchee: 'thinker', artee: 'inflights.diverge' },

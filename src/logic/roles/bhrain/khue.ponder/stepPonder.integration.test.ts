@@ -24,46 +24,46 @@ catalog questions which are essential to envision a product journey
   `.trim();
 
   const artifacts = {
-    caller: {
-      goal: genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepPonder/caller.goal.md' },
-        { versions: true },
-      ),
-      feedback: genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepPonder/caller.feedback.md' },
-        { versions: true },
-      ),
-    },
-    thinker: {
-      'focus.context': genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepPonder/thinker.focus.context.md' },
-        { versions: true },
-      ),
-      'focus.concept': genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepPonder/thinker.focus.concept.md' },
-        { versions: true },
-      ),
-      'ponder.context': genArtifactGitFile(
-        {
-          uri: __dirname + '/.temp/stepPonder/thinker.ponder.context.md',
-        },
-        { versions: true },
-      ),
-      'ponder.concept': genArtifactGitFile(
-        {
-          uri: __dirname + '/.temp/stepPonder/thinker.ponder.concept.md',
-        },
-        { versions: true },
-      ),
-    },
+    'foci.goal.concept': genArtifactGitFile(
+      { uri: __dirname + '/.temp/stepPonder/caller.foci.goal.concept.md' },
+      { versions: true },
+    ),
+    'foci.goal.context': genArtifactGitFile(
+      { uri: __dirname + '/.temp/stepPonder/caller.foci.goal.context.md' },
+      { versions: true },
+    ),
+    feedback: genArtifactGitFile(
+      { uri: __dirname + '/.temp/stepPonder/caller.feedback.md' },
+      { versions: true },
+    ),
+    'focus.context': genArtifactGitFile(
+      { uri: __dirname + '/.temp/stepPonder/thinker.focus.context.md' },
+      { versions: true },
+    ),
+    'focus.concept': genArtifactGitFile(
+      { uri: __dirname + '/.temp/stepPonder/thinker.focus.concept.md' },
+      { versions: true },
+    ),
+    'foci.ponder.que.context': genArtifactGitFile(
+      {
+        uri: __dirname + '/.temp/stepPonder/thinker.foci.ponder.que.context.md',
+      },
+      { versions: true },
+    ),
+    'foci.ponder.que.concept': genArtifactGitFile(
+      {
+        uri: __dirname + '/.temp/stepPonder/thinker.foci.ponder.que.concept.md',
+      },
+      { versions: true },
+    ),
   };
 
   given('we want to envision a product journey', () => {
     beforeEach(async () => {
-      await artifacts.caller.goal.set({ content: goal });
-      await artifacts.caller.feedback.set({ content: '' });
+      await artifacts['foci.goal.concept'].set({ content: goal });
+      await artifacts.feedback.set({ content: '' });
 
-      await artifacts.thinker['focus.context'].set({
+      await artifacts['focus.context'].set({
         content: [
           '# focus.context',
           '',
@@ -73,7 +73,7 @@ catalog questions which are essential to envision a product journey
         ].join('\n'),
       });
 
-      await artifacts.thinker['focus.concept'].set({
+      await artifacts['focus.concept'].set({
         content: [
           '# focus.concept',
           '',
@@ -82,7 +82,7 @@ catalog questions which are essential to envision a product journey
         ].join('\n'),
       });
 
-      await artifacts.thinker['ponder.context'].set({
+      await artifacts['foci.ponder.que.context'].set({
         content: JSON.stringify(
           [
             'who is the primary audience or user for this journey?',
@@ -98,7 +98,7 @@ catalog questions which are essential to envision a product journey
         ),
       });
 
-      await artifacts.thinker['ponder.concept'].set({
+      await artifacts['foci.ponder.que.concept'].set({
         content: JSON.stringify(
           [
             'what is the desired end state or outcome of the product journey?',
@@ -120,14 +120,24 @@ catalog questions which are essential to envision a product journey
         caller: await enrollThread({
           role: 'caller',
           stash: {
-            art: artifacts.caller,
+            ask: goal,
+            art: {
+              'foci.goal.concept': artifacts['foci.goal.concept'],
+              'foci.goal.context': artifacts['foci.goal.context'],
+              feedback: artifacts.feedback,
+            },
             refs: [],
           },
         }),
         thinker: await enrollThread({
           role: 'thinker',
           stash: {
-            art: artifacts.thinker,
+            art: {
+              'focus.context': artifacts['focus.context'],
+              'focus.concept': artifacts['focus.concept'],
+              'foci.ponder.que.context': artifacts['foci.ponder.que.context'],
+              'foci.ponder.que.concept': artifacts['foci.ponder.que.concept'],
+            },
             briefs: [],
           },
           inherit: {
@@ -143,9 +153,9 @@ catalog questions which are essential to envision a product journey
         );
         console.log(JSON.stringify(result.stitch, null, 2));
         console.log(artifacts);
-        console.log(artifacts.thinker['focus.concept']);
+        console.log(artifacts['focus.concept']);
 
-        const { content } = await artifacts.thinker['focus.concept']
+        const { content } = await artifacts['focus.concept']
           .get()
           .expect('isPresent');
 

@@ -4,12 +4,13 @@ import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { enquestionPonderCatalog } from './ponder.catalog';
-import { loopEnquestion } from './stepEnquestion';
+import { thisPonderCatalog } from './ponder.catalog';
+import { BRIEFS_FOR_ARTICULATE } from './stepArticulate';
+import { loopsArticulateWithPonder } from './stepArticulate.withPonder';
 
-export const SKILL_ENQUESTION = genRoleSkill({
-  slug: 'enquestion',
-  route: loopEnquestion,
+export const SKILL_ARTICULATE = genRoleSkill({
+  slug: 'articulate',
+  route: loopsArticulateWithPonder,
   threads: {
     lookup: {
       target: {
@@ -28,7 +29,13 @@ export const SKILL_ENQUESTION = genRoleSkill({
         source: 'process.argv',
         char: 'f',
         desc: 'reference files to to use, if any; delimit with commas',
-        type: '?string', // todo: string []
+        type: '?string',
+      },
+      briefs: {
+        source: 'process.argv',
+        char: 'b',
+        desc: 'brief files to to use, if any; delimit with commas',
+        type: '?string',
       },
     },
     assess: (
@@ -37,25 +44,25 @@ export const SKILL_ENQUESTION = genRoleSkill({
       target: string;
       goal: string;
       references: string;
+      briefs: string;
       ask: string;
     } => typeof input.target === 'string',
     instantiate: async (input: {
       target: string;
       goal: string;
       references: string;
+      briefs: string;
       ask: string;
     }) => {
       const obsDir = getArtifactObsDir({ uri: input.target });
       const artifacts = {
         goal: await (async () => {
-          // if the goal was explicitly declared, use it
           if (input.goal)
             return genArtifactGitFile(
               { uri: input.goal },
-              { access: 'readonly' }, // dont risk overwriting their goal artifact
+              { access: 'readonly' },
             );
 
-          // otherwise, since goal was not explicitly set, then infer that the ask is the goal
           const art = genArtifactGitFile(
             { uri: obsDir + '.goal.md' },
             { versions: true },
@@ -72,50 +79,68 @@ export const SKILL_ENQUESTION = genRoleSkill({
           { versions: true },
         ),
         'focus.concept': genArtifactGitFile(
-          { uri: input.target }, // ?: recall: focus.concept === input.target
+          { uri: input.target },
           { versions: true },
         ),
-        'ponder.context': genArtifactGitFile(
-          { uri: obsDir + '.ponder.context.md' },
+        'foci.articulate.context': genArtifactGitFile(
+          { uri: obsDir + '.foci.articulate.context.md' },
           { versions: true },
         ),
-        'ponder.concept': genArtifactGitFile(
-          { uri: obsDir + '.ponder.concept.md' },
+        'foci.articulate.concept': genArtifactGitFile(
+          { uri: obsDir + '.foci.articulate.concept.md' },
+          { versions: true },
+        ),
+        'foci.ponder.que.context': genArtifactGitFile(
+          { uri: obsDir + '.foci.ponder.que.context.md' },
+          { versions: true },
+        ),
+        'foci.ponder.que.concept': genArtifactGitFile(
+          { uri: obsDir + '.foci.ponder.que.concept.md' },
+          { versions: true },
+        ),
+        'foci.ponder.ans.context': genArtifactGitFile(
+          { uri: obsDir + '.foci.ponder.ans.context.md' },
+          { versions: true },
+        ),
+        'foci.ponder.ans.concept': genArtifactGitFile(
+          { uri: obsDir + '.foci.ponder.ans.concept.md' },
+          { versions: true },
+        ),
+        'ponder.output': genArtifactGitFile(
+          { uri: obsDir + '.ponder.output.md' },
           { versions: true },
         ),
         references:
           input.references
             ?.split(',')
-            .filter((uri) => !!uri) // allows , // todo: support optional vars
+            .filter((uri) => !!uri)
             .map((reference) =>
               genArtifactGitFile({ uri: reference }, { access: 'readonly' }),
             ) ?? [],
+        briefs:
+          input.briefs
+            ?.split(',')
+            .filter((uri) => !!uri)
+            .map((brief) =>
+              genArtifactGitFile({ uri: brief }, { access: 'readonly' }),
+            ) ?? [],
       };
 
-      // todo: if ponder artifacts already exist, dont overwrite; for now, we assume they'll never exist
-      await artifacts['ponder.concept'].set({
-        content: JSON.stringify(
-          enquestionPonderCatalog.conceptualize.P0,
-          null,
-          2,
-        ),
+      await artifacts['foci.ponder.que.concept'].set({
+        content: JSON.stringify(thisPonderCatalog.conceptualize, null, 2),
       });
-      await artifacts['ponder.context'].set({
-        content: JSON.stringify(
-          enquestionPonderCatalog.contextualize.P0,
-          null,
-          2,
-        ),
+      await artifacts['foci.ponder.que.context'].set({
+        content: JSON.stringify(thisPonderCatalog.contextualize, null, 2),
       });
 
-      // and return the threads
       return {
         caller: await enrollThread({
           role: 'caller',
           stash: {
             ask: input.ask,
             art: {
-              goal: artifacts.goal,
+              'foci.goal.concept': artifacts.goal,
+              'foci.goal.context': artifacts.goal,
               feedback: artifacts.feedback,
             },
             refs: artifacts.references,
@@ -127,9 +152,17 @@ export const SKILL_ENQUESTION = genRoleSkill({
             art: {
               'focus.context': artifacts['focus.context'],
               'focus.concept': artifacts['focus.concept'],
-              'ponder.context': artifacts['ponder.context'],
-              'ponder.concept': artifacts['ponder.concept'],
+              'foci.articulate.context': artifacts['foci.articulate.context'],
+              'foci.articulate.concept': artifacts['foci.articulate.concept'],
+              'foci.ponder.ans.context': artifacts['foci.ponder.ans.context'],
+              'foci.ponder.ans.concept': artifacts['foci.ponder.ans.concept'],
+              'foci.ponder.que.context': artifacts['foci.ponder.que.context'],
+              'foci.ponder.que.concept': artifacts['foci.ponder.que.concept'],
             },
+            briefs: [
+              ...artifacts.briefs,
+              ...BRIEFS_FOR_ARTICULATE, // flow the articulate briefs down so that <ponder> has them in context too; this approach does cause duplicate briefs for articulate, but thats no biggie
+            ],
           },
         }),
       };

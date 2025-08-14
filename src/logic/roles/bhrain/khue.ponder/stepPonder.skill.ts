@@ -64,18 +64,18 @@ export const SKILL_PONDER = genRoleSkill({
       target: string;
       references: string;
       briefs: string;
+      ask: string;
       'ponder.context': string;
       'ponder.concept': string;
-      ask: string;
     }) => {
       const obsDir = getArtifactObsDir({ uri: input.target });
       const artifacts = {
-        goal: await (async () => {
+        'foci.goal.concept': await (async () => {
           // if the goal was explicitly declared, use it
           if (input.goal)
             return genArtifactGitFile(
               { uri: input.goal },
-              { access: 'readonly' }, // dont risk overwriting their goal artifact
+              { access: 'readonly' },
             );
 
           // otherwise, since goal was not explicitly set, then infer that the ask is the goal
@@ -86,6 +86,10 @@ export const SKILL_PONDER = genRoleSkill({
           await art.set({ content: input.ask });
           return art;
         })(),
+        'foci.goal.context': genArtifactGitFile(
+          { uri: obsDir + '.foci.goal.context.md' },
+          { versions: true },
+        ),
         feedback: genArtifactGitFile(
           { uri: obsDir + '.feedback.md' },
           { versions: true },
@@ -98,38 +102,38 @@ export const SKILL_PONDER = genRoleSkill({
           { uri: input.target }, // ?: recall: focus.concept === input.target
           { versions: true },
         ),
-        'ponder.context': genArtifactGitFile(
+        'foci.ponder.que.context': genArtifactGitFile(
           { uri: input['ponder.context'] },
           { access: 'readonly' },
         ),
-        'ponder.concept': genArtifactGitFile(
+        'foci.ponder.que.concept': genArtifactGitFile(
           { uri: input['ponder.concept'] },
           { access: 'readonly' },
         ),
         references:
           input.references
             ?.split(',')
-            .filter((uri) => !!uri) // allows , // todo: support optional vars
+            .filter((uri) => !!uri)
             .map((reference) =>
               genArtifactGitFile({ uri: reference }, { access: 'readonly' }),
             ) ?? [],
         briefs:
           input.briefs
             ?.split(',')
-            .filter((uri) => !!uri) // allows , // todo: support optional vars
+            .filter((uri) => !!uri)
             .map((brief) =>
               genArtifactGitFile({ uri: brief }, { access: 'readonly' }),
             ) ?? [],
       };
 
-      // and return the threads
       return {
         caller: await enrollThread({
           role: 'caller',
           stash: {
             ask: input.ask,
             art: {
-              goal: artifacts.goal,
+              'foci.goal.concept': artifacts['foci.goal.concept'],
+              'foci.goal.context': artifacts['foci.goal.context'],
               feedback: artifacts.feedback,
             },
             refs: artifacts.references,
@@ -141,10 +145,10 @@ export const SKILL_PONDER = genRoleSkill({
             art: {
               'focus.context': artifacts['focus.context'],
               'focus.concept': artifacts['focus.concept'],
-              'ponder.context': artifacts['ponder.context'],
-              'ponder.concept': artifacts['ponder.concept'],
+              'foci.ponder.que.context': artifacts['foci.ponder.que.context'],
+              'foci.ponder.que.concept': artifacts['foci.ponder.que.concept'],
             },
-            briefs: [],
+            briefs: artifacts.briefs,
           },
         }),
       };

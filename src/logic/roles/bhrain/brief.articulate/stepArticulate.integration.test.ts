@@ -7,7 +7,7 @@ import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
 import { getBhrainBriefs } from '../getBhrainBrief';
-import { articulatePonderCatalog } from './ponder.catalog';
+import { thisPonderCatalog } from './ponder.catalog';
 import { stepArticulate } from './stepArticulate';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));
@@ -26,33 +26,37 @@ articulate the term "joke"; declare both the etymology and definition; include e
 
   const artifacts = {
     caller: {
-      goal: genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepArticulate/caller.goal.md' },
-        { versions: true },
-      ),
       feedback: genArtifactGitFile(
         { uri: __dirname + '/.temp/stepArticulate/caller.feedback.md' },
         { versions: true },
       ),
-    },
-    thinker: {
-      'focus.context': genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepArticulate/thinker.focus.context.md' },
+      'foci.goal.concept': genArtifactGitFile(
+        {
+          uri: __dirname + '/.temp/stepArticulate/caller.foci.goal.concept.md',
+        },
         { versions: true },
       ),
+      'foci.goal.context': genArtifactGitFile(
+        {
+          uri: __dirname + '/.temp/stepArticulate/caller.foci.goal.context.md',
+        },
+        { versions: true },
+      ),
+    },
+    thinker: {
       'focus.concept': genArtifactGitFile(
         { uri: __dirname + '/.temp/stepArticulate/thinker.focus.concept.md' },
         { versions: true },
       ),
-      'ponder.context': genArtifactGitFile(
-        {
-          uri: __dirname + '/.temp/stepArticulate/thinker.ponder.context.md',
-        },
+      'focus.context': genArtifactGitFile(
+        { uri: __dirname + '/.temp/stepArticulate/thinker.focus.context.md' },
         { versions: true },
       ),
-      'ponder.concept': genArtifactGitFile(
+      'foci.ponder.ans.concept': genArtifactGitFile(
         {
-          uri: __dirname + '/.temp/stepArticulate/thinker.ponder.concept.md',
+          uri:
+            __dirname +
+            '/.temp/stepArticulate/thinker.foci.ponder.ans.concept.md',
         },
         { versions: true },
       ),
@@ -61,8 +65,8 @@ articulate the term "joke"; declare both the etymology and definition; include e
 
   given('we want to articulate term joke', () => {
     beforeEach(async () => {
-      await artifacts.caller.goal.set({ content: goal });
       await artifacts.caller.feedback.set({ content: '' });
+      await artifacts.caller['foci.goal.concept'].set({ content: goal });
 
       await artifacts.thinker['focus.context'].set({
         content: ['psychology', 'evolution', 'ecology'].join('\n'),
@@ -72,12 +76,8 @@ articulate the term "joke"; declare both the etymology and definition; include e
         content: [].join('\n'),
       });
 
-      await artifacts.thinker['ponder.context'].set({
-        content: JSON.stringify(articulatePonderCatalog.contextualize, null, 2),
-      });
-
-      await artifacts.thinker['ponder.concept'].set({
-        content: JSON.stringify(articulatePonderCatalog.conceptualize, null, 2),
+      await artifacts.thinker['foci.ponder.ans.concept'].set({
+        content: JSON.stringify(thisPonderCatalog.conceptualize, null, 2),
       });
     });
 
@@ -86,14 +86,25 @@ articulate the term "joke"; declare both the etymology and definition; include e
         caller: await enrollThread({
           role: 'caller',
           stash: {
-            art: artifacts.caller,
+            ask: goal,
+            art: {
+              'foci.goal.concept': artifacts.caller['foci.goal.concept'],
+              'foci.goal.context': artifacts.caller['foci.goal.context'],
+              feedback: artifacts.caller.feedback,
+            },
             refs: [],
           },
         }),
         thinker: await enrollThread({
           role: 'thinker',
           stash: {
-            art: artifacts.thinker,
+            art: {
+              'focus.context': artifacts.thinker['focus.context'],
+              'focus.concept': artifacts.thinker['focus.concept'],
+              'foci.ponder.ans.concept':
+                artifacts.thinker['foci.ponder.ans.concept'],
+            },
+            briefs: [],
           },
           inherit: {
             traits: getBhrainBriefs(['trait.ocd.md']),
