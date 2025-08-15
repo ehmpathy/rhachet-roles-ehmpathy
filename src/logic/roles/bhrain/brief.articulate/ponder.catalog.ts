@@ -11,6 +11,11 @@ export const thisPonderCatalog = {
     'what success looks like — how will i know it works?',
   ],
   conceptualize: [
+    'what concept.dimensions are important to articulate for this specific goal?',
+    'which <articulate>.tactics would help most for this goal?',
+    'what granularity should it be articulated to?',
+
+    // <enquestion>d
     'what is the central concept or claim to convey?',
     'what sub-points or dimensions does it naturally break into?',
     'what terms or concepts must be defined for clarity?',

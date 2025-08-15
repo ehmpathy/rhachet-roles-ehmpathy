@@ -31,10 +31,18 @@ export const BRIEFS_FOR_ARTICULATE = getBhrainBriefs([
   'cognition/cog401.questions.2.1.primitives.rough._.md',
   'cognition/cog501.cortal.assemblylang.4.structure._.ponder.md',
   'cognition/cog501.cortal.assemblylang.4.structure.ponder.[article].usage.md',
-  'thinker.tactics/<articulate>._.[article].md',
   'cognition/cog201.cortal.focus.p2.acuity.md',
   'cognition/cog301.traversal.1.motion.primitives.acuity.md',
-  'thinker.preferences/[brief].verbiage.outline.over.narrative.md',
+  'librarian.tactics/[brief].verbiage.outline.over.narrative.md',
+  'librarian.tactics/<articulate>._.[article].frame.cognitive.md',
+  'librarian.tactics/<articulate>._.[article].frame.tactical.md',
+  'librarian.tactics/<articulate>.tactic.[catalog].md',
+  'librarian.tactics/<articulate>.tactic.concept_dimension.examples.[article][seed].md',
+  'librarian.tactics/<articulate>.tactic.concept_dimension.invariants.[article].md',
+  'librarian.tactics/<articulate>.tactic.from.examples.md',
+  'librarian.tactics/<articulate>.tactic.from.seed.md',
+  'librarian.tactics/<articulate>.tactic.with.templates.[article].md',
+  'librarian.tactics/<articulate>.tone.bluecollar.[article][seed].md', // todo: review this
 ]);
 
 type StitcherDesired = GStitcher<
