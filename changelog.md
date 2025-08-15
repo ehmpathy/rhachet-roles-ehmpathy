@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.2.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.1.0...v1.2.0) (2025-08-15)
+
+
+### Features
+
+* **bhrain:** @[thinker]&lt;ponder&gt; ([29de172](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/29de1723627899aa60c33d07bb488a5f3f48d9e2))
+* **bhrain:** articulate ([4a44635](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/4a4463558b61e694c397d55d23dc795ea8c0450b))
+* **bhrain:** articulate tactical briefs ([76e2b27](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/76e2b2777caa9b9fcc0e4b49f6444ff9e590479c))
+* **bhrain:** brief.articulate,.catalogize,.illustrate stubout ([38d60c2](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/38d60c22791fd4e4916217dd5f3c170b72885ad9))
+* **bhrain:** cortal.assemblylang ([177d874](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/177d874f352fc201332731e13871184478315b05))
+* **bhrain:** declare initial ponder catalog for enquestion ([8fa10cf](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/8fa10cf3f19400d43e8f8d9d66cfc13d620e9c79))
+* **bhrain:** gather cognition briefs; questions, traversal, focus, concepts ([fb37e24](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/fb37e245ddf1fa1dc114c3ed60c4c7af8874ba84))
+* **bhrain:** loopArticulateWithPonder ([7ed6ecf](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/7ed6ecfc5e1763ea9978c44c9b28ea500467e0a0))
+* **bhrain:** polish &lt;articulate&gt; to consistent strength ([079bb1d](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/079bb1ddc6c7cbed6588bba01977722452e77b95))
+* **bhrain:** ponder, enquestion, .brief catalog ([9a40747](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/9a407470437fd954dabdc121f21839f259b3cc6a))
+
 ## [1.1.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.0.0...v1.1.0) (2025-07-31)
 
 
