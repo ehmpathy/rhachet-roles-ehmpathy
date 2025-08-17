@@ -1,0 +1,23 @@
+[
+    "an individual researching and choosing a financial investment through an online brokerage platform",
+    "a visitor comparing neighborhoods and selecting a property on a real estate website",
+    "a new user learning about and setting up a smart home device using the manufacturer's mobile app",
+    "a fan purchasing merchandise and concert tickets through a band’s fan club portal",
+    "a hobbyist engaging with a community forum to share projects and seek advice",
+    "an entrepreneur submitting a business idea for evaluation via a startup accelerator program",
+    "a shopper browsing fashion trends and creating a personalized outfit on a clothing retailer's site",
+    "a parent managing school-related activities and communication through a virtual learning environment",
+    "a fitness enthusiast scheduling and tracking workouts with a mobile fitness application",
+    "a traveler planning and booking a multi-stop vacation using a travel aggregator",
+    "a patient exploring healthcare options and scheduling appointments through a telehealth service",
+    "a subscriber exploring exclusive content and engaging with creators on a streaming platform",
+    "a gamer unlocking achievements and in-game rewards while progressing through a video game",
+    "a researcher accessing databases and compiling data for academic work via a university portal",
+    "a team collaborating and tracking project tasks using a productivity software suite",
+    "a donor contributing to multiple causes and managing donations through a charitable giving platform",
+    "a job seeker applying and interviewing for positions via an employment website",
+    "an artist sharing portfolio works and engaging with followers on social media",
+    "a writer drafting and publishing posts using a blogging platform's features",
+    "a subscriber managing subscriptions and preferences through a digital newspaper site",
+    "a foodie exploring recipes and meal planning with an online culinary community"
+]

@@ -1,0 +1,23 @@
+[
+    "A pun that plays on the double meanings of words.",
+    "A knock-knock joke that's a play on words.",
+    "A light bulb joke that uses a formulaic setup and punchline.",
+    "A dad joke that's intentionally corny.",
+    "A joke that relies on a clever twist or surprise ending.",
+    "A riddle joke where the answer is both unexpected and funny.",
+    "An observational joke highlighting everyday absurdities.",
+    "A one-liner that delivers humor succinctly.",
+    "A parody joke that imitates a well-known style or genre.",
+    "A situational joke that relies on context for humor.",
+    "An anti-joke where the punchline is a literal answer.",
+    "A slapstick joke involving physical humor.",
+    "A dark humor joke with a morbid twist.",
+    "A story-based joke with a humorous anecdote.",
+    "A meme-style joke using visual elements for comedy.",
+    "A classic setup and punchline joke.",
+    "A stereotype joke that exaggerates a common trait.",
+    "A self-deprecating joke making fun of oneself.",
+    "A topical joke referring to current events.",
+    "An absurdist joke that defies logic for humor.",
+    "An irony-based joke highlighting contradictions."
+]

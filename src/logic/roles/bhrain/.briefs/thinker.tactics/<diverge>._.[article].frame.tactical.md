@@ -68,13 +68,13 @@ output = [concept][ref]
 
 ### example 2
 
-**seed `[ref]`:** "how can service pros schedule smarter?"
+**seed `[ref]`:** "how can cooks work smarter in the kitchen?"
 
-- "by giving customers a simple online booking option"
-- "by auto-assigning jobs based on location and availability"
-- "by syncing calendars across the whole team"
-- "by sending automated reminders to reduce no-shows"
-- "by grouping nearby jobs to cut travel time"
+- "by prepping ingredients in bulk ahead of time"
+- "by keeping knives sharpened for faster cutting"
+- "by labeling and dating all stored food"
+- "by cleaning as they go to save time"
+- "by organizing stations for smoother workflow"
 
 ---
 

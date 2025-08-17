@@ -1,0 +1,23 @@
+[
+    "A man walked into a bar... ouch!",
+    "Why don't scientists trust atoms? Because they make up everything!",
+    "Why did the scarecrow win an award? Because he was outstanding in his field!",
+    "Why don't skeletons fight each other? They don't have the guts.",
+    "Why did the bicycle fall over? Because it was two-tired!",
+    "What do you call fake spaghetti? An impasta!",
+    "Why was the math book sad? It had too many problems.",
+    "What's orange and sounds like a parrot? A carrot.",
+    "Why do cows have hooves instead of feet? Because they lactose.",
+    "What did one ocean say to the other ocean? Nothing, they just waved.",
+    "Why was the broom late? It swept in.",
+    "Why did the golfer bring two pairs of pants? In case he got a hole in one.",
+    "What do you call cheese that isn't yours? Nacho cheese.",
+    "Why can't you give Elsa a balloon? Because she will let it go.",
+    "Why don't programmers like nature? It has too many bugs.",
+    "How do you organize an outer space party? You planet.",
+    "Why did the chicken join a band? Because it had the drumsticks.",
+    "What do you call a bear with no teeth? A gummy bear.",
+    "Why don't you play poker in the jungle? Too many cheetahs.",
+    "How do you make a tissue dance? Put a little boogie in it.",
+    "What did the zero say to the eight? Nice belt!"
+]

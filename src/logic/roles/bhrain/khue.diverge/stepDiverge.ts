@@ -13,10 +13,30 @@ import {
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
 
+import { Focus } from '../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
 import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
 import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
 import { genStepArtSet } from '../../../artifact/genStepArtSet';
 import { getBhrainBriefs } from '../getBhrainBrief';
+
+// exported so that we can pass them through to <ponder> too
+export const BRIEFS_FOR_DIVERGE = getBhrainBriefs([
+  'trait.ocd.md',
+  'cognition/cog401.questions.._.md',
+  'cognition/cog000.overview.and.premise.md',
+  'cognition/cog101.concept.treestruct._.md',
+  'cognition/cog201.cortal.focus.p1.definition.md',
+  'cognition/cog301.traversal.1.motion.primitives._.md',
+  'cognition/cog401.questions.._.md',
+  'cognition/cog401.questions.2.1.primitives.rough._.md',
+  'librarian.tactics/<articulate>._.[article].frame.cognitive.md', // todo: keep or remove
+  'librarian.tactics/<articulate>._.[article].frame.tactical.md',
+  'cognition/cog201.cortal.focus.p2.breadth.md',
+  'cognition/cog301.traversal.1.motion.primitives.breadth.md',
+  'cognition/cog301.traversal.1.motion.primitives.breadth.vary.md',
+  'thinker.tactics/<diverge>._.[article].frame.tactical.md',
+  'librarian.tactics/[brief].verbiage.outline.over.narrative.md',
+]);
 
 type StitcherDesired = GStitcher<
   Threads<{
@@ -25,9 +45,9 @@ type StitcherDesired = GStitcher<
       {
         ask: string;
         art: {
-          'foci.goal.context': Artifact<typeof GitFile>;
-          'foci.goal.concept': Artifact<typeof GitFile>;
           feedback: Artifact<typeof GitFile>;
+          'foci.goal.concept': Focus['concept'];
+          'foci.goal.context': Focus['context'];
         };
         refs: Artifact<typeof GitFile>[];
       }
@@ -36,13 +56,9 @@ type StitcherDesired = GStitcher<
       'thinker',
       {
         art: {
-          'focus.context': Artifact<typeof GitFile>;
-          'focus.concept': Artifact<typeof GitFile>;
-          'foci.ponder.que.context': Artifact<typeof GitFile>;
-          'foci.ponder.que.concept': Artifact<typeof GitFile>;
+          'focus.concept': Focus['concept'];
+          'focus.context': Focus['context'];
         };
-
-        // any briefs that should be added for this usecase; enables extension of context
         briefs: Artifact<typeof GitFile>[];
       }
     >;
@@ -56,70 +72,48 @@ const template = genTemplate<StitcherDesired['threads']>({
   getVariables: async ({ threads }) => ({
     ...(await getTemplateVarsFromRoleInherit({ thread: threads.thinker })),
 
-    // the guidance provided
     guide: {
       goal:
         (await threads.caller.context.stash.art['foci.goal.concept'].get())
           ?.content ||
-        UnexpectedCodePathError.throw('goal context not declared', {
+        UnexpectedCodePathError.throw('goal not declared', {
           art: threads.caller.context.stash.art['foci.goal.concept'],
         }),
       feedback:
         (await threads.caller.context.stash.art.feedback.get())?.content || '',
     },
 
-    // the focus present
     focus: {
       context:
         (await threads.thinker.context.stash.art['focus.context'].get())
-          ?.content || '',
+          ?.content ||
+        (await threads.caller.context.stash.art['foci.goal.context'].get()) // fallback to @[caller].focus[goal].context
+          ?.content ||
+        '',
       concept:
         (await threads.thinker.context.stash.art['focus.concept'].get())
           ?.content || '',
     },
 
-    // the ponder plugins to leverage
-    ponder: {
-      contextualize:
-        (
-          await threads.thinker.context.stash.art[
-            'foci.ponder.que.context'
-          ].get()
-        )?.content || '',
-      conceptualize:
-        (
-          await threads.thinker.context.stash.art[
-            'foci.ponder.que.concept'
-          ].get()
-        )?.content || '',
+    // todo: clarify to callers that foci.goal.concept is used as the [seed][question]; todo: distinguish guide.goal as focus.supergoal, seed.question as subgoal focus
+    seed: {
+      question:
+        (await threads.caller.context.stash.art['foci.goal.concept'].get())
+          ?.content ||
+        UnexpectedCodePathError.throw('goal not declared', {
+          art: threads.caller.context.stash.art['foci.goal.concept'],
+        }),
     },
 
-    // the briefs to frame perspective
     skill: {
       briefs: await getTemplateValFromArtifacts({
         artifacts: [
-          // generic briefs
-          ...getBhrainBriefs([
-            'trait.ocd.md',
-            'cognition/cog401.questions.._.md',
-            'cognition/cog000.overview.and.premise.md',
-            'cognition/cog101.concept.treestruct._.md',
-            'cognition/cog201.cortal.focus.p1.definition.md',
-            'cognition/cog301.traversal.1.motion.primitives._.md',
-            'cognition/cog401.questions.._.md',
-            'cognition/cog401.questions.2.1.primitives.rough._.md',
-            'cognition/cog501.cortal.assemblylang.4.structure._.ponder.md',
-            'cognition/cog501.cortal.assemblylang.4.structure.ponder.[article].usage.md',
-            'librarian.tactics/[brief].verbiage.outline.over.narrative.md',
-          ]),
-
-          // applied briefs; enables composition in domain specific workflows
+          ...BRIEFS_FOR_DIVERGE,
           ...threads.thinker.context.stash.briefs,
         ],
       }),
     },
 
-    // any possible references
     references: await getTemplateValFromArtifacts({
       artifacts: threads.caller.context.stash.refs,
     }),
@@ -127,7 +121,7 @@ const template = genTemplate<StitcherDesired['threads']>({
 });
 
 const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '@[thinker]<ponder>',
+  slug: '@[thinker]<diverge>',
   stitchee: 'thinker',
   readme: '',
   template,
@@ -139,16 +133,16 @@ const stepPersist = genStepArtSet({
   artee: 'focus.concept',
 });
 
-export const stepPonder = asStitcherFlat<StitcherDesired>(
+export const stepDiverge = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '@[thinker]<ponder>',
-    readme: '@[thinker]<ponder> -> [[concept]]',
+    slug: '@[thinker]<diverge>',
+    readme: '@[thinker]<diverge> -> [article]',
     sequence: [stepImagine, stepPersist],
   }),
 );
 
-export const loopPonder = genLoopFeedback({
+export const loopDiverge = genLoopFeedback({
   stitchee: 'thinker',
   artee: 'focus.concept',
-  repeatee: stepPonder,
+  repeatee: stepDiverge,
 });

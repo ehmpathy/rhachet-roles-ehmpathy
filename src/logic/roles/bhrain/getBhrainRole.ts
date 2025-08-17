@@ -2,8 +2,7 @@ import { Role, RoleTrait } from 'rhachet';
 
 import { SKILL_ARTICULATE } from './brief.articulate/stepArticulate.skill';
 import { getBhrainBrief } from './getBhrainBrief';
-import { SKILL_ENQUESTION } from './khue.enquestion/stepEnquestion.skill';
-import { SKILL_PONDER } from './khue.ponder/stepPonder.skill';
+import { SKILL_DIVERGE } from './khue.diverge/stepDiverge.skill';
 
 export const ROLE_BHRAIN = Role.build({
   slug: 'bhrain',
@@ -23,8 +22,13 @@ thought tactics; intent = be composed into other roles
   ],
   skills: [
     // SKILL_INTERPRET; ask -> Focus[Goal]
-    SKILL_PONDER,
-    SKILL_ENQUESTION,
+
+    // todo: are these still relevant?
+    // SKILL_PONDER,
+    // SKILL_ENQUESTION,
+
+    // proven primitives - proven usage showcase
     SKILL_ARTICULATE,
+    SKILL_DIVERGE,
   ],
 });

@@ -7,13 +7,6 @@
  */
 const options = [
   'term.distillation.md',
-  'ecology/eco001.overview.md',
-  'ecology/eco101.core-system-understanding.md',
-  'ecology/eco101.p1.ecosystem-structure.md',
-  'ecology/eco101.p2.trophic-dynamics.md',
-  'ecology/eco101.p3.population-ecology.md',
-  'ecology/eco101.p4.community-interactions.md',
-  'ecology/eco505.systems-thinking.md',
   'distilisys/sys101.distilisys.grammar.md',
   'distilisys/sys201.actor.motive._.summary.md',
   'distilisys/sys201.actor.motive.p1.reversibility.entropy.md',
@@ -28,8 +21,13 @@ const options = [
   'distilisys/sys211.actor.resources.pt4.primitive.claim.md',
   'distilisys/sys211.actor.resources.pt5.composites.md',
   'distilisys/sys231.actor.claims.p1.primitive.exchange.md',
-  'product/user.journey.[article].frame2.md',
-  'product/user.journey.[article].md',
+  'ecology/eco001.overview.md',
+  'ecology/eco101.core-system-understanding.md',
+  'ecology/eco101.p1.ecosystem-structure.md',
+  'ecology/eco101.p2.trophic-dynamics.md',
+  'ecology/eco101.p3.population-ecology.md',
+  'ecology/eco101.p4.community-interactions.md',
+  'ecology/eco505.systems-thinking.md',
   'economy/econ001.overview.md',
   'economy/econ101.core-mechanics.md',
   'economy/econ101.p1.supply-and-demand.md',
@@ -42,6 +40,8 @@ const options = [
   'economy/econ501.global-and-institutional.md',
   'economy/econ501.p1.game-theory.md',
   'economy/econ501.p4.behavioral-economics.md',
+  'product/user.journey.[article].frame2.md',
+  'product/user.journey.[article].md',
 ] as const;
 
 export type BriefOptionEcologist = typeof options[number];
