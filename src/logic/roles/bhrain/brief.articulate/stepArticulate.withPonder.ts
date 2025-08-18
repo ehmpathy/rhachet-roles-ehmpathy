@@ -24,6 +24,7 @@ type StitcherDesired = GStitcher<
           feedback: Artifact<typeof GitFile>;
           'foci.goal.concept': Focus['concept'];
           'foci.goal.context': Focus['context'];
+          templates: Artifact<typeof GitFile>[];
         };
         refs: Artifact<typeof GitFile>[];
       }

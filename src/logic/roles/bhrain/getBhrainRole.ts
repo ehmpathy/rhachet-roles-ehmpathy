@@ -2,6 +2,7 @@ import { Role, RoleTrait } from 'rhachet';
 
 import { SKILL_ARTICULATE } from './brief.articulate/stepArticulate.skill';
 import { getBhrainBrief } from './getBhrainBrief';
+import { SKILL_CLUSTER } from './khue.cluster/stepCluster.skill';
 import { SKILL_DIVERGE } from './khue.diverge/stepDiverge.skill';
 
 export const ROLE_BHRAIN = Role.build({
@@ -30,5 +31,6 @@ thought tactics; intent = be composed into other roles
     // proven primitives - proven usage showcase
     SKILL_ARTICULATE,
     SKILL_DIVERGE,
+    SKILL_CLUSTER,
   ],
 });

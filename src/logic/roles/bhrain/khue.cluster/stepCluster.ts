@@ -20,7 +20,7 @@ import { genStepArtSet } from '../../../artifact/genStepArtSet';
 import { getBhrainBriefs } from '../getBhrainBrief';
 
 // exported so that we can pass them through to <ponder> too
-export const BRIEFS_FOR_ARTICULATE = getBhrainBriefs([
+export const BRIEFS_FOR_CLUSTER = getBhrainBriefs([
   'trait.ocd.md',
   'cognition/cog401.questions.._.md',
   'cognition/cog000.overview.and.premise.md',
@@ -29,20 +29,13 @@ export const BRIEFS_FOR_ARTICULATE = getBhrainBriefs([
   'cognition/cog301.traversal.1.motion.primitives._.md',
   'cognition/cog401.questions.._.md',
   'cognition/cog401.questions.2.1.primitives.rough._.md',
-  'cognition/cog501.cortal.assemblylang.4.structure._.ponder.md',
-  'cognition/cog501.cortal.assemblylang.4.structure.ponder.[article].usage.md',
-  'cognition/cog201.cortal.focus.p2.acuity.md',
-  'cognition/cog301.traversal.1.motion.primitives.acuity.md',
-  'librarian.tactics/[brief].verbiage.outline.over.narrative.md',
-  'librarian.tactics/<articulate>._.[article].frame.cognitive.md',
+  'librarian.tactics/<articulate>._.[article].frame.cognitive.md', // todo: keep or remove
   'librarian.tactics/<articulate>._.[article].frame.tactical.md',
-  'librarian.tactics/<articulate>.tactic.[catalog].md',
-  'librarian.tactics/<articulate>.tactic.concept_dimension.examples.[article][seed].md',
-  'librarian.tactics/<articulate>.tactic.concept_dimension.invariants.[article].md',
-  'librarian.tactics/<articulate>.tactic.from.examples.md',
-  'librarian.tactics/<articulate>.tactic.from.seed.md',
-  'librarian.tactics/<articulate>.tactic.with.templates.[article].md',
-  'librarian.tactics/<articulate>.tone.bluecollar.[article][seed].md', // todo: review this
+  'cognition/cog201.cortal.focus.p2.breadth.md',
+  'cognition/cog301.traversal.1.motion.primitives.breadth.md',
+  'cognition/cog301.traversal.1.motion.primitives.breadth.vary.md',
+  'thinker.tactics/<cluster>._.[article].frame.tactical._.md',
+  'librarian.tactics/[brief].verbiage.outline.over.narrative.md',
 ]);
 
 type StitcherDesired = GStitcher<
@@ -50,12 +43,10 @@ type StitcherDesired = GStitcher<
     caller: RoleContext<
       'caller',
       {
-        ask: string;
         art: {
           feedback: Artifact<typeof GitFile>;
           'foci.goal.concept': Focus['concept'];
           'foci.goal.context': Focus['context'];
-          templates: Artifact<typeof GitFile>[];
         };
         refs: Artifact<typeof GitFile>[];
       }
@@ -66,7 +57,6 @@ type StitcherDesired = GStitcher<
         art: {
           'focus.concept': Focus['concept'];
           'focus.context': Focus['context'];
-          'foci.ponder.ans.concept': Focus['concept'];
         };
         briefs: Artifact<typeof GitFile>[];
       }
@@ -104,18 +94,20 @@ const template = genTemplate<StitcherDesired['threads']>({
           ?.content || '',
     },
 
-    ponderage:
-      (await threads.thinker.context.stash.art['foci.ponder.ans.concept'].get())
-        ?.content || '',
-
-    templates: await getTemplateValFromArtifacts({
-      artifacts: [...threads.caller.context.stash.art.templates],
-    }),
+    // todo: clarify to callers that foci.goal.concept is used as the [seed][concepts]; todo: distinguish guide.goal as focus.supergoal, foci.goal as subgoal focus
+    seed: {
+      concepts:
+        (await threads.caller.context.stash.art['foci.goal.concept'].get())
+          ?.content ||
+        UnexpectedCodePathError.throw('goal not declared', {
+          art: threads.caller.context.stash.art['foci.goal.concept'],
+        }),
+    },
 
     skill: {
       briefs: await getTemplateValFromArtifacts({
         artifacts: [
-          ...BRIEFS_FOR_ARTICULATE,
+          ...BRIEFS_FOR_CLUSTER,
           ...threads.thinker.context.stash.briefs,
         ],
       }),
@@ -128,7 +120,7 @@ const template = genTemplate<StitcherDesired['threads']>({
 });
 
 const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '@[thinker]<articulate>',
+  slug: '@[thinker]<cluster>',
   stitchee: 'thinker',
   readme: '',
   template,
@@ -140,16 +132,16 @@ const stepPersist = genStepArtSet({
   artee: 'focus.concept',
 });
 
-export const stepArticulate = asStitcherFlat<StitcherDesired>(
+export const stepCluster = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '@[thinker]<articulate>',
-    readme: '@[thinker]<articulate> -> [article]',
+    slug: '@[thinker]<cluster>',
+    readme: '@[thinker]<cluster> -> [article]',
     sequence: [stepImagine, stepPersist],
   }),
 );
 
-export const loopArticulate = genLoopFeedback({
+export const loopCluster = genLoopFeedback({
   stitchee: 'thinker',
   artee: 'focus.concept',
-  repeatee: stepArticulate,
+  repeatee: stepCluster,
 });

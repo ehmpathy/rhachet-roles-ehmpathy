@@ -28,6 +28,8 @@ const options = [
   'ecology/eco101.p3.population-ecology.md',
   'ecology/eco101.p4.community-interactions.md',
   'ecology/eco505.systems-thinking.md',
+  'product/user.journey.[article].frame2.md',
+  'product/user.journey.[article].md',
   'economy/econ001.overview.md',
   'economy/econ101.core-mechanics.md',
   'economy/econ101.p1.supply-and-demand.md',
@@ -40,8 +42,6 @@ const options = [
   'economy/econ501.global-and-institutional.md',
   'economy/econ501.p1.game-theory.md',
   'economy/econ501.p4.behavioral-economics.md',
-  'product/user.journey.[article].frame2.md',
-  'product/user.journey.[article].md',
 ] as const;
 
 export type BriefOptionEcologist = typeof options[number];

@@ -4,14 +4,11 @@ import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { thisPonderCatalog } from './ponder.catalog';
-import { BRIEFS_FOR_ARTICULATE, loopArticulate } from './stepArticulate';
-import { loopsArticulateWithPonder } from './stepArticulate.withPonder';
+import { BRIEFS_FOR_CLUSTER, loopCluster } from './stepCluster';
 
-export const SKILL_ARTICULATE = genRoleSkill({
-  slug: 'articulate',
-  route: loopArticulate,
-  // route: loopsArticulateWithPonder, // todo: revive ponder when its actually helpful. today, ponder actually hurts
+export const SKILL_CLUSTER = genRoleSkill({
+  slug: 'cluster',
+  route: loopCluster,
   threads: {
     lookup: {
       target: {
@@ -38,12 +35,6 @@ export const SKILL_ARTICULATE = genRoleSkill({
         desc: 'brief files to to use, if any; delimit with commas',
         type: '?string',
       },
-      templates: {
-        source: 'process.argv',
-        char: 'z', // todo: support undefined
-        desc: 'template files to to use, if any; delimit with commas',
-        type: '?string',
-      },
     },
     assess: (
       input,
@@ -52,7 +43,6 @@ export const SKILL_ARTICULATE = genRoleSkill({
       goal: string;
       references: string;
       briefs: string;
-      templates?: string;
       ask: string;
     } => typeof input.target === 'string',
     instantiate: async (input: {
@@ -60,7 +50,6 @@ export const SKILL_ARTICULATE = genRoleSkill({
       goal: string;
       references: string;
       briefs: string;
-      templates?: string;
       ask: string;
     }) => {
       const obsDir = getArtifactObsDir({ uri: input.target });
@@ -91,34 +80,6 @@ export const SKILL_ARTICULATE = genRoleSkill({
           { uri: input.target },
           { versions: true },
         ),
-        'foci.articulate.context': genArtifactGitFile(
-          { uri: obsDir + '.foci.articulate.context.md' },
-          { versions: true },
-        ),
-        'foci.articulate.concept': genArtifactGitFile(
-          { uri: obsDir + '.foci.articulate.concept.md' },
-          { versions: true },
-        ),
-        'foci.ponder.que.context': genArtifactGitFile(
-          { uri: obsDir + '.foci.ponder.que.context.md' },
-          { versions: true },
-        ),
-        'foci.ponder.que.concept': genArtifactGitFile(
-          { uri: obsDir + '.foci.ponder.que.concept.md' },
-          { versions: true },
-        ),
-        'foci.ponder.ans.context': genArtifactGitFile(
-          { uri: obsDir + '.foci.ponder.ans.context.md' },
-          { versions: true },
-        ),
-        'foci.ponder.ans.concept': genArtifactGitFile(
-          { uri: obsDir + '.foci.ponder.ans.concept.md' },
-          { versions: true },
-        ),
-        'ponder.output': genArtifactGitFile(
-          { uri: obsDir + '.ponder.output.md' },
-          { versions: true },
-        ),
         references:
           input.references
             ?.split(',')
@@ -133,21 +94,7 @@ export const SKILL_ARTICULATE = genRoleSkill({
             .map((brief) =>
               genArtifactGitFile({ uri: brief }, { access: 'readonly' }),
             ) ?? [],
-        templates:
-          input.templates
-            ?.split(',')
-            .filter((uri) => !!uri)
-            .map((template) =>
-              genArtifactGitFile({ uri: template }, { access: 'readonly' }),
-            ) ?? [],
       };
-
-      await artifacts['foci.ponder.que.concept'].set({
-        content: JSON.stringify(thisPonderCatalog.conceptualize, null, 2),
-      });
-      await artifacts['foci.ponder.que.context'].set({
-        content: JSON.stringify(thisPonderCatalog.contextualize, null, 2),
-      });
 
       return {
         caller: await enrollThread({
@@ -156,9 +103,8 @@ export const SKILL_ARTICULATE = genRoleSkill({
             ask: input.ask,
             art: {
               'foci.goal.concept': artifacts.goal,
-              'foci.goal.context': artifacts.goal,
+              'foci.goal.context': artifacts.goal, // todo: compile their context
               feedback: artifacts.feedback,
-              templates: artifacts.templates,
             },
             refs: artifacts.references,
           },
@@ -169,16 +115,10 @@ export const SKILL_ARTICULATE = genRoleSkill({
             art: {
               'focus.context': artifacts['focus.context'],
               'focus.concept': artifacts['focus.concept'],
-              'foci.articulate.context': artifacts['foci.articulate.context'],
-              'foci.articulate.concept': artifacts['foci.articulate.concept'],
-              'foci.ponder.ans.context': artifacts['foci.ponder.ans.context'],
-              'foci.ponder.ans.concept': artifacts['foci.ponder.ans.concept'],
-              'foci.ponder.que.context': artifacts['foci.ponder.que.context'],
-              'foci.ponder.que.concept': artifacts['foci.ponder.que.concept'],
             },
             briefs: [
               ...artifacts.briefs,
-              ...BRIEFS_FOR_ARTICULATE, // flow the articulate briefs down so that <ponder> has them in context too; this approach does cause duplicate briefs for articulate, but thats no biggie
+              ...BRIEFS_FOR_CLUSTER, // flow the cluster briefs down so that <ponder> has them in context too; this approach does cause duplicate briefs for cluster, but thats no biggie
             ],
           },
         }),

@@ -80,6 +80,14 @@ $.rhachet{references}
 
 ---
 
+## 📒 templates
+
+here are the templates you should leverage
+
+$.rhachet{templates}
+
+---
+
 ### 🧠 @[ponder][output]
 > ponderage to help tune your focus
 

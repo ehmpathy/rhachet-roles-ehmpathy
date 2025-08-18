@@ -91,6 +91,7 @@ articulate the term "joke"; declare both the etymology and definition; include e
               'foci.goal.concept': artifacts.caller['foci.goal.concept'],
               'foci.goal.context': artifacts.caller['foci.goal.context'],
               feedback: artifacts.caller.feedback,
+              templates: [],
             },
             refs: [],
           },
