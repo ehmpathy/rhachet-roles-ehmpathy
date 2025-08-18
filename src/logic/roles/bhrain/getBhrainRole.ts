@@ -4,6 +4,7 @@ import { SKILL_ARTICULATE } from './brief.articulate/stepArticulate.skill';
 import { getBhrainBrief } from './getBhrainBrief';
 import { SKILL_CLUSTER } from './khue.cluster/stepCluster.skill';
 import { SKILL_DIVERGE } from './khue.diverge/stepDiverge.skill';
+import { SKILL_TRIAGE } from './khue.triage/stepTriage.skill';
 
 export const ROLE_BHRAIN = Role.build({
   slug: 'bhrain',
@@ -28,9 +29,10 @@ thought tactics; intent = be composed into other roles
     // SKILL_PONDER,
     // SKILL_ENQUESTION,
 
-    // proven primitives - proven usage showcase
+    // proven primitives; proven = has usage showcase
     SKILL_ARTICULATE,
     SKILL_DIVERGE,
     SKILL_CLUSTER,
+    SKILL_TRIAGE,
   ],
 });

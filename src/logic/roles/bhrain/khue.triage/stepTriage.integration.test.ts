@@ -7,56 +7,56 @@ import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
 import { getBhrainBriefs } from '../getBhrainBrief';
-import { stepCluster } from './stepCluster';
+import { stepTriage } from './stepTriage';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));
 
-describe('stepCluster', () => {
+describe('stepTriage', () => {
   const context = {
     ...genContextLogTrail(),
     ...genContextStitchTrail(),
     ...getContextOpenAI(),
   };
-  const route = stepCluster;
+  const route = stepTriage;
 
   const artifacts = {
     caller: {
       feedback: genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepCluster/caller.feedback.md' },
+        { uri: __dirname + '/.temp/stepTriage/caller.feedback.md' },
         { versions: true },
       ),
       'foci.goal.concept': genArtifactGitFile(
         {
-          uri: __dirname + '/.temp/stepCluster/caller.foci.goal.concept.md',
+          uri: __dirname + '/.temp/stepTriage/caller.foci.goal.concept.md',
         },
         { versions: true },
       ),
       'foci.goal.context': genArtifactGitFile(
         {
-          uri: __dirname + '/.temp/stepCluster/caller.foci.goal.context.md',
+          uri: __dirname + '/.temp/stepTriage/caller.foci.goal.context.md',
         },
         { versions: true },
       ),
       'foci.input.concept': genArtifactGitFile(
         {
-          uri: __dirname + '/.temp/stepCluster/caller.foci.input.concept.md',
+          uri: __dirname + '/.temp/stepTriage/caller.foci.input.concept.md',
         },
         { versions: true },
       ),
     },
     thinker: {
       'focus.concept': genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepCluster/thinker.focus.concept.md' },
+        { uri: __dirname + '/.temp/stepTriage/thinker.focus.concept.md' },
         { versions: true },
       ),
       'focus.context': genArtifactGitFile(
-        { uri: __dirname + '/.temp/stepCluster/thinker.focus.context.md' },
+        { uri: __dirname + '/.temp/stepTriage/thinker.focus.context.md' },
         { versions: true },
       ),
     },
   };
 
-  given('we want to cluster diverged jokes', () => {
+  given('we want to triage diverged jokes', () => {
     const inputConceptFewJokes = `
 [
     "Why did the chicken cross the road? To get to the other side!",
@@ -95,6 +95,9 @@ describe('stepCluster', () => {
       await artifacts.thinker['focus.concept'].set({
         content: [].join('\n'),
       });
+      await artifacts.caller['foci.goal.concept'].set({
+        content: 'triage by expected quantity of laughter',
+      });
     });
 
     const enthread = () =>
@@ -126,7 +129,7 @@ describe('stepCluster', () => {
         }),
       }));
 
-    when('multiple elements', () => {
+    when.only('multiple elements', () => {
       beforeEach(async () => {
         await artifacts.caller['foci.input.concept'].set({
           content: inputConceptFewJokes,

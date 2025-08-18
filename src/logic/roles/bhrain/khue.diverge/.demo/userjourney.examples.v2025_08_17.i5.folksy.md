@@ -1,0 +1,23 @@
+[
+    "A customer's morning routine as they use their smartwatch to track steps.",
+    "A parent navigating a grocery store app to build their weekly shopping list.",
+    "A student using an online learning platform to complete daily algebra exercises.",
+    "A road tripper planning a route with a digital map for scenic stops.",
+    "A cafe regular pre-ordering their daily coffee through a mobile app.",
+    "A new pet owner researching breed-specific care tips on a vet's website.",
+    "A gardener logging plant growth in a digital garden journal app.",
+    "A home cook using a meal kit service website to pick new recipes.",
+    "A fitness enthusiast booking classes and tracking goals in a workout app.",
+    "A commuter reading news headlines on their phone while on the train.",
+    "A yoga practitioner following an online video series for daily sessions.",
+    "A traveler using a language app daily to build vocabulary before a trip.",
+    "A DIY enthusiast following step-by-step guides on a home improvement site.",
+    "An influencer planning photo shoots and posting schedules with a content calendar app.",
+    "An event organizer sending out e-invites and tracking RSVPs through an event app.",
+    "A babysitter logging hours and generating invoices via a babysitting service app.",
+    "A book lover cataloging and reviewing recent reads in a book community app.",
+    "A small business owner managing orders and inventory via an online platform.",
+    "A high school student organizing study schedules and assignment deadlines in a planner app.",
+    "A music lover exploring new playlists and artists on a streaming service.",
+    "An environmentalist tracking local wildlife sightings with a citizen science app."
+]

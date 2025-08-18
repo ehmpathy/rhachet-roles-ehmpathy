@@ -13,18 +13,20 @@ import {
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
 
-import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
-import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
-import { genStepArtSet } from '../../../artifact/genStepArtSet';
-import { getBhrainBriefs } from '../getBhrainBrief';
+import { ContextOpenAI, sdkOpenAi } from '../../../../../data/sdk/sdkOpenAi';
+import { genLoopFeedback } from '../../../../artifact/genLoopFeedback';
+import { genStepArtSet } from '../../../../artifact/genStepArtSet';
+import { getBhrainBriefs } from '../../getBhrainBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{
     caller: RoleContext<
       'caller',
       {
+        ask: string;
         art: {
-          goal: Artifact<typeof GitFile>;
+          'foci.goal.context': Artifact<typeof GitFile>;
+          'foci.goal.concept': Artifact<typeof GitFile>;
           feedback: Artifact<typeof GitFile>;
         };
         refs: Artifact<typeof GitFile>[];
@@ -34,14 +36,14 @@ type StitcherDesired = GStitcher<
       'thinker',
       {
         art: {
-          // where we start from; uses the [focus] structure for representation
-          'focus.context': Artifact<typeof GitFile>; // the context inflight
-          'focus.concept': Artifact<typeof GitFile>; // the concept inflight
-
-          // how we'll traverse; use's the <ponder> structure for question assembly
-          'ponder.context': Artifact<typeof GitFile>; // the questions to contextualize with
-          'ponder.concept': Artifact<typeof GitFile>; // the questions to conceptualize with
+          'focus.context': Artifact<typeof GitFile>;
+          'focus.concept': Artifact<typeof GitFile>;
+          'foci.ponder.que.context': Artifact<typeof GitFile>;
+          'foci.ponder.que.concept': Artifact<typeof GitFile>;
         };
+
+        // any briefs that should be added for this usecase; enables extension of context
+        briefs: Artifact<typeof GitFile>[];
       }
     >;
   }>,
@@ -57,9 +59,10 @@ const template = genTemplate<StitcherDesired['threads']>({
     // the guidance provided
     guide: {
       goal:
-        (await threads.caller.context.stash.art.goal.get())?.content ||
-        UnexpectedCodePathError.throw('goal not declared', {
-          art: threads.caller.context.stash.art.goal,
+        (await threads.caller.context.stash.art['foci.goal.concept'].get())
+          ?.content ||
+        UnexpectedCodePathError.throw('goal context not declared', {
+          art: threads.caller.context.stash.art['foci.goal.concept'],
         }),
       feedback:
         (await threads.caller.context.stash.art.feedback.get())?.content || '',
@@ -78,17 +81,24 @@ const template = genTemplate<StitcherDesired['threads']>({
     // the ponder plugins to leverage
     ponder: {
       contextualize:
-        (await threads.thinker.context.stash.art['ponder.context'].get())
-          ?.content || '',
+        (
+          await threads.thinker.context.stash.art[
+            'foci.ponder.que.context'
+          ].get()
+        )?.content || '',
       conceptualize:
-        (await threads.thinker.context.stash.art['ponder.concept'].get())
-          ?.content || '',
+        (
+          await threads.thinker.context.stash.art[
+            'foci.ponder.que.concept'
+          ].get()
+        )?.content || '',
     },
 
     // the briefs to frame perspective
     skill: {
       briefs: await getTemplateValFromArtifacts({
         artifacts: [
+          // generic briefs
           ...getBhrainBriefs([
             'trait.ocd.md',
             'cognition/cog401.questions.._.md',
@@ -100,8 +110,11 @@ const template = genTemplate<StitcherDesired['threads']>({
             'cognition/cog401.questions.2.1.primitives.rough._.md',
             'cognition/cog501.cortal.assemblylang.4.structure._.ponder.md',
             'cognition/cog501.cortal.assemblylang.4.structure.ponder.[article].usage.md',
-            'thinker.tactics/<enquestion>._.[article].md',
+            'librarian.tactics/[brief].verbiage.outline.over.narrative.md',
           ]),
+
+          // applied briefs; enables composition in domain specific workflows
+          ...threads.thinker.context.stash.briefs,
         ],
       }),
     },
@@ -114,7 +127,7 @@ const template = genTemplate<StitcherDesired['threads']>({
 });
 
 const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '@[thinker]<enquestion>',
+  slug: '@[thinker]<ponder>',
   stitchee: 'thinker',
   readme: '',
   template,
@@ -123,19 +136,19 @@ const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
 
 const stepPersist = genStepArtSet({
   stitchee: 'thinker',
-  artee: 'focus.concept', // the latest set of questions
+  artee: 'focus.concept',
 });
 
-export const stepEnquestion = asStitcherFlat<StitcherDesired>(
+export const stepPonder = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '@[thinker]<enquestion>',
-    readme: '@[thinker]<enquestion> -> [[question]]',
+    slug: '@[thinker]<ponder>',
+    readme: '@[thinker]<ponder> -> [[concept]]',
     sequence: [stepImagine, stepPersist],
   }),
 );
 
-export const loopEnquestion = genLoopFeedback({
+export const loopPonder = genLoopFeedback({
   stitchee: 'thinker',
   artee: 'focus.concept',
-  repeatee: stepEnquestion,
+  repeatee: stepPonder,
 });

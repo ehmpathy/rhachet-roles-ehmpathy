@@ -21,7 +21,7 @@ import { genStepArtSet } from '../../../artifact/genStepArtSet';
 import { getBhrainBriefs } from '../getBhrainBrief';
 
 // exported so that we can pass them through to <ponder> too
-export const BRIEFS_FOR_DIVERGE = getBhrainBriefs([
+export const BRIEFS_FOR_TRIAGE = getBhrainBriefs([
   'trait.ocd.md',
   'cognition/cog401.questions.._.md',
   'cognition/cog000.overview.and.premise.md',
@@ -35,7 +35,9 @@ export const BRIEFS_FOR_DIVERGE = getBhrainBriefs([
   'cognition/cog201.cortal.focus.p2.breadth.md',
   'cognition/cog301.traversal.1.motion.primitives.breadth.md',
   'cognition/cog301.traversal.1.motion.primitives.breadth.vary.md',
-  'thinker.tactics/<diverge>._.[article].frame.tactical.md',
+  'thinker.tactics/<triage>._.[article].frame.tactical.md',
+  'thinker.tactics/<triage>.persp.implicit_question.[article].md',
+  'thinker.tactics/<triage>.persp.grades_from_context.[article].md',
   'librarian.tactics/[brief].verbiage.outline.over.narrative.md',
 ]);
 
@@ -44,11 +46,11 @@ type StitcherDesired = GStitcher<
     caller: RoleContext<
       'caller',
       {
-        ask: string;
         art: {
           feedback: Artifact<typeof GitFile>;
           'foci.goal.concept': Focus['concept'];
           'foci.goal.context': Focus['context'];
+          'foci.input.concept': Focus['concept'];
         };
         refs: Artifact<typeof GitFile>[];
       }
@@ -96,20 +98,19 @@ const template = genTemplate<StitcherDesired['threads']>({
           ?.content || '',
     },
 
-    // todo: clarify to callers that foci.goal.concept is used as the [seed][question]; todo: distinguish guide.goal as focus.supergoal, seed.question as subgoal focus
     seed: {
-      question:
-        (await threads.caller.context.stash.art['foci.goal.concept'].get())
+      concepts:
+        (await threads.caller.context.stash.art['foci.input.concept'].get())
           ?.content ||
-        UnexpectedCodePathError.throw('goal not declared', {
-          art: threads.caller.context.stash.art['foci.goal.concept'],
+        UnexpectedCodePathError.throw('input not declared', {
+          art: threads.caller.context.stash.art['foci.input.concept'],
         }),
     },
 
     skill: {
       briefs: await getTemplateValFromArtifacts({
         artifacts: [
-          ...BRIEFS_FOR_DIVERGE,
+          ...BRIEFS_FOR_TRIAGE,
           ...threads.thinker.context.stash.briefs,
         ],
       }),
@@ -122,7 +123,7 @@ const template = genTemplate<StitcherDesired['threads']>({
 });
 
 const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '@[thinker]<diverge>',
+  slug: '@[thinker]<triage>',
   stitchee: 'thinker',
   readme: '',
   template,
@@ -136,16 +137,16 @@ const stepPersist = genStepArtSet({
   artee: 'focus.concept',
 });
 
-export const stepDiverge = asStitcherFlat<StitcherDesired>(
+export const stepTriage = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '@[thinker]<diverge>',
-    readme: '@[thinker]<diverge> -> [article]',
+    slug: '@[thinker]<triage>',
+    readme: '@[thinker]<triage> -> [article]',
     sequence: [stepImagine, stepPersist],
   }),
 );
 
-export const loopDiverge = genLoopFeedback({
+export const loopTriage = genLoopFeedback({
   stitchee: 'thinker',
   artee: 'focus.concept',
-  repeatee: stepDiverge,
+  repeatee: stepTriage,
 });

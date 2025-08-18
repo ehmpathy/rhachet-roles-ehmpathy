@@ -1,4 +1,4 @@
-import { PonderCatalog } from '../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/PonderCatalog';
+import { PonderCatalog } from '../../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/PonderCatalog';
 
 export const enquestionPonderCatalog = {
   contextualize: {

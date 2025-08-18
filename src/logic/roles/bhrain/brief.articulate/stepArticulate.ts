@@ -12,6 +12,7 @@ import {
 } from 'rhachet';
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
+import { withRetry, withTimeout } from 'wrapper-fns';
 
 import { Focus } from '../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
 import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
@@ -132,7 +133,9 @@ const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
   stitchee: 'thinker',
   readme: '',
   template,
-  imagine: sdkOpenAi.imagine,
+  imagine: withRetry(
+    withTimeout(sdkOpenAi.imagine, { threshold: { seconds: 60 } }), // allow up to 60 sec, for longer files
+  ),
 });
 
 const stepPersist = genStepArtSet({

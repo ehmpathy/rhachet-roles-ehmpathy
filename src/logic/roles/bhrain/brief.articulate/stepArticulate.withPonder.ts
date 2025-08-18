@@ -11,7 +11,7 @@ import { GitFile } from 'rhachet-artifact-git';
 import { Focus } from '../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
 import { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
 import { useGenStepSwapArtifactFor } from '../../../artifact/genStepSwapArtifact';
-import { loopPonder } from '../khue.ponder/stepPonder';
+import { loopPonder } from '../.scratch/khue.ponder/stepPonder';
 import { loopArticulate } from './stepArticulate';
 
 type StitcherDesired = GStitcher<

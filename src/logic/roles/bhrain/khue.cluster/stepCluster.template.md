@@ -110,6 +110,9 @@ $.rhachet{focus.concept}
 ---
 
 ### 🎯 @[guide.goal]
+
+> the goal, used to help determine along which dimensions to cluster
+
 \`\`\`md
 $.rhachet{guide.goal}
 \`\`\`

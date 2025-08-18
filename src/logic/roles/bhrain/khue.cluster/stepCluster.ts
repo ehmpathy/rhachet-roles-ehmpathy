@@ -12,6 +12,7 @@ import {
 } from 'rhachet';
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
+import { withRetry, withTimeout } from 'wrapper-fns';
 
 import { Focus } from '../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
 import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
@@ -47,6 +48,7 @@ type StitcherDesired = GStitcher<
           feedback: Artifact<typeof GitFile>;
           'foci.goal.concept': Focus['concept'];
           'foci.goal.context': Focus['context'];
+          'foci.input.concept': Focus['concept'];
         };
         refs: Artifact<typeof GitFile>[];
       }
@@ -94,13 +96,12 @@ const template = genTemplate<StitcherDesired['threads']>({
           ?.content || '',
     },
 
-    // todo: clarify to callers that foci.goal.concept is used as the [seed][concepts]; todo: distinguish guide.goal as focus.supergoal, foci.goal as subgoal focus
     seed: {
       concepts:
-        (await threads.caller.context.stash.art['foci.goal.concept'].get())
+        (await threads.caller.context.stash.art['foci.input.concept'].get())
           ?.content ||
-        UnexpectedCodePathError.throw('goal not declared', {
-          art: threads.caller.context.stash.art['foci.goal.concept'],
+        UnexpectedCodePathError.throw('input not declared', {
+          art: threads.caller.context.stash.art['foci.input.concept'],
         }),
     },
 
@@ -124,7 +125,9 @@ const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
   stitchee: 'thinker',
   readme: '',
   template,
-  imagine: sdkOpenAi.imagine,
+  imagine: withRetry(
+    withTimeout(sdkOpenAi.imagine, { threshold: { seconds: 60 } }), // allow up to 60 sec, for longer files
+  ),
 });
 
 const stepPersist = genStepArtSet({

@@ -105,6 +105,9 @@ const options = [
   'thinker.tactics/<enquestion>._.[gallery].plumber.diagnose.md',
   'thinker.tactics/<enquestion>._.[gallery].thinker.enquestion.md',
   'thinker.tactics/<enquestion>.tactic.perspectives.[article].md',
+  'thinker.tactics/<triage>._.[article].frame.tactical.md',
+  'thinker.tactics/<triage>.persp.grades_from_context.[article].md',
+  'thinker.tactics/<triage>.persp.implicit_question.[article].md',
   'cognition/inflight/concept.vs.idea.md',
   'cognition/inflight/core.concept.adjectives.md',
 ] as const;

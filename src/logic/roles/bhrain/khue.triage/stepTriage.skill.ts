@@ -4,11 +4,11 @@ import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { BRIEFS_FOR_CLUSTER, loopCluster } from './stepCluster';
+import { BRIEFS_FOR_TRIAGE, loopTriage } from './stepTriage';
 
-export const SKILL_CLUSTER = genRoleSkill({
-  slug: 'cluster',
-  route: loopCluster,
+export const SKILL_TRIAGE = genRoleSkill({
+  slug: 'triage',
+  route: loopTriage,
   threads: {
     lookup: {
       output: {
@@ -143,7 +143,7 @@ export const SKILL_CLUSTER = genRoleSkill({
             },
             briefs: [
               ...artifacts.briefs,
-              ...BRIEFS_FOR_CLUSTER, // flow the cluster briefs down so that <ponder> has them in context too; this approach does cause duplicate briefs for cluster, but thats no biggie
+              ...BRIEFS_FOR_TRIAGE, // flow the triage briefs down so that <ponder> has them in context too; this approach does cause duplicate briefs for triage, but thats no biggie
             ],
           },
         }),
