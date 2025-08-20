@@ -30,13 +30,13 @@ export const BRIEFS_FOR_DEMONSTRATE = getBhrainBriefs([
   'cognition/cog301.traversal.1.motion.primitives._.md',
   'cognition/cog401.questions.._.md',
   'cognition/cog401.questions.2.1.primitives.rough._.md',
-  'librarian.tactics/<articulate>._.[article].frame.cognitive.md', // todo: keep or remove
-  'librarian.tactics/<articulate>._.[article].frame.tactical.md',
   'cognition/cog201.cortal.focus.p2.breadth.md',
   'cognition/cog301.traversal.1.motion.primitives.breadth.md',
   'cognition/cog301.traversal.1.motion.primitives.breadth.vary.md',
-  'librarian.tactics/<demonstrate>._.[article].frame.tactical.md',
   'librarian.tactics/[brief].verbiage.outline.over.narrative.md',
+  'librarian.tactics/<demonstrate>._.[article].frame.tactical.md',
+  'librarian.tactics/<demonstrate>._.[article].frame.colloquial.md',
+  'librarian.tactics/<demonstrate>.tactics.[catalog].md',
 ]);
 
 type StitcherDesired = GStitcher<
@@ -49,6 +49,7 @@ type StitcherDesired = GStitcher<
           'foci.goal.concept': Focus['concept'];
           'foci.goal.context': Focus['context'];
           'foci.input.concept': Focus['concept'];
+          templates: Artifact<typeof GitFile>[]; // more of a librarian input ?
         };
         refs: Artifact<typeof GitFile>[];
       }
@@ -97,7 +98,7 @@ const template = genTemplate<StitcherDesired['threads']>({
     },
 
     seed: {
-      concepts:
+      concept:
         (await threads.caller.context.stash.art['foci.input.concept'].get())
           ?.content ||
         UnexpectedCodePathError.throw('input not declared', {
@@ -116,6 +117,10 @@ const template = genTemplate<StitcherDesired['threads']>({
 
     references: await getTemplateValFromArtifacts({
       artifacts: threads.caller.context.stash.refs,
+    }),
+
+    templates: await getTemplateValFromArtifacts({
+      artifacts: [...threads.caller.context.stash.art.templates],
     }),
   }),
 });

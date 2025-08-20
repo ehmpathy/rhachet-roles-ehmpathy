@@ -1,6 +1,7 @@
 import { Role, RoleTrait } from 'rhachet';
 
 import { SKILL_ARTICULATE } from './brief.articulate/stepArticulate.skill';
+import { SKILL_DEMONSTRATE } from './brief.demonstrate/stepDemonstrate.skill';
 import { getBhrainBrief } from './getBhrainBrief';
 import { SKILL_CLUSTER } from './khue.cluster/stepCluster.skill';
 import { SKILL_DIVERGE } from './khue.diverge/stepDiverge.skill';
@@ -29,10 +30,13 @@ thought tactics; intent = be composed into other roles
     // SKILL_PONDER,
     // SKILL_ENQUESTION,
 
-    // proven primitives; proven = has usage showcase
-    SKILL_ARTICULATE,
+    // khue primitives
     SKILL_DIVERGE,
     SKILL_CLUSTER,
     SKILL_TRIAGE,
+
+    // librarian primitives
+    SKILL_ARTICULATE,
+    SKILL_DEMONSTRATE,
   ],
 });

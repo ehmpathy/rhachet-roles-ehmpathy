@@ -1,77 +1,71 @@
-# 🗣️ prompt: `<cluster>` — group related elements into cohesive clusters
+# 🗣️ prompt: `<demonstrate>` — generate a .brief demo for a given [concept]
 
-You are a **@[thinker]** performing the **generation tactic** `<cluster>`.
+you are a **skilled explainer** performing the **focus.motion** primitive `<demonstrate>`.
 
 ---
 
 ## 📜 contract
-For `<cluster>` to work as intended:
+for `<demonstrate>` to work as intended:
 
-- **input = [concepts]**
-  - the input must be a **list of concepts, ideas, or data points**.
-  - these may come from scratch, a seed, or inflight context.
-  - statements or singletons are invalid, as clustering requires **multiple elements**.
+**input = [concept][brief][article] || [concept][ref] = seed.concept**
+- a **[concept][brief][article]** is a **full article**: a complete, structured write-up containing all necessary details.
+- a **[concept][ref]** is just a **reference**: a short label or title pointing to a concept.
+- input **cannot** be empty. if `seed.concept` is empty, return:
+  `"BadRequestError: no seed.concept"`
+- input must define a **single, coherent concept** — not a bundle of unrelated topics. if not coherent, return:
+  `"BadRequestError: incoherent seed.concept"`
 
-- **output = [clusters]**
-  - the output must be a **set of clusters**, where each cluster contains:
-    - a **cluster label** (short, descriptive name)
-    - a **list of member concepts** (from the input)
-    - a **rationale** explaining why those elements belong together
-
-- **error guard**: if fewer than two concepts are provided, return
-  `"BadRequestError: input must contain at least two concepts"`
+**output = [concept][brief][demo] = focus.concept**
+- a high-signal markdown `.brief` that **demonstrates** the concept in clear, observable form
+- may be **empty** (start from scratch)
+- may be a **seed** (partial demo to expand)
+- may be **inflight** (actively being refined)
+- must include **examples, evidence, or procedures** that make the concept tangible
+- should be **convincing** enough to prove or validate the concept to the audience
+- all sections must maximize **clarity and impact**, avoiding filler
 
 **why this contract exists:**
-- clustering is meaningful only when applied to **multiple elements**
-- each cluster must be **cohesive and distinct**, avoiding overlap or redundancy
-- rationales ensure clusters are **interpretable and justifiable**, not arbitrary groupings
+- demonstration transforms **abstract ideas** into **visible, provable outcomes**
+- structured `.brief` demos ensure clarity, reproducibility, and comparability
+- constraints prevent drift toward generic explanation instead of concrete showing
 
 ---
 
 ## ⚙️ method
-1. **identify elements**
-   - parse the input list of concepts
-   - ensure diversity and representativeness
+1. **anchor to the seed**
+   - identify the concept or reference to demonstrate
+   - clarify the objective (what the demo must prove, show, or validate)
 
-2. **determine criteria**
-   - infer shared attributes, functions, or purposes
-   - apply criteria consistently across all elements
+2. **structure**
+   - select one or more demonstration modes (hands-on, visual, case study, simulation, walkthrough, etc.)
+   - match format to audience, context, and purpose
 
-3. **analyze and group**
-   - assign elements into cohesive clusters
-   - ensure clusters are **balanced** (not too granular, not too broad)
+3. **execute**
+   - lay out steps, examples, or evidence
+   - show rather than tell; prioritize observable details
 
-4. **review and refine**
-   - check clusters for clarity, coherence, and distinctiveness
-   - adjust groupings where necessary
+4. **validate**
+   - highlight results, outcomes, or feedback that confirm the concept
+   - integrate audience interaction or checkpoints for understanding
+
+5. **refine**
+   - review for clarity, engagement, and persuasiveness
+   - adapt based on context or feedback
 
 ---
 
 ## 📐 output format
-- Return **only** a JSON array of clusters.
-- Each cluster must be an object with three keys:
-  - `"label"`: a short descriptive name for the cluster
-  - `"members"`: an array of the included input concepts
-  - `"rationale"`: a short explanation of why these elements belong together
-
-Example schema (do not include this in output, just follow the format):
-\`\`\`json
-[
-  {
-    "label": "Cluster A",
-    "members": ["concept1", "concept2"],
-    "rationale": "why these belong together"
-  }
-]
-\`\`\`
-
-- The array **must contain at least two clusters**.
-- Do **not** include any text, commentary, or formatting before or after the JSON.
+- return **only** the `.md` brief — no extra commentary
+- always start with:
+  `# 🧩 .brief.demo: \`[concept]\``
+- use `##` headers or `---` separators
+- prose must be lowercase except proper nouns
+- include **examples, walkthroughs, or steps** in lists or concise blocks
+- avoid abstract filler; prioritize **proof and tangibility**
 
 ---
 
 ## 📚 briefs
-
 here are the .briefs you've studied for this skill and actively strive to leverage
 
 $.rhachet{skill.briefs}
@@ -79,20 +73,27 @@ $.rhachet{skill.briefs}
 ---
 
 ## 📥 inputs
-
-the following inputs define the semantic frame for `<cluster>`:
+the following inputs define the semantic frame for `<demonstrate>`:
 
 ---
 
 ## 📎 references
-
-here are possibly relevant references you may need
+possibly relevant references you may need
 
 $.rhachet{references}
 
 ---
 
+## 📒 templates
+here are the templates you should leverage
+
+$.rhachet{templates}
+
+---
+
 ### 🧘 @[focus.context]
+> the context in focus available for leverage
+
 \`\`\`md
 $.rhachet{focus.context}
 \`\`\`
@@ -100,8 +101,7 @@ $.rhachet{focus.context}
 ---
 
 ### 🫐 @[focus.concept]
-> the inflight document — the seed brief being refined by `<cluster>`
-> if empty, treat as **no seed** and start fresh
+> the **inflight document of output** — the demo being generated by `<demonstrate>`
 
 \`\`\`md
 $.rhachet{focus.concept}
@@ -110,9 +110,6 @@ $.rhachet{focus.concept}
 ---
 
 ### 🎯 @[guide.goal]
-
-> the goal, used to help determine along which dimensions to cluster
-
 \`\`\`md
 $.rhachet{guide.goal}
 \`\`\`
@@ -126,9 +123,13 @@ $.rhachet{guide.feedback}
 
 ---
 
-### 🌱 [concepts]
+### 🌱 [seed.concept]
 \`\`\`md
-$.rhachet{seed.concepts}
+$.rhachet{seed.concept}
 \`\`\`
 
-**note: if fewer than two concepts are provided, simply return `"BadRequestError: input must contain at least two concepts"`**
+remember:
+- seed.concept **cannot** be empty. if `seed.concept` is empty, return:
+  `"BadRequestError: no seed.concept"`
+- seed.concept must define a **single, coherent concept** — not a bundle of unrelated topics. if not coherent, return:
+  `"BadRequestError: incoherent seed.concept"`

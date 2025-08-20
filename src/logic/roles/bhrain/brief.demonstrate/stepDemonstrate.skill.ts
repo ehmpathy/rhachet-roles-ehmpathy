@@ -4,11 +4,11 @@ import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { BRIEFS_FOR_CLUSTER, loopCluster } from './stepDemonstrate';
+import { BRIEFS_FOR_DEMONSTRATE, loopDemonstrate } from './stepDemonstrate';
 
-export const SKILL_CLUSTER = genRoleSkill({
-  slug: 'cluster',
-  route: loopCluster,
+export const SKILL_DEMONSTRATE = genRoleSkill({
+  slug: 'demonstrate',
+  route: loopDemonstrate,
   threads: {
     lookup: {
       output: {
@@ -41,6 +41,12 @@ export const SKILL_CLUSTER = genRoleSkill({
         desc: 'brief files to to use, if any; delimit with commas',
         type: '?string',
       },
+      templates: {
+        source: 'process.argv',
+        char: 'z', // todo: support undefined
+        desc: 'template files to to use, if any; delimit with commas',
+        type: '?string',
+      },
     },
     assess: (
       input,
@@ -50,6 +56,7 @@ export const SKILL_CLUSTER = genRoleSkill({
       goal: string;
       references: string;
       briefs: string;
+      templates?: string;
       ask: string;
     } => typeof input.output === 'string',
     instantiate: async (input: {
@@ -58,6 +65,7 @@ export const SKILL_CLUSTER = genRoleSkill({
       goal: string;
       references: string;
       briefs: string;
+      templates?: string;
       ask: string;
     }) => {
       // declare where all the artifacts will be found
@@ -100,6 +108,13 @@ export const SKILL_CLUSTER = genRoleSkill({
             .map((brief) =>
               genArtifactGitFile({ uri: brief }, { access: 'readonly' }),
             ) ?? [],
+        templates:
+          input.templates
+            ?.split(',')
+            .filter((uri) => !!uri)
+            .map((template) =>
+              genArtifactGitFile({ uri: template }, { access: 'readonly' }),
+            ) ?? [],
       };
 
       // detect the goal of the caller
@@ -130,6 +145,7 @@ export const SKILL_CLUSTER = genRoleSkill({
               'foci.goal.context': artifacts.goal.context,
               'foci.input.concept': artifacts.input,
               feedback: artifacts.feedback,
+              templates: artifacts.templates,
             },
             refs: artifacts.references,
           },
@@ -143,7 +159,7 @@ export const SKILL_CLUSTER = genRoleSkill({
             },
             briefs: [
               ...artifacts.briefs,
-              ...BRIEFS_FOR_CLUSTER, // flow the cluster briefs down so that <ponder> has them in context too; this approach does cause duplicate briefs for cluster, but thats no biggie
+              ...BRIEFS_FOR_DEMONSTRATE, // flow the demonstrate briefs down so that <ponder> has them in context too; this approach does cause duplicate briefs for demonstrate, but thats no biggie
             ],
           },
         }),
