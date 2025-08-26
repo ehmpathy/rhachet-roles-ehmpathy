@@ -1,0 +1,1 @@
+To elucidate is to make something clear and easy to understand, essentially to shed light on it, while to elaborate is to provide more details, information, or examples to expand upon a topic or idea. The choice depends on whether the goal is to clarify a concept or to provide greater depth and breadth of information about it.
