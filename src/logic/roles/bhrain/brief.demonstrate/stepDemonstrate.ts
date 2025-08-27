@@ -34,9 +34,18 @@ export const BRIEFS_FOR_DEMONSTRATE = getBhrainBriefs([
   'cognition/cog301.traversal.1.motion.primitives.breadth.md',
   'cognition/cog301.traversal.1.motion.primitives.breadth.vary.md',
   'librarian.tactics/[brief].verbiage.outline.over.narrative.md',
-  'librarian.tactics/<demonstrate>._.[article].frame.tactical.md',
-  'librarian.tactics/<demonstrate>._.[article].frame.colloquial.md',
-  'librarian.tactics/<demonstrate>.tactics.[catalog].md',
+  // 'librarian.tactics/<demonstrate>._.[article].frame.tactical.md',
+  // 'librarian.tactics/<demonstrate>._.[article].frame.colloquial.md',
+  // 'librarian.tactics/<demonstrate>.tactics.[catalog].md',
+  'librarian.tactics/<demonstrate>._.[article].frame.colloquial.i2.by_grok.md',
+  'librarian.tactics/<demonstrate>.variants.[catalog].md',
+  // 'librarian.tactics/<demonstrate>.variants.contrast.[demo].usecase.vs_userjourney.by_chatgpt.md',
+  'librarian.tactics/<demonstrate>.variants.example.[demo].tea.darjeeling.by_grok.md',
+  'librarian.tactics/<demonstrate>.variants.counter.[demo].walkability.phoenix.by_chargpt.md',
+  'librarian.tactics/<demonstrate>.variants.example.[demo].walkability.portland.by_chatgpt.i3.md',
+  'librarian.tactics/<demonstrate>.variants.example.[demo].walkability.portland.by_grok.i2.md',
+  'librarian.tactics/<demonstrate>.variants.example.structure.[article].i2.md',
+  'librarian.tactics/<demonstrate>.variants.example.[lesson].howto.md',
 ]);
 
 type StitcherDesired = GStitcher<

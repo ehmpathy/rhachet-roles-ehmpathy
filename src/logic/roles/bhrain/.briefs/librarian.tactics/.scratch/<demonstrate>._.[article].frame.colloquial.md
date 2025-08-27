@@ -1,4 +1,4 @@
-# 🧩 .brief: `demonstrate`
+# 🧩 .brief.article: `demonstrate`
 
 ## .what
 **demonstrate** refers to the act of clearly showing or explaining how something works, highlighting its features, processes, or effects. It involves presenting a concept or an action in a manner that is understandable and convincing, often through examples, illustrations, or practical applications.

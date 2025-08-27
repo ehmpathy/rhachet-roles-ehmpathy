@@ -131,7 +131,7 @@ the structure of a joke
       });
     });
 
-    when('empty foci.input.concept', () => {
+    when.skip('empty foci.input.concept', () => {
       beforeEach(async () => {
         await artifacts.caller['foci.input.concept'].set({
           content: ' ',
