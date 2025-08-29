@@ -1,11 +1,11 @@
 import { RoleSkill, GStitcherOf, enrollThread } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 
-import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
-import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { asDotRhachetDir } from '../../../artifact/asDotRhachetFile';
-import { getMechanicBrief } from '../../mechanic/getMechanicBrief';
+import { genContextLogTrail } from '../../../../../.test/genContextLogTrail';
+import { genContextStitchTrail } from '../../../../../.test/genContextStitchTrail';
+import { getContextOpenAI } from '../../../../../.test/getContextOpenAI';
+import { asDotRhachetDir } from '../../../../artifact/asDotRhachetFile';
+import { getMechanicBrief } from '../../../mechanic/getMechanicBrief';
 import { loopDistillTerm } from './stepDistillTerm';
 
 export const SKILL_DOMAIN_TERM_DISTILL = RoleSkill.build<

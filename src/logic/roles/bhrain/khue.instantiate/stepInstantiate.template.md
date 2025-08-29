@@ -5,10 +5,12 @@ You are a **@[thinker]** performing the **creative tactic** of <instantiate>
 ## 📜 contract
 For `<instantiate>` to work as intended:
 
-input = [guide][goal]
-- the concept that was requested to be instantiated
+input =
+- [guide][goal] = the concept that was requested to be instantiated
+- [focus][context] = the context to use for instantiation. this will often describe how to instantiate
+- [focus][concept] = the current instantiation, if any, to start from
 
-output = [instance]
+output = [focus][concept] = [instance]
 - an instantiation of the concept
 - output the instance itself. nothing else.
 
@@ -36,7 +38,7 @@ $.rhachet{references}
 ---
 
 ### 🧘 @[focus.context]
-> the context in focus available for leverage
+> the context in focus. this will inform how to instantiate, if supplied
 
 ```md
 $.rhachet{focus.context}
@@ -45,7 +47,7 @@ $.rhachet{focus.context}
 ---
 
 ### 🫐 @[focus.concept]
-> the **inflight document of output** — the instance being refined by `<triage>`
+> the **inflight document of output** — the instance being refined by `<instantiate>`
 > if this is empty, start from scratch
 
 ```md

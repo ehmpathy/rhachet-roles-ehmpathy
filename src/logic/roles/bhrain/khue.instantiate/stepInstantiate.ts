@@ -76,10 +76,7 @@ const template = genTemplate<StitcherDesired['threads']>({
     focus: {
       context:
         (await threads.thinker.context.stash.art['focus.context'].get())
-          ?.content ||
-        (await threads.caller.context.stash.art['foci.goal.context'].get()) // fallback to @[caller].focus[goal].context
-          ?.content ||
-        '',
+          ?.content || '',
       concept:
         (await threads.thinker.context.stash.art['focus.concept'].get())
           ?.content || '',
@@ -87,10 +84,14 @@ const template = genTemplate<StitcherDesired['threads']>({
 
     skill: {
       briefs: await getTemplateValFromArtifacts({
-        artifacts: [
-          ...BRIEFS_FOR_INSTANTIATE,
-          ...threads.thinker.context.stash.briefs,
-        ],
+        artifacts: (() => {
+          const briefs = [
+            ...BRIEFS_FOR_INSTANTIATE,
+            ...threads.thinker.context.stash.briefs,
+          ];
+          // console.log(briefs.map((brief) => brief.ref)); // ?: left here to aid in debug, when needed
+          return briefs;
+        })(),
       }),
     },
 

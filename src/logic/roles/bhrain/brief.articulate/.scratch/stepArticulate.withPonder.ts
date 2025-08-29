@@ -8,11 +8,11 @@ import {
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
 
-import { Focus } from '../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
-import { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
-import { useGenStepSwapArtifactFor } from '../../../artifact/genStepSwapArtifact';
-import { loopPonder } from '../.scratch/khue.ponder/stepPonder';
-import { loopArticulate } from './stepArticulate';
+import { Focus } from '../../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
+import { ContextOpenAI } from '../../../../../data/sdk/sdkOpenAi';
+import { useGenStepSwapArtifactFor } from '../../../../artifact/genStepSwapArtifact';
+import { loopPonder } from '../../.scratch/khue.ponder/stepPonder';
+import { loopArticulate } from '../stepArticulate';
 
 type StitcherDesired = GStitcher<
   Threads<{

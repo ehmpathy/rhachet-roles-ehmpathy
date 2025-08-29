@@ -7,7 +7,7 @@ import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
 import { getBhrainBriefs } from '../getBhrainBrief';
-import { thisPonderCatalog } from './ponder.catalog';
+import { thisPonderCatalog } from './.scratch/ponder.catalog';
 import { stepArticulate } from './stepArticulate';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));

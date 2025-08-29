@@ -30,8 +30,6 @@ export const BRIEFS_FOR_ARTICULATE = getBhrainBriefs([
   'cognition/cog301.traversal.1.motion.primitives._.md',
   'cognition/cog401.questions.._.md',
   'cognition/cog401.questions.2.1.primitives.rough._.md',
-  'cognition/cog501.cortal.assemblylang.4.structure._.ponder.md',
-  'cognition/cog501.cortal.assemblylang.4.structure.ponder.[article].usage.md',
   'cognition/cog201.cortal.focus.p2.acuity.md',
   'cognition/cog301.traversal.1.motion.primitives.acuity.md',
   'librarian.tactics/[brief].verbiage.outline.over.narrative.md',

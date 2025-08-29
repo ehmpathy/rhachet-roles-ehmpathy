@@ -12,10 +12,11 @@ import {
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
 
-import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
-import { genStepArtSet } from '../../../artifact/genStepArtSet';
-import { getMechanicBriefs } from '../../mechanic/getMechanicBrief';
-import { getEcologistBriefs } from '../getEcologistBrief';
+import { ContextOpenAI, sdkOpenAi } from '../../../../../data/sdk/sdkOpenAi';
+import { genLoopFeedback } from '../../../../artifact/genLoopFeedback';
+import { genStepArtSet } from '../../../../artifact/genStepArtSet';
+import { getMechanicBriefs } from '../../../mechanic/getMechanicBrief';
+import { getEcologistBriefs } from '../../getEcologistBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{
@@ -24,7 +25,8 @@ type StitcherDesired = GStitcher<
       {
         ask: string;
         art: {
-          feedback: Artifact<typeof GitFile> | null;
+          feedback: Artifact<typeof GitFile>;
+          usecases: Artifact<typeof GitFile> | null;
         };
       }
     >;
@@ -32,7 +34,7 @@ type StitcherDesired = GStitcher<
       'student',
       {
         art: {
-          domain: Artifact<typeof GitFile>;
+          inflight: Artifact<typeof GitFile>;
         };
       }
     >;
@@ -50,11 +52,9 @@ const template = genTemplate<StitcherDesired['threads']>({
       threads.caller.context.stash.ask,
     briefs: await getTemplateValFromArtifacts({
       artifacts: [
-        ...getMechanicBriefs([
-          'architecture/ubiqlang.md',
-          'style.names.treestruct.md',
-        ]),
         ...getEcologistBriefs([
+          'term.distillation.md',
+
           'distilisys/sys101.distilisys.grammar.md',
           'distilisys/sys201.actor.motive._.summary.md',
           'distilisys/sys201.actor.motive.p5.motive.grammar.md',
@@ -63,24 +63,30 @@ const template = genTemplate<StitcherDesired['threads']>({
           'distilisys/sys231.actor.claims.p1.primitive.exchange.md',
           'ecology/eco001.overview.md',
           'ecology/eco101.core-system-understanding.md',
-          'ecology/eco505.systems-thinking.md',
+          // 'ecology/eco505.systems-thinking.md',
           'economy/econ001.overview.md',
           'economy/econ101.core-mechanics.md',
-          'economy/econ501.p1.game-theory.md',
-          'economy/econ501.p4.behavioral-economics.md',
+          // 'economy/econ501.p1.game-theory.md',
+          // 'economy/econ501.p4.behavioral-economics.md',
 
           // 'analysis.behavior-reveals-system.md',
           // 'core.term.price.v2.md',
         ]),
+        ...getMechanicBriefs([
+          'architecture/ubiqlang.md',
+          'style.names.treestruct.md',
+        ]),
       ],
     }),
-    domain:
-      (await threads.student.context.stash.art.domain.get())?.content ?? '',
+    inflight:
+      (await threads.student.context.stash.art.inflight.get())?.content ?? '',
+    usecases:
+      (await threads.caller.context.stash.art.usecases?.get())?.content ?? '',
   }),
 });
 
 const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '[student]<study>[domain]<imagine>',
+  slug: '[student]<distill>[domain:term]<imagine>',
   stitchee: 'student',
   readme: '',
   template,
@@ -89,15 +95,21 @@ const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
 
 const stepPersist = genStepArtSet({
   stitchee: 'student',
-  artee: 'domain',
+  artee: 'inflight',
 });
 
 // todo: expand into separation of domain discovery vs vision discovery
 
-export const stepStudyDomain = asStitcherFlat<StitcherDesired>(
+export const stepDistillTerm = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '[student]<study>[domain]',
-    readme: '@[student]<study>[domain] -> [[claim]]s',
+    slug: '[student]<distill>[domain:term]',
+    readme: '@[student]<distill>[domain:term] -> [[term]]s',
     sequence: [stepImagine, stepPersist],
   }),
 );
+
+export const loopDistillTerm = genLoopFeedback({
+  stitchee: 'student',
+  artee: 'inflight',
+  repeatee: stepDistillTerm,
+});

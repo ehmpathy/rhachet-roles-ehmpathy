@@ -50,7 +50,7 @@ output = [concept][brief]
 ## 📐 output format
 - return **only** the `.md` brief — no extra commentary
 - always start with:
-  `# 🧩 .brief: \`[concept]\``
+  `# 🧩 .brief.article: \`[concept]\``
 - all section headers use `##` or `---` separators
 - prose must be lowercase except proper nouns
 - use concise lists and short paragraphs; avoid long blocks of text

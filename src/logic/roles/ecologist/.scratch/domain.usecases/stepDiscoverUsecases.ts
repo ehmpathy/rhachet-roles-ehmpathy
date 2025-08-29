@@ -12,11 +12,11 @@ import {
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
 
-import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
-import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
-import { genStepArtSet } from '../../../artifact/genStepArtSet';
-import { getMechanicBriefs } from '../../mechanic/getMechanicBrief';
-import { getEcologistBriefs } from '../getEcologistBrief';
+import { ContextOpenAI, sdkOpenAi } from '../../../../../data/sdk/sdkOpenAi';
+import { genLoopFeedback } from '../../../../artifact/genLoopFeedback';
+import { genStepArtSet } from '../../../../artifact/genStepArtSet';
+import { getMechanicBriefs } from '../../../mechanic/getMechanicBrief';
+import { getEcologistBriefs } from '../../getEcologistBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{
@@ -25,8 +25,7 @@ type StitcherDesired = GStitcher<
       {
         ask: string;
         art: {
-          feedback: Artifact<typeof GitFile>;
-          usecases: Artifact<typeof GitFile> | null;
+          feedback: Artifact<typeof GitFile> | null;
         };
       }
     >;
@@ -53,7 +52,7 @@ const template = genTemplate<StitcherDesired['threads']>({
     briefs: await getTemplateValFromArtifacts({
       artifacts: [
         ...getEcologistBriefs([
-          'term.distillation.md',
+          // 'term.distillation.md',
 
           'distilisys/sys101.distilisys.grammar.md',
           'distilisys/sys201.actor.motive._.summary.md',
@@ -78,15 +77,13 @@ const template = genTemplate<StitcherDesired['threads']>({
         ]),
       ],
     }),
-    inflight:
+    domain:
       (await threads.student.context.stash.art.inflight.get())?.content ?? '',
-    usecases:
-      (await threads.caller.context.stash.art.usecases?.get())?.content ?? '',
   }),
 });
 
 const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '[student]<distill>[domain:term]<imagine>',
+  slug: '[student]<distill>[domain:term:usecases]<imagine>',
   stitchee: 'student',
   readme: '',
   template,
@@ -100,16 +97,16 @@ const stepPersist = genStepArtSet({
 
 // todo: expand into separation of domain discovery vs vision discovery
 
-export const stepDistillTerm = asStitcherFlat<StitcherDesired>(
+export const stepCollectTermUsecases = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
-    slug: '[student]<distill>[domain:term]',
-    readme: '@[student]<distill>[domain:term] -> [[term]]s',
+    slug: '[student]<collect>[domain:term:usecases]',
+    readme: '@[student]<distill>[domain:term:usecases] -> [[usecase]]s',
     sequence: [stepImagine, stepPersist],
   }),
 );
 
-export const loopDistillTerm = genLoopFeedback({
+export const loopCollectTermUsecases = genLoopFeedback({
   stitchee: 'student',
   artee: 'inflight',
-  repeatee: stepDistillTerm,
+  repeatee: stepCollectTermUsecases,
 });

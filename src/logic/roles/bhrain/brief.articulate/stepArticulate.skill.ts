@@ -4,9 +4,9 @@ import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { thisPonderCatalog } from './ponder.catalog';
+import { thisPonderCatalog } from './.scratch/ponder.catalog';
+import { loopsArticulateWithPonder } from './.scratch/stepArticulate.withPonder';
 import { BRIEFS_FOR_ARTICULATE, loopArticulate } from './stepArticulate';
-import { loopsArticulateWithPonder } from './stepArticulate.withPonder';
 
 export const SKILL_ARTICULATE = genRoleSkill({
   slug: 'articulate',
