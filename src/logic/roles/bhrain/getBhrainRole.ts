@@ -5,6 +5,7 @@ import { SKILL_DEMONSTRATE } from './brief.demonstrate/stepDemonstrate.skill';
 import { getBhrainBrief } from './getBhrainBrief';
 import { SKILL_CLUSTER } from './khue.cluster/stepCluster.skill';
 import { SKILL_DIVERGE } from './khue.diverge/stepDiverge.skill';
+import { SKILL_INSTANTIATE } from './khue.instantiate/stepInstantiate.skill';
 import { SKILL_TRIAGE } from './khue.triage/stepTriage.skill';
 
 export const ROLE_BHRAIN = Role.build({
@@ -24,19 +25,17 @@ thought tactics; intent = be composed into other roles
     }),
   ],
   skills: [
-    // SKILL_INTERPRET; ask -> Focus[Goal]
-
-    // todo: are these still relevant?
-    // SKILL_PONDER,
-    // SKILL_ENQUESTION,
-
     // khue primitives
     SKILL_DIVERGE,
     SKILL_CLUSTER,
     SKILL_TRIAGE,
+    SKILL_INSTANTIATE,
 
-    // librarian primitives
+    // know primitives
     SKILL_ARTICULATE,
     SKILL_DEMONSTRATE,
+
+    // goal primitives
+    // SKILL_INTERPRET; ask -> Focus[Goal]
   ],
 });
