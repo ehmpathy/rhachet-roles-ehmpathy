@@ -13,11 +13,13 @@
     "prettier.*",
     "commitlint.*",
     "codegen.*",
-    "src/**/.test/**/*.(ts|js)",
-    "src/**/.scratch/**/*.(ts|js)",
-    "src/**/.rhachet/**/*.(ts|js)",
-    "src/**/*.test.(ts|js)",
-    "src/**/__test_utils__/**/*.(ts|js)",
+    // tests
+    "src/**/__tests__/**/*.{ts,js}",
+    "src/**/__test_utils__/**/*.{ts,js}",
+    "src/**/*.test.{ts,js}",
+    // scratch
+    "src/**/.scratch/**/*.{ts,js}",
+    "**/.scratch/**/*.{ts,js}",
     "rhachet.use.ts"
   ]
 }

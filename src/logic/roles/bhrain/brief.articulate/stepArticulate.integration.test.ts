@@ -7,7 +7,6 @@ import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
 import { getBhrainBriefs } from '../getBhrainBrief';
-import { thisPonderCatalog } from './.scratch/ponder.catalog';
 import { stepArticulate } from './stepArticulate';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));
@@ -74,10 +73,6 @@ articulate the term "joke"; declare both the etymology and definition; include e
 
       await artifacts.thinker['focus.concept'].set({
         content: [].join('\n'),
-      });
-
-      await artifacts.thinker['foci.ponder.ans.concept'].set({
-        content: JSON.stringify(thisPonderCatalog.conceptualize, null, 2),
       });
     });
 

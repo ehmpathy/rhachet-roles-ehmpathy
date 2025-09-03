@@ -4,8 +4,6 @@ import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { thisPonderCatalog } from './.scratch/ponder.catalog';
-import { loopsArticulateWithPonder } from './.scratch/stepArticulate.withPonder';
 import { BRIEFS_FOR_ARTICULATE, loopArticulate } from './stepArticulate';
 
 export const SKILL_ARTICULATE = genRoleSkill({
@@ -141,13 +139,6 @@ export const SKILL_ARTICULATE = genRoleSkill({
               genArtifactGitFile({ uri: template }, { access: 'readonly' }),
             ) ?? [],
       };
-
-      await artifacts['foci.ponder.que.concept'].set({
-        content: JSON.stringify(thisPonderCatalog.conceptualize, null, 2),
-      });
-      await artifacts['foci.ponder.que.context'].set({
-        content: JSON.stringify(thisPonderCatalog.contextualize, null, 2),
-      });
 
       return {
         caller: await enrollThread({
