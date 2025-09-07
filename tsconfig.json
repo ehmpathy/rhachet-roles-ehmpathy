@@ -18,6 +18,7 @@
   "extends": "@tsconfig/node-lts-strictest/tsconfig.json",
   "include": [
     "**/*.ts",
+    "src/logic/roles/bhrain/brief.articulate/.scratch/stepArticulate.ts",
   ],
   "exclude": [
     "dist",

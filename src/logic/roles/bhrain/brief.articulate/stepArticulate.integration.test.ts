@@ -51,14 +51,6 @@ articulate the term "joke"; declare both the etymology and definition; include e
         { uri: __dirname + '/.temp/stepArticulate/thinker.focus.context.md' },
         { versions: true },
       ),
-      'foci.ponder.ans.concept': genArtifactGitFile(
-        {
-          uri:
-            __dirname +
-            '/.temp/stepArticulate/thinker.foci.ponder.ans.concept.md',
-        },
-        { versions: true },
-      ),
     },
   };
 
@@ -97,8 +89,6 @@ articulate the term "joke"; declare both the etymology and definition; include e
             art: {
               'focus.context': artifacts.thinker['focus.context'],
               'focus.concept': artifacts.thinker['focus.concept'],
-              'foci.ponder.ans.concept':
-                artifacts.thinker['foci.ponder.ans.concept'],
             },
             briefs: [],
           },

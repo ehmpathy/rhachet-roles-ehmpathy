@@ -1,37 +1,36 @@
-import { UnexpectedCodePathError } from 'helpful-errors';
 import {
   asStitcherFlat,
   genStitchRoute,
   GStitcher,
-  Threads,
   RoleContext,
-  genStepImagineViaTemplate,
-  genTemplate,
-  getTemplateVarsFromRoleInherit,
-  getTemplateValFromArtifacts,
+  StitchStepCompute,
+  Threads,
 } from 'rhachet';
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
-import { withRetry, withTimeout } from 'wrapper-fns';
 
 import { Focus } from '../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
-import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
+import { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
 import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
-import { genStepArtSet } from '../../../artifact/genStepArtSet';
 import { getBhrainBriefs } from '../getBhrainBrief';
+import { stepInstantiate } from '../khue.instantiate/stepInstantiate';
 
-// exported so that we can pass them through to <ponder> too
-export const BRIEFS_FOR_ARTICULATE = getBhrainBriefs([
-  'trait.ocd.md',
-  'cognition/cog401.questions.._.md',
-  'cognition/cog000.overview.and.premise.md',
-  'cognition/cog101.concept.treestruct._.md',
-  'cognition/cog201.cortal.focus.p1.definition.md',
-  'cognition/cog301.traversal.1.motion.primitives._.md',
-  'cognition/cog401.questions.._.md',
-  'cognition/cog401.questions.2.1.primitives.rough._.md',
-  'cognition/cog201.cortal.focus.p2.acuity.md',
-  'cognition/cog301.traversal.1.motion.primitives.acuity.md',
+const BRIEFS_FOR_ARTICULATE = getBhrainBriefs([
+  'knowledge/kno201.documents.articles.[article].md',
+  'knowledge/kno201.documents._.[article].md',
+  'knowledge/kno201.documents._.[catalog].md',
+  'knowledge/kno301.doc.enbrief.2._.[catalog].md',
+  'knowledge/kno301.doc.enbrief.2.articulate.[article].md',
+  'knowledge/kno301.doc.enbrief.2.articulate.[lesson].md',
+  'knowledge/kno301.doc.enbrief.1.from_instances.[demo].color.md',
+  'knowledge/kno301.doc.enbrief.1.from_instances.[demo].gravity.md',
+  'knowledge/kno301.doc.enbrief.1.from_instances.[demo].entropy.md',
+  // 'knowledge/kno501.doc.enbrief.catalog.structure1.[article].md',
+  // 'knowledge/kno501.doc.enbrief.catalog.structure1.[lesson].template.md',
+  //
+  // -------------
+  //
+  // ?: can we compress the below into kno501.doc briefs like we did for catalogize instead? might reduce overhead
   'librarian.tactics/[brief].verbiage.outline.over.narrative.md',
   'librarian.tactics/<articulate>._.[article].frame.cognitive.md',
   'librarian.tactics/<articulate>._.[article].frame.tactical.md',
@@ -41,7 +40,7 @@ export const BRIEFS_FOR_ARTICULATE = getBhrainBriefs([
   'librarian.tactics/<articulate>.tactic.from.examples.md',
   'librarian.tactics/<articulate>.tactic.from.seed.md',
   'librarian.tactics/<articulate>.tactic.with.templates.[article].md',
-  'librarian.tactics/<articulate>.tone.bluecollar.[article][seed].md', // todo: review this
+  'librarian.tactics/<articulate>.tone.bluecollar.[article][seed].md',
 ]);
 
 type StitcherDesired = GStitcher<
@@ -49,12 +48,10 @@ type StitcherDesired = GStitcher<
     caller: RoleContext<
       'caller',
       {
-        ask: string;
         art: {
           feedback: Artifact<typeof GitFile>;
           'foci.goal.concept': Focus['concept'];
           'foci.goal.context': Focus['context'];
-          templates: Artifact<typeof GitFile>[];
         };
         refs: Artifact<typeof GitFile>[];
       }
@@ -65,7 +62,6 @@ type StitcherDesired = GStitcher<
         art: {
           'focus.concept': Focus['concept'];
           'focus.context': Focus['context'];
-          'foci.ponder.ans.concept': Focus['concept'];
         };
         briefs: Artifact<typeof GitFile>[];
       }
@@ -75,77 +71,72 @@ type StitcherDesired = GStitcher<
   { content: string }
 >;
 
-const template = genTemplate<StitcherDesired['threads']>({
-  ref: { uri: __filename.replace('.ts', '.template.md') },
-  getVariables: async ({ threads }) => ({
-    ...(await getTemplateVarsFromRoleInherit({ thread: threads.thinker })),
-
-    guide: {
-      goal:
-        (await threads.caller.context.stash.art['foci.goal.concept'].get())
-          ?.content ||
-        UnexpectedCodePathError.throw('goal not declared', {
-          art: threads.caller.context.stash.art['foci.goal.concept'],
-        }),
-      feedback:
-        (await threads.caller.context.stash.art.feedback.get())?.content || '',
-    },
-
-    focus: {
-      context:
-        (await threads.thinker.context.stash.art['focus.context'].get())
-          ?.content ||
-        (await threads.caller.context.stash.art['foci.goal.context'].get()) // fallback to @[caller].focus[goal].context
-          ?.content ||
-        '',
-      concept:
-        (await threads.thinker.context.stash.art['focus.concept'].get())
-          ?.content || '',
-    },
-
-    ponderage:
-      (await threads.thinker.context.stash.art['foci.ponder.ans.concept'].get())
-        ?.content || '',
-
-    templates: await getTemplateValFromArtifacts({
-      artifacts: [...threads.caller.context.stash.art.templates],
-    }),
-
-    skill: {
-      briefs: await getTemplateValFromArtifacts({
-        artifacts: [
-          ...BRIEFS_FOR_ARTICULATE,
-          ...threads.thinker.context.stash.briefs,
-        ],
-      }),
-    },
-
-    references: await getTemplateValFromArtifacts({
-      artifacts: threads.caller.context.stash.refs,
-    }),
-  }),
-});
-
-const stepImagine = genStepImagineViaTemplate<StitcherDesired>({
-  slug: '@[thinker]<articulate>',
+// todo: generalize; we've got two examples now w/ catalogize
+const stepAddThinkerBriefs = new StitchStepCompute<
+  GStitcher<
+    StitcherDesired['threads'],
+    GStitcher['context'],
+    { briefs: { before: string[]; after: string[] } }
+  >
+>({
+  slug: '@[thinker]<getBriefs>',
+  readme: "adds a set of briefs to the @[thinker]'s context",
+  form: 'COMPUTE',
   stitchee: 'thinker',
-  readme: '',
-  template,
-  imagine: withRetry(
-    withTimeout(sdkOpenAi.imagine, { threshold: { seconds: 60 } }), // allow up to 60 sec, for longer files
-  ),
-});
+  invoke: async ({ threads }) => {
+    // identify the prior briefs
+    const briefsBeforeUnsanitized = threads.thinker.context.stash.briefs;
 
-const stepPersist = genStepArtSet({
-  stitchee: 'thinker',
-  artee: 'focus.concept',
+    // drop the briefs if they were already included (we'll put them at the end again, so they're the last thought)
+    const briefsBefore = briefsBeforeUnsanitized.filter(
+      (b) => !BRIEFS_FOR_ARTICULATE.includes(b),
+    );
+
+    // append these briefs
+    const briefsAfter = [...briefsBefore, ...BRIEFS_FOR_ARTICULATE];
+
+    // add the briefs to the thinker's context
+    threads.thinker.context.stash.briefs = briefsAfter;
+
+    // extend the focus context to explicitly know to use these briefs; // todo: put this into its own step for observability in stitch trail
+    const focusContextBefore = (
+      await threads.thinker.context.stash.art['focus.context'].get()
+    )?.content;
+    const focusContextToAdd = `
+instantiate the concept as an [articulate] via the <articulate> mechanism, defined in your briefs.
+
+in particular, leverage the articulate lessons and articles
+    `.trim();
+    const focusContextAfter = [
+      focusContextBefore,
+      '',
+      '---',
+      '',
+      focusContextToAdd,
+    ].join('\n');
+    await threads.thinker.context.stash.art['focus.context'].set({
+      content: focusContextAfter,
+    });
+
+    // and then report that we did so
+    return {
+      input: null,
+      output: {
+        briefs: {
+          before: briefsBefore.map((artifact) => artifact.ref.uri),
+          after: briefsAfter.map((artifact) => artifact.ref.uri),
+        },
+      },
+    };
+  },
 });
 
 export const stepArticulate = asStitcherFlat<StitcherDesired>(
   genStitchRoute({
     slug: '@[thinker]<articulate>',
-    readme: '@[thinker]<articulate> -> [article]',
-    sequence: [stepImagine, stepPersist],
+    readme:
+      '@[thinker]<getBriefs> -> @[thinker]<instantiate>[articulate] -> [instance][articulate]',
+    sequence: [stepAddThinkerBriefs, stepInstantiate],
   }),
 );
 
