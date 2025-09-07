@@ -1,10 +1,10 @@
-import { enrollThread, genRoleSkill } from 'rhachet';
+import { enrollThread, genRoleSkill, genContextStitchTrail } from 'rhachet';
 import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { BRIEFS_FOR_CATALOGIZE, loopCatalogize } from './stepCatalogize';
+import { genStitchStreamToDisk } from '../../../context/genStitchStreamToDisk';
+import { loopCatalogize } from './stepCatalogize';
 
 export const SKILL_CATALOGIZE = genRoleSkill({
   slug: 'catalogize',
@@ -131,10 +131,7 @@ export const SKILL_CATALOGIZE = genRoleSkill({
               'focus.context': artifacts['focus.context'],
               'focus.concept': artifacts['focus.concept'],
             },
-            briefs: [
-              ...artifacts.briefs,
-              ...BRIEFS_FOR_CATALOGIZE, // flow the catalogize briefs down so that <ponder> has them in context too; this approach does cause duplicate briefs for catalogize, but that's no biggie
-            ],
+            briefs: artifacts.briefs,
           },
         }),
       };
@@ -155,7 +152,9 @@ export const SKILL_CATALOGIZE = genRoleSkill({
       return {
         ...getContextOpenAI(),
         ...genContextLogTrail(),
-        ...genContextStitchTrail(),
+        ...genContextStitchTrail({
+          stream: genStitchStreamToDisk({ dir: process.cwd() }), // stream events to disk
+        }),
       };
     },
   },

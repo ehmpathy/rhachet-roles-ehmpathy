@@ -1,6 +1,7 @@
 import { Role, RoleTrait } from 'rhachet';
 
 import { SKILL_ARTICULATE } from './brief.articulate/stepArticulate.skill';
+import { SKILL_CATALOGIZE } from './brief.catalogize/stepCatalogize.skill';
 import { SKILL_DEMONSTRATE } from './brief.demonstrate/stepDemonstrate.skill';
 import { getBhrainBrief } from './getBhrainBrief';
 import { SKILL_CLUSTER } from './khue.cluster/stepCluster.skill';
@@ -34,6 +35,7 @@ thought tactics; intent = be composed into other roles
     // know primitives
     SKILL_ARTICULATE,
     SKILL_DEMONSTRATE,
+    SKILL_CATALOGIZE,
 
     // goal primitives
     // SKILL_INTERPRET; ask -> Focus[Goal]

@@ -15,7 +15,7 @@ import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
 import { getBhrainBriefs } from '../getBhrainBrief';
 import { stepInstantiate } from '../khue.instantiate/stepInstantiate';
 
-export const BRIEFS_FOR_CATALOGIZE = getBhrainBriefs([
+const BRIEFS_FOR_CATALOGIZE = getBhrainBriefs([
   'cognition/cog021.structs.catalog.md',
   'knowledge/kno201.documents.catalogs.[article].md',
   'knowledge/kno201.documents._.[catalog].md',
@@ -70,7 +70,12 @@ const stepAddThinkerBriefs = new StitchStepCompute<
   stitchee: 'thinker',
   invoke: async ({ threads }) => {
     // identify the prior briefs
-    const briefsBefore = threads.thinker.context.stash.briefs;
+    const briefsBeforeUnsanitized = threads.thinker.context.stash.briefs;
+
+    // drop the briefs if they were already included (we'll put them at the end again, so they're the last thought)
+    const briefsBefore = briefsBeforeUnsanitized.filter(
+      (b) => !BRIEFS_FOR_CATALOGIZE.includes(b),
+    );
 
     // append these briefs
     const briefsAfter = [...briefsBefore, ...BRIEFS_FOR_CATALOGIZE];
@@ -123,5 +128,5 @@ export const stepCatalogize = asStitcherFlat<StitcherDesired>(
 export const loopCatalogize = genLoopFeedback({
   stitchee: 'thinker',
   artee: 'focus.concept',
-  repeatee: stepInstantiate,
+  repeatee: stepCatalogize,
 });
