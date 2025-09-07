@@ -32,6 +32,11 @@ export const BRIEFS_FOR_ARTICULATE = getBhrainBriefs([
   'cognition/cog401.questions.2.1.primitives.rough._.md',
   'cognition/cog201.cortal.focus.p2.acuity.md',
   'cognition/cog301.traversal.1.motion.primitives.acuity.md',
+  //
+  'knowledge/kno201.documents.articles.[article].md',
+  'knowledge/kno301.doc.enbrief.2.articulate.[article].md',
+  'knowledge/kno301.doc.enbrief.2.articulate.[lesson].md',
+  //
   'librarian.tactics/[brief].verbiage.outline.over.narrative.md',
   'librarian.tactics/<articulate>._.[article].frame.cognitive.md',
   'librarian.tactics/<articulate>._.[article].frame.tactical.md',
@@ -65,7 +70,6 @@ type StitcherDesired = GStitcher<
         art: {
           'focus.concept': Focus['concept'];
           'focus.context': Focus['context'];
-          'foci.ponder.ans.concept': Focus['concept'];
         };
         briefs: Artifact<typeof GitFile>[];
       }
@@ -102,10 +106,6 @@ const template = genTemplate<StitcherDesired['threads']>({
         (await threads.thinker.context.stash.art['focus.concept'].get())
           ?.content || '',
     },
-
-    ponderage:
-      (await threads.thinker.context.stash.art['foci.ponder.ans.concept'].get())
-        ?.content || '',
 
     templates: await getTemplateValFromArtifacts({
       artifacts: [...threads.caller.context.stash.art.templates],

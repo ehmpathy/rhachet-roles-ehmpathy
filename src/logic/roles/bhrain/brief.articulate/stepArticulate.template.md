@@ -88,15 +88,6 @@ $.rhachet{templates}
 
 ---
 
-### 🧠 @[ponder][output]
-> ponderage to help tune your focus
-
-\`\`\`json
-$.rhachet{ponderage}
-\`\`\`
-
----
-
 ### 🧘 @[focus.context]
 > the context in focus available for leverage
 

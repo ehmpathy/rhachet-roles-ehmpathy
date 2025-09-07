@@ -4,18 +4,17 @@ import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { BRIEFS_FOR_ARTICULATE, loopArticulate } from './stepArticulate';
+import { loopArticulate } from './stepArticulate';
 
 export const SKILL_ARTICULATE = genRoleSkill({
   slug: 'articulate',
   route: loopArticulate,
-  // route: loopsArticulateWithPonder, // todo: revive ponder when its actually helpful. today, ponder actually hurts
   threads: {
     lookup: {
-      target: {
+      output: {
         source: 'process.argv',
-        char: 't',
-        desc: 'the target file or dir to write against',
+        char: 'o',
+        desc: 'the output file to write against',
         type: 'string',
       },
       goal: {
@@ -46,7 +45,7 @@ export const SKILL_ARTICULATE = genRoleSkill({
     assess: (
       input,
     ): input is {
-      target: string;
+      output: string;
       goal: string;
       references: string;
       briefs: string;
@@ -54,14 +53,14 @@ export const SKILL_ARTICULATE = genRoleSkill({
       ask: string;
     } => typeof input.target === 'string',
     instantiate: async (input: {
-      target: string;
+      output: string;
       goal: string;
       references: string;
       briefs: string;
       templates?: string;
       ask: string;
     }) => {
-      const obsDir = getArtifactObsDir({ uri: input.target });
+      const obsDir = getArtifactObsDir({ uri: input.output });
       const artifacts = {
         goal: await (async () => {
           if (input.goal)
@@ -86,35 +85,7 @@ export const SKILL_ARTICULATE = genRoleSkill({
           { versions: true },
         ),
         'focus.concept': genArtifactGitFile(
-          { uri: input.target },
-          { versions: true },
-        ),
-        'foci.articulate.context': genArtifactGitFile(
-          { uri: obsDir + '.foci.articulate.context.md' },
-          { versions: true },
-        ),
-        'foci.articulate.concept': genArtifactGitFile(
-          { uri: obsDir + '.foci.articulate.concept.md' },
-          { versions: true },
-        ),
-        'foci.ponder.que.context': genArtifactGitFile(
-          { uri: obsDir + '.foci.ponder.que.context.md' },
-          { versions: true },
-        ),
-        'foci.ponder.que.concept': genArtifactGitFile(
-          { uri: obsDir + '.foci.ponder.que.concept.md' },
-          { versions: true },
-        ),
-        'foci.ponder.ans.context': genArtifactGitFile(
-          { uri: obsDir + '.foci.ponder.ans.context.md' },
-          { versions: true },
-        ),
-        'foci.ponder.ans.concept': genArtifactGitFile(
-          { uri: obsDir + '.foci.ponder.ans.concept.md' },
-          { versions: true },
-        ),
-        'ponder.output': genArtifactGitFile(
-          { uri: obsDir + '.ponder.output.md' },
+          { uri: input.output },
           { versions: true },
         ),
         references:
@@ -160,17 +131,8 @@ export const SKILL_ARTICULATE = genRoleSkill({
             art: {
               'focus.context': artifacts['focus.context'],
               'focus.concept': artifacts['focus.concept'],
-              'foci.articulate.context': artifacts['foci.articulate.context'],
-              'foci.articulate.concept': artifacts['foci.articulate.concept'],
-              'foci.ponder.ans.context': artifacts['foci.ponder.ans.context'],
-              'foci.ponder.ans.concept': artifacts['foci.ponder.ans.concept'],
-              'foci.ponder.que.context': artifacts['foci.ponder.que.context'],
-              'foci.ponder.que.concept': artifacts['foci.ponder.que.concept'],
             },
-            briefs: [
-              ...artifacts.briefs,
-              ...BRIEFS_FOR_ARTICULATE, // flow the articulate briefs down so that <ponder> has them in context too; this approach does cause duplicate briefs for articulate, but thats no biggie
-            ],
+            briefs: artifacts.briefs,
           },
         }),
       };
