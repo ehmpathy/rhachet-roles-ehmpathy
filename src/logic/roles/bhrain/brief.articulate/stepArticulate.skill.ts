@@ -1,9 +1,9 @@
-import { enrollThread, genRoleSkill } from 'rhachet';
+import { enrollThread, genRoleSkill, genContextStitchTrail } from 'rhachet';
 import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
+import { genStitchStreamToDisk } from '../../../context/genStitchStreamToDisk';
 import { loopArticulate } from './stepArticulate';
 
 export const SKILL_ARTICULATE = genRoleSkill({
@@ -51,7 +51,7 @@ export const SKILL_ARTICULATE = genRoleSkill({
       briefs: string;
       templates?: string;
       ask: string;
-    } => typeof input.target === 'string',
+    } => typeof input.output === 'string',
     instantiate: async (input: {
       output: string;
       goal: string;
@@ -153,7 +153,9 @@ export const SKILL_ARTICULATE = genRoleSkill({
       return {
         ...getContextOpenAI(),
         ...genContextLogTrail(),
-        ...genContextStitchTrail(),
+        ...genContextStitchTrail({
+          stream: genStitchStreamToDisk({ dir: process.cwd() }), // stream events to disk
+        }),
       };
     },
   },

@@ -9,6 +9,7 @@ import {
   genTemplate,
   getTemplateVarsFromRoleInherit,
   getTemplateValFromArtifacts,
+  getTemplatePathByCallerPath,
 } from 'rhachet';
 import { Artifact } from 'rhachet-artifact';
 import { GitFile } from 'rhachet-artifact-git';
@@ -80,7 +81,7 @@ type StitcherDesired = GStitcher<
 >;
 
 const template = genTemplate<StitcherDesired['threads']>({
-  ref: { uri: __filename.replace('.ts', '.template.md') },
+  ref: { uri: getTemplatePathByCallerPath({ auto: true }) },
   getVariables: async ({ threads }) => ({
     ...(await getTemplateVarsFromRoleInherit({ thread: threads.thinker })),
 
