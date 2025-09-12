@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.3.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.2.0...v1.3.0) (2025-09-12)
+
+
+### Features
+
+* **bhrain:** articulate traits. articulate trait gerund eliminator ([403fc0f](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/403fc0f47a32a0ca459fa7e5982ef741c09f08df))
+
+
+### Bug Fixes
+
+* **bhrain:** get template by caller path for triage and articulate; also, galactic metaphor ([35551f6](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/35551f6e498e0186714460d7a6b0178166425e40))
+* **bhrain:** reliably load catelogize template for skill ([5667f71](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/5667f712c03f3f1d30c0c29871e11461c5ff4af8))
+* **bhrain:** use --output instead of --target on articulate skill ([0ec8050](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/0ec8050feeda764ce83adf95c7bada1cf54a876f))
+* **feedback:** omit feedback if in isolated attempt thread ([00dc100](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/00dc100c08bcad1296b5a265791302a602a372fd))
+
 ## [1.2.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.1.0...v1.2.0) (2025-09-03)
 
 
