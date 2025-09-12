@@ -53,6 +53,16 @@ export const genStepGrabCallerFeedbackToArtifact = <
       // show the reviewer what they're reviewing
       console.log(`\n📝 feedback target: ${target.uri}\n`);
 
+      // if this is running in an isolated attempt thread, then the user has no way to supply feedback
+      if (process.env.RHACHET_ATTEMPT)
+        return {
+          input: target,
+          output: {
+            feedback: null,
+            reason: 'in isolated attempt thread, no way to receive feedback',
+          },
+        };
+
       // prompt to see if they want to leave notes
       const { hasNotes } = await inquirer.prompt<{ hasNotes: string }>([
         {

@@ -63,7 +63,7 @@
     "serde-fns": "1.2.0",
     "simple-in-memory-cache": "0.4.0",
     "type-fns": "1.19.0",
-    "with-simple-caching": "0.14.1",
+    "with-simple-caching": "0.14.2",
     "wrapper-fns": "1.1.0"
   },
   "devDependencies": {
