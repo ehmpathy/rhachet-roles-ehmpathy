@@ -1,3 +1,4 @@
+import { glob } from 'fast-glob';
 import { enrollThread, genRoleSkill } from 'rhachet';
 import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 
@@ -35,6 +36,12 @@ export const SKILL_INSTANTIATE = genRoleSkill({
         desc: 'brief files to to use, if any; delimit with commas',
         type: '?string',
       },
+      fresh: {
+        source: 'process.argv',
+        char: 'z',
+        desc: 'whether to start with a --fresh state; use it to remove prior instances before execution; yes = yes',
+        type: '?string',
+      },
     },
     assess: (
       input,
@@ -44,6 +51,7 @@ export const SKILL_INSTANTIATE = genRoleSkill({
       references: string;
       briefs: string;
       ask: string;
+      fresh: string;
     } => typeof input.output === 'string',
     instantiate: async (input: {
       output: string;
@@ -51,6 +59,7 @@ export const SKILL_INSTANTIATE = genRoleSkill({
       references: string;
       briefs: string;
       ask: string;
+      fresh: string;
     }) => {
       // declare where all the artifacts will be found
       const obsDir = getArtifactObsDir({ uri: input.output });
@@ -77,13 +86,18 @@ export const SKILL_INSTANTIATE = genRoleSkill({
           { uri: input.output },
           { versions: true },
         ),
-        references:
-          input.references
-            ?.split(',')
-            .filter((uri) => !!uri)
-            .map((reference) =>
-              genArtifactGitFile({ uri: reference }, { access: 'readonly' }),
-            ) ?? [],
+        references: (
+          await Promise.all(
+            input.references
+              ?.split(',')
+              .filter((uri) => !!uri)
+              .map(async (pattern) => await glob(pattern)) ?? [], // support glob references
+          )
+        )
+          .flat()
+          .map((reference) =>
+            genArtifactGitFile({ uri: reference }, { access: 'readonly' }),
+          ),
         briefs:
           input.briefs
             ?.split(',')
@@ -110,6 +124,17 @@ export const SKILL_INSTANTIATE = genRoleSkill({
         return input.ask;
       })();
       await artifacts.goal.concept.set({ content: goalConcept });
+
+      // if we were asked to start fresh, then delete the thinker's focus concept
+      const enfresh = input.fresh.toLowerCase() === 'yes';
+      if (enfresh) {
+        await artifacts['focus.context'].del();
+        console.log();
+        console.log(
+          `🧽 fresh start. deleted ${artifacts['focus.context'].ref.uri}`,
+        );
+        console.log();
+      }
 
       return {
         caller: await enrollThread({
