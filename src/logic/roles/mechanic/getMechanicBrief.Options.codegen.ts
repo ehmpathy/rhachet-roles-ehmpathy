@@ -23,6 +23,7 @@ const options = [
   'codestyle/flow.immutability.md',
   'codestyle/flow.narratives.md',
   'codestyle/flow.single-responsibility.md',
+  'codestyle/flow.transformers_over_conditionals.[lesson].md',
   'codestyle/mech.args.input-context.md',
   'codestyle/mech.args.input-inline.md',
   'codestyle/mech.arrowonly.md',

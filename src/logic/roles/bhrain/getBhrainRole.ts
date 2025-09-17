@@ -1,5 +1,6 @@
 import { Role, RoleTrait } from 'rhachet';
 
+import { getMechanicBrief } from '../mechanic/getMechanicBrief';
 import { SKILL_ARTICULATE } from './brief.articulate/stepArticulate.skill';
 import { SKILL_CATALOGIZE } from './brief.catalogize/stepCatalogize.skill';
 import { SKILL_DEMONSTRATE } from './brief.demonstrate/stepDemonstrate.skill';
@@ -23,6 +24,11 @@ thought tactics; intent = be composed into other roles
       slug: 'ocd',
       readme: 'obsesses over structure, precision, and clarity',
       brief: getBhrainBrief('trait.ocd.md'),
+    }),
+    RoleTrait.build({
+      slug: 'vibes',
+      readme: 'careful about the aesthetics of their output',
+      brief: getMechanicBrief('style.words.lowercase.md'),
     }),
   ],
   skills: [

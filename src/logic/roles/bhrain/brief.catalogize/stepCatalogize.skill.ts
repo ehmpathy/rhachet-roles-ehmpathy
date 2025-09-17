@@ -1,3 +1,4 @@
+import { glob } from 'fast-glob';
 import { enrollThread, genRoleSkill, genContextStitchTrail } from 'rhachet';
 import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 
@@ -77,13 +78,18 @@ export const SKILL_CATALOGIZE = genRoleSkill({
           { uri: input.output },
           { versions: true },
         ),
-        references:
-          input.references
-            ?.split(',')
-            .filter((uri) => !!uri)
-            .map((reference) =>
-              genArtifactGitFile({ uri: reference }, { access: 'readonly' }),
-            ) ?? [],
+        references: (
+          await Promise.all(
+            input.references
+              ?.split(',')
+              .filter((uri) => !!uri)
+              .map(async (pattern) => await glob(pattern)) ?? [], // support glob references
+          )
+        )
+          .flat()
+          .map((reference) =>
+            genArtifactGitFile({ uri: reference }, { access: 'readonly' }),
+          ),
         briefs:
           input.briefs
             ?.split(',')

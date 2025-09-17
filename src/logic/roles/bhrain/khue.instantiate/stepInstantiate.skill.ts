@@ -51,7 +51,7 @@ export const SKILL_INSTANTIATE = genRoleSkill({
       references: string;
       briefs: string;
       ask: string;
-      fresh: string;
+      fresh?: string;
     } => typeof input.output === 'string',
     instantiate: async (input: {
       output: string;
@@ -59,7 +59,7 @@ export const SKILL_INSTANTIATE = genRoleSkill({
       references: string;
       briefs: string;
       ask: string;
-      fresh: string;
+      fresh?: string;
     }) => {
       // declare where all the artifacts will be found
       const obsDir = getArtifactObsDir({ uri: input.output });
@@ -126,7 +126,7 @@ export const SKILL_INSTANTIATE = genRoleSkill({
       await artifacts.goal.concept.set({ content: goalConcept });
 
       // if we were asked to start fresh, then delete the thinker's focus concept
-      const enfresh = input.fresh.toLowerCase() === 'yes';
+      const enfresh = input.fresh?.toLowerCase() === 'yes';
       if (enfresh) {
         await artifacts['focus.context'].del();
         console.log();
