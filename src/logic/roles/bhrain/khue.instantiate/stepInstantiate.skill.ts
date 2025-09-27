@@ -1,10 +1,12 @@
 import { glob } from 'fast-glob';
 import { enrollThread, genRoleSkill } from 'rhachet';
 import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
+import { isPresent, omit } from 'type-fns';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
+import { setSkillOutputSrc } from '../../../artifact/setSkillOutputSrc';
 import { BRIEFS_FOR_INSTANTIATE, loopInstantiate } from './stepInstantiate';
 
 export const SKILL_INSTANTIATE = genRoleSkill({
@@ -124,6 +126,9 @@ export const SKILL_INSTANTIATE = genRoleSkill({
         return input.ask;
       })();
       await artifacts.goal.concept.set({ content: goalConcept });
+
+      // add an src file for historic record
+      await setSkillOutputSrc({ skillUri: 'bhrain.instantiate', opts: input }); // todo: get skillUri from context
 
       // if we were asked to start fresh, then delete the thinker's focus concept
       const enfresh = input.fresh?.toLowerCase() === 'yes';

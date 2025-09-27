@@ -4,6 +4,7 @@ import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
+import { setSkillOutputSrc } from '../../../artifact/setSkillOutputSrc';
 import { genStitchStreamToDisk } from '../../../context/genStitchStreamToDisk';
 import { loopCatalogize } from './stepCatalogize';
 
@@ -116,6 +117,9 @@ export const SKILL_CATALOGIZE = genRoleSkill({
         return input.ask;
       })();
       await artifacts.goal.concept.set({ content: goalConcept });
+
+      // add an src file for historic record
+      await setSkillOutputSrc({ skillUri: 'bhrain.catalogize', opts: input }); // todo: get skillUri from context
 
       return {
         caller: await enrollThread({

@@ -3,6 +3,7 @@ import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
+import { setSkillOutputSrc } from '../../../artifact/setSkillOutputSrc';
 import { genStitchStreamToDisk } from '../../../context/genStitchStreamToDisk';
 import { loopArticulate } from './stepArticulate';
 
@@ -110,6 +111,9 @@ export const SKILL_ARTICULATE = genRoleSkill({
               genArtifactGitFile({ uri: template }, { access: 'readonly' }),
             ) ?? [],
       };
+
+      // add an src file for historic record
+      await setSkillOutputSrc({ skillUri: 'bhrain.articulate', opts: input }); // todo: get skillUri from context
 
       return {
         caller: await enrollThread({
