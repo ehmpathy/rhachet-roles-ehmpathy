@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.4.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.3.0...v1.4.0) (2025-09-27)
+
+
+### Features
+
+* **skill:** enable --ref globs and --fresh for instantiate skill ([1129ad0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/1129ad051691467931cd59a90573f6811271af7c))
+* **skills:** emit .src file for subset of skills ([ff67fe6](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/ff67fe68ff5088f94a87dad83977861624705712))
+
+
+### Bug Fixes
+
+* **bhrain:** catalogize table format ([fa4d178](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/fa4d178905357e30807ea60e3ddff38f9c6658c8))
+* **skills:** support glob in catalogize; optional fresh in instantiate ([96572cc](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/96572ccae4846bfcbb6543fe0ee857d5f230dfc6))
+
 ## [1.3.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.2.0...v1.3.0) (2025-09-12)
 
 
