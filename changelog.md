@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.5.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.4.0...v1.5.0) (2025-09-29)
+
+
+### Features
+
+* **hooks:** add translate doc output path hook ([470b1da](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/470b1da472fe5e3dad2c38252c9e510ec18430f4))
+
 ## [1.4.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.3.0...v1.4.0) (2025-09-27)
 
 
