@@ -1,4 +1,4 @@
-import { LogLevel, withLogTrail } from 'as-procedure';
+import { ContextLogTrail } from 'as-procedure';
 import { BadRequestError, UnexpectedCodePathError } from 'helpful-errors';
 import { InvokeOpts } from 'rhachet';
 import { isPresent } from 'type-fns';
@@ -17,8 +17,9 @@ import { relateDocOutputPath } from './relateDocOutputPath';
  *   - .v1 always started with, to facilitate subsequent trails
  *   - .rel(...) optionally re-roots the prefix directory relatively
  */
-const execTranslateDocOutputPath = (
+export const execTranslateDocOutputPath = (
   opts: InvokeOpts<{ ask: string; config: string }>,
+  context?: ContextLogTrail,
 ): InvokeOpts<{ ask: string; config: string }> => {
   // if no .output or not a string, nothing to do
   if (typeof opts.output !== 'string') return opts;
@@ -100,9 +101,3 @@ const execTranslateDocOutputPath = (
   // swap out the opts
   return { ...opts, output: outputPathRelated };
 };
-
-const wrapped = withLogTrail(execTranslateDocOutputPath, {
-  log: { level: LogLevel.DEBUG },
-});
-
-export { wrapped as execTranslateDocOutputPath };

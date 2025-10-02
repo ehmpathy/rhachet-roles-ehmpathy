@@ -17,7 +17,7 @@ describe('decodeDocOutputPath (only considers [doctype]s after the last "/")', (
           doctype: 'stories',
           prefix:
             'src/product/protools/tool.routecal/step_5.stories/step_1.translate/' +
-            'provider.plumber_pete.customer_needs.scene_6.loyalty_build.persp_pro.v1i2.',
+            'provider.plumber_pete.customer_needs.scene_6.loyalty_build.persp_pro.v1i2',
           versions: { variant: 1, instance: 3 },
           extension: 'md',
         });
@@ -39,7 +39,7 @@ describe('decodeDocOutputPath (only considers [doctype]s after the last "/")', (
         then('it uses the [doctype] after the last slash', () => {
           expect(result.doctype).toBe('stories');
           expect(result.prefix).toBe(
-            'root/alpha.[draft].beta/gamma.[notes].delta/omega.v2.',
+            'root/alpha.[draft].beta/gamma.[notes].delta/omega.v2',
           );
           expect(result.versions).toEqual({ variant: null, instance: 7 });
           expect(result.extension).toBe('md');
@@ -74,7 +74,7 @@ describe('decodeDocOutputPath (only considers [doctype]s after the last "/")', (
         then('it picks the last [doctype] after the last slash', () => {
           expect(result).toEqual({
             doctype: 'stories',
-            prefix: 'a/b/c/topic.[draft].x.',
+            prefix: 'a/b/c/topic.[draft].x',
             versions: { variant: 1, instance: null },
             extension: 'md',
           });
@@ -92,7 +92,7 @@ describe('decodeDocOutputPath (only considers [doctype]s after the last "/")', (
       then('it parses variant and leaves instance null', () => {
         expect(result).toEqual({
           doctype: 'story',
-          prefix: 'x/y/z/foo.',
+          prefix: 'x/y/z/foo',
           versions: { variant: 12, instance: null },
           extension: 'md',
         });
@@ -109,7 +109,7 @@ describe('decodeDocOutputPath (only considers [doctype]s after the last "/")', (
       then('it parses instance and leaves variant null', () => {
         expect(result).toEqual({
           doctype: 'story',
-          prefix: 'x/y/z/foo.',
+          prefix: 'x/y/z/foo',
           versions: { variant: null, instance: 9 },
           extension: 'md',
         });
@@ -130,7 +130,7 @@ describe('decodeDocOutputPath (only considers [doctype]s after the last "/")', (
           () => {
             expect(result).toEqual({
               doctype: 'stories',
-              prefix: 'a/b/c/topic.',
+              prefix: 'a/b/c/topic',
               versions: { variant: null, instance: null },
               extension: 'md',
             });
@@ -151,7 +151,7 @@ describe('decodeDocOutputPath (only considers [doctype]s after the last "/")', (
         then('it sets extension to null', () => {
           expect(result).toEqual({
             doctype: 'stories',
-            prefix: 'a/b/c/topic.',
+            prefix: 'a/b/c/topic',
             versions: { variant: 3, instance: 2 },
             extension: null,
           });
@@ -171,7 +171,7 @@ describe('decodeDocOutputPath (only considers [doctype]s after the last "/")', (
         then('it returns no versions and the extension', () => {
           expect(result).toEqual({
             doctype: 'stories',
-            prefix: 'a/b/c/topic.',
+            prefix: 'a/b/c/topic',
             versions: { variant: null, instance: null },
             extension: 'md',
           });
@@ -189,7 +189,7 @@ describe('decodeDocOutputPath (only considers [doctype]s after the last "/")', (
       then('it parses regardless of case', () => {
         expect(result).toEqual({
           doctype: 'STORIES',
-          prefix: 'a/b/c/topic.',
+          prefix: 'a/b/c/topic',
           versions: { variant: 10, instance: 4 },
           extension: 'MD',
         });
