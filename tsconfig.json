@@ -16,9 +16,6 @@
     ]
   },
   "extends": "@tsconfig/node-lts-strictest/tsconfig.json",
-  "include": [
-    "**/*.ts",
-  ],
   "exclude": [
     "dist",
     "coverage",

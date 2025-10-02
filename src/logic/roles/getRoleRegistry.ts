@@ -4,6 +4,7 @@ import { ROLE_BHRAIN } from './bhrain/getBhrainRole';
 // import { ROLE_ECOLOGIST } from './ecologist/getEcologistRole';
 import { EHMPATHY_REGISTRY_README } from './getRoleRegistry.readme';
 import { ROLE_MECHANIC } from './mechanic/getMechanicRole';
+import { ROLE_COMMANDER } from './terminal.commander/getCommanderRole';
 
 /**
  * .what = returns the core registry of predefined roles and skills
@@ -19,5 +20,7 @@ export const getRoleRegistry = (): RoleRegistry =>
       ROLE_BHRAIN, // todo: lift bhrain role into own repo
       // ROLE_ECOLOGIST,
       ROLE_MECHANIC,
+
+      ROLE_COMMANDER,
     ],
   });
