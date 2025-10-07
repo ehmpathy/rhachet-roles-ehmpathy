@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.6.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.5.0...v1.6.0) (2025-10-07)
+
+
+### Features
+
+* **term:** add terminal.commander.exec skill ([94fd26a](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/94fd26a2d49dd31cde0d9983d3477c6b58b105eb))
+* **term:** add terminal.commander.plan skill ([86289c9](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/86289c9d52caac28b33ef198ff1ff82193c565f1))
+
+
+### Bug Fixes
+
+* **tests:** resolve earlier unit test contract change ([a8b8587](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/a8b85875adcf6a55ab23b6467d08f05737c5cb76))
+
 ## [1.5.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.4.0...v1.5.0) (2025-09-29)
 
 
