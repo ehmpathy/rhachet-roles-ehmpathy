@@ -6,7 +6,7 @@ import { given, when, then, usePrep } from 'test-fns';
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { stepCommandPlan } from './stepCommandPlan';
+import { stepCommandPlan } from './stepPlanCommand';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));
 

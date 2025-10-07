@@ -2,7 +2,8 @@ import { Role, RoleTrait } from 'rhachet';
 
 import { getBhrainBrief } from '../bhrain/getBhrainBrief';
 import { getMechanicBrief } from '../mechanic/getMechanicBrief';
-import { SKILL_COMMANDPLAN } from './commandPlan/stepCommandPlan.skill';
+import { SKILL_COMMAND_EXEC } from './command.exec/stepExecCommand.skill';
+import { SKILL_COMMAND_PLAN } from './command.plan/stepPlanCommand.skill';
 
 export const ROLE_COMMANDER = Role.build({
   slug: 'commander',
@@ -28,5 +29,5 @@ a helpful terminal commander, at your service
       brief: getMechanicBrief('style.words.lowercase.md'),
     }),
   ],
-  skills: [SKILL_COMMANDPLAN],
+  skills: [SKILL_COMMAND_PLAN, SKILL_COMMAND_EXEC],
 });

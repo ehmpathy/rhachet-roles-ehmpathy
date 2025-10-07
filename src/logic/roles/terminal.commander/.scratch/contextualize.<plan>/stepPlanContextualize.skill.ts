@@ -2,15 +2,15 @@ import { glob } from 'fast-glob';
 import { enrollThread, genRoleSkill, genContextStitchTrail } from 'rhachet';
 import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 
-import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { setSkillOutputSrc } from '../../../artifact/setSkillOutputSrc';
-import { genStitchStreamToDisk } from '../../../context/genStitchStreamToDisk';
-import { loopCommandPlan } from './stepCommandPlan';
+import { genContextLogTrail } from '../../../../../.test/genContextLogTrail';
+import { getContextOpenAI } from '../../../../../.test/getContextOpenAI';
+import { setSkillOutputSrc } from '../../../../artifact/setSkillOutputSrc';
+import { genStitchStreamToDisk } from '../../../../context/genStitchStreamToDisk';
+import { loopPlanContextualize } from './stepPlanContextualize';
 
-export const SKILL_COMMANDPLAN = genRoleSkill({
+export const SKILL_PLAN_CONTEXTUALIZE = genRoleSkill({
   slug: 'plan',
-  route: loopCommandPlan,
+  route: loopPlanContextualize,
   threads: {
     lookup: {
       output: {
@@ -119,7 +119,10 @@ export const SKILL_COMMANDPLAN = genRoleSkill({
       await artifacts.goal.concept.set({ content: goalConcept });
 
       // add an src file for historic record
-      await setSkillOutputSrc({ skillUri: 'bhrain.commandPlan', opts: input }); // todo: get skillUri from context
+      await setSkillOutputSrc({
+        skillUri: 'bhrain.planContextualize',
+        opts: input,
+      }); // todo: get skillUri from context
 
       return {
         caller: await enrollThread({
