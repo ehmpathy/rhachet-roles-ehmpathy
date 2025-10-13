@@ -1,7 +1,6 @@
 import { glob } from 'fast-glob';
 import { enrollThread, genRoleSkill } from 'rhachet';
 import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
-import { isPresent, omit } from 'type-fns';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
@@ -161,10 +160,7 @@ export const SKILL_INSTANTIATE = genRoleSkill({
               'focus.context': artifacts['focus.context'],
               'focus.concept': artifacts['focus.concept'],
             },
-            briefs: [
-              ...artifacts.briefs,
-              ...BRIEFS_FOR_INSTANTIATE, // flow the instantiate briefs down so that <ponder> has them in context too; this approach does cause duplicate briefs for instantiate, but thats no biggie
-            ],
+            briefs: [...artifacts.briefs],
           },
         }),
       };
