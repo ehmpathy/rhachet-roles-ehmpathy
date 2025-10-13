@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.6.0...v1.7.0) (2025-10-13)
+
+
+### Features
+
+* **mechanic:** add git commit mechanic tactic::skill ([8e1ffb2](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/8e1ffb2eb5324101f6c9b42e00a2b692b0e84139))
+
 ## [1.6.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.5.0...v1.6.0) (2025-10-07)
 
 
