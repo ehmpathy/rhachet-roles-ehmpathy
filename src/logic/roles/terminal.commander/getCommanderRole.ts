@@ -30,4 +30,5 @@ a helpful terminal commander, at your service
     }),
   ],
   skills: [SKILL_COMMAND_PLAN, SKILL_COMMAND_EXEC],
+  briefs: { dir: __dirname + '/.briefs' },
 });

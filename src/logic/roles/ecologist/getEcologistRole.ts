@@ -24,4 +24,5 @@ Used to understand the physics, incentives, and causal flows beneath the system.
     // SKILL_DOMAIN_TERM_COLLECT_USECASES,
     // SKILL_DOMAIN_TERM_DISTILL,
   ],
+  briefs: { dir: __dirname + '/.briefs' },
 });

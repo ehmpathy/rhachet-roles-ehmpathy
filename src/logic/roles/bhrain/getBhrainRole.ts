@@ -46,4 +46,5 @@ thought tactics; intent = be composed into other roles
     // goal primitives
     // SKILL_INTERPRET; ask -> Focus[Goal]
   ],
+  briefs: { dir: __dirname + '/.briefs' },
 });
