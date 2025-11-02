@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.7.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.6.0...v1.7.0) (2025-11-02)
+
+
+### Features
+
+* **hooks:** support translate of paths relative to gitroot ([d0f6043](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/d0f6043c690b0d1d7e8bec01c88145514ecfd6d9))
+* **mechanic:** add git commit mechanic tactic::skill ([8e1ffb2](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/8e1ffb2eb5324101f6c9b42e00a2b692b0e84139))
+
+
+### Bug Fixes
+
+* **cicd:** approve arch as a valid commmit prefix ([97252ea](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/97252eab63fa891142baef4866d8ee11344af0c2))
+* **deps:** bump to latest rhachet version to support briefs ([f96531f](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/f96531f072787b39d524a5aa655556186013c587))
+
 ## [1.6.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.5.0...v1.6.0) (2025-10-07)
 
 
