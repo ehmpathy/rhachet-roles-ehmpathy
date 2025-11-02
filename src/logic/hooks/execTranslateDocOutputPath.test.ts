@@ -315,104 +315,278 @@ describe('execTranslateDocOutputPath (integration; hard-coded expectations)', ()
 });
 
 describe('execTranslateDocOutputPath .rel(...) (integration; hard-coded expectations)', () => {
-  given('move from step_1.translate → ../step_2.format (sibling up)', () => {
-    const source =
-      'src/product/cooltools/tool.hammer/step_1.translate/' +
-      'provider.scene_6.build.persp_pro.v2i3.[stories].v5.i7.md';
+  describe('relative to gitroot', () => {
+    given(
+      '@gitroot/ prefix re-roots from git repository root preserving only filename',
+      () => {
+        const source =
+          'src/product/cooltools/tool.hammer/step_1.translate/' +
+          'provider.scene_6.build.persp_pro.v2i3.[stories].v5.i7.md';
 
-    const input = {
-      output: '@translate(references.0).as(story).rel(../step_2.format)',
-      references: source,
-    } as any;
+        const input = {
+          output:
+            '@translate(references.0).as(story).rel(@gitroot/output/formatted)',
+          references: source,
+        } as any;
 
-    when('executed', () => {
-      const result = execTranslateDocOutputPath(input, context);
+        when('executed', () => {
+          const result = execTranslateDocOutputPath(input, context);
 
-      then('it re-roots under step_2.format and composes new file path', () => {
-        const expectedPrefix =
-          'src/product/cooltools/tool.hammer/step_2.format/' +
-          'provider.scene_6.build.persp_pro.v2i3';
-        const expected = `${expectedPrefix}.v5i7.[story].v1.md`;
-        expect(result.output).toBe(expected);
-      });
-    });
-  });
+          then('it re-roots from git root under output/formatted', () => {
+            const expected =
+              'output/formatted/provider.scene_6.build.persp_pro.v2i3.v5i7.[story].v1.md';
+            expect(result.output).toBe(expected);
+          });
+        });
+      },
+    );
 
-  given('append a child dir via .rel(./drafts)', () => {
-    const source = 'pkg/flows/step_3.translate/topic.branch.v9.[notes].v12.md';
-
-    const input = {
-      output: '@translate(references.0).as(report).rel(./drafts)',
-      references: source,
-    } as any;
-
-    when('executed', () => {
-      const result = execTranslateDocOutputPath(input, context);
-
-      then('it nests under drafts/', () => {
-        const expected =
-          'pkg/flows/step_3.translate/drafts/topic.branch.v9.v12.[report].v1.md';
-        expect(result.output).toBe(expected);
-      });
-    });
-  });
-
-  given('pop one directory via .rel(..)', () => {
-    const source = 'a/b/topic.[stories].i8.txt';
-
-    const input = {
-      output: '@translate(references.0).as(notes).rel(..)',
-      references: source,
-    } as any;
-
-    when('executed', () => {
-      const result = execTranslateDocOutputPath(input, context);
-
-      then('it moves to a/ and composes there', () => {
-        const expected = 'a/topic.i8.[notes].v1.txt';
-        expect(result.output).toBe(expected);
-      });
-    });
-  });
-
-  given('combine .rel(...) with .ext(json)', () => {
-    const source = 'root/x/item.[story].md';
-
-    const input = {
-      output: '@translate(references.0).as(summary).rel(../y).ext(json)',
-      references: source,
-    } as any;
-
-    when('executed', () => {
-      const result = execTranslateDocOutputPath(input, context);
-
-      then('it re-roots and overrides extension to .json', () => {
-        const expected = 'root/y/item.[summary].v1.json';
-        expect(result.output).toBe(expected);
-      });
-    });
-  });
-
-  given(
-    'source without extension + .rel(...) keeps no trailing dot unless .ext provided',
-    () => {
-      const source = 'docs/step.translate/topic.v3i2.[stories]';
+    given('@gitroot/ with nested target directories', () => {
+      const source =
+        'pkg/flows/step_3.translate/topic.branch.v9.[notes].v12.md';
 
       const input = {
-        output: '@translate(references.0).as(summary).rel(../step.out)',
+        output:
+          '@translate(references.0).as(report).rel(@gitroot/artifacts/reports)',
         references: source,
       } as any;
 
       when('executed', () => {
         const result = execTranslateDocOutputPath(input, context);
 
-        then('it emits no trailing extension', () => {
-          const expected = 'docs/step.out/topic.v3i2.[summary].v1';
+        then('it places under artifacts/reports/ from git root', () => {
+          const expected =
+            'artifacts/reports/topic.branch.v9.v12.[report].v1.md';
           expect(result.output).toBe(expected);
         });
       });
-    },
-  );
+    });
+
+    given('@gitroot/ with single directory', () => {
+      const source = 'deep/nested/path/topic.[stories].i8.txt';
+
+      const input = {
+        output: '@translate(references.0).as(notes).rel(@gitroot/dist)',
+        references: source,
+      } as any;
+
+      when('executed', () => {
+        const result = execTranslateDocOutputPath(input, context);
+
+        then('it places directly under dist/ from git root', () => {
+          const expected = 'dist/topic.i8.[notes].v1.txt';
+          expect(result.output).toBe(expected);
+        });
+      });
+    });
+
+    given('combine @gitroot/ .rel(...) with .ext(json)', () => {
+      const source = 'any/path/item.[story].md';
+
+      const input = {
+        output:
+          '@translate(references.0).as(summary).rel(@gitroot/build/json).ext(json)',
+        references: source,
+      } as any;
+
+      when('executed', () => {
+        const result = execTranslateDocOutputPath(input, context);
+
+        then('it re-roots from git root and applies .json extension', () => {
+          const expected = 'build/json/item.[summary].v1.json';
+          expect(result.output).toBe(expected);
+        });
+      });
+    });
+
+    given('combine @gitroot/ .rel(...) with .v(n)', () => {
+      const source = 'src/flow/step_1.translate/topic.branch.v9.[notes].v12.md';
+
+      const input = {
+        output:
+          '@translate(references.0).as(report).v(3).rel(@gitroot/output/v3)',
+        references: source,
+      } as any;
+
+      when('executed', () => {
+        const result = execTranslateDocOutputPath(input, context);
+
+        then('it re-roots from git root and uses specified variant', () => {
+          const expected = 'output/v3/topic.branch.v9.v12.[report].v3.md';
+          expect(result.output).toBe(expected);
+        });
+      });
+    });
+
+    given('source without extension + @gitroot/ .rel(...)', () => {
+      const source = 'docs/step.translate/topic.v3i2.[stories]';
+
+      const input = {
+        output: '@translate(references.0).as(summary).rel(@gitroot/final)',
+        references: source,
+      } as any;
+
+      when('executed', () => {
+        const result = execTranslateDocOutputPath(input, context);
+
+        then('it re-roots and emits no trailing extension', () => {
+          const expected = 'final/topic.v3i2.[summary].v1';
+          expect(result.output).toBe(expected);
+        });
+      });
+    });
+
+    given('@gitroot alone (just @gitroot/)', () => {
+      const source = 'very/deep/nested/path/file.[draft].v2.md';
+
+      const input = {
+        output: '@translate(references.0).as(final).rel(@gitroot/)',
+        references: source,
+      } as any;
+
+      when('executed', () => {
+        const result = execTranslateDocOutputPath(input, context);
+
+        then('it places file directly at git root', () => {
+          const expected = 'file.v2.[final].v1.md';
+          expect(result.output).toBe(expected);
+        });
+      });
+    });
+
+    given(
+      'complex real-world example with deep path and trailing slash',
+      () => {
+        const source =
+          'src/products/protools/tool.routecal/1.requirements/step_2.draft/' +
+          'provider.plumber_pete.customer.scene_6.v2i3.[stories].v5.i7.md';
+
+        const input = {
+          output:
+            '@translate(references.0).as(review).ext(json).rel(@gitroot/src/products/protools/tool.routecal/2.architecture/step_1.criteria/.rheview/).v(5)',
+          references: source,
+        } as any;
+
+        when('executed', () => {
+          const result = execTranslateDocOutputPath(input, context);
+
+          then(
+            'it re-roots to the specified gitroot path with all modifiers applied',
+            () => {
+              const expected =
+                'src/products/protools/tool.routecal/2.architecture/step_1.criteria/.rheview/' +
+                'provider.plumber_pete.customer.scene_6.v2i3.v5i7.[review].v5.json';
+              expect(result.output).toBe(expected);
+            },
+          );
+        });
+      },
+    );
+  });
+  describe('relative to input file', () => {
+    given('move from step_1.translate → ../step_2.format (sibling up)', () => {
+      const source =
+        'src/product/cooltools/tool.hammer/step_1.translate/' +
+        'provider.scene_6.build.persp_pro.v2i3.[stories].v5.i7.md';
+
+      const input = {
+        output: '@translate(references.0).as(story).rel(../step_2.format)',
+        references: source,
+      } as any;
+
+      when('executed', () => {
+        const result = execTranslateDocOutputPath(input, context);
+
+        then(
+          'it re-roots under step_2.format and composes new file path',
+          () => {
+            const expectedPrefix =
+              'src/product/cooltools/tool.hammer/step_2.format/' +
+              'provider.scene_6.build.persp_pro.v2i3';
+            const expected = `${expectedPrefix}.v5i7.[story].v1.md`;
+            expect(result.output).toBe(expected);
+          },
+        );
+      });
+    });
+
+    given('append a child dir via .rel(./drafts)', () => {
+      const source =
+        'pkg/flows/step_3.translate/topic.branch.v9.[notes].v12.md';
+
+      const input = {
+        output: '@translate(references.0).as(report).rel(./drafts)',
+        references: source,
+      } as any;
+
+      when('executed', () => {
+        const result = execTranslateDocOutputPath(input, context);
+
+        then('it nests under drafts/', () => {
+          const expected =
+            'pkg/flows/step_3.translate/drafts/topic.branch.v9.v12.[report].v1.md';
+          expect(result.output).toBe(expected);
+        });
+      });
+    });
+
+    given('pop one directory via .rel(..)', () => {
+      const source = 'a/b/topic.[stories].i8.txt';
+
+      const input = {
+        output: '@translate(references.0).as(notes).rel(..)',
+        references: source,
+      } as any;
+
+      when('executed', () => {
+        const result = execTranslateDocOutputPath(input, context);
+
+        then('it moves to a/ and composes there', () => {
+          const expected = 'a/topic.i8.[notes].v1.txt';
+          expect(result.output).toBe(expected);
+        });
+      });
+    });
+
+    given('combine .rel(...) with .ext(json)', () => {
+      const source = 'root/x/item.[story].md';
+
+      const input = {
+        output: '@translate(references.0).as(summary).rel(../y).ext(json)',
+        references: source,
+      } as any;
+
+      when('executed', () => {
+        const result = execTranslateDocOutputPath(input, context);
+
+        then('it re-roots and overrides extension to .json', () => {
+          const expected = 'root/y/item.[summary].v1.json';
+          expect(result.output).toBe(expected);
+        });
+      });
+    });
+
+    given(
+      'source without extension + .rel(...) keeps no trailing dot unless .ext provided',
+      () => {
+        const source = 'docs/step.translate/topic.v3i2.[stories]';
+
+        const input = {
+          output: '@translate(references.0).as(summary).rel(../step.out)',
+          references: source,
+        } as any;
+
+        when('executed', () => {
+          const result = execTranslateDocOutputPath(input, context);
+
+          then('it emits no trailing extension', () => {
+            const expected = 'docs/step.out/topic.v3i2.[summary].v1';
+            expect(result.output).toBe(expected);
+          });
+        });
+      },
+    );
+  });
 });
 
 describe('execTranslateDocOutputPath .v(n) (integration; hard-coded expectations)', () => {
