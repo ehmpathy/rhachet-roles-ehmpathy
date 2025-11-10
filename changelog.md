@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.8.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.7.0...v1.8.0) (2025-11-10)
+
+
+### Features
+
+* **architect:** expose architect role; also, bump to latest rhachet ([ee3f1a7](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/ee3f1a7859412a1a0fa7631ac89ebf48d79e1ecf))
+* **briefs:** append mechanic and architect briefs ([72e7c81](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/72e7c816a45c05977fbab7ea268a96694e2833d6))
+
 ## [1.7.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.6.0...v1.7.0) (2025-11-02)
 
 
