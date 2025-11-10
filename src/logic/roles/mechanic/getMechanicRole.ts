@@ -17,6 +17,11 @@ export const ROLE_MECHANIC = Role.build({
 Used to write and revise the actual logic that runs the system.
   `.trim(),
   traits: [],
-  skills: [SKILL_WRITE, SKILL_CODE_PROPOSE],
-  briefs: { dir: __dirname + '/.briefs' },
+  skills: {
+    dirs: [],
+    refs: [SKILL_WRITE, SKILL_CODE_PROPOSE],
+  },
+  briefs: {
+    dirs: [{ uri: __dirname + '/.briefs' }],
+  },
 });

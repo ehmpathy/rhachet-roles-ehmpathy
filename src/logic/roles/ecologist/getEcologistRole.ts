@@ -18,11 +18,16 @@ Used to understand the physics, incentives, and causal flows beneath the system.
 
   `.trim(),
   traits: [],
-  skills: [
-    // SKILL_ENVISION_JOURNEY,
-    // SKILL_STUDY_DOMAIN,
-    // SKILL_DOMAIN_TERM_COLLECT_USECASES,
-    // SKILL_DOMAIN_TERM_DISTILL,
-  ],
-  briefs: { dir: __dirname + '/.briefs' },
+  skills: {
+    dirs: [],
+    refs: [
+      // SKILL_ENVISION_JOURNEY,
+      // SKILL_STUDY_DOMAIN,
+      // SKILL_DOMAIN_TERM_COLLECT_USECASES,
+      // SKILL_DOMAIN_TERM_DISTILL,
+    ],
+  },
+  briefs: {
+    dirs: [{ uri: __dirname + '/.briefs' }],
+  },
 });

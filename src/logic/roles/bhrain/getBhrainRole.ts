@@ -31,20 +31,25 @@ thought tactics; intent = be composed into other roles
       brief: getMechanicBrief('style.words.lowercase.md'),
     }),
   ],
-  skills: [
-    // khue primitives
-    SKILL_DIVERGE,
-    SKILL_CLUSTER,
-    SKILL_TRIAGE,
-    SKILL_INSTANTIATE,
+  skills: {
+    dirs: [],
+    refs: [
+      // khue primitives
+      SKILL_DIVERGE,
+      SKILL_CLUSTER,
+      SKILL_TRIAGE,
+      SKILL_INSTANTIATE,
 
-    // know primitives
-    SKILL_ARTICULATE,
-    SKILL_DEMONSTRATE,
-    SKILL_CATALOGIZE,
+      // know primitives
+      SKILL_ARTICULATE,
+      SKILL_DEMONSTRATE,
+      SKILL_CATALOGIZE,
 
-    // goal primitives
-    // SKILL_INTERPRET; ask -> Focus[Goal]
-  ],
-  briefs: { dir: __dirname + '/.briefs' },
+      // goal primitives
+      // SKILL_INTERPRET; ask -> Focus[Goal]
+    ],
+  },
+  briefs: {
+    dirs: [{ uri: __dirname + '/.briefs' }],
+  },
 });

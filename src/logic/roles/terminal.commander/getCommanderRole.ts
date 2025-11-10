@@ -29,6 +29,11 @@ a helpful terminal commander, at your service
       brief: getMechanicBrief('style.words.lowercase.md'),
     }),
   ],
-  skills: [SKILL_COMMAND_PLAN, SKILL_COMMAND_EXEC],
-  briefs: { dir: __dirname + '/.briefs' },
+  skills: {
+    dirs: [],
+    refs: [SKILL_COMMAND_PLAN, SKILL_COMMAND_EXEC],
+  },
+  briefs: {
+    dirs: [{ uri: __dirname + '/.briefs' }],
+  },
 });

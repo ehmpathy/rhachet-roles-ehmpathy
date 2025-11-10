@@ -62,7 +62,7 @@ export type BriefOption${input.role} = typeof options[number];
 // npx tsx src/contract/commands/codegenBriefOptions.ts
 if (require.main === module) {
   void command({ role: 'Ecologist' });
-  // void command({ role: 'Architect' });
+  void command({ role: 'Architect' });
   void command({ role: 'Designer' });
   void command({ role: 'Mechanic' });
   void command({ role: 'Bhrain' });

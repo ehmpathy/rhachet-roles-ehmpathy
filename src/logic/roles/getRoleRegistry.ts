@@ -1,5 +1,6 @@
 import { RoleRegistry } from 'rhachet';
 
+import { ROLE_ARCHITECT } from './architect/getArchitectRole';
 import { ROLE_BHRAIN } from './bhrain/getBhrainRole';
 // import { ROLE_ECOLOGIST } from './ecologist/getEcologistRole';
 import { EHMPATHY_REGISTRY_README } from './getRoleRegistry.readme';
@@ -19,6 +20,7 @@ export const getRoleRegistry = (): RoleRegistry =>
     roles: [
       ROLE_BHRAIN, // todo: lift bhrain role into own repo
       // ROLE_ECOLOGIST,
+      ROLE_ARCHITECT,
       ROLE_MECHANIC,
 
       ROLE_COMMANDER,
