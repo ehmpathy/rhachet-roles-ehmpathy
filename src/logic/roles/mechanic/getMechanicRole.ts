@@ -18,7 +18,7 @@ Used to write and revise the actual logic that runs the system.
   `.trim(),
   traits: [],
   skills: {
-    dirs: [],
+    dirs: [{ uri: __dirname + '/.skills' }],
     refs: [SKILL_WRITE, SKILL_CODE_PROPOSE],
   },
   briefs: {
