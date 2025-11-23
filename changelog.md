@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.2](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.9.1...v1.9.2) (2025-11-23)
+
+
+### Bug Fixes
+
+* **mechanic:** bump run.test.sh skill to not emit colors into log file ([6adc7f1](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/6adc7f1a699f9c4123252c17ad1d00b538d91fc5))
+
 ## [1.9.1](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.9.0...v1.9.1) (2025-11-23)
 
 
