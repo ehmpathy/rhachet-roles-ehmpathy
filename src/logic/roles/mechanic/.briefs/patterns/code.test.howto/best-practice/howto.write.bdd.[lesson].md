@@ -1,4 +1,4 @@
-# How to Write BDD Integration Tests
+# How to Write BDD Style Tests
 
 This guide explains the pattern for writing integration tests using `test-fns` with `given`, `when`, `then`, and `useBeforeAll`.
 
