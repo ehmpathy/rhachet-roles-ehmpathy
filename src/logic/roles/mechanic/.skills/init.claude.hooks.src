@@ -1,0 +1,20 @@
+
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx rhachet roles boot --repo ehmpathy --role mechanic",
+            "timeout": 60
+          }
+        ]
+      }
+    ]
+  }
+
+
+
+> implement this skill so that whenever its run, it findserts the start sessino hook above; use jq; add documentation about this skill
+
