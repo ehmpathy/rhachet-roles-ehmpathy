@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.9.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.8.0...v1.9.0) (2025-11-23)
+
+
+### Features
+
+* **mechanic:** add skills to mechanic; also, append briefs ([a93ff4e](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/a93ff4e44ac296bbe7fa74bef8c1ecee150e939b))
+* **mechanic:** gather more mechanic briefs ([14bbd6d](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/14bbd6db41684ad9fda8db02ec8e135f837b111b))
+* **mechanic:** gather more mechanic briefs ([6e24ded](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/6e24dedfea3fb491959e274dc219640fc80dd92f))
+* **mechanic:** gather more mechanic briefs ([69e9231](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/69e92316204c4e743ed06e41daf0db3bfafab962))
+* **mechanic:** gather more mechanic briefs and skills ([2aeade2](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/2aeade25fe1701e79ec6dc82b30b65ccf35df855))
+* **mechanic:** gather more mechanic briefs and skills ([c55a925](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/c55a92533ebf469cffe600f0c386a73188f84cf7))
+
 ## [1.8.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.7.0...v1.8.0) (2025-11-10)
 
 
