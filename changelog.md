@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.1](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.9.0...v1.9.1) (2025-11-23)
+
+
+### Bug Fixes
+
+* **pkg:** ensure skills/**.sh are distributed ([f5fc775](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/f5fc77503866a533992fb62d45f204e9c8936cb6))
+
 ## [1.9.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.8.0...v1.9.0) (2025-11-23)
 
 
