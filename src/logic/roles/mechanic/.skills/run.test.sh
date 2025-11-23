@@ -226,8 +226,14 @@ fi
 echo "> $TEST_COMMAND" | tee -a "$LOG_FILE"
 echo "" | tee -a "$LOG_FILE"
 
-eval "$TEST_COMMAND" 2>&1 | tee -a "$LOG_FILE"
-TEST_EXIT_CODE=${PIPESTATUS[0]}
+# For unit tests, strip color codes from log file while preserving them in terminal output
+if [[ "$TEST_TYPE" == "unit" ]]; then
+  eval "$TEST_COMMAND" 2>&1 | tee >(sed 's/\x1B\[[0-9;]*[JKmsu]//g' >> "$LOG_FILE")
+  TEST_EXIT_CODE=${PIPESTATUS[0]}
+else
+  eval "$TEST_COMMAND" 2>&1 | tee -a "$LOG_FILE"
+  TEST_EXIT_CODE=${PIPESTATUS[0]}
+fi
 
 echo "" | tee -a "$LOG_FILE"
 
