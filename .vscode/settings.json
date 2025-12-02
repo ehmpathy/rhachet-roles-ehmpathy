@@ -22,5 +22,9 @@
     "rhachet",
     "Schedulable",
     "stitchee"
-  ]
+  ],
+  "terraform.languageServer.enable": false,
+  "eslint.enable": true,
+  "yaml.validate": false,
+  "cSpell.enabled": true
 }
