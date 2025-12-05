@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.10.0...v1.11.0) (2025-12-05)
+
+
+### Features
+
+* **mechanic:** add git.worktree skill ([616597b](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/616597bcb88af75639d9475ac953d14b37440bf5))
+
 ## [1.10.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.9.1...v1.10.0) (2025-12-05)
 
 
