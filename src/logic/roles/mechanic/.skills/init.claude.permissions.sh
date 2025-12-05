@@ -33,7 +33,9 @@ SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.local.json"
 PERMISSIONS_CONFIG=$(cat <<'EOF'
 {
   "permissions": {
-    "deny": [],
+    "deny": [
+      "Bash(git commit:*)"
+    ],
     "ask": [
       "Bash(chmod:*)",
       "Bash(pnpm install:*)",

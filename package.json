@@ -26,7 +26,7 @@
     "fix:lint": "eslint -c ./.eslintrc.js src/**/*.ts --fix",
     "build:clean": "rm dist/ -rf",
     "build:compile": "tsc -p ./tsconfig.build.json",
-    "build:complete": "rsync -a --prune-empty-dirs --include='*/' --exclude='**/.route/**' --exclude='**/.scratch/**' --include='**/*.template.md' --include='**/.briefs/**/*.md' --include='**/.briefs/*.md' --include='**/.skills/**/*.sh' --include='**/.skills/*.sh' --exclude='*' src/ dist/",
+    "build:complete": "rsync -a --prune-empty-dirs --include='*/' --exclude='**/.route/**' --exclude='**/.scratch/**' --exclude='**/.behavior/**' --include='**/*.template.md' --include='**/.briefs/**/*.md' --include='**/.briefs/*.md' --include='**/.skills/**/*.sh' --include='**/.skills/*.sh' --exclude='*' src/ dist/",
     "build": "npm run build:clean && npm run build:compile && npm run build:complete",
     "test:commits": "LAST_TAG=$(git describe --tags --abbrev=0 @^ 2> /dev/null || git rev-list --max-parents=0 HEAD) && npx commitlint --from $LAST_TAG --to HEAD --verbose",
     "test:types": "tsc -p ./tsconfig.build.json --noEmit",
