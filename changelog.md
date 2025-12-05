@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.10.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.9.1...v1.10.0) (2025-12-05)
+
+
+### Features
+
+* **mechanic:** add init.bhuild.sh skill ([c7fe5e4](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/c7fe5e49c463772888bce246987170cdf315058c))
+* **mechanic:** add skills/init.chaude.sh w/ init.claude.permissions + hooks ([18f3f67](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/18f3f674d0579fe0ebf1d394a46d02c924dc6881))
+
+
+### Bug Fixes
+
+* **mechanic:** bump run.test.sh skill to not emit colors into log file ([6adc7f1](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/6adc7f1a699f9c4123252c17ad1d00b538d91fc5))
+
 ## [1.9.1](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.9.0...v1.9.1) (2025-11-23)
 
 
