@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.12.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.11.0...v1.12.0) (2025-12-06)
+
+
+### Features
+
+* **mechanic:** add check.pretooluser.permissions hook ([cac9b15](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/cac9b15c3575d2655d25cc01cffffb218d34ed76))
+
 ## [1.11.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.10.0...v1.11.0) (2025-12-05)
 
 
