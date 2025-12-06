@@ -37,6 +37,7 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "Bash(git commit:*)"
     ],
     "ask": [
+      "Bash(bash:*)",
       "Bash(chmod:*)",
       "Bash(pnpm install:*)",
       "Bash(pnpm add:*)"
@@ -47,16 +48,40 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:hub.docker.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(THOROUGH=true npm run test:*)",
-      "Bash(AWS_PROFILE=ahbode.dev npm run test:integration:*)",
-      "Bash(npm run fix:*)",
-      "Bash(AWS_PROFILE=ahbode.dev npx jest:*)",
-      "Bash(AWS_PROFILE=ahbode.dev npm run deploy:dev:*)",
-      "Bash(AWS_PROFILE=ahbode.dev STAGE=dev npm run test:acceptance:*)",
+
+      "Bash(npm run build:*)",
       "Bash(npm run start:testdb:*)",
+      "Bash(AWS_PROFILE=ahbode.dev npm run deploy:dev:*)",
+
       "Bash(cat:*)",
       "Bash(unzip:*)",
-      "Bash(npm view:*)"
+      "Bash(npm view:*)",
+      "Bash(npm list:*)",
+      "Bash(pnpm list:*)",
+
+      "Bash(npx rhachet:*)",
+
+      "Bash(npm run test:*)",
+      "Bash(npm run test:unit:*)",
+      "Bash(npm run test:integration:*)",
+      "Bash(npm run test:acceptance:*)",
+
+      "Bash(THOROUGH=true npm run test:*)",
+      "Bash(THOROUGH=true npm run test:unit:*)",
+      "Bash(THOROUGH=true npm run test:integration:*)",
+      "Bash(THOROUGH=true npm run test:acceptance:*)",
+
+      "Bash(AWS_PROFILE=ahbode.dev npm run test:integration:*)",
+      "Bash(AWS_PROFILE=ahbode.dev STAGE=dev npm run test:acceptance:*)",
+
+      "Bash(npm run fix:*)",
+      "Bash(npm run fix:format:*)",
+      "Bash(npm run fix:lint:*)",
+      "Bash(npm run fix:types:*)",
+
+      "Bash(find:*)",
+
+      "Bash(source .agent/repo=.this/skills/*)"
     ]
   }
 }
