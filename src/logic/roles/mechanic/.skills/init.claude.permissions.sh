@@ -56,10 +56,17 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "WebFetch(domain:biomejs.dev)",
 
 
+      "Bash(ls:*)",
       "Bash(tree:*)",
       "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
       "Bash(grep:*)",
-      "Bash(unzip:*)",
+      "Bash(wc:*)",
+      "Bash(diff:*)",
+      "Bash(which:*)",
+      "Bash(file:*)",
+      "Bash(pwd)",
       "Bash(npm view:*)",
       "Bash(npm list:*)",
       "Bash(npm remove:*)",
