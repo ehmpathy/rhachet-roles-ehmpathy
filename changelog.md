@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.13.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.12.1...v1.13.0) (2025-12-07)
+
+
+### Features
+
+* **mechanic:** forbid stderr redirect hook ([a879e1a](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/a879e1a280e5ede3c5338d5399acc326c16808a4))
+
+
+### Bug Fixes
+
+* **mechanic:** backup settings.local.json on init.claude ([8a7871e](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/8a7871e597f2e1f165eab71233ee0b511ade6680))
+* **mechanic:** expand default allow readonly perms ([06814d1](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/06814d110711416385fed6218cb3853e9f8a9181))
+* **mechanic:** update mechanic claude permissions on init ([af81b26](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/af81b266581dd085b4117b2b02b893c09be35da5))
+
 ## [1.12.1](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.12.0...v1.12.1) (2025-12-07)
 
 
