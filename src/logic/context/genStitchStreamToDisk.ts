@@ -1,5 +1,9 @@
 import { asUniDateTime } from '@ehmpathy/uni-time';
-import { ContextStitchTrail, StitcherForm, StitchSetEvent } from 'rhachet';
+import {
+  type ContextStitchTrail,
+  StitcherForm,
+  type StitchSetEvent,
+} from 'rhachet';
 import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 import { createCache } from 'simple-in-memory-cache';
 import { isPresent } from 'type-fns';
@@ -9,6 +13,7 @@ import { withSimpleCaching } from 'with-simple-caching';
 const sanitizeForFilename = (input: string): string =>
   input
     // replace invalid characters
+    // biome-ignore lint/suspicious/noControlCharactersInRegex: <explanation>
     .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
     // collapse whitespace into underscore
     .replace(/\s+/g, '_')

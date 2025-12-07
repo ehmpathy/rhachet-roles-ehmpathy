@@ -1,13 +1,13 @@
 import {
-  GStitcher,
-  RoleContext,
-  StitchStepCompute,
-  Threads,
   asStitcherFlat,
+  type GStitcher,
   genStitchRoute,
+  type RoleContext,
+  StitchStepCompute,
+  type Threads,
 } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
-import { GitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import type { GitFile } from 'rhachet-artifact-git';
 import { deSerialJSON, isSerialJSON } from 'serde-fns';
 
 import { genStepArtSet } from '../../../../artifact/genStepArtSet';

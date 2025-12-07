@@ -1,5 +1,5 @@
 import { BadRequestError } from 'helpful-errors';
-import { given, when, then, getError } from 'test-fns';
+import { getError, given, then, when } from 'test-fns';
 
 import { decodeDocOutputPath } from './decodeDocOutputPath';
 

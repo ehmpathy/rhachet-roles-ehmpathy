@@ -1,5 +1,5 @@
-import { Artifact } from 'rhachet-artifact';
-import { GitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import type { GitFile } from 'rhachet-artifact-git';
 import { isPresent } from 'type-fns';
 
 import { getMechanicBrief } from '../getMechanicBrief';

@@ -3,7 +3,7 @@ import { Role } from 'rhachet';
 import { SKILL_CODE_PROPOSE } from './skills/getSkillCodePropose';
 import { SKILL_WRITE } from './write/loopWrite.skill';
 
-export const ROLE_MECHANIC = Role.build({
+export const ROLE_MECHANIC: Role = Role.build({
   slug: 'mechanic',
   name: 'Mechanic',
   purpose: 'write code',

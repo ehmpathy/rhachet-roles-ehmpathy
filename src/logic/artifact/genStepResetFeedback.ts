@@ -1,13 +1,13 @@
 import {
+  type GStitcher,
+  type RoleContext,
   StitchStepCompute,
-  GStitcher,
-  Threads,
-  Thread,
-  RoleContext,
+  type Thread,
+  type Threads,
 } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
-import { getGitRepoRoot, GitFile } from 'rhachet-artifact-git';
-import { Empty } from 'type-fns';
+import type { Artifact } from 'rhachet-artifact';
+import { type GitFile, getGitRepoRoot } from 'rhachet-artifact-git';
+import type { Empty } from 'type-fns';
 
 /**
  * .what = creates a compute step that clears out the caller.art.feedback file

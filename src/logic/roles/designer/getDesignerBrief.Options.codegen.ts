@@ -10,4 +10,4 @@ const options = [
   'pit-of-success.md',
 ] as const;
 
-export type BriefOptionDesigner = typeof options[number];
+export type BriefOptionDesigner = (typeof options)[number];

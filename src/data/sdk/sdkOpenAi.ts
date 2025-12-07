@@ -1,7 +1,7 @@
-import { ContextLogTrail } from 'as-procedure';
+import type { ContextLogTrail } from 'as-procedure';
 import { UnexpectedCodePathError } from 'helpful-errors';
 import OpenAI from 'openai';
-import { ChatModel } from 'openai/resources/index';
+import type { ChatModel } from 'openai/resources/index';
 
 export interface ContextOpenAI {
   openai: {

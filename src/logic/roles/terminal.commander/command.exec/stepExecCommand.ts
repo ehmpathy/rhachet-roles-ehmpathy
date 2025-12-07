@@ -1,16 +1,21 @@
 import {
   asUniDateTime,
   getDuration,
-  UniDateTime,
-  UniDuration,
+  type UniDateTime,
+  type UniDuration,
 } from '@ehmpathy/uni-time';
 import { spawn } from 'child_process';
 import { UnexpectedCodePathError } from 'helpful-errors';
 import * as readline from 'readline';
-import { GStitcher, RoleContext, StitchStepCompute, Threads } from 'rhachet';
+import {
+  type GStitcher,
+  type RoleContext,
+  StitchStepCompute,
+  type Threads,
+} from 'rhachet';
 
-import { Focus } from '../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
-import { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
+import type { Focus } from '../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
+import type { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
 
 type StitcherDesired = GStitcher<
   Threads<{

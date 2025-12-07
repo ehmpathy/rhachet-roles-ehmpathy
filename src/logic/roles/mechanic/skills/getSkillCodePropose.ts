@@ -1,4 +1,4 @@
-import { RoleSkill, GStitcherOf, enrollThread } from 'rhachet';
+import { enrollThread, type GStitcherOf, RoleSkill } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
@@ -8,9 +8,9 @@ import { getRefOrgPatterns } from '../codediff/getRefOrgPatterns';
 import { routeMechanicCodePropose } from '../codediff/routeMechanicCodePropose';
 import { getMechanicBrief } from '../getMechanicBrief';
 
-export const SKILL_CODE_PROPOSE = RoleSkill.build<
-  RoleSkill<GStitcherOf<typeof routeMechanicCodePropose>>
->({
+export const SKILL_CODE_PROPOSE: RoleSkill<
+  GStitcherOf<typeof routeMechanicCodePropose>
+> = RoleSkill.build<RoleSkill<GStitcherOf<typeof routeMechanicCodePropose>>>({
   slug: 'code.propose', // crafts some code
   route: routeMechanicCodePropose,
   // : {

@@ -1,7 +1,7 @@
-import { Artifact } from 'rhachet-artifact';
-import { GitFile, genArtifactGitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import { type GitFile, genArtifactGitFile } from 'rhachet-artifact-git';
 
-import { BriefOptionBhrain } from './getBhrainBrief.Options.codegen';
+import type { BriefOptionBhrain } from './getBhrainBrief.Options.codegen';
 
 /**
  * .what = loads an artifact:brief distilled for the mechanic to reference, from the `.briefs` directory

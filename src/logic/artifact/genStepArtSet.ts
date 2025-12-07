@@ -1,15 +1,15 @@
 import { UnexpectedCodePathError } from 'helpful-errors';
 import {
-  GStitcher,
-  Stitch,
-  StitchStepCompute,
-  Thread,
-  Threads,
-  RoleContext,
+  type GStitcher,
   getStitch,
+  type RoleContext,
+  type Stitch,
+  StitchStepCompute,
+  type Thread,
+  type Threads,
 } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
-import { getGitRepoRoot, GitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import { type GitFile, getGitRepoRoot } from 'rhachet-artifact-git';
 
 /**
  * .what = creates a compute step that sets content onto a thread's stashed artifact

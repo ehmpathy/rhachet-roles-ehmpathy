@@ -1,8 +1,7 @@
 // routeMechanicCodeIterate.integration.test.ts
-import { enweaveOneStitcher } from 'rhachet';
-import { enrollThread } from 'rhachet';
+import { enrollThread, enweaveOneStitcher } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
-import { given, when, then, usePrep } from 'test-fns';
+import { given, then, usePrep, when } from 'test-fns';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';

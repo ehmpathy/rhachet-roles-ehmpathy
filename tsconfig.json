@@ -13,14 +13,21 @@
     "target": "es2020",
     "lib": [
       "DOM"
-    ]
+    ],
+    "incremental": true,
+    "module": "commonjs",
+    "moduleResolution": "node"
   },
-  "extends": "@tsconfig/node-lts-strictest/tsconfig.json",
+  "extends": [
+    "@tsconfig/strictest/tsconfig.json",
+    "@tsconfig/node20/tsconfig.json"
+  ],
   "exclude": [
     "dist",
     "coverage",
-    "node_modules",
-    "**/.scratch/**/*.ts", // track them in git for reference, but no longer attempt to compile them
-    "**/.temp/**/*.ts",
+    "node_modules"
+  ],
+  "include": [
+    "**/*.ts"
   ]
 }

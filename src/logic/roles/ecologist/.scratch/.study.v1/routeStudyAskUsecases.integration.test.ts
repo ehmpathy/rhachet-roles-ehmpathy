@@ -1,9 +1,7 @@
 import { UnexpectedCodePathError } from 'helpful-errors';
-import { enweaveOneStitcher } from 'rhachet';
-import { enrollThread } from 'rhachet';
+import { enrollThread, enweaveOneStitcher } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
-import { given, when, then } from 'test-fns';
-import { usePrep } from 'test-fns';
+import { given, then, usePrep, when } from 'test-fns';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';

@@ -1,15 +1,15 @@
 import {
   asStitcherFlat,
+  type GStitcher,
   genStitchRoute,
-  GStitcher,
+  type RoleContext,
   StitchStepCompute,
-  Threads,
-  RoleContext,
+  type Threads,
 } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
-import { GitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import type { GitFile } from 'rhachet-artifact-git';
 
-import { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
+import type { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
 import { routeCriticCodeReviewCodestyle } from './routeCriticCodeReviewCodestyle';
 
 interface ThreadsDesired

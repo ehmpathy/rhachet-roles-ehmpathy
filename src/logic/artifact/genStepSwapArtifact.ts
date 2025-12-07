@@ -1,12 +1,12 @@
 import { UnexpectedCodePathError } from 'helpful-errors';
 import {
+  type GStitcher,
+  type RoleContext,
   StitchStepCompute,
-  GStitcher,
-  Thread,
-  Threads,
-  RoleContext,
+  type Thread,
+  type Threads,
 } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
+import type { Artifact } from 'rhachet-artifact';
 
 /**
  * .what = a step which takes an getArteeFrom(@[$stitchee]) and sets it as @[$stitchee].[$artee]
@@ -45,10 +45,10 @@ export const genStepSwapArtifact = <
                 : // only TFromStitchee
                   Record<string, unknown> & { [P in TFromArtee]: Artifact<any> }
               : K extends TOntoStitchee
-              ? Record<string, unknown> & {
-                  [P in TOntoArtee]: Artifact<any> | null;
-                }
-              : Record<string, unknown>;
+                ? Record<string, unknown> & {
+                    [P in TOntoArtee]: Artifact<any> | null;
+                  }
+                : Record<string, unknown>;
           }
         >;
       }>,
@@ -125,8 +125,8 @@ export const useGenStepSwapArtifactFor =
   <TThreads extends Threads<any>>() =>
   <
     TFromStitchee extends keyof TThreads & string,
-    TFromArtee extends keyof TThreads[TFromStitchee]['context']['stash']['art'] &
-      string,
+    TFromArtee extends
+      keyof TThreads[TFromStitchee]['context']['stash']['art'] & string,
     TOntoStitchee extends keyof TThreads & string,
     TOntoArtee extends string,
   >(input: {

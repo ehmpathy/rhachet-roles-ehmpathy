@@ -34,4 +34,4 @@ const options = [
   'codestyle/pit-of-success.via.minimize-surface-area.md',
 ] as const;
 
-export type BriefOptionMechanic = typeof options[number];
+export type BriefOptionMechanic = (typeof options)[number];
