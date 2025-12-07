@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.12.1](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.12.0...v1.12.1) (2025-12-07)
+
+
+### Bug Fixes
+
+* **nudge:** clarify exact match vs prefix match permissions in nudge ([113c428](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/113c428eef6709220ee8cc8bd20e3efa663dbb0d))
+* **nudge:** match permissions via prefix match on claude hooks nudge ([80f5882](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/80f588283b18d2e9c0ba84308faa2141b9165bea))
+
 ## [1.12.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.11.0...v1.12.0) (2025-12-06)
 
 
