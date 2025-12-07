@@ -21,4 +21,5 @@ SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Dispatch to each hook initializer
 "$SKILLS_DIR/init.claude.hooks.sessionstart.sh"
+"$SKILLS_DIR/init.claude.hooks.forbid.stderr.redirect.sh"
 "$SKILLS_DIR/init.claude.hooks.pretooluse.sh"

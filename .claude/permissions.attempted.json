@@ -1,4 +1,0 @@
-{
-  "bash src/logic/roles/mechanic/.skills/claude.hooks/check.pretooluse.permissions.test.sh 2>&1": 1765032447,
-  "cat /tmp/claude-pretooluse-hook.debug.log | tail -50": 1765032475
-}
