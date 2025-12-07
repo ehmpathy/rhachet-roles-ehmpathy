@@ -34,11 +34,16 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
 {
   "permissions": {
     "deny": [
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(sed:*)",
+      "Bash(tee:*)",
+      "Bash(find:*)",
+      "Bash(echo:*)"
     ],
     "ask": [
       "Bash(bash:*)",
       "Bash(chmod:*)",
+      "Bash(npm install:*)",
       "Bash(pnpm install:*)",
       "Bash(pnpm add:*)"
     ],
@@ -48,20 +53,32 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "WebFetch(domain:www.npmjs.com)",
       "WebFetch(domain:hub.docker.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:biomejs.dev)",
 
-      "Bash(npm run build:*)",
-      "Bash(npm run start:testdb:*)",
-      "Bash(AWS_PROFILE=ahbode.dev npm run deploy:dev:*)",
 
+      "Bash(tree:*)",
       "Bash(cat:*)",
+      "Bash(grep:*)",
       "Bash(unzip:*)",
       "Bash(npm view:*)",
       "Bash(npm list:*)",
-      "Bash(pnpm list:*)",
+      "Bash(npm remove:*)",
 
       "Bash(npx rhachet roles boot --repo ehmpathy --role mechanic)",
+      "Bash(npx tsx ./bin/run:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npx biome:*)",
+      "Bash(npx jest:*)",
+
+      "Bash(npm run build:*)",
+      "Bash(npm run build:compile)",
+      "Bash(npm run start:testdb:*)",
+
 
       "Bash(npm run test:*)",
+      "Bash(npm run test:types:*)",
+      "Bash(npm run test:format:*)",
+      "Bash(npm run test:lint:*)",
       "Bash(npm run test:unit:*)",
       "Bash(npm run test:integration:*)",
       "Bash(npm run test:acceptance:*)",
@@ -71,15 +88,12 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "Bash(THOROUGH=true npm run test:integration:*)",
       "Bash(THOROUGH=true npm run test:acceptance:*)",
 
-      "Bash(AWS_PROFILE=ahbode.dev npm run test:integration:*)",
-      "Bash(AWS_PROFILE=ahbode.dev STAGE=dev npm run test:acceptance:*)",
-
       "Bash(npm run fix:*)",
       "Bash(npm run fix:format:*)",
       "Bash(npm run fix:lint:*)",
-      "Bash(npm run fix:types:*)",
 
-      "Bash(find:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr status:*)",
 
       "Bash(source .agent/repo=.this/skills/*)"
     ]
