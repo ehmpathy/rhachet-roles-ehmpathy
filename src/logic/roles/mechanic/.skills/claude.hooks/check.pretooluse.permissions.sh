@@ -140,6 +140,21 @@ match_pattern() {
   return 1
 }
 
+# Transform raw permission pattern to compact bracket notation for display
+format_pattern() {
+  local pattern="$1"
+
+  # Check if pattern ends with :*
+  if [[ "$pattern" == *":*" ]]; then
+    # Remove :* suffix and format with [p]: label (prefix match)
+    local prefix="${pattern%:*}"
+    echo "[p]: $prefix"
+  else
+    # Exact match - format with [e]: label
+    echo "[e]: $pattern"
+  fi
+}
+
 for pattern in "${ALLOWED_PATTERNS[@]}"; do
   if match_pattern "$COMMAND" "$pattern"; then
     exit 0  # Command matches an allowed pattern
@@ -156,9 +171,13 @@ if [[ "$MODE" == "SOFTNUDGE" ]]; then
   echo ""
   echo "Before requesting user approval, check if you can accomplish this task using one of these pre-approved patterns:"
   echo ""
+  echo "([e] = exact match, [p] = prefix match)"
+  echo ""
   for pattern in "${ALLOWED_PATTERNS[@]}"; do
-    echo "  • $pattern"
+    echo "  • $(format_pattern "$pattern")"
   done
+  echo ""
+  echo "([e] = exact match, [p] = prefix match)"
   echo ""
   echo "If an existing permission pattern can solve your task, use that instead."
   echo "If not, proceed with requesting approval."
@@ -201,9 +220,13 @@ jq --arg cmd "$COMMAND" --argjson ts "$now" '. + {($cmd): $ts}' "$ATTEMPTED_FILE
   echo ""
   echo "Before requesting user approval, check if you can accomplish this task using one of these pre-approved patterns:"
   echo ""
+  echo "([e] = exact match, [p] = prefix match)"
+  echo ""
   for pattern in "${ALLOWED_PATTERNS[@]}"; do
-    echo "  • $pattern"
+    echo "  • $(format_pattern "$pattern")"
   done
+  echo ""
+  echo "([e] = exact match, [p] = prefix match)"
   echo ""
   echo "If an existing permission pattern can solve your task, use that instead."
   echo "If you've considered the alternatives and still need this specific command, retry it."

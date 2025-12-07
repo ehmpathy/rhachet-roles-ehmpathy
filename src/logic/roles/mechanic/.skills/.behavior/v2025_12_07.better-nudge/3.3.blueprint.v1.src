@@ -1,0 +1,20 @@
+propose a blueprint for how we can implement the wish described
+- in src/logic/roles/mechanic/.skills/.behavior/v2025_12_07.better-nudge/0.wish.md
+
+with the domain distillation declared
+- in src/logic/roles/mechanic/.skills/.behavior/v2025_12_07.better-nudge/3.1.research.domain._.v1.i1.md
+
+follow the patterns already present in this repo
+
+choose optionD from the recommendations in the research
+
+---
+
+reference the below for full context
+- src/logic/roles/mechanic/.skills/.behavior/v2025_12_07.better-nudge/0.wish.md
+- src/logic/roles/mechanic/.skills/.behavior/v2025_12_07.better-nudge/3.1.research.domain._.v1.i1.md
+
+
+---
+
+emit to src/logic/roles/mechanic/.skills/.behavior/v2025_12_07.better-nudge/3.3.blueprint.v1.i1.md

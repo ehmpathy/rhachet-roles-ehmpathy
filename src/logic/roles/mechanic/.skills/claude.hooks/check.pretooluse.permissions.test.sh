@@ -228,7 +228,7 @@ assert_output_contains "$output" "BLOCKED" "rm -rf / shows BLOCKED message"
 
 rm -f "$TEST_DIR/.claude/permission.nudges.local.json"
 output=$(run_hook "$TEST_DIR" "npx prettier --write .")
-assert_output_contains "$output" "npm run test:" "npx prettier shows available patterns"
+assert_output_contains "$output" "\[p\]: npm run test" "npx prettier shows available patterns"
 
 rm -f "$TEST_DIR/.claude/permission.nudges.local.json"
 output=$(run_hook "$TEST_DIR" "git status")
@@ -236,7 +236,7 @@ assert_output_contains "$output" "pre-approved permissions" "git status shows gu
 
 rm -f "$TEST_DIR/.claude/permission.nudges.local.json"
 output=$(run_hook "$TEST_DIR" "curl https://example.com")
-assert_output_contains "$output" "npm run fix:" "curl shows npm run fix pattern"
+assert_output_contains "$output" "\[p\]: npm run fix" "curl shows npm run fix pattern"
 
 echo ""
 
