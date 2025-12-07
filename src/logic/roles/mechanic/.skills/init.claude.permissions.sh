@@ -59,7 +59,7 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "Bash(npm list:*)",
       "Bash(pnpm list:*)",
 
-      "Bash(npx rhachet:*)",
+      "Bash(npx rhachet roles boot --repo ehmpathy --role mechanic)",
 
       "Bash(npm run test:*)",
       "Bash(npm run test:unit:*)",

@@ -189,6 +189,35 @@ assert_output_empty "$output" "cat package.json matches 'cat *'"
 
 echo ""
 
+# --- Test :* suffix matcher (Claude Code special pattern) ---
+
+echo -e "${YELLOW}Testing :* suffix matcher (Claude Code special pattern):${NC}"
+
+# :* should match with colon and suffix
+output=$(run_hook "$TEST_DIR" "npm run test:unit")
+assert_output_empty "$output" ":* matches 'npm run test:unit' (colon + suffix)"
+
+# :* should match with just colon
+output=$(run_hook "$TEST_DIR" "npm run test:")
+assert_output_empty "$output" ":* matches 'npm run test:' (colon only)"
+
+# :* should match without colon at all (the colon is optional in :*)
+output=$(run_hook "$TEST_DIR" "npm run test")
+assert_output_empty "$output" ":* matches 'npm run test' (no colon - colon is optional)"
+
+# :* should match long suffixes
+output=$(run_hook "$TEST_DIR" "npm run test:integration:slow:verbose")
+assert_output_empty "$output" ":* matches 'npm run test:integration:slow:verbose' (long suffix)"
+
+# Verify * still works as glob (not :* pattern)
+output=$(run_hook "$TEST_DIR" "cat /path/to/file.txt")
+assert_output_empty "$output" "* glob still works: 'cat /path/to/file.txt'"
+
+output=$(run_hook "$TEST_DIR" "npx jest anything/here")
+assert_output_empty "$output" "* glob still works: 'npx jest anything/here'"
+
+echo ""
+
 # --- Disallowed commands (HARDNUDGE default - should block with exit 2) ---
 
 echo -e "${YELLOW}Testing disallowed commands (HARDNUDGE - should block with exit 2):${NC}"

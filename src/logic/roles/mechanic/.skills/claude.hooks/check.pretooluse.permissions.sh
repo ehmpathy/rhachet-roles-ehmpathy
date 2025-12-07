@@ -112,8 +112,27 @@ match_pattern() {
   local cmd="$1"
   local pattern="$2"
 
-  # Convert glob * to regex .*
-  local regex="^${pattern//\*/.*}$"
+  # Handle Claude Code's :* suffix matcher
+  # :* means "optionally match colon and anything after"
+  # e.g., "npm run test:*" matches "npm run test", "npm run test:", "npm run test:unit"
+
+  # First, escape regex special chars except * and :
+  local escaped_pattern
+  escaped_pattern=$(printf '%s' "$pattern" | sed 's/[.^$+?{}()[\]|\\]/\\&/g')
+
+  # Convert :* to placeholder first (to avoid * -> .* conversion interfering)
+  # Using a unique placeholder that won't appear in commands
+  escaped_pattern="${escaped_pattern//:\*/__COLON_STAR_PLACEHOLDER__}"
+
+  # Convert remaining * to .* (glob-style wildcard)
+  escaped_pattern="${escaped_pattern//\*/.*}"
+
+  # Now replace placeholder with the actual regex for :*
+  # (:.*)? matches: nothing, ":", ":foo", ":foo:bar"
+  escaped_pattern="${escaped_pattern//__COLON_STAR_PLACEHOLDER__/(:.*)?}"
+
+  # Build final regex
+  local regex="^${escaped_pattern}$"
 
   if [[ "$cmd" =~ $regex ]]; then
     return 0
