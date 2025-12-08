@@ -21,9 +21,9 @@
   "scripts": {
     "build:ts": "tsc -p ./tsconfig.build.json",
     "commit:with-cli": "npx cz",
-    "fix:format:biome": "biome check --write src",
+    "fix:format:biome": "biome check --write",
     "fix:format": "npm run fix:format:biome",
-    "fix:lint": "biome check --write src",
+    "fix:lint": "biome check --write",
     "fix": "npm run fix:format && npm run fix:lint",
     "build:clean": "rm dist/ -rf",
     "build:compile": "tsc -p ./tsconfig.build.json",

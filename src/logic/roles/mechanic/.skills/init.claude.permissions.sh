@@ -66,6 +66,7 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "Bash(diff:*)",
       "Bash(which:*)",
       "Bash(file:*)",
+      "Bash(mkdir:*)",
       "Bash(pwd)",
       "Bash(npm view:*)",
       "Bash(npm list:*)",
