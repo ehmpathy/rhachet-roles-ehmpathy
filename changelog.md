@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.1](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.0...v1.13.1) (2025-12-08)
+
+
+### Bug Fixes
+
+* **practs:** bump to latest best ([#19](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/19)) ([5c73fdc](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/5c73fdc242d27fd76e358471ec092fb8fc88e4f1))
+
 ## [1.13.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.12.1...v1.13.0) (2025-12-07)
 
 
