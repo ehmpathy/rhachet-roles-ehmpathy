@@ -1,6 +1,6 @@
-import { enweaveOneStitcher, GStitcherOf, enrollThread } from 'rhachet';
+import { enrollThread, enweaveOneStitcher, type GStitcherOf } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
-import { given, when, then, usePrep } from 'test-fns';
+import { given, then, usePrep, when } from 'test-fns';
 
 import { genContextLogTrail } from '../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../.test/genContextStitchTrail';
@@ -117,12 +117,12 @@ describe('genStepSwapArtifact (integration)', () => {
             context,
           );
           const result = outcome.stitch.output;
-          expect(result.from.artifact.ref).toBe(
+          expect(result.from.artifact.ref).toEqual(
             threads.thinker.context.stash.art['inflights.diverge'].ref,
           );
-          expect(outcome.threads.thinker.context.stash.art.inflight?.ref).toBe(
-            threads.thinker.context.stash.art['inflights.diverge'].ref,
-          );
+          expect(
+            outcome.threads.thinker.context.stash.art.inflight?.ref,
+          ).toEqual(threads.thinker.context.stash.art['inflights.diverge'].ref);
         },
       );
     });
@@ -152,12 +152,12 @@ describe('genStepSwapArtifact (integration)', () => {
             context,
           );
           const result = outcome.stitch.output;
-          expect(result.from.artifact.ref).toBe(
+          expect(result.from.artifact.ref).toEqual(
             threads.thinker.context.stash.art['inflights.diverge'].ref,
           );
-          expect(outcome.threads.thinker.context.stash.art.inflight?.ref).toBe(
-            threads.thinker.context.stash.art['inflights.diverge'].ref,
-          );
+          expect(
+            outcome.threads.thinker.context.stash.art.inflight?.ref,
+          ).toEqual(threads.thinker.context.stash.art['inflights.diverge'].ref);
         },
       );
     });

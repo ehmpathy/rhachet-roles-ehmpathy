@@ -1,6 +1,6 @@
 import { Role } from 'rhachet';
 
-export const ROLE_ARCHITECT = Role.build({
+export const ROLE_ARCHITECT: Role = Role.build({
   slug: 'architect',
   name: 'Architect',
   purpose: 'design system',

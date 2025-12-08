@@ -1,5 +1,5 @@
 import { extname } from 'node:path';
-import { InvokeOpts } from 'rhachet';
+import type { InvokeOpts } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { isPresent, omit } from 'type-fns';
 

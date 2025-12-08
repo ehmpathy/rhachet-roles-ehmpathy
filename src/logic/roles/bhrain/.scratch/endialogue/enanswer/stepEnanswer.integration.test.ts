@@ -1,7 +1,7 @@
 import { asUniDateTime, toMilliseconds } from '@ehmpathy/uni-time';
-import { enweaveOneStitcher, enrollThread, Stitch } from 'rhachet';
+import { enrollThread, enweaveOneStitcher, Stitch } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
-import { given, when, then, usePrep, genTestUuid } from 'test-fns';
+import { given, then, usePrep, when } from 'test-fns';
 import { getUuid } from 'uuid-fns';
 
 import { genContextLogTrail } from '../../../../../.test/genContextLogTrail';

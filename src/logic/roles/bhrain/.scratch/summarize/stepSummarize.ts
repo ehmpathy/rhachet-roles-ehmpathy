@@ -1,18 +1,21 @@
 import {
-  GStitcher,
-  Threads,
-  RoleContext,
-  genStepImagineViaTemplate,
-  genTemplate,
-  genStitchRoute,
   asStitcherFlat,
+  type GStitcher,
+  genStepImagineViaTemplate,
+  genStitchRoute,
+  genTemplate,
   getTemplateValFromArtifacts,
+  type RoleContext,
+  type Threads,
 } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
-import { GitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import type { GitFile } from 'rhachet-artifact-git';
 import { withRetry, withTimeout } from 'wrapper-fns';
 
-import { ContextOpenAI, sdkOpenAi } from '../../../../../data/sdk/sdkOpenAi';
+import {
+  type ContextOpenAI,
+  sdkOpenAi,
+} from '../../../../../data/sdk/sdkOpenAi';
 import { genStepArtSet } from '../../../../artifact/genStepArtSet';
 import { getEcologistBriefs } from '../../../ecologist/getEcologistBrief';
 import { getMechanicBriefs } from '../../../mechanic/getMechanicBrief';

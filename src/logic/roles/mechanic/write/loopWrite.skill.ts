@@ -1,4 +1,4 @@
-import { GStitcherOf, enrollThread, genRoleSkill } from 'rhachet';
+import { enrollThread, type GStitcherOf, genRoleSkill } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';

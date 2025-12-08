@@ -1,16 +1,16 @@
 import {
   asStitcherFlat,
+  type GStitcher,
   genStitchRoute,
-  GStitcher,
-  RoleContext,
+  type RoleContext,
   StitchStepCompute,
-  Threads,
+  type Threads,
 } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
-import { GitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import type { GitFile } from 'rhachet-artifact-git';
 
-import { Focus } from '../../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
-import { ContextOpenAI } from '../../../../../data/sdk/sdkOpenAi';
+import type { Focus } from '../../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
+import type { ContextOpenAI } from '../../../../../data/sdk/sdkOpenAi';
 import { genLoopFeedback } from '../../../../artifact/genLoopFeedback';
 import { stepInstantiate } from '../../../bhrain/khue.instantiate/stepInstantiate';
 

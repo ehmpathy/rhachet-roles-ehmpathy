@@ -46,4 +46,4 @@ const options = [
   'economy/econ501.p4.behavioral-economics.md',
 ] as const;
 
-export type BriefOptionEcologist = typeof options[number];
+export type BriefOptionEcologist = (typeof options)[number];

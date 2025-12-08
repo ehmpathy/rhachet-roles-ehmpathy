@@ -1,4 +1,4 @@
-import { InvokeHooks } from 'rhachet';
+import type { InvokeHooks } from 'rhachet';
 
 import { execTranslateDocOutputPath } from './execTranslateDocOutputPath';
 

@@ -1,17 +1,17 @@
 import {
   asStitcher,
+  asStitcherFlat,
+  type GStitcher,
   genStitchCycle,
   genStitchRoute,
+  type RoleContext,
   StitchStepCompute,
-  GStitcher,
-  Threads,
-  asStitcherFlat,
+  type Threads,
 } from 'rhachet';
-import { RoleContext } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
-import { GitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import type { GitFile } from 'rhachet-artifact-git';
 
-import { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
+import type { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
 import { routeStudyAsk } from './routeStudyAsk';
 import { stepGrabCallerFeedbackToArtifact } from './stepGrabCallerFeedbackToArtifact';
 

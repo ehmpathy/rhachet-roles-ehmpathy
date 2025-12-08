@@ -1,13 +1,13 @@
 import inquirer from 'inquirer';
 import {
+  type GStitcher,
+  type RoleContext,
   StitchStepCompute,
-  GStitcher,
-  Threads,
-  Thread,
-  RoleContext,
+  type Thread,
+  type Threads,
 } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
-import { GitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import type { GitFile } from 'rhachet-artifact-git';
 
 /**
  * .what = creates a compute step where the static 'caller' gives feedback on another role's artifact

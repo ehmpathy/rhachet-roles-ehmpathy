@@ -5,7 +5,7 @@ import { getMechanicBrief } from '../mechanic/getMechanicBrief';
 import { SKILL_COMMAND_EXEC } from './command.exec/stepExecCommand.skill';
 import { SKILL_COMMAND_PLAN } from './command.plan/stepPlanCommand.skill';
 
-export const ROLE_COMMANDER = Role.build({
+export const ROLE_COMMANDER: Role = Role.build({
   slug: 'commander',
   name: 'Commander',
   purpose: 'command the terminal',

@@ -1,14 +1,14 @@
 import {
   asStitcherFlat,
+  type GStitcher,
   genStitchRoute,
-  GStitcher,
-  RoleContext,
-  Threads,
+  type RoleContext,
+  type Threads,
 } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
-import { GitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import type { GitFile } from 'rhachet-artifact-git';
 
-import { ContextOpenAI } from '../../../../../data/sdk/sdkOpenAi';
+import type { ContextOpenAI } from '../../../../../data/sdk/sdkOpenAi';
 import { stepResetFeedback } from '../../../../artifact/genStepResetFeedback';
 import { useGenStepSwapArtifactFor } from '../../../../artifact/genStepSwapArtifact';
 import { stepCollect } from '../../primitive.idealogic.atomic/collect/stepCollect';

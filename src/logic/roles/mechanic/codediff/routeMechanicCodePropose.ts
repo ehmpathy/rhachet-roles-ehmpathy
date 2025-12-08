@@ -1,19 +1,19 @@
 import {
   asStitcher,
   asStitcherFlat,
+  type GStitcher,
   genStitchCycle,
   genStitchRoute,
-  GStitcher,
+  type RoleContext,
   StitchStepCompute,
-  Threads,
-  RoleContext,
+  type Threads,
 } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
-import { GitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import type { GitFile } from 'rhachet-artifact-git';
 import { deSerialJSON, isSerialJSON } from 'serde-fns';
-import { Empty } from 'type-fns';
+import type { Empty } from 'type-fns';
 
-import { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
+import type { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
 import { routeMechanicCodeIterate } from './routeMechanicCodeIterate';
 
 // todo: how to extend threads? getting downstream type errors with alternative approaches.

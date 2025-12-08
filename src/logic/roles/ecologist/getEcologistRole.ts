@@ -2,7 +2,7 @@ import { Role } from 'rhachet';
 
 // import { SKILL_ENVISION } from './envision/stepEnvision.skill';
 
-export const ROLE_ECOLOGIST = Role.build({
+export const ROLE_ECOLOGIST: Role = Role.build({
   slug: 'ecologist',
   name: 'Ecologist',
   purpose: 'write code',

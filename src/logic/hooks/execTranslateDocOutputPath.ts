@@ -1,6 +1,6 @@
-import { ContextLogTrail } from 'as-procedure';
+import type { ContextLogTrail } from 'as-procedure';
 import { BadRequestError, UnexpectedCodePathError } from 'helpful-errors';
-import { InvokeOpts } from 'rhachet';
+import type { InvokeOpts } from 'rhachet';
 import { isPresent } from 'type-fns';
 
 import { decodeDocOutputPath } from './decodeDocOutputPath';

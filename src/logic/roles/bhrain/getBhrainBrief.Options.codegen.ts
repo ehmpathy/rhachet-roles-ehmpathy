@@ -199,4 +199,4 @@ const options = [
   'cognition/inflight/core.concept.adjectives.md',
 ] as const;
 
-export type BriefOptionBhrain = typeof options[number];
+export type BriefOptionBhrain = (typeof options)[number];

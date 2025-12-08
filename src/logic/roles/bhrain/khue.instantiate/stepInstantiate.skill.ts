@@ -6,7 +6,7 @@ import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
 import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
 import { setSkillOutputSrc } from '../../../artifact/setSkillOutputSrc';
-import { BRIEFS_FOR_INSTANTIATE, loopInstantiate } from './stepInstantiate';
+import { loopInstantiate } from './stepInstantiate';
 
 export const SKILL_INSTANTIATE = genRoleSkill({
   slug: 'instantiate',

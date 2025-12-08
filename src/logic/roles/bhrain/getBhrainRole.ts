@@ -10,7 +10,7 @@ import { SKILL_DIVERGE } from './khue.diverge/stepDiverge.skill';
 import { SKILL_INSTANTIATE } from './khue.instantiate/stepInstantiate.skill';
 import { SKILL_TRIAGE } from './khue.triage/stepTriage.skill';
 
-export const ROLE_BHRAIN = Role.build({
+export const ROLE_BHRAIN: Role = Role.build({
   slug: 'bhrain',
   name: 'Bhrain',
   purpose: 'think',

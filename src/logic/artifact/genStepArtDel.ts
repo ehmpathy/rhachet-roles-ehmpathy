@@ -1,12 +1,12 @@
 import {
-  GStitcher,
+  type GStitcher,
+  type RoleContext,
   StitchStepCompute,
-  Thread,
-  Threads,
-  RoleContext,
+  type Thread,
+  type Threads,
 } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
-import { getGitRepoRoot, GitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import { type GitFile, getGitRepoRoot } from 'rhachet-artifact-git';
 
 /**
  * .what = creates a compute step that deletes the contents of an artifact

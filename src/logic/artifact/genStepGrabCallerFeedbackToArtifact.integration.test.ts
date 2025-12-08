@@ -1,7 +1,7 @@
 import inquirer from 'inquirer';
-import { enweaveOneStitcher, enrollThread } from 'rhachet';
+import { enrollThread, enweaveOneStitcher } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
-import { given, when, then } from 'test-fns';
+import { given, then, when } from 'test-fns';
 
 import { genContextLogTrail } from '../../.test/genContextLogTrail';
 import { genContextStitchTrail } from '../../.test/genContextStitchTrail';

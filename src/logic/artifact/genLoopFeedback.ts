@@ -1,19 +1,19 @@
 import {
-  StitchStepCompute,
-  genStitchRoute,
-  genStitchCycle,
-  asStitcherFlat,
-  GStitcher,
-  Threads,
-  RoleContext,
-  StitchCycle,
-  Stitcher,
-  Thread,
   asStitcher,
-  GStitcherOf,
+  asStitcherFlat,
+  type GStitcher,
+  type GStitcherOf,
+  genStitchCycle,
+  genStitchRoute,
+  type RoleContext,
+  type StitchCycle,
+  type Stitcher,
+  StitchStepCompute,
+  type Thread,
+  type Threads,
 } from 'rhachet';
-import { Artifact } from 'rhachet-artifact';
-import { GitFile } from 'rhachet-artifact-git';
+import type { Artifact } from 'rhachet-artifact';
+import type { GitFile } from 'rhachet-artifact-git';
 
 import { genStepGrabCallerFeedbackToArtifact } from './genStepGrabCallerFeedbackToArtifact';
 
@@ -47,10 +47,10 @@ export const genLoopFeedback = <
               };
             }
           : K extends TStitchee
-          ? TThreads[TStitchee]['context']['stash'] & {
-              art: { [P in TArtee]: Artifact<typeof GitFile> };
-            }
-          : TThreads[K]['context']['stash']
+            ? TThreads[TStitchee]['context']['stash'] & {
+                art: { [P in TArtee]: Artifact<typeof GitFile> };
+              }
+            : TThreads[K]['context']['stash']
       >;
     }>,
     TContext,

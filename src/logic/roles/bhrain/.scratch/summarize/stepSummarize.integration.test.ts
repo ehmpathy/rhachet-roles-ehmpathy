@@ -1,14 +1,14 @@
 import { asUniDateTime, toMilliseconds } from '@ehmpathy/uni-time';
 import {
-  enweaveOneStitcher,
   enrollThread,
+  enweaveOneStitcher,
   Stitch,
-  StitcherForm,
-  Thread,
+  type StitcherForm,
+  type Thread,
 } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
-import { given, when, then, usePrep } from 'test-fns';
-import { Literalize } from 'type-fns';
+import { given, then, usePrep, when } from 'test-fns';
+import type { Literalize } from 'type-fns';
 import { getUuid } from 'uuid-fns';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
@@ -18,7 +18,7 @@ import { stepSummarize } from './stepSummarize';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));
 
-export const addThreadStitches = <TThread extends Thread<any>>({
+const addThreadStitches = <TThread extends Thread<any>>({
   thread,
   stitches,
 }: {

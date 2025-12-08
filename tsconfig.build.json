@@ -1,25 +1,18 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "rootDir": "src"
+    "rootDir": "src",
+    "incremental": false
   },
+  "include": [
+    "src/**/*.ts",
+    "nontyped_modules/**/*.d.ts"
+  ],
   "exclude": [
-    "dist",
-    "coverage",
-    "node_modules",
-    "acceptance",
-    "provision",
-    "jest.*",
-    "prettier.*",
-    "commitlint.*",
-    "codegen.*",
-    // tests
-    "src/**/__tests__/**/*.{ts,js}",
-    "src/**/__test_utils__/**/*.{ts,js}",
-    "src/**/*.test.{ts,js}",
-    // scratch
-    "src/**/.scratch/**/*.{ts,js}",
-    "**/.scratch/**/*.{ts,js}",
-    "rhachet.use.ts"
+    "**/*.test.ts", // all explicitly .test files are dev only assets too
+    "**/*.test.js",
+    "**/.test/**/*",
+    "**/.scratch/**/*",
+    "**/__test*__/**/*" // todo: deprecate this pattern in favor of .test
   ]
 }

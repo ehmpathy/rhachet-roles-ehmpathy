@@ -1,5 +1,5 @@
 import { glob } from 'fast-glob';
-import { enrollThread, genRoleSkill, genContextStitchTrail } from 'rhachet';
+import { enrollThread, genContextStitchTrail, genRoleSkill } from 'rhachet';
 import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 
 import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
