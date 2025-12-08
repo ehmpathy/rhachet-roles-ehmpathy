@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.2](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.1...v1.13.2) (2025-12-08)
+
+
+### Bug Fixes
+
+* **mechanic:** expand default permissions allowlist ([#21](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/21)) ([0a18f38](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/0a18f380a5214bd17be57226e392bca5eacd4bb2))
+
 ## [1.13.1](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.0...v1.13.1) (2025-12-08)
 
 
