@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.3](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.2...v1.13.3) (2025-12-08)
+
+
+### Bug Fixes
+
+* **pkg:** include non-tsc briefs and skills ([#23](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/23)) ([a729372](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/a72937299396f0fb66fc6f3023e76a7bf7003c09))
+
 ## [1.13.2](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.1...v1.13.2) (2025-12-08)
 
 
