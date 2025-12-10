@@ -38,7 +38,8 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "Bash(sed:*)",
       "Bash(tee:*)",
       "Bash(find:*)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "Bash(mv:*)"
     ],
     "ask": [
       "Bash(bash:*)",
@@ -55,7 +56,6 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:biomejs.dev)",
 
-
       "Bash(ls:*)",
       "Bash(tree:*)",
       "Bash(cat:*)",
@@ -68,13 +68,13 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "Bash(file:*)",
       "Bash(mkdir:*)",
       "Bash(pwd)",
+      "Bash(bash src/logic/roles/mechanic/.skills/claude.tools/mvsafe.sh:*)",
       "Bash(npm view:*)",
       "Bash(npm list:*)",
       "Bash(npm remove:*)",
 
       "Bash(npx rhachet roles boot --repo ehmpathy --role mechanic)",
       "Bash(npx tsx ./bin/run:*)",
-      "Bash(npx tsc:*)",
       "Bash(npx biome:*)",
       "Bash(npx jest:*)",
 
