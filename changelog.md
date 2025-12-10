@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.4](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.3...v1.13.4) (2025-12-10)
+
+
+### Bug Fixes
+
+* **mechanic:** add mvsafe skill for claude.tools ([#25](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/25)) ([27185b9](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/27185b9cd0b12e95c8037343dd8db63fe78d2242))
+
 ## [1.13.3](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.2...v1.13.3) (2025-12-08)
 
 
