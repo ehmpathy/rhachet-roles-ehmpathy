@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.5](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.4...v1.13.5) (2025-12-11)
+
+
+### Bug Fixes
+
+* **mechanic:** pretooluse nudge should eval prefixes and composites ([#27](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/27)) ([9a53915](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/9a53915a179e49e3408d74f1d4f18c9e4de3ce9d))
+
 ## [1.13.4](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.3...v1.13.4) (2025-12-10)
 
 
