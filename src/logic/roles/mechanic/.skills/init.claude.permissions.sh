@@ -39,7 +39,9 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "Bash(tee:*)",
       "Bash(find:*)",
       "Bash(echo:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(npx biome:*)",
+      "Bash(npx jest:*)",
     ],
     "ask": [
       "Bash(bash:*)",
@@ -75,8 +77,6 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
 
       "Bash(npx rhachet roles boot --repo ehmpathy --role mechanic)",
       "Bash(npx tsx ./bin/run:*)",
-      "Bash(npx biome:*)",
-      "Bash(npx jest:*)",
 
       "Bash(npm run build:*)",
       "Bash(npm run build:compile)",
@@ -92,6 +92,9 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "Bash(npm run test:acceptance:*)",
 
       "Bash(THOROUGH=true npm run test:*)",
+      "Bash(THOROUGH=true npm run test:types:*)",
+      "Bash(THOROUGH=true npm run test:format:*)",
+      "Bash(THOROUGH=true npm run test:lint:*)",
       "Bash(THOROUGH=true npm run test:unit:*)",
       "Bash(THOROUGH=true npm run test:integration:*)",
       "Bash(THOROUGH=true npm run test:acceptance:*)",
