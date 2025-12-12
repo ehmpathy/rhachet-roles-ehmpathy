@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.6](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.5...v1.13.6) (2025-12-12)
+
+
+### Bug Fixes
+
+* **cicd:** use npm oidc ([#29](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/29)) ([aa175ec](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/aa175ec0f2feb7543ac4be85a9fb6904c486d0de))
+
 ## [1.13.5](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.4...v1.13.5) (2025-12-11)
 
 
