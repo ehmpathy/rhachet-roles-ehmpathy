@@ -18,8 +18,8 @@ importers:
         specifier: 1.1.7
         version: 1.1.7
       domain-objects:
-        specifier: 0.31.3
-        version: 0.31.3
+        specifier: 0.31.7
+        version: 0.31.7(@types/node@22.15.21)
       fast-glob:
         specifier: 3.3.3
         version: 3.3.3
@@ -91,14 +91,14 @@ importers:
         specifier: 0.13.0
         version: 0.13.0(typescript@5.4.5)
       declapract-typescript-ehmpathy:
-        specifier: 0.43.11
-        version: 0.43.11(declapract@0.13.0(typescript@5.4.5))
+        specifier: 0.43.16
+        version: 0.43.16(declapract@0.13.0(typescript@5.4.5))
       declastruct:
-        specifier: 1.4.5
-        version: 1.4.5(domain-objects@0.31.3)
+        specifier: 1.5.1
+        version: 1.5.1(domain-objects@0.31.7(@types/node@22.15.21))
       declastruct-github:
-        specifier: 1.0.5
-        version: 1.0.5
+        specifier: 1.0.7
+        version: 1.0.7
       depcheck:
         specifier: 1.4.3
         version: 1.4.3
@@ -2125,8 +2125,8 @@ packages:
       supports-color:
         optional: true
 
-  declapract-typescript-ehmpathy@0.43.11:
-    resolution: {integrity: sha512-LzrAI7z5NBjQfebEFumUzZ+J1u4XZXCoxapZZ7K7GT1jSRyqyTAatOYoa+r4qBYon7+1kZmR719S7kcu9CZ3Wg==}
+  declapract-typescript-ehmpathy@0.43.16:
+    resolution: {integrity: sha512-r9HMHJJHERuDTiAStYaB5OZyE7xbs33XhCsYHToWyahzDcje5XWGFxa5+Lf08XijB8oJdr0D9M9bQX0hEavK3w==}
     peerDependencies:
       declapract: '>=0.12.1'
 
@@ -2135,12 +2135,12 @@ packages:
     engines: {node: '>=12.0.0'}
     hasBin: true
 
-  declastruct-github@1.0.5:
-    resolution: {integrity: sha512-llW3KDP98H0ulAkKaDpSOLqt7SAdQiZSg+9AIeVsEhZUVAR252kOd7eMElhZVvmk+kwr0VeWexU0xtoKglkfHQ==}
+  declastruct-github@1.0.7:
+    resolution: {integrity: sha512-BWR7QNjXD/ilmpnIv33JSmGs/cItr7YAbtrydihfv2CNG8I4zYHKaI3sVCU0lSGKxdr9R6heC1sxtuU+hUDzoA==}
     engines: {node: '>=8.0.0'}
 
-  declastruct@1.4.5:
-    resolution: {integrity: sha512-aScsjshBoh2/DFKVyqyrF0OP5Q14abyNfq3GceYySdio/38UNpW1n8AE6qsTnM7sdt185IqtWzS9MYKfWxyjhg==}
+  declastruct@1.5.1:
+    resolution: {integrity: sha512-fndvTmyTk/htdXvZvXyZUp68MD6IjpkdBCZN8m07rJMygkgOvF5C0hJL2rwG13wm6xZZXL7gXGiX0IE5Cu8tsw==}
     engines: {node: '>=8.0.0'}
     hasBin: true
     peerDependencies:
@@ -2215,6 +2215,10 @@ packages:
 
   domain-objects@0.31.3:
     resolution: {integrity: sha512-2mLwdU89tZn8dWaBWOi+bXAENB9g2fSHiDbMMboC7er3aesupqmZCJTCwiSYU/98Hj42sCoLLTXMpPgbOQL1Nw==}
+    engines: {node: '>=8.0.0'}
+
+  domain-objects@0.31.7:
+    resolution: {integrity: sha512-7sINbsnU15hUue6APpZ4cXg55G8s6dvorr0lNecXbnGU5p/mCQ5QVKsuCzw8VQXml7EW3ilmGXj9OuA8Os40PQ==}
     engines: {node: '>=8.0.0'}
 
   dot-case@3.0.4:
@@ -3253,6 +3257,10 @@ packages:
 
   rhachet-artifact@1.0.1:
     resolution: {integrity: sha512-BCD7rwyArOn9k3AwDocv0UrgkNDmJ/goPAROCLyMx06n72Xhq8nO9RAVVqhdggIjyX8lI0Qriul8tgUJ+3zoIA==}
+    engines: {node: '>=8.0.0'}
+
+  rhachet-roles-ehmpathy@1.13.3:
+    resolution: {integrity: sha512-p0xLdXVHCjT2lYAthR4ARZZcAgy2RvarBzNyMgXMg3V0GcUAsZhpy37JrLk8dAu2y2YDWR/sbLIUl4CTgCazwg==}
     engines: {node: '>=8.0.0'}
 
   rhachet@1.13.1:
@@ -6297,7 +6305,7 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  declapract-typescript-ehmpathy@0.43.11(declapract@0.13.0(typescript@5.4.5)):
+  declapract-typescript-ehmpathy@0.43.16(declapract@0.13.0(typescript@5.4.5)):
     dependencies:
       chalk: 4.1.2
       declapract: 0.13.0(typescript@5.4.5)
@@ -6333,7 +6341,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  declastruct-github@1.0.5:
+  declastruct-github@1.0.7:
     dependencies:
       '@ehmpathy/uni-time': 1.7.4
       '@octokit/rest': 21.1.1
@@ -6347,12 +6355,12 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  declastruct@1.4.5(domain-objects@0.31.3):
+  declastruct@1.5.1(domain-objects@0.31.7(@types/node@22.15.21)):
     dependencies:
       bottleneck: 2.19.5
       chalk: 5.4.1
       commander: 14.0.2
-      domain-objects: 0.31.3
+      domain-objects: 0.31.7(@types/node@22.15.21)
       helpful-errors: 1.5.3
       jest-diff: 30.0.2
       simple-log-methods: 0.6.2
@@ -6443,6 +6451,22 @@ snapshots:
       joi: 17.4.0
       type-fns: 1.21.0
       uuid-fns: 1.1.3
+
+  domain-objects@0.31.7(@types/node@22.15.21):
+    dependencies:
+      change-case: 4.1.2
+      domain-objects: 0.31.3
+      helpful-errors: 1.5.3
+      joi: 17.4.0
+      rhachet: 1.13.1
+      rhachet-roles-ehmpathy: 1.13.3(@types/node@22.15.21)
+      type-fns: 1.21.0
+      uuid-fns: 1.1.3
+    transitivePeerDependencies:
+      - '@types/node'
+      - aws-crt
+      - ws
+      - zod
 
   dot-case@3.0.4:
     dependencies:
@@ -7696,6 +7720,30 @@ snapshots:
       as-procedure: 1.1.7
       domain-objects: 0.31.3
       helpful-errors: 1.5.3
+
+  rhachet-roles-ehmpathy@1.13.3(@types/node@22.15.21):
+    dependencies:
+      '@ehmpathy/as-command': 1.0.3
+      '@ehmpathy/uni-time': 1.8.1
+      as-procedure: 1.1.7
+      domain-objects: 0.31.3
+      fast-glob: 3.3.3
+      helpful-errors: 1.5.3
+      inquirer: 12.7.0(@types/node@22.15.21)
+      openai: 5.8.2
+      rhachet: 1.13.1
+      rhachet-artifact: 1.0.0
+      rhachet-artifact-git: 1.1.0
+      serde-fns: 1.2.0
+      simple-in-memory-cache: 0.4.0
+      type-fns: 1.21.0
+      with-simple-caching: 0.14.2
+      wrapper-fns: 1.1.0
+    transitivePeerDependencies:
+      - '@types/node'
+      - aws-crt
+      - ws
+      - zod
 
   rhachet@1.13.1:
     dependencies:
