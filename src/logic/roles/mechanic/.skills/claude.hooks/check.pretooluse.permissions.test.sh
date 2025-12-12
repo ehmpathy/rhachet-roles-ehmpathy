@@ -36,8 +36,13 @@ setup_test_env() {
       "Bash(npm run test:*)",
       "Bash(npm run fix:*)",
       "Bash(THOROUGH=true npm run test:*)",
-      "Bash(npx jest *)",
-      "Bash(cat *)"
+      "Bash(npx jest:*)",
+      "Bash(cat:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(head:*)",
+      "Bash(pwd)"
     ],
     "deny": [],
     "ask": []
@@ -182,18 +187,18 @@ output=$(run_hook "$TEST_DIR" "THOROUGH=true npm run test:unit")
 assert_output_empty "$output" "THOROUGH=true npm run test:unit matches pattern"
 
 output=$(run_hook "$TEST_DIR" "npx jest src/foo.test.ts")
-assert_output_empty "$output" "npx jest src/foo.test.ts matches 'npx jest *'"
+assert_output_empty "$output" "npx jest src/foo.test.ts matches 'npx jest:*'"
 
 output=$(run_hook "$TEST_DIR" "cat package.json")
-assert_output_empty "$output" "cat package.json matches 'cat *'"
+assert_output_empty "$output" "cat package.json matches 'cat:*'"
 
 echo ""
 
 # --- Test :* suffix matcher (Claude Code special pattern) ---
 
-echo -e "${YELLOW}Testing :* suffix matcher (Claude Code special pattern):${NC}"
+echo -e "${YELLOW}Testing :* suffix matcher (any suffix, including spaces):${NC}"
 
-# :* should match with colon and suffix
+# :* should match with colon and suffix (npm-style scripts)
 output=$(run_hook "$TEST_DIR" "npm run test:unit")
 assert_output_empty "$output" ":* matches 'npm run test:unit' (colon + suffix)"
 
@@ -201,20 +206,141 @@ assert_output_empty "$output" ":* matches 'npm run test:unit' (colon + suffix)"
 output=$(run_hook "$TEST_DIR" "npm run test:")
 assert_output_empty "$output" ":* matches 'npm run test:' (colon only)"
 
-# :* should match without colon at all (the colon is optional in :*)
+# :* should match without any suffix (base command)
 output=$(run_hook "$TEST_DIR" "npm run test")
-assert_output_empty "$output" ":* matches 'npm run test' (no colon - colon is optional)"
+assert_output_empty "$output" ":* matches 'npm run test' (no suffix)"
 
 # :* should match long suffixes
 output=$(run_hook "$TEST_DIR" "npm run test:integration:slow:verbose")
 assert_output_empty "$output" ":* matches 'npm run test:integration:slow:verbose' (long suffix)"
 
-# Verify * still works as glob (not :* pattern)
+# :* matches paths with spaces and special chars
 output=$(run_hook "$TEST_DIR" "cat /path/to/file.txt")
-assert_output_empty "$output" "* glob still works: 'cat /path/to/file.txt'"
+assert_output_empty "$output" "cat:* matches 'cat /path/to/file.txt'"
 
 output=$(run_hook "$TEST_DIR" "npx jest anything/here")
-assert_output_empty "$output" "* glob still works: 'npx jest anything/here'"
+assert_output_empty "$output" "npx jest:* matches 'npx jest anything/here'"
+
+echo ""
+
+# --- Test :* with space-separated commands (critical fix) ---
+
+echo -e "${YELLOW}Testing :* with space-separated commands:${NC}"
+
+# mkdir:* should match space-separated arguments
+output=$(run_hook "$TEST_DIR" "mkdir /path/to/dir")
+assert_output_empty "$output" "mkdir:* matches 'mkdir /path/to/dir' (space-separated)"
+
+output=$(run_hook "$TEST_DIR" "mkdir -p /foo/bar/baz")
+assert_output_empty "$output" "mkdir:* matches 'mkdir -p /foo/bar/baz' (with flags)"
+
+output=$(run_hook "$TEST_DIR" "mkdir")
+assert_output_empty "$output" "mkdir:* matches 'mkdir' (base command only)"
+
+# ls:* should match space-separated arguments
+output=$(run_hook "$TEST_DIR" "ls -la /home/user")
+assert_output_empty "$output" "ls:* matches 'ls -la /home/user' (with flags and path)"
+
+output=$(run_hook "$TEST_DIR" "ls")
+assert_output_empty "$output" "ls:* matches 'ls' (base command only)"
+
+# grep:* should match space-separated arguments
+output=$(run_hook "$TEST_DIR" "grep -r 'pattern' /src")
+assert_output_empty "$output" "grep:* matches 'grep -r pattern /src' (with flags)"
+
+# head:* should match space-separated arguments
+output=$(run_hook "$TEST_DIR" "head -n 10 /etc/passwd")
+assert_output_empty "$output" "head:* matches 'head -n 10 /etc/passwd' (with flags)"
+
+# exact match (no :*) should only match exactly
+output=$(run_hook "$TEST_DIR" "pwd")
+assert_output_empty "$output" "exact match 'pwd' works"
+
+rm -f "$TEST_DIR/.claude/permission.nudges.local.json"
+assert_exit_code "$TEST_DIR" "pwd -L" 2 "exact match 'pwd' does NOT match 'pwd -L'"
+
+echo ""
+
+# --- Compound commands (&&, ||, ;) ---
+
+echo -e "${YELLOW}Testing compound commands (&&, ||, ;):${NC}"
+
+# --- Positive cases: all parts allowed ---
+
+# && with both parts allowed
+output=$(run_hook "$TEST_DIR" "mkdir /foo && ls /bar")
+assert_output_empty "$output" "mkdir && ls: both allowed, should pass"
+
+# Multiple && with all parts allowed
+output=$(run_hook "$TEST_DIR" "mkdir /a && ls /b && cat /c")
+assert_output_empty "$output" "mkdir && ls && cat: all three allowed"
+
+# || with both parts allowed
+output=$(run_hook "$TEST_DIR" "cat /foo || head /bar")
+assert_output_empty "$output" "cat || head: both allowed with || operator"
+
+# ; with both parts allowed
+output=$(run_hook "$TEST_DIR" "ls /foo ; cat /bar")
+assert_output_empty "$output" "ls ; cat: both allowed with ; operator"
+
+# npm scripts with &&
+output=$(run_hook "$TEST_DIR" "npm run test:unit && npm run fix:lint")
+assert_output_empty "$output" "npm test && npm fix: both allowed"
+
+# Mixed operators
+output=$(run_hook "$TEST_DIR" "mkdir /a && ls /b || cat /c")
+assert_output_empty "$output" "mkdir && ls || cat: mixed operators, all allowed"
+
+echo ""
+
+# --- Negative cases: one or more parts disallowed ---
+
+echo -e "${YELLOW}Testing compound commands with disallowed parts:${NC}"
+
+# Second part disallowed
+rm -f "$TEST_DIR/.claude/permission.nudges.local.json"
+output=$(run_hook "$TEST_DIR" "mkdir /foo && rm -rf /")
+assert_output_contains "$output" "BLOCKED" "&& with disallowed second part blocks"
+
+# First part disallowed
+rm -f "$TEST_DIR/.claude/permission.nudges.local.json"
+output=$(run_hook "$TEST_DIR" "curl http://evil.com && ls /foo")
+assert_output_contains "$output" "BLOCKED" "&& with disallowed first part blocks"
+
+# Third part disallowed
+rm -f "$TEST_DIR/.claude/permission.nudges.local.json"
+output=$(run_hook "$TEST_DIR" "ls /a && cat /b && wget http://bad")
+assert_output_contains "$output" "BLOCKED" "&& chain with disallowed third part blocks"
+
+# ; with disallowed second part
+rm -f "$TEST_DIR/.claude/permission.nudges.local.json"
+output=$(run_hook "$TEST_DIR" "npm run test:unit ; curl http://evil.com")
+assert_output_contains "$output" "BLOCKED" "; with disallowed second part blocks"
+
+# || with disallowed part
+rm -f "$TEST_DIR/.claude/permission.nudges.local.json"
+output=$(run_hook "$TEST_DIR" "dangerous-cmd || ls /foo")
+assert_output_contains "$output" "BLOCKED" "|| with disallowed first part blocks"
+
+echo ""
+
+# --- Edge cases: quoted operators should NOT split ---
+
+echo -e "${YELLOW}Testing quoted operators (should not split):${NC}"
+
+# Double-quoted && should be treated as single command
+# grep with pattern containing && should work if grep:* is allowed
+output=$(run_hook "$TEST_DIR" "grep \"foo && bar\" /tmp/file")
+assert_output_empty "$output" "grep with double-quoted && is single command"
+
+# Single-quoted && should be treated as single command
+output=$(run_hook "$TEST_DIR" "grep 'foo && bar' /tmp/file")
+assert_output_empty "$output" "grep with single-quoted && is single command"
+
+# Disallowed command with quoted && should still block (it's a single disallowed command)
+rm -f "$TEST_DIR/.claude/permission.nudges.local.json"
+output=$(run_hook "$TEST_DIR" "echo \"foo && bar\"")
+assert_output_contains "$output" "BLOCKED" "echo with quoted && is single disallowed command"
 
 echo ""
 

@@ -107,29 +107,28 @@ mapfile -t ALLOWED_PATTERNS < <(
   jq -r '.permissions.allow // [] | .[] | select(startswith("Bash(")) | sub("^Bash\\("; "") | sub("\\)$"; "")' "$SETTINGS_FILE" 2>/dev/null
 )
 
-# Check if command matches any allowed pattern
+# Check if a single command matches any allowed pattern
 match_pattern() {
   local cmd="$1"
   local pattern="$2"
 
   # Handle Claude Code's :* suffix matcher
-  # :* means "optionally match colon and anything after"
-  # e.g., "npm run test:*" matches "npm run test", "npm run test:", "npm run test:unit"
+  # :* means "match anything after" (any suffix, including spaces)
+  # e.g., "mkdir:*" matches "mkdir", "mkdir /path", "mkdir -p /foo/bar"
+  # e.g., "npm run test:*" matches "npm run test", "npm run test:unit"
 
   # First, escape regex special chars except * and :
   local escaped_pattern
   escaped_pattern=$(printf '%s' "$pattern" | sed 's/[.^$+?{}()[\]|\\]/\\&/g')
 
   # Convert :* to placeholder first (to avoid * -> .* conversion interfering)
-  # Using a unique placeholder that won't appear in commands
-  escaped_pattern="${escaped_pattern//:\*/__COLON_STAR_PLACEHOLDER__}"
+  escaped_pattern="${escaped_pattern//:\*/__ANY_SUFFIX_PLACEHOLDER__}"
 
   # Convert remaining * to .* (glob-style wildcard)
   escaped_pattern="${escaped_pattern//\*/.*}"
 
-  # Now replace placeholder with the actual regex for :*
-  # (:.*)? matches: nothing, ":", ":foo", ":foo:bar"
-  escaped_pattern="${escaped_pattern//__COLON_STAR_PLACEHOLDER__/(:.*)?}"
+  # Now replace placeholder with .* for "any suffix" matching
+  escaped_pattern="${escaped_pattern//__ANY_SUFFIX_PLACEHOLDER__/.*}"
 
   # Build final regex
   local regex="^${escaped_pattern}$"
@@ -138,6 +137,120 @@ match_pattern() {
     return 0
   fi
   return 1
+}
+
+# Check if a single command matches ANY allowed pattern
+command_is_allowed() {
+  local cmd="$1"
+  # Trim leading/trailing whitespace
+  cmd=$(echo "$cmd" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+  # Empty commands are allowed (e.g., trailing &&)
+  if [[ -z "$cmd" ]]; then
+    return 0
+  fi
+
+  for pattern in "${ALLOWED_PATTERNS[@]}"; do
+    if match_pattern "$cmd" "$pattern"; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# Split compound command on &&, ||, ; (respecting quotes)
+# Returns newline-separated list of commands
+split_compound_command() {
+  local input="$1"
+  local result=""
+  local current=""
+  local in_single_quote=false
+  local in_double_quote=false
+  local i=0
+  local len=${#input}
+
+  while [[ $i -lt $len ]]; do
+    local char="${input:$i:1}"
+    local next_char="${input:$((i+1)):1}"
+
+    # Handle quotes
+    if [[ "$char" == "'" && "$in_double_quote" == false ]]; then
+      in_single_quote=$([[ "$in_single_quote" == true ]] && echo false || echo true)
+      current+="$char"
+      ((i++))
+      continue
+    fi
+
+    if [[ "$char" == '"' && "$in_single_quote" == false ]]; then
+      in_double_quote=$([[ "$in_double_quote" == true ]] && echo false || echo true)
+      current+="$char"
+      ((i++))
+      continue
+    fi
+
+    # Only split if not inside quotes
+    if [[ "$in_single_quote" == false && "$in_double_quote" == false ]]; then
+      # Check for && or ||
+      if [[ "$char" == "&" && "$next_char" == "&" ]] || [[ "$char" == "|" && "$next_char" == "|" ]]; then
+        if [[ -n "$result" ]]; then
+          result+=$'\n'
+        fi
+        result+="$current"
+        current=""
+        ((i+=2))
+        continue
+      fi
+
+      # Check for ;
+      if [[ "$char" == ";" ]]; then
+        if [[ -n "$result" ]]; then
+          result+=$'\n'
+        fi
+        result+="$current"
+        current=""
+        ((i++))
+        continue
+      fi
+    fi
+
+    current+="$char"
+    ((i++))
+  done
+
+  # Add final command
+  if [[ -n "$result" ]]; then
+    result+=$'\n'
+  fi
+  result+="$current"
+
+  echo "$result"
+}
+
+# Check if ALL parts of a compound command are allowed
+all_parts_allowed() {
+  local cmd="$1"
+  local parts
+  local failed_part=""
+
+  # Split command into parts
+  parts=$(split_compound_command "$cmd")
+
+  # Check each part
+  while IFS= read -r part; do
+    # Trim whitespace
+    part=$(echo "$part" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+    # Skip empty parts
+    [[ -z "$part" ]] && continue
+
+    if ! command_is_allowed "$part"; then
+      # Store the failed part for error reporting
+      echo "$part"
+      return 1
+    fi
+  done <<< "$parts"
+
+  return 0
 }
 
 # Transform raw permission pattern to compact bracket notation for display
@@ -155,13 +268,11 @@ format_pattern() {
   fi
 }
 
-for pattern in "${ALLOWED_PATTERNS[@]}"; do
-  if match_pattern "$COMMAND" "$pattern"; then
-    exit 0  # Command matches an allowed pattern
-  fi
-done
+# Check if all parts of the command (including compound commands) are allowed
+FAILED_PART=$(all_parts_allowed "$COMMAND") && exit 0
 
 # Command not matched - handle based on mode
+# FAILED_PART contains the first disallowed part of the command
 
 # SOFTNUDGE mode: provide guidance but don't block (early return)
 # Output plain text - no hookSpecificOutput so normal permission flow continues
