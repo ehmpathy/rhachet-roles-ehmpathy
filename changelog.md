@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.7](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.6...v1.13.7) (2025-12-12)
+
+
+### Bug Fixes
+
+* **pkg:** recomplete the package with post tsc step ([#31](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/31)) ([ded3b91](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/ded3b914eecbe9400506c49745d287277f97b5d1))
+
 ## [1.13.6](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.5...v1.13.6) (2025-12-12)
 
 
