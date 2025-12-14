@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.8](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.7...v1.13.8) (2025-12-14)
+
+
+### Bug Fixes
+
+* **mechanic:** ensure claude permissions dont have trailing errors ([#33](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/33)) ([2a5ba21](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/2a5ba2129316c6f13552c8a52de471714dcb2bc7))
+
 ## [1.13.7](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.6...v1.13.7) (2025-12-12)
 
 
