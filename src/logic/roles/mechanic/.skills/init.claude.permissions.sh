@@ -41,7 +41,7 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "Bash(echo:*)",
       "Bash(mv:*)",
       "Bash(npx biome:*)",
-      "Bash(npx jest:*)",
+      "Bash(npx jest:*)"
     ],
     "ask": [
       "Bash(bash:*)",
