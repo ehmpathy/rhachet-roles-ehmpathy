@@ -12,9 +12,9 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import { type ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
-import { genStepArtSet } from '../../../artifact/genStepArtSet';
-import { getMechanicBriefs } from '../getMechanicBrief';
+import { type ContextOpenAI, sdkOpenAi } from '@src/data/sdk/sdkOpenAi';
+import { genStepArtSet } from '@src/logic/artifact/genStepArtSet';
+import { getMechanicBriefs } from '@src/logic/roles/mechanic/getMechanicBrief';
 
 interface ThreadsDesired
   extends Threads<{

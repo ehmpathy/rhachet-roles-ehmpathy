@@ -7,8 +7,9 @@ import {
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { given, then, usePrep, when } from 'test-fns';
 
-import { genContextLogTrail } from '../../../../../.test/genContextLogTrail';
-import { getContextOpenAI } from '../../../../../.test/getContextOpenAI';
+import { genContextLogTrail } from '@src/.test/genContextLogTrail';
+import { getContextOpenAI } from '@src/.test/getContextOpenAI';
+
 import { stepPlanContextualize } from './stepPlanContextualize';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));

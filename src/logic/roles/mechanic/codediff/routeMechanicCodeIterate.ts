@@ -8,7 +8,8 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import type { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
+import type { ContextOpenAI } from '@src/data/sdk/sdkOpenAi';
+
 import { routeArtistCodeDiff } from './routeArtistCodeDiff';
 import { routeCriticCodeReview } from './routeCriticCodeReview';
 import { routeJudgeReleasable } from './routeJudgeReleasable';

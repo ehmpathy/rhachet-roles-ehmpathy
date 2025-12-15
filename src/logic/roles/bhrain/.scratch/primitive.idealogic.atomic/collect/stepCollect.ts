@@ -10,7 +10,7 @@ import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 import { deSerialJSON, isSerialJSON } from 'serde-fns';
 
-import { genStepArtSet } from '../../../../artifact/genStepArtSet';
+import { genStepArtSet } from '@src/logic/roles/artifact/genStepArtSet';
 
 type StitcherDesired = GStitcher<
   Threads<{

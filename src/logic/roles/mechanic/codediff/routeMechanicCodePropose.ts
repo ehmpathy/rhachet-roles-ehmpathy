@@ -13,7 +13,8 @@ import type { GitFile } from 'rhachet-artifact-git';
 import { deSerialJSON, isSerialJSON } from 'serde-fns';
 import type { Empty } from 'type-fns';
 
-import type { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
+import type { ContextOpenAI } from '@src/data/sdk/sdkOpenAi';
+
 import { routeMechanicCodeIterate } from './routeMechanicCodeIterate';
 
 // todo: how to extend threads? getting downstream type errors with alternative approaches.

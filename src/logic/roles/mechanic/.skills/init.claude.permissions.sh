@@ -41,7 +41,10 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "Bash(echo:*)",
       "Bash(mv:*)",
       "Bash(npx biome:*)",
-      "Bash(npx jest:*)"
+      "Bash(npx jest:*)",
+      "Bash(git add:*)"
+      "Bash(git stash:*)"
+      "Bash(git checkout:*)"
     ],
     "ask": [
       "Bash(bash:*)",
@@ -57,6 +60,7 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "WebFetch(domain:hub.docker.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:biomejs.dev)",
+      "Bash(git log:*),
 
       "Bash(ls:*)",
       "Bash(tree:*)",

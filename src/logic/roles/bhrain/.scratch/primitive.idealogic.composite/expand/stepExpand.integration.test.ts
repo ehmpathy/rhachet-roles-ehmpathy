@@ -4,10 +4,11 @@ import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { deSerialJSON, isSerialJSON } from 'serde-fns';
 import { given, then, usePrep, when } from 'test-fns';
 
-import { genContextLogTrail } from '../../../../../.test/genContextLogTrail';
-import { genContextStitchTrail } from '../../../../../.test/genContextStitchTrail';
-import { getContextOpenAI } from '../../../../../.test/getContextOpenAI';
-import { getBhrainBriefs } from '../../getBhrainBrief';
+import { genContextLogTrail } from '@src/logic/.test/genContextLogTrail';
+import { genContextStitchTrail } from '@src/logic/.test/genContextStitchTrail';
+import { getContextOpenAI } from '@src/logic/.test/getContextOpenAI';
+import { getBhrainBriefs } from '@src/logic/roles/bhrain/.scratch/getBhrainBrief';
+
 import { stepExpand } from './stepExpand';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));

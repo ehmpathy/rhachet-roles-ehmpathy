@@ -11,8 +11,9 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import type { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
-import { genStepGrabCallerFeedbackToArtifact } from '../../../artifact/genStepGrabCallerFeedbackToArtifact';
+import type { ContextOpenAI } from '@src/data/sdk/sdkOpenAi';
+import { genStepGrabCallerFeedbackToArtifact } from '@src/logic/artifact/genStepGrabCallerFeedbackToArtifact';
+
 import { stepOutlineDistilisys } from './stepOutlineDistilisys';
 
 type StitcherDesired = GStitcher<

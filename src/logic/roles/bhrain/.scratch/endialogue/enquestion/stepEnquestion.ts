@@ -10,12 +10,9 @@ import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 import { withRetry, withTimeout } from 'wrapper-fns';
 
-import {
-  type ContextOpenAI,
-  sdkOpenAi,
-} from '../../../../../../data/sdk/sdkOpenAi';
-import { getEcologistBriefs } from '../../../../ecologist/getEcologistBrief';
-import { getMechanicBriefs } from '../../../../mechanic/getMechanicBrief';
+import { type ContextOpenAI, sdkOpenAi } from '@src/data/sdk/sdkOpenAi';
+import { getEcologistBriefs } from '@src/logic/roles/ecologist/getEcologistBrief';
+import { getMechanicBriefs } from '@src/logic/roles/mechanic/getMechanicBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{

@@ -15,11 +15,11 @@ import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 import { withRetry, withTimeout } from 'wrapper-fns';
 
-import type { Focus } from '../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
-import { type ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
-import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
-import { genStepArtSet } from '../../../artifact/genStepArtSet';
-import { getBhrainBriefs } from '../getBhrainBrief';
+import type { Focus } from '@src/_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
+import { type ContextOpenAI, sdkOpenAi } from '@src/data/sdk/sdkOpenAi';
+import { genLoopFeedback } from '@src/logic/artifact/genLoopFeedback';
+import { genStepArtSet } from '@src/logic/artifact/genStepArtSet';
+import { getBhrainBriefs } from '@src/logic/roles/bhrain/getBhrainBrief';
 
 export const BRIEFS_FOR_INSTANTIATE = getBhrainBriefs([
   'knowledge/kno101.primitives.1.ontology.[article].frame.docs_as_materializations.md',

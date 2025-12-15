@@ -1,12 +1,12 @@
 import { enrollThread, type GStitcherOf, RoleSkill } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 
-import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
-import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { getRefOrgPatterns } from '../codediff/getRefOrgPatterns';
-import { routeMechanicCodePropose } from '../codediff/routeMechanicCodePropose';
-import { getMechanicBrief } from '../getMechanicBrief';
+import { genContextLogTrail } from '@src/.test/genContextLogTrail';
+import { genContextStitchTrail } from '@src/.test/genContextStitchTrail';
+import { getContextOpenAI } from '@src/.test/getContextOpenAI';
+import { getRefOrgPatterns } from '@src/logic/roles/mechanic/codediff/getRefOrgPatterns';
+import { routeMechanicCodePropose } from '@src/logic/roles/mechanic/codediff/routeMechanicCodePropose';
+import { getMechanicBrief } from '@src/logic/roles/mechanic/getMechanicBrief';
 
 export const SKILL_CODE_PROPOSE: RoleSkill<
   GStitcherOf<typeof routeMechanicCodePropose>

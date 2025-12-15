@@ -11,7 +11,8 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import type { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
+import type { ContextOpenAI } from '@src/logic/data/sdk/sdkOpenAi';
+
 import { routeStudyAsk } from './routeStudyAsk';
 import { stepGrabCallerFeedbackToArtifact } from './stepGrabCallerFeedbackToArtifact';
 

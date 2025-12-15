@@ -12,8 +12,8 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import { type ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
-import { genStepArtSet } from '../../../artifact/genStepArtSet';
+import { type ContextOpenAI, sdkOpenAi } from '@src/data/sdk/sdkOpenAi';
+import { genStepArtSet } from '@src/logic/artifact/genStepArtSet';
 
 interface ThreadsDesired
   extends Threads<{

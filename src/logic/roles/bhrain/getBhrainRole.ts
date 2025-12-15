@@ -1,6 +1,7 @@
 import { Role, RoleTrait } from 'rhachet';
 
-import { getMechanicBrief } from '../mechanic/getMechanicBrief';
+import { getMechanicBrief } from '@src/logic/roles/mechanic/getMechanicBrief';
+
 import { SKILL_ARTICULATE } from './brief.articulate/stepArticulate.skill';
 import { SKILL_CATALOGIZE } from './brief.catalogize/stepCatalogize.skill';
 import { SKILL_DEMONSTRATE } from './brief.demonstrate/stepDemonstrate.skill';

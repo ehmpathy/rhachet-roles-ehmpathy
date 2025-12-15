@@ -13,11 +13,11 @@
 // import { GitFile } from 'rhachet-artifact-git';
 // import { withRetry, withTimeout } from 'wrapper-fns';
 
-// import { ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
-// import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
-// import { genStepArtSet } from '../../../artifact/genStepArtSet';
-// import { getMechanicBriefs } from '../../mechanic/getMechanicBrief';
-// import { getEcologistBriefs } from '../getEcologistBrief';
+// import { ContextOpenAI, sdkOpenAi } from '@src/logic/data/sdk/sdkOpenAi';
+// import { genLoopFeedback } from '@src/logic/roles/artifact/genLoopFeedback';
+// import { genStepArtSet } from '@src/logic/roles/artifact/genStepArtSet';
+// import { getMechanicBriefs } from '@src/logic/roles/ecologist/mechanic/getMechanicBrief';
+// import { getEcologistBriefs } from '@src/logic/roles/ecologist/.scratch/getEcologistBrief';
 
 // type StitcherDesired = GStitcher<
 //   Threads<{
