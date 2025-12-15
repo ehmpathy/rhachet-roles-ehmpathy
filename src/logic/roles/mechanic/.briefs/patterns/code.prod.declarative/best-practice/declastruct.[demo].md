@@ -218,7 +218,7 @@ describe('getCustomer', () => {
         async () =>
           await setCustomer(
             {
-              finsert: {
+              findsert: {
                 email: 'svc-protools@ahbode.dev',
                 name: 'svc-protools.test',
                 description: 'test',
@@ -246,7 +246,7 @@ describe('getCustomer', () => {
 
 ### 4. last, declare how to set the resource into the remote repository
 
-support set via both set.finsert and set.upsert idempotent operations
+support set via both set.findsert and set.upsert idempotent operations
 
 ref: https://github.com/ehmpathy/declastruct-stripe-sdk/blob/1f9e2ecefb46028f75348aed8a5f9e3528eb5c1e/src/logic/customer/setCustomer.ts
 
@@ -269,7 +269,7 @@ import { getCustomer } from './getCustomer';
 export const setCustomer = withLogTrail(
   async (
     input: PickOne<{
-      finsert: DeclaredStripeCustomer;
+      findsert: DeclaredStripeCustomer;
       upsert: DeclaredStripeCustomer;
     }>,
     context: StripeApiContext & VisualogicContext,
@@ -280,7 +280,7 @@ export const setCustomer = withLogTrail(
         by: {
           unique: {
             email:
-              input.finsert?.email ??
+              input.findsert?.email ??
               input.upsert?.email ??
               UnexpectedCodePathError.throw('no email in input', { input }),
           },
@@ -290,7 +290,7 @@ export const setCustomer = withLogTrail(
     );
 
     // sanity check that if the customer exists, their id matches the user's expectations, if any
-    const stripeCustomerIdExpected = input.finsert?.id || input.upsert?.id;
+    const stripeCustomerIdExpected = input.findsert?.id || input.upsert?.id;
     if (
       customerFound &&
       stripeCustomerIdExpected &&
@@ -307,8 +307,8 @@ export const setCustomer = withLogTrail(
 
     // if the customer was found, then handle that
     if (customerFound) {
-      // if asked to finsert, then we can return it now
-      if (input.finsert) return customerFound;
+      // if asked to findsert, then we can return it now
+      if (input.findsert) return customerFound;
 
       // if asked to upsert, then we can update it now
       if (input.upsert)
@@ -324,7 +324,7 @@ export const setCustomer = withLogTrail(
 
     // otherwise, create the customer
     const customerDesired: DeclaredStripeCustomer =
-      input.upsert ?? input.finsert;
+      input.upsert ?? input.findsert;
     const customerCreated = await context.stripe.customers.create(
       {
         email: customerDesired.email,
@@ -364,14 +364,14 @@ import { setCustomer } from './setCustomer';
 const log = console;
 
 describe('setCustomer', () => {
-  given('a .finsert', () => {
+  given('a .findsert', () => {
     when('the customer does not exist yet', () => {
       const email = `svc-protools.test.${getUuid()}@ahbode.dev`; // random uuid => new customer
 
       then('we should create it', async () => {
         const customer = await setCustomer(
           {
-            finsert: {
+            findsert: {
               email,
               name: 'svc-protools.test',
               description: 'test',
@@ -392,7 +392,7 @@ describe('setCustomer', () => {
         async () =>
           await setCustomer(
             {
-              finsert: {
+              findsert: {
                 email,
                 name: 'svc-protools.test',
                 description: 'test',
@@ -407,7 +407,7 @@ describe('setCustomer', () => {
       then('it should not update the customers attributes', async () => {
         const customerAfter = await setCustomer(
           {
-            finsert: {
+            findsert: {
               email,
               name: 'new name',
               description: 'test',

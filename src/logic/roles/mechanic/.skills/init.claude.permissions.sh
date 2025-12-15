@@ -51,6 +51,8 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "Bash(pnpm add:*)"
     ],
     "allow": [
+      "mcp__ide__getDiagnostics",
+
       "WebSearch",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:www.npmjs.com)",
