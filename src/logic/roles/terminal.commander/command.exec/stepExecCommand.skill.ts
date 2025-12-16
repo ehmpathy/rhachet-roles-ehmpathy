@@ -1,9 +1,10 @@
 import { enrollThread, genContextStitchTrail, genRoleSkill } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 
-import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { setSkillOutputSrc } from '../../../artifact/setSkillOutputSrc';
-import { genStitchStreamToDisk } from '../../../context/genStitchStreamToDisk';
+import { genContextLogTrail } from '@src/.test/genContextLogTrail';
+import { setSkillOutputSrc } from '@src/logic/artifact/setSkillOutputSrc';
+import { genStitchStreamToDisk } from '@src/logic/context/genStitchStreamToDisk';
+
 import { stepCommandExec } from './stepExecCommand';
 
 export const SKILL_COMMAND_EXEC = genRoleSkill({

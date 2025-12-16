@@ -2,7 +2,7 @@ import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 import { isPresent } from 'type-fns';
 
-import { getMechanicBrief } from '../getMechanicBrief';
+import { getMechanicBrief } from '@src/logic/roles/mechanic/getMechanicBrief';
 
 export const getRefOrgPatterns = (input: {
   purpose: 'prepare' | 'produce';

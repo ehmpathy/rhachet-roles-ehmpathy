@@ -13,13 +13,10 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import {
-  type ContextOpenAI,
-  sdkOpenAi,
-} from '../../../../../data/sdk/sdkOpenAi';
-import { genLoopFeedback } from '../../../../artifact/genLoopFeedback';
-import { genStepArtSet } from '../../../../artifact/genStepArtSet';
-import { getBhrainBriefs } from '../../getBhrainBrief';
+import { type ContextOpenAI, sdkOpenAi } from '@src/data/sdk/sdkOpenAi';
+import { genLoopFeedback } from '@src/logic/artifact/genLoopFeedback';
+import { genStepArtSet } from '@src/logic/artifact/genStepArtSet';
+import { getBhrainBriefs } from '@src/logic/roles/bhrain/getBhrainBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{

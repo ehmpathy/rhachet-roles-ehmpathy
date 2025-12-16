@@ -1,4 +1,5 @@
-import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
+import { genLoopFeedback } from '@src/logic/roles/artifact/genLoopFeedback';
+
 import { stepStudyDomain } from './stepStudyDomain';
 
 export const loopStudyDomain = genLoopFeedback({

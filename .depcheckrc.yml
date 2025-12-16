@@ -2,7 +2,7 @@ ignores:
   - depcheck
   - declapract
   - declapract-typescript-ehmpathy
-  - '@commitlint/config-conventional'
+  - "@commitlint/config-conventional"
   - serverless-prune-plugin
   - husky
   - if-env
@@ -13,4 +13,7 @@ ignores:
   - esbuild-register
   - "@swc/core"
   - "@swc/jest"
+  - tsc-alias
   - tsx
+  - "@src/*"
+  - "@src/.*"

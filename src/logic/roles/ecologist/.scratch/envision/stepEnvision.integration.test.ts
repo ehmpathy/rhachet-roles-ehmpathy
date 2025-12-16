@@ -3,9 +3,9 @@
 // import { genArtifactGitFile } from 'rhachet-artifact-git';
 // import { given, when, then, usePrep } from 'test-fns';
 
-// import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-// import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
-// import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
+// import { genContextLogTrail } from '@src/logic/.test/genContextLogTrail';
+// import { genContextStitchTrail } from '@src/logic/.test/genContextStitchTrail';
+// import { getContextOpenAI } from '@src/logic/.test/getContextOpenAI';
 // import { stepEnvision } from './stepEnvision';
 
 // jest.setTimeout(toMilliseconds({ minutes: 5 }));

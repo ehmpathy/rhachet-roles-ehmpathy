@@ -3,10 +3,11 @@ import { enrollThread, enweaveOneStitcher } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { given, then, usePrep, when } from 'test-fns';
 
-import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { genContextStitchTrail } from '../../../../.test/genContextStitchTrail';
-import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { getBhrainBriefs } from '../getBhrainBrief';
+import { genContextLogTrail } from '@src/.test/genContextLogTrail';
+import { genContextStitchTrail } from '@src/.test/genContextStitchTrail';
+import { getContextOpenAI } from '@src/.test/getContextOpenAI';
+import { getBhrainBriefs } from '@src/logic/roles/bhrain/getBhrainBrief';
+
 import { stepTriage } from './stepTriage';
 
 jest.setTimeout(toMilliseconds({ minutes: 5 }));

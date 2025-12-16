@@ -88,14 +88,14 @@ importers:
         specifier: 3.3.0
         version: 3.3.0(@types/node@22.15.21)(typescript@5.4.5)
       declapract:
-        specifier: 0.13.0
-        version: 0.13.0(typescript@5.4.5)
+        specifier: 0.13.1
+        version: 0.13.1(@types/node@22.15.21)
       declapract-typescript-ehmpathy:
-        specifier: 0.43.16
-        version: 0.43.16(declapract@0.13.0(typescript@5.4.5))
+        specifier: 0.45.5
+        version: 0.45.5(@types/node@22.15.21)(declapract@0.13.1(@types/node@22.15.21))(esbuild@0.25.12)
       declastruct:
-        specifier: 1.5.1
-        version: 1.5.1(domain-objects@0.31.7(@types/node@22.15.21))
+        specifier: 1.7.0
+        version: 1.7.0(domain-objects@0.31.7(@types/node@22.15.21))
       declastruct-github:
         specifier: 1.0.7
         version: 1.0.7
@@ -114,6 +114,9 @@ importers:
       test-fns:
         specifier: 1.6.0
         version: 1.6.0
+      tsc-alias:
+        specifier: 1.8.10
+        version: 1.8.10
       tsx:
         specifier: 4.20.6
         version: 4.20.6
@@ -1876,6 +1879,10 @@ packages:
   before-after-hook@3.0.2:
     resolution: {integrity: sha512-Nik3Sc0ncrMK4UUdXQmAnRtzmNQTAAXmXIopizwZ1W1t8QmfJj+zL4OA2I7XPTPW5z5TDqv4hRo/JzouDJnX3A==}
 
+  binary-extensions@2.3.0:
+    resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
+    engines: {node: '>=8'}
+
   bl@4.1.0:
     resolution: {integrity: sha512-1W07cM9gS6DcLperZfFSj+bWLtaPGSOHWhPiGzXmvVJbRLdG82sH/Kn8EtW1VqWVA54AKf2h5k5BbnIbwF3h6w==}
 
@@ -1963,6 +1970,10 @@ packages:
   chardet@2.1.1:
     resolution: {integrity: sha512-PsezH1rqdV9VvyNhxxOW32/d75r01NY7TQCmOqomRo15ZSOKbpTFVsfjghxo6JloQUCGnH4k1LGu0R4yCLlWQQ==}
 
+  chokidar@3.6.0:
+    resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
+    engines: {node: '>= 8.10.0'}
+
   chokidar@4.0.3:
     resolution: {integrity: sha512-Qgzu8kfBvo+cA4962jnP1KkS6Dop5NS6g7R5LFYJr4b8Ub94PPQXUksCw9PvXoeXPRRddRNC5C1JQUR2SMGtnA==}
     engines: {node: '>= 14.16.0'}
@@ -2036,6 +2047,10 @@ packages:
   commander@14.0.2:
     resolution: {integrity: sha512-TywoWNNRbhoD0BXs1P3ZEScW8W5iKrnbithIl0YH+uCmBd0QpPOA8yc82DS3BIE5Ma6FnBVUsJ7wVUDz4dvOWQ==}
     engines: {node: '>=20'}
+
+  commander@9.5.0:
+    resolution: {integrity: sha512-KRs7WVDKg86PWiuAqhDrAQnTXZKraVcCc6vFdL14qrZ/DcWwuRo7VoiYXalXO7S5GKpqYiVEwCbgFDfxNHKJBQ==}
+    engines: {node: ^12.20.0 || >=14}
 
   commitizen@4.3.1:
     resolution: {integrity: sha512-gwAPAVTy/j5YcOOebcCRIijn+mSjWJC+IYKivTu6aG8Ei/scoXgfsMRnuAk6b0GRste2J4NGxVdMN3ZpfNaVaw==}
@@ -2125,13 +2140,13 @@ packages:
       supports-color:
         optional: true
 
-  declapract-typescript-ehmpathy@0.43.16:
-    resolution: {integrity: sha512-r9HMHJJHERuDTiAStYaB5OZyE7xbs33XhCsYHToWyahzDcje5XWGFxa5+Lf08XijB8oJdr0D9M9bQX0hEavK3w==}
+  declapract-typescript-ehmpathy@0.45.5:
+    resolution: {integrity: sha512-t15630ifHoYdfvdEjnezB02iWYQhi8S1Mq+0gwJv593Gz5wNGOtL02bumpqlS85nWpzA8ljvkc3OVPTTktMogg==}
     peerDependencies:
-      declapract: '>=0.12.1'
+      declapract: '>=0.13.1'
 
-  declapract@0.13.0:
-    resolution: {integrity: sha512-ybd53eFXwRAuZW058Bu9vRSvN/jO2rutBV+sJkOxz1EOorlhFh64ZJ+0rE3m3/lxh1pcKGp4JU92s2Yk/38I1A==}
+  declapract@0.13.1:
+    resolution: {integrity: sha512-iYCNwfhkxGJC1gv95Al2jYK/F8zsIdNP6D+OikY0lCorrs8OIz0+c9+kn+GVSOv8vsLCRkuA4RwIOowuYIvZRQ==}
     engines: {node: '>=12.0.0'}
     hasBin: true
 
@@ -2139,8 +2154,8 @@ packages:
     resolution: {integrity: sha512-BWR7QNjXD/ilmpnIv33JSmGs/cItr7YAbtrydihfv2CNG8I4zYHKaI3sVCU0lSGKxdr9R6heC1sxtuU+hUDzoA==}
     engines: {node: '>=8.0.0'}
 
-  declastruct@1.5.1:
-    resolution: {integrity: sha512-fndvTmyTk/htdXvZvXyZUp68MD6IjpkdBCZN8m07rJMygkgOvF5C0hJL2rwG13wm6xZZXL7gXGiX0IE5Cu8tsw==}
+  declastruct@1.7.0:
+    resolution: {integrity: sha512-mQvtJ8ID+5J4g6n3wziHWGxoyEC1UH9QBW48ud8vkdRSkjrVFYpzbxb7u2n4lCs06o0onDFp0nHOw+1TjNHsqw==}
     engines: {node: '>=8.0.0'}
     hasBin: true
     peerDependencies:
@@ -2196,6 +2211,10 @@ packages:
   diff@4.0.2:
     resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
     engines: {node: '>=0.3.1'}
+
+  dir-glob@3.0.1:
+    resolution: {integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==}
+    engines: {node: '>=8'}
 
   domain-glossaries@1.0.0:
     resolution: {integrity: sha512-veAWouAHm93KQtR3v0lt0Ulnfm5GHmeY9H9A3wN4uY6GkKgRMIYYAjKMErPp0oetifsPXFbkr+KVFPgE7HrvnQ==}
@@ -2451,6 +2470,10 @@ packages:
     resolution: {integrity: sha512-5lsx1NUDHtSjfg0eHlmYvZKv8/nVqX4ckFbM+FrGcQ+04KWcWFo9P5MxPZYSzUvyzmdTbI7Eix8Q4IbELDqzKg==}
     engines: {node: '>=0.10.0'}
 
+  globby@11.1.0:
+    resolution: {integrity: sha512-jhIXaOzy1sb8IyocaruWSn1TjmnBVs8Ayhcy83rmxNJ8q2uWKCAj3CnJY+KpGSXCueAPc0i05kVvVKtP1t9S3g==}
+    engines: {node: '>=10'}
+
   graceful-fs@4.2.11:
     resolution: {integrity: sha512-RbJ5/jmFcNNCcDV5o9eTnBLJ/HszWV0P73bc+Ff4nS/rJj+YaS6IGyiOL0VoBYX+l1Wrl3k63h/KrH+nhJ0XvQ==}
 
@@ -2571,6 +2594,10 @@ packages:
 
   is-arrayish@0.2.1:
     resolution: {integrity: sha512-zz06S8t0ozoDXMG+ube26zeCTNXcKIPJZJi8hBrF4idCLms4CG9QtK7qBl1boi5ODzFpjswb5JPmHCbMpjaYzg==}
+
+  is-binary-path@2.1.0:
+    resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
+    engines: {node: '>=8'}
 
   is-core-module@2.16.1:
     resolution: {integrity: sha512-UfoeMA6fIJ8wTYFEUjelnaGI67v6+N7qXJEvQuIGa99l4xsCruSYOVSQ0uPANn4dAzm8lkYPaKLrrijLq7x23w==}
@@ -2991,6 +3018,10 @@ packages:
     resolution: {integrity: sha512-WWdIxpyjEn+FhQJQQv9aQAYlHoNVdzIzUySNV1gHUPDSdZJ3yZn7pAAbQcV7B56Mvu881q9FZV+0Vx2xC44VWA==}
     engines: {node: ^18.17.0 || >=20.5.0}
 
+  mylas@2.1.14:
+    resolution: {integrity: sha512-BzQguy9W9NJgoVn2mRWzbFrFWWztGCcng2QI9+41frfk+Athwgx3qhqhvStz7ExeUUu7Kzw427sNzHpEZNINog==}
+    engines: {node: '>=16.0.0'}
+
   nanoid@3.3.11:
     resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
@@ -3152,6 +3183,10 @@ packages:
   please-upgrade-node@3.2.0:
     resolution: {integrity: sha512-gQR3WpIgNIKwBMVLkpMUeR3e1/E1y42bqDQZfql+kDeXd8COYfM8PQA4X6y7a8u9Ua9FHmsrrmirW2vHs45hWg==}
 
+  plimit-lit@1.6.1:
+    resolution: {integrity: sha512-B7+VDyb8Tl6oMJT9oSO2CW8XC/T4UcJGrwOVoNGwOQsQYhlpfajmrMj5xeejqaASq3V/EqThyOeATEOMuSEXiA==}
+    engines: {node: '>=12'}
+
   postcss@8.5.6:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
@@ -3177,6 +3212,10 @@ packages:
 
   query-ast@1.0.5:
     resolution: {integrity: sha512-JK+1ma4YDuLjvKKcz9JZ70G+CM9qEOs/l1cZzstMMfwKUabTJ9sud5jvDGrUNuv03yKUgs82bLkHXJkDyhRmBw==}
+
+  queue-lit@1.5.2:
+    resolution: {integrity: sha512-tLc36IOPeMAubu8BkW8YDBV+WyIgKlYU7zUNs0J5Vk9skSZ4JfGlPOqplP0aHdfv7HL0B2Pg6nwiq60Qc6M2Hw==}
+    engines: {node: '>=12'}
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
@@ -3261,6 +3300,10 @@ packages:
 
   rhachet-roles-ehmpathy@1.13.3:
     resolution: {integrity: sha512-p0xLdXVHCjT2lYAthR4ARZZcAgy2RvarBzNyMgXMg3V0GcUAsZhpy37JrLk8dAu2y2YDWR/sbLIUl4CTgCazwg==}
+    engines: {node: '>=8.0.0'}
+
+  rhachet-roles-ehmpathy@1.13.7:
+    resolution: {integrity: sha512-J4RUtnX6e9YG9c1LVEBexjSXVYKx2IgVBQDEMRTbZFZcXZImzg/ssKHuWvqnsCQMd4hUz7cGtVZDl7hjNg0g1w==}
     engines: {node: '>=8.0.0'}
 
   rhachet@1.13.1:
@@ -3356,10 +3399,6 @@ packages:
     resolution: {integrity: sha512-syMjMLMvEyqpqciencsN54OFaFZr6g6vnaerIhGxIIDeaTdF9cL/XQZtQ+Dwg42ao35TCMUT5U9JLVYQhaqCEg==}
     engines: {node: '>=8.0.0'}
 
-  simple-log-methods@0.5.0:
-    resolution: {integrity: sha512-sZTJQUbmcrb8pqkLCexcdUVYxZUx40HGjxsEyWElBBz/+TH9wat25ztqrlOMW0Jqx0caDeo+s/WJp4PYTQNXWQ==}
-    engines: {node: '>=8.0.0'}
-
   simple-log-methods@0.6.1:
     resolution: {integrity: sha512-POHiGnZqnQSivzgSDJfVE3/GAVPUEG0zc5vRLKIPpTnIQ6IY0QhOJOO3Ur0rKgXzwU/hlYpqabkELR62CauMhA==}
     engines: {node: '>=8.0.0'}
@@ -3385,9 +3424,6 @@ packages:
 
   source-map-support@0.5.13:
     resolution: {integrity: sha512-SHSKFHadjVA5oR4PPqhtAVdcBWwRYVd6g6cAXnIbRiIwc2EhPrTuKUBdSLvlEKyIP3GCf89fltvcZiP9MMFA1w==}
-
-  source-map-support@0.5.21:
-    resolution: {integrity: sha512-uBHU3L3czsIyYXKX88fdrGovxdSCoTGDRZ6SYXtSRxLZUzHg5P/66Ht6uoUlHu9EZod+inXhKo3qQgwXUT/y1w==}
 
   source-map@0.6.1:
     resolution: {integrity: sha512-UjgapumWlbMhkBgzT7Ykc5YXUT46F0iKu8SGXq0bcwP5dz/h0Plj6enJqjz1Zbq2l5WaqYnrVbwWOWMyF3F47g==}
@@ -3517,12 +3553,9 @@ packages:
       '@swc/wasm':
         optional: true
 
-  ts-node@8.6.2:
-    resolution: {integrity: sha512-4mZEbofxGqLL2RImpe3zMJukvEvcO1XP8bj8ozBPySdCUXEcU5cIRwR0aM3R+VoZq7iXc8N86NC0FspGRqP4gg==}
-    engines: {node: '>=6.0.0'}
+  tsc-alias@1.8.10:
+    resolution: {integrity: sha512-Ibv4KAWfFkFdKJxnWfVtdOmB0Zi1RJVxcbPGiCDsFpCQSsmpWyuzHG3rQyI5YkobWwxFPEyQfu1hdo4qLG2zPw==}
     hasBin: true
-    peerDependencies:
-      typescript: '>=2.7'
 
   tslib@2.8.1:
     resolution: {integrity: sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w==}
@@ -3713,6 +3746,11 @@ packages:
   yaml@1.6.0:
     resolution: {integrity: sha512-iZfse3lwrJRoSlfs/9KQ9iIXxs9++RvBFVzAqbbBiFT+giYtyanevreF9r61ZTbGMgWQBxAua3FzJiniiJXWWw==}
     engines: {node: '>= 6'}
+
+  yaml@2.8.2:
+    resolution: {integrity: sha512-mplynKqc1C2hTVYxd0PU2xQAc22TI1vShAYGksCCfxbn/dFwnHTNi1bvYsBTkhdUNtGIf5xNOg938rrSSYvS9A==}
+    engines: {node: '>= 14.6'}
+    hasBin: true
 
   yargs-parser@20.2.9:
     resolution: {integrity: sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w==}
@@ -5932,7 +5970,8 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.1
 
-  arg@4.1.3: {}
+  arg@4.1.3:
+    optional: true
 
   argparse@1.0.10:
     dependencies:
@@ -6037,6 +6076,8 @@ snapshots:
 
   before-after-hook@3.0.2: {}
 
+  binary-extensions@2.3.0: {}
+
   bl@4.1.0:
     dependencies:
       buffer: 5.7.1
@@ -6136,6 +6177,18 @@ snapshots:
 
   chardet@2.1.1: {}
 
+  chokidar@3.6.0:
+    dependencies:
+      anymatch: 3.1.3
+      braces: 3.0.3
+      glob-parent: 5.1.2
+      is-binary-path: 2.1.0
+      is-glob: 4.0.3
+      normalize-path: 3.0.0
+      readdirp: 3.6.0
+    optionalDependencies:
+      fsevents: 2.3.3
+
   chokidar@4.0.3:
     dependencies:
       readdirp: 4.1.2
@@ -6191,6 +6244,8 @@ snapshots:
   commander@14.0.0: {}
 
   commander@14.0.2: {}
+
+  commander@9.5.0: {}
 
   commitizen@4.3.1(@types/node@22.15.21)(typescript@5.4.5):
     dependencies:
@@ -6305,23 +6360,31 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  declapract-typescript-ehmpathy@0.43.16(declapract@0.13.0(typescript@5.4.5)):
+  declapract-typescript-ehmpathy@0.45.5(@types/node@22.15.21)(declapract@0.13.1(@types/node@22.15.21))(esbuild@0.25.12):
     dependencies:
-      chalk: 4.1.2
-      declapract: 0.13.0(typescript@5.4.5)
-      domain-objects: 0.31.3
+      declapract: 0.13.1(@types/node@22.15.21)
+      domain-objects: 0.31.7(@types/node@22.15.21)
+      esbuild-register: 3.6.0(esbuild@0.25.12)
       expect: 29.4.2
       flat: 5.0.2
       helpful-errors: 1.5.3
-      simple-log-methods: 0.5.0
-      yaml: 1.10.2
+      rhachet: 1.13.1
+      rhachet-roles-ehmpathy: 1.13.7(@types/node@22.15.21)
+      yaml: 2.8.2
+    transitivePeerDependencies:
+      - '@types/node'
+      - aws-crt
+      - esbuild
+      - supports-color
+      - ws
+      - zod
 
-  declapract@0.13.0(typescript@5.4.5):
+  declapract@0.13.1(@types/node@22.15.21):
     dependencies:
       chalk: 2.4.2
       commander: 12.1.0
       cross-path-sort: 1.0.0
-      domain-objects: 0.31.3
+      domain-objects: 0.31.7(@types/node@22.15.21)
       expect: 29.4.3
       fast-glob: 3.2.2
       find-nearest-package-json: 2.0.1
@@ -6334,12 +6397,15 @@ snapshots:
       lodash.uniqby: 4.7.0
       shelljs: 0.8.5
       simple-leveled-log-methods: 0.1.4
-      ts-node: 8.6.2(typescript@5.4.5)
+      tsx: 4.20.6
       type-fns: 1.21.0
       uuid: 9.0.0
       yaml: 1.6.0
     transitivePeerDependencies:
-      - typescript
+      - '@types/node'
+      - aws-crt
+      - ws
+      - zod
 
   declastruct-github@1.0.7:
     dependencies:
@@ -6355,7 +6421,7 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  declastruct@1.5.1(domain-objects@0.31.7(@types/node@22.15.21)):
+  declastruct@1.7.0(domain-objects@0.31.7(@types/node@22.15.21)):
     dependencies:
       bottleneck: 2.19.5
       chalk: 5.4.1
@@ -6363,6 +6429,7 @@ snapshots:
       domain-objects: 0.31.7(@types/node@22.15.21)
       helpful-errors: 1.5.3
       jest-diff: 30.0.2
+      rhachet-artifact-git: 1.1.3
       simple-log-methods: 0.6.2
       tsx: 4.20.6
       type-fns: 1.21.0
@@ -6419,7 +6486,12 @@ snapshots:
 
   diff-sequences@29.6.3: {}
 
-  diff@4.0.2: {}
+  diff@4.0.2:
+    optional: true
+
+  dir-glob@3.0.1:
+    dependencies:
+      path-type: 4.0.0
 
   domain-glossaries@1.0.0: {}
 
@@ -6748,6 +6820,15 @@ snapshots:
       is-windows: 1.0.2
       which: 1.3.1
 
+  globby@11.1.0:
+    dependencies:
+      array-union: 2.1.0
+      dir-glob: 3.0.1
+      fast-glob: 3.3.3
+      ignore: 5.3.2
+      merge2: 1.4.1
+      slash: 3.0.0
+
   graceful-fs@4.2.11: {}
 
   has-flag@3.0.0: {}
@@ -6864,6 +6945,10 @@ snapshots:
       loose-envify: 1.4.0
 
   is-arrayish@0.2.1: {}
+
+  is-binary-path@2.1.0:
+    dependencies:
+      binary-extensions: 2.3.0
 
   is-core-module@2.16.1:
     dependencies:
@@ -7408,7 +7493,8 @@ snapshots:
     dependencies:
       semver: 7.7.3
 
-  make-error@1.3.6: {}
+  make-error@1.3.6:
+    optional: true
 
   makeerror@1.0.12:
     dependencies:
@@ -7456,6 +7542,8 @@ snapshots:
   mute-stream@0.0.8: {}
 
   mute-stream@2.0.0: {}
+
+  mylas@2.1.14: {}
 
   nanoid@3.3.11: {}
 
@@ -7594,6 +7682,10 @@ snapshots:
     dependencies:
       semver-compare: 1.0.0
 
+  plimit-lit@1.6.1:
+    dependencies:
+      queue-lit: 1.5.2
+
   postcss@8.5.6:
     dependencies:
       nanoid: 3.3.11
@@ -7631,6 +7723,8 @@ snapshots:
     dependencies:
       invariant: 2.2.4
       lodash: 4.17.21
+
+  queue-lit@1.5.2: {}
 
   queue-microtask@1.2.3: {}
 
@@ -7727,6 +7821,30 @@ snapshots:
       '@ehmpathy/uni-time': 1.8.1
       as-procedure: 1.1.7
       domain-objects: 0.31.3
+      fast-glob: 3.3.3
+      helpful-errors: 1.5.3
+      inquirer: 12.7.0(@types/node@22.15.21)
+      openai: 5.8.2
+      rhachet: 1.13.1
+      rhachet-artifact: 1.0.0
+      rhachet-artifact-git: 1.1.0
+      serde-fns: 1.2.0
+      simple-in-memory-cache: 0.4.0
+      type-fns: 1.21.0
+      with-simple-caching: 0.14.2
+      wrapper-fns: 1.1.0
+    transitivePeerDependencies:
+      - '@types/node'
+      - aws-crt
+      - ws
+      - zod
+
+  rhachet-roles-ehmpathy@1.13.7(@types/node@22.15.21):
+    dependencies:
+      '@ehmpathy/as-command': 1.0.3
+      '@ehmpathy/uni-time': 1.8.1
+      as-procedure: 1.1.7
+      domain-objects: 0.31.7(@types/node@22.15.21)
       fast-glob: 3.3.3
       helpful-errors: 1.5.3
       inquirer: 12.7.0(@types/node@22.15.21)
@@ -7846,10 +7964,6 @@ snapshots:
 
   simple-leveled-log-methods@0.1.4: {}
 
-  simple-log-methods@0.5.0:
-    dependencies:
-      type-fns: 1.21.0
-
   simple-log-methods@0.6.1:
     dependencies:
       '@ehmpathy/error-fns': 1.3.7
@@ -7888,11 +8002,6 @@ snapshots:
   source-map-js@1.2.1: {}
 
   source-map-support@0.5.13:
-    dependencies:
-      buffer-from: 1.1.2
-      source-map: 0.6.1
-
-  source-map-support@0.5.21:
     dependencies:
       buffer-from: 1.1.2
       source-map: 0.6.1
@@ -8021,14 +8130,14 @@ snapshots:
       '@swc/core': 1.15.3
     optional: true
 
-  ts-node@8.6.2(typescript@5.4.5):
+  tsc-alias@1.8.10:
     dependencies:
-      arg: 4.1.3
-      diff: 4.0.2
-      make-error: 1.3.6
-      source-map-support: 0.5.21
-      typescript: 5.4.5
-      yn: 3.1.1
+      chokidar: 3.6.0
+      commander: 9.5.0
+      globby: 11.1.0
+      mylas: 2.1.14
+      normalize-path: 3.0.0
+      plimit-lit: 1.6.1
 
   tslib@2.8.1: {}
 
@@ -8255,6 +8364,8 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.28.4
 
+  yaml@2.8.2: {}
+
   yargs-parser@20.2.9: {}
 
   yargs-parser@21.1.1: {}
@@ -8279,7 +8390,8 @@ snapshots:
       y18n: 5.0.8
       yargs-parser: 21.1.1
 
-  yn@3.1.1: {}
+  yn@3.1.1:
+    optional: true
 
   yocto-queue@0.1.0: {}
 

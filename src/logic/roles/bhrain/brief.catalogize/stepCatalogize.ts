@@ -9,11 +9,11 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import type { Focus } from '../../../../_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
-import type { ContextOpenAI } from '../../../../data/sdk/sdkOpenAi';
-import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
-import { getBhrainBriefs } from '../getBhrainBrief';
-import { stepInstantiate } from '../khue.instantiate/stepInstantiate';
+import type { Focus } from '@src/_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
+import type { ContextOpenAI } from '@src/data/sdk/sdkOpenAi';
+import { genLoopFeedback } from '@src/logic/artifact/genLoopFeedback';
+import { getBhrainBriefs } from '@src/logic/roles/bhrain/getBhrainBrief';
+import { stepInstantiate } from '@src/logic/roles/bhrain/khue.instantiate/stepInstantiate';
 
 const BRIEFS_FOR_CATALOGIZE = getBhrainBriefs([
   'cognition/cog021.structs.catalog.md',

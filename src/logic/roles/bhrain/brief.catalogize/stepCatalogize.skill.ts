@@ -2,10 +2,11 @@ import { glob } from 'fast-glob';
 import { enrollThread, genContextStitchTrail, genRoleSkill } from 'rhachet';
 import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 
-import { genContextLogTrail } from '../../../../.test/genContextLogTrail';
-import { getContextOpenAI } from '../../../../.test/getContextOpenAI';
-import { setSkillOutputSrc } from '../../../artifact/setSkillOutputSrc';
-import { genStitchStreamToDisk } from '../../../context/genStitchStreamToDisk';
+import { genContextLogTrail } from '@src/.test/genContextLogTrail';
+import { getContextOpenAI } from '@src/.test/getContextOpenAI';
+import { setSkillOutputSrc } from '@src/logic/artifact/setSkillOutputSrc';
+import { genStitchStreamToDisk } from '@src/logic/context/genStitchStreamToDisk';
+
 import { loopCatalogize } from './stepCatalogize';
 
 export const SKILL_CATALOGIZE = genRoleSkill({

@@ -1,6 +1,6 @@
 import { UnexpectedCodePathError } from 'helpful-errors';
 
-import { ContextOpenAI } from '../data/sdk/sdkOpenAi';
+import { ContextOpenAI } from '@src/data/sdk/sdkOpenAi';
 
 export const getContextOpenAI = (): ContextOpenAI => ({
   openai: {

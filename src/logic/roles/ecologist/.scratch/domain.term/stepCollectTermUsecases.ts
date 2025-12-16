@@ -12,11 +12,11 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import { type ContextOpenAI, sdkOpenAi } from '../../../../data/sdk/sdkOpenAi';
-import { genLoopFeedback } from '../../../artifact/genLoopFeedback';
-import { genStepArtSet } from '../../../artifact/genStepArtSet';
-import { getMechanicBriefs } from '../../mechanic/getMechanicBrief';
-import { getEcologistBriefs } from '../getEcologistBrief';
+import { type ContextOpenAI, sdkOpenAi } from '@src/logic/data/sdk/sdkOpenAi';
+import { genLoopFeedback } from '@src/logic/roles/artifact/genLoopFeedback';
+import { genStepArtSet } from '@src/logic/roles/artifact/genStepArtSet';
+import { getEcologistBriefs } from '@src/logic/roles/ecologist/.scratch/getEcologistBrief';
+import { getMechanicBriefs } from '@src/logic/roles/ecologist/mechanic/getMechanicBrief';
 
 type StitcherDesired = GStitcher<
   Threads<{

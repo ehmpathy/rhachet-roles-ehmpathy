@@ -8,10 +8,11 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import type { ContextOpenAI } from '../../../../../data/sdk/sdkOpenAi';
-import { genLoopFeedback } from '../../../../artifact/genLoopFeedback';
-import { genStepArtSet } from '../../../../artifact/genStepArtSet';
-import { stepSummarize } from '../summarize/stepSummarize';
+import type { ContextOpenAI } from '@src/data/sdk/sdkOpenAi';
+import { genLoopFeedback } from '@src/logic/artifact/genLoopFeedback';
+import { genStepArtSet } from '@src/logic/artifact/genStepArtSet';
+import { stepSummarize } from '@src/logic/roles/bhrain/.scratch/summarize/stepSummarize';
+
 import { stepEnanswer } from './enanswer/stepEnanswer';
 import { stepEnquestion } from './enquestion/stepEnquestion';
 
