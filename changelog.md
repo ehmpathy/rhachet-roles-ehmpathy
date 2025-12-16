@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.10](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.9...v1.13.10) (2025-12-16)
+
+
+### Bug Fixes
+
+* **mechanic:** mechanic permissions boot repair ([#38](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/38)) ([04e27e0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/04e27e09838c00c0af759eeaff56acaa64925cdb))
+
 ## [1.13.9](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.8...v1.13.9) (2025-12-16)
 
 
