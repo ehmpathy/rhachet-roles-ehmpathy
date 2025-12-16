@@ -42,8 +42,8 @@ PERMISSIONS_CONFIG=$(cat <<'EOF'
       "Bash(mv:*)",
       "Bash(npx biome:*)",
       "Bash(npx jest:*)",
-      "Bash(git add:*)"
-      "Bash(git stash:*)"
+      "Bash(git add:*)",
+      "Bash(git stash:*)",
       "Bash(git checkout:*)"
     ],
     "ask": [
