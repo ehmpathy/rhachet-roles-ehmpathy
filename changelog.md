@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.13.9](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.8...v1.13.9) (2025-12-16)
+
+
+### Bug Fixes
+
+* **mechanic:** ensure claude permissions allow diagnostics by default ([#35](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/35)) ([3131a57](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/3131a57c4a1279b1e2dfbc9b8d744b4d6a97297d))
+* **practs:** bump to latest best ([#36](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/36)) ([91407fb](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/91407fb86b79b483791b3f0a9b60e747dc97bd69))
+
 ## [1.13.8](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.7...v1.13.8) (2025-12-14)
 
 
