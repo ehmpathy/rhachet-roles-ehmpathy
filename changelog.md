@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.11](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.10...v1.13.11) (2025-12-17)
+
+
+### Bug Fixes
+
+* **mechanic:** bump to jsonc for permissions source ([#40](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/40)) ([b437979](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/b43797987386f2af310230dc12ae59da59900d10))
+
 ## [1.13.10](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.9...v1.13.10) (2025-12-16)
 
 
