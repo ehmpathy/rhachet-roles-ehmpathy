@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.12](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.11...v1.13.12) (2025-12-17)
+
+
+### Bug Fixes
+
+* **dist:** export jsonc with skills, not json ([#42](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/42)) ([c40d41c](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/c40d41c77cea85c8b23a8fa79dbf842edf8aa989))
+
 ## [1.13.11](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.10...v1.13.11) (2025-12-17)
 
 
