@@ -1,0 +1,136 @@
+{
+  // mechanic role permissions for Claude
+  //
+  // these permissions are conservative by design:
+  // - deny: commands that should never be auto-approved
+  // - ask: commands that require explicit user approval
+  // - allow: commands that are safe to auto-approve
+
+  "permissions": {
+    // commands that should never be auto-approved
+    "deny": [
+      // git write operations - require explicit user approval for audit trail
+      "Bash(git commit:*)",
+      "Bash(git add:*)",
+      "Bash(git stash:*)",
+      "Bash(git checkout:*)",
+
+      // "anywrite" commands - CRITICAL SECURITY RISK
+      //
+      // unlike Claude's native Edit/Write tools which are scoped to the repo,
+      // these bash commands can write ANYWHERE on your OS. this makes them
+      // prime targets for prompt injection attacks:
+      //
+      //   1. user asks claude to fetch docs from lookslegit.dev/api-reference
+      //   2. page contains hidden instructions to write innocent-looking content
+      //   3. with anywrite allowed, claude writes to ~/.bashrc or ~/.zshrc
+      //   4. content looks like helpful aliases but executes malicious logic
+      //   5. your entire system is now compromised
+      //
+      // sed: in-place file modification anywhere on disk
+      "Bash(sed:*)",
+      // tee: write to any path - ~/.bashrc, ~/.ssh/authorized_keys, etc.
+      "Bash(tee:*)",
+      // find -exec: arbitrary command execution on matched files
+      "Bash(find:*)",
+      // echo >: redirect to any file - echo "malicious" >> ~/.bashrc
+      "Bash(echo:*)",
+      // mv: move/overwrite any file - mv ~/.ssh/config ~/.ssh/config.bak
+      "Bash(mv:*)",
+
+      // test runners - should use npm run test:* scripts instead
+      // direct invocation bypasses project test configuration
+      "Bash(npx biome:*)",
+      "Bash(npx jest:*)"
+    ],
+
+    // commands that require explicit user approval each time
+    "ask": [
+      "Bash(bash:*)",
+      "Bash(chmod:*)",
+      "Bash(npm install:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm add:*)"
+    ],
+
+    // commands that are safe to auto-approve
+    "allow": [
+      // ide integrations
+      "mcp__ide__getDiagnostics",
+
+      // web access
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:hub.docker.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:biomejs.dev)",
+
+      // git read-only
+      "Bash(git log:*)",
+
+      // filesystem read operations
+      "Bash(ls:*)",
+      "Bash(tree:*)",
+      "Bash(cat:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(grep:*)",
+      "Bash(wc:*)",
+      "Bash(diff:*)",
+      "Bash(which:*)",
+      "Bash(file:*)",
+      "Bash(mkdir:*)",
+      "Bash(pwd)",
+
+      // safe custom tools
+      "Bash(bash src/logic/roles/mechanic/.skills/claude.tools/mvsafe.sh:*)",
+
+      // npm read operations
+      "Bash(npm view:*)",
+      "Bash(npm list:*)",
+      "Bash(npm remove:*)",
+
+      // rhachet operations
+      "Bash(npx rhachet roles boot --repo ehmpathy --role mechanic)",
+
+      // self execution of packages
+      "Bash(npx tsx ./bin/run:*)",
+
+      // build operations
+      "Bash(npm run build:*)",
+      "Bash(npm run build:compile)",
+      "Bash(npm run start:testdb:*)",
+
+      // test operations
+      "Bash(npm run test:*)",
+      "Bash(npm run test:types:*)",
+      "Bash(npm run test:format:*)",
+      "Bash(npm run test:lint:*)",
+      "Bash(npm run test:unit:*)",
+      "Bash(npm run test:integration:*)",
+      "Bash(npm run test:acceptance:*)",
+
+      // thorough test operations
+      "Bash(THOROUGH=true npm run test:*)",
+      "Bash(THOROUGH=true npm run test:types:*)",
+      "Bash(THOROUGH=true npm run test:format:*)",
+      "Bash(THOROUGH=true npm run test:lint:*)",
+      "Bash(THOROUGH=true npm run test:unit:*)",
+      "Bash(THOROUGH=true npm run test:integration:*)",
+      "Bash(THOROUGH=true npm run test:acceptance:*)",
+
+      // fix operations
+      "Bash(npm run fix:*)",
+      "Bash(npm run fix:format:*)",
+      "Bash(npm run fix:lint:*)",
+
+      // github cli read operations
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr status:*)",
+
+      // skill sourcing
+      "Bash(source .agent/repo=.this/skills/*)"
+    ]
+  }
+}

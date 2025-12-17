@@ -11,8 +11,8 @@
 #           • extends asks by appending new entries (conservative)
 #           • idempotent: safe to rerun
 #
-# .how  = uses jq to merge the permissions configuration
-#         into the existing settings structure, creating it if absent.
+# .how  = loads permissions from init.claude.permissions.jsonc
+#         and uses jq to merge them into .claude/settings.local.json
 #
 # guarantee:
 #   ✔ creates .claude/settings.local.json if missing
@@ -29,95 +29,19 @@ set -euo pipefail
 PROJECT_ROOT="$PWD"
 SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.local.json"
 
-# define the permissions configuration to apply
-PERMISSIONS_CONFIG=$(cat <<'EOF'
-{
-  "permissions": {
-    "deny": [
-      "Bash(git commit:*)",
-      "Bash(sed:*)",
-      "Bash(tee:*)",
-      "Bash(find:*)",
-      "Bash(echo:*)",
-      "Bash(mv:*)",
-      "Bash(npx biome:*)",
-      "Bash(npx jest:*)",
-      "Bash(git add:*)",
-      "Bash(git stash:*)",
-      "Bash(git checkout:*)"
-    ],
-    "ask": [
-      "Bash(bash:*)",
-      "Bash(chmod:*)",
-      "Bash(npm install:*)",
-      "Bash(pnpm install:*)",
-      "Bash(pnpm add:*)"
-    ],
-    "allow": [
-      "mcp__ide__getDiagnostics",
+# resolve the permissions config file (relative to this script)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PERMISSIONS_FILE="$SCRIPT_DIR/init.claude.permissions.jsonc"
 
-      "WebSearch",
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:www.npmjs.com)",
-      "WebFetch(domain:hub.docker.com)",
-      "WebFetch(domain:raw.githubusercontent.com)",
-      "WebFetch(domain:biomejs.dev)",
-      "Bash(git log:*),
+# verify permissions file exists
+if [[ ! -f "$PERMISSIONS_FILE" ]]; then
+  echo "❌ permissions config not found: $PERMISSIONS_FILE" >&2
+  exit 1
+fi
 
-      "Bash(ls:*)",
-      "Bash(tree:*)",
-      "Bash(cat:*)",
-      "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(grep:*)",
-      "Bash(wc:*)",
-      "Bash(diff:*)",
-      "Bash(which:*)",
-      "Bash(file:*)",
-      "Bash(mkdir:*)",
-      "Bash(pwd)",
-      "Bash(bash src/logic/roles/mechanic/.skills/claude.tools/mvsafe.sh:*)",
-      "Bash(npm view:*)",
-      "Bash(npm list:*)",
-      "Bash(npm remove:*)",
-
-      "Bash(npx rhachet roles boot --repo ehmpathy --role mechanic)",
-      "Bash(npx tsx ./bin/run:*)",
-
-      "Bash(npm run build:*)",
-      "Bash(npm run build:compile)",
-      "Bash(npm run start:testdb:*)",
-
-
-      "Bash(npm run test:*)",
-      "Bash(npm run test:types:*)",
-      "Bash(npm run test:format:*)",
-      "Bash(npm run test:lint:*)",
-      "Bash(npm run test:unit:*)",
-      "Bash(npm run test:integration:*)",
-      "Bash(npm run test:acceptance:*)",
-
-      "Bash(THOROUGH=true npm run test:*)",
-      "Bash(THOROUGH=true npm run test:types:*)",
-      "Bash(THOROUGH=true npm run test:format:*)",
-      "Bash(THOROUGH=true npm run test:lint:*)",
-      "Bash(THOROUGH=true npm run test:unit:*)",
-      "Bash(THOROUGH=true npm run test:integration:*)",
-      "Bash(THOROUGH=true npm run test:acceptance:*)",
-
-      "Bash(npm run fix:*)",
-      "Bash(npm run fix:format:*)",
-      "Bash(npm run fix:lint:*)",
-
-      "Bash(gh pr checks:*)",
-      "Bash(gh pr status:*)",
-
-      "Bash(source .agent/repo=.this/skills/*)"
-    ]
-  }
-}
-EOF
-)
+# load and parse JSONC (strip comments before parsing)
+# - removes // line comments (both standalone and trailing)
+PERMISSIONS_CONFIG=$(grep -v '^\s*//' "$PERMISSIONS_FILE" | sed 's|//.*||' | jq -c '.')
 
 # ensure .claude directory exists
 mkdir -p "$(dirname "$SETTINGS_FILE")"
@@ -145,19 +69,26 @@ jq --argjson perms "$PERMISSIONS_CONFIG" '
   .permissions.ask = ((.permissions.ask // []) + $perms.permissions.ask | unique)
 ' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp"
 
-# check if any changes were made
-if diff -q "$SETTINGS_FILE" "$SETTINGS_FILE.tmp" >/dev/null 2>&1; then
+TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
+BACKUP_FILE="${SETTINGS_FILE%.local.json}.${TIMESTAMP}.bak.local.json"
+
+# check if any changes were made (use jq for semantic JSON comparison)
+if jq -e --slurpfile before "$SETTINGS_FILE" --slurpfile after "$SETTINGS_FILE.tmp" -n '$before[0].permissions == $after[0].permissions' >/dev/null 2>&1; then
   rm "$SETTINGS_FILE.tmp"
   echo "👌 mechanic permissions already configured"
-  echo "   $SETTINGS_FILE"
+  echo "   ${SETTINGS_FILE#"$PROJECT_ROOT/"}"
   exit 0
 fi
+
+# create backup before applying changes (guards against partial failures)
+cp "$SETTINGS_FILE" "$BACKUP_FILE"
 
 # atomic replace
 mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
 
 echo "🔐 mechanic permissions configured successfully!"
-echo "   $SETTINGS_FILE"
+echo "   ${SETTINGS_FILE#"$PROJECT_ROOT/"}"
+echo "   ${BACKUP_FILE#"$PROJECT_ROOT/"}"
 echo ""
 echo "✨ permissions applied:"
 echo "   • allow: replaced entirely"
