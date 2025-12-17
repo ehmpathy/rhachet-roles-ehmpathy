@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.1](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.0...v1.15.1) (2025-12-17)
+
+
+### Bug Fixes
+
+* **mechanic:** init claude hooks via cleanup and findsert ([#51](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/51)) ([cc728e0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/cc728e027fd4d884511b291c4778aa2a10f718d8))
+
 ## [1.15.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.14.0...v1.15.0) (2025-12-17)
 
 
