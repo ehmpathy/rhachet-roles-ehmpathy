@@ -41,7 +41,59 @@
       // test runners - should use npm run test:* scripts instead
       // direct invocation bypasses project test configuration
       "Bash(npx biome:*)",
-      "Bash(npx jest:*)"
+      "Bash(npx jest:*)",
+
+      // github cli write operations - require explicit user approval
+      // pr mutations
+      "Bash(gh pr create:*)",
+      "Bash(gh pr merge:*)",
+      "Bash(gh pr close:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh pr review:*)",
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr reopen:*)",
+      // issue mutations
+      "Bash(gh issue create:*)",
+      "Bash(gh issue close:*)",
+      "Bash(gh issue edit:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh issue reopen:*)",
+      // repo mutations
+      "Bash(gh repo create:*)",
+      "Bash(gh repo delete:*)",
+      "Bash(gh repo fork:*)",
+      "Bash(gh repo edit:*)",
+      // release mutations
+      "Bash(gh release create:*)",
+      "Bash(gh release delete:*)",
+      "Bash(gh release edit:*)",
+      // workflow/run mutations
+      "Bash(gh run cancel:*)",
+      "Bash(gh run rerun:*)",
+      "Bash(gh workflow disable:*)",
+      "Bash(gh workflow enable:*)",
+      "Bash(gh workflow run:*)",
+      // gist mutations
+      "Bash(gh gist create:*)",
+      "Bash(gh gist delete:*)",
+      "Bash(gh gist edit:*)",
+      // label mutations
+      "Bash(gh label create:*)",
+      "Bash(gh label delete:*)",
+      "Bash(gh label edit:*)",
+      // project mutations
+      "Bash(gh project create:*)",
+      "Bash(gh project delete:*)",
+      "Bash(gh project edit:*)",
+      // api write methods - can mutate anything
+      "Bash(gh api -X POST:*)",
+      "Bash(gh api -X PUT:*)",
+      "Bash(gh api -X PATCH:*)",
+      "Bash(gh api -X DELETE:*)",
+      "Bash(gh api --method POST:*)",
+      "Bash(gh api --method PUT:*)",
+      "Bash(gh api --method PATCH:*)",
+      "Bash(gh api --method DELETE:*)"
     ],
 
     // commands that require explicit user approval each time
@@ -126,8 +178,37 @@
       "Bash(npm run fix:lint:*)",
 
       // github cli read operations
-      "Bash(gh pr checks:*)",
+      // pr reads
+      "Bash(gh pr list:*)",
+      "Bash(gh pr view:*)",
       "Bash(gh pr status:*)",
+      "Bash(gh pr checks:*)",
+      "Bash(gh pr diff:*)",
+      // issue reads
+      "Bash(gh issue list:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue status:*)",
+      // repo reads
+      "Bash(gh repo list:*)",
+      "Bash(gh repo view:*)",
+      // run/workflow reads
+      "Bash(gh run list:*)",
+      "Bash(gh run view:*)",
+      "Bash(gh run watch:*)",
+      "Bash(gh workflow list:*)",
+      "Bash(gh workflow view:*)",
+      // release reads
+      "Bash(gh release list:*)",
+      "Bash(gh release view:*)",
+      // search (all read-only)
+      "Bash(gh search code:*)",
+      "Bash(gh search repos:*)",
+      "Bash(gh search issues:*)",
+      "Bash(gh search prs:*)",
+      "Bash(gh search commits:*)",
+      // api read operations (explicit GET for safe suffix matching)
+      "Bash(gh api -X GET:*)",
+      "Bash(gh api --method GET:*)",
 
       // skill sourcing
       "Bash(source .agent/repo=.this/skills/*)"
