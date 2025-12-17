@@ -118,10 +118,37 @@ given()
 ...
 EOF
 
+# findsert 2.criteria.src
+findsert "$BEHAVIOR_DIR/2.criteria.src" << 'EOF'
+declare the behavioral criteria required in order to fulfill
+- this wish $BEHAVIOR_DIR_REL/0.wish.md
+- this vision $BEHAVIOR_DIR_REL/1.vision.md (if declared)
+
+via bdd declarations, per your briefs
+
+via the template in $BEHAVIOR_DIR/2.criteria.md
+
+emit into $BEHAVIOR_DIR/2.criteria.md
+
+---
+
+focus on the behavioral requirements
+- critical paths
+- boundary paths
+
+ignore infra or technical details
+
+focus on behaviors
+
+ensure to cover all of the criteria required to fulfill the full set of behaviors declared in the wish and vision
+EOF
+
 # findsert 3.1.research.domain._.v1.src
 findsert "$BEHAVIOR_DIR/3.1.research.domain._.v1.src" << EOF
-research the domain available in order to fulfill the wish declared
-in $BEHAVIOR_DIR_REL/0.wish.md
+research the domain available in order to fulfill
+- this wish $BEHAVIOR_DIR_REL/0.wish.md
+- this vision $BEHAVIOR_DIR_REL/1.vision.md (if declared)
+- this criteria $BEHAVIOR_DIR_REL/2.criteria.md (if declared)
 
 specifically
 - what are the domain objects that are involved with this wish
@@ -134,7 +161,11 @@ specifically
   - setCreate
   - setUpdate
   - setDelete
-  - ...
+- what are the relationships between the domain objects?
+  - is there a treestruct of decoration?
+  - is there a treestruct of common subdomains?
+  - are there dependencies?
+- how do the domain objects and operations compose to support wish?
 
 ---
 
@@ -154,8 +185,12 @@ EOF
 # findsert 3.2.distill.domain._.v1.src
 findsert "$BEHAVIOR_DIR/3.2.distill.domain._.v1.src" << EOF
 distill the declastruct domain.objects and domain.operations that would
-- enable fulfillment of this wish $BEHAVIOR_DIR_REL/0.wish.md
-- given the research declared here $BEHAVIOR_DIR_REL/3.1.research.domain._.v1.i1.md
+- enable fulfillment of
+  - this wish $BEHAVIOR_DIR_REL/0.wish.md
+  - this vision $BEHAVIOR_DIR_REL/1.vision.md (if declared)
+  - this criteria $BEHAVIOR_DIR_REL/2.criteria.md (if declared)
+- given the research declared here
+  - $BEHAVIOR_DIR_REL/3.1.research.domain._.v1.i1.md (if declared)
 
 procedure
 1. declare the usecases and envision the contract that would be used to fulfill the usecases
@@ -171,7 +206,7 @@ propose a blueprint for how we can implement the wish described
 - in $BEHAVIOR_DIR_REL/0.wish.md
 
 with the domain distillation declared
-- in $BEHAVIOR_DIR_REL/3.2.distill.domain._.v1.i1.md
+- in $BEHAVIOR_DIR_REL/3.2.distill.domain._.v1.i1.md (if declared)
 
 follow the patterns already present in this repo
 
@@ -179,9 +214,10 @@ follow the patterns already present in this repo
 
 reference the below for full context
 - $BEHAVIOR_DIR_REL/0.wish.md
-- $BEHAVIOR_DIR_REL/3.1.research.domain._.v1.i1.md
-- $BEHAVIOR_DIR_REL/3.2.distill.domain._.v1.i1.md
-
+- $BEHAVIOR_DIR_REL/1.vision.md (if declared)
+- $BEHAVIOR_DIR_REL/2.criteria.md (if declared)
+- $BEHAVIOR_DIR_REL/3.1.research.domain._.v1.i1.md (if declared)
+- $BEHAVIOR_DIR_REL/3.2.distill.domain._.v1.i1.md (if declared)
 
 ---
 
@@ -199,6 +235,13 @@ declare a roadmap,
 
 for how to execute the blueprint specified in $BEHAVIOR_DIR_REL/3.3.blueprint.v1.i1.md
 
+ref:
+- $BEHAVIOR_DIR_REL/0.wish.md
+- $BEHAVIOR_DIR_REL/1.vision.md (if declared)
+- $BEHAVIOR_DIR_REL/2.criteria.md (if declared)
+- $BEHAVIOR_DIR_REL/3.2.distill.domain._.v1.i1.md (if declared)
+- $BEHAVIOR_DIR_REL/3.3.blueprint.v1.i1.md
+
 ---
 
 emit into $BEHAVIOR_DIR_REL/4.1.roadmap.v1.i1.md
@@ -214,7 +257,12 @@ of roadmap
 - $BEHAVIOR_DIR_REL/4.1.roadmap.v1.i1.md
 
 ref:
+- $BEHAVIOR_DIR_REL/0.wish.md
+- $BEHAVIOR_DIR_REL/1.vision.md (if declared)
+- $BEHAVIOR_DIR_REL/2.criteria.md (if declared)
+- $BEHAVIOR_DIR_REL/3.2.distill.domain._.v1.i1.md (if declared)
 - $BEHAVIOR_DIR_REL/3.3.blueprint.v1.i1.md
+
 
 ---
 
