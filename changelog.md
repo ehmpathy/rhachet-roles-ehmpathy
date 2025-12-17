@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.13...v1.14.0) (2025-12-17)
+
+
+### Features
+
+* **mechanic:** allowlist and denylist gh operations ([#46](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/46)) ([4aef5db](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/4aef5db47384bbd92e407f2c9bf95a8cd31a1cf6))
+
 ## [1.13.13](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.12...v1.13.13) (2025-12-17)
 
 
