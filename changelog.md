@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.13.13](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.12...v1.13.13) (2025-12-17)
+
+
+### Bug Fixes
+
+* **bhuild:** bump the srcs of the bhuild behavior route ([#44](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/44)) ([e387000](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/e387000f3d875379740f63c1aa820675c1fd3281))
+
 ## [1.13.12](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.11...v1.13.12) (2025-12-17)
 
 
