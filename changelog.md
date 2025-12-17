@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.15.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.14.0...v1.15.0) (2025-12-17)
+
+
+### Features
+
+* **mechanic:** allowlist git mv and git rm for increased safety ([#48](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/48)) ([78af116](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/78af116bc5b67f09c98875463d85ce62260d4adc))
+* **mechanic:** claude init notify allowed privs on session start ([#50](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/50)) ([e7456db](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/e7456db89dc57620d547fe63214baaca26891b8d))
+
 ## [1.14.0](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.13.13...v1.14.0) (2025-12-17)
 
 
