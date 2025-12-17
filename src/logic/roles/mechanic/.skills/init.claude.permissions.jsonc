@@ -135,8 +135,9 @@
       "Bash(mkdir:*)",
       "Bash(pwd)",
 
-      // safe custom tools
-      "Bash(bash src/logic/roles/mechanic/.skills/claude.tools/mvsafe.sh:*)",
+      // git mv/rm are safe - constrained to repo, all changes revertable
+      "Bash(git mv:*)",
+      "Bash(git rm:*)",
 
       // npm read operations
       "Bash(npm view:*)",
