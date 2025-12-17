@@ -4,6 +4,7 @@
 #
 # .why  = the mechanic role uses multiple hooks:
 #           • SessionStart: boot mechanic on every session
+#           • SessionStart: notify Claude of allowed permissions upfront
 #           • PreToolUse: check existing permissions before new requests
 #
 #         this script dispatches to each hook initializer.
@@ -21,5 +22,6 @@ SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # Dispatch to each hook initializer
 "$SKILLS_DIR/init.claude.hooks.sessionstart.sh"
-"$SKILLS_DIR/init.claude.hooks.forbid.stderr.redirect.sh"
-"$SKILLS_DIR/init.claude.hooks.pretooluse.sh"
+"$SKILLS_DIR/init.claude.hooks.sessionstart.notify-permissions.sh"
+"$SKILLS_DIR/init.claude.hooks.pretooluse.forbid-stderr-redirect.sh"
+"$SKILLS_DIR/init.claude.hooks.pretooluse.check-permissions.sh"

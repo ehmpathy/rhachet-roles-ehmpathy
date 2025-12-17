@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = tests for forbid.stderr.redirect.sh hook
+# .what = tests for pretooluse.forbid-stderr-redirect.sh hook
 #
 # .why  = verify the hook correctly blocks commands with 2>&1
 #
@@ -12,7 +12,7 @@ set -euo pipefail
 trap 'echo "ERROR: Script failed at line $LINENO" >&2' ERR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK_SCRIPT="$SCRIPT_DIR/forbid.stderr.redirect.sh"
+HOOK_SCRIPT="$SCRIPT_DIR/pretooluse.forbid-stderr-redirect.sh"
 
 # Colors for output
 RED='\033[0;31m'
@@ -113,7 +113,7 @@ assert_output_empty() {
 
 echo ""
 echo "========================================"
-echo "Testing forbid.stderr.redirect.sh"
+echo "Testing pretooluse.forbid-stderr-redirect.sh"
 echo "========================================"
 echo ""
 

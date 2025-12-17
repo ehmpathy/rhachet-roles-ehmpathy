@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = bind forbid.stderr.redirect hook to Claude settings
+# .what = bind pretooluse.forbid-stderr-redirect hook to Claude settings
 #
 # .why  = when Claude uses 2>&1, error messages are hidden and
 #         debugging becomes harder. this hook blocks such commands.
@@ -21,7 +21,7 @@ set -euo pipefail
 PROJECT_ROOT="$PWD"
 SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.local.json"
 SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK_SCRIPT="$SKILLS_DIR/claude.hooks/forbid.stderr.redirect.sh"
+HOOK_SCRIPT="$SKILLS_DIR/claude.hooks/pretooluse.forbid-stderr-redirect.sh"
 
 # Verify hook script exists
 if [[ ! -f "$HOOK_SCRIPT" ]]; then
@@ -102,7 +102,7 @@ jq --argjson hook "$HOOK_CONFIG" '
 # Check if any changes were made
 if diff -q "$SETTINGS_FILE" "$SETTINGS_FILE.tmp" >/dev/null 2>&1; then
   rm "$SETTINGS_FILE.tmp"
-  echo "👌 forbid.stderr.redirect hook already bound"
+  echo "👌 pretooluse.forbid-stderr-redirect hook already bound"
   echo "   $SETTINGS_FILE"
   exit 0
 fi
@@ -110,7 +110,7 @@ fi
 # Atomic replace
 mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
 
-echo "🔗 forbid.stderr.redirect hook bound successfully!"
+echo "🔗 pretooluse.forbid-stderr-redirect hook bound successfully!"
 echo "   $SETTINGS_FILE"
 echo ""
 echo "✨ Claude will now be blocked from using 2>&1 in commands"

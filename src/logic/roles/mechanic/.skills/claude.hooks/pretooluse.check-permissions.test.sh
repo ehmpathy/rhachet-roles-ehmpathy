@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = tests for check.pretooluse.permissions.sh hook
+# .what = tests for pretooluse.check-permissions.sh hook
 #
 # .why  = verify the hook correctly identifies allowed vs disallowed
 #         commands and provides appropriate guidance
@@ -13,7 +13,7 @@ set -euo pipefail
 trap 'echo "ERROR: Script failed at line $LINENO" >&2' ERR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK_SCRIPT="$SCRIPT_DIR/check.pretooluse.permissions.sh"
+HOOK_SCRIPT="$SCRIPT_DIR/pretooluse.check-permissions.sh"
 
 # Colors for output
 RED='\033[0;31m'
@@ -161,7 +161,7 @@ assert_exit_code() {
 
 echo ""
 echo "========================================"
-echo "Testing check.pretooluse.permissions.sh"
+echo "Testing pretooluse.check-permissions.sh"
 echo "========================================"
 echo ""
 
