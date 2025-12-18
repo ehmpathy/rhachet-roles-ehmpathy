@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.3](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.2...v1.15.3) (2025-12-18)
+
+
+### Bug Fixes
+
+* **mechanic:** fail loud on skills ([#55](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/55)) ([be2ef0e](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/be2ef0e7be2fa52095e4f5ec005f9f5280390647))
+
 ## [1.15.2](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.1...v1.15.2) (2025-12-18)
 
 
