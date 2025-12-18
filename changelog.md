@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.2](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.1...v1.15.2) (2025-12-18)
+
+
+### Bug Fixes
+
+* **mechanic:** support a safe sedreplace operation in allowlist ([#53](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/53)) ([4de1643](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/4de1643c753aeed98256bc4a409f20b68ca900df))
+
 ## [1.15.1](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.0...v1.15.1) (2025-12-17)
 
 
