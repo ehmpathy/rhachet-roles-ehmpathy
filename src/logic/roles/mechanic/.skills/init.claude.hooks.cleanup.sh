@@ -22,6 +22,9 @@
 
 set -euo pipefail
 
+# fail loud: print what failed
+trap 'echo "❌ init.claude.hooks.cleanup.sh failed at line $LINENO" >&2' ERR
+
 SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOOKS_DIR="$SKILLS_DIR/claude.hooks"
 
@@ -38,7 +41,7 @@ fi
 STALE_COMMANDS=$(jq -r '
   .hooks // {} | to_entries[] |
   .value[] | .hooks[] | .command // empty
-' "$SETTINGS_FILE" 2>/dev/null | grep -E "claude\.hooks/" | while read -r cmd; do
+' "$SETTINGS_FILE" | { grep -E "claude\.hooks/" || true; } | while read -r cmd; do
   # Extract the path - it might be absolute or relative
   # Look for the claude.hooks/ part and check if the file exists
   if [[ "$cmd" == /* ]]; then
