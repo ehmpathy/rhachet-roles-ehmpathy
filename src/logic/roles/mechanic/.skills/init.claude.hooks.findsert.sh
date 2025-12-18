@@ -27,6 +27,9 @@
 
 set -euo pipefail
 
+# fail loud: print what failed
+trap 'echo "❌ init.claude.hooks.findsert.sh failed at line $LINENO" >&2' ERR
+
 # Defaults
 HOOK_TYPE=""
 MATCHER=""

@@ -20,6 +20,9 @@
 
 set -euo pipefail
 
+# fail loud: print what failed
+trap 'echo "❌ init.claude.sh failed at line $LINENO" >&2' ERR
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GITROOT="$(git rev-parse --show-toplevel)"
 SETTINGS_FILE="$GITROOT/.claude/settings.local.json"

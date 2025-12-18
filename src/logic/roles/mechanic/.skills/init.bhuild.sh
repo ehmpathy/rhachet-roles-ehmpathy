@@ -30,6 +30,9 @@
 
 set -euo pipefail
 
+# fail loud: print what failed
+trap 'echo "❌ init.bhuild.sh failed at line $LINENO" >&2' ERR
+
 # parse arguments
 BEHAVIOR_NAME=""
 TARGET_DIR="$PWD"

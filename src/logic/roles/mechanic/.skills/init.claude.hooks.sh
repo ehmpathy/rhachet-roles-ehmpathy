@@ -20,6 +20,9 @@
 
 set -euo pipefail
 
+# fail loud: print what failed
+trap 'echo "❌ init.claude.hooks.sh failed at line $LINENO" >&2' ERR
+
 SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 FINDSERT="$SKILLS_DIR/init.claude.hooks.findsert.sh"
 CLEANUP="$SKILLS_DIR/init.claude.hooks.cleanup.sh"

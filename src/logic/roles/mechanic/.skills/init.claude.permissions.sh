@@ -26,6 +26,9 @@
 
 set -euo pipefail
 
+# fail loud: print what failed
+trap 'echo "❌ init.claude.permissions.sh failed at line $LINENO" >&2' ERR
+
 PROJECT_ROOT="$PWD"
 SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.local.json"
 
