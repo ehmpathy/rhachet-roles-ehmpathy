@@ -9,11 +9,20 @@
   "permissions": {
     // commands that should never be auto-approved
     "deny": [
-      // git write operations - require explicit user approval for audit trail
+      // git write operations - require explicit user request for audit trail
       "Bash(git commit:*)",
       "Bash(git add:*)",
       "Bash(git stash:*)",
       "Bash(git checkout:*)",
+      "Bash(git branch -d:*)",
+      "Bash(git branch -D:*)",
+      "Bash(git tag -d:*)",
+      "Bash(git remote add:*)",
+      "Bash(git remote remove:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git reflog expire:*)",
+      "Bash(git reflog delete:*)",
+      "Bash(git config:*)",
 
       // "anywrite" commands - CRITICAL SECURITY RISK
       //
@@ -118,9 +127,6 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:biomejs.dev)",
 
-      // git read-only
-      "Bash(git log:*)",
-
       // filesystem read operations
       "Bash(ls:*)",
       "Bash(tree:*)",
@@ -138,6 +144,17 @@
       // git mv/rm are safe - constrained to repo, all changes revertable
       "Bash(git mv:*)",
       "Bash(git rm:*)",
+
+      // git read-only - all have no write variants
+      "Bash(git log:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git show:*)",
+      "Bash(git blame:*)",
+      "Bash(git describe:*)",
+      "Bash(git ls-files:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git cat-file:*)",
 
       // sedreplace - safe bulk find-and-replace on git-tracked files only
       "Bash(bash .agent/repo=ehmpathy/role=mechanic/skills/.skills/claude.tools/sedreplace.sh:*)",
