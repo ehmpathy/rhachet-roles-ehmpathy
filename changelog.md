@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.4](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.3...v1.15.4) (2025-12-18)
+
+
+### Bug Fixes
+
+* **mechanic:** allowlist and denylist git operations ([#57](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/57)) ([3965c90](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/3965c9037c83a3e67d4ceb6f47a62cb95e4b40f8))
+
 ## [1.15.3](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.2...v1.15.3) (2025-12-18)
 
 
