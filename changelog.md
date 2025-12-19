@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.5](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.4...v1.15.5) (2025-12-19)
+
+
+### Bug Fixes
+
+* **mechanic:** sedreplace and boot repo=this/role=any on session start ([#59](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/59)) ([3c4186e](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/3c4186e9eaa57e1b3536707e75a90035f9d94327))
+
 ## [1.15.4](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.3...v1.15.4) (2025-12-18)
 
 
