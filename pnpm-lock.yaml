@@ -88,17 +88,17 @@ importers:
         specifier: 3.3.0
         version: 3.3.0(@types/node@22.15.21)(typescript@5.4.5)
       declapract:
-        specifier: 0.13.1
-        version: 0.13.1(@types/node@22.15.21)
+        specifier: 0.13.4
+        version: 0.13.4(@types/node@22.15.21)
       declapract-typescript-ehmpathy:
-        specifier: 0.45.5
-        version: 0.45.5(@types/node@22.15.21)(declapract@0.13.1(@types/node@22.15.21))(esbuild@0.25.12)
+        specifier: 0.46.7
+        version: 0.46.7(declapract@0.13.4(@types/node@22.15.21))(esbuild@0.25.12)
       declastruct:
-        specifier: 1.7.0
-        version: 1.7.0(domain-objects@0.31.7(@types/node@22.15.21))
+        specifier: 1.7.3
+        version: 1.7.3(domain-objects@0.31.7)
       declastruct-github:
-        specifier: 1.0.7
-        version: 1.0.7
+        specifier: 1.3.0
+        version: 1.3.0
       depcheck:
         specifier: 1.4.3
         version: 1.4.3
@@ -129,6 +129,9 @@ importers:
       uuid-fns:
         specifier: 1.0.2
         version: 1.0.2
+      yalc:
+        specifier: 1.0.0-pre.53
+        version: 1.0.0-pre.53
 
 packages:
 
@@ -2143,22 +2146,22 @@ packages:
       supports-color:
         optional: true
 
-  declapract-typescript-ehmpathy@0.45.5:
-    resolution: {integrity: sha512-t15630ifHoYdfvdEjnezB02iWYQhi8S1Mq+0gwJv593Gz5wNGOtL02bumpqlS85nWpzA8ljvkc3OVPTTktMogg==}
+  declapract-typescript-ehmpathy@0.46.7:
+    resolution: {integrity: sha512-9tnJWfz9K4Xg1kXeTBcVzQrZ9npsCI8mYmVqWYPbExAEkTU0lQ1zw1EmQdRxSLc+MnscjrNX8GZglI+/7UNoaQ==}
     peerDependencies:
-      declapract: '>=0.13.1'
+      declapract: '>=0.13.3'
 
-  declapract@0.13.1:
-    resolution: {integrity: sha512-iYCNwfhkxGJC1gv95Al2jYK/F8zsIdNP6D+OikY0lCorrs8OIz0+c9+kn+GVSOv8vsLCRkuA4RwIOowuYIvZRQ==}
+  declapract@0.13.4:
+    resolution: {integrity: sha512-UPmnhH85diRIKbBlleybjx7fynDwYaXQvBNvhTLpLrbXtwBq5XknaJUWPpJSCmL0w2gDSmkAJaUEhoIY3OKk1g==}
     engines: {node: '>=12.0.0'}
     hasBin: true
 
-  declastruct-github@1.0.7:
-    resolution: {integrity: sha512-BWR7QNjXD/ilmpnIv33JSmGs/cItr7YAbtrydihfv2CNG8I4zYHKaI3sVCU0lSGKxdr9R6heC1sxtuU+hUDzoA==}
+  declastruct-github@1.3.0:
+    resolution: {integrity: sha512-3eXKnQFyDvYtfAaDLLFSN8KWgqA1JoZ0Nu4OcT4ZebCSPq8G+SZTOl234yMv0xAAXk8jMyvfEy4O9AUq4uLZ9w==}
     engines: {node: '>=8.0.0'}
 
-  declastruct@1.7.0:
-    resolution: {integrity: sha512-mQvtJ8ID+5J4g6n3wziHWGxoyEC1UH9QBW48ud8vkdRSkjrVFYpzbxb7u2n4lCs06o0onDFp0nHOw+1TjNHsqw==}
+  declastruct@1.7.3:
+    resolution: {integrity: sha512-Yb7HqnBCRCeNopgd/6RNWCzxtogwiPKn/GIvMay1oksuIjDKAabO6dla0MqoZPFK5zqblCbZFyE3JH7OhvWpIA==}
     engines: {node: '>=8.0.0'}
     hasBin: true
     peerDependencies:
@@ -2410,6 +2413,10 @@ packages:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
     engines: {node: '>=14'}
 
+  fs-extra@8.1.0:
+    resolution: {integrity: sha512-yhlQgA6mnOJUKOsRUFsgJdQCvkKhcz8tlZG5HBQfReYZy46OwLcY+Zia0mtdHsOo9y/hP+CxMN0TU9QxoOtG4g==}
+    engines: {node: '>=6 <7 || >=8'}
+
   fs-extra@9.1.0:
     resolution: {integrity: sha512-hcg3ZmepS30/7BSFqRvoo3DOMQu7IjqxO5nCDt+zM9XWjb33Wg7ziNT+Qvqbuc3+gWpzO02JubVyk2G4Zvo1OQ==}
     engines: {node: '>=10'}
@@ -2534,6 +2541,9 @@ packages:
   ieee754@1.2.1:
     resolution: {integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==}
 
+  ignore-walk@3.0.4:
+    resolution: {integrity: sha512-PY6Ii8o1jMRA1z4F2hRkH/xN59ox43DavKvD3oDpfurRlOJyAHpifIwpbdv1n4jt4ov0jSpw3kQ4GhJnpBL6WQ==}
+
   ignore@5.3.2:
     resolution: {integrity: sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==}
     engines: {node: '>= 4'}
@@ -2570,6 +2580,10 @@ packages:
 
   ini@1.3.8:
     resolution: {integrity: sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==}
+
+  ini@2.0.0:
+    resolution: {integrity: sha512-7PnF4oN3CvZF23ADhA5wRaYEQpJ8qygSkbtTXWBeXWXmEVRXK+1ITciHWwHhsjv1TmW0MgacIv6hEi5pX5NQdA==}
+    engines: {node: '>=10'}
 
   ini@4.1.1:
     resolution: {integrity: sha512-QQnnxNyfvmHFIsj7gkPcYymR8Jdw/o7mp5ZFihxn6h8Ci6fh3Dx4E1gPjpQEpIuPo9XVNY/ZUwh4BPMjGyL01g==}
@@ -2872,6 +2886,9 @@ packages:
   jsonc-parser@3.3.1:
     resolution: {integrity: sha512-HUgH65KyejrUFPvHFPbqOY0rsFip3Bo5wb4ngvdi1EpCYWUQDC5V+Y7mZws+DLkr4M//zQJoanu1SP+87Dv1oQ==}
 
+  jsonfile@4.0.0:
+    resolution: {integrity: sha512-m6F1R3z8jjlf2imQHS2Qez5sjKWQzbuuhuJ/FKYFRZvPE3PuHcSMVZzfsLhGVOkfd20obL5SWEBew5ShlquNxg==}
+
   jsonfile@6.2.0:
     resolution: {integrity: sha512-FGuPw30AdOIUTRMC2OMRtQV+jkVj2cfPqSeWXv1NEAJ1qZ5zb1X6z1mFhbfOB/iy3ssJCD+3KuZ8r8C3uVFlAg==}
 
@@ -2882,6 +2899,12 @@ packages:
   leven@3.1.0:
     resolution: {integrity: sha512-qsda+H8jTaUaN/x5vzW2rzc+8Rw4TAQ/4KjB46IwK5VH+IlVeeeje/EoZRpiXvIqjFgK84QffqPztGI3VBLG1A==}
     engines: {node: '>=6'}
+
+  libsodium-wrappers@0.7.15:
+    resolution: {integrity: sha512-E4anqJQwcfiC6+Yrl01C1m8p99wEhLmJSs0VQqST66SbQXXBoaJY0pF4BNjRYa/sOQAxx6lXAaAFIlx+15tXJQ==}
+
+  libsodium@0.7.15:
+    resolution: {integrity: sha512-sZwRknt/tUpE2AwzHq3jEyUU5uvIZHtSssktXq7owd++3CSgn8RGrv6UZJJBpP7+iBghBqe7Z06/2M31rI2NKw==}
 
   lines-and-columns@1.2.4:
     resolution: {integrity: sha512-7ylylesZQ/PV29jhEDl3Ufjo6ZX7gCqJr5F7PKrqc93v7fzSymt1BpwEU8nAUXs8qzzvqhbjhK5QZg6Mt/HkBg==}
@@ -3053,6 +3076,17 @@ packages:
   normalize-path@3.0.0:
     resolution: {integrity: sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==}
     engines: {node: '>=0.10.0'}
+
+  npm-bundled@1.1.2:
+    resolution: {integrity: sha512-x5DHup0SuyQcmL3s7Rx/YQ8sbw/Hzg0rj48eN0dV7hf5cmQq5PXIeioroH3raV1QC1yh3uTYuMThvEQF3iKgGQ==}
+
+  npm-normalize-package-bin@1.0.1:
+    resolution: {integrity: sha512-EPfafl6JL5/rU+ot6P3gRSCpPDW5VmIzX959Ob1+ySFUuuYHWHekXpwdUZcKP5C+DS4GEtdJluwBjnsNDl+fSA==}
+
+  npm-packlist@2.2.2:
+    resolution: {integrity: sha512-Jt01acDvJRhJGthnUJVF/w6gumWOZxO7IkpY/lsX9//zqQgnF7OJaxgQXcerd4uQOLu7W5bkb4mChL9mdfm+Zg==}
+    engines: {node: '>=10'}
+    hasBin: true
 
   npm-run-path@4.0.1:
     resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
@@ -3299,10 +3333,6 @@ packages:
 
   rhachet-artifact@1.0.1:
     resolution: {integrity: sha512-BCD7rwyArOn9k3AwDocv0UrgkNDmJ/goPAROCLyMx06n72Xhq8nO9RAVVqhdggIjyX8lI0Qriul8tgUJ+3zoIA==}
-    engines: {node: '>=8.0.0'}
-
-  rhachet-roles-ehmpathy@1.13.7:
-    resolution: {integrity: sha512-J4RUtnX6e9YG9c1LVEBexjSXVYKx2IgVBQDEMRTbZFZcXZImzg/ssKHuWvqnsCQMd4hUz7cGtVZDl7hjNg0g1w==}
     engines: {node: '>=8.0.0'}
 
   rhachet-roles-ehmpathy@1.15.4:
@@ -3629,6 +3659,10 @@ packages:
   universal-user-agent@7.0.3:
     resolution: {integrity: sha512-TmnEAEAsBJVZM/AADELsK76llnwcf9vMKuPz8JflO1frO8Lchitr0fNaN9d+Ap0BjKtqWqd/J17qeDnXh8CL2A==}
 
+  universalify@0.1.2:
+    resolution: {integrity: sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==}
+    engines: {node: '>= 4.0.0'}
+
   universalify@2.0.1:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
@@ -3743,6 +3777,10 @@ packages:
   y18n@5.0.8:
     resolution: {integrity: sha512-0pfFzegeDWJHJIAmTLRP2DwHjdF5s7jo9tuztdQxAhINCdvS+3nGINqPd00AphqJR/0LhANUS6/+7SCb98YOfA==}
     engines: {node: '>=10'}
+
+  yalc@1.0.0-pre.53:
+    resolution: {integrity: sha512-tpNqBCpTXplnduzw5XC+FF8zNJ9L/UXmvQyyQj7NKrDNavbJtHvzmZplL5ES/RCnjX7JR7W9wz5GVDXVP3dHUQ==}
+    hasBin: true
 
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
@@ -6368,26 +6406,22 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  declapract-typescript-ehmpathy@0.45.5(@types/node@22.15.21)(declapract@0.13.1(@types/node@22.15.21))(esbuild@0.25.12):
+  declapract-typescript-ehmpathy@0.46.7(declapract@0.13.4(@types/node@22.15.21))(esbuild@0.25.12):
     dependencies:
-      declapract: 0.13.1(@types/node@22.15.21)
+      declapract: 0.13.4(@types/node@22.15.21)
       domain-objects: 0.31.7(@types/node@22.15.21)
       esbuild-register: 3.6.0(esbuild@0.25.12)
       expect: 29.4.2
       flat: 5.0.2
       helpful-errors: 1.5.3
-      rhachet: 1.13.1
-      rhachet-roles-ehmpathy: 1.13.7(@types/node@22.15.21)
       yaml: 2.8.2
     transitivePeerDependencies:
-      - '@types/node'
-      - aws-crt
       - esbuild
       - supports-color
       - ws
       - zod
 
-  declapract@0.13.1(@types/node@22.15.21):
+  declapract@0.13.4(@types/node@22.15.21):
     dependencies:
       chalk: 2.4.2
       commander: 12.1.0
@@ -6415,21 +6449,24 @@ snapshots:
       - ws
       - zod
 
-  declastruct-github@1.0.7:
+  declastruct-github@1.3.0:
     dependencies:
       '@ehmpathy/uni-time': 1.7.4
       '@octokit/rest': 21.1.1
       as-procedure: 1.1.1
-      domain-objects: 0.31.3
+      domain-objects: 0.31.7(@types/node@22.15.21)
       helpful-errors: 1.5.3
+      libsodium-wrappers: 0.7.15
       simple-in-memory-cache: 0.4.0
       type-fns: 1.21.0
       visualogic: 1.3.2
       with-simple-cache: 0.15.1
     transitivePeerDependencies:
       - aws-crt
+      - ws
+      - zod
 
-  declastruct@1.7.0(domain-objects@0.31.7(@types/node@22.15.21)):
+  declastruct@1.7.3(domain-objects@0.31.7):
     dependencies:
       bottleneck: 2.19.5
       chalk: 5.4.1
@@ -6756,6 +6793,12 @@ snapshots:
       cross-spawn: 7.0.6
       signal-exit: 4.1.0
 
+  fs-extra@8.1.0:
+    dependencies:
+      graceful-fs: 4.2.11
+      jsonfile: 4.0.0
+      universalify: 0.1.2
+
   fs-extra@9.1.0:
     dependencies:
       at-least-node: 1.0.0
@@ -6885,6 +6928,10 @@ snapshots:
 
   ieee754@1.2.1: {}
 
+  ignore-walk@3.0.4:
+    dependencies:
+      minimatch: 3.1.2
+
   ignore@5.3.2: {}
 
   immutable@5.1.4: {}
@@ -6913,6 +6960,8 @@ snapshots:
   inherits@2.0.4: {}
 
   ini@1.3.8: {}
+
+  ini@2.0.0: {}
 
   ini@4.1.1: {}
 
@@ -7424,6 +7473,10 @@ snapshots:
 
   jsonc-parser@3.3.1: {}
 
+  jsonfile@4.0.0:
+    optionalDependencies:
+      graceful-fs: 4.2.11
+
   jsonfile@6.2.0:
     dependencies:
       universalify: 2.0.1
@@ -7433,6 +7486,12 @@ snapshots:
   jsonparse@1.3.1: {}
 
   leven@3.1.0: {}
+
+  libsodium-wrappers@0.7.15:
+    dependencies:
+      libsodium: 0.7.15
+
+  libsodium@0.7.15: {}
 
   lines-and-columns@1.2.4: {}
 
@@ -7572,6 +7631,19 @@ snapshots:
   node-releases@2.0.27: {}
 
   normalize-path@3.0.0: {}
+
+  npm-bundled@1.1.2:
+    dependencies:
+      npm-normalize-package-bin: 1.0.1
+
+  npm-normalize-package-bin@1.0.1: {}
+
+  npm-packlist@2.2.2:
+    dependencies:
+      glob: 7.2.3
+      ignore-walk: 3.0.4
+      npm-bundled: 1.1.2
+      npm-normalize-package-bin: 1.0.1
 
   npm-run-path@4.0.1:
     dependencies:
@@ -7822,30 +7894,6 @@ snapshots:
       as-procedure: 1.1.7
       domain-objects: 0.31.3
       helpful-errors: 1.5.3
-
-  rhachet-roles-ehmpathy@1.13.7(@types/node@22.15.21):
-    dependencies:
-      '@ehmpathy/as-command': 1.0.3
-      '@ehmpathy/uni-time': 1.8.1
-      as-procedure: 1.1.7
-      domain-objects: 0.31.7(@types/node@22.15.21)
-      fast-glob: 3.3.3
-      helpful-errors: 1.5.3
-      inquirer: 12.7.0(@types/node@22.15.21)
-      openai: 5.8.2
-      rhachet: 1.13.1
-      rhachet-artifact: 1.0.0
-      rhachet-artifact-git: 1.1.0
-      serde-fns: 1.2.0
-      simple-in-memory-cache: 0.4.0
-      type-fns: 1.21.0
-      with-simple-caching: 0.14.2
-      wrapper-fns: 1.1.0
-    transitivePeerDependencies:
-      - '@types/node'
-      - aws-crt
-      - ws
-      - zod
 
   rhachet-roles-ehmpathy@1.15.4(@types/node@22.15.21):
     dependencies:
@@ -8229,6 +8277,8 @@ snapshots:
 
   universal-user-agent@7.0.3: {}
 
+  universalify@0.1.2: {}
+
   universalify@2.0.1: {}
 
   unrs-resolver@1.11.1:
@@ -8387,6 +8437,17 @@ snapshots:
       signal-exit: 4.1.0
 
   y18n@5.0.8: {}
+
+  yalc@1.0.0-pre.53:
+    dependencies:
+      chalk: 4.1.2
+      detect-indent: 6.1.0
+      fs-extra: 8.1.0
+      glob: 7.2.3
+      ignore: 5.3.2
+      ini: 2.0.0
+      npm-packlist: 2.2.2
+      yargs: 16.2.0
 
   yallist@3.1.1: {}
 
