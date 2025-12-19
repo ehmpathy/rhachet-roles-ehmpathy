@@ -38,6 +38,13 @@ HOOKS_DIR="$SKILLS_DIR/claude.hooks"
 "$FINDSERT" \
   --hook-type SessionStart \
   --matcher "*" \
+  --command "npx rhachet roles boot --repo .this --role any --if-present" \
+  --name "sessionstart.boot" \
+  --timeout 60
+
+"$FINDSERT" \
+  --hook-type SessionStart \
+  --matcher "*" \
   --command "npx rhachet roles boot --repo ehmpathy --role mechanic" \
   --name "sessionstart.boot" \
   --timeout 60

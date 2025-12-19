@@ -157,7 +157,7 @@
       "Bash(git cat-file:*)",
 
       // sedreplace - safe bulk find-and-replace on git-tracked files only
-      "Bash(bash .agent/repo=ehmpathy/role=mechanic/skills/.skills/claude.tools/sedreplace.sh:*)",
+      "Bash(.agent/repo=ehmpathy/role=mechanic/skills/.skills/claude.tools/sedreplace.sh:*)",
 
       // npm read operations
       "Bash(npm view:*)",
