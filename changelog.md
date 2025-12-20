@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.15.9](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.8...v1.15.9) (2025-12-20)
+
+
+### Bug Fixes
+
+* **mechanic:** cpsafe permission to allowlist ([#67](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/67)) ([7101ece](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/7101ecec8e70ce7ce7e7737b87826865c9965f9f))
+* **mechanic:** faster boot hooks ([#69](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/69)) ([087254b](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/087254b7ee27421617130946e05af448e28aa2ea))
+
 ## [1.15.8](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.7...v1.15.8) (2025-12-20)
 
 
