@@ -33,8 +33,8 @@ importers:
         specifier: 5.8.2
         version: 5.8.2
       rhachet:
-        specifier: 1.13.5
-        version: 1.13.5(@types/node@22.15.21)
+        specifier: 1.13.9
+        version: 1.13.9(@types/node@22.15.21)
       rhachet-artifact:
         specifier: 1.0.0
         version: 1.0.0
@@ -92,13 +92,13 @@ importers:
         version: 0.13.4(@types/node@22.15.21)
       declapract-typescript-ehmpathy:
         specifier: 0.46.7
-        version: 0.46.7(declapract@0.13.4(@types/node@22.15.21))(esbuild@0.25.12)
+        version: 0.46.7(@types/node@22.15.21)(declapract@0.13.4(@types/node@22.15.21))(esbuild@0.25.12)
       declastruct:
         specifier: 1.7.3
-        version: 1.7.3(domain-objects@0.31.7)
+        version: 1.7.3(domain-objects@0.31.7(@types/node@22.15.21))
       declastruct-github:
         specifier: 1.3.0
-        version: 1.3.0
+        version: 1.3.0(@types/node@22.15.21)
       depcheck:
         specifier: 1.4.3
         version: 1.4.3
@@ -3344,9 +3344,9 @@ packages:
     engines: {node: '>=8.0.0'}
     hasBin: true
 
-  rhachet@1.13.5:
-    resolution: {integrity: sha512-u4fak45OrbplH1/brgDe+/AxtNlObsXLyIhfqGCAaZnV1CvwShhxAGBEC6XoVeNvah3lPm2j1/FdmWSRr2cisg==}
-    engines: {node: '>=8.0.0'}
+  rhachet@1.13.9:
+    resolution: {integrity: sha512-/EROXPQSA+plEgyxd4LrzroLOFw8DLg+mYvG2TINQem/0h24YHTvp5BfuXQGyT+5eSTnvyy5r8kDwKUXSYypMQ==}
+    engines: {node: '>=22.0.0'}
     hasBin: true
 
   run-async@2.4.1:
@@ -6406,7 +6406,7 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  declapract-typescript-ehmpathy@0.46.7(declapract@0.13.4(@types/node@22.15.21))(esbuild@0.25.12):
+  declapract-typescript-ehmpathy@0.46.7(@types/node@22.15.21)(declapract@0.13.4(@types/node@22.15.21))(esbuild@0.25.12):
     dependencies:
       declapract: 0.13.4(@types/node@22.15.21)
       domain-objects: 0.31.7(@types/node@22.15.21)
@@ -6416,6 +6416,8 @@ snapshots:
       helpful-errors: 1.5.3
       yaml: 2.8.2
     transitivePeerDependencies:
+      - '@types/node'
+      - aws-crt
       - esbuild
       - supports-color
       - ws
@@ -6449,7 +6451,7 @@ snapshots:
       - ws
       - zod
 
-  declastruct-github@1.3.0:
+  declastruct-github@1.3.0(@types/node@22.15.21):
     dependencies:
       '@ehmpathy/uni-time': 1.7.4
       '@octokit/rest': 21.1.1
@@ -6462,11 +6464,12 @@ snapshots:
       visualogic: 1.3.2
       with-simple-cache: 0.15.1
     transitivePeerDependencies:
+      - '@types/node'
       - aws-crt
       - ws
       - zod
 
-  declastruct@1.7.3(domain-objects@0.31.7):
+  declastruct@1.7.3(domain-objects@0.31.7(@types/node@22.15.21)):
     dependencies:
       bottleneck: 2.19.5
       chalk: 5.4.1
@@ -6575,7 +6578,7 @@ snapshots:
       domain-objects: 0.31.3
       helpful-errors: 1.5.3
       joi: 17.4.0
-      rhachet: 1.13.5(@types/node@22.15.21)
+      rhachet: 1.13.9(@types/node@22.15.21)
       rhachet-roles-ehmpathy: 1.15.4(@types/node@22.15.21)
       type-fns: 1.21.0
       uuid-fns: 1.1.3
@@ -7941,7 +7944,7 @@ snapshots:
       - ws
       - zod
 
-  rhachet@1.13.5(@types/node@22.15.21):
+  rhachet@1.13.9(@types/node@22.15.21):
     dependencies:
       '@ehmpathy/uni-time': 1.9.0
       as-procedure: 1.1.6
@@ -7956,7 +7959,6 @@ snapshots:
       rhachet-artifact: 1.0.1
       rhachet-artifact-git: 1.1.3
       serde-fns: 1.3.1
-      tsx: 4.20.5
       type-fns: 1.21.0
       uuid-fns: 1.0.1
     transitivePeerDependencies:
