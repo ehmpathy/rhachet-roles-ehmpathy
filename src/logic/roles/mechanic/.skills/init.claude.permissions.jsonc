@@ -193,6 +193,14 @@
       "Bash(THOROUGH=true npm run test:integration:*)",
       "Bash(THOROUGH=true npm run test:acceptance:*)",
 
+      // resnap test operations
+      "Bash(RESNAP=true npm run test:unit:*)",
+      "Bash(RESNAP=true npm run test:integration:*)",
+      "Bash(RESNAP=true npm run test:acceptance:*)",
+      "Bash(RESNAP=true THOROUGH=true npm run test:unit:*)",
+      "Bash(RESNAP=true THOROUGH=true npm run test:integration:*)",
+      "Bash(RESNAP=true THOROUGH=true npm run test:acceptance:*)",
+
       // fix operations
       "Bash(npm run fix:*)",
       "Bash(npm run fix:format:*)",
