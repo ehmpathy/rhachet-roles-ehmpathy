@@ -183,6 +183,9 @@
       "Bash(npm run test:unit:*)",
       "Bash(npm run test:integration:*)",
       "Bash(npm run test:acceptance:*)",
+      "Bash(npm run test:unit -- path/to/file/example.ts)",
+      "Bash(npm run test:integration -- path/to/file/example.ts)",
+      "Bash(npm run test:acceptance -- path/to/file/example.ts)",
 
       // thorough test operations
       "Bash(THOROUGH=true npm run test:*)",
