@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.7](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.6...v1.15.7) (2025-12-20)
+
+
+### Bug Fixes
+
+* **mechanic:** allow resnap by default ([#63](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/63)) ([18e09cd](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/18e09cd9306eabccd22257860946547d10b301f4))
+
 ## [1.15.6](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.5...v1.15.6) (2025-12-19)
 
 
