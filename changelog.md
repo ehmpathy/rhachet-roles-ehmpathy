@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.8](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.7...v1.15.8) (2025-12-20)
+
+
+### Bug Fixes
+
+* **mechanic:** demo how to scope tests to files via permissions ([#65](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/65)) ([a026b7a](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/a026b7af207b46452648bad3b1766cef9dfc145d))
+
 ## [1.15.7](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.6...v1.15.7) (2025-12-20)
 
 
