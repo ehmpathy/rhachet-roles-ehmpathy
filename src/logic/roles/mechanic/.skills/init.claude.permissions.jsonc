@@ -166,6 +166,8 @@
       "Bash(npm view:*)",
       "Bash(npm list:*)",
       "Bash(npm remove:*)",
+      "Bash(npm help:*)",
+      "Bash(pnpm help:*)",
 
       // rhachet operations
       "Bash(npx rhachet roles boot --repo ehmpathy --role mechanic)",

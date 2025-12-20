@@ -60,7 +60,7 @@
     "helpful-errors": "1.5.3",
     "inquirer": "12.7.0",
     "openai": "5.8.2",
-    "rhachet": "1.13.5",
+    "rhachet": "1.13.9",
     "rhachet-artifact": "1.0.0",
     "rhachet-artifact-git": "1.1.0",
     "serde-fns": "1.2.0",
