@@ -12,7 +12,10 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import { type ContextOpenAI, sdkOpenAi } from '@src/logic/data/sdk/sdkOpenAi';
+import {
+  type ContextOpenAI,
+  sdkOpenAi,
+} from '@src/domain.operations/access/sdk/sdkOpenAi';
 import { genLoopFeedback } from '@src/roles/artifact/genLoopFeedback';
 import { genStepArtSet } from '@src/roles/artifact/genStepArtSet';
 import { getBhrainBriefs } from '@src/roles/bhrain/.scratch/getBhrainBrief';

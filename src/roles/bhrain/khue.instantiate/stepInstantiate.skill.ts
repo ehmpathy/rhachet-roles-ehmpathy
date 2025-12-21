@@ -5,7 +5,7 @@ import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 import { genContextLogTrail } from '@src/.test/genContextLogTrail';
 import { genContextStitchTrail } from '@src/.test/genContextStitchTrail';
 import { getContextOpenAI } from '@src/.test/getContextOpenAI';
-import { setSkillOutputSrc } from '@src/logic/artifact/setSkillOutputSrc';
+import { setSkillOutputSrc } from '@src/domain.operations/artifact/setSkillOutputSrc';
 
 import { loopInstantiate } from './stepInstantiate';
 

@@ -9,7 +9,7 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import type { ContextOpenAI } from '@src/data/sdk/sdkOpenAi';
+import type { ContextOpenAI } from '@src/access/sdk/sdkOpenAi';
 
 import { routeCriticCodeReviewCodestyle } from './routeCriticCodeReviewCodestyle';
 

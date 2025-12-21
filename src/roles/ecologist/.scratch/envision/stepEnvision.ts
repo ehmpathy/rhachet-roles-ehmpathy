@@ -13,7 +13,7 @@
 // import { GitFile } from 'rhachet-artifact-git';
 // import { withRetry, withTimeout } from 'wrapper-fns';
 
-// import { ContextOpenAI, sdkOpenAi } from '@src/logic/data/sdk/sdkOpenAi';
+// import { ContextOpenAI, sdkOpenAi } from '@src/domain.operations/access/sdk/sdkOpenAi';
 // import { genLoopFeedback } from '@src/roles/artifact/genLoopFeedback';
 // import { genStepArtSet } from '@src/roles/artifact/genStepArtSet';
 // import { getMechanicBriefs } from '@src/roles/ecologist/mechanic/getMechanicBrief';

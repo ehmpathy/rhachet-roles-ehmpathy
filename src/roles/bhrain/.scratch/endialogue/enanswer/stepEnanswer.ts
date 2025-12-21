@@ -11,7 +11,7 @@ import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 import { withRetry, withTimeout } from 'wrapper-fns';
 
-import { type ContextOpenAI, sdkOpenAi } from '@src/data/sdk/sdkOpenAi';
+import { type ContextOpenAI, sdkOpenAi } from '@src/access/sdk/sdkOpenAi';
 import { stepEnquestion } from '@src/roles/bhrain/.scratch/endialogue/enquestion/stepEnquestion';
 import { getEcologistBriefs } from '@src/roles/ecologist/getEcologistBrief';
 import { getMechanicBriefs } from '@src/roles/mechanic/getMechanicBrief';
