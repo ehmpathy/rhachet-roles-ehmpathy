@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.15.11](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.10...v1.15.11) (2025-12-21)
+
+
+### Bug Fixes
+
+* **mechanic:** bump bhuild src prompts ([#72](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/72)) ([80ab8ec](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/80ab8ecd88c7d6304e19abac828301b012a89976))
+* **src:** shift roles out of domain.ops ([#74](https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/74)) ([bd41b2c](https://github.com/ehmpathy/rhachet-roles-ehmpathy/commit/bd41b2c41ab232448deebd66cdc6e415964f9576))
+
 ## [1.15.10](https://github.com/ehmpathy/rhachet-roles-ehmpathy/compare/v1.15.9...v1.15.10) (2025-12-20)
 
 
