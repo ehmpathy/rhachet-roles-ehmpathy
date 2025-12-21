@@ -1,7 +1,0 @@
-implement src/logic/roles/mechanic/.skills/run.test.sh
-
-such that it follows the pattern declared in src/logic/roles/mechanic/.skills/test.integration.sh
-
-but also
-- supports unit and acceptance tests
-- fulfills the wish implied here src/logic/roles/mechanic/.briefs/patterns/code.test.howto/best-practice/howto.use.[lesson].md
