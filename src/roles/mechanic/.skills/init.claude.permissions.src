@@ -1,0 +1,36 @@
+take a look at how src/roles/mechanic/.skills/init.claude.hooks.sh works
+
+now create a similar skill to instantiate the claude permissions with the following booted
+
+it should replace existing allows entirely (to be conservative)
+
+it should extend the denies and asks though (dont replace, append) (to be conservative)
+
+  "permissions": {
+    "deny": [],
+    "ask": [
+      "Bash(chmod:*)",
+      "Bash(pnpm install:*)"
+      "Bash(pnpm add:*)"
+    ],
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:hub.docker.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(THOROUGH=true npm run test:*)",
+      "Bash(AWS_PROFILE=ahbode.dev npm run test:integration:*)",
+      "Bash(npm run fix:*)",
+      "Bash(AWS_PROFILE=ahbode.dev npx jest:*)",
+      "Bash(AWS_PROFILE=ahbode.dev npm run deploy:dev:*)",
+      "Bash(AWS_PROFILE=ahbode.dev STAGE=dev npm run test:acceptance:*)",
+      "Bash(npm run start:testdb:*)",
+      "Bash(cat:*)",
+      "Bash(unzip:*)",
+      "Bash(npm view:*)"
+    ],
+  }
+
+
+

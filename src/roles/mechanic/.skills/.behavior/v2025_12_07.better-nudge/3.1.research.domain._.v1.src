@@ -1,0 +1,21 @@
+research the domain available in order to fulfill the wish declared
+in src/roles/mechanic/.skills/.behavior/v2025_12_07.better-nudge/0.wish.md
+
+specifically
+- how does claude-code treat permissions?
+- what does `:*` mean?
+- how to represent true wildcards?
+
+---
+
+use web search to discover and research
+- cite every claim
+- number each citation
+- clone exact quotes from each citation
+
+focus on these sdk's for reference, if provided
+- claude-code
+
+---
+
+emit into src/roles/mechanic/.skills/.behavior/v2025_12_07.better-nudge/3.1.research.domain._.v1.i1.md
