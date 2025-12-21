@@ -122,16 +122,16 @@ given()
 EOF
 
 # findsert 2.criteria.src
-findsert "$BEHAVIOR_DIR/2.criteria.src" << 'EOF'
+findsert "$BEHAVIOR_DIR/2.criteria.src" << EOF
 declare the behavioral criteria required in order to fulfill
 - this wish $BEHAVIOR_DIR_REL/0.wish.md
 - this vision $BEHAVIOR_DIR_REL/1.vision.md (if declared)
 
 via bdd declarations, per your briefs
 
-via the template in $BEHAVIOR_DIR/2.criteria.md
+via the template in $BEHAVIOR_DIR_REL/2.criteria.md
 
-emit into $BEHAVIOR_DIR/2.criteria.md
+emit into $BEHAVIOR_DIR_REL/2.criteria.md
 
 ---
 
@@ -254,7 +254,7 @@ EOF
 findsert "$BEHAVIOR_DIR/5.1.execution.phase0_to_phaseN.v1.src" << EOF
 bootup your mechanic's role via \`npx rhachet roles boot --repo ehmpathy --role mechanic\`
 
-then, execute
+then, start or continue to execute
 - phase0 to phaseN
 of roadmap
 - $BEHAVIOR_DIR_REL/4.1.roadmap.v1.i1.md
