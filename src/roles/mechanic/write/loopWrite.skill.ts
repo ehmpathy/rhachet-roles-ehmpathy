@@ -4,7 +4,7 @@ import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { genContextLogTrail } from '@src/.test/genContextLogTrail';
 import { genContextStitchTrail } from '@src/.test/genContextStitchTrail';
 import { getContextOpenAI } from '@src/.test/getContextOpenAI';
-import { asDotRhachetDir } from '@src/logic/artifact/asDotRhachetFile';
+import { asDotRhachetDir } from '@src/domain.operations/artifact/asDotRhachetFile';
 import { getMechanicBrief } from '@src/roles/mechanic/getMechanicBrief';
 
 import { loopWrite } from './loopWrite';

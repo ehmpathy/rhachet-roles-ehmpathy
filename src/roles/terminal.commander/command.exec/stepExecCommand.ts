@@ -15,7 +15,7 @@ import {
 } from 'rhachet';
 
 import type { Focus } from '@src/_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
-import type { ContextOpenAI } from '@src/data/sdk/sdkOpenAi';
+import type { ContextOpenAI } from '@src/access/sdk/sdkOpenAi';
 
 type StitcherDesired = GStitcher<
   Threads<{

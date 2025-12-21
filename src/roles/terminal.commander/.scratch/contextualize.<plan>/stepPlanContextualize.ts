@@ -10,8 +10,8 @@ import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
 import type { Focus } from '@src/_topublish/rhachet-roles-bhrain/src/domain/objects/Focus';
-import type { ContextOpenAI } from '@src/data/sdk/sdkOpenAi';
-import { genLoopFeedback } from '@src/logic/artifact/genLoopFeedback';
+import type { ContextOpenAI } from '@src/access/sdk/sdkOpenAi';
+import { genLoopFeedback } from '@src/domain.operations/artifact/genLoopFeedback';
 import { stepInstantiate } from '@src/roles/bhrain/khue.instantiate/stepInstantiate';
 
 const BRIEFS_FOR_CLIPLAN: Artifact<typeof GitFile>[] = [];

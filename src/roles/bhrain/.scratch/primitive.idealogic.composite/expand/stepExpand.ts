@@ -8,7 +8,7 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import type { ContextOpenAI } from '@src/logic/data/sdk/sdkOpenAi';
+import type { ContextOpenAI } from '@src/domain.operations/access/sdk/sdkOpenAi';
 import { stepResetFeedback } from '@src/roles/artifact/genStepResetFeedback';
 import { useGenStepSwapArtifactFor } from '@src/roles/artifact/genStepSwapArtifact';
 import { stepCollect } from '@src/roles/bhrain/.scratch/primitive.idealogic.atomic/collect/stepCollect';

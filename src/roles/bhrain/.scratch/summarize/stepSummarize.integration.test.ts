@@ -11,9 +11,9 @@ import { given, then, usePrep, when } from 'test-fns';
 import type { Literalize } from 'type-fns';
 import { getUuid } from 'uuid-fns';
 
-import { genContextLogTrail } from '@src/logic/.test/genContextLogTrail';
-import { genContextStitchTrail } from '@src/logic/.test/genContextStitchTrail';
-import { getContextOpenAI } from '@src/logic/.test/getContextOpenAI';
+import { genContextLogTrail } from '@src/domain.operations/.test/genContextLogTrail';
+import { genContextStitchTrail } from '@src/domain.operations/.test/genContextStitchTrail';
+import { getContextOpenAI } from '@src/domain.operations/.test/getContextOpenAI';
 
 import { stepSummarize } from './stepSummarize';
 

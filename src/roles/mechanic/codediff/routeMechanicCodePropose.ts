@@ -13,7 +13,7 @@ import type { GitFile } from 'rhachet-artifact-git';
 import { deSerialJSON, isSerialJSON } from 'serde-fns';
 import type { Empty } from 'type-fns';
 
-import type { ContextOpenAI } from '@src/data/sdk/sdkOpenAi';
+import type { ContextOpenAI } from '@src/access/sdk/sdkOpenAi';
 
 import { routeMechanicCodeIterate } from './routeMechanicCodeIterate';
 

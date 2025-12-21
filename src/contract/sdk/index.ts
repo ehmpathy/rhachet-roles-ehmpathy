@@ -1,2 +1,2 @@
-export { getInvokeHooks } from '@src/logic/hooks/getInvokeHooks';
+export { getInvokeHooks } from '@src/domain.operations/hooks/getInvokeHooks';
 export { getRoleRegistry } from '@src/roles/getRoleRegistry';

@@ -4,8 +4,8 @@ import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 
 import { genContextLogTrail } from '@src/.test/genContextLogTrail';
 import { getContextOpenAI } from '@src/.test/getContextOpenAI';
-import { setSkillOutputSrc } from '@src/logic/artifact/setSkillOutputSrc';
-import { genStitchStreamToDisk } from '@src/logic/context/genStitchStreamToDisk';
+import { setSkillOutputSrc } from '@src/domain.operations/artifact/setSkillOutputSrc';
+import { genStitchStreamToDisk } from '@src/domain.operations/context/genStitchStreamToDisk';
 
 import { loopPlanContextualize } from './stepPlanContextualize';
 

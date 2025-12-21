@@ -1,4 +1,4 @@
-import type { PonderCatalog } from '@src/logic/_topublish/rhachet-roles-bhrain/src/domain/objects/PonderCatalog';
+import type { PonderCatalog } from '@src/domain.operations/_topublish/rhachet-roles-bhrain/src/domain/objects/PonderCatalog';
 
 export const envisionPonderCatalog: PonderCatalog = {
   contextualize: {

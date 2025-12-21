@@ -1,4 +1,4 @@
-import { genLoopFeedback } from '@src/logic/artifact/genLoopFeedback';
+import { genLoopFeedback } from '@src/domain.operations/artifact/genLoopFeedback';
 
 import { stepWrite } from './stepWrite';
 

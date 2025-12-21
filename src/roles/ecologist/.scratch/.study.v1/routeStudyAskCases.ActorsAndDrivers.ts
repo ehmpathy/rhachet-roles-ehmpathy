@@ -12,7 +12,10 @@ import {
 import type { Artifact } from 'rhachet-artifact';
 import type { GitFile } from 'rhachet-artifact-git';
 
-import { type ContextOpenAI, sdkOpenAi } from '@src/logic/data/sdk/sdkOpenAi';
+import {
+  type ContextOpenAI,
+  sdkOpenAi,
+} from '@src/domain.operations/access/sdk/sdkOpenAi';
 import { genStepArtSet } from '@src/roles/artifact/genStepArtSet';
 import { getEcologistBriefs } from '@src/roles/ecologist/.scratch/getEcologistBrief';
 import { getMechanicBriefs } from '@src/roles/ecologist/mechanic/getMechanicBrief';
