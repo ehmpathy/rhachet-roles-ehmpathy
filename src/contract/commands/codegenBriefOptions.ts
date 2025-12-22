@@ -11,9 +11,7 @@ const command = asCommand(
     dir: __dirname + '/.temp',
     log: console,
   },
-  async (input: {
-    role: 'Mechanic' | 'Designer' | 'Architect' | 'Ecologist' | 'Bhrain';
-  }) => {
+  async (input: { role: 'Mechanic' | 'Architect' | 'Ecologist' }) => {
     // lookup the briefs available in the expected dir
     const briefsDir = path.join(
       (await getGitRepoRoot({ from: __dirname })) +
@@ -63,7 +61,5 @@ export type BriefOption${input.role} = typeof options[number];
 if (require.main === module) {
   void command({ role: 'Ecologist' });
   void command({ role: 'Architect' });
-  void command({ role: 'Designer' });
   void command({ role: 'Mechanic' });
-  void command({ role: 'Bhrain' });
 }

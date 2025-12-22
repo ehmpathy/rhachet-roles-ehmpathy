@@ -126,9 +126,6 @@ importers:
       typescript:
         specifier: 5.4.5
         version: 5.4.5
-      uuid-fns:
-        specifier: 1.0.2
-        version: 1.0.2
       yalc:
         specifier: 1.0.0-pre.53
         version: 1.0.0-pre.53
