@@ -33,8 +33,8 @@ importers:
         specifier: 5.8.2
         version: 5.8.2
       rhachet:
-        specifier: 1.13.11
-        version: 1.13.11(@types/node@22.15.21)
+        specifier: 1.14.1
+        version: 1.14.1(@types/node@22.15.21)
       rhachet-artifact:
         specifier: 1.0.0
         version: 1.0.0
@@ -3341,6 +3341,11 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
+  rhachet@1.14.1:
+    resolution: {integrity: sha512-1S2/zm5G/MCMYxIz4dm//rqlk7ZTo0KEfqR4N1SonPzvWSvStu6zPZUYnZlu046ATCHxTbL2KBawYhn7CsEmWQ==}
+    engines: {node: '>=22.0.0'}
+    hasBin: true
+
   run-async@2.4.1:
     resolution: {integrity: sha512-tvVnVv01b8c1RrA6Ep7JkStj85Guv/YrMcwqYQnwjsAS2cTmmPGBBjAjpCW7RrSodNSoE2/qg9O4bceNvUuDgQ==}
     engines: {node: '>=0.12.0'}
@@ -6562,7 +6567,7 @@ snapshots:
       domain-objects: 0.31.3
       helpful-errors: 1.5.3
       joi: 17.4.0
-      rhachet: 1.13.11(@types/node@22.15.21)
+      rhachet: 1.14.1(@types/node@22.15.21)
       rhachet-roles-ehmpathy: 1.15.10(@types/node@22.15.21)
       type-fns: 1.21.0
       uuid-fns: 1.1.3
@@ -7892,7 +7897,7 @@ snapshots:
       helpful-errors: 1.5.3
       inquirer: 12.7.0(@types/node@22.15.21)
       openai: 5.8.2
-      rhachet: 1.13.11(@types/node@22.15.21)
+      rhachet: 1.13.11
       rhachet-artifact: 1.0.0
       rhachet-artifact-git: 1.1.0
       serde-fns: 1.2.0
@@ -7906,7 +7911,28 @@ snapshots:
       - ws
       - zod
 
-  rhachet@1.13.11(@types/node@22.15.21):
+  rhachet@1.13.11:
+    dependencies:
+      '@ehmpathy/uni-time': 1.9.0
+      as-procedure: 1.1.6
+      bottleneck: 2.19.5
+      chalk: 4.1.2
+      commander: 14.0.0
+      domain-objects: 0.31.7(@types/node@22.15.21)
+      fast-glob: 3.3.3
+      flattie: 1.1.1
+      helpful-errors: 1.5.3
+      openai: 5.8.2
+      rhachet-artifact: 1.0.1
+      rhachet-artifact-git: 1.1.3
+      serde-fns: 1.3.1
+      type-fns: 1.21.0
+      uuid-fns: 1.0.1
+    transitivePeerDependencies:
+      - ws
+      - zod
+
+  rhachet@1.14.1(@types/node@22.15.21):
     dependencies:
       '@ehmpathy/uni-time': 1.9.0
       as-procedure: 1.1.6

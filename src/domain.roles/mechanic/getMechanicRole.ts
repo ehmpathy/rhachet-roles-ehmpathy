@@ -14,11 +14,15 @@ export const ROLE_MECHANIC: Role = Role.build({
 Used to write and revise the actual logic that runs the system.
   `.trim(),
   traits: [],
+  briefs: {
+    dirs: { uri: `${__dirname}/briefs` },
+  },
   skills: {
-    dirs: [{ uri: __dirname + '/skills' }],
+    dirs: { uri: `${__dirname}/skills` },
     refs: [],
   },
-  briefs: {
-    dirs: [{ uri: __dirname + '/briefs' }],
+  inits: {
+    dirs: { uri: `${__dirname}/inits` },
+    exec: [{ cmd: `${__dirname}/inits/init.claude.sh` }],
   },
 });
