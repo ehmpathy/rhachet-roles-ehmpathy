@@ -4,8 +4,8 @@ import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { genContextLogTrail } from '@src/.test/genContextLogTrail';
 import { genContextStitchTrail } from '@src/.test/genContextStitchTrail';
 import { getContextOpenAI } from '@src/.test/getContextOpenAI';
-import { getRefOrgPatterns } from '@src/roles/mechanic/codediff/getRefOrgPatterns';
-import { routeMechanicCodePropose } from '@src/roles/mechanic/codediff/routeMechanicCodePropose';
+import { getRefOrgPatterns } from '@src/roles/mechanic/.scratch/brain.atomic/codediff/getRefOrgPatterns';
+import { routeMechanicCodePropose } from '@src/roles/mechanic/.scratch/brain.atomic/codediff/routeMechanicCodePropose';
 import { getMechanicBrief } from '@src/roles/mechanic/getMechanicBrief';
 
 export const SKILL_CODE_PROPOSE: RoleSkill<

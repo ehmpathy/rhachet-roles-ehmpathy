@@ -11,7 +11,7 @@ export const getEcologistBrief = (
   key: BriefOptionEcologist,
 ): Artifact<typeof GitFile> => {
   return genArtifactGitFile({
-    uri: `${__dirname}/.briefs/${key}`,
+    uri: `${__dirname}/briefs/${key}`,
   });
 };
 

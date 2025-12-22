@@ -5,4 +5,4 @@ you can spy, but never mock
 
 ---
 
-use the less on in src/roles/mechanic/.briefs/patterns/code.test.howto/best-practice/howto.write.bdd.[lesson].md for preference on pattern
+use the less on in src/roles/mechanic/briefs/patterns/code.test.howto/best-practice/howto.write.bdd.[lesson].md for preference on pattern

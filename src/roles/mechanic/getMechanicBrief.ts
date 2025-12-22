@@ -11,7 +11,7 @@ export const getMechanicBrief = (
   key: BriefOptionMechanic,
 ): Artifact<typeof GitFile> => {
   return genArtifactGitFile({
-    uri: `${__dirname}/.briefs/${key}`,
+    uri: `${__dirname}/briefs/${key}`,
   });
 };
 

@@ -19,6 +19,6 @@ Used to design system architecture and establish patterns that ensure maintainab
     refs: [],
   },
   briefs: {
-    dirs: [{ uri: __dirname + '/.briefs' }],
+    dirs: [{ uri: __dirname + '/briefs' }],
   },
 });

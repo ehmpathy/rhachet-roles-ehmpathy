@@ -1,8 +1,5 @@
 import { Role } from 'rhachet';
 
-import { SKILL_CODE_PROPOSE } from './skills/getSkillCodePropose';
-import { SKILL_WRITE } from './write/loopWrite.skill';
-
 export const ROLE_MECHANIC: Role = Role.build({
   slug: 'mechanic',
   name: 'Mechanic',
@@ -18,10 +15,10 @@ Used to write and revise the actual logic that runs the system.
   `.trim(),
   traits: [],
   skills: {
-    dirs: [{ uri: __dirname + '/.skills' }],
-    refs: [SKILL_WRITE, SKILL_CODE_PROPOSE],
+    dirs: [{ uri: __dirname + '/skills' }],
+    refs: [],
   },
   briefs: {
-    dirs: [{ uri: __dirname + '/.briefs' }],
+    dirs: [{ uri: __dirname + '/briefs' }],
   },
 });

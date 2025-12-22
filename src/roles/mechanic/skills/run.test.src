@@ -4,4 +4,4 @@ such that it follows the pattern declared in src/roles/mechanic/.skills/test.int
 
 but also
 - supports unit and acceptance tests
-- fulfills the wish implied here src/roles/mechanic/.briefs/patterns/code.test.howto/best-practice/howto.use.[lesson].md
+- fulfills the wish implied here src/roles/mechanic/briefs/patterns/code.test.howto/best-practice/howto.use.[lesson].md

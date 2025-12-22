@@ -7,7 +7,7 @@ import type { GitFile } from 'rhachet-artifact-git';
  * .why =
  *   - declares a distinct context and concept with which to think
  *   - enables focus switches, persistence, replication, etc
- * .ref = @[bhrain].briefs/cognition
+ * .ref = @[bhrain]/briefs/cognition
  */
 export interface Focus {
   /**
