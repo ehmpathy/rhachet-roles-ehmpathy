@@ -8,13 +8,15 @@
 #
 # .how  = reads settings.local.json, finds hooks referencing files
 #         in claude.hooks/, checks if those files exist, and removes
-#         any hooks whose scripts no longer exist.
+#         any hooks whose scripts no longer exist or match deprecated
+#         command patterns.
 #
 # usage:
 #   init.claude.hooks.cleanup.sh
 #
 # guarantee:
-#   ✔ only removes hooks referencing missing claude.hooks/ files
+#   ✔ removes hooks referencing missing claude.hooks/ files
+#   ✔ removes hooks matching deprecated command patterns
 #   ✔ preserves all other hooks and settings
 #   ✔ idempotent: safe to rerun
 #   ✔ no-op if no stale hooks found
@@ -31,32 +33,61 @@ HOOKS_DIR="$SKILLS_DIR/claude.hooks"
 PROJECT_ROOT="$PWD"
 SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.local.json"
 
+# deprecated command patterns to remove (regex)
+DEPRECATED_PATTERNS=(
+  "^npx rhachet roles boot"
+)
+
 # Exit if no settings file
 if [[ ! -f "$SETTINGS_FILE" ]]; then
   exit 0
 fi
 
-# Extract all hook commands that reference claude.hooks/
-# and check which ones point to missing files
-STALE_COMMANDS=$(jq -r '
+# collect stale commands
+STALE_COMMANDS=""
+
+# find hooks referencing missing claude.hooks/ files
+MISSING_FILES=$(jq -r '
   .hooks // {} | to_entries[] |
   .value[] | .hooks[] | .command // empty
 ' "$SETTINGS_FILE" | { grep -E "claude\.hooks/" || true; } | while read -r cmd; do
-  # Extract the path - it might be absolute or relative
-  # Look for the claude.hooks/ part and check if the file exists
   if [[ "$cmd" == /* ]]; then
-    # Absolute path
+    # absolute path
     if [[ ! -f "$cmd" ]]; then
       echo "$cmd"
     fi
   else
-    # Relative path or command - check if it contains claude.hooks/
-    # and if the file exists relative to PWD
+    # relative path
     if [[ ! -f "$PROJECT_ROOT/$cmd" ]]; then
       echo "$cmd"
     fi
   fi
 done)
+
+if [[ -n "$MISSING_FILES" ]]; then
+  STALE_COMMANDS="$MISSING_FILES"
+fi
+
+# find hooks matching deprecated patterns
+DEPRECATED_COMMANDS=$(jq -r '
+  .hooks // {} | to_entries[] |
+  .value[] | .hooks[] | .command // empty
+' "$SETTINGS_FILE" | while read -r cmd; do
+  for pattern in "${DEPRECATED_PATTERNS[@]}"; do
+    if [[ "$cmd" =~ $pattern ]]; then
+      echo "$cmd"
+      break
+    fi
+  done
+done)
+
+if [[ -n "$DEPRECATED_COMMANDS" ]]; then
+  if [[ -n "$STALE_COMMANDS" ]]; then
+    STALE_COMMANDS="$STALE_COMMANDS"$'\n'"$DEPRECATED_COMMANDS"
+  else
+    STALE_COMMANDS="$DEPRECATED_COMMANDS"
+  fi
+fi
 
 # Exit if no stale commands found
 if [[ -z "$STALE_COMMANDS" ]]; then

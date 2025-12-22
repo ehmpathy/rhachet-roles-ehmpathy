@@ -37,6 +37,7 @@ HOOK_COMMAND=""
 HOOK_NAME=""
 TIMEOUT=5
 POSITION="append"
+AUTHOR="repo=ehmpathy/role=mechanic"
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -65,6 +66,10 @@ while [[ $# -gt 0 ]]; do
       POSITION="$2"
       shift 2
       ;;
+    --author)
+      AUTHOR="$2"
+      shift 2
+      ;;
     *)
       echo "Unknown argument: $1" >&2
       exit 1
@@ -74,7 +79,7 @@ done
 
 # Validate required arguments
 if [[ -z "$HOOK_TYPE" || -z "$MATCHER" || -z "$HOOK_COMMAND" || -z "$HOOK_NAME" ]]; then
-  echo "Usage: $0 --hook-type TYPE --matcher MATCHER --command CMD --name NAME [--timeout SECS] [--position append|prepend]" >&2
+  echo "Usage: $0 --hook-type TYPE --matcher MATCHER --command CMD --name NAME [--timeout SECS] [--position append|prepend] [--author AUTHOR]" >&2
   exit 1
 fi
 
@@ -95,6 +100,7 @@ HOOK_CONFIG=$(jq -n \
   --arg matcher "$MATCHER" \
   --arg command "$HOOK_COMMAND" \
   --argjson timeout "$TIMEOUT" \
+  --arg author "$AUTHOR" \
   '{
     hooks: {
       ($hookType): [
@@ -104,7 +110,8 @@ HOOK_CONFIG=$(jq -n \
             {
               type: "command",
               command: $command,
-              timeout: $timeout
+              timeout: $timeout,
+              author: $author
             }
           ]
         }
