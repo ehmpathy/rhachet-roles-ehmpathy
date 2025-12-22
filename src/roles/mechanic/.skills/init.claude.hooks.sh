@@ -33,21 +33,7 @@ HOOKS_DIR="$SKILLS_DIR/claude.hooks"
 # First, cleanup any stale hooks (referencing removed scripts)
 "$CLEANUP"
 
-# SessionStart hooks (order matters - boot first, then notify permissions)
-
-"$FINDSERT" \
-  --hook-type SessionStart \
-  --matcher "*" \
-  --command "./node_modules/.bin/rhachet roles boot --repo .this --role any --if-present" \
-  --name "sessionstart.boot" \
-  --timeout 60
-
-"$FINDSERT" \
-  --hook-type SessionStart \
-  --matcher "*" \
-  --command "./node_modules/.bin/rhachet roles boot --repo ehmpathy --role mechanic" \
-  --name "sessionstart.boot" \
-  --timeout 60
+# SessionStart hooks (order matters - notify permissions first, then boot roles)
 
 "$FINDSERT" \
   --hook-type SessionStart \
@@ -55,6 +41,20 @@ HOOKS_DIR="$SKILLS_DIR/claude.hooks"
   --command "$HOOKS_DIR/sessionstart.notify-permissions.sh" \
   --name "sessionstart.notify-permissions" \
   --timeout 5
+
+"$FINDSERT" \
+  --hook-type SessionStart \
+  --matcher "*" \
+  --command "./node_modules/.bin/rhachet roles boot --repo .this --role any --if-present" \
+  --name "sessionstart.boot.this" \
+  --timeout 60
+
+"$FINDSERT" \
+  --hook-type SessionStart \
+  --matcher "*" \
+  --command "./node_modules/.bin/rhachet roles boot --repo ehmpathy --role mechanic" \
+  --name "sessionstart.boot.mechanic" \
+  --timeout 60
 
 # PreToolUse hooks (order matters - forbid-stderr-redirect first via prepend)
 
