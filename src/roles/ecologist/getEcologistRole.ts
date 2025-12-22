@@ -28,6 +28,6 @@ Used to understand the physics, incentives, and causal flows beneath the system.
     ],
   },
   briefs: {
-    dirs: [{ uri: __dirname + '/.briefs' }],
+    dirs: [{ uri: __dirname + '/briefs' }],
   },
 });

@@ -13,7 +13,7 @@ import type { Focus } from '@src/_topublish/rhachet-roles-bhrain/src/domain/obje
 import type { ContextOpenAI } from '@src/access/sdk/sdkOpenAi';
 import { genLoopFeedback } from '@src/domain.operations/artifact/genLoopFeedback';
 import { getBhrainBriefs } from '@src/roles/bhrain/getBhrainBrief';
-import { stepInstantiate } from '@src/roles/bhrain/khue.instantiate/stepInstantiate';
+import { stepInstantiate } from '@src/roles/bhrain/skills/khue.instantiate/stepInstantiate';
 
 const BRIEFS_FOR_CATALOGIZE = getBhrainBriefs([
   'cognition/cog021.structs.catalog.md',

@@ -2,14 +2,14 @@ import { Role, RoleTrait } from 'rhachet';
 
 import { getMechanicBrief } from '@src/roles/mechanic/getMechanicBrief';
 
-import { SKILL_ARTICULATE } from './brief.articulate/stepArticulate.skill';
-import { SKILL_CATALOGIZE } from './brief.catalogize/stepCatalogize.skill';
-import { SKILL_DEMONSTRATE } from './brief.demonstrate/stepDemonstrate.skill';
 import { getBhrainBrief } from './getBhrainBrief';
-import { SKILL_CLUSTER } from './khue.cluster/stepCluster.skill';
-import { SKILL_DIVERGE } from './khue.diverge/stepDiverge.skill';
-import { SKILL_INSTANTIATE } from './khue.instantiate/stepInstantiate.skill';
-import { SKILL_TRIAGE } from './khue.triage/stepTriage.skill';
+import { SKILL_ARTICULATE } from './skills/brief.articulate/stepArticulate.skill';
+import { SKILL_CATALOGIZE } from './skills/brief.catalogize/stepCatalogize.skill';
+import { SKILL_DEMONSTRATE } from './skills/brief.demonstrate/stepDemonstrate.skill';
+import { SKILL_CLUSTER } from './skills/khue.cluster/stepCluster.skill';
+import { SKILL_DIVERGE } from './skills/khue.diverge/stepDiverge.skill';
+import { SKILL_INSTANTIATE } from './skills/khue.instantiate/stepInstantiate.skill';
+import { SKILL_TRIAGE } from './skills/khue.triage/stepTriage.skill';
 
 export const ROLE_BHRAIN: Role = Role.build({
   slug: 'bhrain',
@@ -51,6 +51,6 @@ thought tactics; intent = be composed into other roles
     ],
   },
   briefs: {
-    dirs: [{ uri: __dirname + '/.briefs' }],
+    dirs: [{ uri: __dirname + '/briefs' }],
   },
 });

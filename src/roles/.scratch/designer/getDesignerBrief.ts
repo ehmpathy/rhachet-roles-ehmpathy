@@ -11,7 +11,7 @@ export const getDesignerBrief = (
   key: BriefOptionDesigner,
 ): Artifact<typeof GitFile> => {
   return genArtifactGitFile({
-    uri: `${__dirname}/.briefs/${key}`,
+    uri: `${__dirname}/briefs/${key}`,
   });
 };
 

@@ -35,6 +35,6 @@ a helpful terminal commander, at your service
     refs: [SKILL_COMMAND_PLAN, SKILL_COMMAND_EXEC],
   },
   briefs: {
-    dirs: [{ uri: __dirname + '/.briefs' }],
+    dirs: [{ uri: __dirname + '/briefs' }],
   },
 });

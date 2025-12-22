@@ -27,7 +27,7 @@
     "fix": "npm run fix:format && npm run fix:lint",
     "build:clean": "rm dist/ -rf",
     "build:compile": "tsc -p ./tsconfig.build.json && tsc-alias -p ./tsconfig.build.json",
-    "build:complete": "rsync -a --prune-empty-dirs --include='*/' --exclude='**/.route/**' --exclude='**/.scratch/**' --exclude='**/.behavior/**' --exclude='**/*.test.sh' --include='**/*.template.md' --include='**/.briefs/**/*.md' --include='**/.briefs/*.md' --include='**/.skills/**/*.sh' --include='**/.skills/*.sh' --include='**/.skills/**/*.jsonc' --include='**/.skills/*.jsonc' --exclude='*' src/ dist/",
+    "build:complete": "rsync -a --prune-empty-dirs --include='*/' --exclude='**/.route/**' --exclude='**/.scratch/**' --exclude='**/.behavior/**' --exclude='**/*.test.sh' --include='**/*.template.md' --include='**/briefs/**/*.md' --include='**/briefs/*.md' --include='**/skills/**/*.sh' --include='**/skills/*.sh' --include='**/skills/**/*.jsonc' --include='**/skills/*.jsonc' --exclude='*' src/ dist/",
     "build": "npm run build:clean && npm run build:compile && npm run build:complete --if-present",
     "test:commits": "LAST_TAG=$(git describe --tags --abbrev=0 @^ 2> /dev/null || git rev-list --max-parents=0 HEAD) && npx commitlint --from $LAST_TAG --to HEAD --verbose",
     "test:types": "tsc -p ./tsconfig.json --noEmit",
@@ -49,7 +49,7 @@
     "prepare:husky": "husky install && chmod ug+x .husky/*",
     "prepare": "if [ -e .git ] && [ -z $CI ]; then npm run prepare:husky && npm run prepare:rhachet; fi",
     "test:format:biome": "biome format",
-    "prepare:rhachet": "rhachet init && rhachet roles link --role mechanic && .agent/repo=ehmpathy/role=mechanic/skills/.skills/init.claude.sh"
+    "prepare:rhachet": "rhachet init && rhachet roles link --role mechanic && .agent/repo=ehmpathy/role=mechanic/skills/skills/init.claude.sh"
   },
   "dependencies": {
     "@ehmpathy/as-command": "1.0.3",
