@@ -28,18 +28,18 @@ the same rename via sedreplace = 2 tool calls (dry-run + execute) = minimal toke
 
 ```sh
 # dry-run first (default) - see what would change
-.agent/repo=ehmpathy/role=mechanic/skills/.skills/claude.tools/sedreplace.sh \
+.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/sedreplace.sh \
   --old "oldName" \
   --new "newName"
 
 # filter to specific file types
-.agent/repo=ehmpathy/role=mechanic/skills/.skills/claude.tools/sedreplace.sh \
+.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/sedreplace.sh \
   --old "oldName" \
   --new "newName" \
   --glob "*.ts"
 
 # apply changes after reviewing dry-run
-.agent/repo=ehmpathy/role=mechanic/skills/.skills/claude.tools/sedreplace.sh \
+.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/sedreplace.sh \
   --old "oldName" \
   --new "newName" \
   --execute

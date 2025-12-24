@@ -31,7 +31,8 @@
   "exclude": [
     "dist",
     "coverage",
-    "node_modules"
+    "node_modules",
+    "rhachet.use.ts"
   ],
   "include": [
     "**/*.ts"
