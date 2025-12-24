@@ -111,9 +111,6 @@ importers:
       jest:
         specifier: 30.2.0
         version: 30.2.0(@types/node@22.15.21)(esbuild-register@3.6.0(esbuild@0.25.12))(ts-node@10.9.2(@swc/core@1.15.3)(@types/node@22.15.21)(typescript@5.4.5))
-      rhachet-roles-ehmpathy:
-        specifier: 1.15.10
-        version: 1.15.10(@types/node@22.15.21)
       test-fns:
         specifier: 1.6.0
         version: 1.6.0
