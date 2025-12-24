@@ -26,10 +26,6 @@
       "Bash(git reflog delete:*)",
       "Bash(git config:*)",
 
-      // git mv/rm - use mvsafe.sh and rmsafe.sh instead (repo-constrained)
-      "Bash(git mv:*)",
-      "Bash(git rm:*)",
-
       // "anywrite" commands - CRITICAL SECURITY RISK
       //
       // unlike Claude's native Edit/Write tools which are scoped to the repo,
@@ -146,6 +142,10 @@
       "Bash(file:*)",
       "Bash(mkdir:*)",
       "Bash(pwd)",
+
+      // git mv/rm are safe - constrained to repo, all changes revertable
+      "Bash(git mv:*)",
+      "Bash(git rm:*)",
 
       // git read-only - all have no write variants
       "Bash(git log:*)",
