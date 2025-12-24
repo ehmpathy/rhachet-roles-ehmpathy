@@ -11,7 +11,9 @@
     "deny": [
       // git write operations - require explicit user request for audit trail
       "Bash(git commit:*)",
-      "Bash(git add:*)",
+      "Bash(git add .)",
+      "Bash(git add -A:*)",
+      "Bash(git add --all:*)",
       "Bash(git stash:*)",
       "Bash(git checkout:*)",
       "Bash(git branch -d:*)",
@@ -23,6 +25,10 @@
       "Bash(git reflog expire:*)",
       "Bash(git reflog delete:*)",
       "Bash(git config:*)",
+
+      // git mv/rm - use mvsafe.sh and rmsafe.sh instead (repo-constrained)
+      "Bash(git mv:*)",
+      "Bash(git rm:*)",
 
       // "anywrite" commands - CRITICAL SECURITY RISK
       //
@@ -141,10 +147,6 @@
       "Bash(mkdir:*)",
       "Bash(pwd)",
 
-      // git mv/rm are safe - constrained to repo, all changes revertable
-      "Bash(git mv:*)",
-      "Bash(git rm:*)",
-
       // git read-only - all have no write variants
       "Bash(git log:*)",
       "Bash(git status:*)",
@@ -161,6 +163,12 @@
 
       // cpsafe - safe file copy within git repo (source must be git-tracked)
       "Bash(.agent/repo=ehmpathy/role=mechanic/skills/.skills/claude.tools/cpsafe.sh:*)",
+
+      // mvsafe - safe file move within git repo
+      "Bash(.agent/repo=ehmpathy/role=mechanic/skills/.skills/claude.tools/mvsafe.sh:*)",
+
+      // rmsafe - safe file removal within git repo
+      "Bash(.agent/repo=ehmpathy/role=mechanic/skills/.skills/claude.tools/rmsafe.sh:*)",
 
       // npm read operations
       "Bash(npm view:*)",
@@ -208,6 +216,9 @@
       "Bash(RESNAP=true THOROUGH=true npm run test:unit:*)",
       "Bash(RESNAP=true THOROUGH=true npm run test:integration:*)",
       "Bash(RESNAP=true THOROUGH=true npm run test:acceptance:*)",
+
+      // test list operation
+      "Bash(npx jest --listTests:*)",
 
       // fix operations
       "Bash(npm run fix:*)",
