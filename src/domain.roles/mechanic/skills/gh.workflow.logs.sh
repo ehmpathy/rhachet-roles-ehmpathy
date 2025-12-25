@@ -22,6 +22,9 @@
 ######################################################################
 set -euo pipefail
 
+# disable pager for gh commands
+export GH_PAGER=""
+
 # parse named arguments
 WORKFLOW=""
 RUN_ID=""
@@ -182,32 +185,24 @@ REPO=$(gh repo view --json nameWithOwner -q '.nameWithOwner')
 # get jobs for this run
 JOBS_JSON=$(gh api --method GET "repos/$REPO/actions/runs/$RUN_ID/jobs" -q '.jobs')
 
-# view logs
-if [[ "$FULL_LOGS" == "true" ]]; then
-  echo ":: fetching full logs ..."
-  echo ""
-  # get all job ids and fetch logs for each
-  JOB_IDS=$(echo "$JOBS_JSON" | jq -r '.[].id')
-  for JOB_ID in $JOB_IDS; do
-    JOB_NAME=$(echo "$JOBS_JSON" | jq -r ".[] | select(.id == $JOB_ID) | .name")
-    echo "=== $JOB_NAME ==="
-    gh api --method GET "repos/$REPO/actions/jobs/$JOB_ID/logs"
-    echo ""
-  done
-else
-  echo ":: fetching failed job logs ..."
-  echo ""
-  # get only failed job ids
-  FAILED_JOB_IDS=$(echo "$JOBS_JSON" | jq -r '.[] | select(.conclusion == "failure") | .id')
-  if [[ -z "$FAILED_JOB_IDS" ]]; then
-    echo "no failed jobs found"
-    exit 0
-  fi
-  for JOB_ID in $FAILED_JOB_IDS; do
-    JOB_NAME=$(echo "$JOBS_JSON" | jq -r ".[] | select(.id == $JOB_ID) | .name")
-    echo "=== $JOB_NAME (failed) ==="
-    # fetch logs and filter to show failures
-    gh api --method GET "repos/$REPO/actions/jobs/$JOB_ID/logs" | grep -E "(FAIL |✕|Error:|Cannot find|##\[error\])" | head -100
-    echo ""
-  done
+# get only failed job ids
+FAILED_JOB_IDS=$(echo "$JOBS_JSON" | jq -r '.[] | select(.conclusion == "failure") | .id')
+if [[ -z "$FAILED_JOB_IDS" ]]; then
+  echo "no failed jobs found"
+  exit 0
 fi
+
+# view logs
+for JOB_ID in $FAILED_JOB_IDS; do
+  JOB_NAME=$(echo "$JOBS_JSON" | jq -r ".[] | select(.id == $JOB_ID) | .name")
+  echo "=== $JOB_NAME (failed) ==="
+  if [[ "$FULL_LOGS" == "true" ]]; then
+    # show full logs for failed job
+    gh api --method GET "repos/$REPO/actions/jobs/$JOB_ID/logs"
+  else
+    # filter to show failures with context
+    # detect: FAIL, red ANSI codes [31m (stderr), ##[error], named errors
+    gh api --method GET "repos/$REPO/actions/jobs/$JOB_ID/logs" | grep -E -A 30 "(FAIL |\[31m|##\[error\]|Error:.*at )" | head -500
+  fi
+  echo ""
+done
