@@ -196,9 +196,11 @@
       "Bash(npm run test:unit:*)",
       "Bash(npm run test:integration:*)",
       "Bash(npm run test:acceptance:*)",
+      "Bash(npm run test:acceptance:locally:*)",
       "Bash(npm run test:unit -- path/to/file/example.ts)",
       "Bash(npm run test:integration -- path/to/file/example.ts)",
       "Bash(npm run test:acceptance -- path/to/file/example.ts)",
+      "Bash(npm run test:acceptance:locally -- path/to/file/example.ts)",
 
       // thorough test operations
       "Bash(THOROUGH=true npm run test:*)",
@@ -208,14 +210,17 @@
       "Bash(THOROUGH=true npm run test:unit:*)",
       "Bash(THOROUGH=true npm run test:integration:*)",
       "Bash(THOROUGH=true npm run test:acceptance:*)",
+      "Bash(THOROUGH=true npm run test:acceptance:locally:*)",
 
       // resnap test operations
       "Bash(RESNAP=true npm run test:unit:*)",
       "Bash(RESNAP=true npm run test:integration:*)",
       "Bash(RESNAP=true npm run test:acceptance:*)",
+      "Bash(RESNAP=true npm run test:acceptance:locally:*)",
       "Bash(RESNAP=true THOROUGH=true npm run test:unit:*)",
       "Bash(RESNAP=true THOROUGH=true npm run test:integration:*)",
       "Bash(RESNAP=true THOROUGH=true npm run test:acceptance:*)",
+      "Bash(RESNAP=true THOROUGH=true npm run test:acceptance:locally:*)",
 
       // test list operation
       "Bash(npx jest --listTests:*)",
