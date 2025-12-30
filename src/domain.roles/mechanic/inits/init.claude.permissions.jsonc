@@ -263,8 +263,8 @@
       "Bash(gh api -X GET:*)",
       "Bash(gh api --method GET:*)",
 
-      // skill sourcing
-      "Bash(source .agent/repo=.this/skills/*)"
+      // apikey sources
+      "Bash(source .agent/repo=.this/role=any/skills/use.apikeys.sh)"
     ]
   }
 }

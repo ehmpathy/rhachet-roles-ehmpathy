@@ -12,7 +12,7 @@
 # .how  = runs both init scripts in sequence from the same directory.
 #
 # guarantee:
-#   ✔ backs up settings.local.json before changes (if exists)
+#   ✔ backs up settings.json before changes (if exists)
 #   ✔ runs both hooks and permissions initialization
 #   ✔ fail-fast on any error
 #   ✔ idempotent: safe to rerun
@@ -25,7 +25,7 @@ trap 'echo "❌ init.claude.sh failed at line $LINENO" >&2' ERR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 GITROOT="$(git rev-parse --show-toplevel)"
-SETTINGS_FILE="$GITROOT/.claude/settings.local.json"
+SETTINGS_FILE="$GITROOT/.claude/settings.json"
 
 echo "🔧 init claude config for mechanic role..."
 echo ""
@@ -33,7 +33,7 @@ echo ""
 # backup existing settings before changes
 if [[ -f "$SETTINGS_FILE" ]]; then
   ISODATETIME="$(date -u +%Y-%m-%dT%H-%M-%SZ)"
-  BACKUP_FILE="$GITROOT/.claude/settings.$ISODATETIME.bak.local.json"
+  BACKUP_FILE="$GITROOT/.claude/settings.$ISODATETIME.bak.json"
   cp "$SETTINGS_FILE" "$BACKUP_FILE"
   echo "📦 backed up settings to: ${BACKUP_FILE#$GITROOT/}"
   echo ""
