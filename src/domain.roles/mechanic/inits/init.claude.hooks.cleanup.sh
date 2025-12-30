@@ -3,10 +3,10 @@
 # .what = cleanup stale hooks from Claude settings
 #
 # .why  = when hook scripts are removed from claude.hooks/, the
-#         corresponding entries in .claude/settings.local.json
+#         corresponding entries in .claude/settings.json
 #         become stale and should be cleaned up.
 #
-# .how  = reads settings.local.json, finds hooks referencing files
+# .how  = reads settings.json, finds hooks referencing files
 #         in claude.hooks/, checks if those files exist, and removes
 #         any hooks whose scripts no longer exist or match deprecated
 #         command patterns.
@@ -31,11 +31,14 @@ SKILLS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 HOOKS_DIR="$SKILLS_DIR/claude.hooks"
 
 PROJECT_ROOT="$PWD"
-SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.local.json"
+SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.json"
 
 # deprecated command patterns to remove (regex)
 DEPRECATED_PATTERNS=(
-  "^npx rhachet roles boot"
+  # old hardcoded absolute paths (not portable across machines)
+  "/repo=ehmpathy/"
+  # npx with repo ehmpathy (use ./node_modules/.bin/rhachet instead)
+  "npx rhachet.*--repo ehmpathy"
 )
 
 # Exit if no settings file
@@ -51,6 +54,16 @@ MISSING_FILES=$(jq -r '
   .hooks // {} | to_entries[] |
   .value[] | .hooks[] | .command // empty
 ' "$SETTINGS_FILE" | { grep -E "claude\.hooks/" || true; } | while read -r cmd; do
+  # extract hook path from rhachet CLI commands
+  if [[ "$cmd" == *"rhachet roles"*"--command"* ]]; then
+    hook_path=$(echo "$cmd" | sed -n 's/.*--command[= ]*\([^ ]*\).*/\1/p')
+    if [[ -n "$hook_path" && ! -f "$HOOKS_DIR/${hook_path#claude.hooks/}.sh" ]]; then
+      echo "$cmd"
+    fi
+    continue
+  fi
+
+  # direct file path
   if [[ "$cmd" == /* ]]; then
     # absolute path
     if [[ ! -f "$cmd" ]]; then
@@ -126,13 +139,26 @@ if diff -q "$SETTINGS_FILE" "$SETTINGS_FILE.tmp" >/dev/null 2>&1; then
   exit 0
 fi
 
-# Report what's being removed
-echo "🧹 removing stale hooks:"
-echo "$STALE_COMMANDS" | while read -r cmd; do
-  echo "   - $cmd"
+# Report what's being removed with tree structure
+echo "🧹 remove stale hooks"
+STALE_ARRAY=()
+while IFS= read -r cmd; do
+  [[ -n "$cmd" ]] && STALE_ARRAY+=("$cmd")
+done <<< "$STALE_COMMANDS"
+
+TOTAL=${#STALE_ARRAY[@]}
+for i in "${!STALE_ARRAY[@]}"; do
+  cmd="${STALE_ARRAY[$i]}"
+  # convert to relative path
+  relative_cmd="${cmd#"$PROJECT_ROOT/"}"
+  # tree branch: └── for last item, ├── for others
+  if [[ $((i + 1)) -eq $TOTAL ]]; then
+    echo "   └── $relative_cmd"
+  else
+    echo "   ├── $relative_cmd"
+  fi
 done
+echo ""
 
 # Atomic replace
 mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
-
-echo "✨ cleanup complete"

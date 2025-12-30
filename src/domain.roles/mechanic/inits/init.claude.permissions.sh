@@ -5,17 +5,17 @@
 # .why  = the mechanic role needs conservative permissions to operate
 #         safely while still being productive.
 #
-#         this script manages permissions in .claude/settings.local.json:
+#         this script manages permissions in .claude/settings.json:
 #           • replaces existing allows entirely (conservative)
 #           • extends denies by appending new entries (conservative)
 #           • extends asks by appending new entries (conservative)
 #           • idempotent: safe to rerun
 #
 # .how  = loads permissions from init.claude.permissions.jsonc
-#         and uses jq to merge them into .claude/settings.local.json
+#         and uses jq to merge them into .claude/settings.json
 #
 # guarantee:
-#   ✔ creates .claude/settings.local.json if missing
+#   ✔ creates .claude/settings.json if missing
 #   ✔ preserves existing settings (hooks, other configs)
 #   ✔ replaces allow list entirely
 #   ✔ appends to deny list (no duplicates)
@@ -30,7 +30,7 @@ set -euo pipefail
 trap 'echo "❌ init.claude.permissions.sh failed at line $LINENO" >&2' ERR
 
 PROJECT_ROOT="$PWD"
-SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.local.json"
+SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.json"
 
 # resolve the permissions config file (relative to this script)
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -73,7 +73,7 @@ jq --argjson perms "$PERMISSIONS_CONFIG" '
 ' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp"
 
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
-BACKUP_FILE="${SETTINGS_FILE%.local.json}.${TIMESTAMP}.bak.local.json"
+BACKUP_FILE="${SETTINGS_FILE%.json}.${TIMESTAMP}.bak.json"
 
 # check if any changes were made (use jq for semantic JSON comparison)
 if jq -e --slurpfile before "$SETTINGS_FILE" --slurpfile after "$SETTINGS_FILE.tmp" -n '$before[0].permissions == $after[0].permissions' >/dev/null 2>&1; then

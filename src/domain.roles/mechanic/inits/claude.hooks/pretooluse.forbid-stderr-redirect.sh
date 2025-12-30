@@ -10,7 +10,7 @@
 #         checks if it contains 2>&1 and blocks if found.
 #
 # usage:
-#   configure in .claude/settings.local.json under hooks.PreToolUse
+#   configure in .claude/settings.json under hooks.PreToolUse
 #
 # guarantee:
 #   ✔ blocks commands containing 2>&1

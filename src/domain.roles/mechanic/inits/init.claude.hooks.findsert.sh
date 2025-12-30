@@ -3,7 +3,7 @@
 # .what = generic findsert utility for Claude hooks
 #
 # .why  = centralizes the "find-or-insert" logic for binding hooks
-#         to .claude/settings.local.json, avoiding duplication across
+#         to .claude/settings.json, avoiding duplication across
 #         individual hook initializers.
 #
 # .how  = takes hook configuration as arguments and uses jq to merge
@@ -19,7 +19,7 @@
 #     [--position append|prepend]
 #
 # guarantee:
-#   ✔ creates .claude/settings.local.json if missing
+#   ✔ creates .claude/settings.json if missing
 #   ✔ preserves existing settings (permissions, other hooks)
 #   ✔ idempotent: no-op if hook already present (at correct position)
 #   ✔ fail-fast on errors
@@ -84,7 +84,7 @@ if [[ -z "$HOOK_TYPE" || -z "$MATCHER" || -z "$HOOK_COMMAND" || -z "$HOOK_NAME" 
 fi
 
 PROJECT_ROOT="$PWD"
-SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.local.json"
+SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.json"
 
 # Ensure .claude directory exists
 mkdir -p "$(dirname "$SETTINGS_FILE")"

@@ -10,12 +10,12 @@
 #         when Claude attempts unapproved commands, by providing
 #         the information before any attempts are made.
 #
-# .how  = reads .claude/settings.local.json, extracts Bash permissions,
+# .how  = reads .claude/settings.json, extracts Bash permissions,
 #         outputs a formatted list of allowed commands for Claude
 #         to reference throughout the session.
 #
 # usage:
-#   configure in .claude/settings.local.json under hooks.SessionStart
+#   configure in .claude/settings.json under hooks.SessionStart
 #
 # guarantee:
 #   ✔ non-blocking: always exits 0
@@ -42,7 +42,7 @@ find_claude_dir() {
 find_settings_file() {
   local claude_dir
   claude_dir=$(find_claude_dir) || return 1
-  local settings_file="$claude_dir/settings.local.json"
+  local settings_file="$claude_dir/settings.json"
   if [[ -f "$settings_file" ]]; then
     echo "$settings_file"
     return 0

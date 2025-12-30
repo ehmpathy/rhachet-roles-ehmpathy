@@ -29,7 +29,7 @@ FAILED=0
 setup_test_env() {
   TEST_DIR=$(mktemp -d)
   mkdir -p "$TEST_DIR/.claude"
-  cat > "$TEST_DIR/.claude/settings.local.json" << 'EOF'
+  cat > "$TEST_DIR/.claude/settings.json" << 'EOF'
 {
   "permissions": {
     "allow": [

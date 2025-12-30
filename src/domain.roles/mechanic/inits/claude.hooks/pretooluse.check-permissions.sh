@@ -14,7 +14,7 @@
 #         if no match, behavior depends on mode.
 #
 # usage:
-#   configure in .claude/settings.local.json under hooks.PreToolUse
+#   configure in .claude/settings.json under hooks.PreToolUse
 #
 # flags:
 #   --mode HARDNUDGE  (default) blocks on first attempt, allows on retry
@@ -88,7 +88,7 @@ find_claude_dir() {
 find_settings_file() {
   local claude_dir
   claude_dir=$(find_claude_dir) || return 1
-  local settings_file="$claude_dir/settings.local.json"
+  local settings_file="$claude_dir/settings.json"
   if [[ -f "$settings_file" ]]; then
     echo "$settings_file"
     return 0
