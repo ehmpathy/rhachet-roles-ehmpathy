@@ -21,7 +21,7 @@ const TEST_CASES = [
     }
   },
   {
-    description: 'retains existing capitals in the sentence',
+    description: 'retains prior capitals in the sentence',
     given: {
       input: 'that Doctor Goose is a loon!',
     },

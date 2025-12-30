@@ -25,7 +25,7 @@ if (dotfileNoExt) {
   - more test cases: you need one per branch
 
 > conditionals are a **maze** — each new edge case adds another turn,
-> and you can get lost tracing which branch leads where.
+> and you can get lost as you trace which branch leads where.
 
 ---
 
@@ -50,13 +50,13 @@ return [parts.name, \`i\${attempt}\`, parts.ext.replace(/^\./, '') || null]
   - requires discipline: not every problem is pipeline-friendly
 
 > pipelines are **transformers** — they take data in, apply consistent stages,
-> and yield output without needing to remember the map.
+> and yield output without need to remember the map.
 
 ---
 
 ## 🔍 why pipelines shine here
 
-1. **fewer moving parts** — single expression instead of scattered branches
+1. **fewer parts** — single expression instead of scattered branches
 2. **symmetry** — all inputs flow through the same transformation
 3. **readability** — you immediately see the intent
 4. **testability** — one flow, many inputs, fewer branches to cover

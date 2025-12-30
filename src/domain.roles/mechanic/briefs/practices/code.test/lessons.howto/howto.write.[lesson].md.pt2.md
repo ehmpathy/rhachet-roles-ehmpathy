@@ -1,5 +1,5 @@
 
-to create an integration test, just add a file with .integration.test.ts extension (collocated) and dont mock anything
+to create an integration test, just add a file with .integration.test.ts extension (collocated) and never mock
 
 you can spy, but never mock
 

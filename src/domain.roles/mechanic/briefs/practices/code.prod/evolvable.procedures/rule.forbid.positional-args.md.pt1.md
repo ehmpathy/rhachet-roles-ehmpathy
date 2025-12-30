@@ -36,8 +36,8 @@ vs
 
 
 
-  - Self-documenting: You can see what each parameter is at the call site
+  - Self-documented: You can see what each parameter is at the call site
   - Order-independent: Arguments can be passed in any order
-  - Easier to maintain: Adding new optional parameters won't break existing calls
+  - Easier to maintain: New optional parameters won't break prior calls
   - Validation: Each function validates required parameters
   - Usage examples: Included in function headers

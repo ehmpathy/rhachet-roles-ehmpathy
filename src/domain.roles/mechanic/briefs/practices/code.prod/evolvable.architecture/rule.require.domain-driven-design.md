@@ -1,6 +1,6 @@
 .tactic = arch:domain-driven-design
 
-.what = model all business logic using well-defined domain objects, procedures, and contracts — never loose bags of properties
+.what = model all business logic via well-defined domain objects, procedures, and contracts — never loose bags of properties
 
 .scope:
   - applies to all business logic, application services, types, data flows, and stateful modules
@@ -28,16 +28,16 @@
     - if a `Customer`, `Invoice`, or `Quote` already exists, reuse it — don’t make a new shape
   - support **runtime validation** with schemas (Zod, Joi, Yup)
     - all domain objects with external inputs must be validated on instantiation
-  - define `.unique` and `.updatable` fields for identity and change tracking
-  - expose immutable behaviors using `.clone()` and `.build()` for safe updates
-  - procedures with more than 2 scalar arguments representing **data** should be refactored to use a domain object
+  - define `.unique` and `.updatable` fields for identity and change detection
+  - expose immutable behaviors via `.clone()` and `.build()` for safe updates
+  - procedures with more than 2 scalar arguments that represent **data** should be refactored to use a domain object
     - control/options args are acceptable when clearly scoped (e.g. `{ dryRun: true }`)
 
 .enforcement:
   - code reviews must block untyped or loosely typed `{}` logic
   - procedures with more than 2 scalar arguments should be refactored to use domain objects
   - stitched routes and service layers must pass domain objects explicitly
-  - tests should validate domain behavior, not just JSON shape
+  - tests should validate domain behavior, not just json shape
   - imports from `domain-objects` are required for any core domain concept
 
 .examples:
@@ -52,8 +52,8 @@
   .negative:
     - `{ name, email, address }` passed between modules without a domain object
     - `function updateUser(name, email, phone)` instead of `updateCustomerInfo(Customer)`
-    - `type UserData = { ... }` duplicating `Customer` shape
-    - storing JSON blobs that replicate existing domain models
+    - `type UserData = { ... }` that duplicates `Customer` shape
+    - stored json blobs that replicate prior domain models
     - `update()` method used on raw DTOs
 
 .links:

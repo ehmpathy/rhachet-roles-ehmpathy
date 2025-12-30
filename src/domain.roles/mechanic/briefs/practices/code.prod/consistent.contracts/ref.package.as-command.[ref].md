@@ -1,4 +1,4 @@
-when using `@ehmpathy/as-command`, no need to manage output dirs yourslef
+with `@ehmpathy/as-command`, no need to manage output dirs yourself
 
 simply use context.out.write()
 

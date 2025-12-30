@@ -1,6 +1,6 @@
 .tactic = arch:bounded-contexts
 
-.what = enforce clear separation of concerns using bounded contexts — each domain must own its logic, models, and procedures
+.what = enforce clear separation of concerns via bounded contexts — each domain must own its logic, models, and procedures
 
 .scope:
   - applies to all modules, folders, stitched routes, domain objects, and services
@@ -8,7 +8,7 @@
 
 .why:
   - upholds the **single responsibility principle** at the system level:
-    - each context owns exactly one domain concern (e.g. invoicing, job management, customer data)
+    - each context owns exactly one domain concern (e.g. invoice, job, customer data)
   - enforces **low-trust contracts** between contexts:
     - no assumptions about internal structures or invariants of other domains
     - all interaction must happen through **explicit, versionable contracts**
@@ -40,7 +40,7 @@
   .positive:
     - `job/JobQuote.ts` imports `CustomerPhoneUpdate` from `contracts/`, not from `customer/logic/`
     - `invoice/` has its own `InvoiceDraft`, `InvoiceFinal`, and `generateInvoice.ts`
-    - `routes/submitJob.ts` orchestrates job + invoice by stitching, not by importing both
+    - `routes/submitJob.ts` orchestrates job + invoice via stitch, not via import of both
 
   .negative:
     - `job.ts` imports `from '../../invoice/utils.ts'` ⛔ reach-in

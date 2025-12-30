@@ -1,6 +1,6 @@
 .tactic = proc:require-idempotency
 
-.what = all procedures must be idempotent unless explicitly marked otherwise — calling the same logic twice must not cause double effects
+.what = all procedures must be idempotent unless explicitly marked otherwise — to call the same logic twice must not cause double effects
 
 .scope:
   - applies to all stitched procedures, exports, and service logic
@@ -13,10 +13,10 @@
 
 .how:
   - all procedures must **guard against re-entry**
-    - check whether the action has already occurred before executing
+    - check whether the action has already occurred before execute
     - e.g., `if (invoice.status === 'FINAL') return invoice;`
-  - any **side-effect-producing operation** must:
-    - check for an existing result (e.g. existing record, idempotency key, state flag)
+  - any **side-effect-produce operation** must:
+    - check for a prior result (e.g. prior record, idempotency key, state flag)
     - return early if already complete
   - **external writes** (db, api, fs, queues) must be safe to call multiple times without duplication
     - use upserts, conflict-ignore inserts, or external idempotency tokens
@@ -29,7 +29,7 @@
   - procedures with `set`, `push`, `post`, or other side-effect verbs must show idempotency check
   - non-idempotent procedures must be annotated with a `.note`
   - workflows and retry logic must assume re-entry and prove safety
-  - test cases must show repeat-calling has no additional effect
+  - test cases must show repeat-call has no additional effect
 
 .examples:
 

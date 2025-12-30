@@ -7,9 +7,9 @@ write usecase driven tests systematically for simpler, safer, and more readable 
 
 # purpose
 
-establishes a pattern of writing tests for simpler, safer, and more readable code.
+establishes a pattern to write tests for simpler, safer, and more readable code.
 
-by defining tests in terms of usecases (`given`, `when`, `then`) your tests are
+via tests defined in terms of usecases (`given`, `when`, `then`) your tests are
 - simpler to write
 - easier to read
 - safer to trust
@@ -56,7 +56,7 @@ produces
 
 ### .runIf(condition) && .skipIf(condition)
 
-skip running the suite if the condition is not met
+skip the suite run if the condition is not met
 
 ```ts
 describe('your test', () => {
@@ -98,10 +98,10 @@ Use the named functions for clarity about when setup runs.
 
 ### useBeforeAll
 
-prepare test resources once for all tests in a suite, optimizing setup time for expensive operations
+prepare test resources once for all tests in a suite, to optimize setup time for expensive operations
 
 ```ts
-describe('spaceship refueling system', () => {
+describe('spaceship refuel system', () => {
   given('a spaceship that needs to refuel', () => {
     const spaceship = useBeforeAll(async () => {
       // This runs once before all tests in this suite
@@ -137,12 +137,12 @@ describe('spaceship refueling system', () => {
 
 ### useBeforeEach
 
-prepare fresh test resources before each test, ensuring test isolation
+prepare fresh test resources before each test, to ensure test isolation
 
 ```ts
 describe('spaceship combat system', () => {
   given('a spaceship in battle', () => {
-    // This runs before each test, ensuring a fresh spaceship
+    // this runs before each test, to ensure a fresh spaceship
     const spaceship = useBeforeEach(async () => {
       const ship = await prepareExampleSpaceship();
       await ship.resetShields();
@@ -175,7 +175,7 @@ describe('spaceship combat system', () => {
 ```
 
 **When to use each:**
-- `useBeforeAll`: Use when setup is expensive (database connections, API calls) and tests don't modify the resource
+- `useBeforeAll`: Use when setup is expensive (database connections, api calls) and tests don't modify the resource
 - `useBeforeEach`: Use when tests modify the resource and need isolation between runs
 - `usePrep`: The base function that powers both - use when you want explicit control over the mode or need to dynamically choose between `beforeAll` and `beforeEach`
 

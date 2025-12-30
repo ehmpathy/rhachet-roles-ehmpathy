@@ -39,11 +39,11 @@ src/
   - `contract/` may depend on `domain.objects/` and `domain.operations/`
   - `access/` may depend on `domain.objects/` and `domain.operations/`
   - `domain.operations/` may depend on `domain.objects/` or `infra/`
-  - `domain.objects/` must not depend on anything outside its own layer
-  - `infra/` must not depend on anything outside its own layer
+  - `domain.objects/` must not depend on any module outside its own layer
+  - `infra/` must not depend on any module outside its own layer
 
 - stitched flows live in `domain.operations/` or `contract/commands/` and orchestrate downstream only
-- never import upward across layers (e.g., `domain.objects/` importing `access/`)
+- never import upward across layers (e.g., `domain.objects/` that imports `access/`)
 - shared types must follow the same directional rules
 
 .enforcement

@@ -1,4 +1,4 @@
-if using a tool dependency that is not already fully understood with internalized knowledge
+if you use a tool dependency that is not already fully understood with internalized knowledge
 
 first, it is mandatory to externalize knowledge about that tool
 

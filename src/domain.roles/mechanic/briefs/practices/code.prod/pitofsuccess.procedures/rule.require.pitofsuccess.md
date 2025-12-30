@@ -1,7 +1,7 @@
 # 🧩 .brief: `tactic.pit-of-success.via.minimum-surface-area`
 
 ## .what
-`tactic.pit-of-success.via.minimum-surface-area` is a design strategy where the default interface exposes only the **fewest necessary inputs** to achieve a correct, useful outcome. it reduces configuration complexity so users succeed **without deciding everything** up front.
+`tactic.pit-of-success.via.minimum-surface-area` is a design strategy where the default interface exposes only the **fewest necessary inputs** to achieve a correct, useful outcome. it reduces configuration complexity so users succeed **without to decide on all** up front.
 
 ---
 
@@ -13,12 +13,12 @@
 ---
 
 ## 📜 principles
-1. **eliminate before you default** — if an option isn’t needed, remove it entirely. a missing knob is safer than a defaulted one.
-2. **default everything that remains** — provide sensible, production-safe defaults for the rare knobs that survive elimination.
+1. **eliminate before you default** — if an option isn't needed, remove it entirely. an absent knob is safer than a defaulted one.
+2. **default all that remains** — provide sensible, production-safe defaults for the rare knobs that survive elimination.
 3. **hide until needed** — reveal additional controls only when the user’s context clearly justifies the complexity (progressive disclosure).
 4. **bias to action** — the shortest path from “call function” to “successful result” should be the default path.
 5. **remove footguns** — defer or delete inputs that commonly lead to error.
-6. **inline the common case** — the most frequent usage should fit in one glance, without doc-diving.
+6. **inline the common case** — the most frequent usage should fit in one glance, without doc-dive.
 
 ---
 
@@ -48,7 +48,7 @@ createUser({ name, email });
 
 ## 💡 why it works
 - **lower cognitive load** — fewer decisions up front
-- **higher reliability** — default paths get the most testing and hardening
+- **higher reliability** — default paths get the most tests and hardened
 - **faster adoption** — quick wins encourage deeper usage later
 
 ---

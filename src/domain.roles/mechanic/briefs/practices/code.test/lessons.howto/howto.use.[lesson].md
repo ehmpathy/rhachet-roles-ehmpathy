@@ -1,4 +1,4 @@
-instead of rerunning tests over and over and getting the `head` to check what happened while preserving context
+instead of to rerun tests over and over and get the `head` to check what happened while you preserve context
 
 its BEST
 

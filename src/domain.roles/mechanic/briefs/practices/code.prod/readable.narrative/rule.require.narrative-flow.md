@@ -7,7 +7,7 @@
   - required for all conditional flows, validation paths, and stateful transformations
 
 .why:
-  - reduces visual complexity by eliminating indentation creep
+  - reduces visual complexity via elimination of indentation creep
   - aligns code with natural narrative flow: guard clauses → main path → fallback
   - makes logic easier to read, debug, test, and extend
   - allows each "paragraph" of logic to be summarized with a single comment
@@ -17,8 +17,8 @@
     - use early returns (`if (x) return`, `if (error) throw`) instead
     - prefer `return`, `throw`, or `continue` to flatten control flow
   - define and use **code paragraphs**:
-    - a group of 1–5 lines that do one thing together
-    - each paragraph must be preceded by a `//` one-line title explaining **what** or **why**
+    - a group of 1–5 lines that do one task together
+    - each paragraph must be preceded by a `//` one-line title that explains **what** or **why**
     - paragraph titles act like section headers — they are not optional
   - paragraphs must be separated by a blank line
   - paragraph comments must **not** describe how the code works — only why this paragraph exists

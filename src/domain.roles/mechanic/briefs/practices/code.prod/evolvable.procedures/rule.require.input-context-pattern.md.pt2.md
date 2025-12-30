@@ -17,22 +17,22 @@ export const doSomething = (input: { foo: string; bar: number }): void => {
 ## .why
 this pattern maximizes **maintainability** and **readability** by:
 
-1. **keeping type info local**
+1. **keep type info local**
    - no need to jump to another file or scroll to find the interface/type definition.
    - changes to argument structure are quick and visible in one place.
 
-2. **reinforcing origin clarity**
-   - variables from `input` are always referenced as `input.foo` or `input.bar`, making their provenance explicit.
+2. **reinforce origin clarity**
+   - variables from `input` are always referenced as `input.foo` or `input.bar`, which makes their provenance explicit.
    - this avoids ambiguity in larger scopes, especially when a function mixes locals, constants, and context values.
 
-3. **avoiding premature fragmentation**
+3. **avoid premature fragmentation**
    - not all shapes deserve a named type. we only extract to `type` or `interface` when the same shape is reused across multiple functions or modules.
 
 ---
 
 ## 📏 rules
 - declare the first parameter as `(input: { ... })` with inline types by default.
-- destructuring is allowed **inside** the function body, never in the parameter list.
+- to destructure is allowed **inside** the function body, never in the parameter list.
 - optional `context` parameter follows the same pattern `(context?: { ... })` and is always second.
 - if the type is reused in 3+ places, extract to a named `type` but keep the `input` wrapper.
 

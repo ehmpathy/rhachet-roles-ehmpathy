@@ -1,34 +1,34 @@
 # Execute vs Apply
 
 ## ⚙️ Execute
-**Meaning:**
-To **carry out** or **perform** something, especially a plan, command, or program.
+**Definition:**
+To **carry out** or **perform** a task, especially a plan, command, or program.
 
 **Connotation:**
-Focuses on the **act of doing** — actually running the instructions.
+Focuses on the **act of to do** — actually to run the instructions.
 
 **Examples:**
 - The computer **executes** the program.
 - She **executed** the plan perfectly.
-- The database will **execute** this SQL query.
+- The database will **execute** this sql query.
 
 **Key idea:** "Do it."
 
 ---
 
 ## 🖐️ Apply
-**Meaning:**
-To **put something into use** or **bring it into effect** on a target or situation.
+**Definition:**
+To **put a tool into use** or **bring it into effect** on a target or situation.
 
 **Connotation:**
-Focuses on **using something that already exists** (a tool, rule, concept, method, etc.) to affect something else.
+Focuses on **to use a resource that already exists** (a tool, rule, concept, method, etc.) to affect a target.
 
 **Examples:**
 - Please **apply** the paint evenly.
 - We can **apply** this algorithm to the data.
 - He **applied** the brakes.
 
-**Key idea:** "Use it (on something)."
+**Key idea:** "Use it (on a target)."
 
 ---
 
@@ -36,7 +36,7 @@ Focuses on **using something that already exists** (a tool, rule, concept, metho
 
 |            | **Execute**                  | **Apply**                         |
 |------------|------------------------------|----------------------------------|
-| **Focus**  | Performing an action or plan | Using something in a situation   |
+| **Focus**  | To perform an action or plan | To use a tool in a situation   |
 | **Implied object** | A plan, command, task | A method, tool, concept          |
 | **Example** | Execute a script            | Apply a formula                  |
 

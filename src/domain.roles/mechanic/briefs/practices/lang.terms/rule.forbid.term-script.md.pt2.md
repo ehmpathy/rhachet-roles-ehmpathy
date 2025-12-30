@@ -6,4 +6,4 @@ specify what it is
 - operation? = domain logic procedure
 - etc
 
-everything is scripted. be specific with what it is
+all is scripted. be specific with what it is

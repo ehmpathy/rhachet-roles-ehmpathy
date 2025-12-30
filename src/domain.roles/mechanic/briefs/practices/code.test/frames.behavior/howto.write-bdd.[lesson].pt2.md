@@ -2,7 +2,7 @@
 
 ## structure
 
-use `given`, `when`, `then` from `test-fns` to structure tests:
+via `given`, `when`, `then` from `test-fns` to structure tests:
 
 ```ts
 import { given, when, then, useBeforeAll } from 'test-fns';

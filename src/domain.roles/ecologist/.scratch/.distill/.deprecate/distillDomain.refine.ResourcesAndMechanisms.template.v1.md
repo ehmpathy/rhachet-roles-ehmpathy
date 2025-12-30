@@ -75,7 +75,7 @@ e.g.,
 constraints:
 - ignore all software, implementation, or system behavior
 - no actors, roles, or abstractions — only observable real-world flows
-- output must be **raw JSON only**, no markdown or formatting
+- output must be **raw json only**, no markdown or formatting
 - each term must produce one and only one final `choice`
 
 rules:
