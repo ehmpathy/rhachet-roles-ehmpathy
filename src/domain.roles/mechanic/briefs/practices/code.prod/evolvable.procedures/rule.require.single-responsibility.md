@@ -6,7 +6,7 @@ enforce that every code file and procedure has a singular, clearly-defined respo
 #### .why
 - makes code easier to locate, understand, and test
 - ensures separation of concerns between logic, validation, and orchestration
-- prevents files from bloating with unrelated logic or creeping concerns
+- prevents files from bloat with unrelated logic or creep concerns
 
 #### .rules
 
@@ -18,7 +18,7 @@ enforce that every code file and procedure has a singular, clearly-defined respo
 
 ❌ forbidden
 - more than one exported procedure per file
-- co-locating validation, parsing, or orchestration logic alongside domain logic
+- co-located validation, parse, or orchestration logic alongside domain logic
 - runtime type assertions or guards inside general-purpose logic
 - dead code, TODOs, or unrelated comments in the file
 - guards that apply redundant runtime typechecks (we trust typescript)

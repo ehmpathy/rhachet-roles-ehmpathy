@@ -10,14 +10,14 @@ use `jest` in combination with `test-fns` to structure tests with `given / when 
 
 #### .why
 - expresses test intent and flow in human-readable structure
-- aligns test structure with natural reasoning: context → action → result
+- aligns test structure with natural reason: context → action → result
 - improves ability to isolate, debug, and extend test scenarios
 - keeps test surface minimal and expressive, especially for high-context logic
 
 #### .how
 
 ##### .rules
-- use `describe()` for grouping related logic (e.g., a route or stitcher)
+- use `describe()` to group related logic (e.g., a route or stitcher)
 - use `given()` to describe the setup scenario
   - must establish all required input (e.g., files, threads, role context)
 - use `when()` to declare the act or trigger

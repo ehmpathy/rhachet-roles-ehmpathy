@@ -47,9 +47,9 @@ here's the flow that lead to [appointable], via gpt ui. why is our system unable
 
       unclaimedReservable
 
-      But for most UX and API models, open is the cleanest.
+      But for most UX and api models, open is the cleanest.
 
-      Would you like this framed visually in a state diagram or JSON model?
+      Would you like this framed visually in a state diagram or json model?
 
 
 
@@ -88,7 +88,7 @@ here's the flow that lead to [appointable], via gpt ui. why is our system unable
 
       vacant — precise, implies reservable and free
 
-      free — great if you're aligning with calendar APIs (free/busy)
+      free — great if you're aligning with calendar apis (free/busy)
 
       unbooked — literal, safest for backend use
 

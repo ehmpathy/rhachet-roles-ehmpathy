@@ -9,7 +9,7 @@
 .why:
   - eliminates side effects from shared mutable state
   - enables predictable execution, safer concurrency, and undoable flows
-  - enforces functional purity and simplifies debugging
+  - enforces functional purity and simplifies debug
   - guarantees compatibility with clone-based and parallel architectures
 
 .how:
@@ -19,11 +19,11 @@
     - use object spreads (`{ ...original, field }`) or `.clone()` on domain objects
   - arrays must not be mutated directly:
     - never use `.push()`, `.pop()`, `.splice()`, or `.sort()` on the original array
-    - use spread + map/filter/reduce or copy before mutating
+    - use spread + map/filter/reduce or copy before mutation
   - use `withImmute()` and `.clone()` for all updates to domain objects
   - avoid shared reference mutation:
     - never change shared singletons or top-level config objects after import
-  - if mutation is unavoidable (e.g. caching, metrics), isolate it in a clearly scoped, documented zone with `.note = deliberate mutation` comment
+  - if mutation is unavoidable (e.g. cache, metrics), isolate it in a clearly scoped, documented zone with `.note = deliberate mutation` comment
 
 .enforcement:
   - `let`, `var`, and in-place mutation are blockers unless specifically exempted

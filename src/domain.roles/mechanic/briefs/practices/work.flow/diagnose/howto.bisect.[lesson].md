@@ -9,7 +9,7 @@ use binary search (bisection) to isolate the root cause of a defect in O(log n) 
 - linear search through suspects wastes time
 - bisection cuts the search space in half with each test
 - works for code changes, data inputs, config options, and time ranges
-- essential skill for debugging regressions and intermittent failures
+- essential skill to debug regressions and intermittent failures
 
 ## .how
 
@@ -38,7 +38,7 @@ const result = complexTransform(input);
 
 ### input bisection (for data issues)
 
-when processing fails on large input:
+when a process fails on large input:
 
 ```ts
 // 1000 records fail; which one causes it?
@@ -55,7 +55,7 @@ const secondHalf = records.slice(midpoint);
 
 when config changes break behavior:
 
-1. list all config differences between working and broken
+1. list all config differences between known-good and broken
 2. apply half the changes
 3. test → narrow to the half that breaks
 4. repeat until isolated to single config key
@@ -71,4 +71,4 @@ when config changes break behavior:
 
 > the power of bisection: 1000 suspects → 10 tests max
 
-always prefer structured bisection over random guessing or linear elimination
+always prefer structured bisection over random guess or linear elimination

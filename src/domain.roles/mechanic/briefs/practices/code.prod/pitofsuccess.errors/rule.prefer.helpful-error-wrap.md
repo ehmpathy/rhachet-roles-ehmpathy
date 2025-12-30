@@ -10,7 +10,7 @@ e.g.,
 
 ```ts
 try {
-  // do something that throws
+  // do task that throws
   await doSomething({ userUuid })
 } catch (error) {
   if (!(error instanceof Error)) throw error;

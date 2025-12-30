@@ -39,7 +39,7 @@ directive
   - exclude:
     - developers, engineers, project managers, designers, analysts, or system-builders
     - internal staff **unless** they directly initiate or receive interactions in the domain
-  - exclude non-human agents (e.g., bots, APIs, systems) — only people/orgs count as actors
+  - exclude non-human agents (e.g., bots, apis, systems) — only people/orgs count as actors
 - do not answer the [ask] — only return the <study><distill> response
 - do not return markdown or code blocks — return **raw json only**
 

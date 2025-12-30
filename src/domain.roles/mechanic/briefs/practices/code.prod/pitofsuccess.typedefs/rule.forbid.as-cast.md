@@ -1,16 +1,16 @@
 .tactic = types:forbid-as-cast
 
-.what = using `as X` casts is forbidden — it signals a rule.require.shapefit violation
+.what = use of `as X` casts is forbidden — it signals a rule.require.shapefit violation
 
 .scope:
   - applies to all typescript code in the codebase
-  - enforced during code review and lint rules
+  - enforced at code review and lint rules
 
 .why:
   - `as` casts bypass typescript's type system
   - they hide legitimate type errors that indicate design flaws
   - they create runtime hazards when the cast is incorrect
-  - they make refactoring dangerous by silencing compiler warnings
+  - they make refactors dangerous as they silence compiler warnings
 
 .exception:
   - allowed only at boundaries with external org code that lacks proper typedefs
@@ -19,7 +19,7 @@
 
 .how:
   - when tempted to use `as`, ask: "why doesn't this type fit naturally?"
-  - investigate and fix the root cause instead of casting
+  - investigate and fix the root cause instead of casts
   - if the source types are wrong, create proper type definitions
   - if runtime validation is needed, use proper type guards
   - if the compiler is wrong about a type, file a typescript issue or use a narrower cast
@@ -35,10 +35,10 @@
 
   .positive:
     ```ts
-    // refactoring to avoid cast
+    // refactored to avoid cast
     const result = processInput(input); // types align naturally
 
-    // using type guard instead of cast
+    // use type guard instead of cast
     if (isValidResponse(response)) {
       // response is properly narrowed here
     }

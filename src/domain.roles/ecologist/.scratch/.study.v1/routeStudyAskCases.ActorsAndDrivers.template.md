@@ -44,7 +44,7 @@ directive
     - only include people/orgs who initiate or receive domain interactions
     - valid actors must have intent and stakes
     - tailwinds/headwinds are systemic forces, not actor-specific
-    - do not answer the ask — return only the structured output above as raw JSON
+    - do not answer the ask — return only the structured output above as raw json
 
 rules
 - include only domain participants who take real-world action

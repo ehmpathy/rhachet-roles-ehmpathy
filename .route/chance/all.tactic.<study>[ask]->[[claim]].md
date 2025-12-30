@@ -322,7 +322,7 @@ lets propogate TContent through as a generic
     "use": [
       {
         "who": "developer writing structured data",
-        "when": "persisting a typed config as JSON",
+        "when": "persisting a typed config as json",
         "what": "calls genArtifactGitFile<MyConfig>(uri) with TContent = MyConfig"
       },
       {
@@ -358,7 +358,7 @@ lets propogate TContent through as a generic
       },
       {
         "form": "negative",
-        "given": "TContent = object but file contains invalid JSON",
+        "given": "TContent = object but file contains invalid json",
         "when": "calling get()",
         "then": "throws or returns malformed data",
         "because": "content may not match the expected structure"

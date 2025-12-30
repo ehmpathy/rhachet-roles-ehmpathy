@@ -1,6 +1,6 @@
 .tactic = words:lowercase
 
-.what = enforce lowercase for all words unless capitalization is required by code or naming convention
+.what = enforce lowercase for all words unless capitalization is required by code or name convention
 .where:
   - applies to comments, docstrings, markdown, logs, and prompt copy
   - only exceptions are code constructs (e.g., class names) and proper nouns (e.g., OpenAI)
@@ -14,12 +14,12 @@
   .rules:
     - do not capitalize the first word of a sentence
     - only use capitalization when:
-      - referencing a class, type, or constant (e.g., `StitchStepImagine`, `GitRepo`)
-      - writing a proper noun or brand (e.g., OpenAI, GitHub, AWS)
+      - to reference a class, type, or constant (e.g., `StitchStepImagine`, `GitRepo`)
+      - to write a proper noun or brand (e.g., OpenAI, GitHub, AWS)
     - never capitalize:
       - generic nouns (`customer`, `invoice`, `step`)
       - verbs (`set`, `get`, `submit`, `handle`)
-      - system comments or instructions, even at the beginning of a line
+      - system comments or instructions, even at the start of a line
 
   .examples:
     .positive:

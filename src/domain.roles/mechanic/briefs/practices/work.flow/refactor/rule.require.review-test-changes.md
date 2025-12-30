@@ -26,7 +26,7 @@ Ideally, ask the caller explicitly to clarify their request
 - or
 - did they mean to revert the new behavior AND change to old?
 
-If you're unable to ask though, always assume they intended to preserve the old behavior when there is new behavior they could be asking about - unless they explicitly mentioned the old behavior with the same terms the test spoke about it with.
+If you're unable to ask though, always assume they intended to preserve the old behavior when there is new behavior they could ask about - unless they explicitly mentioned the old behavior with the same terms the test spoke about it with.
 
 ---
 

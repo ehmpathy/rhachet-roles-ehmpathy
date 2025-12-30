@@ -8,7 +8,7 @@ require oneliner summaries of .what and why comments to precede every code parag
 #### .why
 - improves readability for future travelers
 - captures intent behind decisions, not just behavior
-- speeds up audits, refactors, and onboarding
+- speeds up audits, refactors, and onboard
 - reinforces consistent communication in code
 
 
@@ -21,7 +21,7 @@ comments are a hard requirement — they must follow precise structure and lengt
 - // one-liner before every logical paragraph of code
 
 ❌ forbidden
-- missing .what or .why above a procedure
+- absent .what or .why above a procedure
 - multiline // paragraph comments
 - vague, redundant, or “code-shaped” comments
 
@@ -38,7 +38,7 @@ const doThing = (input: {}, context) => { ... }
 ```
 
 rules:
-- both .what and .why are mandatory — missing either = BLOCKER
+- both .what and .why are mandatory — absent either = BLOCKER
 - .what must be 1line max, clear and scan-friendly
 - .why must be 3lines max, clear and scan-friendly
 - .note is optional but must be concise
@@ -79,7 +79,7 @@ export const proposeCode = async ({ threads }) => {
 
 forbidden, negative examples
 ```ts
-// missing .what/.why above export      ⛔ blocker
+// absent .what/.why above export      ⛔ blocker
 export const doStuff = () => { ... }
 
 // vague comment                        ⛔ no intent

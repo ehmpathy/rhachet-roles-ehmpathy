@@ -8,7 +8,7 @@ enforce hard requirement that all procedure args to follow the canonical pattern
 - prevents positional argument confusion
 - supports context injection without argument churn
 - aligns with domain patterns: input = upstream data, context = runtime environment
-- enables safe refactoring and consistent documentation across codebase
+- enables safe refactors and consistent documentation across codebase
 
 #### .where
 - applies to **all function definitions** (sync or async)
@@ -26,7 +26,7 @@ enforce hard requirement that all procedure args to follow the canonical pattern
 - **hard requirement** — applies even to trivial utilities, pure transforms, and data extractors
 
 - `input` does **not** need to be destructured at the function boundary; shape like `(input: { ... })` is fine
-- `function` keyword is forbidden unless implementing class methods (see `.tactic:funcs:arrow-only`)
+- `function` keyword is forbidden unless to implement class methods (see `.tactic:funcs:arrow-only`)
 
 ##### ❌ forbidden
 - more than 2 positional args

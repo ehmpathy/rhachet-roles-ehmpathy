@@ -1,6 +1,6 @@
 # How to Write BDD Style Tests
 
-This guide explains the pattern for writing integration tests using `test-fns` with `given`, `when`, `then`, and `useBeforeAll`.
+This guide explains the pattern to write integration tests via `test-fns` with `given`, `when`, `then`, and `useBeforeAll`.
 
 ## Core Pattern
 
@@ -22,7 +22,7 @@ describe('featureName', () => {
 
     when('[t0] action or event occurs', () => {
       then('expected outcome', async () => {
-        // Execute and verify using scene.entity
+        // execute and verify via scene.entity
         const result = await performAction({ id: scene.entity.id });
         expect(result).toEqual(expectedValue);
       });
@@ -30,7 +30,7 @@ describe('featureName', () => {
 
     when('[t1] different action occurs', () => {
       then('different expected outcome', async () => {
-        // Another test using the same scene
+        // another test via the same scene
         const result = await performOtherAction({ id: scene.entity.id });
         expect(result).toEqual(otherExpectedValue);
       });
@@ -41,7 +41,7 @@ describe('featureName', () => {
 
 ## Key Principles
 
-### 1. Wrap Everything in `describe`
+### 1. wrap all tests in `describe`
 
 All tests for a feature should be wrapped in a single `describe` block:
 
@@ -77,7 +77,7 @@ Each `given` block should have a unique case label:
 
 ```typescript
 given('[case1] doer with outdated phone', () => { ... });
-given('[case2] doer with matching phone', () => { ... });
+given('[case2] doer with matched phone', () => { ... });
 given('[case3] doer does not exist', () => { ... });
 ```
 
@@ -164,7 +164,7 @@ given('[case1] description', () => {
 
 ### 7. Cases Without Setup
 
-If a case doesn't need setup (e.g., testing error handling with invalid input), skip the `scene`:
+If a case doesn't need setup (e.g., to test error handlers with invalid input), skip the `scene`:
 
 ```typescript
 given('[case4] valid userUuid', () => {
@@ -273,8 +273,8 @@ describe('myCommand', () => {
 
 ## Benefits
 
-1. **Readable test output**: Test names clearly show the scenario being tested
+1. **Readable test output**: Test names clearly show the scenario under test
 2. **Efficient setup**: `useBeforeAll` runs once per `given` block, not per test
 3. **Immutable references**: `const scene` and `const dbConnection` prevent accidental reassignment
-4. **Clear labeling**: `[caseN]` and `[tN]` labels make it easy to identify and discuss specific tests
-5. **Black-box testing**: Tests interact only through the contract layer, not internal implementations
+4. **clear labels**: `[caseN]` and `[tN]` labels make it easy to identify and discuss specific tests
+5. **Black-box tests**: Tests interact only through the contract layer, not internal implementations

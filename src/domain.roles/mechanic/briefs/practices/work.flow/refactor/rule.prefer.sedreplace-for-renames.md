@@ -8,20 +8,20 @@ use `sedreplace.sh` for bulk find-and-replace across files instead of N individu
 
 ## .why
 
-- **10x-100x fewer tokens** — one tool call vs reading+editing each file individually
+- **10x-100x fewer tokens** — one tool call vs read+edit each file individually
 - **10x faster execution** — single atomic operation vs sequential edits
-- dry-run by default = preview before applying
+- dry-run by default = preview before apply
 - constrained to git-tracked files = safe by design
 
-a rename touching 20 files via Edit = ~40 tool calls (read + edit each) = massive token waste
+a rename that touches 20 files via Edit = ~40 tool calls (read + edit each) = massive token waste
 
 the same rename via sedreplace = 2 tool calls (dry-run + execute) = minimal tokens
 
 ## .when
 
-- renaming a variable, function, or type across the codebase
-- updating an import path referenced in multiple files
-- changing a constant or config key used in many places
+- rename a variable, function, or type across the codebase
+- update an import path referenced in multiple files
+- change a constant or config key used in many places
 - any scenario where the same string replacement applies to 3+ files
 
 ## .how
@@ -38,7 +38,7 @@ the same rename via sedreplace = 2 tool calls (dry-run + execute) = minimal toke
   --new "newName" \
   --glob "*.ts"
 
-# apply changes after reviewing dry-run
+# apply changes after review of dry-run
 .agent/repo=ehmpathy/role=mechanic/skills/claude.tools/sedreplace.sh \
   --old "oldName" \
   --new "newName" \
@@ -47,17 +47,17 @@ the same rename via sedreplace = 2 tool calls (dry-run + execute) = minimal toke
 
 ## .examples
 
-### renaming a function
+### rename a function
 
 ```sh
 # rename getUserById -> findUserByUuid across all .ts files
 sedreplace.sh --old "getUserById" --new "findUserByUuid" --glob "*.ts" --execute
 ```
 
-### updating an import path
+### update an import path
 
 ```sh
-# update import path after moving a file
+# update import path after file move
 sedreplace.sh --old "from '@/utils/old'" --new "from '@/utils/new'" --execute
 ```
 

@@ -1,6 +1,6 @@
 todo: declare why dependency injection leads to a pit of success && why global shared state should be avoided
 
-via dependency injection, you always know what's referncing what. no side effects
+via dependency injection, you always know what references what. no side effects
 
 persistance is the only global shared state that should exist - and even that should be managed cautiously (e.g., to avoid race conditions)
 

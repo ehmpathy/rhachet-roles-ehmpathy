@@ -89,7 +89,7 @@ directive
 
   - constraints:
     - only include real-world actors with intent and stakes
-    - output must be **raw JSON only**, no markdown or formatting
+    - output must be **raw json only**, no markdown or formatting
 
 context.role.traits
 - lens = behavioral ecology

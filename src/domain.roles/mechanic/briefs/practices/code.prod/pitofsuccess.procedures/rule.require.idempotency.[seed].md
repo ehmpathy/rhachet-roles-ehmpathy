@@ -9,7 +9,7 @@ idempotency means that the same request duplicated will succeed as if it only ra
 
 ---
 
-the main methods of doing so are via
+the main methods to do so are via
 
 - findsert = find or insert
   - const before = dao.findByRef()

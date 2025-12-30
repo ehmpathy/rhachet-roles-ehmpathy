@@ -7,7 +7,7 @@ require `.what` and `.why` comments to prefix every named procedure and code par
 #### .why
 - improves readability for future travelers
 - captures intent behind decisions, not just behavior
-- speeds up audits, refactors, and onboarding
+- speeds up audits, refactors, and onboard
 - reinforces consistent communication in code
 
 ---
@@ -33,15 +33,15 @@ every named function must begin with a jsdoc block like:
 
 ##### .paragraph summaries
 
-every logical paragraph (group of lines) must be prefixed with a `//` comment summarizing its purpose:
+every logical paragraph (group of lines) must be prefixed with a `//` comment that summarizes its purpose:
 
 ```ts
 // load invoice from database, for status check later in flow
 const invoice = await getInvoiceById(invoiceId);
 ```
 
-- avoid duplicating code — focus on *intent*
-- explain why something matters, not just what it is
+- avoid to duplicate code — focus on *intent*
+- explain why it matters, not just what it is
 - group related lines under a shared summary
 - important: compress into one line. if a paragraph summary is multiline, then the code paragraph is complex enough to need its own procedure and testsuite
 
@@ -52,7 +52,7 @@ const invoice = await getInvoiceById(invoiceId);
 
 ```ts
 /**
- * .what = generates a proposal by iterating until a releasable version is judged
+ * .what = generates a proposal via iteration until a releasable version is judged
  * .why = ensures only clean code reaches the reviewer, via mechanic feedback loop
  */
 export const proposeCode = async ({ threads }) => {
@@ -72,7 +72,7 @@ const r = await run();
 
 return r.artifact; // ⛔ what is this? why return this?
 
-// very long comment describing why this block exists
+// very long comment that describes why this block exists
 // and what it does and why it's written in this particular way
 // suggests the code below is too complex and should be split out
 const result = someLogic(input);

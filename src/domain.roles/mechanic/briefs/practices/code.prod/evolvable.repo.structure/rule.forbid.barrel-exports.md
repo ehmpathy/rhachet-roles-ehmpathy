@@ -22,9 +22,9 @@ they add zero value
 
 ---
 
-the only thing that's allowed is
+the only case that's allowed is
 
-within an index.ts file, exporting one object
+within an index.ts file, to export one object
 
 e.g.,
 

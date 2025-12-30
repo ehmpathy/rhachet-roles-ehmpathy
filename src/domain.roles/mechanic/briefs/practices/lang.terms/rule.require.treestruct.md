@@ -2,15 +2,15 @@
 
 .what = enforce `[verb][...noun]` for mechanisms and `[...noun][state]?` for resources
 .where:
-  - `verb` = exactly one leading verb (e.g., `gen`, `set`, `get`, `map`)
-  - `...noun` = hierarchy of nouns reflecting the domain treestruct
-  - `state` = optional suffix representing state or outcome (e.g., `Updated`, `Found`, `After`, `Draft`)
+  - `verb` = exactly one lead verb (e.g., `gen`, `set`, `get`, `map`)
+  - `...noun` = hierarchy of nouns that reflects the domain treestruct
+  - `state` = optional suffix that represents state or outcome (e.g., `Updated`, `Found`, `After`, `Draft`)
   - this tactic applies to all named functions, types, files, folders, and slugs
 
 .why:
-  - maximizes autocomplete grouping by domain or action
+  - maximizes autocomplete groups by domain or action
   - enables tree-sorted navigation in IDEs and file explorers
-  - avoids ambiguity and naming drift across boundaries (design, dev, product)
+  - avoids ambiguity and name drift across boundaries (design, dev, product)
 
 .how:
   .rules:
@@ -21,9 +21,9 @@
     - For **resources** (stateful data, outcomes, snapshots):
       - use format: `[...NounHierarchy][State]?`
       - the optional `State` suffix:
-        - is used when disambiguating multiple forms (e.g., `InvoiceDraft` vs `InvoiceFinal`)
+        - is used to disambiguate multiple forms (e.g., `InvoiceDraft` vs `InvoiceFinal`)
         - is typically a past participle or state label (e.g., `Found`, `After`, `Draft`)
-        - may be omitted if the base noun already implies a single clear meaning
+        - may be omitted if the base noun already implies a single clear definition
       - e.g., `contentFound`, `customer`, `invoiceDraft`
 
   .examples:
@@ -38,7 +38,7 @@
       - `contentFound`                // content retrieved from a source
       - `customer`                    // single canonical term for a user of services
       - `invoiceDraft`                // invoice in editable state
-      - `invoice`                     // base noun with implicit meaning
+      - `invoice`                     // base noun with implicit sense
 
     .negative:
       - `stepImagineGenFromTemplate`  // ⛔ wrong order — verb must come first

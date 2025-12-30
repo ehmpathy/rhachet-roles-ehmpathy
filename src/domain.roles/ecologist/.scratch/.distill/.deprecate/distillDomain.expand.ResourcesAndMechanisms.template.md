@@ -65,7 +65,7 @@ directive
     - ignore all software, system, and implementation details
     - include only observable resources and real-world transformations
     - no actors, roles, or simulated systems
-    - output must be **raw JSON only**, no markdown or formatting
+    - output must be **raw json only**, no markdown or formatting
 
   - rules:
     - expand or refine, but do not contradict `sofar`

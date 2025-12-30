@@ -14,7 +14,7 @@
 - ### **funcs:arrow-only**
   - **rule**: all procedures must be declared as arrow functions
   - `function` keyword is **disallowed**, even for exports
-  - object methods are allowed only inside class or API contracts
+  - object methods are allowed only inside class or api contracts
   - always destructure `input` as first argument when applicable
   - **example:**
     ```ts

@@ -110,9 +110,9 @@ export const processChapter = (...) => { ... }
 
 ##### brain.atom
 - the atomic unit of LLM interaction
-- a single LLM API call (e.g., one completion request)
+- a single LLM api call (e.g., one completion request)
 - stateless, no memory of prior calls
-- e.g., **Claude API** = one `messages.create()` call
+- e.g., **Claude api** = one `messages.create()` call
 
 ##### brain.repl
 - **r**ead, **e**xecute, **p**rint, **l**oop
