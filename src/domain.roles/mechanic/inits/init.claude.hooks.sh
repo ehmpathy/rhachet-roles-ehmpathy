@@ -7,6 +7,7 @@
 #           • SessionStart: notify Claude of allowed permissions upfront
 #           • PreToolUse: forbid stderr redirects (2>&1)
 #           • PreToolUse: check existing permissions before new requests
+#           • PreToolUse: nudge preference for morph edit_file
 #
 #         this script manages hook registration via findsert utility.
 #
@@ -86,6 +87,13 @@ run_findsert "pretooluse.check-permissions" \
   --matcher "Bash" \
   --command "$RHACHET_CLI roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.check-permissions" \
   --name "pretooluse.check-permissions" \
+  --timeout 5
+
+run_findsert "pretooluse.prefer-morph-edit" \
+  --hook-type PreToolUse \
+  --matcher "Edit" \
+  --command "$RHACHET_CLI roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.prefer-morph-edit" \
+  --name "pretooluse.prefer-morph-edit" \
   --timeout 5
 
 # print tree for newly bound hooks
