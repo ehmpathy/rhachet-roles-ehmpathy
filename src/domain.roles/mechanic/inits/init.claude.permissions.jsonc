@@ -165,16 +165,16 @@
       "Bash(git cat-file:*)",
 
       // sedreplace - safe bulk find-and-replace on git-tracked files only
-      "Bash(.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/sedreplace.sh:*)",
+      "Bash(npx rhachet run --skill sedreplace:*)",
 
       // cpsafe - safe file copy within git repo (source must be git-tracked)
-      "Bash(.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/cpsafe.sh:*)",
+      "Bash(npx rhachet run --skill cpsafe:*)",
 
       // mvsafe - safe file move within git repo
-      "Bash(.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/mvsafe.sh:*)",
+      "Bash(npx rhachet run --skill mvsafe:*)",
 
       // rmsafe - safe file removal within git repo
-      "Bash(.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/rmsafe.sh:*)",
+      "Bash(npx rhachet run --skill rmsafe:*)",
 
       // npm read operations
       "Bash(npm view:*)",
@@ -184,7 +184,7 @@
       "Bash(pnpm help:*)",
 
       // rhachet operations
-      "Bash(npx rhachet roles boot --repo ehmpathy --role mechanic)",
+      "Bash(npx rhachet:*)",
 
       // self execution of packages
       "Bash(npx tsx ./bin/run:*)",

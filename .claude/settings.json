@@ -44,8 +44,14 @@
         ]
       },
       {
-        "matcher": "Write",
+        "matcher": "Edit",
         "hooks": [
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.prefer-morph-edit",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
+          },
           {
             "type": "command",
             "command": ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-gerunds.sh",
@@ -55,17 +61,11 @@
         ]
       },
       {
-        "matcher": "Edit",
+        "matcher": "Write",
         "hooks": [
           {
             "type": "command",
             "command": ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-gerunds.sh",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          },
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.prefer-morph-edit",
             "timeout": 5,
             "author": "repo=ehmpathy/role=mechanic"
           }
@@ -109,16 +109,16 @@
       "Bash(git ls-files:*)",
       "Bash(git ls-tree:*)",
       "Bash(git cat-file:*)",
-      "Bash(.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/sedreplace.sh:*)",
-      "Bash(.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/cpsafe.sh:*)",
-      "Bash(.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/mvsafe.sh:*)",
-      "Bash(.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/rmsafe.sh:*)",
+      "Bash(npx rhachet run --skill sedreplace:*)",
+      "Bash(npx rhachet run --skill cpsafe:*)",
+      "Bash(npx rhachet run --skill mvsafe:*)",
+      "Bash(npx rhachet run --skill rmsafe:*)",
       "Bash(npm view:*)",
       "Bash(npm list:*)",
       "Bash(npm remove:*)",
       "Bash(npm help:*)",
       "Bash(pnpm help:*)",
-      "Bash(npx rhachet roles boot --repo ehmpathy --role mechanic)",
+      "Bash(npx rhachet:*)",
       "Bash(npx tsx ./bin/run:*)",
       "Bash(npm run build:*)",
       "Bash(npm run build:compile)",
@@ -179,8 +179,7 @@
       "Bash(gh search commits:*)",
       "Bash(gh api -X GET:*)",
       "Bash(gh api --method GET:*)",
-      "Bash(source .agent/repo=.this/role=any/skills/use.apikeys.sh)",
-      "mcp__morph-mcp__edit_file"
+      "Bash(source .agent/repo=.this/role=any/skills/use.apikeys.sh)"
     ],
     "deny": [
       "Bash(echo:*)",

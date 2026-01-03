@@ -47,6 +47,14 @@ while [[ $# -gt 0 ]]; do
       EXECUTE=true
       shift
       ;;
+    --repo|--role|--skill)
+      # rhachet passthrough args - ignore
+      shift 2
+      ;;
+    --)
+      # args separator - ignore
+      shift
+      ;;
     *)
       echo "unknown argument: $1"
       echo "usage: sedreplace.sh --old 'pattern' --new 'replacement' [--glob '*.ts'] [--execute]"

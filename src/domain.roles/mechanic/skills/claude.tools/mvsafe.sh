@@ -34,6 +34,14 @@ while [[ $# -gt 0 ]]; do
       DEST="$2"
       shift 2
       ;;
+    --repo|--role|--skill)
+      # rhachet passthrough args - ignore
+      shift 2
+      ;;
+    --)
+      # args separator - ignore
+      shift
+      ;;
     *)
       echo "unknown argument: $1"
       echo "usage: mvsafe.sh --src 'source' --dest 'destination'"
