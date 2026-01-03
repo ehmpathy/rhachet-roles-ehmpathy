@@ -48,12 +48,6 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./node_modules/.bin/rhachet roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.prefer-morph-edit",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          },
-          {
-            "type": "command",
             "command": "./node_modules/.bin/rhachet roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.forbid-gerunds",
             "timeout": 5,
             "author": "repo=ehmpathy/role=mechanic"
