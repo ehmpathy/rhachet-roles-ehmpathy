@@ -28,21 +28,13 @@ the same rename via sedreplace = 2 tool calls (dry-run + execute) = minimal toke
 
 ```sh
 # dry-run first (default) - see what would change
-.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/sedreplace.sh \
-  --old "oldName" \
-  --new "newName"
+npx rhachet run --skill sedreplace --old "oldName" --new "newName"
 
 # filter to specific file types
-.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/sedreplace.sh \
-  --old "oldName" \
-  --new "newName" \
-  --glob "*.ts"
+npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob "*.ts"
 
 # apply changes after review of dry-run
-.agent/repo=ehmpathy/role=mechanic/skills/claude.tools/sedreplace.sh \
-  --old "oldName" \
-  --new "newName" \
-  --execute
+npx rhachet run --skill sedreplace --old "oldName" --new "newName" --execute
 ```
 
 ## .examples
@@ -51,14 +43,14 @@ the same rename via sedreplace = 2 tool calls (dry-run + execute) = minimal toke
 
 ```sh
 # rename getUserById -> findUserByUuid across all .ts files
-sedreplace.sh --old "getUserById" --new "findUserByUuid" --glob "*.ts" --execute
+npx rhachet run --skill sedreplace --old "getUserById" --new "findUserByUuid" --glob "*.ts" --execute
 ```
 
 ### update an import path
 
 ```sh
 # update import path after file move
-sedreplace.sh --old "from '@/utils/old'" --new "from '@/utils/new'" --execute
+npx rhachet run --skill sedreplace --old "from '@/utils/old'" --new "from '@/utils/new'" --execute
 ```
 
 ## .antipattern

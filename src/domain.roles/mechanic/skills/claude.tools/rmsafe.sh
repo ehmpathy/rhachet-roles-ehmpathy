@@ -34,6 +34,14 @@ while [[ $# -gt 0 ]]; do
       RECURSIVE=true
       shift
       ;;
+    --repo|--role|--skill)
+      # rhachet passthrough args - ignore
+      shift 2
+      ;;
+    --)
+      # args separator - ignore
+      shift
+      ;;
     *)
       echo "unknown argument: $1"
       echo "usage: rmsafe.sh --path 'target' [--recursive]"
