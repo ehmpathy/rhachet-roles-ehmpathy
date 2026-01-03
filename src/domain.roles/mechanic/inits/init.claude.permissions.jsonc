@@ -127,11 +127,6 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:biomejs.dev)",
 
-      // morph mcp domains (for documentation fetching)
-      "WebFetch(domain:docs.morphllm.com)",
-      "WebFetch(domain:www.eesel.ai)",
-      "WebFetch(domain:www.morphllm.com)",
-
       // filesystem read operations
       "Bash(ls:*)",
       "Bash(tree:*)",
@@ -178,6 +173,13 @@
 
       // rmsafe - safe file removal within git repo
       "Bash(npx rhachet run --skill rmsafe:*)",
+
+      // show.gh.action.logs - fetch logs from github actions workflow runs
+      "Bash(npx rhachet run --skill show.gh.action.logs:*)",
+
+      // show.gh.test.errors - show test errors from the latest test workflow run
+      "Bash(npx rhachet run --skill show.gh.test.errors:*)",
+      "Bash(npx rhachet run --skill show.gh.test.errors --scope test-integration)",
 
       // npm read operations
       "Bash(npm view:*)",
