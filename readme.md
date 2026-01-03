@@ -114,7 +114,7 @@ it'll loop until you tell it you have `no notes`
 this repo houses roles for sea turtles 🐢 — gentle builders of empathetic software, who carefully improve the ecosystems they serve.
 
 they wield:
-- 🌊 wave — for ecologists — to understand what flows beneath the surface, fundamentally
+- 🥥 coconut — for ecologists — to uncover what happens beneath the surface, fundamentally
 - 🪸 coral — for architects — to compose many parts into one structure, evolvably
 - 🪷 lotus — for designers — to guide users to the surface, intuitively
 - 🐚 shell — for mechanics — to craft code easy to read and hard to break, maintainably

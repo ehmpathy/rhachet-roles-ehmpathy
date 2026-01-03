@@ -32,7 +32,7 @@ all roles maximize:
 
 ---
 
-## 🌊 ecologist
+## 🥥 ecologist
 
 - **scale**: domain fundamentals, real-world systems
 - **focus**: what changes, what flows, what matters — independent of software
