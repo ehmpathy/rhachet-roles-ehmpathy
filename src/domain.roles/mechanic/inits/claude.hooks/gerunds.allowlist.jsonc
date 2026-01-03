@@ -1,0 +1,6 @@
+{
+  // unfortunately embedded in language primitives; they could have chosen better terms but did not
+  "primitives": [
+    "string"
+  ]
+}

@@ -6,6 +6,7 @@
 #           • SessionStart: boot mechanic on every session
 #           • SessionStart: notify Claude of allowed permissions upfront
 #           • PreToolUse: forbid stderr redirects (2>&1)
+#           • PreToolUse: forbid gerunds in file writes (HARDNUDGE)
 #           • PreToolUse: check existing permissions before new requests
 #           • PreToolUse: nudge preference for morph edit_file
 #
@@ -81,6 +82,20 @@ run_findsert "pretooluse.forbid-stderr-redirect" \
   --name "pretooluse.forbid-stderr-redirect" \
   --timeout 5 \
   --position prepend
+
+run_findsert "pretooluse.forbid-gerunds.write" \
+  --hook-type PreToolUse \
+  --matcher "Write" \
+  --command ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-gerunds.sh" \
+  --name "pretooluse.forbid-gerunds.write" \
+  --timeout 5
+
+run_findsert "pretooluse.forbid-gerunds.edit" \
+  --hook-type PreToolUse \
+  --matcher "Edit" \
+  --command ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-gerunds.sh" \
+  --name "pretooluse.forbid-gerunds.edit" \
+  --timeout 5
 
 run_findsert "pretooluse.check-permissions" \
   --hook-type PreToolUse \
