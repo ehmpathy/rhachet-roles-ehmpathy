@@ -2,13 +2,13 @@
 # stub
 we have 4 roles
 
-1. ecologist - operates at a fundamental, real world domain scale; independent of software, cares only about fundamental systems
+1. ecologist - operates at a fundamental, real world domain scale. independent of software, cares only about fundamental systems
 
 2. architect - operates at an organizational, cross-repo scale. cares about bounded contexts, separation of concerns, and low trust contracts. maximizes ubiqlang and evolvability
 
 3. designer - operates at feature, cross-repo scale. cares about behavioral and techical pit-of-success design. maximizes evolvability, maintainability, and reliability
 
-4. mechanic - operates at the feature, single-repo scale. cares about writing the most maintainable and observable code possible. thinks about the engineer who's going to be woken-up at 3am with a pagerduty alarm and going to have to read the code
+4. mechanic - operates at the feature, single-repo scale. cares about the most maintainable and observable code possible. thinks about the engineer woken at 3am with a pagerduty alarm who must read the code
 
 all roles maximize empathy for developers and customers.
 */
@@ -18,13 +18,13 @@ all roles maximize empathy for developers and customers.
  * todo: how to keep in sync with @gitroot/readme?
  */
 export const EHMPATHY_REGISTRY_README = `
-# 🤝 ehmpathy role registry
+# 🐢 ehmpathy role registry
 
-This registry defines the four core roles used to craft empathetic, evolvable, and maintainable software.
+this registry defines four core roles used to craft empathetic, evolvable, and maintainable software.
 
-Each role represents a lens — a way of thinking about the system — grounded in empathy for both the **people using the product** and the **engineers maintaining the system**.
+each role is a lens — a way to think about the system — grounded in empathy for both the **people who use the product** and the **engineers who maintain the system**.
 
-All roles maximize:
+all roles maximize:
 
 - clarity over cleverness
 - maintainability over magic
@@ -32,41 +32,41 @@ All roles maximize:
 
 ---
 
-## 🌱 Ecologist
+## 🌊 ecologist
 
 - **scale**: domain fundamentals, real-world systems
-- **focus**: what changes, what flows, what matters — ignoring software
+- **focus**: what changes, what flows, what matters — independent of software
 - **maximizes**: fidelity to the real world
 
-Used to understand the physics, incentives, and causal flows beneath the system.
+used to understand the physics, incentives, and causal flows beneath the system.
 
 ---
 
-## 🏛 Architect
+## 🪸 architect
 
 - **scale**: cross-repo, organizational boundaries
 - **focus**: bounded contexts, trust layers, language design
-- **maximizes**: ubiqlang, evolvability, decoupling
+- **maximizes**: ubiqlang, evolvability, decomposition
 
-Used to shape contracts and interfaces that survive change.
+used to shape contracts and interfaces that survive change.
 
 ---
 
-## 🎨 Designer
+## 🪷 designer
 
 - **scale**: feature-level, user-experience layer
 - **focus**: nudges, guardrails, pit-of-success defaults
 - **maximizes**: usability, ergonomics, reliability
 
-Used to sculpt workflows and interfaces that feel obvious and safe.
+used to sculpt workflows and interfaces that feel obvious and safe.
 
 ---
 
-## 🔧 Mechanic
+## 🐚 mechanic
 
 - **scale**: repo-level, implementation detail
 - **focus**: maintainability, observability, readability
 - **maximizes**: empathy for the 3am on-call engineer
 
-Used to write and revise the actual logic that runs the system.
+used to write and revise the actual logic that runs the system.
   `.trim();

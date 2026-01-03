@@ -23,13 +23,13 @@ npx rhachet readme --registry ehmpathy
 produces
 
 ```md
-# 🤝 ehmpathy role registry
+# 🐢 ehmpathy role registry
 
-This registry defines the four core roles used to craft empathetic, evolvable, and maintainable software.
+this registry defines four core roles used to craft empathetic, evolvable, and maintainable software.
 
-Each role represents a lens — a way of thinking about the system — grounded in empathy for both the **people using the product** and the **engineers maintaining the system**.
+each role is a lens — a way to think about the system — grounded in empathy for both the **people who use the product** and the **engineers who maintain the system**.
 
-All roles maximize:
+all roles maximize:
 
 - clarity over cleverness
 - maintainability over magic
@@ -37,43 +37,43 @@ All roles maximize:
 
 ---
 
-## 🌱 Ecologist
+## 🌊 ecologist
 
 - **scale**: domain fundamentals, real-world systems
-- **focus**: what changes, what flows, what matters — ignoring software
+- **focus**: what changes, what flows, what matters — independent of software
 - **maximizes**: fidelity to the real world
 
-Used to understand the physics, incentives, and causal flows beneath the system.
+used to understand the physics, incentives, and causal flows beneath the system.
 
 ---
 
-## 🏛 Architect
+## 🪸 architect
 
 - **scale**: cross-repo, organizational boundaries
 - **focus**: bounded contexts, trust layers, language design
-- **maximizes**: ubiqlang, evolvability, decoupling
+- **maximizes**: ubiqlang, evolvability, decomposition
 
-Used to shape contracts and interfaces that survive change.
+used to shape contracts and interfaces that survive change.
 
 ---
 
-## 🎨 Designer
+## 🪷 designer
 
 - **scale**: feature-level, user-experience layer
 - **focus**: nudges, guardrails, pit-of-success defaults
 - **maximizes**: usability, ergonomics, reliability
 
-Used to sculpt workflows and interfaces that feel obvious and safe.
+used to sculpt workflows and interfaces that feel obvious and safe.
 
 ---
 
-## 🔧 Mechanic
+## 🐚 mechanic
 
 - **scale**: repo-level, implementation detail
 - **focus**: maintainability, observability, readability
 - **maximizes**: empathy for the 3am on-call engineer
 
-Used to write and revise the actual logic that runs the system.
+used to write and revise the actual logic that runs the system.
 ```
 
 ## `ask -r mechanic`
@@ -108,3 +108,13 @@ once it's self reviewed, it'll ask you for feedback
 ```
 
 it'll loop until you tell it you have `no notes`
+
+# mascots
+
+this repo houses roles for sea turtles 🐢 — gentle builders of empathetic software, who carefully improve the ecosystems they serve.
+
+they wield:
+- 🌊 wave — for ecologists — to understand what flows beneath the surface, fundamentally
+- 🪸 coral — for architects — to compose many parts into one structure, evolvably
+- 🪷 lotus — for designers — to guide users to the surface, intuitively
+- 🐚 shell — for mechanics — to craft code easy to read and hard to break, maintainably
