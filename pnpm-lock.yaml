@@ -16,7 +16,7 @@ importers:
         version: 1.8.1
       '@morphllm/morphmcp':
         specifier: 0.8.60
-        version: 0.8.60(@anthropic-ai/sdk@0.51.0)(ai@5.0.117(zod@3.25.76))(hono@4.11.3)(openai@5.8.2(zod@3.25.76))
+        version: 0.8.60(@anthropic-ai/sdk@0.71.2(zod@3.25.76))(ai@5.0.117(zod@3.25.76))(hono@4.11.3)(openai@5.8.2(zod@3.25.76))
       ai:
         specifier: ^5.0.117
         version: 5.0.117(zod@3.25.76)
@@ -39,8 +39,8 @@ importers:
         specifier: 5.8.2
         version: 5.8.2(zod@3.25.76)
       rhachet:
-        specifier: 1.16.0
-        version: 1.16.0(@types/node@22.15.21)(zod@3.25.76)
+        specifier: 1.19.6
+        version: 1.19.6(@types/node@22.15.21)
       rhachet-artifact:
         specifier: 1.0.0
         version: 1.0.0
@@ -98,13 +98,13 @@ importers:
         version: 0.13.4(@types/node@22.15.21)(zod@3.25.76)
       declapract-typescript-ehmpathy:
         specifier: 0.47.2
-        version: 0.47.2(declapract@0.13.4(@types/node@22.15.21)(zod@3.25.76))(esbuild@0.25.12)(zod@3.25.76)
+        version: 0.47.2(declapract@0.13.4(@types/node@22.15.21)(zod@3.25.76))(esbuild@0.25.12)
       declastruct:
         specifier: 1.7.3
-        version: 1.7.3(domain-objects@0.31.7(zod@3.25.76))
+        version: 1.7.3(domain-objects@0.31.7)
       declastruct-github:
         specifier: 1.3.0
-        version: 1.3.0(zod@3.25.76)
+        version: 1.3.0
       depcheck:
         specifier: 1.4.3
         version: 1.4.3
@@ -157,9 +157,24 @@ packages:
     resolution: {integrity: sha512-KCUwswvsC5VsW2PWFqF8eJgSCu5Ysj7m1TxiHTVA6g7k360bk0RNQENT8KTMAYEs+8fWPD3Uu4dEmzGHc+jGng==}
     engines: {node: '>=18'}
 
+  '@anthropic-ai/claude-agent-sdk@0.1.76':
+    resolution: {integrity: sha512-s7RvpXoFaLXLG7A1cJBAPD8ilwOhhc/12fb5mJXRuD561o4FmPtQ+WRfuy9akMmrFRfLsKv8Ornw3ClGAPL2fw==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      zod: ^3.24.1 || ^4.0.0
+
   '@anthropic-ai/sdk@0.51.0':
     resolution: {integrity: sha512-fAFC/uHhyzfw7rs65EPVV+scXDytGNm5BjttxHf6rP/YGvaBRKEvp2lwyuMigTwMI95neeG4bzrZigz7KCikjw==}
     hasBin: true
+
+  '@anthropic-ai/sdk@0.71.2':
+    resolution: {integrity: sha512-TGNDEUuEstk/DKu0/TflXAEt+p+p/WhTlFzEnoosvbaDU2LTjm42igSdlL0VijrKpWejtOKxX0b8A7uc+XiSAQ==}
+    hasBin: true
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
+    peerDependenciesMeta:
+      zod:
+        optional: true
 
   '@aws-crypto/crc32@5.2.0':
     resolution: {integrity: sha512-nLbCWqQNgUiwwtFsen1AdzAtvuLRsQS8rYgMuxCrdKf9kOssamGLuPwyTY9wyYblNr9+1XM8v6zoDTPPSIeANg==}
@@ -857,6 +872,89 @@ packages:
     peerDependencies:
       hono: ^4
 
+  '@img/sharp-darwin-arm64@0.33.5':
+    resolution: {integrity: sha512-UT4p+iz/2H4twwAoLCqfA9UH5pI6DggwKEGuaPy7nCVQ8ZsiY5PIcrRvD1DzuY3qYL07NtIQcWnBSY/heikIFQ==}
+    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@img/sharp-darwin-x64@0.33.5':
+    resolution: {integrity: sha512-fyHac4jIc1ANYGRDxtiqelIbdWkIuQaI84Mv45KvGRRxSAa7o7d1ZKAOBaYbnepLC1WqxfpimdeWfvqqSGwR2Q==}
+    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+    cpu: [x64]
+    os: [darwin]
+
+  '@img/sharp-libvips-darwin-arm64@1.0.4':
+    resolution: {integrity: sha512-XblONe153h0O2zuFfTAbQYAX2JhYmDHeWikp1LM9Hul9gVPjFY427k6dFEcOL72O01QxQsWi761svJ/ev9xEDg==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@img/sharp-libvips-darwin-x64@1.0.4':
+    resolution: {integrity: sha512-xnGR8YuZYfJGmWPvmlunFaWJsb9T/AO2ykoP3Fz/0X5XV2aoYBPkX6xqCQvUTKKiLddarLaxpzNe+b1hjeWHAQ==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@img/sharp-libvips-linux-arm64@1.0.4':
+    resolution: {integrity: sha512-9B+taZ8DlyyqzZQnoeIvDVR/2F4EbMepXMc/NdVbkzsJbzkUjhXv/70GQJ7tdLA4YJgNP25zukcxpX2/SueNrA==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@img/sharp-libvips-linux-arm@1.0.5':
+    resolution: {integrity: sha512-gvcC4ACAOPRNATg/ov8/MnbxFDJqf/pDePbBnuBDcjsI8PssmjoKMAz4LtLaVi+OnSb5FK/yIOamqDwGmXW32g==}
+    cpu: [arm]
+    os: [linux]
+
+  '@img/sharp-libvips-linux-x64@1.0.4':
+    resolution: {integrity: sha512-MmWmQ3iPFZr0Iev+BAgVMb3ZyC4KeFc3jFxnNbEPas60e1cIfevbtuyf9nDGIzOaW9PdnDciJm+wFFaTlj5xYw==}
+    cpu: [x64]
+    os: [linux]
+
+  '@img/sharp-libvips-linuxmusl-arm64@1.0.4':
+    resolution: {integrity: sha512-9Ti+BbTYDcsbp4wfYib8Ctm1ilkugkA/uscUn6UXK1ldpC1JjiXbLfFZtRlBhjPZ5o1NCLiDbg8fhUPKStHoTA==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@img/sharp-libvips-linuxmusl-x64@1.0.4':
+    resolution: {integrity: sha512-viYN1KX9m+/hGkJtvYYp+CCLgnJXwiQB39damAO7WMdKWlIhmYTfHjwSbQeUK/20vY154mwezd9HflVFM1wVSw==}
+    cpu: [x64]
+    os: [linux]
+
+  '@img/sharp-linux-arm64@0.33.5':
+    resolution: {integrity: sha512-JMVv+AMRyGOHtO1RFBiJy/MBsgz0x4AWrT6QoEVVTyh1E39TrCUpTRI7mx9VksGX4awWASxqCYLCV4wBZHAYxA==}
+    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+    cpu: [arm64]
+    os: [linux]
+
+  '@img/sharp-linux-arm@0.33.5':
+    resolution: {integrity: sha512-JTS1eldqZbJxjvKaAkxhZmBqPRGmxgu+qFKSInv8moZ2AmT5Yib3EQ1c6gp493HvrvV8QgdOXdyaIBrhvFhBMQ==}
+    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+    cpu: [arm]
+    os: [linux]
+
+  '@img/sharp-linux-x64@0.33.5':
+    resolution: {integrity: sha512-opC+Ok5pRNAzuvq1AG0ar+1owsu842/Ab+4qvU879ippJBHvyY5n2mxF1izXqkPYlGuP/M556uh53jRLJmzTWA==}
+    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+    cpu: [x64]
+    os: [linux]
+
+  '@img/sharp-linuxmusl-arm64@0.33.5':
+    resolution: {integrity: sha512-XrHMZwGQGvJg2V/oRSUfSAfjfPxO+4DkiRh6p2AFjLQztWUuY/o8Mq0eMQVIY7HJ1CDQUJlxGGZRw1a5bqmd1g==}
+    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+    cpu: [arm64]
+    os: [linux]
+
+  '@img/sharp-linuxmusl-x64@0.33.5':
+    resolution: {integrity: sha512-WT+d/cgqKkkKySYmqoZ8y3pxx7lx9vVejxW/W4DOFMYVSkErR+w7mf2u8m/y4+xHe7yY9DAXQMWQhpnMuFfScw==}
+    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+    cpu: [x64]
+    os: [linux]
+
+  '@img/sharp-win32-x64@0.33.5':
+    resolution: {integrity: sha512-MpY/o8/8kj+EcnxwvrP4aTJSWw/aZ7JIGR4aBeZkZw5B7/Jn+tY9/VNwtcoGmdT7GfggGIU4kygOMSbYnOrAbg==}
+    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
+    cpu: [x64]
+    os: [win32]
+
   '@inquirer/ansi@1.0.2':
     resolution: {integrity: sha512-S8qNSZiYzFd0wAcyG5AXCvUHC5Sr7xpZ9wZ2py9XR88jUz8wooStVx5M6dRzczbBWjic9NP7+rY0Xi7qqK/aMQ==}
     engines: {node: '>=18'}
@@ -1243,6 +1341,10 @@ packages:
 
   '@octokit/types@14.1.0':
     resolution: {integrity: sha512-1y6DgTy8Jomcpu33N+p5w58l6xyt55Ar2I91RPiIA0xCJBXyUAhXCcmZaDWSANiha7R9a6qJJ2CRomGPZ6f46g==}
+
+  '@openai/codex-sdk@0.77.0':
+    resolution: {integrity: sha512-bvJQ4dASnZ7jgfxmseViQwdRupHxs0TwHSZFeYB0gpdOAXnWwDWdGJRCMyphLSHwExRp27JNOk7EBFVmZRBanQ==}
+    engines: {node: '>=18'}
 
   '@opentelemetry/api@1.9.0':
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
@@ -3245,6 +3347,10 @@ packages:
   json-parse-even-better-errors@2.3.1:
     resolution: {integrity: sha512-xyFwyhro/JEof6Ghe2iz2NcXoj2sloNsWr/XsERDK/oiPCfaNhl5ONfp+jQdAZRQQ0IJWNzH9zIZF7li91kh2w==}
 
+  json-schema-to-ts@3.1.1:
+    resolution: {integrity: sha512-+DWg8jCJG2TEnpy7kOm/7/AxaYoaRbjVB4LFZLySZlWn8exGs3A4OLJR966cVvU26N7X9TWxl+Jsw7dzAqKT6g==}
+    engines: {node: '>=16'}
+
   json-schema-traverse@1.0.0:
     resolution: {integrity: sha512-NM8/P9n3XjXhIZn1lLhkFaACTOURQXjWhV4BA/RnOv8xvgqtqpAX9IO4mRQxSx1Rlo4tqzeqb0sOlruaOy3dug==}
 
@@ -3852,8 +3958,8 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
-  rhachet@1.16.0:
-    resolution: {integrity: sha512-3SsLKhax0VoiDtRevq51IyQnrYFjZTgNvCPsKD4q9olE/OBwHFWc/fC/eIQcKM0c0NplFjU2lVHwNwiUvCGLrA==}
+  rhachet@1.19.6:
+    resolution: {integrity: sha512-+beHdxp1kHnttIhzTvYl3hE2pA7lsFyeQ2TgbKX+iEcGEIKBuKJ3sFhQIZR+Nvk526/GG3tTp3owD694bjdlTg==}
     engines: {node: '>=22.0.0'}
     hasBin: true
 
@@ -4151,6 +4257,9 @@ packages:
     resolution: {integrity: sha512-o5sSPKEkg/DIQNmH43V0/uerLrpzVedkUh8tGNvaeXpfpuwjKenlSox/2O/BTlZUtEe+JG7s5YhEz608PlAHRA==}
     engines: {node: '>=0.6'}
 
+  ts-algebra@2.0.0:
+    resolution: {integrity: sha512-FPAhNPFMrkwz76P7cdjdmiShwMynZYN6SgOujD1urY4oNm80Ou9oMdmbR45LotcKOXoy7wSmHkRFE6Mxbrhefw==}
+
   ts-node@10.9.2:
     resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
     hasBin: true
@@ -4427,6 +4536,11 @@ packages:
     peerDependencies:
       zod: ^3.25 || ^4
 
+  zod-to-json-schema@3.25.1:
+    resolution: {integrity: sha512-pM/SU9d3YAggzi6MtR4h7ruuQlqKtad8e9S0fmxcMi+ueAK5Korys/aWcV9LIIHTVbj01NdzxcnXSN+O74ZIVA==}
+    peerDependencies:
+      zod: ^3.25 || ^4
+
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
@@ -4450,7 +4564,26 @@ snapshots:
     dependencies:
       json-schema: 0.4.0
 
+  '@anthropic-ai/claude-agent-sdk@0.1.76(zod@3.25.76)':
+    dependencies:
+      zod: 3.25.76
+    optionalDependencies:
+      '@img/sharp-darwin-arm64': 0.33.5
+      '@img/sharp-darwin-x64': 0.33.5
+      '@img/sharp-linux-arm': 0.33.5
+      '@img/sharp-linux-arm64': 0.33.5
+      '@img/sharp-linux-x64': 0.33.5
+      '@img/sharp-linuxmusl-arm64': 0.33.5
+      '@img/sharp-linuxmusl-x64': 0.33.5
+      '@img/sharp-win32-x64': 0.33.5
+
   '@anthropic-ai/sdk@0.51.0': {}
+
+  '@anthropic-ai/sdk@0.71.2(zod@3.25.76)':
+    dependencies:
+      json-schema-to-ts: 3.1.1
+    optionalDependencies:
+      zod: 3.25.76
 
   '@aws-crypto/crc32@5.2.0':
     dependencies:
@@ -5476,6 +5609,65 @@ snapshots:
     dependencies:
       hono: 4.11.3
 
+  '@img/sharp-darwin-arm64@0.33.5':
+    optionalDependencies:
+      '@img/sharp-libvips-darwin-arm64': 1.0.4
+    optional: true
+
+  '@img/sharp-darwin-x64@0.33.5':
+    optionalDependencies:
+      '@img/sharp-libvips-darwin-x64': 1.0.4
+    optional: true
+
+  '@img/sharp-libvips-darwin-arm64@1.0.4':
+    optional: true
+
+  '@img/sharp-libvips-darwin-x64@1.0.4':
+    optional: true
+
+  '@img/sharp-libvips-linux-arm64@1.0.4':
+    optional: true
+
+  '@img/sharp-libvips-linux-arm@1.0.5':
+    optional: true
+
+  '@img/sharp-libvips-linux-x64@1.0.4':
+    optional: true
+
+  '@img/sharp-libvips-linuxmusl-arm64@1.0.4':
+    optional: true
+
+  '@img/sharp-libvips-linuxmusl-x64@1.0.4':
+    optional: true
+
+  '@img/sharp-linux-arm64@0.33.5':
+    optionalDependencies:
+      '@img/sharp-libvips-linux-arm64': 1.0.4
+    optional: true
+
+  '@img/sharp-linux-arm@0.33.5':
+    optionalDependencies:
+      '@img/sharp-libvips-linux-arm': 1.0.5
+    optional: true
+
+  '@img/sharp-linux-x64@0.33.5':
+    optionalDependencies:
+      '@img/sharp-libvips-linux-x64': 1.0.4
+    optional: true
+
+  '@img/sharp-linuxmusl-arm64@0.33.5':
+    optionalDependencies:
+      '@img/sharp-libvips-linuxmusl-arm64': 1.0.4
+    optional: true
+
+  '@img/sharp-linuxmusl-x64@0.33.5':
+    optionalDependencies:
+      '@img/sharp-libvips-linuxmusl-x64': 1.0.4
+    optional: true
+
+  '@img/sharp-win32-x64@0.33.5':
+    optional: true
+
   '@inquirer/ansi@1.0.2': {}
 
   '@inquirer/checkbox@4.3.2(@types/node@22.15.21)':
@@ -5874,16 +6066,16 @@ snapshots:
       pkce-challenge: 5.0.1
       raw-body: 3.0.2
       zod: 3.25.76
-      zod-to-json-schema: 3.25.0(zod@3.25.76)
+      zod-to-json-schema: 3.25.1(zod@3.25.76)
     transitivePeerDependencies:
       - hono
       - supports-color
 
-  '@morphllm/morphmcp@0.8.60(@anthropic-ai/sdk@0.51.0)(ai@5.0.117(zod@3.25.76))(hono@4.11.3)(openai@5.8.2(zod@3.25.76))':
+  '@morphllm/morphmcp@0.8.60(@anthropic-ai/sdk@0.71.2(zod@3.25.76))(ai@5.0.117(zod@3.25.76))(hono@4.11.3)(openai@5.8.2(zod@3.25.76))':
     dependencies:
       '@google/generative-ai': 0.21.0
       '@modelcontextprotocol/sdk': 1.25.1(hono@4.11.3)(zod@3.25.76)
-      '@morphllm/morphsdk': 0.2.87(@anthropic-ai/sdk@0.51.0)(@google/generative-ai@0.21.0)(ai@5.0.117(zod@3.25.76))(openai@5.8.2(zod@3.25.76))(zod@3.25.76)
+      '@morphllm/morphsdk': 0.2.87(@anthropic-ai/sdk@0.71.2(zod@3.25.76))(@google/generative-ai@0.21.0)(ai@5.0.117(zod@3.25.76))(openai@5.8.2(zod@3.25.76))(zod@3.25.76)
       '@vscode/ripgrep': 1.17.0
       axios: 1.13.2
       chalk: 5.6.2
@@ -5904,13 +6096,13 @@ snapshots:
       - openai
       - supports-color
 
-  '@morphllm/morphsdk@0.2.87(@anthropic-ai/sdk@0.51.0)(@google/generative-ai@0.21.0)(ai@5.0.117(zod@3.25.76))(openai@5.8.2(zod@3.25.76))(zod@3.25.76)':
+  '@morphllm/morphsdk@0.2.87(@anthropic-ai/sdk@0.71.2(zod@3.25.76))(@google/generative-ai@0.21.0)(ai@5.0.117(zod@3.25.76))(openai@5.8.2(zod@3.25.76))(zod@3.25.76)':
     dependencies:
       '@vscode/ripgrep': 1.17.0
       diff: 7.0.0
       isomorphic-git: 1.36.1
     optionalDependencies:
-      '@anthropic-ai/sdk': 0.51.0
+      '@anthropic-ai/sdk': 0.71.2(zod@3.25.76)
       '@google/generative-ai': 0.21.0
       ai: 5.0.117(zod@3.25.76)
       openai: 5.8.2(zod@3.25.76)
@@ -6004,6 +6196,8 @@ snapshots:
   '@octokit/types@14.1.0':
     dependencies:
       '@octokit/openapi-types': 25.1.0
+
+  '@openai/codex-sdk@0.77.0': {}
 
   '@opentelemetry/api@1.9.0': {}
 
@@ -7213,7 +7407,7 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  declapract-typescript-ehmpathy@0.47.2(declapract@0.13.4(@types/node@22.15.21)(zod@3.25.76))(esbuild@0.25.12)(zod@3.25.76):
+  declapract-typescript-ehmpathy@0.47.2(declapract@0.13.4(@types/node@22.15.21)(zod@3.25.76))(esbuild@0.25.12):
     dependencies:
       declapract: 0.13.4(@types/node@22.15.21)(zod@3.25.76)
       domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
@@ -7226,7 +7420,6 @@ snapshots:
       - esbuild
       - supports-color
       - ws
-      - zod
 
   declapract@0.13.4(@types/node@22.15.21)(zod@3.25.76):
     dependencies:
@@ -7256,7 +7449,7 @@ snapshots:
       - ws
       - zod
 
-  declastruct-github@1.3.0(zod@3.25.76):
+  declastruct-github@1.3.0:
     dependencies:
       '@ehmpathy/uni-time': 1.7.4
       '@octokit/rest': 21.1.1
@@ -7271,9 +7464,8 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
       - ws
-      - zod
 
-  declastruct@1.7.3(domain-objects@0.31.7(zod@3.25.76)):
+  declastruct@1.7.3(domain-objects@0.31.7):
     dependencies:
       bottleneck: 2.19.5
       chalk: 5.4.1
@@ -7402,7 +7594,7 @@ snapshots:
       domain-objects: 0.31.3
       helpful-errors: 1.5.3
       joi: 17.4.0
-      rhachet: 1.16.0(@types/node@22.15.21)(zod@3.25.76)
+      rhachet: 1.19.6(@types/node@22.15.21)
       rhachet-roles-ehmpathy: 1.15.10(@types/node@22.15.21)(zod@3.25.76)
       type-fns: 1.21.0
       uuid-fns: 1.1.3
@@ -8478,6 +8670,11 @@ snapshots:
 
   json-parse-even-better-errors@2.3.1: {}
 
+  json-schema-to-ts@3.1.1:
+    dependencies:
+      '@babel/runtime': 7.28.4
+      ts-algebra: 2.0.0
+
   json-schema-traverse@1.0.0: {}
 
   json-schema-typed@8.0.2: {}
@@ -9134,9 +9331,12 @@ snapshots:
       - ws
       - zod
 
-  rhachet@1.16.0(@types/node@22.15.21)(zod@3.25.76):
+  rhachet@1.19.6(@types/node@22.15.21):
     dependencies:
+      '@anthropic-ai/claude-agent-sdk': 0.1.76(zod@3.25.76)
+      '@anthropic-ai/sdk': 0.71.2(zod@3.25.76)
       '@ehmpathy/uni-time': 1.9.0
+      '@openai/codex-sdk': 0.77.0
       as-procedure: 1.1.6
       bottleneck: 2.19.5
       chalk: 4.1.2
@@ -9151,11 +9351,12 @@ snapshots:
       serde-fns: 1.3.1
       type-fns: 1.21.0
       uuid-fns: 1.0.1
+      zod: 3.25.76
+      zod-to-json-schema: 3.25.1(zod@3.25.76)
     transitivePeerDependencies:
       - '@types/node'
       - aws-crt
       - ws
-      - zod
 
   router@2.2.0:
     dependencies:
@@ -9486,6 +9687,8 @@ snapshots:
 
   toidentifier@1.0.1: {}
 
+  ts-algebra@2.0.0: {}
+
   ts-node@10.9.2(@swc/core@1.15.3)(@types/node@22.15.21)(typescript@5.4.5):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
@@ -9814,6 +10017,10 @@ snapshots:
   yoctocolors-cjs@2.1.3: {}
 
   zod-to-json-schema@3.25.0(zod@3.25.76):
+    dependencies:
+      zod: 3.25.76
+
+  zod-to-json-schema@3.25.1(zod@3.25.76):
     dependencies:
       zod: 3.25.76
 
