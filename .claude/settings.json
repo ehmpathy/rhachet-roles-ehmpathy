@@ -42,6 +42,17 @@
             "author": "repo=ehmpathy/role=mechanic"
           }
         ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.prefer-morph-edit",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
+          }
+        ]
       }
     ]
   },
@@ -54,6 +65,9 @@
       "WebFetch(domain:hub.docker.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:biomejs.dev)",
+      "WebFetch(domain:docs.morphllm.com)",
+      "WebFetch(domain:www.eesel.ai)",
+      "WebFetch(domain:www.morphllm.com)",
       "Bash(ls:*)",
       "Bash(tree:*)",
       "Bash(cat:*)",
@@ -66,6 +80,7 @@
       "Bash(file:*)",
       "Bash(mkdir:*)",
       "Bash(pwd)",
+      "Bash(jq)",
       "Bash(git mv:*)",
       "Bash(git rm:*)",
       "Bash(git log:*)",
@@ -147,7 +162,8 @@
       "Bash(gh search commits:*)",
       "Bash(gh api -X GET:*)",
       "Bash(gh api --method GET:*)",
-      "Bash(source .agent/repo=.this/role=any/skills/use.apikeys.sh)"
+      "Bash(source .agent/repo=.this/role=any/skills/use.apikeys.sh)",
+      "mcp__morph-mcp__edit_file"
     ],
     "deny": [
       "Bash(echo:*)",
@@ -221,5 +237,8 @@
       "Bash(pnpm add:*)",
       "Bash(pnpm install:*)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "morph-mcp"
+  ]
 }

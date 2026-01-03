@@ -18,3 +18,5 @@ ignores:
   - "@src/*"
   - "@src/.*"
   - yalc
+  - ai
+  - "@morphllm/morphmcp"
