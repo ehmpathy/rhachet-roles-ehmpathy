@@ -86,14 +86,14 @@ run_findsert "pretooluse.forbid-stderr-redirect" \
 run_findsert "pretooluse.forbid-gerunds.write" \
   --hook-type PreToolUse \
   --matcher "Write" \
-  --command ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-gerunds.sh" \
+  --command "$RHACHET_CLI roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.forbid-gerunds" \
   --name "pretooluse.forbid-gerunds.write" \
   --timeout 5
 
 run_findsert "pretooluse.forbid-gerunds.edit" \
   --hook-type PreToolUse \
   --matcher "Edit" \
-  --command ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-gerunds.sh" \
+  --command "$RHACHET_CLI roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.forbid-gerunds" \
   --name "pretooluse.forbid-gerunds.edit" \
   --timeout 5
 
