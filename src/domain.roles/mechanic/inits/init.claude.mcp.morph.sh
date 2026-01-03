@@ -7,6 +7,7 @@
 #           1. .mcp.json — server definition
 #           2. settings.json enabledMcpjsonServers — allowlist server
 #           3. settings.json permissions.allow — auto-approve tools
+#           4. hooks — prefer-morph-edit nudge on Edit tool usage
 #
 # .how  = called by init.claude.mcp.sh to configure morph specifically
 #
@@ -109,6 +110,27 @@ for tool in "${MCP_TOOLS[@]}"; do
     MCP_BOUND+=("$tool → permissions.allow")
   fi
 done
+
+#----------------------------------------------------------------------
+# step 4: register prefer-morph-edit hook
+#----------------------------------------------------------------------
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FINDSERT="$SCRIPT_DIR/init.claude.hooks.findsert.sh"
+RHACHET_CLI="./node_modules/.bin/rhachet"
+
+hook_output=$("$FINDSERT" \
+  --hook-type PreToolUse \
+  --matcher "Edit" \
+  --command "$RHACHET_CLI roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.prefer-morph-edit" \
+  --name "pretooluse.prefer-morph-edit" \
+  --timeout 5 2>&1)
+
+if [[ "$hook_output" == *"bound successfully"* ]]; then
+  MCP_BOUND+=("pretooluse.prefer-morph-edit → hooks")
+elif [[ "$hook_output" == *"already bound"* ]]; then
+  MCP_EXISTING+=("pretooluse.prefer-morph-edit → hooks")
+fi
 
 #----------------------------------------------------------------------
 # output results
