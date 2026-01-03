@@ -44,8 +44,25 @@
         ]
       },
       {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-gerunds.sh",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
+          }
+        ]
+      },
+      {
         "matcher": "Edit",
         "hooks": [
+          {
+            "type": "command",
+            "command": ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-gerunds.sh",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
+          },
           {
             "type": "command",
             "command": "./node_modules/.bin/rhachet roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.prefer-morph-edit",
