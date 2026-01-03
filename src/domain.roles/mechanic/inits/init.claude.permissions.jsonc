@@ -44,8 +44,6 @@
       "Bash(tee:*)",
       // find -exec: arbitrary command execution on matched files
       "Bash(find:*)",
-      // echo >: redirect to any file - echo "malicious" >> ~/.bashrc
-      "Bash(echo:*)",
       // mv: move/overwrite any file - mv ~/.ssh/config ~/.ssh/config.bak
       "Bash(mv:*)",
 
@@ -148,6 +146,11 @@
       "Bash(mkdir:*)",
       "Bash(pwd)",
       "Bash(jq)",
+
+      // stdout output - safe because claude code parses shell syntax
+      // verified 2025-12-31: `echo > /tmp` and `echo >> /tmp` trigger write privs request against /tmp
+      "Bash(echo:*)",
+      "Bash(printf:*)",
 
       // git mv/rm are safe - constrained to repo, all changes revertable
       "Bash(git mv:*)",
