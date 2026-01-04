@@ -35,10 +35,13 @@ SETTINGS_FILE="$PROJECT_ROOT/.claude/settings.json"
 
 # deprecated command patterns to remove (regex)
 DEPRECATED_PATTERNS=(
-  # old hardcoded absolute paths (not portable across machines)
-  "/repo=ehmpathy/"
+  # old hardcoded absolute paths - match absolute paths starting with /home/ or /Users/
+  # (not portable across machines, and different from relative .agent/ paths)
+  "^/(home|Users)/.*repo=ehmpathy/"
   # npx with repo ehmpathy (use ./node_modules/.bin/rhachet instead)
   "npx rhachet.*--repo ehmpathy"
+  # rhachet roles init for hooks (use direct .agent/ paths instead for <5s timeout reliability)
+  "rhachet roles init.*--command claude\.hooks/"
 )
 
 # Exit if no settings file

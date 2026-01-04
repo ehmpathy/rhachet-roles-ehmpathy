@@ -29,6 +29,9 @@ FINDSERT="$SCRIPT_DIR/init.claude.hooks.findsert.sh"
 CLEANUP="$SCRIPT_DIR/init.claude.hooks.cleanup.sh"
 RHACHET_CLI="./node_modules/.bin/rhachet"
 
+# direct paths to hook scripts (avoids rhachet 5s startup overhead)
+HOOKS_DIR=".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks"
+
 # collect hook results for tree output
 HOOKS_BOUND=()
 HOOKS_EXISTING=()
@@ -54,7 +57,7 @@ run_findsert() {
 run_findsert "sessionstart.notify-permissions" \
   --hook-type SessionStart \
   --matcher "*" \
-  --command "$RHACHET_CLI roles init --repo ehmpathy --role mechanic --command claude.hooks/sessionstart.notify-permissions" \
+  --command "$HOOKS_DIR/sessionstart.notify-permissions.sh" \
   --name "sessionstart.notify-permissions" \
   --timeout 5
 
@@ -77,7 +80,7 @@ run_findsert "sessionstart.boot.mechanic" \
 run_findsert "pretooluse.forbid-stderr-redirect" \
   --hook-type PreToolUse \
   --matcher "Bash" \
-  --command "$RHACHET_CLI roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.forbid-stderr-redirect" \
+  --command "$HOOKS_DIR/pretooluse.forbid-stderr-redirect.sh" \
   --name "pretooluse.forbid-stderr-redirect" \
   --timeout 5 \
   --position prepend
@@ -85,21 +88,21 @@ run_findsert "pretooluse.forbid-stderr-redirect" \
 run_findsert "pretooluse.forbid-gerunds.write" \
   --hook-type PreToolUse \
   --matcher "Write" \
-  --command "$RHACHET_CLI roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.forbid-gerunds" \
+  --command "$HOOKS_DIR/pretooluse.forbid-gerunds.sh" \
   --name "pretooluse.forbid-gerunds.write" \
   --timeout 5
 
 run_findsert "pretooluse.forbid-gerunds.edit" \
   --hook-type PreToolUse \
   --matcher "Edit" \
-  --command "$RHACHET_CLI roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.forbid-gerunds" \
+  --command "$HOOKS_DIR/pretooluse.forbid-gerunds.sh" \
   --name "pretooluse.forbid-gerunds.edit" \
   --timeout 5
 
 run_findsert "pretooluse.check-permissions" \
   --hook-type PreToolUse \
   --matcher "Bash" \
-  --command "$RHACHET_CLI roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.check-permissions" \
+  --command "$HOOKS_DIR/pretooluse.check-permissions.sh" \
   --name "pretooluse.check-permissions" \
   --timeout 5
 
