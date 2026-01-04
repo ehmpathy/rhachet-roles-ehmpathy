@@ -39,8 +39,8 @@ importers:
         specifier: 5.8.2
         version: 5.8.2(zod@3.25.76)
       rhachet:
-        specifier: 1.19.6
-        version: 1.19.6(@types/node@22.15.21)
+        specifier: 1.19.10
+        version: 1.19.10(@types/node@22.15.21)
       rhachet-artifact:
         specifier: 1.0.0
         version: 1.0.0
@@ -3958,8 +3958,8 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
-  rhachet@1.19.6:
-    resolution: {integrity: sha512-+beHdxp1kHnttIhzTvYl3hE2pA7lsFyeQ2TgbKX+iEcGEIKBuKJ3sFhQIZR+Nvk526/GG3tTp3owD694bjdlTg==}
+  rhachet@1.19.10:
+    resolution: {integrity: sha512-MotZt496t4oTtIjMqK86xuAN6wKjup2YE9H3ATHIHap0BGuYblLw9dr1U4nQvzaFb7An1+5PyjaCd8n2qcRIRw==}
     engines: {node: '>=22.0.0'}
     hasBin: true
 
@@ -7594,7 +7594,7 @@ snapshots:
       domain-objects: 0.31.3
       helpful-errors: 1.5.3
       joi: 17.4.0
-      rhachet: 1.19.6(@types/node@22.15.21)
+      rhachet: 1.19.10(@types/node@22.15.21)
       rhachet-roles-ehmpathy: 1.15.10(@types/node@22.15.21)(zod@3.25.76)
       type-fns: 1.21.0
       uuid-fns: 1.1.3
@@ -9331,7 +9331,7 @@ snapshots:
       - ws
       - zod
 
-  rhachet@1.19.6(@types/node@22.15.21):
+  rhachet@1.19.10(@types/node@22.15.21):
     dependencies:
       '@anthropic-ai/claude-agent-sdk': 0.1.76(zod@3.25.76)
       '@anthropic-ai/sdk': 0.71.2(zod@3.25.76)
@@ -9351,6 +9351,7 @@ snapshots:
       serde-fns: 1.3.1
       type-fns: 1.21.0
       uuid-fns: 1.0.1
+      wrapper-fns: 1.1.0
       zod: 3.25.76
       zod-to-json-schema: 3.25.1(zod@3.25.76)
     transitivePeerDependencies:
