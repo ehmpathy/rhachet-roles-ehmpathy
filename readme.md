@@ -37,7 +37,7 @@ all roles maximize:
 
 ---
 
-## 🌊 ecologist
+## 🥥 ecologist
 
 - **scale**: domain fundamentals, real-world systems
 - **focus**: what changes, what flows, what matters — independent of software
@@ -53,7 +53,7 @@ used to understand the physics, incentives, and causal flows beneath the system.
 - **focus**: bounded contexts, trust layers, language design
 - **maximizes**: ubiqlang, evolvability, decomposition
 
-used to shape contracts and interfaces that survive change.
+used to shape contracts and composites which evolve gracefully through change.
 
 ---
 
@@ -73,7 +73,7 @@ used to sculpt workflows and interfaces that feel obvious and safe.
 - **focus**: maintainability, observability, readability
 - **maximizes**: empathy for the 3am on-call engineer
 
-used to write and revise the actual logic that runs the system.
+used to write and revise the mechanisms which deliver the system.
 ```
 
 ## `ask -r mechanic`

@@ -2,7 +2,6 @@ import { RoleRegistry } from 'rhachet';
 
 import { ROLE_ARCHITECT } from './architect/getArchitectRole';
 // import { ROLE_ECOLOGIST } from './ecologist/getEcologistRole';
-import { EHMPATHY_REGISTRY_README } from './getRoleRegistry.readme';
 import { ROLE_MECHANIC } from './mechanic/getMechanicRole';
 
 /**
@@ -14,7 +13,7 @@ import { ROLE_MECHANIC } from './mechanic/getMechanicRole';
 export const getRoleRegistry = (): RoleRegistry =>
   new RoleRegistry({
     slug: 'ehmpathy',
-    readme: EHMPATHY_REGISTRY_README,
+    readme: { uri: `${__dirname}/readme.md` },
     roles: [
       // ROLE_ECOLOGIST,
       ROLE_ARCHITECT,
