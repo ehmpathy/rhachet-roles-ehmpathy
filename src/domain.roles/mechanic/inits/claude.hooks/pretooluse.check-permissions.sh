@@ -10,7 +10,8 @@
 #         command patterns across the project.
 #
 # .how  = reads JSON from stdin (per Claude Code docs), extracts
-#         tool_input.command, checks against allowed patterns.
+#         tool_input.command, checks against allowed patterns from
+#         both settings.json and settings.local.json (unioned).
 #         if no match, behavior depends on mode.
 #
 # usage:
@@ -84,27 +85,28 @@ find_claude_dir() {
   return 1
 }
 
-# Find the settings file (search upward from current directory)
-find_settings_file() {
-  local claude_dir
-  claude_dir=$(find_claude_dir) || return 1
-  local settings_file="$claude_dir/settings.json"
-  if [[ -f "$settings_file" ]]; then
-    echo "$settings_file"
-    return 0
-  fi
-  return 1
-}
-
-SETTINGS_FILE=$(find_settings_file) || {
-  # No settings file found, allow command to proceed
+# Find the .claude directory, then extract patterns from both settings files
+CLAUDE_DIR=$(find_claude_dir) || {
+  # no .claude directory found, allow command to proceed
   exit 0
 }
 
-# Extract Bash permissions from settings file
-# Patterns look like: "Bash(npm run test:*)" -> extract "npm run test:*"
+# extract Bash permissions from a settings file
+# patterns look like: "Bash(npm run test:*)" -> extract "npm run test:*"
+extract_bash_patterns() {
+  local file="$1"
+  if [[ -f "$file" ]]; then
+    jq -r '.permissions.allow // [] | .[] | select(startswith("Bash(")) | sub("^Bash\\("; "") | sub("\\)$"; "")' "$file" 2>/dev/null
+  fi
+}
+
+# union allowlists from settings.json and settings.local.json
+# note: we must union them because adhoc user-granted allows go into settings.local.json
 mapfile -t ALLOWED_PATTERNS < <(
-  jq -r '.permissions.allow // [] | .[] | select(startswith("Bash(")) | sub("^Bash\\("; "") | sub("\\)$"; "")' "$SETTINGS_FILE" 2>/dev/null
+  {
+    extract_bash_patterns "$CLAUDE_DIR/settings.json"
+    extract_bash_patterns "$CLAUDE_DIR/settings.local.json"
+  } | sort -u
 )
 
 # Check if a single command matches any allowed pattern
@@ -297,10 +299,6 @@ if [[ "$MODE" == "SOFTNUDGE" ]]; then
 fi
 
 # HARDNUDGE mode (default): block on first attempt, allow on retry
-CLAUDE_DIR=$(find_claude_dir) || {
-  echo "ERROR: No .claude directory found. This hook requires a .claude directory." >&2
-  exit 1
-}
 ATTEMPTED_FILE="$CLAUDE_DIR/permission.nudges.local.json"
 
 # Ensure the file exists with valid JSON

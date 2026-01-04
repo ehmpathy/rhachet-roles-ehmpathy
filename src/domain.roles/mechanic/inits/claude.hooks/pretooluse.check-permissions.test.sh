@@ -527,6 +527,119 @@ echo ""
 # Cleanup
 cleanup_test_env "$TEST_DIR"
 
+echo ""
+
+# ============================================================
+# Test: Union of settings.json and settings.local.json
+# ============================================================
+
+echo -e "${YELLOW}Testing union of settings.json and settings.local.json:${NC}"
+
+# Create a new test environment with both files
+TEST_DIR_UNION=$(mktemp -d)
+mkdir -p "$TEST_DIR_UNION/.claude"
+
+# settings.json has npm and cat patterns
+cat > "$TEST_DIR_UNION/.claude/settings.json" << 'EOF'
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run test:*)",
+      "Bash(cat:*)"
+    ]
+  }
+}
+EOF
+
+# settings.local.json has git and ls patterns (adhoc user grants)
+cat > "$TEST_DIR_UNION/.claude/settings.local.json" << 'EOF'
+{
+  "permissions": {
+    "allow": [
+      "Bash(git status:*)",
+      "Bash(ls:*)"
+    ]
+  }
+}
+EOF
+
+# test: pattern from settings.json works
+output=$(run_hook "$TEST_DIR_UNION" "npm run test:unit")
+assert_output_empty "$output" "union: pattern from settings.json works (npm run test:unit)"
+
+output=$(run_hook "$TEST_DIR_UNION" "cat /etc/hosts")
+assert_output_empty "$output" "union: pattern from settings.json works (cat)"
+
+# test: pattern from settings.local.json works
+output=$(run_hook "$TEST_DIR_UNION" "git status")
+assert_output_empty "$output" "union: pattern from settings.local.json works (git status)"
+
+output=$(run_hook "$TEST_DIR_UNION" "ls -la")
+assert_output_empty "$output" "union: pattern from settings.local.json works (ls)"
+
+# test: command not in either file is blocked
+rm -f "$TEST_DIR_UNION/.claude/permission.nudges.local.json"
+output=$(run_hook "$TEST_DIR_UNION" "rm -rf /")
+assert_output_contains "$output" "BLOCKED" "union: command in neither file is blocked"
+
+# test: blocked output shows patterns from BOTH files
+assert_output_contains "$output" "\[p\]: npm run test" "union: blocked message shows settings.json pattern"
+assert_output_contains "$output" "\[p\]: git status" "union: blocked message shows settings.local.json pattern"
+
+echo ""
+
+# test: duplicate patterns are deduplicated
+cat > "$TEST_DIR_UNION/.claude/settings.json" << 'EOF'
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run test:*)",
+      "Bash(cat:*)"
+    ]
+  }
+}
+EOF
+
+cat > "$TEST_DIR_UNION/.claude/settings.local.json" << 'EOF'
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run test:*)",
+      "Bash(git status:*)"
+    ]
+  }
+}
+EOF
+
+# both files have npm run test:* - should only appear once in output
+rm -f "$TEST_DIR_UNION/.claude/permission.nudges.local.json"
+output=$(run_hook "$TEST_DIR_UNION" "unknown-cmd")
+# count occurrences of "npm run test" in output
+count=$(echo "$output" | grep -c "npm run test" || true)
+if [[ "$count" -eq 1 ]]; then
+  echo -e "${GREEN}✔ PASS${NC}: union: duplicate patterns are deduplicated"
+  PASSED=$((PASSED + 1))
+else
+  echo -e "${RED}✘ FAIL${NC}: union: duplicate patterns should appear once, found $count times"
+  FAILED=$((FAILED + 1))
+fi
+
+echo ""
+
+# test: absent settings.local.json is handled gracefully
+rm -f "$TEST_DIR_UNION/.claude/settings.local.json"
+output=$(run_hook "$TEST_DIR_UNION" "npm run test:unit")
+assert_output_empty "$output" "union: works when settings.local.json is absent"
+
+rm -f "$TEST_DIR_UNION/.claude/permission.nudges.local.json"
+output=$(run_hook "$TEST_DIR_UNION" "git status")
+assert_output_contains "$output" "BLOCKED" "union: pattern only in absent settings.local.json is not available"
+
+# Cleanup union test directory
+cleanup_test_env "$TEST_DIR_UNION"
+
+echo ""
+
 # --- Summary ---
 
 echo "========================================"
