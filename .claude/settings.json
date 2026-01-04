@@ -18,7 +18,7 @@
           },
           {
             "type": "command",
-            "command": "./node_modules/.bin/rhachet roles init --repo ehmpathy --role mechanic --command claude.hooks/sessionstart.notify-permissions",
+            "command": ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/sessionstart.notify-permissions.sh",
             "timeout": 5,
             "author": "repo=ehmpathy/role=mechanic"
           }
@@ -31,24 +31,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./node_modules/.bin/rhachet roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.forbid-stderr-redirect",
+            "command": ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-stderr-redirect.sh",
             "timeout": 5,
             "author": "repo=ehmpathy/role=mechanic"
           },
           {
             "type": "command",
-            "command": "./node_modules/.bin/rhachet roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.check-permissions",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          }
-        ]
-      },
-      {
-        "matcher": "Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.forbid-gerunds",
+            "command": ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.check-permissions.sh",
             "timeout": 5,
             "author": "repo=ehmpathy/role=mechanic"
           }
@@ -59,7 +48,18 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./node_modules/.bin/rhachet roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.forbid-gerunds",
+            "command": ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-gerunds.sh",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": ".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-gerunds.sh",
             "timeout": 5,
             "author": "repo=ehmpathy/role=mechanic"
           }
