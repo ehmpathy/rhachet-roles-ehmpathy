@@ -122,7 +122,7 @@ RHACHET_CLI="./node_modules/.bin/rhachet"
 hook_output=$("$FINDSERT" \
   --hook-type PreToolUse \
   --matcher "Edit" \
-  --command "$RHACHET_CLI roles init --repo ehmpathy --role mechanic --command claude.hooks/pretooluse.prefer-morph-edit" \
+  --command "$RHACHET_CLI run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.prefer-morph-edit" \
   --name "pretooluse.prefer-morph-edit" \
   --timeout 5 2>&1)
 

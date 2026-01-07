@@ -32,12 +32,11 @@ echo "🔧 init claude config for mechanic role..."
 echo ""
 
 # backup existing settings before changes
+BACKUP_FILE=""
 if [[ -f "$SETTINGS_FILE" ]]; then
   ISODATETIME="$(date -u +%Y-%m-%dT%H-%M-%SZ)"
   BACKUP_FILE="$GITROOT/.claude/settings.$ISODATETIME.bak.json"
   cp "$SETTINGS_FILE" "$BACKUP_FILE"
-  echo "📦 backed up settings to: ${BACKUP_FILE#$GITROOT/}"
-  echo ""
 fi
 
 # initialize hooks
@@ -50,5 +49,16 @@ echo ""
 
 # initialize mcp servers
 "$SCRIPT_DIR/init.claude.mcp.sh"
+
+# report backup status
+if [[ -n "$BACKUP_FILE" ]]; then
+  if diff -q "$SETTINGS_FILE" "$BACKUP_FILE" >/dev/null 2>&1; then
+    # no changes - remove backup
+    rm "$BACKUP_FILE"
+  else
+    # changes made - keep backup
+    echo "📦 backed up prior settings to: ${BACKUP_FILE#$GITROOT/}"
+  fi
+fi
 
 echo "👌 claude config ready"
