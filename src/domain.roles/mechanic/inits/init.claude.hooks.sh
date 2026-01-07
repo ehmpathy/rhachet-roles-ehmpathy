@@ -29,8 +29,8 @@ FINDSERT="$SCRIPT_DIR/init.claude.hooks.findsert.sh"
 CLEANUP="$SCRIPT_DIR/init.claude.hooks.cleanup.sh"
 RHACHET_CLI="./node_modules/.bin/rhachet"
 
-# direct paths to hook scripts (avoids rhachet 5s startup overhead)
-HOOKS_DIR=".agent/repo=ehmpathy/role=mechanic/inits/claude.hooks"
+# rhachet run --init provides fast hook execution via compiled binary
+RHACHET_INIT="$RHACHET_CLI run --repo ehmpathy --role mechanic --init"
 
 # collect hook results for tree output
 HOOKS_BOUND=()
@@ -57,7 +57,7 @@ run_findsert() {
 run_findsert "sessionstart.notify-permissions" \
   --hook-type SessionStart \
   --matcher "*" \
-  --command "$HOOKS_DIR/sessionstart.notify-permissions.sh" \
+  --command "$RHACHET_INIT claude.hooks/sessionstart.notify-permissions" \
   --name "sessionstart.notify-permissions" \
   --timeout 5
 
@@ -80,7 +80,7 @@ run_findsert "sessionstart.boot.mechanic" \
 run_findsert "pretooluse.forbid-stderr-redirect" \
   --hook-type PreToolUse \
   --matcher "Bash" \
-  --command "$HOOKS_DIR/pretooluse.forbid-stderr-redirect.sh" \
+  --command "$RHACHET_INIT claude.hooks/pretooluse.forbid-stderr-redirect" \
   --name "pretooluse.forbid-stderr-redirect" \
   --timeout 5 \
   --position prepend
@@ -88,21 +88,21 @@ run_findsert "pretooluse.forbid-stderr-redirect" \
 run_findsert "pretooluse.forbid-gerunds.write" \
   --hook-type PreToolUse \
   --matcher "Write" \
-  --command "$HOOKS_DIR/pretooluse.forbid-gerunds.sh" \
+  --command "$RHACHET_INIT claude.hooks/pretooluse.forbid-gerunds" \
   --name "pretooluse.forbid-gerunds.write" \
   --timeout 5
 
 run_findsert "pretooluse.forbid-gerunds.edit" \
   --hook-type PreToolUse \
   --matcher "Edit" \
-  --command "$HOOKS_DIR/pretooluse.forbid-gerunds.sh" \
+  --command "$RHACHET_INIT claude.hooks/pretooluse.forbid-gerunds" \
   --name "pretooluse.forbid-gerunds.edit" \
   --timeout 5
 
 run_findsert "pretooluse.check-permissions" \
   --hook-type PreToolUse \
   --matcher "Bash" \
-  --command "$HOOKS_DIR/pretooluse.check-permissions.sh" \
+  --command "$RHACHET_INIT claude.hooks/pretooluse.check-permissions" \
   --name "pretooluse.check-permissions" \
   --timeout 5
 

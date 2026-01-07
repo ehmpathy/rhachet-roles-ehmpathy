@@ -161,6 +161,7 @@
       "Bash(git ls-files:*)",
       "Bash(git ls-tree:*)",
       "Bash(git cat-file:*)",
+      "Bash(git release --watch)", // watch the release complete
 
       // sedreplace - safe bulk find-and-replace on git-tracked files only
       "Bash(npx rhachet run --skill sedreplace:*)",
@@ -181,15 +182,18 @@
       "Bash(npx rhachet run --skill show.gh.test.errors:*)",
       "Bash(npx rhachet run --skill show.gh.test.errors --scope test-integration)",
 
+      // any skill, really
+      "Bash(npx rhachet run:*)",
+
+      // any op, even... for now...
+      "Bash(npx rhachet:*)",
+
       // npm read operations
       "Bash(npm view:*)",
       "Bash(npm list:*)",
       "Bash(npm remove:*)",
       "Bash(npm help:*)",
       "Bash(pnpm help:*)",
-
-      // rhachet operations
-      "Bash(npx rhachet:*)",
 
       // self execution of packages
       "Bash(npx tsx ./bin/run:*)",
