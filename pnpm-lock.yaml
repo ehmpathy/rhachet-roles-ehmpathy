@@ -95,7 +95,7 @@ importers:
         version: 0.13.13
       declapract-typescript-ehmpathy:
         specifier: 0.47.2
-        version: 0.47.2(declapract@0.13.13)(esbuild@0.25.12)
+        version: 0.47.2(@types/node@22.15.21)(declapract@0.13.13)(esbuild@0.25.12)(zod@4.3.4)
       declastruct:
         specifier: 1.7.3
         version: 1.7.3(domain-objects@0.31.9)
@@ -115,14 +115,14 @@ importers:
         specifier: 30.2.0
         version: 30.2.0(@types/node@22.15.21)(esbuild-register@3.6.0(esbuild@0.25.12))(ts-node@10.9.2(@swc/core@1.15.3)(@types/node@22.15.21)(typescript@5.4.5))
       rhachet:
-        specifier: 1.20.5
-        version: 1.20.5
+        specifier: 1.20.7
+        version: 1.20.7
       rhachet-roles-bhrain:
         specifier: 0.5.9
         version: 0.5.9(@types/node@22.15.21)
       rhachet-roles-bhuild:
-        specifier: 0.5.4
-        version: 0.5.4(@types/node@22.15.21)
+        specifier: 0.5.6
+        version: 0.5.6(@types/node@22.15.21)
       rhachet-roles-ehmpathy:
         specifier: link:.
         version: 'link:'
@@ -3963,8 +3963,8 @@ packages:
     resolution: {integrity: sha512-wVJrFafD/JEmufaMl/tRbmKyQ7RFhXyixV+HopXiMn1MUq83egfnaMVPd98vrbx9Q9xRhJVwKUOfcjJlul8j0g==}
     engines: {node: '>=8.0.0'}
 
-  rhachet-roles-bhuild@0.5.4:
-    resolution: {integrity: sha512-/tYsSaOU1eM5f36ri/NQtv027Hbmvfna+i70/aXF2K38f78LWMjt5gFTB9ATupzJbTNSOXXV+nXDcA8giqIF7A==}
+  rhachet-roles-bhuild@0.5.6:
+    resolution: {integrity: sha512-xUxX8VT5ju0DlfwyglHUhB1HYJhCfR123vCtndoLnetaAGSromtV8nAYjUkAEUu3zrC0Y0kHWS398ZSXCm0JIw==}
     engines: {node: '>=8.0.0'}
 
   rhachet-roles-ehmpathy@1.15.10:
@@ -3981,8 +3981,8 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
-  rhachet@1.20.5:
-    resolution: {integrity: sha512-QYjrVamOBQXOg560iYhQ1Iog/Crazaz51ATfY/8PvfyioTDtYlIYcpzwDMbgg+G3kFniFpHk7DpAGRVbhM9spg==}
+  rhachet@1.20.7:
+    resolution: {integrity: sha512-4bpoiDarRhsGLs2TdLZ/n5rpSW/CMnf+QxvTS9K6YuOgerc40nczDF1JF82FhqMe7/uslU79Lv7O9fQCMe+Ucg==}
     engines: {node: '>=22.0.0'}
     hasBin: true
 
@@ -7452,19 +7452,22 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  declapract-typescript-ehmpathy@0.47.2(declapract@0.13.13)(esbuild@0.25.12):
+  declapract-typescript-ehmpathy@0.47.2(@types/node@22.15.21)(declapract@0.13.13)(esbuild@0.25.12)(zod@4.3.4):
     dependencies:
       declapract: 0.13.13
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
       esbuild-register: 3.6.0(esbuild@0.25.12)
       expect: 29.4.2
       flat: 5.0.2
       helpful-errors: 1.5.3
       yaml: 2.8.2
     transitivePeerDependencies:
+      - '@types/node'
+      - aws-crt
       - esbuild
       - supports-color
       - ws
+      - zod
 
   declapract@0.13.13:
     dependencies:
@@ -7494,7 +7497,7 @@ snapshots:
       '@ehmpathy/uni-time': 1.7.4
       '@octokit/rest': 21.1.1
       as-procedure: 1.1.1
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
       helpful-errors: 1.5.3
       libsodium-wrappers: 0.7.15
       simple-in-memory-cache: 0.4.0
@@ -7628,14 +7631,14 @@ snapshots:
       type-fns: 1.21.0
       uuid-fns: 1.1.3
 
-  domain-objects@0.31.7(@types/node@22.15.21)(zod@3.25.76):
+  domain-objects@0.31.7(@types/node@22.15.21)(zod@4.3.4):
     dependencies:
       change-case: 4.1.2
       domain-objects: 0.31.3
       helpful-errors: 1.5.3
       joi: 17.4.0
-      rhachet: 1.20.5
-      rhachet-roles-ehmpathy: 1.15.10(@types/node@22.15.21)(zod@3.25.76)
+      rhachet: 1.20.7
+      rhachet-roles-ehmpathy: 1.15.10(@types/node@22.15.21)(zod@4.3.4)
       type-fns: 1.21.0
       uuid-fns: 1.1.3
     transitivePeerDependencies:
@@ -9275,7 +9278,7 @@ snapshots:
       '@ehmpathy/as-command': 1.0.3
       '@ehmpathy/uni-time': 1.8.1
       as-procedure: 1.1.7
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
       fast-glob: 3.3.3
       helpful-errors: 1.5.3
       inquirer: 12.7.0(@types/node@22.15.21)
@@ -9301,7 +9304,7 @@ snapshots:
       '@ehmpathy/as-command': 1.0.3
       '@ehmpathy/uni-time': 1.8.1
       as-procedure: 1.1.7
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
       fast-glob: 3.3.3
       helpful-errors: 1.5.3
       inquirer: 12.7.0(@types/node@22.15.21)
@@ -9323,16 +9326,16 @@ snapshots:
 
   rhachet-roles-bhuild@0.1.3(zod@3.25.76):
     dependencies:
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
       helpful-errors: 1.5.3
       rhachet: 1.15.2(zod@3.25.76)
     transitivePeerDependencies:
       - ws
       - zod
 
-  rhachet-roles-bhuild@0.5.4(@types/node@22.15.21):
+  rhachet-roles-bhuild@0.5.6(@types/node@22.15.21):
     dependencies:
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
+      domain-objects: 0.31.9
       helpful-errors: 1.5.3
       rhachet-roles-bhrain: 0.5.7(@types/node@22.15.21)
       test-fns: 1.7.2
@@ -9342,17 +9345,17 @@ snapshots:
       - aws-crt
       - ws
 
-  rhachet-roles-ehmpathy@1.15.10(@types/node@22.15.21)(zod@3.25.76):
+  rhachet-roles-ehmpathy@1.15.10(@types/node@22.15.21)(zod@4.3.4):
     dependencies:
       '@ehmpathy/as-command': 1.0.3
       '@ehmpathy/uni-time': 1.8.1
       as-procedure: 1.1.7
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
       fast-glob: 3.3.3
       helpful-errors: 1.5.3
       inquirer: 12.7.0(@types/node@22.15.21)
-      openai: 5.8.2(zod@3.25.76)
-      rhachet: 1.13.11(zod@3.25.76)
+      openai: 5.8.2(zod@4.3.4)
+      rhachet: 1.13.11(zod@4.3.4)
       rhachet-artifact: 1.0.0
       rhachet-artifact-git: 1.1.0
       serde-fns: 1.2.0
@@ -9366,18 +9369,18 @@ snapshots:
       - ws
       - zod
 
-  rhachet@1.13.11(zod@3.25.76):
+  rhachet@1.13.11(zod@4.3.4):
     dependencies:
       '@ehmpathy/uni-time': 1.9.0
       as-procedure: 1.1.6
       bottleneck: 2.19.5
       chalk: 4.1.2
       commander: 14.0.0
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
       fast-glob: 3.3.3
       flattie: 1.1.1
       helpful-errors: 1.5.3
-      openai: 5.8.2(zod@3.25.76)
+      openai: 5.8.2(zod@4.3.4)
       rhachet-artifact: 1.0.1
       rhachet-artifact-git: 1.1.3
       serde-fns: 1.3.1
@@ -9394,7 +9397,7 @@ snapshots:
       bottleneck: 2.19.5
       chalk: 4.1.2
       commander: 14.0.0
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
       fast-glob: 3.3.3
       flattie: 1.1.1
       helpful-errors: 1.5.3
@@ -9408,7 +9411,7 @@ snapshots:
       - ws
       - zod
 
-  rhachet@1.20.5:
+  rhachet@1.20.7:
     dependencies:
       '@anthropic-ai/claude-agent-sdk': 0.1.76(zod@3.25.76)
       '@anthropic-ai/sdk': 0.71.2(zod@3.25.76)

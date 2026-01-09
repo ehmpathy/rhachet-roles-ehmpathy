@@ -1,0 +1,11 @@
+{
+  // forbidden terms blocklist
+  // each entry specifies a term to forbid with rationale and alternatives
+  "terms": [
+    {
+      "term": "script",
+      "why": "overloaded and vague - conflates command, procedure, operation, and mechanism",
+      "alt": ["command", "executable", "procedure", "operation", "mechanism"]
+    }
+  ]
+}

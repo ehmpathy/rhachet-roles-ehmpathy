@@ -60,7 +60,7 @@ fi
 
 # find script directory for allowlist
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ALLOWLIST_FILE="$SCRIPT_DIR/gerunds.allowlist.jsonc"
+ALLOWLIST_FILE="$SCRIPT_DIR/terms.gerunds.allowlist.jsonc"
 
 # load allowlist (strip comments, extract all words)
 ALLOWLIST=()
@@ -123,7 +123,7 @@ CLAUDE_DIR=$(find_claude_dir) || {
   CLAUDE_DIR="$PWD/.claude"
 }
 
-NUDGE_FILE="$CLAUDE_DIR/gerund.nudges.local.json"
+NUDGE_FILE="$CLAUDE_DIR/terms.gerunds.nudges.local.json"
 
 # ensure nudge file exists
 if [[ ! -f "$NUDGE_FILE" ]]; then
@@ -131,37 +131,46 @@ if [[ ! -f "$NUDGE_FILE" ]]; then
 fi
 
 # cleanup stale entries (older than 1 hour)
+# nudge format: { hash: { time, path, terms } }
 NOW=$(date +%s)
 TMP_FILE=$(mktemp)
 jq --argjson now "$NOW" --argjson threshold "$STALE_THRESHOLD_SECONDS" \
-  'to_entries | map(select(.value > ($now - $threshold))) | from_entries' \
+  'to_entries | map(select(.value.time > ($now - $threshold))) | from_entries' \
   "$NUDGE_FILE" > "$TMP_FILE" 2>/dev/null && mv "$TMP_FILE" "$NUDGE_FILE" || rm -f "$TMP_FILE"
 
-# check each gerund against nudge file
-BLOCKED_GERUNDS=()
-for gerund in "${GERUNDS[@]}"; do
-  # build nudge key as hash of file_path + gerund
-  NUDGE_KEY=$(echo -n "${FILE_PATH}:${gerund}" | sha256sum | cut -d' ' -f1)
+# build nudge key as hash of file_path
+NUDGE_KEY=$(echo -n "${FILE_PATH}" | sha256sum | cut -d' ' -f1)
 
-  # check last attempt time
-  LAST_ATTEMPT=$(jq -r --arg key "$NUDGE_KEY" '.[$key] // 0' "$NUDGE_FILE" 2>/dev/null || echo "0")
-  ELAPSED=$((NOW - LAST_ATTEMPT))
+# check last attempt time (nudge format: { hash: { time, path, terms } })
+LAST_ATTEMPT=$(jq -r --arg key "$NUDGE_KEY" '.[$key].time // 0' "$NUDGE_FILE" 2>/dev/null || echo "0")
+ELAPSED=$((NOW - LAST_ATTEMPT))
 
-  if [[ $ELAPSED -lt $HARDNUDGE_WINDOW_SECONDS ]]; then
-    # within retry window, allow this gerund
-    continue
-  fi
-
-  # outside window, record attempt and block
-  TMP_FILE=$(mktemp)
-  jq --arg key "$NUDGE_KEY" --argjson ts "$NOW" '. + {($key): $ts}' "$NUDGE_FILE" > "$TMP_FILE" 2>/dev/null && mv "$TMP_FILE" "$NUDGE_FILE" || rm -f "$TMP_FILE"
-  BLOCKED_GERUNDS+=("$gerund")
-done
-
-# if all gerunds are within retry window, allow
-if [[ ${#BLOCKED_GERUNDS[@]} -eq 0 ]]; then
+if [[ $ELAPSED -lt $HARDNUDGE_WINDOW_SECONDS ]]; then
+  # within retry window, allow
   exit 0
 fi
+
+# outside window - all detected gerunds are blocked
+BLOCKED_GERUNDS=("${GERUNDS[@]}")
+
+# build terms array for nudge record
+TERMS_JSON="["
+first=true
+for gerund in "${BLOCKED_GERUNDS[@]}"; do
+  if [[ "$first" == "true" ]]; then
+    TERMS_JSON="${TERMS_JSON}\"${gerund}\""
+    first=false
+  else
+    TERMS_JSON="${TERMS_JSON},\"${gerund}\""
+  fi
+done
+TERMS_JSON="${TERMS_JSON}]"
+
+# record attempt with new format: { hash: { time, path, terms } }
+TMP_FILE=$(mktemp)
+jq --arg key "$NUDGE_KEY" --argjson time "$NOW" --arg path "$FILE_PATH" --argjson terms "$TERMS_JSON" \
+  '. + {($key): {time: $time, path: $path, terms: $terms}}' \
+  "$NUDGE_FILE" > "$TMP_FILE" 2>/dev/null && mv "$TMP_FILE" "$NUDGE_FILE" || rm -f "$TMP_FILE"
 
 # build block message
 {

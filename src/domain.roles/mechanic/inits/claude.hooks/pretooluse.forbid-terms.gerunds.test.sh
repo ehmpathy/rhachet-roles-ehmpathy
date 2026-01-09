@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = tests for pretooluse.forbid-gerunds.sh hook
+# .what = tests for pretooluse.forbid-terms.gerunds.sh hook
 #
 # .why  = verify the hook correctly blocks gerunds and respects
 #         the HARDNUDGE retry window and allowlist
@@ -13,7 +13,7 @@ set -euo pipefail
 trap 'echo "ERROR: Script failed at line $LINENO" >&2' ERR
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-HOOK_SCRIPT="$SCRIPT_DIR/pretooluse.forbid-gerunds.sh"
+HOOK_SCRIPT="$SCRIPT_DIR/pretooluse.forbid-terms.gerunds.sh"
 
 # colors for output
 RED='\033[0;31m'
@@ -28,8 +28,8 @@ FAILED=0
 # setup: ensure .claude dir exists and clean nudge file
 setup() {
   mkdir -p "$PWD/.claude"
-  rm -f "$PWD/.claude/gerund.nudges.local.json"
-  echo '{}' > "$PWD/.claude/gerund.nudges.local.json"
+  rm -f "$PWD/.claude/terms.gerunds.nudges.local.json"
+  echo '{}' > "$PWD/.claude/terms.gerunds.nudges.local.json"
 }
 
 # build stdin JSON for Write tool
@@ -154,7 +154,7 @@ assert_blocks_with_output() {
 
 echo ""
 echo "========================================"
-echo "test pretooluse.forbid-gerunds.sh"
+echo "test pretooluse.forbid-terms.gerunds.sh"
 echo "========================================"
 echo ""
 
@@ -277,7 +277,7 @@ echo "========================================"
 echo ""
 
 # cleanup
-rm -f "$PWD/.claude/gerund.nudges.local.json"
+rm -f "$PWD/.claude/terms.gerunds.nudges.local.json"
 
 if [[ $FAILED -gt 0 ]]; then
   exit 1
