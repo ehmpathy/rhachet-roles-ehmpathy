@@ -37,6 +37,7 @@ setup_test_env() {
       "Bash(npm run fix:*)",
       "Bash(THOROUGH=true npm run test:*)",
       "Bash(npx jest:*)",
+      "Bash(npx rhachet:*)",
       "Bash(cat:*)",
       "Bash(mkdir:*)",
       "Bash(ls:*)",
@@ -258,6 +259,48 @@ assert_output_empty "$output" "exact match 'pwd' works"
 
 rm -f "$TEST_DIR/.claude/permission.nudges.local.json"
 assert_exit_code "$TEST_DIR" "pwd -L" 2 "exact match 'pwd' does NOT match 'pwd -L'"
+
+echo ""
+
+# --- Test :* with double-dash (--) style arguments ---
+
+echo -e "${YELLOW}Testing :* with double-dash (--) style arguments:${NC}"
+
+# npx rhachet:* should match commands with --flag style arguments
+output=$(run_hook "$TEST_DIR" "npx rhachet roles init --role mechanic")
+assert_output_empty "$output" "npx rhachet:* matches 'npx rhachet roles init --role mechanic'"
+
+output=$(run_hook "$TEST_DIR" "npx rhachet roles init --role behaver")
+assert_output_empty "$output" "npx rhachet:* matches 'npx rhachet roles init --role behaver'"
+
+output=$(run_hook "$TEST_DIR" "npx rhachet run --skill show.gh.test.errors --scope unit")
+assert_output_empty "$output" "npx rhachet:* matches 'npx rhachet run --skill ... --scope ...'"
+
+output=$(run_hook "$TEST_DIR" "npx rhachet roles boot --repo ehmpathy --role mechanic")
+assert_output_empty "$output" "npx rhachet:* matches 'npx rhachet roles boot --repo ... --role ...'"
+
+# test with multiple -- flags in various positions
+output=$(run_hook "$TEST_DIR" "npx rhachet --verbose roles init --role test --dry-run")
+assert_output_empty "$output" "npx rhachet:* matches command with multiple --flags"
+
+# test base command
+output=$(run_hook "$TEST_DIR" "npx rhachet")
+assert_output_empty "$output" "npx rhachet:* matches 'npx rhachet' (base command only)"
+
+# test with subcommand only
+output=$(run_hook "$TEST_DIR" "npx rhachet roles")
+assert_output_empty "$output" "npx rhachet:* matches 'npx rhachet roles'"
+
+# grep with -- (common pattern)
+output=$(run_hook "$TEST_DIR" "grep --color=auto pattern file.txt")
+assert_output_empty "$output" "grep:* matches 'grep --color=auto pattern file.txt'"
+
+output=$(run_hook "$TEST_DIR" "grep -r --include='*.ts' pattern /src")
+assert_output_empty "$output" "grep:* matches 'grep -r --include=*.ts pattern /src'"
+
+# ls with -- style flags
+output=$(run_hook "$TEST_DIR" "ls --all --human-readable /home")
+assert_output_empty "$output" "ls:* matches 'ls --all --human-readable /home'"
 
 echo ""
 

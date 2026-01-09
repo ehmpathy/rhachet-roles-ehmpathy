@@ -9,6 +9,9 @@
   "permissions": {
     // commands that should never be auto-approved
     "deny": [
+      // whatever it uses via bash is typically executable via its own name -> own permissions
+      "Bash(bash:*)",
+
       // git write operations - require explicit user request for audit trail
       "Bash(git commit:*)",
       "Bash(git add .)",
@@ -107,7 +110,6 @@
 
     // commands that require explicit user approval each time
     "ask": [
-      "Bash(bash:*)",
       "Bash(chmod:*)",
       "Bash(npm install:*)",
       "Bash(pnpm install:*)",
