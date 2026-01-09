@@ -31,6 +31,10 @@ LIST_SESSIONS=false
 # parse args
 while [[ $# -gt 0 ]]; do
   case $1 in
+    # rhachet passes these - ignore them
+    --skill|--repo|--role)
+      shift 2
+      ;;
     --filter)
       FILTER="$2"
       shift 2

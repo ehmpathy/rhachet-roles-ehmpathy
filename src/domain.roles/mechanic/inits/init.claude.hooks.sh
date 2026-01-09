@@ -7,6 +7,7 @@
 #           • SessionStart: notify Claude of allowed permissions upfront
 #           • PreToolUse: forbid stderr redirects (2>&1)
 #           • PreToolUse: forbid gerunds in file writes (HARDNUDGE)
+#           • PreToolUse: forbid blocklisted terms in file writes (HARDNUDGE)
 #           • PreToolUse: check permissions before new requests
 #
 #         this script manages hook registration via findsert utility.
@@ -85,18 +86,32 @@ run_findsert "pretooluse.forbid-stderr-redirect" \
   --timeout 5 \
   --position prepend
 
-run_findsert "pretooluse.forbid-gerunds.write" \
+run_findsert "pretooluse.forbid-terms.gerunds.write" \
   --hook-type PreToolUse \
   --matcher "Write" \
-  --command "$RHACHET_INIT claude.hooks/pretooluse.forbid-gerunds" \
-  --name "pretooluse.forbid-gerunds.write" \
+  --command "$RHACHET_INIT claude.hooks/pretooluse.forbid-terms.gerunds" \
+  --name "pretooluse.forbid-terms.gerunds.write" \
   --timeout 5
 
-run_findsert "pretooluse.forbid-gerunds.edit" \
+run_findsert "pretooluse.forbid-terms.gerunds.edit" \
   --hook-type PreToolUse \
   --matcher "Edit" \
-  --command "$RHACHET_INIT claude.hooks/pretooluse.forbid-gerunds" \
-  --name "pretooluse.forbid-gerunds.edit" \
+  --command "$RHACHET_INIT claude.hooks/pretooluse.forbid-terms.gerunds" \
+  --name "pretooluse.forbid-terms.gerunds.edit" \
+  --timeout 5
+
+run_findsert "pretooluse.forbid-terms.blocklist.write" \
+  --hook-type PreToolUse \
+  --matcher "Write" \
+  --command "$RHACHET_INIT claude.hooks/pretooluse.forbid-terms.blocklist" \
+  --name "pretooluse.forbid-terms.blocklist.write" \
+  --timeout 5
+
+run_findsert "pretooluse.forbid-terms.blocklist.edit" \
+  --hook-type PreToolUse \
+  --matcher "Edit" \
+  --command "$RHACHET_INIT claude.hooks/pretooluse.forbid-terms.blocklist" \
+  --name "pretooluse.forbid-terms.blocklist.edit" \
   --timeout 5
 
 run_findsert "pretooluse.check-permissions" \
