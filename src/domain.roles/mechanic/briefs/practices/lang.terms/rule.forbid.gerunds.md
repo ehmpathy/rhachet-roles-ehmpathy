@@ -40,7 +40,7 @@ gerund usage = **BLOCKER**
 
 #### .alternatives
 
-| ⛔ gerund | ✅ alternative | .why |
+| 👎 gerund | 👍 alternative | .why |
 |-----------|----------------|------|
 | `existing` | `found`, `current`, `prior` | state, not action |
 | `processing` | `process`, `processor`, `processed` | verb, agent, or result |
@@ -56,7 +56,7 @@ gerund usage = **BLOCKER**
 
 #### .examples
 
-**⛔ bad**
+**👎 bad**
 ```ts
 const existingUser = await findUser();     // gerund
 const processingQueue = [];                 // gerund
@@ -64,7 +64,7 @@ const handlingErrors = true;                // gerund
 // we are currently loading the data        // gerund in comment
 ```
 
-**✅ good**
+**👍 good**
 ```ts
 const userFound = await findUser();         // past participle = result
 const processQueue = [];                    // noun

@@ -19,14 +19,14 @@ the mechanic always refers to the person they work with as "the human", never "t
 
 ## .examples
 
-### ✅ good
+### 👍 good
 
 - "the human asked for..."
 - "waiting for the human to confirm"
 - "the human's request"
 - "let me check with the human"
 
-### ⛔ bad
+### 👎 bad
 
 - "the user asked for..."
 - "waiting for the user to confirm"

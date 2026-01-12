@@ -16,10 +16,10 @@ importers:
         version: 1.8.1
       '@morphllm/morphmcp':
         specifier: 0.8.60
-        version: 0.8.60(@anthropic-ai/sdk@0.71.2(zod@4.3.4))(ai@5.0.117(zod@4.3.4))(hono@4.11.3)(openai@5.8.2(zod@4.3.4))
+        version: 0.8.60(@anthropic-ai/sdk@0.71.2(zod@3.25.76))(ai@5.0.117(zod@3.25.76))(hono@4.11.3)(openai@5.8.2(zod@3.25.76))
       ai:
         specifier: ^5.0.117
-        version: 5.0.117(zod@4.3.4)
+        version: 5.0.117(zod@3.25.76)
       as-procedure:
         specifier: 1.1.7
         version: 1.1.7
@@ -37,7 +37,7 @@ importers:
         version: 12.7.0(@types/node@22.15.21)
       openai:
         specifier: 5.8.2
-        version: 5.8.2(zod@4.3.4)
+        version: 5.8.2(zod@3.25.76)
       rhachet-artifact:
         specifier: 1.0.0
         version: 1.0.0
@@ -95,13 +95,13 @@ importers:
         version: 0.13.13
       declapract-typescript-ehmpathy:
         specifier: 0.47.2
-        version: 0.47.2(@types/node@22.15.21)(declapract@0.13.13)(esbuild@0.25.12)(zod@4.3.4)
+        version: 0.47.2(@types/node@22.15.21)(declapract@0.13.13)(esbuild@0.25.12)(zod@3.25.76)
       declastruct:
         specifier: 1.7.3
         version: 1.7.3(domain-objects@0.31.9)
       declastruct-github:
         specifier: 1.3.0
-        version: 1.3.0
+        version: 1.3.0(zod@3.25.76)
       depcheck:
         specifier: 1.4.3
         version: 1.4.3
@@ -115,14 +115,14 @@ importers:
         specifier: 30.2.0
         version: 30.2.0(@types/node@22.15.21)(esbuild-register@3.6.0(esbuild@0.25.12))(ts-node@10.9.2(@swc/core@1.15.3)(@types/node@22.15.21)(typescript@5.4.5))
       rhachet:
-        specifier: 1.20.7
-        version: 1.20.7
+        specifier: 1.21.5
+        version: 1.21.5(zod@3.25.76)
       rhachet-roles-bhrain:
         specifier: 0.5.9
         version: 0.5.9(@types/node@22.15.21)
       rhachet-roles-bhuild:
-        specifier: 0.5.6
-        version: 0.5.6(@types/node@22.15.21)
+        specifier: 0.6.4
+        version: 0.6.4(@types/node@22.15.21)
       rhachet-roles-ehmpathy:
         specifier: link:.
         version: 'link:'
@@ -159,12 +159,6 @@ packages:
   '@ai-sdk/provider@2.0.1':
     resolution: {integrity: sha512-KCUwswvsC5VsW2PWFqF8eJgSCu5Ysj7m1TxiHTVA6g7k360bk0RNQENT8KTMAYEs+8fWPD3Uu4dEmzGHc+jGng==}
     engines: {node: '>=18'}
-
-  '@anthropic-ai/claude-agent-sdk@0.1.76':
-    resolution: {integrity: sha512-s7RvpXoFaLXLG7A1cJBAPD8ilwOhhc/12fb5mJXRuD561o4FmPtQ+WRfuy9akMmrFRfLsKv8Ornw3ClGAPL2fw==}
-    engines: {node: '>=18.0.0'}
-    peerDependencies:
-      zod: ^3.24.1 || ^4.0.0
 
   '@anthropic-ai/sdk@0.51.0':
     resolution: {integrity: sha512-fAFC/uHhyzfw7rs65EPVV+scXDytGNm5BjttxHf6rP/YGvaBRKEvp2lwyuMigTwMI95neeG4bzrZigz7KCikjw==}
@@ -875,89 +869,6 @@ packages:
     peerDependencies:
       hono: ^4
 
-  '@img/sharp-darwin-arm64@0.33.5':
-    resolution: {integrity: sha512-UT4p+iz/2H4twwAoLCqfA9UH5pI6DggwKEGuaPy7nCVQ8ZsiY5PIcrRvD1DzuY3qYL07NtIQcWnBSY/heikIFQ==}
-    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@img/sharp-darwin-x64@0.33.5':
-    resolution: {integrity: sha512-fyHac4jIc1ANYGRDxtiqelIbdWkIuQaI84Mv45KvGRRxSAa7o7d1ZKAOBaYbnepLC1WqxfpimdeWfvqqSGwR2Q==}
-    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
-    cpu: [x64]
-    os: [darwin]
-
-  '@img/sharp-libvips-darwin-arm64@1.0.4':
-    resolution: {integrity: sha512-XblONe153h0O2zuFfTAbQYAX2JhYmDHeWikp1LM9Hul9gVPjFY427k6dFEcOL72O01QxQsWi761svJ/ev9xEDg==}
-    cpu: [arm64]
-    os: [darwin]
-
-  '@img/sharp-libvips-darwin-x64@1.0.4':
-    resolution: {integrity: sha512-xnGR8YuZYfJGmWPvmlunFaWJsb9T/AO2ykoP3Fz/0X5XV2aoYBPkX6xqCQvUTKKiLddarLaxpzNe+b1hjeWHAQ==}
-    cpu: [x64]
-    os: [darwin]
-
-  '@img/sharp-libvips-linux-arm64@1.0.4':
-    resolution: {integrity: sha512-9B+taZ8DlyyqzZQnoeIvDVR/2F4EbMepXMc/NdVbkzsJbzkUjhXv/70GQJ7tdLA4YJgNP25zukcxpX2/SueNrA==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@img/sharp-libvips-linux-arm@1.0.5':
-    resolution: {integrity: sha512-gvcC4ACAOPRNATg/ov8/MnbxFDJqf/pDePbBnuBDcjsI8PssmjoKMAz4LtLaVi+OnSb5FK/yIOamqDwGmXW32g==}
-    cpu: [arm]
-    os: [linux]
-
-  '@img/sharp-libvips-linux-x64@1.0.4':
-    resolution: {integrity: sha512-MmWmQ3iPFZr0Iev+BAgVMb3ZyC4KeFc3jFxnNbEPas60e1cIfevbtuyf9nDGIzOaW9PdnDciJm+wFFaTlj5xYw==}
-    cpu: [x64]
-    os: [linux]
-
-  '@img/sharp-libvips-linuxmusl-arm64@1.0.4':
-    resolution: {integrity: sha512-9Ti+BbTYDcsbp4wfYib8Ctm1ilkugkA/uscUn6UXK1ldpC1JjiXbLfFZtRlBhjPZ5o1NCLiDbg8fhUPKStHoTA==}
-    cpu: [arm64]
-    os: [linux]
-
-  '@img/sharp-libvips-linuxmusl-x64@1.0.4':
-    resolution: {integrity: sha512-viYN1KX9m+/hGkJtvYYp+CCLgnJXwiQB39damAO7WMdKWlIhmYTfHjwSbQeUK/20vY154mwezd9HflVFM1wVSw==}
-    cpu: [x64]
-    os: [linux]
-
-  '@img/sharp-linux-arm64@0.33.5':
-    resolution: {integrity: sha512-JMVv+AMRyGOHtO1RFBiJy/MBsgz0x4AWrT6QoEVVTyh1E39TrCUpTRI7mx9VksGX4awWASxqCYLCV4wBZHAYxA==}
-    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
-    cpu: [arm64]
-    os: [linux]
-
-  '@img/sharp-linux-arm@0.33.5':
-    resolution: {integrity: sha512-JTS1eldqZbJxjvKaAkxhZmBqPRGmxgu+qFKSInv8moZ2AmT5Yib3EQ1c6gp493HvrvV8QgdOXdyaIBrhvFhBMQ==}
-    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
-    cpu: [arm]
-    os: [linux]
-
-  '@img/sharp-linux-x64@0.33.5':
-    resolution: {integrity: sha512-opC+Ok5pRNAzuvq1AG0ar+1owsu842/Ab+4qvU879ippJBHvyY5n2mxF1izXqkPYlGuP/M556uh53jRLJmzTWA==}
-    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
-    cpu: [x64]
-    os: [linux]
-
-  '@img/sharp-linuxmusl-arm64@0.33.5':
-    resolution: {integrity: sha512-XrHMZwGQGvJg2V/oRSUfSAfjfPxO+4DkiRh6p2AFjLQztWUuY/o8Mq0eMQVIY7HJ1CDQUJlxGGZRw1a5bqmd1g==}
-    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
-    cpu: [arm64]
-    os: [linux]
-
-  '@img/sharp-linuxmusl-x64@0.33.5':
-    resolution: {integrity: sha512-WT+d/cgqKkkKySYmqoZ8y3pxx7lx9vVejxW/W4DOFMYVSkErR+w7mf2u8m/y4+xHe7yY9DAXQMWQhpnMuFfScw==}
-    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
-    cpu: [x64]
-    os: [linux]
-
-  '@img/sharp-win32-x64@0.33.5':
-    resolution: {integrity: sha512-MpY/o8/8kj+EcnxwvrP4aTJSWw/aZ7JIGR4aBeZkZw5B7/Jn+tY9/VNwtcoGmdT7GfggGIU4kygOMSbYnOrAbg==}
-    engines: {node: ^18.17.0 || ^20.3.0 || >=21.0.0}
-    cpu: [x64]
-    os: [win32]
-
   '@inquirer/ansi@1.0.2':
     resolution: {integrity: sha512-S8qNSZiYzFd0wAcyG5AXCvUHC5Sr7xpZ9wZ2py9XR88jUz8wooStVx5M6dRzczbBWjic9NP7+rY0Xi7qqK/aMQ==}
     engines: {node: '>=18'}
@@ -1344,10 +1255,6 @@ packages:
 
   '@octokit/types@14.1.0':
     resolution: {integrity: sha512-1y6DgTy8Jomcpu33N+p5w58l6xyt55Ar2I91RPiIA0xCJBXyUAhXCcmZaDWSANiha7R9a6qJJ2CRomGPZ6f46g==}
-
-  '@openai/codex-sdk@0.77.0':
-    resolution: {integrity: sha512-bvJQ4dASnZ7jgfxmseViQwdRupHxs0TwHSZFeYB0gpdOAXnWwDWdGJRCMyphLSHwExRp27JNOk7EBFVmZRBanQ==}
-    engines: {node: '>=18'}
 
   '@opentelemetry/api@1.9.0':
     resolution: {integrity: sha512-3giAOQvZiH5F9bMlMiv8+GSPMeqg0dbaeo58/0SlA9sxSqZhnUtxzX9/2FzyhS9sWQf5S0GJE0AKBrFqjpeYcg==}
@@ -2605,6 +2512,14 @@ packages:
 
   emoji-regex@9.2.2:
     resolution: {integrity: sha512-L18DaJsXSUk2+42pv8mLs5jJT2hqFkFE4j21wOmgbUqsZ2hL72NsUU785g9RXgo3s0ZNgVl42TiHp3ZtOv/Vyg==}
+
+  emoji-space-shim@0.0.0:
+    resolution: {integrity: sha512-RvCj6ERJKhfySTogP/9CcQgB/jBnsMWC30V7loE5+jaIzB2m9rEVepSRVm48ALnyQ8x26yIdgRM9SQ6Wsbf3IQ==}
+    engines: {node: '>=8.0.0'}
+
+  emoji-space-shim@0.1.2:
+    resolution: {integrity: sha512-xt2hbs/B5D6aKHn8w0iXwsi8+smE0aJxGp0sjNPlBU3+JDbhGbrugNZdfJ5om3AI+gMvupeFUnVOWG696kjQVA==}
+    engines: {node: '>=8.0.0'}
 
   encodeurl@2.0.0:
     resolution: {integrity: sha512-Q0n9HRi4m6JuGIV1eFlmvJB7ZEVxu93IrMyiMsGC0lrMJMWzRgx6WGquyfQgZVb31vhGgXnfmPNNXmxnOkRBrg==}
@@ -3951,10 +3866,6 @@ packages:
     resolution: {integrity: sha512-yzDL+Dv1az5WGpVvrRZT6gLBwDAzxLO/7newlyrfMM+ku91PFR9OvlADoqyulBCCUWnazv3eXl0vzrIyak4hAQ==}
     engines: {node: '>=8.0.0'}
 
-  rhachet-roles-bhrain@0.5.7:
-    resolution: {integrity: sha512-pbKVk03XzVLEqTiP5MyUouUuK5xUxKm4GYrG+gSothdIhTrr9tUEGrL6gtWRAmDoiOE0uPniql2JHD3pQqMhdQ==}
-    engines: {node: '>=8.0.0'}
-
   rhachet-roles-bhrain@0.5.9:
     resolution: {integrity: sha512-tBx17IkE+gromCOOuKo01hSGSnDaHaMRTJPQa8ew1i9ulKGhD3HCHAndL/MKQ5L+4p+CgsJfsi5ydflbRXrMRQ==}
     engines: {node: '>=8.0.0'}
@@ -3963,8 +3874,8 @@ packages:
     resolution: {integrity: sha512-wVJrFafD/JEmufaMl/tRbmKyQ7RFhXyixV+HopXiMn1MUq83egfnaMVPd98vrbx9Q9xRhJVwKUOfcjJlul8j0g==}
     engines: {node: '>=8.0.0'}
 
-  rhachet-roles-bhuild@0.5.6:
-    resolution: {integrity: sha512-xUxX8VT5ju0DlfwyglHUhB1HYJhCfR123vCtndoLnetaAGSromtV8nAYjUkAEUu3zrC0Y0kHWS398ZSXCm0JIw==}
+  rhachet-roles-bhuild@0.6.4:
+    resolution: {integrity: sha512-DnZHNTtgCAD2MU9HyFZEKN8UAHI5P9Dfb795sEp73ezRvlVVNHFrZ7uTUqH6x8jngxYLJJ1vG3Jww1Kh2KYM6w==}
     engines: {node: '>=8.0.0'}
 
   rhachet-roles-ehmpathy@1.15.10:
@@ -3981,10 +3892,12 @@ packages:
     engines: {node: '>=22.0.0'}
     hasBin: true
 
-  rhachet@1.20.7:
-    resolution: {integrity: sha512-4bpoiDarRhsGLs2TdLZ/n5rpSW/CMnf+QxvTS9K6YuOgerc40nczDF1JF82FhqMe7/uslU79Lv7O9fQCMe+Ucg==}
+  rhachet@1.21.5:
+    resolution: {integrity: sha512-P8Iov4Q2bMB342GUvAHc5s154qQJv4VGOL6nxSJGDGgaU5iwy3mOUY0dHf4M30gvdm2JMoczeNpJmCFgCU1/Nw==}
     engines: {node: '>=22.0.0'}
     hasBin: true
+    peerDependencies:
+      zod: '>=4.3.0'
 
   router@2.2.0:
     resolution: {integrity: sha512-nLTrUKm2UyiL7rlhapu/Zl45FwNgkZGaCpZbIHajDYgwlJCOzLSk+cIPAnsEqV955GjILJnKbdQC1nVPz+gAYQ==}
@@ -4488,10 +4401,6 @@ packages:
     resolution: {integrity: sha512-5W3qAvFIeHviyH/XyOp38cbboBDagJblLahE+b6/WueqpiJmyfL96ayJuaPuuIsJH6tL+CxL+hFGz1mOHVMnQg==}
     engines: {node: '>=8.0.0'}
 
-  wrapper-fns@1.1.5:
-    resolution: {integrity: sha512-Px/OD+4zmUIMsdOC1II3L//vGtO7pwjYuNy8716z9XEHi49SXjtFM89yVB678rJE1w0/gf7Va2QiXyLMnhZAkg==}
-    engines: {node: '>=8.0.0'}
-
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
 
@@ -4576,36 +4485,23 @@ packages:
 
 snapshots:
 
-  '@ai-sdk/gateway@2.0.24(zod@4.3.4)':
+  '@ai-sdk/gateway@2.0.24(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.1
-      '@ai-sdk/provider-utils': 3.0.20(zod@4.3.4)
+      '@ai-sdk/provider-utils': 3.0.20(zod@3.25.76)
       '@vercel/oidc': 3.0.5
-      zod: 4.3.4
+      zod: 3.25.76
 
-  '@ai-sdk/provider-utils@3.0.20(zod@4.3.4)':
+  '@ai-sdk/provider-utils@3.0.20(zod@3.25.76)':
     dependencies:
       '@ai-sdk/provider': 2.0.1
       '@standard-schema/spec': 1.1.0
       eventsource-parser: 3.0.6
-      zod: 4.3.4
+      zod: 3.25.76
 
   '@ai-sdk/provider@2.0.1':
     dependencies:
       json-schema: 0.4.0
-
-  '@anthropic-ai/claude-agent-sdk@0.1.76(zod@3.25.76)':
-    dependencies:
-      zod: 3.25.76
-    optionalDependencies:
-      '@img/sharp-darwin-arm64': 0.33.5
-      '@img/sharp-darwin-x64': 0.33.5
-      '@img/sharp-linux-arm': 0.33.5
-      '@img/sharp-linux-arm64': 0.33.5
-      '@img/sharp-linux-x64': 0.33.5
-      '@img/sharp-linuxmusl-arm64': 0.33.5
-      '@img/sharp-linuxmusl-x64': 0.33.5
-      '@img/sharp-win32-x64': 0.33.5
 
   '@anthropic-ai/sdk@0.51.0': {}
 
@@ -4614,12 +4510,6 @@ snapshots:
       json-schema-to-ts: 3.1.1
     optionalDependencies:
       zod: 3.25.76
-
-  '@anthropic-ai/sdk@0.71.2(zod@4.3.4)':
-    dependencies:
-      json-schema-to-ts: 3.1.1
-    optionalDependencies:
-      zod: 4.3.4
     optional: true
 
   '@aws-crypto/crc32@5.2.0':
@@ -5646,65 +5536,6 @@ snapshots:
     dependencies:
       hono: 4.11.3
 
-  '@img/sharp-darwin-arm64@0.33.5':
-    optionalDependencies:
-      '@img/sharp-libvips-darwin-arm64': 1.0.4
-    optional: true
-
-  '@img/sharp-darwin-x64@0.33.5':
-    optionalDependencies:
-      '@img/sharp-libvips-darwin-x64': 1.0.4
-    optional: true
-
-  '@img/sharp-libvips-darwin-arm64@1.0.4':
-    optional: true
-
-  '@img/sharp-libvips-darwin-x64@1.0.4':
-    optional: true
-
-  '@img/sharp-libvips-linux-arm64@1.0.4':
-    optional: true
-
-  '@img/sharp-libvips-linux-arm@1.0.5':
-    optional: true
-
-  '@img/sharp-libvips-linux-x64@1.0.4':
-    optional: true
-
-  '@img/sharp-libvips-linuxmusl-arm64@1.0.4':
-    optional: true
-
-  '@img/sharp-libvips-linuxmusl-x64@1.0.4':
-    optional: true
-
-  '@img/sharp-linux-arm64@0.33.5':
-    optionalDependencies:
-      '@img/sharp-libvips-linux-arm64': 1.0.4
-    optional: true
-
-  '@img/sharp-linux-arm@0.33.5':
-    optionalDependencies:
-      '@img/sharp-libvips-linux-arm': 1.0.5
-    optional: true
-
-  '@img/sharp-linux-x64@0.33.5':
-    optionalDependencies:
-      '@img/sharp-libvips-linux-x64': 1.0.4
-    optional: true
-
-  '@img/sharp-linuxmusl-arm64@0.33.5':
-    optionalDependencies:
-      '@img/sharp-libvips-linuxmusl-arm64': 1.0.4
-    optional: true
-
-  '@img/sharp-linuxmusl-x64@0.33.5':
-    optionalDependencies:
-      '@img/sharp-libvips-linuxmusl-x64': 1.0.4
-    optional: true
-
-  '@img/sharp-win32-x64@0.33.5':
-    optional: true
-
   '@inquirer/ansi@1.0.2': {}
 
   '@inquirer/checkbox@4.3.2(@types/node@22.15.21)':
@@ -6108,11 +5939,11 @@ snapshots:
       - hono
       - supports-color
 
-  '@morphllm/morphmcp@0.8.60(@anthropic-ai/sdk@0.71.2(zod@4.3.4))(ai@5.0.117(zod@4.3.4))(hono@4.11.3)(openai@5.8.2(zod@4.3.4))':
+  '@morphllm/morphmcp@0.8.60(@anthropic-ai/sdk@0.71.2(zod@3.25.76))(ai@5.0.117(zod@3.25.76))(hono@4.11.3)(openai@5.8.2(zod@3.25.76))':
     dependencies:
       '@google/generative-ai': 0.21.0
       '@modelcontextprotocol/sdk': 1.25.1(hono@4.11.3)(zod@3.25.76)
-      '@morphllm/morphsdk': 0.2.87(@anthropic-ai/sdk@0.71.2(zod@4.3.4))(@google/generative-ai@0.21.0)(ai@5.0.117(zod@4.3.4))(openai@5.8.2(zod@4.3.4))(zod@3.25.76)
+      '@morphllm/morphsdk': 0.2.87(@anthropic-ai/sdk@0.71.2(zod@3.25.76))(@google/generative-ai@0.21.0)(ai@5.0.117(zod@3.25.76))(openai@5.8.2(zod@3.25.76))(zod@3.25.76)
       '@vscode/ripgrep': 1.17.0
       axios: 1.13.2
       chalk: 5.6.2
@@ -6133,16 +5964,16 @@ snapshots:
       - openai
       - supports-color
 
-  '@morphllm/morphsdk@0.2.87(@anthropic-ai/sdk@0.71.2(zod@4.3.4))(@google/generative-ai@0.21.0)(ai@5.0.117(zod@4.3.4))(openai@5.8.2(zod@4.3.4))(zod@3.25.76)':
+  '@morphllm/morphsdk@0.2.87(@anthropic-ai/sdk@0.71.2(zod@3.25.76))(@google/generative-ai@0.21.0)(ai@5.0.117(zod@3.25.76))(openai@5.8.2(zod@3.25.76))(zod@3.25.76)':
     dependencies:
       '@vscode/ripgrep': 1.17.0
       diff: 7.0.0
       isomorphic-git: 1.36.1
     optionalDependencies:
-      '@anthropic-ai/sdk': 0.71.2(zod@4.3.4)
+      '@anthropic-ai/sdk': 0.71.2(zod@3.25.76)
       '@google/generative-ai': 0.21.0
-      ai: 5.0.117(zod@4.3.4)
-      openai: 5.8.2(zod@4.3.4)
+      ai: 5.0.117(zod@3.25.76)
+      openai: 5.8.2(zod@3.25.76)
       zod: 3.25.76
     transitivePeerDependencies:
       - supports-color
@@ -6233,8 +6064,6 @@ snapshots:
   '@octokit/types@14.1.0':
     dependencies:
       '@octokit/openapi-types': 25.1.0
-
-  '@openai/codex-sdk@0.77.0': {}
 
   '@opentelemetry/api@1.9.0': {}
 
@@ -6933,13 +6762,13 @@ snapshots:
 
   agent-base@7.1.4: {}
 
-  ai@5.0.117(zod@4.3.4):
+  ai@5.0.117(zod@3.25.76):
     dependencies:
-      '@ai-sdk/gateway': 2.0.24(zod@4.3.4)
+      '@ai-sdk/gateway': 2.0.24(zod@3.25.76)
       '@ai-sdk/provider': 2.0.1
-      '@ai-sdk/provider-utils': 3.0.20(zod@4.3.4)
+      '@ai-sdk/provider-utils': 3.0.20(zod@3.25.76)
       '@opentelemetry/api': 1.9.0
-      zod: 4.3.4
+      zod: 3.25.76
 
   ajv-formats@3.0.1(ajv@8.17.1):
     optionalDependencies:
@@ -7452,10 +7281,10 @@ snapshots:
     dependencies:
       ms: 2.1.3
 
-  declapract-typescript-ehmpathy@0.47.2(@types/node@22.15.21)(declapract@0.13.13)(esbuild@0.25.12)(zod@4.3.4):
+  declapract-typescript-ehmpathy@0.47.2(@types/node@22.15.21)(declapract@0.13.13)(esbuild@0.25.12)(zod@3.25.76):
     dependencies:
       declapract: 0.13.13
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
       esbuild-register: 3.6.0(esbuild@0.25.12)
       expect: 29.4.2
       flat: 5.0.2
@@ -7492,12 +7321,12 @@ snapshots:
       uuid: 9.0.0
       yaml: 1.6.0
 
-  declastruct-github@1.3.0:
+  declastruct-github@1.3.0(zod@3.25.76):
     dependencies:
       '@ehmpathy/uni-time': 1.7.4
       '@octokit/rest': 21.1.1
       as-procedure: 1.1.1
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
       helpful-errors: 1.5.3
       libsodium-wrappers: 0.7.15
       simple-in-memory-cache: 0.4.0
@@ -7507,6 +7336,7 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
       - ws
+      - zod
 
   declastruct@1.7.3(domain-objects@0.31.9):
     dependencies:
@@ -7631,14 +7461,14 @@ snapshots:
       type-fns: 1.21.0
       uuid-fns: 1.1.3
 
-  domain-objects@0.31.7(@types/node@22.15.21)(zod@4.3.4):
+  domain-objects@0.31.7(@types/node@22.15.21)(zod@3.25.76):
     dependencies:
       change-case: 4.1.2
       domain-objects: 0.31.3
       helpful-errors: 1.5.3
       joi: 17.4.0
-      rhachet: 1.20.7
-      rhachet-roles-ehmpathy: 1.15.10(@types/node@22.15.21)(zod@4.3.4)
+      rhachet: 1.21.5(zod@3.25.76)
+      rhachet-roles-ehmpathy: 1.15.10(@types/node@22.15.21)(zod@3.25.76)
       type-fns: 1.21.0
       uuid-fns: 1.1.3
     transitivePeerDependencies:
@@ -7680,6 +7510,23 @@ snapshots:
   emoji-regex@8.0.0: {}
 
   emoji-regex@9.2.2: {}
+
+  emoji-space-shim@0.0.0:
+    dependencies:
+      as-procedure: 1.1.11
+      domain-objects: 0.31.9
+      find-up: 5.0.0
+      hash-fns: 1.1.0
+      helpful-errors: 1.5.3
+      iso-time: 1.10.1
+      rhachet-artifact: 1.0.3
+      serde-fns: 1.3.0
+      type-fns: 1.21.0
+
+  emoji-space-shim@0.1.2:
+    dependencies:
+      domain-objects: 0.31.9
+      helpful-errors: 1.5.3
 
   encodeurl@2.0.0: {}
 
@@ -8731,6 +8578,7 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.28.4
       ts-algebra: 2.0.0
+    optional: true
 
   json-schema-traverse@1.0.0: {}
 
@@ -8967,10 +8815,6 @@ snapshots:
   openai@5.8.2(zod@3.25.76):
     optionalDependencies:
       zod: 3.25.76
-
-  openai@5.8.2(zod@4.3.4):
-    optionalDependencies:
-      zod: 4.3.4
 
   ora@5.4.1:
     dependencies:
@@ -9272,39 +9116,13 @@ snapshots:
       domain-objects: 0.31.9
       helpful-errors: 1.5.3
 
-  rhachet-roles-bhrain@0.5.7(@types/node@22.15.21):
-    dependencies:
-      '@anthropic-ai/sdk': 0.51.0
-      '@ehmpathy/as-command': 1.0.3
-      '@ehmpathy/uni-time': 1.8.1
-      as-procedure: 1.1.7
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
-      fast-glob: 3.3.3
-      helpful-errors: 1.5.3
-      inquirer: 12.7.0(@types/node@22.15.21)
-      openai: 5.8.2(zod@3.25.76)
-      rhachet-artifact: 1.0.0
-      rhachet-artifact-git: 1.1.0
-      rhachet-roles-bhuild: 0.1.3(zod@3.25.76)
-      serde-fns: 1.2.0
-      simple-in-memory-cache: 0.4.0
-      type-fns: 1.21.0
-      with-simple-caching: 0.14.2
-      wrapper-fns: 1.1.0
-      zod: 3.25.76
-      zod-to-json-schema: 3.25.0(zod@3.25.76)
-    transitivePeerDependencies:
-      - '@types/node'
-      - aws-crt
-      - ws
-
   rhachet-roles-bhrain@0.5.9(@types/node@22.15.21):
     dependencies:
       '@anthropic-ai/sdk': 0.51.0
       '@ehmpathy/as-command': 1.0.3
       '@ehmpathy/uni-time': 1.8.1
       as-procedure: 1.1.7
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
       fast-glob: 3.3.3
       helpful-errors: 1.5.3
       inquirer: 12.7.0(@types/node@22.15.21)
@@ -9326,18 +9144,19 @@ snapshots:
 
   rhachet-roles-bhuild@0.1.3(zod@3.25.76):
     dependencies:
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
       helpful-errors: 1.5.3
       rhachet: 1.15.2(zod@3.25.76)
     transitivePeerDependencies:
       - ws
       - zod
 
-  rhachet-roles-bhuild@0.5.6(@types/node@22.15.21):
+  rhachet-roles-bhuild@0.6.4(@types/node@22.15.21):
     dependencies:
       domain-objects: 0.31.9
+      emoji-space-shim: 0.0.0
       helpful-errors: 1.5.3
-      rhachet-roles-bhrain: 0.5.7(@types/node@22.15.21)
+      rhachet-roles-bhrain: 0.5.9(@types/node@22.15.21)
       test-fns: 1.7.2
       zod: 4.3.4
     transitivePeerDependencies:
@@ -9345,17 +9164,17 @@ snapshots:
       - aws-crt
       - ws
 
-  rhachet-roles-ehmpathy@1.15.10(@types/node@22.15.21)(zod@4.3.4):
+  rhachet-roles-ehmpathy@1.15.10(@types/node@22.15.21)(zod@3.25.76):
     dependencies:
       '@ehmpathy/as-command': 1.0.3
       '@ehmpathy/uni-time': 1.8.1
       as-procedure: 1.1.7
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
       fast-glob: 3.3.3
       helpful-errors: 1.5.3
       inquirer: 12.7.0(@types/node@22.15.21)
-      openai: 5.8.2(zod@4.3.4)
-      rhachet: 1.13.11(zod@4.3.4)
+      openai: 5.8.2(zod@3.25.76)
+      rhachet: 1.13.11(zod@3.25.76)
       rhachet-artifact: 1.0.0
       rhachet-artifact-git: 1.1.0
       serde-fns: 1.2.0
@@ -9369,18 +9188,18 @@ snapshots:
       - ws
       - zod
 
-  rhachet@1.13.11(zod@4.3.4):
+  rhachet@1.13.11(zod@3.25.76):
     dependencies:
       '@ehmpathy/uni-time': 1.9.0
       as-procedure: 1.1.6
       bottleneck: 2.19.5
       chalk: 4.1.2
       commander: 14.0.0
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
       fast-glob: 3.3.3
       flattie: 1.1.1
       helpful-errors: 1.5.3
-      openai: 5.8.2(zod@4.3.4)
+      openai: 5.8.2(zod@3.25.76)
       rhachet-artifact: 1.0.1
       rhachet-artifact-git: 1.1.3
       serde-fns: 1.3.1
@@ -9397,7 +9216,7 @@ snapshots:
       bottleneck: 2.19.5
       chalk: 4.1.2
       commander: 14.0.0
-      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@3.25.76)
       fast-glob: 3.3.3
       flattie: 1.1.1
       helpful-errors: 1.5.3
@@ -9411,16 +9230,14 @@ snapshots:
       - ws
       - zod
 
-  rhachet@1.20.7:
+  rhachet@1.21.5(zod@3.25.76):
     dependencies:
-      '@anthropic-ai/claude-agent-sdk': 0.1.76(zod@3.25.76)
-      '@anthropic-ai/sdk': 0.71.2(zod@3.25.76)
-      '@openai/codex-sdk': 0.77.0
       as-procedure: 1.1.11
       bottleneck: 2.19.5
       chalk: 4.1.2
       commander: 14.0.0
       domain-objects: 0.31.9
+      emoji-space-shim: 0.1.2
       fast-glob: 3.3.3
       flattie: 1.1.1
       helpful-errors: 1.5.3
@@ -9431,9 +9248,7 @@ snapshots:
       serde-fns: 1.3.1
       type-fns: 1.21.0
       uuid-fns: 1.0.1
-      wrapper-fns: 1.1.5
       zod: 3.25.76
-      zod-to-json-schema: 3.25.1(zod@3.25.76)
     transitivePeerDependencies:
       - ws
 
@@ -9773,7 +9588,8 @@ snapshots:
 
   toidentifier@1.0.1: {}
 
-  ts-algebra@2.0.0: {}
+  ts-algebra@2.0.0:
+    optional: true
 
   ts-node@10.9.2(@swc/core@1.15.3)(@types/node@22.15.21)(typescript@5.4.5):
     dependencies:
@@ -10033,16 +9849,6 @@ snapshots:
       bottleneck: 2.19.5
       domain-glossary-procedure: 1.0.0
       visualogic: 1.3.2
-
-  wrapper-fns@1.1.5:
-    dependencies:
-      as-procedure: 1.1.11
-      bottleneck: 2.19.5
-      domain-glossary-procedure: 1.0.0
-      domain-objects: 0.31.9
-      helpful-errors: 1.5.3
-      iso-time: 1.10.1
-      simple-log-methods: 0.6.9
 
   wrappy@1.0.2: {}
 

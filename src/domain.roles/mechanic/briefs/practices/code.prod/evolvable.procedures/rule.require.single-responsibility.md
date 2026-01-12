@@ -10,13 +10,13 @@ enforce that every code file and procedure has a singular, clearly-defined respo
 
 #### .rules
 
-✅ required
+👍 required
 - every file must export **exactly one** named procedure
 - filename must match the exported procedure
-- all logic in the file must directly support the procedure’s **domain intent**
+- all logic in the file must directly support the procedure's **domain intent**
 - runtime typechecks are only allowed **if** the file's sole purpose is validation
 
-❌ forbidden
+👎 forbidden
 - more than one exported procedure per file
 - co-located validation, parse, or orchestration logic alongside domain logic
 - runtime type assertions or guards inside general-purpose logic
@@ -26,7 +26,7 @@ enforce that every code file and procedure has a singular, clearly-defined respo
 
 #### .examples
 
-**✅ good**
+**👍 good**
 ```ts
 // getCustomerInvoices.ts
 /**
@@ -40,25 +40,25 @@ export const getCustomerInvoices = ({ customerId }: { customerId: string }) => {
 
 
 
-**⛔ bad**
+**👎 bad**
 ```ts
 // customerUtils.ts
 // utility file that contains many things
 
 export const getCustomerInvoices = (...) => { ... }
 
-export const validateCustomer = (...) => { ... }  // ❌ multiple responsibilities
+export const validateCustomer = (...) => { ... }  // 👎 multiple responsibilities
 
-// random comment about edge cases — ❌ unrelated noise
+// random comment about edge cases — 👎 unrelated noise
 
 ```
 
 
-**⛔ bad**
+**👎 bad**
 ```ts
 // getCustomerInvoices.ts
 export const getCustomerInvoices = ({ customerId }: { customerId: string }) => {
-  if (typeof customerId !== 'string')  // ❌ redundant runtime check
+  if (typeof customerId !== 'string')  // 👎 redundant runtime check
     throw new Error('bad id');
 
   return invoiceDao.findMany({ customerId });

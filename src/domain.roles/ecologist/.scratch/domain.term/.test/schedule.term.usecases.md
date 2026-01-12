@@ -33,7 +33,7 @@ to gather and refine use cases and feedback related to the usage and understandi
 
 # 📌 usecases
 
-### ✅ positive - usecases when we leverage the term
+### 👍 positive - usecases when we leverage the term
 
 > specific examples of when we need the __TERM__, to <<gain>>[precision]
 > minimum of 3 required, maximum of 10 recommended

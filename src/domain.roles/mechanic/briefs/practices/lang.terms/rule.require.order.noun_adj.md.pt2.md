@@ -19,7 +19,7 @@ always use `[noun][state/adjective]` order for variable and property names
 #### .categories
 
 ##### temporal qualifiers
-| ⛔ bad | ✅ good |
+| 👎 bad | 👍 good |
 |--------|---------|
 | `previousValue` | `valuePrevious` |
 | `currentOwner` | `ownerCurrent` |
@@ -28,7 +28,7 @@ always use `[noun][state/adjective]` order for variable and property names
 | `afterState` | `stateAfter` |
 
 ##### state qualifiers (past participles)
-| ⛔ bad | ✅ good |
+| 👎 bad | 👍 good |
 |--------|---------|
 | `existingUser` | `userFound` |
 | `foundRecord` | `recordFound` |
@@ -38,7 +38,7 @@ always use `[noun][state/adjective]` order for variable and property names
 | `matchingResult` | `resultMatched` |
 
 ##### descriptive qualifiers
-| ⛔ bad | ✅ good |
+| 👎 bad | 👍 good |
 |--------|---------|
 | `validInput` | `inputValid` |
 | `emptyList` | `listEmpty` |

@@ -29,8 +29,8 @@
       - `// pass into StitchStepImagine to generate`
       - `// openai prompt requires flattened string`
     .negative:
-      - `// Returns a new invoice`       // ⛔ capitalized sentence start
-      - `// This is handled in GitRepo`  // ⛔ capitalized sentence + verb
-      - `// Submit the job for approval` // ⛔ capitalized imperative
-      - `// Customer must exist first`   // ⛔ capitalized domain noun
-      - `// GitHub Repository`           // ⛔ capitalized generic noun
+      - `// Returns a new invoice`       // 👎 capitalized sentence start
+      - `// This is handled in GitRepo`  // 👎 capitalized sentence + verb
+      - `// Submit the job for approval` // 👎 capitalized imperative
+      - `// Customer must exist first`   // 👎 capitalized domain noun
+      - `// GitHub Repository`           // 👎 capitalized generic noun

@@ -74,12 +74,12 @@ given('[case1] prose-author example repo', () => {
 don't split related scenarios across multiple `given` blocks:
 
 ```ts
-// ❌ bad - fragmented
+// 👎 bad - fragmented
 given('[case8] prose-author rule enumeration', () => { ... });
 given('[case9] prose-author chapter enumeration', () => { ... });
 given('[case10] prose-author review works', () => { ... });
 
-// ✅ good - consolidated
+// 👍 good - consolidated
 given('[case8] prose-author example repo', () => {
   when('[t0] before any changes', () => {
     then('rules glob matches', ...);
@@ -93,24 +93,24 @@ given('[case8] prose-author example repo', () => {
 ### when describes state/time, not action
 
 ```ts
-// ❌ bad - describes action
+// 👎 bad - describes action
 when('[t0] assets are checked', () => { ... });
 
-// ✅ good - describes state/time
+// 👍 good - describes state/time
 when('[t0] before any changes', () => { ... });
 ```
 
 ### use afterEach for cleanup
 
 ```ts
-// ❌ bad - inline cleanup
+// 👎 bad - inline cleanup
 then('creates output file', async () => {
   const result = await doThing();
   await fs.rm(outputPath); // cleanup inside then
   expect(result).toBeDefined();
 });
 
-// ✅ good - afterEach cleanup
+// 👍 good - afterEach cleanup
 when('[t1] operation runs', () => {
   const outputPath = path.join(os.tmpdir(), 'output.md');
   afterEach(async () => fs.rm(outputPath, { force: true }));
@@ -125,13 +125,13 @@ when('[t1] operation runs', () => {
 ### preconditions shouldn't expect errors
 
 ```ts
-// ❌ bad - precondition expects error then checks it's not a validation error
+// 👎 bad - precondition expects error then checks it's not a validation error
 then('does not throw validation errors', async () => {
   const error = await getError(doThing());
   expect(error.message).not.toContain('validation');
 });
 
-// ✅ good - precondition checks assets directly
+// 👍 good - precondition checks assets directly
 then('rules glob matches 2 files', async () => {
   const files = await enumFiles({ glob: 'rules/*.md' });
   expect(files).toHaveLength(2);

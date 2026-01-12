@@ -22,7 +22,7 @@
 
 .examples:
 
-✅ good
+👍 good
     // domain/procedures/sendInvoice.ts
 
     /**
@@ -39,7 +39,7 @@
       // ...
     };
 
-❌ bad
+👎 bad
     // logic/sendInvoice.ts
 
     export const sendInvoice = async (invoice, customer) => {

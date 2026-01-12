@@ -51,13 +51,13 @@
 
   .negative:
     ```ts
-    // ⛔ undocumented cast
+    // 👎 undocumented cast
     const user = data as User;
 
-    // ⛔ cast to silence error
+    // 👎 cast to silence error
     const result = badFunction() as ExpectedType;
 
-    // ⛔ any-cast escape hatch
+    // 👎 any-cast escape hatch
     const x = (y as any) as SomeType;
     ```
 

@@ -48,7 +48,7 @@ const invoice = await getInvoiceById(invoiceId);
 
 #### .examples
 
-##### ✅ positive
+##### 👍 positive
 
 ```ts
 /**
@@ -64,13 +64,13 @@ export const proposeCode = async ({ threads }) => {
 };
 ```
 
-##### ❌ negative
+##### 👎 negative
 
 ```ts
-// run flow  ⛔ unclear
+// run flow  👎 unclear
 const r = await run();
 
-return r.artifact; // ⛔ what is this? why return this?
+return r.artifact; // 👎 what is this? why return this?
 
 // very long comment that describes why this block exists
 // and what it does and why it's written in this particular way

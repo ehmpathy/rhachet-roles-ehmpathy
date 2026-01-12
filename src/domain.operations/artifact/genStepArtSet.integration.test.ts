@@ -29,7 +29,7 @@ describe('genStepArtSet (integration)', () => {
     then('it should infer threads with stash.art.summary correctly', () => {
       type Threads = GStitcherOf<typeof route>['threads'];
 
-      // ✅ correct
+      // 👍 correct
       const valid: Threads = {
         coder: {
           context: {

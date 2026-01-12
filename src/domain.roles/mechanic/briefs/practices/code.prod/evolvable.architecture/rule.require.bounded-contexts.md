@@ -43,9 +43,9 @@
     - `routes/submitJob.ts` orchestrates job + invoice via stitch, not via import of both
 
   .negative:
-    - `job.ts` imports `from '../../invoice/utils.ts'` ⛔ reach-in
-    - `invoiceService.ts` directly updates `customer.email` ⛔ cross-context mutation
-    - `customer.ts` imports `JobQuote` and infers state ⛔ ownership violation
+    - `job.ts` imports `from '../../invoice/utils.ts'` 👎 reach-in
+    - `invoiceService.ts` directly updates `customer.email` 👎 cross-context mutation
+    - `customer.ts` imports `JobQuote` and infers state 👎 ownership violation
 
 
 

@@ -24,7 +24,7 @@ the alternative — inline wrapping at the function declaration — causes the e
 
 #### .examples
 
-##### ✅ good — wrapper pattern
+##### 👍 good — wrapper pattern
 
 ```ts
 /**
@@ -43,7 +43,7 @@ const _sendInvoice = async (
 export const sendInvoice = withLogTrail(_sendInvoice);
 ```
 
-##### ✅ good — multiple hooks composed
+##### 👍 good — multiple hooks composed
 
 ```ts
 const _processPayment = async (
@@ -59,10 +59,10 @@ export const processPayment = withLogTrail(
 );
 ```
 
-##### ⛔ bad — inline decoration
+##### 👎 bad — inline decoration
 
 ```ts
-// ⛔ adding/removing the wrapper shifts the entire function body
+// 👎 adding/removing the wrapper shifts the entire function body
 export const sendInvoice = withLogTrail(async (
   input: { invoice: Invoice },
   context: { log: LogMethods },

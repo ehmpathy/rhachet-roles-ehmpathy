@@ -30,12 +30,12 @@ forbid domain objects for procedure inputs and outputs; declare them inline on t
 
 #### .how
 
-##### ✅ required
+##### 👍 required
 - declare input types inline: `(input: { invoice: Invoice; customer: Customer })`
 - declare return types inline: `): Promise<{ success: boolean; invoice: Invoice }>`
 - use domain objects as **properties** within inline types, not as the type itself
 
-##### ❌ forbidden
+##### 👎 forbidden
 - `class SendInvoiceInput extends DomainLiteral<...>`
 - `interface GenerateReportOutput { ... }` in a separate file
 - `type SyncCustomerArgs = { ... }` outside the procedure file
@@ -47,7 +47,7 @@ forbid domain objects for procedure inputs and outputs; declare them inline on t
 
 #### .examples
 
-##### ✅ positive
+##### 👍 positive
 ```ts
 /**
  * .what = sends an invoice to the customer
@@ -74,9 +74,9 @@ export const generateMonthlyReport = async (
 };
 ```
 
-##### ❌ negative
+##### 👎 negative
 ```ts
-// ⛔ input as domain object — SendInvoiceInput is not a domain concept
+// 👎 input as domain object — SendInvoiceInput is not a domain concept
 interface SendInvoiceInput {
   invoice: Invoice;
   customer: Customer;
@@ -88,7 +88,7 @@ export const sendInvoice = async (input: SendInvoiceInput, context: Context) => 
 ```
 
 ```ts
-// ⛔ output as separate type — pollutes type namespace with transient shapes
+// 👎 output as separate type — pollutes type namespace with transient shapes
 type GenerateReportResult = {
   report: Report;
   generatedAt: string;
@@ -98,7 +98,7 @@ export const generateMonthlyReport = async (input: {...}): Promise<GenerateRepor
 ```
 
 ```ts
-// ⛔ args file pattern — fragments the contract across files
+// 👎 args file pattern — fragments the contract across files
 // file: generateReport.args.ts
 export interface GenerateReportArgs { ... }
 

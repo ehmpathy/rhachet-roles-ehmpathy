@@ -16,11 +16,11 @@ require oneliner summaries of .what and why comments to precede every code parag
 
 comments are a hard requirement — they must follow precise structure and length:
 
-✅ required
+👍 required
 - /** .what, .why */ block above all named procedures
 - // one-liner before every logical paragraph of code
 
-❌ forbidden
+👎 forbidden
 - absent .what or .why above a procedure
 - multiline // paragraph comments
 - vague, redundant, or “code-shaped” comments
@@ -79,14 +79,14 @@ export const proposeCode = async ({ threads }) => {
 
 forbidden, negative examples
 ```ts
-// absent .what/.why above export      ⛔ blocker
+// absent .what/.why above export      👎 blocker
 export const doStuff = () => { ... }
 
-// vague comment                        ⛔ no intent
+// vague comment                        👎 no intent
 // run flow
 const r = run();
 
-// multiline paragraph comment          ⛔ must extract into procedure
+// multiline paragraph comment          👎 must extract into procedure
 // handle logic for retries because retries are complicated
 // and they sometimes need to be skipped on failure
 const result = retry(input);

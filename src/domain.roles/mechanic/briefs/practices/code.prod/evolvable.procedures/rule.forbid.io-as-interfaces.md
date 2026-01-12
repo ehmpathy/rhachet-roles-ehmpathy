@@ -32,12 +32,12 @@ forbid separate `interface` or `type` declarations for procedure inputs and outp
 
 #### .how
 
-##### ✅ required
+##### 👍 required
 - declare input types inline on the procedure signature
 - declare return types inline on the procedure signature
 - use domain objects as **properties** within inline types when appropriate
 
-##### ❌ forbidden
+##### 👎 forbidden
 - `interface DoThingInput { ... }` declarations
 - `interface DoThingOutput { ... }` declarations
 - `type DoThingArgs = { ... }` declarations
@@ -51,7 +51,7 @@ forbid separate `interface` or `type` declarations for procedure inputs and outp
 
 #### .examples
 
-##### ✅ positive
+##### 👍 positive
 ```ts
 /**
  * .what = syncs customer phone from external provider
@@ -77,15 +77,15 @@ export const calculateInvoiceTotal = (
 };
 ```
 
-##### ❌ negative
+##### 👎 negative
 ```ts
-// ⛔ separate interface for input
+// 👎 separate interface for input
 interface SyncCustomerPhoneInput {
   customerId: string;
   provider: 'whodis' | 'twilio';
 }
 
-// ⛔ separate interface for output
+// 👎 separate interface for output
 interface SyncCustomerPhoneOutput {
   updated: boolean;
   phoneBefore: string | null;
@@ -99,7 +99,7 @@ export const syncCustomerPhone = async (
 ```
 
 ```ts
-// ⛔ type aliases for single-use shapes
+// 👎 type aliases for single-use shapes
 type CalculateTotalArgs = {
   lineItems: LineItem[];
   taxRate: number;
@@ -115,7 +115,7 @@ export const calculateInvoiceTotal = (input: CalculateTotalArgs): CalculateTotal
 ```
 
 ```ts
-// ⛔ file fragmentation pattern
+// 👎 file fragmentation pattern
 // file: syncCustomerPhone.input.ts
 export interface SyncCustomerPhoneInput { ... }
 

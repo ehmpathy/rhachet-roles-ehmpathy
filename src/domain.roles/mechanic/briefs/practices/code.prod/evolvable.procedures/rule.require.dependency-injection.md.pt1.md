@@ -19,7 +19,7 @@ via dependencies that are **explicit, swappable, and controlled from the outside
 for example, instead of a function that reaches for its own dependencies:
 
 ```ts
-// ❌ tightly coupled and side-effect prone
+// 👎 tightly coupled and side-effect prone
 import { log } from '@/utils/logger';
 import { getDatabaseConnection } from '@/utils/database';
 
@@ -33,7 +33,7 @@ export const upsert = async ({ cost }: { cost: JobLeadCost }) => {
 you inject those dependencies via the standard `(input, context)` pattern:
 
 ```ts
-// ✅ dependency injection via context
+// 👍 dependency injection via context
 export const upsert = async (
   { cost }: { cost: JobLeadCost },
   context: { dbConnection: DatabaseConnection, log: LogMethods }, // note how the .context pattern cleanly separates inputs from dependencies
