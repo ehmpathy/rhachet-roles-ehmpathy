@@ -109,6 +109,7 @@
       "Bash(git status:*)",
       "Bash(git diff:*)",
       "Bash(git show:*)",
+      "Bash(git check-ignore:*)",
       "Bash(git blame:*)",
       "Bash(git describe:*)",
       "Bash(git ls-files:*)",
