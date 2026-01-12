@@ -56,7 +56,7 @@ src/
 
 .examples
 
-✅ positive
+👍 positive
 \`\`\`ts
 // contract/endpoints/sendInvoice.ts
 import { generateInvoice } from '@/domain.operations/generateInvoice';
@@ -69,14 +69,14 @@ import { Job } from '@/domain.objects/Job';
 import { LineItem } from '@/domain.objects/LineItem';
 \`\`\`
 
-❌ negative
+👎 negative
 \`\`\`ts
 // domain.objects/Customer.ts
-import { customerDao } from '@/access/daos/customerDao'; // ⛔ illegal upward import
+import { customerDao } from '@/access/daos/customerDao'; // 👎 illegal upward import
 
 // domain.operations/InvoiceOps.ts
-import { runFlow } from '@/contract/commands'; // ⛔ direction violation
+import { runFlow } from '@/contract/commands'; // 👎 direction violation
 
 // access/svcs/sdkWrapper.ts
-import { dispatchFlow } from '@/contract/'; // ⛔ bottom-up reference
+import { dispatchFlow } from '@/contract/'; // 👎 bottom-up reference
 \`\`\`

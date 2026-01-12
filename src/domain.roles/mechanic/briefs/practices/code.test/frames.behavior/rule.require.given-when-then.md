@@ -56,7 +56,7 @@ given('a mechanic with ask, claim, and coderefs', () => {
 ```
 
 ```ts
-when('executed', async () => {        // ⛔ async not allowed in when()
+when('executed', async () => {        // 👎 async not allowed in when()
   const result = await doSomething();
 });
 ```

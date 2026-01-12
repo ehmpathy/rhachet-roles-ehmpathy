@@ -5,8 +5,8 @@
   - inline callbacks may be exempt if anonymous + tightly scoped
   - **example:**
     ```ts
-    export const doWork = async (input, context) => { ... }       // ✅
-    export function legacyFunc(a, b) {}                           // ⛔
+    export const doWork = async (input, context) => { ... }       // 👍
+    export function legacyFunc(a, b) {}                           // 👎
     ```
 
 ---
@@ -18,8 +18,8 @@
   - always destructure `input` as first argument when applicable
   - **example:**
     ```ts
-    const getName = ({ name }) => name;                          // ✅
-    export function getName(name) { return name }                // ⛔
+    const getName = ({ name }) => name;                          // 👍
+    export function getName(name) { return name }                // 👎
     ```
 
 ---

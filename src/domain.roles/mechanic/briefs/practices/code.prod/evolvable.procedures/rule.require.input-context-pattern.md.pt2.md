@@ -38,7 +38,7 @@ this pattern maximizes **maintainability** and **readability** by:
 
 ---
 
-## ✅ example
+## 👍 example
 
 \`\`\`ts
 export const sendEmail = (
@@ -52,12 +52,12 @@ export const sendEmail = (
 
 ---
 
-## ❌ anti-pattern
+## 👎 anti-pattern
 
 \`\`\`ts
-// ❌ loses "input" provenance
+// 👎 loses "input" provenance
 export const sendEmail = ({ to, subject, body }: { to: string; subject: string; body: string }) => {};
 
-// ❌ type drift — must look up the type definition elsewhere for basic usage
+// 👎 type drift — must look up the type definition elsewhere for basic usage
 export const sendEmail = (input: EmailInput) => {};
 \`\`\`

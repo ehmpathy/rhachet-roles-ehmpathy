@@ -1,1 +1,1 @@
-../../node_modules/.pnpm/rhachet-roles-bhuild@0.5.6_@types+node@22.15.21/node_modules/rhachet-roles-bhuild/dist/domain.roles/readme.md
+../../node_modules/.pnpm/rhachet-roles-bhuild@0.6.4_@types+node@22.15.21/node_modules/rhachet-roles-bhuild/dist/domain.roles/readme.md

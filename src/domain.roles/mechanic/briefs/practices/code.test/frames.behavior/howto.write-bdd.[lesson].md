@@ -57,7 +57,7 @@ Instead of `let` + `beforeAll` + `afterAll`:
 
 e.g.,
 ```typescript
-// ❌ Don't do this
+// 👎 Don't do this
 let dbConnection: DatabaseConnection;
 beforeAll(async () => {
   dbConnection = await getDatabaseConnection();
@@ -66,7 +66,7 @@ afterAll(async () => {
   await dbConnection.end();
 });
 
-// ✅ Do this
+// 👍 Do this
 const dbConnection = useBeforeAll(() => getDatabaseConnection());
 afterAll(async () => dbConnection.end());
 ```
@@ -102,7 +102,7 @@ given('[case2] second scenario', () => {
 Each `then` block should test a single behavioral assertion. This makes test failures more precise and test names more descriptive:
 
 ```typescript
-// ❌ Don't do this - multiple assertions in one then
+// 👎 Don't do this - multiple assertions in one then
 when('[t0] command executed in PLAN mode', () => {
   then('decision is UPDATE and doer remains unchanged', async () => {
     const result = await command({ mode: 'PLAN' });
@@ -114,7 +114,7 @@ when('[t0] command executed in PLAN mode', () => {
   });
 });
 
-// ✅ Do this - separate then blocks for each behavioral assertion
+// 👍 Do this - separate then blocks for each behavioral assertion
 when('[t0] command executed in PLAN mode', () => {
   then('decision is "UPDATE"', async () => {
     const result = await command({ mode: 'PLAN' });

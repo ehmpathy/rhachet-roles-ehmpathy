@@ -40,9 +40,9 @@
 
   .negative:
     - `let count = 0; count++`
-    - `input.customer.name = 'bob'` // ⛔ input mutation
-    - `config.debug = false` // ⛔ shared singleton mutation
-    - `arr.push(1)` // ⛔ in-place array mutation
+    - `input.customer.name = 'bob'` // 👎 input mutation
+    - `config.debug = false` // 👎 shared singleton mutation
+    - `arr.push(1)` // 👎 in-place array mutation
 
 .links:
   - see also: `arch:immutable-core`, `args:input-context`, `domain-objects.withImmute`

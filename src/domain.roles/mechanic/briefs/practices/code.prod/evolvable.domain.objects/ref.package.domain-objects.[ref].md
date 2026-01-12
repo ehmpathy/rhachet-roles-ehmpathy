@@ -298,16 +298,16 @@ class SeaTurtle extends DomainEntity<SeaTurtle> implements SeaTurtle {
   public static unique = ['seawaterSecurityNumber'] as const;
 }
 
-// ✅ valid
+// 👍 valid
 const primaryRef: RefByPrimary<typeof SeaTurtle> = { uuid: 'beefbeef...' };
 
-// ❌ invalid - must be a string
+// 👎 invalid - must be a string
 const wrongType: RefByPrimary<typeof SeaTurtle> = { uuid: 8335 };
 
-// ❌ invalid - wrong key
+// 👎 invalid - wrong key
 const wrongKey: RefByPrimary<typeof SeaTurtle> = { guid: 'beefbeef...' };
 
-// ❌ invalid - missing primary key
+// 👎 invalid - missing primary key
 const missing: RefByPrimary<typeof SeaTurtle> = {};
 ```
 
@@ -328,16 +328,16 @@ class SeaTurtle extends DomainEntity<SeaTurtle> implements SeaTurtle {
   public static unique = ['seawaterSecurityNumber'] as const;
 }
 
-// ✅ valid
+// 👍 valid
 const uniqueRef: RefByUnique<typeof SeaTurtle> = { seawaterSecurityNumber: 'ABC-999' };
 
-// ❌ invalid - wrong type
+// 👎 invalid - wrong type
 const wrongType: RefByUnique<typeof SeaTurtle> = { seawaterSecurityNumber: 999 };
 
-// ❌ invalid - wrong key
+// 👎 invalid - wrong key
 const wrongKey: RefByUnique<typeof SeaTurtle> = { saltwaterSecurityNumber: 'ABC-999' };
 
-// ❌ invalid - empty object
+// 👎 invalid - empty object
 const empty: RefByUnique<typeof SeaTurtle> = {};
 ```
 
@@ -359,22 +359,22 @@ class EarthWorm extends DomainEntity<EarthWorm> implements EarthWorm {
   public static unique = ['soilSecurityNumber', 'wormSegmentNumber'] as const;
 }
 
-// ✅ primary
+// 👍 primary
 const byPrimary: Ref<typeof EarthWorm> = { uuid: 'beefbeef...' };
 
-// ✅ unique
+// 👍 unique
 const byUnique: Ref<typeof EarthWorm> = {
   soilSecurityNumber: 'SOIL-001',
   wormSegmentNumber: 'SEG-42',
 };
 
-// ❌ invalid - missed part of unique key
+// 👎 invalid - missed part of unique key
 const incompleteUnique: Ref<typeof EarthWorm> = { soilSecurityNumber: 'SOIL-001' };
 
-// ❌ invalid - not related to either key
+// 👎 invalid - not related to either key
 const wrongKey: Ref<typeof EarthWorm> = { guid: 'beefbeef...' };
 
-// ❌ invalid - empty object
+// 👎 invalid - empty object
 const empty: Ref<typeof EarthWorm> = {};
 ```
 

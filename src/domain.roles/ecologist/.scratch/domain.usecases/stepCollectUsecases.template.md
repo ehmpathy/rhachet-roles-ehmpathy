@@ -47,7 +47,7 @@ the output should be in outline format with the following sections
 
     # 📌 usecases
 
-    ### ✅ positive - usecases when we leverage the term
+    ### 👍 positive - usecases when we leverage the term
 
     > specific examples of when we need the __TERM__, to <<gain>>[precision]
     > minimum of 3 required, maximum of 10 recommended

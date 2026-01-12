@@ -41,7 +41,7 @@ const specificDao: DeclastructDao<typeof MyResource> = { ... };
 // generic dao shape where RefByPrimary<any> resolves to {}
 type GenericDao = DeclastructDao<any>;
 
-// ❌ fails: {uuid: string} is not assignable to {}
+// 👎 fails: {uuid: string} is not assignable to {}
 const generic: GenericDao = specificDao;
 ```
 
@@ -59,7 +59,7 @@ interface DeclastructDao<TResourceClass> {
   };
 }
 
-// ✅ works: bivariance allows assignment in either direction
+// 👍 works: bivariance allows assignment in either direction
 const generic: GenericDao = specificDao;
 ```
 

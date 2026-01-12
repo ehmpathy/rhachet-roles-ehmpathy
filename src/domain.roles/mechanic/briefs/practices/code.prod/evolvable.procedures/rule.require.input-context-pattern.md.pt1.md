@@ -18,7 +18,7 @@ enforce hard requirement that all procedure args to follow the canonical pattern
 
 #### .how
 
-##### ✅ required
+##### 👍 required
 - every function must accept exactly:
   - one `input` arg — a destructurable object
   - optional second `context` arg — also a destructurable object
@@ -28,7 +28,7 @@ enforce hard requirement that all procedure args to follow the canonical pattern
 - `input` does **not** need to be destructured at the function boundary; shape like `(input: { ... })` is fine
 - `function` keyword is forbidden unless to implement class methods (see `.tactic:funcs:arrow-only`)
 
-##### ❌ forbidden
+##### 👎 forbidden
 - more than 2 positional args
 - non-destructurable inputs
 - context blended into input
@@ -39,7 +39,7 @@ enforce hard requirement that all procedure args to follow the canonical pattern
 
 ### .examples
 
-##### ✅ positive
+##### 👍 positive
 ```ts
 // standard function
 export const genRoute = async (input: { slug: string }, context?: { traceId?: string }) => { ... }
@@ -51,11 +51,11 @@ const updateUser = ({ userId }: { userId: string }, context: { userDao: UserDao 
 expect(hasChanges({ before, after })).toBe(true);
 ```ts
 
-##### ❌ negative
+##### 👎 negative
 ```ts
-export function doThing(a, b, c) {}              // ⛔ positional args & function keyword
+export function doThing(a, b, c) {}              // 👎 positional args & function keyword
 
-handleRequest(input, options, env)               // ⛔ more than two args
+handleRequest(input, options, env)               // 👎 more than two args
 
-export const getTotal = (invoice) => ...         // ⛔ input not typed
+export const getTotal = (invoice) => ...         // 👎 input not typed
 ```

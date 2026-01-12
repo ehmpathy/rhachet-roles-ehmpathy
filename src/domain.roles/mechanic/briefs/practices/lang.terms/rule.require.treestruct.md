@@ -41,8 +41,8 @@
       - `invoice`                     // base noun with implicit sense
 
     .negative:
-      - `stepImagineGenFromTemplate`  // ⛔ wrong order — verb must come first
-      - `customerSet`                 // ⛔ vague mechanism — better as `setCustomer` or `setCustomerPhone`
-      - `FoundContent`                // ⛔ reversed word order and PascalCase — should be `contentFound`
-      - `submitQuoteJob`              // ⛔ noun hierarchy flipped — should be `submitJobQuote`
-      - `update()`                    // ⛔ unscoped verb — must include noun domain (e.g., `updateInvoice`)
+      - `stepImagineGenFromTemplate`  // 👎 wrong order — verb must come first
+      - `customerSet`                 // 👎 vague mechanism — better as `setCustomer` or `setCustomerPhone`
+      - `FoundContent`                // 👎 reversed word order and PascalCase — should be `contentFound`
+      - `submitQuoteJob`              // 👎 noun hierarchy flipped — should be `submitJobQuote`
+      - `update()`                    // 👎 unscoped verb — must include noun domain (e.g., `updateInvoice`)

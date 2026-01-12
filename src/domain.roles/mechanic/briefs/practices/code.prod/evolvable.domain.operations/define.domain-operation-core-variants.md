@@ -48,7 +48,7 @@ when both variants exist in a codebase, the prefix:
 
 #### .examples
 
-**✅ good — leaf operations with proper prefixes**
+**👍 good — leaf operations with proper prefixes**
 ```ts
 // computeInvoiceTotal.ts — leaf, deterministic
 export const computeInvoiceTotal = (input: { lineItems: LineItem[] }) => {
@@ -67,7 +67,7 @@ export const imagineChapterSummary = async (
 };
 ```
 
-**✅ good — composer operation with normal name**
+**👍 good — composer operation with normal name**
 ```ts
 // getInvoiceWithSummary.ts — composes both variants
 export const getInvoiceWithSummary = async (
@@ -81,15 +81,15 @@ export const getInvoiceWithSummary = async (
 };
 ```
 
-**⛔ bad — prefix misleads**
+**👎 bad — prefix misleads**
 ```ts
 // computeResponse.ts — "compute" but actually calls LLM
 export const computeResponse = async (input, context) => {
-  return context.brain.repl.imagine({ ... }); // ⛔ prefix misleads
+  return context.brain.repl.imagine({ ... }); // 👎 prefix misleads
 };
 ```
 
-**⛔ bad — ambiguous leaf name (only when both variants exist)**
+**👎 bad — ambiguous leaf name (only when both variants exist)**
 ```ts
 // generateTotal.ts — unclear if deterministic or probabilistic
 export const generateTotal = (...) => { ... }

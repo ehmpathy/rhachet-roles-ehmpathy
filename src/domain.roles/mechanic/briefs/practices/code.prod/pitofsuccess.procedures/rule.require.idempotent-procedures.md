@@ -54,10 +54,10 @@
 
   .negative:
     ```ts
-    await sendEmail(input); // ⛔ no check for previous send
+    await sendEmail(input); // 👎 no check for previous send
     ```
 
     ```ts
-    const saved = await insertLog({ ... }) // ⛔ may insert duplicate on retry
+    const saved = await insertLog({ ... }) // 👎 may insert duplicate on retry
     ```
 
