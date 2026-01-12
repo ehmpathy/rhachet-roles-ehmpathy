@@ -81,8 +81,10 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
 fi
 
 # get git-tracked files, optionally filtered by glob
+# note: use :(glob) magic pathspec for proper shell-like glob behavior
+# without this, git ls-files uses pathspec matching where * matches /
 if [[ -n "$GLOB_FILTER" ]]; then
-  FILES=$(git ls-files "$GLOB_FILTER")
+  FILES=$(git ls-files ":(glob)$GLOB_FILTER")
 else
   FILES=$(git ls-files)
 fi

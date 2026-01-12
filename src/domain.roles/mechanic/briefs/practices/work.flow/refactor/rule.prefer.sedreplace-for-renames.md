@@ -30,12 +30,28 @@ the same rename via sedreplace = 2 tool calls (dry-run + execute) = minimal toke
 # dry-run first (default) - see what would change
 npx rhachet run --skill sedreplace --old "oldName" --new "newName"
 
-# filter to specific file types
-npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob "*.ts"
+# filter to specific file types (recursive)
+npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob "**/*.ts"
+
+# filter to files in a specific directory
+npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob "src/**/*.ts"
 
 # apply changes after review of dry-run
 npx rhachet run --skill sedreplace --old "oldName" --new "newName" --execute
 ```
+
+### glob pattern semantics
+
+the `--glob` option uses shell glob semantics:
+
+| pattern | matches |
+|---------|---------|
+| `*.ts` | `.ts` files in root directory only |
+| `**/*.ts` | all `.ts` files recursively |
+| `src/*.ts` | `.ts` files directly in `src/` |
+| `src/**/*.ts` | `.ts` files recursively in `src/` |
+| `*.{ts,tsx}` | `.ts` and `.tsx` files in root |
+| `**/*.{ts,tsx}` | all `.ts` and `.tsx` files recursively |
 
 ## .examples
 
@@ -43,7 +59,7 @@ npx rhachet run --skill sedreplace --old "oldName" --new "newName" --execute
 
 ```sh
 # rename getUserById -> findUserByUuid across all .ts files
-npx rhachet run --skill sedreplace --old "getUserById" --new "findUserByUuid" --glob "*.ts" --execute
+npx rhachet run --skill sedreplace --old "getUserById" --new "findUserByUuid" --glob "**/*.ts" --execute
 ```
 
 ### update an import path
