@@ -1,0 +1,19 @@
+slug: ehmpathy
+readme: dist/domain.roles/readme.md
+roles:
+  - slug: architect
+    readme: dist/domain.roles/architect/readme.md
+    briefs:
+      dirs: dist/domain.roles/architect/briefs
+    skills:
+      dirs: []
+  - slug: mechanic
+    readme: dist/domain.roles/mechanic/readme.md
+    briefs:
+      dirs: dist/domain.roles/mechanic/briefs
+    skills:
+      dirs: dist/domain.roles/mechanic/skills
+    inits:
+      dirs: dist/domain.roles/mechanic/inits
+      exec:
+        - dist/domain.roles/mechanic/inits/init.claude.sh
