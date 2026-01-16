@@ -22,18 +22,15 @@ does NOT apply to `.integration.test.ts` or `.acceptance.test.ts`
 
 a remote boundary is any resource external to the process memory:
 
-| boundary | examples | why it's remote |
-|----------|----------|-----------------|
-| filesystem | `fs.readFile`, `fs.writeFile`, `path.resolve` with real paths | disk i/o, file locks, path differences across os |
-| database | `pg.query`, `mysql.execute`, dao calls | connection state, query latency, data dependencies |
-| network | `fetch`, `axios`, http clients, sdk calls | latency, availability, rate limits |
-| environment | `process.env` reads, config files | varies across machines, ci vs local |
-| time | `Date.now()`, `new Date()` | non-deterministic, timezone differences |
-| randomness | `Math.random()`, `crypto.randomUUID()` | non-deterministic by definition |
+| boundary   | examples                                                      | why it's remote                                    |
+| ---------- | ------------------------------------------------------------- | -------------------------------------------------- |
+| filesystem | `fs.readFile`, `fs.writeFile`, `path.resolve` with real paths | disk i/o, file locks, path differences across os   |
+| database   | `pg.query`, `mysql.execute`, dao calls                        | connection state, query latency, data dependencies |
+| network    | `fetch`, `axios`, http clients, sdk calls                     | latency, availability, rate limits                 |
 
 ## .how
 
-### 👍 unit test — pure logic, injected dependencies
+### 👍 unit test — pure logic leaf
 
 ```ts
 // computeInvoiceTotal.test.ts
@@ -57,13 +54,13 @@ describe('computeInvoiceTotal', () => {
 describe('sendInvoice', () => {
   it('returns sent status when email succeeds', async () => {
     // inject a fake, not a mock of a real service
-    const emailServiceFake = {
+    const svcEmailDemo = {
       send: async () => ({ success: true }),
     };
 
     const result = await sendInvoice(
-      { invoice: exampleInvoice },
-      { emailService: emailServiceFake },
+      { invoice: exampleInvoice }, // input stays pure as always
+      { svcEmail: svcEmailDemo }, // context has remote interfaces injected; makes it clear that _any_ shape that fits this contract is allowed
     );
 
     expect(result.sent).toEqual(true);
@@ -115,14 +112,11 @@ describe('loadConfig', () => {
 
 ## .what to do instead
 
-| if your test needs... | then... |
-|-----------------------|---------|
-| filesystem access | move to `.integration.test.ts` |
-| database queries | move to `.integration.test.ts` |
-| network calls | move to `.integration.test.ts` |
-| current time | inject a `clock` dependency with a fixed value |
-| random values | inject a `random` dependency with a fixed seed |
-| environment vars | inject config as a parameter |
+| if your test needs... | then...                        |
+| --------------------- | ------------------------------ |
+| filesystem access     | move to `.integration.test.ts` |
+| database queries      | move to `.integration.test.ts` |
+| network calls         | move to `.integration.test.ts` |
 
 ## .the mock antipattern
 
@@ -141,11 +135,11 @@ mocks are forbidden because:
 
 ## .classification guide
 
-| test characteristics | classification | file extension |
-|---------------------|----------------|----------------|
-| pure logic, no i/o, injected deps | unit | `.test.ts` |
-| touches db, fs, network | integration | `.integration.test.ts` |
-| exercises full system via contract | acceptance | `.acceptance.test.ts` |
+| test characteristics                   | classification | file extension         |
+| -------------------------------------- | -------------- | ---------------------- |
+| pure logic, no i/o, injected deps      | unit           | `.test.ts`             |
+| touches db, fs, network                | integration    | `.integration.test.ts` |
+| blackbox via built artifact's contract | acceptance     | `.acceptance.test.ts`  |
 
 ## .enforcement
 
