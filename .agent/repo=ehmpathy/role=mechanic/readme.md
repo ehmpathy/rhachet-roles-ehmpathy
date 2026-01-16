@@ -1,1 +1,0 @@
-../../../dist/domain.roles/mechanic/readme.md

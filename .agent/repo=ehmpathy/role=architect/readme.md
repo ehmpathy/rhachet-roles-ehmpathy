@@ -1,1 +1,0 @@
-../../../dist/domain.roles/architect/readme.md
