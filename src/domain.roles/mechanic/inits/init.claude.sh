@@ -2,11 +2,10 @@
 ######################################################################
 # .what = initialize Claude settings for mechanic role
 #
-# .why  = mechanic needs hooks, permissions, and mcp servers configured
-#         to operate effectively. this script dispatches to:
+# .why  = mechanic needs hooks and permissions configured to operate
+#         effectively. this script dispatches to:
 #           • init.claude.hooks.sh - binds SessionStart hook
 #           • init.claude.permissions.sh - configures permissions
-#           • init.claude.mcp.sh - configures mcp servers (morph fast-apply)
 #
 #         single entry point for full Claude configuration.
 #
@@ -14,7 +13,7 @@
 #
 # guarantee:
 #   ✔ backs up settings.json before changes (if exists)
-#   ✔ runs hooks, permissions, and mcp initialization
+#   ✔ runs hooks and permissions initialization
 #   ✔ fail-fast on any error
 #   ✔ idempotent: safe to rerun
 ######################################################################
@@ -46,9 +45,6 @@ echo ""
 # initialize permissions
 "$SCRIPT_DIR/init.claude.permissions.sh"
 echo ""
-
-# initialize mcp servers
-"$SCRIPT_DIR/init.claude.mcp.sh"
 
 # report backup status
 if [[ -n "$BACKUP_FILE" ]]; then
