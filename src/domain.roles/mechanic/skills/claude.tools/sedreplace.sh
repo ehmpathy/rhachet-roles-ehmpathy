@@ -80,6 +80,19 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
   exit 1
 fi
 
+# escape special characters for sed pattern (BRE)
+# special chars to escape: . * [ ] ^ $ \
+# also escape the delimiter (#)
+escape_sed_pattern() {
+  printf '%s' "$1" | sed 's/[.[\*^$\]/\\&/g; s/#/\\#/g'
+}
+
+# escape special characters for sed replacement
+# special chars to escape: & \ and the delimiter (#)
+escape_sed_replacement() {
+  printf '%s' "$1" | sed 's/[&\]/\\&/g; s/#/\\#/g'
+}
+
 # get git-tracked files, optionally filtered by glob
 # note: use :(glob) magic pathspec for proper shell-like glob behavior
 # without this, git ls-files uses pathspec matching where * matches /
@@ -94,28 +107,32 @@ if [[ -z "$FILES" ]]; then
   exit 0
 fi
 
-# find files containing the pattern
-MATCHING_FILES=$(echo "$FILES" | xargs grep -l "$OLD_PATTERN" 2>/dev/null || true)
+# find files that contain the pattern (use -F for fixed-string match, no regex)
+FILES_MATCHED=$(echo "$FILES" | xargs grep -F -l "$OLD_PATTERN" 2>/dev/null || true)
 
-if [[ -z "$MATCHING_FILES" ]]; then
+if [[ -z "$FILES_MATCHED" ]]; then
   echo "no files contain pattern: $OLD_PATTERN"
   exit 0
 fi
 
 # count matches
-MATCH_COUNT=$(echo "$MATCHING_FILES" | wc -l)
+MATCH_COUNT=$(echo "$FILES_MATCHED" | wc -l)
 echo "found $MATCH_COUNT file(s) containing pattern"
 echo ""
+
+# prepare escaped patterns for sed
+OLD_ESCAPED=$(escape_sed_pattern "$OLD_PATTERN")
+NEW_ESCAPED=$(escape_sed_replacement "$NEW_PATTERN")
 
 if [[ "$EXECUTE" == "false" ]]; then
   # dry-run: show what would change
   echo "=== DRY RUN (use --execute to apply) ==="
   echo ""
 
-  for file in $MATCHING_FILES; do
+  for file in $FILES_MATCHED; do
     echo "--- $file ---"
-    # show the diff that would result
-    sed "s|$OLD_PATTERN|$NEW_PATTERN|g" "$file" | diff -u "$file" - || true
+    # show the diff that would result (use # as delimiter to avoid conflicts)
+    sed "s#$OLD_ESCAPED#$NEW_ESCAPED#g" "$file" | diff -u "$file" - || true
     echo ""
   done
 
@@ -127,14 +144,14 @@ else
   echo "=== APPLYING CHANGES ==="
   echo ""
 
-  for file in $MATCHING_FILES; do
+  for file in $FILES_MATCHED; do
     echo "updating: $file"
-    # use sed -i for in-place editing
+    # use sed -i for in-place edit (use # as delimiter to avoid conflicts)
     # note: macOS sed requires -i '' but linux sed uses -i
     if [[ "$(uname)" == "Darwin" ]]; then
-      sed -i '' "s|$OLD_PATTERN|$NEW_PATTERN|g" "$file"
+      sed -i '' "s#$OLD_ESCAPED#$NEW_ESCAPED#g" "$file"
     else
-      sed -i "s|$OLD_PATTERN|$NEW_PATTERN|g" "$file"
+      sed -i "s#$OLD_ESCAPED#$NEW_ESCAPED#g" "$file"
     fi
   done
 
