@@ -2,18 +2,15 @@
 ######################################################################
 # .what = initialize Claude settings for mechanic role
 #
-# .why  = mechanic needs hooks and permissions configured to operate
-#         effectively. this script dispatches to:
-#           • init.claude.hooks.sh - binds SessionStart hook
+# .why  = mechanic needs permissions configured to operate
+#         effectively. this init dispatches to:
 #           • init.claude.permissions.sh - configures permissions
 #
-#         single entry point for full Claude configuration.
-#
-# .how  = runs all init scripts in sequence from the same directory.
+# .how  = runs all init executables in sequence from the same directory.
 #
 # guarantee:
 #   ✔ backs up settings.json before changes (if exists)
-#   ✔ runs hooks and permissions initialization
+#   ✔ runs permissions initialization
 #   ✔ fail-fast on any error
 #   ✔ idempotent: safe to rerun
 ######################################################################
@@ -37,10 +34,6 @@ if [[ -f "$SETTINGS_FILE" ]]; then
   BACKUP_FILE="$GITROOT/.claude/settings.$ISODATETIME.bak.json"
   cp "$SETTINGS_FILE" "$BACKUP_FILE"
 fi
-
-# initialize hooks
-"$SCRIPT_DIR/init.claude.hooks.sh"
-echo ""
 
 # initialize permissions
 "$SCRIPT_DIR/init.claude.permissions.sh"
