@@ -66,7 +66,12 @@ export const ROLE_MECHANIC: Role = Role.build({
           filter: { what: 'Bash', when: 'before' },
         },
       ],
-      onStop: [],
+      onStop: [
+        {
+          command: 'pnpm run --if-present fix',
+          timeout: 'PT30S',
+        },
+      ],
     },
   },
 });
