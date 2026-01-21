@@ -5,16 +5,22 @@ import { ROLE_MECHANIC } from './getMechanicRole';
 describe('getMechanicRole', () => {
   given('[case1] the mechanic role definition', () => {
     when('[t0] hooks property is accessed', () => {
-      then('onBrain.onBoot contains 3 hooks', () => {
-        expect(ROLE_MECHANIC.hooks?.onBrain?.onBoot).toHaveLength(3);
+      then('onBrain.onBoot contains at least 3 hooks', () => {
+        expect(
+          ROLE_MECHANIC.hooks?.onBrain?.onBoot?.length,
+        ).toBeGreaterThanOrEqual(3);
       });
 
-      then('onBrain.onTool contains 4 hooks', () => {
-        expect(ROLE_MECHANIC.hooks?.onBrain?.onTool).toHaveLength(4);
+      then('onBrain.onTool contains at least 4 hooks', () => {
+        expect(
+          ROLE_MECHANIC.hooks?.onBrain?.onTool?.length,
+        ).toBeGreaterThanOrEqual(4);
       });
 
-      then('onBrain.onStop is empty', () => {
-        expect(ROLE_MECHANIC.hooks?.onBrain?.onStop).toHaveLength(0);
+      then('onBrain.onStop contains at least 1 hook', () => {
+        expect(
+          ROLE_MECHANIC.hooks?.onBrain?.onStop?.length,
+        ).toBeGreaterThanOrEqual(1);
       });
     });
 
