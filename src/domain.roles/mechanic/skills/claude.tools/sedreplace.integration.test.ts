@@ -307,7 +307,116 @@ describe('sedreplace.sh', () => {
     });
   });
 
-  given('[case6] patterns with regex special characters', () => {
+  given('[case6] missing required arguments', () => {
+    when('[t0] --new is not provided', () => {
+      then('it should error with helpful message', () => {
+        const result = runInTempRepo({
+          files: {
+            'file1.ts': 'const MATCH_ME = 1;',
+          },
+          sedArgs: '--old "MATCH_ME"',
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stderr).toContain('--new replacement is required');
+      });
+    });
+
+    when('[t1] --old is not provided', () => {
+      then('it should error with helpful message', () => {
+        const result = runInTempRepo({
+          files: {
+            'file1.ts': 'const MATCH_ME = 1;',
+          },
+          sedArgs: '--new "REPLACED"',
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stderr).toContain('--old pattern is required');
+      });
+    });
+  });
+
+  given('[case7] empty replacement (deletion)', () => {
+    when('[t0] --new "" is specified (dry-run)', () => {
+      then('it should show deletion in diff', () => {
+        const result = runInTempRepo({
+          files: {
+            'file1.ts': 'const REMOVE_ME = 1;',
+          },
+          sedArgs: '--old "REMOVE_ME" --new ""',
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('found 1 file(s)');
+        expect(result.stdout).toContain('-const REMOVE_ME = 1;');
+        expect(result.stdout).toContain('+const  = 1;');
+      });
+    });
+
+    when('[t1] --new "" with --execute', () => {
+      then('it should delete the pattern from file', () => {
+        const tempDir = fs.mkdtempSync(
+          path.join(os.tmpdir(), 'sedreplace-empty-test-'),
+        );
+
+        try {
+          // setup
+          execSync('git init', { cwd: tempDir, stdio: 'pipe' });
+          execSync('git config user.email "test@test.com"', {
+            cwd: tempDir,
+            stdio: 'pipe',
+          });
+          execSync('git config user.name "Test"', {
+            cwd: tempDir,
+            stdio: 'pipe',
+          });
+
+          fs.writeFileSync(
+            path.join(tempDir, 'file1.ts'),
+            'const REMOVE_ME = 1;',
+          );
+
+          execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+          execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+          // execute with empty replacement
+          execSync(`bash ${scriptPath} --old "REMOVE_ME" --new "" --execute`, {
+            cwd: tempDir,
+            stdio: 'pipe',
+          });
+
+          // verify deletion
+          const content = fs.readFileSync(
+            path.join(tempDir, 'file1.ts'),
+            'utf-8',
+          );
+
+          expect(content).toBe('const  = 1;');
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t2] delete entire line content', () => {
+      then('it should leave empty string where pattern was', () => {
+        const result = runInTempRepo({
+          files: {
+            'file1.ts': '// TODO: remove this comment',
+          },
+          sedArgs: '--old "// TODO: remove this comment" --new ""',
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('found 1 file(s)');
+        expect(result.stdout).toContain('-// TODO: remove this comment');
+        expect(result.stdout).toContain('+');
+      });
+    });
+  });
+
+  given('[case8] patterns with regex special characters', () => {
     when('[t0] pattern contains dots', () => {
       then('it should treat dots as literal characters', () => {
         const result = runInTempRepo({
