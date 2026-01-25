@@ -26,6 +26,7 @@ set -euo pipefail
 # parse named arguments
 OLD_PATTERN=""
 NEW_PATTERN=""
+NEW_PROVIDED=false
 GLOB_FILTER=""
 EXECUTE=false
 
@@ -37,6 +38,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --new)
       NEW_PATTERN="$2"
+      NEW_PROVIDED=true
       shift 2
       ;;
     --glob)
@@ -56,8 +58,8 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
-      echo "unknown argument: $1"
-      echo "usage: sedreplace.sh --old 'pattern' --new 'replacement' [--glob '*.ts'] [--execute]"
+      echo "unknown argument: $1" >&2
+      echo "usage: sedreplace.sh --old 'pattern' --new 'replacement' [--glob '*.ts'] [--execute]" >&2
       exit 1
       ;;
   esac
@@ -65,18 +67,18 @@ done
 
 # validate required args
 if [[ -z "$OLD_PATTERN" ]]; then
-  echo "error: --old pattern is required"
+  echo "error: --old pattern is required" >&2
   exit 1
 fi
 
-if [[ -z "$NEW_PATTERN" ]]; then
-  echo "error: --new replacement is required"
+if [[ "$NEW_PROVIDED" == "false" ]]; then
+  echo "error: --new replacement is required (use --new \"\" for empty replacement)" >&2
   exit 1
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "error: not in a git repository"
+  echo "error: not in a git repository" >&2
   exit 1
 fi
 
