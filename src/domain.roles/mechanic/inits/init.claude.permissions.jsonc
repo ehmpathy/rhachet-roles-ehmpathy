@@ -49,6 +49,8 @@
       "Bash(find:*)",
       // mv: move/overwrite any file - mv ~/.ssh/config ~/.ssh/config.bak
       "Bash(mv:*)",
+      // ln: create symlinks anywhere - use symlink skill instead
+      "Bash(ln:*)",
 
       // test runners - should use npm run test:* scripts instead
       // direct invocation bypasses project test configuration
@@ -177,6 +179,9 @@
 
       // rmsafe - safe file removal within git repo
       "Bash(npx rhachet run --skill rmsafe:*)",
+
+      // symlink - create symlinks within repo
+      "Bash(npx rhachet run --skill symlink:*)",
 
       // show.gh.action.logs - fetch logs from github actions workflow runs
       "Bash(npx rhachet run --skill show.gh.action.logs:*)",
