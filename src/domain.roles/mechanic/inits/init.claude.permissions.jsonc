@@ -201,7 +201,18 @@
       "Bash(npm list:*)",
       "Bash(npm remove:*)",
       "Bash(npm help:*)",
+      "Bash(npm why:*)",
+
+      // pnpm read operations
+      "Bash(pnpm view:*)",
+      "Bash(pnpm list:*)",
+      "Bash(pnpm remove:*)",
       "Bash(pnpm help:*)",
+      "Bash(pnpm why:*)",
+
+      // frozen lockfile installs - safe, no package changes
+      "Bash(npm ci)",
+      "Bash(pnpm install --frozen-lockfile)",
 
       // self execution of packages
       "Bash(npx tsx ./bin/run:*)",
