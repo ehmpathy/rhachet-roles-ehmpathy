@@ -18,9 +18,64 @@
           },
           {
             "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/sessionstart.notify-permissions",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
+          },
+          {
+            "type": "command",
             "command": "./node_modules/.bin/rhachet run --repo bhuild --role behaver --init claude.hooks/sessionstart.boot-behavior",
             "timeout": 10,
             "author": "repo=bhuild/role=behaver"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-stderr-redirect",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
+          },
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.check-permissions",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-terms.gerunds",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
+          },
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-terms.blocklist",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "pnpm run --if-present fix",
+            "timeout": 30,
+            "author": "repo=ehmpathy/role=mechanic"
           }
         ]
       }
@@ -67,6 +122,7 @@
       "Bash(npx rhachet run --skill cpsafe:*)",
       "Bash(npx rhachet run --skill mvsafe:*)",
       "Bash(npx rhachet run --skill rmsafe:*)",
+      "Bash(npx rhachet run --skill symlink:*)",
       "Bash(npx rhachet run --skill show.gh.action.logs:*)",
       "Bash(npx rhachet run --skill show.gh.test.errors:*)",
       "Bash(npx rhachet run --skill show.gh.test.errors --scope test-integration)",
@@ -198,6 +254,7 @@
       "Bash(git remote set-url:*)",
       "Bash(git stash:*)",
       "Bash(git tag -d:*)",
+      "Bash(ln:*)",
       "Bash(mv:*)",
       "Bash(npx biome:*)",
       "Bash(npx jest:*)",

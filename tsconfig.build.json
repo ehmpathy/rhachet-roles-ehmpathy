@@ -13,7 +13,6 @@
     "**/*.test.js",
     "**/.test/**/*",
     "**/.scratch/**/*",
-    "**/__test*__/**/*", // todo: deprecate this pattern in favor of .test
-    "rhachet.use.ts"
+    "**/__test*__/**/*" // todo: deprecate this pattern in favor of .test
   ]
 }

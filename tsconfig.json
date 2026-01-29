@@ -21,6 +21,9 @@
     "paths": {
       "@src/*": [
         "src/*"
+      ],
+      "@/*": [
+        "*"
       ]
     }
   },
@@ -31,8 +34,7 @@
   "exclude": [
     "dist",
     "coverage",
-    "node_modules",
-    "rhachet.use.ts"
+    "node_modules"
   ],
   "include": [
     "**/*.ts"
