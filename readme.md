@@ -118,3 +118,15 @@ they wield:
 - 🪸 coral — for architects — to compose many parts into one structure, evolvably
 - 🪷 lotus — for designers — to guide users to the surface, intuitively
 - 🐚 shell — for mechanics — to craft code easy to read and hard to break, maintainably
+
+why seaturtles? because they embody the principles of good software:
+
+1. 🐢 slow and steady — built for the long haul
+2. 🌊 keep it **wet** — wait for patterns to surface
+3. 🐡 safe-by-design — pit of success
+4. 🐚 live in shell — master the terminal
+5. 🤙 go with the flow — work with your tools
+6. 🌙 follow the moonlight — let conventions guide
+7. 🐢🐢🐢 turtles all the way down — recursion and composition
+
+[read the full brief →](./src/domain.roles/mechanic/briefs/practices/lang.tones/define.why-seaturtles-love-software.md)
