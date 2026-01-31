@@ -6,6 +6,11 @@
       "term": "script",
       "why": "overloaded and vague - conflates command, procedure, operation, and mechanism",
       "alt": ["command", "executable", "procedure", "operation", "mechanism"]
+    },
+    {
+      "term": "normalize",
+      "why": "overloaded and vague - conflates format, canonical, sanitize, scale, case, encode, resolve, collapse, expand purposes",
+      "alt": ["asX pattern: asE164, asIso8601, asLowercase, asTrimmed, asComparable, asExplicit, asExpanded, as${DomainObject}, as${DomainObject}${Variant} (e.g., asIsoPriceHuman)"]
     }
   ]
 }
