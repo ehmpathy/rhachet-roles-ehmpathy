@@ -11,6 +11,16 @@
       "term": "normalize",
       "why": "overloaded and vague - conflates format, canonical, sanitize, scale, case, encode, resolve, collapse, expand purposes",
       "alt": ["asX pattern: asE164, asIso8601, asLowercase, asTrimmed, asComparable, asExplicit, asExpanded, as${DomainObject}, as${DomainObject}${Variant} (e.g., asIsoPriceHuman)"]
+    },
+    {
+      "term": "dryrun",
+      "why": "boolean creates double negatives (dryRun: false) and limits extensibility to other modes",
+      "alt": ["mode: 'PLAN' | 'APPLY'", "mode: 'PLAN' | 'VALIDATE' | 'DIFF' | 'APPLY'"]
+    },
+    {
+      "term": "dry-run",
+      "why": "boolean creates double negatives and limits extensibility to other modes",
+      "alt": ["--mode plan", "--mode apply"]
     }
   ]
 }
