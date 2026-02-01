@@ -3,26 +3,29 @@
 # .what = safe file removal within git repo
 #
 # .why  = enables file deletion without:
-#         - touching files outside the repo
+#         - access to files outside the repo
 #         - accidental path traversal attacks
 #
 #         this is a controlled alternative to raw rm, which is
 #         denied in permissions due to security risks.
 #
 # usage:
-#   rmsafe.sh --path "path/to/file"
-#   rmsafe.sh --path "path/to/dir" --recursive
+#   rmsafe.sh "path/to/file"                    # positional (like rm)
+#   rmsafe.sh -r "path/to/dir"                  # recursive (like rm -r)
+#   rmsafe.sh --path "path/to/file"             # named arg
+#   rmsafe.sh --path "path/to/dir" --recursive  # named + recursive
 #
 # guarantee:
 #   - path must be within repo
-#   - requires --recursive for directories
+#   - requires -r/--recursive for directories
 #   - fail-fast on errors
 ######################################################################
 set -euo pipefail
 
-# parse named arguments
+# parse arguments (supports both positional and named)
 TARGET=""
 RECURSIVE=false
+POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -42,17 +45,32 @@ while [[ $# -gt 0 ]]; do
       # args separator - ignore
       shift
       ;;
-    *)
-      echo "unknown argument: $1"
-      echo "usage: rmsafe.sh --path 'target' [--recursive]"
+    --*)
+      echo "error: unknown option: $1"
+      echo "usage: rmsafe.sh <path>"
+      echo "       rmsafe.sh -r <path>"
+      echo "       rmsafe.sh --path <path> [--recursive]"
       exit 1
+      ;;
+    *)
+      # positional argument
+      POSITIONAL_ARGS+=("$1")
+      shift
       ;;
   esac
 done
 
+# handle positional args if --path not provided
+if [[ -z "$TARGET" && ${#POSITIONAL_ARGS[@]} -ge 1 ]]; then
+  TARGET="${POSITIONAL_ARGS[0]}"
+fi
+
 # validate required args
 if [[ -z "$TARGET" ]]; then
-  echo "error: --path is required"
+  echo "error: path is required"
+  echo "usage: rmsafe.sh <path>"
+  echo "       rmsafe.sh -r <path>"
+  echo "       rmsafe.sh --path <path> [--recursive]"
   exit 1
 fi
 
@@ -62,11 +80,31 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
   exit 1
 fi
 
-# get repo root
-REPO_ROOT=$(git rev-parse --show-toplevel)
+# get repo root (resolve symlinks fully)
+REPO_ROOT=$(realpath "$(git rev-parse --show-toplevel)")
 
-# resolve absolute path
-TARGET_ABS=$(realpath -m "$TARGET")
+# validate target exists (check symlink OR regular file/dir)
+if [[ ! -e "$TARGET" && ! -L "$TARGET" ]]; then
+  echo "error: path does not exist: $TARGET"
+  exit 1
+fi
+
+# resolve target path for boundary check
+# for symlinks: resolve parent dir + basename (so we check the symlink location, not target)
+# for regular files/dirs: resolve fully
+if [[ -L "$TARGET" ]]; then
+  # symlink: check the symlink's location, not where it points
+  TARGET_DIR=$(dirname "$TARGET")
+  TARGET_BASE=$(basename "$TARGET")
+  if [[ -e "$TARGET_DIR" ]]; then
+    TARGET_ABS="$(realpath "$TARGET_DIR")/$TARGET_BASE"
+  else
+    TARGET_ABS=$(realpath -m "$TARGET")
+  fi
+else
+  # regular file/dir: resolve fully
+  TARGET_ABS=$(realpath "$TARGET")
+fi
 
 # validate target is within repo
 if [[ "$TARGET_ABS" != "$REPO_ROOT"* ]]; then
@@ -76,21 +114,15 @@ if [[ "$TARGET_ABS" != "$REPO_ROOT"* ]]; then
   exit 1
 fi
 
-# prevent deleting repo root itself
+# prevent delete of repo root itself
 if [[ "$TARGET_ABS" == "$REPO_ROOT" ]]; then
   echo "error: cannot delete the repository root"
   exit 1
 fi
 
-# validate target exists
-if [[ ! -e "$TARGET_ABS" ]]; then
-  echo "error: path does not exist: $TARGET"
-  exit 1
-fi
-
 # check if directory and require --recursive
 if [[ -d "$TARGET_ABS" ]] && [[ "$RECURSIVE" != true ]]; then
-  echo "error: target is a directory, use --recursive to delete"
+  echo "error: target is a directory, use -r or --recursive to delete"
   exit 1
 fi
 
