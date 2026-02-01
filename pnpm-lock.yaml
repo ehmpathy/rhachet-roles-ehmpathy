@@ -124,8 +124,8 @@ importers:
         specifier: file:.
         version: file:(@types/node@22.15.21)(zod@4.3.4)
       test-fns:
-        specifier: 1.11.1
-        version: 1.11.1(@types/node@22.15.21)(zod@4.3.4)
+        specifier: 1.14.0
+        version: 1.14.0(@types/node@22.15.21)(zod@4.3.4)
       tsc-alias:
         specifier: 1.8.10
         version: 1.8.10
@@ -3793,8 +3793,8 @@ packages:
     resolution: {integrity: sha512-cAGWPIyOHU6zlmg88jwm7VRyXnMN7iV68OGAbYDk/Mh/xC/pzVPlQtY6ngoIH/5/tciuhGfvESU8GrHrcxD56w==}
     engines: {node: '>=8'}
 
-  test-fns@1.11.1:
-    resolution: {integrity: sha512-R3wWXPO55oKzAU8kwbEm2s9+KnT7sIopPVkO8XUlZVa0F3tGEdzgnWiOdRkHv3QTkuHSg6pdF5Ji5SKqYFsWJA==}
+  test-fns@1.14.0:
+    resolution: {integrity: sha512-jD+9t5aWeitThX2/iHwcGK+Ay5gcLmtQvZ9arEax1dE0YVqhxSFxjXMOKF/nMyT6oN3EznvtwEXc/0SNkl+Jrw==}
     engines: {node: '>=8.0.0'}
 
   test-fns@1.4.2:
@@ -8653,7 +8653,7 @@ snapshots:
       glob: 7.2.3
       minimatch: 3.1.2
 
-  test-fns@1.11.1(@types/node@22.15.21)(zod@4.3.4):
+  test-fns@1.14.0(@types/node@22.15.21)(zod@4.3.4):
     dependencies:
       domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
       helpful-errors: 1.5.3

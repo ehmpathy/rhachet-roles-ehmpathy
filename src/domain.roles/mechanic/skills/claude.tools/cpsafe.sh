@@ -2,37 +2,41 @@
 ######################################################################
 # .what = safe file copy within git repo
 #
-# .why  = enables file copying without:
-#         - touching files outside the repo
-#         - copying from untracked sources
+# .why  = enables file copy without:
+#         - access to files outside the repo
 #         - accidental path traversal attacks
 #
 #         this is a controlled alternative to raw cp, which is
 #         denied in permissions due to security risks.
 #
 # usage:
-#   cpsafe.sh --src "path/to/source" --dest "path/to/dest"
+#   cpsafe.sh "path/to/source" "path/to/dest"                # positional (like cp)
+#   cpsafe.sh --from "path/to/source" --into "path/to/dest"  # named args
 #
 # guarantee:
-#   - source must be git-tracked
+#   - source must be within repo
 #   - dest must be within repo
 #   - creates parent directories if needed
 #   - fail-fast on errors
 ######################################################################
 set -euo pipefail
 
-# parse named arguments
-SRC=""
-DEST=""
+# parse arguments (supports both positional and named)
+FROM=""
+INTO=""
+NAMED_ARG_USED=false
+POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --src)
-      SRC="$2"
+    --from)
+      FROM="$2"
+      NAMED_ARG_USED=true
       shift 2
       ;;
-    --dest)
-      DEST="$2"
+    --into)
+      INTO="$2"
+      NAMED_ARG_USED=true
       shift 2
       ;;
     --repo|--role|--skill)
@@ -43,22 +47,52 @@ while [[ $# -gt 0 ]]; do
       # args separator - ignore
       shift
       ;;
-    *)
-      echo "unknown argument: $1"
-      echo "usage: cpsafe.sh --src 'source' --dest 'destination'"
+    --*)
+      echo "error: unknown option: $1"
+      echo "usage: cpsafe.sh <from> <into>"
+      echo "       cpsafe.sh --from <source> --into <destination>"
       exit 1
+      ;;
+    *)
+      # positional argument
+      POSITIONAL_ARGS+=("$1")
+      shift
       ;;
   esac
 done
 
+# if named args used, both must be provided (no mix with positional)
+if [[ "$NAMED_ARG_USED" == true ]]; then
+  if [[ -z "$FROM" ]]; then
+    echo "error: --from is required when --into is specified"
+    exit 1
+  fi
+  if [[ -z "$INTO" ]]; then
+    echo "error: --into is required when --from is specified"
+    exit 1
+  fi
+else
+  # handle positional args
+  if [[ ${#POSITIONAL_ARGS[@]} -ge 1 ]]; then
+    FROM="${POSITIONAL_ARGS[0]}"
+  fi
+  if [[ ${#POSITIONAL_ARGS[@]} -ge 2 ]]; then
+    INTO="${POSITIONAL_ARGS[1]}"
+  fi
+fi
+
 # validate required args
-if [[ -z "$SRC" ]]; then
-  echo "error: --src is required"
+if [[ -z "$FROM" ]]; then
+  echo "error: source path is required"
+  echo "usage: cpsafe.sh <from> <into>"
+  echo "       cpsafe.sh --from <source> --into <destination>"
   exit 1
 fi
 
-if [[ -z "$DEST" ]]; then
-  echo "error: --dest is required"
+if [[ -z "$INTO" ]]; then
+  echo "error: destination path is required"
+  echo "usage: cpsafe.sh <from> <into>"
+  echo "       cpsafe.sh --from <source> --into <destination>"
   exit 1
 fi
 
@@ -68,56 +102,64 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
   exit 1
 fi
 
-# get repo root
-REPO_ROOT=$(git rev-parse --show-toplevel)
+# get repo root (resolve symlinks fully)
+REPO_ROOT=$(realpath "$(git rev-parse --show-toplevel)")
 
-# resolve absolute paths
-SRC_ABS=$(realpath -m "$SRC")
-DEST_ABS=$(realpath -m "$DEST")
+# validate source exists first
+if [[ ! -e "$FROM" ]]; then
+  echo "error: source does not exist: $FROM"
+  exit 1
+fi
+
+# resolve source path (exists, so realpath fully resolves symlinks)
+FROM_ABS=$(realpath "$FROM")
+
+# resolve dest path: parent must exist for safe symlink resolution
+INTO_DIR=$(dirname "$INTO")
+INTO_BASE=$(basename "$INTO")
+if [[ -e "$INTO_DIR" ]]; then
+  # parent exists - resolve it fully, then append basename
+  INTO_ABS="$(realpath "$INTO_DIR")/$INTO_BASE"
+else
+  # parent doesn't exist - use -m but can't resolve symlinks
+  INTO_ABS=$(realpath -m "$INTO")
+fi
 
 # validate source is within repo
-if [[ "$SRC_ABS" != "$REPO_ROOT"* ]]; then
+if [[ "$FROM_ABS" != "$REPO_ROOT"* ]]; then
   echo "error: source must be within the git repository"
   echo "  repo root: $REPO_ROOT"
-  echo "  source:    $SRC_ABS"
+  echo "  source:    $FROM_ABS"
   exit 1
 fi
 
 # validate dest is within repo
-if [[ "$DEST_ABS" != "$REPO_ROOT"* ]]; then
+if [[ "$INTO_ABS" != "$REPO_ROOT"* ]]; then
   echo "error: destination must be within the git repository"
   echo "  repo root: $REPO_ROOT"
-  echo "  dest:      $DEST_ABS"
+  echo "  dest:      $INTO_ABS"
   exit 1
 fi
 
-# get relative path for git ls-files check
-SRC_REL="${SRC_ABS#$REPO_ROOT/}"
-
-# validate source is git-tracked
-if ! git ls-files --error-unmatch "$SRC_REL" > /dev/null 2>&1; then
-  echo "error: source file is not git-tracked: $SRC_REL"
-  exit 1
-fi
-
-# validate source exists
-if [[ ! -f "$SRC_ABS" ]]; then
-  echo "error: source file does not exist: $SRC"
+# validate source is a file (not directory)
+if [[ ! -f "$FROM_ABS" ]]; then
+  echo "error: source must be a file, not a directory: $FROM"
   exit 1
 fi
 
 # create parent directories if needed
-DEST_DIR=$(dirname "$DEST_ABS")
-if [[ ! -d "$DEST_DIR" ]]; then
-  echo "creating directory: $DEST_DIR"
-  mkdir -p "$DEST_DIR"
+INTO_ABS_DIR=$(dirname "$INTO_ABS")
+if [[ ! -d "$INTO_ABS_DIR" ]]; then
+  echo "create directory: $INTO_ABS_DIR"
+  mkdir -p "$INTO_ABS_DIR"
 fi
 
 # perform the copy
 # -P = don't follow symlinks, copy symlink itself
-# why: a tracked symlink could point outside repo (e.g., ln -s /etc/passwd ./data.txt)
-#      without -P, cp would read the target content, bypassing our repo boundary checks
-cp -P "$SRC_ABS" "$DEST_ABS"
+# why: a symlink could point outside repo (e.g., ln -s /etc/passwd ./data.txt)
+#      without -P, cp would read the target content, bypass our repo boundary checks
+cp -P "$FROM_ABS" "$INTO_ABS"
 
-DEST_REL="${DEST_ABS#$REPO_ROOT/}"
-echo "copied: $SRC_REL -> $DEST_REL"
+FROM_REL="${FROM_ABS#$REPO_ROOT/}"
+INTO_REL="${INTO_ABS#$REPO_ROOT/}"
+echo "copied: $FROM_REL -> $INTO_REL"
