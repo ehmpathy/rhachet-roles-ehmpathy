@@ -190,6 +190,11 @@
       "Bash(npx rhachet run --skill show.gh.test.errors:*)",
       "Bash(npx rhachet run --skill show.gh.test.errors --scope test-integration)",
 
+      // get.package.docs - fetch package readme or filetree from node_modules
+      "Bash(npx rhachet run --skill get.package.docs:*)",
+      "Bash(npx rhachet run --skill get.package.docs readme --of iso-price)",
+      "Bash(npx rhachet run --skill get.package.docs filetree --of iso-price)",
+
       // any skill, really
       "Bash(npx rhachet run:*)",
 
