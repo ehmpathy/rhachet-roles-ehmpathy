@@ -12,6 +12,10 @@ on:
         required: false
         type: string
         default: "us-east-1"
+    secrets:
+      XAI_API_KEY:
+        description: "api key for xai (grok) - required for border guard acceptance tests"
+        required: false
 
 permissions:
   id-token: write # required for oidc
@@ -219,12 +223,16 @@ jobs:
 
       - name: test:integration (explicit ${{ matrix.shard.index }})
         if: matrix.shard.type == 'explicit'
+        env:
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
         run: |
           patterns='${{ join(matrix.shard.patterns, '|') }}'
           THOROUGH=true npm run test:integration -- --testPathPattern="$patterns" --json --outputFile=jest-results.json
 
       - name: test:integration (dynamic ${{ matrix.shard.shard }}/${{ matrix.shard.total }})
         if: matrix.shard.type == 'dynamic'
+        env:
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
         run: |
           exclude='${{ needs.enshard.outputs.integration-patterns }}'
           if [[ -n "$exclude" ]]; then
@@ -285,12 +293,16 @@ jobs:
 
       - name: test:acceptance (explicit ${{ matrix.shard.index }})
         if: matrix.shard.type == 'explicit'
+        env:
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
         run: |
           patterns='${{ join(matrix.shard.patterns, '|') }}'
           THOROUGH=true npm run test:acceptance -- --testPathPattern="$patterns" --json --outputFile=jest-results.json
 
       - name: test:acceptance (dynamic ${{ matrix.shard.shard }}/${{ matrix.shard.total }})
         if: matrix.shard.type == 'dynamic'
+        env:
+          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
         run: |
           exclude='${{ needs.enshard.outputs.acceptance-patterns }}'
           if [[ -n "$exclude" ]]; then

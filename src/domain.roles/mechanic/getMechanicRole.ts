@@ -65,6 +65,12 @@ export const ROLE_MECHANIC: Role = Role.build({
           timeout: 'PT5S',
           filter: { what: 'Bash', when: 'before' },
         },
+        {
+          command:
+            './node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/posttooluse.guardBorder.onWebfetch',
+          timeout: 'PT60S',
+          filter: { what: 'WebFetch', when: 'after' },
+        },
       ],
       onStop: [
         {

@@ -9,6 +9,9 @@
   "permissions": {
     // commands that should never be auto-approved
     "deny": [
+      // quarantine directory — blocked content must not be accessible to agent
+      "Read(.quarantine/*)",
+
       // whatever it uses via bash is typically executable via its own name -> own permissions
       "Bash(bash:*)",
 
@@ -123,13 +126,9 @@
       // ide integrations
       "mcp__ide__getDiagnostics",
 
-      // web access
+      // web access — border guard PostToolUse hook inspects all WebFetch content
       "WebSearch",
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:www.npmjs.com)",
-      "WebFetch(domain:hub.docker.com)",
-      "WebFetch(domain:raw.githubusercontent.com)",
-      "WebFetch(domain:biomejs.dev)",
+      "WebFetch",
 
       // filesystem read operations
       "Bash(ls:*)",
