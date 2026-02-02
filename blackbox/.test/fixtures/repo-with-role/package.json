@@ -1,0 +1,7 @@
+{
+  "name": "test-repo",
+  "version": "1.0.0",
+  "dependencies": {
+    "rhachet-roles-ehmpathy": "link:./node_modules/rhachet-roles-ehmpathy"
+  }
+}

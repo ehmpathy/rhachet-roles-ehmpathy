@@ -1,5 +1,5 @@
 {
   "apikeys": {
-    "required": []
+    "required": ["XAI_API_KEY"]
   }
 }

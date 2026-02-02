@@ -12,6 +12,11 @@
   "bugs": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues",
   "license": "MIT",
   "main": "dist/index.js",
+  "exports": {
+    ".": "./dist/index.js",
+    "./cli": "./dist/contract/cli/index.js",
+    "./package.json": "./package.json"
+  },
   "engines": {
     "node": ">=8.0.0"
   },
@@ -70,11 +75,13 @@
     "openai": "5.8.2",
     "rhachet-artifact": "1.0.0",
     "rhachet-artifact-git": "1.1.0",
+    "rhachet-brains-xai": "0.2.0",
     "serde-fns": "1.2.0",
     "simple-in-memory-cache": "0.4.0",
     "type-fns": "1.21.0",
     "with-simple-caching": "0.14.2",
-    "wrapper-fns": "1.1.0"
+    "wrapper-fns": "1.1.0",
+    "zod": "4.3.4"
   },
   "devDependencies": {
     "@biomejs/biome": "2.3.8",

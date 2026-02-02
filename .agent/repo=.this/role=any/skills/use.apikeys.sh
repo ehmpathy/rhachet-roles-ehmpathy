@@ -12,14 +12,31 @@
 #   - falls back to .env.local (gitignored) in repo root
 ######################################################################
 
-# fail if not sourced (check if $0 matches this file)
-case "$0" in
-  *use.apikeys.sh)
+# fail if not sourced
+# - zsh: check ZSH_EVAL_CONTEXT for 'file' (set when sourced)
+# - bash: (return 0 2>/dev/null) succeeds only when sourced
+# - other: fallback to $0 check
+if [ -n "$ZSH_EVAL_CONTEXT" ]; then
+  case $ZSH_EVAL_CONTEXT in
+    *:file:*|*:file) ;; # sourced in zsh, continue
+    *) echo "error: this file must be sourced, not executed"; echo "usage: source $0"; exit 1;;
+  esac
+elif [ -n "$BASH_VERSION" ]; then
+  if ! (return 0 2>/dev/null); then
     echo "error: this file must be sourced, not executed"
     echo "usage: source $0"
     exit 1
-    ;;
-esac
+  fi
+else
+  # fallback for other shells - check $0
+  case "$0" in
+    *use.apikeys.sh)
+      echo "error: this file must be sourced, not executed"
+      echo "usage: source $0"
+      exit 1
+      ;;
+  esac
+fi
 
 # alias source to `.` for posix compat
 source() { . "$@"; }

@@ -1,0 +1,135 @@
+Sea turtles (superfamily Chelonioidea), sometimes called marine turtles, are reptiles of the order Testudines and of the suborder Cryptodira. The seven existing species of sea turtles are the flatback, green, hawksbill, leatherback, loggerhead, Kemp's ridley, and olive ridley. Five of the seven species are listed as threatened with extinction globally on the IUCN Red List of Threatened Species. The remaining two are not considered to be threatened with extinction, one of which, the flatback turtle, is found only in the waters of Australia, Papua New Guinea, and Indonesia.
+
+Sea turtles can be categorized as hard-shelled (cheloniid) or leathery-shelled (dermochelyid). The only dermochelyid species of sea turtle is the leatherback.
+
+== Description ==
+
+For each of the seven species of sea turtles, females and males are the same size. As adults, it is possible to tell male turtles from female turtles by their long tails with a cloacal opening near the tip. Adult female sea turtles have shorter tails, with a cloacal opening near the base. Hatchling and sub-adult turtles do not exhibit sexual dimorphism; it is not possible to determine their sex by looking at them.
+
+In general, sea turtles have a more fusiform body plan than their terrestrial or freshwater counterparts. This tapering at both ends reduces volume and means that sea turtles cannot retract their head and limbs into their shells for protection, unlike many other turtles and tortoises. However, the streamlined body plan reduces friction and drag in the water and allows sea turtles to swim more easily and swiftly.
+
+The leatherback sea turtle is the largest sea turtle, reaching 1.4 to more than 1.8 m (4.6 to 5.9 ft) in length and weighing between 300 and 640 kg (661 to 1,411 lbs). Other sea turtle species are smaller, ranging from as little as 60 cm (2 ft) long in the case of the Kemp's ridley, which is the smallest sea turtle species, to 120 cm (3.9 ft) long in the case of the green turtle, the second largest.
+
+The skulls of sea turtles have cheek regions that are enclosed in bone. Although this condition appears to resemble that found in the earliest known fossil reptiles (anapsids), it is possible it is a more recently evolved trait in sea turtles, placing them outside the anapsids.
+
+== Taxonomy and evolution ==
+
+Sea turtles, along with other turtles and tortoises, are part of the order Testudines. All species except the leatherback sea turtle are in the family Cheloniidae. The superfamily name Chelonioidea and family name Cheloniidae are based on the Ancient Greek word for tortoise: χελώνη (khelōnē). The leatherback sea turtle is the only extant member of the family Dermochelyidae.
+
+Fossil evidence of marine turtles goes back to the Late Jurassic (150 million years ago) with genera such as Plesiochelys, from Europe. In Africa, the first marine turtle is Angolachelys, from the Turonian of Angola. A lineage of unrelated marine testudines, the pleurodire (side-necked) bothremydids, also survived well into the Cenozoic. Other pleurodires are also thought to have lived at sea, such as Araripemys and extinct pelomedusids. Modern sea turtles are not descended from more than one of the groups of sea-going turtles that have existed in the past; they instead constitute a single radiation that became distinct from all other turtles at least 110 million years ago.
+
+Their closest extant relatives are in fact the snapping turtles (Chelydridae), musk turtles (Kinosternidae), and hickatee (Dermatemyidae) of the Americas, which alongside the sea turtles constitute the clade Americhelydia.
+
+The oldest possible representative of the lineage (Panchelonioidea) leading to modern sea turtles was possibly Desmatochelys padillai from the Early Cretaceous. Desmatochelys was a protostegid, a lineage that would later give rise to some very large species but went extinct at the end of the Cretaceous.
+
+== Distribution and habitat ==
+
+Sea turtles can be found in all oceans except for the polar regions. The flatback sea turtle is found solely on the northern coast of Australia. The Kemp's ridley sea turtle is found solely in the Gulf of Mexico and along the East Coast of the United States.
+
+Sea turtles are generally found in the waters over continental shelves. During the first three to five years of life, sea turtles spend most of their time in the pelagic zone floating in seaweed mats. Green sea turtles in particular are often found in Sargassum mats, in which they find food, shelter and water. Once the sea turtle has reached adulthood it moves closer to the shore. Females will come ashore to lay their eggs on sandy beaches during the nesting season.
+
+Sea turtles migrate to reach their spawning beaches, which are limited in numbers. Living in the ocean therefore means they usually migrate over large distances. All sea turtles have large body sizes, which is helpful for moving large distances. Large body sizes also offer good protection against the large predators (notably sharks) found in the ocean.
+
+== Life cycle ==
+
+Sea turtles are thought to reach sexual maturity from about 10−20 years old depending on species and methodology. However, reliable estimates are difficult to ascertain. Mature sea turtles may migrate thousands of miles to reach breeding sites. After mating at sea, adult female sea turtles return to land to lay their eggs. Different species of sea turtles exhibit various levels of philopatry. In the extreme case, females return to the same beach where they hatched. This can take place every two to four years in maturity.
+
+The mature nesting female hauls herself onto the beach, nearly always at night, and finds suitable sand in which to create a nest. Using her hind flippers, she digs a circular hole 40 to 50 centimetres (16 to 20 in) deep. After the hole is dug, the female then starts filling the nest with her clutch of soft-shelled eggs. Depending on the species, a typical clutch may contain 50–350 eggs. After laying, she re-fills the nest with sand, re-sculpting and smoothing the surface, and then camouflaging the nest with vegetation until it is relatively undetectable visually. She may also dig decoy nests. The whole process takes 30 to 60 minutes. She then returns to the ocean, leaving the eggs untended.
+
+Females may lay 1–8 clutches in a single season. Female sea turtles alternate between mating in the water and laying their eggs on land. Most sea turtle species nest individually. But ridley sea turtles come ashore en masse, known as an arribada (arrival). With the Kemp's ridley sea turtle this occurs during the day.
+
+Sea turtles have temperature-dependent sex determination. Warmer temperatures produce female hatchlings, while cooler temperatures produce male hatchlings. The eggs will incubate for 50–60 days. The eggs in one nest hatch together over a short period of time. The baby sea turtles break free of the egg shell, dig through the sand, and crawl into the sea. Most species of sea turtles hatch at night. However, the Kemp's ridley sea turtle commonly hatches during the day. Sea turtle nests that hatch during the day are more vulnerable to predators, and may encounter more human activity on the beach.
+
+Larger hatchlings have a higher probability of survival than smaller individuals, which can be explained by the fact that larger offspring are faster and thus less exposed to predation. Predators can only functionally intake so much; larger individuals are not targeted as often. A study conducted on this topic shows that body size is positively correlated with speed, so larger baby sea turtles are exposed to predators for a shorter amount of time.
+
+== Physiology ==
+
+=== Osmoregulation ===
+
+Sea turtles maintain an internal environment that is hypotonic to the ocean. To maintain hypotonicity they must excrete excess salt ions. Like other marine reptiles, sea turtles rely on a specialized gland to rid the body of excess salt, because reptilian kidneys cannot produce urine with a higher ion concentration than sea water. All species of sea turtles have a lachrymal gland in the orbital cavity, capable of producing tears with a higher salt concentration than sea water.
+
+Leatherback sea turtles face an increased osmotic challenge compared to other species of sea turtle, since their primary prey are jellyfish and other gelatinous plankton, whose fluids have the same concentration of salts as sea water. The much larger lachrymal gland found in leatherback sea turtles may have evolved to cope with the higher intake of salts from their prey.
+
+Hatchlings depend on drinking sea water immediately upon entering the ocean to replenish water lost during the hatching process. Salt gland functioning begins quickly after hatching, so that the young sea turtles can establish ion and water balance soon after entering the ocean. Survival and physiological performance hinge on immediate and efficient hydration following emergence from the nest.
+
+=== Thermoregulation ===
+
+All sea turtles are poikilotherms. However, leatherback sea turtles (family Dermochelyidae) are able to maintain a body temperature 8 °C (14 °F) warmer than the ambient water by thermoregulation through the trait of gigantothermy.
+
+Green sea turtles in the relatively cooler Pacific are known to haul themselves out of the water on remote islands to bask in the sun. This behavior has only been observed in a few locations, including the Galapagos, Hawaii, Europa Island, and parts of Australia.
+
+=== Diving physiology ===
+
+Sea turtles are air-breathing reptiles that have lungs, so they regularly surface to breathe. Sea turtles spend a majority of their time underwater, so they must be able to hold their breath for long periods. Dive duration largely depends on activity. A foraging sea turtle may typically spend 5–40 minutes underwater while a sleeping sea turtle can remain underwater for 4–7 hours. Remarkably, sea turtle respiration remains aerobic for the vast majority of voluntary dive time.
+
+When surfacing to breathe, a sea turtle can quickly refill its lungs with a single explosive exhalation and rapid inhalation. Their large lungs permit rapid exchange of oxygen and avoid trapping gases during deep dives.
+
+Cold-stunning is a phenomenon that occurs when sea turtles enter cold ocean water (7–10 °C (45–50 °F)), which causes the turtles to float to the surface and therefore makes it impossible for them to swim.
+
+=== Navigation ===
+
+Below the surface, the sensory cues available for navigation change dramatically. Light availability decreases quickly with depth, and is refracted by the movement of water when present, celestial cues are often obscured, and ocean currents cause continuous drift. Most sea turtle species migrate over significant distances to nesting or foraging grounds, some even crossing entire ocean basins.
+
+In order to reliably navigate within strong gyre currents in the open ocean, migrating sea turtles possess both a bicoordinate magnetic map and magnetic compass sense, using a form of navigation termed Magnetoreception. Specific migratory routes have been shown to vary between individuals, making the possession of both a magnetic map and compass sense advantageous for sea turtles.
+
+A bicoordinate magnetic map gives sea turtles the ability to determine their position relative to a goal with both latitudinal and longitudinal information, and requires the detection and interpretation of more than one magnetic parameter going in opposite directions to generate, such as Magnetic field intensity and Inclination angle. A magnetic compass sense allows sea turtles to determine and maintain a specific magnetic heading or orientation.
+
+Natal homing behavior is well described in sea turtles, and genetic testing of turtle populations at different nesting sites has shown that magnetic field is a more reliable indicator of genetic similarity than physical distance between sites. Additionally, nesting sites have been recorded to "drift" along with isoline shifts in the magnetic field.
+
+== Ecology ==
+
+=== Diet ===
+
+The loggerhead, Kemp's ridley, olive ridley, and hawksbill sea turtles are omnivorous their entire life. Omnivorous turtles may eat a wide variety of plant and animal life including decapods, seagrasses, seaweed, sponges, mollusks, cnidarians, Echinoderms, worms and fish. However, some species specialize on certain prey.
+
+The diet of green sea turtles changes with age. Juveniles are omnivorous, but as they mature they become exclusively herbivorous. This diet shift has an effect on the green sea turtle's morphology. Green sea turtles have a serrated jaw that is used to eat sea grass and algae.
+
+Leatherback sea turtles feed almost exclusively on jellyfish and help control jellyfish populations.
+
+Hawksbill sea turtles principally eat sponges, which constitute 70–95 % of their diets in the Caribbean.
+
+Loggerhead turtles are regarded as flexible predators of slow-moving animals. They eat a broad variety of things, including terrestrial insects like ants, planthoppers, and beetles, as well as sea animals and plants. This species' primary diet consists of gelatinous creatures (medusae and ctenophores) and crustaceans, particularly crabs.
+
+== Conservation ==
+
+Sea turtles are caught worldwide, although it is illegal to hunt most species in many countries. A great deal of intentional sea turtle harvests worldwide are for food. Many parts of the world have long considered sea turtles to be fine dining. In England during the 1700s, sea turtles were consumed as a delicacy to near extinction, often as turtle soup. Ancient Chinese texts dating to the 5th century B.C.E. describe sea turtles as exotic delicacies.
+
+Many coastal communities around the world depend on sea turtles as a source of protein, often harvesting several sea turtles at once and keeping them alive on their backs until needed. Coastal peoples gather sea turtle eggs for consumption.
+
+To a much lesser extent, specific species of sea turtles are targeted not for their flesh, but for their shells. Tortoiseshell, a traditional decorative ornamental material used in Japan and China, comes from the carapace scutes of the hawksbill sea turtle. Ancient Greeks and ancient Romans processed sea turtle scutes (primarily from the hawksbill) for various articles and ornaments used by their elites, such as combs and brushes.
+
+The leather from the flippers and neck of sea turtles is used in certain countries to produce various leather goods. In parts of Ecuador, sea turtle eggs used to be consumed as the first course of a family meal.
+
+== Green Sea Turtle ==
+
+The green sea turtle (Chelonia mydas), also known as the green turtle, black sea turtle, and Pacific green turtle, is a species of large sea turtle of the family Cheloniidae. It is the only species in the genus Chelonia. Its range extends throughout tropical and subtropical seas around the world, with two distinct populations in the Atlantic and Pacific Oceans, but it is also found in the Indian Ocean.
+
+The common name refers to the usually green fat found beneath its carapace, due to its diet strictly being seagrass, not to the color of its carapace, which is olive to black.
+
+The dorsoventrally flattened body of C. mydas is covered by a large, teardrop-shaped carapace; it has a pair of large, paddle-like flippers. It is usually lightly colored, although in the eastern Pacific populations, parts of the carapace can be almost black. Unlike other members of its family, such as the hawksbill sea turtle, C. mydas is mostly herbivorous. The adults usually inhabit shallow lagoons, feeding mostly on various species of seagrasses. The green sea turtle is the only aquatic turtle species which is herbivorous when fully grown.
+
+Like other sea turtles, green sea turtles migrate long distances between feeding grounds and hatching beaches. Many islands worldwide are known as Turtle Island due to green sea turtles nesting on their beaches. Females crawl out on beaches, dig nests, and lay eggs during the night. Later, hatchlings emerge, and scramble into the water. Those that reach maturity may live to 90 years in the wild.
+
+C. mydas was listed as endangered by the IUCN and CITES until 2025 and is protected from exploitation in most countries. It is illegal to collect, harm, or kill them. In addition, many countries have laws and ordinances to protect nesting areas. However, turtles are still in danger due to human activity. In some countries, turtles and their eggs are still hunted for food. Pollution indirectly harms turtles at both population and individual scales. Many turtles die after being caught in fishing nets. In addition, real estate development often causes habitat loss by eliminating nesting beaches.
+
+=== Green Turtle Description ===
+
+Its appearance is that of a typical sea turtle. C. mydas has a dorsoventrally flattened body, a beaked head at the end of a short neck, and paddle-like arms well-adapted for swimming. Adult green turtles grow to 1.5 metres (5 ft) long. The average weight of mature individuals is 68–190 kg (150–419 lb) and the average carapace length is 78–112 cm (31–44 in). They are considered the second largest sea turtle in the United States, after the leatherback sea turtle.
+
+Exceptional specimens can weigh 315 kg (694 lb) or even more, with the largest known C. mydas having weighed 395 kg (871 lb) and measured 153 cm (60 in) in carapace length.
+
+Anatomically, a few characteristics distinguish the green turtle from the other members of its family. Unlike its close relative the hawksbill turtle, the green turtle's snout is very short and its beak is unhooked. The neck cannot be pulled into the shell. The sheath of the turtle's upper jaw possesses a denticulated edge, while its lower jaw has stronger, serrated, more defined denticulation.
+
+The carapace of the turtle has various color patterns that change over time. Hatchlings of Chelonia mydas, like those of other marine turtles, have mostly black carapaces and light-colored plastrons. Carapaces of juveniles turn dark brown to olive, while those of mature adults are either entirely brown, spotted or marbled with variegated rays. Underneath, the turtle's plastron is hued yellow.
+
+=== Green Turtle Distribution ===
+
+The range of the green sea turtle extends throughout tropical and subtropical oceans worldwide. The two major subpopulations are the Atlantic and the eastern Pacific subpopulations. Each population is genetically distinct, with its own set of nesting and feeding grounds within the population's known range.
+
+In the Caribbean, major nesting sites have been identified on Aves Island, the U.S. Virgin Islands, Puerto Rico, the Dominican Republic, and Costa Rica. In recent years, there are signs of increased nesting in the Cayman Islands. One of the region's most important nesting grounds is in Tortuguero in Costa Rica. In fact, the majority of the Caribbean region's C. mydas population hails from a few beaches in Tortuguero.
+
+Within United States waters, minor nesting sites have been noted in the states of Georgia, North Carolina, and South Carolina. Florida's east coast is the largest nesting site in the United States. Hutchinson Island in particular is a major nesting area in Florida waters. Florida has several annual nesting periods when local beaches are closed or cordoned off to protect nesting sites.
+
+In the Pacific, its range reaches as far north as the southern coast of Alaska and as far south as Chile in the east. The turtle's distribution in the western Pacific reaches north to Japan and southern parts of Russia's Pacific coast, and as far south as the northern tip of New Zealand and a few islands south of Tasmania.
+
+Significant nesting grounds are scattered throughout the entire Pacific region, including Mexico, the Hawaiian Islands, the South Pacific, the northern coast of Australia, and Southeast Asia. Major Indian Ocean nesting colonies include India, Pakistan, Sri Lanka and other coastal countries.
