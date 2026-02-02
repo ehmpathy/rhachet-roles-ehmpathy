@@ -1,0 +1,22 @@
+{
+  // explicit shards run specific test patterns in their own shard
+  // this enables parallelism for slow test files
+  "explicit": [
+    {
+      // guardBorder injection tests are slow due to xAI API calls (~40s each)
+      // split into separate shards to parallelize
+      "patterns": ["guardBorder.onWebfetch.injectionFront.acceptance.test.ts"]
+    },
+    {
+      "patterns": ["guardBorder.onWebfetch.injectionMiddle.acceptance.test.ts"]
+    },
+    {
+      "patterns": ["guardBorder.onWebfetch.injectionEnd.acceptance.test.ts"]
+    }
+  ],
+
+  // dynamic shards split the rest of tests (not in explicit patterns)
+  "dynamic": {
+    "shards": 1
+  }
+}
