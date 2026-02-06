@@ -105,7 +105,12 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 3, push: 'block' },
-          commitArgs: ['--message', 'fix(api): validate input'],
+          commitArgs: [
+            '--message',
+            'fix(api): validate input',
+            '--mode',
+            'apply',
+          ],
         });
 
         expect(result.exitCode).toBe(0);
@@ -117,13 +122,19 @@ describe('git.commit.set.sh', () => {
         expect(result.stdout).toContain('email: human@test.com');
         expect(result.stdout).toContain('push: skipped');
         expect(result.stdout).toContain('left: 2');
+        expect(result.stdout).toMatchSnapshot();
       });
 
       then('git log shows correct author', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'block' },
-          commitArgs: ['--message', 'fix(api): validate input'],
+          commitArgs: [
+            '--message',
+            'fix(api): validate input',
+            '--mode',
+            'apply',
+          ],
         });
 
         const log = spawnSync('git', ['log', '--format=%an <%ae>', '-1'], {
@@ -145,7 +156,13 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'allow' },
-          commitArgs: ['--message', 'fix(api): handle edge case', '--push'],
+          commitArgs: [
+            '--message',
+            'fix(api): handle edge case',
+            '--push',
+            '--mode',
+            'apply',
+          ],
         });
 
         // push may fail without remote, but the vibe should be cowabunga
@@ -158,37 +175,54 @@ describe('git.commit.set.sh', () => {
     });
   });
 
-  given('[case3] no uses remaining', () => {
-    when('[t0] meter shows 0 uses', () => {
+  given('[case3] no uses left', () => {
+    when('[t0] apply mode with 0 uses', () => {
       then('outputs bummer dude', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 0, push: 'block' },
-          commitArgs: ['--message', 'some fix'],
+          commitArgs: ['--message', 'some fix', '--mode', 'apply'],
         });
 
         expect(result.exitCode).toBe(1);
         expect(result.stdout).toContain('🐢 bummer dude...');
-        expect(result.stdout).toContain('no commit uses remaining');
+        expect(result.stdout).toContain('no commit uses left');
         expect(result.stdout).toContain(
           'git.commit.uses set --allow N --push allow|block',
         );
+        expect(result.stdout).toMatchSnapshot();
       });
 
       then('no commit is created', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 0, push: 'block' },
-          commitArgs: ['--message', 'some fix'],
+          commitArgs: ['--message', 'some fix', '--mode', 'apply'],
         });
 
         const log = spawnSync('git', ['log', '--oneline'], {
           cwd: result.tempDir,
-          encoding: 'utf-8',
+          encoding: 'utf-8' as BufferEncoding,
         });
         // genTempDir({ git: true }) creates an initial commit + gitignore setup; verify no new one was added
         expect(log.stdout.trim().split('\n').length).toBe(2);
         expect(log.stdout).not.toContain('some fix');
+      });
+    });
+
+    when('[t1] plan mode with 0 uses', () => {
+      then('plan is allowed without uses', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 0, push: 'block' },
+          commitArgs: ['--message', 'fix: zero uses plan'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('🐢 heres the wave...');
+        expect(result.stdout).toContain('header: fix: zero uses plan');
+        expect(result.stdout).toContain('left: 0 → -1');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -205,6 +239,7 @@ describe('git.commit.set.sh', () => {
         expect(result.exitCode).toBe(1);
         expect(result.stdout).toContain('🐢 bummer dude...');
         expect(result.stdout).toContain('push not allowed in current grant');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -250,6 +285,7 @@ describe('git.commit.set.sh', () => {
 
         expect(result.exitCode).toBe(1);
         expect(result.stdout).toContain('cannot determine patron');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -260,7 +296,7 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 3, push: 'block' },
-          commitArgs: ['--message', 'fix: something'],
+          commitArgs: ['--message', 'fix: something', '--mode', 'apply'],
         });
 
         expect(result.exitCode).toBe(0);
@@ -314,7 +350,14 @@ describe('git.commit.set.sh', () => {
           files: { 'staged.txt': 'staged content' },
           filesUnstaged: { 'unstaged.txt': 'unstaged content' },
           meterState: { uses: 2, push: 'block' },
-          commitArgs: ['--message', 'fix: staged only', '--unstaged', 'ignore'],
+          commitArgs: [
+            '--message',
+            'fix: staged only',
+            '--unstaged',
+            'ignore',
+            '--mode',
+            'apply',
+          ],
         });
 
         expect(result.exitCode).toBe(0);
@@ -345,6 +388,8 @@ describe('git.commit.set.sh', () => {
             'fix: all changes',
             '--unstaged',
             'include',
+            '--mode',
+            'apply',
           ],
         });
 
@@ -376,6 +421,8 @@ describe('git.commit.set.sh', () => {
             'fix: from unstaged',
             '--unstaged',
             'include',
+            '--mode',
+            'apply',
           ],
         });
 
@@ -391,7 +438,7 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'block' },
-          commitArgs: ['--message', 'fix: trailer test'],
+          commitArgs: ['--message', 'fix: trailer test', '--mode', 'apply'],
         });
 
         expect(result.exitCode).toBe(0);
@@ -409,7 +456,7 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'block' },
-          commitArgs: ['--message', 'fix: blank line test'],
+          commitArgs: ['--message', 'fix: blank line test', '--mode', 'apply'],
         });
 
         const log = spawnSync('git', ['log', '--format=%B', '-1'], {
@@ -422,6 +469,335 @@ describe('git.commit.set.sh', () => {
         expect(lines[0]).toBe('fix: blank line test');
         expect(lines[1]).toBe('');
         expect(lines[2]).toContain('Co-authored-by:');
+      });
+    });
+  });
+
+  given('[case10] plan mode shows preview', () => {
+    when('[t0] plan mode is default', () => {
+      then('shows plan output without committing', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: ['--message', 'fix: plan test'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('🐢 heres the wave...');
+        expect(result.stdout).toContain('--mode plan');
+        expect(result.stdout).toContain('header: fix: plan test');
+        expect(result.stdout).toContain('run with --mode apply to execute');
+        expect(result.stdout).toMatchSnapshot();
+
+        // verify no commit was created
+        const log = spawnSync('git', ['log', '--oneline'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8' as BufferEncoding,
+        });
+        expect(log.stdout).not.toContain('fix: plan test');
+      });
+
+      then('shows meter transition', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: ['--message', 'fix: meter test'],
+        });
+
+        expect(result.stdout).toContain('left: 3 → 2');
+      });
+
+      then('does not decrement uses', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: ['--message', 'fix: no decrement'],
+        });
+
+        const stateFile = path.join(
+          result.tempDir,
+          '.meter',
+          'git.commit.uses.jsonc',
+        );
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        expect(state.uses).toBe(3); // unchanged
+      });
+    });
+
+    when('[t1] plan mode with push shows PR title', () => {
+      then('shows PR title as current message when first commit', () => {
+        const tempDir = genTempDir({ slug: 'git-commit-plan-pr', git: true });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter with .gitignore (before feature branch)
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 2, push: 'allow' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/feature'], {
+          cwd: tempDir,
+        });
+
+        // create and stage a file
+        fs.writeFileSync(path.join(tempDir, 'feature.txt'), 'feature content');
+        spawnSync('git', ['add', 'feature.txt'], { cwd: tempDir });
+
+        // run in plan mode with push
+        const result = spawnSync(
+          'bash',
+          [scriptPath, '--message', 'feat: new feature', '--push'],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: {
+              ...process.env,
+              EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            },
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('heres the wave');
+        expect(result.stdout).toContain('title: feat: new feature');
+        expect(result.stdout).toContain('findsert draft');
+        expect(result.stdout).toMatchSnapshot();
+      });
+
+      then('shows first commit as PR title when branch has history', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-plan-pr-history',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter before branch creation
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
+        );
+        // gitignore .meter
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/multi-commit'], {
+          cwd: tempDir,
+        });
+
+        // first commit on branch
+        fs.writeFileSync(path.join(tempDir, 'first.txt'), 'first');
+        spawnSync('git', ['add', 'first.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'feat: first commit on branch'], {
+          cwd: tempDir,
+        });
+
+        // second commit on branch
+        fs.writeFileSync(path.join(tempDir, 'second.txt'), 'second');
+        spawnSync('git', ['add', 'second.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'feat: second commit'], {
+          cwd: tempDir,
+        });
+
+        // now stage a third change
+        fs.writeFileSync(path.join(tempDir, 'third.txt'), 'third');
+        spawnSync('git', ['add', 'third.txt'], { cwd: tempDir });
+
+        // run in plan mode with push
+        const result = spawnSync(
+          'bash',
+          [scriptPath, '--message', 'feat: third commit', '--push'],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: {
+              ...process.env,
+              EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            },
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('heres the wave');
+        expect(result.stdout).toContain('title: feat: first commit on branch');
+        expect(result.stdout).not.toContain('title: feat: third commit');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case12] PR title on stacked branch (branch from branch)', () => {
+    when('[t0] branch B created from branch A, both with commits', () => {
+      then('PR title uses first commit unique to branch B', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-stacked-branch',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup .gitignore for .meter on main
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create branch A from main
+        spawnSync('git', ['checkout', '-b', 'turtle/branch-a'], {
+          cwd: tempDir,
+        });
+
+        // commit A1 on branch A
+        fs.writeFileSync(path.join(tempDir, 'a1.txt'), 'a1');
+        spawnSync('git', ['add', 'a1.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'feat: A1 first on branch-a'], {
+          cwd: tempDir,
+        });
+
+        // commit A2 on branch A
+        fs.writeFileSync(path.join(tempDir, 'a2.txt'), 'a2');
+        spawnSync('git', ['add', 'a2.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'feat: A2 second on branch-a'], {
+          cwd: tempDir,
+        });
+
+        // create branch B from branch A
+        spawnSync('git', ['checkout', '-b', 'turtle/branch-b'], {
+          cwd: tempDir,
+        });
+
+        // commit B1 on branch B
+        fs.writeFileSync(path.join(tempDir, 'b1.txt'), 'b1');
+        spawnSync('git', ['add', 'b1.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'feat: B1 first on branch-b'], {
+          cwd: tempDir,
+        });
+
+        // commit B2 on branch B
+        fs.writeFileSync(path.join(tempDir, 'b2.txt'), 'b2');
+        spawnSync('git', ['add', 'b2.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'feat: B2 second on branch-b'], {
+          cwd: tempDir,
+        });
+
+        // stage a new file for the next commit
+        fs.writeFileSync(path.join(tempDir, 'b3.txt'), 'b3');
+        spawnSync('git', ['add', 'b3.txt'], { cwd: tempDir });
+
+        // run in plan mode with push
+        const result = spawnSync(
+          'bash',
+          [scriptPath, '--message', 'feat: B3 third on branch-b', '--push'],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: {
+              ...process.env,
+              EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            },
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('heres the wave');
+        // PR title should be B1, not A1
+        expect(result.stdout).toContain('title: feat: B1 first on branch-b');
+        expect(result.stdout).not.toContain('title: feat: A1');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case11] push to main/master blocked', () => {
+    when('[t0] on main branch with --push requested', () => {
+      then('exits with error about main branch', () => {
+        // genTempDir creates repo on main by default
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 2, push: 'allow' },
+          commitArgs: ['--message', 'fix: on main', '--push'],
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('🐢 bummer dude...');
+        expect(result.stdout).toContain('cannot push directly to main');
+        expect(result.stdout).toContain('git checkout -b turtle/');
+        expect(result.stdout).toMatchSnapshot();
+      });
+
+      then('no commit is created', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 2, push: 'allow' },
+          commitArgs: ['--message', 'fix: on main', '--push'],
+        });
+
+        const log = spawnSync('git', ['log', '--oneline'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8' as BufferEncoding,
+        });
+        // only initial commits, no new commit
+        expect(log.stdout.trim().split('\n').length).toBe(2);
+        expect(log.stdout).not.toContain('fix: on main');
+      });
+
+      then('uses are not decremented', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 2, push: 'allow' },
+          commitArgs: ['--message', 'fix: on main', '--push'],
+        });
+
+        const stateFile = path.join(
+          result.tempDir,
+          '.meter',
+          'git.commit.uses.jsonc',
+        );
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        expect(state.uses).toBe(2);
       });
     });
   });

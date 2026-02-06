@@ -1,0 +1,188 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.commit.set.sh given: [case1] commit without push when: [t0] mechanic has uses and staged changes then: outputs righteous with commit details 1`] = `
+"🐢 righteous!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(api): validate input
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ patron
+   │     ├─ name: Test Human
+   │     └─ email: human@test.com
+   ├─ push: skipped
+   └─ meter
+      ├─ left: 2
+      └─ push: blocked
+"
+`;
+
+exports[`git.commit.set.sh given: [case3] no uses left when: [t0] apply mode with 0 uses then: outputs bummer dude 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: no commit uses left
+
+ask your human to grant more:
+  $ git.commit.uses set --allow N --push allow|block
+"
+`;
+
+exports[`git.commit.set.sh given: [case3] no uses left when: [t1] plan mode with 0 uses then: plan is allowed without uses 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.set --mode plan
+   ├─ commit
+   │  ├─ header: fix: zero uses plan
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  ├─ patron
+   │  │  ├─ name: Test Human
+   │  │  └─ email: human@test.com
+   │  └─ files
+   │     └─ fix.txt
+   ├─ push: skipped
+   └─ meter
+      ├─ left: 0 → -1
+      └─ push: blocked
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.set.sh given: [case4] push not allowed when: [t0] push is blocked but --push requested then: outputs bummer dude about push 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: push not allowed in current grant
+
+ask your human to grant with --push allow
+
+"
+`;
+
+exports[`git.commit.set.sh given: [case6] no git user configured when: [t0] git user.name is not set then: exits with error about patron 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: cannot determine patron
+
+human must configure git identity:
+  $ git config user.name "Your Name"\\n  $ git config user.email "your@email.com"
+"
+`;
+
+exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t0] plan mode is default then: shows plan output without committing 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.set --mode plan
+   ├─ commit
+   │  ├─ header: fix: plan test
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  ├─ patron
+   │  │  ├─ name: Test Human
+   │  │  └─ email: human@test.com
+   │  └─ files
+   │     └─ fix.txt
+   ├─ push: skipped
+   └─ meter
+      ├─ left: 3 → 2
+      └─ push: blocked
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] plan mode with push shows PR title then: shows PR title as current message when first commit 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.set --mode plan
+   ├─ commit
+   │  ├─ header: feat: new feature
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  ├─ patron
+   │  │  ├─ name: Test Human
+   │  │  └─ email: human@test.com
+   │  └─ files
+   │     └─ feature.txt
+   ├─ push: origin/turtle/feature
+   ├─ pr
+   │  ├─ title: feat: new feature
+   │  └─ action: findsert draft
+   └─ meter
+      ├─ left: 2 → 1
+      └─ push: allowed
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] plan mode with push shows PR title then: shows first commit as PR title when branch has history 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.set --mode plan
+   ├─ commit
+   │  ├─ header: feat: third commit
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  ├─ patron
+   │  │  ├─ name: Test Human
+   │  │  └─ email: human@test.com
+   │  └─ files
+   │     └─ third.txt
+   ├─ push: origin/turtle/multi-commit
+   ├─ pr
+   │  ├─ title: feat: first commit on branch
+   │  └─ action: findsert draft
+   └─ meter
+      ├─ left: 5 → 4
+      └─ push: allowed
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.set.sh given: [case11] push to main/master blocked when: [t0] on main branch with --push requested then: exits with error about main branch 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: cannot push directly to main
+
+create a feature branch first:
+  $ git checkout -b turtle/your-branch-name
+"
+`;
+
+exports[`git.commit.set.sh given: [case12] PR title on stacked branch (branch from branch) when: [t0] branch B created from branch A, both with commits then: PR title uses first commit unique to branch B 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.set --mode plan
+   ├─ commit
+   │  ├─ header: feat: B3 third on branch-b
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  ├─ patron
+   │  │  ├─ name: Test Human
+   │  │  └─ email: human@test.com
+   │  └─ files
+   │     └─ b3.txt
+   ├─ push: origin/turtle/branch-b
+   ├─ pr
+   │  ├─ title: feat: B1 first on branch-b
+   │  └─ action: findsert draft
+   └─ meter
+      ├─ left: 5 → 4
+      └─ push: allowed
+
+run with --mode apply to execute
+"
+`;

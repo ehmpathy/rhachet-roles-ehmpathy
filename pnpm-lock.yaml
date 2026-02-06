@@ -130,8 +130,8 @@ importers:
         specifier: link:.
         version: 'link:'
       test-fns:
-        specifier: 1.14.0
-        version: 1.14.0(@types/node@22.15.21)(zod@4.3.4)
+        specifier: 1.15.0
+        version: 1.15.0(@types/node@22.15.21)(zod@4.3.4)
       tsc-alias:
         specifier: 1.8.10
         version: 1.8.10
@@ -2814,6 +2814,10 @@ packages:
     resolution: {integrity: sha512-HQB4BQJyqOpP3c0lxdsXTu36/61c/eTr3pu7kBJfnUEQFLc8+lveNgsTEAA5Pk50WF0tVfEF5WF2xGRPX13mcQ==}
     engines: {node: '>=8.0.0'}
 
+  iso-time@1.11.3:
+    resolution: {integrity: sha512-JAoCDOFPmRBjO3BE36RtnVgoMBlcaA62wIQsR9ZEPvu2/7vDM/OMrpMlaTnALxXouAGXtz2O9/EPI6lldh80jg==}
+    engines: {node: '>=8.0.0'}
+
   istanbul-lib-coverage@3.2.2:
     resolution: {integrity: sha512-O8dpsF+r0WV/8MNRKfnmrtCWhuKjxrq2w+jpzBL5UZKTi2LeVWnWOmWRxFlesJONmc+wLAGvKQZEOanko0LFTg==}
     engines: {node: '>=8'}
@@ -3795,8 +3799,8 @@ packages:
     resolution: {integrity: sha512-cAGWPIyOHU6zlmg88jwm7VRyXnMN7iV68OGAbYDk/Mh/xC/pzVPlQtY6ngoIH/5/tciuhGfvESU8GrHrcxD56w==}
     engines: {node: '>=8'}
 
-  test-fns@1.14.0:
-    resolution: {integrity: sha512-jD+9t5aWeitThX2/iHwcGK+Ay5gcLmtQvZ9arEax1dE0YVqhxSFxjXMOKF/nMyT6oN3EznvtwEXc/0SNkl+Jrw==}
+  test-fns@1.15.0:
+    resolution: {integrity: sha512-zC/qUA2lwfiXoQ00Ws8yD8LPA7p3n2a+Dl7wmI4iTXz4HbrU52riPY+AceGWgCAINs/cJ7cs9jnnASSPBwyGpg==}
     engines: {node: '>=8.0.0'}
 
   test-fns@1.4.2:
@@ -7415,6 +7419,14 @@ snapshots:
       simple-log-methods: 0.6.9
       type-fns: 1.21.0
 
+  iso-time@1.11.3:
+    dependencies:
+      date-fns: 3.6.0
+      domain-glossaries: 1.0.0
+      helpful-errors: 1.5.3
+      simple-log-methods: 0.6.9
+      type-fns: 1.21.0
+
   istanbul-lib-coverage@3.2.2: {}
 
   istanbul-lib-instrument@6.0.3:
@@ -8632,10 +8644,11 @@ snapshots:
       glob: 7.2.3
       minimatch: 3.1.2
 
-  test-fns@1.14.0(@types/node@22.15.21)(zod@4.3.4):
+  test-fns@1.15.0(@types/node@22.15.21)(zod@4.3.4):
     dependencies:
       domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
       helpful-errors: 1.5.3
+      iso-time: 1.11.3
       uuid: 10.0.0
     transitivePeerDependencies:
       - '@types/node'
