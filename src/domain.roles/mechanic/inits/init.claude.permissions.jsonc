@@ -12,8 +12,21 @@
       // quarantine directory — blocked content must not be accessible to agent
       "Read(.quarantine/*)",
 
+      // meter directory — mechanic quota state must only be modified by humans
+      // prevents mechanic from granting itself unlimited commits or push access
+      "Edit(.meter/*)",
+      "Write(.meter/*)",
+
+      // git.commit.uses set — only humans can grant commit quota
+      // mechanic can `get` (read quota) but never `set` (grant itself more)
+      "Bash(npx rhachet run --skill git.commit.uses -- set:*)",
+      "Bash(npx rhachet run --skill git.commit.uses set:*)",
+
       // whatever it uses via bash is typically executable via its own name -> own permissions
       "Bash(bash:*)",
+
+      // cd - mechanic should use absolute paths, not change working directory
+      "Bash(cd:*)",
 
       // git write operations - require explicit user request for audit trail
       "Bash(git commit:*)",
@@ -181,6 +194,17 @@
 
       // symlink - create symlinks within repo
       "Bash(npx rhachet run --skill symlink:*)",
+
+      // git.commit.uses - check commit quota (get only; set is denied)
+      "Bash(npx rhachet run --skill git.commit.uses:*)",
+      "Bash(npx rhachet run --skill git.commit.uses -- get)",
+
+      // git.commit.set - create commit as robot with human co-author
+      "Bash(npx rhachet run --skill git.commit.set:*)",
+      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input')",
+      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input' --push)",
+      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input' --unstaged ignore)",
+      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input' --unstaged include)",
 
       // show.gh.action.logs - fetch logs from github actions workflow runs
       "Bash(npx rhachet run --skill show.gh.action.logs:*)",

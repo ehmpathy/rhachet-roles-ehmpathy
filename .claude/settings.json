@@ -65,6 +65,17 @@
             "author": "repo=ehmpathy/role=mechanic"
           }
         ]
+      },
+      {
+        "matcher": "WebFetch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/posttooluse.guardBorder.onWebfetch",
+            "timeout": 60,
+            "author": "repo=ehmpathy/role=mechanic"
+          }
+        ]
       }
     ],
     "Stop": [
@@ -85,11 +96,7 @@
     "allow": [
       "mcp__ide__getDiagnostics",
       "WebSearch",
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:www.npmjs.com)",
-      "WebFetch(domain:hub.docker.com)",
-      "WebFetch(domain:raw.githubusercontent.com)",
-      "WebFetch(domain:biomejs.dev)",
+      "WebFetch",
       "Bash(ls:*)",
       "Bash(tree:*)",
       "Bash(cat:*)",
@@ -123,6 +130,13 @@
       "Bash(npx rhachet run --skill mvsafe:*)",
       "Bash(npx rhachet run --skill rmsafe:*)",
       "Bash(npx rhachet run --skill symlink:*)",
+      "Bash(npx rhachet run --skill git.commit.uses:*)",
+      "Bash(npx rhachet run --skill git.commit.uses -- get)",
+      "Bash(npx rhachet run --skill git.commit.set:*)",
+      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input')",
+      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input' --push)",
+      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input' --unstaged ignore)",
+      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input' --unstaged include)",
       "Bash(npx rhachet run --skill show.gh.action.logs:*)",
       "Bash(npx rhachet run --skill show.gh.test.errors:*)",
       "Bash(npx rhachet run --skill show.gh.test.errors --scope test-integration)",
@@ -207,6 +221,7 @@
     ],
     "deny": [
       "Bash(bash:*)",
+      "Bash(cd:*)",
       "Bash(find:*)",
       "Bash(gh api --method DELETE:*)",
       "Bash(gh api --method PATCH:*)",
@@ -268,8 +283,13 @@
       "Bash(mv:*)",
       "Bash(npx biome:*)",
       "Bash(npx jest:*)",
+      "Bash(npx rhachet run --skill git.commit.uses -- set:*)",
+      "Bash(npx rhachet run --skill git.commit.uses set:*)",
       "Bash(sed:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Edit(.meter/*)",
+      "Read(.quarantine/*)",
+      "Write(.meter/*)"
     ],
     "ask": [
       "Bash(bash:*)",
