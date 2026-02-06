@@ -1,0 +1,58 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.commit.uses.sh given: [case1] set --allow N --push block when: [t0] setting 3 uses with push blocked then: outputs gnarly with granted count 1`] = `
+"🐢 gnarly! thanks human!
+
+🐚 git.commit.uses set
+   ├─ granted: 3
+   └─ push: blocked
+"
+`;
+
+exports[`git.commit.uses.sh given: [case2] set --allow N --push allow when: [t0] setting 1 use with push allowed then: outputs radical 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.commit.uses set
+   ├─ granted: 1
+   └─ push: allowed
+"
+`;
+
+exports[`git.commit.uses.sh given: [case3] set --allow 0 (revoke) when: [t0] revoking all uses then: outputs groovy break time 1`] = `
+"🐢 groovy, break time
+
+🐚 git.commit.uses set
+   └─ revoked
+"
+`;
+
+exports[`git.commit.uses.sh given: [case5] get shows remaining when: [t0] state exists with 2 uses then: outputs lets check the meter with remaining 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   └─ meter
+      ├─ left: 2
+      └─ push: allowed
+"
+`;
+
+exports[`git.commit.uses.sh given: [case6] get with 0 uses shows push blocked when: [t0] state exists with 0 uses and push allow then: push shows blocked since commit halts before push 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   └─ meter
+      ├─ left: 0
+      └─ push: blocked
+"
+`;
+
+exports[`git.commit.uses.sh given: [case7] get when no state file when: [t0] no .meter/git.commit.uses.jsonc exists then: shows no quota set 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   └─ no quota set
+
+ask your human to grant:
+  $ git.commit.uses set --allow N --push allow|block
+"
+`;

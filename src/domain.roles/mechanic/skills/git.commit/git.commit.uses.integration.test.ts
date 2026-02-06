@@ -51,6 +51,7 @@ describe('git.commit.uses.sh', () => {
         expect(result.stdout).toContain('🐢 gnarly! thanks human!');
         expect(result.stdout).toContain('granted: 3');
         expect(result.stdout).toContain('push: blocked');
+        expect(result.stdout).toMatchSnapshot();
       });
 
       then('state file is created', () => {
@@ -83,6 +84,7 @@ describe('git.commit.uses.sh', () => {
         expect(result.stdout).toContain('🐢 radical!');
         expect(result.stdout).toContain('granted: 1');
         expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -97,6 +99,7 @@ describe('git.commit.uses.sh', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('🐢 groovy, break time');
         expect(result.stdout).toContain('revoked');
+        expect(result.stdout).toMatchSnapshot();
       });
 
       then('state file shows 0 uses', () => {
@@ -140,6 +143,7 @@ describe('git.commit.uses.sh', () => {
         expect(result.stdout).toContain('🐢 lets check the meter...');
         expect(result.stdout).toContain('left: 2');
         expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -155,6 +159,7 @@ describe('git.commit.uses.sh', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('left: 0');
         expect(result.stdout).toContain('push: blocked');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -172,6 +177,7 @@ describe('git.commit.uses.sh', () => {
         expect(result.stdout).toContain(
           'git.commit.uses set --allow N --push allow|block',
         );
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
