@@ -21,6 +21,16 @@
       "term": "dry-run",
       "why": "boolean creates double negatives and limits extensibility to other modes",
       "alt": ["--mode plan", "--mode apply"]
+    },
+    {
+      "term": "existing",
+      "why": "needless gerund - vague and overused, prefer precise non-gerund alternatives",
+      "alt": ["extant", "current", "found", "prior", "present"]
+    },
+    {
+      "term": "nothing",
+      "why": "vague negation - prefer precise alternatives that convey what is absent or empty",
+      "alt": ["not one", "none", "no results", "empty", "absent", "omitted"]
     }
   ]
 }
