@@ -26,6 +26,23 @@ exports[`git.commit.uses.sh given: [case3] set --allow 0 (revoke) when: [t0] rev
 "
 `;
 
+exports[`git.commit.uses.sh given: [case3b] set --allow 0 --push allow (push-only mode) when: [t0] push-only access granted then: outputs push only mode 1`] = `
+"🐢 sweet, let it ride
+
+🐚 git.commit.uses set
+   ├─ commits: 0
+   └─ push: allowed
+"
+`;
+
+exports[`git.commit.uses.sh given: [case3c] set --allow 0 without --push (defaults to block) when: [t0] revoke without explicit push flag then: defaults to block and shows revoked 1`] = `
+"🐢 groovy, break time
+
+🐚 git.commit.uses set
+   └─ revoked
+"
+`;
+
 exports[`git.commit.uses.sh given: [case5] get shows remaining when: [t0] state exists with 2 uses then: outputs lets check the meter with remaining 1`] = `
 "🐢 lets check the meter...
 
@@ -36,13 +53,13 @@ exports[`git.commit.uses.sh given: [case5] get shows remaining when: [t0] state 
 "
 `;
 
-exports[`git.commit.uses.sh given: [case6] get with 0 uses shows push blocked when: [t0] state exists with 0 uses and push allow then: push shows blocked since commit halts before push 1`] = `
+exports[`git.commit.uses.sh given: [case6] get with 0 uses and push allow (push-only mode) when: [t0] state exists with 0 uses and push allow then: shows push allowed for push-only use case 1`] = `
 "🐢 lets check the meter...
 
 🐚 git.commit.uses
    └─ meter
       ├─ left: 0
-      └─ push: blocked
+      └─ push: allowed
 "
 `;
 

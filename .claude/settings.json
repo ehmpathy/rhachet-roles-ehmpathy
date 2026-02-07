@@ -67,17 +67,6 @@
         ]
       },
       {
-        "matcher": "EnterPlanMode",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-planmode",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          }
-        ]
-      },
-      {
         "matcher": "WebFetch",
         "hooks": [
           {
@@ -105,8 +94,6 @@
   },
   "permissions": {
     "allow": [
-      "Write(.agent/.notes/**)",
-      "Edit(.agent/.notes/**)",
       "mcp__ide__getDiagnostics",
       "WebSearch",
       "WebFetch",
@@ -144,12 +131,13 @@
       "Bash(npx rhachet run --skill rmsafe:*)",
       "Bash(npx rhachet run --skill symlink:*)",
       "Bash(npx rhachet run --skill git.commit.uses:*)",
-      "Bash(npx rhachet run --skill git.commit.uses -- get)",
+      "Bash(npx rhachet run --skill git.commit.uses get)",
       "Bash(npx rhachet run --skill git.commit.set:*)",
-      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input')",
-      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input' --push)",
-      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input' --unstaged ignore)",
-      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input' --unstaged include)",
+      "Bash(npx rhachet run --skill git.commit.set -- -m $'fix(api): validate input\\n\\n- added input schema\\n- added error handler')",
+      "Bash(npx rhachet run --skill git.commit.set -- --mode apply -m $'fix(api): validate input\\n\\n- added input schema')",
+      "Bash(npx rhachet run --skill git.commit.set -- --push -m $'fix(api): validate input\\n\\n- added input schema')",
+      "Bash(npx rhachet run --skill git.commit.set -- --unstaged ignore -m $'fix(api): validate input\\n\\n- added input schema')",
+      "Bash(npx rhachet run --skill git.commit.push:*)",
       "Bash(npx rhachet run --skill show.gh.action.logs:*)",
       "Bash(npx rhachet run --skill show.gh.test.errors:*)",
       "Bash(npx rhachet run --skill show.gh.test.errors --scope test-integration)",
@@ -233,7 +221,6 @@
       "Bash(source .agent/repo=.this/role=any/skills/use.apikeys.sh)"
     ],
     "deny": [
-      "EnterPlanMode",
       "Bash(bash:*)",
       "Bash(cd:*)",
       "Bash(find:*)",
@@ -302,6 +289,7 @@
       "Bash(sed:*)",
       "Bash(tee:*)",
       "Edit(.meter/*)",
+      "EnterPlanMode",
       "Read(.quarantine/*)",
       "Write(.meter/*)"
     ],

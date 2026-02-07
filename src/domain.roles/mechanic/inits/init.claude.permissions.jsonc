@@ -19,7 +19,7 @@
 
       // git.commit.uses set — only humans can grant commit quota
       // mechanic can `get` (read quota) but never `set` (grant itself more)
-      "Bash(npx rhachet run --skill git.commit.uses -- set:*)",
+      "Bash(npx rhachet run --skill git.commit.uses set:*)",
       "Bash(npx rhachet run --skill git.commit.uses set:*)",
 
       // whatever it uses via bash is typically executable via its own name -> own permissions
@@ -204,14 +204,18 @@
 
       // git.commit.uses - check commit quota (get only; set is denied)
       "Bash(npx rhachet run --skill git.commit.uses:*)",
-      "Bash(npx rhachet run --skill git.commit.uses -- get)",
+      "Bash(npx rhachet run --skill git.commit.uses get)",
 
       // git.commit.set - create commit as robot with human co-author
       "Bash(npx rhachet run --skill git.commit.set:*)",
-      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input')",
-      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input' --push)",
-      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input' --unstaged ignore)",
-      "Bash(npx rhachet run --skill git.commit.set -- --message 'fix(api): validate input' --unstaged include)",
+      "Bash(npx rhachet run --skill git.commit.set -m 'fix(api): validate input\n\n- added input schema\n- added error handler')",
+      "Bash(npx rhachet run --skill git.commit.set -m $MESSAGE)",
+      "Bash(npx rhachet run --skill git.commit.set --mode apply -m $MESSAGE)",
+      "Bash(npx rhachet run --skill git.commit.set --push -m $MESSAGE)",
+      "Bash(npx rhachet run --skill git.commit.set --unstaged ignore -m $MESSAGE)",
+
+      // git.commit.push - push HEAD commit to origin and findsert draft pr
+      "Bash(npx rhachet run --skill git.commit.push:*)",
 
       // show.gh.action.logs - fetch logs from github actions workflow runs
       "Bash(npx rhachet run --skill show.gh.action.logs:*)",

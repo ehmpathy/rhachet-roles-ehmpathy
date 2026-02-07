@@ -1,0 +1,101 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.commit.push.sh given: [case1] plan mode on feature branch when: [t0] branch has commits and meter allows push then: shows tree with push target and pr title 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.push --mode plan
+   ├─ push: origin/turtle/feature
+   ├─ pr
+   │  ├─ title: feat: first commit
+   │  └─ action: findsert draft
+   └─ meter
+      └─ push: allowed
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.push.sh given: [case2] author guard in apply mode when: [t0] HEAD commit authored by a human (not seaturtle[bot]) then: exits with error about author 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: HEAD commit not authored by seaturtle[bot]
+
+push only works for commits made by seaturtle[bot].
+use git.commit.set to create a proper commit first.
+"
+`;
+
+exports[`git.commit.push.sh given: [case4] branch guard (main/master) when: [t0] on main branch then: exits with error about main branch 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: cannot push directly to main
+
+create a feature branch first:
+  $ git checkout -b turtle/your-branch-name
+"
+`;
+
+exports[`git.commit.push.sh given: [case5] push not allowed when: [t0] no meter state file then: exits with push not allowed 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: push not allowed
+
+ask your human to grant with --push allow:
+  $ git.commit.uses set --allow N --push allow
+"
+`;
+
+exports[`git.commit.push.sh given: [case5] push not allowed when: [t1] meter has push: block then: exits with push not allowed 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: push not allowed
+
+ask your human to grant with --push allow:
+  $ git.commit.uses set --allow N --push allow
+"
+`;
+
+exports[`git.commit.push.sh given: [case9] stacked branch pr title when: [t0] branch B created from branch A, both with commits then: pr title is first commit unique to branch B 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.push --mode plan
+   ├─ push: origin/turtle/branch-b
+   ├─ pr
+   │  ├─ title: feat: B1 first on branch-b
+   │  └─ action: findsert draft
+   └─ meter
+      └─ push: allowed
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.push.sh given: [case12] token guard when: [t0] EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN is not set then: exits with error about token 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN not set
+
+push requires this token for pr findsert.
+set the token in your environment first.
+"
+`;
+
+exports[`git.commit.push.sh given: [case14] push-only auto-revoke plan display when: [t0] uses 0 with push allowed (push-only mode) then: plan shows push: allowed to blocked (revoked) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.push --mode plan
+   ├─ push: origin/turtle/push-revoke
+   ├─ pr
+   │  ├─ title: feat: prior commit
+   │  └─ action: findsert draft
+   └─ meter
+      └─ push: allowed → blocked (revoked)
+
+run with --mode apply to execute
+"
+`;

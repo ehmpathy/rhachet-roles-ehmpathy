@@ -85,7 +85,19 @@ describe('git.commit.set.sh', () => {
       }
     }
 
-    const result = spawnSync('bash', [scriptPath, ...args.commitArgs], {
+    // auto-inject body into message unless already multiline
+    const finalArgs = [...args.commitArgs];
+    const messageIdx = finalArgs.findIndex(
+      (a) => a === '--message' || a === '-m',
+    );
+    if (messageIdx !== -1 && messageIdx + 1 < finalArgs.length) {
+      const msg = finalArgs[messageIdx + 1]!;
+      if (!msg.includes('\n\n')) {
+        finalArgs[messageIdx + 1] = `${msg}\n\n- test change`;
+      }
+    }
+
+    const result = spawnSync('bash', [scriptPath, ...finalArgs], {
       cwd: tempDir,
       encoding: 'utf-8' as BufferEncoding,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -465,10 +477,12 @@ describe('git.commit.set.sh', () => {
         });
         const body = log.stdout.trim();
         const lines = body.split('\n');
-        // should be: header, blank line, Co-authored-by
+        // should be: header, blank line, body, blank line, Co-authored-by
         expect(lines[0]).toBe('fix: blank line test');
         expect(lines[1]).toBe('');
-        expect(lines[2]).toContain('Co-authored-by:');
+        expect(lines[2]).toBe('- test change');
+        expect(lines[3]).toBe('');
+        expect(lines[4]).toContain('Co-authored-by:');
       });
     });
   });
@@ -561,7 +575,12 @@ describe('git.commit.set.sh', () => {
         // run in plan mode with push
         const result = spawnSync(
           'bash',
-          [scriptPath, '--message', 'feat: new feature', '--push'],
+          [
+            scriptPath,
+            '--message',
+            'feat: new feature\n\n- add feature',
+            '--push',
+          ],
           {
             cwd: tempDir,
             encoding: 'utf-8' as BufferEncoding,
@@ -634,7 +653,12 @@ describe('git.commit.set.sh', () => {
         // run in plan mode with push
         const result = spawnSync(
           'bash',
-          [scriptPath, '--message', 'feat: third commit', '--push'],
+          [
+            scriptPath,
+            '--message',
+            'feat: third commit\n\n- add third feature',
+            '--push',
+          ],
           {
             cwd: tempDir,
             encoding: 'utf-8' as BufferEncoding,
@@ -729,7 +753,12 @@ describe('git.commit.set.sh', () => {
         // run in plan mode with push
         const result = spawnSync(
           'bash',
-          [scriptPath, '--message', 'feat: B3 third on branch-b', '--push'],
+          [
+            scriptPath,
+            '--message',
+            'feat: B3 third on branch-b\n\n- add B3 feature',
+            '--push',
+          ],
           {
             cwd: tempDir,
             encoding: 'utf-8' as BufferEncoding,
@@ -798,6 +827,181 @@ describe('git.commit.set.sh', () => {
         );
         const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
         expect(state.uses).toBe(2);
+      });
+    });
+  });
+
+  given('[case13] last use with push allowed shows push status', () => {
+    when('[t0] uses go from 1 to 0 with push allowed', () => {
+      then('meter shows push: allowed after commit', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 1, push: 'allow' },
+          commitArgs: ['--message', 'fix(api): last commit', '--mode', 'apply'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('left: 0');
+        expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).toMatchSnapshot();
+      });
+
+      then('plan mode also shows push: allowed', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 1, push: 'allow' },
+          commitArgs: ['--message', 'fix(api): last commit plan'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('left: 1 → 0');
+        expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case14] multiline message is required', () => {
+    when('[t0] message is single-line (no body)', () => {
+      then('exits with error about multiline', () => {
+        const tempDir = genTempDir({ slug: 'git-commit-set-test', git: true });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 2, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup'], { cwd: tempDir });
+
+        // create and stage file
+        fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fixed content');
+        spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+
+        // run with single-line message (no body) — bypass auto-inject
+        const result = spawnSync(
+          'bash',
+          [scriptPath, '--message', 'fix: no body'],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(1);
+        expect(result.stdout).toContain('must be multiline');
+      });
+    });
+
+    when('[t1] message is multiline (has body)', () => {
+      then('body appears in plan tree output', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 2, push: 'block' },
+          commitArgs: [
+            '--message',
+            'fix: with desc\n\n- fixed the bug\n- added tests',
+          ],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('body');
+        expect(result.stdout).toContain('- fixed the bug');
+        expect(result.stdout).toContain('- added tests');
+        expect(result.stdout).toMatchSnapshot();
+      });
+
+      then('body appears in commit body', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 2, push: 'block' },
+          commitArgs: [
+            '--message',
+            'fix: body in commit\n\n- fixed validation',
+            '--mode',
+            'apply',
+          ],
+        });
+
+        expect(result.exitCode).toBe(0);
+
+        // check commit body
+        const log = spawnSync('git', ['log', '-1', '--format=%B'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8' as BufferEncoding,
+        });
+        const body = (log.stdout ?? '').trim();
+        expect(body).toContain('- fixed validation');
+      });
+    });
+  });
+
+  given('[case15] plan mode auto-revoke display with push', () => {
+    when('[t0] uses go from 1 to 0 with push allowed', () => {
+      then('plan shows push: allowed to blocked (revoked)', () => {
+        const tempDir = genTempDir({ slug: 'git-commit-set-test', git: true });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 1, push: 'allow' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup'], { cwd: tempDir });
+
+        // create branch + staged file
+        spawnSync('git', ['checkout', '-b', 'turtle/revoke-test'], {
+          cwd: tempDir,
+        });
+        fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'content');
+        spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'fix: last use\n\n- last commit before revoke',
+            '--push',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: {
+              ...process.env,
+              EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            },
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('left: 1 → 0');
+        expect(result.stdout).toContain('push: allowed → blocked (revoked)');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });

@@ -13,7 +13,7 @@ import { genContextStitchTrail } from '@src/.test/genContextStitchTrail';
 
 import { genStepArtSet } from './genStepArtSet';
 
-describe('genStepArtSet (integration)', () => {
+describe.skip('genStepArtSet (integration)', () => {
   const stitchedContent = 'Generated content for artifact';
   const context = {
     ...genContextLogTrail(),

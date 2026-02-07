@@ -8,11 +8,11 @@
 # usage:
 #   git.commit.uses set --allow 3 --push block
 #   git.commit.uses set --allow 1 --push allow
-#   git.commit.uses set --allow 0 --push block  # revoke
+#   git.commit.uses set --allow 0               # revoke (--push defaults to block)
 #   git.commit.uses get
 #
 # guarantee:
-#   - --push is required on set (no silent defaults)
+#   - --push is required on set (except --allow 0 which defaults to block)
 #   - state stored in .meter/git.commit.uses.jsonc
 ######################################################################
 set -euo pipefail
@@ -107,6 +107,11 @@ case "$COMMAND" in
       exit 1
     fi
 
+    # default --push to block when allow is 0 (revoke implies no push)
+    if [[ -z "$PUSH" && "$ALLOW" == "0" ]]; then
+      PUSH="block"
+    fi
+
     # validate --push required
     if [[ -z "$PUSH" ]]; then
       echo "error: --push allow|block is required"
@@ -139,10 +144,15 @@ case "$COMMAND" in
 EOF
 
     # output with turtle vibes
-    if [[ "$ALLOW" == "0" ]]; then
+    if [[ "$ALLOW" == "0" && "$PUSH" == "block" ]]; then
       print_turtle_header "groovy, break time"
       print_tree_start "git.commit.uses set"
       echo "   └─ revoked"
+    elif [[ "$ALLOW" == "0" && "$PUSH" == "allow" ]]; then
+      print_turtle_header "sweet, let it ride"
+      print_tree_start "git.commit.uses set"
+      echo "   ├─ commits: 0"
+      echo "   └─ push: allowed"
     elif [[ "$PUSH" == "allow" ]]; then
       print_turtle_header "radical! let's ride!"
       print_tree_start "git.commit.uses set"
@@ -172,10 +182,8 @@ EOF
     USES=$(jq -r '.uses' "$STATE_FILE")
     PUSH_STATE=$(jq -r '.push' "$STATE_FILE")
 
-    # format push state (blocked when no uses left, since commit halts before push)
-    if [[ "$USES" -le 0 ]]; then
-      PUSH_DISPLAY="blocked"
-    elif [[ "$PUSH_STATE" == "allow" ]]; then
+    # format push state
+    if [[ "$PUSH_STATE" == "allow" ]]; then
       PUSH_DISPLAY="allowed"
     else
       PUSH_DISPLAY="blocked"
