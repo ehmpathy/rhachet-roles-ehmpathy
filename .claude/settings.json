@@ -67,6 +67,17 @@
         ]
       },
       {
+        "matcher": "EnterPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-planmode",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
+          }
+        ]
+      },
+      {
         "matcher": "WebFetch",
         "hooks": [
           {
@@ -94,6 +105,8 @@
   },
   "permissions": {
     "allow": [
+      "Write(.agent/.notes/**)",
+      "Edit(.agent/.notes/**)",
       "mcp__ide__getDiagnostics",
       "WebSearch",
       "WebFetch",
@@ -220,6 +233,7 @@
       "Bash(source .agent/repo=.this/role=any/skills/use.apikeys.sh)"
     ],
     "deny": [
+      "EnterPlanMode",
       "Bash(bash:*)",
       "Bash(cd:*)",
       "Bash(find:*)",
