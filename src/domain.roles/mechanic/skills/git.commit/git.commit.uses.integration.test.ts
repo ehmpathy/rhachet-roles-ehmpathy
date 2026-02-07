@@ -118,6 +118,51 @@ describe('git.commit.uses.sh', () => {
     });
   });
 
+  given('[case3b] set --allow 0 --push allow (push-only mode)', () => {
+    when('[t0] push-only access granted', () => {
+      then('outputs push only mode', () => {
+        const result = runInTempGitRepo({
+          args: ['set', '--allow', '0', '--push', 'allow'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('let it ride');
+        expect(result.stdout).toContain('commits: 0');
+        expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).toMatchSnapshot();
+      });
+
+      then('state file shows 0 uses and push allow', () => {
+        const result = runInTempGitRepo({
+          args: ['set', '--allow', '0', '--push', 'allow'],
+        });
+
+        const stateFile = path.join(
+          result.tempDir,
+          '.meter',
+          'git.commit.uses.jsonc',
+        );
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        expect(state.uses).toBe(0);
+        expect(state.push).toBe('allow');
+      });
+    });
+  });
+
+  given('[case3c] set --allow 0 without --push (defaults to block)', () => {
+    when('[t0] revoke without explicit push flag', () => {
+      then('defaults to block and shows revoked', () => {
+        const result = runInTempGitRepo({
+          args: ['set', '--allow', '0'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('revoked');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
   given('[case4] set without --push', () => {
     when('[t0] --push flag is missing', () => {
       then('exits with error', () => {
@@ -148,9 +193,9 @@ describe('git.commit.uses.sh', () => {
     });
   });
 
-  given('[case6] get with 0 uses shows push blocked', () => {
+  given('[case6] get with 0 uses and push allow (push-only mode)', () => {
     when('[t0] state exists with 0 uses and push allow', () => {
-      then('push shows blocked since commit halts before push', () => {
+      then('shows push allowed for push-only use case', () => {
         const result = runInTempGitRepo({
           args: ['get'],
           meterState: { uses: 0, push: 'allow' },
@@ -158,7 +203,7 @@ describe('git.commit.uses.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('left: 0');
-        expect(result.stdout).toContain('push: blocked');
+        expect(result.stdout).toContain('push: allowed');
         expect(result.stdout).toMatchSnapshot();
       });
     });

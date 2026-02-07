@@ -80,7 +80,7 @@
     "simple-in-memory-cache": "0.4.0",
     "type-fns": "1.21.0",
     "with-simple-caching": "0.14.2",
-    "wrapper-fns": "1.1.0",
+    "wrapper-fns": "1.1.7",
     "zod": "4.3.4"
   },
   "devDependencies": {
