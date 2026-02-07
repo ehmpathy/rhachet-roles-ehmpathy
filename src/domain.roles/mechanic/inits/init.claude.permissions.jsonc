@@ -68,6 +68,9 @@
       // ln: create symlinks anywhere - use symlink skill instead
       "Bash(ln:*)",
 
+      // plan mode - forbidden; agents must produce plan artifacts instead
+      "EnterPlanMode",
+
       // test runners - should use npm run test:* scripts instead
       // direct invocation bypasses project test configuration
       "Bash(npx biome:*)",
@@ -136,6 +139,10 @@
 
     // commands that are safe to auto-approve
     "allow": [
+      // plan artifacts — agents write plans here instead of using plan mode
+      "Write(.agent/.notes/**)",
+      "Edit(.agent/.notes/**)",
+
       // ide integrations
       "mcp__ide__getDiagnostics",
 
