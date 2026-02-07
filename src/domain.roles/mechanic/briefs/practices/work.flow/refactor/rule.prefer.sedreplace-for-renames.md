@@ -10,12 +10,12 @@ use `sedreplace.sh` for bulk find-and-replace across files instead of N individu
 
 - **10x-100x fewer tokens** — one tool call vs read+edit each file individually
 - **10x faster execution** — single atomic operation vs sequential edits
-- dry-run by default = preview before apply
+- plan mode by default = preview before apply
 - constrained to git-tracked files = safe by design
 
 a rename that touches 20 files via Edit = ~40 tool calls (read + edit each) = massive token waste
 
-the same rename via sedreplace = 2 tool calls (dry-run + execute) = minimal tokens
+the same rename via sedreplace = 2 tool calls (plan + apply) = minimal tokens
 
 ## .when
 
@@ -27,7 +27,7 @@ the same rename via sedreplace = 2 tool calls (dry-run + execute) = minimal toke
 ## .how
 
 ```sh
-# dry-run first (default) - see what would change
+# plan first (default) - see what would change
 npx rhachet run --skill sedreplace --old "oldName" --new "newName"
 
 # filter to specific file types (recursive)
@@ -36,8 +36,8 @@ npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob "**/*.
 # filter to files in a specific directory
 npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob "src/**/*.ts"
 
-# apply changes after review of dry-run
-npx rhachet run --skill sedreplace --old "oldName" --new "newName" --execute
+# apply changes after review of plan
+npx rhachet run --skill sedreplace --old "oldName" --new "newName" --mode apply
 ```
 
 ### glob pattern semantics
@@ -59,14 +59,14 @@ the `--glob` option uses shell glob semantics:
 
 ```sh
 # rename getUserById -> findUserByUuid across all .ts files
-npx rhachet run --skill sedreplace --old "getUserById" --new "findUserByUuid" --glob "**/*.ts" --execute
+npx rhachet run --skill sedreplace --old "getUserById" --new "findUserByUuid" --glob "**/*.ts" --mode apply
 ```
 
 ### update an import path
 
 ```sh
 # update import path after file move
-npx rhachet run --skill sedreplace --old "from '@/utils/old'" --new "from '@/utils/new'" --execute
+npx rhachet run --skill sedreplace --old "from '@/utils/old'" --new "from '@/utils/new'" --mode apply
 ```
 
 ## .antipattern
