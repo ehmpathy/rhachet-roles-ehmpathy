@@ -17,10 +17,18 @@
       "Edit(.meter/*)",
       "Write(.meter/*)",
 
+      // bind directory — human-prescribed constraints, mechanic must not alter
+      "Edit(.branch/.bind/*)",
+      "Write(.branch/.bind/*)",
+
       // git.commit.uses set — only humans can grant commit quota
       // mechanic can `get` (read quota) but never `set` (grant itself more)
       "Bash(npx rhachet run --skill git.commit.uses set:*)",
-      "Bash(npx rhachet run --skill git.commit.uses set:*)",
+
+      // git.commit.bind — only humans can set/del the commit level
+      // mechanic can `get` (check bound level) but never `set` or `del`
+      "Bash(npx rhachet run --skill git.commit.bind set:*)",
+      "Bash(npx rhachet run --skill git.commit.bind del:*)",
 
       // whatever it uses via bash is typically executable via its own name -> own permissions
       "Bash(bash:*)",
@@ -205,6 +213,10 @@
       // git.commit.uses - check commit quota (get only; set is denied)
       "Bash(npx rhachet run --skill git.commit.uses:*)",
       "Bash(npx rhachet run --skill git.commit.uses get)",
+
+      // git.commit.bind - check bound level (get only; set/del are denied)
+      "Bash(npx rhachet run --skill git.commit.bind:*)",
+      "Bash(npx rhachet run --skill git.commit.bind get)",
 
       // git.commit.set - create commit as robot with human co-author
       "Bash(npx rhachet run --skill git.commit.set:*)",

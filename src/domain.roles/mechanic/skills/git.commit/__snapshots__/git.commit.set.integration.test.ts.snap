@@ -245,6 +245,19 @@ run with --mode apply to execute
 "
 `;
 
+exports[`git.commit.set.sh given: [case14] bound level enforced — fix rejects feat prefix when: [t0] level bound to fix, header starts with feat( then: exits with level mismatch error 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: commit header must start with 'fix' — level bound by human
+
+   header: feat(api): add endpoint
+   bound level: fix
+
+fix: use a 'fix(scope): ...' or 'fix: ...' prefix
+"
+`;
+
 exports[`git.commit.set.sh given: [case14] multiline message is required when: [t1] message is multiline (has body) then: body appears in plan tree output 1`] = `
 "🐢 heres the wave...
 
@@ -296,5 +309,18 @@ exports[`git.commit.set.sh given: [case15] plan mode auto-revoke display with pu
       └─ push: allowed → blocked (revoked)
 
 run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.set.sh given: [case16] bound level enforced — feat rejects fix prefix when: [t0] level bound to feat, header starts with fix( then: exits with level mismatch error 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: commit header must start with 'feat' — level bound by human
+
+   header: fix(ui): button color
+   bound level: feat
+
+fix: use a 'feat(scope): ...' or 'feat: ...' prefix
 "
 `;
