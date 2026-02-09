@@ -130,6 +130,28 @@ if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
   exit 1
 fi
 
+# guard: bound level constraint (human prescribes feat or fix)
+LEVEL_FILE="$REPO_ROOT/.branch/.bind/git.commit.level"
+BOUND_LEVEL=""
+if [[ -f "$LEVEL_FILE" ]]; then
+  BOUND_LEVEL=$(cat "$LEVEL_FILE" 2>/dev/null || echo "")
+fi
+if [[ -n "$BOUND_LEVEL" ]]; then
+  HEADER=$(echo "$MESSAGE" | head -1)
+  LEVEL_PATTERN="^${BOUND_LEVEL}[:(]"
+  if [[ ! "$HEADER" =~ $LEVEL_PATTERN ]]; then
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.commit.set"
+    print_tree_error "commit header must start with '$BOUND_LEVEL' — level bound by human"
+    echo ""
+    echo "   header: $HEADER"
+    echo "   bound level: $BOUND_LEVEL"
+    echo ""
+    echo "fix: use a '$BOUND_LEVEL(scope): ...' or '$BOUND_LEVEL: ...' prefix"
+    exit 1
+  fi
+fi
+
 # check state file exists
 if [[ ! -f "$STATE_FILE" ]]; then
   print_turtle_header "bummer dude..."

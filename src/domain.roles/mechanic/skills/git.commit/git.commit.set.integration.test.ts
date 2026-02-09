@@ -15,6 +15,7 @@ describe('git.commit.set.sh', () => {
     filesUnstaged?: Record<string, string>;
     staged?: boolean;
     meterState?: { uses: number; push: string };
+    bindLevel?: string;
     gitUser?: { name: string; email: string };
     commitArgs: string[];
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
@@ -60,6 +61,19 @@ describe('git.commit.set.sh', () => {
           cwd: tempDir,
         });
       }
+    }
+
+    // create .bind level constraint if provided
+    if (args.bindLevel) {
+      const bindDir = path.join(tempDir, '.branch', '.bind');
+      fs.mkdirSync(bindDir, { recursive: true });
+      fs.writeFileSync(path.join(bindDir, 'git.commit.level'), args.bindLevel);
+
+      // commit .bind so it doesn't trigger the unstaged guard
+      spawnSync('git', ['add', '.branch/'], { cwd: tempDir });
+      spawnSync('git', ['commit', '-m', 'setup: add .branch/.bind level'], {
+        cwd: tempDir,
+      });
     }
 
     // create files and stage them
@@ -776,6 +790,196 @@ describe('git.commit.set.sh', () => {
         expect(result.stdout).toContain('title: feat: B1 first on branch-b');
         expect(result.stdout).not.toContain('title: feat: A1');
         expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case13] bound level enforced — fix allows fix prefix', () => {
+    when('[t0] level bound to fix, header starts with fix(', () => {
+      then('commit succeeds', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          bindLevel: 'fix',
+          commitArgs: [
+            '--message',
+            'fix(api): validate input',
+            '--mode',
+            'apply',
+          ],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+      });
+    });
+
+    when('[t1] level bound to fix, header starts with fix:', () => {
+      then('commit succeeds', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          bindLevel: 'fix',
+          commitArgs: ['--message', 'fix: validate input', '--mode', 'apply'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+      });
+    });
+  });
+
+  given('[case14] bound level enforced — fix rejects feat prefix', () => {
+    when('[t0] level bound to fix, header starts with feat(', () => {
+      then('exits with level mismatch error', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          bindLevel: 'fix',
+          commitArgs: [
+            '--message',
+            'feat(api): add endpoint',
+            '--mode',
+            'apply',
+          ],
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain("must start with 'fix'");
+        expect(result.stdout).toContain('level bound by human');
+        expect(result.stdout).toMatchSnapshot();
+      });
+
+      then('no commit is created', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          bindLevel: 'fix',
+          commitArgs: [
+            '--message',
+            'feat(api): add endpoint',
+            '--mode',
+            'apply',
+          ],
+        });
+
+        const log = spawnSync('git', ['log', '--oneline'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8' as BufferEncoding,
+        });
+        expect(log.stdout).not.toContain('feat(api): add endpoint');
+      });
+
+      then('uses are not decremented', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          bindLevel: 'fix',
+          commitArgs: [
+            '--message',
+            'feat(api): add endpoint',
+            '--mode',
+            'apply',
+          ],
+        });
+
+        const stateFile = path.join(
+          result.tempDir,
+          '.meter',
+          'git.commit.uses.jsonc',
+        );
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        expect(state.uses).toBe(3);
+      });
+    });
+  });
+
+  given('[case15] bound level enforced — feat allows feat prefix', () => {
+    when('[t0] level bound to feat, header starts with feat(', () => {
+      then('commit succeeds', () => {
+        const result = runInTempGitRepo({
+          files: { 'feat.txt': 'new feature' },
+          meterState: { uses: 3, push: 'block' },
+          bindLevel: 'feat',
+          commitArgs: ['--message', 'feat(ui): add button', '--mode', 'apply'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+      });
+    });
+  });
+
+  given('[case16] bound level enforced — feat rejects fix prefix', () => {
+    when('[t0] level bound to feat, header starts with fix(', () => {
+      then('exits with level mismatch error', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          bindLevel: 'feat',
+          commitArgs: ['--message', 'fix(ui): button color', '--mode', 'apply'],
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain("must start with 'feat'");
+        expect(result.stdout).toContain('level bound by human');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case17] no bound level — any prefix allowed', () => {
+    when('[t0] no level bound, feat header', () => {
+      then('commit succeeds', () => {
+        const result = runInTempGitRepo({
+          files: { 'feat.txt': 'feature content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: [
+            '--message',
+            'feat(api): add endpoint',
+            '--mode',
+            'apply',
+          ],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+      });
+    });
+
+    when('[t1] no level bound, fix header', () => {
+      then('commit succeeds', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fix content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: [
+            '--message',
+            'fix(api): validate input',
+            '--mode',
+            'apply',
+          ],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+      });
+    });
+  });
+
+  given('[case18] bound level enforced in plan mode too', () => {
+    when('[t0] level bound to fix, feat header in plan mode', () => {
+      then('plan mode also rejects mismatched level', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          bindLevel: 'fix',
+          commitArgs: ['--message', 'feat(api): add endpoint'],
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain("must start with 'fix'");
       });
     });
   });

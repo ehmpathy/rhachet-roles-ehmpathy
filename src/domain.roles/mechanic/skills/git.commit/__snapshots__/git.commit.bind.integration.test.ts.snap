@@ -1,0 +1,41 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.commit.bind.sh given: [case1] set --level fix when: [t0] level set to fix then: outputs sweet with bound level 1`] = `
+"🐢 sweet! level bound
+
+🐚 git.commit.bind
+   └─ level: fix
+"
+`;
+
+exports[`git.commit.bind.sh given: [case2] set --level feat when: [t0] level set to feat then: outputs sweet with bound level 1`] = `
+"🐢 sweet! level bound
+
+🐚 git.commit.bind
+   └─ level: feat
+"
+`;
+
+exports[`git.commit.bind.sh given: [case3] get when: [t0] level is bound to fix then: shows bound level 1`] = `
+"🐢 lets check the bind...
+
+🐚 git.commit.bind
+   └─ level: fix
+"
+`;
+
+exports[`git.commit.bind.sh given: [case3] get when: [t1] no level is bound then: shows (none) 1`] = `
+"🐢 lets check the bind...
+
+🐚 git.commit.bind
+   └─ level: (none)
+"
+`;
+
+exports[`git.commit.bind.sh given: [case4] del when: [t0] level was bound then: removes the level file 1`] = `
+"🐢 groovy, level cleared
+
+🐚 git.commit.bind
+   └─ level: (none)
+"
+`;
