@@ -1,0 +1,18 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`brief.compress.sh given: [case5] output format when: [t0] successful compression then: output matches snapshot 1`] = `
+"🐢 lets see...
+
+🐚 brief.compress
+   ├─ mode: plan
+   ├─ mech: llmlingua/v2/tinybert
+   ├─ input: brief.md
+   ├─ ratio: 4x target
+   └─ result
+      ├─ tokens.before: N
+      ├─ tokens.after: N
+      └─ ratio.actual: Nx
+
+note: this was a plan. to apply, re-run with --mode apply
+"
+`;
