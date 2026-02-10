@@ -1,0 +1,26 @@
+now, take the outputs of each of the probes above, and kernelize what they've found into kernels of knowledge
+
+distinguish
+- [FACT] facts; grounded, provable, emperically or logically verifiable knowledge
+- [SUMP] assumptions; things that are assumed but not explicitly proven or provable
+- [KHUE] questions; questions that are defined and available to be explored
+- [HYPO] hypothesis; claims that are provable and proposed to be tested, but have not been tested yet
+
+cluster them by domain
+
+do this iteratively
+
+create an index per probe emission of which concepts exist in each
+- dispatch subagents to do this on each file; sonnet 
+
+then, once they're all done, catelogize their outcomes
+- cluster them
+- relate them
+- and produce one comprehensive catalog of all of the kernels of knowledge that were discovered
+
+
+we will use this to subsequently blend the convereged kernels into representative kernels that point to each of the citations from which each kernel was found
+
+we expect this may be a massive inventory of knowledge kernels
+
+try and index the kernels based on a treestruct hierarchy for easier lookup access

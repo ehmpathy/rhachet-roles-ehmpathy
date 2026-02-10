@@ -1,0 +1,30 @@
+for each probe in .research/v2025_02_09.brief-minification/1.probe.aim.v1.i1.md
+
+create a parallel subagent and launch them to emit their own websearches, with each to cite atleast 11 docs for each question. one probe subagent per one question.
+
+each probe subagent must then emit their results into  .research/v2025_02_09.brief-minification/probe/q$N.probe.research.response.v1.i1.md 
+
+quere the $N is the question number that was assigned to the probe
+
+---
+
+explain to each sub agent that they must do a thorough probe; not just return citations, but do a deep dive and extract all the relevant citations from each article; we expect each cited article to have a full summary with MANY direct quotes and a conclusion with takeaway relationship to the topic being investigated
+
+i.e., each probe must do a thorough investigation on each citation
+
+recommended brain of sonnet or higher 
+
+
+---
+
+then, monitor their progress and once all of them are done
+
+emit into 
+
+.research/v2025_02_09.brief-minification/2.probe.emit.v1.i1.md 
+
+an index of all their research files
+
+---
+
+once they have completed, double check that each probe did indeed answer the questino that was asisgned to it
