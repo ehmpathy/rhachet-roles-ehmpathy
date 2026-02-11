@@ -1,0 +1,8 @@
+{
+  "name": "brief-compress-test-fixture",
+  "description": "fixture for brief.compress integration tests",
+  "dependencies": {
+    "rhachet-brains-xai": "*",
+    "rhachet-brains-anthropic": "*"
+  }
+}

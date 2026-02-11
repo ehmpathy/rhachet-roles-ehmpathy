@@ -5,20 +5,21 @@
  * .why = remove redundant tokens while semantic intent is preserved
  *
  * usage:
- *   bun compress.ts --input path/to/brief.md --model mobilebert --rate 0.25
- *   bun compress.ts --input path/to/brief.md --model mobilebert --rate 0.25 --json
- *   bun compress.ts --check --model mobilebert
+ *   compress.via.llmlingua.ts --from path/to/brief.md --via tinybert --rate 0.25 --json
+ *   compress.via.llmlingua.ts --check --via tinybert
  */
 
 import * as fs from 'fs/promises';
 import { parseArgs } from 'util';
 
+import { countTokens } from './compress.shared';
+
 // parse cli args
 const { values } = parseArgs({
   options: {
-    input: { type: 'string' },
-    output: { type: 'string' },
-    mech: { type: 'string', default: 'tinybert' },
+    from: { type: 'string' },
+    into: { type: 'string' },
+    via: { type: 'string', default: 'tinybert' },
     rate: { type: 'string', default: '0.25' },
     check: { type: 'boolean', default: false },
     json: { type: 'boolean', default: false },
@@ -52,16 +53,6 @@ const MODEL_CONFIG: Record<
     factory: 'xlm-roberta',
     options: { use_external_data_format: true },
   },
-};
-
-/**
- * .what = count tokens via tiktoken cl100k_base encoder
- * .why = provide accurate token metrics for compression stats
- */
-const countTokens = async (input: { text: string }): Promise<number> => {
-  const { getEncoding } = await import('js-tiktoken');
-  const encoder = getEncoding('cl100k_base');
-  return encoder.encode(input.text).length;
 };
 
 /**
@@ -162,7 +153,7 @@ const checkMech = async (input: { mech: string }): Promise<boolean> => {
 
 // main
 const main = async (): Promise<void> => {
-  const mech = values.mech ?? 'tinybert';
+  const mech = values.via ?? 'tinybert';
   const rate = parseFloat(values.rate ?? '0.25');
 
   // handle --check mode
@@ -185,37 +176,50 @@ const main = async (): Promise<void> => {
     }
   }
 
-  // require --input for compression
-  if (!values.input) {
+  // require --from for compression
+  if (!values.from) {
     console.error(
       JSON.stringify({
         error: 'absent input',
-        message: '--input is required',
+        message: '--from is required',
       }),
     );
     process.exit(1);
   }
 
   // read input file
-  const content = await fs.readFile(values.input, 'utf-8');
+  const content = await fs.readFile(values.from, 'utf-8');
 
   // compress
   const result = await computeCompression({ content, mech, rate });
 
-  // write output if specified
-  if (values.output) {
-    await fs.writeFile(values.output, result.compressed, 'utf-8');
+  // write output file directly if --into specified (avoids shell string issues)
+  if (values.into) {
+    await fs.mkdir(require('path').dirname(values.into), { recursive: true });
+    await fs.writeFile(values.into, result.compressed, 'utf-8');
   }
 
-  // emit result
+  // emit result (without compressed content when --into is used, to keep json small)
   if (values.json) {
-    console.log(JSON.stringify(result));
+    const output = values.into
+      ? {
+          tokensBefore: result.tokensBefore,
+          tokensAfter: result.tokensAfter,
+          ratio: result.ratio,
+          wrote: values.into,
+        }
+      : result;
+    console.log(JSON.stringify(output));
   } else {
     console.log(`tokens.before: ${result.tokensBefore}`);
     console.log(`tokens.after: ${result.tokensAfter}`);
     console.log(`ratio: ${result.ratio}x`);
-    console.log('---');
-    console.log(result.compressed);
+    if (values.into) {
+      console.log(`wrote: ${values.into}`);
+    } else {
+      console.log('---');
+      console.log(result.compressed);
+    }
   }
 };
 
