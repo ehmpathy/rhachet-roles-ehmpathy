@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = compress markdown briefs via LLMLingua-2 token classification
+# .what = compress markdown briefs via extractive or abstractive mechanisms
 #
 # .why  = reduces token count in briefs while semantic intent is preserved:
 #         - 2-4x compression on typical briefs
@@ -8,17 +8,17 @@
 #         - more headroom for task context
 #
 # usage:
-#   brief.compress.sh path/to/brief.md                    # apply (default)
-#   brief.compress.sh path/to/brief.md --mode plan        # preview only
-#   brief.compress.sh path/to/brief.md --mode apply       # emit .md.min
-#   brief.compress.sh --glob "src/**/*.md" --mode apply   # batch compress
-#   brief.compress.sh path/to/brief.md --mech tinybert    # fast model
-#   brief.compress.sh path/to/brief.md --ratio 4          # 4x target
-#   brief.compress.sh path/to/brief.md --force            # recompress even if fresh
+#   brief.compress.sh --from path/to/brief.md --via llmlingua/v2@tinybert
+#   brief.compress.sh --from path/to/brief.md --via bhrain/sitrep --mode plan
+#   brief.compress.sh --from path/to/brief.md --via bhrain/sitrep --mode apply
+#   brief.compress.sh --from "src/**/*.md" --via llmlingua/v2@tinybert --mode apply
+#   brief.compress.sh --from path/to/brief.md --via bhrain/sitrep --into /tmp/out.md
+#   brief.compress.sh --from path/to/brief.md --via llmlingua/v2@tinybert --ratio 4
+#   brief.compress.sh --from path/to/brief.md --via llmlingua/v2@tinybert --force
 #
 # guarantee:
 #   - source .md file unchanged
-#   - emits collocated .md.min file
+#   - emits collocated .md.min file (or --into path)
 #   - plan mode by default (shows preview, no emit)
 #   - fail-fast on errors
 ######################################################################
@@ -31,29 +31,34 @@ source "$SKILL_DIR/output.sh"
 # parse named arguments
 FILE_PATH=""
 GLOB_PATTERN=""
+INTO_PATH=""
+VIA=""
 MODE="apply"
-MECH="tinybert"
 RATIO="4"
 FORCE=false
-VALIDATE=false
 SHOW_HELP=false
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    --path)
-      FILE_PATH="$2"
+    --from)
+      # detect if value looks like a glob (contains * or ?)
+      if [[ "$2" == *"*"* || "$2" == *"?"* ]]; then
+        GLOB_PATTERN="$2"
+      else
+        FILE_PATH="$2"
+      fi
       shift 2
       ;;
-    --glob)
-      GLOB_PATTERN="$2"
+    --into)
+      INTO_PATH="$2"
+      shift 2
+      ;;
+    --via)
+      VIA="$2"
       shift 2
       ;;
     --mode)
       MODE="$2"
-      shift 2
-      ;;
-    --mech)
-      MECH="$2"
       shift 2
       ;;
     --ratio)
@@ -62,10 +67,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --force)
       FORCE=true
-      shift
-      ;;
-    --validate)
-      VALIDATE=true
       shift
       ;;
     --help|-h)
@@ -82,11 +83,11 @@ while [[ $# -gt 0 ]]; do
       ;;
     -*)
       echo "unknown flag: $1" >&2
-      echo "usage: brief.compress.sh path/to/brief.md [--mode plan|apply] [--mech model] [--ratio N]" >&2
+      echo "usage: brief.compress.sh --from <path|glob> --via <press@brain> [--mode plan|apply] [--ratio N]" >&2
       exit 1
       ;;
     *)
-      # positional arg = file path
+      # positional arg = file path (backwards compat)
       if [[ -z "$FILE_PATH" ]]; then
         FILE_PATH="$1"
       else
@@ -100,43 +101,90 @@ done
 
 # show help
 if [[ "$SHOW_HELP" == "true" ]]; then
-  echo "brief.compress — compress markdown briefs via LLMLingua-2"
+  echo "brief.compress — compress markdown briefs"
   echo ""
   echo "usage:"
-  echo "  brief.compress.sh <path>                    compress single file"
-  echo "  brief.compress.sh --glob <pattern>          compress matched files"
+  echo "  brief.compress.sh --from <path> --via <press@brain>"
+  echo "  brief.compress.sh --from <glob> --via <press@brain> --mode apply"
   echo ""
   echo "options:"
+  echo "  --from <path|glob>  input file or glob pattern (required)"
+  echo "  --via <press@brain> compression mechanism (required)"
+  echo "  --into <path>       explicit output path (single file only)"
   echo "  --mode plan|apply   preview (plan) or emit (apply). default: apply"
-  echo "  --mech <model>      compression model. default: tinybert"
-  echo "                      options: tinybert, bert, xlm-roberta"
   echo "  --ratio <N>         target compression ratio (1-20). default: 4"
   echo "  --force             recompress even if .md.min is up-to-date"
-  echo "  --validate          run behavioral equivalence check (future)"
   echo "  --help              show this help"
   echo ""
-  echo "models (compression vs semantic retention):"
-  echo ""
-  echo "  mech          size     cpu speed   gpu speed   retention"
-  echo "  ─────────────────────────────────────────────────────────────"
-  echo "  tinybert      57 MB    ~4s/brief   ~0.4s       ~92%"
-  echo "  bert          710 MB   ~15s/brief  ~0.5s       ~96%"
-  echo "  xlm-roberta   2.2 GB   ~30s/brief  ~0.5s       ~98%"
-  echo ""
-  echo "retention = semantic fidelity after compression (LLMLingua-2 benchmarks)"
-  echo "at 4x compression: tinybert loses ~8% info, xlm-roberta loses ~2%"
-  echo "on gpu, all models run at similar speed (~0.5s) — bottleneck shifts to i/o"
+  echo "press@brain examples:"
+  echo "  llmlingua/v2@tinybert          extractive, local, fast (~4s/brief)"
+  echo "  llmlingua/v2@bert              extractive, local, accurate (~15s/brief)"
+  echo "  llmlingua/v2@xlm-roberta       extractive, local, highest fidelity (~30s/brief)"
+  echo "  bhrain/sitrep@anthropic/claude/sonnet  abstractive, api, semantic distillation"
   echo ""
   echo "examples:"
-  echo "  brief.compress.sh docs/guide.md --mode plan"
-  echo "  brief.compress.sh docs/guide.md --mode apply --mech tinybert"
-  echo "  brief.compress.sh --glob 'src/**/*.md' --mode apply"
+  echo "  brief.compress.sh --from docs/guide.md --via llmlingua/v2@tinybert --mode plan"
+  echo "  brief.compress.sh --from docs/guide.md --via bhrain/sitrep --mode apply"
+  echo "  brief.compress.sh --from 'src/**/*.md' --via llmlingua/v2@tinybert --mode apply"
   exit 0
 fi
 
-# validate: need path or glob
+# validate: need --via
+if [[ -z "$VIA" ]]; then
+  echo "error: --via is required (e.g., --via llmlingua/v2@tinybert or --via bhrain/sitrep)" >&2
+  exit 1
+fi
+
+# parse --via into press and brain
+PRESS=""
+BRAIN=""
+
+# failfast if starts with @ (no press)
+if [[ "$VIA" == @* ]]; then
+  echo "error: expected format \$press@\$brain, got '$VIA' (no press before @)" >&2
+  exit 1
+fi
+
+# split on @ if present
+if [[ "$VIA" == *"@"* ]]; then
+  PRESS="${VIA%%@*}"
+  BRAIN="${VIA#*@}"
+fi
+
+# if no @ and contains /, treat as press with default brain
+if [[ -z "$PRESS" && "$VIA" == *"/"* ]]; then
+  PRESS="$VIA"
+fi
+
+# failfast if no press resolved (no @ and no /)
+if [[ -z "$PRESS" ]]; then
+  echo "error: expected format \$press@\$brain, got '$VIA'" >&2
+  echo "examples: llmlingua/v2@tinybert, bhrain/sitrep@anthropic/claude/haiku, bhrain/sitrep" >&2
+  exit 1
+fi
+
+# apply default brain per press family if brain is empty
+if [[ -z "$BRAIN" ]]; then
+  case "$PRESS" in
+    bhrain/sitrep)
+      BRAIN="anthropic/claude/sonnet"
+      ;;
+    *)
+      echo "error: no default brain for press '$PRESS'; specify via \$press@\$brain" >&2
+      exit 1
+      ;;
+  esac
+fi
+
+# validate: need --from
 if [[ -z "$FILE_PATH" && -z "$GLOB_PATTERN" ]]; then
-  echo "error: provide a file path or --glob pattern" >&2
+  echo "error: --from is required (file path or glob pattern)" >&2
+  exit 1
+fi
+
+# validate: --into only valid for single file
+if [[ -n "$INTO_PATH" && -n "$GLOB_PATTERN" ]]; then
+  echo "error: --into only valid for single file input, not with glob --from" >&2
   exit 1
 fi
 
@@ -145,15 +193,6 @@ if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
   echo "error: --mode must be 'plan' or 'apply' (got '$MODE')" >&2
   exit 1
 fi
-
-# validate mech
-case "$MECH" in
-  tinybert|bert|xlm-roberta) ;;
-  *)
-    echo "error: --mech must be tinybert, bert, or xlm-roberta (got '$MECH')" >&2
-    exit 1
-    ;;
-esac
 
 # validate ratio is numeric and in range
 if ! [[ "$RATIO" =~ ^[0-9]+$ ]] || [[ "$RATIO" -lt 1 ]] || [[ "$RATIO" -gt 20 ]]; then
@@ -187,17 +226,38 @@ else
   shopt -u nullglob globstar
 
   if [[ ${#FILES[@]} -eq 0 ]]; then
-    print_turtle_header "lets see..."
-    print_tree_start "brief.compress"
-    print_tree_branch "mode: $MODE"
-    print_tree_branch "glob: $GLOB_PATTERN"
-    print_tree_branch "result: no files matched pattern" true
-    exit 0
+    echo "error: no files matched pattern '$GLOB_PATTERN'" >&2
+    exit 1
   fi
 fi
 
 # compute compression rate for LLMLingua (0-1 scale, where 0.25 = 4x compression)
 RATE=$(echo "scale=4; 1 / $RATIO" | bc)
+
+# determine which mechanism to invoke based on press family
+MECH_JS=""
+MECH_ARGS=()
+
+case "$PRESS" in
+  llmlingua/*)
+    MECH_JS="$SKILL_DIR/compress.via.llmlingua.js"
+    MECH_ARGS=(--from "\$file" --via "$BRAIN" --rate "$RATE" --json)
+    ;;
+  bhrain/*)
+    MECH_JS="$SKILL_DIR/compress.via.bhrain.js"
+    MECH_ARGS=(--from "\$file" --via "$BRAIN" --json)
+    ;;
+  *)
+    echo "error: unknown press family '$PRESS'. expected: llmlingua/*, bhrain/*" >&2
+    exit 1
+    ;;
+esac
+
+# verify mechanism exists
+if [[ ! -f "$MECH_JS" ]]; then
+  echo "error: mechanism not found at $MECH_JS" >&2
+  exit 1
+fi
 
 # output header
 if [[ "$MODE" == "plan" ]]; then
@@ -212,8 +272,14 @@ TOTAL_AFTER=0
 FILE_COUNT=0
 
 for file in "${FILES[@]}"; do
-  # check staleness (skip if .md.min is newer than source)
-  MIN_FILE="${file}.min"
+  # determine output path
+  if [[ -n "$INTO_PATH" ]]; then
+    MIN_FILE="$INTO_PATH"
+  else
+    MIN_FILE="${file}.min"
+  fi
+
+  # check staleness (skip if .min is newer than source)
   if [[ -f "$MIN_FILE" && "$FORCE" != "true" ]]; then
     if [[ "$MIN_FILE" -nt "$file" ]]; then
       # up-to-date, skip
@@ -224,47 +290,62 @@ for file in "${FILES[@]}"; do
     fi
   fi
 
-  # invoke compiled compression engine and extract JSON line
-  RAW_OUTPUT=$(node "$SKILL_DIR/compress.js" \
-    --input "$file" \
-    --mech "$MECH" \
-    --rate "$RATE" \
-    --json 2>&1) || {
+  # invoke mechanism with press-specific args
+  MECH_RUN_ARGS=(--from "$file" --via "$BRAIN" --json)
+  case "$PRESS" in
+    llmlingua/*) MECH_RUN_ARGS+=(--rate "$RATE") ;;
+  esac
+
+  # pass --into to mechanism in apply mode (mechanism writes file directly)
+  if [[ "$MODE" == "apply" ]]; then
+    # create parent directories if needed (for --into paths)
+    mkdir -p "$(dirname "$MIN_FILE")"
+    MECH_RUN_ARGS+=(--into "$MIN_FILE")
+  fi
+
+  # capture start time
+  START_TIME=$(date +%s.%N)
+
+  RAW_OUTPUT=$(node "$MECH_JS" "${MECH_RUN_ARGS[@]}" 2>&1) || {
     echo "error: compression failed for $file" >&2
     echo "$RAW_OUTPUT" >&2
     exit 1
   }
 
+  # capture end time and compute elapsed
+  END_TIME=$(date +%s.%N)
+  ELAPSED=$(echo "$END_TIME - $START_TIME" | bc)
+  ELAPSED_PRETTY=$(printf "%.1fs" "$ELAPSED")
+
   # extract JSON line (starts with { and contains tokensBefore)
   RESULT=$(echo "$RAW_OUTPUT" | grep -E '^\{.*"tokensBefore"')
   if [[ -z "$RESULT" ]]; then
-    echo "error: no JSON output from compress.js" >&2
+    echo "error: no JSON output from mechanism" >&2
     echo "$RAW_OUTPUT" >&2
     exit 1
   fi
 
-  # parse json result
+  # parse json result (no need to parse compressed content - mechanism writes directly)
   TOKENS_BEFORE=$(echo "$RESULT" | jq -r '.tokensBefore')
   TOKENS_AFTER=$(echo "$RESULT" | jq -r '.tokensAfter')
   ACTUAL_RATIO=$(echo "$RESULT" | jq -r '.ratio')
-  COMPRESSED=$(echo "$RESULT" | jq -r '.compressed')
 
   # accumulate totals
   TOTAL_BEFORE=$((TOTAL_BEFORE + TOKENS_BEFORE))
   TOTAL_AFTER=$((TOTAL_AFTER + TOKENS_AFTER))
   FILE_COUNT=$((FILE_COUNT + 1))
 
-  # emit file if apply mode
-  if [[ "$MODE" == "apply" ]]; then
-    echo "$COMPRESSED" > "$MIN_FILE"
-  fi
-
   # output per-file stats
   print_tree_start "brief.compress"
   print_tree_branch "mode: $MODE"
-  print_tree_branch "mech: llmlingua/v2/$MECH"
-  print_tree_branch "input: $file"
-  print_tree_branch "ratio: ${RATIO}x target"
+  print_tree_branch "via: ${PRESS}@${BRAIN}"
+  print_tree_branch "from: $file"
+  print_tree_branch "into: $MIN_FILE"
+  # only show ratio target for llmlingua (brain decides its own compression level)
+  case "$PRESS" in
+    llmlingua/*) print_tree_branch "ratio: ${RATIO}x target" ;;
+  esac
+  print_tree_branch "time: $ELAPSED_PRETTY"
   print_tree_branch "result" true
   print_tree_leaf "tokens.before" "$TOKENS_BEFORE" "      "
   print_tree_leaf "tokens.after" "$TOKENS_AFTER" "      "
