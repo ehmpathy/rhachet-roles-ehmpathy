@@ -143,8 +143,8 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 # -m: allow missing components, -s: don't follow symlinks in final component
 AT_ABS=$(realpath -m -s "$AT")
 
-# validate --at is within repo
-if [[ "$AT_ABS" != "$REPO_ROOT"* ]]; then
+# validate --at is within repo (exact match OR slash-prefixed; prevents /repo from match of /repo-evil)
+if [[ "$AT_ABS" != "$REPO_ROOT" && "$AT_ABS" != "$REPO_ROOT/"* ]]; then
   echo "error: --at must be within the git repository" >&2
   echo "  repo root: $REPO_ROOT" >&2
   echo "  --at:      $AT_ABS" >&2
@@ -154,8 +154,8 @@ fi
 # resolve --to to absolute path (for comparison and absolute mode)
 TO_ABS=$(realpath -m "$TO")
 
-# validate --to is within repo
-if [[ "$TO_ABS" != "$REPO_ROOT"* ]]; then
+# validate --to is within repo (exact match OR slash-prefixed; prevents /repo from match of /repo-evil)
+if [[ "$TO_ABS" != "$REPO_ROOT" && "$TO_ABS" != "$REPO_ROOT/"* ]]; then
   echo "error: --to must be within the git repository" >&2
   echo "  repo root: $REPO_ROOT" >&2
   echo "  --to:      $TO_ABS" >&2

@@ -281,6 +281,38 @@ describe('cpsafe.sh', () => {
         }
       });
     });
+
+    when('[t2] source is in adjacent directory with repo-prefix name', () => {
+      then('exits with error (prevents /repo from match of /repo-evil)', () => {
+        // this tests the critical vulnerability: /tmp/myrepo should not match /tmp/myrepo-evil
+        const tempDir = genTempDir({ slug: 'cpsafe-test', git: true });
+        const adjacentDir = `${tempDir}-evil`;
+        fs.mkdirSync(adjacentDir, { recursive: true });
+        const outsideFile = path.join(adjacentDir, 'source.txt');
+        fs.writeFileSync(outsideFile, 'should not be copied');
+
+        try {
+          const result = spawnSync(
+            'bash',
+            [scriptPath, outsideFile, './dest.txt'],
+            {
+              cwd: tempDir,
+              encoding: 'utf-8',
+              stdio: ['pipe', 'pipe', 'pipe'],
+            },
+          );
+
+          expect(result.status).toBe(1);
+          expect(result.stdout).toContain(
+            'source must be within the git repository',
+          );
+          // verify file still exists (not deleted or moved)
+          expect(fs.existsSync(outsideFile)).toBe(true);
+        } finally {
+          fs.rmSync(adjacentDir, { recursive: true, force: true });
+        }
+      });
+    });
   });
 
   given('[case6] safety boundary - dest outside repo', () => {
@@ -324,6 +356,38 @@ describe('cpsafe.sh', () => {
         expect(result.stdout).toContain(
           'destination must be within the git repository',
         );
+      });
+    });
+
+    when('[t3] dest is in adjacent directory with repo-prefix name', () => {
+      then('exits with error (prevents /repo from match of /repo-evil)', () => {
+        // this tests the critical vulnerability: /tmp/myrepo should not match /tmp/myrepo-evil
+        const tempDir = genTempDir({ slug: 'cpsafe-test', git: true });
+        fs.writeFileSync(path.join(tempDir, 'source.txt'), 'content');
+        const adjacentDir = `${tempDir}-evil`;
+        fs.mkdirSync(adjacentDir, { recursive: true });
+        const outsideDest = path.join(adjacentDir, 'dest.txt');
+
+        try {
+          const result = spawnSync(
+            'bash',
+            [scriptPath, './source.txt', outsideDest],
+            {
+              cwd: tempDir,
+              encoding: 'utf-8',
+              stdio: ['pipe', 'pipe', 'pipe'],
+            },
+          );
+
+          expect(result.status).toBe(1);
+          expect(result.stdout).toContain(
+            'destination must be within the git repository',
+          );
+          // verify file was NOT created in adjacent dir
+          expect(fs.existsSync(outsideDest)).toBe(false);
+        } finally {
+          fs.rmSync(adjacentDir, { recursive: true, force: true });
+        }
       });
     });
   });
