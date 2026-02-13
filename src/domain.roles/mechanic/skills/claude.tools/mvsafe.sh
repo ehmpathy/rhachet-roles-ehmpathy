@@ -125,16 +125,16 @@ else
   INTO_ABS=$(realpath -m "$INTO")
 fi
 
-# validate source is within repo
-if [[ "$FROM_ABS" != "$REPO_ROOT"* ]]; then
+# validate source is within repo (exact match OR slash-prefixed; prevents /repo from match of /repo-evil)
+if [[ "$FROM_ABS" != "$REPO_ROOT" && "$FROM_ABS" != "$REPO_ROOT/"* ]]; then
   echo "error: source must be within the git repository"
   echo "  repo root: $REPO_ROOT"
   echo "  source:    $FROM_ABS"
   exit 1
 fi
 
-# validate dest is within repo
-if [[ "$INTO_ABS" != "$REPO_ROOT"* ]]; then
+# validate dest is within repo (exact match OR slash-prefixed; prevents /repo from match of /repo-evil)
+if [[ "$INTO_ABS" != "$REPO_ROOT" && "$INTO_ABS" != "$REPO_ROOT/"* ]]; then
   echo "error: destination must be within the git repository"
   echo "  repo root: $REPO_ROOT"
   echo "  dest:      $INTO_ABS"

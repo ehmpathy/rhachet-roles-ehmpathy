@@ -19,18 +19,7 @@ describe('symlink.sh', () => {
     symlinks?: Record<string, string>;
     symlinkArgs: string;
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
-    const tempDir = genTempDir({ slug: 'symlink-test' });
-
-    // initialize git repo
-    spawnSync('git', ['init'], { cwd: tempDir, stdio: 'pipe' });
-    spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-      cwd: tempDir,
-      stdio: 'pipe',
-    });
-    spawnSync('git', ['config', 'user.name', 'Test'], {
-      cwd: tempDir,
-      stdio: 'pipe',
-    });
+    const tempDir = genTempDir({ slug: 'symlink-test', git: true });
 
     // create files
     if (args.files) {
@@ -382,6 +371,82 @@ describe('symlink.sh', () => {
 
         expect(result.exitCode).toBe(1);
         expect(result.stderr).toContain('must be within the git repository');
+      });
+    });
+
+    when('[t2] --at is in adjacent directory with repo-prefix name', () => {
+      then('exits with error (prevents /repo from match of /repo-evil)', () => {
+        // this tests the critical vulnerability: /tmp/myrepo should not match /tmp/myrepo-evil
+        const tempDir = genTempDir({ slug: 'symlink-test', git: true });
+        fs.writeFileSync(path.join(tempDir, 'target.txt'), 'content');
+        const adjacentDir = `${tempDir}-evil`;
+        fs.mkdirSync(adjacentDir, { recursive: true });
+        const outsideLink = path.join(adjacentDir, 'link.txt');
+
+        try {
+          const result = spawnSync(
+            'bash',
+            [
+              scriptPath,
+              '--at',
+              outsideLink,
+              '--to',
+              './target.txt',
+              '--mode',
+              'relative',
+            ],
+            {
+              cwd: tempDir,
+              encoding: 'utf-8',
+              stdio: ['pipe', 'pipe', 'pipe'],
+            },
+          );
+
+          expect(result.status).toBe(1);
+          expect(result.stderr).toContain('must be within the git repository');
+          // verify symlink was NOT created
+          expect(fs.existsSync(outsideLink)).toBe(false);
+        } finally {
+          fs.rmSync(adjacentDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t3] --to is in adjacent directory with repo-prefix name', () => {
+      then('exits with error (prevents /repo from match of /repo-evil)', () => {
+        // this tests the critical vulnerability: /tmp/myrepo should not match /tmp/myrepo-evil
+        const tempDir = genTempDir({ slug: 'symlink-test', git: true });
+        const adjacentDir = `${tempDir}-evil`;
+        fs.mkdirSync(adjacentDir, { recursive: true });
+        const outsideTarget = path.join(adjacentDir, 'target.txt');
+        fs.writeFileSync(outsideTarget, 'outside content');
+
+        try {
+          const result = spawnSync(
+            'bash',
+            [
+              scriptPath,
+              '--at',
+              './link.txt',
+              '--to',
+              outsideTarget,
+              '--mode',
+              'relative',
+            ],
+            {
+              cwd: tempDir,
+              encoding: 'utf-8',
+              stdio: ['pipe', 'pipe', 'pipe'],
+            },
+          );
+
+          expect(result.status).toBe(1);
+          expect(result.stderr).toContain('must be within the git repository');
+          // verify symlink was NOT created
+          expect(fs.existsSync(path.join(tempDir, 'link.txt'))).toBe(false);
+        } finally {
+          fs.rmSync(adjacentDir, { recursive: true, force: true });
+        }
       });
     });
   });

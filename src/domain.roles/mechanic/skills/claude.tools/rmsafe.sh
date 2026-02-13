@@ -106,8 +106,8 @@ else
   TARGET_ABS=$(realpath "$TARGET")
 fi
 
-# validate target is within repo
-if [[ "$TARGET_ABS" != "$REPO_ROOT"* ]]; then
+# validate target is within repo (exact match OR slash-prefixed; prevents /repo from match of /repo-evil)
+if [[ "$TARGET_ABS" != "$REPO_ROOT" && "$TARGET_ABS" != "$REPO_ROOT/"* ]]; then
   echo "error: path must be within the git repository"
   echo "  repo root: $REPO_ROOT"
   echo "  path:      $TARGET_ABS"

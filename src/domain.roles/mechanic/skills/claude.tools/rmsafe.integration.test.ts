@@ -280,6 +280,34 @@ describe('rmsafe.sh', () => {
         }
       });
     });
+
+    when('[t3] target is in sibling directory with repo-prefix name', () => {
+      then('exits with error (prevents /repo from match of /repo-evil)', () => {
+        // this tests the critical vulnerability: /tmp/myrepo should not match /tmp/myrepo-evil
+        const tempDir = genTempDir({ slug: 'rmsafe-test', git: true });
+        const siblingDir = `${tempDir}-evil`;
+        fs.mkdirSync(siblingDir, { recursive: true });
+        const outsideFile = path.join(siblingDir, 'malicious.txt');
+        fs.writeFileSync(outsideFile, 'should not be deleted');
+
+        try {
+          const result = spawnSync('bash', [scriptPath, outsideFile], {
+            cwd: tempDir,
+            encoding: 'utf-8',
+            stdio: ['pipe', 'pipe', 'pipe'],
+          });
+
+          expect(result.status).toBe(1);
+          expect(result.stdout).toContain(
+            'path must be within the git repository',
+          );
+          // verify file was NOT deleted
+          expect(fs.existsSync(outsideFile)).toBe(true);
+        } finally {
+          fs.rmSync(siblingDir, { recursive: true, force: true });
+        }
+      });
+    });
   });
 
   given('[case6] recursive removal', () => {
