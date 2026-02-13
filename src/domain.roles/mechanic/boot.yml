@@ -1,0 +1,177 @@
+always:
+  briefs:
+    say:
+      # identity & tone
+      - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
+      - briefs/practices/lang.tones/rule.prefer.lowercase.md
+      - briefs/practices/lang.tones/rule.require.term-human.md
+      - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
+      - briefs/practices/lang.tones/rule.forbid.buzzwords.md
+      - briefs/practices/lang.tones/rule.forbid.shouts.md
+      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
+
+      # foundational terms
+      - briefs/practices/lang.terms/define.directives.terms=forbid_avoid_prefer_require.md
+      - briefs/practices/lang.terms/rule.forbid.gerunds.md
+      - briefs/practices/lang.terms/rule.require.order.noun_adj.md
+      - briefs/practices/lang.terms/rule.require.ubiqlang.md
+      - briefs/practices/lang.terms/rule.require.treestruct.md
+
+    ref:
+      # term enforcement via hooks — ref only (hooks already block violations)
+      - briefs/practices/lang.terms/rule.forbid.term-dryrun.md
+      - briefs/practices/lang.terms/rule.forbid.term=dryrun.md
+      - briefs/practices/lang.terms/rule.forbid.term=existing.md
+      - briefs/practices/lang.terms/rule.forbid.term=normalize.md
+      - briefs/practices/lang.terms/rule.forbid.term-script.md
+
+      # supplements and references
+      - briefs/practices/lang.terms/rule.prefer.term-supplier.md
+      - briefs/practices/lang.terms/rule.require.order.noun_adj.md.pt2.md
+      - briefs/practices/lang.terms/define.exec-vs-apply.md
+      - briefs/practices/lang.terms/define.prodcode-testcode.terms=prodcode_vs_testcode.md
+
+subject.code.prod:
+  briefs:
+    say:
+      # procedures
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt1.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.input-options-pattern.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.arrow-only.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.clear-contracts.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.dependency-injection.md.pt1.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.hook-wrapper-pattern.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.named-args.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.single-responsibility.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.forbid.io-as-domain-objects.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.forbid.io-as-interfaces.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.forbid.positional-args.md.pt1.md
+
+      # domain objects
+      - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.nullable-without-reason.md
+      - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.undefined-attributes.md
+      - briefs/practices/code.prod/evolvable.domain.objects/rule.require.immutable-refs.md
+
+      # domain operations
+      - briefs/practices/code.prod/evolvable.domain.operations/rule.require.sync-filename-opname.md
+
+      # architecture
+      - briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md
+      - briefs/practices/code.prod/evolvable.architecture/rule.require.bounded-contexts.md
+      - briefs/practices/code.prod/evolvable.architecture/rule.require.domain-driven-design.md
+
+      # domain objects (reference)
+      - briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md
+
+      # persistence
+      - briefs/practices/code.prod/readable.persistence/rule.prefer.declastruct.[demo].md
+
+      # repo structure
+      - briefs/practices/code.prod/evolvable.repo.structure/rule.forbid.barrel-exports.md
+      - briefs/practices/code.prod/evolvable.repo.structure/rule.forbid.index-ts.md
+      - briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md
+
+      # errors
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.error-hiding.md.pt1.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.prefer.helpful-error-wrap.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.md
+
+      # procedures (pit of success)
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.undefined-inputs.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.immutable-vars.md
+
+      # typedefs
+      - briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md
+      - briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.shapefit.md
+
+      # readability
+      - briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.md
+      - briefs/practices/code.prod/readable.narrative/rule.require.narrative-flow.md
+      - briefs/practices/code.prod/readable.narrative/rule.avoid.unnecessary-ifs.md
+      - briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.md
+
+      # artifacts
+      - briefs/practices/code.prod/consistent.artifacts/rule.require.pinned-versions.md
+
+    ref:
+      # procedure supplements
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt2.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.dependency-injection.md.pt2.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.forbid.positional-args.md.pt2.md
+
+      # domain operations
+      - briefs/practices/code.prod/evolvable.domain.operations/define.domain-operation-core-variants.md
+
+      # repo structure
+      - briefs/practices/code.prod/evolvable.repo.structure/rule.prefer.dot-dirs.md
+
+      # errors
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.error-hiding.md.pt2.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.[seed].md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.[demo].shell.md
+
+      # procedures
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotency.[seed].md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.pitofsuccess.md
+
+      # typedefs
+      - briefs/practices/code.prod/pitofsuccess.typedefs/define.bivariance-for-generics.[lesson].md
+
+      # readability
+      - briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.v1.md
+      - briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.[demo].md
+      - briefs/practices/code.prod/readable.narrative/rule.prefer.early-returns.[demo].md
+      - briefs/practices/code.prod/readable.narrative/rule.prefer.transformers-over-conditionals.[lesson].md
+
+      # contracts
+      - briefs/practices/code.prod/consistent.contracts/ref.package.as-command.[ref].md
+
+subject.code.test:
+  briefs:
+    say:
+      - briefs/practices/code.test/frames.behavior/rule.require.given-when-then.md
+      - briefs/practices/code.test/frames.behavior/rule.require.useThen-useWhen-for-shared-results.md
+      - briefs/practices/code.test/frames.behavior/rule.forbid.redundant-expensive-operations.md
+      - briefs/practices/code.test/frames.caselist/rule.prefer.data-driven.md
+      - briefs/practices/code.test/lessons.howto/howto.write.[lesson].md.pt1.md
+      - briefs/practices/code.test/lessons.howto/howto.write.[lesson].md.pt2.md
+      - briefs/practices/code.test/lessons.howto/howto.write.[lesson].md.pt3.md
+      - briefs/practices/code.test/lessons.howto/rule.require.snapshots.[lesson].md
+      - briefs/practices/code.test/scope.acceptance/rule.require.blackbox.md
+      - briefs/practices/code.test/scope.unit/rule.forbid.remote-boundaries.md
+
+    ref:
+      - briefs/practices/code.test/consistent.contracts/ref.package.test-fns.[ref].md
+      - briefs/practices/code.test/frames.behavior/howto.write-bdd.[lesson].md
+      - briefs/practices/code.test/frames.behavior/howto.write-bdd.[lesson].pt2.md
+      - briefs/practices/code.test/lessons.howto/howto.diagnose.[lesson].md
+      - briefs/practices/code.test/lessons.howto/howto.run.[lesson].md
+      - briefs/practices/code.test/lessons.howto/howto.use.[lesson].md
+
+subject.arch:
+  briefs:
+    say:
+      # all say in both arch and code.prod — overlap is intentional
+      - briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md
+      - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.nullable-without-reason.md
+      - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.undefined-attributes.md
+      - briefs/practices/code.prod/evolvable.domain.objects/rule.require.immutable-refs.md
+      - briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md
+
+subject.flow:
+  briefs:
+    say:
+      - briefs/practices/work.flow/diagnose/rule.forbid.trust-vscode-diagnostics.md
+      - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
+      - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
+      - briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt1.md
+      - briefs/practices/work.flow/tools/rule.require.externalized-knowledge.md
+      - briefs/practices/work.flow/tools/rule.require.read-package-docs-before-use.md
+
+    ref:
+      - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
+      - briefs/practices/work.flow/tools/rule.prefer.allowlist-examples.[lesson].md
+      - briefs/practices/work.flow/tools/rule.prefer.jq.[demo].md
+      - briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt2.md
