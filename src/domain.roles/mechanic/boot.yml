@@ -23,6 +23,7 @@ always:
       - briefs/practices/lang.terms/rule.forbid.term=dryrun.md
       - briefs/practices/lang.terms/rule.forbid.term=existing.md
       - briefs/practices/lang.terms/rule.forbid.term=normalize.md
+      - briefs/practices/lang.terms/rule.forbid.term=resolve.md
       - briefs/practices/lang.terms/rule.forbid.term-script.md
 
       # supplements and references

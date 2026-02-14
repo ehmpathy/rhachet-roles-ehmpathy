@@ -31,6 +31,11 @@
       "term": "nothing",
       "why": "vague negation - prefer precise alternatives that convey what is absent or empty",
       "alt": ["not one", "none", "no results", "empty", "absent", "omitted"]
+    },
+    {
+      "term": "resolve",
+      "why": "overloaded and vague - conflates derive, infer, extract, expand, lookup, compute, and settle purposes",
+      "alt": ["derive", "infer", "extract", "expand", "lookup", "compute", "decide"]
     }
   ]
 }
