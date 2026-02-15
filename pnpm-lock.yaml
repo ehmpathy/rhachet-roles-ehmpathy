@@ -53,12 +53,18 @@ importers:
       simple-in-memory-cache:
         specifier: 0.4.0
         version: 0.4.0
+      simple-on-disk-cache:
+        specifier: 1.7.3
+        version: 1.7.3
       type-fns:
         specifier: 1.21.0
         version: 1.21.0
+      with-simple-cache:
+        specifier: 0.15.3
+        version: 0.15.3(@types/node@22.15.21)(zod@4.3.4)
       with-simple-caching:
-        specifier: 0.14.2
-        version: 0.14.2
+        specifier: 0.14.4
+        version: 0.14.4
       wrapper-fns:
         specifier: 1.1.7
         version: 1.1.7
@@ -4534,8 +4540,16 @@ packages:
     resolution: {integrity: sha512-vaGOS8GikOyCEnmseWcX0xG/rcagv7gj/2PyFV1w2H3qnPZ3cfqt98GBWr/QCam+zHDglvUZ9hLyfYYZrMw7tg==}
     engines: {node: '>=8.0.0'}
 
+  with-simple-cache@0.15.3:
+    resolution: {integrity: sha512-qOVl6RKcp8juicmaaW9H06+OnQtkK8dhl3EHWupNjp5BPuyhMXDIZjWNozoyn/Xq3yu+QhOWvik7HTr2A+XW3Q==}
+    engines: {node: '>=8.0.0'}
+
   with-simple-caching@0.14.2:
     resolution: {integrity: sha512-jG76kjJBeZnPUPTY5v/031ropCAIGrIUYMOkk+ZfcrpzCMgxBPLB2gvINfY5alggn8qHntoYCeMqIzIlf1DDmw==}
+    engines: {node: '>=8.0.0'}
+
+  with-simple-caching@0.14.4:
+    resolution: {integrity: sha512-NRFgFUcMIDnXbN8DXZv21/bCrZD/bA2aINz2m7ddgUE958D95s4B6axIG85kXKjr0DLGYZDtqRzCZoGbjIZylg==}
     engines: {node: '>=8.0.0'}
 
   word-wrap@1.2.5:
@@ -9994,6 +10008,22 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
+  with-simple-cache@0.15.3(@types/node@22.15.21)(zod@4.3.4):
+    dependencies:
+      '@ehmpathy/uni-time': 1.8.1
+      domain-objects: 0.31.7(@types/node@22.15.21)(zod@4.3.4)
+      helpful-errors: 1.5.3
+      procedure-fns: 1.0.1
+      serde-fns: 1.3.1
+      simple-in-memory-cache: 0.4.0
+      simple-on-disk-cache: 1.7.3
+      type-fns: 1.21.0
+    transitivePeerDependencies:
+      - '@types/node'
+      - aws-crt
+      - ws
+      - zod
+
   with-simple-caching@0.14.2:
     dependencies:
       '@ehmpathy/uni-time': 1.8.1
@@ -10002,6 +10032,17 @@ snapshots:
       simple-on-disk-cache: 1.7.3
       type-fns: 1.21.0
       visualogic: 1.3.3
+    transitivePeerDependencies:
+      - aws-crt
+
+  with-simple-caching@0.14.4:
+    dependencies:
+      '@ehmpathy/uni-time': 1.8.1
+      procedure-fns: 1.0.1
+      serde-fns: 1.2.0
+      simple-in-memory-cache: 0.4.0
+      simple-on-disk-cache: 1.7.3
+      type-fns: 1.21.0
     transitivePeerDependencies:
       - aws-crt
 

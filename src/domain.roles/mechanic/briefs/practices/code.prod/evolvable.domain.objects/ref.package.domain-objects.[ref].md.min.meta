@@ -1,18 +1,18 @@
 {
   "press": "bhrain/sitrep",
-  "brain": "anthropic/claude/sonnet",
+  "brain": "xai/grok/code-fast-1",
   "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md",
   "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md.min",
-  "command": "compress.via.bhrain.ts --from src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md --via anthropic/claude/sonnet --into src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md.min",
+  "command": "compress.via.bhrain.ts --from src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md --via xai/grok/code-fast-1 --into src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md.min",
   "prompt": "compress this source brief via sitrep methodology.\n\nfirst, analyze what content is decision-critical and what can be cut.\nthen, output the compressed brief.\n\nsource brief:",
   "briefs": [
     "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.brief-compressor-sitrep/dist/domain.roles/mechanic/skills/brief.compress/briefs/sitrep.methodology.md",
     "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.brief-compressor-sitrep/dist/domain.roles/mechanic/briefs/practices/lang.tones/rule.prefer.lowercase.md",
     "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.brief-compressor-sitrep/dist/domain.roles/mechanic/briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md"
   ],
-  "forethought": "this is a readme for the domain-objects library. purpose: onboard devs to use the library for domain modeling in typescript. audience: engineers building domain-driven systems who need runtime validation, identity comparison, change detection, and immutability.",
-  "rationale": "decision-critical content: installation command, core class types (DomainLiteral, DomainEntity, DomainEvent), the .unique/.updatable/.nested static properties, schema attachment for runtime validation, ref types (Ref, RefByPrimary, RefByUnique), key utility functions (getUniqueIdentifier, serialize, withImmute), and .build/.clone pattern. cut: motivational prose (\"everyone has types until they get punched in the runtime\"), duplicate examples (multiple address examples, multiple change detection examples), verbose explanations of DDD philosophy, lengthy error message examples, redundant code comments.",
+  "forethought": "this source brief is a readme for the 'domain-objects' npm library, which provides utilities for defining and using domain objects in typescript/javascript codebases following domain-driven design principles. its purpose is to introduce the library, explain its benefits for safer and more maintainable code, and guide users on installation and usage. the audience is developers working on software projects who want to implement ddd concepts like domain literals, entities, and events with runtime validation and identity management.",
+  "rationale": "decision-critical content includes core definitions of domain object types (e.g., DomainLiteral, DomainEntity), how to declare and use them with exact rules and static properties, runtime validation setup, and key features like nested hydration, serialization, and identity comparison. keep full code blocks for install and one primary usage example per major concept (e.g., one for literal, one for entity, one for event, one for validation) to avoid duplicates. cut verbose motivation prose (e.g., long 'why' sections on ddd benefits), filler phrases, duplicate examples (e.g., multiple similar address or rocketship examples), journey content (e.g., detailed explanations of why nested hydration is needed), and non-essential features like Ref types or withImmute unless they directly illustrate core usage. aim for 30-50% token reduction by condensing explanations into concise rules while preserving exact definitions and one illustrative example per key pattern.",
   "tokensBefore": 4605,
-  "tokensAfter": 1693,
-  "ratio": 2.72
+  "tokensAfter": 1671,
+  "ratio": 2.76
 }

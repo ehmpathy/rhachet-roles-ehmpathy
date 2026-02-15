@@ -3,21 +3,23 @@
 ![test](https://github.com/ehmpathy/domain-objects/workflows/test/badge.svg)
 ![publish](https://github.com/ehmpathy/domain-objects/workflows/publish/badge.svg)
 
-represent domain objects, leverage domain knowledge, add runtime validation. guided by domain driven design.
+represent domain objects, leverage domain knowledge, and add runtime validation.
 
-## purpose
+guided by domain driven design.
 
-- formally define domain objects to speak in domain driven manner
-- runtime type checking for safer, easier debugging
-- leverage domain knowledge in comparisons and schema validation
+# purpose
 
-## install
+- promote domain driven speech and code via formal domain object definitions
+- make software safer with runtime type checking
+- leverage domain knowledge in comparisons and validations
+
+# install
 
 ```sh
 npm install --save domain-objects
 ```
 
-## usage
+# usage examples
 
 ### literal
 
@@ -118,7 +120,7 @@ const schema = Joi.object().keys({
   continent: Joi.string().required(),
 });
 class Address extends DomainLiteral<Address> implements Address {
-  public static schema = schema; // supports Zod, Yup, and Joi
+  public static schema = schema;
 }
 
 const northAmerica = new Address({
@@ -126,70 +128,137 @@ const northAmerica = new Address({
   solarSystem: 'Sun',
   planet: 'Earth',
   continent: 'North America',
-}); // passes
+});
 
 const westDolphia = new Address({
-  galaxy: 'AndromedA', // fails enum check, throws error
+  galaxy: 'AndromedA',
   solarSystem: 'Asparagia',
   planet: 'Dracena',
   continent: 'West Dolphia',
+}); // throws validation error
+```
+
+### identity comparison
+
+```ts
+import { serialize, getUniqueIdentifier } from 'domain-objects';
+
+const northAmerica = new Address({
+  galaxy: 'Milky Way',
+  solarSystem: 'Sun',
+  planet: 'Earth',
+  continent: 'North America',
+});
+const northAmericaWithId = new Address({
+  id: 821,
+  galaxy: 'Milky Way',
+  solarSystem: 'Sun',
+  planet: 'Earth',
+  continent: 'North America',
+});
+
+const areTheSame = serialize(getUniqueIdentifier(northAmerica)) === serialize(getUniqueIdentifier(northAmericaWithId));
+```
+
+### change detection
+
+```ts
+import { serialize, omitMetadataValues } from 'domain-objects';
+
+const sn5 = new Spaceship({
+  serialNumber: 'SN5',
+  fuelQuantity: 9001,
+  passengers: 21,
+});
+const sn5Saved = new Spaceship({ ...sn5, id: 821, updatedAt: now() });
+const hadChangeDuringSave = serialize(omitMetadataValues(sn5)) !== serialize(omitMetadataValues(sn5Saved));
+
+const sn5AfterFlying = new Spaceship({ ...sn5, fuelQuantity: 4500 });
+const hadChangeAfterFlying = serialize(omitMetadataValues(sn5)) !== serialize(omitMetadataValues(sn5AfterFlying));
+```
+
+# features
+
+## declaration
+
+### DomainLiteral
+
+properties immutable, identity by non-metadata properties.
+
+```ts
+interface Address {
+  street: string;
+  suite: string | null;
+  city: string;
+  state: string;
+  postal: string;
+}
+class Address extends DomainLiteral<Address> implements Address {}
+
+const austin = new Address({
+  street: '123 South Congress',
+  suite: null,
+  city: 'Austin',
+  state: 'Texas',
+  postal: '78704',
 });
 ```
 
-## reference types
+### DomainEntity
 
-### `RefByPrimary<typeof DomainObject>`
-
-extracts primary key shape.
+properties change over time, identity by unique subset.
 
 ```ts
-import { DomainEntity, RefByPrimary } from 'domain-objects';
-
-interface SeaTurtle {
+interface RocketShip {
   uuid?: string;
-  seawaterSecurityNumber: string;
-  name: string;
+  serialNumber: string;
+  fuelQuantity: number;
+  passengers: number;
+  homeAddress: Address;
 }
-class SeaTurtle extends DomainEntity<SeaTurtle> implements SeaTurtle {
-  public static primary = ['uuid'] as const;
-  public static unique = ['seawaterSecurityNumber'] as const;
+class RocketShip extends DomainEntity<RocketShip> implements RocketShip {
+  public static unique = ['serialNumber'];
 }
 
-const primaryRef: RefByPrimary<typeof SeaTurtle> = { uuid: 'beefbeef...' }; // valid
+const ship = new RocketShip({
+  serialNumber: 'SN5',
+  fuelQuantity: 9001,
+  passengers: 21,
+  homeAddress: new Address({ ... }),
+});
 ```
 
-### `RefByUnique<typeof DomainObject>`
+## runtime validation
 
-extracts unique key shape.
-
-```ts
-const uniqueRef: RefByUnique<typeof SeaTurtle> = { seawaterSecurityNumber: 'ABC-999' }; // valid
-```
-
-### `Ref<typeof DomainObject>`
-
-union of primary or unique keys.
+add schema (Zod, Yup, Joi) for validation at instantiation.
 
 ```ts
-const byPrimary: Ref<typeof EarthWorm> = { uuid: 'beefbeef...' }; // valid
-const byUnique: Ref<typeof EarthWorm> = { soilSecurityNumber: 'SOIL-001', wormSegmentNumber: 'SEG-42' }; // valid
+interface RocketShip {
+  serialNumber: string;
+  fuelQuantity: number;
+  passengers: number;
+}
+const schema = Joi.object().keys({
+  serialNumber: Joi.string().uuid().required(),
+  fuelQuantity: Joi.number().required(),
+  passengers: Joi.number().max(42).required(),
+});
+class RocketShip extends DomainObject<RocketShip> implements RocketShip {
+  public static schema = schema;
+}
+
+new RocketShip({
+  serialNumber: uuid(),
+  fuelQuantity: 9001,
+  passengers: 50,
+}); // throws JoiValidationError
 ```
 
 ## nested hydration
 
-auto-instantiate nested domain objects.
+define nested domain objects for automatic instantiation.
 
 ```ts
-interface PlantPot {
-  diameterInInches: number;
-}
-class PlantPot extends DomainLiteral<PlantPot> implements PlantPot {}
-
-interface PlantOwner {
-  name: string;
-}
-class PlantOwner extends DomainEntity<PlantOwner> implements PlantOwner {}
-
 interface Plant {
   pot: PlantPot;
   owners: PlantOwner[];
@@ -200,47 +269,20 @@ class Plant extends DomainEntity<Plant> implements Plant {
 }
 
 const plant = new Plant({
-  pot: { diameterInInches: 7 }, // auto-hydrated to PlantPot instance
-  owners: [{ name: 'bob' }], // auto-hydrated to PlantOwner instances
+  pot: { diameterInInches: 7 },
+  owners: [{ name: 'bob' }],
   lastWatered: 'monday',
 });
-
-expect(plant.pot).toBeInstanceOf(PlantPot);
-plant.owners.forEach((owner) => expect(owner).toBeInstanceOf(PlantOwner));
 ```
 
-## utility functions
+## functions
 
-### `getUniqueIdentifier(obj)`
+- `getUniqueIdentifier(obj)`: returns unique properties object
+- `serialize(value)`: deterministic string for comparisons
 
-returns object containing only properties that uniquely identify the domain object.
+## DomainObject.build
 
-literals: all non-metadata properties.
-entities: properties declared in `.unique`.
-
-### `serialize(value)`
-
-deterministically converts any value to string:
-- sorts array items
-- sorts object keys
-- removes non-unique properties from nested domain objects
-
-use for identity comparison and change detection.
-
-```ts
-import { serialize, getUniqueIdentifier } from 'domain-objects';
-
-const northAmerica = new Address({ ... });
-const northAmericaWithId = new Address({ id: 821, ... });
-
-const areTheSame = serialize(getUniqueIdentifier(northAmerica)) === serialize(getUniqueIdentifier(northAmericaWithId)); // true
-```
-
-## immutability
-
-### `DomainObject.build`
-
-wraps instances with immute operations by default.
+add getters like `.clone()` for immutability.
 
 ```ts
 const ship = RocketShip.build({
@@ -248,33 +290,9 @@ const ship = RocketShip.build({
   fuelQuantity: 9001,
   passengers: 3,
 });
-const shipTwin = ship.clone();
 const shipUsed = ship.clone({ fuelQuantity: 821 });
 ```
 
-### `withImmute`
+## withImmute
 
-adds immute operators to any domain object.
-
-```ts
-import { withImmute } from 'domain-objects';
-
-const plant = withImmute(new Plant({ ... }));
-const twin = plant.clone();
-```
-
-### `.clone(update?: Partial<T>)`
-
-creates new instance with updated values. uses deep cloning and deep merging. original unchanged.
-
-```ts
-const plant = Plant.build({
-  plantedIn: new PlantPot({ diameterInInches: 5 }),
-  lastWatered: 'Monday',
-});
-
-const updated = plant.clone({ lastWatered: 'Tuesday' });
-
-expect(updated.lastWatered).toEqual('Tuesday');
-expect(plant.lastWatered).toEqual('Monday'); // original unchanged
-```
+wrap for immutable operations like `.clone()`.

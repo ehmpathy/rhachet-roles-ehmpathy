@@ -1,0 +1,118 @@
+[
+  {
+    "briefName": "input-context-pattern",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 3,
+    "clusterCounts": [
+      5,
+      5,
+      4
+    ],
+    "meanARI": 0.8254840162089149,
+    "minARI": 0.7382260243133723,
+    "maxARI": 1,
+    "durationMs": 43734,
+    "error": null
+  },
+  {
+    "briefName": "dependency-injection",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 3,
+    "clusterCounts": [
+      10,
+      12,
+      8
+    ],
+    "meanARI": 0.6201689634394765,
+    "minARI": 0.49039881831610066,
+    "maxARI": 0.7272509291451861,
+    "durationMs": 53134,
+    "error": null
+  },
+  {
+    "briefName": "bdd-testing",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 3,
+    "clusterCounts": [
+      6,
+      0,
+      6
+    ],
+    "meanARI": 1,
+    "minARI": 1,
+    "maxARI": 1,
+    "durationMs": 33530,
+    "error": null
+  },
+  {
+    "briefName": "forbid-gerunds",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 3,
+    "clusterCounts": [
+      5,
+      6,
+      6
+    ],
+    "meanARI": 0.9454324505665337,
+    "minARI": 0.9171009000473709,
+    "maxARI": 0.9678751720972925,
+    "durationMs": 33173,
+    "error": null
+  },
+  {
+    "briefName": "idempotency",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 3,
+    "clusterCounts": [
+      7,
+      8,
+      7
+    ],
+    "meanARI": 0.4813552430156905,
+    "minARI": 0.42307692307692274,
+    "maxARI": 0.5522388059701491,
+    "durationMs": 66330,
+    "error": null
+  },
+  {
+    "briefName": "domain-objects-ref",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 3,
+    "clusterCounts": [
+      10,
+      12,
+      0
+    ],
+    "meanARI": 0.8850820842255532,
+    "minARI": 0.6552462526766596,
+    "maxARI": 1,
+    "durationMs": 42977,
+    "error": null
+  },
+  {
+    "briefName": "seaturtle-software",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 3,
+    "clusterCounts": [
+      8,
+      8,
+      10
+    ],
+    "meanARI": 0.8986936051882749,
+    "minARI": 0.8755760368663593,
+    "maxARI": 0.932330827067669,
+    "durationMs": 36329,
+    "error": null
+  },
+  {
+    "briefName": "seaturtle-identity",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 3,
+    "clusterCounts": [],
+    "meanARI": 0,
+    "minARI": 0,
+    "maxARI": 0,
+    "durationMs": 76699,
+    "error": "promise was timed out in 60000 ms, by withTimeout"
+  }
+]

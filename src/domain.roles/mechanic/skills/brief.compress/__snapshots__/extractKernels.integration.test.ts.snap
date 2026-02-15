@@ -1,0 +1,109 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`compareKernels given: [case1] original and compressed versions of same document when: [t0] kernels are compared then: snapshot of comparison result 1`] = `
+{
+  "kernelsCompressed": [
+    {
+      "category": "principle",
+      "concept": "Prefer lowercase unless code or proper noun requires it.",
+      "id": "compressed_rule_prefer_lowercase",
+    },
+    {
+      "category": "principle",
+      "concept": "Reduces noise.",
+      "id": "compressed_reason_noise",
+    },
+    {
+      "category": "principle",
+      "concept": "Improves scan.",
+      "id": "compressed_reason_scan",
+    },
+    {
+      "category": "principle",
+      "concept": "Neutral tone.",
+      "id": "compressed_reason_tone",
+    },
+    {
+      "category": "principle",
+      "concept": "Enforcement: NITPICK.",
+      "id": "compressed_enforcement",
+    },
+  ],
+  "kernelsLost": [],
+  "kernelsOriginal": [
+    {
+      "category": "principle",
+      "concept": "All text should be lowercase unless required by code or proper noun convention.",
+      "id": "rule_prefer_lowercase",
+    },
+    {
+      "category": "principle",
+      "concept": "Reduces visual noise.",
+      "id": "reason_visual_noise",
+    },
+    {
+      "category": "principle",
+      "concept": "Improves scanability.",
+      "id": "reason_scanability",
+    },
+    {
+      "category": "principle",
+      "concept": "Keeps language neutral and minimal.",
+      "id": "reason_neutral_minimal",
+    },
+    {
+      "category": "principle",
+      "concept": "Violation of lowercase rule is a NITPICK.",
+      "id": "enforcement_nitpick",
+    },
+  ],
+  "kernelsRetained": [
+    "rule_prefer_lowercase",
+    "reason_visual_noise",
+    "reason_scanability",
+    "reason_neutral_minimal",
+    "enforcement_nitpick",
+  ],
+  "rationale": "For the original document, I identified distinct atomic concepts by examining the sections: the main rule from .what, the three reasons from .why, and the enforcement level. Examples in .examples were not counted as separate kernels as they illustrate the rule rather than representing new ideas. For the compressed document, the kernels are condensed versions of the original ones, with no new distinct concepts introduced; examples are similarly illustrative and not kernels. Matches were assigned based on semantic equivalence.",
+  "retentionRatio": 1,
+}
+`;
+
+exports[`extractKernels given: [case1] a document with clear concept kernels when: [t0] kernels are extracted then: snapshot of extracted kernels 1`] = `
+{
+  "kernelCount": 6,
+  "kernels": [
+    {
+      "category": "rule",
+      "concept": "All text should be in lowercase.",
+      "id": "r1",
+    },
+    {
+      "category": "constraint",
+      "concept": "Uppercase is allowed only when required by code or proper nouns.",
+      "id": "c1",
+    },
+    {
+      "category": "principle",
+      "concept": "Lowercase reduces visual noise.",
+      "id": "p1",
+    },
+    {
+      "category": "principle",
+      "concept": "Lowercase improves scanability.",
+      "id": "p2",
+    },
+    {
+      "category": "principle",
+      "concept": "Lowercase keeps language neutral and minimal.",
+      "id": "p3",
+    },
+    {
+      "category": "rule",
+      "concept": "Violations of the lowercase preference are classified as NITPICK.",
+      "id": "e1",
+    },
+  ],
+  "rationale": "Kernels were identified by extracting distinct atomic ideas from the document's sections (.what, .why, .enforcement), focusing on core rules, constraints, and principles. Examples were ignored as they illustrate rather than define concepts. Duplicates were avoided by consolidating similar ideas into single kernels.",
+}
+`;

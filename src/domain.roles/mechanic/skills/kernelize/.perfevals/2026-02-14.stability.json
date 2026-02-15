@@ -1,0 +1,1500 @@
+[
+  {
+    "briefName": "input-context-pattern",
+    "briefType": "rule",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 5,
+    "stability": {
+      "totalClusters": 18,
+      "fullCoverageCount": 11,
+      "fullCoverageRatio": 0.6111111111111112,
+      "meanCoverage": 0.8666666666666667,
+      "clusterDetails": [
+        {
+          "representative": "Functions must follow the canonical argument pattern: (input, context?) where input is a destructurable object and context is an optional destructurable object.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Promotes long-term clarity and change-resilience over short-term brevity.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Prevents positional argument confusion.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Supports context injection without argument churn.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Aligns with domain patterns where input represents upstream data and context represents runtime environment.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Enables safe refactors and consistent documentation across the codebase.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Applies to all function definitions, whether synchronous or asynchronous.",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "representative": "Required for all exported and internal functions in production code.",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "representative": "Expected in tests, hooks, utils, and logic modules.",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "representative": "The argument pattern requirement applies even to simple one-liners and trivial utilities.",
+          "runCount": 2,
+          "runIndexes": [
+            0,
+            4
+          ]
+        },
+        {
+          "representative": "Exempts anonymous inline callbacks if they are tightly scoped.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "The input parameter does not need to be destructured at the function boundary; a shape like (input: { ... }) is acceptable.",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "representative": "The 'function' keyword is forbidden unless used to implement class methods.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Functions must not have more than 2 positional arguments.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Functions must not accept non-destructurable inputs.",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "representative": "Context must not be blended into the input.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Inline positional arguments are forbidden unless the function is anonymous.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Canonical pattern is a distinct argument structure for functions",
+          "runCount": 1,
+          "runIndexes": [
+            4
+          ]
+        }
+      ]
+    },
+    "kernelCounts": [
+      17,
+      16,
+      18,
+      15,
+      21
+    ],
+    "durationMs": 49926,
+    "error": null
+  },
+  {
+    "briefName": "dependency-injection",
+    "briefType": "concept",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 5,
+    "stability": {
+      "totalClusters": 30,
+      "fullCoverageCount": 13,
+      "fullCoverageRatio": 0.43333333333333335,
+      "meanCoverage": 0.6133333333333331,
+      "clusterDetails": [
+        {
+          "representative": "Dependency injection is providing a function, class, or module with its needed dependencies from the outside, rather than allowing it to construct or look them up internally.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "The goal of dependency injection is to build software that is flexible, testable, and decoupled through explicit, swappable, and externally controlled dependencies.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Avoid hardcoding dependencies inside functions, as it leads to tight coupling and side effects.",
+          "runCount": 4,
+          "runIndexes": [
+            1,
+            3,
+            2,
+            4
+          ]
+        },
+        {
+          "representative": "Dependency injection should follow the (input, context) pattern, where inputs are separate from dependencies passed in the context argument.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "The (input, context) pattern enables composition, trace, and full test control.",
+          "runCount": 1,
+          "runIndexes": [
+            2
+          ]
+        },
+        {
+          "representative": "Dependency injection enables testability by allowing real dependencies to be swapped with mocks or fakes.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Dependency injection makes functions testable, predictable, and side-effect free.",
+          "runCount": 1,
+          "runIndexes": [
+            2
+          ]
+        },
+        {
+          "representative": "Dependency injection provides flexibility by allowing easy changes to implementations without altering core logic.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Dependency injection promotes separation of concerns by keeping business logic separate from dependency management.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Dependency injection increases explicitness by making system dependencies visible and intentional.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Dependency injection enhances reusability by allowing the same logic to work with different behaviors.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Core principle: Avoid making decisions deep inside the system; instead, let outer layers decide what gets injected, keeping policies and tools separate from behaviors.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Mental model: Dependency injection is like plugging in a tool instead of building one every time, where procedures request what they need without caring about the source.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Procedures should specify their needs and accept them without concern for their origin.",
+          "runCount": 2,
+          "runIndexes": [
+            1,
+            2
+          ]
+        },
+        {
+          "representative": "Without dependency injection, dependencies are hardcoded inside procedures; with it, they are passed via parameters.",
+          "runCount": 2,
+          "runIndexes": [
+            0,
+            2
+          ]
+        },
+        {
+          "representative": "Without dependency injection, tests require real APIs.",
+          "runCount": 1,
+          "runIndexes": [
+            2
+          ]
+        },
+        {
+          "representative": "Without dependency injection, logic is tied to concrete tools.",
+          "runCount": 1,
+          "runIndexes": [
+            2
+          ]
+        },
+        {
+          "representative": "Without dependency injection, switching infrastructure or tools is hard.",
+          "runCount": 1,
+          "runIndexes": [
+            2
+          ]
+        },
+        {
+          "representative": "Without DI, dependencies are hardcoded, tests require real APIs, logic is tied to concrete tools, and switching is difficult.",
+          "runCount": 1,
+          "runIndexes": [
+            1
+          ]
+        },
+        {
+          "representative": "With dependency injection, databases are passed in via parameters.",
+          "runCount": 1,
+          "runIndexes": [
+            2
+          ]
+        },
+        {
+          "representative": "With dependency injection, tests can use mock or fake APIs.",
+          "runCount": 1,
+          "runIndexes": [
+            2
+          ]
+        },
+        {
+          "representative": "With dependency injection, logic works with any compatible tool.",
+          "runCount": 1,
+          "runIndexes": [
+            2
+          ]
+        },
+        {
+          "representative": "With dependency injection, infrastructure or tools are swappable via config or environment setup.",
+          "runCount": 1,
+          "runIndexes": [
+            2
+          ]
+        },
+        {
+          "representative": "With DI, dependencies are passed as parameters, mocks can be used in tests, logic works with compatible interfaces, and swapping is easy.",
+          "runCount": 1,
+          "runIndexes": [
+            1
+          ]
+        },
+        {
+          "representative": "Dependency injection builds pure, decoupled, and testable systems by eliminating shared state, surfacing side effects, and making logic portable and composable.",
+          "runCount": 3,
+          "runIndexes": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "representative": "Dependency injection builds pure, decoupled, and testable systems by eliminating shared state, surfacing side effects, and making logic portable and composable.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Dependency injection builds pure, decoupled, and testable systems by eliminating shared state, surfacing side effects, and making logic portable and composable.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Dependency injection enables modularity, testability, and control through external dependencies instead of hidden internals.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "When done right, dependency injection is invisible in use but invaluable for testing, scaling, and evolving systems.",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "representative": "Dependency injection builds systems that are easier to test, scale, and evolve.",
+          "runCount": 1,
+          "runIndexes": [
+            2
+          ]
+        }
+      ]
+    },
+    "kernelCounts": [
+      17,
+      18,
+      30,
+      15,
+      15
+    ],
+    "durationMs": 66083,
+    "error": null
+  },
+  {
+    "briefName": "bdd-testing",
+    "briefType": "lesson",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 5,
+    "stability": {
+      "totalClusters": 14,
+      "fullCoverageCount": 8,
+      "fullCoverageRatio": 0.5714285714285714,
+      "meanCoverage": 0.8428571428571429,
+      "clusterDetails": [
+        {
+          "representative": "BDD tests structure tests using given (initial state), when (action or event), and then (expected outcome)",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "All tests for a feature must be wrapped in a single describe block",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Use useBeforeAll for shared resources like database connections instead of let + beforeAll + afterAll",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Each given block must have a unique case label in the format [caseN]",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Each when block must have an event time index label [tN], with the counter resetting within each given block",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Each then block must test only a single behavioral assertion",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Use a scene created with useBeforeAll to share test data across multiple when/then blocks within a given",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Skip the scene if a given case requires no setup",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Test names should clearly show the scenario under test",
+          "runCount": 3,
+          "runIndexes": [
+            0,
+            2,
+            4
+          ]
+        },
+        {
+          "representative": "useBeforeAll runs setup once per given block, not per test",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Use const for scene and dbConnection to prevent accidental reassignment",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Use [caseN] and [tN] labels to easily identify and discuss specific tests",
+          "runCount": 3,
+          "runIndexes": [
+            0,
+            2,
+            4
+          ]
+        },
+        {
+          "representative": "Tests should interact only through the contract layer, not internal implementations",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Use afterAll for cleanup of shared resources",
+          "runCount": 1,
+          "runIndexes": [
+            4
+          ]
+        }
+      ]
+    },
+    "kernelCounts": [
+      13,
+      9,
+      12,
+      11,
+      15
+    ],
+    "durationMs": 38172,
+    "error": null
+  },
+  {
+    "briefName": "forbid-gerunds",
+    "briefType": "rule",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 5,
+    "stability": {
+      "totalClusters": 23,
+      "fullCoverageCount": 15,
+      "fullCoverageRatio": 0.6521739130434783,
+      "meanCoverage": 0.9217391304347828,
+      "clusterDetails": [
+        {
+          "representative": "Gerunds (-ing words used as nouns) are forbidden in all contexts",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Rule applies to code (variable names, function names, class names, comments), docs (markdown, READMEs, briefs, prompts), logs (error messages, debug output), and comms (commit messages, PR descriptions, slack)",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Gerunds are vague, obscuring whether something is a noun or verb",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Gerunds cause meaning drift by conflating acts, states, and results",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Gerunds hide agency, e.g., 'handling errors' vs 'error handler' vs 'handle error'",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Gerunds bloat by adding syllables without precision",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Alternatives to gerunds are always clearer and more direct",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Gerunds signal that the domain has not been sufficiently thought through",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Gerunds are lazy placeholders for precise concepts",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Using gerunds avoids clarifying the true nature of the concept (e.g., processor, process, or result)",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "When reaching for a gerund, pause and ask: what is this thing, really?",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Searching for non-gerund terms forces domain clarity",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "The [noun][adjective] order rule complements gerund elimination",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Use [noun][adjective] order with past participles to eliminate gerunds (e.g., existingUser → userFound)",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Noun-adjective order enables autocomplete groups, e.g., user* shows all user variants",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Noun-adjective order forces precision, e.g., userFound, userCreated",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Violations of the gerund rule are blockers that must be enforced",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Provide specific alternatives to gerunds, such as found/current/prior for existing, process/processor/processed for processing",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Gerund is -ing word used as noun (e.g., 'the running of tests'), distinct from present participle (-ing as adjective/verb, e.g., 'tests are running')",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Participles in verb phrases are acceptable, e.g., isRunning, wasProcessed",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Prefer explicit state over participles, e.g., status === 'active' over isRunning",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Some -ing words are part of compound verbs and are acceptable in that form",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Avoid gerunds in compound verbs, e.g., startProcessing() → startProcess() or process()",
+          "runCount": 3,
+          "runIndexes": [
+            0,
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    "kernelCounts": [
+      24,
+      22,
+      17,
+      24,
+      25
+    ],
+    "durationMs": 46259,
+    "error": null
+  },
+  {
+    "briefName": "idempotency",
+    "briefType": "tactic",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 5,
+    "stability": {
+      "totalClusters": 0,
+      "fullCoverageCount": 0,
+      "fullCoverageRatio": 0,
+      "meanCoverage": 0,
+      "clusterDetails": []
+    },
+    "kernelCounts": [],
+    "durationMs": 78904,
+    "error": "promise was timed out in 60000 ms, by withTimeout"
+  },
+  {
+    "briefName": "domain-objects-ref",
+    "briefType": "reference",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 5,
+    "stability": {
+      "totalClusters": 21,
+      "fullCoverageCount": 14,
+      "fullCoverageRatio": 0.6666666666666666,
+      "meanCoverage": 0.8761904761904761,
+      "clusterDetails": [
+        {
+          "representative": "Domain Driven Design (DDD) principles guide the library's approach to modeling domain objects.",
+          "runCount": 2,
+          "runIndexes": [
+            2,
+            3
+          ]
+        },
+        {
+          "representative": "Formally define domain objects to promote domain-driven language in code and speech",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Support runtime type checking for safer and easier-to-debug software",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Leverage domain knowledge for object comparisons and schema-based validation",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "DomainLiteral is a type of Domain Object where properties are immutable and identity does not matter, uniquely identifiable by non-metadata properties",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "DomainEntity is a type of Domain Object where properties change over time, identity matters, and it is uniquely identifiable by a subset of properties",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "DomainEvent is a type of Domain Object for events, uniquely identifiable by specified unique keys",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Runtime validation is performed using schemas (Zod, Yup, or Joi) at instantiation to ensure data integrity",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Identity comparison uses getUniqueIdentifier and serialize to determine if two domain objects represent the same instance",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Change detection uses serialize to compare serialized forms of objects, optionally omitting metadata",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "RefByPrimary extracts the shape of the primary key for type-safe references to domain objects",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "RefByUnique extracts the shape of the unique keys for type-safe references to domain objects",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Ref is a union type allowing references by either primary key or unique keys",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Nested hydration automatically instantiates nested domain objects using DomainObject.nested property",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "getUniqueIdentifier returns an object with only the properties that uniquely identify a domain object",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "serialize converts any object to a deterministic string representation by sorting arrays and keys, and removing non-unique properties from nested domain objects",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "DomainObject.build adds getters to domain object instances and wraps them with immutability operations",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "withImmute wraps domain objects to provide immutable operations like clone",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "clone creates a deep clone of a domain object with optional updates, preserving immutability.",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Immutability ensures that changing any property creates a new instance, preventing unintended mutations",
+          "runCount": 2,
+          "runIndexes": [
+            1,
+            4
+          ]
+        },
+        {
+          "representative": "Unique properties must be declared for DomainEntity to enable unique identification",
+          "runCount": 2,
+          "runIndexes": [
+            1,
+            3
+          ]
+        }
+      ]
+    },
+    "kernelCounts": [
+      19,
+      19,
+      20,
+      24,
+      20
+    ],
+    "durationMs": 58439,
+    "error": null
+  },
+  {
+    "briefName": "seaturtle-software",
+    "briefType": "concept",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 5,
+    "stability": {
+      "totalClusters": 7,
+      "fullCoverageCount": 7,
+      "fullCoverageRatio": 1,
+      "meanCoverage": 1,
+      "clusterDetails": [
+        {
+          "representative": "Build software deliberately and steadily for long-term maintainability and reliability",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Avoid premature abstraction by writing code multiple times before extracting",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Design systems with built-in safety defaults and fail-safe mechanisms",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Master and prioritize command-line interfaces and scripting for efficient, controlled execution",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Work with existing tools and systems, conserving effort and handling complexity through flow",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Follow established conventions and good defaults to achieve successful outcomes naturally",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Use recursion and composition over inheritance for building reusable, layered systems",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    "kernelCounts": [
+      28,
+      28,
+      28,
+      7,
+      7
+    ],
+    "durationMs": 78007,
+    "error": null
+  },
+  {
+    "briefName": "seaturtle-identity",
+    "briefType": "rule",
+    "brainSlug": "xai/grok/code-fast-1",
+    "runs": 5,
+    "stability": {
+      "totalClusters": 17,
+      "fullCoverageCount": 14,
+      "fullCoverageRatio": 0.8235294117647058,
+      "meanCoverage": 0.9294117647058824,
+      "clusterDetails": [
+        {
+          "representative": "The mechanic is a gentle builder of empathetic software.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "The mechanic is personified as a sea turtle.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "The seaturtle loves sunshine, oceans, salty air, and surf.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "The mechanic has a good-vibed, chill, friendly personality that loves to hang ten.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "The mechanic primarily hangs around Hawaii and the Caribbean.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Interactions bring island breeze energy.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "The mechanic is patient and steady, like a turtle cruising through warm waters.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Use 🐢 as prefix for direct chats when not in headsdown work, for greetings like hi, thanks, cool.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "The mechanic loves all lowercase in text conversations.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Favorite book and show series: 'the sunshine ocean surfer turtles', which is relatable with good vibes and lessons.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Favorite emojis include 🐢 (seaturtle self), 🌊 (ocean, waves, flow), 🌴 (island life, chill vibes), 🫧 (bubble up, dive in), 🤙 (hang loose).",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "representative": "Also loves nautical and nature emojis like 🏝️ (island), 🐚 (shell), 🦀 (crab), 🐠 (fish), ☀️ (sunshine), 🌺 (tropical flower).",
+          "runCount": 4,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "representative": "All emojis used must be chill-vibed, good-natured, and nature-themed.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Favorite phrases: noice (nice/great/awesome), turtally (totally/absolutely), shell yeah (heck yeah/awesome), cowabunga (surf's up/let's go), righteous (solid/well done), gnarly (awesome/rad), radical (exciting/let's ride), bummer dude (unfortunate/sad), tubular (extremely cool).",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "The mechanic can coin new phrases in the moment (seaspired), maintaining ocean/turtle/nature theme, chill, good-natured, and punny but not forced.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "representative": "Examples of seaspired phrases: 'let's dive in', 'far out', 'love that', 'that's fintastic', 'shore thing', 'water we waiting for?', 'that's un-shell-ievable', 'sea ya later'.",
+          "runCount": 1,
+          "runIndexes": [
+            0
+          ]
+        },
+        {
+          "representative": "Spirit: slow and steady builds empathetic software.",
+          "runCount": 5,
+          "runIndexes": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ]
+    },
+    "kernelCounts": [
+      19,
+      18,
+      35,
+      18,
+      16
+    ],
+    "durationMs": 77748,
+    "error": null
+  }
+]

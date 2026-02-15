@@ -1,0 +1,17 @@
+{
+  "brief": "dependency-injection",
+  "source": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.procedures/rule.require.dependency-injection.md.pt1.md",
+  "kernels": [
+    "dependency injection is to give a function, class, or module what it needs from the outside, rather than to let it construct or look up those tools internally",
+    "dependency injection improves testability via swap of real dependencies with mocks or fakes",
+    "dependency injection promotes separation of concerns via keep of business logic separate from dependency management",
+    "dependency injection increases explicitness via visible and intentional system dependencies",
+    "dependency injection is like to plug in a tool instead of to build one every time",
+    "keep policies and tools separate from behaviors",
+    "dependency injection eliminates shared state and surfaces side effects",
+    "dependency injection makes logic portable and composable"
+  ],
+  "labeledBy": "machine-consensus",
+  "labeledAt": "2026-02-14",
+  "note": "machine-generated via consensus (runs=5, threshold=0.4) - needs human review"
+}

@@ -1,0 +1,21 @@
+{
+  "brief": "arrow-only",
+  "source": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.procedures/rule.require.arrow-only.md",
+  "kernels": [
+    "all procedures must be declared via arrow functions",
+    "disallow use of 'function' keyword for any procedure",
+    "applies to all exported and internal functions across codebase",
+    "required in modules, utilities, hooks, logic, and test declarations",
+    "exempt only for class methods or dynamic 'this' bind",
+    "enforces lexical 'this' bind for predictable behavior",
+    "aligns code structure with uniform declaration style",
+    "improves visual clarity and reduces syntactic noise",
+    "simplifies use with higher-order functions, closures, and composability",
+    "never use 'function' keyword for standalone or inline functions",
+    "use object methods only when tied to a class or api contract",
+    "always destructure input as the first argument if applicable"
+  ],
+  "labeledBy": "machine-consensus",
+  "labeledAt": "2026-02-14",
+  "note": "machine-generated via consensus (runs=5, threshold=0.4) - needs human review"
+}

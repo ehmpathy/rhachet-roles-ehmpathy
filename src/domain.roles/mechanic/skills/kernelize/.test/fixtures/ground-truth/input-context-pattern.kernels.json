@@ -1,0 +1,21 @@
+{
+  "brief": "input-context-pattern",
+  "source": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt1.md",
+  "kernels": [
+    "all procedure arguments must follow the canonical pattern: (input, context?)",
+    "required for all exported and internal functions in production code",
+    "expected in tests, hooks, utils, and logic modules",
+    "anonymous inline callbacks are exempt if tightly scoped",
+    "more than two positional arguments are forbidden",
+    "non-destructurable inputs are forbidden",
+    "context blended into input is forbidden",
+    "promotes long-term clarity and change-resilience over short-term brevity",
+    "prevents positional argument confusion",
+    "supports context injection without argument churn",
+    "enables safe refactors and consistent documentation across the codebase",
+    "hard requirement applies even to trivial utilities, pure transforms, and data extractors"
+  ],
+  "labeledBy": "machine-consensus",
+  "labeledAt": "2026-02-14",
+  "note": "machine-generated via consensus (runs=5, threshold=0.4) - needs human review"
+}

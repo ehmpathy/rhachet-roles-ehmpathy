@@ -82,3 +82,42 @@ print_instruction() {
   echo "$header"
   echo "$command"
 }
+
+# spinner state
+SPINNER_PID=""
+
+# start a spinner with elapsed time
+# usage: start_spinner "compress via bhrain/sitrep"
+start_spinner() {
+  local message="$1"
+  (
+    local frames=("🌊" "🫧" "🌊" "🐢" "🤙")
+    local frame_count=${#frames[@]}
+    local i=0
+    local start_time=$(date +%s)
+    # hide cursor
+    tput civis 2>/dev/null || true
+    while true; do
+      local now=$(date +%s)
+      local elapsed=$((now - start_time))
+      # move to start of line, clear, then print
+      printf "\r\033[K   %s %s (%ds)" "${frames[$i]}" "$message" "$elapsed"
+      i=$(( (i + 1) % frame_count ))
+      sleep 0.4
+    done
+  ) &
+  SPINNER_PID=$!
+}
+
+# stop the spinner
+# usage: stop_spinner
+stop_spinner() {
+  if [[ -n "$SPINNER_PID" ]]; then
+    kill "$SPINNER_PID" 2>/dev/null || true
+    wait "$SPINNER_PID" 2>/dev/null || true
+    # show cursor again, clear line
+    tput cnorm 2>/dev/null || true
+    printf "\r\033[K"
+    SPINNER_PID=""
+  fi
+}

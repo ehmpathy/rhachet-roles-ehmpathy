@@ -37,6 +37,7 @@ MODE="apply"
 RATIO="4"
 FORCE=false
 SHOW_HELP=false
+OPEN_WITH=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -68,6 +69,10 @@ while [[ $# -gt 0 ]]; do
     --force)
       FORCE=true
       shift
+      ;;
+    --open)
+      OPEN_WITH="$2"
+      shift 2
       ;;
     --help|-h)
       SHOW_HELP=true
@@ -114,6 +119,7 @@ if [[ "$SHOW_HELP" == "true" ]]; then
   echo "  --mode plan|apply   preview (plan) or emit (apply). default: apply"
   echo "  --ratio <N>         target compression ratio (1-20). default: 4"
   echo "  --force             recompress even if .md.min is up-to-date"
+  echo "  --open <editor>     open output file after compression (e.g., nvim, code)"
   echo "  --help              show this help"
   echo ""
   echo "press@brain examples:"
@@ -167,7 +173,7 @@ fi
 if [[ -z "$BRAIN" ]]; then
   case "$PRESS" in
     bhrain/sitrep)
-      BRAIN="anthropic/claude/sonnet"
+      BRAIN="xai/grok/code-fast-1"
       ;;
     *)
       echo "error: no default brain for press '$PRESS'; specify via \$press@\$brain" >&2
@@ -270,6 +276,7 @@ fi
 TOTAL_BEFORE=0
 TOTAL_AFTER=0
 FILE_COUNT=0
+LAST_MIN_FILE=""
 
 for file in "${FILES[@]}"; do
   # determine output path
@@ -282,10 +289,12 @@ for file in "${FILES[@]}"; do
   # check staleness (skip if .min is newer than source)
   if [[ -f "$MIN_FILE" && "$FORCE" != "true" ]]; then
     if [[ "$MIN_FILE" -nt "$file" ]]; then
-      # up-to-date, skip
-      if [[ "$MODE" == "plan" ]]; then
-        echo "   skip (up-to-date): $file"
-      fi
+      # up-to-date, skip (show message in both modes)
+      print_tree_start "brief.compress"
+      print_tree_branch "from: $file"
+      print_tree_leaf "status" "skipped (up-to-date)" "   " true
+      echo ""
+      echo "note: use --force to recompress"
       continue
     fi
   fi
@@ -306,11 +315,18 @@ for file in "${FILES[@]}"; do
   # capture start time
   START_TIME=$(date +%s.%N)
 
+  # start spinner while brain works
+  start_spinner "compress via ${PRESS}@${BRAIN}"
+
   RAW_OUTPUT=$(node "$MECH_JS" "${MECH_RUN_ARGS[@]}" 2>&1) || {
+    stop_spinner
     echo "error: compression failed for $file" >&2
     echo "$RAW_OUTPUT" >&2
     exit 1
   }
+
+  # stop spinner
+  stop_spinner
 
   # capture end time and compute elapsed
   END_TIME=$(date +%s.%N)
@@ -334,6 +350,7 @@ for file in "${FILES[@]}"; do
   TOTAL_BEFORE=$((TOTAL_BEFORE + TOKENS_BEFORE))
   TOTAL_AFTER=$((TOTAL_AFTER + TOKENS_AFTER))
   FILE_COUNT=$((FILE_COUNT + 1))
+  LAST_MIN_FILE="$MIN_FILE"
 
   # output per-file stats
   print_tree_start "brief.compress"
@@ -367,4 +384,13 @@ fi
 # plan mode footer
 if [[ "$MODE" == "plan" ]]; then
   echo "note: this was a plan. to apply, re-run with --mode apply"
+fi
+
+# open file if requested (apply mode only, single file only)
+if [[ -n "$OPEN_WITH" && "$MODE" == "apply" && -n "$LAST_MIN_FILE" && -f "$LAST_MIN_FILE" ]]; then
+  if [[ $FILE_COUNT -gt 1 ]]; then
+    echo "note: --open ignored for batch mode (multiple files)"
+  else
+    "$OPEN_WITH" "$LAST_MIN_FILE"
+  fi
 fi
