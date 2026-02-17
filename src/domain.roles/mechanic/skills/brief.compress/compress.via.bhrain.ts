@@ -121,6 +121,38 @@ export type MechanismBrief =
   | 'kernelize';
 
 /**
+ * .what = prompt modifiers that inject constraints into compression passes
+ * .why = enables fine-grained control over kernel preservation at each compression stage
+ */
+export type PromptModifier = 'req-kernels';
+
+/**
+ * .what = union of methodology briefs and prompt modifiers
+ * .why = a single pass can combine methodologies with modifiers in any order
+ */
+export type MechanismOrModifier = MechanismBrief | PromptModifier;
+
+/**
+ * .what = type guard to check if element is a prompt modifier
+ * .why = enables conditional prompt construction based on element type
+ */
+export const isPromptModifier = (
+  element: MechanismOrModifier,
+): element is PromptModifier => {
+  return element === 'req-kernels';
+};
+
+/**
+ * .what = type guard to check if element is a methodology brief
+ * .why = enables conditional brief artifact retrieval
+ */
+export const isMechanismBrief = (
+  element: MechanismOrModifier,
+): element is MechanismBrief => {
+  return !isPromptModifier(element);
+};
+
+/**
  * .what = map methodology names to brief paths
  * .why = enables dynamic brief selection
  */
@@ -135,30 +167,78 @@ export const METHODOLOGY_BRIEF_PATHS: Record<MechanismBrief, string> = {
 };
 
 /**
- * .what = generate prompt based on methodology combination
- * .why = prompt should reflect which mechanisms are in use
+ * .what = generate prompt based on methodology + modifier combination
+ * .why = prompt should reflect which mechanisms are in use and inject kernel constraints
+ *
+ * .note = req-kernels position determines constraint behavior:
+ *   - [req-kernels, sitrep] = constraint BEFORE compression
+ *   - [sitrep, req-kernels] = verification AFTER compression
+ *   - [req-kernels, sitrep, req-kernels] = wrap: constraint + verification
  */
-const genCompressionPrompt = (
-  mechanisms: MechanismBrief[],
-  supplements?: string[],
+export const genCompressionPrompt = (
+  elements: MechanismOrModifier[],
+  options?: {
+    supplements?: string[];
+    kernels?: string[];
+  },
 ): string => {
-  const methodologyList = mechanisms.join(' + ');
+  // separate methodologies from modifiers
+  const methodologies = elements.filter(isMechanismBrief);
+  const methodologyList = methodologies.join(' + ');
 
-  // base prompt
-  let prompt = `compress this source brief via ${methodologyList} mechanisms.
+  // detect req-kernels positions
+  const firstElement = elements[0];
+  const lastElement = elements[elements.length - 1];
+  const hasReqKernelsBefore = firstElement === 'req-kernels';
+  const hasReqKernelsAfter =
+    lastElement === 'req-kernels' && elements.length > 1;
+
+  // format kernel list for prompt injection
+  const kernelList =
+    options?.kernels && options.kernels.length > 0
+      ? options.kernels.map((k) => `- ${k}`).join('\n')
+      : null;
+
+  let prompt = '';
+
+  // inject kernel constraint BEFORE methodology (if req-kernels is first)
+  if (hasReqKernelsBefore && kernelList) {
+    prompt += `CRITICAL CONSTRAINT — KERNEL PRESERVATION:
+The concepts listed below are REQUIRED in your output.
+Any absent concept is a compression failure.
+Preserve the semantic sense even if you rephrase.
+
+REQUIRED KERNELS:
+${kernelList}
+
+`;
+  }
+
+  // base compression instruction
+  prompt += `compress this source brief via ${methodologyList} mechanisms.
 
 target: at least 2x compression ratio (output MUST be ≤50% of input tokens)
 
 output format: raw markdown, no preamble, no wrapper.`;
 
   // add supplement context if provided
-  if (supplements && supplements.length > 0) {
+  if (options?.supplements && options.supplements.length > 0) {
     prompt += `
 
 SUPPLEMENT CONTEXT (use this to inform your compression):
 ---
-${supplements.join('\n---\n')}
+${options.supplements.join('\n---\n')}
 ---`;
+  }
+
+  // inject kernel verification AFTER methodology (if req-kernels is last)
+  if (hasReqKernelsAfter && kernelList) {
+    prompt += `
+
+VERIFICATION — confirm these kernels are present:
+${kernelList}
+
+If any kernel is absent, restore it now.`;
   }
 
   prompt += `
@@ -217,11 +297,12 @@ export interface CompressionResult {
 const _compressViaBhrain = async (input: {
   content: string;
   brainSlug: string;
-  mechanisms?: MechanismBrief[];
+  mechanisms?: MechanismOrModifier[];
   supplements?: string[];
+  kernels?: string[];
   force?: boolean;
 }): Promise<CompressionResult> => {
-  const mechanisms = input.mechanisms ?? DEFAULT_METHODOLOGIES;
+  const elements = input.mechanisms ?? DEFAULT_METHODOLOGIES;
 
   // handle empty content
   const tokensBefore = await countTokens({ text: input.content });
@@ -236,8 +317,11 @@ const _compressViaBhrain = async (input: {
     };
   }
 
+  // extract methodology briefs (filter out modifiers like req-kernels)
+  const methodologies = elements.filter(isMechanismBrief);
+
   // load methodology briefs as artifacts (in specified order)
-  const methodologyBriefArtifacts = mechanisms.map((m) =>
+  const methodologyBriefArtifacts = methodologies.map((m) =>
     genArtifactGitFile({ uri: METHODOLOGY_BRIEF_PATHS[m] }),
   );
 
@@ -245,8 +329,8 @@ const _compressViaBhrain = async (input: {
   const lowercaseBrief = genArtifactGitFile({ uri: LOWERCASE_BRIEF_PATH });
   const turtleBrief = genArtifactGitFile({ uri: TURTLE_BRIEF_PATH });
 
-  // compose prompt with source content (include supplements if provided)
-  const prompt = `${genCompressionPrompt(mechanisms, input.supplements)}\n\n${input.content}`;
+  // compose prompt with source content (include supplements and kernels if provided)
+  const prompt = `${genCompressionPrompt(elements, { supplements: input.supplements, kernels: input.kernels })}\n\n${input.content}`;
 
   // resolve brain via auto-discovery
   const contextBrain = await genContextBrain({
@@ -310,14 +394,16 @@ const _compressViaBhrain = async (input: {
 const genCacheKey = (input: {
   content: string;
   brainSlug: string;
-  mechanisms: MechanismBrief[];
+  mechanisms: MechanismOrModifier[];
   supplements?: string[];
+  kernels?: string[];
 }): string => {
   const hash = createHash('sha256')
     .update(input.content)
     .update(input.brainSlug)
     .update(JSON.stringify(input.mechanisms))
     .update(JSON.stringify(input.supplements ?? []))
+    .update(JSON.stringify(input.kernels ?? []))
     .digest('hex')
     .slice(0, 24);
   return `compress-${hash}`;
@@ -340,6 +426,7 @@ export const compressViaBhrain = withSimpleCachingAsync(_compressViaBhrain, {
         brainSlug: input.brainSlug,
         mechanisms: input.mechanisms ?? DEFAULT_METHODOLOGIES,
         supplements: input.supplements,
+        kernels: input.kernels,
       }),
   },
   bypass: {
@@ -400,7 +487,7 @@ const main = async (): Promise<void> => {
       from: values.from,
       into: values.into,
       command: `compress.via.bhrain.ts --from ${values.from} --via ${brainSlug} --into ${values.into}`,
-      prompt: genCompressionPrompt(DEFAULT_METHODOLOGIES),
+      prompt: genCompressionPrompt(DEFAULT_METHODOLOGIES, {}),
       mechanisms: DEFAULT_METHODOLOGIES,
       briefs: [
         ...DEFAULT_METHODOLOGIES.map((m) => METHODOLOGY_BRIEF_PATHS[m]),

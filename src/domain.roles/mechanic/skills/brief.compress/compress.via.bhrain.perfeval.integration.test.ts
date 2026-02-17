@@ -16,7 +16,9 @@ import {
 import { TEST_BRIEFS } from './.test/fixtures/briefs';
 import {
   compressViaBhrain as compressViaBhrainRaw,
+  isPromptModifier,
   type MechanismBrief,
+  type MechanismOrModifier,
 } from './compress.via.bhrain';
 
 /**
@@ -162,15 +164,17 @@ const compressViaBhrain = withSimpleCachingAsync(
   async (input: {
     content: string;
     brainSlug: string;
-    mechanisms: MechanismBrief[];
+    mechanisms: MechanismOrModifier[];
     attemptIndex: number;
     supplements?: string[];
+    kernels?: string[];
   }) => {
     return compressViaBhrainRaw({
       content: input.content,
       brainSlug: input.brainSlug,
       mechanisms: input.mechanisms,
       supplements: input.supplements,
+      kernels: input.kernels,
     });
   },
   {
@@ -184,6 +188,7 @@ const compressViaBhrain = withSimpleCachingAsync(
           .update(JSON.stringify(input.mechanisms))
           .update(String(input.attemptIndex))
           .update(JSON.stringify(input.supplements ?? []))
+          .update(JSON.stringify(input.kernels ?? []))
           .digest('hex')
           .slice(0, 24);
         return `compress-${hash}`;
@@ -258,10 +263,19 @@ const checkKernelRetention = withSimpleCachingAsync(checkKernelRetentionRaw, {
  * modes:
  * - mutator: kernelize pass transforms content directly
  * - supply: kernelize extracts kernels as context, content unchanged
+ *
+ * post-process modes:
+ * - verify: check retention, retry if lost
+ * - restore: append lost kernels to output
+ *
+ * req-kernels modifier:
+ * - can appear anywhere in a pass: [req-kernels, sitrep], [sitrep, req-kernels], [req-kernels, sitrep, req-kernels]
+ * - position determines behavior: before=constraint, after=verification, both=wrap
  */
 interface Pipeline {
-  press: MechanismBrief[][]; // compression passes
+  press: MechanismOrModifier[][]; // compression passes (can include req-kernels modifier)
   supply?: 'kernelize'; // extract kernels first, pass as context
+  post?: 'verify' | 'restore'; // post-process mode
 }
 
 /**
@@ -280,9 +294,13 @@ const SITREP_VARIANTS: MechanismBrief[] = [
  * .why = ensures press are typed correctly without casts
  */
 const pipeline = (
-  press: MechanismBrief[][],
-  supply?: 'kernelize',
-): Pipeline => ({ press, supply });
+  press: MechanismOrModifier[][],
+  options?: { supply?: 'kernelize'; post?: 'verify' | 'restore' },
+): Pipeline => ({
+  press,
+  supply: options?.supply,
+  post: options?.post,
+});
 
 /**
  * .what = exhaustive pipeline combinations
@@ -334,19 +352,21 @@ const PIPELINES: Pipeline[] = [
   // ═══════════════════════════════════════════════════════════════════
   // 6. supplement mode: kernelize as context (single-pass)
   // ═══════════════════════════════════════════════════════════════════
-  ...SITREP_VARIANTS.map((v) => pipeline([[v]], 'kernelize')),
+  ...SITREP_VARIANTS.map((v) => pipeline([[v]], { supply: 'kernelize' })),
 
   // ═══════════════════════════════════════════════════════════════════
   // 7. supplement mode: kernelize as context (2-pass with telegraphic)
   // ═══════════════════════════════════════════════════════════════════
-  ...SITREP_VARIANTS.map((v) => pipeline([[v], ['telegraphic']], 'kernelize')),
+  ...SITREP_VARIANTS.map((v) =>
+    pipeline([[v], ['telegraphic']], { supply: 'kernelize' }),
+  ),
 
   // ═══════════════════════════════════════════════════════════════════
   // 8. supplement mode: kernelize as context (3-pass with double tele)
   // .why = combine kernel retention (supply) with max density (triple-pass)
   // ═══════════════════════════════════════════════════════════════════
   ...SITREP_VARIANTS.map((v) =>
-    pipeline([[v], ['telegraphic'], ['telegraphic']], 'kernelize'),
+    pipeline([[v], ['telegraphic'], ['telegraphic']], { supply: 'kernelize' }),
   ),
 
   // ═══════════════════════════════════════════════════════════════════
@@ -376,6 +396,233 @@ const PIPELINES: Pipeline[] = [
     ['telegraphic'],
     ['telegraphic'],
   ]),
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 13. req-kernels BEFORE methodology (single pass)
+  // .why = hard constraint before compression starts
+  // ═══════════════════════════════════════════════════════════════════
+  pipeline([['req-kernels', 'sitrep']], { supply: 'kernelize' }),
+  pipeline([['req-kernels', 'sitrep-taskaware']], { supply: 'kernelize' }),
+  pipeline([['req-kernels', 'sitrep-aggressive']], { supply: 'kernelize' }),
+  pipeline([['req-kernels', 'telegraphic']], { supply: 'kernelize' }),
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 14. req-kernels AFTER methodology (single pass)
+  // .why = verification after compression, restore if lost
+  // ═══════════════════════════════════════════════════════════════════
+  pipeline([['sitrep', 'req-kernels']], { supply: 'kernelize' }),
+  pipeline([['sitrep-taskaware', 'req-kernels']], { supply: 'kernelize' }),
+  pipeline([['sitrep-aggressive', 'req-kernels']], { supply: 'kernelize' }),
+  pipeline([['telegraphic', 'req-kernels']], { supply: 'kernelize' }),
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 15. req-kernels WRAP (before + after, single pass)
+  // .why = constraint before + verification after for max retention
+  // ═══════════════════════════════════════════════════════════════════
+  pipeline([['req-kernels', 'sitrep', 'req-kernels']], { supply: 'kernelize' }),
+  pipeline([['req-kernels', 'sitrep-taskaware', 'req-kernels']], {
+    supply: 'kernelize',
+  }),
+  pipeline([['req-kernels', 'sitrep-aggressive', 'req-kernels']], {
+    supply: 'kernelize',
+  }),
+  pipeline([['req-kernels', 'telegraphic', 'req-kernels']], {
+    supply: 'kernelize',
+  }),
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 16. req-kernels + supply (single pass)
+  // .why = combine soft supply context with hard constraint
+  // ═══════════════════════════════════════════════════════════════════
+  pipeline([['req-kernels', 'sitrep']], { supply: 'kernelize' }),
+  pipeline([['req-kernels', 'sitrep-taskaware']], { supply: 'kernelize' }),
+  pipeline([['req-kernels', 'sitrep-aggressive']], { supply: 'kernelize' }),
+  pipeline([['req-kernels', 'sitrep', 'req-kernels']], { supply: 'kernelize' }),
+  pipeline([['req-kernels', 'sitrep-taskaware', 'req-kernels']], {
+    supply: 'kernelize',
+  }),
+  pipeline([['req-kernels', 'sitrep-aggressive', 'req-kernels']], {
+    supply: 'kernelize',
+  }),
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 17. double-pass + req-kernels at each stage
+  // .why = constraint at each compression stage
+  // ═══════════════════════════════════════════════════════════════════
+  pipeline(
+    [
+      ['req-kernels', 'sitrep'],
+      ['req-kernels', 'telegraphic'],
+    ],
+    { supply: 'kernelize' },
+  ),
+  pipeline(
+    [
+      ['req-kernels', 'sitrep-taskaware'],
+      ['req-kernels', 'telegraphic'],
+    ],
+    { supply: 'kernelize' },
+  ),
+  pipeline(
+    [
+      ['req-kernels', 'sitrep-aggressive'],
+      ['req-kernels', 'telegraphic'],
+    ],
+    { supply: 'kernelize' },
+  ),
+  pipeline(
+    [
+      ['req-kernels', 'sitrep', 'req-kernels'],
+      ['req-kernels', 'telegraphic', 'req-kernels'],
+    ],
+    { supply: 'kernelize' },
+  ),
+  pipeline(
+    [
+      ['req-kernels', 'sitrep-taskaware', 'req-kernels'],
+      ['req-kernels', 'telegraphic', 'req-kernels'],
+    ],
+    { supply: 'kernelize' },
+  ),
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 18. double-pass + req-kernels only at first stage
+  // .why = constrain initial compression, let second pass be free
+  // ═══════════════════════════════════════════════════════════════════
+  pipeline([['req-kernels', 'sitrep-aggressive'], ['telegraphic']], {
+    supply: 'kernelize',
+  }),
+  pipeline([['req-kernels', 'sitrep-aggressive'], ['sitrep-taskaware']], {
+    supply: 'kernelize',
+  }),
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 19. double-pass + req-kernels only at last stage
+  // .why = let first pass compress freely, constrain final pass
+  // ═══════════════════════════════════════════════════════════════════
+  pipeline([['sitrep-aggressive'], ['req-kernels', 'telegraphic']], {
+    supply: 'kernelize',
+  }),
+  pipeline([['sitrep-aggressive'], ['req-kernels', 'sitrep-taskaware']], {
+    supply: 'kernelize',
+  }),
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 20. double-pass + supply + req-kernels
+  // .why = combine supply context with hard constraints
+  // ═══════════════════════════════════════════════════════════════════
+  pipeline(
+    [
+      ['req-kernels', 'sitrep'],
+      ['req-kernels', 'telegraphic'],
+    ],
+    { supply: 'kernelize' },
+  ),
+  pipeline(
+    [
+      ['req-kernels', 'sitrep-taskaware'],
+      ['req-kernels', 'telegraphic'],
+    ],
+    { supply: 'kernelize' },
+  ),
+  pipeline(
+    [
+      ['req-kernels', 'sitrep', 'req-kernels'],
+      ['req-kernels', 'telegraphic', 'req-kernels'],
+    ],
+    { supply: 'kernelize' },
+  ),
+  pipeline(
+    [
+      ['req-kernels', 'sitrep-aggressive'],
+      ['req-kernels', 'sitrep-taskaware'],
+    ],
+    { supply: 'kernelize' },
+  ),
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 21. triple-pass + req-kernels
+  // .why = multi-stage compression with constraints
+  // ═══════════════════════════════════════════════════════════════════
+  pipeline(
+    [
+      ['req-kernels', 'sitrep-aggressive'],
+      ['req-kernels', 'sitrep-taskaware'],
+      ['req-kernels', 'telegraphic'],
+    ],
+    { supply: 'kernelize' },
+  ),
+  pipeline(
+    [
+      ['req-kernels', 'sitrep-aggressive', 'req-kernels'],
+      ['req-kernels', 'sitrep-taskaware', 'req-kernels'],
+      ['telegraphic'],
+    ],
+    { supply: 'kernelize' },
+  ),
+  pipeline(
+    [
+      ['req-kernels', 'sitrep-aggressive'],
+      ['req-kernels', 'sitrep-taskaware'],
+      ['telegraphic'],
+    ],
+    { supply: 'kernelize' },
+  ),
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 22. gentle double-pass (no req-kernels, for comparison)
+  // .why = baseline for multi-pass without constraints
+  // ═══════════════════════════════════════════════════════════════════
+  pipeline([['sitrep'], ['sitrep']]),
+  pipeline([['sitrep'], ['sitrep-taskaware']]),
+  pipeline([['sitrep-taskaware'], ['sitrep-taskaware']]),
+  pipeline([['sitrep-taskaware'], ['telegraphic']]),
+  pipeline([['telegraphic'], ['telegraphic']]),
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 23. verification loop variants
+  // .why = check retention, retry if lost
+  // ═══════════════════════════════════════════════════════════════════
+  pipeline([['sitrep']], { supply: 'kernelize', post: 'verify' }),
+  pipeline([['sitrep-taskaware']], { supply: 'kernelize', post: 'verify' }),
+  pipeline([['req-kernels', 'sitrep']], {
+    supply: 'kernelize',
+    post: 'verify',
+  }),
+  pipeline([['req-kernels', 'sitrep-taskaware']], {
+    supply: 'kernelize',
+    post: 'verify',
+  }),
+  pipeline([['req-kernels', 'sitrep', 'req-kernels']], {
+    supply: 'kernelize',
+    post: 'verify',
+  }),
+  pipeline([['req-kernels', 'sitrep-aggressive']], {
+    supply: 'kernelize',
+    post: 'verify',
+  }),
+  pipeline([['req-kernels', 'sitrep-aggressive'], ['telegraphic']], {
+    supply: 'kernelize',
+    post: 'verify',
+  }),
+
+  // ═══════════════════════════════════════════════════════════════════
+  // 24. restoration variants
+  // .why = append lost kernels to output
+  // ═══════════════════════════════════════════════════════════════════
+  pipeline([['sitrep-aggressive']], { supply: 'kernelize', post: 'restore' }),
+  pipeline([['req-kernels', 'sitrep-aggressive']], {
+    supply: 'kernelize',
+    post: 'restore',
+  }),
+  pipeline([['sitrep-aggressive'], ['telegraphic']], {
+    supply: 'kernelize',
+    post: 'restore',
+  }),
+  pipeline([['req-kernels', 'sitrep-aggressive'], ['telegraphic']], {
+    supply: 'kernelize',
+    post: 'restore',
+  }),
 ];
 
 /**
@@ -418,7 +665,7 @@ type BrainSlug = (typeof BRAIN_SLUGS)[number];
  * .what = format pipeline for display
  * .why = show [[a], [b]] structure, with sup: prefix for supplement mode
  */
-const formatPipeline = (pipeline: MechanismBrief[][]): string =>
+const formatPipeline = (pipeline: MechanismOrModifier[][]): string =>
   `[${pipeline.map((pass) => `[${pass.join(', ')}]`).join(', ')}]`;
 
 /**
@@ -465,7 +712,7 @@ interface PipelineResult {
   briefType: string;
   runIndex: number;
   pipeline: string;
-  passes: MechanismBrief[][];
+  passes: MechanismOrModifier[][];
   brainSlug: BrainSlug;
   tokensBefore: number;
   tokensAfter: number;
@@ -509,7 +756,7 @@ const runPipeline = async (input: {
   content: string;
   briefName: string;
   briefType: string;
-  passes: MechanismBrief[][];
+  passes: MechanismOrModifier[][];
   brainSlug: BrainSlug;
   runIndex: number;
   sourceKernels: ConceptKernel[];
@@ -648,13 +895,15 @@ const runPipeline = async (input: {
 
 /**
  * .what = format supply pipeline for display
- * .why = show sup:kernelize prefix to distinguish from mutator pipelines
+ * .why = show sup:kernelize prefix and post mode suffix
  */
 const formatSupplyPipeline = (config: SupplyPipeline): string => {
   const pressStr = config.press
     .map((pass) => `[${pass.join(', ')}]`)
     .join(', ');
-  return config.supply ? `sup:${config.supply}, ${pressStr}` : `[${pressStr}]`;
+  const prefix = config.supply ? `sup:${config.supply}, ` : '';
+  const suffix = config.post ? `, ${config.post}` : '';
+  return `${prefix}[${pressStr}]${suffix}`;
 };
 
 /**
@@ -700,10 +949,20 @@ const runSupplyPipeline = async (input: {
       supplements = [`# kernels to preserve\n\n${kernelDoc}`];
     }
 
+    // check if any pass contains req-kernels modifier
+    const hasReqKernels = input.config.press.some((pass) =>
+      pass.some(isPromptModifier),
+    );
+
+    // prepare kernel strings for req-kernels modifier
+    const kernelStrings = hasReqKernels
+      ? input.sourceKernels.map((k) => `[${k.category}] ${k.concept}`)
+      : undefined;
+
     const passRatios: number[] = [];
     let tokensAfterPrevious = tokensBefore;
 
-    // run each pass with supply context
+    // run each pass with supply context and kernels (if req-kernels present)
     for (
       let passIndex = 0;
       passIndex < input.config.press.length;
@@ -715,6 +974,7 @@ const runSupplyPipeline = async (input: {
         brainSlug: input.brainSlug,
         mechanisms: passMechanisms,
         supplements, // pass kernel doc as supply
+        kernels: kernelStrings, // pass kernels for req-kernels modifier
         attemptIndex: input.runIndex * 100 + passIndex,
       });
       currentContent = result.compressed;
@@ -726,11 +986,51 @@ const runSupplyPipeline = async (input: {
     const ratio = Math.round((tokensBefore / tokensAfter) * 100) / 100;
 
     // check retention of source kernels in compressed output
-    const retentionResult = await checkKernelRetention({
+    let retentionResult = await checkKernelRetention({
       kernels: input.sourceKernels,
       compressed: currentContent,
       brainSlug: input.brainSlug,
     });
+
+    // handle post-process modes
+    if (input.config.post === 'verify' && retentionResult.lost.length > 0) {
+      // retry compression with explicit lost kernel restoration request
+      const lostKernelDoc = retentionResult.lost
+        .map((k) => `- [${k.category}] ${k.concept}`)
+        .join('\n');
+      const retryResult = await compressViaBhrain({
+        content: currentContent,
+        brainSlug: input.brainSlug,
+        mechanisms: ['sitrep-taskaware'],
+        supplements: [
+          `# RESTORE LOST CONCEPTS\n\nThese concepts were lost in compression and MUST be restored:\n${lostKernelDoc}`,
+        ],
+        attemptIndex: input.runIndex * 100 + 99, // distinct cache key for retry
+      });
+      currentContent = retryResult.compressed;
+
+      // recheck retention after retry
+      retentionResult = await checkKernelRetention({
+        kernels: input.sourceKernels,
+        compressed: currentContent,
+        brainSlug: input.brainSlug,
+      });
+    }
+
+    if (input.config.post === 'restore' && retentionResult.lost.length > 0) {
+      // append lost kernels to output
+      const lostKernelDoc = retentionResult.lost
+        .map((k) => `- ${k.concept}`)
+        .join('\n');
+      currentContent += `\n\n## core concepts\n\n${lostKernelDoc}`;
+
+      // recheck retention after restore
+      retentionResult = await checkKernelRetention({
+        kernels: input.sourceKernels,
+        compressed: currentContent,
+        brainSlug: input.brainSlug,
+      });
+    }
 
     const durationMs = Date.now() - startTime;
 
