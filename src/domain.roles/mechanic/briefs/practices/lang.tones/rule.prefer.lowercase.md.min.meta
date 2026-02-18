@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/lang.tones/rule.prefer.lowercase.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/lang.tones/rule.prefer.lowercase.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 381,
+    "after": 357,
+    "delta": {
+      "quant": -24,
+      "ratio": "1.1x"
+    }
+  },
+  "kernels": {
+    "before": 7,
+    "after": 7,
+    "delta": 0
+  },
+  "density": {
+    "before": 228,
+    "after": 212,
+    "delta": 0.7
+  },
+  "stability": {
+    "meanJaccard": 0.9047619047619048,
+    "minJaccard": 0.8571428571428571,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.16,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

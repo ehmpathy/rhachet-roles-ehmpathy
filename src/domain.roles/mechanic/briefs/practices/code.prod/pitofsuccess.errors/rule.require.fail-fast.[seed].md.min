@@ -1,0 +1,22 @@
+fail fast saves lives
+
+fail fast: detect fast, fix fast
+
+contributes to pit of success
+- tests alert unexpected behaviors at build time
+- logs alert unexpected behaviors at monitor time
+
+benefits:
+- safer development: surprises flagged asap
+- rapid maintenance: changes flagged asap in production
+
+use:
+```ts
+import { UnexpectedCodePathError } from 'helpful-errors';
+throw new UnexpectedCodePathError(message, metadata);
+```
+or
+```ts
+import { BadRequestError } from 'helpful-errors';
+throw new BadRequestError(message, metadata);
+```

@@ -1,0 +1,53 @@
+# .rule = forbid-capital-acronyms
+
+.what: acronyms must be lowercase — no shouts
+
+.scope:
+- code: variable names, function names, type names, comments
+- files: filenames, directory names, paths
+- docs: markdown, briefs, prompts
+- logs: error messages, debug output
+- comms: commit messages, pr descriptions
+
+.why:
+- all-caps acronyms shout — demand undue attention
+- lowercase reads calmer, integrates better
+- adds no info for known terms
+- prevents camelcase collisions
+- consistent with prefer.lowercase
+
+.enforcement: capital acronyms = blocker
+
+.alternatives:
+
+| 👎 shouts | 👍 chill |
+|----------|----------|
+| jwt     | JWT     |
+| api     | API     |
+| cli     | CLI     |
+| json    | JSON    |
+
+.examples:
+
+**👎 bad**
+```ts
+const parsejwt = (token: string) => {};  // shouts
+```
+
+**👍 good**
+```ts
+const parsejwt = (token: string) => {};  // calm
+```
+
+.note: filepaths: no shouts in filenames/directories
+
+| 👎 shouts | 👍 chill |
+|----------|----------|
+| readme.md | README.md |
+| src/api/  | SRC/API/  |
+
+.note: camelcase: treat acronyms as regular words, e.g., getjwttoken
+
+.see also:
+- rule.prefer.lowercase
+- rule.require.ubiqlang

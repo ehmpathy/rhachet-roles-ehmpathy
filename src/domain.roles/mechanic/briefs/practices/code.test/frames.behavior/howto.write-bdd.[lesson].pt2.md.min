@@ -1,0 +1,122 @@
+# how to write bdd-style acceptance tests
+
+## structure
+use given, when, then from test-fns:
+
+```ts
+import { given, when, then, useBeforeAll } from 'test-fns';
+
+describe('featureName', () => {
+  given('[case1] scenario description', () => {
+    when('[t0] before any changes', () => {
+      then('precondition holds', async () => { ... });
+    });
+
+    when('[t1] target operation', () => {
+      then('expected outcome', async () => { ... });
+    });
+  });
+});
+```
+
+## labels
+### [caseN] for given blocks
+each given block needs unique case label:
+
+```ts
+given('[case1] valid inputs', () => { ... });
+```
+
+### [tN] for when blocks
+[t0] for preconditions; [t1] for first operation, etc.
+
+```ts
+given('[case1] example repo', () => {
+  when('[t0] before changes', () => {
+    then('rules glob matches', ...);
+  });
+
+  when('[t1] operation', () => {
+    then('outcome', ...);
+  });
+});
+```
+
+## principles
+### consolidate tests
+group related scenarios in one given block.
+
+### when describes state
+use for state/time, not action.
+
+### use afterEach for cleanup
+
+```ts
+// good
+when('[t1] operation', () => {
+  afterEach(async () => fs.rm(path));
+  then('check', async () => { ... });
+});
+```
+
+### preconditions check directly
+
+```ts
+then('rules match', async () => {
+  expect(files).toHaveLength(2);
+});
+```
+
+### use useBeforeAll for setup
+
+```ts
+given('[case1] scenario', () => {
+  const scene = useBeforeAll(async () => { return { entity }; });
+  when('[t1] operation', () => {
+    then('uses entity', async () => { ... });
+  });
+});
+```
+
+## complete example
+
+```ts
+import { given, when, then, useBeforeAll } from 'test-fns';
+import * as fs from 'fs/promises';
+import * as path from 'path';
+import * as os from 'os';
+
+describe('stepReview', () => {
+  given('[case1] example repo', () => {
+    when('[t0] before changes', () => {
+      then('rules glob matches 2', async () => {
+        expect(await enumFilesFromGlob({ glob: ".agent/**/rules/*.md", cwd: ASSETS_PROSE })).toHaveLength(2);
+      });
+
+      then('chapters glob matches 3', async () => {
+        expect(await enumFilesFromGlob({ glob: 'chapters/*.md', cwd: ASSETS_PROSE })).toHaveLength(3);
+      });
+    });
+
+    when('[t1] stepReview on fixed chapter', () => {
+      const outputPath = path.join(os.tmpdir(), 'review-fixed.md');
+      afterEach(async () => fs.rm(outputPath, { force: true }));
+
+      then('review has no blockers', async () => {
+        const result = await stepReview({ rules: '.agent/**/rules/*.md', paths: 'chapters/chapter2.fixed.md', output: outputPath, mode: 'hard', cwd: ASSETS_PROSE });
+        expect(result.review.formatted.toLowerCase()).not.toContain('blocker');
+      });
+    });
+
+    when('[t2] stepReview on unfixed chapter', () => {
+      const outputPath = path.join(os.tmpdir(), 'review-unfixed.md');
+      afterEach(async () => fs.rm(outputPath, { force: true }));
+
+      then('review has blockers', async () => {
+        const result = await stepReview({ rules: '.agent/**/rules/*.md', paths: 'chapters/chapter2.md', output: outputPath, mode: 'hard', cwd: ASSETS_PROSE });
+        expect(result.review.formatted.toLowerCase()).toContain('blocker');
+      });
+    });
+  });
+});
+```

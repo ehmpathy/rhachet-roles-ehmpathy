@@ -1,0 +1,22 @@
+# idempotency must
+
+retries due to:
+- user forgetfulness
+- code flows
+- network errors
+
+definition: duplicate requests succeed as single
+
+methods:
+- findsert: find or insert
+  - before = dao.findByRef()
+  - if before && no diff return before
+  - if before && diff BadRequestError.throw('cannot findsert; entity exists with diff attributes')
+  - after = dao.upsert()
+  - return after
+- upsert: update or insert – standard db overwrite
+
+why:
+- throw errors only
+- not exist: insert
+- exist: update or retain

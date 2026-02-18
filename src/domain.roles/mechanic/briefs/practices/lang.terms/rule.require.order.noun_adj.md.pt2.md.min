@@ -1,0 +1,76 @@
+## .rule = require-order-noun-adj
+
+### .what
+always use [noun][state/adjective] order for variable and property names
+
+### .pattern
+```
+{noun}{State}
+{noun}{Qualifier}
+{noun}{Temporal}
+```
+
+### .why
+- autocomplete groups variants
+- scan efficiency: noun first, state second
+- gerund elimination: use past participles (userfound not existinguser)
+- domain clarity: noun before qualifier
+
+### .categories
+
+#### temporal qualifiers
+| 👎 bad | 👍 good |
+|--------|---------|
+| previousvalue | valueprevious |
+| currentowner | ownercurrent |
+| originalrequest | requestoriginal |
+| beforestate | statebefore |
+| afterstate | stateafter |
+
+#### state qualifiers
+| 👎 bad | 👍 good |
+|--------|---------|
+| existinguser | userfound |
+| foundrecord | recordfound |
+| createdinvoice | invoicecreated |
+| updatedcustomer | customerupdated |
+| deleteditem | itemdeleted |
+| matchingresult | resultmatched |
+
+#### descriptive qualifiers
+| 👎 bad | 👍 good |
+|--------|---------|
+| validinput | inputvalid |
+| emptylist | listempty |
+| activesession | sessionactive |
+| primarykey | keyprimary |
+
+### .benefits
+
+#### autocomplete discovery
+```ts
+// type "user" and see:
+userfound
+usercreated
+userupdated
+userbefore
+userafter
+usercurrent
+```
+
+#### consistent mental model
+- first: what entity? (user, invoice, record)
+- then: which one? (found, created, before, after)
+
+#### natural gerund elimination
+- gerund pattern: existinguser, matchingrecord, remainingitems
+- noun-adj pattern: userfound, recordmatched, itemsleft
+
+### .exceptions
+- domain terms with established order (primarykey in sql)
+- external api constraints
+- document with .note for exceptions
+
+### .see also
+- rule.forbid.gerunds
+- rule.require.treestruct

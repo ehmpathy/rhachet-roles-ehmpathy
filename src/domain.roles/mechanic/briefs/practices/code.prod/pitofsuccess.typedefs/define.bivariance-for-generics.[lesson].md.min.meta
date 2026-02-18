@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.typedefs/define.bivariance-for-generics.[lesson].md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.typedefs/define.bivariance-for-generics.[lesson].md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 637,
+    "after": 372,
+    "delta": {
+      "quant": -265,
+      "ratio": "1.7x"
+    }
+  },
+  "kernels": {
+    "before": 6,
+    "after": 6,
+    "delta": 0
+  },
+  "density": {
+    "before": 470,
+    "after": 271,
+    "delta": 4.2
+  },
+  "stability": {
+    "meanJaccard": 0.888888888888889,
+    "minJaccard": 0.8333333333333334,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.35,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/lang.terms/rule.forbid.gerunds.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/lang.terms/rule.forbid.gerunds.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 929,
+    "after": 469,
+    "delta": {
+      "quant": -460,
+      "ratio": "2x"
+    }
+  },
+  "kernels": {
+    "before": 5,
+    "after": 5,
+    "delta": 0
+  },
+  "density": {
+    "before": 707,
+    "after": 381,
+    "delta": 4.6
+  },
+  "stability": {
+    "meanJaccard": 0.888888888888889,
+    "minJaccard": 0.8333333333333334,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.07,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

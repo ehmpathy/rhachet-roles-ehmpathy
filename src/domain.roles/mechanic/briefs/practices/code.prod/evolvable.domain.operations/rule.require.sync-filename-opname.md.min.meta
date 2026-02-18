@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.operations/rule.require.sync-filename-opname.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.operations/rule.require.sync-filename-opname.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 63,
+    "after": 42,
+    "delta": {
+      "quant": -21,
+      "ratio": "1.5x"
+    }
+  },
+  "kernels": {
+    "before": 2,
+    "after": 2,
+    "delta": 0
+  },
+  "density": {
+    "before": 144,
+    "after": 101,
+    "delta": 3
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.03,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

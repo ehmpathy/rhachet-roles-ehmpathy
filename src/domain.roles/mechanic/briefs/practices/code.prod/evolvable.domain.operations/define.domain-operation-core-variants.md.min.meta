@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.operations/define.domain-operation-core-variants.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.operations/define.domain-operation-core-variants.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 1145,
+    "after": 639,
+    "delta": {
+      "quant": -506,
+      "ratio": "1.8x"
+    }
+  },
+  "kernels": {
+    "before": 9,
+    "after": 9,
+    "delta": 0
+  },
+  "density": {
+    "before": 537,
+    "after": 278,
+    "delta": 4.8
+  },
+  "stability": {
+    "meanJaccard": 0.9259259259259259,
+    "minJaccard": 0.8888888888888888,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.05,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

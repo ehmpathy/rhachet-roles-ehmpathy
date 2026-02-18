@@ -1,0 +1,53 @@
+.tactic = arch:directional-deps
+
+.what
+enforce top-down dependency flow; lower layers must not import from higher ones
+
+.scope
+applies to src/ folders and modules; required for contract/, access/, domain.objects/, domain.operations/; governs imports and references
+
+.why
+upholds separation of concerns and clean architecture; prevents circular dependencies; eases tests and isolation; aligns with arch:bounded-contexts for orchestration
+
+.structure
+```
+src/
+  contract/          // public interfaces
+    api/             // public endpoints
+    cmd/             // internal entrypoints
+    sdk/             // public exports
+    cli/             // public cli contracts
+
+  access/            // infrastructure layer
+    daos/            // persistence logic
+    sdks/            // third party contracts
+    svcs/            // first party contracts
+
+  domain.objects/    // domain declarations
+  domain.operations/ // domain behavior
+
+  infra/             // adapters
+```
+
+.how
+each layer depends only on layers below; contract/ on domain.objects/ and domain.operations/; access/ on domain.objects/ and domain.operations/; domain.operations/ on domain.objects/ or infra/; domain.objects/ and infra/ self-contained; stitched flows in domain.operations/ or contract/cmd/; no upward imports; shared types follow rules
+
+.enforcement
+upward imports = blocker; circular dependencies = blocker; domain.objects/ isolated; domain.operations/ uses only infra/ adapters; access/ free of business rules; infra/ free of domain knowledge
+
+.examples
+
+👍 positive
+// contract/endpoints/sendinvoice.ts
+import { generateinvoice } from '@/domain.operations/generateinvoice';
+import { invoicedao } from '@/access/daos/invoicedao';
+
+// access/daos/jobdao.ts
+import { job } from '@/domain.objects/job';
+
+👎 negative
+// domain.objects/customer.ts
+import { customerdao } from '@/access/daos/customerdao'; // illegal
+
+// domain.operations/invoiceops.ts
+import { runflow } from '@/contract/commands'; // violation

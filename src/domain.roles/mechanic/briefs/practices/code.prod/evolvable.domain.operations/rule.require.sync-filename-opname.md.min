@@ -1,0 +1,9 @@
+require filename === operationname
+
+follows pattern of 1 operation per file
+
+benefits:
+- infer procedure name from filename
+- find procedures by filename search
+
+stacks on 1 operation per file benefits

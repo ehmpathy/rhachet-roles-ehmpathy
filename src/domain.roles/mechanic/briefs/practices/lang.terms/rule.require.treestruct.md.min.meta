@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/lang.terms/rule.require.treestruct.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/lang.terms/rule.require.treestruct.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 652,
+    "after": 219,
+    "delta": {
+      "quant": -433,
+      "ratio": "3x"
+    }
+  },
+  "kernels": {
+    "before": 9,
+    "after": 9,
+    "delta": 0
+  },
+  "density": {
+    "before": 294,
+    "after": 91,
+    "delta": 6.9
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.67,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 559,
+    "after": 363,
+    "delta": {
+      "quant": -196,
+      "ratio": "1.5x"
+    }
+  },
+  "kernels": {
+    "before": 7,
+    "after": 7,
+    "delta": 0
+  },
+  "density": {
+    "before": 337,
+    "after": 228,
+    "delta": 3.2
+  },
+  "stability": {
+    "meanJaccard": 0.9047619047619048,
+    "minJaccard": 0.8571428571428571,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.04,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

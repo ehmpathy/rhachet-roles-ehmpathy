@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.repo.structure/rule.forbid.barrel-exports.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.repo.structure/rule.forbid.barrel-exports.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 169,
+    "after": 108,
+    "delta": {
+      "quant": -61,
+      "ratio": "1.6x"
+    }
+  },
+  "kernels": {
+    "before": 2,
+    "after": 2,
+    "delta": 0
+  },
+  "density": {
+    "before": 327,
+    "after": 224,
+    "delta": 3.2
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.2,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

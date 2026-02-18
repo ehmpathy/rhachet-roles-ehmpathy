@@ -1,0 +1,20 @@
+.tactic = flow:fail-fast
+
+.what: enforce early exits and helpfulerror subclasses for invalid state or input
+
+.scope: required in stitched logic, business procedures, service flows; applies to guard checks, validations, branch paths
+
+.why: improve readability by simplifying failure paths; eliminate nested branches, highlight core logic; increase safety with documentation and halt on invalid input; ease debug via rich context in helpful-errors
+
+.how: use early returns or throws for guard clauses; avoid if (...) else or deep nested blocks; prefer unexpectedcodepatherror.throw for internal violations; signals logic errors; prefer badrequesterror.throw for invalid input; signals invalid calls; use .throw for clean 1-liners in chains or shorts; include context objects in thrown errors for debug; validate errors in tests via geterror
+
+.code structure: treat guard blocks as code paragraphs; precede with comment summarizing why guard exists; blank line after guard before main logic
+
+```ts
+// reject if user does not exist
+if (!user) return BadRequestError.throw('user not found', { userUuid });
+
+// halt if state is invalid
+if (!input.customer.phone)
+  UnexpectedCodePathError.throw('customer lacks phone, invalid state', { customer });
+```

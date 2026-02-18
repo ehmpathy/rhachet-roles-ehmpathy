@@ -1,0 +1,42 @@
+{
+  "from": "src/domain.roles/librarian/skills/brief.compress/.test/fixtures/briefs/bdd-testing.md",
+  "into": "src/domain.roles/librarian/skills/brief.compress/.test/fixtures/briefs/bdd-testing.md.min.sitrep-tele",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "req-kernels",
+        "sitrep"
+      ],
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": null
+  },
+  "tokens": {
+    "before": 2104,
+    "after": 239
+  },
+  "kernels": {
+    "before": 8,
+    "after": 8,
+    "delta": 0
+  },
+  "density": {
+    "before": 1083,
+    "after": 133,
+    "delta": 8.8
+  },
+  "stability": {
+    "meanJaccard": 0.9166666666666666,
+    "minJaccard": 0.875,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 1.49,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

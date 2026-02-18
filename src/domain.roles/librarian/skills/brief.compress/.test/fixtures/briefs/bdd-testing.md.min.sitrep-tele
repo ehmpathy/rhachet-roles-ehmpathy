@@ -1,0 +1,42 @@
+# BDD Tests
+
+Wrap tests for feature in single describe block.
+
+Use useBeforeAll for shared resources setup/teardown.
+
+Label given blocks with unique [caseN].
+
+Label when blocks with [tN] per given.
+
+Each then block: one assertion.
+
+Use useBeforeAll in given for test data scenes.
+
+Given blocks usable without setup if not needed.
+
+Write tests as black-box: interact via contract layer.
+
+## Core Pattern
+
+```typescript
+import { given, when, then, useBeforeAll } from 'test-fns';
+
+describe('featureName', () => {
+  const dbConnection = useBeforeAll(() => getDatabaseConnection());
+  afterAll(async () => dbConnection.end());
+
+  given('[case1] description of the initial state', () => {
+    const scene = useBeforeAll(async () => {
+      const entity = await createEntity({ dbConnection });
+      return { entity };
+    });
+
+    when('[t0] action or event occurs', () => {
+      then('expected outcome', async () => {
+        const result = await performAction({ id: scene.entity.id });
+        expect(result).toEqual(expectedValue);
+      });
+    });
+  });
+});
+```

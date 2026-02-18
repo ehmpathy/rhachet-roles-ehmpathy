@@ -1,0 +1,30 @@
+## .rule = forbid-buzzwords
+
+### .what
+avoid buzzwords; obscure intent
+
+### .scope
+- code: variable names, function names, type names, comments
+- docs: markdown, briefs, prompts, commit messages
+- comms: pr descriptions, reviews, discussions
+
+### .why
+buzzwords cause distraction (semantic diffusion), ambiguity, imprecise communication
+
+### .instead
+use precise terms; define exactly what mean; choose non-overloaded words
+
+### .enforcement
+buzzwords blocker on first use
+
+### .the test
+remove word; sentence still makes sense: unnecessary
+replace with concrete term; meaning preserved: use concrete term
+can't replace: clarify intent first
+
+### .note
+context matters; some terms buzz in one context, precise in another (e.g., 'scalable' in marketing vs distributed systems)
+
+### .see also
+- rule.prefer.lowercase
+- rule.require.ubiqlang

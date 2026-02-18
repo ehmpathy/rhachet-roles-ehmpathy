@@ -1,0 +1,101 @@
+## .define = domain-operation-core-variants
+
+#### .what
+domain.operations variants:
+- compute*: deterministic computed work
+- imagine*: probabilistic creative work via context.brain.repl.imagine({ role })
+
+#### .when
+- deterministic projects: no compute* prefix
+- both types: compute* prefix mandatory
+
+#### .scope
+- prefix for leaf operations only
+- leaf: perform computation or imagination
+- composer: normal names
+
+#### .why
+prefix clarifies operation nature, testability, dependencies, error strategies, code review
+
+#### .how
+##### compute* leaf
+- prefix: compute (e.g., computeinvoicetotal)
+- pure functions
+- no external dependencies
+- testable, cacheable
+
+##### imagine* leaf
+- prefix: imagine (e.g., imaginechapteroutline)
+- invoke context.brain.repl.imagine({ role })
+- probabilistic
+- snapshot tests
+- depend on context.brain
+
+##### composer
+- normal prefixes (e.g., get*, set*)
+- orchestrate leaf operations
+
+#### .examples
+**good**
+```ts
+// computeinvoicetotal.ts
+export const computeinvoicetotal = (input: { lineitems: lineitem[] }) => {
+  return input.lineitems.reduce((sum, item) => sum + item.amount, 0);
+};
+
+// imaginechaptersummary.ts
+export const imaginechaptersummary = async (
+  input: { chapter: string },
+  context: { brain: brain },
+) => {
+  return context.brain.repl.imagine({
+    role: 'summarizer',
+    prompt: `summarize this chapter: ${input.chapter}`,
+  });
+};
+```
+
+**good composer**
+```ts
+// getinvoicewithsummary.ts
+export const getinvoicewithsummary = async (
+  input: { invoiceid: string },
+  context: { brain: brain; invoicedao: invoicedao },
+) => {
+  const invoice = await context.invoicedao.findbyid(input.invoiceid);
+  const total = computeinvoicetotal({ lineitems: invoice.lineitems });
+  const summary = await imaginechaptersummary({ chapter: invoice.notes }, context);
+  return { ...invoice, total, summary };
+};
+```
+
+**bad**
+```ts
+// computeresponse.ts — misleading prefix
+export const computeresponse = async (input, context) => {
+  return context.brain.repl.imagine({ ... });
+};
+```
+
+**bad**
+```ts
+// generatetotal.ts — unclear
+export const generatetotal = (...) => { ... };
+```
+
+#### .enforcement
+- leaf operations that call context.brain: imagine* prefix
+- compute* must be pure
+- mismatches: blocker
+- ambiguous names in mixed codebases: blocker
+
+#### .appendix
+##### brain.atom
+- atomic llm interaction
+- single api call
+- stateless
+
+##### brain.repl
+- read, execute, print, loop
+- orchestrates brain.atom in tooluse loop
+- enables multi-turn reason

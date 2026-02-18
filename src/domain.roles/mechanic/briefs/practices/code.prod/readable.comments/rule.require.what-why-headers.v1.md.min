@@ -1,0 +1,53 @@
+# .tactic = funcs:what-why-comments
+
+## .what
+require .what and .why comments for every named procedure and code paragraph
+
+## .why
+- improves readability
+- captures intent
+- speeds audits and refactors
+- reinforces communication
+
+## .how
+### .procedure headers
+every function begins with jsdoc block:
+```ts
+/**
+ * .what = summarize intent
+ * .why = explain purpose
+ * .note = optional for caveats
+ */
+```
+- mandatory for exported procedures
+- required for non-obvious helpers
+- optional for simple ones
+
+### .paragraph summaries
+prefix each logical paragraph with // comment summarizing intent:
+```ts
+// load invoice for status check
+const invoice = await getInvoiceById(invoiceId);
+```
+- focus on intent
+- one line only; if complex, make separate procedure
+
+## .examples
+### .positive
+```ts
+/**
+ * .what = generates proposal via iteration
+ * .why = ensures clean code via feedback
+ */
+export const proposeCode = async ({ threads }) => {
+  // iterate to gather feedback
+  const result = await runIterateCycle({ threads });
+  // expose artifact
+  return result.threads.artist.context.stash.art.inflight;
+};
+```
+
+## .where
+- applies to production code
+- expected in tests
+- exempt for tiny expressions

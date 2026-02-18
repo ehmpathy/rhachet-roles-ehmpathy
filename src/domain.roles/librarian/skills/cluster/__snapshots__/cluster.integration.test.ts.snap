@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`clusterKernels given: [case1] kernels with semantically equivalent pairs when: [t0] cluster is invoked then: result matches snapshot 1`] = `
+{
+  "clusterCount": 3,
+  "clusterSizes": [
+    2,
+    2,
+    1,
+  ],
+}
+`;

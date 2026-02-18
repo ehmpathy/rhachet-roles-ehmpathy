@@ -1,0 +1,17 @@
+# setup and run tests
+
+steps:
+1. lookup organization from declapract.use.yml
+2. set aws_profile to $organization.dev
+   - always use .dev
+   - for dev resource access
+   - to avoid prod pollution
+3. run npm run start:testdb or provision:integration-test-db
+
+then run tests:
+
+e.g.,
+aws_profile=$organization.dev npm run test:integration -- syncphonefromwhodis.integration.test.ts
+aws_profile=$organization.dev npm run test:unit -- syncphonefromwhodis.test.ts
+
+check package.json for other test variants

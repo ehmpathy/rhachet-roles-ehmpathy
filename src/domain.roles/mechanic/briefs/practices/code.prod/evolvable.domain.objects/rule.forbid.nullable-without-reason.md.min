@@ -1,0 +1,7 @@
+skeptical of nullable attributes
+
+require clear domain reason for null
+
+if no reason, declare clear type or forbidden
+
+violation: BLOCKER level

@@ -1,0 +1,48 @@
+## .rule = forbid-term-dryrun
+
+.what: never use dryRun; always use mode: 'PLAN' | 'EXECUTE'
+
+.why:
+- dryRun obscures intent
+- PLAN | EXECUTE aligns with terraform patterns
+- mode extensible and self-documenting
+- improves readability at call sites
+
+.scope: operation parameters, cli flags, api parameters, internal functions
+
+.pattern:
+```ts
+type ExecutionMode = 'PLAN' | 'EXECUTE';
+
+const syncCustomer = async (
+  input: {
+    customerId: string;
+    mode: ExecutionMode;
+  },
+  context: Context,
+) => {
+  if (input.mode === 'PLAN') {
+    return { decision: 'UPDATE', planned: true };
+  }
+  await context.customerDao.update(...);
+  return { decision: 'UPDATE', planned: false };
+};
+```
+
+.examples:
+.good:
+```ts
+export const syncPhone = async (
+  input: {
+    customerId: string;
+    mode: 'PLAN' | 'EXECUTE';
+  },
+  context: Context,
+) => { ... };
+// call: const preview = await syncPhone({ customerId, mode: 'PLAN' });
+```
+.bad: avoid dryRun boolean
+
+.enforcement: dryRun parameter = BLOCKER; boolean execution controls = BLOCKER; prefer mode: 'PLAN' | 'EXECUTE'
+
+.see: rule.prefer.terraform, rule.require.ubiqlang

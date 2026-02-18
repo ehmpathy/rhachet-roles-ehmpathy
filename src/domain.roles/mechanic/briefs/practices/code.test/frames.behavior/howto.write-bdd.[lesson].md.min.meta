@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.test/frames.behavior/howto.write-bdd.[lesson].md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.test/frames.behavior/howto.write-bdd.[lesson].md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 2104,
+    "after": 409,
+    "delta": {
+      "quant": -1695,
+      "ratio": "5.1x"
+    }
+  },
+  "kernels": {
+    "before": 7,
+    "after": 7,
+    "delta": 0
+  },
+  "density": {
+    "before": 1237,
+    "after": 242,
+    "delta": 8
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 1.11,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

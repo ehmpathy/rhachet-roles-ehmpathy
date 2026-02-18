@@ -1,0 +1,59 @@
+## .rule = prefer-term-supplier
+
+### .what
+prefer supplier over provider for mechanisms supply data, services, or dependencies
+
+### .why
+- provider implies agent; supplier implies mechanism
+- precision: provider suggests current service; supplier fits on-demand
+- misuse: authprovider supply state, not provide autonomously
+
+### .scope
+applies to name classes, interfaces, modules; for dependency injection, react context, data access
+
+### .examples
+#### good — supplier for mechanisms
+```ts
+// supply auth state
+const authsupplier = createauthsupplier();
+const user = authsupplier.get();
+
+interface configsupplier {
+  get(key: string): string | null;
+}
+
+const datasupplier = createapiodatasupplier({ baseurl });
+const records = await datasupplier.fetch({ query });
+```
+
+#### bad — provider for non-agent mechanisms
+```ts
+// supply state
+const authprovider = createauthprovider();
+
+interface configprovider {
+  get(key: string): string | null;
+}
+
+const dataproviders = createapiodataprovider({ baseurl });
+```
+
+#### good — provider for actual agents
+```ts
+interface serviceprovider {
+  name: string;
+  providesservice(request: servicerequest): promise<serviceresult>;
+}
+
+const cloudprovider = 'aws';
+```
+
+### .exception
+use provider for external library apis or established terms
+
+### .enforcement
+provider for non-agent mechanisms = nitpick; prefer supplier for dependencies, data sources
+
+### .see also
+- rule.require.ubiqlang
+- rule.forbid.term-script

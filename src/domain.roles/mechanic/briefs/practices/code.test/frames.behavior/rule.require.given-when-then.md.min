@@ -1,0 +1,47 @@
+## .tactic = tests:given-when-then
+
+### .what
+use jest with test-fns for given/when/then tests
+
+### .where
+- all test suites
+- required: integration tests
+- recommended: unit tests, readability
+
+### .why
+- express test intent and flow
+- align with context → action → result
+- improve isolation, debugging, extension
+- keep tests minimal, expressive
+
+### .how
+#### .rules
+- use describe() for related logic
+- use given() for setup scenario
+- use when() for action
+- use then() for outcome assertions
+
+#### .examples
+##### .positive
+```ts
+import { given, when, then } from 'test-fns';
+
+given('a mechanic with ask, claim, and coderefs', () => {
+  const coderef = genArtifactGitFile({ uri: 'file.md' });
+  beforeEach(async () => {
+    await coderef.set({ content: '...' });
+  });
+  when('executed', () => {
+    const threads = { /* setup threads */ };
+    then('updates the claims artifact', async () => {
+      const result = await enweaveOneStitcher({ stitcher, threads }, context);
+      const content = await claimsArt.get();
+      expect(content).toContain('...');
+    });
+    then('throws on invalid input', async () => {
+      const error = await getError(enweaveOneStitcher({ stitcher, threads: {} }, context));
+      expect(error).toBeInstanceOf(ThreadMissError);
+    });
+  });
+});
+```

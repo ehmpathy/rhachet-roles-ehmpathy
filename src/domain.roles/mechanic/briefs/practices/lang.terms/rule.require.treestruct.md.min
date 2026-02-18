@@ -1,0 +1,30 @@
+.tactic = name:treestruct
+
+.what = enforce [verb][...noun] for mechanisms and [...noun][state]? for resources
+
+.where:
+  - verb = one lead verb (e.g., gen, set, get, map)
+  - ...noun = domain hierarchy
+  - state = optional suffix (e.g., updated, found, draft)
+  - applies to functions, types, files, folders, slugs
+
+.why:
+  - maximizes autocomplete by domain or action
+  - enables tree-sorted navigation
+  - avoids ambiguity and name drift
+
+.how:
+  .rules:
+    - mechanisms: [verb][...nounhierarchy] with verb first
+    - resources: [...nounhierarchy][state]?
+  .examples:
+    .positive:
+      // mechanisms
+      - genstepimagineviatemplate
+      - setcustomerphone
+      // resources
+      - contentfound
+      - invoicedraft
+    .negative:
+      - stepimaginegenfromtemplate  // wrong order
+      - customerset  // vague

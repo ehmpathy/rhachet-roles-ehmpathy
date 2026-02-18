@@ -1,0 +1,13 @@
+prefer .temp/ over
+- tmp/
+- temp
+
+prefer .test/ over
+- __test__
+- __test_assets__
+- __test_utils__
+- etc
+
+why: easier on eyes, more consistent
+
+level: nitpick

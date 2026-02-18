@@ -1,0 +1,13 @@
+.what = use terraform instead of adhoc shell commands for infra
+
+.why:
+  - declarative:
+    - declare desires, compare reality
+    - simpler review: see final product in code
+    - detect divergence with reality
+    - enable drift detection
+    - more
+
+if goal change infra (add, del, set resources) => use terraform
+
+note: code.actors ease terraform state sync && go from wish => criteria => done

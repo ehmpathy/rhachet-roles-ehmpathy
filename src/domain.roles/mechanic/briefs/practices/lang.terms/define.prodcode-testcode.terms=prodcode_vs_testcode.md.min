@@ -1,0 +1,6 @@
+prodcode = product code
+- produces behavior users experience
+- ships to production
+testcode = builder code
+- verifies behaviors users experience
+- runs at build time to protect production

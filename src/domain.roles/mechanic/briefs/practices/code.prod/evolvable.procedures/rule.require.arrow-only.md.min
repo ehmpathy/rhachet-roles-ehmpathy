@@ -1,0 +1,43 @@
+## .tactic = funcs:arrow-only
+
+### .what
+enforce arrow functions for procedures
+disallow function keyword
+
+### .where
+applies to functions in modules, utilities, hooks, logic, tests
+exempt class methods, dynamic this bind
+
+### .why
+ensures lexical this bound
+uniform code style
+better visual clarity
+simplifies higher-order functions, closures, composability
+
+### .how
+#### .rules
+use arrow syntax: const fn = (input) => {}
+never use function keyword
+use object methods for classes or api contracts
+always destructure input as first arg if applicable
+
+#### .examples
+##### .positive
+```ts
+export const setCustomerPhone = ({ customer, phone }) => {
+  return { ...customer, phone };
+};
+
+const getName = (input) => input.name;
+```
+
+##### .negative
+```ts
+function setCustomerPhone({ customer, phone }) {  // 👎 function keyword
+  return { ...customer, phone };
+}
+
+export function doWork() {  // 👎 export with function
+  ...
+}
+```

@@ -1,0 +1,73 @@
+## .rule = forbid-undefined-inputs
+
+#### .what
+never use undefined for internal contract inputs; use null (or [] for arrays)
+
+#### .scope
+- applies to input argument of (input, context) pattern
+- applies to all internal contracts outside src/contract/
+- does not apply to context or options arguments
+
+#### .why
+**forces discoverability**
+- important attributes must be consciously supplied
+- undefined attributes invisible at compiletime
+- null attributes required for awareness
+
+**prevents propagation hazards**
+- avoids forgotten inputs in call stack
+- compiler enforces pass nullables
+- eliminates thread bugs
+
+**enforces deliberate design**
+- developers must discover and decide on configurations
+
+#### .exception
+boundary user-facing contracts in src/contract/ may use optional attributes for better ux
+
+#### .examples
+##### 👍 good — internal contract with nullable input
+```ts
+export const findsertTask = async (
+  input: {
+    exid: string;
+    title: string;
+    assignedTo: Ref<typeof Delegate> | null;
+    dueDate: Date | null;
+    parent: Ref<typeof Task> | null;
+  },
+  context: { daoTask: DaoTask; log: LogMethods },
+) => { ... };
+```
+
+##### 👍 good — empty array instead of undefined
+```ts
+export const processItems = async (
+  input: {
+    items: Item[];
+    excludeIds: string[];
+  },
+  context: Context,
+) => { ... };
+```
+
+##### 👎 bad — optional input in internal contract
+```ts
+export const findsertTask = async (
+  input: {
+    exid: string;
+    title: string;
+    assignedTo?: Ref<typeof Delegate>;
+  },
+  context: Context,
+) => { ... };
+```
+
+#### .enforcement
+- optional attributes in internal input arguments = blocker
+- undefined as value for internal inputs = blocker
+- exception for context and options arguments
+
+#### .see also
+- rule.require.input-context-pattern
+- rule.forbid.undefined-attributes

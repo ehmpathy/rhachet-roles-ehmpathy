@@ -1,0 +1,21 @@
+{
+  "brief": "forbid-gerunds",
+  "source": "src/domain.roles/mechanic/briefs/practices/lang.terms/rule.forbid.gerunds.md",
+  "kernels": [
+    "gerunds (-ing words used as nouns) are forbidden in all contexts",
+    "scope includes code, docs, logs, and comms",
+    "gerunds are vague - they obscure whether a term is a noun or verb",
+    "gerunds bloat via add of syllables without precision",
+    "alternatives to gerunds are always clearer and more direct",
+    "gerunds signal that the domain has not been sufficiently thought through",
+    "a gerund is a lazy placeholder for a precise concept",
+    "the search for the right non-gerund term forces domain clarity",
+    "gerund usage is a BLOCKER for enforcement",
+    "gerund = -ing word used as noun; present participle = -ing word used as adjective/verb",
+    "some -ing words are part of compound verbs and acceptable in that form",
+    "the [noun][adjective] order rule complements gerund elimination via past participles as adjectives"
+  ],
+  "labeledBy": "machine-consensus",
+  "labeledAt": "2026-02-14",
+  "note": "machine-generated via consensus (runs=5, threshold=0.4) - needs human review"
+}

@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 124,
+    "after": 89,
+    "delta": {
+      "quant": -35,
+      "ratio": "1.4x"
+    }
+  },
+  "kernels": {
+    "before": 6,
+    "after": 6,
+    "delta": 0
+  },
+  "density": {
+    "before": 80,
+    "after": 54,
+    "delta": 3.2
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.08,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

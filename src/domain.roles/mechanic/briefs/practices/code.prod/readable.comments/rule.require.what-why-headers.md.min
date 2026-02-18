@@ -1,0 +1,76 @@
+# .tactic = comment-discipline
+
+## .what
+require jsdoc .what and .why for every named procedure
+require oneliner summaries before every code paragraph
+
+## .why
+- improves readability
+- captures intent
+- speeds audits and refactors
+- ensures consistent communication
+
+## .comment discipline
+comments follow structure:
+
+👍 required
+- /** .what, .why */ above all named procedures
+- // one-liner before every logical code block
+
+👎 forbidden
+- absent .what or .why
+- multiline // comments
+- vague or redundant comments
+
+### .procedure headers
+every function has:
+
+```ts
+/** 
+ * .what = intent summary
+ * .why = reason summary
+ * .note = optional caveats
+ */
+const doThing = (input, context) => { ... }
+```
+
+rules:
+- .what and .why mandatory, 1-3 lines max
+- .what: 1 line
+- .why: up to 3 lines
+
+### .code paragraphs
+every block starts with one-line summary:
+
+```ts
+// load invoice and check status
+const invoice = await getInvoiceById(invoiceId);
+if (invoice.status === 'PASTDUE') throw error;
+```
+
+rules:
+- summarize intent only
+- one line max
+
+## .examples
+positive:
+```ts
+/** 
+ * .what = generates proposal via feedback loop
+ * .why = ensures code quality before review
+ */
+export const proposeCode = async ({ threads }) => {
+  // gather feedback
+  const result = await runIterateCycle({ threads });
+  
+  // expose artifact
+  return result.threads.artist.context.stash.art.inflight;
+};
+```
+
+negative: absent .what/.why is blocker; vague comments forbidden
+
+## .where
+- required in prod code
+- expected in tests for setup/assert
+- exempt for tiny expressions

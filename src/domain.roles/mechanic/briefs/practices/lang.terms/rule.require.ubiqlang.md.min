@@ -1,0 +1,32 @@
+.tactic = name:ubiqlang
+
+.what = enforce rigorous domain-driven name system rooted in ubiquitous language
+
+.where:
+  - ubiquitous language = shared unambiguous vocabulary for domain experts and developers
+  - applies to all names: types, variables, functions, slugs, folders
+
+.why:
+  - eliminates ambiguity and cognitive friction
+  - ensures shared language in code, UI, tests, docs
+  - prevents synonym drift and overload traps
+
+.how:
+  - eliminate synonyms: choose one canonical word per concept
+  - eliminate overloads: each term for one concept only
+  - use consistent term stack across code
+  - for new terms: define interface, shape, role; document clearly; verify usage
+
+.examples:
+  .positive:
+    - customer instead of client, user, buyer
+    - jobQuote for estimates/proposals
+    - leadCapture for inbound lead collection
+    - customerPhoneUpdate to update phone number
+    - invoiceDraft and invoiceFinal for invoice states
+  .negative:
+    - client, user, account, buyer for same actor
+    - editCustomerPhone, changePhone, updateNumber used interchangeably
+    - job for both requested and completed service
+    - update() overloaded for save, patch, sync, refresh
+    - quote, estimate, proposal, bid without clear hierarchy

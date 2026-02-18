@@ -1,0 +1,40 @@
+# .tactic = types:shapefit
+
+## .what
+types must be well-defined and fit; mismatches signal defects
+
+## .scope
+- applies to type definitions, function signatures, data transformations
+- enforced at compile time via typescript
+
+## .why
+- unfit types indicate design flaws
+- force fits hide bugs and create hazards
+- well-shaped types catch errors early
+- enable easier correct coding
+
+## .how
+- investigate mismatches
+  - source data shaped wrong?
+  - target too restrictive?
+  - missing transformation?
+- fix problems, not casts
+- use unions and guards for polymorphism
+- rely on type inference
+
+## .enforcement
+- type errors are blockers
+- forbid `as` casts except at external boundaries
+- forbid `any` except with runtime validation
+
+## .examples
+### .positive
+- refactor function signatures for actual types
+- add missing properties to objects
+- use `satisfies` without casts
+- create type guards
+### .negative
+- `const x = y as SomeType` to silence compiler
+- `// @ts-ignore` to skip checks
+- use `any` to bypass constraints
+- loosen types for bad data

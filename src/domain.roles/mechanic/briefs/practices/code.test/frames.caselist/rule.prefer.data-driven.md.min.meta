@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.test/frames.caselist/rule.prefer.data-driven.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.test/frames.caselist/rule.prefer.data-driven.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 198,
+    "after": 180,
+    "delta": {
+      "quant": -18,
+      "ratio": "1.1x"
+    }
+  },
+  "kernels": {
+    "before": 3,
+    "after": 3,
+    "delta": 0
+  },
+  "density": {
+    "before": 268,
+    "after": 245,
+    "delta": 0.9
+  },
+  "stability": {
+    "meanJaccard": 0.7777777777777777,
+    "minJaccard": 0.6666666666666666,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

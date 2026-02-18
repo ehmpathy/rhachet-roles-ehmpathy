@@ -1,0 +1,10 @@
+avoid term `existing`
+
+replacements:
+- `extant`: for things already extant
+- `current`: for present active instance
+- `found`: for lookup results (e.g., `foundbefore`, `foundafter`)
+- `prior`: for something from previous state
+- `present`: for something here now
+
+choose best non-gerund alternative

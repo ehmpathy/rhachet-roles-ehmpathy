@@ -1,0 +1,37 @@
+prefer data-driven caselist tests when possible
+
+especially unit tests of transforms
+
+---
+
+example
+
+```ts
+const TEST_CASES = [
+  {
+    description: 'capitalizes first word in sentence',
+    given: {
+      input: 'the bird is in the basket',
+    },
+    expect: {
+      output: 'The bird is in the basket',
+    }
+  },
+  {
+    description: 'retains prior capitals in sentence',
+    given: {
+      input: 'that doctor goose is a loon!',
+    },
+    expect: {
+      output: 'That Doctor Goose is a loon!',
+    }
+  },
+]
+
+describe('asSentenceCase', () => {
+  TEST_CASES.map(thisCase => test(thisCase.description, () => {
+    const output = asSentenceCase(thisCase.given.input);
+    expect(output).toEqual(thisCase.expect.output);
+  }))
+})
+```

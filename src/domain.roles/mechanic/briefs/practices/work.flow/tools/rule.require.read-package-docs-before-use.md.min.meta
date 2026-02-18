@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/work.flow/tools/rule.require.read-package-docs-before-use.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/work.flow/tools/rule.require.read-package-docs-before-use.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 436,
+    "after": 387,
+    "delta": {
+      "quant": -49,
+      "ratio": "1.1x"
+    }
+  },
+  "kernels": {
+    "before": 7,
+    "after": 7,
+    "delta": 0
+  },
+  "density": {
+    "before": 240,
+    "after": 208,
+    "delta": 1.3
+  },
+  "stability": {
+    "meanJaccard": 0.9047619047619048,
+    "minJaccard": 0.8571428571428571,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.1,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

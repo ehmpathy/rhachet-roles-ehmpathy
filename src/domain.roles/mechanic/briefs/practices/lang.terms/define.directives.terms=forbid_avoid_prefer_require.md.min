@@ -1,0 +1,13 @@
+terms for practices:
+
+forbid: search ensure not done
+- bad practice
+- blocker if detected
+
+prefer: search opportunities
+- best practice, not mandatory
+- nitpick if detected
+
+require: search opportunities
+- best practice, mandatory
+- blocker if detected

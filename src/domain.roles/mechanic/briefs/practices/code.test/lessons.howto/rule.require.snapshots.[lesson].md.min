@@ -1,0 +1,18 @@
+use snapshots for output artifacts
+
+why:
+- easier review in prs of produced artifacts
+  - e.g., visual spotcheck, ensure looks good
+  - key for user-faced outputs (e.g., codegen, comms)
+
+- easier detect change impact
+  - usually intended, update snapshot
+  - sometimes diff shows blockers or nitpicks
+
+critical:
+use both
+- snapshot
+- and explicit assertions
+
+snapshot: observability in code reviews, aesthetic verification
+assertions: functional verification

@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/lang.terms/rule.forbid.term=existing.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/lang.terms/rule.forbid.term=existing.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 107,
+    "after": 73,
+    "delta": {
+      "quant": -34,
+      "ratio": "1.5x"
+    }
+  },
+  "kernels": {
+    "before": 2,
+    "after": 2,
+    "delta": 0
+  },
+  "density": {
+    "before": 218,
+    "after": 149,
+    "delta": 3.2
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.06,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

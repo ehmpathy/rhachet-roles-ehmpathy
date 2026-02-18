@@ -1,0 +1,54 @@
+.tactic = proc:require-idempotency
+
+.what = procedures idempotent unless marked; handle twice no double effects
+
+.scope:
+- applies stitched procedures, exports, service logic
+- required write operations, upserts, queues, retries, workflows
+
+.why:
+- prevents duplicate side effects retries, race conditions, concurrent execution
+- enables safe reruns, resume-after-failure, audit-friendly execution
+- makes logic safer test, stitch, compose, scale
+
+.how:
+- guard re-entry: check action occurred before executing
+- side-effect operations: check prior result return early if complete
+- external writes: use upserts conflict-ignore prevent duplication
+- non-idempotent procedures: mark .note add guards
+- stitched logic: enforce at-least once safely
+
+.enforcement:
+- procedures set, push, post show idempotency check
+- non-idempotent ones annotated
+- workflows retries prove re-entry safety
+- test cases verify no additional effects repeat calls
+
+.examples:
+  .positive:
+    ```ts
+    // skip if already finalized
+    if (invoice.status === 'FINAL') return invoice;
+    
+    // finalize invoice
+    const updated = invoice.clone({ status: 'FINAL' });
+    await saveInvoice(updated);
+    return updated;
+   ```
+
+    ```ts
+    // deduplicate outbound message
+    const alreadySent = await Message.find({ idempotencyKey });
+    if (alreadySent) return alreadySent;
+    
+    await sendMessage({ to, body });
+   ```
+
+  .negative:
+    ```ts
+    await sendEmail(input); // 👎 no check for previous send
+    ```
+
+    ```ts
+    const saved = await insertLog({ ... }); // 👎 may insert duplicate on retry
+    ```

@@ -1,0 +1,59 @@
+## .rule = forbid-gerunds
+
+### .what
+gerunds (-ing as nouns) forbidden
+
+### .scope
+- code: variable names, function names, class names, comments
+- docs: markdown, readmes, briefs, prompts
+- logs: error messages, debug output
+- comms: commit messages, pr descriptions, slack
+
+### .why
+gerunds vague, obscure noun/verb, meanings drift, hide agency, bloat, alternatives clearer
+
+### .termsmell
+gerunds signal unclear domain: lazy placeholder
+
+### .see also
+pairs with rule.require.order.noun_adj
+
+### .enforcement
+gerund usage = blocker
+
+### .alternatives
+
+| 👎 gerund | 👍 alternative | .why |
+|-----------|----------------|------|
+| existing | found, current, prior | state not action |
+| processing | process, processor, processed | verb, agent, or result |
+| handling | handle, handler | verb or agent |
+| loading | load, loader, loaded | verb, agent, or result |
+| running | run, runner, active | verb, agent, or state |
+| pending | queued, awaited, unresolved | explicit state |
+| missing | absent, notfound, lacks | explicit state or verb |
+| remaining | left, rest, residual | noun or adjective |
+| matching | matched, match, fits | result, noun, or verb |
+| composing | composer, compose | agent or verb |
+| naming | name, named | noun or result |
+
+### .examples
+
+**👎 bad**
+```ts
+const userfound = await finduser();     // gerund
+const processqueue = [];                 // gerund
+const errorhandler = createhandler();   // gerund
+// load the data now                     // gerund in comment```
+
+**👍 good**
+```ts
+const userfound = await finduser();         // past participle = result
+const processqueue = [];                    // noun
+const errorhandler = createhandler();       // agent noun
+// load the data now                       // imperative verb```
+
+### .note
+- gerund: -ing as noun
+- participles in verb phrases ok: isrunning, wasprocessed
+- prefer explicit state: status === 'active'

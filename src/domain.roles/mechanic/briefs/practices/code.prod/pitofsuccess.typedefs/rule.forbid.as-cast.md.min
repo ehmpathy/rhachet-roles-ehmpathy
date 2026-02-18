@@ -1,0 +1,37 @@
+.tactic = types:forbid-as-cast
+
+.what = forbid `as x` casts; signals rule.require.shapefit violation
+
+.scope: all typescript code; enforced at code review and lint rules
+
+.why: bypasses type system; hides errors; creates runtime risks; complicates refactors
+
+.exception: allowed only at external org code boundaries; must document via inline comment; include note on removal path
+
+.how: when tempted, ask why type doesn't fit; fix root cause; create proper types; use type guards
+
+.enforcement: `as` casts in prod code without docs = blocker; docs must explain: why types lack, correct type, removal changes
+
+.examples:
+  .positive:
+    ```ts
+    // refactored to avoid cast
+    const result = processinput(input); // types align
+
+    // use type guard
+    if (isvalidresponse(response)) {
+      // response narrowed
+    }
+
+    // documented exception
+    // note: third-party-sdk lacks types
+    // todo: contribute types
+    const data = response.data as thirdpartyresponse;
+    ```
+  .negative:
+    ```ts
+    // 👎 undocumented cast
+    const user = data as user;
+    ```
+
+.links: see also: rule.require.shapefit

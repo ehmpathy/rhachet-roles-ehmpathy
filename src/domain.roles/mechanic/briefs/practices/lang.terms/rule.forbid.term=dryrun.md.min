@@ -1,0 +1,59 @@
+## .rule = forbid-term-dryrun
+
+### .what
+forbid term dryrun (variants: dry-run, dry_run, dryRun)
+
+### .scope
+- code: variable names, function names, parameters, comments
+- files: filenames, directory names
+- docs: markdown, briefs, prompts
+- comms: commit messages, pr descriptions
+
+### .why
+- double negatives: dryRun: false means do it, unclear
+- boolean limits extensibility: can't add modes like VALIDATE or DIFF
+- unclear semantics: dry run jargon; use self-evident terms like PLAN and APPLY
+
+### .enforcement
+use of dryrun variants = blocker
+
+### .pattern
+use: mode: 'PLAN' | 'APPLY'
+
+```ts
+// instead of
+const result = await deploy({ dryRun: true });  // 👎
+const result = await deploy({ dryRun: false }); // 👎
+
+// use
+const result = await deploy({ mode: 'PLAN' });  // 👍
+const result = await deploy({ mode: 'APPLY' }); // 👍
+```
+
+### .extensibility
+enum scales: type DeployMode = 'PLAN' | 'VALIDATE' | 'DIFF' | 'APPLY'
+
+```ts
+const result = await deploy({ mode: 'DIFF' });
+```
+
+### .common usecases
+
+| 👎 dryrun pattern | 👍 mode pattern |
+| ----------------- | --------------- |
+| dryRun: true     | mode: 'PLAN'   |
+| dryRun: false    | mode: 'APPLY'  |
+| --dry-run flag   | --mode plan    |
+| DRY_RUN=1 env    | MODE=plan env  |
+
+### .variants
+- dryRun
+- dryrun
+- dry_run
+- dry-run
+- isDryRun
+- DRY_RUN
+
+### .see also
+- rule.require.ubiqlang
+- rule.forbid.term=normalize

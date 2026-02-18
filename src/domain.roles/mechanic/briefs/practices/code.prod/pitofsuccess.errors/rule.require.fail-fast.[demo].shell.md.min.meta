@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.[demo].shell.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.[demo].shell.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 156,
+    "after": 138,
+    "delta": {
+      "quant": -18,
+      "ratio": "1.1x"
+    }
+  },
+  "kernels": {
+    "before": 3,
+    "after": 3,
+    "delta": 0
+  },
+  "density": {
+    "before": 205,
+    "after": 156,
+    "delta": 2.4
+  },
+  "stability": {
+    "meanJaccard": 0.7777777777777777,
+    "minJaccard": 0.6666666666666666,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

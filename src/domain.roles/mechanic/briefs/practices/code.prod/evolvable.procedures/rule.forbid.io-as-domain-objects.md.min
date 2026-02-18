@@ -1,0 +1,53 @@
+## .tactic = contracts:inline-io
+
+#### .what
+forbid domain objects for procedure inputs and outputs; declare them inline on procedures
+
+#### .why
+- inputs and outputs are contracts, not domain concepts
+- locality maximizes maintainability
+- premature abstraction is harmful
+- domain objects carry semantic weight
+
+#### .where
+- applies to procedure declarations in domain.operations/, contract/, and access/
+- enforced when tempted to create *input, *output, *args, *result domain objects
+
+#### .how
+##### 👍 required
+- declare input types inline: (input: { invoice: Invoice; customer: Customer })
+- declare return types inline: ): Promise<{ success: boolean; invoice: Invoice }>
+- use domain objects as properties within inline types
+
+##### 👎 forbidden
+- class SendInvoiceInput extends DomainLiteral<...>
+- interface GenerateReportOutput { ... } in separate file
+- type SyncCustomerArgs = { ... } outside procedure file
+
+#### .exceptions
+- truly reused shapes (3+ procedures across modules) as named type (not domain object)
+- sdk/api boundaries for explicit request/response types
+- event payloads as DomainEvent
+
+#### .examples
+##### 👍 positive
+```ts
+export const sendInvoice = async (
+  input: { invoice: Invoice; customer: Customer; notify: boolean },
+  context: { emailService: EmailService },
+): Promise<{ sent: boolean; sentAt: string | null }> => { /* ... */ };
+```
+```ts
+export const generateMonthlyReport = async (
+  input: { customerId: string; month: string; year: number },
+  context: { reportDao: ReportDao },
+): Promise<{ report: Report; generatedAt: string }> => { /* ... */ };
+```
+
+#### .enforcement
+- domain objects for input/output shapes = BLOCKER
+- separate *input, *output, *args, *result files = BLOCKER
+- extracted types for single-use shapes = BLOCKER
+
+#### .links
+- see also: args:inline-input, arch:domain-driven-design, codestyle:single-responsibility

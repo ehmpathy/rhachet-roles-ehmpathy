@@ -1,18 +1,44 @@
 {
-  "press": "bhrain/sitrep",
-  "brain": "anthropic/claude/sonnet",
   "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md",
   "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md.min",
-  "command": "compress.via.bhrain.ts --from src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md --via anthropic/claude/sonnet --into src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md.min",
-  "prompt": "compress this source brief via sitrep methodology.\n\nfirst, analyze what content is decision-critical and what can be cut.\nthen, output the compressed brief.\n\nsource brief:",
-  "briefs": [
-    "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.brief-compressor-sitrep/dist/domain.roles/mechanic/skills/brief.compress/briefs/sitrep.methodology.md",
-    "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.brief-compressor-sitrep/dist/domain.roles/mechanic/briefs/practices/lang.tones/rule.prefer.lowercase.md",
-    "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.brief-compressor-sitrep/dist/domain.roles/mechanic/briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md"
-  ],
-  "forethought": "this is a readme for the domain-objects library. purpose: onboard devs to use the library for domain modeling in typescript. audience: engineers building domain-driven systems who need runtime validation, identity comparison, change detection, and immutability.",
-  "rationale": "decision-critical content: installation command, core class types (DomainLiteral, DomainEntity, DomainEvent), the .unique/.updatable/.nested static properties, schema attachment for runtime validation, ref types (Ref, RefByPrimary, RefByUnique), key utility functions (getUniqueIdentifier, serialize, withImmute), and .build/.clone pattern. cut: motivational prose (\"everyone has types until they get punched in the runtime\"), duplicate examples (multiple address examples, multiple change detection examples), verbose explanations of DDD philosophy, lengthy error message examples, redundant code comments.",
-  "tokensBefore": 4605,
-  "tokensAfter": 1693,
-  "ratio": 2.72
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 4605,
+    "after": 383,
+    "delta": {
+      "quant": -4222,
+      "ratio": "12x"
+    }
+  },
+  "kernels": {
+    "before": 10,
+    "after": 10,
+    "delta": 0
+  },
+  "density": {
+    "before": 1883,
+    "after": 164,
+    "delta": 9.1
+  },
+  "stability": {
+    "meanJaccard": 0.8666666666666667,
+    "minJaccard": 0.8,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 2.61,
+    "kernelσ": 0
+  },
+  "attempts": 3
 }

@@ -1,0 +1,39 @@
+{
+  "from": "src/domain.roles/librarian/skills/brief.compress/.test/fixtures/briefs/idempotency.md",
+  "into": "src/domain.roles/librarian/skills/brief.compress/.test/fixtures/briefs/idempotency.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "req-kernels",
+        "telegraphic"
+      ]
+    ],
+    "verify": null
+  },
+  "tokens": {
+    "before": 559,
+    "after": 225
+  },
+  "kernels": {
+    "before": 7,
+    "after": 7,
+    "delta": 0
+  },
+  "density": {
+    "before": 337,
+    "after": 138,
+    "delta": 5.9
+  },
+  "stability": {
+    "meanJaccard": 0.7380952380952381,
+    "minJaccard": 0.7142857142857143,
+    "maxJaccard": 0.75,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.3,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

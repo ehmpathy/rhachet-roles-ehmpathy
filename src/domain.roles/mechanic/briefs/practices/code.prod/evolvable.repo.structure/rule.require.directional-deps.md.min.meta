@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 845,
+    "after": 431,
+    "delta": {
+      "quant": -414,
+      "ratio": "2x"
+    }
+  },
+  "kernels": {
+    "before": 4,
+    "after": 4,
+    "delta": 0
+  },
+  "density": {
+    "before": 917,
+    "after": 497,
+    "delta": 4.6
+  },
+  "stability": {
+    "meanJaccard": 0.8666666666666667,
+    "minJaccard": 0.8,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.21,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

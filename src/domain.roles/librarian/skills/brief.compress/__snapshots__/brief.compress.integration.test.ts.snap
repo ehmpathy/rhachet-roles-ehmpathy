@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`brief.compress.sh given: [case2] help output when: [t0] --help flag then: help output matches snapshot 1`] = `
+"brief.compress — compress markdown briefs
+
+usage:
+  brief.compress.sh --from <path> --via <press@brain>
+  brief.compress.sh --from <glob> --via <press@brain> --mode apply
+
+options:
+  --from <path|glob>  input file or glob pattern (required)
+  --via <press@brain> compression mechanism (required)
+  --into <path>       explicit output path (single file only)
+  --mode plan|apply   preview (plan) or emit (apply). default: apply
+  --ratio <N>         target compression ratio (1-20). default: 4
+  --force             recompress even if .md.min is up-to-date
+  --open <editor>     open output file after compression (e.g., nvim, code)
+  --help              show this help
+
+press@brain examples:
+  llmlingua/v2@tinybert          extractive, local, fast (~4s/brief)
+  llmlingua/v2@bert              extractive, local, accurate (~15s/brief)
+  llmlingua/v2@xlm-roberta       extractive, local, highest fidelity (~30s/brief)
+  bhrain/sitrep@anthropic/claude/sonnet  abstractive, api, semantic distillation
+
+examples:
+  brief.compress.sh --from docs/guide.md --via llmlingua/v2@tinybert --mode plan
+  brief.compress.sh --from docs/guide.md --via bhrain/sitrep --mode apply
+  brief.compress.sh --from 'src/**/*.md' --via llmlingua/v2@tinybert --mode apply
+"
+`;

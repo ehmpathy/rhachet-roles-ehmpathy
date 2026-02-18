@@ -1,0 +1,130 @@
+# bdd style tests guide
+
+pattern uses given, when, then, usebeforeall.
+
+## core pattern
+
+```typescript
+import { given, when, then, usebeforeall } from 'test-fns';
+
+describe('featureName', () => {
+  const dbconnection = usebeforeall(() => getdatabaseconnection());
+  afterall(async () => dbconnection.end());
+
+  given('[case1] initial state', () => {
+    const scene = usebeforeall(async () => {
+      const entity = await createentity({ dbconnection });
+      return { entity };
+    });
+
+    when('[t0] action occurs', () => {
+      then('expected outcome', async () => {
+        const result = await performaction({ id: scene.entity.id });
+        expect(result).toequal(expectedvalue);
+      });
+    });
+
+    when('[t1] different action', () => {
+      then('different outcome', async () => {
+        const result = await performotheraction({ id: scene.entity.id });
+        expect(result).toequal(otherexpectedvalue);
+      });
+    });
+  });
+```
+
+## key principles
+
+1. wrap all tests in single describe block.
+
+2. use usebeforeall for shared resources instead of beforeall and afterall.
+   
+   example:
+   ```typescript
+   // 👍
+   const dbconnection = usebeforeall(() => getdatabaseconnection());
+   afterall(async () => dbconnection.end());
+   ```
+
+3. label given blocks with [caseN].
+
+4. label when blocks with [tN], reset per given.
+
+5. one behavioral assertion per then block.
+   
+   example:
+   ```typescript
+   // 👍
+   when('[t0] action', () => {
+     then('outcome1', async () => { expect(result).toequal(value); });
+     then('outcome2', async () => { expect(result).toequal(value); });
+   });
+   ```
+
+6. use usebeforeall for shared test data in given blocks.
+
+7. given blocks can omit setup if not needed.
+
+## complete example
+
+```typescript
+import { given, when, then, usebeforeall } from 'test-fns';
+import { getdatabaseconnection } from '../../utils/database/getdatabaseconnection';
+import { mycommand } from './mycommand';
+
+describe('mycommand', () => {
+  const dbconnection = usebeforeall(() => getdatabaseconnection());
+  afterall(async () => dbconnection.end());
+
+  given('[case1] entity exists with state a', () => {
+    const scene = usebeforeall(async () => {
+      const entity = await createentity({ dbconnection, state: 'a' });
+      return { entity };
+    });
+
+    when('[t0] command in plan mode', () => {
+      then('decision is "update"', async () => {
+        const result = await mycommand({ entityid: scene.entity.id, mode: 'plan' });
+        expect(result.decision).toequal('update');
+      });
+
+      then('entity state remains "a"', async () => {
+        await mycommand({ entityid: scene.entity.id, mode: 'plan' });
+        const entityafter = await findentity({ dbconnection, id: scene.entity.id });
+        expect(entityafter.state).toequal('a');
+      });
+    });
+
+    when('[t1] command in execute mode', () => {
+      then('decision is "update"', async () => {
+        const result = await mycommand({ entityid: scene.entity.id, mode: 'execute' });
+        expect(result.decision).toequal('update');
+      });
+    });
+  });
+
+  given('[case2] entity in state b', () => {
+    const scene = usebeforeall(async () => {
+      const entity = await createentity({ dbconnection, state: 'b' });
+      return { entity };
+    });
+
+    when('[t0] command executed', () => {
+      then('decision is "nochange"', async () => {
+        const result = await mycommand({ entityid: scene.entity.id, mode: 'execute' });
+        expect(result.decision).toequal('nochange');
+      });
+    });
+  });
+
+  given('[case3] invalid entityid', () => {
+    when('[t0] command executed', () => {
+      then('throws error', async () => {
+        await expect(mycommand({ entityid: 'invalid-id', mode: 'plan' })).rejects.tothrow('entity not found');
+      });
+    });
+  });
+});
+```
+
+benefits: readable output, efficient setup, clear labels, black-box tests.

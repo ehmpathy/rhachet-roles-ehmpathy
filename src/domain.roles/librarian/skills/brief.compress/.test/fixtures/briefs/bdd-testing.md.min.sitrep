@@ -1,0 +1,61 @@
+# How to Write BDD Style Tests
+
+All tests for a feature should be wrapped in a single describe block.
+
+Use useBeforeAll for shared resources to handle setup and teardown.
+
+Label each given block with a unique [caseN] identifier.
+
+Label each when block with a [tN] identifier, resetting the counter per given block.
+
+Each then block should contain only one behavioral assertion.
+
+Use a scene object to share test data across when and then blocks within a given block.
+
+Omit setup in given blocks for cases that do not require it, such as error handling.
+
+## Core Pattern
+
+```typescript
+import { given, when, then, useBeforeAll } from 'test-fns';
+
+describe('featureName', () => {
+  const dbConnection = useBeforeAll(() => getDatabaseConnection());
+  afterAll(async () => dbConnection.end());
+
+  given('[case1] description of the initial state', () => {
+    const scene = useBeforeAll(async () => {
+      const entity = await createEntity({ dbConnection });
+      return { entity };
+    });
+
+    when('[t0] action or event occurs', () => {
+      then('expected outcome', async () => {
+        const result = await performAction({ id: scene.entity.id });
+        expect(result).toEqual(expectedValue);
+      });
+    });
+  });
+});
+```
+
+## Example from Key Principles
+
+Bad (multiple assertions):
+```typescript
+then('decision and state', async () => {
+  expect(result.decision).toEqual('UPDATE');
+  expect(result.state).toEqual('A');
+});
+```
+
+Good (one assertion per then):
+```typescript
+then('decision is "UPDATE"', async () => {
+  expect(result.decision).toEqual('UPDATE');
+});
+
+then('state is "A"', async () => {
+  expect(result.state).toEqual('A');
+});
+```

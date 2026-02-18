@@ -1,0 +1,9 @@
+todo: declare why DI leads to pit of success && why avoid global shared state
+
+DI: know references, no side effects
+
+only persistence global shared state, manage cautiously (e.g., avoid race conditions)
+
+DI via context or input params: craft safer, easier to test, reliable code
+
+significant contributor to pit of success

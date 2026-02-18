@@ -1,0 +1,25 @@
+# .tactic = proc:require-idempotency
+
+.what: procedures idempotent unless marked; prevent double effects
+
+.scope: stitched procedures, exports, service logic; required for write ops, upserts, queues, retries, workflows
+
+.why: prevent duplicates from retries, race conditions; enable safe reruns, tests, scale
+
+.how: guard re-entry; check action occurred; return early if complete; external writes use upserts; mark non-idempotent; guard retries; stitched logic enforces at-least-once semantics
+
+.enforcement: procedures with set, push, post show idempotency check; annotate non-idempotent; workflows assume re-entry; test cases verify no additional effect
+
+.examples:
+  .positive:
+    ```ts
+    // skip if already finalized
+    if (invoice.status === 'FINAL') return invoice;
+    const updated = invoice.clone({ status: 'FINAL' });
+    await saveInvoice(updated);
+    return updated;
+    ```
+  .negative:
+    ```ts
+    await sendEmail(input); // 👎 no check
+    ```

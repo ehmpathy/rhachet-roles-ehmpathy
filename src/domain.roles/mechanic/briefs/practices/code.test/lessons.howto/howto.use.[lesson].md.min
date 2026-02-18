@@ -1,0 +1,10 @@
+avoid repeated tests; use | tee to log output to @gitroot/.log/test/(unit|integration|acceptance)/run.$ISOTIMESTAMP.out
+
+benefits:
+- review file repeatedly
+- allow parallel reviews by agents
+- compare test progress
+
+always use | tee
+
+best practice: run tests via .skills/run.test.sh

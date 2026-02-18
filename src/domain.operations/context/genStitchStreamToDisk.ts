@@ -7,7 +7,7 @@ import {
 import { genArtifactGitFile, getArtifactObsDir } from 'rhachet-artifact-git';
 import { createCache } from 'simple-in-memory-cache';
 import { isPresent } from 'type-fns';
-import { withSimpleCaching } from 'with-simple-caching';
+import { withSimpleCache } from 'with-simple-cache';
 
 // todo: lift into string-fns or rhachet-artifact-git
 const sanitizeForFilename = (input: string): string =>
@@ -23,7 +23,7 @@ const sanitizeForFilename = (input: string): string =>
     .replace(/^(con|prn|aux|nul|com\d|lpt\d)$/i, '_$1');
 
 // declare where the stream will be emitted to // todo: move via hook into rhachet to centralize; declaration of emitter != mount of emitter. ideally, log on mount
-const onMount = withSimpleCaching(
+const onMount = withSimpleCache(
   (input: { sinkSubdir: string }) => {
     console.log(
       `🪡  stitch set event stream can be monitored at this dir: ${input.sinkSubdir}`,

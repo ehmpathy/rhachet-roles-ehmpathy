@@ -1,0 +1,104 @@
+## .rule = forbid-term-normalize
+
+### .what
+term `normalize` forbidden — overloaded and vague
+
+### .scope
+- code: variable names, function names, comments
+- files: filenames, directory names
+- docs: markdown, briefs, prompts
+- comms: commit messages, pr descriptions
+
+### .why
+- `normalize` causes semantic diffusion
+- makes communication unclear
+- forces reader to guess definition
+- hides actual transformation
+
+### .purposes
+term used for 8+ purposes:
+
+| purpose       | definition                          | alternative          |
+| ------------- | ----------------------------------- | -------------------- |
+| format        | convert to standard format          | `asE164`             |
+| canonical     | reduce for comparison               | `asSha256`           |
+| sanitize      | clean untrusted input               | `asTrimmed`          |
+| scale         | adjust numeric range                | `asUnitVector`       |
+| case          | convert letter case                 | `asLowercase`        |
+| encode        | convert character form              | `asNfc`              |
+| resolve       | resolve to absolute                 | `asAbsolute`         |
+| collapse      | reduce redundancy                   | `asCollapsed`        |
+
+### .enforcement
+use of `normalize` = blocker
+
+### .pattern: asX
+recommended: `asX` pattern
+- describes target form
+- self-documenting: e.g., `asE164`
+- composable: `input.asTrimmed().asLowercase()`
+- reads naturally: "give value as X"
+
+### .common usecases
+
+| 👎 vague              | 👍 precise          | what it does                   |
+| -------------------- | ------------------ | ------------------------------ |
+| `normalizePhone`     | `asE164`           | format to E.164 standard       |
+| `normalizeEmail`     | `asLowercase`      | lowercase email                |
+| `normalizeString`    | `asTrimmed`        | remove initial/final space     |
+| `normalizePath`      | `asAbsolute`       | resolve to absolute path       |
+| `normalizeUrl`       | `asCanonical`      | dedupe slashes, sort params    |
+| `normalizeDate`      | `asIso8601`        | format to ISO 8601             |
+| `normalizeTimestamp` | `asUtc`            | convert to UTC                 |
+| `normalizeCase`      | `asCamelCase`      | convert to camelCase           |
+| `normalizeSlug`      | `asKebabCase`      | convert to kebab-case          |
+| `normalizeJson`      | `asSorted`         | sort keys                      |
+| `normalizeUnicode`   | `asNfc`            | unicode form C                 |
+| `normalizeWhitespace`| `asCollapsed`      | collapse multiple spaces       |
+| `normalizeNumber`    | `asScaled`         | scale to range (e.g., 0-1)     |
+
+### .examples
+
+**👎 bad**
+```ts
+const asE164 = (phone: string) => { ... };
+const emailLowercased = asLowercase(email);
+const data = asTrimmed(rawData);
+
+// as methods
+const phone = input.phone.asE164();
+const email = input.email.asLowercase();
+```
+
+### .note
+when `asX` vague, get specific:
+
+| 👎 vague      | 👍 specific          |
+| ------------- | -------------------- |
+| `asFormatted` | `asE164`             |
+| `asCleaned`   | `asTrimmed`          |
+| `asStandard`  | `asIso8601`          |
+
+### .pattern: as${DomainObject}
+use domain object:
+```ts
+// target forms
+const priceStandard = asIsoPrice(input);
+const phoneStandard = asPhoneE164(input);
+
+const // cast to object
+const customer = asCustomer(rawData);
+```
+
+domain object variants:
+```ts
+// IsoPrice representations
+const forDisplay = asIsoPriceHuman(price);   // "$1,234.56"
+const forSpeech = asIsoPriceWords(price);    // "one thousand..."
+const forStorage = asIsoPriceShape(price);   // { amount: 123456, ... }
+```
+
+### .see also
+- `rule.require.ubiqlang`
+- `rule.forbid.term-script`
+- `rule.forbid.buzzwords`

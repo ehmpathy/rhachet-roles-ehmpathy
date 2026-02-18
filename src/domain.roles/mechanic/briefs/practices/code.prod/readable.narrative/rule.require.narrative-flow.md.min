@@ -1,0 +1,58 @@
+.tactic = flow:narrative
+
+.what = structure logic as flat linear code paragraphs — no nested branches — for better clarity and scanability
+
+.scope:
+  - applies to procedural code: stitched logic, exports, internal helpers
+  - required for conditional flows, validation paths, stateful transformations
+
+.why:
+  - reduces visual complexity by eliminating indentation
+  - aligns with narrative flow: guard clauses → main path → fallback
+  - eases read, debug, test, extend
+  - allows single comment summary per paragraph
+
+.how:
+  - eliminate if/else and nested if blocks
+    - use early returns (if (x) return, if (error) throw)
+    - prefer return, throw, or continue
+  - use code paragraphs:
+    - 1–5 lines per task
+    - each preceded by // one-line title explaining what or why
+    - separate paragraphs with blank line
+    - comments explain only why paragraph exists
+  - break deep nests into separate procedures if needed
+
+.enforcement:
+  - else and nested if are blockers; refactor
+  - multi-line blocks need paragraph title
+  - paragraph comments are one-liners
+  - flatten decision tree code
+
+.definitions:
+  - code paragraph = contiguous related lines, preceded by single-line // title and separated by blank line
+    ```ts
+    // validate input format
+    const isValid = validateShape(input);
+    if (!isValid) return failure();
+
+    // attempt fallback resolution
+    const resolved = tryToResolve(input);
+    if (!resolved) UnexpectedCodePathError.throw('resolution failed');
+    ```
+
+.examples:
+  .positive:
+    ```ts
+    // return early if invalid
+    if (!input.email) return failure();
+
+    // check for banned domains
+    if (input.email.endsWith('@spam.com')) return forbidden();
+
+    // process verified email
+    const result = handleVerifiedEmail(input.email);
+    ```
+
+.links:
+  - see: comment-discipline, funcs:shape-and-signal, flow:guard-first

@@ -1,0 +1,58 @@
+[
+  {
+    "briefName": "input-context-pattern",
+    "consensusRuns": 3,
+    "threshold": 0.5,
+    "attempts": 3,
+    "kernelCountsPerAttempt": [
+      19,
+      18,
+      19
+    ],
+    "jaccardBetweenAttempts": 1,
+    "durationMs": 20082,
+    "error": null
+  },
+  {
+    "briefName": "dependency-injection",
+    "consensusRuns": 3,
+    "threshold": 0.5,
+    "attempts": 3,
+    "kernelCountsPerAttempt": [
+      17,
+      14,
+      15
+    ],
+    "jaccardBetweenAttempts": 0.857516339869281,
+    "durationMs": 14336,
+    "error": null
+  },
+  {
+    "briefName": "forbid-gerunds",
+    "consensusRuns": 3,
+    "threshold": 0.5,
+    "attempts": 3,
+    "kernelCountsPerAttempt": [
+      0,
+      17,
+      20
+    ],
+    "jaccardBetweenAttempts": 0.3125,
+    "durationMs": 12961,
+    "error": null
+  },
+  {
+    "briefName": "arrow-only",
+    "consensusRuns": 3,
+    "threshold": 0.5,
+    "attempts": 3,
+    "kernelCountsPerAttempt": [
+      13,
+      13,
+      13
+    ],
+    "jaccardBetweenAttempts": 1,
+    "durationMs": 8759,
+    "error": null
+  }
+]
