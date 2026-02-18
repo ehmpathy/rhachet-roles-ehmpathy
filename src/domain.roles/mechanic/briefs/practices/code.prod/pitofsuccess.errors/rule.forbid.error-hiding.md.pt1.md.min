@@ -1,0 +1,17 @@
+failhide: hide real errors
+
+common pattern: try/catch
+
+---
+
+allow trycatch only if catch allowlists errors and handles carefully, throws others
+
+otherwise: failhide hazard, hides real errors, causes defects or debug hours
+
+never failhide
+
+always failfast
+
+---
+
+mega blocker

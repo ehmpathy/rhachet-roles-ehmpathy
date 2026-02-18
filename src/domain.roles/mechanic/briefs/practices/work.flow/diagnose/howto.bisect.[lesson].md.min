@@ -1,0 +1,61 @@
+# howto: diagnose via bisection
+
+## .what
+use binary search to isolate defect root cause in O(log n) steps
+
+## .why
+- linear search wastes time
+- bisection halves search space per test
+- works for code changes, data inputs, configs, time ranges
+- essential for debugging regressions
+
+## .how
+### pattern
+1. define search space
+2. find known-good and known-bad states
+3. test midpoint
+4. if good → defect in second half
+5. if bad → defect in first half
+6. repeat until exact boundary
+
+### code bisection
+for wrong output:
+
+```ts
+// suspect lines
+const result = complexTransform(input);
+
+// bisect: comment out half, test
+// repeat until isolated
+```
+
+### input bisection
+for large input failures:
+
+```ts
+// example
+const midpoint = Math.floor(records.length / 2);
+const firstHalf = records.slice(0, midpoint);
+const secondHalf = records.slice(midpoint);
+
+// test halves
+// repeat until bad record
+```
+
+### config bisection
+for config breaks:
+1. list differences
+2. apply half changes
+3. test
+4. repeat until key
+
+## .when
+- regression unclear cause
+- feature fails large data
+- behavior differs between environments
+- scenarios with worked before vs now broken
+
+## .key insight
+> bisection: 1000 suspects → 10 tests max
+
+prefer structured bisection over random guess

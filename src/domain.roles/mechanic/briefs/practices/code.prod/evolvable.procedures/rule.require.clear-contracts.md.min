@@ -1,0 +1,51 @@
+# .tactic = mech:contract-before-implementation
+
+.what = declare behavior shape and expectations before implementation
+
+.why:
+- forces clarity on what to build and why
+- prevents premature optimization and over-engineering
+- creates shared agreement
+- enables parallel work (e.g., backend + frontend, logic + ui)
+
+.scope:
+- applies to procedures, stitched flows, domain mechanisms
+- applies at macro and micro levels
+
+.how:
+- start with procedure type defining:
+  - function signature or interface
+  - expected inputs and output shape
+  - error modes and invariants
+  - why it exists
+
+.examples:
+
+👍 good
+    // domain/procedures/sendInvoice.ts
+
+    /**
+     * .what = sends invoice to customer and marks as sent
+     * .why = required for customer bill compliance and automation
+     */
+    export const sendInvoice = async ({
+      invoice,
+      customer,
+    }: {
+      invoice: Invoice;
+      customer: Customer;
+    }): Promise<{ success: true }> => {
+      // ...
+    };
+
+👎 bad
+    // logic/sendInvoice.ts
+
+    export const sendInvoice = async (invoice, customer) => {
+      // does 4 tasks and mutates stuff randomly
+    };
+
+.enforcement:
+- if pr implements logic without contract: blocker
+- if types vague or inferred: blocker
+- if behavior differs from contract or test absent: blocker

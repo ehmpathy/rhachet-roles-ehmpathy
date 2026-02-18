@@ -1,0 +1,24 @@
+# rule: never do barrel exports
+
+banned examples:
+- src/domain.objects/index.ts
+- src/domain.operations/organization/index.ts
+- src/domain.operations/organizationaccount/index.ts
+
+reasons:
+- increase codepath variants
+- increase cyclical import chances
+- add zero value
+totally forbidden
+
+allowed only: in index.ts file, export one object
+e.g.,
+```ts
+export const daoAwsOrganization = {
+  getOne,
+  getAll,
+  set,
+  del,
+}
+```
+no export forwarders

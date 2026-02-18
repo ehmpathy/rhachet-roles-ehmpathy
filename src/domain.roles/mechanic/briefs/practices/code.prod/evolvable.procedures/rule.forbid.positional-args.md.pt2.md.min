@@ -1,0 +1,9 @@
+forbid ordered args
+
+require: (input, context) => {} pattern
+
+never allow ordered args
+
+reasons: key-value inputs for readability, observability, evolvability
+
+inputs: one key-value object + context object

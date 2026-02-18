@@ -1,0 +1,4 @@
+index.ts acceptable only if:
+
+1. entrypoint of public package (if public package)
+2. entrypoint of dao (if dao)

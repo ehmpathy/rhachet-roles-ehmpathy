@@ -97,6 +97,7 @@
     "@tsconfig/strictest": "2.0.5",
     "@types/jest": "30.0.0",
     "@types/node": "22.15.21",
+    "bottleneck": "2.19.5",
     "cz-conventional-changelog": "3.3.0",
     "declapract": "0.13.14",
     "declapract-typescript-ehmpathy": "0.47.35",

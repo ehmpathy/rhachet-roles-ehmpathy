@@ -1,0 +1,35 @@
+# updates to decideisbadrequesterror
+
+## what
+check if error is badrequesterror via prototype chain.
+
+## key changes
+- add isextensionofbadrequesterror constant for parent classes
+- update return statement with new constant
+- add header comments for constants
+- implement early returns for efficiency
+- restore named constants for readability
+
+## final function structure
+```typescript
+export const decideisbadrequesterror = ({ error }: { error: error }) => {
+  if (error instanceof badrequesterror) return true;
+  
+  if (error.constructor.name === 'badrequesterror') return true;
+  
+  const isextensionofbadrequesterror = (() => {
+    let proto = object.getprototypeof(error.constructor);
+    while (proto) {
+      if (proto.name === 'badrequesterror') return true;
+      proto = object.getprototypeof(proto);
+    }
+    return false;
+  })();
+  if (isextensionofbadrequesterror) return true;
+  
+  return false;
+};
+```
+
+## notes
+ensures readability and efficiency with named constants and early returns.

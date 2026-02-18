@@ -1,0 +1,36 @@
+.tactic = words:lowercase
+
+.what = enforce lowercase for words unless required by code or name convention
+.where:
+  - applies to comments, docstrings, markdown, logs, and prompt copy
+  - exceptions: code constructs (e.g., class names) and proper nouns (e.g., openai)
+
+.why:
+  - keeps language neutral, minimal, and machine-aligned
+  - prevents inconsistent emphasis via caps
+  - improves scanability and reduces visual noise
+
+.how:
+  .rules:
+    - do not capitalize first word of sentence
+    - use capitalization only for:
+      - class, type, or constant references (e.g., `stitchstepimagine`, `gitrepo`)
+      - proper nouns or brands (e.g., openai, github, aws)
+    - never capitalize:
+      - generic nouns (`customer`, `invoice`, `step`)
+      - verbs (`set`, `get`, `submit`, `handle`)
+      - system comments or instructions
+
+  .examples:
+    .positive:
+      - `// returns a new invoice if customer exists`
+      - `// handled in gitrepo.init()`
+      - `// fallback if no customer was found`
+      - `// pass into stitchstepimagine to generate`
+      - `// openai prompt requires flattened string`
+    .negative:
+      - `// returns a new invoice`       // 👎 capitalized sentence start
+      - `// this is handled in gitrepo`  // 👎 capitalized sentence + verb
+      - `// submit the job for approval` // 👎 capitalized imperative
+      - `// customer must exist first`   // 👎 capitalized domain noun
+      - `// github repository`           // 👎 capitalized generic noun

@@ -1,0 +1,24 @@
+# else bad code smell
+
+not just smell, worse
+
+always rewrite else as early return + iife
+
+see narrative flow briefs for context
+
+example:
+> no if else; only early returns
+
+refactored code (setvptunnel.ts):
+- removed else block
+- added independent if statements
+
+updated lines:
+81    if (portinuse) {
+82      const cachefilepresent = await isfilepresent({ path: cachepath });
+85+     if (!cachefilepresent) {
+86+       killprocessonport({ port: input.from.port });
+90      if (cachefilepresent) {
+91        const cachecontent = await fs.readfile(cachepath, 'utf-8');
+101          if (isprocessalive({ pid: cache.pid })) process.kill(cache.pid, 'sigterm');
+102          await fs.rm(cachepath, { force: true });

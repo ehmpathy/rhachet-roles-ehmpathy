@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/lang.terms/define.directives.terms=forbid_avoid_prefer_require.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/lang.terms/define.directives.terms=forbid_avoid_prefer_require.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 100,
+    "after": 54,
+    "delta": {
+      "quant": -46,
+      "ratio": "1.9x"
+    }
+  },
+  "kernels": {
+    "before": 3,
+    "after": 3,
+    "delta": 0
+  },
+  "density": {
+    "before": 130,
+    "after": 84,
+    "delta": 3.5
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.01,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

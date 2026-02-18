@@ -1,0 +1,7 @@
+no elses: implicit hazards
+
+never use elses or if elses
+
+use explicit ifs early returns
+
+avoids hidden hazards

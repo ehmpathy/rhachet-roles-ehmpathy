@@ -1,0 +1,95 @@
+## .rule = prefer-wet-over-dry
+
+### .what
+prefer duplication over premature abstraction; keep code wet until patterns emerge
+
+### .why
+wrong abstractions expensive:
+- harder to change than duplicated code
+- couples callers
+- costs more to fix
+patterns discovered, not predicted:
+- wait for 3+ instances
+- preserves flexibility
+duplication visible; bad abstractions hide
+
+### .the rule of three
+wait for 3+ usages across contexts before abstraction:
+
+| usages | action |
+|--------|--------|
+| 1 | write inline |
+| 2 | copy-paste ok; note duplication |
+| 3+ | consider abstraction |
+
+### .what wet means
+write everything twice; tolerate duplication until patterns emerge
+
+### .examples
+#### 👍 good — tolerate duplication
+
+```ts
+// file: sendInvoice.ts
+const sendInvoice = async (input: { invoice: Invoice }, context: Context) => {
+  context.log.info('send invoice', { invoiceId: input.invoice.id });
+  await context.emailService.send({
+    to: input.invoice.customer.email,
+    subject: `Invoice ${input.invoice.number}`,
+    body: renderInvoiceEmail(input.invoice),
+  });
+};
+
+// file: sendReceipt.ts
+const sendReceipt = async (input: { receipt: Receipt }, context: Context) => {
+  context.log.info('send receipt', { receiptId: input.receipt.id });
+  await context.emailService.send({
+    to: input.receipt.customer.email,
+    subject: `Receipt ${input.receipt.number}`,
+    body: renderReceiptEmail(input.receipt),
+  });
+};
+// similar structure; details differ; wait for third case
+```
+
+#### 👎 bad — premature abstraction
+
+```ts
+// extracted too early
+const sendDocument = async <T extends { id: string; customer: Customer }>(
+  input: { document: T; type: 'invoice' | 'receipt' | 'quote' },
+  context: Context,
+) => {
+  context.log.info(`send ${input.type}`, { id: input.document.id });
+  await context.emailService.send({
+    to: input.document.customer.email,
+    subject: getSubject(input.document, input.type),
+    body: renderEmail(input.document, input.type),
+  });
+};
+// abstraction fights new requirements
+```
+
+### .signals abstracted too early
+- abstraction has type parameter with switch
+- adds optional parameters for special cases
+- new features modify shared code
+- workarounds needed
+- vague abstraction name
+
+### .when to abstract
+- 3+ usages exist
+- pattern stable
+- clear specific name
+- reduces total code
+- articulate what varies vs shared
+
+### .enforcement
+- premature abstraction (<3 usages) = nitpick
+- abstraction with switches or many optional params = blocker
+
+### .mantra
+duplication cheaper than wrong abstraction — sandi metz
+
+### .see also
+- rule.forbid.io-as-domain-objects
+- rule.require.single-responsibility

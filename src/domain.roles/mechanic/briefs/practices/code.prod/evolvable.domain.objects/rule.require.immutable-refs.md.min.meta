@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/rule.require.immutable-refs.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/rule.require.immutable-refs.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 59,
+    "after": 48,
+    "delta": {
+      "quant": -11,
+      "ratio": "1.2x"
+    }
+  },
+  "kernels": {
+    "before": 3,
+    "after": 3,
+    "delta": 0
+  },
+  "density": {
+    "before": 99,
+    "after": 83,
+    "delta": 1.6
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.1,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

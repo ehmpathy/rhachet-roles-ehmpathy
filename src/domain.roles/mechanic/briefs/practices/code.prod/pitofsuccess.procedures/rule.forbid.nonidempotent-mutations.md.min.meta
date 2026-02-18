@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 1365,
+    "after": 629,
+    "delta": {
+      "quant": -736,
+      "ratio": "2.2x"
+    }
+  },
+  "kernels": {
+    "before": 6,
+    "after": 6,
+    "delta": 0
+  },
+  "density": {
+    "before": 891,
+    "after": 435,
+    "delta": 5.1
+  },
+  "stability": {
+    "meanJaccard": 0.9047619047619048,
+    "minJaccard": 0.8571428571428571,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.32,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

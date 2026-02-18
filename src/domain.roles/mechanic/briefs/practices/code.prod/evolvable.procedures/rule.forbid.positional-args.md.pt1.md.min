@@ -1,0 +1,24 @@
+rule: avoid positional args
+
+why: hard to read, easy to break, even in bash
+
+example:
+
+positional:
+```sh
+_try_start_port_forwarding "$instance_id" "$rds_endpoint" 60 true```
+
+named:
+```sh
+_try_start_port_forwarding \
+  instance_id="$instance_id" \
+  rds_endpoint="$rds_endpoint" \
+  timeout=60 \
+  fail_on_error=true```
+
+benefits:
+- self-documented: see parameters at call site
+- order-independent: pass in any order
+- easier to maintain: new params don't break calls
+- validation: functions check required params
+- usage examples: in function headers

@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.v1.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.v1.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 559,
+    "after": 280,
+    "delta": {
+      "quant": -279,
+      "ratio": "2x"
+    }
+  },
+  "kernels": {
+    "before": 8,
+    "after": 8,
+    "delta": 0
+  },
+  "density": {
+    "before": 314,
+    "after": 150,
+    "delta": 5.2
+  },
+  "stability": {
+    "meanJaccard": 0.75,
+    "minJaccard": 0.625,
+    "maxJaccard": 0.875,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.05,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

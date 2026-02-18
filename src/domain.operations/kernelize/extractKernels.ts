@@ -8,13 +8,47 @@
  * - duplicates of the same concept count as 1 kernel
  * - examples that illustrate a concept do not count as separate kernels
  * - the kernel is the core principle, not its expression
+ *
+ * cache: results cached to .rhachet/bhrain/cache/kernelize/
+ * - cache key = content hash + brainSlug + attempt
+ * - use force=true to bypass cache
  */
 
+import { createHash } from 'crypto';
+import { existsSync } from 'fs';
+import * as path from 'path';
 import { genContextBrain } from 'rhachet';
+import { createCache } from 'simple-on-disk-cache';
+import { withSimpleCachingAsync } from 'with-simple-caching';
 import { withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
 import { clusterKernels } from './clusterKernels';
+
+/**
+ * .what = find git repo root directory (sync)
+ * .why = cache setup needs sync resolution at module load time
+ */
+const getGitRepoRootSync = (from: string): string => {
+  let dir = from;
+  while (dir !== '/') {
+    if (existsSync(path.join(dir, '.git'))) return dir;
+    dir = path.dirname(dir);
+  }
+  return from;
+};
+
+// setup on-disk cache for kernelize results
+const CACHE_DIR = path.join(
+  getGitRepoRootSync(__dirname),
+  '.rhachet',
+  'bhrain',
+  'cache',
+  'kernelize',
+);
+const kernelizeCache = createCache({
+  directory: { mounted: { path: CACHE_DIR } },
+});
 
 /**
  * .what = schema for kernel extraction output
@@ -63,12 +97,32 @@ export interface KernelExtractionResult {
 }
 
 /**
- * .what = extract concept kernels from a document
- * .why = enables measurement of semantic content for retention analysis
+ * .what = generate cache key from extraction inputs
+ * .why = content hash ensures cache auto-invalidates when source changes
  */
-export const extractKernels = async (input: {
+const genKernelizeCacheKey = (input: {
   content: string;
   brainSlug: string;
+  attempt?: number;
+}): string => {
+  const hash = createHash('sha256')
+    .update(input.content)
+    .update(input.brainSlug)
+    .update(String(input.attempt ?? 0))
+    .digest('hex')
+    .slice(0, 24);
+  return `kernelize-${hash}`;
+};
+
+/**
+ * .what = core extraction logic (internal, wrapped with cache)
+ * .why = enables on-disk cache wrapper
+ */
+const _extractKernels = async (input: {
+  content: string;
+  brainSlug: string;
+  attempt?: number;
+  force?: boolean;
 }): Promise<KernelExtractionResult> => {
   // handle empty content
   if (!input.content.trim()) {
@@ -120,6 +174,29 @@ ${input.content}`;
 };
 
 /**
+ * .what = extract concept kernels from a document (cached)
+ * .why = enables measurement of semantic content for retention analysis
+ *
+ * note: cache key includes content hash + brainSlug + attempt
+ *       - attempt is used for parallel runs in consensus mode
+ *       - use force=true to bypass cache lookup
+ */
+export const extractKernels = withSimpleCachingAsync(_extractKernels, {
+  cache: kernelizeCache,
+  serialize: {
+    key: ({ forInput: [input] }) =>
+      genKernelizeCacheKey({
+        content: input.content,
+        brainSlug: input.brainSlug,
+        attempt: input.attempt,
+      }),
+  },
+  bypass: {
+    get: ([input]) => input.force === true,
+  },
+});
+
+/**
  * .what = stability metrics for consensus extraction
  * .why = quantify agreement across parallel extraction runs
  */
@@ -144,6 +221,8 @@ export const extractKernelsWithConsensus = async (input: {
   brainSlug: string;
   runs?: number;
   threshold?: number;
+  /** bypass cache for all extraction and cluster calls */
+  force?: boolean;
 }): Promise<
   Omit<KernelExtractionResult, 'kernels'> & {
     kernels: ConsensusKernel[];
@@ -176,17 +255,23 @@ export const extractKernelsWithConsensus = async (input: {
     };
   }
 
-  // run N parallel extractions
+  // run N parallel extractions (each with unique attempt for cache separation)
   const extractions = await Promise.all(
-    Array.from({ length: runs }, () =>
-      extractKernels({ content: input.content, brainSlug: input.brainSlug }),
+    Array.from({ length: runs }, (_, attempt) =>
+      extractKernels({
+        content: input.content,
+        brainSlug: input.brainSlug,
+        attempt,
+        force: input.force,
+      }),
     ),
   );
 
   // collect all kernels with their source run index (prefixed ids)
   const allKernels: Array<{ kernel: ConceptKernel; runIndex: number }> = [];
   extractions.forEach((result, runIndex) => {
-    result.kernels.forEach((kernel) => {
+    // defensive: result.kernels may be undefined if extraction failed
+    (result.kernels ?? []).forEach((kernel) => {
       allKernels.push({
         kernel: { ...kernel, id: `r${runIndex}_${kernel.id}` },
         runIndex,
@@ -198,6 +283,7 @@ export const extractKernelsWithConsensus = async (input: {
   const clusterResult = await clusterKernels({
     kernels: allKernels.map((ak) => ak.kernel),
     brainSlug: input.brainSlug,
+    force: input.force,
   });
 
   // build id → runIndex map

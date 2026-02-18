@@ -1,0 +1,45 @@
+# .brief: args:inline-input
+
+## .what
+args:inline-input: single input object with inline type annotations.
+
+```ts
+export const doSomething = (input: { foo: string; bar: number }): void => {
+  // ...
+};
+```
+
+- inline types: declared at use, not separate.
+- non-destructured: input intact in parameters.
+
+## .why
+maximizes maintainability, readability:
+- keep type info local.
+- reinforce variable origin via input.foo references.
+- avoid named types unless reused.
+
+## rules
+- use (input: { ... }) for first parameter.
+- destructure inside function body only.
+- optional context as (context?: { ... }), always second.
+- extract to named type if reused in 3+ places.
+
+## example
+```ts
+export const sendEmail = (
+  input: { to: string; subject: string; body: string },
+  context?: { retries?: number }
+): Promise<void> => {
+  const { to, subject, body } = input;
+  // ...
+};
+```
+
+## anti-pattern
+```ts
+// loses provenance
+export const sendEmail = ({ to, subject, body }: { to: string; subject: string; body: string }) => {};
+
+// type drift
+export const sendEmail = (input: EmailInput) => {};
+```

@@ -1,0 +1,103 @@
+# rule.forbid.remote-boundaries
+
+## .what
+unit tests must not cross remote boundaries; touches external resources makes it integration test
+
+## .why
+- verify atomic logic with injected dependencies
+- introduce flake: network timeouts, file locks, db state
+- introduce latency: disk i/o, connection overhead, query time
+- hide in mocks: mocks create false confidence
+- classification matters: npm run test:unit fast, deterministic, parallelizable
+
+## .scope
+applies to .test.ts files; not .integration.test.ts or .acceptance.test.ts
+
+## .remote boundaries
+remote boundary: resource external to process memory
+
+| boundary   | examples                  | why remote                          |
+| ---------- | ------------------------- | ----------------------------------- |
+| filesystem | fs.readfile, fs.writefile | disk i/o, file locks, path differences   |
+| database   | pg.query, mysql.execute   | connection state, query latency     |
+| network    | fetch, axios              | latency, availability, rate limits  |
+
+## .how
+### unit test — pure logic
+```ts
+describe('computeinvoicetotal', () => {
+  it('sums line items correctly', () => {
+    const result = computeinvoicetotal({ lineitems: [{ amount: 100 }, { amount: 50 }] });
+    expect(result).toequal(150);
+  });
+});
+```
+
+### unit test — dependency injection
+```ts
+describe('sendinvoice', () => {
+  it('returns sent status', async () => {
+    const svcemailsdemo = { send: async () => ({ success: true }) };
+    const result = await sendinvoice({ invoice: exampleinvoice }, { svcemails: svcemailsdemo });
+    expect(result.sent).toequal(true);
+  });
+});
+```
+
+### bad — crosses filesystem
+```ts
+// integration test
+describe('loadconfig', () => {
+  it('reads config', async () => {
+    const config = await loadconfig({ path: './config.json' }); // fs access
+    expect(config.apikey).tobedefined();
+  });
+});
+```
+
+### bad — crosses database
+```ts
+// integration test
+describe('getuserbyid', () => {
+  it('fetches user', async () => {
+    const user = await getuserbyid({ id: '123' }, { dbconnection });
+    expect(user.name).toequal('alice');
+  });
+});
+```
+
+### bad — mocks hide boundary
+```ts
+// antipattern
+jest.mock('fs');
+describe('loadconfig', () => {
+  it('reads config', async () => {
+    fs.readfile.mockresolvedvalue('{"key": "value"}');
+    const config = await loadconfig({ path: './config.json' });
+    expect(config.key).toequal('value');
+  });
+});
+```
+
+## .what to do instead
+
+| needs... | then...                  |
+| -------- | ------------------------ |
+| filesystem access | move to .integration.test.ts |
+| database queries | move to .integration.test.ts |
+| network calls    | move to .integration.test.ts |
+
+## .mock antipattern
+mocks forbidden because: mocks lie, drift, hide bugs, test mock
+instead: use fakes, dependency injection, integration tests
+
+## .classification guide
+
+| characteristics | classification | extension       |
+| --------------- | -------------- | --------------- |
+| pure logic, no i/o   | unit          | .test.ts             |
+| touches db, fs, network | integration   | .integration.test.ts |
+| blackbox via artifact | acceptance    | .acceptance.test.ts  |
+
+## .enforcement
+unit test crossing remote boundary = blocker; mock usage in unit tests = blocker

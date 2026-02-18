@@ -1,0 +1,105 @@
+# rule.forbid.redundant-expensive-operations
+
+## .what
+forbid redundant expensive operations in adjacent then blocks
+
+## .why
+- wastes time (2x-10x slower)
+- wastes resources (api calls, db queries, network i/o)
+- increases flakiness risk
+- violates dry principle
+- masks test suite cost
+
+## .scope
+- integration tests with api calls
+- tests with db operations
+- tests with network requests
+- tests with expensive computation
+- operations >10ms or with cost
+
+## .detection
+look for same async operation in multiple adjacent then blocks:
+
+```ts
+// 👎 blocker - same expensive call in each then block
+when('[t0] operation is executed', () => {
+  then('it returns expected output', async () => {
+    const result = await expensiveOperation({ input }); // call 1
+    expect(result.output).toBeDefined();
+  });
+
+  then('it returns expected metrics', async () => {
+    const result = await expensiveOperation({ input }); // call 2 (redundant!)
+    expect(result.metrics.tokens).toBeGreaterThan(0);
+  });
+
+  then('it returns expected cost', async () => {
+    const result = await expensiveOperation({ input }); // call 3 (redundant!)
+    expect(result.cost.total).toBeDefined();
+  });
+});
+```
+
+## .fix
+use usethen to call operation once and share result:
+
+```ts
+// 👍 good - single call, shared result
+when('[t0] operation is executed', () => {
+  const result = useThen('it succeeds', async () =>
+    expensiveOperation({ input }),
+  );
+
+  then('it returns expected output', () => {
+    expect(result.output).toBeDefined();
+  });
+
+  then('it returns expected metrics', () => {
+    expect(result.metrics.tokens).toBeGreaterThan(0);
+  });
+
+  then('it returns expected cost', () => {
+    expect(result.cost.total).toBeDefined();
+  });
+});
+```
+
+## .also forbidden
+using let declarations to share results:
+
+```ts
+// 👎 blocker - let mutation pattern
+let result: Result;
+when('[t0] operation is executed', () => {
+  then('it succeeds', async () => {
+    result = await expensiveOperation({ input }); // side effect via let
+    expect(result).toBeDefined();
+  });
+
+  then('it returns expected output', () => {
+    expect(result.output).toBeDefined(); // depends on side effect
+  });
+});
+```
+
+fix with usethen:
+
+```ts
+// 👍 good - no let, no side effects
+when('[t0] operation is executed', () => {
+  const result = useThen('it succeeds', async () =>
+    expensiveOperation({ input }),
+  );
+
+  then('it returns expected output', () => {
+    expect(result.output).toBeDefined();
+  });
+});
+```
+
+## .enforcement
+- redundant expensive operations in adjacent then blocks = blocker
+- let declarations for async results = blocker
+
+## .see also
+- rule.prefer.usethen-and-usewhen-for-shared-results

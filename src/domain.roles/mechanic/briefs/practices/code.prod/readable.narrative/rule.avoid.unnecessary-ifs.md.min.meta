@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/readable.narrative/rule.avoid.unnecessary-ifs.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/readable.narrative/rule.avoid.unnecessary-ifs.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 88,
+    "after": 66,
+    "delta": {
+      "quant": -22,
+      "ratio": "1.3x"
+    }
+  },
+  "kernels": {
+    "before": 4,
+    "after": 4,
+    "delta": 0
+  },
+  "density": {
+    "before": 108,
+    "after": 80,
+    "delta": 2.6
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.04,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

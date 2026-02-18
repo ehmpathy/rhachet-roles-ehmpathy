@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.repo.structure/rule.forbid.index-ts.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.repo.structure/rule.forbid.index-ts.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 47,
+    "after": 28,
+    "delta": {
+      "quant": -19,
+      "ratio": "1.7x"
+    }
+  },
+  "kernels": {
+    "before": 2,
+    "after": 2,
+    "delta": 0
+  },
+  "density": {
+    "before": 85,
+    "after": 56,
+    "delta": 3.4
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.25,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

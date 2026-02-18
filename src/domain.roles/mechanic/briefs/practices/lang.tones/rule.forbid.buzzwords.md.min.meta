@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/lang.tones/rule.forbid.buzzwords.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/lang.tones/rule.forbid.buzzwords.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 399,
+    "after": 197,
+    "delta": {
+      "quant": -202,
+      "ratio": "2x"
+    }
+  },
+  "kernels": {
+    "before": 6,
+    "after": 6,
+    "delta": 0
+  },
+  "density": {
+    "before": 291,
+    "after": 140,
+    "delta": 5.2
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.27,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

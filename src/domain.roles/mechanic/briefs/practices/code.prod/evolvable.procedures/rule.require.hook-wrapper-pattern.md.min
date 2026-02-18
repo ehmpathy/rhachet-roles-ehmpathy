@@ -1,0 +1,75 @@
+## .rule = require-hook-wrapper-pattern
+
+### .what
+handle procedures with hooks via composition, not inline decoration
+
+### .pattern
+```ts
+const _procedureName = (input: {...}, context: {...}) => {
+  // implementation
+};
+
+export const procedureName = withHook(_procedureName);
+```
+
+### .why
+pattern minimizes code diffs:
+- add hook: 1 line change
+- remove hook: 1 line change
+- change hook order: 1 line change
+
+inline handling shifts function body, creates noisy diffs
+
+### .examples
+
+#### good — handler pattern
+```ts
+const _sendInvoice = async (
+  input: { invoice: Invoice },
+  context: { log: LogMethods },
+): Promise<{ sent: boolean }> => {
+  // implementation stays clean
+  context.log.info('send invoice', { invoiceId: input.invoice.id });
+  return { sent: true };
+};
+
+export const sendInvoice = withLogTrail(_sendInvoice);
+```
+
+#### good — multiple hooks
+```ts
+const _processPayment = async (
+  input: { payment: Payment },
+  context: { log: LogMethods },
+): Promise<{ success: boolean }> => {
+  // implementation
+};
+
+export const processPayment = withLogTrail(withRetry(_processPayment, { maxAttempts: 3 }));
+```
+
+#### bad — inline decoration
+```ts
+// adding/removing handler shifts entire function body
+export const sendInvoice = withLogTrail(async (
+  input: { invoice: Invoice },
+  context: { log: LogMethods },
+): Promise<{ sent: boolean }> => {
+  context.log.info('send invoice', { invoiceId: input.invoice.id });
+  return { sent: true };
+});
+```
+
+### .diff comparison
+handler pattern: 1-line diff
+e.g., - export const sendInvoice = _sendInvoice;
++ export const sendInvoice = withLogTrail(_sendInvoice);
+
+inline pattern: noisy diff, touches every line
+
+### .naming
+prefix unwrapped procedure with _ (e.g., _sendInvoice)
+export wrapped version without prefix (e.g., sendInvoice)
+
+### .enforcement
+inline hook decoration = blocker

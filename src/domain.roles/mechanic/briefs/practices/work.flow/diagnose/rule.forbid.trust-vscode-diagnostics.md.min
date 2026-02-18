@@ -1,0 +1,7 @@
+avoid blind trust vscode diagnostics
+
+ts type server often out of date
+
+use npm run test:types to check real defect or vscode restart needed
+
+restart ts server: ctrl-shift-p

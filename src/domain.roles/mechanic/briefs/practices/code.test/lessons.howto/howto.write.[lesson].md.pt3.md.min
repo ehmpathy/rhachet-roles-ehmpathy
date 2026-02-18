@@ -1,0 +1,4 @@
+unit tests:
+- test only important behaviors
+- focus on scoped unique aspects
+- use lesson in src/roles/mechanic/briefs/patterns/code.test.howto/best-practice/howto.write.bdd.[lesson].md

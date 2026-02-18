@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.shapefit.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.shapefit.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 377,
+    "after": 249,
+    "delta": {
+      "quant": -128,
+      "ratio": "1.5x"
+    }
+  },
+  "kernels": {
+    "before": 10,
+    "after": 10,
+    "delta": 0
+  },
+  "density": {
+    "before": 173,
+    "after": 106,
+    "delta": 3.9
+  },
+  "stability": {
+    "meanJaccard": 0.8666666666666667,
+    "minJaccard": 0.8,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.1,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

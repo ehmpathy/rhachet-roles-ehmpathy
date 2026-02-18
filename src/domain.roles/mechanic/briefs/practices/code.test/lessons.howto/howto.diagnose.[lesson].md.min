@@ -1,0 +1,14 @@
+failed test handle:
+
+1. clarify error
+   - observable messages
+   - clear logs
+
+2. faulty subcomponent
+   - add tests: unit, integration
+   - extract to own: function, file, tests
+
+benefits:
+1. see failures
+2. prove fixes
+3. track bugs per subcomponent

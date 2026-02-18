@@ -1,0 +1,15 @@
+.tactic = vars:require-immutable
+
+.what = require immutable variables, objects; mutation is blocker
+
+.scope: all variable declarations, function arguments, object updates, data flows; enforced in all modules, logic layers, stitched routes, tests
+
+.why: eliminates side effects; enables predictable execution, safer concurrency, undoable flows; enforces functional purity; simplifies debug; guarantees compatibility with clone-based and parallel architectures
+
+.how: use const for all bindings; forbid let or var except in mutation blocks; treat input arguments as read-only; use object spreads or .clone() for objects; use spread + map/filter/reduce for arrays; use withImmute() and .clone() for updates; avoid shared reference mutation; isolate unavoidable mutation in scoped zones with .note = deliberate mutation comment
+
+.enforcement: let, var, in-place mutation are blockers; mutation of inputs or shared objects fails review; mutation of domain objects forbidden; functions with mutation must be annotated and justified
+
+.examples: .positive: const updated = { ...original, status: 'complete' }; const newInvoice = invoice.clone({ total: 1200 }); const next = [...current].sort(byDate) .negative: let count = 0; count++; input.customer.name = 'bob'; config.debug = false; arr.push(1)
+
+.links: see also: arch:immutable-core, args:input-context, domain-objects.withImmute

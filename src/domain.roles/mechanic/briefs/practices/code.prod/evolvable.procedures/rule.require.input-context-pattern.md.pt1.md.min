@@ -1,0 +1,56 @@
+## .tactic = args:input-context
+
+### .what
+enforce procedure args: (input, context?)
+
+### .why
+- clarity
+- change-resilience
+- prevent confusion
+- context injection
+- domain alignment
+- safe refactors
+
+### .where
+- all function definitions
+- exported and internal functions
+- tests, hooks, utils, modules
+- exempt: anonymous inline callbacks if scoped
+
+### .how
+#### 👍 required
+- functions accept:
+  - one input arg (object)
+  - optional context arg (object)
+- hard requirement
+- input no destructuring at boundary
+- no function keyword
+
+#### 👎 forbidden
+- over 2 positional args
+- non-destructurable inputs
+- blend context into input
+- inline positional args unless anonymous
+
+## .examples
+
+### 👍 positive
+```ts
+// standard
+export const genRoute = async (input: { slug: string }, context?: { traceId?: string }) => { ... }
+
+// internal
+const updateUser = ({ userId }: { userId: string }, context: { userDao: UserDao }) => { ... }
+
+// test
+expect(hasChanges({ before, after })).toBe(true);
+```
+
+### 👎 negative
+```ts
+export function doThing(a, b, c) {} // 👎 positional args & function keyword
+
+handleRequest(input, options, env) // 👎 more than two args
+
+export const getTotal = (invoice) => ... // 👎 input not typed
+```

@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/readable.narrative/rule.prefer.transformers-over-conditionals.[lesson].md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/readable.narrative/rule.prefer.transformers-over-conditionals.[lesson].md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 663,
+    "after": 396,
+    "delta": {
+      "quant": -267,
+      "ratio": "1.7x"
+    }
+  },
+  "kernels": {
+    "before": 4,
+    "after": 4,
+    "delta": 0
+  },
+  "density": {
+    "before": 608,
+    "after": 382,
+    "delta": 3.7
+  },
+  "stability": {
+    "meanJaccard": 0.8333333333333334,
+    "minJaccard": 0.75,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.04,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

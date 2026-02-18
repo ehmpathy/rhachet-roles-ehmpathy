@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 981,
+    "after": 619,
+    "delta": {
+      "quant": -362,
+      "ratio": "1.6x"
+    }
+  },
+  "kernels": {
+    "before": 7,
+    "after": 7,
+    "delta": 0
+  },
+  "density": {
+    "before": 605,
+    "after": 377,
+    "delta": 3.8
+  },
+  "stability": {
+    "meanJaccard": 0.9166666666666666,
+    "minJaccard": 0.875,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.09,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.[demo].md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.[demo].md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 415,
+    "after": 188,
+    "delta": {
+      "quant": -227,
+      "ratio": "2.2x"
+    }
+  },
+  "kernels": {
+    "before": 3,
+    "after": 3,
+    "delta": 0
+  },
+  "density": {
+    "before": 548,
+    "after": 236,
+    "delta": 5.7
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 1.67,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

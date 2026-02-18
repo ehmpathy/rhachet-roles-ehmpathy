@@ -1,0 +1,19 @@
+rule: question review refactors change unasked behavior
+
+if refactor changes tests for old behavior, bigger red flag; question review
+
+example:
+ask: ignore other files, only bootup briefs and skills
+
+if other files new change and fulfillment requires remove assertions for bootup readme.md then:
+- do not remove assertions blindly
+- do not assume user meant only new changes
+- ask caller review options
+
+ideally ask caller:
+- revert new behavior keep old
+- or revert change to old
+
+if unable ask, assume preserve old behavior unless mentioned
+
+never degrade prior behavior blindly

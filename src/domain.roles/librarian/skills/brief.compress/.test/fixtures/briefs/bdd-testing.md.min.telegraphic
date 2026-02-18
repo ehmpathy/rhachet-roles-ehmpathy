@@ -1,0 +1,68 @@
+# Write BDD Style Tests
+
+Use given, when, then, useBeforeAll from test-fns.
+
+## Core Pattern
+
+```typescript
+import { given, when, then, useBeforeAll } from 'test-fns';
+
+describe('featureName', () => {
+  const dbConnection = useBeforeAll(() => getDatabaseConnection());
+  afterAll(async () => dbConnection.end());
+
+  given('[case1] initial state', () => {
+    const scene = useBeforeAll(async () => {
+      const entity = await createEntity({ dbConnection });
+      return { entity };
+    });
+
+    when('[t0] action occurs', () => {
+      then('expected outcome', async () => {
+        const result = await performAction({ id: scene.entity.id });
+        expect(result).toEqual(expectedValue);
+      });
+    });
+
+    when('[t1] different action', () => {
+      then('different outcome', async () => {
+        const result = await performOtherAction({ id: scene.entity.id });
+        expect(result).toEqual(otherExpectedValue);
+      });
+    });
+  });
+});
+```
+
+## Key Principles
+
+1. Wrap all tests in single describe block.
+2. Use useBeforeAll for shared resources instead of beforeAll and afterAll.
+3. Label given blocks with unique [caseN].
+4. Label when blocks with [tN], reset counter per given.
+5. One behavioral assertion per then block.
+6. Use scene via useBeforeAll for shared test data in given block.
+7. For cases without setup, use when and then directly.
+
+## Example Snippet
+
+```typescript
+describe('myCommand', () => {
+  const dbConnection = useBeforeAll(() => getDatabaseConnection());
+  afterAll(async () => dbConnection.end());
+
+  given('[case1] entity exists', () => {
+    const scene = useBeforeAll(async () => {
+      const entity = await createEntity({ dbConnection, state: 'A' });
+      return { entity };
+    });
+
+    when('[t0] command in PLAN mode', () => {
+      then('decision is "UPDATE"', async () => {
+        const result = await myCommand({ entityId: scene.entity.id, mode: 'PLAN' });
+        expect(result.decision).toEqual('UPDATE');
+      });
+    });
+  });
+});
+```

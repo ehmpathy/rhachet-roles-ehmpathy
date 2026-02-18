@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md",
+  "into": "src/domain.roles/mechanic/briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 491,
+    "after": 316,
+    "delta": {
+      "quant": -175,
+      "ratio": "1.6x"
+    }
+  },
+  "kernels": {
+    "before": 6,
+    "after": 6,
+    "delta": 0
+  },
+  "density": {
+    "before": 341,
+    "after": 211,
+    "delta": 3.8
+  },
+  "stability": {
+    "meanJaccard": 0.888888888888889,
+    "minJaccard": 0.8333333333333334,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.1,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

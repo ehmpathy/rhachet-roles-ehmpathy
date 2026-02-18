@@ -1,0 +1,52 @@
+# .tactic = arch:bounded-contexts
+
+.what = enforce bounded contexts for domain separation; domains own logic, models, procedures
+
+.scope:
+- applies to modules, folders, stitched routes, domain objects, services
+- enforced in domain/, services/, routes/, stitched flows
+
+.why:
+- upholds single responsibility
+- enforces low-trust contracts between contexts
+- prevents entanglement, duplication
+- enables isolated domain process
+
+.how:
+- use one folder per context (e.g., invoice/, customer/)
+- forbid imports from other domains' internal logic
+- expose interfaces via contracts/, shared/, stitched artifacts
+- ensure contexts autonomous, testable
+- route stitched logic via artifacts, not direct calls
+
+.enforcement:
+- block imports of other domains' internal files
+- procedures must not enforce foreign invariants
+- stitched logic respects context ownership
+
+.definitions:
+- bounded context = named scope for domain concepts, contracts, behaviors
+- single responsibility = context solves only its domain problems
+- low-trust contract = interactions via validated inputs, exports
+
+.examples:
+  .positive:
+  - job/JobQuote.ts imports CustomerPhoneUpdate from contracts/
+  - invoice/ has its own InvoiceDraft, generateInvoice.ts
+  - routes/submitJob.ts orchestrates via stitch
+  
+  .negative:
+  - job.ts imports from ../../invoice/utils.ts 👎 reach-in
+  - invoiceService.ts updates customer.email 👎 mutation
+  - customer.ts imports JobQuote 👎 violation
+
+- src
+  - contract
+    - endpoints
+    - commands
+  - data
+    - sdks
+    - daos
+  - domain
+    - objects
+  - logic

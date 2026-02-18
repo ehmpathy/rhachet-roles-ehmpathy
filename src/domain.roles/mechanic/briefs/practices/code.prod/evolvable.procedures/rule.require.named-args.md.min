@@ -1,0 +1,6 @@
+always use named arguments on inputs
+
+why:
+- clear: shows arguments purpose
+- flexible: reorder without contract break
+- great for: refactors, deprecations, renames

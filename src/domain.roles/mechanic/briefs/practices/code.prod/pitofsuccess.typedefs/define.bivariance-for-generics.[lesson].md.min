@@ -1,0 +1,62 @@
+# method syntax for bivariance
+
+## .what
+typescript treats arrow function properties and method syntax differently for variance:
+- arrow function syntax: contravariant on parameters
+- method syntax: bivariant on parameters
+
+```ts
+// arrow function syntax (contravariant)
+interface Dao {
+  get: (input: SomeInput) => Promise<Result>;
+}
+
+// method syntax (bivariant)
+interface Dao {
+  get(input: SomeInput): Promise<Result>;
+}
+```
+
+## .why
+handle specific type against generic fails due to contravariance.
+
+### example: problem
+```ts
+interface DeclastructDao<TResourceClass> {
+  get: {
+    byPrimary?: (input: RefByPrimary<TResourceClass>) => Promise<Resource | null>;
+  };
+}
+
+// specific dao
+const specificDao: DeclastructDao<typeof MyResource> = { ... };
+
+type GenericDao = DeclastructDao<any>;
+
+// fails: {uuid: string} not assignable to {}
+const generic: GenericDao = specificDao;
+```
+
+### example: fix
+```ts
+interface DeclastructDao<TResourceClass> {
+  get: {
+    byPrimary?(input: RefByPrimary<TResourceClass>): Promise<Resource | null>;
+  };
+}
+
+// works: bivariance allows assignment
+const generic: GenericDao = specificDao;
+```
+
+## .when
+use method syntax when:
+1. generic types assignable to their any variants
+2. define dao/repository patterns for specific implementations in generic collections
+3. interface used in record<string, interface<any>> shapes
+
+## .tradeoff
+bivariance less type-safe at boundaries but suitable for generic collections, plugins, dao registries; types enforced on specific instances.
+
+## .reference
+intentional typescript behavior; references: typescript handbook, strict function types pr

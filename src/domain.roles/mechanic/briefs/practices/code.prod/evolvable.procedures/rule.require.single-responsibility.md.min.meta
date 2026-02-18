@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.procedures/rule.require.single-responsibility.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.procedures/rule.require.single-responsibility.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 421,
+    "after": 280,
+    "delta": {
+      "quant": -141,
+      "ratio": "1.5x"
+    }
+  },
+  "kernels": {
+    "before": 9,
+    "after": 9,
+    "delta": 0
+  },
+  "density": {
+    "before": 206,
+    "after": 136,
+    "delta": 3.4
+  },
+  "stability": {
+    "meanJaccard": 0.8518518518518517,
+    "minJaccard": 0.7777777777777778,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.09,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

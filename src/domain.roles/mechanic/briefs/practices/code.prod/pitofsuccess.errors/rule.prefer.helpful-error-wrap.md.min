@@ -1,0 +1,40 @@
+useful cases: try/catch for observable errors
+
+example:
+```ts
+try {
+  await doSomething({ userUuid })
+} catch (error) {
+  if (!(error instanceof Error)) throw error;
+  throw Error(`doSomething.error: ${error.message}, for userUuid=${userUuid}`, { cause });
+}
+
+better: use HelpfulError.wrap for max observability
+
+example:
+```ts
+import { HelpfulError } from 'helpful-errors';
+await HelpfulError.wrap(
+  async () => await doSomething({ userUuid }),
+  {
+    message: 'doSomething.error',
+    metadata: {
+      userUuid,
+    }
+  }
+)()
+```
+
+variant:
+```ts
+import { UnexpectedCodePathError } from 'helpful-errors';
+await UnexpectedCodePathError.wrap(
+  async () => await doSomething({ userUuid }),
+  {
+    message: 'doSomething.error',
+    metadata: {
+      userUuid,
+    }
+  }
+)()
+```

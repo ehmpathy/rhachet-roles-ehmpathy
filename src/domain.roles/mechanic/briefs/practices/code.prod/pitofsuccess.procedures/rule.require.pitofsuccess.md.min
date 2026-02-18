@@ -1,0 +1,44 @@
+# 🧩 .brief: tactic.pit-of-success.via.minimum-surface-area
+
+## .what
+tactic exposes fewest inputs for correct outcome. reduces configuration so users succeed without up-front choices.
+
+## 🎯 goal
+- maximize success-by-default
+- minimize misuse and confusion
+- reduce time-to-first-win
+
+## 📜 principles
+1. eliminate before default — remove unneeded options.
+2. default all that remains.
+3. hide until needed — reveal controls when justified.
+4. bias to action — shortest path to successful result.
+5. remove footguns — defer or delete error-prone inputs.
+6. inline common case — frequent usage in one glance.
+
+## 🛠 example
+
+### before
+```ts
+createUser({
+  name,
+  email,
+  validateEmail = true,
+  sendWelcomeEmail = true,
+  welcomeTemplate = 'default',
+  timezone = 'UTC',
+  retries = 3,
+});
+```
+
+### after
+```ts
+createUser({ name, email });
+```
+- validation on, welcome email sent with default, timezone utc, retries=3.
+- delete options and make them behavior.
+
+## 💡 why it works
+- lower cognitive load — fewer decisions
+- higher reliability — default paths tested
+- faster adoption — quick wins

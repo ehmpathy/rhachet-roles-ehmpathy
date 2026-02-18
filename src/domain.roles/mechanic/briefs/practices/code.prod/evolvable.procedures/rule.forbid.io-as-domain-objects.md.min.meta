@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.procedures/rule.forbid.io-as-domain-objects.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.procedures/rule.forbid.io-as-domain-objects.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 953,
+    "after": 431,
+    "delta": {
+      "quant": -522,
+      "ratio": "2.2x"
+    }
+  },
+  "kernels": {
+    "before": 6,
+    "after": 6,
+    "delta": 0
+  },
+  "density": {
+    "before": 699,
+    "after": 314,
+    "delta": 5.5
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.18,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

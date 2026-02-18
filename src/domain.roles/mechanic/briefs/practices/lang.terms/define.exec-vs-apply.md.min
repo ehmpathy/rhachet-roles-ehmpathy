@@ -1,0 +1,27 @@
+# execute vs apply
+
+## execute
+definition: carry out task, plan, command, program
+connotation: perform action — run instructions
+examples:
+- computer executes program
+- execute plan
+- database executes query
+key idea: do it
+
+## apply
+definition: use tool on target or situation
+connotation: apply existing resource to affect target
+examples:
+- apply paint
+- apply algorithm to data
+- apply brakes
+key idea: use it on target
+
+## differences
+| aspect   | execute          | apply            |
+|----------|------------------|------------------|
+| focus    | action/plan      | tool/situation   |
+| object   | plan, task       | method, concept  |
+| example  | execute script   | apply formula    |
+memory trick: execute = do; apply = use

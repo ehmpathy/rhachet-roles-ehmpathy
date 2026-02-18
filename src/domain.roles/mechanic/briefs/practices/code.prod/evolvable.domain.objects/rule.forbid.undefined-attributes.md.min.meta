@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.undefined-attributes.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.undefined-attributes.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 120,
+    "after": 70,
+    "delta": {
+      "quant": -50,
+      "ratio": "1.7x"
+    }
+  },
+  "kernels": {
+    "before": 3,
+    "after": 3,
+    "delta": 0
+  },
+  "density": {
+    "before": 173,
+    "after": 108,
+    "delta": 3.8
+  },
+  "stability": {
+    "meanJaccard": 0.7777777777777777,
+    "minJaccard": 0.6666666666666666,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.14,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

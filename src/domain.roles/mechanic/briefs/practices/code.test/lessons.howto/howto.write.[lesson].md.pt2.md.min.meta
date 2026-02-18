@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.test/lessons.howto/howto.write.[lesson].md.pt2.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.test/lessons.howto/howto.write.[lesson].md.pt2.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 74,
+    "after": 55,
+    "delta": {
+      "quant": -19,
+      "ratio": "1.3x"
+    }
+  },
+  "kernels": {
+    "before": 4,
+    "after": 4,
+    "delta": 0
+  },
+  "density": {
+    "before": 71,
+    "after": 50,
+    "delta": 3
+  },
+  "stability": {
+    "meanJaccard": 0.8333333333333334,
+    "minJaccard": 0.75,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.15,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

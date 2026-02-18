@@ -1,0 +1,15 @@
+prefer emojis in comments and logs for easier grok
+
+prefer chill nature-based emojis for zen vibe
+
+reuse emojis based on similarities
+
+limit: no more than 5-7 emojis at a time, use for important callouts only
+
+otherwise: use neutral chill unicode for bulletpoints
+
+e.g.:
+- ⛈️ = error
+- 🔭 = lookup
+- ✨ = success
+- 🌊 = outcome

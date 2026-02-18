@@ -1,0 +1,7 @@
+never try+catch hide error
+
+if error thrown: rethrow
+
+for control flow logic:
+- throw all errors default
+- handle only errors matched restricted conditions

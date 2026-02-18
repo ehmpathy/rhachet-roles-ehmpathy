@@ -1,0 +1,67 @@
+# 🧩 .brief.lesson: prefer transformer:pipelines over conditional:mazes
+
+## 🌳 conditional:mazes
+treat each case as fork:
+
+```ts
+if (dotfileNoExt) {
+  return ...
+} else if (hasExt) {
+  return ...
+} else {
+  return ...
+}
+```
+
+- pros: explicit, easy with 2–3 cases
+- cons: grows fast per edge case, fragmented paths, more tests
+
+> conditionals are maze — new cases add turns, easy to get lost.
+
+## 🌊 transformer:pipelines
+normalize data into sequence for transformations:
+
+```ts
+return [parts.name, `i${attempt}`, parts.ext.replace(/^\./, '') || null]
+  .filter(isPresent)
+  .join('.');
+```
+
+- pros: handles all files in one flow, future-proof, fewer tests, clear intent
+- cons: less explicit on rules, needs discipline
+
+> pipelines are transformers — apply stages consistently.
+
+## 🔍 why pipelines shine
+1. fewer parts — single expression
+2. symmetry — all inputs same flow
+3. readability — see intent immediately
+4. testability — one flow, many inputs
+
+## 🧩 comparison
+### conditional:maze
+```ts
+if (ext) {
+  return `${name}.i${attempt}.${ext}`;
+}
+if (dotfile) {
+  return `${base.slice(1)}.i${attempt}`;
+}
+return `${base}.i${attempt}`;
+```
+
+### transformer:pipeline
+```ts
+return [name, `i${attempt}`, ext?.replace(/^\./, '')]
+  .filter(Boolean)
+  .join('.');
+```
+
+- pipeline covers all cases at once, conditional scatters logic
+
+## 🔑 general lesson
+> prefer transformer:pipelines over conditional:mazes
+
+- replace if/else with optional elements
+- use pipeline (map/filter/join)
+- outcome: shorter, composable, easier to test

@@ -1,0 +1,59 @@
+## .tactic = contracts:no-io-interfaces
+
+### .what
+forbid separate interface or type declarations for procedure inputs and outputs; declare them inline
+
+### .why
+- procedure contracts belong with procedures; separation fragments comprehension; reader tracks multiple locations
+- interfaces suggest reuse that doesn't exist; creates false abstraction; clutters type namespace
+- inline types are self-evident; full contract visible at definition; changes immediate in context
+- prevents *input/*output file explosion; reduces fragmentation
+
+### .where
+applies to all procedure declarations; especially in domain.operations/, contract/, and access/
+
+### .how
+#### 👍 required
+- declare input types inline on procedure signature
+- declare return types inline on procedure signature
+- use domain objects as properties within inline types
+
+#### 👎 forbidden
+- interface do thing input { ... } declarations
+- interface do thing output { ... } declarations
+- type do thing args = { ... } declarations
+- type do thing result = { ... } declarations
+- separate *.input.ts or *.output.ts files
+
+### .exceptions
+- sdk public contracts: exported sdk functions may define explicit interfaces for api documentation
+- shared shapes used 3+ times: extract to named type if genuinely reused
+- generic utilities: functions like map<t, r>(input: t): r
+
+### .examples
+#### 👍 positive
+```ts
+export const syncCustomerPhone = async (
+  input: { customerId: string; provider: 'whodis' | 'twilio' },
+  context: { customerDao: CustomerDao; log: LogMethods },
+): Promise<{ updated: boolean; phoneBefore: string | null; phoneAfter: string | null }> => { ... };
+```
+
+```ts
+export const calculateInvoiceTotal = (
+  input: { lineItems: LineItem[]; taxRate: number; discountPercent?: number },
+): { subtotal: number; tax: number; total: number } => { ... };
+```
+
+#### 👎 negative
+```ts
+// 👎 separate interfaces
+interface SyncCustomerPhoneInput { customerId: string; provider: 'whodis' | 'twilio'; }
+interface SyncCustomerPhoneOutput { updated: boolean; phoneBefore: string | null; phoneAfter: string | null; }
+export const syncCustomerPhone = async (input: SyncCustomerPhoneInput): Promise<SyncCustomerPhoneOutput> => { ... };
+```
+
+### .enforcement
+- separate *input/*output/*args/*result interfaces or types = blocker
+- separate input/output files = blocker
+- extracted types for single-use shapes = blocker

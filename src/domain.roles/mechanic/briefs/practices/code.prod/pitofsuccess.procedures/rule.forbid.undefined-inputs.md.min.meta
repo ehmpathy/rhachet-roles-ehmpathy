@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.undefined-inputs.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.undefined-inputs.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 1203,
+    "after": 418,
+    "delta": {
+      "quant": -785,
+      "ratio": "2.9x"
+    }
+  },
+  "kernels": {
+    "before": 6,
+    "after": 6,
+    "delta": 0
+  },
+  "density": {
+    "before": 836,
+    "after": 305,
+    "delta": 6.4
+  },
+  "stability": {
+    "meanJaccard": 0.888888888888889,
+    "minJaccard": 0.8333333333333334,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.38,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

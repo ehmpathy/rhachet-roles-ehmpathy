@@ -1,0 +1,5 @@
+## .what
+always pin dependency versions exactly
+
+## .why
+eliminates surprise changes if dependencies ignore semver and introduce backwards-incompat changes

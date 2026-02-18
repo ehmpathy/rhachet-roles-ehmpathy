@@ -1,0 +1,65 @@
+# .rule = forbid-nonidempotent-mutations
+
+#### .what
+mutations use only findsert, upsert, or delete; no synonyms
+
+#### .scope
+applies to state-modifying procedures: databases, apis, file systems; dao methods, domain operations, contract endpoints
+
+#### .why
+ensures idempotency for retries; explicit labels for safety; avoids risks from ambiguous verbs
+
+#### .allowed verbs
+| verb      | semantics                  | on retry          |
+|----------|----------------------------|-------------------|
+| findsert | find extant or insert      | returns extant    |
+| upsert   | update or insert           | overwrites        |
+| delete   | remove if exists           | no-op             |
+
+use exactly these
+
+#### .forbidden verbs
+| verb    | problem                    |
+|---------|----------------------------|
+| create  | ambiguous, duplicates      |
+| insert  | non-idempotent             |
+| add     | ambiguous                  |
+| save    | unclear                    |
+| update  | ambiguous                  |
+| set     | ambiguous for mutations    |
+
+#### .examples
+##### good
+```ts
+// findsert
+export const findserttask = async (input: { exid: string }, context: { daotask: Daotask }) => { const taskfound = await context.daotask.findbyunique({ exid: input.exid }); if (taskfound) return taskfound; return context.daotask.insert(input); };
+// upsert
+export const upsertcustomerphone = async (input: { customerexid: string; phone: string }, context: { daocustomer: Daocustomer }) => { return context.daocustomer.upsert(input); };
+// delete
+export const deletetask = async (input: { exid: string }, context: { daotask: Daotask }) => { await context.daotask.deletebyunique({ exid: input.exid }); };
+```
+
+##### bad
+```ts
+// create risky on retry
+export const createtask = async (input: { title: string }) => { return daotask.insert(input); };  // duplicates
+// save unclear
+export const savecustomer = async (input: Customer) => { return daocustomer.save(input); };
+// update ambiguous
+export const updatecustomerphone = async (input: { id: string; phone: string }) => { return daocustomer.update(input); };
+```
+
+#### .dao method naming
+daos use idempotent names:
+```ts
+interface Daotask { findbyunique(input: { exid: string }): Promise<Task | null>; findsert(input: Task): Promise<Task>; upsert(input: Task): Promise<Task>; deletebyunique(input: { exid: string }): Promise<void>; }
+```
+
+#### .exception
+in-memory setters ok
+
+#### .enforcement
+create*, insert*, add*, save* mutations as blockers; ambiguous update* as blockers
+
+#### .see also
+rule.require.idempotent-procedures; rule.require.idempotency.seed

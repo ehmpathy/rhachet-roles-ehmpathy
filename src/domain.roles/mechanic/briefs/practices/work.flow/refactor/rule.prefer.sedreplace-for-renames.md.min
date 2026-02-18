@@ -1,0 +1,69 @@
+# rule.prefer.sedreplace-for-renames
+
+⚠️ critical — saves massive time and tokens
+
+## .what
+use sedreplace.sh for bulk find-and-replace across files instead of individual edit tool calls
+
+## .why
+- 10x-100x fewer tokens — one call vs read+edit each file
+- 10x faster execution — single operation vs sequential
+- plan mode for preview
+- limited to git-tracked files for safety
+a rename across 20 files via edit = ~40 calls = token waste
+same via sedreplace = 2 calls = minimal tokens
+
+## .when
+- rename variable, function, or type across codebase
+- update import path in multiple files
+- change constant or config key in many places
+- any string replacement in 3+ files
+
+## .how
+```sh
+# plan first to see changes
+npx rhachet run --skill sedreplace --old "oldName" --new "newName"
+
+# filter to specific file types
+npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob "**/*.ts"
+
+# filter to directory
+npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob "src/**/*.ts"
+
+# apply after review
+npx rhachet run --skill sedreplace --old "oldName" --new "newName" --mode apply
+```
+
+### glob pattern semantics
+
+| pattern     | matches               |
+|-------------|-----------------------|
+| *.ts       | .ts files in root     |
+| **/*.ts    | all .ts files recursive |
+| src/*.ts   | .ts files in src/     |
+| src/**/*.ts| .ts files recursive in src/ |
+| *.{ts,tsx} | .ts and .tsx in root  |
+| **/*.{ts,tsx} | all .ts and .tsx recursive |
+
+## .examples
+
+### rename function
+```sh
+# rename getUserById -> findUserByUuid across all .ts files
+npx rhachet run --skill sedreplace --old "getUserById" --new "findUserByUuid" --glob "**/*.ts" --mode apply
+```
+
+### update import path
+```sh
+# update import path after file move
+npx rhachet run --skill sedreplace --old "from '@/utils/old'" --new "from '@/utils/new'" --mode apply
+```
+
+## .antipattern
+```ts
+// 🚫 avoid for bulk renames
+edit file1.ts: oldName -> newName
+edit file2.ts: oldName -> newName
+// etc
+```
+use sedreplace for single operation

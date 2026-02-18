@@ -1,0 +1,39 @@
+{
+  "from": "src/domain.roles/librarian/skills/brief.compress/.test/fixtures/briefs/bdd-testing.md",
+  "into": "src/domain.roles/librarian/skills/brief.compress/.test/fixtures/briefs/bdd-testing.md.min.telegraphic",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "req-kernels",
+        "telegraphic"
+      ]
+    ],
+    "verify": null
+  },
+  "tokens": {
+    "before": 2104,
+    "after": 470
+  },
+  "kernels": {
+    "before": 7,
+    "after": 7,
+    "delta": 0
+  },
+  "density": {
+    "before": 1237,
+    "after": 285,
+    "delta": 7.7
+  },
+  "stability": {
+    "meanJaccard": 0.9166666666666666,
+    "minJaccard": 0.875,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.91,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/lang.terms/rule.forbid.term-dryrun.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/lang.terms/rule.forbid.term-dryrun.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 845,
+    "after": 292,
+    "delta": {
+      "quant": -553,
+      "ratio": "2.9x"
+    }
+  },
+  "kernels": {
+    "before": 6,
+    "after": 6,
+    "delta": 0
+  },
+  "density": {
+    "before": 529,
+    "after": 186,
+    "delta": 6.5
+  },
+  "stability": {
+    "meanJaccard": 0.8095238095238096,
+    "minJaccard": 0.7142857142857143,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.41,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

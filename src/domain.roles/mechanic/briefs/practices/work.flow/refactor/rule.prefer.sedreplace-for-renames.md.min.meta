@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 695,
+    "after": 571,
+    "delta": {
+      "quant": -124,
+      "ratio": "1.2x"
+    }
+  },
+  "kernels": {
+    "before": 6,
+    "after": 6,
+    "delta": 0
+  },
+  "density": {
+    "before": 417,
+    "after": 337,
+    "delta": 1.9
+  },
+  "stability": {
+    "meanJaccard": 0.8095238095238096,
+    "minJaccard": 0.7142857142857143,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.07,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

@@ -1,0 +1,15 @@
+.tactic = arch:domain-driven-design
+
+.what = model business logic via domain objects, procedures, contracts; avoid loose property bags
+
+.scope: applies to business logic, services, types, data flows, stateful modules; core domain folders and stitched procedures
+
+.why: ensures domain concepts; improves correctness via runtime validation; enables identity comparison, change detection, immutability; prevents bag-of-words logic and complexity
+
+.how: use domain-objects for model; DomainLiteral<T> for immutable value objects; DomainEntity<T> for identity and lifecycle; DomainEvent<T> for signals; never pass raw { prop1, prop2 } bags; define, reuse domain objects; compose with .nested and .build; prefer specific canonical objects; add runtime validation with schemas; define .unique and .updatable fields; use .clone() and .build() for updates; refactor procedures with >2 scalar args to use domain objects
+
+.enforcement: block untyped {} logic in reviews; refactor procedures with >2 scalar args; pass domain objects in stitched routes; validate domain behavior in tests; require imports from domain-objects
+
+.examples: .positive: class Customer extends DomainEntity<Customer>; new JobQuote({ customer, lineItems, total }); generateInvoice({ invoice: Invoice }); LeadSource.build({ type: 'referral' }); customer.clone({ phone: '555-1234' }); .negative: { name, email, address } without domain object; function updateUser(name, email, phone); type UserData duplicate Customer; stored json blobs; update() on raw DTOs
+
+.links: see also: name:ubiqlang; library: https://www.npmjs.com/package/domain-objects

@@ -1,0 +1,61 @@
+# rule.require.read-package-docs-before-use
+
+## .what
+before unfamiliar package api use read documentation first
+
+## .why
+- prevents reinvention of built-in functionality
+- avoids api misuse and subtle bugs
+- eliminates boilerplate library handles
+- saves debug time with correct patterns upfront
+
+## .how
+### fetch readme
+```sh
+npx rhachet run --skill get.package.docs readme --of $package
+```
+1. scan for needed feature
+2. use documented pattern
+
+### explore filetree
+if readme unavailable or need package structure:
+```sh
+npx rhachet run --skill get.package.docs filetree --of $package
+```
+
+## .examples
+### before (guesswork)
+```ts
+const price = { amount: 1234, currency: 'USD' };
+const formatted = `$${(price.amount / 100).toFixed(2)}`; // manual format
+// duplicates built-in
+```
+
+### after (docs-first)
+```sh
+npx rhachet run --skill get.package.docs readme --of iso-price
+# sees: asIsoPrice, asIsoPriceShape, asIsoPriceHuman, sumPrices
+```
+
+```ts
+import { asIsoPrice, asIsoPriceHuman } from 'iso-price';
+
+asIsoPrice({ amount: 1234, currency: 'USD' }); // 'USD 12.34'
+asIsoPriceHuman('USD 12.34'); // '$12.34'
+// no boilerplate
+```
+
+## .when
+apply when:
+- first time using package in codebase
+- using new package feature
+- unexpected behavior from package
+- evaluate helper that wraps package
+
+## .cost
+5 seconds fetch readme, 30 seconds scan
+
+## .benefit
+- avoid 30 minutes debug
+- avoid 50 lines unnecessary code
+- ship correct code first attempt

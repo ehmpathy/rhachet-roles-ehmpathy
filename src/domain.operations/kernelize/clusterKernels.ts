@@ -8,13 +8,47 @@
  * - "dependency injection via context" and "pass dependencies through context parameter"
  * - word jaccard: low overlap (different words)
  * - brain: same concept (high semantic similarity)
+ *
+ * cache: results cached to .rhachet/bhrain/cache/cluster/
+ * - cache key = kernels hash + brainSlug + attempt
+ * - use force=true to bypass cache
  */
 
+import { createHash } from 'crypto';
+import { existsSync } from 'fs';
+import * as path from 'path';
 import { genContextBrain } from 'rhachet';
+import { createCache } from 'simple-on-disk-cache';
+import { withSimpleCachingAsync } from 'with-simple-caching';
 import { withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
 import type { ConceptKernel } from './extractKernels';
+
+/**
+ * .what = find git repo root directory (sync)
+ * .why = cache setup needs sync resolution at module load time
+ */
+const getGitRepoRootSync = (from: string): string => {
+  let dir = from;
+  while (dir !== '/') {
+    if (existsSync(path.join(dir, '.git'))) return dir;
+    dir = path.dirname(dir);
+  }
+  return from;
+};
+
+// setup on-disk cache for cluster results
+const CACHE_DIR = path.join(
+  getGitRepoRootSync(__dirname),
+  '.rhachet',
+  'bhrain',
+  'cache',
+  'cluster',
+);
+const clusterCache = createCache({
+  directory: { mounted: { path: CACHE_DIR } },
+});
 
 /**
  * .what = a cluster of semantically similar kernels
@@ -63,15 +97,36 @@ const clusterSchema = z.object({
 });
 
 /**
- * .what = cluster semantically similar kernels via brain
- * .why = brain understands semantic equivalence beyond word overlap
- *
- * each kernel appears in exactly one cluster
- * a kernel alone forms a cluster of size 1
+ * .what = generate cache key from cluster inputs
+ * .why = kernels hash ensures cache auto-invalidates when kernels change
  */
-export const clusterKernels = async (input: {
+const genClusterCacheKey = (input: {
   kernels: ConceptKernel[];
   brainSlug: string;
+  attempt?: number;
+}): string => {
+  // serialize kernels deterministically (sorted by id)
+  const sortedKernels = [...input.kernels].sort((a, b) =>
+    a.id.localeCompare(b.id),
+  );
+  const hash = createHash('sha256')
+    .update(JSON.stringify(sortedKernels))
+    .update(input.brainSlug)
+    .update(String(input.attempt ?? 0))
+    .digest('hex')
+    .slice(0, 24);
+  return `cluster-${hash}`;
+};
+
+/**
+ * .what = core cluster logic (internal, wrapped with cache)
+ * .why = enables on-disk cache wrapper
+ */
+const _clusterKernels = async (input: {
+  kernels: ConceptKernel[];
+  brainSlug: string;
+  attempt?: number;
+  force?: boolean;
 }): Promise<ClusterResult> => {
   // handle empty or single kernel
   if (input.kernels.length === 0) {
@@ -174,6 +229,29 @@ ${kernelList}`;
     rationale: output.rationale,
   };
 };
+
+/**
+ * .what = cluster semantically similar kernels via brain (cached)
+ * .why = brain understands semantic equivalence beyond word overlap
+ *
+ * note: cache key includes kernels hash + brainSlug + attempt
+ *       - attempt is used for parallel runs
+ *       - use force=true to bypass cache lookup
+ */
+export const clusterKernels = withSimpleCachingAsync(_clusterKernels, {
+  cache: clusterCache,
+  serialize: {
+    key: ({ forInput: [input] }) =>
+      genClusterCacheKey({
+        kernels: input.kernels,
+        brainSlug: input.brainSlug,
+        attempt: input.attempt,
+      }),
+  },
+  bypass: {
+    get: ([input]) => input.force === true,
+  },
+});
 
 /**
  * .what = merge kernel lists and cluster via brain

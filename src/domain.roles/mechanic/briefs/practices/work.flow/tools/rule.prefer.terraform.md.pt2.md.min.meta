@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt2.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt2.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 129,
+    "after": 93,
+    "delta": {
+      "quant": -36,
+      "ratio": "1.4x"
+    }
+  },
+  "kernels": {
+    "before": 4,
+    "after": 4,
+    "delta": 0
+  },
+  "density": {
+    "before": 143,
+    "after": 99,
+    "delta": 3
+  },
+  "stability": {
+    "meanJaccard": 0.8333333333333334,
+    "minJaccard": 0.75,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.09,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

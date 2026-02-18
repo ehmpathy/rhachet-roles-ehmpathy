@@ -1,298 +1,55 @@
 # domain-objects
 
-![test](https://github.com/ehmpathy/domain-objects/workflows/test/badge.svg)
-![publish](https://github.com/ehmpathy/domain-objects/workflows/publish/badge.svg)
+badges: test, publish
 
-represent domain objects, leverage domain knowledge, and add runtime validation.
-
-guided by domain driven design.
+represent domain objects, leverage knowledge, add validation. ddd guided.
 
 # purpose
-
-- promote domain driven speech and code via formal domain object definitions
-- make software safer with runtime type checking
-- leverage domain knowledge in comparisons and validations
+- promote ddd code and speech
+- enable runtime type checking
+- use domain knowledge in comparisons and validation
 
 # install
-
 ```sh
 npm install --save domain-objects
 ```
 
 # usage examples
-
 ### literal
-
 ```ts
 import { DomainLiteral } from 'domain-objects';
 
-interface Address {
-  street: string;
-  suite: string | null;
-  city: string;
-  state: string;
-  postal: string;
-}
+interface Address { street: string; suite: string | null; city: string; state: string; postal: string; }
 class Address extends DomainLiteral<Address> implements Address {}
 
-const austin = new Address({
-  street: '123 South Congress',
-  suite: null,
-  city: 'Austin',
-  state: 'Texas',
-  postal: '78704',
-});
+const austin = new Address({ street: '123 South Congress', suite: null, city: 'Austin', state: 'Texas', postal: '78704' });
 ```
-
 ### entity
-
 ```ts
 import { DomainEntity } from 'domain-objects';
 
-interface RocketShip {
-  uuid?: string;
-  serialNumber: string;
-  fuelQuantity: number;
-  passengers: number;
-  homeAddress: Address;
-}
-class RocketShip extends DomainEntity<RocketShip> implements RocketShip {
-  public static unique = ['serialNumber'];
-  public static updatable = ['fuelQuantity', 'homeAddress'];
-}
+interface RocketShip { uuid?: string; serialNumber: string; fuelQuantity: number; passengers: number; homeAddress: Address; }
+class RocketShip extends DomainEntity<RocketShip> implements RocketShip { public static unique = ['serialNumber']; }
 
-const ship = new RocketShip({
-  serialNumber: 'SN5',
-  fuelQuantity: 9001,
-  passengers: 21,
-  homeAddress: new Address({ ... }),
-});
-```
-
-### event
-
-```ts
-import { DomainEvent } from 'domain-objects';
-
-interface AirQualityMeasuredEvent {
-  locationUuid: string;
-  sensorUuid: string;
-  occurredAt: string;
-  temperature: string;
-  humidity: string;
-  pressure: string;
-  pm2p5: string;
-  pm5p0: string;
-  pm10p0: string;
-}
-class AirQualityMeasuredEvent extends DomainEvent<AirQualityMeasuredEvent> implements AirQualityMeasuredEvent {
-  public static unique = ['locationUuid', 'sensorUuid', 'occurredAt'];
-}
-
-const event = new AirQualityMeasuredEvent({
-  locationUuid: '8e34eb9b-2874-43e0-bc89-73a73d50ac5c',
-  sensorUuid: 'a17f7941-1211-44f4-a22a-b61f220527da',
-  occurredAt: '2021-07-08T11:13:38.780Z',
-  temperature: '31.52°C',
-  humidity: '27%rh',
-  pressure: '29.99bar',
-  pm2p5: '9ug/m3',
-  pm5p0: '11ug/m3',
-  pm10p0: '17ug/m3',
-});
-```
-
-### runtime validation
-
-```ts
-interface Address {
-  id?: number;
-  galaxy: string;
-  solarSystem: string;
-  planet: string;
-  continent: string;
-}
-const schema = Joi.object().keys({
-  id: Joi.number().optional(),
-  galaxy: Joi.string().valid(['Milky Way', 'Andromeda']).required(),
-  solarSystem: Joi.string().required(),
-  planet: Joi.string().required(),
-  continent: Joi.string().required(),
-});
-class Address extends DomainLiteral<Address> implements Address {
-  public static schema = schema;
-}
-
-const northAmerica = new Address({
-  galaxy: 'Milky Way',
-  solarSystem: 'Sun',
-  planet: 'Earth',
-  continent: 'North America',
-});
-
-const westDolphia = new Address({
-  galaxy: 'AndromedA',
-  solarSystem: 'Asparagia',
-  planet: 'Dracena',
-  continent: 'West Dolphia',
-}); // throws validation error
-```
-
-### identity comparison
-
-```ts
-import { serialize, getUniqueIdentifier } from 'domain-objects';
-
-const northAmerica = new Address({
-  galaxy: 'Milky Way',
-  solarSystem: 'Sun',
-  planet: 'Earth',
-  continent: 'North America',
-});
-const northAmericaWithId = new Address({
-  id: 821,
-  galaxy: 'Milky Way',
-  solarSystem: 'Sun',
-  planet: 'Earth',
-  continent: 'North America',
-});
-
-const areTheSame = serialize(getUniqueIdentifier(northAmerica)) === serialize(getUniqueIdentifier(northAmericaWithId));
-```
-
-### change detection
-
-```ts
-import { serialize, omitMetadataValues } from 'domain-objects';
-
-const sn5 = new Spaceship({
-  serialNumber: 'SN5',
-  fuelQuantity: 9001,
-  passengers: 21,
-});
-const sn5Saved = new Spaceship({ ...sn5, id: 821, updatedAt: now() });
-const hadChangeDuringSave = serialize(omitMetadataValues(sn5)) !== serialize(omitMetadataValues(sn5Saved));
-
-const sn5AfterFlying = new Spaceship({ ...sn5, fuelQuantity: 4500 });
-const hadChangeAfterFlying = serialize(omitMetadataValues(sn5)) !== serialize(omitMetadataValues(sn5AfterFlying));
+const ship = new RocketShip({ serialNumber: 'SN5', fuelQuantity: 9001, passengers: 21, homeAddress: new Address({ ... }) });
 ```
 
 # features
-
 ## declaration
+- domainliteral: immutable, identity by all properties
+- domainentity: mutable, identity by unique properties
 
-### DomainLiteral
+## references
+- refbypimary, refbyunique, ref for type-safe keys
 
-properties immutable, identity by non-metadata properties.
-
-```ts
-interface Address {
-  street: string;
-  suite: string | null;
-  city: string;
-  state: string;
-  postal: string;
-}
-class Address extends DomainLiteral<Address> implements Address {}
-
-const austin = new Address({
-  street: '123 South Congress',
-  suite: null,
-  city: 'Austin',
-  state: 'Texas',
-  postal: '78704',
-});
-```
-
-### DomainEntity
-
-properties change over time, identity by unique subset.
-
-```ts
-interface RocketShip {
-  uuid?: string;
-  serialNumber: string;
-  fuelQuantity: number;
-  passengers: number;
-  homeAddress: Address;
-}
-class RocketShip extends DomainEntity<RocketShip> implements RocketShip {
-  public static unique = ['serialNumber'];
-}
-
-const ship = new RocketShip({
-  serialNumber: 'SN5',
-  fuelQuantity: 9001,
-  passengers: 21,
-  homeAddress: new Address({ ... }),
-});
-```
-
-## runtime validation
-
-add schema (Zod, Yup, Joi) for validation at instantiation.
-
-```ts
-interface RocketShip {
-  serialNumber: string;
-  fuelQuantity: number;
-  passengers: number;
-}
-const schema = Joi.object().keys({
-  serialNumber: Joi.string().uuid().required(),
-  fuelQuantity: Joi.number().required(),
-  passengers: Joi.number().max(42).required(),
-});
-class RocketShip extends DomainObject<RocketShip> implements RocketShip {
-  public static schema = schema;
-}
-
-new RocketShip({
-  serialNumber: uuid(),
-  fuelQuantity: 9001,
-  passengers: 50,
-}); // throws JoiValidationError
-```
+## run time validation
+use zod, yup, or joi schemas for checks
 
 ## nested hydration
-
-define nested domain objects for automatic instantiation.
-
-```ts
-interface Plant {
-  pot: PlantPot;
-  owners: PlantOwner[];
-  lastWatered: string;
-}
-class Plant extends DomainEntity<Plant> implements Plant {
-  public static nested = { pot: PlantPot, owners: PlantOwner };
-}
-
-const plant = new Plant({
-  pot: { diameterInInches: 7 },
-  owners: [{ name: 'bob' }],
-  lastWatered: 'monday',
-});
-```
+define nested objects for automatic instantiation
 
 ## functions
-
-- `getUniqueIdentifier(obj)`: returns unique properties object
-- `serialize(value)`: deterministic string for comparisons
-
-## DomainObject.build
-
-add getters like `.clone()` for immutability.
-
-```ts
-const ship = RocketShip.build({
-  serialNumber: 'SN1',
-  fuelQuantity: 9001,
-  passengers: 3,
-});
-const shipUsed = ship.clone({ fuelQuantity: 821 });
-```
-
-## withImmute
-
-wrap for immutable operations like `.clone()`.
+- getuniqueidentifier: returns unique props
+- serialize: stringifies objects
+- domainobject.build: adds getters, immutability
+- withimmute: wraps for immutable operations

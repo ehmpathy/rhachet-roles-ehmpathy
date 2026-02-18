@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.test/frames.behavior/rule.require.given-when-then.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.test/frames.behavior/rule.require.given-when-then.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 473,
+    "after": 328,
+    "delta": {
+      "quant": -145,
+      "ratio": "1.4x"
+    }
+  },
+  "kernels": {
+    "before": 6,
+    "after": 6,
+    "delta": 0
+  },
+  "density": {
+    "before": 328,
+    "after": 215,
+    "delta": 3.4
+  },
+  "stability": {
+    "meanJaccard": 0.7261904761904763,
+    "minJaccard": 0.7142857142857143,
+    "maxJaccard": 0.75,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.08,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

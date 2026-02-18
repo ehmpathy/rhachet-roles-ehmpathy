@@ -1,0 +1,10 @@
+rule: use [noun][adjective] order
+
+examples:
+- instead of currentowner = [adj][noun], prefer ownercurrent = [noun][adj]
+- instead of founduser, prefer userfound
+
+why:
+enables autocomplete via common prefixes
+e.g., userbefore, userafter, usercreated
+see all user variants in scope via suggestions

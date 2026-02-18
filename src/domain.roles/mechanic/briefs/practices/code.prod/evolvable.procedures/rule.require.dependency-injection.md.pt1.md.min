@@ -1,1 +1,74 @@
-# 🧠 `.brief.designer.dependency-injection` - Dependency Injection via `(input, context)` Pattern SITREP: Compresses core principles, examples, and benefits for actionable implementation. Strips filler, repetitions, and verbose motivations. Preserves verbatim: definitions, rules, examples, code blocks, and key terms (e.g., `context`, dependency injection, `(input, context)` pattern). Output focuses on decision-critical elements for flexible, testable, decoupled code. No enforcement levels specified; treat as best practice guide for code design decisions. Key reader action: Adopt `(input, context)` for all procedures requiring external dependencies; test and evolve via injection. Fails if code hardcodes dependencies or lacks explicit injection. Success if procedures are pure, swappable, and side-effect-free via external control. End SITREP. Proceed to core signal below. No further commentary or wrapper. Valid markdown follows. Code blocks intact with ``` markers. Scannable structure: sections with headers, bullets, table. Concise phrasing. No preamble or conclusion beyond this point. Output ONLY compressed brief now. Invalid output if any addition. Begin compressed brief: ## 🧠 topic: dependency injection **why we pass in dependencies instead of hardcode them** ## 🎯 goal build software that is **flexible, testable, and decoupled**, via dependencies that are **explicit, swappable, and controlled from the outside**. ## 🛠 what it is **dependency injection** = to give a function, class, or module what it needs from the outside, rather than to let it construct or look up those tools internally. Negative example (incorrect code, tightly coupled, side-effect prone): ```ts // 👎 tightly coupled and side-effect prone import { log } from '@/utils/logger'; import { getDatabaseConnection } from '@/utils/database'; export const upsert = async ({ cost }: { cost: JobLeadCost }) => { log.debug('began.upsert', { cost }); const dbConnection = await getDatabaseConnection(); const result = await dbConnection.query('SELECT * FROM ...'); } ``` Positive example (correct code, dependency injection via context): ```ts // 👍 dependency injection via context export const upsert = async ( { cost }: { cost: JobLeadCost }, context: { dbConnection: DatabaseConnection, log: LogMethods }, // note how the .context pattern cleanly separates inputs from dependencies ) => { context.log.debug(
+## brief.designer.dependency-injection
+
+### topic: dependency injection why pass dependencies instead of hardcode
+
+---
+
+### goal
+build flexible, testable, decoupled software via explicit dependencies.
+
+---
+
+### what it is
+dependency injection = pass function/class needs from outside.
+
+example:
+```ts
+// 👍 dependency injection via context
+export const upsert = async (
+  { cost }: { cost: JobLeadCost },
+  context: { dbConnection: DatabaseConnection, log: LogMethods },
+) => {
+  context.log.debug("began.upsert", { cost });
+  const updated = await context.dbConnection.query('SELECT * FROM ...');
+  await emitJobLeadCostSetEvent(updated, context);
+  return updated;
+};
+```
+- function doesn’t build tools; needs passed in for testability.
+
+---
+
+### paved pattern: (input, context)
+dependency injection via standard contract:
+```ts
+export const doThing = async (
+  input: SomeInput,
+  context: { db: Db; log: Logger }
+) => { ... }
+```
+- dependencies in context; keeps input clean.
+
+---
+
+### why it matters
+- testability: swap dependencies with mocks
+- flexibility: change implementations easily
+- separation: business logic doesn’t manage tools
+- explicitness: visible system wires
+- reusability: logic works with different tools
+
+---
+
+### core principle
+do not make decisions deep inside; let outer layers inject. keep policies separate from behaviors.
+
+---
+
+### mental model
+dependency injection = plug in tool instead of build one every time. procedures say: "give me what i need".
+
+---
+
+### practical benefits
+| without di | with di |
+|------------|---------|
+| hardcoded database | database via parameters |
+| requires real api in tests | inject mock for tests |
+| logic tied to tools | logic with any tool |
+| hard to switch | swappable with setup |
+
+---
+
+### final synthesis
+inject dependencies for test, scale, evolve. builds pure, decoupled, testable systems by remove shared state and found effects. enables modularity via external dependencies.

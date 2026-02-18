@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt2.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt2.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 538,
+    "after": 274,
+    "delta": {
+      "quant": -264,
+      "ratio": "2x"
+    }
+  },
+  "kernels": {
+    "before": 6,
+    "after": 6,
+    "delta": 0
+  },
+  "density": {
+    "before": 362,
+    "after": 182,
+    "delta": 5
+  },
+  "stability": {
+    "meanJaccard": 0.888888888888889,
+    "minJaccard": 0.8333333333333334,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.14,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.test/lessons.howto/howto.diagnose.[lesson].md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.test/lessons.howto/howto.diagnose.[lesson].md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 148,
+    "after": 66,
+    "delta": {
+      "quant": -82,
+      "ratio": "2.2x"
+    }
+  },
+  "kernels": {
+    "before": 3,
+    "after": 3,
+    "delta": 0
+  },
+  "density": {
+    "before": 195,
+    "after": 84,
+    "delta": 5.7
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.33,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

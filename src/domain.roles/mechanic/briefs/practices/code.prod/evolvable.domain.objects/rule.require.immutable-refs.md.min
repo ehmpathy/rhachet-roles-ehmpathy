@@ -1,0 +1,7 @@
+rule: refs must be immutable
+
+primary keys: must be immutable; else not stable identifier → not reference key candidate
+
+unique keys: must be immutable; else not stable identifier → not reference key candidate
+
+violation: blocker level when detected

@@ -1,0 +1,10 @@
+rule: never allow undefined attributes for domain objects unless database-generated metadata
+
+e.g.:
+- ids, createdAt, updatedAt — allowed as metadata, known on read
+
+for all else: explicitly knowable
+- if null: set as null and explain why; forbid if no good reason
+- otherwise: define exact type
+
+enforcement: blocker level

@@ -1,0 +1,5 @@
+add .integration.test.ts file (collocated), never mock
+
+can spy, but never mock
+
+use lesson in src/roles/mechanic/briefs/patterns/code.test.howto/best-practice/howto.write.bdd.[lesson].md for pattern

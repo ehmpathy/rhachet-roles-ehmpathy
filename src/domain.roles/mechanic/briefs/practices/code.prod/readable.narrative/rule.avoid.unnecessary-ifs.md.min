@@ -1,0 +1,15 @@
+# extra ifs: extra code branches
+
+avoid ifs maximally
+
+ideal narrative:
+- shapes flow fit nicely
+- operations apply consistently to shapes
+
+to minimize code paths maximize simplicity
+
+exception: early returns shortcut branches shorten narrative
+- e.g., in IFFEs
+- e.g., in operations
+
+avoid ifs creating logical branches

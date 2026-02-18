@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/consistent.contracts/ref.package.as-command.[ref].md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/consistent.contracts/ref.package.as-command.[ref].md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 36,
+    "after": 22,
+    "delta": {
+      "quant": -14,
+      "ratio": "1.6x"
+    }
+  },
+  "kernels": {
+    "before": 2,
+    "after": 2,
+    "delta": 0
+  },
+  "density": {
+    "before": 76,
+    "after": 50,
+    "delta": 3.5
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.04,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

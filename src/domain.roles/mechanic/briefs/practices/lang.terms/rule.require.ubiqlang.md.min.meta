@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/lang.terms/rule.require.ubiqlang.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/lang.terms/rule.require.ubiqlang.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 465,
+    "after": 272,
+    "delta": {
+      "quant": -193,
+      "ratio": "1.7x"
+    }
+  },
+  "kernels": {
+    "before": 6,
+    "after": 6,
+    "delta": 0
+  },
+  "density": {
+    "before": 324,
+    "after": 207,
+    "delta": 3.6
+  },
+  "stability": {
+    "meanJaccard": 0.9047619047619048,
+    "minJaccard": 0.8571428571428571,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.36,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

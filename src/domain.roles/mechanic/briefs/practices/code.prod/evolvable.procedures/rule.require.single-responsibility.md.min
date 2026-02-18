@@ -1,0 +1,46 @@
+### .tactic = codestyle:single-responsibility
+
+#### .what
+enforce single responsibility for every code file and procedure
+
+#### .why
+- easier to locate, understand, test code
+- separates concerns: logic, validation, orchestration
+- prevents file bloat with unrelated logic
+
+#### .rules
+
+👍 required
+- each file exports exactly one named procedure
+- filename matches exported procedure
+- all logic supports procedure's domain intent
+- runtime typechecks only if file's purpose is validation
+
+👎 forbidden
+- more than one exported procedure per file
+- co-located validation, parse, or orchestration with domain logic
+- runtime type assertions in general-purpose logic
+- dead code, TODOs, unrelated comments
+- redundant runtime typechecks
+
+#### .examples
+
+**👍 good**
+```ts
+// getCustomerInvoices.ts
+/**
+ * .what = retrieves all invoices for a given customer
+ * .why = isolates domain logic for invoice lookup
+ */
+export const getCustomerInvoices = ({ customerId }: { customerId: string }) => {
+  return invoiceDao.findMany({ customerId });
+};
+```
+
+**👎 bad**
+```ts
+// customerUtils.ts
+export const getCustomerInvoices = (...) => { ... }
+
+export const validateCustomer = (...) => { ... }  // 👎 multiple responsibilities
+```

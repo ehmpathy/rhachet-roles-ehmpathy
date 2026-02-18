@@ -1,0 +1,54 @@
+# how to write bdd style tests
+
+## core pattern
+
+```typescript
+import { given, when, then, useBeforeAll } from 'test-fns';
+
+describe('featureName', () => {
+  const dbConnection = useBeforeAll(() => getDatabaseConnection());
+  afterAll(async () => dbConnection.end());
+
+  given('[case1] description', () => {
+    const scene = useBeforeAll(async () => { return { entity: await createEntity() }; });
+    when('[t0] action', () => { then('outcome', async () => { expect(await performAction()).toEqual(expectedValue); }); });
+  });
+});
+```
+
+## key principles
+
+- wrap all tests in single describe block
+- use usebeforeall for shared resources instead of let + beforeall + afterall
+- label given blocks with [caseN]
+- label when blocks with [tN], reset counter per given
+- one behavioral assertion per then block
+- use scene for shared test data via usebeforeall
+- skip scene for cases without setup
+
+## complete example
+
+```typescript
+import { given, when, then, useBeforeAll } from 'test-fns';
+import { getDatabaseConnection } from '../../utils/database/getDatabaseConnection';
+import { myCommand } from './myCommand';
+
+describe('myCommand', () => {
+  const dbConnection = useBeforeAll(() => getDatabaseConnection());
+  afterAll(async () => dbConnection.end());
+  given('[case1] entity exists', () => {
+    const scene = useBeforeAll(async () => { return { entity: await createEntity({ state: 'A' }) }; });
+    when('[t0] in PLAN mode', () => {
+      then('decision UPDATE', async () => { expect(await myCommand({ mode: 'PLAN' })).toEqual({ decision: 'UPDATE' }); });
+    });
+  });
+});
+```
+
+## benefits
+
+- readable test output
+- efficient setup
+- immutable references
+- clear labels
+- black-box tests

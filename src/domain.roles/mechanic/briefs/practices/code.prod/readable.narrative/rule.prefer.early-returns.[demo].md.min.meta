@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/readable.narrative/rule.prefer.early-returns.[demo].md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/readable.narrative/rule.prefer.early-returns.[demo].md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 2022,
+    "after": 220,
+    "delta": {
+      "quant": -1802,
+      "ratio": "9.2x"
+    }
+  },
+  "kernels": {
+    "before": 5,
+    "after": 5,
+    "delta": 0
+  },
+  "density": {
+    "before": 1686,
+    "after": 200,
+    "delta": 8.8
+  },
+  "stability": {
+    "meanJaccard": 1,
+    "minJaccard": 1,
+    "maxJaccard": 1,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 1.12,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

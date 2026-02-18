@@ -27,7 +27,7 @@ grok showed more consistency but earlier tests showed similar truncation pattern
 
 ```bash
 # compress a brief via bhrain/sitrep
-npx tsx src/domain.roles/mechanic/skills/brief.compress/compress.via.bhrain.ts \
+npx tsx src/domain.roles/librarian/skills/brief.compress/compress.via.bhrain.ts \
   --from src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.procedures/rule.require.dependency-injection.md.pt1.md \
   --via anthropic/claude/sonnet \
   --into /tmp/out.md \
@@ -88,5 +88,5 @@ the caller (compress.via.bhrain.ts) could add retry logic that checks token coun
 
 ## files
 
-- `src/domain.roles/mechanic/skills/brief.compress/compress.via.bhrain.ts` — the compressor
-- `src/domain.roles/mechanic/skills/brief.compress/briefs/sitrep.methodology.md` — the methodology brief passed in prompt
+- `src/domain.roles/librarian/skills/brief.compress/compress.via.bhrain.ts` — the compressor
+- `src/domain.roles/librarian/skills/brief.compress/briefs/sitrep.methodology.md` — the methodology brief passed in prompt
