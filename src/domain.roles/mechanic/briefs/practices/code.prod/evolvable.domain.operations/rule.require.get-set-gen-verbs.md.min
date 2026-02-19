@@ -1,0 +1,121 @@
+## .rule require-get-set-gen-verbs
+
+#### .what
+all domain operations use exactly one: get, set, or gen
+domain-specific verbs for imperative commands only if not matched to pattern
+
+#### .scope
+applies to:
+- all operations in domain.operations/
+- all dao methods
+
+exempt:
+- contract/cli entry points (e.g., invokeAct)
+- imperative action commands (e.g., dispatchTask, enqueueTask)
+
+#### .why
+symmetry makes mutations explicit
+
+three verbs form closed system:
+1. where set exists, consider gen for findsert/upsert
+2. set and gen name mutation targets explicitly
+3. custom verbs hide targets
+4. get guarantees no side effects
+
+additional:
+- eliminate verb ambiguity
+- prevent synonym drift (e.g., find/fetch become get)
+- clarify operation intent from name
+
+#### .the three verbs
+
+| verb | semantics          | creates? | idempotent? | analogy    |
+|------|---------------------|----------|-------------|-----------|
+| get  | retrieve/compute    | never    | yes         | select    |
+| set  | mutate/upsert       | yes      | yes         | upsert    |
+| gen  | find-or-create      | only if absent | yes      | findsert  |
+
+set and gen differ: set always overwrites, gen preserves extant
+
+#### .get retrieve extant
+
+get retrieves without creating/mutating; always use getOne* or getAll*
+
+| subtype   | description               | example                     |
+|-----------|---------------------------|-----------------------------|
+| parser/cast | parse text to typed shape | getOneZoneAddress({ raw })  |
+| lookup   | find by key               | getOneSiteBySlug({ orchestrator, slug }) |
+| compute  | derive from inputs        | getOneCloneSlug({ role, index }) |
+| enumerate| list resources            | getAllClonesForZone({ zone }) |
+| assemble | compose from sources      | getOneContextCli({ cwd })   |
+
+forbidden: use getOne or getAll instead of find, fetch, lookup
+
+#### .set mutate state (upsert)
+
+set always writes/overwrites state
+
+| subtype   | description               | example                     |
+|-----------|---------------------------|-----------------------------|
+| persist  | write to dao/filesystem   | setZone({ site, branch, path }) |
+| register | add to registry           | setSite({ orchestrator, site }) |
+| spawn    | start process             | setZoneDaemon({ zone })     |
+| overwrite| replace                   | setTaskPriority({ task, clone }) |
+
+for data entities, pair with gen wrapper; forbidden: use set instead of create, insert
+
+#### .gen find-or-create (findsert)
+
+gen checks extant first, uses set if absent
+
+| subtype   | description               | example                     |
+|-----------|---------------------------|-----------------------------|
+| findsert entity | find or enroll            | genClone({ zone, address, config }) |
+| findsert process | find or spawn             | genZoneDaemon({ zone })     |
+| findsert registry | find or load/register     | genSite({ path, orchestrator }) |
+| scaffold | generate from defaults    | genSiteManifest({ path })   |
+| construct| build with generated id   | genTask({ mode, prompt, clone, zone }) |
+
+use gen for caller-facing operations; forbidden: use gen instead of ensure, findOrCreate
+
+#### .decision tree
+does it modify state?
+├── no → get (getOne* or getAll*)
+└── yes
+    ├── preserve extant? → gen
+    └── overwrite extant? → set
+
+#### .examples
+##### positive
+```ts
+// get: pure retrieval
+getOneCloneSlug({ role: 'mechanic', index: 1 })
+getOneZoneAddress({ raw: '@feat/auth' })
+getAllClonesForZone({ zone })
+getOneSiteBySlug({ orchestrator, slug })
+
+// set: always mutate
+setClone({ zone, role, brain, index })
+setZoneDaemon({ zone })
+setSite({ orchestrator, site })
+
+// gen: find-or-create
+genClone({ zone, address, config })
+genZoneDaemon({ zone })
+genSite({ path, orchestrator })
+```
+
+##### negative
+```ts
+findClone({ zone, role }) // use getOneClone
+loadSite({ path }) // use getOneSite
+ensureClone({ zone, address }) // use genClone
+createTask({ mode, prompt }) // use genTask
+listTasks({ zone }) // use getAllTasksForZone
+```
+
+#### .enforcement
+- operation without get/set/gen prefix = **BLOCKER**
+- get without One/All cardinality = **BLOCKER**
+- set on data entity without gen wrapper = **BLOCKER** (unless explicit upsert)
+- synonym verb instead of get/set/gen = **BLOCKER**

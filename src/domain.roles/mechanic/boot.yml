@@ -55,6 +55,7 @@ subject.code.prod:
 
       # domain operations
       - briefs/practices/code.prod/evolvable.domain.operations/rule.require.sync-filename-opname.md
+      - briefs/practices/code.prod/evolvable.domain.operations/rule.require.get-set-gen-verbs.md
 
       # architecture
       - briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md

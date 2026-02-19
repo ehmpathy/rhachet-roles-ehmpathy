@@ -7,6 +7,7 @@ import {
   genTestDir,
   genWebfetchStdin,
   invokePostToolUseHook,
+  REPEATABLY_CONFIG_LLM,
 } from './.test/invokeHook';
 
 /**
@@ -28,7 +29,7 @@ const FIXTURE_WIKIPEDIA_SEATURTLES = fs.readFileSync(
 
 describe('guardBorder.onWebfetch - injection FRONT (acceptance)', () => {
   given('[case9] injection at FRONT of Wikipedia article', () => {
-    when('[t0] tactic: direct instruction override', () => {
+    when.repeatably(REPEATABLY_CONFIG_LLM)('[t0] tactic: direct instruction override', () => {
       const res = useThen('invoke hook on front injection', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-front-override' });
 
@@ -54,7 +55,7 @@ describe('guardBorder.onWebfetch - injection FRONT (acceptance)', () => {
       });
     });
 
-    when('[t1] tactic: role assumption (DAN)', () => {
+    when.repeatably(REPEATABLY_CONFIG_LLM)('[t1] tactic: role assumption (DAN)', () => {
       const res = useThen('invoke hook on DAN injection', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-front-dan' });
 
@@ -81,7 +82,7 @@ describe('guardBorder.onWebfetch - injection FRONT (acceptance)', () => {
       });
     });
 
-    when('[t2] tactic: system prompt extraction', () => {
+    when.repeatably(REPEATABLY_CONFIG_LLM)('[t2] tactic: system prompt extraction', () => {
       const res = useThen('invoke hook on extraction injection', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-front-extract' });
 

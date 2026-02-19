@@ -4,6 +4,8 @@ import { promisify } from 'util';
 
 import { genTempDir } from 'test-fns';
 
+export { REPEATABLY_CONFIG_LLM } from '@src/.test/constants';
+
 export const execAsync = promisify(exec);
 
 /**
