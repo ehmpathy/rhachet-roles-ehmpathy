@@ -1,0 +1,44 @@
+{
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.operations/rule.require.get-set-gen-verbs.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/evolvable.domain.operations/rule.require.get-set-gen-verbs.md.min",
+  "pipeline": {
+    "supply": "kernelize",
+    "press": [
+      [
+        "telegraphic"
+      ]
+    ],
+    "verify": [
+      "degerund"
+    ]
+  },
+  "tokens": {
+    "before": 2088,
+    "after": 1013,
+    "delta": {
+      "quant": -1075,
+      "ratio": "2.1x"
+    }
+  },
+  "kernels": {
+    "before": 9,
+    "after": 9,
+    "delta": 0
+  },
+  "density": {
+    "before": 882,
+    "after": 477,
+    "delta": 4.6
+  },
+  "stability": {
+    "meanJaccard": 0.7685185185185185,
+    "minJaccard": 0.6666666666666666,
+    "maxJaccard": 0.8888888888888888,
+    "comparisons": 3
+  },
+  "variance": {
+    "densityσ": 0.32,
+    "kernelσ": 0
+  },
+  "attempts": 3
+}

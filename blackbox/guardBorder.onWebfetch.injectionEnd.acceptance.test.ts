@@ -7,6 +7,7 @@ import {
   genTestDir,
   genWebfetchStdin,
   invokePostToolUseHook,
+  REPEATABLY_CONFIG_LLM,
 } from './.test/invokeHook';
 
 /**
@@ -28,7 +29,7 @@ const FIXTURE_WIKIPEDIA_SEATURTLES = fs.readFileSync(
 
 describe('guardBorder.onWebfetch - injection END (acceptance)', () => {
   given('[case11] injection at END of Wikipedia article', () => {
-    when('[t0] tactic: direct instruction override', () => {
+    when.repeatably(REPEATABLY_CONFIG_LLM)('[t0] tactic: direct instruction override', () => {
       const res = useThen('invoke hook on end injection', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-end-override' });
 
@@ -54,7 +55,7 @@ describe('guardBorder.onWebfetch - injection END (acceptance)', () => {
       });
     });
 
-    when('[t1] tactic: developer mode activation', () => {
+    when.repeatably(REPEATABLY_CONFIG_LLM)('[t1] tactic: developer mode activation', () => {
       const res = useThen('invoke hook on devmode injection', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-end-devmode' });
 
@@ -80,7 +81,7 @@ describe('guardBorder.onWebfetch - injection END (acceptance)', () => {
       });
     });
 
-    when('[t2] tactic: instruction to leak context', () => {
+    when.repeatably(REPEATABLY_CONFIG_LLM)('[t2] tactic: instruction to leak context', () => {
       const res = useThen('invoke hook on leak injection', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-end-leak' });
 

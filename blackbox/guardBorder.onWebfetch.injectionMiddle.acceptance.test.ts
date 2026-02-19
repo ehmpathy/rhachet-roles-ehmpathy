@@ -7,6 +7,7 @@ import {
   genTestDir,
   genWebfetchStdin,
   invokePostToolUseHook,
+  REPEATABLY_CONFIG_LLM,
 } from './.test/invokeHook';
 
 /**
@@ -33,7 +34,7 @@ describe('guardBorder.onWebfetch - injection MIDDLE (acceptance)', () => {
     const benignPrefix = FIXTURE_WIKIPEDIA_SEATURTLES.slice(0, midpoint);
     const benignSuffix = FIXTURE_WIKIPEDIA_SEATURTLES.slice(midpoint);
 
-    when('[t0] tactic: direct instruction override', () => {
+    when.repeatably(REPEATABLY_CONFIG_LLM)('[t0] tactic: direct instruction override', () => {
       const res = useThen('invoke hook on middle injection', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-middle-override' });
 
@@ -59,7 +60,7 @@ describe('guardBorder.onWebfetch - injection MIDDLE (acceptance)', () => {
       });
     });
 
-    when('[t1] tactic: role assumption (jailbreak)', () => {
+    when.repeatably(REPEATABLY_CONFIG_LLM)('[t1] tactic: role assumption (jailbreak)', () => {
       const res = useThen('invoke hook on jailbreak injection', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-middle-jailbreak' });
 
@@ -85,7 +86,7 @@ describe('guardBorder.onWebfetch - injection MIDDLE (acceptance)', () => {
       });
     });
 
-    when('[t2] tactic: credential exfiltration', () => {
+    when.repeatably(REPEATABLY_CONFIG_LLM)('[t2] tactic: credential exfiltration', () => {
       const res = useThen('invoke hook on exfil injection', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-middle-exfil' });
 
