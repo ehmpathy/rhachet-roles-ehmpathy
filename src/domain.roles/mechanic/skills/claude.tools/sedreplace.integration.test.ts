@@ -648,7 +648,196 @@ describe('sedreplace.sh', () => {
     });
   });
 
-  given('[case10] line count reporting', () => {
+  given('[case10] untracked files are included', () => {
+    /**
+     * .what = helper to run sedreplace with both tracked and untracked files
+     * .why = verifies that all files in repo are processed (tracked + untracked)
+     */
+    const runWithUntrackedFiles = (args: {
+      trackedFiles: Record<string, string>;
+      untrackedFiles: Record<string, string>;
+      sedArgs: string[];
+    }): {
+      stdout: string;
+      stderr: string;
+      exitCode: number;
+      tempDir: string;
+    } => {
+      const tempDir = genTempDir({
+        slug: 'sedreplace-untracked-test',
+        git: true,
+      });
+
+      // create and commit tracked files
+      for (const [filePath, content] of Object.entries(args.trackedFiles)) {
+        const fullPath = path.join(tempDir, filePath);
+        fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+        fs.writeFileSync(fullPath, content);
+      }
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // create untracked files AFTER commit (so they remain untracked)
+      for (const [filePath, content] of Object.entries(args.untrackedFiles)) {
+        const fullPath = path.join(tempDir, filePath);
+        fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+        fs.writeFileSync(fullPath, content);
+      }
+
+      // run sedreplace
+      const result = spawnSync('bash', [scriptPath, ...args.sedArgs], {
+        cwd: tempDir,
+        encoding: 'utf-8', // node api requirement
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+
+      return {
+        stdout: result.stdout ?? '',
+        stderr: result.stderr ?? '',
+        exitCode: result.status ?? 1,
+        tempDir,
+      };
+    };
+
+    when('[t0] --mode apply with untracked file that has pattern', () => {
+      then('it should modify both tracked and untracked files', () => {
+        const result = runWithUntrackedFiles({
+          trackedFiles: {
+            'tracked.ts': 'const MATCH_ME = 1;',
+          },
+          untrackedFiles: {
+            'untracked.ts': 'const MATCH_ME = 2;',
+          },
+          sedArgs: [
+            '--old',
+            'MATCH_ME',
+            '--new',
+            'REPLACED',
+            '--mode',
+            'apply',
+          ],
+        });
+
+        expect(result.exitCode).toBe(0);
+
+        // tracked file should be modified
+        const trackedContent = fs.readFileSync(
+          path.join(result.tempDir, 'tracked.ts'),
+          'utf-8',
+        );
+        expect(trackedContent).toBe('const REPLACED = 1;');
+
+        // untracked file should also be modified
+        const untrackedContent = fs.readFileSync(
+          path.join(result.tempDir, 'untracked.ts'),
+          'utf-8',
+        );
+        expect(untrackedContent).toBe('const REPLACED = 2;');
+      });
+    });
+
+    when('[t1] plan mode with untracked file that has pattern', () => {
+      then('it should show both tracked and untracked files in output', () => {
+        const result = runWithUntrackedFiles({
+          trackedFiles: {
+            'tracked.ts': 'const MATCH_ME = 1;',
+          },
+          untrackedFiles: {
+            'untracked.ts': 'const MATCH_ME = 2;',
+          },
+          sedArgs: ['--old', 'MATCH_ME', '--new', 'REPLACED'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('files: 2');
+        expect(result.stdout).toContain('tracked.ts');
+        expect(result.stdout).toContain('untracked.ts');
+      });
+    });
+
+    when('[t2] only untracked files have pattern', () => {
+      then('it should find and process untracked files', () => {
+        const result = runWithUntrackedFiles({
+          trackedFiles: {
+            'tracked.ts': 'const OTHER = 1;',
+          },
+          untrackedFiles: {
+            'untracked.ts': 'const MATCH_ME = 2;',
+          },
+          sedArgs: ['--old', 'MATCH_ME', '--new', 'REPLACED'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('files: 1');
+        expect(result.stdout).toContain('untracked.ts');
+      });
+    });
+
+    when('[t3] gitignored file has pattern', () => {
+      then('it should also modify gitignored files (within repo)', () => {
+        const tempDir = genTempDir({
+          slug: 'sedreplace-gitignore-test',
+          git: true,
+        });
+
+        // create .gitignore
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), 'ignored.ts\n');
+
+        // create tracked file
+        fs.writeFileSync(
+          path.join(tempDir, 'tracked.ts'),
+          'const MATCH_ME = 1;',
+        );
+
+        // create ignored file (will not be tracked due to .gitignore)
+        fs.writeFileSync(
+          path.join(tempDir, 'ignored.ts'),
+          'const MATCH_ME = 2;',
+        );
+
+        // commit tracked files (ignored.ts won't be added)
+        execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+        // run sedreplace
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'MATCH_ME',
+            '--new',
+            'REPLACED',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+
+        // tracked file should be modified
+        const trackedContent = fs.readFileSync(
+          path.join(tempDir, 'tracked.ts'),
+          'utf-8',
+        );
+        expect(trackedContent).toBe('const REPLACED = 1;');
+
+        // gitignored file should also be modified (it's within repo)
+        const ignoredContent = fs.readFileSync(
+          path.join(tempDir, 'ignored.ts'),
+          'utf-8',
+        );
+        expect(ignoredContent).toBe('const REPLACED = 2;');
+      });
+    });
+  });
+
+  given('[case11] line count reports', () => {
     when('[t0] file with pattern on multiple lines', () => {
       then('it should report correct line count per file in plan mode', () => {
         const result = runInTempGitRepo({
@@ -718,6 +907,843 @@ describe('sedreplace.sh', () => {
         expect(result.stdout).toContain('file1.ts (2 lines)');
         expect(result.stdout).toContain('file2.ts (1 lines)');
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case12] repo boundary enforcement (negative tests)', () => {
+    when('[t0] file exists outside repo with pattern', () => {
+      then('it should NOT find or modify files outside repo', () => {
+        // create temp repo
+        const repoDir = genTempDir({
+          slug: 'sedreplace-boundary-repo',
+          git: true,
+        });
+
+        // create file inside repo
+        fs.writeFileSync(
+          path.join(repoDir, 'inside.ts'),
+          'const MATCH_ME = 1;',
+        );
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // create file OUTSIDE repo (sibling directory)
+        const outsideDir = genTempDir({ slug: 'sedreplace-boundary-outside' });
+        const outsideFile = path.join(outsideDir, 'outside.ts');
+        fs.writeFileSync(outsideFile, 'const MATCH_ME = 2;');
+
+        // run sedreplace from inside repo
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'MATCH_ME',
+            '--new',
+            'REPLACED',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+
+        // inside file should be modified
+        const insideContent = fs.readFileSync(
+          path.join(repoDir, 'inside.ts'),
+          'utf-8',
+        );
+        expect(insideContent).toBe('const REPLACED = 1;');
+
+        // outside file should remain unchanged
+        const outsideContent = fs.readFileSync(outsideFile, 'utf-8');
+        expect(outsideContent).toBe('const MATCH_ME = 2;');
+      });
+    });
+
+    when('[t1] symlink points to file outside repo', () => {
+      then('it should NOT follow symlink or modify external target', () => {
+        // create temp repo
+        const repoDir = genTempDir({
+          slug: 'sedreplace-symlink-repo',
+          git: true,
+        });
+
+        // create file inside repo
+        fs.writeFileSync(
+          path.join(repoDir, 'inside.ts'),
+          'const MATCH_ME = 1;',
+        );
+
+        // create file OUTSIDE repo
+        const outsideDir = genTempDir({ slug: 'sedreplace-symlink-outside' });
+        const outsideFile = path.join(outsideDir, 'external.ts');
+        fs.writeFileSync(outsideFile, 'const MATCH_ME = 2;');
+
+        // create symlink inside repo that points outside
+        const symlinkPath = path.join(repoDir, 'link-to-external.ts');
+        fs.symlinkSync(outsideFile, symlinkPath);
+
+        execSync('git add inside.ts', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // run sedreplace
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'MATCH_ME',
+            '--new',
+            'REPLACED',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+
+        // inside file should be modified
+        const insideContent = fs.readFileSync(
+          path.join(repoDir, 'inside.ts'),
+          'utf-8',
+        );
+        expect(insideContent).toBe('const REPLACED = 1;');
+
+        // external file (symlink target) should remain unchanged
+        const externalContent = fs.readFileSync(outsideFile, 'utf-8');
+        expect(externalContent).toBe('const MATCH_ME = 2;');
+      });
+    });
+
+    when('[t2] run from directory outside any git repo', () => {
+      then('it should error with helpful message', () => {
+        // create non-git directory
+        const nonGitDir = genTempDir({ slug: 'sedreplace-no-git' });
+
+        // create file with pattern
+        fs.writeFileSync(
+          path.join(nonGitDir, 'file.ts'),
+          'const MATCH_ME = 1;',
+        );
+
+        // run sedreplace from non-git directory
+        const result = spawnSync(
+          'bash',
+          [scriptPath, '--old', 'MATCH_ME', '--new', 'REPLACED'],
+          {
+            cwd: nonGitDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(1);
+        expect(result.stderr).toContain('not in a git repository');
+      });
+    });
+
+    when('[t3] glob pattern attempts path traversal', () => {
+      then('it should NOT escape repo via ../ in glob', () => {
+        // create temp repo
+        const repoDir = genTempDir({
+          slug: 'sedreplace-traversal-repo',
+          git: true,
+        });
+
+        // create file inside repo
+        fs.writeFileSync(
+          path.join(repoDir, 'inside.ts'),
+          'const MATCH_ME = 1;',
+        );
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // create file OUTSIDE repo (parent directory)
+        const outsideFile = path.join(path.dirname(repoDir), 'parent-file.ts');
+        fs.writeFileSync(outsideFile, 'const MATCH_ME = 2;');
+
+        // attempt path traversal via glob
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'MATCH_ME',
+            '--new',
+            'REPLACED',
+            '--glob',
+            '../*.ts',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        // should complete (may find no matches or error, but not modify external)
+        // the key assertion is that the external file is untouched
+        const outsideContent = fs.readFileSync(outsideFile, 'utf-8');
+        expect(outsideContent).toBe('const MATCH_ME = 2;');
+
+        // cleanup
+        fs.unlinkSync(outsideFile);
+      });
+    });
+
+    when('[t4] glob uses absolute path to target system files', () => {
+      then('it should NOT access files via absolute path glob', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-abspath-repo',
+          git: true,
+        });
+
+        // create file inside repo
+        fs.writeFileSync(
+          path.join(repoDir, 'inside.ts'),
+          'const MATCH_ME = 1;',
+        );
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // create target file outside repo
+        const outsideDir = genTempDir({ slug: 'sedreplace-abspath-target' });
+        const targetFile = path.join(outsideDir, 'secret.ts');
+        fs.writeFileSync(targetFile, 'const MATCH_ME = secret;');
+
+        // attempt to use absolute path in glob
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'MATCH_ME',
+            '--new',
+            'PWNED',
+            '--glob',
+            `${outsideDir}/*.ts`,
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        // external file must remain untouched
+        const targetContent = fs.readFileSync(targetFile, 'utf-8');
+        expect(targetContent).toBe('const MATCH_ME = secret;');
+      });
+    });
+
+    when('[t5] symlinked directory targets location outside repo', () => {
+      then('it should NOT traverse into external directory via symlink', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-symlinkdir-repo',
+          git: true,
+        });
+
+        // create file inside repo
+        fs.writeFileSync(
+          path.join(repoDir, 'inside.ts'),
+          'const MATCH_ME = 1;',
+        );
+
+        // create external directory with target file
+        const externalDir = genTempDir({ slug: 'sedreplace-symlinkdir-ext' });
+        fs.writeFileSync(
+          path.join(externalDir, 'external.ts'),
+          'const MATCH_ME = external;',
+        );
+
+        // create symlinked directory inside repo that targets external
+        fs.symlinkSync(externalDir, path.join(repoDir, 'linked-dir'));
+
+        execSync('git add inside.ts', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // run sedreplace
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'MATCH_ME',
+            '--new',
+            'REPLACED',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+
+        // inside file should be modified
+        const insideContent = fs.readFileSync(
+          path.join(repoDir, 'inside.ts'),
+          'utf-8',
+        );
+        expect(insideContent).toBe('const REPLACED = 1;');
+
+        // external file via symlinked dir must remain untouched
+        const externalContent = fs.readFileSync(
+          path.join(externalDir, 'external.ts'),
+          'utf-8',
+        );
+        expect(externalContent).toBe('const MATCH_ME = external;');
+      });
+    });
+
+    when('[t6] shell metacharacters in --old pattern', () => {
+      then('it should treat them as literals, not execute commands', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-injection-repo',
+          git: true,
+        });
+
+        // create file with suspicious content
+        fs.writeFileSync(
+          path.join(repoDir, 'file.ts'),
+          'const x = "$(whoami)";',
+        );
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // create marker file that command injection would create
+        const markerFile = path.join(repoDir, 'pwned.txt');
+
+        // attempt command injection via --old pattern
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            '$(touch pwned.txt)',
+            '--new',
+            'safe',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        // command should not have executed
+        expect(fs.existsSync(markerFile)).toBe(false);
+      });
+    });
+
+    when('[t7] shell metacharacters in --new replacement', () => {
+      then('it should treat them as literals, not execute commands', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-inject-new-repo',
+          git: true,
+        });
+
+        fs.writeFileSync(path.join(repoDir, 'file.ts'), 'const x = "REPLACE";');
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        const markerFile = path.join(repoDir, 'pwned.txt');
+
+        // attempt command injection via --new replacement
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'REPLACE',
+            '--new',
+            '$(touch pwned.txt)',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+
+        // command should not have executed
+        expect(fs.existsSync(markerFile)).toBe(false);
+
+        // file should contain literal string
+        const content = fs.readFileSync(path.join(repoDir, 'file.ts'), 'utf-8');
+        expect(content).toBe('const x = "$(touch pwned.txt)";');
+      });
+    });
+
+    when('[t8] backtick command substitution in arguments', () => {
+      then('it should treat backticks as literals', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-backtick-repo',
+          git: true,
+        });
+
+        fs.writeFileSync(path.join(repoDir, 'file.ts'), 'const x = "OLD";');
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        const markerFile = path.join(repoDir, 'pwned.txt');
+
+        // attempt command injection via backticks
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'OLD',
+            '--new',
+            '`touch pwned.txt`',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(fs.existsSync(markerFile)).toBe(false);
+
+        const content = fs.readFileSync(path.join(repoDir, 'file.ts'), 'utf-8');
+        expect(content).toBe('const x = "`touch pwned.txt`";');
+      });
+    });
+
+    when('[t9] glob with embedded traversal like src/../../outside', () => {
+      then('it should NOT escape via mid-path traversal', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-midpath-repo',
+          git: true,
+        });
+
+        // create nested structure
+        fs.mkdirSync(path.join(repoDir, 'src'), { recursive: true });
+        fs.writeFileSync(
+          path.join(repoDir, 'src', 'inside.ts'),
+          'const MATCH_ME = 1;',
+        );
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // create file outside repo
+        const outsideFile = path.join(
+          path.dirname(repoDir),
+          'escape-target.ts',
+        );
+        fs.writeFileSync(outsideFile, 'const MATCH_ME = escaped;');
+
+        // attempt mid-path traversal
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'MATCH_ME',
+            '--new',
+            'PWNED',
+            '--glob',
+            'src/../../*.ts',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        // external file must remain untouched
+        const outsideContent = fs.readFileSync(outsideFile, 'utf-8');
+        expect(outsideContent).toBe('const MATCH_ME = escaped;');
+
+        // cleanup
+        fs.unlinkSync(outsideFile);
+      });
+    });
+
+    when('[t10] newline injection in pattern attempts to break sed', () => {
+      then('it should handle newlines safely', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-newline-repo',
+          git: true,
+        });
+
+        fs.writeFileSync(path.join(repoDir, 'file.ts'), 'const x = "SAFE";');
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        const markerFile = path.join(repoDir, 'pwned.txt');
+
+        // attempt to break out of sed command via newline
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'SAFE\n; touch pwned.txt; #',
+            '--new',
+            'REPLACED',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        // injected command should not execute
+        expect(fs.existsSync(markerFile)).toBe(false);
+      });
+    });
+
+    when('[t11] pipe character attempts command chain', () => {
+      then('it should treat pipe as literal character', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-pipe-repo',
+          git: true,
+        });
+
+        fs.writeFileSync(path.join(repoDir, 'file.ts'), 'const x = "OLD";');
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        const markerFile = path.join(repoDir, 'pwned.txt');
+
+        // attempt to chain commands via pipe
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'OLD | touch pwned.txt',
+            '--new',
+            'NEW',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        // piped command should not execute
+        expect(fs.existsSync(markerFile)).toBe(false);
+      });
+    });
+
+    when('[t12] semicolon attempts command separation', () => {
+      then('it should treat semicolon as literal character', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-semicolon-repo',
+          git: true,
+        });
+
+        fs.writeFileSync(
+          path.join(repoDir, 'file.ts'),
+          'const x = "REPLACE_ME";',
+        );
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        const markerFile = path.join(repoDir, 'pwned.txt');
+
+        // attempt to separate commands via semicolon
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'REPLACE_ME',
+            '--new',
+            'x; touch pwned.txt; echo',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(fs.existsSync(markerFile)).toBe(false);
+
+        // file should contain literal semicolons
+        const content = fs.readFileSync(path.join(repoDir, 'file.ts'), 'utf-8');
+        expect(content).toBe('const x = "x; touch pwned.txt; echo";');
+      });
+    });
+
+    // === Bobby Tables scenarios - sed delimiter/command injection ===
+
+    when('[t13] delimiter injection via # in --old (Bobby Tables)', () => {
+      then('it should escape delimiter and not break sed syntax', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-bobby-old-repo',
+          git: true,
+        });
+
+        // file contains the attack pattern
+        fs.writeFileSync(path.join(repoDir, 'file.ts'), 'const x = "foo#bar";');
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // try to break sed by inject delimiter in pattern
+        // sed command is: s#OLD#NEW#g
+        // attack: OLD = "foo#e touch pwned.txt #" would become s#foo#e touch pwned.txt ##NEW#g
+        const markerFile = path.join(repoDir, 'pwned.txt');
+
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'foo#e touch pwned.txt #',
+            '--new',
+            'REPLACED',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        // sed e command should not have executed
+        expect(fs.existsSync(markerFile)).toBe(false);
+      });
+    });
+
+    when('[t14] delimiter injection via # in --new (Bobby Tables)', () => {
+      then('it should escape delimiter and not break sed syntax', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-bobby-new-repo',
+          git: true,
+        });
+
+        fs.writeFileSync(path.join(repoDir, 'file.ts'), 'const x = "OLD";');
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // attack via replacement: s#OLD#foo#e touch pwned.txt#g
+        const markerFile = path.join(repoDir, 'pwned.txt');
+
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'OLD',
+            '--new',
+            'foo#e touch pwned.txt',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(fs.existsSync(markerFile)).toBe(false);
+
+        // file should contain literal #
+        const content = fs.readFileSync(path.join(repoDir, 'file.ts'), 'utf-8');
+        expect(content).toBe('const x = "foo#e touch pwned.txt";');
+      });
+    });
+
+    when('[t15] sed write command injection via w flag', () => {
+      then('it should not allow w flag to write arbitrary files', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-sed-w-repo',
+          git: true,
+        });
+
+        fs.writeFileSync(path.join(repoDir, 'file.ts'), 'const x = "TARGET";');
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // attack: try to use sed w flag to write to file
+        // normal sed: s/OLD/NEW/w /tmp/stolen.txt
+        const stolenFile = path.join(repoDir, 'stolen.txt');
+
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'TARGET',
+            '--new',
+            `REPLACED#w ${stolenFile}`,
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        // w command should not have created file
+        expect(fs.existsSync(stolenFile)).toBe(false);
+
+        // original file should have literal replacement
+        const content = fs.readFileSync(path.join(repoDir, 'file.ts'), 'utf-8');
+        expect(content).toContain('REPLACED');
+        expect(content).toContain('#w');
+      });
+    });
+
+    when('[t16] sed execute command injection via e flag', () => {
+      then('it should not allow e flag to execute commands', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-sed-e-repo',
+          git: true,
+        });
+
+        fs.writeFileSync(path.join(repoDir, 'file.ts'), 'const x = "TARGET";');
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // attack: try to use sed e flag (GNU extension) to execute
+        const markerFile = path.join(repoDir, 'pwned.txt');
+
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'TARGET',
+            '--new',
+            'touch pwned.txt#e',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        // e command should not have executed
+        expect(fs.existsSync(markerFile)).toBe(false);
+      });
+    });
+
+    when('[t17] multiple # delimiters to confuse parser', () => {
+      then('it should handle multiple delimiters safely', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-multi-delim-repo',
+          git: true,
+        });
+
+        fs.writeFileSync(path.join(repoDir, 'file.ts'), 'const x = "a#b#c#d";');
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // attack with many # to confuse delimiter parse
+        const result = spawnSync(
+          'bash',
+          [scriptPath, '--old', 'a#b#c#d', '--new', 'x#y#z', '--mode', 'apply'],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+
+        // should have replaced correctly with literal #
+        const content = fs.readFileSync(path.join(repoDir, 'file.ts'), 'utf-8');
+        expect(content).toBe('const x = "x#y#z";');
+      });
+    });
+
+    when('[t18] Robert"); DROP TABLE Students;-- equivalent', () => {
+      then('it should treat SQL-like injection as literal text', () => {
+        const repoDir = genTempDir({
+          slug: 'sedreplace-droptable-repo',
+          git: true,
+        });
+
+        fs.writeFileSync(
+          path.join(repoDir, 'file.ts'),
+          'const name = "Robert";',
+        );
+        execSync('git add .', { cwd: repoDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
+
+        // the classic Bobby Tables attack adapted for sed
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'Robert',
+            '--new',
+            'Robert"); DROP TABLE Students;--',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: repoDir,
+            encoding: 'utf-8', // node api requirement
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+
+        // file should contain literal Bobby Tables string
+        const content = fs.readFileSync(path.join(repoDir, 'file.ts'), 'utf-8');
+        expect(content).toBe(
+          'const name = "Robert"); DROP TABLE Students;--";',
+        );
       });
     });
   });

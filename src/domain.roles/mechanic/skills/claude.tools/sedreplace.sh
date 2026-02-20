@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = safe find-and-replace across git-tracked files only
+# .what = safe find-and-replace across all files within repo
 #
 # .why  = enables bulk text replacement without:
-#         - touching files outside the repo
-#         - modifying untracked files
-#         - accidental command chaining attacks
+#         - access to files outside the repo
+#         - accidental command chain attacks
 #
 #         this is a controlled alternative to raw sed, which is
 #         denied in permissions due to security risks.
@@ -17,7 +16,7 @@
 #   sedreplace.sh --old "pattern" --new "replacement" --glob "*.ts"          # filter
 #
 # guarantee:
-#   - only operates on git-tracked files (git ls-files)
+#   - operates on all files within repo (tracked and untracked)
 #   - plan mode by default (shows diff, no changes)
 #   - requires --mode apply to apply changes
 #   - fail-fast on errors
@@ -105,13 +104,14 @@ escape_sed_replacement() {
 # display glob for output
 GLOB_DISPLAY="${GLOB_FILTER:-(all)}"
 
-# get git-tracked files, optionally filtered by glob
+# get all files in repo (tracked + untracked), optionally filtered by glob
 # note: use :(glob) magic pathspec for proper shell-like glob behavior
 # without this, git ls-files uses pathspec matching where * matches /
+# --cached = tracked files, --others = untracked files (no --exclude-standard = include ignored)
 if [[ -n "$GLOB_FILTER" ]]; then
-  FILES=$(git ls-files ":(glob)$GLOB_FILTER")
+  FILES=$(git ls-files --cached --others ":(glob)$GLOB_FILTER")
 else
-  FILES=$(git ls-files)
+  FILES=$(git ls-files --cached --others)
 fi
 
 if [[ -z "$FILES" ]]; then
