@@ -71,7 +71,7 @@ exports[`sedreplace.sh given: [case9] --mode semantics when: [t2] --mode apply t
 
 exports[`sedreplace.sh given: [case9] --mode semantics when: [t3] --mode with invalid value then: it should exit with error 1`] = `"error: --mode must be 'plan' or 'apply' (got 'foo')"`;
 
-exports[`sedreplace.sh given: [case10] line count reporting when: [t1] multiple files with different line counts then: it should report per-file and total line counts in plan mode 1`] = `
+exports[`sedreplace.sh given: [case11] line count reports when: [t1] multiple files with different line counts then: it should report per-file and total line counts in plan mode 1`] = `
 "🐢 lets see...
 
 🐚 sedreplace
@@ -107,7 +107,7 @@ note: this was a plan. to apply, re-run with --mode apply
 "
 `;
 
-exports[`sedreplace.sh given: [case10] line count reporting when: [t2] --mode apply reports line counts then: it should report per-file and total line counts 1`] = `
+exports[`sedreplace.sh given: [case11] line count reports when: [t2] --mode apply reports line counts then: it should report per-file and total line counts 1`] = `
 "🐢 cool
 
 🐚 sedreplace
