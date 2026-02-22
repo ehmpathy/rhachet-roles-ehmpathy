@@ -67,7 +67,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     *)
       echo "error: unknown argument: $1"
-      exit 1
+      exit 2
       ;;
   esac
 done
@@ -75,12 +75,12 @@ done
 # validate required args
 if [[ -z "$FROM" ]]; then
   echo "error: --from is required"
-  exit 1
+  exit 2
 fi
 
 if [[ ! -f "$FROM" ]]; then
   echo "error: file not found: $FROM"
-  exit 1
+  exit 2
 fi
 
 # delegate to typescript

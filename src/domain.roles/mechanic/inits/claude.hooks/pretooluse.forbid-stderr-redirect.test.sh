@@ -198,6 +198,6 @@ echo "========================================"
 echo ""
 
 if [[ $FAILED -gt 0 ]]; then
-  exit 1
+  exit 2
 fi
 exit 0

@@ -44,7 +44,7 @@ exports[`git.commit.push.sh given: [case5] push not allowed when: [t0] no meter 
    └─ error: push not allowed
 
 ask your human to grant with --push allow:
-  $ git.commit.uses set --allow N --push allow
+  $ git.commit.uses set --quant N --push allow
 "
 `;
 
@@ -55,7 +55,7 @@ exports[`git.commit.push.sh given: [case5] push not allowed when: [t1] meter has
    └─ error: push not allowed
 
 ask your human to grant with --push allow:
-  $ git.commit.uses set --allow N --push allow
+  $ git.commit.uses set --quant N --push allow
 "
 `;
 

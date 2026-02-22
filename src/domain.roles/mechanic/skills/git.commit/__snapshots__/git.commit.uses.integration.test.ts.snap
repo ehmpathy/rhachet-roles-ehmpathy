@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`git.commit.uses.sh given: [case1] set --allow N --push block when: [t0] setting 3 uses with push blocked then: outputs gnarly with granted count 1`] = `
+exports[`git.commit.uses.sh given: [case1] set --quant N --push block when: [t0] setting 3 uses with push blocked then: outputs gnarly with granted count 1`] = `
 "🐢 gnarly! thanks human!
 
 🐚 git.commit.uses set
@@ -9,7 +9,7 @@ exports[`git.commit.uses.sh given: [case1] set --allow N --push block when: [t0]
 "
 `;
 
-exports[`git.commit.uses.sh given: [case2] set --allow N --push allow when: [t0] setting 1 use with push allowed then: outputs radical 1`] = `
+exports[`git.commit.uses.sh given: [case2] set --quant N --push allow when: [t0] setting 1 use with push allowed then: outputs radical 1`] = `
 "🐢 radical! let's ride!
 
 🐚 git.commit.uses set
@@ -18,7 +18,7 @@ exports[`git.commit.uses.sh given: [case2] set --allow N --push allow when: [t0]
 "
 `;
 
-exports[`git.commit.uses.sh given: [case3] set --allow 0 (revoke) when: [t0] revoking all uses then: outputs groovy break time 1`] = `
+exports[`git.commit.uses.sh given: [case3] set --quant 0 (revoke) when: [t0] revoking all uses then: outputs groovy break time 1`] = `
 "🐢 groovy, break time
 
 🐚 git.commit.uses set
@@ -26,7 +26,7 @@ exports[`git.commit.uses.sh given: [case3] set --allow 0 (revoke) when: [t0] rev
 "
 `;
 
-exports[`git.commit.uses.sh given: [case3b] set --allow 0 --push allow (push-only mode) when: [t0] push-only access granted then: outputs push only mode 1`] = `
+exports[`git.commit.uses.sh given: [case3b] set --quant 0 --push allow (push-only mode) when: [t0] push-only access granted then: outputs push only mode 1`] = `
 "🐢 sweet, let it ride
 
 🐚 git.commit.uses set
@@ -35,7 +35,7 @@ exports[`git.commit.uses.sh given: [case3b] set --allow 0 --push allow (push-onl
 "
 `;
 
-exports[`git.commit.uses.sh given: [case3c] set --allow 0 without --push (defaults to block) when: [t0] revoke without explicit push flag then: defaults to block and shows revoked 1`] = `
+exports[`git.commit.uses.sh given: [case3c] set --quant 0 without --push (defaults to block) when: [t0] revoke without explicit push flag then: defaults to block and shows revoked 1`] = `
 "🐢 groovy, break time
 
 🐚 git.commit.uses set
@@ -70,6 +70,6 @@ exports[`git.commit.uses.sh given: [case7] get when no state file when: [t0] no 
    └─ no quota set
 
 ask your human to grant:
-  $ git.commit.uses set --allow N --push allow|block
+  $ git.commit.uses set --quant N --push allow|block
 "
 `;

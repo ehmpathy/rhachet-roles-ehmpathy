@@ -119,6 +119,15 @@ match_pattern() {
   # e.g., "mkdir:*" matches "mkdir", "mkdir /path", "mkdir -p /foo/bar"
   # e.g., "npm run test:*" matches "npm run test", "npm run test:unit"
 
+  # Collapse newlines to spaces for matching (bash regex . doesn't match newlines)
+  local cmd_flat
+  cmd_flat=$(printf '%s' "$cmd" | tr '\n' ' ')
+
+  # DEBUG: trace matching
+  if [[ -n "${DEBUG_MATCH:-}" ]]; then
+    echo "DEBUG match_pattern: cmd_flat='$cmd_flat' pattern='$pattern'" >&2
+  fi
+
   # First, escape regex special chars except * and :
   local escaped_pattern
   escaped_pattern=$(printf '%s' "$pattern" | sed 's/[.^$+?{}()[\]|\\]/\\&/g')
@@ -135,7 +144,11 @@ match_pattern() {
   # Build final regex
   local regex="^${escaped_pattern}$"
 
-  if [[ "$cmd" =~ $regex ]]; then
+  if [[ -n "${DEBUG_MATCH:-}" ]]; then
+    echo "DEBUG match_pattern: regex='$regex'" >&2
+  fi
+
+  if [[ "$cmd_flat" =~ $regex ]]; then
     return 0
   fi
   return 1
@@ -233,6 +246,10 @@ all_parts_allowed() {
   local cmd="$1"
   local parts
   local failed_part=""
+
+  # Collapse newlines to spaces FIRST, before splitting on &&/||/;
+  # This prevents `while read` from splitting multiline content into separate parts
+  cmd=$(printf '%s' "$cmd" | tr '\n' ' ')
 
   # Split command into parts
   parts=$(split_compound_command "$cmd")

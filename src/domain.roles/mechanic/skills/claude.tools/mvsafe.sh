@@ -51,7 +51,7 @@ while [[ $# -gt 0 ]]; do
       echo "error: unknown option: $1"
       echo "usage: mvsafe.sh <from> <into>"
       echo "       mvsafe.sh --from <source> --into <destination>"
-      exit 1
+      exit 2
       ;;
     *)
       # positional argument
@@ -65,11 +65,11 @@ done
 if [[ "$NAMED_ARG_USED" == true ]]; then
   if [[ -z "$FROM" ]]; then
     echo "error: --from is required when --into is specified"
-    exit 1
+    exit 2
   fi
   if [[ -z "$INTO" ]]; then
     echo "error: --into is required when --from is specified"
-    exit 1
+    exit 2
   fi
 else
   # handle positional args
@@ -86,20 +86,20 @@ if [[ -z "$FROM" ]]; then
   echo "error: source path is required"
   echo "usage: mvsafe.sh <from> <into>"
   echo "       mvsafe.sh --from <source> --into <destination>"
-  exit 1
+  exit 2
 fi
 
 if [[ -z "$INTO" ]]; then
   echo "error: destination path is required"
   echo "usage: mvsafe.sh <from> <into>"
   echo "       mvsafe.sh --from <source> --into <destination>"
-  exit 1
+  exit 2
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository"
-  exit 1
+  exit 2
 fi
 
 # get repo root (resolve symlinks fully)
@@ -108,7 +108,7 @@ REPO_ROOT=$(realpath "$(git rev-parse --show-toplevel)")
 # validate source exists first
 if [[ ! -e "$FROM" ]]; then
   echo "error: source does not exist: $FROM"
-  exit 1
+  exit 2
 fi
 
 # resolve source path (exists, so realpath fully resolves symlinks)
@@ -130,7 +130,7 @@ if [[ "$FROM_ABS" != "$REPO_ROOT" && "$FROM_ABS" != "$REPO_ROOT/"* ]]; then
   echo "error: source must be within the git repository"
   echo "  repo root: $REPO_ROOT"
   echo "  source:    $FROM_ABS"
-  exit 1
+  exit 2
 fi
 
 # validate dest is within repo (exact match OR slash-prefixed; prevents /repo from match of /repo-evil)
@@ -138,7 +138,7 @@ if [[ "$INTO_ABS" != "$REPO_ROOT" && "$INTO_ABS" != "$REPO_ROOT/"* ]]; then
   echo "error: destination must be within the git repository"
   echo "  repo root: $REPO_ROOT"
   echo "  dest:      $INTO_ABS"
-  exit 1
+  exit 2
 fi
 
 # create parent directories if needed

@@ -145,7 +145,7 @@ describe('git.commit.push.sh', () => {
           env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2); // blocked by constraints
         expect(result.stdout).toContain('bummer dude');
         expect(result.stdout).toContain(
           'HEAD commit not authored by seaturtle[bot]',
@@ -193,7 +193,7 @@ describe('git.commit.push.sh', () => {
           env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2); // blocked by constraints
         expect(result.stdout).toContain('bummer dude');
         expect(result.stdout).toContain('cannot push directly to main');
         expect(result.stdout).toContain('git checkout -b turtle/');
@@ -216,7 +216,7 @@ describe('git.commit.push.sh', () => {
           env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2); // blocked by constraints
         expect(result.stdout).toContain('bummer dude');
         expect(result.stdout).toContain('push not allowed');
         expect(result.stdout).toMatchSnapshot();
@@ -237,7 +237,7 @@ describe('git.commit.push.sh', () => {
           env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2); // blocked by constraints
         expect(result.stdout).toContain('bummer dude');
         expect(result.stdout).toContain('push not allowed');
         expect(result.stdout).toMatchSnapshot();
@@ -285,7 +285,7 @@ describe('git.commit.push.sh', () => {
           env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2); // blocked by constraints
         const parsed = JSON.parse(result.stdout.trim());
         expect(parsed.status).toBe('error');
         expect(parsed.error).toContain('push not allowed');
@@ -418,7 +418,7 @@ describe('git.commit.push.sh', () => {
           env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: '' },
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2); // blocked by constraints
         expect(result.stdout).toContain('bummer dude');
         expect(result.stdout).toContain(
           'EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN not set',
@@ -441,7 +441,7 @@ describe('git.commit.push.sh', () => {
           env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: '' },
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2); // blocked by constraints
         const parsed = JSON.parse(result.stdout.trim());
         expect(parsed.status).toBe('error');
         expect(parsed.error).toContain('EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN');

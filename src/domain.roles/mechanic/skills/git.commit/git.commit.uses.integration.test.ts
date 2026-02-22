@@ -40,11 +40,11 @@ describe('git.commit.uses.sh', () => {
     };
   };
 
-  given('[case1] set --allow N --push block', () => {
+  given('[case1] set --quant N --push block', () => {
     when('[t0] setting 3 uses with push blocked', () => {
       then('outputs gnarly with granted count', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--allow', '3', '--push', 'block'],
+          args: ['set', '--quant', '3', '--push', 'block'],
         });
 
         expect(result.exitCode).toBe(0);
@@ -56,7 +56,7 @@ describe('git.commit.uses.sh', () => {
 
       then('state file is created', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--allow', '3', '--push', 'block'],
+          args: ['set', '--quant', '3', '--push', 'block'],
         });
 
         const stateFile = path.join(
@@ -73,11 +73,11 @@ describe('git.commit.uses.sh', () => {
     });
   });
 
-  given('[case2] set --allow N --push allow', () => {
+  given('[case2] set --quant N --push allow', () => {
     when('[t0] setting 1 use with push allowed', () => {
       then('outputs radical', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--allow', '1', '--push', 'allow'],
+          args: ['set', '--quant', '1', '--push', 'allow'],
         });
 
         expect(result.exitCode).toBe(0);
@@ -89,11 +89,11 @@ describe('git.commit.uses.sh', () => {
     });
   });
 
-  given('[case3] set --allow 0 (revoke)', () => {
+  given('[case3] set --quant 0 (revoke)', () => {
     when('[t0] revoking all uses', () => {
       then('outputs groovy break time', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--allow', '0', '--push', 'block'],
+          args: ['set', '--quant', '0', '--push', 'block'],
         });
 
         expect(result.exitCode).toBe(0);
@@ -104,7 +104,7 @@ describe('git.commit.uses.sh', () => {
 
       then('state file shows 0 uses', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--allow', '0', '--push', 'block'],
+          args: ['set', '--quant', '0', '--push', 'block'],
         });
 
         const stateFile = path.join(
@@ -118,11 +118,11 @@ describe('git.commit.uses.sh', () => {
     });
   });
 
-  given('[case3b] set --allow 0 --push allow (push-only mode)', () => {
+  given('[case3b] set --quant 0 --push allow (push-only mode)', () => {
     when('[t0] push-only access granted', () => {
       then('outputs push only mode', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--allow', '0', '--push', 'allow'],
+          args: ['set', '--quant', '0', '--push', 'allow'],
         });
 
         expect(result.exitCode).toBe(0);
@@ -134,7 +134,7 @@ describe('git.commit.uses.sh', () => {
 
       then('state file shows 0 uses and push allow', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--allow', '0', '--push', 'allow'],
+          args: ['set', '--quant', '0', '--push', 'allow'],
         });
 
         const stateFile = path.join(
@@ -149,11 +149,11 @@ describe('git.commit.uses.sh', () => {
     });
   });
 
-  given('[case3c] set --allow 0 without --push (defaults to block)', () => {
+  given('[case3c] set --quant 0 without --push (defaults to block)', () => {
     when('[t0] revoke without explicit push flag', () => {
       then('defaults to block and shows revoked', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--allow', '0'],
+          args: ['set', '--quant', '0'],
         });
 
         expect(result.exitCode).toBe(0);
@@ -167,10 +167,10 @@ describe('git.commit.uses.sh', () => {
     when('[t0] --push flag is missing', () => {
       then('exits with error', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--allow', '3'],
+          args: ['set', '--quant', '3'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('--push allow|block is required');
       });
     });
@@ -220,7 +220,7 @@ describe('git.commit.uses.sh', () => {
         expect(result.stdout).toContain('🐢 lets check the meter...');
         expect(result.stdout).toContain('no quota set');
         expect(result.stdout).toContain(
-          'git.commit.uses set --allow N --push allow|block',
+          'git.commit.uses set --quant N --push allow|block',
         );
         expect(result.stdout).toMatchSnapshot();
       });

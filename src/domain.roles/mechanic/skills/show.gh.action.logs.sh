@@ -88,7 +88,7 @@ while [[ $# -gt 0 ]]; do
     *)
       echo "unknown argument: $1"
       echo "run with --help for usage"
-      exit 1
+      exit 2
       ;;
   esac
 done
@@ -98,27 +98,27 @@ if [[ -z "$FLOW" && -z "$RUN_ID" ]]; then
   echo "⛈️  error: --flow is required"
   echo "   usage: show.gh.action.logs.sh --flow <name> [options]"
   echo "   run with --help for more info"
-  exit 1
+  exit 2
 fi
 
 # ensure gh cli is available
 if ! command -v gh &> /dev/null; then
   echo "⛈️  error: gh cli is not installed"
   echo "   install: https://cli.github.com/"
-  exit 1
+  exit 2
 fi
 
 # ensure we're authenticated
 if ! gh auth status &> /dev/null; then
   echo "⛈️  error: not authenticated with gh cli"
   echo "   run: gh auth login"
-  exit 1
+  exit 2
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "⛈️  error: not in a git repository"
-  exit 1
+  exit 2
 fi
 
 # get current branch if not specified
@@ -126,7 +126,7 @@ if [[ -z "$BRANCH" ]]; then
   BRANCH=$(git branch --show-current)
   if [[ -z "$BRANCH" ]]; then
     echo "⛈️  error: could not determine current branch (detached HEAD?)"
-    exit 1
+    exit 2
   fi
 fi
 
@@ -182,7 +182,7 @@ else
         echo "   try: --branch $RECENT_BRANCH"
       fi
     fi
-    exit 1
+    exit 2
   fi
 
   # extract run info

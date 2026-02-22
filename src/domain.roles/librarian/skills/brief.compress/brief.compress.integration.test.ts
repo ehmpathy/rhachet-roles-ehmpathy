@@ -84,7 +84,7 @@ describe('brief.compress.sh', () => {
           ],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('file not found');
       });
     });
@@ -98,7 +98,7 @@ describe('brief.compress.sh', () => {
           compressArgs: ['--via', 'llmlingua/v2@tinybert'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('--from is required');
       });
     });
@@ -112,7 +112,7 @@ describe('brief.compress.sh', () => {
           compressArgs: ['--from', 'brief.md'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('--via is required');
       });
     });
@@ -131,7 +131,7 @@ describe('brief.compress.sh', () => {
           ],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('no press before @');
       });
     });
@@ -145,7 +145,7 @@ describe('brief.compress.sh', () => {
           compressArgs: ['--from', 'brief.md', '--via', 'tinybert'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('expected format');
       });
     });
@@ -167,7 +167,7 @@ describe('brief.compress.sh', () => {
           ],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('--into only valid for single file');
       });
     });
@@ -263,7 +263,7 @@ describe('brief.compress.sh', () => {
           ],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('unknown press family');
       });
     });

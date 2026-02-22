@@ -166,7 +166,7 @@ describe('git.commit.bind.sh', () => {
           bindArgs: ['set', '--level', 'chore'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain("--level must be 'feat' or 'fix'");
       });
     });
@@ -179,7 +179,7 @@ describe('git.commit.bind.sh', () => {
           bindArgs: [],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('subcommand is required');
       });
     });
@@ -192,7 +192,7 @@ describe('git.commit.bind.sh', () => {
           bindArgs: ['set'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('--level is required for set');
       });
     });

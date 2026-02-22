@@ -60,7 +60,7 @@ while [[ $# -gt 0 ]]; do
     *)
       echo "unknown argument: $1" >&2
       echo "usage: sedreplace.sh --old 'pattern' --new 'replacement' [--glob '*.ts'] [--mode plan|apply]" >&2
-      exit 1
+      exit 2
       ;;
   esac
 done
@@ -68,24 +68,24 @@ done
 # validate required args
 if [[ -z "$OLD_PATTERN" ]]; then
   echo "error: --old pattern is required" >&2
-  exit 1
+  exit 2
 fi
 
 if [[ "$NEW_PROVIDED" == "false" ]]; then
   echo "error: --new replacement is required (use --new \"\" for empty replacement)" >&2
-  exit 1
+  exit 2
 fi
 
 # validate mode
 if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
   echo "error: --mode must be 'plan' or 'apply' (got '$MODE')" >&2
-  exit 1
+  exit 2
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository" >&2
-  exit 1
+  exit 2
 fi
 
 # escape special characters for sed pattern (BRE)

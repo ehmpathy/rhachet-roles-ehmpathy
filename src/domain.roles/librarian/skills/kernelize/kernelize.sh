@@ -72,7 +72,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     *)
       echo "error: unknown argument: $1"
-      exit 1
+      exit 2
       ;;
   esac
 done
@@ -95,19 +95,19 @@ fi
 # validate required args
 if [[ -z "$FILE_PATH" ]]; then
   echo "error: --from is required"
-  exit 1
+  exit 2
 fi
 
 # validate file exists
 if [[ ! -f "$FILE_PATH" ]]; then
   echo "error: file not found: $FILE_PATH"
-  exit 1
+  exit 2
 fi
 
 # validate mode
 if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
   echo "error: --mode must be 'plan' or 'apply'"
-  exit 1
+  exit 2
 fi
 
 # build args for tsx

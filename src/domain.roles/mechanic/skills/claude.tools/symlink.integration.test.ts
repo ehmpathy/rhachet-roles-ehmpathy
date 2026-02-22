@@ -165,7 +165,7 @@ describe('symlink.sh', () => {
           symlinkArgs: '--at ./link.txt --to ./target.txt',
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
       });
 
       then('error mentions --mode is required', () => {
@@ -185,7 +185,7 @@ describe('symlink.sh', () => {
           symlinkArgs: '--at ./link.txt --to ./target.txt --mode invalid',
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain("must be 'relative' or 'absolute'");
       });
     });
@@ -200,7 +200,7 @@ describe('symlink.sh', () => {
           symlinkArgs: '--at ./link.txt --to ./target.txt --mode relative',
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
       });
 
       then('error mentions --idem options', () => {
@@ -238,7 +238,7 @@ describe('symlink.sh', () => {
             '--at ./link.txt --to ./target.txt --mode relative --idem findsert',
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
       });
 
       then('shows existing vs requested target', () => {
@@ -279,7 +279,7 @@ describe('symlink.sh', () => {
             '--at ./link.txt --to ./target.txt --mode relative --idem upsert',
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
       });
 
       then('error mentions non-symlink file', () => {
@@ -357,7 +357,7 @@ describe('symlink.sh', () => {
             '--at /tmp/outside-repo.txt --to ./target.txt --mode relative',
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('must be within the git repository');
       });
     });
@@ -369,7 +369,7 @@ describe('symlink.sh', () => {
             '--at ./link.txt --to /tmp/outside-repo.txt --mode relative',
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('must be within the git repository');
       });
     });
@@ -402,7 +402,7 @@ describe('symlink.sh', () => {
             },
           );
 
-          expect(result.status).toBe(1);
+          expect(result.status).toBe(2);
           expect(result.stderr).toContain('must be within the git repository');
           // verify symlink was NOT created
           expect(fs.existsSync(outsideLink)).toBe(false);
@@ -440,7 +440,7 @@ describe('symlink.sh', () => {
             },
           );
 
-          expect(result.status).toBe(1);
+          expect(result.status).toBe(2);
           expect(result.stderr).toContain('must be within the git repository');
           // verify symlink was NOT created
           expect(fs.existsSync(path.join(tempDir, 'link.txt'))).toBe(false);

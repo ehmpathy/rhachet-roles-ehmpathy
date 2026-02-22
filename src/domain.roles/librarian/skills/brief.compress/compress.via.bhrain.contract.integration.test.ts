@@ -290,7 +290,7 @@ describe('compress.via.bhrain.contract', () => {
           ],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('no press before @');
       });
     });
@@ -304,7 +304,7 @@ describe('compress.via.bhrain.contract', () => {
           compressArgs: ['--from', 'brief.md', '--via', 'tinybert'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('expected format');
       });
     });
@@ -326,7 +326,7 @@ describe('compress.via.bhrain.contract', () => {
           ],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('--into only valid for single file');
       });
     });
@@ -345,7 +345,7 @@ describe('compress.via.bhrain.contract', () => {
           ],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('unknown press family');
       });
     });

@@ -30,7 +30,7 @@ ROBOT_NAME="seaturtle[bot]"
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository"
-  exit 1
+  exit 2
 fi
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -76,7 +76,7 @@ while [[ $# -gt 0 ]]; do
     --*)
       echo "error: unknown option: $1"
       echo "usage: git.commit.push [--mode plan|apply] [--output tree|json]"
-      exit 1
+      exit 2
       ;;
     *)
       shift
@@ -87,13 +87,13 @@ done
 # validate --mode value
 if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
   echo "error: --mode must be 'plan' or 'apply'"
-  exit 1
+  exit 2
 fi
 
 # validate --output value
 if [[ "$OUTPUT" != "tree" && "$OUTPUT" != "json" ]]; then
   echo "error: --output must be 'tree' or 'json'"
-  exit 1
+  exit 2
 fi
 
 ######################################################################
@@ -124,9 +124,9 @@ fi
 if [[ "$PUSH_ALLOWED" != "allow" ]]; then
   emit_error "push not allowed"
   if [[ "$OUTPUT" == "tree" ]]; then
-    print_instruction "ask your human to grant with --push allow:" "  \$ git.commit.uses set --allow N --push allow"
+    print_instruction "ask your human to grant with --push allow:" "  \$ git.commit.uses set --quant N --push allow"
   fi
-  exit 1
+  exit 2  # blocked by constraints
 fi
 
 # guard: author check (apply mode only — plan mode skips since commit may not exist yet)
@@ -139,7 +139,7 @@ if [[ "$MODE" == "apply" ]]; then
       echo "push only works for commits made by $ROBOT_NAME."
       echo "use git.commit.set to create a proper commit first."
     fi
-    exit 1
+    exit 2  # blocked by constraints
   fi
 fi
 
@@ -152,7 +152,7 @@ if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
     echo "create a feature branch first:"
     echo "  \$ git checkout -b turtle/your-branch-name"
   fi
-  exit 1
+  exit 2  # blocked by constraints
 fi
 
 # guard: token required for pr findsert
@@ -163,7 +163,7 @@ if [[ -z "${EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN:-}" ]]; then
     echo "push requires this token for pr findsert."
     echo "set the token in your environment first."
   fi
-  exit 1
+  exit 2  # blocked by constraints
 fi
 
 ######################################################################
@@ -195,6 +195,7 @@ while IFS= read -r branch; do
 done < <(git branch --format='%(refname:short)')
 
 PR_TITLE=$(git log "$PR_BASE"..HEAD --reverse --format=%s 2>/dev/null | head -1)
+PR_BODY=$(git log "$PR_BASE"..HEAD --reverse --format=%B 2>/dev/null | head -50)
 
 # fallback: use provided fallback, or HEAD commit message
 if [[ -z "$PR_TITLE" && -n "$PR_TITLE_FALLBACK" ]]; then
@@ -202,6 +203,9 @@ if [[ -z "$PR_TITLE" && -n "$PR_TITLE_FALLBACK" ]]; then
 fi
 if [[ -z "$PR_TITLE" ]]; then
   PR_TITLE=$(git log -1 --format=%s 2>/dev/null || echo "")
+fi
+if [[ -z "$PR_BODY" ]]; then
+  PR_BODY=$(git log -1 --format=%B 2>/dev/null || echo "")
 fi
 
 PUSH_TARGET="origin/$CURRENT_BRANCH"
@@ -249,10 +253,14 @@ PR_FOUND=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr list --head "$
 if [[ -n "$PR_FOUND" ]]; then
   PR_STATUS="pr #$PR_FOUND (found)"
 else
-  # create draft pr with first commit as title
+  # create draft pr with first commit message as body
+  PR_BODY_FULL="$PR_BODY
+
+---
+🐢 opened by seaturtle[bot]"
   NEW_PR=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr create \
     --title "$PR_TITLE" \
-    --body "🐢 opened by seaturtle[bot]" \
+    --body "$PR_BODY_FULL" \
     --draft \
     2>/dev/null | grep -oE '[0-9]+$' || echo "")
 

@@ -89,7 +89,7 @@ while [[ $# -gt 0 ]]; do
     -*)
       echo "unknown flag: $1" >&2
       echo "usage: brief.compress.sh --from <path|glob> --via <press@brain> [--mode plan|apply] [--ratio N]" >&2
-      exit 1
+      exit 2
       ;;
     *)
       # positional arg = file path (backwards compat)
@@ -97,7 +97,7 @@ while [[ $# -gt 0 ]]; do
         FILE_PATH="$1"
       else
         echo "unexpected argument: $1" >&2
-        exit 1
+        exit 2
       fi
       shift
       ;;
@@ -138,7 +138,7 @@ fi
 # validate: need --via
 if [[ -z "$VIA" ]]; then
   echo "error: --via is required (e.g., --via llmlingua/v2@tinybert or --via bhrain/sitrep)" >&2
-  exit 1
+  exit 2
 fi
 
 # parse --via into press and brain
@@ -148,7 +148,7 @@ BRAIN=""
 # failfast if starts with @ (no press)
 if [[ "$VIA" == @* ]]; then
   echo "error: expected format \$press@\$brain, got '$VIA' (no press before @)" >&2
-  exit 1
+  exit 2
 fi
 
 # split on @ if present
@@ -166,7 +166,7 @@ fi
 if [[ -z "$PRESS" ]]; then
   echo "error: expected format \$press@\$brain, got '$VIA'" >&2
   echo "examples: llmlingua/v2@tinybert, bhrain/sitrep@anthropic/claude/haiku, bhrain/sitrep" >&2
-  exit 1
+  exit 2
 fi
 
 # apply default brain per press family if brain is empty
@@ -177,7 +177,7 @@ if [[ -z "$BRAIN" ]]; then
       ;;
     *)
       echo "error: no default brain for press '$PRESS'; specify via \$press@\$brain" >&2
-      exit 1
+      exit 2
       ;;
   esac
 fi
@@ -185,31 +185,31 @@ fi
 # validate: need --from
 if [[ -z "$FILE_PATH" && -z "$GLOB_PATTERN" ]]; then
   echo "error: --from is required (file path or glob pattern)" >&2
-  exit 1
+  exit 2
 fi
 
 # validate: --into only valid for single file
 if [[ -n "$INTO_PATH" && -n "$GLOB_PATTERN" ]]; then
   echo "error: --into only valid for single file input, not with glob --from" >&2
-  exit 1
+  exit 2
 fi
 
 # validate mode
 if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
   echo "error: --mode must be 'plan' or 'apply' (got '$MODE')" >&2
-  exit 1
+  exit 2
 fi
 
 # validate ratio is numeric and in range
 if ! [[ "$RATIO" =~ ^[0-9]+$ ]] || [[ "$RATIO" -lt 1 ]] || [[ "$RATIO" -gt 20 ]]; then
   echo "error: --ratio must be a number from 1 to 20 (got '$RATIO')" >&2
-  exit 1
+  exit 2
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository" >&2
-  exit 1
+  exit 2
 fi
 
 # enumerate files to compress
@@ -218,7 +218,7 @@ if [[ -n "$FILE_PATH" ]]; then
   # single file mode
   if [[ ! -f "$FILE_PATH" ]]; then
     echo "error: file not found: $FILE_PATH" >&2
-    exit 1
+    exit 2
   fi
   FILES+=("$FILE_PATH")
 else
@@ -233,7 +233,7 @@ else
 
   if [[ ${#FILES[@]} -eq 0 ]]; then
     echo "error: no files matched pattern '$GLOB_PATTERN'" >&2
-    exit 1
+    exit 2
   fi
 fi
 
@@ -255,14 +255,14 @@ case "$PRESS" in
     ;;
   *)
     echo "error: unknown press family '$PRESS'. expected: llmlingua/*, bhrain/*" >&2
-    exit 1
+    exit 2
     ;;
 esac
 
 # verify mechanism exists
 if [[ ! -f "$MECH_JS" ]]; then
   echo "error: mechanism not found at $MECH_JS" >&2
-  exit 1
+  exit 2
 fi
 
 # output header
@@ -322,7 +322,7 @@ for file in "${FILES[@]}"; do
     stop_spinner
     echo "error: compression failed for $file" >&2
     echo "$RAW_OUTPUT" >&2
-    exit 1
+    exit 2
   }
 
   # stop spinner
@@ -338,7 +338,7 @@ for file in "${FILES[@]}"; do
   if [[ -z "$RESULT" ]]; then
     echo "error: no JSON output from mechanism" >&2
     echo "$RAW_OUTPUT" >&2
-    exit 1
+    exit 2
   fi
 
   # parse json result (no need to parse compressed content - mechanism writes directly)

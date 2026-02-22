@@ -99,7 +99,7 @@ while [[ $# -gt 0 ]]; do
     *)
       echo "error: unknown argument: $1" >&2
       echo "usage: symlink.sh --at <path> --to <target> --mode <relative|absolute>" >&2
-      exit 1
+      exit 2
       ;;
   esac
 done
@@ -107,33 +107,33 @@ done
 # validate required args
 if [[ -z "$AT" ]]; then
   echo "error: --at is required" >&2
-  exit 1
+  exit 2
 fi
 
 if [[ -z "$TO" ]]; then
   echo "error: --to is required" >&2
-  exit 1
+  exit 2
 fi
 
 if [[ -z "$MODE" ]]; then
   echo "error: --mode is required (relative | absolute)" >&2
-  exit 1
+  exit 2
 fi
 
 if [[ "$MODE" != "relative" && "$MODE" != "absolute" ]]; then
   echo "error: --mode must be 'relative' or 'absolute', got '$MODE'" >&2
-  exit 1
+  exit 2
 fi
 
 if [[ -n "$IDEM" && "$IDEM" != "findsert" && "$IDEM" != "upsert" ]]; then
   echo "error: --idem must be 'findsert' or 'upsert', got '$IDEM'" >&2
-  exit 1
+  exit 2
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository" >&2
-  exit 1
+  exit 2
 fi
 
 # get repo root
@@ -148,7 +148,7 @@ if [[ "$AT_ABS" != "$REPO_ROOT" && "$AT_ABS" != "$REPO_ROOT/"* ]]; then
   echo "error: --at must be within the git repository" >&2
   echo "  repo root: $REPO_ROOT" >&2
   echo "  --at:      $AT_ABS" >&2
-  exit 1
+  exit 2
 fi
 
 # resolve --to to absolute path (for comparison and absolute mode)
@@ -159,7 +159,7 @@ if [[ "$TO_ABS" != "$REPO_ROOT" && "$TO_ABS" != "$REPO_ROOT/"* ]]; then
   echo "error: --to must be within the git repository" >&2
   echo "  repo root: $REPO_ROOT" >&2
   echo "  --to:      $TO_ABS" >&2
-  exit 1
+  exit 2
 fi
 
 # compute target path based on mode
@@ -191,7 +191,7 @@ if [[ -e "$AT_ABS" || -L "$AT_ABS" ]]; then
       echo "" >&2
       echo "hint: use --idem findsert to succeed if target matches" >&2
       echo "hint: use --idem upsert to overwrite regardless" >&2
-      exit 1
+      exit 2
     elif [[ "$IDEM" == "findsert" ]]; then
       # findsert: compare targets
       if [[ "$EXISTING_RESOLVED" == "$TO_ABS" ]]; then
@@ -201,7 +201,7 @@ if [[ -e "$AT_ABS" || -L "$AT_ABS" ]]; then
         echo "error: symlink exists but points to different target" >&2
         echo "  existing:  $EXISTING_TARGET (resolves to $EXISTING_RESOLVED)" >&2
         echo "  requested: $TARGET_PATH (resolves to $TO_ABS)" >&2
-        exit 1
+        exit 2
       fi
     elif [[ "$IDEM" == "upsert" ]]; then
       # upsert: remove existing symlink
@@ -213,7 +213,7 @@ if [[ -e "$AT_ABS" || -L "$AT_ABS" ]]; then
     echo "  type: $(file -b "$AT_ABS")" >&2
     echo "" >&2
     echo "refusing to delete non-symlink files" >&2
-    exit 1
+    exit 2
   fi
 fi
 

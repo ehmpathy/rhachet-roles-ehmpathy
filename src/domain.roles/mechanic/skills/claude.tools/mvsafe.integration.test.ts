@@ -135,7 +135,7 @@ describe('mvsafe.sh', () => {
           mvsafeArgs: ['--from', './source.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
           '--into is required when --from is specified',
         );
@@ -149,7 +149,7 @@ describe('mvsafe.sh', () => {
           mvsafeArgs: ['--into', './dest.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
           '--from is required when --into is specified',
         );
@@ -164,7 +164,7 @@ describe('mvsafe.sh', () => {
           mvsafeArgs: [],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('source path is required');
       });
 
@@ -185,7 +185,7 @@ describe('mvsafe.sh', () => {
           mvsafeArgs: ['./source.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('destination path is required');
       });
     });
@@ -197,7 +197,7 @@ describe('mvsafe.sh', () => {
           mvsafeArgs: ['--unknown', 'value'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('unknown option');
       });
     });
@@ -210,7 +210,7 @@ describe('mvsafe.sh', () => {
           mvsafeArgs: ['./nonexistent.txt', './dest.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('source does not exist');
       });
     });
@@ -228,7 +228,7 @@ describe('mvsafe.sh', () => {
             mvsafeArgs: [outsideFile, './dest.txt'],
           });
 
-          expect(result.exitCode).toBe(1);
+          expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(
             'source must be within the git repository',
           );
@@ -250,7 +250,7 @@ describe('mvsafe.sh', () => {
             mvsafeArgs: ['./sneaky-link.txt', './dest.txt'],
           });
 
-          expect(result.exitCode).toBe(1);
+          expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(
             'source must be within the git repository',
           );
@@ -280,7 +280,7 @@ describe('mvsafe.sh', () => {
             },
           );
 
-          expect(result.status).toBe(1);
+          expect(result.status).toBe(2);
           expect(result.stdout).toContain(
             'source must be within the git repository',
           );
@@ -301,7 +301,7 @@ describe('mvsafe.sh', () => {
           mvsafeArgs: ['./source.txt', '/tmp/outside-dest.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
           'destination must be within the git repository',
         );
@@ -316,7 +316,7 @@ describe('mvsafe.sh', () => {
           mvsafeArgs: ['./source.txt', './sneaky-dir/dest.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
           'destination must be within the git repository',
         );
@@ -330,7 +330,7 @@ describe('mvsafe.sh', () => {
           mvsafeArgs: ['./source.txt', '../../../tmp/escaped.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
           'destination must be within the git repository',
         );
@@ -357,7 +357,7 @@ describe('mvsafe.sh', () => {
             },
           );
 
-          expect(result.status).toBe(1);
+          expect(result.status).toBe(2);
           expect(result.stdout).toContain(
             'destination must be within the git repository',
           );
@@ -513,7 +513,7 @@ describe('mvsafe.sh', () => {
           },
         );
 
-        expect(result.status).toBe(1);
+        expect(result.status).toBe(2);
         expect(result.stdout).toContain('not in a git repository');
       });
     });
@@ -533,7 +533,7 @@ describe('mvsafe.sh', () => {
             mvsafeArgs: ['./link-to-outside/file.txt', './dest.txt'],
           });
 
-          expect(result.exitCode).toBe(1);
+          expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(
             'source must be within the git repository',
           );

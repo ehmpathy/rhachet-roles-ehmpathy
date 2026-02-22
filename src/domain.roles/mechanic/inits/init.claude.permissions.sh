@@ -39,7 +39,7 @@ PERMISSIONS_FILE="$SCRIPT_DIR/init.claude.permissions.jsonc"
 # verify permissions file exists
 if [[ ! -f "$PERMISSIONS_FILE" ]]; then
   echo "❌ permissions config not found: $PERMISSIONS_FILE" >&2
-  exit 1
+  exit 2
 fi
 
 # load and parse JSONC (strip comments before parsing)
