@@ -18,6 +18,7 @@ describe('git.commit.set.sh', () => {
     bindLevel?: string;
     gitUser?: { name: string; email: string };
     commitArgs: string[];
+    stdin?: string;
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
     const tempDir = genTempDir({ slug: 'git-commit-set-test', git: true });
 
@@ -99,14 +100,15 @@ describe('git.commit.set.sh', () => {
       }
     }
 
-    // auto-inject body into message unless already multiline
+    // auto-inject body into message unless already multiline or via @stdin
     const finalArgs = [...args.commitArgs];
     const messageIdx = finalArgs.findIndex(
       (a) => a === '--message' || a === '-m',
     );
     if (messageIdx !== -1 && messageIdx + 1 < finalArgs.length) {
       const msg = finalArgs[messageIdx + 1]!;
-      if (!msg.includes('\n\n')) {
+      // skip auto-inject for @stdin (stdin provides the full message)
+      if (msg !== '@stdin' && !msg.includes('\n\n')) {
         finalArgs[messageIdx + 1] = `${msg}\n\n- test change`;
       }
     }
@@ -114,6 +116,7 @@ describe('git.commit.set.sh', () => {
     const result = spawnSync('bash', [scriptPath, ...finalArgs], {
       cwd: tempDir,
       encoding: 'utf-8' as BufferEncoding,
+      input: args.stdin,
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
@@ -210,11 +213,11 @@ describe('git.commit.set.sh', () => {
           commitArgs: ['--message', 'some fix', '--mode', 'apply'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('🐢 bummer dude...');
         expect(result.stdout).toContain('no commit uses left');
         expect(result.stdout).toContain(
-          'git.commit.uses set --allow N --push allow|block',
+          'git.commit.uses set --quant N --push allow|block',
         );
         expect(result.stdout).toMatchSnapshot();
       });
@@ -262,7 +265,7 @@ describe('git.commit.set.sh', () => {
           commitArgs: ['--message', 'some fix', '--push'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('🐢 bummer dude...');
         expect(result.stdout).toContain('push not allowed in current grant');
         expect(result.stdout).toMatchSnapshot();
@@ -278,7 +281,7 @@ describe('git.commit.set.sh', () => {
           commitArgs: ['--message', 'some fix'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('no changes to commit');
       });
 
@@ -309,7 +312,7 @@ describe('git.commit.set.sh', () => {
           commitArgs: ['--message', 'some fix'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('cannot determine patron');
         expect(result.stdout).toMatchSnapshot();
       });
@@ -348,7 +351,7 @@ describe('git.commit.set.sh', () => {
           commitArgs: ['--message', 'some fix'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('unstaged changes detected');
         expect(result.stdout).toContain('unstaged.txt');
       });
@@ -844,7 +847,7 @@ describe('git.commit.set.sh', () => {
           ],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('bummer dude');
         expect(result.stdout).toContain("must start with 'fix'");
         expect(result.stdout).toContain('level bound by human');
@@ -921,7 +924,7 @@ describe('git.commit.set.sh', () => {
           commitArgs: ['--message', 'fix(ui): button color', '--mode', 'apply'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('bummer dude');
         expect(result.stdout).toContain("must start with 'feat'");
         expect(result.stdout).toContain('level bound by human');
@@ -978,7 +981,7 @@ describe('git.commit.set.sh', () => {
           commitArgs: ['--message', 'feat(api): add endpoint'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain("must start with 'fix'");
       });
     });
@@ -994,7 +997,7 @@ describe('git.commit.set.sh', () => {
           commitArgs: ['--message', 'fix: on main', '--push'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('🐢 bummer dude...');
         expect(result.stdout).toContain('cannot push directly to main');
         expect(result.stdout).toContain('git checkout -b turtle/');
@@ -1104,7 +1107,7 @@ describe('git.commit.set.sh', () => {
           },
         );
 
-        expect(result.status).toBe(1);
+        expect(result.status).toBe(2);
         expect(result.stdout).toContain('must be multiline');
       });
     });
@@ -1206,6 +1209,147 @@ describe('git.commit.set.sh', () => {
         expect(result.stdout).toContain('left: 1 → 0');
         expect(result.stdout).toContain('push: allowed → blocked (revoked)');
         expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case19] -m @stdin reads message from stdin', () => {
+    when('[t0] message piped via stdin', () => {
+      then('commit succeeds with stdin message', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: ['-m', '@stdin', '--mode', 'apply'],
+          stdin: 'fix(api): stdin message\n\n- fixed via stdin',
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+        expect(result.stdout).toContain('header: fix(api): stdin message');
+      });
+
+      then('commit log shows correct header from stdin', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 2, push: 'block' },
+          commitArgs: ['-m', '@stdin', '--mode', 'apply'],
+          stdin: 'fix(api): from stdin\n\n- body from stdin',
+        });
+
+        expect(result.exitCode).toBe(0);
+
+        const log = spawnSync('git', ['log', '--format=%s', '-1'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8',
+        });
+        expect(log.stdout.trim()).toBe('fix(api): from stdin');
+      });
+
+      then('commit body contains stdin content', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 2, push: 'block' },
+          commitArgs: ['-m', '@stdin', '--mode', 'apply'],
+          stdin: 'fix(api): body test\n\n- line one\n- line two',
+        });
+
+        expect(result.exitCode).toBe(0);
+
+        const log = spawnSync('git', ['log', '--format=%B', '-1'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8',
+        });
+        expect(log.stdout).toContain('- line one');
+        expect(log.stdout).toContain('- line two');
+      });
+    });
+
+    when('[t1] --message @stdin variant', () => {
+      then('works the same as -m @stdin', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: ['--message', '@stdin', '--mode', 'apply'],
+          stdin: 'fix(api): long flag stdin\n\n- via --message @stdin',
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+        expect(result.stdout).toContain('header: fix(api): long flag stdin');
+      });
+    });
+
+    when('[t2] plan mode with stdin', () => {
+      then('shows preview from stdin message', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: ['-m', '@stdin'],
+          stdin: 'fix(api): plan from stdin\n\n- planned via stdin',
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('heres the wave');
+        expect(result.stdout).toContain('header: fix(api): plan from stdin');
+        expect(result.stdout).toContain('- planned via stdin');
+      });
+    });
+
+    when('[t3] stdin with multiline body', () => {
+      then('preserves all body lines', () => {
+        const multilineMessage = `feat(ui): add button
+
+- added primary button component
+- added secondary variant
+- added disabled state
+- updated tests`;
+
+        const result = runInTempGitRepo({
+          files: { 'button.tsx': 'button content' },
+          meterState: { uses: 2, push: 'block' },
+          commitArgs: ['-m', '@stdin', '--mode', 'apply'],
+          stdin: multilineMessage,
+        });
+
+        expect(result.exitCode).toBe(0);
+
+        const log = spawnSync('git', ['log', '--format=%B', '-1'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8',
+        });
+        expect(log.stdout).toContain('- added primary button component');
+        expect(log.stdout).toContain('- added secondary variant');
+        expect(log.stdout).toContain('- added disabled state');
+        expect(log.stdout).toContain('- updated tests');
+      });
+    });
+
+    when('[t4] bound level enforced with stdin', () => {
+      then('rejects mismatched level from stdin', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          bindLevel: 'fix',
+          commitArgs: ['-m', '@stdin', '--mode', 'apply'],
+          stdin: 'feat(api): wrong level\n\n- should fail',
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain("must start with 'fix'");
+      });
+
+      then('accepts matching level from stdin', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          bindLevel: 'fix',
+          commitArgs: ['-m', '@stdin', '--mode', 'apply'],
+          stdin: 'fix(api): correct level\n\n- should pass',
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('righteous!');
       });
     });
   });

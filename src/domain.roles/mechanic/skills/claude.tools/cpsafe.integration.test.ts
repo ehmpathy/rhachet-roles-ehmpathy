@@ -147,7 +147,7 @@ describe('cpsafe.sh', () => {
           cpsafeArgs: ['--from', './source.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
           '--into is required when --from is specified',
         );
@@ -161,7 +161,7 @@ describe('cpsafe.sh', () => {
           cpsafeArgs: ['--into', './dest.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
           '--from is required when --into is specified',
         );
@@ -176,7 +176,7 @@ describe('cpsafe.sh', () => {
           cpsafeArgs: [],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('source path is required');
       });
 
@@ -197,7 +197,7 @@ describe('cpsafe.sh', () => {
           cpsafeArgs: ['./source.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('destination path is required');
       });
     });
@@ -209,7 +209,7 @@ describe('cpsafe.sh', () => {
           cpsafeArgs: ['--unknown', 'value'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('unknown option');
       });
     });
@@ -222,7 +222,7 @@ describe('cpsafe.sh', () => {
           cpsafeArgs: ['./nonexistent.txt', './dest.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('source does not exist');
       });
     });
@@ -234,7 +234,7 @@ describe('cpsafe.sh', () => {
           cpsafeArgs: ['./srcdir', './destdir'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('must be a file');
       });
     });
@@ -251,7 +251,7 @@ describe('cpsafe.sh', () => {
             cpsafeArgs: [outsideFile, './dest.txt'],
           });
 
-          expect(result.exitCode).toBe(1);
+          expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(
             'source must be within the git repository',
           );
@@ -272,7 +272,7 @@ describe('cpsafe.sh', () => {
             cpsafeArgs: ['./sneaky-link.txt', './dest.txt'],
           });
 
-          expect(result.exitCode).toBe(1);
+          expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(
             'source must be within the git repository',
           );
@@ -302,7 +302,7 @@ describe('cpsafe.sh', () => {
             },
           );
 
-          expect(result.status).toBe(1);
+          expect(result.status).toBe(2);
           expect(result.stdout).toContain(
             'source must be within the git repository',
           );
@@ -323,7 +323,7 @@ describe('cpsafe.sh', () => {
           cpsafeArgs: ['./source.txt', '/tmp/outside-dest.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
           'destination must be within the git repository',
         );
@@ -338,7 +338,7 @@ describe('cpsafe.sh', () => {
           cpsafeArgs: ['./source.txt', './sneaky-dir/dest.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
           'destination must be within the git repository',
         );
@@ -352,7 +352,7 @@ describe('cpsafe.sh', () => {
           cpsafeArgs: ['./source.txt', '../../../tmp/escaped.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
           'destination must be within the git repository',
         );
@@ -379,7 +379,7 @@ describe('cpsafe.sh', () => {
             },
           );
 
-          expect(result.status).toBe(1);
+          expect(result.status).toBe(2);
           expect(result.stdout).toContain(
             'destination must be within the git repository',
           );
@@ -468,7 +468,7 @@ describe('cpsafe.sh', () => {
           },
         );
 
-        expect(result.status).toBe(1);
+        expect(result.status).toBe(2);
         expect(result.stdout).toContain('not in a git repository');
       });
     });
@@ -487,7 +487,7 @@ describe('cpsafe.sh', () => {
             cpsafeArgs: ['./link-to-outside/file.txt', './dest.txt'],
           });
 
-          expect(result.exitCode).toBe(1);
+          expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(
             'source must be within the git repository',
           );

@@ -280,6 +280,6 @@ echo ""
 rm -f "$PWD/.claude/terms.gerunds.nudges.local.json"
 
 if [[ $FAILED -gt 0 ]]; then
-  exit 1
+  exit 2
 fi
 exit 0

@@ -28,7 +28,7 @@ exports[`git.commit.set.sh given: [case3] no uses left when: [t0] apply mode wit
    └─ error: no commit uses left
 
 ask your human to grant more:
-  $ git.commit.uses set --allow N --push allow|block
+  $ git.commit.uses set --quant N --push allow|block
 "
 `;
 

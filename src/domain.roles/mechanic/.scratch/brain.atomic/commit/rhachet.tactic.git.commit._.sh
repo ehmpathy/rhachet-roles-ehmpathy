@@ -105,13 +105,13 @@ choose_from_attempts() {
 
   command -v fzf >/dev/null 2>&1 || {
     echo "❌ fzf is required for interactive selection. install fzf and rerun." >&2
-    exit 1
+    exit 2
   }
 
   mapfile -t options < <(ls -1 $glob 2>/dev/null || true)
   if [[ ${#options[@]} -eq 0 ]]; then
     echo "⚠️  no attempts found for ${label} at ${glob}" >&2
-    exit 1
+    exit 2
   fi
 
   echo
@@ -132,7 +132,7 @@ choose_from_attempts() {
           --preview-window=right,70%:wrap
   )"
 
-  [[ -n "${pick:-}" ]] || { echo "❌ no selection made."; exit 1; }
+  [[ -n "${pick:-}" ]] || { echo "❌ no selection made."; exit 2; }
 
   echo "✅ selected: $(basename "$pick")"
 

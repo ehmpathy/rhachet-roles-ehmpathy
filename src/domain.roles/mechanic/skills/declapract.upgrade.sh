@@ -27,7 +27,7 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
   echo "❌ no declapract.use.yml found in project root"
   echo "   $CONFIG_FILE"
   echo "➡️  first configure declapract for this project"
-  exit 1
+  exit 2
 fi
 
 echo "📦 upgrading declapract packages..."

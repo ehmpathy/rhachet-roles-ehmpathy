@@ -134,7 +134,7 @@ describe('rmsafe.sh', () => {
           rmsafeArgs: [],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('path is required');
       });
 
@@ -155,7 +155,7 @@ describe('rmsafe.sh', () => {
           rmsafeArgs: ['--unknown', 'value'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('unknown option');
       });
     });
@@ -168,7 +168,7 @@ describe('rmsafe.sh', () => {
           rmsafeArgs: ['./nonexistent.txt'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('path does not exist');
       });
     });
@@ -180,7 +180,7 @@ describe('rmsafe.sh', () => {
           rmsafeArgs: ['./targetdir'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('target is a directory');
         expect(result.stdout).toContain('--recursive');
       });
@@ -193,7 +193,7 @@ describe('rmsafe.sh', () => {
           rmsafeArgs: ['-r', '.'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('cannot delete the repository root');
       });
     });
@@ -210,7 +210,7 @@ describe('rmsafe.sh', () => {
             rmsafeArgs: [outsideFile],
           });
 
-          expect(result.exitCode).toBe(1);
+          expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(
             'path must be within the git repository',
           );
@@ -269,7 +269,7 @@ describe('rmsafe.sh', () => {
             rmsafeArgs: [outsideFile],
           });
 
-          expect(result.exitCode).toBe(1);
+          expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(
             'path must be within the git repository',
           );
@@ -297,7 +297,7 @@ describe('rmsafe.sh', () => {
             stdio: ['pipe', 'pipe', 'pipe'],
           });
 
-          expect(result.status).toBe(1);
+          expect(result.status).toBe(2);
           expect(result.stdout).toContain(
             'path must be within the git repository',
           );
@@ -360,7 +360,7 @@ describe('rmsafe.sh', () => {
           stdio: ['pipe', 'pipe', 'pipe'],
         });
 
-        expect(result.status).toBe(1);
+        expect(result.status).toBe(2);
         expect(result.stdout).toContain('not in a git repository');
       });
     });
@@ -379,7 +379,7 @@ describe('rmsafe.sh', () => {
             rmsafeArgs: ['./link-to-outside/file.txt'],
           });
 
-          expect(result.exitCode).toBe(1);
+          expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(
             'path must be within the git repository',
           );

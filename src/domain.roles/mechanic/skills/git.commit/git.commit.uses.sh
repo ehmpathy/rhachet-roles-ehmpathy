@@ -6,13 +6,13 @@
 #         and whether push is allowed
 #
 # usage:
-#   git.commit.uses set --allow 3 --push block
-#   git.commit.uses set --allow 1 --push allow
-#   git.commit.uses set --allow 0               # revoke (--push defaults to block)
+#   git.commit.uses set --quant 3 --push block
+#   git.commit.uses set --quant 1 --push allow
+#   git.commit.uses set --quant 0               # revoke (--push defaults to block)
 #   git.commit.uses get
 #
 # guarantee:
-#   - --push is required on set (except --allow 0 which defaults to block)
+#   - --push is required on set (except --quant 0 which defaults to block)
 #   - state stored in .meter/git.commit.uses.jsonc
 ######################################################################
 set -euo pipefail
@@ -23,7 +23,7 @@ source "$SCRIPT_DIR/output.sh"
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository"
-  exit 1
+  exit 2
 fi
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -32,7 +32,7 @@ STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 
 # parse command (set or get)
 COMMAND=""
-ALLOW=""
+QUANT=""
 PUSH=""
 
 # first positional arg is command
@@ -47,8 +47,8 @@ while [[ $# -gt 0 ]]; do
       COMMAND="$1"
       shift
       ;;
-    --allow)
-      ALLOW="$2"
+    --quant)
+      QUANT="$2"
       shift 2
       ;;
     --push)
@@ -56,7 +56,7 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --help|-h)
-      echo "usage: git.commit.uses set --allow N --push allow|block"
+      echo "usage: git.commit.uses set --quant N --push allow|block"
       echo "       git.commit.uses get"
       echo ""
       echo "commands:"
@@ -64,7 +64,7 @@ while [[ $# -gt 0 ]]; do
       echo "  get    check quota left"
       echo ""
       echo "options (set):"
-      echo "  --allow N             number of commits to allow"
+      echo "  --quant N             number of commits to allow"
       echo "  --push allow|block    whether push is permitted (required)"
       echo ""
       echo "options:"
@@ -80,9 +80,9 @@ while [[ $# -gt 0 ]]; do
       ;;
     --*)
       echo "error: unknown option: $1"
-      echo "usage: git.commit.uses set --allow N --push allow|block"
+      echo "usage: git.commit.uses set --quant N --push allow|block"
       echo "       git.commit.uses get"
-      exit 1
+      exit 2
       ;;
     *)
       shift
@@ -93,62 +93,76 @@ done
 # validate command
 if [[ -z "$COMMAND" ]]; then
   echo "error: command required (set or get)"
-  echo "usage: git.commit.uses set --allow N --push allow|block"
+  echo "usage: git.commit.uses set --quant N --push allow|block"
   echo "       git.commit.uses get"
-  exit 1
+  exit 2
 fi
 
 case "$COMMAND" in
   set)
-    # validate --allow
-    if [[ -z "$ALLOW" ]]; then
-      echo "error: --allow N is required"
-      echo "usage: git.commit.uses set --allow N --push allow|block"
-      exit 1
+    # validate --quant
+    if [[ -z "$QUANT" ]]; then
+      echo "error: --quant N is required"
+      echo "usage: git.commit.uses set --quant N --push allow|block"
+      exit 2
     fi
 
-    # default --push to block when allow is 0 (revoke implies no push)
-    if [[ -z "$PUSH" && "$ALLOW" == "0" ]]; then
+    # default --push to block when quant is 0 (revoke implies no push)
+    if [[ -z "$PUSH" && "$QUANT" == "0" ]]; then
       PUSH="block"
     fi
 
     # validate --push required
     if [[ -z "$PUSH" ]]; then
       echo "error: --push allow|block is required"
-      echo "usage: git.commit.uses set --allow N --push allow|block"
-      exit 1
+      echo "usage: git.commit.uses set --quant N --push allow|block"
+      exit 2
     fi
 
     # validate --push value
     if [[ "$PUSH" != "allow" && "$PUSH" != "block" ]]; then
       echo "error: --push must be 'allow' or 'block'"
-      echo "usage: git.commit.uses set --allow N --push allow|block"
-      exit 1
+      echo "usage: git.commit.uses set --quant N --push allow|block"
+      exit 2
     fi
 
-    # validate --allow is a number
-    if ! [[ "$ALLOW" =~ ^[0-9]+$ ]]; then
-      echo "error: --allow must be a non-negative integer"
-      exit 1
+    # validate --quant is a number
+    if ! [[ "$QUANT" =~ ^[0-9]+$ ]]; then
+      echo "error: --quant must be a non-negative integer"
+      exit 2
     fi
 
-    # ensure .meter directory exists
+    # ensure .meter directory exists with .gitignore
     mkdir -p "$METER_DIR"
+    if [[ ! -f "$METER_DIR/.gitignore" ]]; then
+      cat > "$METER_DIR/.gitignore" << 'GITIGNORE'
+# .meter state files are local-only
+# they track per-session mechanic quotas (commit uses, push permissions, etc.)
+# and must not be committed to the repo
+
+# ignore all state files
+*.jsonc
+*.json
+
+# but keep the gitignore
+!.gitignore
+GITIGNORE
+    fi
 
     # write state file
     cat > "$STATE_FILE" << EOF
 {
-  "uses": $ALLOW,
+  "uses": $QUANT,
   "push": "$PUSH"
 }
 EOF
 
     # output with turtle vibes
-    if [[ "$ALLOW" == "0" && "$PUSH" == "block" ]]; then
+    if [[ "$QUANT" == "0" && "$PUSH" == "block" ]]; then
       print_turtle_header "groovy, break time"
       print_tree_start "git.commit.uses set"
       echo "   └─ revoked"
-    elif [[ "$ALLOW" == "0" && "$PUSH" == "allow" ]]; then
+    elif [[ "$QUANT" == "0" && "$PUSH" == "allow" ]]; then
       print_turtle_header "sweet, let it ride"
       print_tree_start "git.commit.uses set"
       echo "   ├─ commits: 0"
@@ -156,12 +170,12 @@ EOF
     elif [[ "$PUSH" == "allow" ]]; then
       print_turtle_header "radical! let's ride!"
       print_tree_start "git.commit.uses set"
-      echo "   ├─ granted: $ALLOW"
+      echo "   ├─ granted: $QUANT"
       echo "   └─ push: allowed"
     else
       print_turtle_header "gnarly! thanks human!"
       print_tree_start "git.commit.uses set"
-      echo "   ├─ granted: $ALLOW"
+      echo "   ├─ granted: $QUANT"
       echo "   └─ push: blocked"
     fi
     ;;
@@ -174,7 +188,7 @@ EOF
       echo "   └─ no quota set"
       echo ""
       echo "ask your human to grant:"
-      echo "  \$ git.commit.uses set --allow N --push allow|block"
+      echo "  \$ git.commit.uses set --quant N --push allow|block"
       exit 0
     fi
 
@@ -198,8 +212,8 @@ EOF
 
   *)
     echo "error: unknown command: $COMMAND"
-    echo "usage: git.commit.uses set --allow N --push allow|block"
+    echo "usage: git.commit.uses set --quant N --push allow|block"
     echo "       git.commit.uses get"
-    exit 1
+    exit 2
     ;;
 esac

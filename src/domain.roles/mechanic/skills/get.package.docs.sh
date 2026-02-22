@@ -50,7 +50,7 @@ while [[ $# -gt 0 ]]; do
       echo "usage:" >&2
       echo "  get.package.docs.sh readme --of \$package" >&2
       echo "  get.package.docs.sh filetree --of \$package" >&2
-      exit 1
+      exit 2
       ;;
   esac
 done
@@ -62,7 +62,7 @@ if [[ -z "$SUBCOMMAND" ]]; then
   echo "usage:" >&2
   echo "  get.package.docs.sh readme --of \$package" >&2
   echo "  get.package.docs.sh filetree --of \$package" >&2
-  exit 1
+  exit 2
 fi
 
 if [[ -z "$PACKAGE" ]]; then
@@ -70,7 +70,7 @@ if [[ -z "$PACKAGE" ]]; then
   echo "" >&2
   echo "usage:" >&2
   echo "  get.package.docs.sh $SUBCOMMAND --of \$package" >&2
-  exit 1
+  exit 2
 fi
 
 # validate package is installed
@@ -80,7 +80,7 @@ if [[ ! -d "$PACKAGE_DIR" ]]; then
   echo "" >&2
   echo "install it first:" >&2
   echo "  npm install $PACKAGE" >&2
-  exit 1
+  exit 2
 fi
 
 # get installed version
@@ -139,7 +139,7 @@ _get_readme() {
     echo "" >&2
     echo "check network connection, or try:" >&2
     echo "  npx rhachet run --skill get.package.docs filetree --of $PACKAGE" >&2
-    exit 1
+    exit 2
   }
 
   local readme
@@ -150,7 +150,7 @@ _get_readme() {
     echo "" >&2
     echo "explore the package contents instead:" >&2
     echo "  npx rhachet run --skill get.package.docs filetree --of $PACKAGE" >&2
-    exit 1
+    exit 2
   fi
 
   # cache the result

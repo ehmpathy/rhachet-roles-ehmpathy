@@ -6,11 +6,10 @@
 #         goes to the human who delegated the work
 #
 # usage:
-#   git.commit.set -m 'fix(api): validate input\n\n- added input schema\n- added error handler'
-#   git.commit.set -m $MESSAGE
-#   git.commit.set --mode apply -m $MESSAGE
-#   git.commit.set --push -m $MESSAGE
-#   git.commit.set --unstaged ignore -m $MESSAGE
+#   echo "fix(api): validate input\n\n- added input schema" | git.commit.set -m @stdin
+#   git.commit.set -m @stdin --mode apply
+#   git.commit.set -m @stdin --mode apply --push
+#   git.commit.set -m @stdin --unstaged ignore
 #
 # message format:
 #   first line = commit header (required)
@@ -36,7 +35,7 @@ ROBOT_EMAIL="seaturtle@ehmpath.com"
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository"
-  exit 1
+  exit 2
 fi
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -52,7 +51,12 @@ MODE="plan"
 while [[ $# -gt 0 ]]; do
   case $1 in
     --message|-m)
-      MESSAGE="$2"
+      if [[ "$2" == "@stdin" ]]; then
+        # read message from stdin
+        MESSAGE=$(cat)
+      else
+        MESSAGE="$2"
+      fi
       shift 2
       ;;
     --push)
@@ -68,10 +72,10 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --help|-h)
-      echo "usage: git.commit.set -m \$'header\\n\\n- body line 1\\n- body line 2' [--mode plan|apply] [--push]"
+      echo "usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push]"
       echo ""
       echo "options:"
-      echo "  --message, -m          multiline commit message (required)"
+      echo "  --message, -m @stdin   read multiline commit message from stdin (required)"
       echo "                         first line = header, after blank line = body"
       echo "  --mode plan|apply      plan shows preview, apply executes (default: plan)"
       echo "  --push                 push after commit (requires push permission)"
@@ -89,8 +93,8 @@ while [[ $# -gt 0 ]]; do
       ;;
     --*)
       echo "error: unknown option: $1"
-      echo "usage: git.commit.set -m \$'header\\n\\n- body' [--mode plan|apply] [--push]"
-      exit 1
+      echo "usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push]"
+      exit 2
       ;;
     *)
       shift
@@ -101,8 +105,8 @@ done
 # validate --message
 if [[ -z "$MESSAGE" ]]; then
   echo "error: --message is required"
-  echo "usage: git.commit.set -m \$'header\\n\\n- body' [--mode plan|apply] [--push]"
-  exit 1
+  echo "usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push]"
+  exit 2
 fi
 
 # parse header and body from multiline message
@@ -112,22 +116,22 @@ BODY=$(echo "$MESSAGE" | tail -n +3)
 # validate message has body (header + blank line + body)
 if [[ -z "$BODY" ]]; then
   echo "error: --message must be multiline (header + blank line + body)"
-  echo "usage: git.commit.set -m \$'header\\n\\n- body line 1\\n- body line 2'"
-  exit 1
+  echo "usage: echo 'header\n\n- body line 1' | git.commit.set -m @stdin"
+  exit 2
 fi
 
 # validate --unstaged value
 if [[ -n "$UNSTAGED" && "$UNSTAGED" != "ignore" && "$UNSTAGED" != "include" ]]; then
   echo "error: --unstaged must be 'ignore' or 'include'"
-  echo "usage: git.commit.set -m \$'header\\n\\n- body' [--mode plan|apply] [--push] [--unstaged ignore|include]"
-  exit 1
+  echo "usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--unstaged ignore|include]"
+  exit 2
 fi
 
 # validate --mode value
 if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
   echo "error: --mode must be 'plan' or 'apply'"
-  echo "usage: git.commit.set -m \$'header\\n\\n- body' [--mode plan|apply] [--push] [--unstaged ignore|include]"
-  exit 1
+  echo "usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--mode plan|apply]"
+  exit 2
 fi
 
 # guard: bound level constraint (human prescribes feat or fix)
@@ -148,7 +152,7 @@ if [[ -n "$BOUND_LEVEL" ]]; then
     echo "   bound level: $BOUND_LEVEL"
     echo ""
     echo "fix: use a '$BOUND_LEVEL(scope): ...' or '$BOUND_LEVEL: ...' prefix"
-    exit 1
+    exit 2  # blocked by constraints
   fi
 fi
 
@@ -157,8 +161,8 @@ if [[ ! -f "$STATE_FILE" ]]; then
   print_turtle_header "bummer dude..."
   print_tree_start "git.commit.set"
   print_tree_error "no commit quota set"
-  print_instruction "ask your human to grant:" "  \$ git.commit.uses set --allow N --push allow|block"
-  exit 1
+  print_instruction "ask your human to grant:" "  \$ git.commit.uses set --quant N --push allow|block"
+  exit 2  # blocked by constraints
 fi
 
 # read state
@@ -170,8 +174,8 @@ if [[ "$USES" -le 0 && "$MODE" != "plan" ]]; then
   print_turtle_header "bummer dude..."
   print_tree_start "git.commit.set"
   print_tree_error "no commit uses left"
-  print_instruction "ask your human to grant more:" "  \$ git.commit.uses set --allow N --push allow|block"
-  exit 1
+  print_instruction "ask your human to grant more:" "  \$ git.commit.uses set --quant N --push allow|block"
+  exit 2  # blocked by constraints
 fi
 
 # check push permission
@@ -180,7 +184,7 @@ if [[ "$DO_PUSH" == true && "$PUSH_ALLOWED" != "allow" ]]; then
   print_tree_start "git.commit.set"
   print_tree_error "push not allowed in current grant"
   print_instruction "ask your human to grant with --push allow" ""
-  exit 1
+  exit 2  # blocked by constraints
 fi
 
 # detect work outside the index (unstaged mods + untracked files)
@@ -217,7 +221,7 @@ if [[ "$HAS_UNSTAGED_MODS" == true || "$HAS_UNTRACKED" == true ]]; then
     echo "  1. stage the changes you want to commit"
     echo "  2. pass --unstaged ignore to commit only staged changes"
     echo "  3. pass --unstaged include to stage all changes before commit"
-    exit 1
+    exit 2  # blocked by constraints
   fi
 fi
 
@@ -225,13 +229,13 @@ fi
 if [[ "$WILL_INCLUDE_UNSTAGED" == false ]]; then
   if git diff --cached --quiet; then
     echo "error: no changes to commit (no staged changes)"
-    exit 1
+    exit 2  # blocked by constraints
   fi
 else
   # in plan mode with --unstaged include, check that there ARE changes to include
   if git diff --cached --quiet && git diff --quiet && [[ -z "$(git ls-files --others --exclude-standard)" ]]; then
     echo "error: no changes to commit"
-    exit 1
+    exit 2  # blocked by constraints
   fi
 fi
 
@@ -244,7 +248,7 @@ if [[ -z "$HUMAN_NAME" || -z "$HUMAN_EMAIL" ]]; then
   print_tree_start "git.commit.set"
   print_tree_error "cannot determine patron"
   print_instruction "human must configure git identity:" "  \$ git config user.name \"Your Name\"\n  \$ git config user.email \"your@email.com\""
-  exit 1
+  exit 2  # blocked by constraints
 fi
 
 # get current branch for output
@@ -277,7 +281,7 @@ if [[ "$MODE" == "plan" ]]; then
     if [[ "$PUSH_PLAN_STATUS" != "planned" ]]; then
       # push plan failed — delegate to push tree output for user-friendly error
       "$SCRIPT_DIR/git.commit.push.sh" --mode plan --pr-title-fallback "$HEADER" || true
-      exit 1
+      exit 2
     fi
   fi
 

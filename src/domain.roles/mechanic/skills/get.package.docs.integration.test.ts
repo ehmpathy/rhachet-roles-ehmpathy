@@ -59,7 +59,7 @@ describe('get.package.docs.sh', () => {
       then('exits with error', () => {
         const result = runSkill('readme --of nonexistent-pkg-xyz-12345');
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
       });
 
       then('error mentions package not found', () => {
@@ -97,7 +97,7 @@ describe('get.package.docs.sh', () => {
       then('exits with error', () => {
         const result = runSkill('filetree --of nonexistent-pkg-xyz-12345');
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('not found in node_modules');
       });
     });
@@ -144,7 +144,7 @@ describe('get.package.docs.sh', () => {
       then('exits with error', () => {
         const result = runSkill('--of test-fns');
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('subcommand required');
       });
     });
@@ -153,7 +153,7 @@ describe('get.package.docs.sh', () => {
       then('exits with error', () => {
         const result = runSkill('readme');
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('--of is required');
       });
     });
@@ -162,7 +162,7 @@ describe('get.package.docs.sh', () => {
       then('exits with error', () => {
         const result = runSkill('readme --of test-fns --unknown-arg');
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('unknown argument');
       });
     });

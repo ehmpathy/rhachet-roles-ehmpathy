@@ -219,12 +219,13 @@
       "Bash(npx rhachet run --skill git.commit.bind get)",
 
       // git.commit.set - create commit as robot with human co-author
+      // message is piped via stdin: echo "$MSG" | npx rhachet run --skill git.commit.set -m @stdin
       "Bash(npx rhachet run --skill git.commit.set:*)",
-      "Bash(npx rhachet run --skill git.commit.set -m 'fix(api): validate input\n\n- added input schema\n- added error handler')",
-      "Bash(npx rhachet run --skill git.commit.set -m $MESSAGE)",
-      "Bash(npx rhachet run --skill git.commit.set --mode apply -m $MESSAGE)",
-      "Bash(npx rhachet run --skill git.commit.set --push -m $MESSAGE)",
-      "Bash(npx rhachet run --skill git.commit.set --unstaged ignore -m $MESSAGE)",
+      // examples: pipe message via stdin (avoids shell escape issues)
+      "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin)",
+      "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin --mode apply)",
+      "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin --mode apply --push)",
+      "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin --unstaged ignore)",
 
       // git.commit.push - push HEAD commit to origin and findsert draft pr
       "Bash(npx rhachet run --skill git.commit.push:*)",

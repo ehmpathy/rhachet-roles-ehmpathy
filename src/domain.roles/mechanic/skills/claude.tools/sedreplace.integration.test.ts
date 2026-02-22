@@ -329,7 +329,7 @@ describe('sedreplace.sh', () => {
           sedArgs: ['--old', 'MATCH_ME'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('--new replacement is required');
         expect(result.stderr.trim()).toMatchSnapshot();
       });
@@ -344,7 +344,7 @@ describe('sedreplace.sh', () => {
           sedArgs: ['--new', 'REPLACED'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('--old pattern is required');
         expect(result.stderr.trim()).toMatchSnapshot();
       });
@@ -641,7 +641,7 @@ describe('sedreplace.sh', () => {
           sedArgs: ['--old', 'MATCH_ME', '--new', 'REPLACED', '--mode', 'foo'],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain("--mode must be 'plan' or 'apply'");
         expect(result.stderr.trim()).toMatchSnapshot();
       });
@@ -1049,7 +1049,7 @@ describe('sedreplace.sh', () => {
           },
         );
 
-        expect(result.status).toBe(1);
+        expect(result.status).toBe(2);
         expect(result.stderr).toContain('not in a git repository');
       });
     });

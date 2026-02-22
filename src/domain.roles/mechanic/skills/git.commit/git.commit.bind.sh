@@ -24,7 +24,7 @@ source "$SCRIPT_DIR/output.sh"
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository"
-  exit 1
+  exit 2
 fi
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
@@ -62,7 +62,7 @@ while [[ $# -gt 0 ]]; do
     --*)
       echo "error: unknown option: $1"
       echo "usage: git.commit.bind get | set --level fix|feat | del"
-      exit 1
+      exit 2
       ;;
     *)
       shift
@@ -74,7 +74,7 @@ done
 if [[ -z "$SUBCOMMAND" ]]; then
   echo "error: subcommand is required (get, set, or del)"
   echo "usage: git.commit.bind get | set --level fix|feat | del"
-  exit 1
+  exit 2
 fi
 
 case "$SUBCOMMAND" in
@@ -83,12 +83,12 @@ case "$SUBCOMMAND" in
     if [[ -z "$LEVEL" ]]; then
       echo "error: --level is required for set"
       echo "usage: git.commit.bind set --level fix|feat"
-      exit 1
+      exit 2
     fi
     if [[ "$LEVEL" != "feat" && "$LEVEL" != "fix" ]]; then
       echo "error: --level must be 'feat' or 'fix'"
       echo "usage: git.commit.bind set --level fix|feat"
-      exit 1
+      exit 2
     fi
 
     # findsert directory scaffold

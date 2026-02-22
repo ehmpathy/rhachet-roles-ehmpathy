@@ -50,7 +50,7 @@ while [[ $# -gt 0 ]]; do
       echo "usage: rmsafe.sh <path>"
       echo "       rmsafe.sh -r <path>"
       echo "       rmsafe.sh --path <path> [--recursive]"
-      exit 1
+      exit 2
       ;;
     *)
       # positional argument
@@ -71,13 +71,13 @@ if [[ -z "$TARGET" ]]; then
   echo "usage: rmsafe.sh <path>"
   echo "       rmsafe.sh -r <path>"
   echo "       rmsafe.sh --path <path> [--recursive]"
-  exit 1
+  exit 2
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository"
-  exit 1
+  exit 2
 fi
 
 # get repo root (resolve symlinks fully)
@@ -86,7 +86,7 @@ REPO_ROOT=$(realpath "$(git rev-parse --show-toplevel)")
 # validate target exists (check symlink OR regular file/dir)
 if [[ ! -e "$TARGET" && ! -L "$TARGET" ]]; then
   echo "error: path does not exist: $TARGET"
-  exit 1
+  exit 2
 fi
 
 # resolve target path for boundary check
@@ -111,19 +111,19 @@ if [[ "$TARGET_ABS" != "$REPO_ROOT" && "$TARGET_ABS" != "$REPO_ROOT/"* ]]; then
   echo "error: path must be within the git repository"
   echo "  repo root: $REPO_ROOT"
   echo "  path:      $TARGET_ABS"
-  exit 1
+  exit 2
 fi
 
 # prevent delete of repo root itself
 if [[ "$TARGET_ABS" == "$REPO_ROOT" ]]; then
   echo "error: cannot delete the repository root"
-  exit 1
+  exit 2
 fi
 
 # check if directory and require --recursive
 if [[ -d "$TARGET_ABS" ]] && [[ "$RECURSIVE" != true ]]; then
   echo "error: target is a directory, use -r or --recursive to delete"
-  exit 1
+  exit 2
 fi
 
 # perform the removal

@@ -254,7 +254,7 @@ describe('compress.via.llmlingua', () => {
           ],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('no files matched');
       });
     });
@@ -434,7 +434,7 @@ describe('compress.via.llmlingua', () => {
           ],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('--ratio must be');
       });
 
@@ -453,7 +453,7 @@ describe('compress.via.llmlingua', () => {
           ],
         });
 
-        expect(result.exitCode).toBe(1);
+        expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('--ratio must be');
       });
     });

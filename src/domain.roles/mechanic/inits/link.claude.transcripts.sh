@@ -30,7 +30,7 @@ if [[ ! -d "$CLAUDE_STORAGE" ]]; then
   echo "❌ no Claude transcripts found for this project:"
   echo "   $CLAUDE_STORAGE"
   echo "➡️  first run 'claude' once in this directory to create them"
-  exit 1
+  exit 2
 fi
 
 # Ensure our local parent folder exists (not Claude’s)

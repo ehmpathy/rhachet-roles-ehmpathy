@@ -105,7 +105,7 @@ while [[ $# -gt 0 ]]; do
     -*)
       echo "unknown flag: $1" >&2
       echo "usage: brief.condense.sh --from <path|glob> [--onPress <spec>] [--mode plan|apply]" >&2
-      exit 1
+      exit 2
       ;;
     *)
       # positional arg = file path (backwards compat)
@@ -113,7 +113,7 @@ while [[ $# -gt 0 ]]; do
         FILE_PATH="$1"
       else
         echo "unexpected argument: $1" >&2
-        exit 1
+        exit 2
       fi
       shift
       ;;
@@ -163,31 +163,31 @@ fi
 # validate: need --from
 if [[ -z "$FILE_PATH" && -z "$GLOB_PATTERN" ]]; then
   echo "error: --from is required (file path or glob pattern)" >&2
-  exit 1
+  exit 2
 fi
 
 # validate: --into only valid for single file
 if [[ -n "$INTO_PATH" && -n "$GLOB_PATTERN" ]]; then
   echo "error: --into only valid for single file input, not with glob --from" >&2
-  exit 1
+  exit 2
 fi
 
 # validate mode
 if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
   echo "error: --mode must be 'plan' or 'apply' (got '$MODE')" >&2
-  exit 1
+  exit 2
 fi
 
 # validate attempts is numeric
 if ! [[ "$ATTEMPTS" =~ ^[0-9]+$ ]] || [[ "$ATTEMPTS" -lt 1 ]]; then
   echo "error: --attempts must be a positive number (got '$ATTEMPTS')" >&2
-  exit 1
+  exit 2
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository" >&2
-  exit 1
+  exit 2
 fi
 
 # enumerate files to condense
@@ -196,7 +196,7 @@ if [[ -n "$FILE_PATH" ]]; then
   # single file mode
   if [[ ! -f "$FILE_PATH" ]]; then
     echo "error: file not found: $FILE_PATH" >&2
-    exit 1
+    exit 2
   fi
   FILES+=("$FILE_PATH")
 else
@@ -211,7 +211,7 @@ else
 
   if [[ ${#FILES[@]} -eq 0 ]]; then
     echo "error: no files matched pattern '$GLOB_PATTERN'" >&2
-    exit 1
+    exit 2
   fi
 fi
 
@@ -222,7 +222,7 @@ MECH_JS="$SKILL_DIR/condense.js"
 if [[ ! -f "$MECH_JS" ]]; then
   echo "error: mechanism not found at $MECH_JS" >&2
   echo "hint: run 'npm run build' to compile typescript" >&2
-  exit 1
+  exit 2
 fi
 
 # process each file
