@@ -774,7 +774,7 @@ describe('sedreplace.sh', () => {
     });
 
     when('[t3] gitignored file has pattern', () => {
-      then('it should also modify gitignored files (within repo)', () => {
+      then('it should NOT modify gitignored files', () => {
         const tempDir = genTempDir({
           slug: 'sedreplace-gitignore-test',
           git: true,
@@ -827,7 +827,71 @@ describe('sedreplace.sh', () => {
         );
         expect(trackedContent).toBe('const REPLACED = 1;');
 
-        // gitignored file should also be modified (it's within repo)
+        // gitignored file should NOT be modified (excluded by --exclude-standard)
+        const ignoredContent = fs.readFileSync(
+          path.join(tempDir, 'ignored.ts'),
+          'utf-8',
+        );
+        expect(ignoredContent).toBe('const MATCH_ME = 2;');
+      });
+    });
+
+    when('[t4] gitignored file with --include-ignored flag', () => {
+      then('it should modify gitignored files when flag is set', () => {
+        const tempDir = genTempDir({
+          slug: 'sedreplace-include-ignored-test',
+          git: true,
+        });
+
+        // create .gitignore
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), 'ignored.ts\n');
+
+        // create tracked file
+        fs.writeFileSync(
+          path.join(tempDir, 'tracked.ts'),
+          'const MATCH_ME = 1;',
+        );
+
+        // create ignored file (will not be tracked due to .gitignore)
+        fs.writeFileSync(
+          path.join(tempDir, 'ignored.ts'),
+          'const MATCH_ME = 2;',
+        );
+
+        // commit tracked files (ignored.ts won't be added)
+        execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+        execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+        // run sedreplace with --include-ignored
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--old',
+            'MATCH_ME',
+            '--new',
+            'REPLACED',
+            '--mode',
+            'apply',
+            '--include-ignored',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8',
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+
+        // tracked file should be modified
+        const trackedContent = fs.readFileSync(
+          path.join(tempDir, 'tracked.ts'),
+          'utf-8',
+        );
+        expect(trackedContent).toBe('const REPLACED = 1;');
+
+        // gitignored file should ALSO be modified (--include-ignored flag)
         const ignoredContent = fs.readFileSync(
           path.join(tempDir, 'ignored.ts'),
           'utf-8',

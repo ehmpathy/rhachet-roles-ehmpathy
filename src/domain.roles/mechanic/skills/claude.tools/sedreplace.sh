@@ -14,9 +14,11 @@
 #   sedreplace.sh --old "pattern" --new "replacement" --mode plan            # plan (explicit)
 #   sedreplace.sh --old "pattern" --new "replacement" --mode apply           # apply
 #   sedreplace.sh --old "pattern" --new "replacement" --glob "*.ts"          # filter
+#   sedreplace.sh --old "pattern" --new "replacement" --include-ignored      # include gitignored
 #
 # guarantee:
-#   - operates on all files within repo (tracked and untracked)
+#   - operates on all files within repo (tracked and untracked, gitignored excluded)
+#   - excludes gitignored files by default (e.g., node_modules)
 #   - plan mode by default (shows diff, no changes)
 #   - requires --mode apply to apply changes
 #   - fail-fast on errors
@@ -29,6 +31,7 @@ NEW_PATTERN=""
 NEW_PROVIDED=false
 GLOB_FILTER=""
 MODE="plan"
+INCLUDE_IGNORED=false
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -48,6 +51,10 @@ while [[ $# -gt 0 ]]; do
     --mode)
       MODE="$2"
       shift 2
+      ;;
+    --include-ignored)
+      INCLUDE_IGNORED=true
+      shift
       ;;
     --repo|--role|--skill)
       # rhachet passthrough args - ignore
@@ -104,14 +111,25 @@ escape_sed_replacement() {
 # display glob for output
 GLOB_DISPLAY="${GLOB_FILTER:-(all)}"
 
-# get all files in repo (tracked + untracked), optionally filtered by glob
+# get all files in repo, optionally filtered by glob
 # note: use :(glob) magic pathspec for proper shell-like glob behavior
-# without this, git ls-files uses pathspec matching where * matches /
-# --cached = tracked files, --others = untracked files (no --exclude-standard = include ignored)
-if [[ -n "$GLOB_FILTER" ]]; then
-  FILES=$(git ls-files --cached --others ":(glob)$GLOB_FILTER")
+# without this, git ls-files uses pathspec match where * matches /
+# --cached = tracked files, --others = untracked files
+# --exclude-standard = exclude gitignored (default), omit for --include-ignored
+if [[ "$INCLUDE_IGNORED" == "true" ]]; then
+  # include gitignored files (tracked + all untracked)
+  if [[ -n "$GLOB_FILTER" ]]; then
+    FILES=$(git ls-files --cached --others ":(glob)$GLOB_FILTER")
+  else
+    FILES=$(git ls-files --cached --others)
+  fi
 else
-  FILES=$(git ls-files --cached --others)
+  # exclude gitignored files (default)
+  if [[ -n "$GLOB_FILTER" ]]; then
+    FILES=$(git ls-files --cached --others --exclude-standard ":(glob)$GLOB_FILTER")
+  else
+    FILES=$(git ls-files --cached --others --exclude-standard)
+  fi
 fi
 
 if [[ -z "$FILES" ]]; then
