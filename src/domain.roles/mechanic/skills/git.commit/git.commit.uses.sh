@@ -132,21 +132,10 @@ case "$COMMAND" in
       exit 2
     fi
 
-    # ensure .meter directory exists with .gitignore
+    # findsert .meter dir and .gitignore
     mkdir -p "$METER_DIR"
     if [[ ! -f "$METER_DIR/.gitignore" ]]; then
-      cat > "$METER_DIR/.gitignore" << 'GITIGNORE'
-# .meter state files are local-only
-# they track per-session mechanic quotas (commit uses, push permissions, etc.)
-# and must not be committed to the repo
-
-# ignore all state files
-*.jsonc
-*.json
-
-# but keep the gitignore
-!.gitignore
-GITIGNORE
+      echo "*" > "$METER_DIR/.gitignore"
     fi
 
     # write state file
