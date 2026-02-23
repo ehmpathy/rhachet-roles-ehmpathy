@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = push HEAD commit to origin and findsert draft pr
+# .what = push HEAD commit to origin and findsert pr
 #
 # .why  = mechanics can push after a commit was already made,
 #         or git.commit.set can compose with this for --push
@@ -217,7 +217,7 @@ if [[ "$MODE" == "plan" ]]; then
   if [[ "$OUTPUT" == "json" ]]; then
     # escape quotes in pr title for valid json
     PR_TITLE_ESCAPED=$(echo "$PR_TITLE" | sed 's/"/\\"/g')
-    printf '{"status":"planned","push_target":"%s","pr_title":"%s","pr_action":"findsert draft"}\n' \
+    printf '{"status":"planned","push_target":"%s","pr_title":"%s","pr_action":"findsert"}\n' \
       "$PUSH_TARGET" "$PR_TITLE_ESCAPED"
   else
     print_turtle_header "heres the wave..."
@@ -225,7 +225,7 @@ if [[ "$MODE" == "plan" ]]; then
     echo "   ├─ push: $PUSH_TARGET"
     echo "   ├─ pr"
     echo "   │  ├─ title: $PR_TITLE"
-    echo "   │  └─ action: findsert draft"
+    echo "   │  └─ action: findsert"
     echo "   └─ meter"
     if [[ "$USES" -le 0 ]]; then
       echo "      └─ push: allowed → blocked (revoked)"
@@ -253,7 +253,7 @@ PR_FOUND=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr list --head "$
 if [[ -n "$PR_FOUND" ]]; then
   PR_STATUS="pr #$PR_FOUND (found)"
 else
-  # create draft pr with first commit message as body
+  # create pr with first commit message as body
   PR_BODY_FULL="$PR_BODY
 
 ---
@@ -261,7 +261,6 @@ else
   NEW_PR=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr create \
     --title "$PR_TITLE" \
     --body "$PR_BODY_FULL" \
-    --draft \
     2>/dev/null | grep -oE '[0-9]+$' || echo "")
 
   if [[ -n "$NEW_PR" ]]; then
