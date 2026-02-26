@@ -256,6 +256,10 @@
       // any op, even... for now...
       "Bash(npx rhachet:*)",
 
+      // rhx synonyms
+      "Bash(rhx:*)",
+      "Bash(npx rhx:*)",
+
       // npm read operations
       "Bash(npm view:*)",
       "Bash(npm list:*)",
