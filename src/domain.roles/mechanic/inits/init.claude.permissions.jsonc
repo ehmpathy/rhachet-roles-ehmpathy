@@ -226,6 +226,14 @@
       "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin --mode apply)",
       "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin --mode apply --push)",
       "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin --unstaged ignore)",
+      "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin --unstaged include)",
+      // rhx variants
+      "Bash(rhx git.commit.set:*)",
+      "Bash(echo $MESSAGE | rhx git.commit.set -m @stdin)",
+      "Bash(echo $MESSAGE | rhx git.commit.set -m @stdin --mode apply)",
+      "Bash(echo $MESSAGE | rhx git.commit.set -m @stdin --mode apply --push)",
+      "Bash(echo $MESSAGE | rhx git.commit.set -m @stdin --unstaged ignore)",
+      "Bash(echo $MESSAGE | rhx git.commit.set -m @stdin --unstaged include)",
 
       // git.commit.push - push HEAD commit to origin and findsert draft pr
       "Bash(npx rhachet run --skill git.commit.push:*)",
