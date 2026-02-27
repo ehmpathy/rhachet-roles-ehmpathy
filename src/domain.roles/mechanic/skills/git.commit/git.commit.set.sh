@@ -42,11 +42,62 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 METER_DIR="$REPO_ROOT/.meter"
 STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 
+######################################################################
+# helper: infer level from branch name (same logic as git.commit.bind)
+######################################################################
+infer_level_from_branch() {
+  local branch="$1"
+
+  local has_fix=false
+  if [[ "$branch" =~ ^fix/ ]] || [[ "$branch" =~ /fix/ ]] || [[ "$branch" =~ /fix- ]] || \
+     [[ "$branch" =~ ^hotfix/ ]] || [[ "$branch" =~ ^bugfix/ ]]; then
+    has_fix=true
+  fi
+
+  local has_feat=false
+  if [[ "$branch" =~ ^feat/ ]] || [[ "$branch" =~ /feat/ ]] || [[ "$branch" =~ /feat- ]] || \
+     [[ "$branch" =~ ^feature/ ]]; then
+    has_feat=true
+  fi
+
+  if $has_fix && $has_feat; then
+    echo "none"
+  elif $has_fix; then
+    echo "fix"
+  elif $has_feat; then
+    echo "feat"
+  else
+    echo "none"
+  fi
+}
+
+######################################################################
+# helper: check if HEAD is a merge commit (2+ parents)
+######################################################################
+is_merge_commit() {
+  local parents
+  parents=$(git cat-file -p HEAD 2>/dev/null | grep -c "^parent " || echo "0")
+  [[ "$parents" -gt 1 ]]
+}
+
+######################################################################
+# helper: extract commit prefix (fix, feat, chore, etc.) from header
+######################################################################
+get_commit_prefix() {
+  local header="$1"
+  if [[ "$header" =~ ^([a-z]+)[\(:] ]]; then
+    echo "${BASH_REMATCH[1]}"
+  else
+    echo ""
+  fi
+}
+
 # parse arguments
 MESSAGE=""
 DO_PUSH=false
 UNSTAGED=""
 MODE="plan"
+PROMISE=""
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -69,6 +120,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --mode)
       MODE="$2"
+      shift 2
+      ;;
+    --promise)
+      PROMISE="$2"
       shift 2
       ;;
     --help|-h)
@@ -134,27 +189,98 @@ if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
   exit 2
 fi
 
-# guard: bound level constraint (human prescribes feat or fix)
+# guard: bound level constraint with inference + hard-nudge
 LEVEL_FILE="$REPO_ROOT/.branch/.bind/git.commit.level"
-BOUND_LEVEL=""
+EFFECTIVE_LEVEL=""
+LEVEL_SOURCE=""
+
+# 1. check explicit bind first
 if [[ -f "$LEVEL_FILE" ]]; then
-  BOUND_LEVEL=$(cat "$LEVEL_FILE" 2>/dev/null || echo "")
-fi
-if [[ -n "$BOUND_LEVEL" ]]; then
-  HEADER=$(echo "$MESSAGE" | head -1)
-  LEVEL_PATTERN="^${BOUND_LEVEL}[:(]"
-  if [[ ! "$HEADER" =~ $LEVEL_PATTERN ]]; then
-    print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.set"
-    print_tree_error "commit header must start with '$BOUND_LEVEL' — level bound by human"
-    echo ""
-    echo "   header: $HEADER"
-    echo "   bound level: $BOUND_LEVEL"
-    echo ""
-    echo "fix: use a '$BOUND_LEVEL(scope): ...' or '$BOUND_LEVEL: ...' prefix"
-    exit 2  # blocked by constraints
+  EXPLICIT_LEVEL=$(cat "$LEVEL_FILE" 2>/dev/null || echo "")
+  if [[ -n "$EXPLICIT_LEVEL" ]]; then
+    EFFECTIVE_LEVEL="$EXPLICIT_LEVEL"
+    LEVEL_SOURCE="explicit"
   fi
 fi
+
+# 2. if no explicit bind, infer from branch name
+if [[ -z "$EFFECTIVE_LEVEL" ]]; then
+  CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  if [[ -n "$CURRENT_BRANCH" && "$CURRENT_BRANCH" != "HEAD" ]]; then
+    INFERRED_LEVEL=$(infer_level_from_branch "$CURRENT_BRANCH")
+    if [[ "$INFERRED_LEVEL" != "none" ]]; then
+      EFFECTIVE_LEVEL="$INFERRED_LEVEL"
+      LEVEL_SOURCE="inferred"
+    fi
+  fi
+fi
+
+# extract commit prefix from header
+COMMIT_PREFIX=$(get_commit_prefix "$HEADER")
+
+# skip validation for chore, docs, refactor, test, ci, build, perf, style prefixes
+case "$COMMIT_PREFIX" in
+  chore|docs|refactor|test|ci|build|perf|style)
+    # no fix/feat validation for these types
+    ;;
+  *)
+    # validate fix/feat based on effective level
+    if [[ "$EFFECTIVE_LEVEL" == "fix" ]]; then
+      # fix branch/bind: block feat commits
+      if [[ "$COMMIT_PREFIX" == "feat" ]]; then
+        print_turtle_header "bummer dude..."
+        print_tree_start "git.commit.set"
+        print_tree_error "commit prefix mismatch"
+        echo ""
+        echo "   header: $HEADER"
+        echo "   level.bound = $EFFECTIVE_LEVEL ($LEVEL_SOURCE)"
+        echo "   level.found = $COMMIT_PREFIX"
+        echo ""
+        echo "   the level is bound to 'fix' but the commit prefix is 'feat'."
+        echo "   either change your commit header to fix(...): or unbind the level."
+        exit 2  # blocked by constraints
+      fi
+    elif [[ "$EFFECTIVE_LEVEL" == "feat" ]]; then
+      # feat branch/bind: block fix commits
+      if [[ "$COMMIT_PREFIX" == "fix" ]]; then
+        print_turtle_header "bummer dude..."
+        print_tree_start "git.commit.set"
+        print_tree_error "commit prefix mismatch"
+        echo ""
+        echo "   header: $HEADER"
+        echo "   level.bound = $EFFECTIVE_LEVEL ($LEVEL_SOURCE)"
+        echo "   level.found = $COMMIT_PREFIX"
+        echo ""
+        echo "   the level is bound to 'feat' but the commit prefix is 'fix'."
+        echo "   either change your commit header to feat(...): or unbind the level."
+        exit 2  # blocked by constraints
+      fi
+    else
+      # no level (none): hard-nudge on feat, allow fix
+      if [[ "$COMMIT_PREFIX" == "feat" ]]; then
+        # check for --promise is-netnew-behavior
+        if [[ "$PROMISE" != "is-netnew-behavior" ]]; then
+          print_turtle_header "hold up, dude..."
+          print_tree_start "git.commit.set"
+          echo "   └─ ✋ nudge: feat requires confirmation"
+          echo ""
+          echo "   your branch ($CURRENT_BRANCH) doesn't signal fix or feat."
+          echo ""
+          echo "   are you certain this is a feat?"
+          echo "   - feat = net-new behavior that did not exist before"
+          echo "   - fix = covers a gap, tunes implementation, or corrects a defect"
+          echo ""
+          echo "   if this is truly a feat, retry with:"
+          echo "     --promise is-netnew-behavior"
+          echo ""
+          echo "   if this is a fix, change your commit header to fix(...):"
+          exit 2  # blocked by constraints
+        fi
+      fi
+      # fix commits on no-level branches are allowed (safe default)
+    fi
+    ;;
+esac
 
 # check state file exists
 if [[ ! -f "$STATE_FILE" ]]; then
