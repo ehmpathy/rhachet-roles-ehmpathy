@@ -31,6 +31,38 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 BIND_DIR="$REPO_ROOT/.branch/.bind"
 LEVEL_FILE="$BIND_DIR/git.commit.level"
 
+######################################################################
+# helper: infer level from branch name
+######################################################################
+infer_level_from_branch() {
+  local branch="$1"
+
+  # check for fix patterns: fix/*, */fix/*, */fix-*, hotfix/*, bugfix/*
+  local has_fix=false
+  if [[ "$branch" =~ ^fix/ ]] || [[ "$branch" =~ /fix/ ]] || [[ "$branch" =~ /fix- ]] || \
+     [[ "$branch" =~ ^hotfix/ ]] || [[ "$branch" =~ ^bugfix/ ]]; then
+    has_fix=true
+  fi
+
+  # check for feat patterns: feat/*, */feat/*, */feat-*, feature/*
+  local has_feat=false
+  if [[ "$branch" =~ ^feat/ ]] || [[ "$branch" =~ /feat/ ]] || [[ "$branch" =~ /feat- ]] || \
+     [[ "$branch" =~ ^feature/ ]]; then
+    has_feat=true
+  fi
+
+  # ambiguous = both signals present → none
+  if $has_fix && $has_feat; then
+    echo "none"
+  elif $has_fix; then
+    echo "fix"
+  elif $has_feat; then
+    echo "feat"
+  else
+    echo "none"
+  fi
+}
+
 # parse subcommand
 SUBCOMMAND=""
 LEVEL=""
@@ -125,23 +157,40 @@ SCAFFOLD
     echo "   └─ level: $LEVEL"
     ;;
   get)
-    # read the bound level
-    if [[ ! -f "$LEVEL_FILE" ]]; then
-      print_turtle_header "lets check the bind..."
-      print_tree_start "git.commit.bind"
-      echo "   └─ level: (none)"
-      exit 0
+    # determine effective level and source
+    EFFECTIVE_LEVEL=""
+    LEVEL_SOURCE=""
+
+    # 1. check explicit bind file first
+    if [[ -f "$LEVEL_FILE" ]]; then
+      EXPLICIT_LEVEL=$(cat "$LEVEL_FILE" 2>/dev/null || echo "")
+      if [[ -n "$EXPLICIT_LEVEL" ]]; then
+        EFFECTIVE_LEVEL="$EXPLICIT_LEVEL"
+        LEVEL_SOURCE="explicit"
+      fi
     fi
-    BOUND_LEVEL=$(cat "$LEVEL_FILE" 2>/dev/null || echo "")
-    if [[ -z "$BOUND_LEVEL" ]]; then
-      print_turtle_header "lets check the bind..."
-      print_tree_start "git.commit.bind"
-      echo "   └─ level: (none)"
-      exit 0
+
+    # 2. if no explicit bind, infer from branch name
+    if [[ -z "$EFFECTIVE_LEVEL" ]]; then
+      CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+      if [[ -n "$CURRENT_BRANCH" && "$CURRENT_BRANCH" != "HEAD" ]]; then
+        INFERRED_LEVEL=$(infer_level_from_branch "$CURRENT_BRANCH")
+        if [[ "$INFERRED_LEVEL" != "none" ]]; then
+          EFFECTIVE_LEVEL="$INFERRED_LEVEL"
+          LEVEL_SOURCE="inferred from branch"
+        fi
+      fi
     fi
+
+    # output
     print_turtle_header "lets check the bind..."
     print_tree_start "git.commit.bind"
-    echo "   └─ level: $BOUND_LEVEL"
+    if [[ -n "$EFFECTIVE_LEVEL" ]]; then
+      echo "   ├─ level: $EFFECTIVE_LEVEL"
+      echo "   └─ source: $LEVEL_SOURCE"
+    else
+      echo "   └─ level: (none — will nudge on feat commits)"
+    fi
     ;;
   del)
     # remove the bound level
