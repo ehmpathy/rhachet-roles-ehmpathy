@@ -7,7 +7,7 @@ exports[`git.commit.push.sh given: [case1] plan mode on feature branch when: [t0
    ├─ push: origin/turtle/feature
    ├─ pr
    │  ├─ title: feat: first commit
-   │  └─ action: findsert draft
+   │  └─ action: findsert
    └─ meter
       └─ push: allowed
 
@@ -66,22 +66,11 @@ exports[`git.commit.push.sh given: [case9] stacked branch pr title when: [t0] br
    ├─ push: origin/turtle/branch-b
    ├─ pr
    │  ├─ title: feat: B1 first on branch-b
-   │  └─ action: findsert draft
+   │  └─ action: findsert
    └─ meter
       └─ push: allowed
 
 run with --mode apply to execute
-"
-`;
-
-exports[`git.commit.push.sh given: [case12] token guard when: [t0] EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN is not set then: exits with error about token 1`] = `
-"🐢 bummer dude...
-
-🐚 git.commit.push
-   └─ error: EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN not set
-
-push requires this token for pr findsert.
-set the token in your environment first.
 "
 `;
 
@@ -92,7 +81,7 @@ exports[`git.commit.push.sh given: [case14] push-only auto-revoke plan display w
    ├─ push: origin/turtle/push-revoke
    ├─ pr
    │  ├─ title: feat: prior commit
-   │  └─ action: findsert draft
+   │  └─ action: findsert
    └─ meter
       └─ push: allowed → blocked (revoked)
 
