@@ -1,132 +1,4 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo bhuild --role behaver --init claude.hooks/sessionstart.boot-behavior",
-            "timeout": 10,
-            "author": "repo=bhuild/role=behaver"
-          },
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhx route.drive --mode hook",
-            "timeout": 5,
-            "author": "repo=bhrain/role=driver"
-          },
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/sessionstart.notify-permissions",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          },
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet roles boot --repo .this --role any --if-present",
-            "timeout": 60,
-            "author": "repo=ehmpathy/role=mechanic"
-          },
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet roles boot --repo ehmpathy --role mechanic",
-            "timeout": 60,
-            "author": "repo=ehmpathy/role=mechanic"
-          },
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhx route.drive --mode hook",
-            "timeout": 5,
-            "author": "repo=bhrain/role=driver"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-stderr-redirect",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          },
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.check-permissions",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-terms.gerunds",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          },
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-terms.blocklist",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          }
-        ]
-      },
-      {
-        "matcher": "EnterPlanMode",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-planmode",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          }
-        ]
-      },
-      {
-        "matcher": "WebFetch",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/posttooluse.guardBorder.onWebfetch",
-            "timeout": 60,
-            "author": "repo=ehmpathy/role=mechanic"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "*",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhx route.drive --mode hook",
-            "timeout": 5,
-            "author": "repo=bhrain/role=driver"
-          },
-          {
-            "type": "command",
-            "command": "pnpm run --if-present fix",
-            "timeout": 30,
-            "author": "repo=ehmpathy/role=mechanic"
-          },
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhx route.drive --mode hook",
-            "timeout": 5,
-            "author": "repo=bhrain/role=driver"
-          }
-        ]
-      }
-    ]
-  },
   "permissions": {
     "allow": [
       "Write(.agent/.notes/**)",
@@ -172,17 +44,13 @@
       "Bash(npx rhachet run --skill git.commit.bind:*)",
       "Bash(npx rhachet run --skill git.commit.bind get)",
       "Bash(npx rhachet run --skill git.commit.set:*)",
-      "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin)",
-      "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin --mode apply)",
-      "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin --mode apply --push)",
-      "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin --unstaged ignore)",
-      "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin --unstaged include)",
-      "Bash(rhx git.commit.set:*)",
-      "Bash(echo $MESSAGE | rhx git.commit.set -m @stdin)",
-      "Bash(echo $MESSAGE | rhx git.commit.set -m @stdin --mode apply)",
-      "Bash(echo $MESSAGE | rhx git.commit.set -m @stdin --mode apply --push)",
-      "Bash(echo $MESSAGE | rhx git.commit.set -m @stdin --unstaged ignore)",
-      "Bash(echo $MESSAGE | rhx git.commit.set -m @stdin --unstaged include)",
+      "Bash(printf 'fix(scope): header\n\n- body line' | npx rhachet run --skill git.commit.set -m @stdin)",
+      "Bash(printf 'fix(scope): header\n\n- body line' | npx rhachet run --skill git.commit.set -m @stdin --mode apply)",
+      "Bash(printf 'fix(scope): header\n\n- body line' | npx rhachet run --skill git.commit.set -m @stdin --mode apply --push)",
+      "Bash(npx rhachet run --skill git.commit.set -m @stdin --mode apply <<'EOF'\nfix(scope): header\n\n- body line\nEOF)",
+      "Bash(printf '...' | npx rhachet run --skill git.commit.set -m @stdin --unstaged ignore)",
+      "Bash(printf '...' | npx rhachet run --skill git.commit.set -m @stdin --unstaged include)",
+      "Bash(printf '...' | npx rhachet run --skill git.commit.set -m @stdin --mode apply --unstaged include)",
       "Bash(npx rhachet run --skill git.commit.push:*)",
       "Bash(npx rhachet run --skill show.gh.action.logs:*)",
       "Bash(npx rhachet run --skill show.gh.test.errors:*)",
@@ -198,8 +66,6 @@
       "Bash(npx rhachet run --skill condense --from 'briefs/**/*.md' --mode apply)",
       "Bash(npx rhachet run:*)",
       "Bash(npx rhachet:*)",
-      "Bash(rhx:*)",
-      "Bash(npx rhx:*)",
       "Bash(npm view:*)",
       "Bash(npm list:*)",
       "Bash(npm remove:*)",
@@ -340,7 +206,6 @@
       "Bash(npx jest:*)",
       "Bash(npx rhachet run --skill git.commit.bind del:*)",
       "Bash(npx rhachet run --skill git.commit.bind set:*)",
-      "Bash(npx rhachet run --skill git.commit.uses -- set:*)",
       "Bash(npx rhachet run --skill git.commit.uses set:*)",
       "Bash(sed:*)",
       "Bash(tee:*)",
@@ -352,7 +217,6 @@
       "Write(.meter/*)"
     ],
     "ask": [
-      "Bash(bash:*)",
       "Bash(chmod:*)",
       "Bash(npm install:*)",
       "Bash(pnpm add:*)",

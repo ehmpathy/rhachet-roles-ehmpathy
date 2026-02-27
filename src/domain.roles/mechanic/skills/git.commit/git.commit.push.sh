@@ -155,15 +155,31 @@ if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
   exit 2  # blocked by constraints
 fi
 
-# guard: token required for pr findsert
-if [[ -z "${EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN:-}" ]]; then
-  emit_error "EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN not set"
-  if [[ "$OUTPUT" == "tree" ]]; then
-    echo ""
-    echo "push requires this token for pr findsert."
-    echo "set the token in your environment first."
+# fetch token from keyrack (errors propagate with actionable messages)
+# try default owner first, fallback to ehmpath.demo (passwordless sshkey)
+# if both fail, show only the first error (user's real issue, not fallback noise)
+KEYRACK_STDERR_FILE=$(mktemp)
+trap "rm -f '$KEYRACK_STDERR_FILE'" EXIT
+
+if EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(
+  "$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
+    --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN 2>"$KEYRACK_STDERR_FILE"
+); then
+  : # success with default owner
+else
+  # fallback: unlock and get from ehmpath.demo (passwordless sshkey)
+  "$REPO_ROOT/node_modules/.bin/rhachet" keyrack unlock --owner ehmpath.demo 2>/dev/null
+  if EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(
+    "$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
+      --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
+      --owner ehmpath.demo 2>/dev/null
+  ); then
+    : # success with fallback owner
+  else
+    # both failed — show original error (user's real issue, not fallback noise)
+    cat "$KEYRACK_STDERR_FILE" >&2
+    exit 1
   fi
-  exit 2  # blocked by constraints
 fi
 
 ######################################################################

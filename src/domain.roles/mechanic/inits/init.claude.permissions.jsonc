@@ -219,7 +219,6 @@
       "Bash(npx rhachet run --skill git.commit.bind get)",
 
       // git.commit.set - create commit as robot with human co-author
-      // message is piped via stdin: echo "$MSG" | npx rhachet run --skill git.commit.set -m @stdin
       "Bash(npx rhachet run --skill git.commit.set:*)",
       // examples: pipe message via stdin (avoids shell escape issues)
       "Bash(echo $MESSAGE | npx rhachet run --skill git.commit.set -m @stdin)",
