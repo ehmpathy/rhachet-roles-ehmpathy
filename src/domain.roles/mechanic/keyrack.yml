@@ -1,0 +1,12 @@
+org: ehmpathy
+
+env.all:
+  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+
+env.prod:
+  # - AWS_PROFILE
+  # - OPENAI_API_KEY
+
+env.test:
+  # - AWS_PROFILE
+  # - OPENAI_API_KEY

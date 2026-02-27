@@ -11,6 +11,8 @@ describe('git.commit.push.sh', () => {
   const pushScriptPath = path.join(__dirname, 'git.commit.push.sh');
   const setScriptPath = path.join(__dirname, 'git.commit.set.sh');
 
+  // note: no beforeAll needed — skill auto-unlocks ehmpath.demo keyrack
+
   /**
    * .what = helper to set up a temp git repo with optional meter, branch, and commit
    * .why = reduces boilerplate across test cases
@@ -20,8 +22,13 @@ describe('git.commit.push.sh', () => {
     branch?: string;
     commits?: string[];
     commitAuthor?: { name: string; email: string };
+    withKeyrack?: boolean;
   }): string => {
-    const tempDir = genTempDir({ slug: 'git-commit-push-test', git: true });
+    const tempDir = genTempDir({
+      slug: 'git-commit-push-test',
+      git: true,
+      symlink: [{ at: 'node_modules', to: 'node_modules' }],
+    });
 
     // configure git user
     spawnSync('git', ['config', 'user.name', 'Test Human'], {
@@ -31,6 +38,21 @@ describe('git.commit.push.sh', () => {
       cwd: tempDir,
     });
 
+    // setup keyrack fixture
+    if (args.withKeyrack !== false) {
+      const agentDir = path.join(tempDir, '.agent');
+      fs.mkdirSync(agentDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(agentDir, 'keyrack.yml'),
+        `org: ehmpathy
+env.all:
+  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+env.prod:
+  # required for valid schema
+`,
+      );
+    }
+
     // setup .meter with gitignore
     if (args.meterState) {
       const meterDir = path.join(tempDir, '.meter');
@@ -39,7 +61,7 @@ describe('git.commit.push.sh', () => {
         path.join(meterDir, 'git.commit.uses.jsonc'),
         JSON.stringify(args.meterState, null, 2),
       );
-      fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+      fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n.agent/\n');
       spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
       spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
         cwd: tempDir,
@@ -122,7 +144,7 @@ describe('git.commit.push.sh', () => {
         expect(result.stdout).toContain('heres the wave');
         expect(result.stdout).toContain('push: origin/turtle/feature');
         expect(result.stdout).toContain('title: feat: first commit');
-        expect(result.stdout).toContain('findsert draft');
+        expect(result.stdout).toContain('findsert');
         expect(result.stdout).toContain('push: allowed');
         expect(result.stdout).toMatchSnapshot();
       });
@@ -265,7 +287,7 @@ describe('git.commit.push.sh', () => {
         expect(parsed.status).toBe('planned');
         expect(parsed.push_target).toBe('origin/turtle/feature');
         expect(parsed.pr_title).toBe('feat: json plan test');
-        expect(parsed.pr_action).toBe('findsert draft');
+        expect(parsed.pr_action).toBe('findsert');
       });
     });
   });
@@ -403,48 +425,45 @@ describe('git.commit.push.sh', () => {
     );
   });
 
-  given('[case12] token guard', () => {
-    when('[t0] EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN is not set', () => {
-      then('exits with error about token', () => {
+  given('[case12] keyrack not configured (sad path)', () => {
+    when('[t0] no keyrack.yml in repo and no host manifest', () => {
+      then('exits with clear message to ask human to configure', () => {
+        // relock ehmpath.demo to clear daemon cache
+        spawnSync(
+          'npx',
+          ['rhachet', 'keyrack', 'relock', '--owner', 'ehmpath.demo'],
+          {
+            encoding: 'utf-8',
+            stdio: 'pipe',
+          },
+        );
+
+        // create fake HOME with no keyrack host manifests
+        const fakeHome = genTempDir({
+          slug: 'fake-home-no-keyrack',
+        });
+
         const tempDir = setupTempRepo({
           meterState: { uses: 3, push: 'allow' },
           branch: 'turtle/feature',
-          commits: ['feat: no token'],
+          commits: ['feat: no keyrack config'],
+          withKeyrack: false,
         });
 
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'plan'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: '' },
+          env: {
+            HOME: fakeHome,
+          },
         });
 
-        expect(result.exitCode).toBe(2); // blocked by constraints
-        expect(result.stdout).toContain('bummer dude');
-        expect(result.stdout).toContain(
-          'EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN not set',
-        );
-        expect(result.stdout).toMatchSnapshot();
-      });
-    });
-
-    when('[t1] token not set with json output', () => {
-      then('outputs json error', () => {
-        const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
-          branch: 'turtle/feature',
-          commits: ['feat: no token json'],
-        });
-
-        const result = runPush({
-          tempDir,
-          pushArgs: ['--mode', 'plan', '--output', 'json'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: '' },
-        });
-
-        expect(result.exitCode).toBe(2); // blocked by constraints
-        const parsed = JSON.parse(result.stdout.trim());
-        expect(parsed.status).toBe('error');
-        expect(parsed.error).toContain('EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN');
+        // keyrack errors propagate — no fallback
+        expect(result.exitCode).not.toBe(0);
+        // stderr has clear actionable message about keyrack
+        expect(result.stderr).toContain('keyrack');
+        // snapshot test for clear error message
+        expect(result.stderr).toMatchSnapshot();
       });
     });
   });
@@ -496,6 +515,61 @@ describe('git.commit.push.sh', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('push: allowed → blocked (revoked)');
         expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case15] real user locked, no ehmpath.demo host (sad path)', () => {
+    when('[t0] keyrack.yml exists but no host manifest', () => {
+      then('exits with clear unlock message, no fallback noise', () => {
+        // relock ehmpath.demo to clear daemon cache
+        const relockResult = spawnSync(
+          'npx',
+          ['rhachet', 'keyrack', 'relock', '--owner', 'ehmpath.demo'],
+          { encoding: 'utf-8', stdio: 'pipe' },
+        );
+        console.log('relock result:', {
+          code: relockResult.status,
+          out: relockResult.stdout?.slice(0, 200),
+          err: relockResult.stderr?.slice(0, 200),
+        });
+
+        // create fake HOME with no keyrack host manifests
+        // this blocks both default owner and ehmpath.demo fallback
+        const fakeHome = genTempDir({
+          slug: 'fake-home-no-keyrack',
+        });
+
+        const tempDir = setupTempRepo({
+          meterState: { uses: 3, push: 'allow' },
+          branch: 'turtle/feature',
+          commits: ['feat: locked keyrack test'],
+          withKeyrack: true,
+        });
+
+        const result = runPush({
+          tempDir,
+          pushArgs: ['--mode', 'plan'],
+          env: {
+            HOME: fakeHome,
+          },
+        });
+
+        // debug
+        console.log('case15 result:', {
+          code: result.exitCode,
+          out: result.stdout?.slice(0, 300),
+          err: result.stderr?.slice(0, 300),
+        });
+
+        // keyrack errors propagate — exits non-zero
+        expect(result.exitCode).not.toBe(0);
+        // stderr has actionable message about keyrack
+        expect(result.stderr).toContain('keyrack');
+        // stderr does NOT contain ehmpath.demo (fallback noise suppressed)
+        expect(result.stderr).not.toContain('ehmpath.demo');
+        // snapshot test for clear error message
+        expect(result.stderr).toMatchSnapshot();
       });
     });
   });
