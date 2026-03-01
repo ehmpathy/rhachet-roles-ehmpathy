@@ -13,7 +13,7 @@
 #   sedreplace.sh --old "pattern" --new "replacement"                        # plan (default)
 #   sedreplace.sh --old "pattern" --new "replacement" --mode plan            # plan (explicit)
 #   sedreplace.sh --old "pattern" --new "replacement" --mode apply           # apply
-#   sedreplace.sh --old "pattern" --new "replacement" --glob "*.ts"          # filter
+#   sedreplace.sh --old "pattern" --new "replacement" --glob 'src/**/*.ts'   # filter (quoted)
 #   sedreplace.sh --old "pattern" --new "replacement" --include-ignored      # include gitignored
 #
 # guarantee:
@@ -89,10 +89,118 @@ if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
   exit 2
 fi
 
+# validate glob pattern (block unbound globs)
+if [[ -n "$GLOB_FILTER" && "$GLOB_FILTER" == \*\*/* ]]; then
+  {
+    echo "🐢 bummer dude..."
+    echo ""
+    echo "🐚 sedreplace"
+    echo "   └─ ✋ blocked: unbound glob"
+    echo ""
+    echo "glob patterns that start with **/ are too broad and can cause unexpected changes."
+    echo ""
+    echo "use a bounded glob instead:"
+    echo "  --glob 'src/**/*.ts'      (files in src/)"
+    echo "  --glob 'src/**/*.test.ts' (test files in src/)"
+    echo "  --glob '*.ts'             (files in root only)"
+  } >&2
+  exit 2
+fi
+
+# plan tracker functions
+# note: follows HARDNUDGE pattern - track plans, block applies without prior plan
+
+find_claude_dir() {
+  local dir="$PWD"
+  while [[ "$dir" != "/" ]]; do
+    if [[ -d "$dir/.claude" ]]; then
+      echo "$dir/.claude"
+      return 0
+    fi
+    dir="$(dirname "$dir")"
+  done
+  # create .claude in git root if not found
+  local git_root
+  git_root=$(git rev-parse --show-toplevel 2>/dev/null) || return 1
+  mkdir -p "$git_root/.claude"
+  echo "$git_root/.claude"
+}
+
+NUDGE_FILE=""
+init_nudge_file() {
+  local claude_dir
+  claude_dir=$(find_claude_dir) || return 1
+  NUDGE_FILE="$claude_dir/sedreplace.nudges.local.json"
+  if [[ ! -f "$NUDGE_FILE" ]]; then
+    echo '{}' > "$NUDGE_FILE"
+  fi
+}
+
+compute_plan_key() {
+  echo -n "${OLD_PATTERN}|${NEW_PATTERN}|${GLOB_FILTER}" | sha256sum | cut -d' ' -f1
+}
+
+cleanup_stale_nudges() {
+  [[ -z "$NUDGE_FILE" || ! -f "$NUDGE_FILE" ]] && return
+  local now
+  now=$(date +%s)
+  local one_hour_ago=$((now - 3600))
+  # remove entries older than 1 hour
+  local tmp_file
+  tmp_file=$(mktemp)
+  jq --argjson cutoff "$one_hour_ago" 'with_entries(select(.value.time > $cutoff))' "$NUDGE_FILE" > "$tmp_file" 2>/dev/null && mv "$tmp_file" "$NUDGE_FILE" || rm -f "$tmp_file"
+}
+
+record_plan() {
+  [[ -z "$NUDGE_FILE" ]] && return
+  local key="$1"
+  local now
+  now=$(date +%s)
+  local tmp_file
+  tmp_file=$(mktemp)
+  jq --arg key "$key" \
+     --arg old "$OLD_PATTERN" \
+     --arg new "$NEW_PATTERN" \
+     --arg glob "$GLOB_FILTER" \
+     --argjson time "$now" \
+     '. + {($key): {time: $time, old: $old, new: $new, glob: $glob}}' \
+     "$NUDGE_FILE" > "$tmp_file" && mv "$tmp_file" "$NUDGE_FILE"
+}
+
+plan_exists() {
+  [[ -z "$NUDGE_FILE" || ! -f "$NUDGE_FILE" ]] && return 1
+  local key="$1"
+  jq -e --arg key "$key" '.[$key]' "$NUDGE_FILE" > /dev/null 2>&1
+}
+
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository" >&2
   exit 2
+fi
+
+# initialize plan tracker and cleanup stale entries
+init_nudge_file
+cleanup_stale_nudges
+
+# compute plan key for plan tracker
+PLAN_KEY=$(compute_plan_key)
+
+# if apply mode, check for prior plan first
+if [[ "$MODE" == "apply" ]]; then
+  if ! plan_exists "$PLAN_KEY"; then
+    {
+      echo "🐢 bummer dude..."
+      echo ""
+      echo "🐚 sedreplace"
+      echo "   └─ ✋ blocked: cannot apply without plan"
+      echo ""
+      echo "to prevent unexpected consequences, sedreplace requires you to preview changes before apply."
+      echo ""
+      echo "run without --mode (or with --mode plan) first, then re-run with --mode apply."
+    } >&2
+    exit 2
+  fi
 fi
 
 # escape special characters for sed pattern (BRE)
@@ -169,41 +277,100 @@ done
 OLD_ESCAPED=$(escape_sed_pattern "$OLD_PATTERN")
 NEW_ESCAPED=$(escape_sed_replacement "$NEW_PATTERN")
 
+# helper: print file diff in sub.bucket format
+print_file_diff() {
+  local file="$1"
+  local match_count="$2"
+  local is_last="$3"
+  local prefix="      "
+
+  # branch character for this file
+  if [[ "$is_last" == "true" ]]; then
+    echo "${prefix}└─ $file ($match_count)"
+    prefix="         "
+  else
+    echo "${prefix}├─ $file ($match_count)"
+    prefix="      │  "
+  fi
+
+  # open sub.bucket
+  echo "${prefix}├─"
+
+  # get diff lines (only the +/- lines, skip headers)
+  local diff_output
+  diff_output=$(sed "s#$OLD_ESCAPED#$NEW_ESCAPED#g" "$file" | diff -u "$file" - 2>/dev/null | grep -E '^[-+][^-+]' | head -6 || true)
+
+  # print diff lines with proper prefix
+  if [[ -n "$diff_output" ]]; then
+    echo "$diff_output" | while IFS= read -r line; do
+      echo "${prefix}│  $line"
+    done
+  fi
+
+  # close sub.bucket
+  echo "${prefix}└─"
+}
+
 # output turtle header + tree
 if [[ "$MODE" == "plan" ]]; then
-  echo "🐢 lets see..."
+  echo "🐢 heres the wave..."
 else
-  echo "🐢 cool"
+  echo "🐢 cowabunga!"
 fi
 echo ""
-echo "🐚 sedreplace"
-echo "   ├─ mode: $MODE"
+echo "🐚 sedreplace --mode $MODE"
 echo "   ├─ old: $OLD_PATTERN"
 echo "   ├─ new: $NEW_PATTERN"
 echo "   ├─ glob: $GLOB_DISPLAY"
-echo "   └─ result"
-echo "      ├─ files: $MATCH_COUNT"
-echo "      └─ lines: $TOTAL_LINES"
+echo "   ├─ files: $MATCH_COUNT"
+echo "   ├─ matches: $TOTAL_LINES"
 
 if [[ "$MODE" == "plan" ]]; then
   # plan mode: show what would change (no modifications)
-  echo ""
+  echo "   └─ preview"
+
+  # show first few files with sub.bucket diffs
+  file_index=0
+  file_count=0
+  file_count=$(echo "$FILES_MATCHED" | wc -l)
 
   for file in $FILES_MATCHED; do
+    file_index=$((file_index + 1))
     LINE_COUNT=$(grep -F -c "$OLD_PATTERN" "$file")
-    echo "--- $file ($LINE_COUNT lines) ---"
-    # show the diff that would result (use # as delimiter to avoid conflicts)
-    sed "s#$OLD_ESCAPED#$NEW_ESCAPED#g" "$file" | diff -u "$file" - || true
-    echo ""
+
+    # only show first 3 files in detail
+    if [[ $file_index -le 3 ]]; then
+      is_last="false"
+      if [[ $file_index -eq $file_count ]] || [[ $file_index -eq 3 && $file_count -gt 3 ]]; then
+        is_last="true"
+      fi
+      print_file_diff "$file" "$LINE_COUNT" "$is_last"
+    fi
   done
 
-  echo "note: this was a plan. to apply, re-run with --mode apply"
+  # show "... (N more files)" if there are more
+  if [[ $file_count -gt 3 ]]; then
+    more_count=$((file_count - 3))
+    echo "      └─ ... ($more_count more files)"
+  fi
+
+  echo ""
+  echo "run with --mode apply to execute"
+
+  # record the plan for later apply
+  record_plan "$PLAN_KEY"
 else
   # apply mode: apply changes
-  echo ""
+  echo "   └─ updated"
+
+  file_index=0
+  file_count=0
+  file_count=$(echo "$FILES_MATCHED" | wc -l)
 
   for file in $FILES_MATCHED; do
+    file_index=$((file_index + 1))
     LINE_COUNT=$(grep -F -c "$OLD_PATTERN" "$file")
+
     # use sed -i for in-place edit (use # as delimiter to avoid conflicts)
     # note: macOS sed requires -i '' but linux sed uses -i
     if [[ "$(uname)" == "Darwin" ]]; then
@@ -211,9 +378,20 @@ else
     else
       sed -i "s#$OLD_ESCAPED#$NEW_ESCAPED#g" "$file"
     fi
-    echo "   updated: $file ($LINE_COUNT lines)"
+
+    # only show first 3 files in detail
+    if [[ $file_index -le 3 ]]; then
+      is_last="false"
+      if [[ $file_index -eq $file_count ]] || [[ $file_index -eq 3 && $file_count -gt 3 ]]; then
+        is_last="true"
+      fi
+      print_file_diff "$file" "$LINE_COUNT" "$is_last"
+    fi
   done
 
-  echo ""
-  echo "   to undo: git checkout ."
+  # show "... (N more files)" if there are more
+  if [[ $file_count -gt 3 ]]; then
+    more_count=$((file_count - 3))
+    echo "      └─ ... ($more_count more files)"
+  fi
 fi
