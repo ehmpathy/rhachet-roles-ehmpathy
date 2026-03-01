@@ -27,101 +27,91 @@ exports[`sedreplace.sh given: [case6] missing required arguments when: [t0] --ne
 exports[`sedreplace.sh given: [case6] missing required arguments when: [t1] --old is not provided then: it should error with helpful message 1`] = `"error: --old pattern is required"`;
 
 exports[`sedreplace.sh given: [case9] --mode semantics when: [t0] default mode (no --mode flag) then: it should run in plan mode and exit 0 1`] = `
-"🐢 lets see...
+"🐢 heres the wave...
 
-🐚 sedreplace
-   ├─ mode: plan
+🐚 sedreplace --mode plan
    ├─ old: MATCH_ME
    ├─ new: REPLACED
    ├─ glob: (all)
-   └─ result
-      ├─ files: 1
-      └─ lines: 1
+   ├─ files: 1
+   ├─ matches: 1
+   └─ preview
+      └─ file1.ts (1)
+         ├─
+         │  -const MATCH_ME = 1;
+         │  +const REPLACED = 1;
+         └─
 
---- file1.ts (1 lines) ---
---- file1.ts	TIMESTAMP +0000
-+++ -	TIMESTAMP +0000
-@@ -1 +1 @@
--const MATCH_ME = 1;
-\\ No newline at end of file
-+const REPLACED = 1;
-\\ No newline at end of file
-
-note: this was a plan. to apply, re-run with --mode apply
+run with --mode apply to execute
 "
 `;
 
 exports[`sedreplace.sh given: [case9] --mode semantics when: [t2] --mode apply then: it should apply changes 1`] = `
-"🐢 cool
+"🐢 cowabunga!
 
-🐚 sedreplace
-   ├─ mode: apply
+🐚 sedreplace --mode apply
    ├─ old: MATCH_ME
    ├─ new: REPLACED
    ├─ glob: (all)
-   └─ result
-      ├─ files: 1
-      └─ lines: 1
-
-   updated: file1.ts (1 lines)
-
-   to undo: git checkout .
+   ├─ files: 2
+   ├─ matches: 2
+   └─ updated
+      ├─ .claude/sedreplace.nudges.local.json (1)
+      │  ├─
+      │  └─
+      └─ file1.ts (1)
+         ├─
+         └─
 "
 `;
 
 exports[`sedreplace.sh given: [case9] --mode semantics when: [t3] --mode with invalid value then: it should exit with error 1`] = `"error: --mode must be 'plan' or 'apply' (got 'foo')"`;
 
 exports[`sedreplace.sh given: [case11] line count reports when: [t1] multiple files with different line counts then: it should report per-file and total line counts in plan mode 1`] = `
-"🐢 lets see...
+"🐢 heres the wave...
 
-🐚 sedreplace
-   ├─ mode: plan
+🐚 sedreplace --mode plan
    ├─ old: MATCH_ME
    ├─ new: REPLACED
    ├─ glob: (all)
-   └─ result
-      ├─ files: 2
-      └─ lines: 3
+   ├─ files: 2
+   ├─ matches: 3
+   └─ preview
+      ├─ file1.ts (2)
+      │  ├─
+      │  │  -const MATCH_ME = 1;
+      │  │  -const MATCH_ME = 2;
+      │  │  +const REPLACED = 1;
+      │  │  +const REPLACED = 2;
+      │  └─
+      └─ file2.ts (1)
+         ├─
+         │  -const MATCH_ME = 3;
+         │  +const REPLACED = 3;
+         └─
 
---- file1.ts (2 lines) ---
---- file1.ts	TIMESTAMP +0000
-+++ -	TIMESTAMP +0000
-@@ -1,2 +1,2 @@
--const MATCH_ME = 1;
--const MATCH_ME = 2;
-\\ No newline at end of file
-+const REPLACED = 1;
-+const REPLACED = 2;
-\\ No newline at end of file
-
---- file2.ts (1 lines) ---
---- file2.ts	TIMESTAMP +0000
-+++ -	TIMESTAMP +0000
-@@ -1 +1 @@
--const MATCH_ME = 3;
-\\ No newline at end of file
-+const REPLACED = 3;
-\\ No newline at end of file
-
-note: this was a plan. to apply, re-run with --mode apply
+run with --mode apply to execute
 "
 `;
 
-exports[`sedreplace.sh given: [case11] line count reports when: [t2] --mode apply reports line counts then: it should report per-file and total line counts 1`] = `
-"🐢 cool
+exports[`sedreplace.sh given: [case11] line count reports when: [t2] --mode apply reports match counts then: it should report per-file and total match counts 1`] = `
+"🐢 cowabunga!
 
-🐚 sedreplace
-   ├─ mode: apply
+🐚 sedreplace --mode apply
    ├─ old: MATCH_ME
    ├─ new: REPLACED
    ├─ glob: (all)
-   └─ result
-      ├─ files: 2
-      └─ lines: 3
-
-   updated: file1.ts (2 lines)
-   updated: file2.ts (1 lines)
-
-   to undo: git checkout .
+   ├─ files: 3
+   ├─ matches: 4
+   └─ updated
+      ├─ .claude/sedreplace.nudges.local.json (1)
+      │  ├─
+      │  └─
+      ├─ file1.ts (2)
+      │  ├─
+      │  └─
+      └─ file2.ts (1)
+         ├─
+         └─
 "
 `;

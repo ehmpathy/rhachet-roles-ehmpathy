@@ -30,43 +30,42 @@ the same rename via sedreplace = 2 tool calls (plan + apply) = minimal tokens
 # plan first (default) - see what would change
 npx rhachet run --skill sedreplace --old "oldName" --new "newName"
 
-# filter to specific file types (recursive)
-npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob "**/*.ts"
-
-# filter to files in a specific directory
-npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob "src/**/*.ts"
+# filter to files in a specific directory (MUST use single quotes)
+npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob 'src/**/*.ts'
 
 # apply changes after review of plan
-npx rhachet run --skill sedreplace --old "oldName" --new "newName" --mode apply
+npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob 'src/**/*.ts' --mode apply
 ```
 
-### glob pattern semantics
+### glob pattern rules
 
-the `--glob` option uses shell glob semantics:
+**CRITICAL**: globs MUST be single-quoted to prevent shell expansion
 
-| pattern | matches |
-|---------|---------|
-| `*.ts` | `.ts` files in root directory only |
-| `**/*.ts` | all `.ts` files recursively |
-| `src/*.ts` | `.ts` files directly in `src/` |
-| `src/**/*.ts` | `.ts` files recursively in `src/` |
-| `*.{ts,tsx}` | `.ts` and `.tsx` files in root |
-| `**/*.{ts,tsx}` | all `.ts` and `.tsx` files recursively |
+| pattern | matches | notes |
+|---------|---------|-------|
+| `'src/**/*.ts'` | `.ts` files recursively in `src/` | bounded, safe |
+| `'src/**/*.test.ts'` | test files in `src/` | bounded, safe |
+| `'*.ts'` | `.ts` files in root only | bounded, safe |
+| `'**/*.ts'` | **BLOCKED** | unbound glob, too broad |
+
+unbound globs (patterns that start with `**/`) are blocked to prevent accidental changes across the entire repo.
 
 ## .examples
 
 ### rename a function
 
 ```sh
-# rename getUserById -> findUserByUuid across all .ts files
-npx rhachet run --skill sedreplace --old "getUserById" --new "findUserByUuid" --glob "**/*.ts" --mode apply
+# rename getUserById -> findUserByUuid in src/
+npx rhachet run --skill sedreplace --old "getUserById" --new "findUserByUuid" --glob 'src/**/*.ts'
+npx rhachet run --skill sedreplace --old "getUserById" --new "findUserByUuid" --glob 'src/**/*.ts' --mode apply
 ```
 
 ### update an import path
 
 ```sh
 # update import path after file move
-npx rhachet run --skill sedreplace --old "from '@/utils/old'" --new "from '@/utils/new'" --mode apply
+npx rhachet run --skill sedreplace --old "from '@/utils/old'" --new "from '@/utils/new'" --glob 'src/**/*.ts'
+npx rhachet run --skill sedreplace --old "from '@/utils/old'" --new "from '@/utils/new'" --glob 'src/**/*.ts' --mode apply
 ```
 
 ## .antipattern

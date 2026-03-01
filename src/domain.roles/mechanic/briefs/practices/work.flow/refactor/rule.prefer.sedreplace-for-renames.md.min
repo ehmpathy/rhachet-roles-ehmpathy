@@ -24,39 +24,40 @@ same via sedreplace = 2 calls = minimal tokens
 # plan first to see changes
 npx rhachet run --skill sedreplace --old "oldName" --new "newName"
 
-# filter to specific file types
-npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob "**/*.ts"
-
-# filter to directory
-npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob "src/**/*.ts"
+# filter to files in a directory (MUST use single quotes)
+npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob 'src/**/*.ts'
 
 # apply after review
-npx rhachet run --skill sedreplace --old "oldName" --new "newName" --mode apply
+npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob 'src/**/*.ts' --mode apply
 ```
 
-### glob pattern semantics
+### glob pattern rules
 
-| pattern     | matches               |
-|-------------|-----------------------|
-| *.ts       | .ts files in root     |
-| **/*.ts    | all .ts files recursive |
-| src/*.ts   | .ts files in src/     |
-| src/**/*.ts| .ts files recursive in src/ |
-| *.{ts,tsx} | .ts and .tsx in root  |
-| **/*.{ts,tsx} | all .ts and .tsx recursive |
+CRITICAL: globs MUST be single-quoted to prevent shell expansion
+
+| pattern     | matches               | notes |
+|-------------|-----------------------|-------|
+| 'src/**/*.ts' | .ts files recursive in src/ | bounded, safe |
+| 'src/**/*.test.ts' | test files in src/ | bounded, safe |
+| '*.ts'       | .ts files in root     | bounded, safe |
+| '**/*.ts'    | **BLOCKED** | unbound glob, too broad |
+
+unbound globs (patterns that start with **/) are blocked to prevent accidental changes.
 
 ## .examples
 
 ### rename function
 ```sh
-# rename getUserById -> findUserByUuid across all .ts files
-npx rhachet run --skill sedreplace --old "getUserById" --new "findUserByUuid" --glob "**/*.ts" --mode apply
+# rename getUserById -> findUserByUuid in src/
+npx rhachet run --skill sedreplace --old "getUserById" --new "findUserByUuid" --glob 'src/**/*.ts'
+npx rhachet run --skill sedreplace --old "getUserById" --new "findUserByUuid" --glob 'src/**/*.ts' --mode apply
 ```
 
 ### update import path
 ```sh
 # update import path after file move
-npx rhachet run --skill sedreplace --old "from '@/utils/old'" --new "from '@/utils/new'" --mode apply
+npx rhachet run --skill sedreplace --old "from '@/utils/old'" --new "from '@/utils/new'" --glob 'src/**/*.ts'
+npx rhachet run --skill sedreplace --old "from '@/utils/old'" --new "from '@/utils/new'" --glob 'src/**/*.ts' --mode apply
 ```
 
 ## .antipattern
