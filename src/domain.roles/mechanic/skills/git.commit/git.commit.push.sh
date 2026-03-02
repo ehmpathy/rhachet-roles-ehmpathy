@@ -156,28 +156,31 @@ if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
 fi
 
 # fetch token from keyrack (errors propagate with actionable messages)
-# try default owner first, fallback to ehmpath.demo (passwordless sshkey)
+# try default owner first, fallback to ehmpath (passwordless sshkey)
 # if both fail, show only the first error (user's real issue, not fallback noise)
-KEYRACK_STDERR_FILE=$(mktemp)
-trap "rm -f '$KEYRACK_STDERR_FILE'" EXIT
+KEYRACK_ERROR_FILE=$(mktemp)
+trap "rm -f '$KEYRACK_ERROR_FILE'" EXIT
 
-if EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(
-  "$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
-    --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN 2>"$KEYRACK_STDERR_FILE"
-); then
-  : # success with default owner
+# capture output and exit code (use || to prevent set -e from early exit)
+KEYRACK_EXIT=0
+"$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
+  --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN >"$KEYRACK_ERROR_FILE" 2>&1 || KEYRACK_EXIT=$?
+
+if [[ $KEYRACK_EXIT -eq 0 ]]; then
+  EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(cat "$KEYRACK_ERROR_FILE")
 else
-  # fallback: unlock and get from ehmpath.demo (passwordless sshkey)
-  "$REPO_ROOT/node_modules/.bin/rhachet" keyrack unlock --owner ehmpath.demo 2>/dev/null
-  if EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(
-    "$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
-      --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
-      --owner ehmpath.demo 2>/dev/null
-  ); then
-    : # success with fallback owner
+  # fallback: unlock and get from ehmpath (passwordless sshkey)
+  "$REPO_ROOT/node_modules/.bin/rhachet" keyrack unlock \
+    --owner ehmpath --prikey ~/.ssh/ehmpath --env all >/dev/null 2>&1 || true
+  FALLBACK_EXIT=0
+  FALLBACK_TOKEN=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
+    --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
+    --owner ehmpath 2>&1) || FALLBACK_EXIT=$?
+  if [[ $FALLBACK_EXIT -eq 0 ]]; then
+    EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN="$FALLBACK_TOKEN"
   else
     # both failed — show original error (user's real issue, not fallback noise)
-    cat "$KEYRACK_STDERR_FILE" >&2
+    cat "$KEYRACK_ERROR_FILE" >&2
     exit 1
   fi
 fi

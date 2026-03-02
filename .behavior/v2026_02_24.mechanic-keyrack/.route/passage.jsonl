@@ -1,0 +1,5 @@
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"approved"}
+{"stone":"3.3.blueprint.v1","status":"approved"}
+{"stone":"1.vision","status":"passed"}
+{"stone":"2.1.criteria.blackbox","status":"blocked","blocker":"review.self","reason":"review.self required: all-real-junior"}
