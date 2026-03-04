@@ -175,12 +175,24 @@ else
   FALLBACK_EXIT=0
   FALLBACK_TOKEN=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
     --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
-    --owner ehmpath 2>&1) || FALLBACK_EXIT=$?
+    --owner ehmpath \
+    --prikey ~/.ssh/ehmpath 2>&1) || FALLBACK_EXIT=$?
   if [[ $FALLBACK_EXIT -eq 0 ]]; then
     EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN="$FALLBACK_TOKEN"
   else
-    # both failed — show original error (user's real issue, not fallback noise)
+    # both failed — show original error + guidance for human
+    echo "" >&2
+    echo "🐢 bummer dude, keyrack token fetch failed" >&2
+    echo "" >&2
     cat "$KEYRACK_ERROR_FILE" >&2
+    echo "" >&2
+    echo "to fix this, ask a human to either:" >&2
+    echo "  1. unlock their keyrack:" >&2
+    echo "     $ rhx keyrack unlock" >&2
+    echo "" >&2
+    echo "  2. or add the ehmpath keyrack so the robot can unlock keys automatically:" >&2
+    echo "     $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath" >&2
+    echo "" >&2
     exit 1
   fi
 fi

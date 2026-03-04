@@ -3,3 +3,6 @@
 {"stone":"3.3.blueprint.v1","status":"approved"}
 {"stone":"1.vision","status":"passed"}
 {"stone":"2.1.criteria.blackbox","status":"blocked","blocker":"review.self","reason":"review.self required: all-real-junior"}
+{"stone":"2.1.criteria.blackbox","status":"blocked","blocker":"review.self","reason":"review.self required: all-real-junior"}
+{"stone":"2.1.criteria.blackbox","status":"passed"}
+{"stone":"3.3.blueprint.v1","status":"blocked","blocker":"review.self","reason":"review.self required: all-done-self"}
