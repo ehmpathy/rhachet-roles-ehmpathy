@@ -190,7 +190,7 @@ else
     echo "  1. unlock their keyrack:" >&2
     echo "     $ rhx keyrack unlock" >&2
     echo "" >&2
-    echo "  2. or add the ehmpath keyrack so the robot can unlock keys automatically:" >&2
+    echo "  2. or add the ehmpath keyrack, so ehmpaths like me can unlock our own keys:" >&2
     echo "     $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath" >&2
     echo "" >&2
     exit 1
