@@ -173,8 +173,9 @@ command_is_allowed() {
   return 1
 }
 
-# Split compound command on &&, ||, ; (respecting quotes)
+# Split compound command on &&, ||, |, ; (quotes preserved)
 # Returns newline-separated list of commands
+# NOTE: single pipe | split to verify each segment is allowed
 split_compound_command() {
   local input="$1"
   local result=""
@@ -213,6 +214,17 @@ split_compound_command() {
         result+="$current"
         current=""
         ((i+=2))
+        continue
+      fi
+
+      # Check for single pipe | (must come AFTER || check to avoid false match)
+      if [[ "$char" == "|" && "$next_char" != "|" ]]; then
+        if [[ -n "$result" ]]; then
+          result+=$'\n'
+        fi
+        result+="$current"
+        current=""
+        ((i++))
         continue
       fi
 

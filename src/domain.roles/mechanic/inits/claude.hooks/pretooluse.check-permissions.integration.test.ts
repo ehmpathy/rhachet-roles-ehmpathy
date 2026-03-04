@@ -531,7 +531,7 @@ line 3"`;
         expect(result.stdout).toBe('');
       });
 
-      then('echo multiline | cat is allowed (pipe not split)', () => {
+      then('echo multiline | cat is allowed (both parts match)', () => {
         // use actual newlines (template literal)
         const result = runHook({
           command: `echo "line 1
@@ -868,6 +868,174 @@ line 2" | cat`,
         });
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toBe('');
+      });
+    });
+  });
+
+  // settings that include rhx and git.commit.set patterns for pipe testing
+  const pipeTestSettings = {
+    allow: [
+      ...standardSettings.allow,
+      'Bash(rhx:*)',
+      'Bash(rhx git.commit.set:*)',
+      'Bash(npx rhachet run --skill git.commit.set:*)',
+    ],
+  };
+
+  given('[case20] piped echo commands with git.commit.set', () => {
+    when('[t0] echo pipe to rhx git.commit.set', () => {
+      then('echo "msg" | rhx git.commit.set -m @stdin → exit 0', () => {
+        const result = runHook({
+          command: 'echo "fix: msg" | rhx git.commit.set -m @stdin',
+          settings: pipeTestSettings,
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+    });
+
+    when('[t1] echo multiline pipe to rhx', () => {
+      then('echo multiline | rhx git.commit.set → exit 0', () => {
+        const cmd = `echo "fix: summary
+
+- bullet 1
+- bullet 2" | rhx git.commit.set -m @stdin`;
+        const result = runHook({
+          command: cmd,
+          settings: pipeTestSettings,
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+    });
+
+    when('[t2] variable assignment + echo pipe', () => {
+      then(
+        'MESSAGE="msg" && echo "$MESSAGE" | rhx git.commit.set → exit 0',
+        () => {
+          const result = runHook({
+            command:
+              'MESSAGE="fix: msg" && echo "$MESSAGE" | rhx git.commit.set -m @stdin',
+            settings: pipeTestSettings,
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toBe('');
+        },
+      );
+    });
+
+    when('[t3] echo pipe to npx rhachet variant', () => {
+      then(
+        'echo "msg" | npx rhachet run --skill git.commit.set → exit 0',
+        () => {
+          const result = runHook({
+            command:
+              'echo "fix: msg" | npx rhachet run --skill git.commit.set -m @stdin',
+            settings: pipeTestSettings,
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toBe('');
+        },
+      );
+    });
+  });
+
+  given('[case21] unicode and special characters in piped messages', () => {
+    when('[t0] echo with unicode in header', () => {
+      then('echo with unicode (➜) passes', () => {
+        const result = runHook({
+          command:
+            'echo "fix: add feature ➜ complete" | rhx git.commit.set -m @stdin',
+          settings: pipeTestSettings,
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+    });
+
+    when('[t1] echo with brackets and parens', () => {
+      then('echo with [] and () passes', () => {
+        const result = runHook({
+          command:
+            'echo "fix(scope): update [config] items" | rhx git.commit.set -m @stdin',
+          settings: pipeTestSettings,
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+    });
+
+    when('[t2] echo with backticks and quotes', () => {
+      then('echo with backticks and nested quotes passes', () => {
+        const result = runHook({
+          command: `echo "fix: update \\\`config\\\` to use 'new' value" | rhx git.commit.set -m @stdin`,
+          settings: pipeTestSettings,
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+    });
+
+    when('[t3] echo with Co-authored-by trailer', () => {
+      then('echo with Co-authored-by in body passes', () => {
+        const cmd = `echo "fix: update config
+
+- changed option
+
+Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
+        const result = runHook({
+          command: cmd,
+          settings: pipeTestSettings,
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+    });
+  });
+
+  /**
+   * .what = TDD test: pipes must split and each segment verified
+   * .why = security: dangerous middle commands in pipes should block
+   */
+  given('[case22] pipe split verification (TDD)', () => {
+    const limitedSettings = {
+      allow: ['Bash(echo:*)', 'Bash(cat:*)'],
+    };
+
+    when('[t0] dangerous command hidden in pipe middle', () => {
+      then('echo | dangerous-cmd | cat should block on middle segment', () => {
+        const result = runHook({
+          command: 'echo "safe" | dangerous-cmd | cat',
+          settings: limitedSettings,
+          clearNudges: true,
+        });
+        // MUST block because dangerous-cmd is not allowed
+        // if this passes (exit 0), pipes NOT split correctly
+        expect(result.exitCode).toBe(2);
+      });
+    });
+
+    when('[t1] two allowed commands in pipe', () => {
+      then('echo | cat should pass when both allowed', () => {
+        const result = runHook({
+          command: 'echo "hello" | cat',
+          settings: limitedSettings,
+          clearNudges: true,
+        });
+        // should pass because both echo and cat are allowed
+        expect(result.exitCode).toBe(0);
+      });
+    });
+
+    when('[t2] dangerous command at pipe end', () => {
+      then('echo | dangerous-cmd should block', () => {
+        const result = runHook({
+          command: 'echo "safe" | dangerous-cmd',
+          settings: limitedSettings,
+          clearNudges: true,
+        });
+        // MUST block because dangerous-cmd is not allowed
+        expect(result.exitCode).toBe(2);
       });
     });
   });

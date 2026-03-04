@@ -6,10 +6,14 @@
 #         goes to the human who delegated the work
 #
 # usage:
-#   echo "fix(api): validate input\n\n- added input schema" | git.commit.set -m @stdin
-#   git.commit.set -m @stdin --mode apply
-#   git.commit.set -m @stdin --mode apply --push
-#   git.commit.set -m @stdin --unstaged ignore
+#   echo "fix(scope): summary
+#
+#   - detail 1
+#   - detail 2" | rhx git.commit.set -m @stdin                    # plan (preview)
+#   echo "..." | rhx git.commit.set -m @stdin --mode apply        # apply (commit)
+#   echo "..." | rhx git.commit.set -m @stdin --mode apply --push # apply + push
+#   echo "..." | rhx git.commit.set -m @stdin --unstaged include  # include untracked
+#   echo "..." | rhx git.commit.set -m @stdin --unstaged ignore   # ignore untracked
 #
 # message format:
 #   first line = commit header (required)
