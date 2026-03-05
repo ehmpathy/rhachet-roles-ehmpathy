@@ -1353,4 +1353,87 @@ describe('git.commit.set.sh', () => {
       });
     });
   });
+
+  given('[case17] adhoc Co-authored-by forbidden', () => {
+    when('[t0] message contains Co-authored-by trailer', () => {
+      then('exits with error about adhoc co-author', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: ['-m', '@stdin', '--mode', 'apply'],
+          stdin:
+            'fix(api): with adhoc coauthor\n\n- some change\n\nCo-authored-by: Someone <someone@example.com>',
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain('adhoc Co-authored-by forbidden');
+        expect(result.stdout).toMatchSnapshot();
+      });
+
+      then('no commit is created', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: ['-m', '@stdin', '--mode', 'apply'],
+          stdin:
+            'fix(api): with adhoc coauthor\n\n- some change\n\nCo-authored-by: Someone <someone@example.com>',
+        });
+
+        // genTempDir({ git: true }) creates initial commit + gitignore setup; verify no new one was added
+        const logResult = spawnSync('git', ['log', '--oneline'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8' as BufferEncoding,
+        });
+        expect(logResult.stdout.trim().split('\n').length).toBe(2);
+        expect(logResult.stdout).not.toContain('adhoc coauthor');
+      });
+
+      then('uses are not decremented', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: ['-m', '@stdin', '--mode', 'apply'],
+          stdin:
+            'fix(api): with adhoc coauthor\n\n- some change\n\nCo-authored-by: Someone <someone@example.com>',
+        });
+
+        const meterContent = fs.readFileSync(
+          path.join(result.tempDir, '.meter', 'git.commit.uses.jsonc'),
+          'utf-8',
+        );
+        expect(JSON.parse(meterContent).uses).toBe(3); // unchanged
+      });
+    });
+
+    when('[t1] message contains lowercase co-authored-by', () => {
+      then('also exits with error (case insensitive)', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: ['-m', '@stdin', '--mode', 'apply'],
+          stdin:
+            'fix(api): lowercase coauthor\n\n- change\n\nco-authored-by: someone <someone@example.com>',
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('adhoc Co-authored-by forbidden');
+      });
+    });
+
+    when('[t2] plan mode with adhoc Co-authored-by', () => {
+      then('also exits with error in plan mode', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 3, push: 'block' },
+          commitArgs: ['-m', '@stdin'], // plan mode (default)
+          stdin:
+            'fix(api): plan with coauthor\n\n- change\n\nCo-authored-by: Someone <someone@example.com>',
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('adhoc Co-authored-by forbidden');
+      });
+    });
+  });
 });
