@@ -21,7 +21,8 @@
 #
 # guarantee:
 #   - author is seaturtle[bot] <seaturtle@ehmpath.com>
-#   - Co-authored-by trailer with human's git identity
+#   - Co-authored-by trailer with human's git identity (from git config)
+#   - forbids adhoc Co-authored-by in input message (skill sets it automatically)
 #   - requires quota from git.commit.uses
 #   - push only if allowed and requested
 #   - fails fast if unstaged changes exist (unless --unstaged ignore|include)
@@ -176,6 +177,20 @@ BODY=$(echo "$MESSAGE" | tail -n +3)
 if [[ -z "$BODY" ]]; then
   echo "error: --message must be multiline (header + blank line + body)"
   echo "usage: echo 'header\n\n- body line 1' | git.commit.set -m @stdin"
+  exit 2
+fi
+
+# guard: forbid adhoc Co-authored-by in input message
+# the skill sets Co-authored-by automatically from git config
+if echo "$MESSAGE" | grep -qi "^Co-authored-by:"; then
+  print_turtle_header "bummer dude..."
+  print_tree_start "git.commit.set"
+  print_tree_error "adhoc Co-authored-by forbidden"
+  echo ""
+  echo "   the commit message contains a Co-authored-by trailer."
+  echo "   this skill sets Co-authored-by automatically from your git config."
+  echo ""
+  echo "   remove the Co-authored-by line from your message and retry."
   exit 2
 fi
 

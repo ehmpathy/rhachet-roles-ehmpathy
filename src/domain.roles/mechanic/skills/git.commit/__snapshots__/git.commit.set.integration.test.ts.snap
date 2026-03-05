@@ -324,3 +324,16 @@ exports[`git.commit.set.sh given: [case16] bound level enforced — feat rejects
 fix: use a 'feat(scope): ...' or 'feat: ...' prefix
 "
 `;
+
+exports[`git.commit.set.sh given: [case17] adhoc Co-authored-by forbidden when: [t0] message contains Co-authored-by trailer then: exits with error about adhoc co-author 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: adhoc Co-authored-by forbidden
+
+   the commit message contains a Co-authored-by trailer.
+   this skill sets Co-authored-by automatically from your git config.
+
+   remove the Co-authored-by line from your message and retry.
+"
+`;
