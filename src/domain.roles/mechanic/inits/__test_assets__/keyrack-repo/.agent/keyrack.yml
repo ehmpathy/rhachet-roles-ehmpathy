@@ -1,0 +1,13 @@
+org: ehmpathy
+
+env.all:
+  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+
+env.prod:
+  # empty
+
+env.prep:
+  # empty
+
+env.test:
+  # empty

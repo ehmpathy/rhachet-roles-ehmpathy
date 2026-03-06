@@ -164,7 +164,8 @@ trap "rm -f '$KEYRACK_ERROR_FILE'" EXIT
 # capture output and exit code (use || to prevent set -e from early exit)
 KEYRACK_EXIT=0
 "$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
-  --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN >"$KEYRACK_ERROR_FILE" 2>&1 || KEYRACK_EXIT=$?
+  --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
+  --allow-dangerous >"$KEYRACK_ERROR_FILE" 2>&1 || KEYRACK_EXIT=$?
 
 if [[ $KEYRACK_EXIT -eq 0 ]]; then
   EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(cat "$KEYRACK_ERROR_FILE")
@@ -176,7 +177,7 @@ else
   FALLBACK_TOKEN=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
     --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
     --owner ehmpath \
-    --prikey ~/.ssh/ehmpath 2>&1) || FALLBACK_EXIT=$?
+    --allow-dangerous 2>&1) || FALLBACK_EXIT=$?
   if [[ $FALLBACK_EXIT -eq 0 ]]; then
     EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN="$FALLBACK_TOKEN"
   else
@@ -187,8 +188,8 @@ else
     cat "$KEYRACK_ERROR_FILE" >&2
     echo "" >&2
     echo "to fix this, ask a human to either:" >&2
-    echo "  1. unlock their keyrack:" >&2
-    echo "     $ rhx keyrack unlock" >&2
+    echo "  1. unlock their keyrack for this key:" >&2
+    echo "     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" >&2
     echo "" >&2
     echo "  2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:" >&2
     echo "     $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath" >&2
