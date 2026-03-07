@@ -76,9 +76,20 @@ run with --mode apply to execute
 
 exports[`git.commit.push.sh given: [case12] keyrack not configured (sad path) when: [t0] no keyrack.yml in repo and no host manifest then: exits with clear message to ask human to configure 1`] = `
 "
+🐢 bummer dude, keyrack token fetch failed
+
+
 ⛈️ BadRequestError: no keyrack.yml found in repo
 
-[args] keyrack,get,--key,EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+[args] keyrack,get,--key,EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN,--allow-dangerous,--json
+
+
+to fix this, ask a human to either:
+  1. unlock their keyrack for this key:
+     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+
+  2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
+     $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath
 
 "
 `;
@@ -111,18 +122,6 @@ exports[`git.commit.push.sh given: [case15] real user locked, no ehmpath host (s
 `;
 
 exports[`git.commit.push.sh given: [case16] keyrack.yml does not declare requested key (sad path) when: [t0] keyrack.yml exists but key declaration absent then: exits with clear message about key not declared 1`] = `
-"
-🔐 keyrack
-   └─ ehmpathy.all.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
-      ├─ status: blocked 🚫
-      │  ├─ its dangerous to use long lived tokens via replica mechanisms
-      │  └─ detected github classic pat (ghp_*)
-      └─ [2mtip: --allow-dangerous if you must[0m
-
-"
-`;
-
-exports[`git.commit.push.sh given: [case17] all keyracks locked (both default and fallback) when: [t0] default owner locked and ehmpath locked then: exits with first error only, no fallback noise 1`] = `
 "
 🔐 keyrack
    └─ ehmpathy.all.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN

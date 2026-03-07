@@ -332,11 +332,13 @@ PR_FOUND=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr list --head "$
 if [[ -n "$PR_FOUND" ]]; then
   PR_STATUS="pr #$PR_FOUND (found)"
 else
-  # create pr with first commit message as body
-  PR_BODY_FULL="$PR_BODY
+  # strip Co-authored-by trailers from PR body (privacy: avoid email leak)
+  # note: grep -v returns exit 1 if no lines match, so use || true
+  PR_BODY_CLEAN=$(echo "$PR_BODY" | { grep -v '^Co-authored-by:' || true; } | sed -e :a -e '/^\n*$/{$d;N;ba;}')
+  PR_BODY_FULL="$PR_BODY_CLEAN
 
 ---
-🐢 opened by seaturtle[bot]"
+🐢🌊 surfed in by seaturtle[bot]"
   NEW_PR=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr create \
     --title "$PR_TITLE" \
     --body "$PR_BODY_FULL" \
