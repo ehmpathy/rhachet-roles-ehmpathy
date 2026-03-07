@@ -74,7 +74,7 @@ subject.code.prod:
       - briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md
 
       # errors
-      - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.error-hiding.md.pt1.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt1.md
       - briefs/practices/code.prod/pitofsuccess.errors/rule.prefer.helpful-error-wrap.md
       - briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.md
 
@@ -110,7 +110,7 @@ subject.code.prod:
       - briefs/practices/code.prod/evolvable.repo.structure/rule.prefer.dot-dirs.md
 
       # errors
-      - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.error-hiding.md.pt2.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt2.md
       - briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.[seed].md
       - briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.[demo].shell.md
 
@@ -177,3 +177,4 @@ subject.flow:
       - briefs/practices/work.flow/tools/rule.prefer.allowlist-examples.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.jq.[demo].md
       - briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt2.md
+      - briefs/practices/work.flow/tools/howto.git-commit-set.[lesson].md
