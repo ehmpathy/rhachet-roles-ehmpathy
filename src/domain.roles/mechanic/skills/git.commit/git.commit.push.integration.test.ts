@@ -450,11 +450,15 @@ env.prod:
           branch: 'turtle/feature',
           commits: ['feat: no keyrack config'],
           withKeyrack: false,
+          commitAuthor: {
+            name: 'seaturtle[bot]',
+            email: 'seaturtle@ehmpath.com',
+          },
         });
 
         const result = runPush({
           tempDir,
-          pushArgs: ['--mode', 'plan'],
+          pushArgs: ['--mode', 'apply'], // apply mode is where keyrack is fetched
           env: {
             HOME: fakeHome,
           },
@@ -535,7 +539,6 @@ env.prod:
         );
 
         // create fake HOME with no keyrack host manifests
-        // this blocks both default owner and ehmpath fallback
         const fakeHome = genTempDir({
           slug: 'fake-home-no-keyrack',
         });
@@ -545,13 +548,19 @@ env.prod:
           branch: 'turtle/feature',
           commits: ['feat: locked keyrack test'],
           withKeyrack: true,
+          commitAuthor: {
+            name: 'seaturtle[bot]',
+            email: 'seaturtle@ehmpath.com',
+          },
         });
 
         const result = runPush({
           tempDir,
-          pushArgs: ['--mode', 'plan'],
+          pushArgs: ['--mode', 'apply'],
           env: {
             HOME: fakeHome,
+            // clear token so keyrack actually tries to fetch
+            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: '',
           },
         });
 
@@ -560,7 +569,7 @@ env.prod:
         // stderr has actionable message about keyrack
         expect(result.stderr).toContain('keyrack');
         // stderr does NOT contain fallback owner noise (--owner ehmpath)
-        // note: "ehmpathy" in key name contains "ehmpath" substring — check for owner specifically
+        // note: "ehmpathy" in key name contains "ehmpath" prefix — check for owner specifically
         expect(result.stderr).not.toContain('--owner ehmpath');
         expect(result.stderr).not.toContain('owner ehmpath');
         // snapshot test for clear error message
@@ -633,19 +642,27 @@ env.prod:
             cwd: tempDir,
           });
 
-          // create branch and commit
+          // create branch and commit (as seaturtle[bot] to pass author guard)
           spawnSync('git', ['checkout', '-b', 'turtle/feature'], {
             cwd: tempDir,
           });
           fs.writeFileSync(path.join(tempDir, 'file.txt'), 'content');
           spawnSync('git', ['add', 'file.txt'], { cwd: tempDir });
-          spawnSync('git', ['commit', '-m', 'feat: key not declared test'], {
-            cwd: tempDir,
-          });
+          spawnSync(
+            'git',
+            [
+              'commit',
+              '-m',
+              'feat: key not declared test',
+              '--author',
+              'seaturtle[bot] <seaturtle@ehmpath.com>',
+            ],
+            { cwd: tempDir },
+          );
 
           const result = runPush({
             tempDir,
-            pushArgs: ['--mode', 'plan'],
+            pushArgs: ['--mode', 'apply'], // apply mode is where keyrack is fetched
             env: {
               HOME: fakeHome,
             },
@@ -827,14 +844,10 @@ exec /usr/bin/git "$@"
     });
   });
 
-  given('[case19] all keyracks locked (both default and fallback)', () => {
-    when('[t0] default owner locked and ehmpath locked', () => {
+  given('[case19] both keyrack sources locked (sad path)', () => {
+    when('[t0] no user keyrack, no ehmpath host manifest', () => {
       then('exits with first error only, no fallback noise', () => {
-        // relock both default owner and ehmpath
-        spawnSync('npx', ['rhachet', 'keyrack', 'relock'], {
-          encoding: 'utf-8',
-          stdio: 'pipe',
-        });
+        // relock ehmpath to clear daemon cache
         spawnSync(
           'npx',
           ['rhachet', 'keyrack', 'relock', '--owner', 'ehmpath'],
@@ -854,13 +867,19 @@ exec /usr/bin/git "$@"
           branch: 'turtle/feature',
           commits: ['feat: all locked test'],
           withKeyrack: true,
+          commitAuthor: {
+            name: 'seaturtle[bot]',
+            email: 'seaturtle@ehmpath.com',
+          },
         });
 
         const result = runPush({
           tempDir,
-          pushArgs: ['--mode', 'plan'],
+          pushArgs: ['--mode', 'apply'],
           env: {
             HOME: fakeHome,
+            // clear token so keyrack actually tries to fetch
+            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: '',
           },
         });
 
@@ -869,7 +888,7 @@ exec /usr/bin/git "$@"
         // stderr has actionable message about keyrack
         expect(result.stderr).toContain('keyrack');
         // stderr does NOT contain fallback owner noise (--owner ehmpath)
-        // note: "ehmpathy" in key name contains "ehmpath" substring — check for owner specifically
+        // note: "ehmpathy" in key name contains "ehmpath" as prefix — check for owner specifically
         expect(result.stderr).not.toContain('--owner ehmpath');
         expect(result.stderr).not.toContain('owner ehmpath');
         // snapshot test for clear error message

@@ -111,24 +111,41 @@ run with --mode apply to execute
 
 exports[`git.commit.push.sh given: [case15] real user locked, no ehmpath host (sad path) when: [t0] keyrack.yml exists but no host manifest then: exits with clear unlock message, no fallback noise 1`] = `
 "
-🔐 keyrack
-   └─ ehmpathy.all.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
-      ├─ status: blocked 🚫
-      │  ├─ its dangerous to use long lived tokens via replica mechanisms
-      │  └─ detected github classic pat (ghp_*)
-      └─ [2mtip: --allow-dangerous if you must[0m
+🐢 bummer dude, keyrack returned empty token
+
+keyrack output:
+{
+  "status": "granted",
+  "grant": {
+    "slug": "ehmpathy.all.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN",
+    "key": {
+      "secret": "",
+      "grade": {
+        "protection": "plaintext",
+        "duration": "permanent"
+      }
+    },
+    "source": {
+      "vault": "os.envvar",
+      "mech": "PERMANENT_VIA_REPLICA"
+    },
+    "env": "all",
+    "org": "ehmpathy"
+  }
+}
 
 "
 `;
 
 exports[`git.commit.push.sh given: [case16] keyrack.yml does not declare requested key (sad path) when: [t0] keyrack.yml exists but key declaration absent then: exits with clear message about key not declared 1`] = `
 "
-🔐 keyrack
-   └─ ehmpathy.all.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
-      ├─ status: blocked 🚫
-      │  ├─ its dangerous to use long lived tokens via replica mechanisms
-      │  └─ detected github classic pat (ghp_*)
-      └─ [2mtip: --allow-dangerous if you must[0m
+🐢 bummer dude, git push failed
+
+fatal: 'origin' does not appear to be a git repository
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
 
 "
 `;
@@ -144,5 +161,33 @@ exports[`git.commit.push.sh given: [case18] CI watch reminder after successful p
 
 🌊 now lets ride the ci wave and catch any wipeouts
    └─ git release --watch || npx rhachet run --skill show.gh.test.errors
+"
+`;
+
+exports[`git.commit.push.sh given: [case19] both keyrack sources locked (sad path) when: [t0] no user keyrack, no ehmpath host manifest then: exits with first error only, no fallback noise 1`] = `
+"
+🐢 bummer dude, keyrack returned empty token
+
+keyrack output:
+{
+  "status": "granted",
+  "grant": {
+    "slug": "ehmpathy.all.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN",
+    "key": {
+      "secret": "",
+      "grade": {
+        "protection": "plaintext",
+        "duration": "permanent"
+      }
+    },
+    "source": {
+      "vault": "os.envvar",
+      "mech": "PERMANENT_VIA_REPLICA"
+    },
+    "env": "all",
+    "org": "ehmpathy"
+  }
+}
+
 "
 `;

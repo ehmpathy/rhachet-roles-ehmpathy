@@ -1,0 +1,36 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`compress.via.llmlingua given: [case6] output format when: [t0] successful compression then: output matches snapshot 1`] = `
+"🐢 lets see...
+
+[?25l
+[K   🌊 compress via llmlingua/v2@tinybert (0s)
+[K   🫧 compress via llmlingua/v2@tinybert (0s)
+[K   🌊 compress via llmlingua/v2@tinybert (1s)
+[K   🐢 compress via llmlingua/v2@tinybert (1s)
+[K   🤙 compress via llmlingua/v2@tinybert (1s)
+[K   🌊 compress via llmlingua/v2@tinybert (2s)
+[K   🫧 compress via llmlingua/v2@tinybert (2s)
+[K   🌊 compress via llmlingua/v2@tinybert (3s)
+[K   🐢 compress via llmlingua/v2@tinybert (3s)
+[K   🤙 compress via llmlingua/v2@tinybert (3s)
+[K   🌊 compress via llmlingua/v2@tinybert (4s)
+[K   🫧 compress via llmlingua/v2@tinybert (4s)
+[K   🌊 compress via llmlingua/v2@tinybert (5s)
+[K   🐢 compress via llmlingua/v2@tinybert (5s)
+[K   🤙 compress via llmlingua/v2@tinybert (5s)[?12l[?25h
+[K🐚 brief.compress
+   ├─ mode: plan
+   ├─ via: PRESS@BRAIN
+   ├─ from: brief.md
+   ├─ into: brief.md.min
+   ├─ ratio: 4x target
+   ├─ time: Ns
+   └─ result
+      ├─ tokens.before: N
+      ├─ tokens.after: N
+      └─ ratio.actual: Nx
+
+note: this was a plan. to apply, re-run with --mode apply
+"
+`;
