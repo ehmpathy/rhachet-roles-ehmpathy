@@ -132,3 +132,17 @@ exports[`git.commit.push.sh given: [case16] keyrack.yml does not declare request
 
 "
 `;
+
+exports[`git.commit.push.sh given: [case18] CI watch reminder after successful push when: [t0] push and pr creation succeed then: shows full output with vibey reminder at end 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/feature ✓
+   ├─ pr: pr #[] (found)
+   └─ meter
+      └─ push: allowed
+
+🌊 now lets ride the ci wave and catch any wipeouts
+   └─ git release --watch || npx rhachet run --skill show.gh.test.errors
+"
+`;

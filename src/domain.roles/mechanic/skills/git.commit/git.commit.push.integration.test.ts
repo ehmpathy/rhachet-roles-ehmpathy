@@ -758,7 +758,76 @@ Co-authored-by: Human <human@example.com>`;
     );
   });
 
-  given('[case18] all keyracks locked (both default and fallback)', () => {
+  given('[case18] CI watch reminder after successful push', () => {
+    when('[t0] push and pr creation succeed', () => {
+      then('shows full output with vibey reminder at end', () => {
+        const tempDir = setupTempRepo({
+          meterState: { uses: 3, push: 'allow' },
+          branch: 'turtle/feature',
+          commits: ['feat: test ci reminder'],
+          commitAuthor: {
+            name: 'seaturtle[bot]',
+            email: 'seaturtle@ehmpath.com',
+          },
+        });
+
+        // create fake bin dir with mock gh and git
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+
+        // mock gh cli - returns success for pr list (empty) and pr create
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "pr" && "$2" == "list" ]]; then
+  echo "[]"
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  echo "https://github.com/test/repo/pull/42"
+  exit 0
+fi
+exit 1
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        // mock git push - returns success
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'git'),
+          `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  echo "   abc123..def456  HEAD -> turtle/feature"
+  exit 0
+fi
+# pass through to real git for other commands
+exec /usr/bin/git "$@"
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+
+        const result = runPush({
+          tempDir,
+          pushArgs: ['--mode', 'apply'],
+          env: {
+            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
+          },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('cowabunga');
+        expect(result.stdout).toContain('push:');
+        expect(result.stdout).toContain('pr:');
+        expect(result.stdout).toContain('🌊 now lets ride the ci wave');
+        expect(result.stdout).toContain('wipeouts');
+        expect(result.stdout).toContain('git release --watch');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case19] all keyracks locked (both default and fallback)', () => {
     when('[t0] default owner locked and ehmpath locked', () => {
       then('exits with first error only, no fallback noise', () => {
         // relock both default owner and ehmpath

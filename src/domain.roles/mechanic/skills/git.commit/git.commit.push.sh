@@ -381,4 +381,7 @@ else
   else
     echo "      └─ push: allowed"
   fi
+  echo ""
+  echo "🌊 now lets ride the ci wave and catch any wipeouts"
+  echo "   └─ git release --watch || npx rhachet run --skill show.gh.test.errors"
 fi
