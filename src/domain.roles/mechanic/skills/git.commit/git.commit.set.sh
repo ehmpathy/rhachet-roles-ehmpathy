@@ -635,16 +635,24 @@ git commit \
 # push if requested (delegate to git.commit.push)
 PUSH_STATUS="skipped"
 PR_STATUS=""
+PUSH_STDERR_FILE=""
 if [[ "$DO_PUSH" == true ]]; then
-  PUSH_RESULT_JSON=$("$SCRIPT_DIR/git.commit.push.sh" --mode apply --output json 2>/dev/null || echo '{"status":"error","error":"push failed"}')
+  PUSH_STDERR_FILE=$(mktemp)
+  PUSH_RESULT_JSON=$("$SCRIPT_DIR/git.commit.push.sh" --mode apply --output json 2>"$PUSH_STDERR_FILE" || echo '{"status":"error","error":"push failed"}')
   PUSH_RESULT_STATUS=$(echo "$PUSH_RESULT_JSON" | jq -r '.status')
   if [[ "$PUSH_RESULT_STATUS" == "pushed" ]]; then
     PUSH_TARGET=$(echo "$PUSH_RESULT_JSON" | jq -r '.push_target')
     PUSH_STATUS="$PUSH_TARGET ✓"
     PR_STATUS=$(echo "$PUSH_RESULT_JSON" | jq -r '.pr_status')
+    rm -f "$PUSH_STDERR_FILE"
   else
     PUSH_ERR=$(echo "$PUSH_RESULT_JSON" | jq -r '.error // "push failed"')
     PUSH_STATUS="error: $PUSH_ERR"
+    # show stderr from push (keyrack errors, etc.) if present
+    if [[ -s "$PUSH_STDERR_FILE" ]]; then
+      cat "$PUSH_STDERR_FILE" >&2
+    fi
+    rm -f "$PUSH_STDERR_FILE"
   fi
 fi
 
