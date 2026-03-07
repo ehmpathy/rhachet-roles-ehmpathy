@@ -19,6 +19,7 @@ describe('git.commit.set.sh', () => {
     gitUser?: { name: string; email: string };
     commitArgs: string[];
     stdin?: string;
+    branch?: string | null; // null = stay on main, string = use that branch name, undefined = 'fix/test-branch'
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
     const tempDir = genTempDir({ slug: 'git-commit-set-test', git: true });
 
@@ -75,6 +76,15 @@ describe('git.commit.set.sh', () => {
       spawnSync('git', ['commit', '-m', 'setup: add .branch/.bind level'], {
         cwd: tempDir,
       });
+    }
+
+    // create feature branch (git.commit.set requires non-base branch)
+    // default to fix/test-branch which signals fix prefix
+    // null = stay on main (for testing ON_BASE guard)
+    // string = use that branch name
+    if (args.branch !== null) {
+      const branchName = args.branch ?? 'fix/test-branch';
+      spawnSync('git', ['checkout', '-b', branchName], { cwd: tempDir });
     }
 
     // create files and stage them
@@ -580,8 +590,8 @@ describe('git.commit.set.sh', () => {
           cwd: tempDir,
         });
 
-        // create feature branch
-        spawnSync('git', ['checkout', '-b', 'turtle/feature'], {
+        // create feature branch (name must signal feat)
+        spawnSync('git', ['checkout', '-b', 'feat/new-feature'], {
           cwd: tempDir,
         });
 
@@ -644,22 +654,22 @@ describe('git.commit.set.sh', () => {
           cwd: tempDir,
         });
 
-        // create feature branch
-        spawnSync('git', ['checkout', '-b', 'turtle/multi-commit'], {
+        // create feature branch (name must signal feat)
+        spawnSync('git', ['checkout', '-b', 'feat/multi-commit'], {
           cwd: tempDir,
         });
 
-        // first commit on branch
+        // first commit on branch (via raw git)
         fs.writeFileSync(path.join(tempDir, 'first.txt'), 'first');
         spawnSync('git', ['add', 'first.txt'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'feat: first commit on branch'], {
           cwd: tempDir,
         });
 
-        // second commit on branch
+        // second commit on branch (via raw git)
         fs.writeFileSync(path.join(tempDir, 'second.txt'), 'second');
         spawnSync('git', ['add', 'second.txt'], { cwd: tempDir });
-        spawnSync('git', ['commit', '-m', 'feat: second commit'], {
+        spawnSync('git', ['commit', '-m', 'cont: second commit'], {
           cwd: tempDir,
         });
 
@@ -667,13 +677,13 @@ describe('git.commit.set.sh', () => {
         fs.writeFileSync(path.join(tempDir, 'third.txt'), 'third');
         spawnSync('git', ['add', 'third.txt'], { cwd: tempDir });
 
-        // run in plan mode with push
+        // run in plan mode with push (use cont: since branch has behavioral commit)
         const result = spawnSync(
           'bash',
           [
             scriptPath,
             '--message',
-            'feat: third commit\n\n- add third feature',
+            'cont: third commit\n\n- add third feature',
             '--push',
           ],
           {
@@ -767,13 +777,13 @@ describe('git.commit.set.sh', () => {
         fs.writeFileSync(path.join(tempDir, 'b3.txt'), 'b3');
         spawnSync('git', ['add', 'b3.txt'], { cwd: tempDir });
 
-        // run in plan mode with push
+        // run in plan mode with push (use cont: since branch has behavioral commits)
         const result = spawnSync(
           'bash',
           [
             scriptPath,
             '--message',
-            'feat: B3 third on branch-b\n\n- add B3 feature',
+            'cont: B3 third on branch-b\n\n- add B3 feature',
             '--push',
           ],
           {
@@ -849,8 +859,8 @@ describe('git.commit.set.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('bummer dude');
-        expect(result.stdout).toContain("must start with 'fix'");
-        expect(result.stdout).toContain('level bound by human');
+        expect(result.stdout).toContain("level is bound to 'fix'");
+        expect(result.stdout).toContain('commit prefix is');
         expect(result.stdout).toMatchSnapshot();
       });
 
@@ -926,19 +936,20 @@ describe('git.commit.set.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('bummer dude');
-        expect(result.stdout).toContain("must start with 'feat'");
-        expect(result.stdout).toContain('level bound by human');
+        expect(result.stdout).toContain("level is bound to 'feat'");
+        expect(result.stdout).toContain('commit prefix is');
         expect(result.stdout).toMatchSnapshot();
       });
     });
   });
 
   given('[case17] no bound level — any prefix allowed', () => {
-    when('[t0] no level bound, feat header', () => {
+    when('[t0] no level bound, feat header on feat branch', () => {
       then('commit succeeds', () => {
         const result = runInTempGitRepo({
           files: { 'feat.txt': 'feature content' },
           meterState: { uses: 3, push: 'block' },
+          branch: 'feat/test-branch', // signals feat
           commitArgs: [
             '--message',
             'feat(api): add endpoint',
@@ -982,25 +993,27 @@ describe('git.commit.set.sh', () => {
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain("must start with 'fix'");
+        expect(result.stdout).toContain("level is bound to 'fix'");
+        expect(result.stdout).toContain('commit prefix is');
       });
     });
   });
 
-  given('[case11] push to main/master blocked', () => {
-    when('[t0] on main branch with --push requested', () => {
-      then('exits with error about main branch', () => {
-        // genTempDir creates repo on main by default
+  given('[case11] commit to main blocked (ON_BASE guard)', () => {
+    when('[t0] on main branch', () => {
+      then('exits with error about base branch', () => {
+        // stay on main by passing branch: null
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'allow' },
           commitArgs: ['--message', 'fix: on main', '--push'],
+          branch: null, // stay on main
         });
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('🐢 bummer dude...');
-        expect(result.stdout).toContain('cannot push directly to main');
-        expect(result.stdout).toContain('git checkout -b turtle/');
+        expect(result.stdout).toContain('cannot commit to base branch');
+        expect(result.stdout).toContain('git checkout -b feat/my-feature');
         expect(result.stdout).toMatchSnapshot();
       });
 
@@ -1009,6 +1022,7 @@ describe('git.commit.set.sh', () => {
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'allow' },
           commitArgs: ['--message', 'fix: on main', '--push'],
+          branch: null,
         });
 
         const log = spawnSync('git', ['log', '--oneline'], {
@@ -1025,6 +1039,7 @@ describe('git.commit.set.sh', () => {
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'allow' },
           commitArgs: ['--message', 'fix: on main', '--push'],
+          branch: null,
         });
 
         const stateFile = path.join(
@@ -1307,6 +1322,7 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'button.tsx': 'button content' },
           meterState: { uses: 2, push: 'block' },
+          branch: 'feat/test-branch', // signals feat
           commitArgs: ['-m', '@stdin', '--mode', 'apply'],
           stdin: multilineMessage,
         });
@@ -1336,7 +1352,8 @@ describe('git.commit.set.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('bummer dude');
-        expect(result.stdout).toContain("must start with 'fix'");
+        expect(result.stdout).toContain("level is bound to 'fix'");
+        expect(result.stdout).toContain('commit prefix is');
       });
 
       then('accepts matching level from stdin', () => {
@@ -1433,6 +1450,665 @@ describe('git.commit.set.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('adhoc Co-authored-by forbidden');
+      });
+    });
+  });
+
+  given('[case20] continuation commit enforcement', () => {
+    when('[t0] first behavioral commit (fix)', () => {
+      then('commit succeeds', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-cont-first-fix',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/first-fix'], {
+          cwd: tempDir,
+        });
+
+        // stage a file for the first behavioral commit
+        fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fixed content');
+        spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+
+        // run git.commit.set
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'fix(api): validate input\n\n- add validation',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+      });
+    });
+
+    when('[t1] first behavioral commit (feat)', () => {
+      then('commit succeeds', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-cont-first-feat',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch (name must signal feat)
+        spawnSync('git', ['checkout', '-b', 'feat/first-feature'], {
+          cwd: tempDir,
+        });
+
+        // stage a file
+        fs.writeFileSync(path.join(tempDir, 'feat.txt'), 'new feature');
+        spawnSync('git', ['add', 'feat.txt'], { cwd: tempDir });
+
+        // run git.commit.set
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'feat(api): add endpoint\n\n- new endpoint',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+      });
+    });
+
+    when('[t2] second fix after first fix', () => {
+      then('commit is BLOCKED with error', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-cont-second-fix',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/second-fix'], {
+          cwd: tempDir,
+        });
+
+        // first behavioral commit
+        fs.writeFileSync(path.join(tempDir, 'first.txt'), 'first fix');
+        spawnSync('git', ['add', 'first.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'fix(api): first fix'], {
+          cwd: tempDir,
+        });
+
+        // stage second file for second commit
+        fs.writeFileSync(path.join(tempDir, 'second.txt'), 'second fix');
+        spawnSync('git', ['add', 'second.txt'], { cwd: tempDir });
+
+        // attempt second fix (should be blocked)
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'fix(api): second fix\n\n- more fixes',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(2);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain(
+          'branch already has a behavioral commit',
+        );
+        expect(result.stdout).toContain(
+          'first behavioral commit: fix(api): first fix',
+        );
+        expect(result.stdout).toContain('attempted: fix(api): second fix');
+        expect(result.stdout).toContain('cont:');
+        expect(result.stdout).toContain('cont(api):');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] second feat after first fix', () => {
+      then('commit is BLOCKED with error', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-cont-feat-after-fix',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/feat-after-fix'], {
+          cwd: tempDir,
+        });
+
+        // first behavioral commit (fix)
+        fs.writeFileSync(path.join(tempDir, 'first.txt'), 'first fix');
+        spawnSync('git', ['add', 'first.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'fix(api): first fix'], {
+          cwd: tempDir,
+        });
+
+        // stage second file
+        fs.writeFileSync(path.join(tempDir, 'second.txt'), 'new feature');
+        spawnSync('git', ['add', 'second.txt'], { cwd: tempDir });
+
+        // attempt feat (should be blocked)
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'feat(api): add feature\n\n- new feature',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(2);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain(
+          'branch already has a behavioral commit',
+        );
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t4] cont: after first behavioral', () => {
+      then('commit succeeds', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-cont-prefix',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/cont-prefix'], {
+          cwd: tempDir,
+        });
+
+        // first behavioral commit
+        fs.writeFileSync(path.join(tempDir, 'first.txt'), 'first fix');
+        spawnSync('git', ['add', 'first.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'fix(api): first fix'], {
+          cwd: tempDir,
+        });
+
+        // stage second file
+        fs.writeFileSync(path.join(tempDir, 'second.txt'), 'continuation');
+        spawnSync('git', ['add', 'second.txt'], { cwd: tempDir });
+
+        // cont: should succeed
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'cont: add tests\n\n- test coverage',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+      });
+    });
+
+    when('[t5] cont(scope): after first behavioral', () => {
+      then('commit succeeds', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-cont-scope',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/cont-scope'], {
+          cwd: tempDir,
+        });
+
+        // first behavioral commit
+        fs.writeFileSync(path.join(tempDir, 'first.txt'), 'first fix');
+        spawnSync('git', ['add', 'first.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'fix(api): first fix'], {
+          cwd: tempDir,
+        });
+
+        // stage second file
+        fs.writeFileSync(path.join(tempDir, 'second.txt'), 'continuation');
+        spawnSync('git', ['add', 'second.txt'], { cwd: tempDir });
+
+        // cont(scope): should succeed
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'cont(api): add tests\n\n- test coverage',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+      });
+    });
+
+    when('[t6] chore: after first behavioral', () => {
+      then('commit succeeds (exempt)', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-cont-chore',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/chore-after-fix'], {
+          cwd: tempDir,
+        });
+
+        // first behavioral commit
+        fs.writeFileSync(path.join(tempDir, 'first.txt'), 'first fix');
+        spawnSync('git', ['add', 'first.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'fix(api): first fix'], {
+          cwd: tempDir,
+        });
+
+        // stage second file
+        fs.writeFileSync(path.join(tempDir, 'second.txt'), 'chore work');
+        spawnSync('git', ['add', 'second.txt'], { cwd: tempDir });
+
+        // chore: should succeed (exempt)
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'chore: update deps\n\n- bump versions',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+      });
+    });
+
+    when('[t7] docs: after first behavioral', () => {
+      then('commit succeeds (exempt)', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-cont-docs',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/docs-after-fix'], {
+          cwd: tempDir,
+        });
+
+        // first behavioral commit
+        fs.writeFileSync(path.join(tempDir, 'first.txt'), 'first fix');
+        spawnSync('git', ['add', 'first.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'fix(api): first fix'], {
+          cwd: tempDir,
+        });
+
+        // stage docs file
+        fs.writeFileSync(path.join(tempDir, 'README.md'), '# Docs');
+        spawnSync('git', ['add', 'README.md'], { cwd: tempDir });
+
+        // docs: should succeed (exempt)
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'docs: update readme\n\n- add docs',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+      });
+    });
+
+    when('[t8] chore: then fix: (chore is not first behavioral)', () => {
+      then('fix succeeds as first behavioral commit', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-cont-chore-then-fix',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/chore-then-fix'], {
+          cwd: tempDir,
+        });
+
+        // chore commit first (not behavioral)
+        fs.writeFileSync(path.join(tempDir, 'deps.txt'), 'deps');
+        spawnSync('git', ['add', 'deps.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'chore: update deps'], {
+          cwd: tempDir,
+        });
+
+        // stage fix file
+        fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fix content');
+        spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+
+        // fix: should succeed (chore doesn't count as behavioral)
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'fix(api): validate input\n\n- add validation',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('righteous!');
+      });
+    });
+
+    when('[t9] cont: on fresh branch (no behavioral yet)', () => {
+      then('commit is BLOCKED', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-cont-fresh-branch',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/cont-fresh'], {
+          cwd: tempDir,
+        });
+
+        // stage file
+        fs.writeFileSync(path.join(tempDir, 'first.txt'), 'first content');
+        spawnSync('git', ['add', 'first.txt'], { cwd: tempDir });
+
+        // cont: on fresh branch (no behavioral yet) should be BLOCKED
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'cont: continue work\n\n- add content',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
+        );
+
+        expect(result.status).toBe(2);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain('cannot use cont: on fresh branch');
+        expect(result.stdout).toContain(
+          'use `fix:` or `feat:` prefix for the first behavioral commit',
+        );
       });
     });
   });

@@ -97,6 +97,53 @@ get_commit_prefix() {
   fi
 }
 
+######################################################################
+# helper: enumerate behavioral commits (fix/feat) on current branch
+# returns:
+#   - "NO_COMMITS" if repo has no commits (fail fast)
+#   - "NO_BASE" if no base branch found (fail fast)
+#   - "ON_BASE" if current branch is the base branch (fail fast)
+#   - commit subjects (one per line) if behavioral commits found
+#   - empty string if no behavioral commits on branch
+######################################################################
+get_behavioral_commits_on_branch() {
+  # fail fast: repo has no commits
+  if ! git rev-parse HEAD >/dev/null 2>&1; then
+    echo "NO_COMMITS"
+    return 0
+  fi
+
+  # find base branch (prefer origin remote, fall back to local)
+  local base_branch=""
+  for candidate in origin/main origin/master origin/trunk main master trunk; do
+    if git rev-parse --verify "$candidate" >/dev/null 2>&1; then
+      base_branch="$candidate"
+      break
+    fi
+  done
+
+  # fail fast: no known default branch found
+  if [[ -z "$base_branch" ]]; then
+    echo "NO_BASE"
+    return 0
+  fi
+
+  # fail fast: current branch IS the base branch
+  local current_branch
+  current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
+  # extract branch name from origin/main -> main for comparison
+  local base_branch_name="${base_branch#origin/}"
+  if [[ "$current_branch" == "$base_branch_name" ]]; then
+    echo "ON_BASE"
+    return 0
+  fi
+
+  # list commits on branch since divergence from base (oldest first)
+  # filter to fix: or feat: prefixed commits
+  git log --reverse --format="%s" "$base_branch..HEAD" 2>/dev/null | \
+    grep -E "^(fix|feat)(\([^)]+\))?:" || true
+}
+
 # parse arguments
 MESSAGE=""
 DO_PUSH=false
@@ -256,7 +303,9 @@ case "$COMMIT_PREFIX" in
         echo "   level.found = $COMMIT_PREFIX"
         echo ""
         echo "   the level is bound to 'fix' but the commit prefix is 'feat'."
-        echo "   either change your commit header to fix(...): or unbind the level."
+        echo ""
+        echo "   the branch is bound to fix — use fix: even if you think its a feat."
+        echo "   change your commit header to fix(...):"
         exit 2  # blocked by constraints
       fi
     elif [[ "$EFFECTIVE_LEVEL" == "feat" ]]; then
@@ -271,7 +320,9 @@ case "$COMMIT_PREFIX" in
         echo "   level.found = $COMMIT_PREFIX"
         echo ""
         echo "   the level is bound to 'feat' but the commit prefix is 'fix'."
-        echo "   either change your commit header to feat(...): or unbind the level."
+        echo ""
+        echo "   the branch is bound to feat — use feat: even if you think its a fix."
+        echo "   change your commit header to feat(...):"
         exit 2  # blocked by constraints
       fi
     else
@@ -300,6 +351,84 @@ case "$COMMIT_PREFIX" in
     fi
     ;;
 esac
+
+# guard: continuation commit enforcement
+# after first behavioral commit (fix/feat) on branch, subsequent fix/feat must use cont:
+BEHAVIORAL_COMMITS=$(get_behavioral_commits_on_branch)
+
+# fail fast: repo has no commits
+if [[ "$BEHAVIORAL_COMMITS" == "NO_COMMITS" ]]; then
+  print_turtle_header "bummer dude..."
+  print_tree_start "git.commit.set"
+  print_tree_error "repo has no commits"
+  echo ""
+  echo "   cannot commit to an empty repo"
+  echo "   ensure the repo has at least one commit on the base branch"
+  exit 2
+fi
+
+# fail fast: no base branch to compare against
+if [[ "$BEHAVIORAL_COMMITS" == "NO_BASE" ]]; then
+  print_turtle_header "bummer dude..."
+  print_tree_start "git.commit.set"
+  print_tree_error "no base branch found (main/master/trunk)"
+  echo ""
+  echo "   cannot determine branch context without a base branch"
+  echo "   ensure the repo has a main, master, or trunk branch"
+  exit 2
+fi
+
+# fail fast: cannot commit directly to base branch
+if [[ "$BEHAVIORAL_COMMITS" == "ON_BASE" ]]; then
+  print_turtle_header "bummer dude..."
+  print_tree_start "git.commit.set"
+  print_tree_error "cannot commit to base branch"
+  echo ""
+  echo "   you are on main - create a feature branch first"
+  echo ""
+  echo "   example:"
+  echo "     git checkout -b feat/my-feature"
+  exit 2
+fi
+
+# guard: check for prior behavioral commits
+if [[ -n "$BEHAVIORAL_COMMITS" ]]; then
+  # branch already has a behavioral commit
+  if [[ "$COMMIT_PREFIX" == "fix" || "$COMMIT_PREFIX" == "feat" ]]; then
+    FIRST_BEHAVIORAL=$(echo "$BEHAVIORAL_COMMITS" | head -n1)
+
+    # extract scope from header for helpful suggestion
+    # use sed to avoid bash regex issues with parentheses
+    COMMIT_SCOPE=$(echo "$HEADER" | sed -n 's/^[a-z]*(\([^)]*\)):.*/\1/p')
+
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.commit.set"
+    print_tree_error "branch already has a behavioral commit"
+    echo ""
+    echo "   first behavioral commit: $FIRST_BEHAVIORAL"
+    echo "   attempted: $HEADER"
+    echo ""
+    if [[ -n "$COMMIT_SCOPE" ]]; then
+      echo "   use \`cont:\` or \`cont($COMMIT_SCOPE):\` prefix"
+    else
+      echo "   use \`cont:\` prefix"
+    fi
+    exit 2
+  fi
+else
+  # branch has no behavioral commit yet
+  if [[ "$COMMIT_PREFIX" == "cont" ]]; then
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.commit.set"
+    print_tree_error "cannot use cont: on fresh branch"
+    echo ""
+    echo "   cont: continues a prior behavioral commit"
+    echo "   but this branch has no fix: or feat: yet"
+    echo ""
+    echo "   use \`fix:\` or \`feat:\` prefix for the first behavioral commit"
+    exit 2
+  fi
+fi
 
 # check state file exists
 if [[ ! -f "$STATE_FILE" ]]; then
