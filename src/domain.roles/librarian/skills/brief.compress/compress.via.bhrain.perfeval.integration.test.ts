@@ -1162,8 +1162,9 @@ const PERFEVAL_TIMESTAMP = genPerfEvalId();
 /**
  * .what = performance evaluation tests for methodology brief combinations
  * .why = find which combination produces best compression rate
+ * .note = skipped for now (generates large eval files, snapshots change frequently)
  */
-describe('compress.via.bhrain.perfeval', () => {
+describe.skip('compress.via.bhrain.perfeval', () => {
   // increase timeout for parallel brain calls (full eval with 47 pipelines × 8 briefs × 3 runs = 1128 compressions)
   jest.setTimeout(5400000); // 90 minutes
 

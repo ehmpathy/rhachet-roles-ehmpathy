@@ -118,7 +118,7 @@ describe('git.commit.bind.sh', () => {
         });
 
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('level: (none —');
+        expect(result.stdout).toContain('level: (none'); // may include explanation like "— will nudge..."
         expect(result.stdout).toMatchSnapshot();
       });
     });
