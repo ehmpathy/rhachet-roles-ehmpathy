@@ -41,6 +41,7 @@ STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 MODE="plan"
 OUTPUT="tree"
 PR_TITLE_FALLBACK=""
+DEBUG="false"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -56,13 +57,18 @@ while [[ $# -gt 0 ]]; do
       PR_TITLE_FALLBACK="$2"
       shift 2
       ;;
+    --debug)
+      DEBUG="true"
+      shift
+      ;;
     --help|-h)
-      echo "usage: git.commit.push [--mode plan|apply] [--output tree|json] [--pr-title-fallback \"...\"]"
+      echo "usage: git.commit.push [--mode plan|apply] [--output tree|json] [--pr-title-fallback \"...\"] [--debug]"
       echo ""
       echo "options:"
       echo "  --mode plan|apply            plan shows preview, apply executes (default: plan)"
       echo "  --output tree|json           tree for standalone, json for composition (default: tree)"
       echo "  --pr-title-fallback \"...\"    fallback pr title when no commits on branch yet"
+      echo "  --debug                      show verbose debug output"
       echo "  --help, -h                   show this help"
       exit 0
       ;;
@@ -161,25 +167,37 @@ fi
 KEYRACK_ERROR_FILE=$(mktemp)
 trap "rm -f '$KEYRACK_ERROR_FILE'" EXIT
 
+[[ "$DEBUG" == "true" ]] && echo "[debug] fetch token from keyrack..." >&2
+
 # capture output and exit code (use || to prevent set -e from early exit)
 KEYRACK_EXIT=0
 "$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
   --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
-  --allow-dangerous >"$KEYRACK_ERROR_FILE" 2>&1 || KEYRACK_EXIT=$?
+  --allow-dangerous \
+  --json >"$KEYRACK_ERROR_FILE" 2>&1 || KEYRACK_EXIT=$?
+
+[[ "$DEBUG" == "true" ]] && echo "[debug] keyrack get exit=$KEYRACK_EXIT" >&2
+[[ "$DEBUG" == "true" ]] && echo "[debug] keyrack output: $(cat "$KEYRACK_ERROR_FILE")" >&2
 
 if [[ $KEYRACK_EXIT -eq 0 ]]; then
-  EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(cat "$KEYRACK_ERROR_FILE")
+  EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(cat "$KEYRACK_ERROR_FILE" | jq -r '.grant.key.secret // empty')
+  [[ "$DEBUG" == "true" ]] && echo "[debug] extracted token length: ${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN}" >&2
 else
   # fallback: unlock and get from ehmpath (passwordless sshkey)
+  [[ "$DEBUG" == "true" ]] && echo "[debug] primary failed, try ehmpath fallback..." >&2
   "$REPO_ROOT/node_modules/.bin/rhachet" keyrack unlock \
     --owner ehmpath --prikey ~/.ssh/ehmpath --env all >/dev/null 2>&1 || true
   FALLBACK_EXIT=0
-  FALLBACK_TOKEN=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
+  FALLBACK_OUTPUT=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
     --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
     --owner ehmpath \
-    --allow-dangerous 2>&1) || FALLBACK_EXIT=$?
+    --allow-dangerous \
+    --json 2>&1) || FALLBACK_EXIT=$?
+  [[ "$DEBUG" == "true" ]] && echo "[debug] fallback exit=$FALLBACK_EXIT" >&2
+  [[ "$DEBUG" == "true" ]] && echo "[debug] fallback output: $FALLBACK_OUTPUT" >&2
   if [[ $FALLBACK_EXIT -eq 0 ]]; then
-    EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN="$FALLBACK_TOKEN"
+    EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(echo "$FALLBACK_OUTPUT" | jq -r '.grant.key.secret // empty')
+    [[ "$DEBUG" == "true" ]] && echo "[debug] extracted fallback token length: ${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN}" >&2
   else
     # both failed — show original error + guidance for human
     echo "" >&2
@@ -196,6 +214,17 @@ else
     echo "" >&2
     exit 1
   fi
+fi
+
+# fail-fast: verify we got a token
+if [[ -z "$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" ]]; then
+  echo "" >&2
+  echo "🐢 bummer dude, keyrack returned empty token" >&2
+  echo "" >&2
+  echo "keyrack output:" >&2
+  cat "$KEYRACK_ERROR_FILE" >&2
+  echo "" >&2
+  exit 1
 fi
 
 ######################################################################
@@ -274,13 +303,31 @@ fi
 # APPLY MODE: execute the push + pr findsert
 ######################################################################
 
+[[ "$DEBUG" == "true" ]] && echo "[debug] apply mode: push to origin..." >&2
+
 # push to origin
-git push -u origin HEAD > /dev/null 2>&1
+PUSH_EXIT=0
+PUSH_OUTPUT=$(git push -u origin HEAD 2>&1) || PUSH_EXIT=$?
+[[ "$DEBUG" == "true" ]] && echo "[debug] push exit=$PUSH_EXIT" >&2
+[[ "$DEBUG" == "true" ]] && echo "[debug] push output: $PUSH_OUTPUT" >&2
+
+if [[ $PUSH_EXIT -ne 0 ]]; then
+  echo "" >&2
+  echo "🐢 bummer dude, git push failed" >&2
+  echo "" >&2
+  echo "$PUSH_OUTPUT" >&2
+  echo "" >&2
+  exit 1
+fi
+
 PUSH_STATUS="$PUSH_TARGET ✓"
 
 # findsert draft pr
+[[ "$DEBUG" == "true" ]] && echo "[debug] findsert pr for branch $CURRENT_BRANCH..." >&2
+
 PR_STATUS=""
 PR_FOUND=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr list --head "$CURRENT_BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+[[ "$DEBUG" == "true" ]] && echo "[debug] pr found: '$PR_FOUND'" >&2
 
 if [[ -n "$PR_FOUND" ]]; then
   PR_STATUS="pr #$PR_FOUND (found)"
