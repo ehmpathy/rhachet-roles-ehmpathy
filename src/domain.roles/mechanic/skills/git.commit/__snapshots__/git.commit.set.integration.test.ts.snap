@@ -120,7 +120,7 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] pl
    │  │  └─ email: human@test.com
    │  └─ files
    │     └─ feature.txt
-   ├─ push: origin/turtle/feature
+   ├─ push: origin/feat/new-feature
    ├─ pr
    │  ├─ title: feat: new feature
    │  └─ action: findsert draft
@@ -137,7 +137,7 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] pl
 
 🐚 git.commit.set --mode plan
    ├─ commit
-   │  ├─ header: feat: third commit
+   │  ├─ header: cont: third commit
    │  ├─ body
    │  │  └─ - add third feature
    │  ├─ author
@@ -148,7 +148,7 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] pl
    │  │  └─ email: human@test.com
    │  └─ files
    │     └─ third.txt
-   ├─ push: origin/turtle/multi-commit
+   ├─ push: origin/feat/multi-commit
    ├─ pr
    │  ├─ title: feat: first commit on branch
    │  └─ action: findsert draft
@@ -160,14 +160,16 @@ run with --mode apply to execute
 "
 `;
 
-exports[`git.commit.set.sh given: [case11] push to main/master blocked when: [t0] on main branch with --push requested then: exits with error about main branch 1`] = `
+exports[`git.commit.set.sh given: [case11] commit to main blocked (ON_BASE guard) when: [t0] on main branch then: exits with error about base branch 1`] = `
 "🐢 bummer dude...
 
-🐚 git.commit.push
-   └─ error: cannot push directly to main
+🐚 git.commit.set
+   └─ error: cannot commit to base branch
 
-create a feature branch first:
-  $ git checkout -b turtle/your-branch-name
+   you are on main - create a feature branch first
+
+   example:
+     git checkout -b feat/my-feature
 "
 `;
 
@@ -176,7 +178,7 @@ exports[`git.commit.set.sh given: [case12] PR title on stacked branch (branch fr
 
 🐚 git.commit.set --mode plan
    ├─ commit
-   │  ├─ header: feat: B3 third on branch-b
+   │  ├─ header: cont: B3 third on branch-b
    │  ├─ body
    │  │  └─ - add B3 feature
    │  ├─ author
@@ -249,12 +251,16 @@ exports[`git.commit.set.sh given: [case14] bound level enforced — fix rejects 
 "🐢 bummer dude...
 
 🐚 git.commit.set
-   └─ error: commit header must start with 'fix' — level bound by human
+   └─ error: commit prefix mismatch
 
    header: feat(api): add endpoint
-   bound level: fix
+   level.bound = fix (explicit)
+   level.found = feat
 
-fix: use a 'fix(scope): ...' or 'fix: ...' prefix
+   the level is bound to 'fix' but the commit prefix is 'feat'.
+
+   the branch is bound to fix — use fix: even if you think its a feat.
+   change your commit header to fix(...):
 "
 `;
 
@@ -316,12 +322,16 @@ exports[`git.commit.set.sh given: [case16] bound level enforced — feat rejects
 "🐢 bummer dude...
 
 🐚 git.commit.set
-   └─ error: commit header must start with 'feat' — level bound by human
+   └─ error: commit prefix mismatch
 
    header: fix(ui): button color
-   bound level: feat
+   level.bound = feat (explicit)
+   level.found = fix
 
-fix: use a 'feat(scope): ...' or 'feat: ...' prefix
+   the level is bound to 'feat' but the commit prefix is 'fix'.
+
+   the branch is bound to feat — use feat: even if you think its a fix.
+   change your commit header to feat(...):
 "
 `;
 
@@ -335,5 +345,31 @@ exports[`git.commit.set.sh given: [case17] adhoc Co-authored-by forbidden when: 
    this skill sets Co-authored-by automatically from your git config.
 
    remove the Co-authored-by line from your message and retry.
+"
+`;
+
+exports[`git.commit.set.sh given: [case20] continuation commit enforcement when: [t2] second fix after first fix then: commit is BLOCKED with error 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: branch already has a behavioral commit
+
+   first behavioral commit: fix(api): first fix
+   attempted: fix(api): second fix
+
+   use \`cont:\` or \`cont(api):\` prefix
+"
+`;
+
+exports[`git.commit.set.sh given: [case20] continuation commit enforcement when: [t3] second feat after first fix then: commit is BLOCKED with error 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: branch already has a behavioral commit
+
+   first behavioral commit: fix(api): first fix
+   attempted: feat(api): add feature
+
+   use \`cont:\` or \`cont(api):\` prefix
 "
 `;
