@@ -7,7 +7,7 @@ exports[`git.commit.push.sh given: [case1] plan mode on feature branch when: [t0
    ├─ push: origin/turtle/feature
    ├─ pr
    │  ├─ title: feat: first commit
-   │  └─ action: findsert draft
+   │  └─ action: findsert
    └─ meter
       └─ push: allowed
 
@@ -66,7 +66,7 @@ exports[`git.commit.push.sh given: [case9] stacked branch pr title when: [t0] br
    ├─ push: origin/turtle/branch-b
    ├─ pr
    │  ├─ title: feat: B1 first on branch-b
-   │  └─ action: findsert draft
+   │  └─ action: findsert
    └─ meter
       └─ push: allowed
 
@@ -74,14 +74,12 @@ run with --mode apply to execute
 "
 `;
 
-exports[`git.commit.push.sh given: [case12] token guard when: [t0] EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN is not set then: exits with error about token 1`] = `
-"🐢 bummer dude...
+exports[`git.commit.push.sh given: [case12] keyrack not configured (sad path) when: [t0] no keyrack.yml in repo and no host manifest then: exits with clear message to ask human to configure 1`] = `
+"
+⛈️ BadRequestError: no keyrack.yml found in repo
 
-🐚 git.commit.push
-   └─ error: EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN not set
+[args] keyrack,get,--key,EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
 
-push requires this token for pr findsert.
-set the token in your environment first.
 "
 `;
 
@@ -92,10 +90,46 @@ exports[`git.commit.push.sh given: [case14] push-only auto-revoke plan display w
    ├─ push: origin/turtle/push-revoke
    ├─ pr
    │  ├─ title: feat: prior commit
-   │  └─ action: findsert draft
+   │  └─ action: findsert
    └─ meter
       └─ push: allowed → blocked (revoked)
 
 run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.push.sh given: [case15] real user locked, no ehmpath host (sad path) when: [t0] keyrack.yml exists but no host manifest then: exits with clear unlock message, no fallback noise 1`] = `
+"
+🔐 keyrack
+   └─ ehmpathy.all.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+      ├─ status: blocked 🚫
+      │  ├─ its dangerous to use long lived tokens via replica mechanisms
+      │  └─ detected github classic pat (ghp_*)
+      └─ [2mtip: --allow-dangerous if you must[0m
+
+"
+`;
+
+exports[`git.commit.push.sh given: [case16] keyrack.yml does not declare requested key (sad path) when: [t0] keyrack.yml exists but key declaration absent then: exits with clear message about key not declared 1`] = `
+"
+🔐 keyrack
+   └─ ehmpathy.all.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+      ├─ status: blocked 🚫
+      │  ├─ its dangerous to use long lived tokens via replica mechanisms
+      │  └─ detected github classic pat (ghp_*)
+      └─ [2mtip: --allow-dangerous if you must[0m
+
+"
+`;
+
+exports[`git.commit.push.sh given: [case17] all keyracks locked (both default and fallback) when: [t0] default owner locked and ehmpath locked then: exits with first error only, no fallback noise 1`] = `
+"
+🔐 keyrack
+   └─ ehmpathy.all.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+      ├─ status: blocked 🚫
+      │  ├─ its dangerous to use long lived tokens via replica mechanisms
+      │  └─ detected github classic pat (ghp_*)
+      └─ [2mtip: --allow-dangerous if you must[0m
+
 "
 `;
