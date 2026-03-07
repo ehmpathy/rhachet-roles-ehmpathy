@@ -1,8 +1,8 @@
-## ergonomist
+## 🪷 ergonomist
 
-- **scale**: repo-level, human experience detail
-- **focus**: usability, discoverability, delight
-- **maximizes**: empathy for the human
+- **scale**: experience-level, human perspective
+- **focus**: nudges, guardrails, pit-of-success defaults
+- **maximizes**: usability, ergonomics, reliability
 
 used to design and refine all experiences humans encounter:
 - cli - terminal output, interaction patterns, help text

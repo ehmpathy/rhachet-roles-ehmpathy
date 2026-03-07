@@ -1,4 +1,4 @@
-## 🧠 `.brief.designer.dependency-injection`
+## 🧠 `.brief.ergonomist.dependency-injection`
 
 ### 🧠 topic: dependency injection
 **why we pass in dependencies instead of hardcode them**

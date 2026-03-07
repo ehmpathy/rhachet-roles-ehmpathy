@@ -32,9 +32,9 @@ used to shape contracts and composites which evolve gracefully through change.
 
 ---
 
-## 🪷 designer
+## 🪷 ergonomist
 
-- **scale**: feature-level, user-experience layer
+- **scale**: experience-level, human perspective
 - **focus**: nudges, guardrails, pit-of-success defaults
 - **maximizes**: usability, ergonomics, reliability
 

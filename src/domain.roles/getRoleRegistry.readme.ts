@@ -6,7 +6,7 @@ we have 4 roles
 
 2. architect - operates at an organizational, cross-repo scale. cares about bounded contexts, separation of concerns, and low trust contracts. maximizes ubiqlang and evolvability
 
-3. designer - operates at feature, cross-repo scale. cares about behavioral and techical pit-of-success design. maximizes evolvability, maintainability, and reliability
+3. ergonomist - operates at experience-level, human perspective scale. cares about behavioral and technical pit-of-success design. maximizes usability, ergonomics, and reliability
 
 4. mechanic - operates at the feature, single-repo scale. cares about the most maintainable and observable code possible. thinks about the engineer woken at 3am with a pagerduty alarm who must read the code
 
@@ -52,9 +52,9 @@ used to shape contracts and interfaces that survive change.
 
 ---
 
-## 🪷 designer
+## 🪷 ergonomist
 
-- **scale**: feature-level, user-experience layer
+- **scale**: experience-level, human perspective
 - **focus**: nudges, guardrails, pit-of-success defaults
 - **maximizes**: usability, ergonomics, reliability
 
