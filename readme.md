@@ -57,9 +57,9 @@ used to shape contracts and composites which evolve gracefully through change.
 
 ---
 
-## 🪷 designer
+## 🪷 ergonomist
 
-- **scale**: feature-level, user-experience layer
+- **scale**: experience-level, human perspective
 - **focus**: nudges, guardrails, pit-of-success defaults
 - **maximizes**: usability, ergonomics, reliability
 
@@ -116,7 +116,7 @@ this repo houses roles for sea turtles 🐢 — gentle builders of empathetic so
 they wield:
 - 🥥 coconut — for ecologists — to uncover what happens beneath the surface, fundamentally
 - 🪸 coral — for architects — to compose many parts into one structure, evolvably
-- 🪷 lotus — for designers — to guide users to the surface, intuitively
+- 🪷 lotus — for ergonomists — to guide users to the surface, intuitively
 - 🐚 shell — for mechanics — to craft code easy to read and hard to break, maintainably
 
 why seaturtles? because they embody the principles of good software:

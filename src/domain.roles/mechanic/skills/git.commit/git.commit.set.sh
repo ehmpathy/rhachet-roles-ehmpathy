@@ -627,10 +627,20 @@ FULL_MESSAGE="$MESSAGE
 
 Co-authored-by: $HUMAN_NAME <$HUMAN_EMAIL>"
 
-git commit \
+COMMIT_STDERR_FILE=$(mktemp)
+if ! git commit \
   --author="$ROBOT_NAME <$ROBOT_EMAIL>" \
   --message="$FULL_MESSAGE" \
-  > /dev/null 2>&1
+  > /dev/null 2>"$COMMIT_STDERR_FILE"; then
+  print_turtle_header "bummer dude..."
+  print_tree_start "git.commit.set"
+  print_tree_error "git commit failed"
+  echo ""
+  cat "$COMMIT_STDERR_FILE"
+  rm -f "$COMMIT_STDERR_FILE"
+  exit 1
+fi
+rm -f "$COMMIT_STDERR_FILE"
 
 # push if requested (delegate to git.commit.push)
 PUSH_STATUS="skipped"
