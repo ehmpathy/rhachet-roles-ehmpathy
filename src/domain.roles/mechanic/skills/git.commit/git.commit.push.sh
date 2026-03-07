@@ -307,7 +307,7 @@ fi
 
 # push to origin
 PUSH_EXIT=0
-PUSH_OUTPUT=$(git push -u origin HEAD 2>&1) || PUSH_EXIT=$?
+PUSH_OUTPUT=$(git push origin HEAD --force-with-lease 2>&1) || PUSH_EXIT=$?
 [[ "$DEBUG" == "true" ]] && echo "[debug] push exit=$PUSH_EXIT" >&2
 [[ "$DEBUG" == "true" ]] && echo "[debug] push output: $PUSH_OUTPUT" >&2
 
