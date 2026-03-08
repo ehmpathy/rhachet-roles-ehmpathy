@@ -2,6 +2,7 @@ import { RoleRegistry } from 'rhachet';
 
 import { ROLE_ARCHITECT } from './architect/getArchitectRole';
 // import { ROLE_ECOLOGIST } from './ecologist/getEcologistRole';
+import { ROLE_ERGONOMIST } from './ergonomist/getErgonomistRole';
 import { ROLE_MECHANIC } from './mechanic/getMechanicRole';
 
 /**
@@ -17,6 +18,7 @@ export const getRoleRegistry = (): RoleRegistry =>
     roles: [
       // ROLE_ECOLOGIST,
       ROLE_ARCHITECT,
+      ROLE_ERGONOMIST,
       ROLE_MECHANIC,
     ],
   });

@@ -7,6 +7,12 @@ roles:
       dirs: dist/domain.roles/architect/briefs
     skills:
       dirs: []
+  - slug: ergonomist
+    readme: dist/domain.roles/ergonomist/readme.md
+    briefs:
+      dirs: dist/domain.roles/ergonomist/briefs
+    skills:
+      dirs: []
   - slug: mechanic
     readme: dist/domain.roles/mechanic/readme.md
     briefs:
