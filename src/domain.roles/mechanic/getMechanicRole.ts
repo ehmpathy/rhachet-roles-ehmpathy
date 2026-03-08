@@ -9,6 +9,7 @@ export const ROLE_MECHANIC: Role = Role.build({
   name: 'Mechanic',
   purpose: 'write code',
   readme: { uri: `${__dirname}/readme.md` },
+  keyrack: { uri: `${__dirname}/keyrack.yml` },
   traits: [],
   briefs: {
     dirs: { uri: `${__dirname}/briefs` },
@@ -19,10 +20,7 @@ export const ROLE_MECHANIC: Role = Role.build({
   },
   inits: {
     dirs: { uri: `${__dirname}/inits` },
-    exec: [
-      { cmd: `${__dirname}/inits/init.claude.sh` },
-      { cmd: `${__dirname}/inits/link.role.keyrack.sh` },
-    ],
+    exec: [{ cmd: `${__dirname}/inits/init.claude.sh` }],
   },
   hooks: {
     onBrain: {
