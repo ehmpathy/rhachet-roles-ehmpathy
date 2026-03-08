@@ -11,6 +11,15 @@
 #         2. findsert ehmpath host keyrack with that key
 #         3. configure required keys (e.g., EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN)
 #
+# usage:
+#   npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath
+#   npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath --refresh EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+#   npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath --refresh @all
+#
+# options:
+#   --refresh <key>   force re-prompt for this key (use when token expires)
+#   --refresh @all    force re-prompt for all keys
+#
 # guarantee:
 #   - idempotent (safe to rerun)
 #   - passwordless key (no passphrase prompt)
@@ -21,6 +30,20 @@ set -euo pipefail
 
 # fail loud: print what failed
 trap 'echo "💥 keyrack.ehmpath.sh failed at line $LINENO" >&2' ERR
+
+# parse arguments
+REFRESH_KEY=""
+while [[ $# -gt 0 ]]; do
+  case $1 in
+    --refresh)
+      REFRESH_KEY="$2"
+      shift 2
+      ;;
+    *)
+      shift
+      ;;
+  esac
+done
 
 EHMPATH_KEY="$HOME/.ssh/ehmpath"
 EHMPATH_KEY_PUB="$HOME/.ssh/ehmpath.pub"
@@ -126,10 +149,20 @@ for KEY in "${REQUIRED_KEYS[@]}"; do
     --env all \
     --allow-dangerous </dev/null 2>&1) || GET_EXIT=$?
 
-  if [[ $GET_EXIT -eq 0 ]]; then
+  # skip "already configured" if this is the refresh target (or @all)
+  SHOULD_REFRESH=false
+  if [[ "$REFRESH_KEY" == "@all" || "$REFRESH_KEY" == "$KEY" ]]; then
+    SHOULD_REFRESH=true
+  fi
+
+  if [[ $GET_EXIT -eq 0 && "$SHOULD_REFRESH" == "false" ]]; then
     echo "   ├─ key $KEY: configured ✓"
   else
-    echo "   ├─ key $KEY: configure..."
+    if [[ "$SHOULD_REFRESH" == "true" ]]; then
+      echo "   ├─ key $KEY: refresh..."
+    else
+      echo "   ├─ key $KEY: configure..."
+    fi
     # keyrack set reads from stdin (interactive or piped)
     ./node_modules/.bin/rhachet keyrack set \
       --owner ehmpath \

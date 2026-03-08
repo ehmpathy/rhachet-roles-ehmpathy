@@ -43,6 +43,7 @@ describe('keyrack.ehmpath.sh', () => {
     home: string;
     cwd: string;
     stdin?: string;
+    extraArgs?: string[];
   }): { stdout: string; stderr: string; exitCode: number } => {
     // strip tokens that could leak from host env into isolated keyrack
     const {
@@ -51,7 +52,8 @@ describe('keyrack.ehmpath.sh', () => {
       ...envClean
     } = process.env;
 
-    const result = spawnSync('bash', [scriptPath], {
+    const scriptArgs = args.extraArgs ?? [];
+    const result = spawnSync('bash', [scriptPath, ...scriptArgs], {
       cwd: args.cwd,
       encoding: 'utf-8',
       input: args.stdin,
@@ -259,6 +261,131 @@ describe('keyrack.ehmpath.sh', () => {
         expect(second.stdout).toContain('configured');
         expect(second.stdout).not.toContain('configure...');
         expect(second.exitCode).toBe(0);
+      });
+    });
+
+    when('[t1] --refresh <key> is passed for a configured key', () => {
+      then('it forces re-prompt for that key only', async () => {
+        // clone fixtures
+        const tempHome = genTempDir({
+          slug: 'keyrack-home',
+          clone: path.join(__dirname, '__test_assets__/keyrack-home'),
+        });
+        const tempRepo = genTempDir({
+          slug: 'keyrack-repo',
+          git: true,
+          clone: path.join(__dirname, '__test_assets__/keyrack-repo'),
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
+
+        // clear daemon cache
+        spawnSync(
+          './node_modules/.bin/rhachet',
+          ['keyrack', 'relock', '--owner', 'ehmpath'],
+          {
+            cwd: tempRepo,
+            encoding: 'utf-8',
+            env: { ...envClean, HOME: tempHome },
+          },
+        );
+
+        // first run - configure key
+        const first = runInit({
+          home: tempHome,
+          cwd: tempRepo,
+          stdin: 'first-secret',
+        });
+        expect(first.exitCode).toBe(0);
+        expect(first.stdout).toContain('configure...');
+
+        // relock before refresh
+        spawnSync(
+          './node_modules/.bin/rhachet',
+          ['keyrack', 'relock', '--owner', 'ehmpath'],
+          {
+            cwd: tempRepo,
+            encoding: 'utf-8',
+            env: { ...envClean, HOME: tempHome },
+          },
+        );
+
+        // refresh run - should force re-prompt
+        const refresh = runInit({
+          home: tempHome,
+          cwd: tempRepo,
+          stdin: 'refreshed-secret',
+          extraArgs: ['--refresh', 'EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN'],
+        });
+
+        console.log('=== REFRESH RUN ===');
+        console.log('stdout:', refresh.stdout);
+        console.log('stderr:', refresh.stderr);
+        console.log('exit:', refresh.exitCode);
+
+        expect(refresh.stdout).toContain('refresh...');
+        expect(refresh.exitCode).toBe(0);
+      });
+    });
+
+    when('[t2] --refresh @all is passed', () => {
+      then('it forces re-prompt for all keys', async () => {
+        // clone fixtures
+        const tempHome = genTempDir({
+          slug: 'keyrack-home',
+          clone: path.join(__dirname, '__test_assets__/keyrack-home'),
+        });
+        const tempRepo = genTempDir({
+          slug: 'keyrack-repo',
+          git: true,
+          clone: path.join(__dirname, '__test_assets__/keyrack-repo'),
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
+
+        // clear daemon cache
+        spawnSync(
+          './node_modules/.bin/rhachet',
+          ['keyrack', 'relock', '--owner', 'ehmpath'],
+          {
+            cwd: tempRepo,
+            encoding: 'utf-8',
+            env: { ...envClean, HOME: tempHome },
+          },
+        );
+
+        // first run - configure key
+        const first = runInit({
+          home: tempHome,
+          cwd: tempRepo,
+          stdin: 'first-secret',
+        });
+        expect(first.exitCode).toBe(0);
+
+        // relock before refresh
+        spawnSync(
+          './node_modules/.bin/rhachet',
+          ['keyrack', 'relock', '--owner', 'ehmpath'],
+          {
+            cwd: tempRepo,
+            encoding: 'utf-8',
+            env: { ...envClean, HOME: tempHome },
+          },
+        );
+
+        // refresh @all - should force re-prompt for all keys
+        const refresh = runInit({
+          home: tempHome,
+          cwd: tempRepo,
+          stdin: 'refreshed-secret',
+          extraArgs: ['--refresh', '@all'],
+        });
+
+        console.log('=== REFRESH @all RUN ===');
+        console.log('stdout:', refresh.stdout);
+        console.log('stderr:', refresh.stderr);
+        console.log('exit:', refresh.exitCode);
+
+        expect(refresh.stdout).toContain('refresh...');
+        expect(refresh.exitCode).toBe(0);
       });
     });
   });

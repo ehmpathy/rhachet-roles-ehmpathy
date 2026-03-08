@@ -181,12 +181,15 @@ KEYRACK_EXIT=0
 
 if [[ $KEYRACK_EXIT -eq 0 ]]; then
   EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(cat "$KEYRACK_ERROR_FILE" | jq -r '.grant.key.secret // empty')
-  [[ "$DEBUG" == "true" ]] && echo "[debug] extracted token length: ${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN}" >&2
+  [[ "$DEBUG" == "true" ]] && echo "[debug] extracted token length: ${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN}, prefix: ${EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN:0:10}..." >&2
 else
-  # fallback: unlock and get from ehmpath (passwordless sshkey)
+  # fallback: unlock ehmpath keyrack for this specific key (passwordless sshkey)
   [[ "$DEBUG" == "true" ]] && echo "[debug] primary failed, try ehmpath fallback..." >&2
   "$REPO_ROOT/node_modules/.bin/rhachet" keyrack unlock \
-    --owner ehmpath --prikey ~/.ssh/ehmpath --env all >/dev/null 2>&1 || true
+    --owner ehmpath \
+    --prikey ~/.ssh/ehmpath \
+    --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
+    --env all >/dev/null 2>&1 || true
   FALLBACK_EXIT=0
   FALLBACK_OUTPUT=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
     --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
@@ -226,6 +229,45 @@ if [[ -z "$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" ]]; then
   echo "" >&2
   exit 1
 fi
+
+# fail-fast: verify token is valid AND for ehm-seaturtle user
+[[ "$DEBUG" == "true" ]] && echo "[debug] validate token for ehm-seaturtle..." >&2
+GH_USER_EXIT=0
+GH_USER_OUTPUT=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh api /user 2>&1) || GH_USER_EXIT=$?
+[[ "$DEBUG" == "true" ]] && echo "[debug] gh api /user exit=$GH_USER_EXIT" >&2
+[[ "$DEBUG" == "true" ]] && echo "[debug] gh api /user output: $GH_USER_OUTPUT" >&2
+
+if [[ $GH_USER_EXIT -ne 0 ]]; then
+  echo "" >&2
+  echo "🐢 bummer dude, github token is invalid" >&2
+  echo "" >&2
+  echo "gh api /user failed:" >&2
+  echo "$GH_USER_OUTPUT" >&2
+  echo "" >&2
+  echo "to fix this, refresh the token:" >&2
+  echo "  \$ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath --refresh EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" >&2
+  echo "" >&2
+  exit 1
+fi
+
+GH_USER_LOGIN=$(echo "$GH_USER_OUTPUT" | jq -r '.login // empty')
+[[ "$DEBUG" == "true" ]] && echo "[debug] gh user login: $GH_USER_LOGIN" >&2
+
+if [[ "$GH_USER_LOGIN" != "ehm-seaturtle" ]]; then
+  echo "" >&2
+  echo "🐢 bummer dude, github token is not for ehm-seaturtle" >&2
+  echo "" >&2
+  echo "expected: ehm-seaturtle" >&2
+  echo "got: $GH_USER_LOGIN" >&2
+  echo "" >&2
+  echo "the keyrack has a token for the wrong github user." >&2
+  echo "to fix this, refresh the token with the correct value:" >&2
+  echo "  \$ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath --refresh EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" >&2
+  echo "" >&2
+  exit 1
+fi
+
+[[ "$DEBUG" == "true" ]] && echo "[debug] token validated for ehm-seaturtle ✓" >&2
 
 ######################################################################
 # COMPUTE PR TITLE (first unique commit on branch vs closest ancestor)
@@ -329,7 +371,14 @@ PUSH_STATUS="$PUSH_TARGET ✓"
 [[ "$DEBUG" == "true" ]] && echo "[debug] findsert pr for branch $CURRENT_BRANCH..." >&2
 
 PR_STATUS=""
-PR_FOUND=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr list --head "$CURRENT_BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+PR_LIST_OUTPUT=""
+PR_LIST_EXIT=0
+PR_LIST_OUTPUT=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr list --head "$CURRENT_BRANCH" --json number --jq '.[0].number' 2>&1) || PR_LIST_EXIT=$?
+[[ "$DEBUG" == "true" ]] && echo "[debug] pr list exit=$PR_LIST_EXIT, output: '$PR_LIST_OUTPUT'" >&2
+PR_FOUND=""
+if [[ $PR_LIST_EXIT -eq 0 && -n "$PR_LIST_OUTPUT" && "$PR_LIST_OUTPUT" != "null" ]]; then
+  PR_FOUND="$PR_LIST_OUTPUT"
+fi
 [[ "$DEBUG" == "true" ]] && echo "[debug] pr found: '$PR_FOUND'" >&2
 
 if [[ -n "$PR_FOUND" ]]; then
@@ -342,15 +391,25 @@ else
 
 ---
 🐢🌊 surfed in by seaturtle[bot]"
-  NEW_PR=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr create \
+  [[ "$DEBUG" == "true" ]] && echo "[debug] token for pr create: ${EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN:0:10}... (len=${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN})" >&2
+  PR_CREATE_OUTPUT=""
+  PR_CREATE_EXIT=0
+  PR_CREATE_OUTPUT=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr create \
     --title "$PR_TITLE" \
     --body "$PR_BODY_FULL" \
-    2>/dev/null | grep -oE '[0-9]+$' || echo "")
+    2>&1) || PR_CREATE_EXIT=$?
+  [[ "$DEBUG" == "true" ]] && echo "[debug] pr create exit=$PR_CREATE_EXIT" >&2
+  [[ "$DEBUG" == "true" ]] && echo "[debug] pr create output: $PR_CREATE_OUTPUT" >&2
 
-  if [[ -n "$NEW_PR" ]]; then
-    PR_STATUS="pr #$NEW_PR (created)"
+  if [[ $PR_CREATE_EXIT -eq 0 ]]; then
+    NEW_PR=$(echo "$PR_CREATE_OUTPUT" | grep -oE '[0-9]+$' || echo "")
+    if [[ -n "$NEW_PR" ]]; then
+      PR_STATUS="pr #$NEW_PR (created)"
+    else
+      PR_STATUS="pr created (url: $PR_CREATE_OUTPUT)"
+    fi
   else
-    PR_STATUS="pr creation failed"
+    PR_STATUS="pr creation failed: $PR_CREATE_OUTPUT"
   fi
 fi
 
