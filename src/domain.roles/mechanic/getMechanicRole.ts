@@ -19,7 +19,10 @@ export const ROLE_MECHANIC: Role = Role.build({
   },
   inits: {
     dirs: { uri: `${__dirname}/inits` },
-    exec: [{ cmd: `${__dirname}/inits/init.claude.sh` }],
+    exec: [
+      { cmd: `${__dirname}/inits/init.claude.sh` },
+      { cmd: `${__dirname}/inits/link.role.keyrack.sh` },
+    ],
   },
   hooks: {
     onBrain: {
