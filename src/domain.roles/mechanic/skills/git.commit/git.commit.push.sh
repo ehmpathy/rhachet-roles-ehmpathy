@@ -243,7 +243,10 @@ MAIN_MB=$(git merge-base HEAD "$BASE_BRANCH" 2>/dev/null || echo "")
 if [[ -n "$MAIN_MB" ]]; then
   PR_BASE_DISTANCE=$(git rev-list --count "$MAIN_MB"..HEAD 2>/dev/null || echo "999999")
 fi
+# collect branches first, then iterate (avoids process substitution pipe issues)
+BRANCHES=$(git branch --format='%(refname:short)' 2>/dev/null || echo "")
 while IFS= read -r branch; do
+  [[ -z "$branch" ]] && continue
   [[ "$branch" == "$CURRENT_BRANCH" ]] && continue
   [[ "$branch" == "$BASE_BRANCH" ]] && continue
   MB=$(git merge-base HEAD "$branch" 2>/dev/null || echo "")
@@ -253,7 +256,7 @@ while IFS= read -r branch; do
     PR_BASE_DISTANCE=$DIST
     PR_BASE="$branch"
   fi
-done < <(git branch --format='%(refname:short)')
+done <<< "$BRANCHES"
 
 PR_TITLE=$(git log "$PR_BASE"..HEAD --reverse --format=%s 2>/dev/null | head -1)
 PR_BODY=$(git log "$PR_BASE"..HEAD --reverse --format=%B 2>/dev/null | head -50)
