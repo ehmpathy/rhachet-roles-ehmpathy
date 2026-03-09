@@ -10,6 +10,8 @@ export const ROLE_MECHANIC: Role = Role.build({
   purpose: 'write code',
   readme: { uri: `${__dirname}/readme.md` },
   keyrack: { uri: `${__dirname}/keyrack.yml` },
+  // todo: release boot.yml when we have the need and the time to test it
+  // boot: { uri: `${__dirname}/boot.yml` },
   traits: [],
   briefs: {
     dirs: { uri: `${__dirname}/briefs` },

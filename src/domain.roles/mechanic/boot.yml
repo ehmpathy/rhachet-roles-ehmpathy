@@ -32,6 +32,30 @@ always:
       - briefs/practices/lang.terms/define.exec-vs-apply.md
       - briefs/practices/lang.terms/define.prodcode-testcode.terms=prodcode_vs_testcode.md
 
+  skills:
+    say:
+      # claude tools
+      - skills/claude.tools/cpsafe.sh
+      - skills/claude.tools/mvsafe.sh
+      - skills/claude.tools/rmsafe.sh
+      - skills/claude.tools/sedreplace.sh
+      - skills/claude.tools/symlink.sh
+
+      # package management
+      - skills/declapract.upgrade.sh
+      - skills/get.package.docs.sh
+
+      # git commit
+      - skills/git.commit/git.commit.bind.sh
+      - skills/git.commit/git.commit.push.sh
+      - skills/git.commit/git.commit.set.sh
+      - skills/git.commit/git.commit.uses.sh
+      - skills/git.commit/output.sh
+
+      # github actions
+      - skills/show.gh.action.logs.sh
+      - skills/show.gh.test.errors.sh
+
 subject.code.prod:
   briefs:
     say:
