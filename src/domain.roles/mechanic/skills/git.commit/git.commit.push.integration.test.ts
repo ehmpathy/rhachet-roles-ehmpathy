@@ -992,6 +992,11 @@ exec /usr/bin/git "$@"
               cwd: tempDir,
             });
 
+            // ensure default branch is main (CI may default to master)
+            spawnSync('git', ['branch', '-m', 'master', 'main'], {
+              cwd: tempDir,
+            });
+
             // setup keyrack fixture
             const agentDir = path.join(tempDir, '.agent');
             fs.mkdirSync(agentDir, { recursive: true });
