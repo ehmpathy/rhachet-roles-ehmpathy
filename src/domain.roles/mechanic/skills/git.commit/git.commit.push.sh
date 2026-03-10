@@ -23,6 +23,7 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/output.sh"
+source "$SCRIPT_DIR/git.commit.operations.sh"
 
 # robot identity
 ROBOT_NAME="seaturtle[bot]"
@@ -202,11 +203,15 @@ else
     EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(echo "$FALLBACK_OUTPUT" | jq -r '.grant.key.secret // empty')
     [[ "$DEBUG" == "true" ]] && echo "[debug] extracted fallback token length: ${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN}" >&2
   else
-    # both failed — show original error + guidance for human
+    # both failed — call keyrack again without --json to get human-readable output
+    KEYRACK_HUMAN_OUTPUT=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
+      --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
+      --allow-dangerous 2>&1) || true
+
     echo "" >&2
     echo "🐢 bummer dude, keyrack token fetch failed" >&2
     echo "" >&2
-    cat "$KEYRACK_ERROR_FILE" >&2
+    echo "$KEYRACK_HUMAN_OUTPUT" >&2
     echo "" >&2
     echo "to fix this, ask a human to either:" >&2
     echo "  1. unlock their keyrack for this key:" >&2
@@ -223,9 +228,6 @@ fi
 if [[ -z "$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" ]]; then
   echo "" >&2
   echo "🐢 bummer dude, keyrack returned empty token" >&2
-  echo "" >&2
-  echo "keyrack output:" >&2
-  cat "$KEYRACK_ERROR_FILE" >&2
   echo "" >&2
   exit 1
 fi
@@ -270,38 +272,19 @@ fi
 [[ "$DEBUG" == "true" ]] && echo "[debug] token validated for ehm-seaturtle ✓" >&2
 
 ######################################################################
-# COMPUTE PR TITLE (first unique commit on branch vs closest ancestor)
+# COMPUTE PR TITLE (from first behavioral commit on branch)
 ######################################################################
-if git rev-parse --verify origin/HEAD >/dev/null 2>&1; then
-  BASE_BRANCH=$(git rev-parse --abbrev-ref origin/HEAD | sed 's|origin/||')
-else
-  BASE_BRANCH="main"
-fi
+# find the first behavioral commit (fix/feat) - this is stable regardless
+# of how many cont: commits are added later
+BEHAVIORAL_COMMIT_HASH=$(get_first_behavioral_commit_hash)
 
-# find the closest ancestor branch (handles stacked branches)
-PR_BASE="$BASE_BRANCH"
-PR_BASE_DISTANCE=999999
-MAIN_MB=$(git merge-base HEAD "$BASE_BRANCH" 2>/dev/null || echo "")
-if [[ -n "$MAIN_MB" ]]; then
-  PR_BASE_DISTANCE=$(git rev-list --count "$MAIN_MB"..HEAD 2>/dev/null || echo "999999")
+# extract PR title and body from the behavioral commit
+PR_TITLE=""
+PR_BODY=""
+if [[ -n "$BEHAVIORAL_COMMIT_HASH" && "$BEHAVIORAL_COMMIT_HASH" != "NO_COMMITS" && "$BEHAVIORAL_COMMIT_HASH" != "NO_BASE" && "$BEHAVIORAL_COMMIT_HASH" != "ON_BASE" ]]; then
+  PR_TITLE=$(git log -1 --format=%s "$BEHAVIORAL_COMMIT_HASH" 2>/dev/null || echo "")
+  PR_BODY=$(git log -1 --format=%B "$BEHAVIORAL_COMMIT_HASH" 2>/dev/null | head -50)
 fi
-# collect branches first, then iterate (avoids process substitution pipe issues)
-BRANCHES=$(git branch --format='%(refname:short)' 2>/dev/null || echo "")
-while IFS= read -r branch; do
-  [[ -z "$branch" ]] && continue
-  [[ "$branch" == "$CURRENT_BRANCH" ]] && continue
-  [[ "$branch" == "$BASE_BRANCH" ]] && continue
-  MB=$(git merge-base HEAD "$branch" 2>/dev/null || echo "")
-  [[ -z "$MB" ]] && continue
-  DIST=$(git rev-list --count "$MB"..HEAD 2>/dev/null || echo "999999")
-  if [[ $DIST -gt 0 && $DIST -lt $PR_BASE_DISTANCE ]]; then
-    PR_BASE_DISTANCE=$DIST
-    PR_BASE="$branch"
-  fi
-done <<< "$BRANCHES"
-
-PR_TITLE=$(git log "$PR_BASE"..HEAD --reverse --format=%s 2>/dev/null | head -1)
-PR_BODY=$(git log "$PR_BASE"..HEAD --reverse --format=%B 2>/dev/null | head -50)
 
 # fallback: use provided fallback, or HEAD commit message
 if [[ -z "$PR_TITLE" && -n "$PR_TITLE_FALLBACK" ]]; then

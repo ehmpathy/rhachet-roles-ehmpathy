@@ -21,7 +21,11 @@ describe('git.commit.set.sh', () => {
     stdin?: string;
     branch?: string | null; // null = stay on main, string = use that branch name, undefined = 'fix/test-branch'
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
-    const tempDir = genTempDir({ slug: 'git-commit-set-test', git: true });
+    const tempDir = genTempDir({
+      slug: 'git-commit-set-test',
+      git: true,
+      symlink: [{ at: 'node_modules', to: 'node_modules' }],
+    });
 
     // configure git user (patron)
     if (args.gitUser) {
@@ -243,8 +247,8 @@ describe('git.commit.set.sh', () => {
           cwd: result.tempDir,
           encoding: 'utf-8' as BufferEncoding,
         });
-        // genTempDir({ git: true }) creates an initial commit + gitignore setup; verify no new one was added
-        expect(log.stdout.trim().split('\n').length).toBe(2);
+        // genTempDir with symlink creates 2 commits (began + fixture) + gitignore setup = 3; verify no new one was added
+        expect(log.stdout.trim().split('\n').length).toBe(3);
         expect(log.stdout).not.toContain('some fix');
       });
     });
@@ -378,7 +382,7 @@ describe('git.commit.set.sh', () => {
           cwd: result.tempDir,
           encoding: 'utf-8' as BufferEncoding,
         });
-        expect(log.stdout.trim().split('\n').length).toBe(2);
+        expect(log.stdout.trim().split('\n').length).toBe(3);
         expect(log.stdout).not.toContain('some fix');
       });
     });
@@ -567,7 +571,11 @@ describe('git.commit.set.sh', () => {
 
     when('[t1] plan mode with push shows PR title', () => {
       then('shows PR title as current message when first commit', () => {
-        const tempDir = genTempDir({ slug: 'git-commit-plan-pr', git: true });
+        const tempDir = genTempDir({
+          slug: 'git-commit-plan-pr',
+          git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
 
         // configure git user
         spawnSync('git', ['config', 'user.name', 'Test Human'], {
@@ -584,7 +592,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 2, push: 'allow' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,
@@ -598,6 +609,31 @@ describe('git.commit.set.sh', () => {
         // create and stage a file
         fs.writeFileSync(path.join(tempDir, 'feature.txt'), 'feature content');
         spawnSync('git', ['add', 'feature.txt'], { cwd: tempDir });
+
+        // mock keyrack config + gh cli for token validation
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(agentDir, 'keyrack.yml'),
+          `org: ehmpathy
+env.all:
+  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+env.prod:
+  # required for valid schema
+`,
+        );
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
 
         // run in plan mode with push
         const result = spawnSync(
@@ -615,6 +651,7 @@ describe('git.commit.set.sh', () => {
             env: {
               ...process.env,
               EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+              PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
           },
         );
@@ -630,6 +667,7 @@ describe('git.commit.set.sh', () => {
         const tempDir = genTempDir({
           slug: 'git-commit-plan-pr-history',
           git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
         });
 
         // configure git user
@@ -648,7 +686,10 @@ describe('git.commit.set.sh', () => {
           JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
         );
         // gitignore .meter
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,
@@ -677,6 +718,31 @@ describe('git.commit.set.sh', () => {
         fs.writeFileSync(path.join(tempDir, 'third.txt'), 'third');
         spawnSync('git', ['add', 'third.txt'], { cwd: tempDir });
 
+        // mock keyrack config + gh cli for token validation
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(agentDir, 'keyrack.yml'),
+          `org: ehmpathy
+env.all:
+  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+env.prod:
+  # required for valid schema
+`,
+        );
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
         // run in plan mode with push (use cont: since branch has behavioral commit)
         const result = spawnSync(
           'bash',
@@ -693,6 +759,7 @@ describe('git.commit.set.sh', () => {
             env: {
               ...process.env,
               EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+              PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
           },
         );
@@ -712,6 +779,7 @@ describe('git.commit.set.sh', () => {
         const tempDir = genTempDir({
           slug: 'git-commit-stacked-branch',
           git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
         });
 
         // configure git user
@@ -729,7 +797,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,
@@ -777,6 +848,31 @@ describe('git.commit.set.sh', () => {
         fs.writeFileSync(path.join(tempDir, 'b3.txt'), 'b3');
         spawnSync('git', ['add', 'b3.txt'], { cwd: tempDir });
 
+        // mock keyrack config + gh cli for token validation
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(agentDir, 'keyrack.yml'),
+          `org: ehmpathy
+env.all:
+  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+env.prod:
+  # required for valid schema
+`,
+        );
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
         // run in plan mode with push (use cont: since branch has behavioral commits)
         const result = spawnSync(
           'bash',
@@ -793,6 +889,7 @@ describe('git.commit.set.sh', () => {
             env: {
               ...process.env,
               EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+              PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
           },
         );
@@ -1030,7 +1127,7 @@ describe('git.commit.set.sh', () => {
           encoding: 'utf-8' as BufferEncoding,
         });
         // only initial commits, no new commit
-        expect(log.stdout.trim().split('\n').length).toBe(2);
+        expect(log.stdout.trim().split('\n').length).toBe(3);
         expect(log.stdout).not.toContain('fix: on main');
       });
 
@@ -1086,7 +1183,11 @@ describe('git.commit.set.sh', () => {
   given('[case14] multiline message is required', () => {
     when('[t0] message is single-line (no body)', () => {
       then('exits with error about multiline', () => {
-        const tempDir = genTempDir({ slug: 'git-commit-set-test', git: true });
+        const tempDir = genTempDir({
+          slug: 'git-commit-set-test',
+          git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
 
         // configure git user
         spawnSync('git', ['config', 'user.name', 'Test Human'], {
@@ -1103,7 +1204,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 2, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup'], { cwd: tempDir });
 
@@ -1173,7 +1277,11 @@ describe('git.commit.set.sh', () => {
   given('[case15] plan mode auto-revoke display with push', () => {
     when('[t0] uses go from 1 to 0 with push allowed', () => {
       then('plan shows push: allowed to blocked (revoked)', () => {
-        const tempDir = genTempDir({ slug: 'git-commit-set-test', git: true });
+        const tempDir = genTempDir({
+          slug: 'git-commit-set-test',
+          git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
 
         // configure git user
         spawnSync('git', ['config', 'user.name', 'Test Human'], {
@@ -1190,7 +1298,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 1, push: 'allow' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup'], { cwd: tempDir });
 
@@ -1200,6 +1311,31 @@ describe('git.commit.set.sh', () => {
         });
         fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'content');
         spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+
+        // mock keyrack config + gh cli for token validation
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(agentDir, 'keyrack.yml'),
+          `org: ehmpathy
+env.all:
+  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+env.prod:
+  # required for valid schema
+`,
+        );
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
 
         const result = spawnSync(
           'bash',
@@ -1216,6 +1352,7 @@ describe('git.commit.set.sh', () => {
             env: {
               ...process.env,
               EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+              PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
           },
         );
@@ -1402,7 +1539,7 @@ describe('git.commit.set.sh', () => {
           cwd: result.tempDir,
           encoding: 'utf-8' as BufferEncoding,
         });
-        expect(logResult.stdout.trim().split('\n').length).toBe(2);
+        expect(logResult.stdout.trim().split('\n').length).toBe(3);
         expect(logResult.stdout).not.toContain('adhoc coauthor');
       });
 
@@ -1477,7 +1614,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,
@@ -1536,7 +1676,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,
@@ -1595,7 +1738,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,
@@ -1671,7 +1817,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,
@@ -1741,7 +1890,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,
@@ -1807,7 +1959,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,
@@ -1873,7 +2028,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,
@@ -1939,7 +2097,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,
@@ -2005,7 +2166,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,
@@ -2071,7 +2235,10 @@ describe('git.commit.set.sh', () => {
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
           cwd: tempDir,

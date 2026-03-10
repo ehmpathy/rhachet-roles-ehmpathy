@@ -104,18 +104,24 @@ env.prod:
   /**
    * .what = run git.commit.push in the given temp dir
    * .why = consistent invocation across test cases
+   * .note = always excludes EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN from process.env
+   *         for deterministic tests; pass explicit token via env if needed
    */
   const runPush = (args: {
     tempDir: string;
     pushArgs: string[];
     env?: Record<string, string>;
   }): { stdout: string; stderr: string; exitCode: number } => {
+    // always exclude token from process.env for deterministic tests
+    const { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: _token, ...envWithoutToken } =
+      process.env;
+
     const result = spawnSync('bash', [pushScriptPath, ...args.pushArgs], {
       cwd: args.tempDir,
       encoding: 'utf-8' as BufferEncoding,
       stdio: ['pipe', 'pipe', 'pipe'],
       env: {
-        ...process.env,
+        ...envWithoutToken,
         ...args.env,
       },
     });
@@ -136,10 +142,27 @@ env.prod:
           commits: ['feat: first commit'],
         });
 
+        // mock gh cli for token validation
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'plan'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+          env: {
+            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
+          },
         });
 
         expect(result.exitCode).toBe(0);
@@ -190,10 +213,27 @@ env.prod:
           commitAuthor: { name: 'Test Human', email: 'human@test.com' },
         });
 
+        // mock gh cli for token validation
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'plan'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+          env: {
+            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
+          },
         });
 
         expect(result.exitCode).toBe(0);
@@ -278,10 +318,27 @@ env.prod:
           commits: ['feat: json plan test'],
         });
 
+        // mock gh cli for token validation
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'plan', '--output', 'json'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+          env: {
+            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
+          },
         });
 
         expect(result.exitCode).toBe(0);
@@ -360,10 +417,27 @@ env.prod:
           cwd: tempDir,
         });
 
+        // mock gh cli for token validation
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'plan'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+          env: {
+            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
+          },
         });
 
         expect(result.exitCode).toBe(0);
@@ -406,6 +480,20 @@ env.prod:
             branch: 'turtle/feature',
           });
 
+          // mock gh cli for token validation
+          const fakeBinDir = path.join(tempDir, '.fakebin');
+          fs.mkdirSync(fakeBinDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(fakeBinDir, 'gh'),
+            `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1`,
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
           const result = runPush({
             tempDir,
             pushArgs: [
@@ -416,7 +504,10 @@ env.prod:
               '--pr-title-fallback',
               'feat: fallback title',
             ],
-            env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+            env: {
+              EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+              PATH: `${fakeBinDir}:${process.env.PATH}`,
+            },
           });
 
           expect(result.exitCode).toBe(0);
@@ -508,10 +599,27 @@ env.prod:
           commits: ['feat: prior commit'],
         });
 
+        // mock gh cli for token validation
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'plan'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+          env: {
+            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
+          },
         });
 
         expect(result.exitCode).toBe(0);
@@ -550,9 +658,7 @@ env.prod:
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'plan'],
-          env: {
-            HOME: fakeHome,
-          },
+          env: { HOME: fakeHome },
         });
 
         // keyrack errors propagate — exits non-zero
@@ -560,7 +666,7 @@ env.prod:
         // stderr has actionable message about keyrack
         expect(result.stderr).toContain('keyrack');
         // stderr does NOT contain fallback owner noise (--owner ehmpath)
-        // note: "ehmpathy" in key name contains "ehmpath" substring — check for owner specifically
+        // note: "ehmpathy" in key name contains "ehmpath" as substr — check for owner specifically
         expect(result.stderr).not.toContain('--owner ehmpath');
         expect(result.stderr).not.toContain('owner ehmpath');
         // snapshot test for clear error message
@@ -646,9 +752,7 @@ env.prod:
           const result = runPush({
             tempDir,
             pushArgs: ['--mode', 'plan'],
-            env: {
-              HOME: fakeHome,
-            },
+            env: { HOME: fakeHome },
           });
 
           // keyrack errors propagate — exits non-zero
@@ -775,11 +879,14 @@ Co-authored-by: Human <human@example.com>`;
         const fakeBinDir = path.join(tempDir, '.fakebin');
         fs.mkdirSync(fakeBinDir, { recursive: true });
 
-        // mock gh cli - returns success for pr list (empty) and pr create
+        // mock gh cli - returns success for token validation, pr list (empty), and pr create
         fs.writeFileSync(
           path.join(fakeBinDir, 'gh'),
           `#!/bin/bash
-if [[ "$1" == "pr" && "$2" == "list" ]]; then
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "list" ]]; then
   echo "[]"
   exit 0
 elif [[ "$1" == "pr" && "$2" == "create" ]]; then
@@ -827,7 +934,318 @@ exec /usr/bin/git "$@"
     });
   });
 
-  given('[case19] all keyracks locked (both default and fallback)', () => {
+  given('[case19] local main behind origin/main (PR #269 regression)', () => {
+    when(
+      '[t0] branch rebased onto origin/main but local main is behind',
+      () => {
+        then(
+          'pr title/body only includes commits unique to feature branch',
+          () => {
+            // reproduce bug from PR #269:
+            // 1. Feature branch created from main at commit A
+            // 2. Other PRs merged to origin/main (commits B, C)
+            // 3. User rebases feature branch onto origin/main
+            // 4. Local main never updated (still at A)
+            // 5. BUG: pr body included B, C (already on origin/main) because
+            //    git.commit.push compared against local main, not origin/main
+
+            // create bare "remote" repo
+            const remoteDir = genTempDir({ slug: 'git-commit-push-remote' });
+            spawnSync('git', ['init', '--bare'], { cwd: remoteDir });
+
+            // create local repo
+            const tempDir = genTempDir({
+              slug: 'git-commit-push-local',
+              git: true,
+              symlink: [{ at: 'node_modules', to: 'node_modules' }],
+            });
+
+            // configure git user
+            spawnSync('git', ['config', 'user.name', 'Test Human'], {
+              cwd: tempDir,
+            });
+            spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+              cwd: tempDir,
+            });
+
+            // setup keyrack fixture
+            const agentDir = path.join(tempDir, '.agent');
+            fs.mkdirSync(agentDir, { recursive: true });
+            fs.writeFileSync(
+              path.join(agentDir, 'keyrack.yml'),
+              `org: ehmpathy
+env.all:
+  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+env.prod:
+  # required for valid schema
+`,
+            );
+
+            // setup .meter
+            const meterDir = path.join(tempDir, '.meter');
+            fs.mkdirSync(meterDir, { recursive: true });
+            fs.writeFileSync(
+              path.join(meterDir, 'git.commit.uses.jsonc'),
+              JSON.stringify({ uses: 3, push: 'allow' }, null, 2),
+            );
+            fs.writeFileSync(
+              path.join(tempDir, '.gitignore'),
+              '.meter/\n.agent/\n',
+            );
+            spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+            spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+              cwd: tempDir,
+            });
+
+            // add remote
+            spawnSync('git', ['remote', 'add', 'origin', remoteDir], {
+              cwd: tempDir,
+            });
+
+            // commit A on main (the point where local main will stay frozen)
+            fs.writeFileSync(path.join(tempDir, 'a.txt'), 'commit A');
+            spawnSync('git', ['add', 'a.txt'], { cwd: tempDir });
+            spawnSync('git', ['commit', '-m', 'chore: commit A (shared)'], {
+              cwd: tempDir,
+            });
+
+            // push main to origin
+            spawnSync('git', ['push', '-u', 'origin', 'main'], {
+              cwd: tempDir,
+            });
+
+            // create feature branch from main at point A
+            spawnSync('git', ['checkout', '-b', 'turtle/feature'], {
+              cwd: tempDir,
+            });
+
+            // add feature commit D on feature branch
+            fs.writeFileSync(path.join(tempDir, 'd.txt'), 'commit D');
+            spawnSync('git', ['add', 'd.txt'], { cwd: tempDir });
+            spawnSync(
+              'git',
+              ['commit', '-m', 'feat(feature): commit D (unique to branch)'],
+              { cwd: tempDir },
+            );
+
+            // switch back to main and add commits B, C (like other PRs were merged)
+            spawnSync('git', ['checkout', 'main'], { cwd: tempDir });
+
+            fs.writeFileSync(path.join(tempDir, 'b.txt'), 'commit B');
+            spawnSync('git', ['add', 'b.txt'], { cwd: tempDir });
+            spawnSync(
+              'git',
+              ['commit', '-m', 'fix(api): commit B (on origin, not local)'],
+              { cwd: tempDir },
+            );
+
+            fs.writeFileSync(path.join(tempDir, 'c.txt'), 'commit C');
+            spawnSync('git', ['add', 'c.txt'], { cwd: tempDir });
+            spawnSync(
+              'git',
+              [
+                'commit',
+                '-m',
+                'chore(release): commit C (on origin, not local)',
+              ],
+              { cwd: tempDir },
+            );
+
+            // push B and C to origin
+            spawnSync('git', ['push', 'origin', 'main'], { cwd: tempDir });
+
+            // reset local main back to A (user never pulled)
+            spawnSync('git', ['reset', '--hard', 'HEAD~2'], { cwd: tempDir });
+
+            // verify local main is behind origin/main
+            const behindCheck = spawnSync(
+              'git',
+              ['rev-list', '--count', 'main..origin/main'],
+              { cwd: tempDir, encoding: 'utf-8' },
+            );
+            expect(behindCheck.stdout.trim()).toBe('2');
+
+            // switch to feature branch
+            spawnSync('git', ['checkout', 'turtle/feature'], { cwd: tempDir });
+
+            // rebase feature branch onto origin/main (this is where the bug triggers)
+            // after rebase: feature has A, B, C, D
+            // local main still has: A
+            // origin/main has: A, B, C
+            spawnSync('git', ['rebase', 'origin/main'], { cwd: tempDir });
+
+            // verify feature branch now has B and C in history
+            const featureLog = spawnSync('git', ['log', '--oneline', '-5'], {
+              cwd: tempDir,
+              encoding: 'utf-8',
+            });
+            expect(featureLog.stdout).toContain('commit B');
+            expect(featureLog.stdout).toContain('commit C');
+            expect(featureLog.stdout).toContain('commit D');
+
+            // mock gh cli to bypass token validation
+            const fakeBinDir = path.join(tempDir, '.fakebin');
+            fs.mkdirSync(fakeBinDir, { recursive: true });
+            fs.writeFileSync(
+              path.join(fakeBinDir, 'gh'),
+              `#!/bin/bash
+# mock gh api /user to return ehm-seaturtle
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1
+`,
+            );
+            fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+            // run git.commit.push in plan mode
+            const result = runPush({
+              tempDir,
+              pushArgs: ['--mode', 'plan', '--output', 'json'],
+              env: {
+                EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+                PATH: `${fakeBinDir}:${process.env.PATH}`,
+              },
+            });
+
+            expect(result.exitCode).toBe(0);
+            const parsed = JSON.parse(result.stdout.trim());
+
+            // CRITICAL: pr_title should be commit D, NOT commit B
+            // if this fails, the bug from PR #269 is reproduced
+            // BUG behavior: pr_title = "fix(api): commit B (on origin, not local)"
+            // CORRECT behavior: pr_title = "feat(feature): commit D (unique to branch)"
+            expect(parsed.pr_title).toBe(
+              'feat(feature): commit D (unique to branch)',
+            );
+            expect(parsed.pr_title).not.toContain('commit B');
+            expect(parsed.pr_title).not.toContain('commit C');
+          },
+        );
+      },
+    );
+
+    when('[t1] also verify PR body excludes origin/main commits', () => {
+      then('pr body only has feature branch commit body', () => {
+        // same setup with rebase, check tree output
+        const remoteDir = genTempDir({ slug: 'git-commit-push-remote-body' });
+        spawnSync('git', ['init', '--bare'], { cwd: remoteDir });
+
+        const tempDir = genTempDir({
+          slug: 'git-commit-push-local-body',
+          git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
+
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(agentDir, 'keyrack.yml'),
+          `org: ehmpathy
+env.all:
+  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+env.prod:
+`,
+        );
+
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 3, push: 'allow' }, null, 2),
+        );
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n',
+        );
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup'], { cwd: tempDir });
+
+        spawnSync('git', ['remote', 'add', 'origin', remoteDir], {
+          cwd: tempDir,
+        });
+
+        // commit A on main
+        fs.writeFileSync(path.join(tempDir, 'a.txt'), 'a');
+        spawnSync('git', ['add', 'a.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'chore: A'], { cwd: tempDir });
+        spawnSync('git', ['push', '-u', 'origin', 'main'], { cwd: tempDir });
+
+        // create feature branch and add commit D
+        spawnSync('git', ['checkout', '-b', 'turtle/feature'], {
+          cwd: tempDir,
+        });
+        fs.writeFileSync(path.join(tempDir, 'd.txt'), 'd');
+        spawnSync('git', ['add', 'd.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'feat: D unique to feature'], {
+          cwd: tempDir,
+        });
+
+        // switch to main, add B and C, push to origin
+        spawnSync('git', ['checkout', 'main'], { cwd: tempDir });
+        fs.writeFileSync(path.join(tempDir, 'b.txt'), 'b');
+        spawnSync('git', ['add', 'b.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'fix: B on origin'], {
+          cwd: tempDir,
+        });
+        fs.writeFileSync(path.join(tempDir, 'c.txt'), 'c');
+        spawnSync('git', ['add', 'c.txt'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'chore: C on origin'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['push', 'origin', 'main'], { cwd: tempDir });
+
+        // reset local main back to A
+        spawnSync('git', ['reset', '--hard', 'HEAD~2'], { cwd: tempDir });
+
+        // rebase feature branch onto origin/main
+        spawnSync('git', ['checkout', 'turtle/feature'], { cwd: tempDir });
+        spawnSync('git', ['rebase', 'origin/main'], { cwd: tempDir });
+
+        // mock gh cli to bypass token validation
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+# mock gh api /user to return ehm-seaturtle
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        const result = runPush({
+          tempDir,
+          pushArgs: ['--mode', 'plan'],
+          env: {
+            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
+          },
+        });
+
+        expect(result.exitCode).toBe(0);
+        // tree output should show D as title, not B or C
+        expect(result.stdout).toContain('title: feat: D unique to feature');
+        expect(result.stdout).not.toContain('B on origin');
+        expect(result.stdout).not.toContain('C on origin');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case20] all keyracks locked (both default and fallback)', () => {
     when('[t0] default owner locked and ehmpath locked', () => {
       then('exits with first error only, no fallback noise', () => {
         // relock both default owner and ehmpath
@@ -859,9 +1277,7 @@ exec /usr/bin/git "$@"
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'plan'],
-          env: {
-            HOME: fakeHome,
-          },
+          env: { HOME: fakeHome },
         });
 
         // keyrack errors propagate — exits non-zero
@@ -869,7 +1285,7 @@ exec /usr/bin/git "$@"
         // stderr has actionable message about keyrack
         expect(result.stderr).toContain('keyrack');
         // stderr does NOT contain fallback owner noise (--owner ehmpath)
-        // note: "ehmpathy" in key name contains "ehmpath" substring — check for owner specifically
+        // note: "ehmpathy" in key name contains "ehmpath" as substr — check for owner specifically
         expect(result.stderr).not.toContain('--owner ehmpath');
         expect(result.stderr).not.toContain('owner ehmpath');
         // snapshot test for clear error message
