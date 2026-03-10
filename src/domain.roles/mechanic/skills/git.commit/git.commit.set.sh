@@ -98,51 +98,9 @@ get_commit_prefix() {
 }
 
 ######################################################################
-# helper: enumerate behavioral commits (fix/feat) on current branch
-# returns:
-#   - "NO_COMMITS" if repo has no commits (fail fast)
-#   - "NO_BASE" if no base branch found (fail fast)
-#   - "ON_BASE" if current branch is the base branch (fail fast)
-#   - commit subjects (one per line) if behavioral commits found
-#   - empty string if no behavioral commits on branch
+# source shared domain operations (get_behavioral_commits_on_branch, etc.)
 ######################################################################
-get_behavioral_commits_on_branch() {
-  # fail fast: repo has no commits
-  if ! git rev-parse HEAD >/dev/null 2>&1; then
-    echo "NO_COMMITS"
-    return 0
-  fi
-
-  # find base branch (prefer origin remote, fall back to local)
-  local base_branch=""
-  for candidate in origin/main origin/master origin/trunk main master trunk; do
-    if git rev-parse --verify "$candidate" >/dev/null 2>&1; then
-      base_branch="$candidate"
-      break
-    fi
-  done
-
-  # fail fast: no known default branch found
-  if [[ -z "$base_branch" ]]; then
-    echo "NO_BASE"
-    return 0
-  fi
-
-  # fail fast: current branch IS the base branch
-  local current_branch
-  current_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo "")
-  # extract branch name from origin/main -> main for comparison
-  local base_branch_name="${base_branch#origin/}"
-  if [[ "$current_branch" == "$base_branch_name" ]]; then
-    echo "ON_BASE"
-    return 0
-  fi
-
-  # list commits on branch since divergence from base (oldest first)
-  # filter to fix: or feat: prefixed commits
-  git log --reverse --format="%s" "$base_branch..HEAD" 2>/dev/null | \
-    grep -E "^(fix|feat)(\([^)]+\))?:" || true
-}
+source "$SCRIPT_DIR/git.commit.operations.sh"
 
 # parse arguments
 MESSAGE=""

@@ -36,6 +36,11 @@
       "term": "resolve",
       "why": "overloaded and vague - conflates derive, infer, extract, expand, lookup, compute, and settle purposes",
       "alt": ["derive", "infer", "extract", "expand", "lookup", "compute", "decide"]
+    },
+    {
+      "term": "helpers",
+      "why": "meaningless - all code helps, so 'helpers' adds zero information and hides actual purpose",
+      "alt": ["operations", "utils", "fixtures"]
     }
   ]
 }

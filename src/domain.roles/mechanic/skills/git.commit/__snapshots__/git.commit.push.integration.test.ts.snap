@@ -81,8 +81,7 @@ exports[`git.commit.push.sh given: [case12] keyrack not configured (sad path) wh
 
 ⛈️ BadRequestError: no keyrack.yml found in repo
 
-[args] keyrack,get,--key,EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN,--allow-dangerous,--json
-
+[args] keyrack,get,--key,EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN,--allow-dangerous
 
 to fix this, ask a human to either:
   1. unlock their keyrack for this key:
@@ -111,24 +110,40 @@ run with --mode apply to execute
 
 exports[`git.commit.push.sh given: [case15] real user locked, no ehmpath host (sad path) when: [t0] keyrack.yml exists but no host manifest then: exits with clear unlock message, no fallback noise 1`] = `
 "
+🐢 bummer dude, keyrack token fetch failed
+
+
 🔐 keyrack
    └─ ehmpathy.all.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
-      ├─ status: blocked 🚫
-      │  ├─ its dangerous to use long lived tokens via replica mechanisms
-      │  └─ detected github classic pat (ghp_*)
-      └─ [2mtip: --allow-dangerous if you must[0m
+      ├─ status: locked 🔒
+      └─ [2mtip: rhx keyrack unlock --env all --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN[0m
+
+to fix this, ask a human to either:
+  1. unlock their keyrack for this key:
+     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+
+  2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
+     $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath
 
 "
 `;
 
 exports[`git.commit.push.sh given: [case16] keyrack.yml does not declare requested key (sad path) when: [t0] keyrack.yml exists but key declaration absent then: exits with clear message about key not declared 1`] = `
 "
+🐢 bummer dude, keyrack token fetch failed
+
+
 🔐 keyrack
    └─ ehmpathy.all.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
-      ├─ status: blocked 🚫
-      │  ├─ its dangerous to use long lived tokens via replica mechanisms
-      │  └─ detected github classic pat (ghp_*)
-      └─ [2mtip: --allow-dangerous if you must[0m
+      ├─ status: absent 🫧
+      └─ [2mtip: rhx keyrack set --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN --env all --vault <vault>[0m
+
+to fix this, ask a human to either:
+  1. unlock their keyrack for this key:
+     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+
+  2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
+     $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath
 
 "
 `;
@@ -144,5 +159,40 @@ exports[`git.commit.push.sh given: [case18] CI watch reminder after successful p
 
 🌊 now lets ride the ci wave and catch any wipeouts
    └─ git release --watch || npx rhachet run --skill show.gh.test.errors
+"
+`;
+
+exports[`git.commit.push.sh given: [case19] local main behind origin/main (PR #269 regression) when: [t1] also verify PR body excludes origin/main commits then: pr body only has feature branch commit body 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.push --mode plan
+   ├─ push: origin/turtle/feature
+   ├─ pr
+   │  ├─ title: feat: D unique to feature
+   │  └─ action: findsert
+   └─ meter
+      └─ push: allowed
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.push.sh given: [case20] all keyracks locked (both default and fallback) when: [t0] default owner locked and ehmpath locked then: exits with first error only, no fallback noise 1`] = `
+"
+🐢 bummer dude, keyrack token fetch failed
+
+
+🔐 keyrack
+   └─ ehmpathy.all.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+      ├─ status: locked 🔒
+      └─ [2mtip: rhx keyrack unlock --env all --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN[0m
+
+to fix this, ask a human to either:
+  1. unlock their keyrack for this key:
+     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+
+  2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
+     $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath
+
 "
 `;

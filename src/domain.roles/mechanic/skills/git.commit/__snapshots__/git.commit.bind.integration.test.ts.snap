@@ -20,7 +20,8 @@ exports[`git.commit.bind.sh given: [case3] get when: [t0] level is bound to fix 
 "🐢 lets check the bind...
 
 🐚 git.commit.bind
-   └─ level: fix
+   ├─ level: fix
+   └─ source: explicit
 "
 `;
 
@@ -28,7 +29,7 @@ exports[`git.commit.bind.sh given: [case3] get when: [t1] no level is bound then
 "🐢 lets check the bind...
 
 🐚 git.commit.bind
-   └─ level: (none)
+   └─ level: (none — will nudge on feat commits)
 "
 `;
 
