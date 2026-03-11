@@ -1,7 +1,9 @@
 {
   // explicit shards run specific test patterns in their own shard
   // add tests here if they take 60+ seconds on their own
-  "explicit": [],
+  "explicit": [
+    "**/brief.condense.integration.test.ts"
+  ],
 
   // dynamic shards split all tests evenly
   "dynamic": {

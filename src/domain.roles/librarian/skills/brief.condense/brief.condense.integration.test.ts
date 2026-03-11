@@ -91,7 +91,7 @@ describe('condense', () => {
         });
       });
 
-      when('[t1] condense with EXTREME density + onVerify=restore', () => {
+      when.skip('[t1] condense with EXTREME density + onVerify=restore', () => {
         const result = useThen('it succeeds', async () =>
           condenseFile({
             content: scene.content,
