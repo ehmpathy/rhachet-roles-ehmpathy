@@ -1,9 +1,8 @@
 {
   // explicit shards run specific test patterns in their own shard
   // add tests here if they take 60+ seconds on their own
-  // patterns are regex (used by jest --testPathPatterns and --testPathIgnorePatterns)
   "explicit": [
-    { "patterns": ["brief\\.condense\\.integration\\.test\\.ts$"] }
+    { "patterns": ["src/domain.roles/librarian/skills/brief.condense/brief.condense.integration.test.ts"] }
   ],
 
   // dynamic shards split all tests evenly
