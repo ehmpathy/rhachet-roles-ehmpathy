@@ -1,22 +1,9 @@
 {
   // explicit shards run specific test patterns in their own shard
-  // this enables parallelism for slow test files
-  "explicit": [
-    {
-      // checkRetention uses xAI API calls (~45s)
-      "patterns": ["checkRetention.integration.test.ts"]
-    },
-    {
-      // git.commit.set has many test cases (~20s)
-      "patterns": ["git.commit.set.integration.test.ts"]
-    },
-    {
-      // git.commit.push has keyrack tests that can be slow (~16s)
-      "patterns": ["git.commit.push.integration.test.ts"]
-    }
-  ],
+  // add tests here if they take 60+ seconds on their own
+  "explicit": [],
 
-  // dynamic shards split the rest of tests (not in explicit patterns)
+  // dynamic shards split all tests evenly
   "dynamic": {
     "shards": 3
   }
