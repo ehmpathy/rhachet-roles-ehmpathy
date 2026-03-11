@@ -91,14 +91,19 @@ describe('git.commit.uses.sh', () => {
 
   given('[case3] set --quant 0 (revoke)', () => {
     when('[t0] revoking all uses', () => {
-      then('outputs groovy break time', () => {
+      then('outputs groovy break time with tip', () => {
         const result = runInTempGitRepo({
           args: ['set', '--quant', '0', '--push', 'block'],
         });
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('🐢 groovy, break time');
-        expect(result.stdout).toContain('revoked');
+        expect(result.stdout).toContain('git.commit.uses set');
+        expect(result.stdout).toContain('├─ revoked');
+        expect(result.stdout).toContain('tip:');
+        expect(result.stdout).toContain(
+          "'rhx git.commit.uses del' does the same",
+        );
         expect(result.stdout).toMatchSnapshot();
       });
 
@@ -120,7 +125,7 @@ describe('git.commit.uses.sh', () => {
 
   given('[case3b] set --quant 0 --push allow (push-only mode)', () => {
     when('[t0] push-only access granted', () => {
-      then('outputs push only mode', () => {
+      then('outputs push only mode without tip', () => {
         const result = runInTempGitRepo({
           args: ['set', '--quant', '0', '--push', 'allow'],
         });
@@ -129,6 +134,7 @@ describe('git.commit.uses.sh', () => {
         expect(result.stdout).toContain('let it ride');
         expect(result.stdout).toContain('commits: 0');
         expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).not.toContain('tip:');
         expect(result.stdout).toMatchSnapshot();
       });
 
@@ -151,14 +157,91 @@ describe('git.commit.uses.sh', () => {
 
   given('[case3c] set --quant 0 without --push (defaults to block)', () => {
     when('[t0] revoke without explicit push flag', () => {
-      then('defaults to block and shows revoked', () => {
+      then('defaults to block and shows revoked with tip', () => {
         const result = runInTempGitRepo({
           args: ['set', '--quant', '0'],
         });
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('revoked');
+        expect(result.stdout).toContain('tip:');
+        expect(result.stdout).toContain(
+          "'rhx git.commit.uses del' does the same",
+        );
         expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case3d] del command (revoke shortcut)', () => {
+    when('[t0] del with quota present', () => {
+      then('shows revoked without tip', () => {
+        const result = runInTempGitRepo({
+          args: ['del'],
+          meterState: { uses: 3, push: 'allow' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('🐢 groovy, break time');
+        expect(result.stdout).toContain('git.commit.uses del');
+        expect(result.stdout).toContain('└─ revoked');
+        expect(result.stdout).not.toContain('tip:');
+        expect(result.stdout).toMatchSnapshot();
+      });
+
+      then('state file shows 0 uses and push block', () => {
+        const result = runInTempGitRepo({
+          args: ['del'],
+          meterState: { uses: 3, push: 'allow' },
+        });
+
+        const stateFile = path.join(
+          result.tempDir,
+          '.meter',
+          'git.commit.uses.jsonc',
+        );
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        expect(state.uses).toBe(0);
+        expect(state.push).toBe('block');
+      });
+    });
+
+    when('[t1] del without quota (idempotent)', () => {
+      then('succeeds and shows revoked', () => {
+        const result = runInTempGitRepo({
+          args: ['del'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('🐢 groovy, break time');
+        expect(result.stdout).toContain('git.commit.uses del');
+        expect(result.stdout).toContain('revoked');
+        expect(result.stdout).not.toContain('tip:');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case3e] del with rhachet passthrough args', () => {
+    when('[t0] rhachet passes --skill --repo --role before del', () => {
+      then('del is recognized after passthrough args', () => {
+        // rhachet passes args like: --skill git.commit.uses --repo ehmpathy --role mechanic del
+        const result = runInTempGitRepo({
+          args: [
+            '--skill',
+            'git.commit.uses',
+            '--repo',
+            'ehmpathy',
+            '--role',
+            'mechanic',
+            'del',
+          ],
+          meterState: { uses: 3, push: 'allow' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('git.commit.uses del');
+        expect(result.stdout).toContain('revoked');
       });
     });
   });

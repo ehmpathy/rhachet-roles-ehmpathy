@@ -18,15 +18,16 @@ exports[`git.commit.uses.sh given: [case2] set --quant N --push allow when: [t0]
 "
 `;
 
-exports[`git.commit.uses.sh given: [case3] set --quant 0 (revoke) when: [t0] revoking all uses then: outputs groovy break time 1`] = `
+exports[`git.commit.uses.sh given: [case3] set --quant 0 (revoke) when: [t0] revoking all uses then: outputs groovy break time with tip 1`] = `
 "🐢 groovy, break time
 
 🐚 git.commit.uses set
-   └─ revoked
+   ├─ revoked
+   └─ [2mtip: 'rhx git.commit.uses del' does the same[0m
 "
 `;
 
-exports[`git.commit.uses.sh given: [case3b] set --quant 0 --push allow (push-only mode) when: [t0] push-only access granted then: outputs push only mode 1`] = `
+exports[`git.commit.uses.sh given: [case3b] set --quant 0 --push allow (push-only mode) when: [t0] push-only access granted then: outputs push only mode without tip 1`] = `
 "🐢 sweet, let it ride
 
 🐚 git.commit.uses set
@@ -35,10 +36,27 @@ exports[`git.commit.uses.sh given: [case3b] set --quant 0 --push allow (push-onl
 "
 `;
 
-exports[`git.commit.uses.sh given: [case3c] set --quant 0 without --push (defaults to block) when: [t0] revoke without explicit push flag then: defaults to block and shows revoked 1`] = `
+exports[`git.commit.uses.sh given: [case3c] set --quant 0 without --push (defaults to block) when: [t0] revoke without explicit push flag then: defaults to block and shows revoked with tip 1`] = `
 "🐢 groovy, break time
 
 🐚 git.commit.uses set
+   ├─ revoked
+   └─ [2mtip: 'rhx git.commit.uses del' does the same[0m
+"
+`;
+
+exports[`git.commit.uses.sh given: [case3d] del command (revoke shortcut) when: [t0] del with quota present then: shows revoked without tip 1`] = `
+"🐢 groovy, break time
+
+🐚 git.commit.uses del
+   └─ revoked
+"
+`;
+
+exports[`git.commit.uses.sh given: [case3d] del command (revoke shortcut) when: [t1] del without quota (idempotent) then: succeeds and shows revoked 1`] = `
+"🐢 groovy, break time
+
+🐚 git.commit.uses del
    └─ revoked
 "
 `;

@@ -82,3 +82,11 @@ print_instruction() {
   echo "$header"
   echo "$command"
 }
+
+# print tip in dim/muted style
+# usage: print_tip "'rhx git.commit.uses del' does the same"
+print_tip() {
+  local text="$1"
+  # \033[2m = dim, \033[0m = reset
+  echo -e "   └─ \033[2mtip: $text\033[0m"
+}

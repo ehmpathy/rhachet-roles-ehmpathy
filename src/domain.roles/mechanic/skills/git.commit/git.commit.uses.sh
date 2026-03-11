@@ -34,6 +34,7 @@ STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 COMMAND=""
 QUANT=""
 PUSH=""
+VIA_DEL=""
 
 # first positional arg is command
 if [[ $# -ge 1 && "$1" != --* ]]; then
@@ -43,7 +44,7 @@ fi
 
 while [[ $# -gt 0 ]]; do
   case $1 in
-    set|get)
+    set|get|del)
       COMMAND="$1"
       shift
       ;;
@@ -57,10 +58,12 @@ while [[ $# -gt 0 ]]; do
       ;;
     --help|-h)
       echo "usage: git.commit.uses set --quant N --push allow|block"
+      echo "       git.commit.uses del"
       echo "       git.commit.uses get"
       echo ""
       echo "commands:"
       echo "  set    grant commit quota (human only)"
+      echo "  del    revoke quota (shortcut for set --quant 0 --push block)"
       echo "  get    check quota left"
       echo ""
       echo "options (set):"
@@ -81,6 +84,7 @@ while [[ $# -gt 0 ]]; do
     --*)
       echo "error: unknown option: $1"
       echo "usage: git.commit.uses set --quant N --push allow|block"
+      echo "       git.commit.uses del"
       echo "       git.commit.uses get"
       exit 2
       ;;
@@ -92,13 +96,20 @@ done
 
 # validate command
 if [[ -z "$COMMAND" ]]; then
-  echo "error: command required (set or get)"
+  echo "error: command required (set, del, or get)"
   echo "usage: git.commit.uses set --quant N --push allow|block"
+  echo "       git.commit.uses del"
   echo "       git.commit.uses get"
   exit 2
 fi
 
 case "$COMMAND" in
+  del)
+    # del = revoke shortcut (quant=0, push=block)
+    QUANT=0
+    PUSH="block"
+    VIA_DEL=true
+    ;& # fall through to set logic
   set)
     # validate --quant
     if [[ -z "$QUANT" ]]; then
@@ -149,8 +160,14 @@ EOF
     # output with turtle vibes
     if [[ "$QUANT" == "0" && "$PUSH" == "block" ]]; then
       print_turtle_header "groovy, break time"
-      print_tree_start "git.commit.uses set"
-      echo "   └─ revoked"
+      if [[ -n "$VIA_DEL" ]]; then
+        print_tree_start "git.commit.uses del"
+        echo "   └─ revoked"
+      else
+        print_tree_start "git.commit.uses set"
+        echo "   ├─ revoked"
+        print_tip "'rhx git.commit.uses del' does the same"
+      fi
     elif [[ "$QUANT" == "0" && "$PUSH" == "allow" ]]; then
       print_turtle_header "sweet, let it ride"
       print_tree_start "git.commit.uses set"
