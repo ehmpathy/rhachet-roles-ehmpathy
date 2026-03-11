@@ -8,6 +8,6 @@
 
   // dynamic shards split all tests evenly
   "dynamic": {
-    "shards": 7
+    "shards": 5
   }
 }
