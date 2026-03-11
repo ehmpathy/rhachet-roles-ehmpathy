@@ -5,105 +5,110 @@ exports[`compareKernels given: [case1] original and compressed versions of same 
   "kernelsCompressed": [
     {
       "category": "principle",
-      "concept": "Prefer lowercase unless code or proper noun requires it.",
-      "id": "compressed_rule_prefer_lowercase",
+      "concept": "Prefer lowercase unless code/proper noun requires it.",
+      "id": "main_rule_c",
     },
     {
       "category": "principle",
       "concept": "Reduces noise.",
-      "id": "compressed_reason_noise",
+      "id": "reduce_noise_c",
     },
     {
       "category": "principle",
       "concept": "Improves scan.",
-      "id": "compressed_reason_scan",
+      "id": "improve_scan_c",
     },
     {
       "category": "principle",
       "concept": "Neutral tone.",
-      "id": "compressed_reason_tone",
+      "id": "neutral_tone_c",
     },
     {
       "category": "principle",
       "concept": "Enforcement: NITPICK.",
-      "id": "compressed_enforcement",
+      "id": "enforcement_c",
     },
   ],
   "kernelsLost": [],
   "kernelsOriginal": [
     {
       "category": "principle",
-      "concept": "All text should be lowercase unless required by code or proper noun convention.",
-      "id": "rule_prefer_lowercase",
+      "concept": "Prefer lowercase for all text unless required by code or proper noun convention.",
+      "id": "main_rule",
     },
     {
       "category": "principle",
       "concept": "Reduces visual noise.",
-      "id": "reason_visual_noise",
+      "id": "reduce_noise",
     },
     {
       "category": "principle",
       "concept": "Improves scanability.",
-      "id": "reason_scanability",
+      "id": "improve_scan",
     },
     {
       "category": "principle",
       "concept": "Keeps language neutral and minimal.",
-      "id": "reason_neutral_minimal",
+      "id": "neutral_minimal",
     },
     {
       "category": "principle",
-      "concept": "Violation of lowercase rule is a NITPICK.",
-      "id": "enforcement_nitpick",
+      "concept": "Violation of lowercase preference is classified as NITPICK.",
+      "id": "enforcement",
     },
   ],
   "kernelsRetained": [
-    "rule_prefer_lowercase",
-    "reason_visual_noise",
-    "reason_scanability",
-    "reason_neutral_minimal",
-    "enforcement_nitpick",
+    "main_rule",
+    "reduce_noise",
+    "improve_scan",
+    "neutral_minimal",
+    "enforcement",
   ],
-  "rationale": "For the original document, I identified distinct atomic concepts by examining the sections: the main rule from .what, the three reasons from .why, and the enforcement level. Examples in .examples were not counted as separate kernels as they illustrate the rule rather than representing new ideas. For the compressed document, the kernels are condensed versions of the original ones, with no new distinct concepts introduced; examples are similarly illustrative and not kernels. Matches were assigned based on semantic equivalence.",
+  "rationale": "Concept kernels are identified as distinct, atomic ideas, rules, or principles from each document, excluding examples which only illustrate the kernels. The original document's kernels include the main rule (combining the 'what' and exception), three separate reasons under 'why', and the enforcement. The compressed document condenses the same concepts but abbreviates them; the 'why' is presented as a single list, but the atomic ideas remain the same three reasons, so they are split accordingly for matching. Each compressed kernel matches the corresponding original kernel based on semantic equivalence, with minor wording differences (e.g., 'scanability' vs. 'scan', 'neutral and minimal' vs. 'neutral tone'). No new kernels are introduced in the compressed version; all match existing originals.",
   "retentionRatio": 1,
 }
 `;
 
 exports[`extractKernels given: [case1] a document with clear concept kernels when: [t0] kernels are extracted then: snapshot of extracted kernels 1`] = `
 {
-  "kernelCount": 6,
+  "kernelCount": 7,
   "kernels": [
     {
       "category": "rule",
       "concept": "All text should be in lowercase.",
-      "id": "r1",
+      "id": "k1",
     },
     {
       "category": "constraint",
-      "concept": "Uppercase is allowed only when required by code or proper nouns.",
-      "id": "c1",
+      "concept": "Lowercase is not required when mandated by code conventions, such as method names.",
+      "id": "k2",
+    },
+    {
+      "category": "constraint",
+      "concept": "Lowercase is not required for proper nouns.",
+      "id": "k3",
     },
     {
       "category": "principle",
-      "concept": "Lowercase reduces visual noise.",
-      "id": "p1",
+      "concept": "Preferring lowercase reduces visual noise.",
+      "id": "k4",
     },
     {
       "category": "principle",
-      "concept": "Lowercase improves scanability.",
-      "id": "p2",
+      "concept": "Preferring lowercase improves scanability.",
+      "id": "k5",
     },
     {
       "category": "principle",
-      "concept": "Lowercase keeps language neutral and minimal.",
-      "id": "p3",
+      "concept": "Preferring lowercase keeps language neutral and minimal.",
+      "id": "k6",
     },
     {
-      "category": "rule",
-      "concept": "Violations of the lowercase preference are classified as NITPICK.",
-      "id": "e1",
+      "category": "definition",
+      "concept": "Violations of the lowercase rule are classified as NITPICK.",
+      "id": "k7",
     },
   ],
-  "rationale": "Kernels were identified by extracting distinct atomic ideas from the document's sections (.what, .why, .enforcement), focusing on core rules, constraints, and principles. Examples were ignored as they illustrate rather than define concepts. Duplicates were avoided by consolidating similar ideas into single kernels.",
+  "rationale": "Kernels were identified by extracting distinct atomic ideas from the document's sections, focusing on the core rule, exceptions, reasons, and enforcement. Examples were excluded as they illustrate rather than define concepts. No duplicates were present, and concepts were categorized based on their nature: rules for directives, constraints for exceptions, principles for benefits, and definition for enforcement classification.",
 }
 `;

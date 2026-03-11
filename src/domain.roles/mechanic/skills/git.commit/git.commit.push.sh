@@ -162,115 +162,6 @@ if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
   exit 2  # blocked by constraints
 fi
 
-# fetch token from keyrack (errors propagate with actionable messages)
-# try default owner first, fallback to ehmpath (passwordless sshkey)
-# if both fail, show only the first error (user's real issue, not fallback noise)
-KEYRACK_ERROR_FILE=$(mktemp)
-trap "rm -f '$KEYRACK_ERROR_FILE'" EXIT
-
-[[ "$DEBUG" == "true" ]] && echo "[debug] fetch token from keyrack..." >&2
-
-# capture output and exit code (use || to prevent set -e from early exit)
-KEYRACK_EXIT=0
-"$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
-  --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
-  --allow-dangerous \
-  --json >"$KEYRACK_ERROR_FILE" 2>&1 || KEYRACK_EXIT=$?
-
-[[ "$DEBUG" == "true" ]] && echo "[debug] keyrack get exit=$KEYRACK_EXIT" >&2
-[[ "$DEBUG" == "true" ]] && echo "[debug] keyrack output: $(cat "$KEYRACK_ERROR_FILE")" >&2
-
-if [[ $KEYRACK_EXIT -eq 0 ]]; then
-  EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(cat "$KEYRACK_ERROR_FILE" | jq -r '.grant.key.secret // empty')
-  [[ "$DEBUG" == "true" ]] && echo "[debug] extracted token length: ${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN}, prefix: ${EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN:0:10}..." >&2
-else
-  # fallback: unlock ehmpath keyrack for this specific key (passwordless sshkey)
-  [[ "$DEBUG" == "true" ]] && echo "[debug] primary failed, try ehmpath fallback..." >&2
-  "$REPO_ROOT/node_modules/.bin/rhachet" keyrack unlock \
-    --owner ehmpath \
-    --prikey ~/.ssh/ehmpath \
-    --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
-    --env all >/dev/null 2>&1 || true
-  FALLBACK_EXIT=0
-  FALLBACK_OUTPUT=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
-    --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
-    --owner ehmpath \
-    --allow-dangerous \
-    --json 2>&1) || FALLBACK_EXIT=$?
-  [[ "$DEBUG" == "true" ]] && echo "[debug] fallback exit=$FALLBACK_EXIT" >&2
-  [[ "$DEBUG" == "true" ]] && echo "[debug] fallback output: $FALLBACK_OUTPUT" >&2
-  if [[ $FALLBACK_EXIT -eq 0 ]]; then
-    EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(echo "$FALLBACK_OUTPUT" | jq -r '.grant.key.secret // empty')
-    [[ "$DEBUG" == "true" ]] && echo "[debug] extracted fallback token length: ${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN}" >&2
-  else
-    # both failed — call keyrack again without --json to get human-readable output
-    KEYRACK_HUMAN_OUTPUT=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
-      --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
-      --allow-dangerous 2>&1) || true
-
-    echo "" >&2
-    echo "🐢 bummer dude, keyrack token fetch failed" >&2
-    echo "" >&2
-    echo "$KEYRACK_HUMAN_OUTPUT" >&2
-    echo "" >&2
-    echo "to fix this, ask a human to either:" >&2
-    echo "  1. unlock their keyrack for this key:" >&2
-    echo "     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" >&2
-    echo "" >&2
-    echo "  2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:" >&2
-    echo "     $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath" >&2
-    echo "" >&2
-    exit 1
-  fi
-fi
-
-# fail-fast: verify we got a token
-if [[ -z "$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" ]]; then
-  echo "" >&2
-  echo "🐢 bummer dude, keyrack returned empty token" >&2
-  echo "" >&2
-  exit 1
-fi
-
-# fail-fast: verify token is valid AND for ehm-seaturtle user
-[[ "$DEBUG" == "true" ]] && echo "[debug] validate token for ehm-seaturtle..." >&2
-GH_USER_EXIT=0
-GH_USER_OUTPUT=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh api /user 2>&1) || GH_USER_EXIT=$?
-[[ "$DEBUG" == "true" ]] && echo "[debug] gh api /user exit=$GH_USER_EXIT" >&2
-[[ "$DEBUG" == "true" ]] && echo "[debug] gh api /user output: $GH_USER_OUTPUT" >&2
-
-if [[ $GH_USER_EXIT -ne 0 ]]; then
-  echo "" >&2
-  echo "🐢 bummer dude, github token is invalid" >&2
-  echo "" >&2
-  echo "gh api /user failed:" >&2
-  echo "$GH_USER_OUTPUT" >&2
-  echo "" >&2
-  echo "to fix this, refresh the token:" >&2
-  echo "  \$ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath --refresh EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" >&2
-  echo "" >&2
-  exit 1
-fi
-
-GH_USER_LOGIN=$(echo "$GH_USER_OUTPUT" | jq -r '.login // empty')
-[[ "$DEBUG" == "true" ]] && echo "[debug] gh user login: $GH_USER_LOGIN" >&2
-
-if [[ "$GH_USER_LOGIN" != "ehm-seaturtle" ]]; then
-  echo "" >&2
-  echo "🐢 bummer dude, github token is not for ehm-seaturtle" >&2
-  echo "" >&2
-  echo "expected: ehm-seaturtle" >&2
-  echo "got: $GH_USER_LOGIN" >&2
-  echo "" >&2
-  echo "the keyrack has a token for the wrong github user." >&2
-  echo "to fix this, refresh the token with the correct value:" >&2
-  echo "  \$ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath --refresh EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" >&2
-  echo "" >&2
-  exit 1
-fi
-
-[[ "$DEBUG" == "true" ]] && echo "[debug] token validated for ehm-seaturtle ✓" >&2
-
 ######################################################################
 # COMPUTE PR TITLE (from first behavioral commit on branch)
 ######################################################################
@@ -330,6 +221,72 @@ fi
 ######################################################################
 # APPLY MODE: execute the push + pr findsert
 ######################################################################
+
+# fetch token from keyrack (only needed in apply mode for gh commands)
+# try default owner first, fallback to ehmpath (passwordless sshkey)
+# if both fail, show only the first error (user's real issue, not fallback noise)
+KEYRACK_ERROR_FILE=$(mktemp)
+trap "rm -f '$KEYRACK_ERROR_FILE'" EXIT
+
+[[ "$DEBUG" == "true" ]] && echo "[debug] fetch token from keyrack..." >&2
+
+# capture output and exit code (use || to prevent set -e from early exit)
+KEYRACK_EXIT=0
+"$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
+  --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
+  --allow-dangerous \
+  --json >"$KEYRACK_ERROR_FILE" 2>&1 || KEYRACK_EXIT=$?
+
+[[ "$DEBUG" == "true" ]] && echo "[debug] keyrack get exit=$KEYRACK_EXIT" >&2
+[[ "$DEBUG" == "true" ]] && echo "[debug] keyrack output: $(cat "$KEYRACK_ERROR_FILE")" >&2
+
+if [[ $KEYRACK_EXIT -eq 0 ]]; then
+  EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(cat "$KEYRACK_ERROR_FILE" | jq -r '.grant.key.secret // empty')
+  [[ "$DEBUG" == "true" ]] && echo "[debug] extracted token length: ${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN}" >&2
+else
+  # fallback: unlock and get from ehmpath (passwordless sshkey)
+  [[ "$DEBUG" == "true" ]] && echo "[debug] primary failed, try ehmpath fallback..." >&2
+  "$REPO_ROOT/node_modules/.bin/rhachet" keyrack unlock \
+    --owner ehmpath --prikey "$HOME/.ssh/ehmpath" --env all >/dev/null 2>&1 || true
+  FALLBACK_EXIT=0
+  FALLBACK_OUTPUT=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
+    --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
+    --owner ehmpath \
+    --allow-dangerous \
+    --json 2>&1) || FALLBACK_EXIT=$?
+  [[ "$DEBUG" == "true" ]] && echo "[debug] fallback exit=$FALLBACK_EXIT" >&2
+  [[ "$DEBUG" == "true" ]] && echo "[debug] fallback output: $FALLBACK_OUTPUT" >&2
+  if [[ $FALLBACK_EXIT -eq 0 ]]; then
+    EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(echo "$FALLBACK_OUTPUT" | jq -r '.grant.key.secret // empty')
+    [[ "$DEBUG" == "true" ]] && echo "[debug] extracted fallback token length: ${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN}" >&2
+  else
+    # both failed — show original error + guidance for human
+    echo "" >&2
+    echo "🐢 bummer dude, keyrack token fetch failed" >&2
+    echo "" >&2
+    cat "$KEYRACK_ERROR_FILE" >&2
+    echo "" >&2
+    echo "to fix this, ask a human to either:" >&2
+    echo "  1. unlock their keyrack for this key:" >&2
+    echo "     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" >&2
+    echo "" >&2
+    echo "  2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:" >&2
+    echo "     $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath" >&2
+    echo "" >&2
+    exit 1
+  fi
+fi
+
+# fail-fast: verify we got a token
+if [[ -z "$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" ]]; then
+  echo "" >&2
+  echo "🐢 bummer dude, keyrack returned empty token" >&2
+  echo "" >&2
+  echo "keyrack output:" >&2
+  cat "$KEYRACK_ERROR_FILE" >&2
+  echo "" >&2
+  exit 1
+fi
 
 [[ "$DEBUG" == "true" ]] && echo "[debug] apply mode: push to origin..." >&2
 

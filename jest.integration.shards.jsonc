@@ -1,0 +1,13 @@
+{
+  // explicit shards run specific test patterns in their own shard
+  // add tests here if they take 60+ seconds on their own
+  "explicit": [
+    { "patterns": ["src/domain.roles/librarian/skills/brief.condense/brief.condense.integration.test.ts"] },
+    { "patterns": ["src/domain.operations/guardBorder/imagineIsContentAdmissible.integration.test.ts"] }
+  ],
+
+  // dynamic shards split all tests evenly
+  "dynamic": {
+    "shards": 5
+  }
+}
