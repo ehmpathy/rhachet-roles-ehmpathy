@@ -41,6 +41,11 @@
       "term": "helpers",
       "why": "meaningless - all code helps, so 'helpers' adds zero information and hides actual purpose",
       "alt": ["operations", "utils", "fixtures"]
+    },
+    {
+      "term": "staging",
+      "why": "gerund + overloaded - is it a specific environment or an alias for the concept of environment? stage = staging? a phase? the act?",
+      "alt": ["prep", "environment", "access"]
     }
   ]
 }

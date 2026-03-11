@@ -1,0 +1,12 @@
+always:
+  briefs:
+    say:
+      # philosophy
+      - briefs/practices/philosophy.domain-as-a-garden.[philosophy].md
+
+      # architecture
+      - briefs/practices/rule.require.solve-at-cause.md
+      - briefs/practices/prefer.env_access.prep_over_dev.md
+
+      # ubiquitous language
+      - briefs/ubiqlang.ambiguous-from-overload.md
