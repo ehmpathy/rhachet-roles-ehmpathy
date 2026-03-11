@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`sedreplace.sh given: [case3] no files match the pattern when: [t0] --glob filter excludes all files with pattern then: it should report no files match 1`] = `
-"🐢 lets see...
+"🐢 crickets...
 
 🐚 sedreplace
    ├─ old: MATCH_ME
@@ -12,7 +12,7 @@ exports[`sedreplace.sh given: [case3] no files match the pattern when: [t0] --gl
 `;
 
 exports[`sedreplace.sh given: [case3] no files match the pattern when: [t1] --glob matches no files at all then: it should report no files match criteria 1`] = `
-"🐢 lets see...
+"🐢 crickets...
 
 🐚 sedreplace
    ├─ old: MATCH_ME
@@ -47,7 +47,7 @@ run with --mode apply to execute
 `;
 
 exports[`sedreplace.sh given: [case9] --mode semantics when: [t2] --mode apply then: it should apply changes 1`] = `
-"🐢 cowabunga!
+"🐢 sweet
 
 🐚 sedreplace --mode apply
    ├─ old: MATCH_ME
@@ -58,9 +58,13 @@ exports[`sedreplace.sh given: [case9] --mode semantics when: [t2] --mode apply t
    └─ updated
       ├─ .claude/sedreplace.nudges.local.json (1)
       │  ├─
+      │  │  -    "old": "MATCH_ME",
+      │  │  +    "old": "REPLACED",
       │  └─
       └─ file1.ts (1)
          ├─
+         │  -const MATCH_ME = 1;
+         │  +const REPLACED = 1;
          └─
 "
 `;
@@ -95,7 +99,7 @@ run with --mode apply to execute
 `;
 
 exports[`sedreplace.sh given: [case11] line count reports when: [t2] --mode apply reports match counts then: it should report per-file and total match counts 1`] = `
-"🐢 cowabunga!
+"🐢 sweet
 
 🐚 sedreplace --mode apply
    ├─ old: MATCH_ME
@@ -106,12 +110,20 @@ exports[`sedreplace.sh given: [case11] line count reports when: [t2] --mode appl
    └─ updated
       ├─ .claude/sedreplace.nudges.local.json (1)
       │  ├─
+      │  │  -    "old": "MATCH_ME",
+      │  │  +    "old": "REPLACED",
       │  └─
       ├─ file1.ts (2)
       │  ├─
+      │  │  -const MATCH_ME = 1;
+      │  │  -const MATCH_ME = 2;
+      │  │  +const REPLACED = 1;
+      │  │  +const REPLACED = 2;
       │  └─
       └─ file2.ts (1)
          ├─
+         │  -const MATCH_ME = 3;
+         │  +const REPLACED = 3;
          └─
 "
 `;

@@ -10,17 +10,27 @@
 #         denied in permissions due to security risks.
 #
 # usage:
-#   rmsafe.sh "path/to/file"                    # positional (like rm)
-#   rmsafe.sh -r "path/to/dir"                  # recursive (like rm -r)
-#   rmsafe.sh --path "path/to/file"             # named arg
-#   rmsafe.sh --path "path/to/dir" --recursive  # named + recursive
+#   rmsafe.sh 'path/to/file'                    # positional (like rm)
+#   rmsafe.sh -r 'path/to/dir'                  # recursive (like rm -r)
+#   rmsafe.sh --path 'path/to/file'             # named arg
+#   rmsafe.sh --path 'path/to/dir' --recursive  # named + recursive
+#   rmsafe.sh --path 'build/*.tmp'              # glob pattern
+#   rmsafe.sh --path 'src/**/*.bak'             # recursive glob
 #
 # guarantee:
 #   - path must be within repo
 #   - requires -r/--recursive for directories
 #   - fail-fast on errors
+#   - glob patterns remove all matches
 ######################################################################
 set -euo pipefail
+
+# get skill directory to load output.sh
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SKILL_DIR/output.sh"
+
+# enable glob expansion
+shopt -s globstar nullglob
 
 # parse arguments (supports both positional and named)
 TARGET=""
@@ -80,58 +90,146 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
   exit 2
 fi
 
-# get repo root (resolve symlinks fully)
+# get repo root (expand symlinks fully)
 REPO_ROOT=$(realpath "$(git rev-parse --show-toplevel)")
 
-# validate target exists (check symlink OR regular file/dir)
-if [[ ! -e "$TARGET" && ! -L "$TARGET" ]]; then
-  echo "error: path does not exist: $TARGET"
-  exit 2
-fi
+# detect if TARGET is a glob pattern or literal path
+is_glob_pattern() {
+  local pattern="$1"
+  [[ "$pattern" == *"*"* || "$pattern" == *"?"* || "$pattern" == *"["* ]]
+}
 
-# resolve target path for boundary check
-# for symlinks: resolve parent dir + basename (so we check the symlink location, not target)
-# for regular files/dirs: resolve fully
-if [[ -L "$TARGET" ]]; then
-  # symlink: check the symlink's location, not where it points
-  TARGET_DIR=$(dirname "$TARGET")
-  TARGET_BASE=$(basename "$TARGET")
-  if [[ -e "$TARGET_DIR" ]]; then
-    TARGET_ABS="$(realpath "$TARGET_DIR")/$TARGET_BASE"
-  else
-    TARGET_ABS=$(realpath -m "$TARGET")
+IS_GLOB=$(is_glob_pattern "$TARGET" && echo "true" || echo "false")
+
+# expand glob pattern to array of files
+FILES=()
+IS_DIR_REMOVE=false
+if [[ "$IS_GLOB" == "true" ]]; then
+  # glob pattern: use eval to expand (preserves spaces in paths)
+  eval "for f in $TARGET; do [[ -f \"\$f\" || -L \"\$f\" ]] && FILES+=(\"\$f\"); done"
+else
+  # literal path: validate directly
+  if [[ ! -e "$TARGET" && ! -L "$TARGET" ]]; then
+    echo "error: path does not exist: $TARGET"
+    exit 2
   fi
-else
-  # regular file/dir: resolve fully
-  TARGET_ABS=$(realpath "$TARGET")
+  if [[ -d "$TARGET" ]]; then
+    # directory removal: handle separately (backward compat)
+    IS_DIR_REMOVE=true
+  elif [[ -f "$TARGET" || -L "$TARGET" ]]; then
+    FILES+=("$TARGET")
+  fi
 fi
 
-# validate target is within repo (exact match OR slash-prefixed; prevents /repo from match of /repo-evil)
-if [[ "$TARGET_ABS" != "$REPO_ROOT" && "$TARGET_ABS" != "$REPO_ROOT/"* ]]; then
-  echo "error: path must be within the git repository"
-  echo "  repo root: $REPO_ROOT"
-  echo "  path:      $TARGET_ABS"
-  exit 2
-fi
+# handle directory removal (backward compat for literal directory paths)
+if [[ "$IS_DIR_REMOVE" == "true" ]]; then
+  # check recursive flag
+  if [[ "$RECURSIVE" != true ]]; then
+    echo "error: target is a directory, use -r or --recursive to delete"
+    exit 2
+  fi
 
-# prevent delete of repo root itself
-if [[ "$TARGET_ABS" == "$REPO_ROOT" ]]; then
-  echo "error: cannot delete the repository root"
-  exit 2
-fi
+  # handle via symlink path for boundary check
+  if [[ -L "$TARGET" ]]; then
+    TARGET_DIR=$(dirname "$TARGET")
+    TARGET_BASE=$(basename "$TARGET")
+    if [[ -e "$TARGET_DIR" ]]; then
+      TARGET_ABS="$(realpath "$TARGET_DIR")/$TARGET_BASE"
+    else
+      TARGET_ABS=$(realpath -m "$TARGET")
+    fi
+  else
+    TARGET_ABS=$(realpath "$TARGET")
+  fi
 
-# check if directory and require --recursive
-if [[ -d "$TARGET_ABS" ]] && [[ "$RECURSIVE" != true ]]; then
-  echo "error: target is a directory, use -r or --recursive to delete"
-  exit 2
-fi
+  # validate target is within repo
+  if [[ "$TARGET_ABS" != "$REPO_ROOT" && "$TARGET_ABS" != "$REPO_ROOT/"* ]]; then
+    echo "error: path must be within the git repository"
+    echo "  repo root: $REPO_ROOT"
+    echo "  path:      $TARGET_ABS"
+    exit 2
+  fi
 
-# perform the removal
-if [[ "$RECURSIVE" == true ]]; then
+  # prevent delete of repo root itself
+  if [[ "$TARGET_ABS" == "$REPO_ROOT" ]]; then
+    echo "error: cannot delete the repository root"
+    exit 2
+  fi
+
+  # perform the removal
   rm -rf "$TARGET_ABS"
-else
-  rm "$TARGET_ABS"
+
+  # output
+  TARGET_REL="${TARGET_ABS#$REPO_ROOT/}"
+  print_turtle_header "sweet"
+  print_tree_start "rmsafe"
+  print_tree_branch "path" "$TARGET"
+  print_tree_branch "type" "directory"
+  print_tree_leaf "removed"
+  print_tree_file_line "$TARGET_REL" true
+  exit 0
 fi
 
-TARGET_REL="${TARGET_ABS#$REPO_ROOT/}"
-echo "removed: $TARGET_REL"
+# determine header and output based on file count
+FILE_COUNT=${#FILES[@]}
+
+if [[ $FILE_COUNT -eq 0 ]]; then
+  # no matches - crickets
+  print_turtle_header "crickets..."
+  print_tree_start "rmsafe"
+  print_tree_branch "path" "$TARGET"
+  print_tree_branch "files" "0"
+  print_tree_leaf "removed"
+  print_tree_file_line "(none)" true
+  exit 0
+fi
+
+# print header
+print_turtle_header "sweet"
+print_tree_start "rmsafe"
+print_tree_branch "path" "$TARGET"
+print_tree_branch "files" "$FILE_COUNT"
+print_tree_leaf "removed"
+
+# remove each file with incremental output
+REMOVED_COUNT=0
+for i in "${!FILES[@]}"; do
+  FILE="${FILES[$i]}"
+  IS_LAST=$([[ $((i + 1)) -eq $FILE_COUNT ]] && echo "true" || echo "false")
+
+  # handle via symlink path for boundary check
+  if [[ -L "$FILE" ]]; then
+    FILE_DIR=$(dirname "$FILE")
+    FILE_BASE=$(basename "$FILE")
+    if [[ -e "$FILE_DIR" ]]; then
+      TARGET_ABS="$(realpath "$FILE_DIR")/$FILE_BASE"
+    else
+      TARGET_ABS=$(realpath -m "$FILE")
+    fi
+  else
+    TARGET_ABS=$(realpath "$FILE")
+  fi
+
+  # validate target is within repo
+  if [[ "$TARGET_ABS" != "$REPO_ROOT" && "$TARGET_ABS" != "$REPO_ROOT/"* ]]; then
+    echo "error: path must be within the git repository"
+    echo "  repo root: $REPO_ROOT"
+    echo "  path:      $TARGET_ABS"
+    exit 2
+  fi
+
+  # prevent delete of repo root itself
+  if [[ "$TARGET_ABS" == "$REPO_ROOT" ]]; then
+    echo "error: cannot delete the repository root"
+    exit 2
+  fi
+
+  # perform the removal
+  rm "$TARGET_ABS"
+
+  # output relative path
+  TARGET_REL="${TARGET_ABS#$REPO_ROOT/}"
+  print_tree_file_line "$TARGET_REL" "$IS_LAST"
+
+  REMOVED_COUNT=$((REMOVED_COUNT + 1))
+done

@@ -54,6 +54,13 @@ describe('rmsafe.sh', () => {
     };
   };
 
+  /**
+   * .what = sanitize stdout for snapshot stability
+   * .why = temp dir paths change between runs
+   */
+  const sanitizeOutput = (stdout: string): string =>
+    stdout.replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR');
+
   given('[case1] positional args (like rm)', () => {
     when('[t0] single positional arg provided', () => {
       then('file is removed', () => {
@@ -74,7 +81,7 @@ describe('rmsafe.sh', () => {
           rmsafeArgs: ['./target.txt'],
         });
 
-        expect(result.stdout).toContain('removed:');
+        expect(result.stdout).toContain('removed');
         expect(result.stdout).toContain('target.txt');
       });
     });
@@ -465,6 +472,121 @@ describe('rmsafe.sh', () => {
         expect(fs.existsSync(path.join(result.tempDir, 'keep2.txt'))).toBe(
           true,
         );
+      });
+    });
+  });
+
+  given('[case11] glob patterns', () => {
+    when('[t0] glob matches multiple files', () => {
+      then('all files are removed', () => {
+        const result = runInTempGitRepo({
+          files: {
+            'build/a.tmp': 'temp a',
+            'build/b.tmp': 'temp b',
+            'build/c.tmp': 'temp c',
+            'build/keep.txt': 'keep this',
+          },
+          rmsafeArgs: ['--path', 'build/*.tmp'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(fs.existsSync(path.join(result.tempDir, 'build/a.tmp'))).toBe(
+          false,
+        );
+        expect(fs.existsSync(path.join(result.tempDir, 'build/b.tmp'))).toBe(
+          false,
+        );
+        expect(fs.existsSync(path.join(result.tempDir, 'build/c.tmp'))).toBe(
+          false,
+        );
+        expect(fs.existsSync(path.join(result.tempDir, 'build/keep.txt'))).toBe(
+          true,
+        );
+      });
+
+      then('output shows each file removed', () => {
+        const result = runInTempGitRepo({
+          files: {
+            'build/a.tmp': 'temp a',
+            'build/b.tmp': 'temp b',
+          },
+          rmsafeArgs: ['--path', 'build/*.tmp'],
+        });
+
+        expect(result.stdout).toContain('files: 2');
+        expect(result.stdout).toContain('a.tmp');
+        expect(result.stdout).toContain('b.tmp');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('output shows turtle sweet header', () => {
+        const result = runInTempGitRepo({
+          files: { 'build/a.tmp': 'temp' },
+          rmsafeArgs: ['--path', 'build/*.tmp'],
+        });
+
+        expect(result.stdout).toContain('sweet');
+      });
+    });
+
+    when('[t1] glob matches zero files', () => {
+      then('output shows crickets header', () => {
+        const result = runInTempGitRepo({
+          files: { 'build/a.txt': 'not a match' },
+          rmsafeArgs: ['--path', 'build/*.xyz'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('crickets');
+        expect(result.stdout).toContain('files: 0');
+        expect(result.stdout).toContain('(none)');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] recursive glob **/*.bak', () => {
+      then('matches files in nested directories', () => {
+        const result = runInTempGitRepo({
+          files: {
+            'src/utils/foo.bak': 'backup',
+            'src/core/bar.bak': 'backup',
+            'src/deep/nested/baz.bak': 'backup',
+            'src/keep.ts': 'keep',
+          },
+          rmsafeArgs: ['--path', 'src/**/*.bak'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(
+          fs.existsSync(path.join(result.tempDir, 'src/utils/foo.bak')),
+        ).toBe(false);
+        expect(
+          fs.existsSync(path.join(result.tempDir, 'src/core/bar.bak')),
+        ).toBe(false);
+        expect(
+          fs.existsSync(path.join(result.tempDir, 'src/deep/nested/baz.bak')),
+        ).toBe(false);
+        expect(fs.existsSync(path.join(result.tempDir, 'src/keep.ts'))).toBe(
+          true,
+        );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case12] tree output format', () => {
+    when('[t0] single file removal', () => {
+      then('output has turtle, shell, and tree structure', () => {
+        const result = runInTempGitRepo({
+          files: { 'target.txt': 'content' },
+          rmsafeArgs: ['--path', './target.txt'],
+        });
+
+        expect(result.stdout).toContain('🐢');
+        expect(result.stdout).toContain('🐚 rmsafe');
+        expect(result.stdout).toContain('path:');
+        expect(result.stdout).toContain('files:');
+        expect(result.stdout).toContain('removed');
       });
     });
   });
