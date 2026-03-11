@@ -241,7 +241,7 @@ else
 fi
 
 if [[ -z "$FILES" ]]; then
-  echo "🐢 lets see..."
+  echo "🐢 crickets..."
   echo ""
   echo "🐚 sedreplace"
   echo "   ├─ old: $OLD_PATTERN"
@@ -255,7 +255,7 @@ fi
 FILES_MATCHED=$(echo "$FILES" | xargs grep -F -l "$OLD_PATTERN" 2>/dev/null || true)
 
 if [[ -z "$FILES_MATCHED" ]]; then
-  echo "🐢 lets see..."
+  echo "🐢 crickets..."
   echo ""
   echo "🐚 sedreplace"
   echo "   ├─ old: $OLD_PATTERN"
@@ -311,11 +311,42 @@ print_file_diff() {
   echo "${prefix}└─"
 }
 
+# helper: print file diff with pre-computed content (for apply mode)
+print_file_diff_with_content() {
+  local file="$1"
+  local match_count="$2"
+  local is_last="$3"
+  local diff_output="$4"
+  local prefix="      "
+
+  # branch character for this file
+  if [[ "$is_last" == "true" ]]; then
+    echo "${prefix}└─ $file ($match_count)"
+    prefix="         "
+  else
+    echo "${prefix}├─ $file ($match_count)"
+    prefix="      │  "
+  fi
+
+  # open sub.bucket
+  echo "${prefix}├─"
+
+  # print diff lines with proper prefix
+  if [[ -n "$diff_output" ]]; then
+    echo "$diff_output" | while IFS= read -r line; do
+      echo "${prefix}│  $line"
+    done
+  fi
+
+  # close sub.bucket
+  echo "${prefix}└─"
+}
+
 # output turtle header + tree
 if [[ "$MODE" == "plan" ]]; then
   echo "🐢 heres the wave..."
 else
-  echo "🐢 cowabunga!"
+  echo "🐢 sweet"
 fi
 echo ""
 echo "🐚 sedreplace --mode $MODE"
@@ -371,6 +402,12 @@ else
     file_index=$((file_index + 1))
     LINE_COUNT=$(grep -F -c "$OLD_PATTERN" "$file")
 
+    # capture diff BEFORE apply (so we can show before/after)
+    local_diff=""
+    if [[ $file_index -le 3 ]]; then
+      local_diff=$(sed "s#$OLD_ESCAPED#$NEW_ESCAPED#g" "$file" | diff -u "$file" - 2>/dev/null | grep -E '^[-+][^-+]' | head -6 || true)
+    fi
+
     # use sed -i for in-place edit (use # as delimiter to avoid conflicts)
     # note: macOS sed requires -i '' but linux sed uses -i
     if [[ "$(uname)" == "Darwin" ]]; then
@@ -385,7 +422,8 @@ else
       if [[ $file_index -eq $file_count ]] || [[ $file_index -eq 3 && $file_count -gt 3 ]]; then
         is_last="true"
       fi
-      print_file_diff "$file" "$LINE_COUNT" "$is_last"
+      # print file with captured diff (not computed after apply)
+      print_file_diff_with_content "$file" "$LINE_COUNT" "$is_last" "$local_diff"
     fi
   done
 

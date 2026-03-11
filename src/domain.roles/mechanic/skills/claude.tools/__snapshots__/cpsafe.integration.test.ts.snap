@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`cpsafe.sh given: [case12] glob patterns when: [t0] glob matches multiple files then: output shows each file with arrow 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: src/*.md
+   ├─ into: dest/
+   ├─ files: 2
+   └─ copied
+      ├─ src/a.md -> dest/a.md
+      └─ src/b.md -> dest/b.md
+"
+`;
+
+exports[`cpsafe.sh given: [case12] glob patterns when: [t1] glob matches zero files then: output shows crickets header 1`] = `
+"🐢 crickets...
+
+🐚 cpsafe
+   ├─ from: src/*.xyz
+   ├─ into: dest/
+   ├─ files: 0
+   └─ copied
+      └─ (none)
+"
+`;
+
+exports[`cpsafe.sh given: [case12] glob patterns when: [t2] recursive glob **/*.ts then: matches files in nested directories 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: src/**/*.ts
+   ├─ into: archive/
+   ├─ files: 3
+   └─ copied
+      ├─ src/core/bar.ts -> archive/bar.ts
+      ├─ src/deep/nested/baz.ts -> archive/baz.ts
+      └─ src/utils/foo.ts -> archive/foo.ts
+"
+`;

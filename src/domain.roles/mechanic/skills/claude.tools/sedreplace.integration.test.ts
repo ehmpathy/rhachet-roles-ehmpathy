@@ -1931,7 +1931,7 @@ describe('sedreplace.sh', () => {
         );
 
         expect(applyResult.status).toBe(0);
-        expect(applyResult.stdout).toContain('cowabunga');
+        expect(applyResult.stdout).toContain('sweet');
 
         // verify file was modified
         const content = fs.readFileSync(path.join(repoDir, 'file.ts'), 'utf-8');
