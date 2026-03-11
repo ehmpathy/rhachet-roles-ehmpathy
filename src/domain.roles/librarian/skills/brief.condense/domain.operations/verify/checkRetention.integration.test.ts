@@ -6,6 +6,9 @@ import type { ConceptKernel } from '../../../../../../domain.operations/kerneliz
 import { compressViaBhrain } from '../../../brief.compress/compress.via.bhrain';
 import { checkRetention } from './checkRetention';
 
+// extend timeout for external brain API calls
+jest.setTimeout(120_000);
+
 const BRAIN_SLUG = 'xai/grok/3-mini';
 
 // test fixtures
