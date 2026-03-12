@@ -28,7 +28,7 @@ describe('git.commit.uses.sh', () => {
 
     const result = spawnSync('bash', [scriptPath, ...args.args], {
       cwd: tempDir,
-      encoding: 'utf-8',
+      encoding: 'utf-8' as const,
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
@@ -37,6 +37,70 @@ describe('git.commit.uses.sh', () => {
       stderr: result.stderr ?? '',
       exitCode: result.status ?? 1,
       tempDir,
+    };
+  };
+
+  /**
+   * .what = run command with isolated HOME for global storage tests
+   * .why = prevents tests from affecting real global state
+   */
+  const runWithGlobalStorage = (args: {
+    args: string[];
+    meterState?: { uses: number; push: string };
+    globalBlocker?: boolean;
+  }): {
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+    tempDir: string;
+    tempHome: string;
+    globalMeterFile: string;
+  } => {
+    const tempDir = genTempDir({ slug: 'git-commit-uses-test', git: true });
+    const tempHome = genTempDir({ slug: 'git-commit-uses-home', git: false });
+    const globalMeterDir = path.join(
+      tempHome,
+      '.rhachet',
+      'storage',
+      'repo=ehmpathy',
+      'role=mechanic',
+      '.meter',
+    );
+    const globalMeterFile = path.join(globalMeterDir, 'git.commit.uses.jsonc');
+
+    // create local .meter directory and state if provided
+    if (args.meterState) {
+      const meterDir = path.join(tempDir, '.meter');
+      fs.mkdirSync(meterDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(meterDir, 'git.commit.uses.jsonc'),
+        JSON.stringify(args.meterState, null, 2),
+      );
+    }
+
+    // create global blocker if requested
+    if (args.globalBlocker) {
+      fs.mkdirSync(globalMeterDir, { recursive: true });
+      fs.writeFileSync(
+        globalMeterFile,
+        JSON.stringify({ blocked: true }, null, 2),
+      );
+    }
+
+    const result = spawnSync('bash', [scriptPath, ...args.args], {
+      cwd: tempDir,
+      encoding: 'utf-8' as const,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, HOME: tempHome },
+    });
+
+    return {
+      stdout: result.stdout ?? '',
+      stderr: result.stderr ?? '',
+      exitCode: result.status ?? 1,
+      tempDir,
+      tempHome,
+      globalMeterFile,
     };
   };
 
@@ -305,6 +369,205 @@ describe('git.commit.uses.sh', () => {
         expect(result.stdout).toContain(
           'git.commit.uses set --quant N --push allow|block',
         );
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ========================================
+  // global blocker tests
+  // ========================================
+
+  given('[case8] block --global', () => {
+    when('[t0] no global blocker yet', () => {
+      then('creates global blocker file', () => {
+        const result = runWithGlobalStorage({
+          args: ['block', '--global'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('🐢 groovy, bond fire time');
+        expect(result.stdout).toContain('commits blocked globally');
+        expect(fs.existsSync(result.globalMeterFile)).toBe(true);
+
+        const state = JSON.parse(
+          fs.readFileSync(result.globalMeterFile, 'utf-8'),
+        );
+        expect(state.blocked).toBe(true);
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] global blocker already active', () => {
+      then('overwrites blocker (idempotent)', () => {
+        const result = runWithGlobalStorage({
+          args: ['block', '--global'],
+          globalBlocker: true,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('commits blocked globally');
+        expect(fs.existsSync(result.globalMeterFile)).toBe(true);
+      });
+    });
+  });
+
+  given('[case9] allow --global', () => {
+    when('[t0] global blocker is active', () => {
+      then('removes global blocker file', () => {
+        const result = runWithGlobalStorage({
+          args: ['allow', '--global'],
+          globalBlocker: true,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('🐢 shell yeah, back in the water!');
+        expect(result.stdout).toContain('commits resumed globally');
+        expect(fs.existsSync(result.globalMeterFile)).toBe(false);
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] no global blocker', () => {
+      then('succeeds (idempotent)', () => {
+        const result = runWithGlobalStorage({
+          args: ['allow', '--global'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('commits resumed globally');
+        expect(fs.existsSync(result.globalMeterFile)).toBe(false);
+      });
+    });
+  });
+
+  given('[case10] get --global', () => {
+    when('[t0] global blocker is active', () => {
+      then('shows blocked', () => {
+        const result = runWithGlobalStorage({
+          args: ['get', '--global'],
+          globalBlocker: true,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('global: blocked');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] no global blocker', () => {
+      then('shows not blocked', () => {
+        const result = runWithGlobalStorage({
+          args: ['get', '--global'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('global: not blocked');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ========================================
+  // local block/allow commands
+  // ========================================
+
+  given('[case11] block (local)', () => {
+    when('[t0] quota present', () => {
+      then('sets quota to 0 (alias for del)', () => {
+        const result = runWithGlobalStorage({
+          args: ['block'],
+          meterState: { uses: 5, push: 'allow' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('🐢 groovy, break time');
+        expect(result.stdout).toContain('git.commit.uses del');
+        expect(result.stdout).toContain('revoked');
+
+        const stateFile = path.join(
+          result.tempDir,
+          '.meter',
+          'git.commit.uses.jsonc',
+        );
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        expect(state.uses).toBe(0);
+        expect(state.push).toBe('block');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case12] allow (local)', () => {
+    when('[t0] no quota present', () => {
+      then('grants unlimited quota with push allowed', () => {
+        const result = runWithGlobalStorage({
+          args: ['allow'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain("🐢 radical! let's ride!");
+        expect(result.stdout).toContain('granted: unlimited');
+        expect(result.stdout).toContain('push: allowed');
+
+        const stateFile = path.join(
+          result.tempDir,
+          '.meter',
+          'git.commit.uses.jsonc',
+        );
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        expect(state.uses).toBe(999999);
+        expect(state.push).toBe('allow');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ========================================
+  // get with global awareness
+  // ========================================
+
+  given('[case13] get shows local + global state', () => {
+    when('[t0] local quota present and global blocked', () => {
+      then('shows local meter and global blocked', () => {
+        const result = runWithGlobalStorage({
+          args: ['get'],
+          meterState: { uses: 3, push: 'allow' },
+          globalBlocker: true,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('left: 3');
+        expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).toContain('global: blocked');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] local quota present and global not blocked', () => {
+      then('shows local meter without global line', () => {
+        const result = runWithGlobalStorage({
+          args: ['get'],
+          meterState: { uses: 3, push: 'allow' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('left: 3');
+        expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).not.toContain('global:');
+      });
+    });
+
+    when('[t2] no local quota and global blocked', () => {
+      then('shows no quota set and global blocked', () => {
+        const result = runWithGlobalStorage({
+          args: ['get'],
+          globalBlocker: true,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('no quota set');
+        expect(result.stdout).toContain('global: blocked');
         expect(result.stdout).toMatchSnapshot();
       });
     });

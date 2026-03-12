@@ -7,6 +7,7 @@ roles:
       dirs: dist/domain.roles/architect/briefs
     skills:
       dirs: []
+    boot: dist/domain.roles/architect/boot.yml
   - slug: ergonomist
     readme: dist/domain.roles/ergonomist/readme.md
     briefs:
