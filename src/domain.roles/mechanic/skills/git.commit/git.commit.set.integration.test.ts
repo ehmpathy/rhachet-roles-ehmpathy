@@ -2279,4 +2279,267 @@ exit 1`,
       });
     });
   });
+
+  // ========================================
+  // global blocker tests
+  // ========================================
+
+  given('[case24] commit with global blocker active', () => {
+    when('[t0] global blocker is active and local quota present', () => {
+      then('commit is blocked with global error', () => {
+        // create temp home for global storage isolation
+        const tempHome = genTempDir({
+          slug: 'git-commit-set-home',
+          git: false,
+        });
+        const globalMeterDir = path.join(
+          tempHome,
+          '.rhachet',
+          'storage',
+          'repo=ehmpathy',
+          'role=mechanic',
+          '.meter',
+        );
+        fs.mkdirSync(globalMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(globalMeterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ blocked: true }, null, 2),
+        );
+
+        // create temp git repo with local quota
+        const tempDir = genTempDir({
+          slug: 'git-commit-set-test',
+          git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // create local quota
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: add .gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'fix/test-branch'], {
+          cwd: tempDir,
+        });
+
+        // create and stage test file
+        fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fixed content');
+        spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+
+        // run commit with injected HOME
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'fix(api): validate input\n\n- test change',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as const,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: tempHome },
+          },
+        );
+
+        expect(result.status).toBe(2);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain('commits blocked globally');
+        expect(result.stdout).toContain('git.commit.uses allow --global');
+        expect(result.stdout).toMatchSnapshot();
+
+        // verify local quota was NOT decremented
+        const localState = JSON.parse(
+          fs.readFileSync(
+            path.join(meterDir, 'git.commit.uses.jsonc'),
+            'utf-8',
+          ),
+        );
+        expect(localState.uses).toBe(5);
+      });
+    });
+  });
+
+  given('[case25] commit after global blocker lifted', () => {
+    when('[t0] global blocker was active then lifted', () => {
+      then('commit succeeds and local quota decrements', () => {
+        // create temp home WITHOUT global blocker
+        const tempHome = genTempDir({
+          slug: 'git-commit-set-home',
+          git: false,
+        });
+
+        // create temp git repo with local quota
+        const tempDir = genTempDir({
+          slug: 'git-commit-set-test',
+          git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // create local quota
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 3, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: add .gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'fix/test-branch'], {
+          cwd: tempDir,
+        });
+
+        // create and stage test file
+        fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fixed content');
+        spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+
+        // run commit with injected HOME (no global blocker)
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'fix(api): validate input\n\n- test change',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as const,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: tempHome },
+          },
+        );
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('righteous');
+
+        // verify local quota was decremented
+        const localState = JSON.parse(
+          fs.readFileSync(
+            path.join(meterDir, 'git.commit.uses.jsonc'),
+            'utf-8',
+          ),
+        );
+        expect(localState.uses).toBe(2);
+      });
+    });
+  });
+
+  given('[case26] commit with corrupt global blocker file', () => {
+    when('[t0] global blocker file contains invalid json', () => {
+      then('commit is blocked with corrupt file error', () => {
+        // create temp home with corrupt global blocker
+        const tempHome = genTempDir({
+          slug: 'git-commit-set-home',
+          git: false,
+        });
+        const globalMeterDir = path.join(
+          tempHome,
+          '.rhachet',
+          'storage',
+          'repo=ehmpathy',
+          'role=mechanic',
+          '.meter',
+        );
+        fs.mkdirSync(globalMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(globalMeterDir, 'git.commit.uses.jsonc'),
+          'not valid json {{{',
+        );
+
+        // create temp git repo with local quota
+        const tempDir = genTempDir({
+          slug: 'git-commit-set-test',
+          git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // create local quota
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: add .gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'fix/test-branch'], {
+          cwd: tempDir,
+        });
+
+        // create and stage test file
+        fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fixed content');
+        spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+
+        // run commit with injected HOME (corrupt global blocker)
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'fix(api): validate input\n\n- test change',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as const,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: tempHome },
+          },
+        );
+
+        expect(result.status).toBe(2);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain('global blocker file corrupt');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
 });

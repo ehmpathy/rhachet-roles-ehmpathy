@@ -373,3 +373,25 @@ exports[`git.commit.set.sh given: [case20] continuation commit enforcement when:
    use \`cont:\` or \`cont(api):\` prefix
 "
 `;
+
+exports[`git.commit.set.sh given: [case24] commit with global blocker active when: [t0] global blocker is active and local quota present then: commit is blocked with global error 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: commits blocked globally
+
+ask your human to lift:
+  $ git.commit.uses allow --global
+"
+`;
+
+exports[`git.commit.set.sh given: [case26] commit with corrupt global blocker file when: [t0] global blocker file contains invalid json then: commit is blocked with corrupt file error 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: global blocker file corrupt
+
+check the file:
+  $ cat /home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.git-commit-global-meter/.temp/genTempDir.symlink/2026-03-12T00-22-31.852Z.git-commit-set-home.4d089723/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+"
+`;

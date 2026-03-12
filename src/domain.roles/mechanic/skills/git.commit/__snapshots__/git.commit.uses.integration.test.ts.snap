@@ -91,3 +91,75 @@ ask your human to grant:
   $ git.commit.uses set --quant N --push allow|block
 "
 `;
+
+exports[`git.commit.uses.sh given: [case8] block --global when: [t0] no global blocker yet then: creates global blocker file 1`] = `
+"🐢 groovy, bond fire time
+
+🐚 git.commit.uses block --global
+   └─ commits blocked globally
+"
+`;
+
+exports[`git.commit.uses.sh given: [case9] allow --global when: [t0] global blocker is active then: removes global blocker file 1`] = `
+"🐢 shell yeah, back in the water!
+
+🐚 git.commit.uses allow --global
+   └─ commits resumed globally
+"
+`;
+
+exports[`git.commit.uses.sh given: [case10] get --global when: [t0] global blocker is active then: shows blocked 1`] = `
+"🐢 lets check the global meter...
+
+🐚 git.commit.uses get --global
+   └─ global: blocked
+"
+`;
+
+exports[`git.commit.uses.sh given: [case10] get --global when: [t1] no global blocker then: shows not blocked 1`] = `
+"🐢 lets check the global meter...
+
+🐚 git.commit.uses get --global
+   └─ global: not blocked
+"
+`;
+
+exports[`git.commit.uses.sh given: [case11] block (local) when: [t0] quota present then: sets quota to 0 (alias for del) 1`] = `
+"🐢 groovy, break time
+
+🐚 git.commit.uses del
+   └─ revoked
+"
+`;
+
+exports[`git.commit.uses.sh given: [case12] allow (local) when: [t0] no quota present then: grants unlimited quota with push allowed 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.commit.uses set
+   ├─ granted: unlimited
+   └─ push: allowed
+"
+`;
+
+exports[`git.commit.uses.sh given: [case13] get shows local + global state when: [t0] local quota present and global blocked then: shows local meter and global blocked 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   └─ meter
+      ├─ left: 3
+      ├─ push: allowed
+      └─ global: blocked
+"
+`;
+
+exports[`git.commit.uses.sh given: [case13] get shows local + global state when: [t2] no local quota and global blocked then: shows no quota set and global blocked 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   ├─ no quota set
+   └─ global: blocked
+
+ask your human to grant:
+  $ git.commit.uses set --quant N --push allow|block
+"
+`;
