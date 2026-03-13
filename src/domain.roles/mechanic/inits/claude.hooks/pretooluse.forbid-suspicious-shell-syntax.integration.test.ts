@@ -255,10 +255,14 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
         expect(result.stdout).toBe('');
       });
 
-      then('compound || is allowed', () => {
+      /**
+       * .note = || is blocked because it triggers permission prompts
+       *         in claude code as "ambiguous command separator"
+       */
+      then('compound || is blocked', () => {
         const result = runHook('cmd1 || cmd2');
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toBe('');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
       });
 
       then('for loop is allowed', () => {
@@ -512,6 +516,84 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('consecutive quotes block message matches snapshot', () => {
         const result = runHook('grep \'"test"\' file');
         expect(result.stderr).toMatchSnapshot();
+      });
+
+      then('|| block message matches snapshot', () => {
+        const result = runHook(
+          'grep -r "else {" src/ 2>/dev/null || echo "not found"',
+        );
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case13] unquoted || (OR operator / fallback chain)', () => {
+    when('[t0] command contains unquoted ||', () => {
+      then('simple fallback is blocked', () => {
+        const result = runHook('cmd || echo fallback');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('OR operator');
+      });
+
+      then('grep with fallback echo is blocked', () => {
+        const result = runHook(
+          'grep -r "else {" src/access/sdks/squarespace.via.playwright/ 2>/dev/null || echo "no else branches found"',
+        );
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then('|| true pattern is blocked', () => {
+        const result = runHook('cmd || true');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then('|| exit pattern is blocked', () => {
+        const result = runHook('cmd || exit 1');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then('chained || is blocked', () => {
+        const result = runHook('cmd1 || cmd2 || cmd3');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then('|| after && is blocked', () => {
+        const result = runHook('cmd1 && cmd2 || cmd3');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+    });
+  });
+
+  given('[case14] quoted ||', () => {
+    when('[t0] || is inside quotes', () => {
+      then('|| in double quotes is allowed', () => {
+        const result = runHook('echo "use cmd1 || cmd2"');
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+
+      then('|| in single quotes is allowed', () => {
+        const result = runHook("echo 'use cmd1 || cmd2'");
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+
+      then('grep for || pattern is allowed', () => {
+        const result = runHook('grep "||" file.txt');
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+
+      then('regex with || alternation is allowed', () => {
+        const result = runHook('grep -E "(foo||bar)" file.txt');
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
       });
     });
   });

@@ -45,6 +45,22 @@ Alternatives:
 "
 `;
 
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case12] block message snapshots when: [t0] each pattern type produces expected output then: || block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains '||' (OR operator / fallback chain).
+
+Ambiguous command separator; harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Consider if this operation is required via bash at all
+  - Consider a simpler alternative
+  - Run commands separately and handle exit codes explicitly
+  - Use 'if ! cmd; then fallback; fi' for clarity
+  - Use '|| true' only when it is safe to ignore failure
+
+"
+`;
+
 exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case12] block message snapshots when: [t0] each pattern type produces expected output then: consecutive quotes block message matches snapshot 1`] = `
 "
 🛑 BLOCKED: Command contains consecutive quotes at word start.
