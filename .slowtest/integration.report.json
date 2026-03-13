@@ -1,85 +1,53 @@
 {
-  "generated": "2026-03-12T11:10:21.842Z",
+  "generated": "2026-03-13T13:08:31.768Z",
   "summary": {
-    "total": 1785,
+    "total": 6079,
     "files": 1,
     "slow": 0
   },
   "files": [
     {
-      "path": "src/domain.roles/mechanic/skills/git.commit/git.commit.uses.integration.test.ts",
-      "duration": 1697,
+      "path": "src/domain.roles/mechanic/inits/claude.hooks/pretooluse.forbid-suspicious-shell-syntax.integration.test.ts",
+      "duration": 5998,
       "slow": false,
       "blocks": [
         {
           "type": "describe",
-          "name": "git.commit.uses.sh",
-          "duration": 1394,
+          "name": "pretooluse.forbid-suspicious-shell-syntax.sh",
+          "duration": 5760,
           "hookDuration": 0,
           "blocks": [
             {
               "type": "given",
-              "name": "[case1] set --quant N --push block",
-              "duration": 131,
+              "name": "[case1] unquoted =( (zsh process substitution)",
+              "duration": 164,
               "hookDuration": 0,
               "blocks": [
                 {
                   "type": "when",
-                  "name": "[t0] setting 3 uses with push blocked",
-                  "duration": 131,
+                  "name": "[t0] command contains unquoted =(",
+                  "duration": 164,
                   "hookDuration": 0,
                   "tests": [
                     {
-                      "name": "then: outputs gnarly with granted count",
-                      "duration": 71
+                      "name": "then: diff =(curl a) =(curl b) is blocked",
+                      "duration": 33
                     },
                     {
-                      "name": "then: state file is created",
-                      "duration": 60
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case2] set --quant N --push allow",
-              "duration": 63,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] setting 1 use with push allowed",
-                  "duration": 63,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: outputs radical",
-                      "duration": 63
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case3] set --quant 0 (revoke)",
-              "duration": 119,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] revoking all uses",
-                  "duration": 119,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: outputs groovy break time with tip",
-                      "duration": 61
+                      "name": "then: cat =(echo hello) is blocked",
+                      "duration": 32
                     },
                     {
-                      "name": "then: state file shows 0 uses",
-                      "duration": 58
+                      "name": "then: vim =(git diff) is blocked",
+                      "duration": 32
+                    },
+                    {
+                      "name": "then: =( in middle of command is blocked",
+                      "duration": 33
+                    },
+                    {
+                      "name": "then: =( after && is blocked",
+                      "duration": 34
                     }
                   ]
                 }
@@ -87,79 +55,459 @@
             },
             {
               "type": "given",
-              "name": "[case3b] set --quant 0 --push allow (push-only mode)",
-              "duration": 128,
+              "name": "[case2] quoted =( in regex patterns",
+              "duration": 561,
               "hookDuration": 0,
               "blocks": [
                 {
                   "type": "when",
-                  "name": "[t0] push-only access granted",
-                  "duration": 128,
+                  "name": "[t0] =( is inside quotes",
+                  "duration": 561,
                   "hookDuration": 0,
                   "tests": [
                     {
-                      "name": "then: outputs push only mode without tip",
+                      "name": "then: double-quoted regex with () is allowed",
+                      "duration": 87
+                    },
+                    {
+                      "name": "then: single-quoted regex with () is allowed",
+                      "duration": 83
+                    },
+                    {
+                      "name": "then: grep with quoted regex is allowed",
+                      "duration": 79
+                    },
+                    {
+                      "name": "then: jest with quoted test pattern is allowed",
+                      "duration": 81
+                    },
+                    {
+                      "name": "then: =( inside double quotes is allowed",
+                      "duration": 77
+                    },
+                    {
+                      "name": "then: =( inside single quotes is allowed",
+                      "duration": 77
+                    },
+                    {
+                      "name": "then: =( in quoted argument is allowed",
+                      "duration": 77
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case3] unquoted <( (bash process substitution)",
+              "duration": 168,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] command contains unquoted <(",
+                  "duration": 168,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: diff <(ls dir1) <(ls dir2) is blocked",
+                      "duration": 41
+                    },
+                    {
+                      "name": "then: cat <(echo hello) is blocked",
+                      "duration": 42
+                    },
+                    {
+                      "name": "then: redirect from <() is blocked",
+                      "duration": 43
+                    },
+                    {
+                      "name": "then: paste with two <() is blocked",
+                      "duration": 42
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case4] quoted <(",
+              "duration": 270,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] <( is inside quotes",
+                  "duration": 270,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: <( in double quotes is allowed",
+                      "duration": 76
+                    },
+                    {
+                      "name": "then: <( in single quotes is allowed",
+                      "duration": 81
+                    },
+                    {
+                      "name": "then: search for <( literal is allowed",
+                      "duration": 113
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case5] unquoted >( (process substitution output)",
+              "duration": 217,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] command contains unquoted >(",
+                  "duration": 217,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: tee >(other) is blocked",
+                      "duration": 68
+                    },
+                    {
+                      "name": "then: redirect to >() is blocked",
+                      "duration": 70
+                    },
+                    {
+                      "name": "then: ls > >(grep) is blocked",
+                      "duration": 79
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case6] quoted >(",
+              "duration": 225,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] >( is inside quotes",
+                  "duration": 225,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: >( in double quotes is allowed",
+                      "duration": 110
+                    },
+                    {
+                      "name": "then: >( in single quotes is allowed",
+                      "duration": 115
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case7] normal commands",
+              "duration": 1640,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] safe shell commands",
+                  "duration": 1640,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: simple ls is allowed",
+                      "duration": 138
+                    },
+                    {
+                      "name": "then: npm run is allowed",
+                      "duration": 186
+                    },
+                    {
+                      "name": "then: git status is allowed",
+                      "duration": 223
+                    },
+                    {
+                      "name": "then: pipe is allowed",
+                      "duration": 183
+                    },
+                    {
+                      "name": "then: stdout redirect is allowed",
+                      "duration": 157
+                    },
+                    {
+                      "name": "then: compound && is allowed",
+                      "duration": 129
+                    },
+                    {
+                      "name": "then: compound || is blocked",
+                      "duration": 112
+                    },
+                    {
+                      "name": "then: for loop is allowed",
+                      "duration": 94
+                    },
+                    {
+                      "name": "then: if statement is allowed",
+                      "duration": 107
+                    },
+                    {
+                      "name": "then: command substitution $() is allowed",
+                      "duration": 100
+                    },
+                    {
+                      "name": "then: variable assignment with $() is allowed",
+                      "duration": 92
+                    },
+                    {
+                      "name": "then: array assignment is blocked (false positive - known limitation)",
+                      "duration": 49
+                    },
+                    {
+                      "name": "then: array expansion is allowed",
+                      "duration": 70
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case8] edge cases",
+              "duration": 94,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] empty or absent command",
+                  "duration": 16,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: empty command exits 0",
+                      "duration": 6
+                    },
+                    {
+                      "name": "then: absent command field exits 0",
+                      "duration": 6
+                    },
+                    {
+                      "name": "then: empty stdin exits 2 (error)",
+                      "duration": 4
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t1] mixed quotes with =( after close quote",
+                  "duration": 52,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: =() after quoted string is blocked",
+                      "duration": 24
+                    },
+                    {
+                      "name": "then: =() after single-quoted string is blocked",
+                      "duration": 28
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t2] nested quotes",
+                  "duration": 26,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: =() in nested double quotes is blocked (known limitation)",
+                      "duration": 26
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case9] consecutive quotes at word start",
+              "duration": 518,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] potential obfuscation patterns",
+                  "duration": 518,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: single-then-double quote at word start is blocked",
+                      "duration": 76
+                    },
+                    {
+                      "name": "then: double-then-single at word start is blocked",
+                      "duration": 117
+                    },
+                    {
+                      "name": "then: consecutive quotes in echo is blocked",
+                      "duration": 112
+                    },
+                    {
+                      "name": "then: sedreplace with quoted pattern is blocked",
+                      "duration": 112
+                    },
+                    {
+                      "name": "then: grep with regex alternation in quotes is blocked",
+                      "duration": 101
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case10] valid quote patterns",
+              "duration": 492,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] normal quoted strings",
+                  "duration": 492,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: simple double quotes is allowed",
+                      "duration": 108
+                    },
+                    {
+                      "name": "then: simple single quotes is allowed",
+                      "duration": 98
+                    },
+                    {
+                      "name": "then: double quoted string is allowed",
+                      "duration": 95
+                    },
+                    {
+                      "name": "then: single quoted string is allowed",
+                      "duration": 104
+                    },
+                    {
+                      "name": "then: variable assignment is allowed",
+                      "duration": 87
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case11] real-world patterns",
+              "duration": 361,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] complex but valid commands",
+                  "duration": 361,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: jest with multiple test patterns is allowed",
+                      "duration": 103
+                    },
+                    {
+                      "name": "then: grep with alternation is allowed",
+                      "duration": 92
+                    },
+                    {
+                      "name": "then: find with grep pattern is allowed",
+                      "duration": 86
+                    },
+                    {
+                      "name": "then: sed with capture groups is allowed",
+                      "duration": 80
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case12] block message snapshots",
+              "duration": 268,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] each pattern type produces expected output",
+                  "duration": 268,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: =( block message matches snapshot",
+                      "duration": 35
+                    },
+                    {
+                      "name": "then: <( block message matches snapshot",
+                      "duration": 41
+                    },
+                    {
+                      "name": "then: >( block message matches snapshot",
+                      "duration": 49
+                    },
+                    {
+                      "name": "then: consecutive quotes block message matches snapshot",
+                      "duration": 62
+                    },
+                    {
+                      "name": "then: || block message matches snapshot",
+                      "duration": 81
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case13] unquoted || (OR operator / fallback chain)",
+              "duration": 429,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] command contains unquoted ||",
+                  "duration": 429,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: simple fallback is blocked",
+                      "duration": 73
+                    },
+                    {
+                      "name": "then: grep with fallback echo is blocked",
+                      "duration": 82
+                    },
+                    {
+                      "name": "then: || true pattern is blocked",
                       "duration": 66
                     },
                     {
-                      "name": "then: state file shows 0 uses and push allow",
-                      "duration": 62
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case3c] set --quant 0 without --push (defaults to block)",
-              "duration": 63,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] revoke without explicit push flag",
-                  "duration": 63,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: defaults to block and shows revoked with tip",
-                      "duration": 63
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case3d] del command (revoke shortcut)",
-              "duration": 170,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] del with quota present",
-                  "duration": 117,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows revoked without tip",
-                      "duration": 54
+                      "name": "then: || exit pattern is blocked",
+                      "duration": 67
                     },
                     {
-                      "name": "then: state file shows 0 uses and push block",
-                      "duration": 63
-                    }
-                  ]
-                },
-                {
-                  "type": "when",
-                  "name": "[t1] del without quota (idempotent)",
-                  "duration": 53,
-                  "hookDuration": 0,
-                  "tests": [
+                      "name": "then: chained || is blocked",
+                      "duration": 64
+                    },
                     {
-                      "name": "then: succeeds and shows revoked",
-                      "duration": 53
+                      "name": "then: || after && is blocked",
+                      "duration": 77
                     }
                   ]
                 }
@@ -167,279 +515,31 @@
             },
             {
               "type": "given",
-              "name": "[case3e] del with rhachet passthrough args",
-              "duration": 51,
+              "name": "[case14] quoted ||",
+              "duration": 353,
               "hookDuration": 0,
               "blocks": [
                 {
                   "type": "when",
-                  "name": "[t0] rhachet passes --skill --repo --role before del",
-                  "duration": 51,
+                  "name": "[t0] || is inside quotes",
+                  "duration": 353,
                   "hookDuration": 0,
                   "tests": [
                     {
-                      "name": "then: del is recognized after passthrough args",
-                      "duration": 51
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case4] set without --push",
-              "duration": 47,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] --push flag is missing",
-                  "duration": 47,
-                  "hookDuration": 0,
-                  "tests": [
+                      "name": "then: || in double quotes is allowed",
+                      "duration": 92
+                    },
                     {
-                      "name": "then: exits with error",
-                      "duration": 47
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case5] get shows remaining",
-              "duration": 48,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] state exists with 2 uses",
-                  "duration": 48,
-                  "hookDuration": 0,
-                  "tests": [
+                      "name": "then: || in single quotes is allowed",
+                      "duration": 94
+                    },
                     {
-                      "name": "then: outputs lets check the meter with remaining",
-                      "duration": 48
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case6] get with 0 uses and push allow (push-only mode)",
-              "duration": 47,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] state exists with 0 uses and push allow",
-                  "duration": 47,
-                  "hookDuration": 0,
-                  "tests": [
+                      "name": "then: grep for || pattern is allowed",
+                      "duration": 86
+                    },
                     {
-                      "name": "then: shows push allowed for push-only use case",
-                      "duration": 47
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case7] get when no state file",
-              "duration": 36,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] no .meter/git.commit.uses.jsonc exists",
-                  "duration": 36,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows no quota set",
-                      "duration": 36
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case8] block --global",
-              "duration": 89,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] no global blocker yet",
-                  "duration": 42,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: creates global blocker file",
-                      "duration": 42
-                    }
-                  ]
-                },
-                {
-                  "type": "when",
-                  "name": "[t1] global blocker already active",
-                  "duration": 47,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: overwrites blocker (idempotent)",
-                      "duration": 47
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case9] allow --global",
-              "duration": 82,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] global blocker is active",
-                  "duration": 40,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: removes global blocker file",
-                      "duration": 40
-                    }
-                  ]
-                },
-                {
-                  "type": "when",
-                  "name": "[t1] no global blocker",
-                  "duration": 42,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: succeeds (idempotent)",
-                      "duration": 42
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case10] get --global",
-              "duration": 86,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] global blocker is active",
-                  "duration": 47,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows blocked",
-                      "duration": 47
-                    }
-                  ]
-                },
-                {
-                  "type": "when",
-                  "name": "[t1] no global blocker",
-                  "duration": 39,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows not blocked",
-                      "duration": 39
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case11] block (local)",
-              "duration": 49,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] quota present",
-                  "duration": 49,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: sets quota to 0 (alias for del)",
-                      "duration": 49
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case12] allow (local)",
-              "duration": 47,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] no quota present",
-                  "duration": 47,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: grants unlimited quota with push allowed",
-                      "duration": 47
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case13] get shows local + global state",
-              "duration": 138,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] local quota present and global blocked",
-                  "duration": 51,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows local meter and global blocked",
-                      "duration": 51
-                    }
-                  ]
-                },
-                {
-                  "type": "when",
-                  "name": "[t1] local quota present and global not blocked",
-                  "duration": 45,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows local meter without global line",
-                      "duration": 45
-                    }
-                  ]
-                },
-                {
-                  "type": "when",
-                  "name": "[t2] no local quota and global blocked",
-                  "duration": 42,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows no quota set and global blocked",
-                      "duration": 42
+                      "name": "then: regex with || alternation is allowed",
+                      "duration": 81
                     }
                   ]
                 }

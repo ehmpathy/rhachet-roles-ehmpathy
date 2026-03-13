@@ -57,6 +57,19 @@
         "Escape the inner quote: grep '\\\"pattern\\\"' file",
         "Use different quote style: grep \"'pattern'\" file"
       ]
+    },
+    {
+      "match": "||",
+      "type": "unquoted",
+      "message": "Command contains '||' (OR operator / fallback chain)",
+      "why": "ambiguous command separator",
+      "alt": [
+        "Consider if this operation is required via bash at all",
+        "Consider a simpler alternative",
+        "Run commands separately and handle exit codes explicitly",
+        "Use 'if ! cmd; then fallback; fi' for clarity",
+        "Use '|| true' only when it is safe to ignore failure"
+      ]
     }
   ]
 }
