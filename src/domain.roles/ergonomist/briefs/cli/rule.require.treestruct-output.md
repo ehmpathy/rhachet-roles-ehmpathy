@@ -24,12 +24,16 @@ cli skill output must use turtle vibes treestruct format for consistent, scannab
    └─ {section}
       ├─ {item}
       │  ├─
+      │  │
       │  │  {content line 1}
       │  │  {content line 2}
+      │  │
       │  └─
       └─ {item}
          ├─
+         │
          │  {content}
+         │
          └─
 ```
 
@@ -55,13 +59,17 @@ cli skill output must use turtle vibes treestruct format for consistent, scannab
 
 ### sub.bucket
 
-use sub.bucket for multiline content. opened with `├─`, closed with `└─`:
+use sub.bucket for multiline content. opened with `├─`, closed with `└─`.
+
+**whitespace is required**: blank `│` line below open and above close for visual space.
 
 ```
 ├─ filename.ts (3)
 │  ├─
+│  │
 │  │  - old line
 │  │  + new line
+│  │
 │  └─
 ```
 
@@ -71,13 +79,17 @@ nested sub.buckets for sections:
 └─ preview
    ├─ file1.ts (2)
    │  ├─
+   │  │
    │  │  - old
    │  │  + new
+   │  │
    │  └─
    └─ file2.ts (1)
       ├─
+      │
       │  - old
       │  + new
+      │
       └─
 ```
 
@@ -97,8 +109,10 @@ nested sub.buckets for sections:
    └─ updated
       ├─ src/domain/getUser.ts (3)
       │  ├─
+      │  │
       │  │  - export const getUserById = async (
       │  │  + export const findUserByUuid = async (
+      │  │
       │  └─
       └─ ... (11 more files)
 ```

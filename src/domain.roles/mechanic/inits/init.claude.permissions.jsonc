@@ -248,6 +248,26 @@
       // git.commit.push - push HEAD commit to origin and findsert draft pr
       "Bash(npx rhachet run --skill git.commit.push:*)",
 
+      // git.rebase.begin - begin rebase onto origin/main (plan/apply mode)
+      "Bash(npx rhachet run --skill git.rebase.begin:*)",
+      "Bash(npx rhachet run --skill git.rebase.begin)",
+      "Bash(npx rhachet run --skill git.rebase.begin --mode apply)",
+      "Bash(rhx git.rebase.begin:*)",
+      "Bash(rhx git.rebase.begin)",
+      "Bash(rhx git.rebase.begin --mode apply)",
+
+      // git.rebase.continue - continue rebase after conflict settlement
+      "Bash(npx rhachet run --skill git.rebase.continue:*)",
+      "Bash(npx rhachet run --skill git.rebase.continue)",
+      "Bash(rhx git.rebase.continue:*)",
+      "Bash(rhx git.rebase.continue)",
+
+      // git.rebase.abort - abort rebase and restore pre-rebase state
+      "Bash(npx rhachet run --skill git.rebase.abort:*)",
+      "Bash(npx rhachet run --skill git.rebase.abort)",
+      "Bash(rhx git.rebase.abort:*)",
+      "Bash(rhx git.rebase.abort)",
+
       // keyrack unlock - unlock fallback keyrack for push operations
       // note: rhx:* and npx rhx:* already allowed; these are just examples
       "Bash(rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env all)",

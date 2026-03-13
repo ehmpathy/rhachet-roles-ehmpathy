@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.rebase.continue given: [case1] no rebase in progress when: [t0] attempt continue then: shows error: no rebase in progress 1`] = `
+"🐢 hold up dude...
+
+🐚 git.rebase continue
+   └─ error: no rebase in progress
+"
+`;
+
+exports[`git.rebase.continue given: [case2] rebase in progress with unsettled conflicts when: [t0] attempt continue then: simulated state - see journey test for real conflicts 1`] = `
+"🐢 righteous!
+
+🐚 git.rebase continue
+   ├─ rebase
+   │  └─ status: in progress
+   ├─ left: 1 commits
+   └─ git.output
+      ├─
+      │
+      │  error: invalid onto: 'abc123def456'
+      │
+      └─
+"
+`;
+
+exports[`git.rebase.continue given: [case3] rebase in progress with more commits left when: [t0] conflicts settled, continue then: shows progress with commits left 1`] = `
+"🐢 righteous!
+
+🐚 git.rebase continue
+   ├─ rebase
+   │  └─ status: in progress
+   ├─ left: 1 commits
+   └─ git.output
+      ├─
+      │
+      │  error: invalid onto: 'abc123def456'
+      │
+      └─
+"
+`;
+
+exports[`git.rebase.continue given: [case4] rebase in progress with final commit when: [t0] conflicts settled, continue to completion then: shows complete with ready to push 1`] = `
+"🐢 righteous!
+
+🐚 git.rebase continue
+   ├─ rebase
+   │  └─ status: in progress
+   ├─ left: 0 commits
+   └─ git.output
+      ├─
+      │
+      │  error: invalid onto: 'abc123def456'
+      │
+      └─
+"
+`;

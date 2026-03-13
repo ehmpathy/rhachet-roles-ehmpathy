@@ -46,7 +46,11 @@ importers:
         version: 1.1.0
       rhachet-brains-xai:
         specifier: 0.2.1
+<<<<<<< HEAD
         version: 0.2.1(@types/node@22.15.21)(rhachet@1.37.14(zod@4.3.4))
+=======
+        version: 0.2.1(@types/node@22.15.21)(rhachet@1.37.15(zod@4.3.4))
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
       serde-fns:
         specifier: 1.2.0
         version: 1.2.0
@@ -130,17 +134,30 @@ importers:
         specifier: 30.2.0
         version: 30.2.0(@types/node@22.15.21)(esbuild-register@3.6.0(esbuild@0.25.12))(ts-node@10.9.2(@swc/core@1.15.3)(@types/node@22.15.21)(typescript@5.4.5))
       rhachet:
+<<<<<<< HEAD
         specifier: 1.37.14
         version: 1.37.14(zod@4.3.4)
       rhachet-brains-anthropic:
         specifier: 0.3.3
         version: 0.3.3(rhachet@1.37.14(zod@4.3.4))
+=======
+        specifier: 1.37.15
+        version: 1.37.15(zod@4.3.4)
+      rhachet-brains-anthropic:
+        specifier: 0.3.3
+        version: 0.3.3(rhachet@1.37.15(zod@4.3.4))
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
       rhachet-roles-bhrain:
         specifier: 0.18.1
         version: 0.18.1(@types/node@22.15.21)
       rhachet-roles-bhuild:
+<<<<<<< HEAD
         specifier: 0.14.0
         version: 0.14.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet-roles-bhrain@0.18.1(@types/node@22.15.21))
+=======
+        specifier: 0.14.1
+        version: 0.14.1(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet-roles-bhrain@0.18.1(@types/node@22.15.21))
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
       rhachet-roles-ehmpathy:
         specifier: link:.
         version: 'link:'
@@ -4090,8 +4107,13 @@ packages:
     resolution: {integrity: sha512-O2zRlITFHmpTHbS3E5PUODlqAWWVt+xV44uu3P3RSLygcgFrG8q9NekLMJTMBsnL2ug4S8mNU7Ji7wCwjkX7qg==}
     engines: {node: '>=8.0.0'}
 
+<<<<<<< HEAD
   rhachet-roles-bhuild@0.14.0:
     resolution: {integrity: sha512-dRKVid+rvm4+FlYyN/Ee9LmPpOdnnjtzhFl4s6VjiooArEpqYAkiaqd0uXD8iuo6Pg3Iz+CbEmJDrstMNLCzyg==}
+=======
+  rhachet-roles-bhuild@0.14.1:
+    resolution: {integrity: sha512-ENvj3oKDkpX462bOyl63alzBOcq1abhBmzmQXpCN3lxOQJ/seNA08QKMp8uCno24imXpIqYsB2fh4jITeXKrJg==}
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
     engines: {node: '>=18.0.0'}
     peerDependencies:
       rhachet-roles-bhrain: '>=0.12.1'
@@ -4100,8 +4122,13 @@ packages:
     resolution: {integrity: sha512-TLpF70bO31glKEg2xs2GxnaDsCL4h7Skdqt3XoCdoQYIJT5EaRYwPnQJSdrUTnPhuk/jds0MTcjzQy3CgLf0RQ==}
     engines: {node: '>=8.0.0'}
 
+<<<<<<< HEAD
   rhachet@1.37.14:
     resolution: {integrity: sha512-WauILSFtStgc+xxkBvXBktxy5De9o9QZnQOJMs2vlHKsmPamgemkt/wevyz3K5bsKsWeVhecqU+hoEXeLlz9UA==}
+=======
+  rhachet@1.37.15:
+    resolution: {integrity: sha512-SDKeAqDQ2nANxPoI7T7dRMjeT6dQuF28tR0GxoSi/XWX1e09PfJ2l574ihjy7xInZ0B4oySpYacYVOaxOpgE6w==}
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
     engines: {node: '>=22.0.0'}
     hasBin: true
     peerDependencies:
@@ -7791,8 +7818,13 @@ snapshots:
       domain-objects: 0.31.3
       helpful-errors: 1.5.3
       joi: 17.4.0
+<<<<<<< HEAD
       rhachet: 1.37.14(zod@4.3.4)
       rhachet-roles-ehmpathy: 1.26.11(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet@1.37.14(zod@4.3.4))
+=======
+      rhachet: 1.37.15(zod@4.3.4)
+      rhachet-roles-ehmpathy: 1.26.11(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet@1.37.15(zod@4.3.4))
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
       type-fns: 1.21.0
       uuid-fns: 1.1.3
     transitivePeerDependencies:
@@ -9354,7 +9386,11 @@ snapshots:
       domain-objects: 0.31.9
       helpful-errors: 1.5.3
 
+<<<<<<< HEAD
   rhachet-brains-anthropic@0.3.3(rhachet@1.37.14(zod@4.3.4)):
+=======
+  rhachet-brains-anthropic@0.3.3(rhachet@1.37.15(zod@4.3.4)):
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
     dependencies:
       '@anthropic-ai/claude-agent-sdk': 0.1.76(zod@4.3.4)
       '@anthropic-ai/sdk': 0.71.2(zod@4.3.4)
@@ -9362,19 +9398,31 @@ snapshots:
       helpful-errors: 1.5.3
       iso-price: 1.1.1(domain-objects@0.31.9)
       iso-time: 1.11.1
+<<<<<<< HEAD
       rhachet: 1.37.14(zod@4.3.4)
+=======
+      rhachet: 1.37.15(zod@4.3.4)
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
       rhachet-artifact: 1.0.1
       rhachet-artifact-git: 1.1.5
       type-fns: 1.21.0
       zod: 4.3.4
 
+<<<<<<< HEAD
   rhachet-brains-xai@0.2.1(@types/node@22.15.21)(rhachet@1.37.14(zod@4.3.4)):
+=======
+  rhachet-brains-xai@0.2.1(@types/node@22.15.21)(rhachet@1.37.15(zod@4.3.4)):
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
     dependencies:
       domain-objects: 0.31.9
       helpful-errors: 1.5.3
       iso-price: 1.1.1(domain-objects@0.31.9)
       openai: 5.8.2(zod@4.3.4)
+<<<<<<< HEAD
       rhachet: 1.37.14(zod@4.3.4)
+=======
+      rhachet: 1.37.15(zod@4.3.4)
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
       rhachet-artifact: 1.0.1
       rhachet-artifact-git: 1.1.5
       rhachet-roles-bhrain: 0.7.5(@types/node@22.15.21)
@@ -9438,7 +9486,11 @@ snapshots:
       - aws-crt
       - ws
 
+<<<<<<< HEAD
   rhachet-roles-bhuild@0.14.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet-roles-bhrain@0.18.1(@types/node@22.15.21)):
+=======
+  rhachet-roles-bhuild@0.14.1(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet-roles-bhrain@0.18.1(@types/node@22.15.21)):
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
     dependencies:
       domain-objects: 0.31.9
       emoji-space-shim: 0.0.0
@@ -9454,7 +9506,11 @@ snapshots:
       - aws-crt
       - ws
 
+<<<<<<< HEAD
   rhachet-roles-ehmpathy@1.26.11(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet@1.37.14(zod@4.3.4)):
+=======
+  rhachet-roles-ehmpathy@1.26.11(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet@1.37.15(zod@4.3.4)):
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
     dependencies:
       '@atjsh/llmlingua-2': 2.0.3(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(js-tiktoken@1.0.21)
       '@ehmpathy/as-command': 1.0.3
@@ -9468,7 +9524,11 @@ snapshots:
       openai: 5.8.2(zod@4.3.4)
       rhachet-artifact: 1.0.0
       rhachet-artifact-git: 1.1.0
+<<<<<<< HEAD
       rhachet-brains-xai: 0.2.1(@types/node@22.15.21)(rhachet@1.37.14(zod@4.3.4))
+=======
+      rhachet-brains-xai: 0.2.1(@types/node@22.15.21)(rhachet@1.37.15(zod@4.3.4))
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
       serde-fns: 1.2.0
       simple-in-memory-cache: 0.4.0
       simple-on-disk-cache: 1.7.3
@@ -9485,7 +9545,11 @@ snapshots:
       - rhachet
       - ws
 
+<<<<<<< HEAD
   rhachet@1.37.14(zod@4.3.4):
+=======
+  rhachet@1.37.15(zod@4.3.4):
+>>>>>>> 6f2eff8 (fix(mechanic): add sub.bucket whitespace to git.rebase output)
     dependencies:
       '@noble/curves': 2.0.1
       '@noble/hashes': 2.0.1
