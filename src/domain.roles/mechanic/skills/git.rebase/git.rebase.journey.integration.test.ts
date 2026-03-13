@@ -35,6 +35,7 @@ const setupJourneyRepo = (): { workDir: string; bareDir: string } => {
   fs.writeFileSync(path.join(workDir, 'README.md'), '# Test Repo\n');
   spawnSync('git', ['add', 'README.md'], { cwd: workDir });
   spawnSync('git', ['commit', '-m', 'init: initial commit'], { cwd: workDir });
+  spawnSync('git', ['branch', '-M', 'main'], { cwd: workDir });
   spawnSync('git', ['push', '-u', 'origin', 'main'], { cwd: workDir });
 
   return { workDir, bareDir };
