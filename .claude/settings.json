@@ -75,6 +75,12 @@
             "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-terms.blocklist",
             "timeout": 5,
             "author": "repo=ehmpathy/role=mechanic"
+          },
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhx route.bounce --mode hook",
+            "timeout": 5,
+            "author": "repo=bhrain/role=driver"
           }
         ]
       },
