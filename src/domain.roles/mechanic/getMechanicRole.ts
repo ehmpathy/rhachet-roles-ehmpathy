@@ -46,6 +46,12 @@ export const ROLE_MECHANIC: Role = Role.build({
       onTool: [
         {
           command:
+            './node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-suspicious-shell-syntax',
+          timeout: 'PT5S',
+          filter: { what: 'Bash', when: 'before' },
+        },
+        {
+          command:
             './node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-stderr-redirect',
           timeout: 'PT5S',
           filter: { what: 'Bash', when: 'before' },
