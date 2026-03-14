@@ -111,7 +111,7 @@
     "rhachet-roles-bhrain": "0.18.1",
     "rhachet-roles-bhuild": "0.14.1",
     "rhachet-roles-ehmpathy": "link:.",
-    "test-fns": "1.15.0",
+    "test-fns": "1.15.5",
     "tsc-alias": "1.8.10",
     "tsx": "4.20.6",
     "typescript": "5.4.5",

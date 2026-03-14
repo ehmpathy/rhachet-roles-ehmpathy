@@ -1,360 +1,48 @@
 {
-  "generated": "2026-03-12T11:10:21.842Z",
+  "generated": "2026-03-13T12:49:02.251Z",
   "summary": {
-    "total": 1785,
+    "total": 1954,
     "files": 1,
     "slow": 0
   },
   "files": [
     {
-      "path": "src/domain.roles/mechanic/skills/git.commit/git.commit.uses.integration.test.ts",
-      "duration": 1697,
+      "path": "src/domain.roles/mechanic/skills/claude.tools/cpsafe.integration.test.ts",
+      "duration": 1888,
       "slow": false,
       "blocks": [
         {
           "type": "describe",
-          "name": "git.commit.uses.sh",
-          "duration": 1394,
+          "name": "cpsafe.sh",
+          "duration": 1659,
           "hookDuration": 0,
           "blocks": [
             {
               "type": "given",
-              "name": "[case1] set --quant N --push block",
-              "duration": 131,
+              "name": "[case1] positional args (like cp)",
+              "duration": 237,
               "hookDuration": 0,
               "blocks": [
                 {
                   "type": "when",
-                  "name": "[t0] setting 3 uses with push blocked",
-                  "duration": 131,
+                  "name": "[t0] two positional args provided",
+                  "duration": 237,
                   "hookDuration": 0,
                   "tests": [
                     {
-                      "name": "then: outputs gnarly with granted count",
-                      "duration": 71
+                      "name": "then: file is copied",
+                      "duration": 77
                     },
                     {
-                      "name": "then: state file is created",
-                      "duration": 60
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case2] set --quant N --push allow",
-              "duration": 63,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] setting 1 use with push allowed",
-                  "duration": 63,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: outputs radical",
-                      "duration": 63
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case3] set --quant 0 (revoke)",
-              "duration": 119,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] revoking all uses",
-                  "duration": 119,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: outputs groovy break time with tip",
-                      "duration": 61
+                      "name": "then: content is preserved",
+                      "duration": 65
                     },
                     {
-                      "name": "then: state file shows 0 uses",
-                      "duration": 58
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case3b] set --quant 0 --push allow (push-only mode)",
-              "duration": 128,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] push-only access granted",
-                  "duration": 128,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: outputs push only mode without tip",
-                      "duration": 66
+                      "name": "then: source is not removed",
+                      "duration": 56
                     },
                     {
-                      "name": "then: state file shows 0 uses and push allow",
-                      "duration": 62
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case3c] set --quant 0 without --push (defaults to block)",
-              "duration": 63,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] revoke without explicit push flag",
-                  "duration": 63,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: defaults to block and shows revoked with tip",
-                      "duration": 63
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case3d] del command (revoke shortcut)",
-              "duration": 170,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] del with quota present",
-                  "duration": 117,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows revoked without tip",
-                      "duration": 54
-                    },
-                    {
-                      "name": "then: state file shows 0 uses and push block",
-                      "duration": 63
-                    }
-                  ]
-                },
-                {
-                  "type": "when",
-                  "name": "[t1] del without quota (idempotent)",
-                  "duration": 53,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: succeeds and shows revoked",
-                      "duration": 53
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case3e] del with rhachet passthrough args",
-              "duration": 51,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] rhachet passes --skill --repo --role before del",
-                  "duration": 51,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: del is recognized after passthrough args",
-                      "duration": 51
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case4] set without --push",
-              "duration": 47,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] --push flag is missing",
-                  "duration": 47,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: exits with error",
-                      "duration": 47
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case5] get shows remaining",
-              "duration": 48,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] state exists with 2 uses",
-                  "duration": 48,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: outputs lets check the meter with remaining",
-                      "duration": 48
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case6] get with 0 uses and push allow (push-only mode)",
-              "duration": 47,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] state exists with 0 uses and push allow",
-                  "duration": 47,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows push allowed for push-only use case",
-                      "duration": 47
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case7] get when no state file",
-              "duration": 36,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] no .meter/git.commit.uses.jsonc exists",
-                  "duration": 36,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows no quota set",
-                      "duration": 36
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case8] block --global",
-              "duration": 89,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] no global blocker yet",
-                  "duration": 42,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: creates global blocker file",
-                      "duration": 42
-                    }
-                  ]
-                },
-                {
-                  "type": "when",
-                  "name": "[t1] global blocker already active",
-                  "duration": 47,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: overwrites blocker (idempotent)",
-                      "duration": 47
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case9] allow --global",
-              "duration": 82,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] global blocker is active",
-                  "duration": 40,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: removes global blocker file",
-                      "duration": 40
-                    }
-                  ]
-                },
-                {
-                  "type": "when",
-                  "name": "[t1] no global blocker",
-                  "duration": 42,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: succeeds (idempotent)",
-                      "duration": 42
-                    }
-                  ]
-                }
-              ]
-            },
-            {
-              "type": "given",
-              "name": "[case10] get --global",
-              "duration": 86,
-              "hookDuration": 0,
-              "blocks": [
-                {
-                  "type": "when",
-                  "name": "[t0] global blocker is active",
-                  "duration": 47,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows blocked",
-                      "duration": 47
-                    }
-                  ]
-                },
-                {
-                  "type": "when",
-                  "name": "[t1] no global blocker",
-                  "duration": 39,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows not blocked",
+                      "name": "then: output shows relative paths",
                       "duration": 39
                     }
                   ]
@@ -363,19 +51,55 @@
             },
             {
               "type": "given",
-              "name": "[case11] block (local)",
-              "duration": 49,
+              "name": "[case2] named args (--from, --into)",
+              "duration": 147,
               "hookDuration": 0,
               "blocks": [
                 {
                   "type": "when",
-                  "name": "[t0] quota present",
-                  "duration": 49,
+                  "name": "[t0] both named args provided",
+                  "duration": 38,
                   "hookDuration": 0,
                   "tests": [
                     {
-                      "name": "then: sets quota to 0 (alias for del)",
-                      "duration": 49
+                      "name": "then: file is copied",
+                      "duration": 38
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t1] named args in reverse order",
+                  "duration": 44,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: file is copied correctly",
+                      "duration": 44
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t2] only --from provided",
+                  "duration": 34,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 34
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t3] only --into provided",
+                  "duration": 31,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 31
                     }
                   ]
                 }
@@ -383,18 +107,226 @@
             },
             {
               "type": "given",
-              "name": "[case12] allow (local)",
+              "name": "[case3] argument validation",
+              "duration": 123,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] no arguments provided",
+                  "duration": 65,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 32
+                    },
+                    {
+                      "name": "then: shows usage",
+                      "duration": 33
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t1] only source provided",
+                  "duration": 29,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 29
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t2] unknown option provided",
+                  "duration": 29,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 29
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case4] source validation",
+              "duration": 72,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] source does not exist",
+                  "duration": 34,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 34
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t1] source is a directory",
+                  "duration": 38,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 38
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case5] safety boundary - source outside repo",
+              "duration": 114,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] source path is absolute outside repo",
+                  "duration": 38,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 38
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t1] source is symlink that resolves outside repo",
+                  "duration": 37,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 37
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t2] source is in adjacent directory with repo-prefix name",
+                  "duration": 39,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error (prevents /repo from match of /repo-evil)",
+                      "duration": 39
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case6] safety boundary - dest outside repo",
+              "duration": 238,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] dest path is absolute outside repo",
+                  "duration": 77,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 77
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t1] dest parent is symlink that resolves outside repo",
+                  "duration": 72,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 72
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t2] dest uses .. to escape repo",
+                  "duration": 45,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 45
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t3] dest is in adjacent directory with repo-prefix name",
+                  "duration": 44,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error (prevents /repo from match of /repo-evil)",
+                      "duration": 44
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case7] parent directory creation",
+              "duration": 146,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] dest parent does not exist",
+                  "duration": 146,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: parent directories are created",
+                      "duration": 49
+                    },
+                    {
+                      "name": "then: file is copied to nested location",
+                      "duration": 44
+                    },
+                    {
+                      "name": "then: output shows nested path in tree",
+                      "duration": 53
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case8] overwrite behavior",
               "duration": 47,
               "hookDuration": 0,
               "blocks": [
                 {
                   "type": "when",
-                  "name": "[t0] no quota present",
+                  "name": "[t0] dest file already exists",
                   "duration": 47,
                   "hookDuration": 0,
                   "tests": [
                     {
-                      "name": "then: grants unlimited quota with push allowed",
+                      "name": "then: dest is overwritten",
                       "duration": 47
                     }
                   ]
@@ -403,43 +335,167 @@
             },
             {
               "type": "given",
-              "name": "[case13] get shows local + global state",
-              "duration": 138,
+              "name": "[case9] not in git repo",
+              "duration": 12,
               "hookDuration": 0,
               "blocks": [
                 {
                   "type": "when",
-                  "name": "[t0] local quota present and global blocked",
-                  "duration": 51,
+                  "name": "[t0] run outside any git repo",
+                  "duration": 12,
                   "hookDuration": 0,
                   "tests": [
                     {
-                      "name": "then: shows local meter and global blocked",
-                      "duration": 51
+                      "name": "then: exits with error",
+                      "duration": 12
                     }
                   ]
-                },
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case10] symlink chain resolution",
+              "duration": 87,
+              "hookDuration": 0,
+              "blocks": [
                 {
                   "type": "when",
-                  "name": "[t1] local quota present and global not blocked",
-                  "duration": 45,
-                  "hookDuration": 0,
-                  "tests": [
-                    {
-                      "name": "then: shows local meter without global line",
-                      "duration": 45
-                    }
-                  ]
-                },
-                {
-                  "type": "when",
-                  "name": "[t2] no local quota and global blocked",
+                  "name": "[t0] source path contains symlink that escapes repo",
                   "duration": 42,
                   "hookDuration": 0,
                   "tests": [
                     {
-                      "name": "then: shows no quota set and global blocked",
+                      "name": "then: symlink is resolved for boundary check",
                       "duration": 42
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t1] dest path contains symlink that resolves within repo",
+                  "duration": 45,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: copy succeeds",
+                      "duration": 45
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case11] special characters in paths",
+              "duration": 98,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] filename has spaces",
+                  "duration": 48,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: file is copied correctly",
+                      "duration": 48
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t1] filename has unicode",
+                  "duration": 50,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: file is copied correctly",
+                      "duration": 50
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case12] glob patterns",
+              "duration": 291,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] glob matches multiple files",
+                  "duration": 154,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: all files are copied",
+                      "duration": 57
+                    },
+                    {
+                      "name": "then: output shows each file with arrow",
+                      "duration": 53
+                    },
+                    {
+                      "name": "then: output shows turtle sweet header",
+                      "duration": 44
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t1] glob matches zero files",
+                  "duration": 41,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: output shows crickets header",
+                      "duration": 41
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t2] recursive glob **/*.ts",
+                  "duration": 58,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: matches files in nested directories",
+                      "duration": 58
+                    }
+                  ]
+                },
+                {
+                  "type": "when",
+                  "name": "[t3] glob matches multiple but dest is a file",
+                  "duration": 38,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: exits with error",
+                      "duration": 38
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "given",
+              "name": "[case13] tree output format",
+              "duration": 47,
+              "hookDuration": 0,
+              "blocks": [
+                {
+                  "type": "when",
+                  "name": "[t0] single file copy",
+                  "duration": 47,
+                  "hookDuration": 0,
+                  "tests": [
+                    {
+                      "name": "then: output has turtle, shell, and tree structure",
+                      "duration": 47
                     }
                   ]
                 }

@@ -339,7 +339,10 @@ describe('rmsafe.sh', () => {
 
     when('[t1] empty directory', () => {
       then('directory is removed', () => {
-        const tempDir = genTempDir({ slug: 'rmsafe-empty-dir', git: true });
+        const tempDir = genTempDir({
+          slug: 'rmsafe-empty-dir',
+          git: true,
+        });
         fs.mkdirSync(path.join(tempDir, 'emptydir'));
 
         const result = spawnSync('bash', [scriptPath, '-r', './emptydir'], {
