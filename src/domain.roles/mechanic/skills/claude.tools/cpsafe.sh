@@ -10,16 +10,26 @@
 #         denied in permissions due to security risks.
 #
 # usage:
-#   cpsafe.sh "path/to/source" "path/to/dest"                # positional (like cp)
-#   cpsafe.sh --from "path/to/source" --into "path/to/dest"  # named args
+#   cpsafe.sh 'path/to/source' 'path/to/dest'                # positional (like cp)
+#   cpsafe.sh --from 'path/to/source' --into 'path/to/dest'  # named args
+#   cpsafe.sh --from 'src/*.md' --into 'dest/'               # glob pattern
+#   cpsafe.sh --from 'src/**/*.ts' --into 'archive/'         # recursive glob
 #
 # guarantee:
 #   - source must be within repo
 #   - dest must be within repo
 #   - creates parent directories if needed
 #   - fail-fast on errors
+#   - glob patterns copy all matches
 ######################################################################
 set -euo pipefail
+
+# get skill directory to load output.sh
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SKILL_DIR/output.sh"
+
+# enable glob expansion
+shopt -s globstar nullglob
 
 # parse arguments (supports both positional and named)
 FROM=""
@@ -102,64 +112,123 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
   exit 2
 fi
 
-# get repo root (resolve symlinks fully)
+# get repo root (expand symlinks fully)
 REPO_ROOT=$(realpath "$(git rev-parse --show-toplevel)")
 
-# validate source exists first
-if [[ ! -e "$FROM" ]]; then
-  echo "error: source does not exist: $FROM"
-  exit 2
-fi
+# detect if FROM is a glob pattern or literal path
+is_glob_pattern() {
+  local pattern="$1"
+  [[ "$pattern" == *"*"* || "$pattern" == *"?"* || "$pattern" == *"["* ]]
+}
 
-# resolve source path (exists, so realpath fully resolves symlinks)
-FROM_ABS=$(realpath "$FROM")
+IS_GLOB=$(is_glob_pattern "$FROM" && echo "true" || echo "false")
 
-# resolve dest path: parent must exist for safe symlink resolution
-INTO_DIR=$(dirname "$INTO")
-INTO_BASE=$(basename "$INTO")
-if [[ -e "$INTO_DIR" ]]; then
-  # parent exists - resolve it fully, then append basename
-  INTO_ABS="$(realpath "$INTO_DIR")/$INTO_BASE"
+# expand glob pattern to array of files
+FILES=()
+if [[ "$IS_GLOB" == "true" ]]; then
+  # glob pattern: use eval to expand (preserves spaces in paths)
+  eval "for f in $FROM; do [[ -f \"\$f\" ]] && FILES+=(\"\$f\"); done"
 else
-  # parent doesn't exist - use -m but can't resolve symlinks
-  INTO_ABS=$(realpath -m "$INTO")
+  # literal path: validate directly
+  if [[ ! -e "$FROM" ]]; then
+    echo "error: source does not exist: $FROM"
+    exit 2
+  fi
+  if [[ -d "$FROM" ]]; then
+    echo "error: source must be a file, not a directory: $FROM"
+    exit 2
+  fi
+  if [[ -f "$FROM" ]]; then
+    FILES+=("$FROM")
+  fi
 fi
 
-# validate source is within repo (exact match OR slash-prefixed; prevents /repo from match of /repo-evil)
-if [[ "$FROM_ABS" != "$REPO_ROOT" && "$FROM_ABS" != "$REPO_ROOT/"* ]]; then
-  echo "error: source must be within the git repository"
-  echo "  repo root: $REPO_ROOT"
-  echo "  source:    $FROM_ABS"
-  exit 2
+# determine header and output based on file count
+FILE_COUNT=${#FILES[@]}
+
+if [[ $FILE_COUNT -eq 0 ]]; then
+  # no matches - crickets
+  print_turtle_header "crickets..."
+  print_tree_start "cpsafe"
+  print_tree_branch "from" "$FROM"
+  print_tree_branch "into" "$INTO"
+  print_tree_branch "files" "0"
+  print_tree_leaf "copied"
+  print_tree_file_line "(none)" true
+  exit 0
 fi
 
-# validate dest is within repo (exact match OR slash-prefixed; prevents /repo from match of /repo-evil)
-if [[ "$INTO_ABS" != "$REPO_ROOT" && "$INTO_ABS" != "$REPO_ROOT/"* ]]; then
-  echo "error: destination must be within the git repository"
-  echo "  repo root: $REPO_ROOT"
-  echo "  dest:      $INTO_ABS"
-  exit 2
+# if multiple files, dest must be a directory
+if [[ $FILE_COUNT -gt 1 ]]; then
+  if [[ -e "$INTO" && ! -d "$INTO" ]]; then
+    echo "error: destination must be a directory when copying multiple files"
+    exit 2
+  fi
+  # ensure dest exists as directory
+  mkdir -p "$INTO"
 fi
 
-# validate source is a file (not directory)
-if [[ ! -f "$FROM_ABS" ]]; then
-  echo "error: source must be a file, not a directory: $FROM"
-  exit 2
-fi
+# print header
+print_turtle_header "sweet"
+print_tree_start "cpsafe"
+print_tree_branch "from" "$FROM"
+print_tree_branch "into" "$INTO"
+print_tree_branch "files" "$FILE_COUNT"
+print_tree_leaf "copied"
 
-# create parent directories if needed
-INTO_ABS_DIR=$(dirname "$INTO_ABS")
-if [[ ! -d "$INTO_ABS_DIR" ]]; then
-  echo "create directory: $INTO_ABS_DIR"
-  mkdir -p "$INTO_ABS_DIR"
-fi
+# copy each file with incremental output
+COPIED_COUNT=0
+for i in "${!FILES[@]}"; do
+  FILE="${FILES[$i]}"
+  IS_LAST=$([[ $((i + 1)) -eq $FILE_COUNT ]] && echo "true" || echo "false")
 
-# perform the copy
-# -P = don't follow symlinks, copy symlink itself
-# why: a symlink could point outside repo (e.g., ln -s /etc/passwd ./data.txt)
-#      without -P, cp would read the target content, bypass our repo boundary checks
-cp -P "$FROM_ABS" "$INTO_ABS"
+  # get absolute source path
+  FROM_ABS=$(realpath "$FILE")
 
-FROM_REL="${FROM_ABS#$REPO_ROOT/}"
-INTO_REL="${INTO_ABS#$REPO_ROOT/}"
-echo "copied: $FROM_REL -> $INTO_REL"
+  # validate source is within repo
+  if [[ "$FROM_ABS" != "$REPO_ROOT" && "$FROM_ABS" != "$REPO_ROOT/"* ]]; then
+    echo "error: source must be within the git repository"
+    echo "  repo root: $REPO_ROOT"
+    echo "  source:    $FROM_ABS"
+    exit 2
+  fi
+
+  # determine destination path
+  if [[ $FILE_COUNT -gt 1 ]] || [[ -d "$INTO" ]]; then
+    # multiple files or dest is directory: copy into directory
+    INTO_ABS="$(realpath "$INTO")/$(basename "$FILE")"
+  else
+    # single file to single dest
+    INTO_DIR=$(dirname "$INTO")
+    INTO_BASE=$(basename "$INTO")
+    if [[ -e "$INTO_DIR" ]]; then
+      INTO_ABS="$(realpath "$INTO_DIR")/$INTO_BASE"
+    else
+      INTO_ABS=$(realpath -m "$INTO")
+    fi
+  fi
+
+  # validate dest is within repo
+  if [[ "$INTO_ABS" != "$REPO_ROOT" && "$INTO_ABS" != "$REPO_ROOT/"* ]]; then
+    echo "error: destination must be within the git repository"
+    echo "  repo root: $REPO_ROOT"
+    echo "  dest:      $INTO_ABS"
+    exit 2
+  fi
+
+  # create parent directories if needed
+  INTO_ABS_DIR=$(dirname "$INTO_ABS")
+  if [[ ! -d "$INTO_ABS_DIR" ]]; then
+    mkdir -p "$INTO_ABS_DIR"
+  fi
+
+  # perform the copy
+  cp -P "$FROM_ABS" "$INTO_ABS"
+
+  # output relative paths
+  FROM_REL="${FROM_ABS#$REPO_ROOT/}"
+  INTO_REL="${INTO_ABS#$REPO_ROOT/}"
+  print_tree_file_line "$FROM_REL -> $INTO_REL" "$IS_LAST"
+
+  COPIED_COUNT=$((COPIED_COUNT + 1))
+done

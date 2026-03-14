@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`rmsafe.sh given: [case11] glob patterns when: [t0] glob matches multiple files then: output shows each file removed 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: build/*.tmp
+   ├─ files: 2
+   └─ removed
+      ├─ build/a.tmp
+      └─ build/b.tmp
+"
+`;
+
+exports[`rmsafe.sh given: [case11] glob patterns when: [t1] glob matches zero files then: output shows crickets header 1`] = `
+"🐢 crickets...
+
+🐚 rmsafe
+   ├─ path: build/*.xyz
+   ├─ files: 0
+   └─ removed
+      └─ (none)
+"
+`;
+
+exports[`rmsafe.sh given: [case11] glob patterns when: [t2] recursive glob **/*.bak then: matches files in nested directories 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: src/**/*.bak
+   ├─ files: 3
+   └─ removed
+      ├─ src/core/bar.bak
+      ├─ src/deep/nested/baz.bak
+      └─ src/utils/foo.bak
+"
+`;

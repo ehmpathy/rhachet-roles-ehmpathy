@@ -303,7 +303,8 @@ This is a helpful library.
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
-          env: { XAI_API_KEY: '' },
+          // HOME must point to temp dir so hook cannot find ~/.config/rhachet/apikeys.env
+          env: { XAI_API_KEY: '', HOME: tempDir },
         });
 
         return { result };
