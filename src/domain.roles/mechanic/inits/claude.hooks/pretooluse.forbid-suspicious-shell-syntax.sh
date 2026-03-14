@@ -107,6 +107,39 @@ appears_unquoted() {
   return 1  # not found unquoted
 }
 
+# helper: check if pattern appears outside single quotes
+# (double quotes still execute, so they don't count as safe)
+appears_executable() {
+  local cmd="$1"
+  local pattern="$2"
+  local in_single=false
+  local i=0
+  local len=${#cmd}
+  local plen=${#pattern}
+
+  while [[ $i -lt $len ]]; do
+    local char="${cmd:$i:1}"
+
+    # toggle single quote state only
+    if [[ "$char" == "'" ]]; then
+      in_single=$([[ "$in_single" == true ]] && echo false || echo true)
+      ((i++))
+      continue
+    fi
+
+    # check for pattern match outside single quotes
+    if [[ "$in_single" == false ]]; then
+      if [[ "${cmd:$i:$plen}" == "$pattern" ]]; then
+        return 0  # found executable
+      fi
+    fi
+
+    ((i++))
+  done
+
+  return 1  # not found executable
+}
+
 # iterate over patterns and check each
 pattern_count=$(echo "$PATTERNS_JSON" | jq 'length')
 for ((i=0; i<pattern_count; i++)); do
@@ -121,9 +154,19 @@ for ((i=0; i<pattern_count; i++)); do
     if appears_unquoted "$COMMAND" "$MATCH"; then
       DETECTED=true
     fi
+  elif [[ "$TYPE" == "executable" ]]; then
+    # pattern executes in double quotes, only single quotes make it literal
+    if appears_executable "$COMMAND" "$MATCH"; then
+      DETECTED=true
+    fi
   elif [[ "$TYPE" == "regex_word_start" ]]; then
     # check for pattern at word start: space+pattern or start+pattern
     if [[ "$COMMAND" =~ (^|[[:space:]])($MATCH) ]]; then
+      DETECTED=true
+    fi
+  elif [[ "$TYPE" == "regex" ]]; then
+    # check for regex pattern anywhere in command
+    if [[ "$COMMAND" =~ $MATCH ]]; then
       DETECTED=true
     fi
   fi

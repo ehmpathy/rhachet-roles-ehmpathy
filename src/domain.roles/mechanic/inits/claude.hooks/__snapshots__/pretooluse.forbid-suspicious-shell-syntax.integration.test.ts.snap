@@ -45,22 +45,6 @@ Alternatives:
 "
 `;
 
-exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case12] block message snapshots when: [t0] each pattern type produces expected output then: || block message matches snapshot 1`] = `
-"
-🛑 BLOCKED: Command contains '||' (OR operator / fallback chain).
-
-Ambiguous command separator; harness asks for permission, which interrupts the delegation.
-
-Alternatives:
-  - Consider if this operation is required via bash at all
-  - Consider a simpler alternative
-  - Run commands separately and handle exit codes explicitly
-  - Use 'if ! cmd; then fallback; fi' for clarity
-  - Use '|| true' only when it is safe to ignore failure
-
-"
-`;
-
 exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case12] block message snapshots when: [t0] each pattern type produces expected output then: consecutive quotes block message matches snapshot 1`] = `
 "
 🛑 BLOCKED: Command contains consecutive quotes at word start.
@@ -73,6 +57,48 @@ Alternatives:
   - Use a variable: VAR='"value"' && grep $VAR file
   - Escape the inner quote: grep '\\"pattern\\"' file
   - Use different quote style: grep "'pattern'" file
+
+"
+`;
+
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case17] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: $() block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains $() command substitution.
+
+Executes nested commands which may have side effects; harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Consider if this operation is required via bash at all
+  - Run commands separately and use variables
+  - Use pipes instead: cmd1 | cmd2
+
+"
+`;
+
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case17] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: ANSI-C block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains ANSI-C $'...' syntax.
+
+Can embed escape sequences and non-printable characters; harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Consider if this operation is required via bash at all
+  - Use regular single or double quotes
+  - Use printf for escape sequences: printf '\\n'
+
+"
+`;
+
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case17] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: backtick block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains backtick command substitution.
+
+Executes nested commands; harder to read than $(); harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Consider if this operation is required via bash at all
+  - Run commands separately and use variables
+  - If substitution is needed, use $() instead (but that is also blocked)
 
 "
 `;
