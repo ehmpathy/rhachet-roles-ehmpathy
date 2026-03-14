@@ -59,16 +59,36 @@
       ]
     },
     {
-      "match": "||",
+      "match": "$'",
       "type": "unquoted",
-      "message": "Command contains '||' (OR operator / fallback chain)",
-      "why": "ambiguous command separator",
+      "message": "Command contains ANSI-C $'...' syntax",
+      "why": "can embed escape sequences and non-printable characters",
       "alt": [
         "Consider if this operation is required via bash at all",
-        "Consider a simpler alternative",
-        "Run commands separately and handle exit codes explicitly",
-        "Use 'if ! cmd; then fallback; fi' for clarity",
-        "Use '|| true' only when it is safe to ignore failure"
+        "Use regular single or double quotes",
+        "Use printf for escape sequences: printf '\\n'"
+      ]
+    },
+    {
+      "match": "$(",
+      "type": "executable",
+      "message": "Command contains $() command substitution",
+      "why": "executes nested commands which may have side effects",
+      "alt": [
+        "Consider if this operation is required via bash at all",
+        "Run commands separately and use variables",
+        "Use pipes instead: cmd1 | cmd2"
+      ]
+    },
+    {
+      "match": "`",
+      "type": "executable",
+      "message": "Command contains backtick command substitution",
+      "why": "executes nested commands; harder to read than $()",
+      "alt": [
+        "Consider if this operation is required via bash at all",
+        "Run commands separately and use variables",
+        "If substitution is needed, use $() instead (but that is also blocked)"
       ]
     }
   ]
