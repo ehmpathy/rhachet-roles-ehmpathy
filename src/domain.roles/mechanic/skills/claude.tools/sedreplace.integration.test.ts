@@ -1079,7 +1079,9 @@ describe('sedreplace.sh', () => {
         execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
 
         // create file OUTSIDE repo (sibling directory)
-        const outsideDir = genTempDir({ slug: 'sedreplace-boundary-outside' });
+        const outsideDir = genTempDir({
+          slug: 'sedreplace-boundary-outside',
+        });
         const outsideFile = path.join(outsideDir, 'outside.ts');
         fs.writeFileSync(outsideFile, 'const MATCH_ME = 2;');
 
@@ -1123,7 +1125,9 @@ describe('sedreplace.sh', () => {
         );
 
         // create file OUTSIDE repo
-        const outsideDir = genTempDir({ slug: 'sedreplace-symlink-outside' });
+        const outsideDir = genTempDir({
+          slug: 'sedreplace-symlink-outside',
+        });
         const outsideFile = path.join(outsideDir, 'external.ts');
         fs.writeFileSync(outsideFile, 'const MATCH_ME = 2;');
 
@@ -1253,7 +1257,9 @@ describe('sedreplace.sh', () => {
         execSync('git commit -m "initial"', { cwd: repoDir, stdio: 'pipe' });
 
         // create target file outside repo
-        const outsideDir = genTempDir({ slug: 'sedreplace-abspath-target' });
+        const outsideDir = genTempDir({
+          slug: 'sedreplace-abspath-target',
+        });
         const targetFile = path.join(outsideDir, 'secret.ts');
         fs.writeFileSync(targetFile, 'const MATCH_ME = secret;');
 
@@ -1298,7 +1304,9 @@ describe('sedreplace.sh', () => {
         );
 
         // create external directory with target file
-        const externalDir = genTempDir({ slug: 'sedreplace-symlinkdir-ext' });
+        const externalDir = genTempDir({
+          slug: 'sedreplace-symlinkdir-ext',
+        });
         fs.writeFileSync(
           path.join(externalDir, 'external.ts'),
           'const MATCH_ME = external;',

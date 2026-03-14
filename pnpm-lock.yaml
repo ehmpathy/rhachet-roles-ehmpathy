@@ -145,8 +145,8 @@ importers:
         specifier: link:.
         version: 'link:'
       test-fns:
-        specifier: 1.15.0
-        version: 1.15.0(zod@4.3.4)
+        specifier: 1.15.5
+        version: 1.15.5
       tsc-alias:
         specifier: 1.8.10
         version: 1.8.10
@@ -4323,6 +4323,10 @@ packages:
 
   test-fns@1.15.0:
     resolution: {integrity: sha512-zC/qUA2lwfiXoQ00Ws8yD8LPA7p3n2a+Dl7wmI4iTXz4HbrU52riPY+AceGWgCAINs/cJ7cs9jnnASSPBwyGpg==}
+    engines: {node: '>=8.0.0'}
+
+  test-fns@1.15.5:
+    resolution: {integrity: sha512-56tdSFEOi08B/907vUQ9SxJhDRcT6oLpdO2WQKovF1RzY7X4TcRsEFjjnb8M0g5bHY+jgF6n88Ol2sz1PUp0gw==}
     engines: {node: '>=8.0.0'}
 
   test-fns@1.4.2:
@@ -9776,6 +9780,13 @@ snapshots:
       uuid: 10.0.0
     transitivePeerDependencies:
       - zod
+
+  test-fns@1.15.5:
+    dependencies:
+      domain-objects: 0.31.9
+      helpful-errors: 1.5.3
+      iso-time: 1.11.3
+      uuid: 10.0.0
 
   test-fns@1.4.2:
     dependencies:
