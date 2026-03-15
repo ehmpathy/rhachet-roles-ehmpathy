@@ -1,0 +1,32 @@
+# 3.1.repair.test.defects
+
+## purpose
+
+run tests until all pass. document each defect with root cause.
+
+## instructions
+
+1. run all tests:
+   ```sh
+   npm run test
+   ```
+
+2. for each failure:
+   - identify the defect
+   - determine root cause (why did declapract upgrade cause this?)
+   - fix the defect
+   - document in artifact
+
+3. repeat until zero failures.
+
+## emit
+
+emit incrementally to `3.1.repair.test.defects.v1.i1.md`:
+- when defect found → add to inventory
+- when root cause found → add to inventory
+- when fixed → add to inventory
+
+each defect entry should have:
+- what: the defect
+- why: root cause (why it arose from upgrade)
+- fix: how it was fixed

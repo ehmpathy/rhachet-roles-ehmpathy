@@ -143,6 +143,8 @@
     "allow": [
       "Write(.agent/.notes/**)",
       "Edit(.agent/.notes/**)",
+      "Write(**/.test/**)",
+      "Edit(**/.test/**)",
       "mcp__ide__getDiagnostics",
       "WebSearch",
       "WebFetch",
