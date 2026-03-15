@@ -79,8 +79,8 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
   exit 2
 fi
 
-# check pnpm available
-if ! command -v pnpm &> /dev/null; then
+# check pnpm available (skip in test mode)
+if [[ -z "${SKIP_PNPM_CHECK:-}" ]] && ! command -v pnpm &> /dev/null; then
   print_error "pnpm not found"
   echo ""
   echo "   pnpm is required for declapract upgrades"

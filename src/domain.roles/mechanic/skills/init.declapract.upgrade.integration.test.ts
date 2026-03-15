@@ -47,6 +47,7 @@ const runSkill = (options: {
     env: {
       ...process.env,
       SKIP_ROUTE_BIND: '1', // skip route.bind.set (no rhachet in temp dir)
+      SKIP_PNPM_CHECK: '1', // skip pnpm check (CI may not have pnpm in PATH)
       ...options.env,
     },
   });
@@ -149,6 +150,7 @@ describe('init.declapract.upgrade', () => {
           cwd: tempDir,
           env: {
             PATH: '/usr/bin:/bin', // minimal PATH without pnpm
+            SKIP_PNPM_CHECK: '', // ensure pnpm check runs for this test
           },
         });
 
