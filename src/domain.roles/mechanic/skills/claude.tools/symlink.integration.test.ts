@@ -377,7 +377,10 @@ describe('symlink.sh', () => {
     when('[t2] --at is in adjacent directory with repo-prefix name', () => {
       then('exits with error (prevents /repo from match of /repo-evil)', () => {
         // this tests the critical vulnerability: /tmp/myrepo should not match /tmp/myrepo-evil
-        const tempDir = genTempDir({ slug: 'symlink-test', git: true });
+        const tempDir = genTempDir({
+          slug: 'symlink-test',
+          git: true,
+        });
         fs.writeFileSync(path.join(tempDir, 'target.txt'), 'content');
         const adjacentDir = `${tempDir}-evil`;
         fs.mkdirSync(adjacentDir, { recursive: true });
@@ -415,7 +418,10 @@ describe('symlink.sh', () => {
     when('[t3] --to is in adjacent directory with repo-prefix name', () => {
       then('exits with error (prevents /repo from match of /repo-evil)', () => {
         // this tests the critical vulnerability: /tmp/myrepo should not match /tmp/myrepo-evil
-        const tempDir = genTempDir({ slug: 'symlink-test', git: true });
+        const tempDir = genTempDir({
+          slug: 'symlink-test',
+          git: true,
+        });
         const adjacentDir = `${tempDir}-evil`;
         fs.mkdirSync(adjacentDir, { recursive: true });
         const outsideTarget = path.join(adjacentDir, 'target.txt');

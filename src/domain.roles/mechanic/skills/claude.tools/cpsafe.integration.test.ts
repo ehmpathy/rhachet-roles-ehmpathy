@@ -54,6 +54,13 @@ describe('cpsafe.sh', () => {
     };
   };
 
+  /**
+   * .what = sanitize stdout for snapshot stability
+   * .why = temp dir paths change between runs
+   */
+  const sanitizeOutput = (stdout: string): string =>
+    stdout.replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR');
+
   given('[case1] positional args (like cp)', () => {
     when('[t0] two positional args provided', () => {
       then('file is copied', () => {
@@ -104,9 +111,10 @@ describe('cpsafe.sh', () => {
           cpsafeArgs: ['./source.txt', './dest.txt'],
         });
 
-        expect(result.stdout).toContain('copied:');
+        expect(result.stdout).toContain('copied');
         expect(result.stdout).toContain('source.txt');
         expect(result.stdout).toContain('dest.txt');
+        expect(result.stdout).toContain('->');
       });
     });
   });
@@ -419,13 +427,14 @@ describe('cpsafe.sh', () => {
         expect(content).toBe('nested content');
       });
 
-      then('output mentions directory creation', () => {
+      then('output shows nested path in tree', () => {
         const result = runInTempGitRepo({
           files: { 'source.txt': 'content' },
           cpsafeArgs: ['./source.txt', './deep/nested/dir/dest.txt'],
         });
 
-        expect(result.stdout).toContain('create directory');
+        expect(result.stdout).toContain('deep/nested/dir/dest.txt');
+        expect(result.stdout).toContain('->');
       });
     });
   });
@@ -543,6 +552,131 @@ describe('cpsafe.sh', () => {
         expect(fs.existsSync(path.join(result.tempDir, '目标文件.txt'))).toBe(
           true,
         );
+      });
+    });
+  });
+
+  given('[case12] glob patterns', () => {
+    when('[t0] glob matches multiple files', () => {
+      then('all files are copied', () => {
+        const result = runInTempGitRepo({
+          files: {
+            'src/a.md': 'content a',
+            'src/b.md': 'content b',
+            'src/c.md': 'content c',
+          },
+          cpsafeArgs: ['--from', 'src/*.md', '--into', 'dest/'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(fs.existsSync(path.join(result.tempDir, 'dest/a.md'))).toBe(
+          true,
+        );
+        expect(fs.existsSync(path.join(result.tempDir, 'dest/b.md'))).toBe(
+          true,
+        );
+        expect(fs.existsSync(path.join(result.tempDir, 'dest/c.md'))).toBe(
+          true,
+        );
+      });
+
+      then('output shows each file with arrow', () => {
+        const result = runInTempGitRepo({
+          files: {
+            'src/a.md': 'content a',
+            'src/b.md': 'content b',
+          },
+          cpsafeArgs: ['--from', 'src/*.md', '--into', 'dest/'],
+        });
+
+        expect(result.stdout).toContain('files: 2');
+        expect(result.stdout).toContain('->');
+        expect(result.stdout).toContain('a.md');
+        expect(result.stdout).toContain('b.md');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('output shows turtle sweet header', () => {
+        const result = runInTempGitRepo({
+          files: { 'src/a.md': 'content' },
+          cpsafeArgs: ['--from', 'src/*.md', '--into', 'dest/'],
+        });
+
+        expect(result.stdout).toContain('sweet');
+      });
+    });
+
+    when('[t1] glob matches zero files', () => {
+      then('output shows crickets header', () => {
+        const result = runInTempGitRepo({
+          files: { 'src/a.txt': 'not a match' },
+          cpsafeArgs: ['--from', 'src/*.xyz', '--into', 'dest/'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('crickets');
+        expect(result.stdout).toContain('files: 0');
+        expect(result.stdout).toContain('(none)');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] recursive glob **/*.ts', () => {
+      then('matches files in nested directories', () => {
+        const result = runInTempGitRepo({
+          files: {
+            'src/utils/foo.ts': 'foo',
+            'src/core/bar.ts': 'bar',
+            'src/deep/nested/baz.ts': 'baz',
+          },
+          cpsafeArgs: ['--from', 'src/**/*.ts', '--into', 'archive/'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(fs.existsSync(path.join(result.tempDir, 'archive/foo.ts'))).toBe(
+          true,
+        );
+        expect(fs.existsSync(path.join(result.tempDir, 'archive/bar.ts'))).toBe(
+          true,
+        );
+        expect(fs.existsSync(path.join(result.tempDir, 'archive/baz.ts'))).toBe(
+          true,
+        );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] glob matches multiple but dest is a file', () => {
+      then('exits with error', () => {
+        const result = runInTempGitRepo({
+          files: {
+            'src/a.md': 'content a',
+            'src/b.md': 'content b',
+            'single.md': 'already a file',
+          },
+          cpsafeArgs: ['--from', 'src/*.md', '--into', 'single.md'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('destination must be a directory');
+      });
+    });
+  });
+
+  given('[case13] tree output format', () => {
+    when('[t0] single file copy', () => {
+      then('output has turtle, shell, and tree structure', () => {
+        const result = runInTempGitRepo({
+          files: { 'source.txt': 'content' },
+          cpsafeArgs: ['--from', './source.txt', '--into', './dest.txt'],
+        });
+
+        expect(result.stdout).toContain('🐢');
+        expect(result.stdout).toContain('🐚 cpsafe');
+        expect(result.stdout).toContain('from:');
+        expect(result.stdout).toContain('into:');
+        expect(result.stdout).toContain('files:');
+        expect(result.stdout).toContain('copied');
       });
     });
   });
