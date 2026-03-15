@@ -21,11 +21,12 @@
       "Edit(.branch/.bind/*)",
       "Write(.branch/.bind/*)",
 
-      // .route directories — route state managed by driver, not mechanic
-      "Edit(.route/**)",
-      "Write(.route/**)",
-      "Edit(**/.route/**)",
-      "Write(**/.route/**)",
+      // nested .route directories — route state managed by driver, not mechanic
+      // note: root .route/ is allowed (see allow list) for mechanic to write route artifacts
+      "Edit(.route/**/.route/**)",
+      "Write(.route/**/.route/**)",
+      "Edit(.behavior/**/.route/**)",
+      "Write(.behavior/**/.route/**)",
 
       // git.commit.uses set — only humans can grant commit quota
       // mechanic can `get` (read quota) but never `set` (grant itself more)
@@ -156,6 +157,11 @@
       // plan artifacts — agents write plans here instead of using plan mode
       "Write(.agent/.notes/**)",
       "Edit(.agent/.notes/**)",
+
+      // root .route directory — mechanic can write route artifacts here
+      // note: nested .route dirs (e.g., src/.route/) are denied
+      "Write(.route/**)",
+      "Edit(.route/**)",
 
       // test artifacts — temporary test directories
       "Write(**/.test/**)",
