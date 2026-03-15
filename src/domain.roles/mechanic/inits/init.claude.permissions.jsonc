@@ -157,6 +157,10 @@
       "Write(.agent/.notes/**)",
       "Edit(.agent/.notes/**)",
 
+      // test artifacts — temporary test directories
+      "Write(**/.test/**)",
+      "Edit(**/.test/**)",
+
       // ide integrations
       "mcp__ide__getDiagnostics",
 

@@ -7,6 +7,7 @@
 .rhachet
 .serverless
 .temp
+.slowtest/integration.report.json
 .terraform
 .terraform.lock
 .vscode

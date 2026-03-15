@@ -1,0 +1,95 @@
+{
+  // suspicious shell syntax patterns to block
+  //
+  // why: harnesses like claude-code-cli prompt for permission when they
+  //      see these patterns. this interrupts the delegate mid-task and
+  //      wastes human attention on false positives. block early with
+  //      guidance so the delegate can fix the command before it triggers
+  //      a permission prompt.
+  //
+  // each entry specifies a pattern with rationale and alternatives
+  "patterns": [
+    {
+      "match": "=(",
+      "type": "unquoted",
+      "message": "Command contains unquoted '=(' (zsh process substitution)",
+      "why": "triggers shell expansion",
+      "alt": [
+        "Consider if this operation is required via bash at all",
+        "Consider a simpler alternative",
+        "If this is a regex pattern, wrap it in single quotes: '(pattern|here)'",
+        "If intentional, use a temp file instead: cmd > tmpfile && other < tmpfile"
+      ]
+    },
+    {
+      "match": "<(",
+      "type": "unquoted",
+      "message": "Command contains unquoted '<(' (process substitution)",
+      "why": "unpredictable in hooks and subshells",
+      "alt": [
+        "Consider if this operation is required via bash at all",
+        "Consider a simpler alternative",
+        "Use a temp file: cmd1 > /tmp/out && cmd2 < /tmp/out",
+        "Use a pipe: cmd1 | cmd2"
+      ]
+    },
+    {
+      "match": ">(",
+      "type": "unquoted",
+      "message": "Command contains unquoted '>(' (process substitution)",
+      "why": "unpredictable in hooks and subshells",
+      "alt": [
+        "Consider if this operation is required via bash at all",
+        "Consider a simpler alternative",
+        "Use tee with a pipe: cmd | tee /tmp/out | other",
+        "Use sequential commands: cmd > /tmp/out && other < /tmp/out"
+      ]
+    },
+    {
+      "match": "['\"]{2}",
+      "type": "regex_word_start",
+      "message": "Command contains consecutive quotes at word start",
+      "why": "confuses quote parser",
+      "alt": [
+        "Consider if this operation is required via bash at all",
+        "Consider a simpler alternative",
+        "Use a variable: VAR='\"value\"' && grep $VAR file",
+        "Escape the inner quote: grep '\\\"pattern\\\"' file",
+        "Use different quote style: grep \"'pattern'\" file"
+      ]
+    },
+    {
+      "match": "$'",
+      "type": "unquoted",
+      "message": "Command contains ANSI-C $'...' syntax",
+      "why": "can embed escape sequences and non-printable characters",
+      "alt": [
+        "Consider if this operation is required via bash at all",
+        "Use regular single or double quotes",
+        "Use printf for escape sequences: printf '\\n'"
+      ]
+    },
+    {
+      "match": "$(",
+      "type": "executable",
+      "message": "Command contains $() command substitution",
+      "why": "executes nested commands which may have side effects",
+      "alt": [
+        "Consider if this operation is required via bash at all",
+        "Run commands separately and use variables",
+        "Use pipes instead: cmd1 | cmd2"
+      ]
+    },
+    {
+      "match": "`",
+      "type": "executable",
+      "message": "Command contains backtick command substitution",
+      "why": "executes nested commands; harder to read than $()",
+      "alt": [
+        "Consider if this operation is required via bash at all",
+        "Run commands separately and use variables",
+        "If substitution is needed, use $() instead (but that is also blocked)"
+      ]
+    }
+  ]
+}

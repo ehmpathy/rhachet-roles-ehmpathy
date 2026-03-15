@@ -1,0 +1,104 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case12] block message snapshots when: [t0] each pattern type produces expected output then: <( block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains unquoted '<(' (process substitution).
+
+Unpredictable in hooks and subshells; harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Consider if this operation is required via bash at all
+  - Consider a simpler alternative
+  - Use a temp file: cmd1 > /tmp/out && cmd2 < /tmp/out
+  - Use a pipe: cmd1 | cmd2
+
+"
+`;
+
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case12] block message snapshots when: [t0] each pattern type produces expected output then: =( block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains unquoted '=(' (zsh process substitution).
+
+Triggers shell expansion; harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Consider if this operation is required via bash at all
+  - Consider a simpler alternative
+  - If this is a regex pattern, wrap it in single quotes: '(pattern|here)'
+  - If intentional, use a temp file instead: cmd > tmpfile && other < tmpfile
+
+"
+`;
+
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case12] block message snapshots when: [t0] each pattern type produces expected output then: >( block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains unquoted '>(' (process substitution).
+
+Unpredictable in hooks and subshells; harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Consider if this operation is required via bash at all
+  - Consider a simpler alternative
+  - Use tee with a pipe: cmd | tee /tmp/out | other
+  - Use sequential commands: cmd > /tmp/out && other < /tmp/out
+
+"
+`;
+
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case12] block message snapshots when: [t0] each pattern type produces expected output then: consecutive quotes block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains consecutive quotes at word start.
+
+Confuses quote parser; harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Consider if this operation is required via bash at all
+  - Consider a simpler alternative
+  - Use a variable: VAR='"value"' && grep $VAR file
+  - Escape the inner quote: grep '\\"pattern\\"' file
+  - Use different quote style: grep "'pattern'" file
+
+"
+`;
+
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case17] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: $() block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains $() command substitution.
+
+Executes nested commands which may have side effects; harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Consider if this operation is required via bash at all
+  - Run commands separately and use variables
+  - Use pipes instead: cmd1 | cmd2
+
+"
+`;
+
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case17] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: ANSI-C block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains ANSI-C $'...' syntax.
+
+Can embed escape sequences and non-printable characters; harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Consider if this operation is required via bash at all
+  - Use regular single or double quotes
+  - Use printf for escape sequences: printf '\\n'
+
+"
+`;
+
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case17] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: backtick block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains backtick command substitution.
+
+Executes nested commands; harder to read than $(); harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Consider if this operation is required via bash at all
+  - Run commands separately and use variables
+  - If substitution is needed, use $() instead (but that is also blocked)
+
+"
+`;
