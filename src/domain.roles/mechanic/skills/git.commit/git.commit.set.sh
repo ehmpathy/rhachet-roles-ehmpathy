@@ -401,7 +401,8 @@ if [[ -f "$GLOBAL_METER_FILE" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
     print_tree_error "global blocker file corrupt"
-    print_instruction "check the file:" "  \$ cat $GLOBAL_METER_FILE"
+    GLOBAL_METER_FILE_DISPLAY="${GLOBAL_METER_FILE/#$HOME/\~}"
+    print_instruction "check the file:" "  \$ cat $GLOBAL_METER_FILE_DISPLAY"
     exit 2
   fi
   if [[ "$BLOCKED_VAL" == "true" ]]; then

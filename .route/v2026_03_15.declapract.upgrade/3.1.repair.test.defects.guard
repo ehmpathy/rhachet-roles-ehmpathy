@@ -1,0 +1,16 @@
+reviews:
+  self:
+    - slug: has-zero-test-failures
+      say: |
+        do all tests now pass with zero failures?
+
+        run the test suite one final time and confirm zero failures.
+
+    - slug: has-complete-defect-entries
+      say: |
+        does each defect entry have what, why, fix?
+
+        go through each defect in the artifact and confirm:
+        - what: the defect is described
+        - why: root cause is documented
+        - fix: how it was fixed is documented

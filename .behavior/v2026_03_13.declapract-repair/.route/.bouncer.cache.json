@@ -1,0 +1,11 @@
+{
+  "protections": [
+    {
+      "glob": "src/**/*",
+      "stone": "3.3.1.blueprint.product.v1",
+      "guard": ".behavior/v2026_03_13.declapract-repair/3.3.1.blueprint.product.v1.guard",
+      "route": ".behavior/v2026_03_13.declapract-repair",
+      "passed": true
+    }
+  ]
+}

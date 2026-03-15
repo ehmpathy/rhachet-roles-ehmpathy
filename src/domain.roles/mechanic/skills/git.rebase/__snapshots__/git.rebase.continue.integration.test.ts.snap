@@ -18,7 +18,7 @@ exports[`git.rebase.continue given: [case2] rebase in progress with unsettled co
    └─ git.output
       ├─
       │
-      │  error: invalid onto: 'abc123def456'
+      │  error: could not get 'onto': 'abc123def456'
       │
       └─
 "
@@ -34,7 +34,7 @@ exports[`git.rebase.continue given: [case3] rebase in progress with more commits
    └─ git.output
       ├─
       │
-      │  error: invalid onto: 'abc123def456'
+      │  error: could not get 'onto': 'abc123def456'
       │
       └─
 "
@@ -50,7 +50,7 @@ exports[`git.rebase.continue given: [case4] rebase in progress with final commit
    └─ git.output
       ├─
       │
-      │  error: invalid onto: 'abc123def456'
+      │  error: could not get 'onto': 'abc123def456'
       │
       └─
 "

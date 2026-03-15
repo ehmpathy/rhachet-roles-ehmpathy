@@ -67,7 +67,8 @@ exports[`git.commit.uses.sh given: [case5] get shows remaining when: [t0] state 
 🐚 git.commit.uses
    └─ meter
       ├─ left: 2
-      └─ push: allowed
+      ├─ push: allowed
+      └─ global: blocked
 "
 `;
 
@@ -77,7 +78,8 @@ exports[`git.commit.uses.sh given: [case6] get with 0 uses and push allow (push-
 🐚 git.commit.uses
    └─ meter
       ├─ left: 0
-      └─ push: allowed
+      ├─ push: allowed
+      └─ global: blocked
 "
 `;
 
@@ -85,7 +87,8 @@ exports[`git.commit.uses.sh given: [case7] get when no state file when: [t0] no 
 "🐢 lets check the meter...
 
 🐚 git.commit.uses
-   └─ no quota set
+   ├─ no quota set
+   └─ global: blocked
 
 ask your human to grant:
   $ git.commit.uses set --quant N --push allow|block
