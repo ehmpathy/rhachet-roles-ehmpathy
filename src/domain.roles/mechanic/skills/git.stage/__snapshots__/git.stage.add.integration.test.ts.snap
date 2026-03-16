@@ -1,0 +1,79 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.stage.add.sh given: [case1] stage specific files when: [t0] files exist and stage is allowed then: files are staged 1`] = `
+"🐢 gnarly!
+
+🐚 git.stage.add
+   └─ staged
+      ├─ src/file1.ts
+      └─ src/file2.ts
+"
+`;
+
+exports[`git.stage.add.sh given: [case1] stage specific files when: [t1] single file then: shows singular staged output 1`] = `
+"🐢 gnarly!
+
+🐚 git.stage.add
+   └─ staged: test.txt
+"
+`;
+
+exports[`git.stage.add.sh given: [case2] stage all with dot when: [t0] stage with . (current directory) then: all files in cwd are staged 1`] = `
+"🐢 gnarly!
+
+🐚 git.stage.add
+   └─ staged: .
+"
+`;
+
+exports[`git.stage.add.sh given: [case3] stage without permission when: [t0] stage is blocked then: error: stage not allowed 1`] = `
+"🐢 hold up dude...
+
+🐚 git.stage.add
+   └─ error: stage not allowed
+
+ask your human to grant stage permission:
+  $ git.commit.uses set --quant N --push allow|block --stage allow
+"
+`;
+
+exports[`git.stage.add.sh given: [case4] file not found when: [t0] file does not exist then: error: file not found 1`] = `
+"🐢 hold up dude...
+
+🐚 git.stage.add
+   └─ error: file not found: absent.ts
+"
+`;
+
+exports[`git.stage.add.sh given: [case6] path outside repo when: [t0] absolute path outside repo then: error: path must be within repo 1`] = `
+"🐢 hold up dude...
+
+🐚 git.stage.add
+   └─ error: path must be within repo
+
+path: /etc/passwd
+"
+`;
+
+exports[`git.stage.add.sh given: [case7] no files specified when: [t0] no args then: error: no files specified 1`] = `
+"🐢 hold up dude...
+
+🐚 git.stage.add
+   └─ error: no files specified
+
+usage: git.stage.add path1 path2 ...
+       git.stage.add .                  # stage all
+"
+`;
+
+exports[`git.stage.add.sh given: [case8] global blocker when: [t0] global blocker is active then: error: globally blocked 1`] = `
+"🐢 bummer dude...
+
+🐚 git.stage.add
+   └─ error: globally blocked
+
+a human has blocked all mechanic operations
+ask your human to lift the blocker:
+  $ git.commit.uses allow --global
+"
+`;

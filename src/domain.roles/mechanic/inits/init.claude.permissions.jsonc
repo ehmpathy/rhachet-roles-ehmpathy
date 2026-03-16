@@ -256,6 +256,18 @@
       // git.commit.push - push HEAD commit to origin and findsert draft pr
       "Bash(npx rhachet run --skill git.commit.push:*)",
 
+      // git.stage.add - stage files for commit (requires --stage allow in quota)
+      // note: does NOT decrement uses (quota counts commits only)
+      // note: --all and unbound globs are forbidden
+      "Bash(npx rhachet run --skill git.stage.add:*)",
+      // examples: stage specific files or bounded glob
+      "Bash(npx rhachet run --skill git.stage.add src/file1.ts src/file2.ts)",
+      "Bash(npx rhachet run --skill git.stage.add --glob 'src/**/*.ts')",
+      // rhx variants
+      "Bash(rhx git.stage.add:*)",
+      "Bash(rhx git.stage.add src/file1.ts src/file2.ts)",
+      "Bash(rhx git.stage.add --glob 'src/**/*.ts')",
+
       // git.rebase.begin - begin rebase onto origin/main (plan/apply mode)
       "Bash(npx rhachet run --skill git.rebase.begin:*)",
       "Bash(npx rhachet run --skill git.rebase.begin)",
