@@ -207,7 +207,7 @@ if [[ "$MODE" == "plan" ]]; then
     echo "   │  ├─ title: $PR_TITLE"
     echo "   │  └─ action: findsert"
     echo "   └─ meter"
-    if [[ "$USES" -le 0 ]]; then
+    if [[ "$USES" != "infinite" && "$USES" -le 0 ]]; then
       echo "      └─ push: allowed → blocked (revoked)"
     else
       echo "      └─ push: allowed"
