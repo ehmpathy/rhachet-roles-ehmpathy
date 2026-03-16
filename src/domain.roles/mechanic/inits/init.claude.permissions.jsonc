@@ -23,10 +23,8 @@
 
       // nested .route directories — route state managed by driver, not mechanic
       // note: root .route/ is allowed (see allow list) for mechanic to write route artifacts
-      "Edit(.route/**/.route/**)",
-      "Write(.route/**/.route/**)",
-      "Edit(.behavior/**/.route/**)",
-      "Write(.behavior/**/.route/**)",
+      "Edit(*/**/.route/**)",
+      "Write(*/**/.route/**)",
 
       // git.commit.uses set — only humans can grant commit quota
       // mechanic can `get` (read quota) but never `set` (grant itself more)
