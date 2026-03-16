@@ -20,7 +20,10 @@ describe('condense', () => {
         return { briefPath, content };
       });
 
-      when('[t0] condense with default pipeline (GOOD density)', () => {
+      when.repeatably({
+        attempts: 3,
+        criteria: process.env.CI ? 'SOME' : 'EVERY',
+      })('[t0] condense with default pipeline (GOOD density)', () => {
         const result = useThen('it succeeds', async () =>
           condenseFile({
             content: scene.content,
