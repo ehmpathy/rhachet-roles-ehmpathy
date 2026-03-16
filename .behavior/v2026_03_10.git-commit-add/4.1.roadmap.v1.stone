@@ -1,0 +1,52 @@
+# roadmap: git.stage.add + unlimited quota
+
+## phases
+
+### phase 0: factory readiness
+- [x] test infra ready (genTempDir + spawnSync pattern)
+- [x] no credentials needed (local git operations)
+- [x] feedback loops acceptable
+
+### phase 1: git.commit.uses.local.sh
+- [ ] add `--stage allow|block` option (parallel to `--push`)
+- [ ] change `allow` command to set `uses: "infinite"` (not `999999`)
+- [ ] update `get` command to display stage permission
+- [ ] update `del`/`block` commands to default stage to "block"
+- [ ] add tests for --stage behavior
+
+### phase 2: git.commit.set.sh
+- [ ] update `check_uses` to accept `uses === "infinite"` as valid
+- [ ] skip decrement when `uses === "infinite"`
+- [ ] add test for unlimited no-decrement behavior
+
+### phase 3: git.stage.add.sh
+- [ ] create new skill with output.sh reuse
+- [ ] implement permission check (stage === "allow")
+- [ ] implement global blocker check
+- [ ] implement path validation (within repo)
+- [ ] implement file existence check
+- [ ] implement bounded glob expansion
+- [ ] implement fail-fast atomic behavior
+- [ ] implement tree-formatted output
+- [ ] add tests for all cases
+
+### phase 4: permissions
+- [ ] add git.stage.add to init.claude.permissions.jsonc allowlist
+
+## execution order
+
+1. phase 1 → phase 2 → phase 3 → phase 4
+2. each phase: implement → test → verify
+3. run full test suite before commit
+
+## dependencies
+
+- phase 2 depends on phase 1 (infinite value format)
+- phase 3 depends on phase 1 (stage permission field)
+- phase 4 depends on phase 3 (skill must exist)
+
+## verification
+
+- [ ] all extant tests pass
+- [ ] new tests pass
+- [ ] manual verification of typical workflow

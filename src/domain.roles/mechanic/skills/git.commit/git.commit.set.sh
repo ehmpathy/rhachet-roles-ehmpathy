@@ -426,9 +426,10 @@ fi
 # read state
 USES=$(jq -r '.uses' "$STATE_FILE")
 PUSH_ALLOWED=$(jq -r '.push' "$STATE_FILE")
+STAGE_ALLOWED=$(jq -r '.stage // "block"' "$STATE_FILE")
 
-# check uses > 0 (plan mode is allowed without uses)
-if [[ "$USES" -le 0 && "$MODE" != "plan" ]]; then
+# check uses > 0 or "infinite" (plan mode is allowed without uses)
+if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" != "plan" ]]; then
   print_turtle_header "bummer dude..."
   print_tree_start "git.commit.set"
   print_tree_error "no commit uses left"
@@ -512,8 +513,12 @@ fi
 # get current branch for output
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-# compute what meter will show after
-NEW_USES=$((USES - 1))
+# compute what meter will show after (skip decrement for infinite)
+if [[ "$USES" == "infinite" ]]; then
+  NEW_USES="infinite"
+else
+  NEW_USES=$((USES - 1))
+fi
 if [[ "$PUSH_ALLOWED" == "allow" ]]; then
   PUSH_DISPLAY="allowed"
 else
@@ -591,8 +596,12 @@ if [[ "$MODE" == "plan" ]]; then
     echo "   ├─ push: skipped"
   fi
   echo "   └─ meter"
-  echo "      ├─ left: $USES → $NEW_USES"
-  if [[ "$DO_PUSH" == true && "$NEW_USES" -le 0 && "$PUSH_ALLOWED" == "allow" ]]; then
+  if [[ "$USES" == "infinite" ]]; then
+    echo "      ├─ left: unlimited"
+  else
+    echo "      ├─ left: $USES → $NEW_USES"
+  fi
+  if [[ "$DO_PUSH" == true && "$NEW_USES" != "infinite" && "$NEW_USES" -le 0 && "$PUSH_ALLOWED" == "allow" ]]; then
     echo "      └─ push: allowed → blocked (revoked)"
   else
     echo "      └─ push: $PUSH_DISPLAY"
@@ -650,21 +659,33 @@ if [[ "$DO_PUSH" == true ]]; then
   fi
 fi
 
-# decrement uses
-cat > "$STATE_FILE" << EOF
+# update uses in state file (preserve stage, write "infinite" as string)
+if [[ "$NEW_USES" == "infinite" ]]; then
+  cat > "$STATE_FILE" << EOF
 {
-  "uses": $NEW_USES,
-  "push": "$PUSH_ALLOWED"
+  "uses": "infinite",
+  "push": "$PUSH_ALLOWED",
+  "stage": "$STAGE_ALLOWED"
 }
 EOF
+else
+  cat > "$STATE_FILE" << EOF
+{
+  "uses": $NEW_USES,
+  "push": "$PUSH_ALLOWED",
+  "stage": "$STAGE_ALLOWED"
+}
+EOF
+fi
 
 # auto-revoke push if uses depleted and push was executed
-if [[ "$DO_PUSH" == true && "$PUSH_RESULT_STATUS" == "pushed" && "$NEW_USES" -le 0 && "$PUSH_ALLOWED" == "allow" ]]; then
+if [[ "$DO_PUSH" == true && "$PUSH_RESULT_STATUS" == "pushed" && "$NEW_USES" != "infinite" && "$NEW_USES" -le 0 && "$PUSH_ALLOWED" == "allow" ]]; then
   PUSH_ALLOWED="block"
   cat > "$STATE_FILE" << EOF
 {
   "uses": $NEW_USES,
-  "push": "block"
+  "push": "block",
+  "stage": "$STAGE_ALLOWED"
 }
 EOF
   PUSH_DISPLAY="blocked (revoked)"
@@ -704,7 +725,11 @@ if [[ -n "$PR_STATUS" ]]; then
   echo "   ├─ pr: $PR_STATUS"
 fi
 echo "   └─ meter"
-echo "      ├─ left: $NEW_USES"
+if [[ "$NEW_USES" == "infinite" ]]; then
+  echo "      ├─ left: unlimited"
+else
+  echo "      ├─ left: $NEW_USES"
+fi
 echo "      └─ push: $PUSH_DISPLAY"
 
 # remind to watch CI after push

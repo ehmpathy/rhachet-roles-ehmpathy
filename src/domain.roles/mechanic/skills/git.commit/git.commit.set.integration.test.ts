@@ -14,7 +14,7 @@ describe('git.commit.set.sh', () => {
     files?: Record<string, string>;
     filesUnstaged?: Record<string, string>;
     staged?: boolean;
-    meterState?: { uses: number; push: string };
+    meterState?: { uses: number | string; push: string; stage?: string };
     bindLevel?: string;
     gitUser?: { name: string; email: string };
     commitArgs: string[];
@@ -2538,6 +2538,65 @@ exit 1`,
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('bummer dude');
         expect(result.stdout).toContain('global blocker file corrupt');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ========================================
+  // unlimited quota (infinite) tests
+  // ========================================
+
+  given('[case27] commit with unlimited quota', () => {
+    when('[t0] uses is "infinite"', () => {
+      then('commit succeeds and uses stays infinite', () => {
+        const result = runInTempGitRepo({
+          files: { 'test.txt': 'test content' },
+          staged: true,
+          meterState: { uses: 'infinite', push: 'allow', stage: 'allow' },
+          commitArgs: [
+            '--message',
+            'fix(api): validate input\n\n- test change',
+            '--mode',
+            'apply',
+          ],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('righteous');
+        expect(result.stdout).toContain('left: unlimited');
+
+        // verify state file still shows infinite
+        const stateFile = path.join(
+          result.tempDir,
+          '.meter',
+          'git.commit.uses.jsonc',
+        );
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        expect(state.uses).toBe('infinite');
+        expect(state.push).toBe('allow');
+        expect(state.stage).toBe('allow');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] plan mode with unlimited quota', () => {
+      then('shows unlimited in meter display', () => {
+        const result = runInTempGitRepo({
+          files: { 'test.txt': 'test content' },
+          staged: true,
+          meterState: { uses: 'infinite', push: 'allow' },
+          commitArgs: [
+            '--message',
+            'fix(api): validate input\n\n- test change',
+            '--mode',
+            'plan',
+          ],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('heres the wave');
+        expect(result.stdout).toContain('left: unlimited');
         expect(result.stdout).toMatchSnapshot();
       });
     });

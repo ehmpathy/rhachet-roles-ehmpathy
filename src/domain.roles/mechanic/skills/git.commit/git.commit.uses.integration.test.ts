@@ -12,7 +12,7 @@ describe('git.commit.uses.sh', () => {
 
   const runInTempGitRepo = (args: {
     args: string[];
-    meterState?: { uses: number; push: string };
+    meterState?: { uses: number | string; push: string; stage?: string };
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
     const tempDir = genTempDir({ slug: 'git-commit-uses-test', git: true });
 
@@ -46,7 +46,7 @@ describe('git.commit.uses.sh', () => {
    */
   const runWithGlobalStorage = (args: {
     args: string[];
-    meterState?: { uses: number; push: string };
+    meterState?: { uses: number | string; push: string; stage?: string };
     globalBlocker?: boolean;
   }): {
     stdout: string;
@@ -516,9 +516,141 @@ describe('git.commit.uses.sh', () => {
           'git.commit.uses.jsonc',
         );
         const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-        expect(state.uses).toBe(999999);
+        expect(state.uses).toBe('infinite');
         expect(state.push).toBe('allow');
+        expect(state.stage).toBe('allow');
         expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ========================================
+  // --stage option tests
+  // ========================================
+
+  given('[case14] set --stage allow', () => {
+    when('[t0] stage permission granted explicitly', () => {
+      then('state shows stage: allow', () => {
+        const result = runInTempGitRepo({
+          args: ['set', '--quant', '5', '--push', 'allow', '--stage', 'allow'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('stage: allowed');
+
+        const stateFile = path.join(
+          result.tempDir,
+          '.meter',
+          'git.commit.uses.jsonc',
+        );
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        expect(state.stage).toBe('allow');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case15] set --stage block', () => {
+    when('[t0] stage permission blocked explicitly', () => {
+      then('state shows stage: block', () => {
+        const result = runInTempGitRepo({
+          args: ['set', '--quant', '5', '--push', 'allow', '--stage', 'block'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('stage: blocked');
+
+        const stateFile = path.join(
+          result.tempDir,
+          '.meter',
+          'git.commit.uses.jsonc',
+        );
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        expect(state.stage).toBe('block');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case16] set without --stage (default)', () => {
+    when('[t0] stage not specified', () => {
+      then('state shows stage: block (default)', () => {
+        const result = runInTempGitRepo({
+          args: ['set', '--quant', '5', '--push', 'allow'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('stage: blocked');
+
+        const stateFile = path.join(
+          result.tempDir,
+          '.meter',
+          'git.commit.uses.jsonc',
+        );
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        expect(state.stage).toBe('block');
+      });
+    });
+  });
+
+  given('[case17] del resets stage', () => {
+    when('[t0] del after stage was allowed', () => {
+      then('state shows stage: block (via revoked state)', () => {
+        const result = runInTempGitRepo({
+          args: ['del'],
+          meterState: { uses: 5, push: 'allow', stage: 'allow' },
+        });
+
+        expect(result.exitCode).toBe(0);
+
+        const stateFile = path.join(
+          result.tempDir,
+          '.meter',
+          'git.commit.uses.jsonc',
+        );
+        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+        expect(state.uses).toBe(0);
+        expect(state.push).toBe('block');
+        expect(state.stage).toBe('block');
+      });
+    });
+  });
+
+  given('[case18] get with stage permission', () => {
+    when('[t0] state has stage: allow', () => {
+      then('get displays stage: allowed', () => {
+        const result = runInTempGitRepo({
+          args: ['get'],
+          meterState: { uses: 3, push: 'allow', stage: 'allow' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('stage: allowed');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] state has stage: block', () => {
+      then('get displays stage: blocked', () => {
+        const result = runInTempGitRepo({
+          args: ['get'],
+          meterState: { uses: 3, push: 'allow', stage: 'block' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('stage: blocked');
+      });
+    });
+
+    when('[t2] state has no stage field (legacy)', () => {
+      then('get displays stage: blocked (default)', () => {
+        const result = runInTempGitRepo({
+          args: ['get'],
+          meterState: { uses: 3, push: 'allow' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('stage: blocked');
       });
     });
   });
@@ -527,7 +659,7 @@ describe('git.commit.uses.sh', () => {
   // get with global awareness
   // ========================================
 
-  given('[case13] get shows local + global state', () => {
+  given('[case19] get shows local + global state', () => {
     when('[t0] local quota present and global blocked', () => {
       then('shows local meter and global blocked', () => {
         const result = runWithGlobalStorage({

@@ -392,6 +392,52 @@ exports[`git.commit.set.sh given: [case26] commit with corrupt global blocker fi
    └─ error: global blocker file corrupt
 
 check the file:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+  $ cat /home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.git-commit-add/.temp/genTempDir.symlink/2026-03-16T12-33-01.111Z.git-commit-set-home.c43d156b/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+"
+`;
+
+exports[`git.commit.set.sh given: [case27] commit with unlimited quota when: [t0] uses is "infinite" then: commit succeeds and uses stays infinite 1`] = `
+"🐢 righteous!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(api): validate input
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ patron
+   │     ├─ name: Test Human
+   │     └─ email: human@test.com
+   ├─ push: skipped
+   └─ meter
+      ├─ left: unlimited
+      └─ push: allowed
+"
+`;
+
+exports[`git.commit.set.sh given: [case27] commit with unlimited quota when: [t1] plan mode with unlimited quota then: shows unlimited in meter display 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.set --mode plan
+   ├─ commit
+   │  ├─ header: fix(api): validate input
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  ├─ patron
+   │  │  ├─ name: Test Human
+   │  │  └─ email: human@test.com
+   │  └─ files
+   │     └─ test.txt
+   ├─ push: skipped
+   └─ meter
+      ├─ left: unlimited
+      └─ push: allowed
+
+run with --mode apply to execute
 "
 `;

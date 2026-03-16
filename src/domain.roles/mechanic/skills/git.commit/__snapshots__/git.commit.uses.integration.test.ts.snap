@@ -5,7 +5,8 @@ exports[`git.commit.uses.sh given: [case1] set --quant N --push block when: [t0]
 
 🐚 git.commit.uses set
    ├─ granted: 3
-   └─ push: blocked
+   ├─ push: blocked
+   └─ stage: blocked
 "
 `;
 
@@ -14,7 +15,8 @@ exports[`git.commit.uses.sh given: [case2] set --quant N --push allow when: [t0]
 
 🐚 git.commit.uses set
    ├─ granted: 1
-   └─ push: allowed
+   ├─ push: allowed
+   └─ stage: blocked
 "
 `;
 
@@ -32,7 +34,8 @@ exports[`git.commit.uses.sh given: [case3b] set --quant 0 --push allow (push-onl
 
 🐚 git.commit.uses set
    ├─ commits: 0
-   └─ push: allowed
+   ├─ push: allowed
+   └─ stage: blocked
 "
 `;
 
@@ -68,7 +71,7 @@ exports[`git.commit.uses.sh given: [case5] get shows remaining when: [t0] state 
    └─ meter
       ├─ left: 2
       ├─ push: allowed
-      └─ global: blocked
+      └─ stage: blocked
 "
 `;
 
@@ -79,7 +82,7 @@ exports[`git.commit.uses.sh given: [case6] get with 0 uses and push allow (push-
    └─ meter
       ├─ left: 0
       ├─ push: allowed
-      └─ global: blocked
+      └─ stage: blocked
 "
 `;
 
@@ -87,8 +90,7 @@ exports[`git.commit.uses.sh given: [case7] get when no state file when: [t0] no 
 "🐢 lets check the meter...
 
 🐚 git.commit.uses
-   ├─ no quota set
-   └─ global: blocked
+   └─ no quota set
 
 ask your human to grant:
   $ git.commit.uses set --quant N --push allow|block
@@ -140,22 +142,55 @@ exports[`git.commit.uses.sh given: [case12] allow (local) when: [t0] no quota pr
 
 🐚 git.commit.uses set
    ├─ granted: unlimited
-   └─ push: allowed
+   ├─ push: allowed
+   └─ stage: allowed
 "
 `;
 
-exports[`git.commit.uses.sh given: [case13] get shows local + global state when: [t0] local quota present and global blocked then: shows local meter and global blocked 1`] = `
+exports[`git.commit.uses.sh given: [case14] set --stage allow when: [t0] stage permission granted explicitly then: state shows stage: allow 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.commit.uses set
+   ├─ granted: 5
+   ├─ push: allowed
+   └─ stage: allowed
+"
+`;
+
+exports[`git.commit.uses.sh given: [case15] set --stage block when: [t0] stage permission blocked explicitly then: state shows stage: block 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.commit.uses set
+   ├─ granted: 5
+   ├─ push: allowed
+   └─ stage: blocked
+"
+`;
+
+exports[`git.commit.uses.sh given: [case18] get with stage permission when: [t0] state has stage: allow then: get displays stage: allowed 1`] = `
 "🐢 lets check the meter...
 
 🐚 git.commit.uses
    └─ meter
       ├─ left: 3
       ├─ push: allowed
+      └─ stage: allowed
+"
+`;
+
+exports[`git.commit.uses.sh given: [case19] get shows local + global state when: [t0] local quota present and global blocked then: shows local meter and global blocked 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   └─ meter
+      ├─ left: 3
+      ├─ push: allowed
+      ├─ stage: blocked
       └─ global: blocked
 "
 `;
 
-exports[`git.commit.uses.sh given: [case13] get shows local + global state when: [t2] no local quota and global blocked then: shows no quota set and global blocked 1`] = `
+exports[`git.commit.uses.sh given: [case19] get shows local + global state when: [t2] no local quota and global blocked then: shows no quota set and global blocked 1`] = `
 "🐢 lets check the meter...
 
 🐚 git.commit.uses

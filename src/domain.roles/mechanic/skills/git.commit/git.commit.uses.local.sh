@@ -6,16 +6,17 @@
 #         and whether push is allowed in this repo
 #
 # usage:
-#   git.commit.uses.local set --quant 3 --push block
-#   git.commit.uses.local set --quant 1 --push allow
-#   git.commit.uses.local set --quant 0               # revoke (--push defaults to block)
+#   git.commit.uses.local set --quant 3 --push block --stage block
+#   git.commit.uses.local set --quant 1 --push allow --stage allow
+#   git.commit.uses.local set --quant 0               # revoke (--push/--stage default to block)
 #   git.commit.uses.local del                         # same as set --quant 0
 #   git.commit.uses.local block                       # alias for del
-#   git.commit.uses.local allow                       # shorthand for set --quant 999999 --push allow
+#   git.commit.uses.local allow                       # shorthand for unlimited with push+stage allowed
 #   git.commit.uses.local get
 #
 # guarantee:
 #   - --push is required on set (except --quant 0 which defaults to block)
+#   - --stage defaults to block if not specified
 #   - state stored in .meter/git.commit.uses.jsonc
 ######################################################################
 set -euo pipefail
@@ -42,6 +43,7 @@ GLOBAL_METER_FILE="$HOME/.rhachet/storage/repo=$ROLE_REPO/role=$ROLE_SLUG/.meter
 COMMAND=""
 QUANT=""
 PUSH=""
+STAGE=""
 VIA_DEL=""
 
 # first positional arg is command
@@ -64,8 +66,12 @@ while [[ $# -gt 0 ]]; do
       PUSH="$2"
       shift 2
       ;;
+    --stage)
+      STAGE="$2"
+      shift 2
+      ;;
     --help|-h)
-      echo "usage: git.commit.uses set --quant N --push allow|block"
+      echo "usage: git.commit.uses set --quant N --push allow|block [--stage allow|block]"
       echo "       git.commit.uses del"
       echo "       git.commit.uses block         (alias for del)"
       echo "       git.commit.uses allow         (shorthand for unlimited)"
@@ -73,14 +79,15 @@ while [[ $# -gt 0 ]]; do
       echo ""
       echo "commands:"
       echo "  set    grant commit quota (human only)"
-      echo "  del    revoke quota (shortcut for set --quant 0 --push block)"
+      echo "  del    revoke quota (shortcut for set --quant 0 --push block --stage block)"
       echo "  block  alias for del"
-      echo "  allow  grant unlimited quota with push allowed"
+      echo "  allow  grant unlimited quota with push and stage allowed"
       echo "  get    check quota left"
       echo ""
       echo "options (set):"
-      echo "  --quant N             number of commits to allow"
+      echo "  --quant N             number of commits to allow (or 'infinite')"
       echo "  --push allow|block    whether push is permitted (required)"
+      echo "  --stage allow|block   whether stage is permitted (default: block)"
       echo ""
       echo "options:"
       echo "  --help, -h            show this help"
@@ -121,28 +128,33 @@ fi
 
 case "$COMMAND" in
   block)
-    # block = alias for del (quant=0, push=block)
+    # block = alias for del (quant=0, push=block, stage=block)
     QUANT=0
     PUSH="block"
+    STAGE="block"
     VIA_DEL=true
     ;& # fall through to set logic
 
   del)
-    # del = revoke shortcut (quant=0, push=block)
+    # del = revoke shortcut (quant=0, push=block, stage=block)
     if [[ -z "$QUANT" ]]; then
       QUANT=0
     fi
     if [[ -z "$PUSH" ]]; then
       PUSH="block"
     fi
+    if [[ -z "$STAGE" ]]; then
+      STAGE="block"
+    fi
     VIA_DEL=true
     ;& # fall through to set logic
 
   allow)
-    # allow = unlimited quota with push allowed
+    # allow = unlimited quota with push and stage allowed
     if [[ "$COMMAND" == "allow" ]]; then
-      QUANT=999999
+      QUANT="infinite"
       PUSH="allow"
+      STAGE="allow"
     fi
     ;& # fall through to set logic
 
@@ -159,6 +171,11 @@ case "$COMMAND" in
       PUSH="block"
     fi
 
+    # default --stage to block when quant is 0 (revoke implies no stage)
+    if [[ -z "$STAGE" && "$QUANT" == "0" ]]; then
+      STAGE="block"
+    fi
+
     # validate --push required
     if [[ -z "$PUSH" ]]; then
       echo "error: --push allow|block is required"
@@ -173,9 +190,21 @@ case "$COMMAND" in
       exit 2
     fi
 
-    # validate --quant is a number
-    if ! [[ "$QUANT" =~ ^[0-9]+$ ]]; then
-      echo "error: --quant must be a non-negative integer"
+    # default --stage to block if not specified
+    if [[ -z "$STAGE" ]]; then
+      STAGE="block"
+    fi
+
+    # validate --stage value
+    if [[ "$STAGE" != "allow" && "$STAGE" != "block" ]]; then
+      echo "error: --stage must be 'allow' or 'block'"
+      echo "usage: git.commit.uses set --quant N --push allow|block [--stage allow|block]"
+      exit 2
+    fi
+
+    # validate --quant is a number or "infinite"
+    if [[ "$QUANT" != "infinite" ]] && ! [[ "$QUANT" =~ ^[0-9]+$ ]]; then
+      echo "error: --quant must be a non-negative integer or 'infinite'"
       exit 2
     fi
 
@@ -185,13 +214,31 @@ case "$COMMAND" in
       echo "*" > "$METER_DIR/.gitignore"
     fi
 
-    # write state file
-    cat > "$STATE_FILE" << EOF
+    # write state file (uses is string for "infinite", number otherwise)
+    if [[ "$QUANT" == "infinite" ]]; then
+      cat > "$STATE_FILE" << EOF
 {
-  "uses": $QUANT,
-  "push": "$PUSH"
+  "uses": "infinite",
+  "push": "$PUSH",
+  "stage": "$STAGE"
 }
 EOF
+    else
+      cat > "$STATE_FILE" << EOF
+{
+  "uses": $QUANT,
+  "push": "$PUSH",
+  "stage": "$STAGE"
+}
+EOF
+    fi
+
+    # format stage display
+    if [[ "$STAGE" == "allow" ]]; then
+      STAGE_DISPLAY="allowed"
+    else
+      STAGE_DISPLAY="blocked"
+    fi
 
     # output with turtle vibes
     if [[ "$QUANT" == "0" && "$PUSH" == "block" ]]; then
@@ -208,22 +255,32 @@ EOF
       print_turtle_header "sweet, let it ride"
       print_tree_start "git.commit.uses set"
       echo "   ├─ commits: 0"
-      echo "   └─ push: allowed"
-    elif [[ "$QUANT" == "999999" && "$PUSH" == "allow" ]]; then
+      echo "   ├─ push: allowed"
+      echo "   └─ stage: $STAGE_DISPLAY"
+    elif [[ "$QUANT" == "infinite" && "$PUSH" == "allow" && "$STAGE" == "allow" ]]; then
       print_turtle_header "radical! let's ride!"
       print_tree_start "git.commit.uses set"
       echo "   ├─ granted: unlimited"
-      echo "   └─ push: allowed"
+      echo "   ├─ push: allowed"
+      echo "   └─ stage: allowed"
+    elif [[ "$QUANT" == "infinite" ]]; then
+      print_turtle_header "radical! let's ride!"
+      print_tree_start "git.commit.uses set"
+      echo "   ├─ granted: unlimited"
+      echo "   ├─ push: $( [[ "$PUSH" == "allow" ]] && echo "allowed" || echo "blocked" )"
+      echo "   └─ stage: $STAGE_DISPLAY"
     elif [[ "$PUSH" == "allow" ]]; then
       print_turtle_header "radical! let's ride!"
       print_tree_start "git.commit.uses set"
       echo "   ├─ granted: $QUANT"
-      echo "   └─ push: allowed"
+      echo "   ├─ push: allowed"
+      echo "   └─ stage: $STAGE_DISPLAY"
     else
       print_turtle_header "gnarly! thanks human!"
       print_tree_start "git.commit.uses set"
       echo "   ├─ granted: $QUANT"
-      echo "   └─ push: blocked"
+      echo "   ├─ push: blocked"
+      echo "   └─ stage: $STAGE_DISPLAY"
     fi
     ;;
 
@@ -258,9 +315,10 @@ EOF
     # read state
     USES=$(jq -r '.uses' "$STATE_FILE")
     PUSH_STATE=$(jq -r '.push' "$STATE_FILE")
+    STAGE_STATE=$(jq -r '.stage // "block"' "$STATE_FILE")
 
     # format uses display
-    if [[ "$USES" == "999999" ]]; then
+    if [[ "$USES" == "infinite" || "$USES" == "999999" ]]; then
       USES_DISPLAY="unlimited"
     else
       USES_DISPLAY="$USES"
@@ -273,15 +331,23 @@ EOF
       PUSH_DISPLAY="blocked"
     fi
 
+    # format stage state
+    if [[ "$STAGE_STATE" == "allow" ]]; then
+      STAGE_DISPLAY="allowed"
+    else
+      STAGE_DISPLAY="blocked"
+    fi
+
     print_turtle_header "lets check the meter..."
     print_tree_start "git.commit.uses"
     echo "   └─ meter"
     echo "      ├─ left: $USES_DISPLAY"
+    echo "      ├─ push: $PUSH_DISPLAY"
     if [[ "$GLOBAL_BLOCKED" == "true" ]]; then
-      echo "      ├─ push: $PUSH_DISPLAY"
+      echo "      ├─ stage: $STAGE_DISPLAY"
       echo "      └─ global: blocked"
     else
-      echo "      └─ push: $PUSH_DISPLAY"
+      echo "      └─ stage: $STAGE_DISPLAY"
     fi
     ;;
 
