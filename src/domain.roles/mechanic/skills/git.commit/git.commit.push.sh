@@ -353,9 +353,9 @@ else
   fi
 fi
 
-# auto-revoke push if uses depleted
+# auto-revoke push if uses depleted (skip for infinite)
 PUSH_REVOKED=false
-if [[ "$USES" -le 0 ]]; then
+if [[ "$USES" != "infinite" && "$USES" -le 0 ]]; then
   cat > "$STATE_FILE" << EOF
 {
   "uses": $USES,
