@@ -143,6 +143,8 @@
     "allow": [
       "Write(.agent/.notes/**)",
       "Edit(.agent/.notes/**)",
+      "Write(.route/**)",
+      "Edit(.route/**)",
       "Write(**/.test/**)",
       "Edit(**/.test/**)",
       "mcp__ide__getDiagnostics",
@@ -376,16 +378,14 @@
       "Bash(npx rhachet run --skill git.commit.uses set:*)",
       "Bash(sed:*)",
       "Bash(tee:*)",
-      "Edit(**/.route/**)",
+      "Edit(*/**/.route/**)",
       "Edit(.branch/.bind/*)",
       "Edit(.meter/*)",
-      "Edit(.route/**)",
       "EnterPlanMode",
       "Read(.quarantine/*)",
-      "Write(**/.route/**)",
+      "Write(*/**/.route/**)",
       "Write(.branch/.bind/*)",
-      "Write(.meter/*)",
-      "Write(.route/**)"
+      "Write(.meter/*)"
     ],
     "ask": [
       "Bash(bash:*)",
