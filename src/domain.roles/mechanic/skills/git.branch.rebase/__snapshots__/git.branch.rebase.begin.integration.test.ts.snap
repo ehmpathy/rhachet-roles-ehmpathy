@@ -1,0 +1,81 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.rebase.begin given: [case1] feature branch with commits ahead and behind when: [t0] plan mode (default) then: shows preview or fetch error (no real remote in test) 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ error: failed to fetch origin/main
+
+check your network connection and try again
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case2] feature branch ready to rebase when: [t0] apply mode attempts rebase then: shows result or fetch error (no real remote in test) 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ error: failed to fetch origin/main
+
+check your network connection and try again
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case3] rebase with conflicts when: [t0] apply mode hits conflict then: shows conflict status and files 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ error: failed to fetch origin/main
+
+check your network connection and try again
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case4] no push permission granted when: [t0] attempt rebase then: shows error: push permission required 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ error: rebase requires push permission
+
+ask your human to grant permission:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case5] on main branch when: [t0] attempt rebase then: shows error: cannot rebase main 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ error: cannot rebase main/master
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case6] dirty work tree when: [t0] attempt rebase then: shows error: unstaged changes 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ error: unstaged changes found
+
+commit or stash your changes first
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case7] branch already up to date when: [t0] attempt rebase then: shows up to date or fetch error (no real remote in test) 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ error: failed to fetch origin/main
+
+check your network connection and try again
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case8] rebase already in progress when: [t0] attempt rebase then: shows in progress error with guidance 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ error: rebase already in progress
+
+to continue: rhx git.branch.rebase continue
+to abort:    rhx git.branch.rebase abort
+"
+`;
