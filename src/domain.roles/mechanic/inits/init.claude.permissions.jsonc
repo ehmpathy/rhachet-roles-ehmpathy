@@ -320,6 +320,20 @@
       "Bash(npx rhachet run --skill condense --from briefs/rule.md --onVerify restore)",
       "Bash(npx rhachet run --skill condense --from 'briefs/**/*.md' --mode apply)",
 
+      // set.package.install - install package with security audit and reason documentation
+      "Bash(npx rhachet run --skill set.package.install:*)",
+      "Bash(rhx set.package.install:*)",
+      // examples: pipe reason via stdin or inline
+      "Bash(echo $REASON | npx rhachet run --skill set.package.install --package zod --at 3.22.4 --for prod --reason @stdin)",
+      "Bash(npx rhachet run --skill set.package.install --package zod --at 3.22.4 --for prod --reason 'runtime validation')",
+
+      // set.package.upgrade - upgrade extant package with security audit
+      "Bash(npx rhachet run --skill set.package.upgrade:*)",
+      "Bash(rhx set.package.upgrade:*)",
+      // examples: specific version or @latest
+      "Bash(npx rhachet run --skill set.package.upgrade --package zod --to 3.23.0)",
+      "Bash(npx rhachet run --skill set.package.upgrade --package zod --to @latest)",
+
       // any skill, really
       "Bash(npx rhachet run:*)",
 

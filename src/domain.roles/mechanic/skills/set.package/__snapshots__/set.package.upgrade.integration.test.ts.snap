@@ -1,0 +1,63 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`set.package.upgrade.sh given: [snapshots] output formats when: [t0] success and error variants then: absent --package error matches snapshot: absent-package 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.upgrade
+   └─ error: --package is required
+"
+`;
+
+exports[`set.package.upgrade.sh given: [snapshots] output formats when: [t0] success and error variants then: absent --to error matches snapshot: absent-to 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.upgrade
+   ├─ package: test-fns
+   └─ error: --to is required
+"
+`;
+
+exports[`set.package.upgrade.sh given: [snapshots] output formats when: [t0] success and error variants then: success output matches snapshot: success 1`] = `
+"🐢 righteous!
+
+🐚 set.package.upgrade
+   ├─ package: test-fns
+   ├─ from: X.Y.Z
+   ├─ to: X.Y.Z
+   ├─ security
+   │  └─ audit: passed (0 vulnerabilities)
+   └─ upgrade
+      └─ pnpm add test-fns@X.Y.Z: success
+"
+`;
+
+exports[`set.package.upgrade.sh given: [snapshots] output formats when: [t1] security block then: security block output matches snapshot: security-block 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.upgrade
+   ├─ package: lodash
+   ├─ from: X.Y.Z
+   ├─ to: X.Y.Z
+   └─ security
+      └─ audit: FAILED (8 vulnerabilities)
+         ├─ moderate: Prototype Pollution in lodash
+         ├─ high: Command Injection in lodash
+         ├─ high: Prototype Pollution in lodash
+         ├─ critical: Prototype Pollution in lodash
+         ├─ high: Prototype Pollution in lodash
+         ├─ moderate: Regular Expression Denial of Service (ReDoS) in lodash
+         ├─ moderate: Regular Expression Denial of Service (ReDoS) in lodash
+         └─ moderate: Lodash has Prototype Pollution Vulnerability in \`_.unset\` and \`_.omit\` functions
+
+upgrade blocked. choose a safer version.
+"
+`;
+
+exports[`set.package.upgrade.sh given: [snapshots] output formats when: [t2] not installed error then: not installed error matches snapshot: not-installed 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.upgrade
+   ├─ package: not-installed-pkg
+   └─ error: package not installed. use set.package.install instead.
+"
+`;

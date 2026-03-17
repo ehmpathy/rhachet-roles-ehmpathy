@@ -59,6 +59,9 @@ importers:
       type-fns:
         specifier: 1.21.0
         version: 1.21.0
+      uuid-fns:
+        specifier: 1.0.0
+        version: 1.0.0
       with-simple-cache:
         specifier: 0.15.3
         version: 0.15.3(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4)
@@ -145,8 +148,8 @@ importers:
         specifier: link:.
         version: 'link:'
       test-fns:
-        specifier: 1.15.5
-        version: 1.15.5
+        specifier: 1.15.7
+        version: 1.15.7
       tsc-alias:
         specifier: 1.8.10
         version: 1.8.10
@@ -2061,6 +2064,9 @@ packages:
 
   '@types/stack-utils@2.0.3':
     resolution: {integrity: sha512-9aEbYZ3TbYMznPdcdr3SmIrLXwC/AKZXQeCf9Pgao5CKb8CyHuEX5jzWPTkvregvhRJHcpRO6BFoGW9ycaOkYw==}
+
+  '@types/uuid@8.3.4':
+    resolution: {integrity: sha512-c/I8ZRb51j+pYGAu5CrFMRxqZ2ke4y2grEBO5AUjgSkSk+qT2Ea+OdWElz/OiMf5MNpn2b17kuVBwZLQJXzihw==}
 
   '@types/yargs-parser@21.0.3':
     resolution: {integrity: sha512-I4q9QU9MQv4oEOz4tAHJtNz1cwuLxn2F3xcc2iV5WdqLPpUnj30aUuxt1mAxYTG+oe8CZMV/+6rU4S4gRDzqtQ==}
@@ -4331,8 +4337,8 @@ packages:
     resolution: {integrity: sha512-zC/qUA2lwfiXoQ00Ws8yD8LPA7p3n2a+Dl7wmI4iTXz4HbrU52riPY+AceGWgCAINs/cJ7cs9jnnASSPBwyGpg==}
     engines: {node: '>=8.0.0'}
 
-  test-fns@1.15.5:
-    resolution: {integrity: sha512-56tdSFEOi08B/907vUQ9SxJhDRcT6oLpdO2WQKovF1RzY7X4TcRsEFjjnb8M0g5bHY+jgF6n88Ol2sz1PUp0gw==}
+  test-fns@1.15.7:
+    resolution: {integrity: sha512-wfILa+sblkaG3QQS9MEX+ZPxKrAOAoNVqSxi2OdIdHMQ1hFyKSSHRxfgCwoRujgcH1D6H1liHE+WO8+yJuQkbg==}
     engines: {node: '>=8.0.0'}
 
   test-fns@1.4.2:
@@ -4488,6 +4494,10 @@ packages:
   util-deprecate@1.0.2:
     resolution: {integrity: sha512-EPD5q1uXyFxJpCrLnCc1nHnq3gOa6DZBocAIiI2TaSCA7VCJ1UJDMagCzIkXNsUYfD1daK//LTEQ8xiIbrHtcw==}
 
+  uuid-fns@1.0.0:
+    resolution: {integrity: sha512-rYc0oSbd5WiIj8wxn5lqNVkZVEonqYZEUM8InTAR4XeClD7jsllWLJwXJwxPl9LJ1gMIwKAKe4DkyLDccAudzg==}
+    engines: {node: '>=8.0.0'}
+
   uuid-fns@1.0.1:
     resolution: {integrity: sha512-bLP1YllBNA6ScJVN2sqCnuxUSZ0ZJUW5r17dewe+9iVYc8iL3TljODdXDj7XlI6uVSVTXC7CoHoWKuvztYux1w==}
     engines: {node: '>=8.0.0'}
@@ -4508,9 +4518,17 @@ packages:
     resolution: {integrity: sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==}
     hasBin: true
 
+  uuid@8.3.2:
+    resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
+    hasBin: true
+
   uuid@9.0.0:
     resolution: {integrity: sha512-MXcSTerfPa4uqyzStbRoTgt5XIe3x5+42+q1sDuy3R5MDk66URdLMOZe5aPX/SQd+kuYAh0FdP/pO28IkQyTeg==}
     hasBin: true
+
+  uuidv4@6.2.13:
+    resolution: {integrity: sha512-AXyzMjazYB3ovL3q051VLH06Ixj//Knx7QnUSi1T//Ie3io6CpsPu9nVMOx5MoLWh6xV0B9J0hIaxungxXUbPQ==}
+    deprecated: Package no longer supported. Contact Support at https://www.npmjs.com/support for more info.
 
   v8-compile-cache-lib@3.0.1:
     resolution: {integrity: sha512-wa7YjyUGfNZngI/vtK0UHAN+lgDCxBPCylVXGp0zu59Fz5aiGtNXaq3DhIov063MorB+VfufLh3JlF2KdTK3xg==}
@@ -7063,6 +7081,8 @@ snapshots:
   '@types/seedrandom@2.4.34': {}
 
   '@types/stack-utils@2.0.3': {}
+
+  '@types/uuid@8.3.4': {}
 
   '@types/yargs-parser@21.0.3': {}
 
@@ -9812,7 +9832,7 @@ snapshots:
       - ws
       - zod
 
-  test-fns@1.15.5:
+  test-fns@1.15.7:
     dependencies:
       domain-objects: 0.31.9
       helpful-errors: 1.5.3
@@ -9981,6 +10001,11 @@ snapshots:
 
   util-deprecate@1.0.2: {}
 
+  uuid-fns@1.0.0:
+    dependencies:
+      type-fns: 1.19.0
+      uuidv4: 6.2.13
+
   uuid-fns@1.0.1:
     dependencies:
       type-fns: 1.19.0
@@ -10000,7 +10025,14 @@ snapshots:
 
   uuid@11.1.0: {}
 
+  uuid@8.3.2: {}
+
   uuid@9.0.0: {}
+
+  uuidv4@6.2.13:
+    dependencies:
+      '@types/uuid': 8.3.4
+      uuid: 8.3.2
 
   v8-compile-cache-lib@3.0.1:
     optional: true

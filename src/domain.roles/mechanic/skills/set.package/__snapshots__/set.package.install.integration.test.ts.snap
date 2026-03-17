@@ -1,0 +1,97 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: absent --at error matches snapshot: absent-at 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: test-fns
+   └─ error: --at is required
+"
+`;
+
+exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: absent --for error matches snapshot: absent-for 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: test-fns
+   ├─ version: X.Y.Z
+   └─ error: --for is required
+"
+`;
+
+exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: absent --package error matches snapshot: absent-package 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   └─ error: --package is required
+"
+`;
+
+exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: absent --reason error matches snapshot: absent-reason 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: test-fns
+   ├─ version: X.Y.Z
+   ├─ for: prod
+   └─ error: --reason is required
+"
+`;
+
+exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: already installed error matches snapshot: already-installed 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: extant-pkg
+   └─ error: package already installed. use set.package.upgrade instead.
+"
+`;
+
+exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: invalid --for error matches snapshot: invalid-for 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: test-fns
+   ├─ version: X.Y.Z
+   ├─ for: invalid
+   └─ error: --for must be 'prod' or 'prep'
+"
+`;
+
+exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: security block output matches snapshot: security-block 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: lodash
+   ├─ version: X.Y.Z
+   ├─ for: prod
+   └─ security
+      └─ audit: FAILED (8 vulnerabilities)
+         ├─ moderate: Prototype Pollution in lodash
+         ├─ high: Command Injection in lodash
+         ├─ high: Prototype Pollution in lodash
+         ├─ critical: Prototype Pollution in lodash
+         ├─ high: Prototype Pollution in lodash
+         ├─ moderate: Regular Expression Denial of Service (ReDoS) in lodash
+         ├─ moderate: Regular Expression Denial of Service (ReDoS) in lodash
+         └─ moderate: Lodash has Prototype Pollution Vulnerability in \`_.unset\` and \`_.omit\` functions
+
+install blocked. choose a safer package or version.
+"
+`;
+
+exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: success output matches snapshot: success 1`] = `
+"🐢 shell yeah!
+
+🐚 set.package.install
+   ├─ package: test-fns
+   ├─ version: X.Y.Z
+   ├─ for: prod
+   ├─ security
+   │  └─ audit: passed (0 vulnerabilities)
+   ├─ reason
+   │  └─ saved: /tmp/TEMP_DIR
+   └─ install
+      └─ pnpm add test-fns@X.Y.Z: success
+"
+`;
