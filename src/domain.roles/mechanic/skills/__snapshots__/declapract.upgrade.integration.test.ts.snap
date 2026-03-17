@@ -1,0 +1,24 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`declapract.upgrade given: [case1] init: repo with declapract.use.yml when: [t0] init subcommand is invoked then: route directory is created with stones and guards (no .sh) 1`] = `
+"🐢 radical!
+
+🐚 declapract.upgrade init
+   ├─ route: .route/v$DATE.declapract.upgrade/ ✨
+   └─ created
+      ├─ 1.upgrade.invoke.stone
+      ├─ 2.detect.hazards.stone
+      ├─ 2.detect.hazards.guard
+      ├─ 3.1.repair.test.defects.stone
+      ├─ 3.1.repair.test.defects.guard
+      ├─ 3.2.reflect.test.defects.stone
+      ├─ 3.2.reflect.test.defects.guard
+      ├─ 3.3.repair.cicd.defects.stone
+      ├─ 3.3.repair.cicd.defects.guard
+      ├─ 3.4.reflect.cicd.defects.stone
+      └─ 3.4.reflect.cicd.defects.guard
+
+🥥 hang ten! we'll ride this in
+   └─ [2mbranch main <-> route .route/v$DATE.declapract.upgrade[0m
+"
+`;
