@@ -64,6 +64,12 @@
             "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.check-permissions",
             "timeout": 5,
             "author": "repo=ehmpathy/role=mechanic"
+          },
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-suspicious-shell-syntax",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
           }
         ]
       },
@@ -143,6 +149,10 @@
     "allow": [
       "Write(.agent/.notes/**)",
       "Edit(.agent/.notes/**)",
+      "Write(.route/**)",
+      "Edit(.route/**)",
+      "Write(**/.test/**)",
+      "Edit(**/.test/**)",
       "mcp__ide__getDiagnostics",
       "WebSearch",
       "WebFetch",

@@ -81,7 +81,6 @@
     "simple-in-memory-cache": "0.4.0",
     "simple-on-disk-cache": "1.7.3",
     "type-fns": "1.21.0",
-    "uuid-fns": "1.0.0",
     "with-simple-cache": "0.15.3",
     "with-simple-caching": "0.14.4",
     "wrapper-fns": "1.1.7",
