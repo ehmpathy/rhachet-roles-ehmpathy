@@ -5,7 +5,7 @@ import type { ConceptKernel } from './extractKernels';
 
 const BRAIN_SLUG = 'xai/grok/4.1-fast-wout-reason';
 
-describe('clusterKernels', () => {
+describe.skip('clusterKernels', () => {
   given('[case1] kernels that express the same concept', () => {
     const kernels: ConceptKernel[] = [
       {

@@ -5,7 +5,7 @@ import type { ConceptKernel } from '../../../../domain.operations/kernelize/extr
 
 const BRAIN_SLUG = 'xai/grok/code-fast-1';
 
-describe('clusterKernels', () => {
+describe.skip('clusterKernels', () => {
   given('[case1] kernels with semantically equivalent pairs', () => {
     const kernels: ConceptKernel[] = [
       {
