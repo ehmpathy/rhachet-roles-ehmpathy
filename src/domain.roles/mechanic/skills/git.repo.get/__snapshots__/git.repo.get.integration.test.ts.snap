@@ -1,0 +1,390 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.repo.get.sh given: [case1] repos with local clones when: [t0] --repos testorg/* then: lists repos with aligned names and matches snapshot 1`] = `
+"🐢 far out
+
+🐚 git.repo.get repos
+   ├─ repos: testorg/*
+   │
+   ├─ testorg
+   │  ├─ short                ~/git/testorg/short (local)
+   │  ├─ medium-name          ~/git/testorg/medium-name (local)
+   │  ├─ very-long-repo-name  ~/git/testorg/very-long-repo-name (local)
+   │  └─ a                    ~/git/testorg/a (local)
+   │
+   └─ found: 4 repos
+"
+`;
+
+exports[`git.repo.get.sh given: [case2] repos with no matches when: [t0] --repos nonexistent-org/* then: shows crickets header and matches snapshot 1`] = `
+"🐢 crickets...
+
+🐚 git.repo.get repos
+   ├─ repos: nonexistent-org-xyz-12345/*
+   │
+   └─ found: 0 repos
+"
+`;
+
+exports[`git.repo.get.sh given: [case3] repos with repo name glob when: [t0] --repos *-repo* then: matches repos by name pattern and matches snapshot 1`] = `
+"🐢 far out
+
+🐚 git.repo.get repos
+   ├─ repos: *-repo*
+   │
+   ├─ testorg
+   │  └─ very-long-repo-name  ~/git/testorg/very-long-repo-name (local)
+   │
+   ├─ otherorg
+   │  └─ another-repo         ~/git/otherorg/another-repo (local)
+   │
+   └─ found: 2 repos
+"
+`;
+
+exports[`git.repo.get.sh given: [case4] repos across orgs when: [t0] --repos */* then: shows all repos from all orgs with alignment 1`] = `
+"🐢 far out
+
+🐚 git.repo.get repos
+   ├─ repos: */*
+   │
+   ├─ testorg
+   │  ├─ short                ~/git/testorg/short (local)
+   │  ├─ medium-name          ~/git/testorg/medium-name (local)
+   │  ├─ very-long-repo-name  ~/git/testorg/very-long-repo-name (local)
+   │  └─ a                    ~/git/testorg/a (local)
+   │
+   ├─ otherorg
+   │  └─ another-repo         ~/git/otherorg/another-repo (local)
+   │
+   └─ found: 5 repos
+"
+`;
+
+exports[`git.repo.get.sh given: [case5] files in local repo when: [t0] --in testorg/short then: lists files with turtle header and matches snapshot 1`] = `
+"🐢 far out
+
+🐚 git.repo.get files
+   ├─ repo: testorg/short (local)
+   ├─ ref: origin/main
+   │
+   ├─ README.md
+   ├─ package.json
+   ├─ src/index.ts
+   ├─ src/utils.ts
+   │
+   └─ found: 4 files
+"
+`;
+
+exports[`git.repo.get.sh given: [case6] files with path filter when: [t0] --paths *.ts then: shows only ts files and matches snapshot 1`] = `
+"🐢 far out
+
+🐚 git.repo.get files
+   ├─ repo: testorg/short (local)
+   ├─ ref: origin/main
+   ├─ paths: src/*.ts
+   │
+   ├─ src/index.ts
+   ├─ src/utils.ts
+   │
+   └─ found: 2 files
+"
+`;
+
+exports[`git.repo.get.sh given: [case7] files in unknown repo when: [t0] --in unknown/repo then: shows bummer dude error and matches snapshot 1`] = `
+"🐢 bummer dude
+
+🐚 git.repo.get files
+   ├─ repo: unknown-org-xyz/unknown-repo-abc
+   └─ error: repo not found
+"
+`;
+
+exports[`git.repo.get.sh given: [case8] lines search in local repo when: [t0] --words pattern then: shows matches with context and matches snapshot 1`] = `
+"🐢 far out
+
+🐚 git.repo.get lines
+   ├─ repo: testorg/short (local)
+   ├─ ref: origin/main
+   ├─ words: hello
+   ├─ radius: 21
+   │
+   ├─ src/index.ts
+   │  ├─
+   │  │ >    1: export const hello = "world";
+   │  └─
+   │
+   └─ found: 1 matches
+"
+`;
+
+exports[`git.repo.get.sh given: [case9] lines search with custom radius when: [t0] --radius 3 then: shows 3 lines radius and matches snapshot 1`] = `
+"🐢 far out
+
+🐚 git.repo.get lines
+   ├─ repo: testorg/short (local)
+   ├─ ref: origin/main
+   ├─ words: hello
+   ├─ radius: 3
+   │
+   ├─ src/index.ts
+   │  ├─
+   │  │ >    1: export const hello = "world";
+   │  └─
+   │
+   └─ found: 1 matches
+"
+`;
+
+exports[`git.repo.get.sh given: [case10] lines search with no matches when: [t0] --words nonexistent pattern then: shows crickets header and matches snapshot 1`] = `
+"🐢 crickets...
+
+🐚 git.repo.get lines
+   ├─ repo: testorg/short (local)
+   ├─ ref: origin/main
+   ├─ words: NonExistentPatternXyz12345
+   │
+   └─ found: 0 matches
+"
+`;
+
+exports[`git.repo.get.sh given: [case11] lines read file when: [t0] --paths src/index.ts (no --words) then: shows full file content and matches snapshot 1`] = `
+"🐢 far out
+
+🐚 git.repo.get lines
+   ├─ repo: testorg/short (local)
+   ├─ paths: src/index.ts
+   │
+   ├─ src/index.ts (1 lines)
+   │  ├─
+   │  │     1: export const hello = "world";
+   │  └─
+   │
+   └─ found: 1 file
+"
+`;
+
+exports[`git.repo.get.sh given: [case12] lines read nonexistent file when: [t0] --paths nonexistent.ts then: shows crickets header and matches snapshot 1`] = `
+"🐢 crickets...
+
+🐚 git.repo.get lines
+   ├─ repo: testorg/short (local)
+   ├─ ref: origin/main
+   ├─ paths: nonexistent-file-xyz.ts
+   │
+   └─ found: 0 files
+"
+`;
+
+exports[`git.repo.get.sh given: [case13] files across repos when: [t0] --repos with --words then: searches files with content across repos 1`] = `
+"🐢 far out
+
+🐚 git.repo.get files
+   ├─ repos: testorg/*
+   ├─ words: hello
+   │
+   ├─ testorg/short (local)
+   │  └─ src/index.ts
+   │
+   ├─ testorg/medium-name (local)
+   │  └─ src/index.ts
+   │
+   ├─ testorg/very-long-repo-name (local)
+   │  └─ src/index.ts
+   │
+   ├─ testorg/a (local)
+   │  └─ src/index.ts
+   │
+   └─ found: 4 files in 4 repos
+"
+`;
+
+exports[`git.repo.get.sh given: [case13] files across repos when: [t1] --words only (defaults to */*) then: searches all repos for content 1`] = `
+"🐢 far out
+
+🐚 git.repo.get files
+   ├─ repos: */*
+   ├─ words: hello
+   │
+   ├─ testorg/short (local)
+   │  └─ src/index.ts
+   │
+   ├─ testorg/medium-name (local)
+   │  └─ src/index.ts
+   │
+   ├─ testorg/very-long-repo-name (local)
+   │  └─ src/index.ts
+   │
+   ├─ testorg/a (local)
+   │  └─ src/index.ts
+   │
+   ├─ otherorg/another-repo (local)
+   │  └─ src/index.ts
+   │
+   └─ found: 5 files in 5 repos
+"
+`;
+
+exports[`git.repo.get.sh given: [case14] lines across repos when: [t0] --repos with --words then: searches lines across repos 1`] = `
+"🐢 far out
+
+🐚 git.repo.get lines
+   ├─ repos: testorg/*
+   ├─ words: hello
+   │
+   ├─ testorg/short (local) — 1 matches
+   │  └─ src/index.ts
+   │  │  >    1: export const hello = "world";
+   │
+   ├─ testorg/medium-name (local) — 1 matches
+   │  └─ src/index.ts
+   │  │  >    1: export const hello = "world";
+   │
+   ├─ testorg/very-long-repo-name (local) — 1 matches
+   │  └─ src/index.ts
+   │  │  >    1: export const hello = "world";
+   │
+   ├─ testorg/a (local) — 1 matches
+   │  └─ src/index.ts
+   │  │  >    1: export const hello = "world";
+   │
+   └─ found: 4 matches in 4 repos
+"
+`;
+
+exports[`git.repo.get.sh given: [case14] lines across repos when: [t1] --words only (defaults to */*) then: searches all repos for pattern 1`] = `
+"🐢 far out
+
+🐚 git.repo.get lines
+   ├─ repos: */*
+   ├─ words: hello
+   │
+   ├─ testorg/short (local) — 1 matches
+   │  └─ src/index.ts
+   │  │  >    1: export const hello = "world";
+   │
+   ├─ testorg/medium-name (local) — 1 matches
+   │  └─ src/index.ts
+   │  │  >    1: export const hello = "world";
+   │
+   ├─ testorg/very-long-repo-name (local) — 1 matches
+   │  └─ src/index.ts
+   │  │  >    1: export const hello = "world";
+   │
+   ├─ testorg/a (local) — 1 matches
+   │  └─ src/index.ts
+   │  │  >    1: export const hello = "world";
+   │
+   ├─ otherorg/another-repo (local) — 1 matches
+   │  └─ src/index.ts
+   │  │  >    1: export const hello = "world";
+   │
+   └─ found: 5 matches in 5 repos
+"
+`;
+
+exports[`git.repo.get.sh given: [case14] lines across repos when: [t2] no matches in multi-repo then: shows crickets 1`] = `
+"🐢 crickets...
+
+🐚 git.repo.get lines
+   ├─ repos: testorg/*
+   ├─ words: NonExistentXyz123
+   │
+   └─ found: 0 matches
+"
+`;
+
+exports[`git.repo.get.sh given: [case15] repos without --repos flag when: [t0] no --repos specified then: defaults to */* and lists all repos 1`] = `
+"🐢 far out
+
+🐚 git.repo.get repos
+   ├─ repos: */*
+   │
+   ├─ testorg
+   │  ├─ short                ~/git/testorg/short (local)
+   │  ├─ medium-name          ~/git/testorg/medium-name (local)
+   │  ├─ very-long-repo-name  ~/git/testorg/very-long-repo-name (local)
+   │  └─ a                    ~/git/testorg/a (local)
+   │
+   ├─ otherorg
+   │  └─ another-repo         ~/git/otherorg/another-repo (local)
+   │
+   └─ found: 5 repos
+"
+`;
+
+exports[`git.repo.get.sh given: [case16] absent required flags when: [t0] files without --in then: exits with error and matches snapshot 1`] = `
+"🐢 bummer dude
+
+🐚 git.repo.get files
+   └─ error: --in flag is required
+"
+`;
+
+exports[`git.repo.get.sh given: [case16] absent required flags when: [t1] lines without --in or --repos then: exits with error and matches snapshot 1`] = `
+"🐢 bummer dude
+
+🐚 git.repo.get lines
+   └─ error: --in or --repos flag is required
+"
+`;
+
+exports[`git.repo.get.sh given: [case16] absent required flags when: [t2] lines without --paths or --words then: exits with error and matches snapshot 1`] = `
+"🐢 bummer dude
+
+🐚 git.repo.get lines
+   ├─ repo: testorg/short (local)
+   └─ error: --paths is required for read mode (no --words)
+"
+`;
+
+exports[`git.repo.get.sh given: [case17] regex patterns with pipe when: [t0] --words with alternation pattern then: matches either pattern 1`] = `
+"🐢 far out
+
+🐚 git.repo.get files
+   ├─ repos: testorg/*
+   ├─ words: hello|add
+   │
+   ├─ testorg/short (local)
+   │  ├─ src/index.ts
+   │  └─ src/utils.ts
+   │
+   ├─ testorg/medium-name (local)
+   │  ├─ src/index.ts
+   │  └─ src/utils.ts
+   │
+   ├─ testorg/very-long-repo-name (local)
+   │  ├─ src/index.ts
+   │  └─ src/utils.ts
+   │
+   ├─ testorg/a (local)
+   │  ├─ src/index.ts
+   │  └─ src/utils.ts
+   │
+   └─ found: 8 files in 4 repos
+"
+`;
+
+exports[`git.repo.get.sh given: [case17] regex patterns with pipe when: [t1] lines search with alternation pattern then: shows matches for either pattern 1`] = `
+"🐢 far out
+
+🐚 git.repo.get lines
+   ├─ repo: testorg/short (local)
+   ├─ ref: origin/main
+   ├─ words: hello|add
+   ├─ radius: 21
+   │
+   ├─ src/index.ts
+   │  ├─
+   │  │ >    1: export const hello = "world";
+   │  └─
+   │
+   ├─ src/utils.ts
+   │  ├─
+   │  │ >    1: export const add = (a: number, b: number) => a + b;
+   │  └─
+   │
+   └─ found: 2 matches
+"
+`;

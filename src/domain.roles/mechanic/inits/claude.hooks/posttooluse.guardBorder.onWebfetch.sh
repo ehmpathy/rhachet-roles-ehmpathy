@@ -17,8 +17,9 @@
 ######################################################################
 set -euo pipefail
 
-# load api keys from user config (same source as use.apikeys.sh)
-if [[ -f ~/.config/rhachet/apikeys.env ]]; then
+# load api keys from user config only if not already defined
+# note: respects XAI_API_KEY='' to allow tests to simulate unconfigured state
+if [[ -z "${XAI_API_KEY+x}" && -f ~/.config/rhachet/apikeys.env ]]; then
   source ~/.config/rhachet/apikeys.env
 fi
 
