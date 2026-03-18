@@ -94,8 +94,8 @@ if [[ "$PUSH_ALLOWED" != "allow" ]]; then
   exit 1
 fi
 
-# guard: uses > 0 for apply mode (plan is free)
-if [[ "$USES" -le 0 && "$MODE" == "apply" ]]; then
+# guard: uses > 0 for apply mode (plan is free, infinite is allowed)
+if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" == "apply" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: no commit uses left"
