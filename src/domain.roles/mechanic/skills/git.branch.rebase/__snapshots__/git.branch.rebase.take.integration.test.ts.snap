@@ -1,0 +1,107 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.rebase.take given: [case1] rebase in progress with single conflict file when: [t0] take theirs for single file then: file is replaced with theirs, staged, exit 0 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: theirs
+   ├─ settled
+   │  └─ pnpm-lock.yaml ✓
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.take given: [case2] rebase in progress with single conflict file when: [t0] take ours for single file then: file is replaced with ours, staged, exit 0 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: ours
+   ├─ settled
+   │  └─ .eslintrc.json ✓
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.take given: [case3] rebase in progress with multiple conflict files when: [t0] take theirs for all via . then: all conflict files settled, exit 0 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: theirs
+   ├─ settled
+   │  ├─ a.ts ✓
+   │  ├─ b.ts ✓
+   │  └─ c.ts ✓
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.take given: [case4] no rebase in progress when: [t0] attempt take then: shows error: no rebase in progress 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase take
+   └─ error: no rebase in progress
+"
+`;
+
+exports[`git.branch.rebase.take given: [case5] rebase in progress but file not in conflict when: [t0] attempt take on non-conflict file then: shows error: no files in conflict 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase take
+   └─ error: no files in conflict
+"
+`;
+
+exports[`git.branch.rebase.take given: [case6] invalid --whos value when: [t0] attempt take with invalid whos then: shows error: whos must be ours or theirs 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase take
+   └─ error: whos must be ours or theirs (got: mine)
+"
+`;
+
+exports[`git.branch.rebase.take given: [case7] no paths given when: [t0] attempt take without paths then: shows error: paths required 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase take
+   └─ error: paths required
+"
+`;
+
+exports[`git.branch.rebase.take given: [case8] absent --whos when: [t0] attempt take without --whos then: shows error: --whos required 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase take
+   └─ error: --whos required (ours or theirs)
+"
+`;
+
+exports[`git.branch.rebase.take given: [case9] output format verification when: [t0] successful take then: output includes turtle header, tree, and done 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: theirs
+   ├─ settled
+   │  └─ test.ts ✓
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.take given: [case10] glob pattern support when: [t0] take theirs via glob pattern then: all matched conflict files settled 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: theirs
+   ├─ settled
+   │  ├─ a.lock ✓
+   │  └─ b.lock ✓
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.take given: [case11] file not found (fail-fast) when: [t0] take theirs with nonexistent file then: fails immediately with file not found error 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase take
+   └─ error: file not found: nonexistent.ts
+"
+`;
