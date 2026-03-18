@@ -1,0 +1,219 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release given: [case1] release to main (plan mode) when: [t0] feature branch with open PR then: shows status tree with hint to apply 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to main --mode plan
+
+🌊 release: turtle/feature-x
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --mode apply to add)
+   └─ hint: use --mode apply to enable automerge and watch
+"
+`;
+
+exports[`git.release given: [case1] release to main (plan mode) when: [t1] feature branch with no PR then: shows crickets vibe with hint to push 1`] = `
+"🐢 crickets...
+
+🫧 no open branch pr
+   ├─ turtle/feature-x
+   └─ hint: use git.commit.push to push and findsert pr
+"
+`;
+
+exports[`git.release given: [case1] release to main (plan mode) when: [t2] on main branch with release PR then: shows release PR status 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to main
+
+🌊 release: chore(release)
+   ├─ 👌 all checks passed
+   └─ 🌴 automerge enabled
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t0] PR with all checks passed then: shows cowabunga vibe and enables automerge 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: turtle/feature-x
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! 0s in action, 0s watched
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t1] PR with failed checks then: shows bummer vibe with failure links 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --to main --mode apply
+
+🌊 release: turtle/feature-x
+   ├─ ⚓  1 check(s) failed
+   │  └─ 🔴 test-unit
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        └─ failure after 2m 34s
+   └─ hint: use --retry to rerun failed workflows
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t2] PR needs rebase then: shows hold up vibe 1`] = `
+"🐢 hold up...
+
+🐚 git.release --to main
+
+🌊 release: turtle/feature-x
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase
+   └─ 🌴 automerge unfound (use --mode apply to add)
+"
+`;
+
+exports[`git.release given: [case3] release to prod (plan mode) when: [t0] release PR extant then: shows status with hint to apply 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to prod --mode plan
+
+🌊 release: chore(release)
+   ├─ 👌 all checks passed
+   └─ hint: use --mode apply to merge and watch tag workflows
+"
+`;
+
+exports[`git.release given: [case3] release to prod (plan mode) when: [t1] no release PR then: shows latest tag status 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to prod --mode plan
+
+🌊 release: v1.2.0
+   ├─ publish.yml: success
+   └─ no release pr open
+"
+`;
+
+exports[`git.release given: [case4] release to prod (apply mode) when: [t0] release PR extant with passed checks then: shows radical vibe and watches 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: chore(release)
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! 0s in action, 0s watched
+
+🌊 release: v1.2.3
+   └─ 🥥 let's watch
+      └─ ✨ done! publish.yml, 0s in action, 0s watched
+"
+`;
+
+exports[`git.release given: [case4] release to prod (apply mode) when: [t1] release PR already merged then: watches tag workflows 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: v1.2.3
+   └─ 🥥 let's watch
+      └─ ✨ done! publish.yml, 0s in action, 0s watched
+"
+`;
+
+exports[`git.release given: [case4] release to prod (apply mode) when: [t2] tag workflow fails then: shows failure with retry hint 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: v1.2.3
+   └─ 🥥 let's watch
+      ├─ 🔴 publish.yml failed
+      └─ hint: use --retry to rerun failed workflows
+"
+`;
+
+exports[`git.release given: [case4] release to prod (apply mode) when: [t3] deploy.yml detected then: watches deploy workflow 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: v1.2.3
+   └─ 🥥 let's watch
+      └─ ✨ done! deploy.yml, 0s in action, 0s watched
+"
+`;
+
+exports[`git.release given: [case5] retry behavior when: [t0] --retry with failed PR checks then: reruns failed workflows 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --to main --mode apply
+
+🌊 release: turtle/feature-x
+   ├─ ⚓  1 check(s) failed
+   │  └─ 🔴 test-unit
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ failure after 2m 34s
+   │        └─ 👌 rerun triggered
+   └─ hint: use --retry to rerun failed workflows
+"
+`;
+
+exports[`git.release given: [case5] retry behavior when: [t1] --retry with failed tag workflows then: reruns failed tag workflows 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: v1.2.3
+   └─ 🥥 let's watch
+      ├─ 🔴 publish.yml failed
+      └─ hint: use --retry to rerun failed workflows
+"
+`;
+
+exports[`git.release given: [case6] boundary conditions when: [t0] keyrack locked then: shows unlock instructions 1`] = `
+"🐢 bummer dude...
+
+🔐 github token not found
+   ├─ run: rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env all
+   └─ then retry this command
+"
+`;
+
+exports[`git.release given: [case7] argument validation when: [t4] --help flag then: shows usage and exits 0 1`] = `
+"usage: git.release --to main|prod [--mode plan|apply] [--retry]
+
+  --to main     merge branch to main
+  --to prod     merge branch to main, merge release to main, watch release to prod
+  --mode plan   watch the branch or release (default)
+  --mode apply  enable automerge and watch the branch or release
+  --retry       rerun failed workflows before watch
+"
+`;
+
+exports[`git.release given: [case8] watch loop internals when: [t0] checks in progress then: shows progress status 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to main --mode plan
+
+🌊 release: turtle/feature-x
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge unfound (use --mode apply to add)
+   └─ hint: use --mode apply to enable automerge and watch
+"
+`;
+
+exports[`git.release given: [case8] watch loop internals when: [t1] apply mode with poll progress then: shows 💤 lines before completion 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: turtle/feature-x
+   ├─ 🐢 2 check(s) in progress
+   ├─ 🌴 automerge enabled
+   └─ 🥥 let's watch
+      ├─ 💤 2 left, 0s in action, 0s watched
+      ├─ 💤 1 left, 1s in action, 1s watched
+      └─ ✨ done! 2s in action, 2s watched
+"
+`;

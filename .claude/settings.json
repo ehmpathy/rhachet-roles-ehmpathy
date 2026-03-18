@@ -18,6 +18,12 @@
           },
           {
             "type": "command",
+            "command": "./node_modules/.bin/rhx route.drive --mode hook",
+            "timeout": 5,
+            "author": "repo=bhrain/role=driver"
+          },
+          {
+            "type": "command",
             "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/sessionstart.notify-permissions",
             "timeout": 5,
             "author": "repo=ehmpathy/role=mechanic"
@@ -51,31 +57,14 @@
     ],
     "PreToolUse": [
       {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-stderr-redirect",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          },
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.check-permissions",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          },
-          {
-            "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-suspicious-shell-syntax",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
-          }
-        ]
-      },
-      {
         "matcher": "Write|Edit",
         "hooks": [
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhx route.bounce --mode hook",
+            "timeout": 5,
+            "author": "repo=bhrain/role=driver"
+          },
           {
             "type": "command",
             "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-terms.gerunds",
@@ -87,12 +76,29 @@
             "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-terms.blocklist",
             "timeout": 5,
             "author": "repo=ehmpathy/role=mechanic"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-suspicious-shell-syntax",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
           },
           {
             "type": "command",
-            "command": "./node_modules/.bin/rhx route.bounce --mode hook",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-stderr-redirect",
             "timeout": 5,
-            "author": "repo=bhrain/role=driver"
+            "author": "repo=ehmpathy/role=mechanic"
+          },
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.check-permissions",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
           }
         ]
       },
@@ -142,15 +148,15 @@
           },
           {
             "type": "command",
-            "command": "pnpm run --if-present fix",
-            "timeout": 30,
-            "author": "repo=ehmpathy/role=mechanic"
-          },
-          {
-            "type": "command",
             "command": "./node_modules/.bin/rhx route.drive --mode hook",
             "timeout": 5,
             "author": "repo=bhrain/role=driver"
+          },
+          {
+            "type": "command",
+            "command": "pnpm run --if-present fix",
+            "timeout": 30,
+            "author": "repo=ehmpathy/role=mechanic"
           }
         ]
       }
@@ -416,16 +422,20 @@
       "Bash(tee:*)",
       "Edit(**/.route/**)",
       "Edit(*/**/.route/**)",
+      "Edit(.behavior/**/.route/**)",
       "Edit(.branch/.bind/*)",
       "Edit(.meter/*)",
       "Edit(.route/**)",
+      "Edit(.route/**/.route/**)",
       "EnterPlanMode",
       "Read(.quarantine/*)",
       "Write(**/.route/**)",
       "Write(*/**/.route/**)",
+      "Write(.behavior/**/.route/**)",
       "Write(.branch/.bind/*)",
       "Write(.meter/*)",
-      "Write(.route/**)"
+      "Write(.route/**)",
+      "Write(.route/**/.route/**)"
     ],
     "ask": [
       "Bash(bash:*)",
