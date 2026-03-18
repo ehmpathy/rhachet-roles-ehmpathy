@@ -62,7 +62,7 @@ describe('git.repo.get.sh', () => {
       spawnSync('git', ['init'], { cwd: repoPath });
       spawnSync('git', ['add', '.'], { cwd: repoPath });
       spawnSync('git', ['commit', '-m', 'initial'], { cwd: repoPath });
-      spawnSync('git', ['checkout', '-b', 'main'], { cwd: repoPath });
+      spawnSync('git', ['checkout', '-B', 'main'], { cwd: repoPath });
       spawnSync(
         'git',
         ['remote', 'add', 'origin', `https://github.com/${repo}.git`],
