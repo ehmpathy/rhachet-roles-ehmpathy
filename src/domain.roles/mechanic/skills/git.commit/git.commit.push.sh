@@ -121,6 +121,15 @@ emit_error() {
 # GUARDS
 ######################################################################
 
+# guard: global blocker must not be active
+if ! check_global_blocker; then
+  emit_error "$GLOBAL_BLOCK_REASON"
+  if [[ "$OUTPUT" == "tree" ]]; then
+    print_instruction "ask your human to lift:" "  \$ git.commit.uses allow --global"
+  fi
+  exit 2
+fi
+
 # guard: push must be allowed
 PUSH_ALLOWED=""
 USES=0

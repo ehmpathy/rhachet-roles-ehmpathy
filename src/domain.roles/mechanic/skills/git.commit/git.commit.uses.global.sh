@@ -89,6 +89,21 @@ if [[ -z "$COMMAND" ]]; then
   exit 2
 fi
 
+######################################################################
+# guard: mutation commands require TTY (human only)
+# note: __I_AM_HUMAN=true allows integration tests to run mutations
+######################################################################
+case "$COMMAND" in
+  block|allow)
+    if [[ ! -t 0 && "${__I_AM_HUMAN:-}" != "true" ]]; then
+      print_turtle_header "bummer dude..."
+      print_tree_start "git.commit.uses $COMMAND --global"
+      print_tree_error "only humans can run this command"
+      exit 2
+    fi
+    ;;
+esac
+
 case "$COMMAND" in
   block)
     # create global blocker file

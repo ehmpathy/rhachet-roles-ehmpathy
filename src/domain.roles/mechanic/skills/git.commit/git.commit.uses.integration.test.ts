@@ -30,6 +30,7 @@ describe('git.commit.uses.sh', () => {
       cwd: tempDir,
       encoding: 'utf-8' as const,
       stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, __I_AM_HUMAN: 'true' },
     });
 
     return {
@@ -91,7 +92,7 @@ describe('git.commit.uses.sh', () => {
       cwd: tempDir,
       encoding: 'utf-8' as const,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, HOME: tempHome },
+      env: { ...process.env, HOME: tempHome, __I_AM_HUMAN: 'true' },
     });
 
     return {
@@ -701,6 +702,173 @@ describe('git.commit.uses.sh', () => {
         expect(result.stdout).toContain('no quota set');
         expect(result.stdout).toContain('global: blocked');
         expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ========================================
+  // TTY guard for human-only mutations
+  // ========================================
+
+  given('[case20] TTY guard for local mutations', () => {
+    /**
+     * .what = run command WITHOUT the test bypass to verify TTY check
+     * .why = mutations must be blocked when stdin is not a TTY
+     */
+    const runWithoutTtyBypass = (args: {
+      args: string[];
+    }): {
+      stdout: string;
+      stderr: string;
+      exitCode: number;
+      tempDir: string;
+    } => {
+      const tempDir = genTempDir({
+        slug: 'git-commit-uses-tty-test',
+        git: true,
+      });
+
+      // run without __I_AM_HUMAN to trigger the TTY check
+      const result = spawnSync('bash', [scriptPath, ...args.args], {
+        cwd: tempDir,
+        encoding: 'utf-8' as const,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        // no __I_AM_HUMAN
+      });
+
+      return {
+        stdout: result.stdout ?? '',
+        stderr: result.stderr ?? '',
+        exitCode: result.status ?? 1,
+        tempDir,
+      };
+    };
+
+    when('[t0] set is called from non-TTY', () => {
+      then('blocks with human-only error', () => {
+        const result = runWithoutTtyBypass({
+          args: ['set', '--quant', '3', '--push', 'block'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] del is called from non-TTY', () => {
+      then('blocks with human-only error', () => {
+        const result = runWithoutTtyBypass({
+          args: ['del'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('only humans can run this command');
+      });
+    });
+
+    when('[t2] block is called from non-TTY', () => {
+      then('blocks with human-only error', () => {
+        const result = runWithoutTtyBypass({
+          args: ['block'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('only humans can run this command');
+      });
+    });
+
+    when('[t3] allow is called from non-TTY', () => {
+      then('blocks with human-only error', () => {
+        const result = runWithoutTtyBypass({
+          args: ['allow'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('only humans can run this command');
+      });
+    });
+
+    when('[t4] get is called from non-TTY', () => {
+      then('succeeds (get is not a mutation)', () => {
+        const result = runWithoutTtyBypass({
+          args: ['get'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('no quota set');
+      });
+    });
+  });
+
+  given('[case21] TTY guard for global mutations', () => {
+    const runGlobalWithoutTtyBypass = (args: {
+      args: string[];
+    }): {
+      stdout: string;
+      stderr: string;
+      exitCode: number;
+      tempDir: string;
+      tempHome: string;
+    } => {
+      const tempDir = genTempDir({
+        slug: 'git-commit-uses-tty-test',
+        git: true,
+      });
+      const tempHome = genTempDir({
+        slug: 'git-commit-uses-tty-home',
+        git: false,
+      });
+
+      const result = spawnSync('bash', [scriptPath, ...args.args], {
+        cwd: tempDir,
+        encoding: 'utf-8' as const,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: { ...process.env, HOME: tempHome },
+        // no __I_AM_HUMAN
+      });
+
+      return {
+        stdout: result.stdout ?? '',
+        stderr: result.stderr ?? '',
+        exitCode: result.status ?? 1,
+        tempDir,
+        tempHome,
+      };
+    };
+
+    when('[t0] block --global is called from non-TTY', () => {
+      then('blocks with human-only error', () => {
+        const result = runGlobalWithoutTtyBypass({
+          args: ['block', '--global'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toContain('--global');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] allow --global is called from non-TTY', () => {
+      then('blocks with human-only error', () => {
+        const result = runGlobalWithoutTtyBypass({
+          args: ['allow', '--global'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('only humans can run this command');
+      });
+    });
+
+    when('[t2] get --global is called from non-TTY', () => {
+      then('succeeds (get is not a mutation)', () => {
+        const result = runGlobalWithoutTtyBypass({
+          args: ['get', '--global'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('not blocked');
       });
     });
   });
