@@ -334,7 +334,7 @@ describe('git.release', () => {
       });
     });
 
-    when('[t1] no release PR', () => {
+    when('[t1] no release pr', () => {
       then('shows latest tag status', () => {
         const mockResponses = {
           'pr list': '',
@@ -352,6 +352,60 @@ describe('git.release', () => {
 
           expect(result.stdout).toMatchSnapshot();
           expect(result.status).toEqual(0);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t2] feature branch with open pr', () => {
+      then('runs --to main flow first then stops', () => {
+        const mockResponses = {
+          'pr list': '42',
+          'pr view':
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN"}',
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
+
+          // should show --to main plan output (not prod)
+          expect(result.stdout).toContain('git.release --to main');
+          expect(result.stdout).not.toContain('--to prod');
+          expect(result.stdout).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t3] feature branch without pr', () => {
+      then('fails fast with push hint', () => {
+        const mockResponses = {
+          'pr list': '', // no pr
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
+
+          expect(result.stdout).toContain('hold up');
+          expect(result.stdout).toContain('no open pr');
+          expect(result.stdout).toContain('git.commit.push');
+          expect(result.stdout).toMatchSnapshot();
+          expect(result.status).toEqual(1);
         } finally {
           cleanup();
         }
@@ -465,6 +519,127 @@ describe('git.release', () => {
         } finally {
           cleanup();
         }
+      });
+    });
+
+    when('[t4] feature branch without pr', () => {
+      then('fails fast with push hint', () => {
+        const mockResponses = {
+          'pr list': '', // no pr
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          expect(result.stdout).toContain('hold up');
+          expect(result.stdout).toContain('no open pr');
+          expect(result.stdout).toContain('git.commit.push');
+          expect(result.stdout).toMatchSnapshot();
+          expect(result.status).toEqual(1);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t5] feature branch with pr that merges', () => {
+      then('runs --to main first then continues to release pr', () => {
+        // stateful mock: first pr view is for feature branch (open), second is merged
+        const tempDir = genTempDir({ slug: 'git-release-t5', git: true });
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+
+        // counter file for stateful mock
+        const counterFile = path.join(tempDir, '.gh-call-counter');
+        fs.writeFileSync(counterFile, '0');
+
+        const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+COUNTER_FILE="${counterFile}"
+COUNT=$(cat "$COUNTER_FILE")
+
+CMD_KEY="$1 $2"
+
+case "$CMD_KEY" in
+  "pr list")
+    # first call: return feature branch pr (42)
+    # after merge: return release pr (99)
+    if [[ $COUNT -lt 3 ]]; then
+      echo "42"
+    else
+      echo "99"
+    fi
+    ;;
+  "pr view")
+    echo $((COUNT + 1)) > "$COUNTER_FILE"
+    if [[ $COUNT -lt 2 ]]; then
+      # feature branch pr - open then merged
+      if [[ $COUNT -lt 1 ]]; then
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN"}'
+      else
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED"}'
+      fi
+    else
+      # release pr - merged
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED"}'
+    fi
+    ;;
+  "pr merge")
+    echo "auto-merge enabled"
+    ;;
+  "run list")
+    echo '[{"name": "publish.yml", "conclusion": "success", "status": "completed", "url": "https://github.com/test/repo/actions/runs/789"}]'
+    ;;
+  "run view")
+    echo '{"startedAt": "2024-01-01T00:00:00Z", "updatedAt": "2024-01-01T00:00:00Z"}'
+    ;;
+  *)
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+esac
+`;
+        fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        // mock rhachet keyrack
+        const rhachetMock = `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
+  echo "mock-token"
+  exit 0
+fi
+exit 1
+`;
+        fs.writeFileSync(path.join(fakeBinDir, 'rhachet'), rhachetMock);
+        fs.chmodSync(path.join(fakeBinDir, 'rhachet'), '755');
+
+        // setup git repo
+        spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
+        spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+          cwd: tempDir,
+        });
+
+        const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+          tempDir,
+          fakeBinDir,
+        });
+
+        // should show --to main flow first
+        expect(result.stdout).toContain('git.release --to main');
+        // then should show tag workflow watch
+        expect(result.stdout).toContain('v1.2.3');
+        expect(result.stdout).toMatchSnapshot();
+        expect(result.status).toEqual(0);
       });
     });
   });

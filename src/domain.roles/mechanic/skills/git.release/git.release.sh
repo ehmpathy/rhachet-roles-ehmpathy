@@ -3,14 +3,14 @@
 # .what = release to main or prod with plan/apply pattern
 #
 # .why  = automates the release workflow:
-#         - merge feature branch PR to main
+#         - merge feature branch pr to main
 #         - full release cycle: merge → watch CI → tag → deploy
 #         - wraps extant git release alias with turtle vibes
 #
 # usage:
-#   git.release --to main                           # plan: show PR status
+#   git.release --to main                           # plan: show pr status
 #   git.release --to main --mode apply              # apply: enable automerge, watch
-#   git.release --to prod                           # plan: show release PR status
+#   git.release --to prod                           # plan: show release pr status
 #   git.release --to prod --mode apply              # apply: full release cycle
 #   git.release --to main --mode apply --retry      # retry failed workflows
 #
@@ -364,23 +364,23 @@ release_to_main() {
 
   # check if on default branch
   if [[ "$branch" == "$default_branch" ]]; then
-    # show release PR or tag status
+    # show release pr or tag status
     release_from_main
     return
   fi
 
-  # find PR for current branch
+  # find pr for current branch
   local pr_number
   pr_number=$(get_pr_for_branch "$branch")
 
   if [[ -z "$pr_number" ]]; then
-    # no PR found
+    # no pr found
     print_turtle_header "crickets..."
     print_no_pr_status "$branch" "$(get_unpushed_count)"
     return 1
   fi
 
-  # get PR status
+  # get pr status
   local status_json
   status_json=$(get_pr_status "$pr_number")
 
@@ -457,7 +457,7 @@ release_to_main() {
     # failloud: let enable_automerge errors propagate directly
     enable_automerge "$pr_number"
 
-    # check if PR was instantly merged (all checks passed, no branch protection delay)
+    # check if pr was instantly merged (all checks passed, no branch protection delay)
     local post_status
     post_status=$(get_pr_status "$pr_number")
     if [[ $(is_pr_merged "$post_status") == "true" ]]; then
@@ -478,18 +478,18 @@ release_to_main() {
 }
 
 ######################################################################
-# dispatch: release from main (show release PR or tag status)
+# dispatch: release from main (show release pr or tag status)
 ######################################################################
 release_from_main() {
   local default_branch
   default_branch=$(get_default_branch)
 
-  # look for release PR
+  # look for release pr
   local release_pr
   release_pr=$(get_release_pr)
 
   if [[ -n "$release_pr" ]]; then
-    # show release PR status
+    # show release pr status
     local status_json
     status_json=$(get_pr_status "$release_pr")
 
@@ -522,7 +522,7 @@ release_from_main() {
     return 0
   fi
 
-  # no release PR, show latest tag
+  # no release pr, show latest tag
   local latest_tag
   latest_tag=$(get_latest_tag)
 
@@ -542,12 +542,49 @@ release_from_main() {
 # dispatch: --to prod
 ######################################################################
 release_to_prod() {
-  # look for release PR
-  local release_pr
-  release_pr=$(get_release_pr)
+  local current_branch
+  current_branch=$(get_current_branch)
 
   local default_branch
   default_branch=$(get_default_branch)
+
+  # if on feature branch, must have open pr to proceed
+  if [[ "$current_branch" != "$default_branch" ]]; then
+    local branch_pr
+    branch_pr=$(get_pr_for_branch "$current_branch")
+
+    if [[ -z "$branch_pr" ]]; then
+      # no pr for feature branch - fail fast
+      print_turtle_header "hold up..."
+      echo "🐚 git.release --to prod"
+      echo ""
+      echo "🫧 no open pr for $current_branch"
+      echo "   └─ did you git.commit.push to create the pr yet?"
+      return 1
+    fi
+
+    # run --to main flow first
+    release_to_main
+
+    # if plan mode, stop here (don't show prod stuff too)
+    if [[ "$MODE" == "plan" ]]; then
+      return 0
+    fi
+
+    # apply mode: verify feature branch merged before next step
+    local post_status
+    post_status=$(get_pr_status "$branch_pr")
+    if [[ $(is_pr_merged "$post_status") != "true" ]]; then
+      # feature branch didn't merge - stop here
+      return 1
+    fi
+
+    echo ""
+  fi
+
+  # look for release pr
+  local release_pr
+  release_pr=$(get_release_pr)
 
   # plan mode
   if [[ "$MODE" == "plan" ]]; then
@@ -578,7 +615,7 @@ release_to_prod() {
 
       echo "   └─ hint: use --mode apply to merge and watch tag workflows"
     else
-      # no release PR
+      # no release pr
       local latest_tag
       latest_tag=$(get_latest_tag)
 
@@ -657,7 +694,7 @@ release_to_prod() {
       print_automerge_status "enabled"
     fi
 
-    # watch release PR merge
+    # watch release pr merge
     print_watch_status
     if ! watch_pr_checks "$release_pr"; then
       return 1
@@ -681,7 +718,7 @@ release_to_prod() {
       return 1
     fi
   else
-    # no release PR, watch latest tag workflows
+    # no release pr, watch latest tag workflows
     local latest_tag
     latest_tag=$(get_latest_tag)
 

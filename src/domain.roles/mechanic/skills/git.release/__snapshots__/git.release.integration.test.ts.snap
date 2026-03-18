@@ -83,7 +83,7 @@ exports[`git.release given: [case3] release to prod (plan mode) when: [t0] relea
 "
 `;
 
-exports[`git.release given: [case3] release to prod (plan mode) when: [t1] no release PR then: shows latest tag status 1`] = `
+exports[`git.release given: [case3] release to prod (plan mode) when: [t1] no release pr then: shows latest tag status 1`] = `
 "🐢 heres the wave...
 
 🐚 git.release --to prod --mode plan
@@ -91,6 +91,28 @@ exports[`git.release given: [case3] release to prod (plan mode) when: [t1] no re
 🌊 release: v1.2.0
    ├─ publish.yml: success
    └─ no release pr open
+"
+`;
+
+exports[`git.release given: [case3] release to prod (plan mode) when: [t2] feature branch with open pr then: runs --to main flow first then stops 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to main --mode plan
+
+🌊 release: turtle/feature-x
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --mode apply to add)
+   └─ hint: use --mode apply to enable automerge and watch
+"
+`;
+
+exports[`git.release given: [case3] release to prod (plan mode) when: [t3] feature branch without pr then: fails fast with push hint 1`] = `
+"🐢 hold up...
+
+🐚 git.release --to prod
+
+🫧 no open pr for turtle/feature-x
+   └─ did you git.commit.push to create the pr yet?
 "
 `;
 
@@ -143,6 +165,45 @@ exports[`git.release given: [case4] release to prod (apply mode) when: [t3] depl
 🌊 release: v1.2.3
    └─ 🥥 let's watch
       └─ ✨ done! deploy.yml, 0s in action, 0s watched
+"
+`;
+
+exports[`git.release given: [case4] release to prod (apply mode) when: [t4] feature branch without pr then: fails fast with push hint 1`] = `
+"🐢 hold up...
+
+🐚 git.release --to prod
+
+🫧 no open pr for turtle/feature-x
+   └─ did you git.commit.push to create the pr yet?
+"
+`;
+
+exports[`git.release given: [case4] release to prod (apply mode) when: [t5] feature branch with pr that merges then: runs --to main first then continues to release pr 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: turtle/feature-x
+   ├─ 👌 all checks passed
+auto-merge enabled
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! 0s in action, 0s watched
+
+🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: chore(release)
+   ├─ 👌 all checks passed
+auto-merge enabled
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! 0s in action, 0s watched
+
+🌊 release: v1.2.3
+   └─ 🥥 let's watch
+      └─ ✨ done! publish.yml, 0s in action, 0s watched
 "
 `;
 
