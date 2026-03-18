@@ -284,6 +284,17 @@
       // git.branch.rebase abort - abort rebase and restore pre-rebase state
       "Bash(rhx git.branch.rebase abort)",
 
+      // git.repo.get - search and browse repos without permission prompts
+      "Bash(npx rhachet run --skill git.repo.get:*)",
+      "Bash(rhx git.repo.get:*)",
+      // examples: repos, files, lines subcommands
+      "Bash(rhx git.repo.get repos --repos 'ehmpathy/*')",
+      "Bash(rhx git.repo.get files --in ehmpathy/domain-objects)",
+      "Bash(rhx git.repo.get lines --in ehmpathy/domain-objects --words 'DomainEntity')",
+      "Bash(rhx git.repo.get lines --in ehmpathy/domain-objects --paths 'src/index.ts')",
+      // multi-repo search (find files with pattern across all repos in org)
+      "Bash(rhx git.repo.get files --repos 'ehmpathy/*' --words 'DomainEntity')",
+
       // keyrack unlock - unlock fallback keyrack for push operations
       // note: rhx:* and npx rhx:* already allowed; these are just examples
       "Bash(rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env all)",
