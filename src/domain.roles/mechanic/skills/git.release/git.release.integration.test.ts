@@ -21,6 +21,7 @@ const setupTestEnv = (
 
   // create mock gh cli
   // use first 2 args as key: "pr list", "pr view", "pr merge", "run list", "run rerun"
+  // special case for "run view" which has subvariants: --json jobs vs --json startedAt
   const ghMockContent = `#!/bin/bash
 set -euo pipefail
 
@@ -30,10 +31,43 @@ MOCK_RESPONSES='${JSON.stringify(mockResponses).replace(/'/g, "'\"'\"'")}'
 # build command key from first 2 args only (e.g., "pr list", "pr view")
 CMD_KEY="$1 $2"
 
+# distinguish "run view" subvariants by --json flag
+if [[ "$CMD_KEY" == "run view" ]]; then
+  ALL_ARGS="$*"
+  if [[ "$ALL_ARGS" == *"--json jobs"* ]]; then
+    CMD_KEY="run view jobs"
+  elif [[ "$ALL_ARGS" == *"--json startedAt"* ]]; then
+    CMD_KEY="run view duration"
+  fi
+fi
+
+# distinguish "pr list" subvariants by --state flag
+if [[ "$CMD_KEY" == "pr list" ]]; then
+  ALL_ARGS="$*"
+  if [[ "$ALL_ARGS" == *"--state open"* ]]; then
+    # check for "pr list open" key first, fallback to "pr list"
+    RESPONSE_OPEN=$(echo "$MOCK_RESPONSES" | jq -r '.["pr list open"] // empty')
+    if [[ -n "$RESPONSE_OPEN" ]]; then
+      CMD_KEY="pr list open"
+    fi
+  elif [[ "$ALL_ARGS" == *"--state merged"* ]]; then
+    # check for "pr list merged" key first, fallback to "pr list"
+    RESPONSE_MERGED=$(echo "$MOCK_RESPONSES" | jq -r '.["pr list merged"] // empty')
+    if [[ -n "$RESPONSE_MERGED" ]]; then
+      CMD_KEY="pr list merged"
+    fi
+  fi
+fi
+
 # lookup response
 RESPONSE=$(echo "$MOCK_RESPONSES" | jq -r --arg key "$CMD_KEY" '.[$key] // empty')
 
 if [[ -n "$RESPONSE" ]]; then
+  # support error responses: prefix "ERROR:" means exit 1 with message to stderr
+  if [[ "$RESPONSE" == ERROR:* ]]; then
+    echo "\${RESPONSE#ERROR:}" >&2
+    exit 1
+  fi
   echo "$RESPONSE"
   exit 0
 fi
@@ -163,7 +197,7 @@ describe('git.release', () => {
           const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
 
           expect(result.stdout).toMatchSnapshot();
-          expect(result.status).toEqual(1);
+          expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
         }
@@ -184,6 +218,36 @@ describe('git.release', () => {
         try {
           const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
 
+          expect(result.stdout).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t3] feature branch with merged PR (fallback lookup)', () => {
+      then('shows status for merged PR', () => {
+        // Gap 2: test merged PR fallback - no open PR, but merged PR extant
+        const mockResponses = {
+          // no open PR, but merged PR extant
+          'pr list open': '',
+          'pr list merged': '42',
+          'pr view':
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED"}',
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
+
+          // should find the merged PR and show its status
+          expect(result.stdout).toContain('turtle/feature-x');
           expect(result.stdout).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
@@ -225,11 +289,15 @@ describe('git.release', () => {
 
     when('[t1] PR with failed checks', () => {
       then('shows bummer vibe with failure links', () => {
+        // mock includes separate responses for step name vs duration (Gap 5)
         const mockResponses = {
           'pr list': '42',
           'pr view':
             '{"statusCheckRollup": [{"conclusion": "FAILURE", "status": "COMPLETED", "name": "test-unit", "detailsUrl": "https://github.com/test/repo/actions/runs/123"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN"}',
-          'run view':
+          // "run view jobs" returns jq-processed step name
+          'run view jobs': 'Run jest tests',
+          // "run view duration" returns JSON for startedAt/updatedAt
+          'run view duration':
             '{"startedAt": "2024-01-01T00:00:00Z", "updatedAt": "2024-01-01T00:02:34Z"}',
         };
 
@@ -245,6 +313,8 @@ describe('git.release', () => {
             fakeBinDir,
           });
 
+          // verify duration appears in output
+          expect(result.stdout).toContain('failed after');
           expect(result.stdout).toMatchSnapshot();
           expect(result.status).toEqual(1);
         } finally {
@@ -254,7 +324,7 @@ describe('git.release', () => {
     });
 
     when('[t2] PR needs rebase', () => {
-      then('shows hold up vibe', () => {
+      then('shows hold up dude vibe', () => {
         const mockResponses = {
           'pr list': '42',
           'pr view':
@@ -271,21 +341,136 @@ describe('git.release', () => {
           const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
 
           expect(result.stdout).toMatchSnapshot();
-          expect(result.status).toEqual(1);
+          expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
         }
       });
     });
 
-    when('[t3] automerge fails to enable', () => {
-      then('shows error from gh and exits 1', () => {
-        // mock does NOT provide "pr merge" response, so gh mock will fail with exit 1
+    when('[t3] automerge returns clean status (PR ready to merge)', () => {
+      then('handles gracefully: merges and succeeds', () => {
+        // "clean status" means PR is ready to merge NOW - not an error
+        // we need stateful mock: first pr view shows OPEN, after merge shows MERGED
+        const tempDir = genTempDir({
+          slug: 'git-release-clean-status',
+          git: true,
+        });
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+
+        const counterFile = path.join(tempDir, '.gh-call-counter');
+        fs.writeFileSync(counterFile, '0');
+
+        const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+COUNTER_FILE="${counterFile}"
+COUNT=$(cat "$COUNTER_FILE")
+
+CMD_KEY="$1 $2"
+
+case "$CMD_KEY" in
+  "pr list")
+    echo "42"
+    ;;
+  "pr view")
+    echo $((COUNT + 1)) > "$COUNTER_FILE"
+    if [[ $COUNT -lt 1 ]]; then
+      # first call: OPEN
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN"}'
+    else
+      # after merge attempt: MERGED (gh merged it immediately due to clean status)
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED"}'
+    fi
+    ;;
+  "pr merge")
+    # "clean status" error - PR can merge immediately
+    echo "GraphQL: Pull request is in clean status (enablePullRequestAutoMerge)" >&2
+    exit 1
+    ;;
+  *)
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+esac
+`;
+
+        fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        const rhachetMock = `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
+  echo "mock-token"
+  exit 0
+fi
+exit 1
+`;
+        fs.writeFileSync(path.join(fakeBinDir, 'rhachet'), rhachetMock);
+        fs.chmodSync(path.join(fakeBinDir, 'rhachet'), '755');
+
+        spawnSync('git', ['init'], { cwd: tempDir });
+        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.name', 'Test User'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+        spawnSync(
+          'git',
+          ['remote', 'add', 'origin', 'https://github.com/test/repo'],
+          { cwd: tempDir },
+        );
+        spawnSync(
+          'git',
+          [
+            'symbolic-ref',
+            'refs/remotes/origin/HEAD',
+            'refs/remotes/origin/main',
+          ],
+          { cwd: tempDir },
+        );
+        spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+          cwd: tempDir,
+        });
+
+        try {
+          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // should succeed - "clean status" means PR merged
+          expect(result.status).toEqual(0);
+
+          // stdout shows success
+          expect(result.stdout).toContain('cowabunga');
+          expect(result.stdout).toContain('all checks passed');
+          expect(result.stdout).toContain('merged already');
+
+          // snapshot output
+          expect(result.stdout).toMatchSnapshot();
+          // stderr should NOT contain the GraphQL error (we suppressed it)
+          expect(result.stderr).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t4] automerge fails with actual error', () => {
+      then('failloud: gh error goes to stderr, exits 1', () => {
+        // actual gh error (not "clean status") should still fail
         const mockResponses = {
           'pr list': '42',
           'pr view':
             '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN"}',
-          // no "pr merge" response = automerge enable will fail
+          'pr merge':
+            'ERROR:GraphQL: Could not enable auto-merge: not authorized',
         };
 
         const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
@@ -300,11 +485,19 @@ describe('git.release', () => {
             fakeBinDir,
           });
 
-          // failloud: skill should exit 1 when automerge fails
+          // failloud: skill exits 1 (malfunction error) for actual gh errors
           expect(result.status).toEqual(1);
-          // verify we got to the automerge step (stdout shows we started apply mode)
+
+          // error goes to stderr (failloud)
+          expect(result.stderr).toContain('not authorized');
+
+          // stdout shows progress up to failure point
           expect(result.stdout).toContain('cowabunga');
           expect(result.stdout).toContain('all checks passed');
+
+          // snapshots capture exact output
+          expect(result.stdout).toMatchSnapshot();
+          expect(result.stderr).toMatchSnapshot();
         } finally {
           cleanup();
         }
@@ -401,11 +594,11 @@ describe('git.release', () => {
 
           const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
 
-          expect(result.stdout).toContain('hold up');
+          expect(result.stdout).toContain('hold up dude');
           expect(result.stdout).toContain('no open pr');
           expect(result.stdout).toContain('git.commit.push');
           expect(result.stdout).toMatchSnapshot();
-          expect(result.status).toEqual(1);
+          expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
         }
@@ -540,11 +733,11 @@ describe('git.release', () => {
             fakeBinDir,
           });
 
-          expect(result.stdout).toContain('hold up');
+          expect(result.stdout).toContain('hold up dude');
           expect(result.stdout).toContain('no open pr');
           expect(result.stdout).toContain('git.commit.push');
           expect(result.stdout).toMatchSnapshot();
-          expect(result.status).toEqual(1);
+          expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
         }
@@ -647,11 +840,15 @@ exit 1
   given('[case5] retry behavior', () => {
     when('[t0] --retry with failed PR checks', () => {
       then('reruns failed workflows', () => {
+        // mock includes separate responses for step name vs duration (Gap 5)
         const mockResponses = {
           'pr list': '42',
           'pr view':
             '{"statusCheckRollup": [{"conclusion": "FAILURE", "status": "COMPLETED", "name": "test-unit", "detailsUrl": "https://github.com/test/repo/actions/runs/123"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN"}',
-          'run view':
+          // "run view jobs" returns jq-processed step name
+          'run view jobs': 'Run jest tests',
+          // "run view duration" returns JSON for startedAt/updatedAt
+          'run view duration':
             '{"startedAt": "2024-01-01T00:00:00Z", "updatedAt": "2024-01-01T00:02:34Z"}',
           'run rerun': 'rerun triggered',
         };
@@ -865,7 +1062,7 @@ exit 1
     });
 
     when('[t1] apply mode with poll progress', () => {
-      then('shows 💤 lines before completion', () => {
+      then('shows sleep lines before completion', () => {
         const tempDir = genTempDir({
           slug: 'git-release-poll-test',
           git: true,
@@ -876,6 +1073,10 @@ exit 1
         // create counter file for stateful mock
         const counterFile = path.join(tempDir, '.gh-call-counter');
         fs.writeFileSync(counterFile, '0');
+
+        // generate dynamic timestamps for "in action" time (Gap 10)
+        // startedAt should be "now" so in_action matches watched time
+        const nowIso = new Date().toISOString();
 
         // create stateful mock gh cli that transitions from in-progress to merged
         const ghMockContent = `#!/bin/bash
@@ -895,14 +1096,14 @@ case "$CMD_KEY" in
     # increment counter
     echo $((COUNT + 1)) > "$COUNTER_FILE"
     if [[ $COUNT -lt 2 ]]; then
-      # first 2 calls: in progress with automerge enabled
-      echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "test-unit"}, {"conclusion": null, "status": "IN_PROGRESS", "name": "test-integration"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN"}'
+      # first 2 calls: in progress with automerge enabled (startedAt = now for "in action" time)
+      echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "test-unit", "startedAt": "${nowIso}"}, {"conclusion": null, "status": "IN_PROGRESS", "name": "test-integration", "startedAt": "${nowIso}"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN"}'
     elif [[ $COUNT -lt 3 ]]; then
       # third call: one done, one in progress
-      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test-unit"}, {"conclusion": null, "status": "IN_PROGRESS", "name": "test-integration"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN"}'
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test-unit", "startedAt": "${nowIso}"}, {"conclusion": null, "status": "IN_PROGRESS", "name": "test-integration", "startedAt": "${nowIso}"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN"}'
     else
       # subsequent calls: merged
-      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test-unit"}, {"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test-integration"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED"}'
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test-unit", "startedAt": "${nowIso}"}, {"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test-integration", "startedAt": "${nowIso}"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED"}'
     fi
     ;;
   "pr merge")
@@ -992,6 +1193,163 @@ exit 1
           expect(result.status).toEqual(0);
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t2] rebase required mid-watch (race condition)', () => {
+      then('failloud rebase hint and exits 2', () => {
+        // race condition: PR passes initial rebase check, checks pass, but
+        // another PR merges while we watch — now this PR needs rebase
+        const tempDir = genTempDir({
+          slug: 'git-release-rebase-race',
+          git: true,
+        });
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+
+        // counter file for stateful mock
+        const counterFile = path.join(tempDir, '.gh-call-counter');
+        fs.writeFileSync(counterFile, '0');
+
+        // stateful mock: CLEAN at first, transitions to BEHIND mid-watch
+        const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+COUNTER_FILE="${counterFile}"
+COUNT=$(cat "$COUNTER_FILE")
+
+CMD_KEY="$1 $2"
+
+case "$CMD_KEY" in
+  "pr list")
+    echo "42"
+    ;;
+  "pr view")
+    echo $((COUNT + 1)) > "$COUNTER_FILE"
+    if [[ $COUNT -lt 2 ]]; then
+      # first 2 calls: checks in progress, CLEAN (no rebase required)
+      echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN"}'
+    else
+      # after 2nd poll: another PR merged, now BEHIND (needs rebase)
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "BEHIND", "state": "OPEN"}'
+    fi
+    ;;
+  "pr merge")
+    echo "auto-merge enabled"
+    ;;
+  *)
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+esac
+`;
+
+        fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        // mock rhachet keyrack
+        const rhachetMockContent = `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
+  echo "mock-github-token"
+  exit 0
+fi
+exit 1
+`;
+        fs.writeFileSync(path.join(fakeBinDir, 'rhachet'), rhachetMockContent);
+        fs.chmodSync(path.join(fakeBinDir, 'rhachet'), '755');
+
+        // init git repo
+        spawnSync('git', ['init'], { cwd: tempDir });
+        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.name', 'Test User'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+        spawnSync(
+          'git',
+          ['remote', 'add', 'origin', 'https://github.com/test/repo'],
+          { cwd: tempDir },
+        );
+        spawnSync(
+          'git',
+          [
+            'symbolic-ref',
+            'refs/remotes/origin/HEAD',
+            'refs/remotes/origin/main',
+          ],
+          { cwd: tempDir },
+        );
+        spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+          cwd: tempDir,
+        });
+
+        try {
+          const result = spawnSync(
+            'bash',
+            [SKILL_PATH, '--to', 'main', '--mode', 'apply'],
+            {
+              cwd: tempDir,
+              env: {
+                ...process.env,
+                PATH: `${fakeBinDir}:${process.env.PATH}`,
+                TERM: 'dumb',
+                HOME: tempDir,
+                // shorter poll interval for test
+                GIT_RELEASE_POLL_INTERVAL: '1',
+              },
+              /* eslint-disable-next-line @typescript-eslint/naming-convention */
+              encoding: 'utf-8',
+            },
+          );
+
+          // should detect rebase requirement mid-watch and failfast
+          expect(result.stdout).toContain('needs rebase');
+          expect(result.stdout).toContain('another PR merged');
+          expect(result.stdout).toMatchSnapshot();
+          // exit 2 = constraint error (user must rebase)
+          expect(result.status).toEqual(2);
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t3] both failed and progress checks (Gap 4)', () => {
+      then('shows both failed and progress status', () => {
+        // Gap 4: when some checks fail and others are still in progress,
+        // both should be shown (not just failures)
+        const mockResponses = {
+          'pr list': '42',
+          'pr view':
+            '{"statusCheckRollup": [{"conclusion": "FAILURE", "status": "COMPLETED", "name": "test-unit", "detailsUrl": "https://github.com/test/repo/actions/runs/123"}, {"conclusion": null, "status": "IN_PROGRESS", "name": "test-integration"}, {"conclusion": null, "status": "IN_PROGRESS", "name": "lint"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN"}',
+          'run view jobs': 'Run jest tests',
+          'run view duration':
+            '{"startedAt": "2024-01-01T00:00:00Z", "updatedAt": "2024-01-01T00:02:34Z"}',
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          // plan mode shows current status
+          const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
+
+          // should show BOTH failed and progress (Gap 9 fix: progress inside failure block)
+          expect(result.stdout).toContain('check(s) failed');
+          expect(result.stdout).toContain('check(s) still in progress');
+          expect(result.stdout).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+        } finally {
+          cleanup();
         }
       });
     });

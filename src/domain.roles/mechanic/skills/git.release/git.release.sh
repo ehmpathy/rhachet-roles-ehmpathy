@@ -135,12 +135,13 @@ watch_pr_checks() {
   local pr_number="$1"
   local start_time
   local ci_start_time
+  local ci_start_time_set="false"
   local elapsed
   local in_action
   local poll_interval
 
   start_time=$(date +%s)
-  ci_start_time="$start_time"  # approximation: CI started when we started the watch
+  ci_start_time="$start_time"  # fallback: CI started when we started the watch
 
   while true; do
     elapsed=$(( $(date +%s) - start_time ))
@@ -164,6 +165,16 @@ watch_pr_checks() {
     # get current status
     local status_json
     status_json=$(get_pr_status "$pr_number")
+
+    # set ci_start_time from oldest check startedAt (Gap 10)
+    if [[ "$ci_start_time_set" == "false" ]]; then
+      local oldest_started
+      oldest_started=$(get_oldest_started_at "$status_json")
+      if [[ -n "$oldest_started" && "$oldest_started" -gt 0 ]]; then
+        ci_start_time="$oldest_started"
+      fi
+      ci_start_time_set="true"
+    fi
 
     local counts
     counts=$(parse_check_counts "$status_json")
@@ -190,6 +201,19 @@ watch_pr_checks() {
       show_failed_checks "$status_json"
       print_retry_hint
       return 1
+    fi
+
+    # check if rebase now needed (race: another PR merged while we watched)
+    if [[ $(needs_rebase "$status_json") == "true" ]]; then
+      echo ""
+      if [[ $(has_conflicts "$status_json") == "true" ]]; then
+        echo "   └─ 🐚 needs rebase, has conflicts (another PR merged while we watched)"
+      else
+        echo "   └─ 🐚 needs rebase (another PR merged while we watched)"
+      fi
+      echo ""
+      echo "hint: rebase onto main and retry"
+      return 2
     fi
 
     # show watch progress (stack lines for observability)
@@ -302,10 +326,12 @@ format_elapsed() {
 ######################################################################
 # show failed checks with links (and optional retry)
 # matches extant alias _git_release_report_failed_checks pattern
+# has_more: if true, never mark last check as "is_last" (more items follow)
 ######################################################################
 show_failed_checks() {
   local status_json="$1"
   local retry="${2:-false}"
+  local has_more="${3:-false}"
   local failed_json
   failed_json=$(get_failed_checks "$status_json")
 
@@ -321,7 +347,8 @@ show_failed_checks() {
 
     i=$((i + 1))
     local is_last="false"
-    if [[ $i -eq $count ]]; then
+    # only mark as last if this is the last check AND no more items follow
+    if [[ $i -eq $count && "$has_more" != "true" ]]; then
       is_last="true"
     fi
 
@@ -329,15 +356,24 @@ show_failed_checks() {
     local run_id
     run_id=$(echo "$url" | grep -oP 'runs/\K\d+' || true)
 
-    # get duration and format message
+    # get step name and duration for message (matches extant alias)
     local message="$conclusion"
     if [[ -n "$run_id" ]]; then
+      # get failed step name
+      local step_name
+      step_name=$(get_failed_step_name "$run_id")
+
+      # get duration
       local duration_secs
       duration_secs=$(get_run_duration "$run_id")
+
+      # format message: "failed after Xm Ys" or step name
       if [[ -n "$duration_secs" && "$duration_secs" -gt 0 ]]; then
         local duration_str
         duration_str=$(format_duration "$duration_secs")
-        message="$conclusion after $duration_str"
+        message="failed after $duration_str"
+      elif [[ -n "$step_name" ]]; then
+        message="$step_name"
       fi
     fi
 
@@ -374,10 +410,10 @@ release_to_main() {
   pr_number=$(get_pr_for_branch "$branch")
 
   if [[ -z "$pr_number" ]]; then
-    # no pr found
+    # no pr found - constraint error (user must push)
     print_turtle_header "crickets..."
     print_no_pr_status "$branch" "$(get_unpushed_count)"
-    return 1
+    return 2
   fi
 
   # get pr status
@@ -392,15 +428,15 @@ release_to_main() {
   failed=$(echo "$counts" | grep -oP 'failed:\K\d+')
   progress=$(echo "$counts" | grep -oP 'progress:\K\d+')
 
-  # check for rebase needed
+  # check for rebase needed - constraint error (user must rebase)
   if [[ $(needs_rebase "$status_json") == "true" ]]; then
-    print_turtle_header "hold up..."
+    print_turtle_header "hold up dude..."
     echo "🐚 git.release --to main"
     print_release_header "$branch"
     print_check_status "passed" "$passed"
-    print_rebase_status
+    print_rebase_status "$(has_conflicts "$status_json")"
     echo "   └─ 🌴 automerge unfound (use --mode apply to add)"
-    return 1
+    return 2
   fi
 
   # plan mode
@@ -409,23 +445,41 @@ release_to_main() {
     echo "🐚 git.release --to main --mode plan"
     print_release_header "$branch"
 
+    # show failed with in-progress nested inside failure block (Gap 9)
     if [[ $failed -gt 0 ]]; then
       print_check_status "failed" "$failed"
-      show_failed_checks "$status_json"
-      print_retry_hint
+      if [[ $progress -gt 0 ]]; then
+        # has_more=true: in-progress line follows inside failure block
+        show_failed_checks "$status_json" "false" "true"
+        print_progress_in_failure "$progress"
+      else
+        show_failed_checks "$status_json"
+      fi
     elif [[ $progress -gt 0 ]]; then
       print_check_status "progress" "$progress"
     else
       print_check_status "passed" "$passed"
     fi
 
+    # check if already merged (fallback PR lookup case)
+    if [[ $(is_pr_merged "$status_json") == "true" ]]; then
+      echo "   └─ 🌴 already merged"
+      return 0
+    fi
+
+    # automerge status (before hints)
     if [[ $(has_automerge "$status_json") == "true" ]]; then
       print_automerge_status "enabled"
     else
       print_automerge_status "unfound"
     fi
 
-    print_apply_hint
+    # hints (always last)
+    if [[ $failed -gt 0 ]]; then
+      print_retry_hint
+    else
+      print_apply_hint
+    fi
     return 0
   fi
 
@@ -453,8 +507,10 @@ release_to_main() {
   fi
 
   # enable automerge if not enabled
-  if [[ $(has_automerge "$status_json") != "true" ]]; then
-    # failloud: let enable_automerge errors propagate directly
+  local automerge_check
+  automerge_check=$(has_automerge "$status_json")
+  if [[ "$automerge_check" != "true" ]]; then
+    # failloud: enable_automerge errors go direct to stderr, set -e exits on failure
     enable_automerge "$pr_number"
 
     # check if pr was instantly merged (all checks passed, no branch protection delay)
@@ -505,8 +561,15 @@ release_from_main() {
     echo "🐚 git.release --to main"
     print_release_header "chore(release)"
 
+    # show failed with in-progress nested inside failure block (Gap 9)
     if [[ $failed -gt 0 ]]; then
       print_check_status "failed" "$failed"
+      if [[ $progress -gt 0 ]]; then
+        show_failed_checks "$status_json" "false" "true"
+        print_progress_in_failure "$progress"
+      else
+        show_failed_checks "$status_json"
+      fi
     elif [[ $progress -gt 0 ]]; then
       print_check_status "progress" "$progress"
     else
@@ -514,7 +577,7 @@ release_from_main() {
     fi
 
     if [[ $(has_automerge "$status_json") == "true" ]]; then
-      echo "   └─ 🌴 automerge enabled"
+      echo "   └─ 🌴 automerge enabled [found]"
     else
       echo "   └─ 🌴 automerge unfound (use --mode apply to add)"
     fi
@@ -554,13 +617,13 @@ release_to_prod() {
     branch_pr=$(get_pr_for_branch "$current_branch")
 
     if [[ -z "$branch_pr" ]]; then
-      # no pr for feature branch - fail fast
-      print_turtle_header "hold up..."
+      # no pr for feature branch - constraint error (user must push)
+      print_turtle_header "hold up dude..."
       echo "🐚 git.release --to prod"
       echo ""
       echo "🫧 no open pr for $current_branch"
       echo "   └─ did you git.commit.push to create the pr yet?"
-      return 1
+      return 2
     fi
 
     # run --to main flow first
@@ -604,9 +667,15 @@ release_to_prod() {
       echo "🐚 git.release --to prod --mode plan"
       print_release_header "chore(release)"
 
+      # show failed with in-progress nested inside failure block (Gap 9)
       if [[ $failed -gt 0 ]]; then
         print_check_status "failed" "$failed"
-        show_failed_checks "$status_json"
+        if [[ $progress -gt 0 ]]; then
+          show_failed_checks "$status_json" "false" "true"
+          print_progress_in_failure "$progress"
+        else
+          show_failed_checks "$status_json"
+        fi
       elif [[ $progress -gt 0 ]]; then
         print_check_status "progress" "$progress"
       else
@@ -686,7 +755,7 @@ release_to_prod() {
 
     # enable automerge if not enabled
     if [[ $(has_automerge "$status_json") != "true" ]]; then
-      # failloud: let enable_automerge errors propagate directly
+      # failloud: enable_automerge errors go direct to stderr, set -e exits on failure
       enable_automerge "$release_pr"
 
       print_automerge_status "enabled" "just added"

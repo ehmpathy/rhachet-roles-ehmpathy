@@ -27,8 +27,8 @@ _gh_with_retry() {
   local exit_code
 
   while [[ $attempt -le $max_retries ]]; do
-    output=$("$@" 2>&1)
-    exit_code=$?
+    # capture output and exit code; avoid set -e exit on failure
+    output=$("$@" 2>&1) && exit_code=0 || exit_code=$?
 
     if [[ $exit_code -eq 0 ]]; then
       echo "$output"
@@ -44,8 +44,12 @@ _gh_with_retry() {
       fi
     fi
 
-    # non-transient error or retries exhausted
-    echo "$output" >&2
+    # non-transient error or retries exhausted - failloud to stderr
+    if [[ -n "$output" ]]; then
+      echo "$output" >&2
+    else
+      echo "gh command failed with exit code $exit_code" >&2
+    fi
     return $exit_code
   done
 
@@ -55,7 +59,7 @@ _gh_with_retry() {
 
 ######################################################################
 # get_pr_for_branch
-# find open PR number for a branch
+# find PR number for a branch (open first, then merged as fallback)
 #
 # usage: get_pr_for_branch "turtle/feature-x"
 # returns: PR number or empty if not found
@@ -64,7 +68,14 @@ get_pr_for_branch() {
   local branch="$1"
   local result
 
+  # check open PRs first
   result=$(_gh_with_retry gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')
+
+  # fallback to merged PRs
+  if [[ -z "$result" ]]; then
+    result=$(_gh_with_retry gh pr list --head "$branch" --state merged --json number --jq '.[0].number // empty')
+  fi
+
   echo "$result"
 }
 
@@ -143,6 +154,29 @@ get_failed_checks() {
 }
 
 ######################################################################
+# get_oldest_started_at
+# get the oldest startedAt timestamp from statusCheckRollup
+# (for accurate "in action" time calculation)
+#
+# usage: get_oldest_started_at "$status_json"
+# returns: epoch timestamp (seconds) or empty if not available
+######################################################################
+get_oldest_started_at() {
+  local status_json="$1"
+  local oldest_iso
+
+  # get the oldest (minimum) startedAt from all checks
+  oldest_iso=$(echo "$status_json" | jq -r '[.statusCheckRollup[]? | .startedAt // empty] | map(select(. != null and . != "")) | sort | .[0] // empty')
+
+  if [[ -z "$oldest_iso" || "$oldest_iso" == "null" ]]; then
+    return 0
+  fi
+
+  # convert ISO timestamp to epoch seconds
+  date -d "$oldest_iso" +%s 2>/dev/null || return 0
+}
+
+######################################################################
 # has_automerge
 # check if automerge is enabled on PR
 #
@@ -181,6 +215,38 @@ needs_rebase() {
 }
 
 ######################################################################
+# get_merge_state
+# get the merge state status (BEHIND, DIRTY, CLEAN, etc.)
+#
+# usage: get_merge_state "$status_json"
+# returns: merge state string (BEHIND, DIRTY, CLEAN, BLOCKED, etc.)
+######################################################################
+get_merge_state() {
+  local status_json="$1"
+
+  echo "$status_json" | jq -r '.mergeStateStatus // empty'
+}
+
+######################################################################
+# has_conflicts
+# check if PR has merge conflicts (DIRTY state)
+#
+# usage: has_conflicts "$status_json"
+# returns: "true" or "false"
+######################################################################
+has_conflicts() {
+  local status_json="$1"
+  local merge_state
+
+  merge_state=$(echo "$status_json" | jq -r '.mergeStateStatus // empty')
+  if [[ "$merge_state" == "DIRTY" ]]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+######################################################################
 # is_pr_merged
 # check if PR is merged
 #
@@ -203,13 +269,37 @@ is_pr_merged() {
 # enable_automerge
 # enable automerge on PR via gh pr merge --auto --squash
 #
+# handles "clean status" error: when PR is ready to merge now, gh returns
+# "GraphQL: Pull request is in clean status (enablePullRequestAutoMerge)"
+# this is NOT an error - it means the PR merged or can merge immediately.
+# we suppress this specific error and let the caller check merge status.
+#
 # usage: enable_automerge "42"
-# returns: gh command output
+# returns: 0 on success or "clean status", non-zero on actual errors
 ######################################################################
 enable_automerge() {
   local pr_number="$1"
+  local output
+  local exit_code
 
-  _gh_with_retry gh pr merge "$pr_number" --auto --squash
+  # capture output and exit code; avoid set -e exit on failure
+  # output goes to /dev/null on success (matches extant alias)
+  output=$(gh pr merge "$pr_number" --auto --squash 2>&1) && exit_code=0 || exit_code=$?
+
+  if [[ $exit_code -eq 0 ]]; then
+    # suppress success output (alias sends to /dev/null)
+    return 0
+  fi
+
+  # check for "clean status" error - PR is ready to merge now, not an error
+  if echo "$output" | grep -qi "clean status"; then
+    # suppress error, let caller check if PR merged
+    return 0
+  fi
+
+  # actual error - failloud
+  echo "$output" >&2
+  return $exit_code
 }
 
 ######################################################################
@@ -236,6 +326,23 @@ rerun_failed_workflows() {
   local run_id="$1"
 
   _gh_with_retry gh run rerun "$run_id" --failed
+}
+
+######################################################################
+# get_failed_step_name
+# get the name of the failed step from a workflow run
+#
+# usage: get_failed_step_name "12345678"
+# returns: step name or empty if unavailable
+######################################################################
+get_failed_step_name() {
+  local run_id="$1"
+  local result
+
+  # query jobs and extract failed step name (matches extant alias pattern)
+  result=$(_gh_with_retry gh run view "$run_id" --json jobs -q '.jobs[] | select(.conclusion == "failure") | (.steps[] | select(.conclusion == "failure") | .name) // .name' 2>/dev/null | head -1) || true
+
+  echo "$result"
 }
 
 ######################################################################
@@ -288,12 +395,14 @@ format_duration() {
 
 ######################################################################
 # get_latest_tag
-# get the most recent semver tag
+# get the most recent semver tag (fetches from remote first)
 #
 # usage: get_latest_tag
 # returns: tag name (e.g., "v1.2.3")
 ######################################################################
 get_latest_tag() {
+  # fetch tags from remote to ensure we have latest
+  git fetch --tags --quiet 2>/dev/null || true
   git tag --sort=-v:refname | head -1
 }
 

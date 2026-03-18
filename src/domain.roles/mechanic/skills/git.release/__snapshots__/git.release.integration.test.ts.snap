@@ -28,7 +28,18 @@ exports[`git.release given: [case1] release to main (plan mode) when: [t2] on ma
 
 🌊 release: chore(release)
    ├─ 👌 all checks passed
-   └─ 🌴 automerge enabled
+   └─ 🌴 automerge enabled [found]
+"
+`;
+
+exports[`git.release given: [case1] release to main (plan mode) when: [t3] feature branch with merged PR (fallback lookup) then: shows status for merged PR 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to main --mode plan
+
+🌊 release: turtle/feature-x
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
 "
 `;
 
@@ -39,7 +50,6 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t0] PR w
 
 🌊 release: turtle/feature-x
    ├─ 👌 all checks passed
-auto-merge enabled
    ├─ 🌴 automerge enabled [added] -> and merged already
    └─ 🥥 let's watch
       └─ ✨ done! 0s in action, 0s watched
@@ -55,13 +65,13 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t1] PR w
    ├─ ⚓  1 check(s) failed
    │  └─ 🔴 test-unit
    │        ├─ https://github.com/test/repo/actions/runs/123
-   │        └─ failure after 2m 34s
+   │        └─ failed after 2m 34s
    └─ hint: use --retry to rerun failed workflows
 "
 `;
 
-exports[`git.release given: [case2] release to main (apply mode) when: [t2] PR needs rebase then: shows hold up vibe 1`] = `
-"🐢 hold up...
+exports[`git.release given: [case2] release to main (apply mode) when: [t2] PR needs rebase then: shows hold up dude vibe 1`] = `
+"🐢 hold up dude...
 
 🐚 git.release --to main
 
@@ -69,6 +79,36 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t2] PR n
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase
    └─ 🌴 automerge unfound (use --mode apply to add)
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t3] automerge returns clean status (PR ready to merge) then: handles gracefully: merges and succeeds 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: turtle/feature-x
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! 0s in action, 0s watched
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t3] automerge returns clean status (PR ready to merge) then: handles gracefully: merges and succeeds 2`] = `""`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t4] automerge fails with actual error then: failloud: gh error goes to stderr, exits 1 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: turtle/feature-x
+   ├─ 👌 all checks passed
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t4] automerge fails with actual error then: failloud: gh error goes to stderr, exits 1 2`] = `
+"GraphQL: Could not enable auto-merge: not authorized
 "
 `;
 
@@ -107,7 +147,7 @@ exports[`git.release given: [case3] release to prod (plan mode) when: [t2] featu
 `;
 
 exports[`git.release given: [case3] release to prod (plan mode) when: [t3] feature branch without pr then: fails fast with push hint 1`] = `
-"🐢 hold up...
+"🐢 hold up dude...
 
 🐚 git.release --to prod
 
@@ -123,7 +163,6 @@ exports[`git.release given: [case4] release to prod (apply mode) when: [t0] rele
 
 🌊 release: chore(release)
    ├─ 👌 all checks passed
-auto-merge enabled
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       └─ ✨ done! 0s in action, 0s watched
@@ -169,7 +208,7 @@ exports[`git.release given: [case4] release to prod (apply mode) when: [t3] depl
 `;
 
 exports[`git.release given: [case4] release to prod (apply mode) when: [t4] feature branch without pr then: fails fast with push hint 1`] = `
-"🐢 hold up...
+"🐢 hold up dude...
 
 🐚 git.release --to prod
 
@@ -185,7 +224,6 @@ exports[`git.release given: [case4] release to prod (apply mode) when: [t5] feat
 
 🌊 release: turtle/feature-x
    ├─ 👌 all checks passed
-auto-merge enabled
    ├─ 🌴 automerge enabled [added] -> and merged already
    └─ 🥥 let's watch
       └─ ✨ done! 0s in action, 0s watched
@@ -196,14 +234,13 @@ auto-merge enabled
 
 🌊 release: chore(release)
    ├─ 👌 all checks passed
-auto-merge enabled
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       └─ ✨ done! 0s in action, 0s watched
 
 🌊 release: v1.2.3
    └─ 🥥 let's watch
-      └─ ✨ done! publish.yml, 0s in action, 0s watched
+      └─ ✨ done! publish.yml, 1s in action, 0s watched
 "
 `;
 
@@ -217,7 +254,7 @@ exports[`git.release given: [case5] retry behavior when: [t0] --retry with faile
 rerun triggered
    │  └─ 🔴 test-unit
    │        ├─ https://github.com/test/repo/actions/runs/123
-   │        ├─ failure after 2m 34s
+   │        ├─ failed after 2m 34s
    │        └─ 👌 rerun triggered
    └─ hint: use --retry to rerun failed workflows
 "
@@ -268,17 +305,50 @@ exports[`git.release given: [case8] watch loop internals when: [t0] checks in pr
 "
 `;
 
-exports[`git.release given: [case8] watch loop internals when: [t1] apply mode with poll progress then: shows 💤 lines before completion 1`] = `
+exports[`git.release given: [case8] watch loop internals when: [t1] apply mode with poll progress then: shows sleep lines before completion 1`] = `
 "🐢 cowabunga!
 
 🐚 git.release --to main --mode apply
 
 🌊 release: turtle/feature-x
    ├─ 🐢 2 check(s) in progress
-   ├─ 🌴 automerge enabled
+   ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 💤 2 left, 0s in action, 0s watched
       ├─ 💤 1 left, 1s in action, 1s watched
       └─ ✨ done! 2s in action, 2s watched
+"
+`;
+
+exports[`git.release given: [case8] watch loop internals when: [t2] rebase required mid-watch (race condition) then: failloud rebase hint and exits 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: turtle/feature-x
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, 0s in action, 0s watched
+
+   └─ 🐚 needs rebase (another PR merged while we watched)
+
+hint: rebase onto main and retry
+"
+`;
+
+exports[`git.release given: [case8] watch loop internals when: [t3] both failed and progress checks (Gap 4) then: shows both failed and progress status 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to main --mode plan
+
+🌊 release: turtle/feature-x
+   ├─ ⚓  1 check(s) failed
+   │  ├─ 🔴 test-unit
+   │  │     ├─ https://github.com/test/repo/actions/runs/123
+   │  │     └─ failed after 2m 34s
+   │  └─ 🟡 2 check(s) still in progress
+   ├─ 🌴 automerge unfound (use --mode apply to add)
+   └─ hint: use --retry to rerun failed workflows
 "
 `;

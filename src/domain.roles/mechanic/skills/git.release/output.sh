@@ -78,7 +78,7 @@ print_automerge_status() {
       if [[ -n "$extra" ]]; then
         echo "   ├─ 🌴 automerge enabled [added]"
       else
-        echo "   ├─ 🌴 automerge enabled"
+        echo "   ├─ 🌴 automerge enabled [found]"
       fi
       ;;
     unfound)
@@ -107,10 +107,16 @@ print_watch_status() {
 
 ######################################################################
 # print rebase status line
-# usage: print_rebase_status
+# usage: print_rebase_status [has_conflicts]
 ######################################################################
 print_rebase_status() {
-  echo "   ├─ 🐚 needs rebase"
+  local has_conflicts="${1:-false}"
+
+  if [[ "$has_conflicts" == "true" ]]; then
+    echo "   ├─ 🐚 needs rebase, has conflicts"
+  else
+    echo "   ├─ 🐚 needs rebase"
+  fi
 }
 
 ######################################################################
@@ -176,12 +182,26 @@ print_failed_check_with_retry() {
 }
 
 ######################################################################
+# print in-progress count inside failure block
+# usage: print_progress_in_failure [count]
+######################################################################
+print_progress_in_failure() {
+  local count="${1:-}"
+
+  if [[ -n "$count" ]]; then
+    echo "   │  └─ 🟡 $count check(s) still in progress"
+  else
+    echo "   │  └─ 🟡 checks still in progress"
+  fi
+}
+
+######################################################################
 # print hint line
 # usage: print_hint "message"
 ######################################################################
 print_hint() {
   local message="$1"
-  echo "   └─ hint: $message"
+  echo -e "   └─ \033[2mhint: $message\033[0m"
 }
 
 ######################################################################
