@@ -343,8 +343,8 @@ show_failed_checks() {
 
     # print check with optional retry
     if [[ "$retry" == "true" && -n "$run_id" ]]; then
-      # trigger rerun first
-      rerun_failed_workflows "$run_id" > /dev/null 2>&1 || true
+      # failloud: let rerun errors propagate
+      rerun_failed_workflows "$run_id"
       print_failed_check_with_retry "$name" "$url" "$message" "$is_last" "$run_id"
     else
       print_failed_check "$name" "$url" "$message" "$is_last"
@@ -454,7 +454,8 @@ release_to_main() {
 
   # enable automerge if not enabled
   if [[ $(has_automerge "$status_json") != "true" ]]; then
-    enable_automerge "$pr_number" > /dev/null 2>&1
+    # failloud: let enable_automerge errors propagate directly
+    enable_automerge "$pr_number"
 
     # check if PR was instantly merged (all checks passed, no branch protection delay)
     local post_status
@@ -648,7 +649,9 @@ release_to_prod() {
 
     # enable automerge if not enabled
     if [[ $(has_automerge "$status_json") != "true" ]]; then
-      enable_automerge "$release_pr" > /dev/null 2>&1
+      # failloud: let enable_automerge errors propagate directly
+      enable_automerge "$release_pr"
+
       print_automerge_status "enabled" "just added"
     else
       print_automerge_status "enabled"
@@ -707,7 +710,8 @@ release_to_prod() {
         if [[ "$conclusion" == "failure" || "$conclusion" == "cancelled" ]]; then
           run_id=$(echo "$url" | grep -oP 'runs/\K\d+')
           if [[ -n "$run_id" ]]; then
-            rerun_failed_workflows "$run_id" > /dev/null 2>&1 || true
+            # failloud: let rerun errors propagate
+            rerun_failed_workflows "$run_id"
           fi
         fi
       done < <(echo "$runs_json" | jq -c '.[]')

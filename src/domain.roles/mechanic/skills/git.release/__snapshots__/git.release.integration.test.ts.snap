@@ -39,6 +39,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t0] PR w
 
 🌊 release: turtle/feature-x
    ├─ 👌 all checks passed
+auto-merge enabled
    ├─ 🌴 automerge enabled [added] -> and merged already
    └─ 🥥 let's watch
       └─ ✨ done! 0s in action, 0s watched
@@ -100,6 +101,7 @@ exports[`git.release given: [case4] release to prod (apply mode) when: [t0] rele
 
 🌊 release: chore(release)
    ├─ 👌 all checks passed
+auto-merge enabled
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       └─ ✨ done! 0s in action, 0s watched
@@ -151,6 +153,7 @@ exports[`git.release given: [case5] retry behavior when: [t0] --retry with faile
 
 🌊 release: turtle/feature-x
    ├─ ⚓  1 check(s) failed
+rerun triggered
    │  └─ 🔴 test-unit
    │        ├─ https://github.com/test/repo/actions/runs/123
    │        ├─ failure after 2m 34s
@@ -165,6 +168,7 @@ exports[`git.release given: [case5] retry behavior when: [t1] --retry with faile
 🐚 git.release --to prod --mode apply
 
 🌊 release: v1.2.3
+rerun triggered
    └─ 🥥 let's watch
       ├─ 🔴 publish.yml failed
       └─ hint: use --retry to rerun failed workflows

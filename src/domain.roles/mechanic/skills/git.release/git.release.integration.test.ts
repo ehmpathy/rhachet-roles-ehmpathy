@@ -277,6 +277,39 @@ describe('git.release', () => {
         }
       });
     });
+
+    when('[t3] automerge fails to enable', () => {
+      then('shows error from gh and exits 1', () => {
+        // mock does NOT provide "pr merge" response, so gh mock will fail with exit 1
+        const mockResponses = {
+          'pr list': '42',
+          'pr view':
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN"}',
+          // no "pr merge" response = automerge enable will fail
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // failloud: skill should exit 1 when automerge fails
+          expect(result.status).toEqual(1);
+          // verify we got to the automerge step (stdout shows we started apply mode)
+          expect(result.stdout).toContain('cowabunga');
+          expect(result.stdout).toContain('all checks passed');
+        } finally {
+          cleanup();
+        }
+      });
+    });
   });
 
   given('[case3] release to prod (plan mode)', () => {
