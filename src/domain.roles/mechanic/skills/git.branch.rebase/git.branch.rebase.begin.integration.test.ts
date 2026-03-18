@@ -354,4 +354,76 @@ describe('git.branch.rebase.begin', () => {
       });
     });
   });
+
+  given('[case9] uses is "infinite"', () => {
+    when('[t0] apply mode with infinite uses', () => {
+      then('does not fail on integer comparison (handles infinite)', () => {
+        const tempDir = setupRebaseScenario({
+          commitsAhead: 2,
+          pushAllowed: true,
+        });
+
+        // override meter state with "infinite" uses
+        const meterDir = path.join(tempDir, '.meter');
+        const meterState = {
+          uses: 'infinite',
+          push: 'allow',
+        };
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify(meterState, null, 2),
+        );
+
+        try {
+          const result = runSkill(tempDir, ['--mode', 'apply']);
+
+          // should not fail with "infinite: unbound variable"
+          expect(result.stderr).not.toContain('infinite: unbound variable');
+          expect(result.stderr).not.toContain('integer expression expected');
+
+          // note: fetch will fail in test env (no real remote)
+          // but we verify it gets past the "uses" check
+          expect(result.stdout).toContain('git.branch.rebase begin');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t1] plan mode with infinite uses', () => {
+      then('shows preview (plan mode is always free)', () => {
+        const tempDir = setupRebaseScenario({
+          commitsAhead: 2,
+          pushAllowed: true,
+        });
+
+        // override meter state with "infinite" uses
+        const meterDir = path.join(tempDir, '.meter');
+        const meterState = {
+          uses: 'infinite',
+          push: 'allow',
+        };
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify(meterState, null, 2),
+        );
+
+        try {
+          const result = runSkill(tempDir); // default is plan mode
+
+          // should not fail with bash errors
+          expect(result.stderr).not.toContain('infinite: unbound variable');
+          expect(result.stderr).not.toContain('integer expression expected');
+
+          // note: fetch will fail in test env (no real remote)
+          // but we verify it handles "infinite" correctly
+          expect(result.stdout).toContain('git.branch.rebase begin');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+  });
 });

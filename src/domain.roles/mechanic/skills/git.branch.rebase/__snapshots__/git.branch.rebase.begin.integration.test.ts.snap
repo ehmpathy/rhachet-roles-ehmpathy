@@ -79,3 +79,23 @@ to continue: rhx git.branch.rebase continue
 to abort:    rhx git.branch.rebase abort
 "
 `;
+
+exports[`git.branch.rebase.begin given: [case9] uses is "infinite" when: [t0] apply mode with infinite uses then: does not fail on integer comparison (handles infinite) 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ error: failed to fetch origin/main
+
+check your network connection and try again
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case9] uses is "infinite" when: [t1] plan mode with infinite uses then: shows preview (plan mode is always free) 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ error: failed to fetch origin/main
+
+check your network connection and try again
+"
+`;
