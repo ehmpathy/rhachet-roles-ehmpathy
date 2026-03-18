@@ -201,3 +201,19 @@ ask your human to grant:
   $ git.commit.uses set --quant N --push allow|block
 "
 `;
+
+exports[`git.commit.uses.sh given: [case20] TTY guard for local mutations when: [t0] set is called from non-TTY then: blocks with human-only error 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses set
+   └─ error: only humans can run this command
+"
+`;
+
+exports[`git.commit.uses.sh given: [case21] TTY guard for global mutations when: [t0] block --global is called from non-TTY then: blocks with human-only error 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses block --global
+   └─ error: only humans can run this command
+"
+`;

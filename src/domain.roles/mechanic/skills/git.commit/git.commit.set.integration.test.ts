@@ -127,11 +127,15 @@ describe('git.commit.set.sh', () => {
       }
     }
 
+    // always use isolated HOME to prevent global blocker from effects
+    const isolatedHome = genTempDir({ slug: 'git-set-home', git: false });
+
     const result = spawnSync('bash', [scriptPath, ...finalArgs], {
       cwd: tempDir,
       encoding: 'utf-8' as BufferEncoding,
       input: args.stdin,
       stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, HOME: isolatedHome },
     });
 
     return {
@@ -635,7 +639,8 @@ exit 1`,
         );
         fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
 
-        // run in plan mode with push
+        // run in plan mode with push (with isolated HOME to avoid global blocker)
+        const isolatedHome = genTempDir({ slug: 'plan-pr-home', git: false });
         const result = spawnSync(
           'bash',
           [
@@ -650,6 +655,7 @@ exit 1`,
             stdio: ['pipe', 'pipe', 'pipe'],
             env: {
               ...process.env,
+              HOME: isolatedHome,
               EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
               PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
@@ -744,6 +750,11 @@ exit 1`,
         fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
 
         // run in plan mode with push (use cont: since branch has behavioral commit)
+        // (with isolated HOME to avoid global blocker)
+        const isolatedHome = genTempDir({
+          slug: 'plan-pr-history-home',
+          git: false,
+        });
         const result = spawnSync(
           'bash',
           [
@@ -758,6 +769,7 @@ exit 1`,
             stdio: ['pipe', 'pipe', 'pipe'],
             env: {
               ...process.env,
+              HOME: isolatedHome,
               EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
               PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
@@ -874,6 +886,11 @@ exit 1`,
         fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
 
         // run in plan mode with push (use cont: since branch has behavioral commits)
+        // (with isolated HOME to avoid global blocker)
+        const isolatedHome = genTempDir({
+          slug: 'stacked-branch-home',
+          git: false,
+        });
         const result = spawnSync(
           'bash',
           [
@@ -888,6 +905,7 @@ exit 1`,
             stdio: ['pipe', 'pipe', 'pipe'],
             env: {
               ...process.env,
+              HOME: isolatedHome,
               EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
               PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
@@ -1337,6 +1355,11 @@ exit 1`,
         );
         fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
 
+        // (with isolated HOME to avoid global blocker)
+        const isolatedHome = genTempDir({
+          slug: 'autorevoke-home',
+          git: false,
+        });
         const result = spawnSync(
           'bash',
           [
@@ -1351,6 +1374,7 @@ exit 1`,
             stdio: ['pipe', 'pipe', 'pipe'],
             env: {
               ...process.env,
+              HOME: isolatedHome,
               EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
               PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
@@ -1632,7 +1656,11 @@ exit 1`,
         fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fixed content');
         spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
 
-        // run git.commit.set
+        // run git.commit.set (with isolated HOME to avoid global blocker)
+        const isolatedHome = genTempDir({
+          slug: 'cont-first-fix-home',
+          git: false,
+        });
         const result = spawnSync(
           'bash',
           [
@@ -1646,6 +1674,7 @@ exit 1`,
             cwd: tempDir,
             encoding: 'utf-8' as BufferEncoding,
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: isolatedHome },
           },
         );
 
@@ -1694,7 +1723,11 @@ exit 1`,
         fs.writeFileSync(path.join(tempDir, 'feat.txt'), 'new feature');
         spawnSync('git', ['add', 'feat.txt'], { cwd: tempDir });
 
-        // run git.commit.set
+        // run git.commit.set (with isolated HOME to avoid global blocker)
+        const isolatedHome = genTempDir({
+          slug: 'cont-first-feat-home',
+          git: false,
+        });
         const result = spawnSync(
           'bash',
           [
@@ -1708,6 +1741,7 @@ exit 1`,
             cwd: tempDir,
             encoding: 'utf-8' as BufferEncoding,
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: isolatedHome },
           },
         );
 
@@ -1916,6 +1950,10 @@ exit 1`,
         spawnSync('git', ['add', 'second.txt'], { cwd: tempDir });
 
         // cont: should succeed
+        const isolatedHome = genTempDir({
+          slug: 'cont-prefix-home',
+          git: false,
+        });
         const result = spawnSync(
           'bash',
           [
@@ -1929,6 +1967,7 @@ exit 1`,
             cwd: tempDir,
             encoding: 'utf-8' as BufferEncoding,
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: isolatedHome },
           },
         );
 
@@ -1985,6 +2024,10 @@ exit 1`,
         spawnSync('git', ['add', 'second.txt'], { cwd: tempDir });
 
         // cont(scope): should succeed
+        const isolatedHome = genTempDir({
+          slug: 'cont-scope-home',
+          git: false,
+        });
         const result = spawnSync(
           'bash',
           [
@@ -1998,6 +2041,7 @@ exit 1`,
             cwd: tempDir,
             encoding: 'utf-8' as BufferEncoding,
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: isolatedHome },
           },
         );
 
@@ -2054,6 +2098,10 @@ exit 1`,
         spawnSync('git', ['add', 'second.txt'], { cwd: tempDir });
 
         // chore: should succeed (exempt)
+        const isolatedHome = genTempDir({
+          slug: 'cont-chore-home',
+          git: false,
+        });
         const result = spawnSync(
           'bash',
           [
@@ -2067,6 +2115,7 @@ exit 1`,
             cwd: tempDir,
             encoding: 'utf-8' as BufferEncoding,
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: isolatedHome },
           },
         );
 
@@ -2123,6 +2172,7 @@ exit 1`,
         spawnSync('git', ['add', 'README.md'], { cwd: tempDir });
 
         // docs: should succeed (exempt)
+        const isolatedHome = genTempDir({ slug: 'cont-docs-home', git: false });
         const result = spawnSync(
           'bash',
           [
@@ -2136,6 +2186,7 @@ exit 1`,
             cwd: tempDir,
             encoding: 'utf-8' as BufferEncoding,
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: isolatedHome },
           },
         );
 
@@ -2192,6 +2243,10 @@ exit 1`,
         spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
 
         // fix: should succeed (chore doesn't count as behavioral)
+        const isolatedHome = genTempDir({
+          slug: 'chore-then-fix-home',
+          git: false,
+        });
         const result = spawnSync(
           'bash',
           [
@@ -2205,6 +2260,7 @@ exit 1`,
             cwd: tempDir,
             encoding: 'utf-8' as BufferEncoding,
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: isolatedHome },
           },
         );
 
@@ -2254,6 +2310,10 @@ exit 1`,
         spawnSync('git', ['add', 'first.txt'], { cwd: tempDir });
 
         // cont: on fresh branch (no behavioral yet) should be BLOCKED
+        const isolatedHome = genTempDir({
+          slug: 'cont-fresh-home',
+          git: false,
+        });
         const result = spawnSync(
           'bash',
           [
@@ -2267,6 +2327,7 @@ exit 1`,
             cwd: tempDir,
             encoding: 'utf-8' as BufferEncoding,
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: isolatedHome },
           },
         );
 

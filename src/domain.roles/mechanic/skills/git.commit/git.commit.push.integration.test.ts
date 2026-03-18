@@ -106,15 +106,21 @@ env.prod:
    * .why = consistent invocation across test cases
    * .note = always excludes EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN from process.env
    *         for deterministic tests; pass explicit token via env if needed
+   * .note = always isolates HOME to prevent global blocker from affecting tests
    */
   const runPush = (args: {
     tempDir: string;
     pushArgs: string[];
     env?: Record<string, string>;
+    tempHome?: string;
   }): { stdout: string; stderr: string; exitCode: number } => {
     // always exclude token from process.env for deterministic tests
     const { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: _token, ...envWithoutToken } =
       process.env;
+
+    // always use isolated HOME to prevent global blocker from affecting tests
+    const isolatedHome =
+      args.tempHome ?? genTempDir({ slug: 'git-push-home', git: false });
 
     const result = spawnSync('bash', [pushScriptPath, ...args.pushArgs], {
       cwd: args.tempDir,
@@ -122,6 +128,7 @@ env.prod:
       stdio: ['pipe', 'pipe', 'pipe'],
       env: {
         ...envWithoutToken,
+        HOME: isolatedHome,
         ...args.env,
       },
     });
@@ -1323,6 +1330,129 @@ exit 1
         expect(result.stderr).not.toContain('owner ehmpath');
         // snapshot test for clear error message
         expect(result.stderr).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case21] global blocker guard', () => {
+    when('[t0] global blocker is active but local meter allows push', () => {
+      then('exits with global blocked error', () => {
+        // create fake HOME with global blocker
+        const fakeHome = genTempDir({
+          slug: 'fake-home-global-blocked',
+        });
+        const globalMeterDir = path.join(
+          fakeHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(globalMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(globalMeterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ blocked: true }, null, 2),
+        );
+
+        const tempDir = setupTempRepo({
+          meterState: { uses: 3, push: 'allow' },
+          branch: 'turtle/feature',
+          commits: ['feat: global blocked test'],
+        });
+
+        const result = runPush({
+          tempDir,
+          pushArgs: ['--mode', 'plan'],
+          env: {
+            HOME: fakeHome,
+            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+          },
+        });
+
+        expect(result.exitCode).toBe(2); // blocked by constraints
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain('commits blocked globally');
+        expect(result.stdout).toContain('git.commit.uses allow --global');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] global blocker is not active', () => {
+      then('proceeds to local meter check', () => {
+        // create fake HOME with NO global blocker
+        const fakeHome = genTempDir({
+          slug: 'fake-home-no-global-block',
+        });
+
+        const tempDir = setupTempRepo({
+          meterState: { uses: 3, push: 'allow' },
+          branch: 'turtle/feature',
+          commits: ['feat: no global block test'],
+        });
+
+        // mock gh cli for token validation
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        const result = runPush({
+          tempDir,
+          pushArgs: ['--mode', 'plan'],
+          env: {
+            HOME: fakeHome,
+            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
+          },
+        });
+
+        // should NOT be blocked by global blocker
+        expect(result.stdout).not.toContain('commits blocked globally');
+        // should proceed to plan output
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('heres the wave');
+      });
+    });
+
+    when('[t2] global blocker file is corrupt', () => {
+      then('fails safe with file corrupt error', () => {
+        // create fake HOME with corrupt global blocker file
+        const fakeHome = genTempDir({
+          slug: 'fake-home-corrupt-global',
+        });
+        const globalMeterDir = path.join(
+          fakeHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(globalMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(globalMeterDir, 'git.commit.uses.jsonc'),
+          'not valid json {{{',
+        );
+
+        const tempDir = setupTempRepo({
+          meterState: { uses: 3, push: 'allow' },
+          branch: 'turtle/feature',
+          commits: ['feat: corrupt global test'],
+        });
+
+        const result = runPush({
+          tempDir,
+          pushArgs: ['--mode', 'plan'],
+          env: {
+            HOME: fakeHome,
+            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+          },
+        });
+
+        expect(result.exitCode).toBe(2); // blocked by constraints
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain('global blocker file corrupt');
       });
     });
   });

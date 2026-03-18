@@ -47,10 +47,7 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 METER_DIR="$REPO_ROOT/.meter"
 STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 
-# global blocker path
-ROLE_REPO="ehmpathy"
-ROLE_SLUG="mechanic"
-GLOBAL_METER_FILE="$HOME/.rhachet/storage/repo=$ROLE_REPO/role=$ROLE_SLUG/.meter/git.commit.uses.jsonc"
+# global blocker path (defined in git.commit.operations.sh)
 
 ######################################################################
 # helper: infer level from branch name (same logic as git.commit.bind)
@@ -394,24 +391,12 @@ else
 fi
 
 # check global blocker (before local quota)
-if [[ -f "$GLOBAL_METER_FILE" ]]; then
-  # check if file is valid json
-  if ! BLOCKED_VAL=$(jq -r '.blocked // false' "$GLOBAL_METER_FILE" 2>/dev/null); then
-    # file is corrupt - fail safe (treat as blocked)
-    print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.set"
-    print_tree_error "global blocker file corrupt"
-    GLOBAL_METER_FILE_DISPLAY="${GLOBAL_METER_FILE/#$HOME/\~}"
-    print_instruction "check the file:" "  \$ cat $GLOBAL_METER_FILE_DISPLAY"
-    exit 2
-  fi
-  if [[ "$BLOCKED_VAL" == "true" ]]; then
-    print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.set"
-    print_tree_error "commits blocked globally"
-    print_instruction "ask your human to lift:" "  \$ git.commit.uses allow --global"
-    exit 2
-  fi
+if ! check_global_blocker; then
+  print_turtle_header "bummer dude..."
+  print_tree_start "git.commit.set"
+  print_tree_error "$GLOBAL_BLOCK_REASON"
+  print_instruction "ask your human to lift:" "  \$ git.commit.uses allow --global"
+  exit 2
 fi
 
 # check state file exists

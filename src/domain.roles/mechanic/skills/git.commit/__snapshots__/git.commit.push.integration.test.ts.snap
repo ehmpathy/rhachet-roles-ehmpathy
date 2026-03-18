@@ -210,3 +210,14 @@ keyrack output:
 
 "
 `;
+
+exports[`git.commit.push.sh given: [case21] global blocker guard when: [t0] global blocker is active but local meter allows push then: exits with global blocked error 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: commits blocked globally
+
+ask your human to lift:
+  $ git.commit.uses allow --global
+"
+`;

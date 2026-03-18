@@ -12,6 +12,42 @@
 ######################################################################
 
 ######################################################################
+# global blocker constants (shared across git.commit skills)
+######################################################################
+ROLE_REPO="ehmpathy"
+ROLE_SLUG="mechanic"
+GLOBAL_METER_FILE="$HOME/.rhachet/storage/repo=$ROLE_REPO/role=$ROLE_SLUG/.meter/git.commit.uses.jsonc"
+
+######################################################################
+# helper: check if global blocker is active
+# returns:
+#   - 0 (success) if NOT blocked (continue)
+#   - 2 if blocked (caller should exit 2)
+#   - sets GLOBAL_BLOCK_REASON if blocked
+######################################################################
+check_global_blocker() {
+  GLOBAL_BLOCK_REASON=""
+
+  if [[ ! -f "$GLOBAL_METER_FILE" ]]; then
+    return 0  # not blocked
+  fi
+
+  # check if file is valid json
+  local blocked_val
+  if ! blocked_val=$(jq -r '.blocked // false' "$GLOBAL_METER_FILE" 2>/dev/null); then
+    GLOBAL_BLOCK_REASON="global blocker file corrupt"
+    return 2
+  fi
+
+  if [[ "$blocked_val" == "true" ]]; then
+    GLOBAL_BLOCK_REASON="commits blocked globally"
+    return 2
+  fi
+
+  return 0  # not blocked
+}
+
+######################################################################
 # helper: find the closest ancestor branch for current HEAD
 # handles stacked branches (branch B created from branch A)
 # returns:
