@@ -60,6 +60,16 @@ describe('git.repo.get.sh', () => {
 
       // init as git repo with origin/main
       spawnSync('git', ['init'], { cwd: repoPath });
+      // configure git for CI (dubious ownership + commit identity)
+      spawnSync(
+        'git',
+        ['config', '--global', '--add', 'safe.directory', repoPath],
+        { cwd: repoPath },
+      );
+      spawnSync('git', ['config', 'user.email', 'test@test.com'], {
+        cwd: repoPath,
+      });
+      spawnSync('git', ['config', 'user.name', 'Test'], { cwd: repoPath });
       spawnSync('git', ['add', '.'], { cwd: repoPath });
       spawnSync('git', ['commit', '-m', 'initial'], { cwd: repoPath });
       spawnSync('git', ['checkout', '-B', 'main'], { cwd: repoPath });
