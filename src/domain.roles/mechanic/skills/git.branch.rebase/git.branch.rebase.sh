@@ -36,12 +36,14 @@ show_usage() {
   echo "   ├─ subcommands"
   echo "   │  ├─ begin      start rebase onto origin/main"
   echo "   │  ├─ continue   continue after conflicts settled"
+  echo "   │  ├─ take       settle conflicts via ours or theirs"
   echo "   │  ├─ abort      abandon rebase, restore pre-rebase state"
   echo "   │  └─ help       show this usage"
   echo "   └─ examples"
   echo "      ├─ rhx git.branch.rebase begin --mode plan"
   echo "      ├─ rhx git.branch.rebase begin --mode apply"
   echo "      ├─ rhx git.branch.rebase continue"
+  echo "      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml"
   echo "      └─ rhx git.branch.rebase abort"
 }
 
@@ -97,7 +99,7 @@ fi
 
 # guard: valid subcommand
 case "$SUBCMD" in
-  begin|continue|abort)
+  begin|continue|take|abort)
     # valid - proceed to dispatch
     ;;
   *)
