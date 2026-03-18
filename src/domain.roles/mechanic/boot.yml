@@ -101,6 +101,7 @@ subject.code.prod:
       # errors
       - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt1.md
       - briefs/practices/code.prod/pitofsuccess.errors/rule.prefer.helpful-error-wrap.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.exit-code-semantics.md
       - briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.md
 
       # procedures (pit of success)

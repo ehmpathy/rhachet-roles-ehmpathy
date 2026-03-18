@@ -240,7 +240,7 @@ exports[`git.release given: [case4] release to prod (apply mode) when: [t5] feat
 
 🌊 release: v1.2.3
    └─ 🥥 let's watch
-      └─ ✨ done! publish.yml, 1s in action, 0s watched
+      └─ ✨ done! publish.yml, 0s in action, 0s watched
 "
 `;
 
@@ -314,9 +314,9 @@ exports[`git.release given: [case8] watch loop internals when: [t1] apply mode w
    ├─ 🐢 2 check(s) in progress
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
-      ├─ 💤 2 left, 0s in action, 0s watched
-      ├─ 💤 1 left, 1s in action, 1s watched
-      └─ ✨ done! 2s in action, 2s watched
+      ├─ 💤 2 left, 1s in action, 0s watched
+      ├─ 💤 1 left, 2s in action, 1s watched
+      └─ ✨ done! 3s in action, 2s watched
 "
 `;
 

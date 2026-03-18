@@ -406,28 +406,8 @@ get_latest_tag() {
   git tag --sort=-v:refname | head -1
 }
 
-######################################################################
-# fetch_github_token
-# fetch GitHub token from keyrack (same pattern as git.commit.push)
-#
-# usage: fetch_github_token
-# returns: token or empty if not available
-######################################################################
-fetch_github_token() {
-  local token
-
-  # try keyrack first
-  token=$(rhachet keyrack get --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN 2>/dev/null || true)
-
-  if [[ -z "$token" ]]; then
-    # try fallback unlock
-    if rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env all 2>/dev/null; then
-      token=$(rhachet keyrack get --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN 2>/dev/null || true)
-    fi
-  fi
-
-  echo "$token"
-}
+# source shared keyrack operations (fetch_github_token, require_github_token)
+source "$SKILL_DIR/../git.commit/keyrack.operations.sh"
 
 ######################################################################
 # get_default_branch
