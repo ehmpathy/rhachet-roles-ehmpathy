@@ -13,4 +13,15 @@ export const ROLE_ERGONOMIST: Role = Role.build({
   briefs: {
     dirs: [{ uri: __dirname + '/briefs' }],
   },
+  hooks: {
+    onBrain: {
+      onBoot: [
+        {
+          command:
+            './node_modules/.bin/rhachet roles boot --repo ehmpathy --role ergonomist',
+          timeout: 'PT60S',
+        },
+      ],
+    },
+  },
 });

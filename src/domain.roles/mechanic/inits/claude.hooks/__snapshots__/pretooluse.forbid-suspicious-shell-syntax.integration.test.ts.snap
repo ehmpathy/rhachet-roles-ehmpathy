@@ -61,7 +61,7 @@ Alternatives:
 "
 `;
 
-exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case17] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: $() block message matches snapshot 1`] = `
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case18] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: $() block message matches snapshot 1`] = `
 "
 🛑 BLOCKED: Command contains $() command substitution.
 
@@ -75,7 +75,7 @@ Alternatives:
 "
 `;
 
-exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case17] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: ANSI-C block message matches snapshot 1`] = `
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case18] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: ANSI-C block message matches snapshot 1`] = `
 "
 🛑 BLOCKED: Command contains ANSI-C $'...' syntax.
 
@@ -89,7 +89,7 @@ Alternatives:
 "
 `;
 
-exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case17] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: backtick block message matches snapshot 1`] = `
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case18] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: backtick block message matches snapshot 1`] = `
 "
 🛑 BLOCKED: Command contains backtick command substitution.
 
@@ -99,6 +99,23 @@ Alternatives:
   - Consider if this operation is required via bash at all
   - Run commands separately and use variables
   - If substitution is needed, use $() instead (but that is also blocked)
+
+"
+`;
+
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case18] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: output redirection block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains output redirection (>).
+
+Could write to arbitrary files or confuse fd redirection; harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Consider if this operation is required via bash at all
+  - For 'cmd > file': use 'cmd | rhx teesafe file.txt'
+  - For 'cmd >> file': use 'cmd | rhx teesafe file.txt --append'
+  - For '2>&1': not needed, Claude captures both streams separately
+  - For '2>/dev/null': just run cmd, ignore stderr in output
+  - For 'cmd < file': use 'cat file | cmd' instead
 
 "
 `;
