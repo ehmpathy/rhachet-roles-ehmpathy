@@ -388,3 +388,39 @@ exports[`git.repo.get.sh given: [case17] regex patterns with pipe when: [t1] lin
    └─ found: 2 matches
 "
 `;
+
+exports[`git.repo.get.sh given: [case19] lines with custom --ref when: [t0] --ref HEAD is specified then: searches at HEAD ref 1`] = `
+"🐢 far out
+
+🐚 git.repo.get lines
+   ├─ repo: testorg/short (local)
+   ├─ ref: HEAD
+   ├─ words: hello
+   ├─ radius: 21
+   │
+   ├─ src/index.ts
+   │  ├─
+   │  │ >    1: export const hello = "world";
+   │  └─
+   │
+   └─ found: 1 matches
+"
+`;
+
+exports[`git.repo.get.sh given: [case20] --help flag when: [t0] --help is passed then: shows usage and exits 0 1`] = `
+"usage: rhx git.repo.get <subcommand> [options]
+
+subcommands:
+  repos   list repos that match a glob
+  files   list files in a repo
+  lines   search or read file contents
+
+options:
+  --repos <glob>     glob pattern for repos (e.g., 'ehmpathy/*')
+  --in <slug>        single repo (e.g., 'ehmpathy/domain-objects')
+  --paths <glob>     filter files by path glob
+  --words <pattern>  search for pattern (triggers search mode)
+  --radius <N>       context lines around matches (default: 21)
+  --ref <ref>        git ref to use (default: origin/main)
+"
+`;

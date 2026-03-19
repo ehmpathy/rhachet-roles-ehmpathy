@@ -603,4 +603,177 @@ describe('git.repo.get.sh', () => {
       });
     });
   });
+
+  // --ref flag tests
+  given('[case19] lines with custom --ref', () => {
+    when('[t0] --ref HEAD is specified', () => {
+      then('searches at HEAD ref', () => {
+        const { homeDir, cleanup } = genTempDir();
+        try {
+          const result = runSkill(
+            'lines --in testorg/short --words hello --ref HEAD',
+            { HOME: homeDir },
+          );
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('far out');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
+
+  // --help flag
+  given('[case20] --help flag', () => {
+    when('[t0] --help is passed', () => {
+      then('shows usage and exits 0', () => {
+        const { homeDir, cleanup } = genTempDir();
+        try {
+          const result = runSkill('--help', { HOME: homeDir });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('usage:');
+          expect(result.stdout).toContain('subcommands:');
+          expect(result.stdout).toContain('options:');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t1] -h is passed', () => {
+      then('shows usage and exits 0', () => {
+        const { homeDir, cleanup } = genTempDir();
+        try {
+          const result = runSkill('-h', { HOME: homeDir });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('usage:');
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
+
+  // unknown argument error
+  given('[case21] unknown argument', () => {
+    when('[t0] --unknown-flag is passed', () => {
+      then('exits with error 2 and shows message', () => {
+        const { homeDir, cleanup } = genTempDir();
+        try {
+          const result = runSkill('repos --unknown-flag value', {
+            HOME: homeDir,
+          });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('unknown argument');
+          expect(result.stdout).toContain('--unknown-flag');
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
+
+  // unknown subcommand error
+  given('[case22] unknown subcommand', () => {
+    when('[t0] invalid subcommand is passed', () => {
+      then('exits with error 2 and shows message', () => {
+        const { homeDir, cleanup } = genTempDir();
+        try {
+          const result = runSkill('invalidcmd', { HOME: homeDir });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('unknown argument');
+          expect(result.stdout).toContain('invalidcmd');
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
+
+  // no subcommand error
+  given('[case23] no subcommand', () => {
+    when('[t0] only flags are passed without subcommand', () => {
+      then('exits with error 2', () => {
+        const { homeDir, cleanup } = genTempDir();
+        try {
+          const result = runSkill('--repos testorg/*', { HOME: homeDir });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('no subcommand specified');
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
+
+  // GIT_REPO_ROOT override
+  given('[case24] GIT_REPO_ROOT env override', () => {
+    when('[t0] custom root is set', () => {
+      then('uses custom root instead of ~/git', () => {
+        const { tempDir, cleanup } = genTempDir();
+        const customRoot = path.join(tempDir, 'custom-git-root');
+        fs.mkdirSync(path.join(customRoot, 'myorg', 'myrepo', '.git'), {
+          recursive: true,
+        });
+        fs.writeFileSync(
+          path.join(customRoot, 'myorg', 'myrepo', 'test.txt'),
+          'custom root test',
+        );
+        // init git
+        spawnSync('git', ['init'], {
+          cwd: path.join(customRoot, 'myorg', 'myrepo'),
+        });
+        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
+          cwd: path.join(customRoot, 'myorg', 'myrepo'),
+        });
+        spawnSync('git', ['config', 'user.name', 'Test'], {
+          cwd: path.join(customRoot, 'myorg', 'myrepo'),
+        });
+        spawnSync('git', ['add', '.'], {
+          cwd: path.join(customRoot, 'myorg', 'myrepo'),
+        });
+        spawnSync('git', ['commit', '-m', 'init'], {
+          cwd: path.join(customRoot, 'myorg', 'myrepo'),
+        });
+        spawnSync('git', ['checkout', '-B', 'main'], {
+          cwd: path.join(customRoot, 'myorg', 'myrepo'),
+        });
+        spawnSync('git', ['update-ref', 'refs/remotes/origin/main', 'HEAD'], {
+          cwd: path.join(customRoot, 'myorg', 'myrepo'),
+        });
+
+        try {
+          const result = spawnSync(
+            'bash',
+            [scriptPath, 'repos', '--repos', 'myorg/*'],
+            {
+              cwd: process.cwd(),
+              encoding: 'utf-8',
+              stdio: ['pipe', 'pipe', 'pipe'],
+              timeout: 30000,
+              env: {
+                ...process.env,
+                HOME: tempDir,
+                GIT_REPO_ROOT: customRoot,
+              },
+            },
+          );
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain('myrepo');
+          expect(result.stdout).toContain('custom-git-root');
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
 });
