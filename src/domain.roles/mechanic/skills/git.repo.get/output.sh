@@ -1,1 +1,0 @@
-../git.commit/output.sh

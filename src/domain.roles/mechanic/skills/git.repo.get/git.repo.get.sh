@@ -32,7 +32,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "$SCRIPT_DIR/output.sh"
+source "$SCRIPT_DIR/../git.commit/output.sh"
 source "$SCRIPT_DIR/git.repo.get.operations.sh"
 
 ######################################################################
