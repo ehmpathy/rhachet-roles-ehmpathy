@@ -117,6 +117,17 @@
             "author": "repo=ehmpathy/role=mechanic"
           }
         ]
+      },
+      {
+        "matcher": "Read|Write|Edit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhx route.mutate.guard --mode hook",
+            "timeout": 5,
+            "author": "repo=bhrain/role=driver"
+          }
+        ]
       }
     ],
     "Stop": [

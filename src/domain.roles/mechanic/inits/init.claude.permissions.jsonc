@@ -226,6 +226,14 @@
       // rmsafe - safe file removal within git repo
       "Bash(npx rhachet run --skill rmsafe:*)",
 
+      // teesafe - safe tee within git repo (alternative to raw tee)
+      "Bash(npx rhachet run --skill teesafe:*)",
+      "Bash(rhx teesafe:*)",
+      // examples: write or append to file
+      "Bash(cmd | npx rhachet run --skill teesafe file.txt)",
+      "Bash(cmd | rhx teesafe file.txt)",
+      "Bash(cmd | rhx teesafe --into file.txt --append)",
+
       // symlink - create symlinks within repo
       "Bash(npx rhachet run --skill symlink:*)",
 

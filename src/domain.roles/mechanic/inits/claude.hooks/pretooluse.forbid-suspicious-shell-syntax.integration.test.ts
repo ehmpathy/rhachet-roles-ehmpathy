@@ -243,10 +243,11 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
         expect(result.stdout).toBe('');
       });
 
-      then('stdout redirect is allowed', () => {
+      then('stdout redirect is blocked', () => {
         const result = runHook('cat file.txt > output.txt');
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toBe('');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('output redirection');
       });
 
       then('compound && is allowed', () => {
@@ -525,10 +526,8 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
         expect(result.stdout).toBe('');
       });
 
-      then('grep with fallback echo is allowed', () => {
-        const result = runHook(
-          'grep -r "else {" src/ 2>/dev/null || echo "not found"',
-        );
+      then('grep with fallback echo (no redirect) is allowed', () => {
+        const result = runHook('grep -r "else {" src/ || echo "not found"');
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toBe('');
       });
@@ -652,7 +651,86 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
     });
   });
 
-  given('[case17] block message snapshots for new patterns', () => {
+  given('[case17] output redirection', () => {
+    when('[t0] unquoted output redirection', () => {
+      then('simple > redirect is blocked', () => {
+        const result = runHook('cat file.txt > output.txt');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('output redirection');
+      });
+
+      then('append >> redirect is blocked', () => {
+        const result = runHook('echo "line" >> log.txt');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then('stderr 2> redirect is blocked', () => {
+        const result = runHook('cmd 2> errors.txt');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then('fd duplication 2>&1 is blocked', () => {
+        const result = runHook('cmd 2>&1');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then('fd duplication >&2 is blocked', () => {
+        const result = runHook('echo error >&2');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then('combined redirect &> is blocked', () => {
+        const result = runHook('cmd &> /dev/null');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then('2>&2 (noop stderr) is blocked', () => {
+        const result = runHook('npm run test 2>&2 | tail -50');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then('redirect after pipe is blocked', () => {
+        const result = runHook('cmd1 | cmd2 > output.txt');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+    });
+
+    when('[t1] > in quotes', () => {
+      then('> in double quotes is allowed', () => {
+        const result = runHook('echo "a > b"');
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+
+      then('> in single quotes is allowed', () => {
+        const result = runHook("echo 'a > b'");
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+
+      then('grep for > pattern is allowed', () => {
+        const result = runHook('grep ">" file.txt');
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+
+      then('regex with > in quotes is allowed', () => {
+        const result = runHook('grep -E "a->b" file.txt');
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+    });
+  });
+
+  given('[case18] block message snapshots for new patterns', () => {
     when('[t0] each new pattern type produces expected output', () => {
       then('ANSI-C block message matches snapshot', () => {
         const result = runHook("echo $'test'");
@@ -666,6 +744,11 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
 
       then('$() block message matches snapshot', () => {
         const result = runHook('echo $(date)');
+        expect(result.stderr).toMatchSnapshot();
+      });
+
+      then('output redirection block message matches snapshot', () => {
+        const result = runHook('cat file > output.txt');
         expect(result.stderr).toMatchSnapshot();
       });
     });

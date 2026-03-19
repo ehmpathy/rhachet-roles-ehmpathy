@@ -90,6 +90,20 @@
         "Run commands separately and use variables",
         "If substitution is needed, use $() instead (but that is also blocked)"
       ]
+    },
+    {
+      "match": ">",
+      "type": "unquoted",
+      "message": "Command contains output redirection (>)",
+      "why": "could write to arbitrary files or confuse fd redirection",
+      "alt": [
+        "Consider if this operation is required via bash at all",
+        "For 'cmd > file': use 'cmd | rhx teesafe file.txt'",
+        "For 'cmd >> file': use 'cmd | rhx teesafe file.txt --append'",
+        "For '2>&1': not needed, Claude captures both streams separately",
+        "For '2>/dev/null': just run cmd, ignore stderr in output",
+        "For 'cmd < file': use 'cat file | cmd' instead"
+      ]
     }
   ]
 }
