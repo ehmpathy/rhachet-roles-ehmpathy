@@ -191,8 +191,10 @@ subject.flow:
   briefs:
     say:
       - briefs/practices/work.flow/diagnose/rule.forbid.trust-vscode-diagnostics.md
+      - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
       - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
       - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
+      - briefs/practices/work.flow/release/rule.require.commit-scopes.md
       - briefs/practices/work.flow/release/rule.require.watch-release-after-push.md
       - briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt1.md
       - briefs/practices/work.flow/tools/rule.require.externalized-knowledge.md
@@ -200,6 +202,7 @@ subject.flow:
 
     ref:
       - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
+      - briefs/practices/work.flow/diagnose/howto.logservation.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.allowlist-examples.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.jq.[demo].md
       - briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt2.md
