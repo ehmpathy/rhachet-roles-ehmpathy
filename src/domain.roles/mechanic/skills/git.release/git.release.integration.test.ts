@@ -1970,44 +1970,47 @@ esac
   });
 
   given('[case9] dirty state detection', () => {
-    when('[t0] apply mode with modified tracked file (default --dirty block)', () => {
-      then('fails fast with hint to stash or use --dirty allow', () => {
-        const mockResponses = {
-          'pr list': '42',
-          'pr view':
-            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}',
-        };
+    when(
+      '[t0] apply mode with modified tracked file (default --dirty block)',
+      () => {
+        then('fails fast with hint to stash or use --dirty allow', () => {
+          const mockResponses = {
+            'pr list': '42',
+            'pr view':
+              '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}',
+          };
 
-        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+          const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
 
-        try {
-          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
-            cwd: tempDir,
-          });
+          try {
+            spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+              cwd: tempDir,
+            });
 
-          // create a tracked file and modify it to trigger dirty check
-          fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'original');
-          spawnSync('git', ['add', 'tracked.txt'], { cwd: tempDir });
-          spawnSync('git', ['commit', '-m', 'add tracked file'], {
-            cwd: tempDir,
-          });
-          fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'modified');
+            // create a tracked file and modify it to trigger dirty check
+            fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'original');
+            spawnSync('git', ['add', 'tracked.txt'], { cwd: tempDir });
+            spawnSync('git', ['commit', '-m', 'add tracked file'], {
+              cwd: tempDir,
+            });
+            fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'modified');
 
-          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
-            tempDir,
-            fakeBinDir,
-          });
+            const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+              tempDir,
+              fakeBinDir,
+            });
 
-          expect(result.stdout).toContain('hold up dude');
-          expect(result.stdout).toContain('uncommitted changes');
-          expect(result.stdout).toContain('--dirty allow');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
-          expect(result.status).toEqual(2); // constraint error
-        } finally {
-          cleanup();
-        }
-      });
-    });
+            expect(result.stdout).toContain('hold up dude');
+            expect(result.stdout).toContain('uncommitted changes');
+            expect(result.stdout).toContain('--dirty allow');
+            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(result.status).toEqual(2); // constraint error
+          } finally {
+            cleanup();
+          }
+        });
+      },
+    );
 
     when('[t1] apply mode with modified tracked file and --dirty allow', () => {
       then('proceeds with release', () => {
