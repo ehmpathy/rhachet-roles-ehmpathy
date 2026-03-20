@@ -1,0 +1,612 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release given: [case1] release to main (plan mode) when: [t0] feature branch with open PR then: shows status tree with hint to apply 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to main --mode plan
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --mode apply to add)
+   └─ [2mhint: use --mode apply to enable automerge and watch[0m
+"
+`;
+
+exports[`git.release given: [case1] release to main (plan mode) when: [t1] feature branch with no PR then: shows crickets vibe with hint to push 1`] = `
+"🐢 crickets...
+
+🫧 no open branch pr
+   ├─ turtle/feature-x
+   └─ [2mhint: use git.commit.push to push and findsert pr[0m
+"
+`;
+
+exports[`git.release given: [case1] release to main (plan mode) when: [t2] on main branch with release PR then: shows release PR status 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to main
+
+🌊 release: chore(release): v1.32.0 🎉
+   ├─ 👌 all checks passed
+   └─ 🌴 automerge enabled [found]
+"
+`;
+
+exports[`git.release given: [case1] release to main (plan mode) when: [t3] feature branch with merged PR (fallback lookup) then: shows status for merged PR 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to main --mode plan
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t0] PR with all checks passed then: shows cowabunga vibe and enables automerge 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t1] PR with failed checks then: shows bummer vibe with failure links 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --to main --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ ⚓  1 check(s) failed
+   │  └─ 🔴 test-unit
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        └─ failed after Xm Ys
+   └─ [2mhint: use --retry to rerun failed workflows[0m
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t2] PR needs rebase (BEHIND) then: shows hold up dude vibe 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --to main
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --mode apply to add)
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t2a] PR needs rebase with conflicts (DIRTY) then: shows hold up dude vibe with conflicts message 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --to main
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase, has conflicts
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --mode apply to add)
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t3] automerge returns clean status (PR ready to merge) then: handles gracefully: merges and succeeds 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t3] automerge returns clean status (PR ready to merge) then: handles gracefully: merges and succeeds 2`] = `""`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t4] automerge fails with actual error then: failloud: gh error goes to stderr, exits 1 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+"
+`;
+
+exports[`git.release given: [case2] release to main (apply mode) when: [t4] automerge fails with actual error then: failloud: gh error goes to stderr, exits 1 2`] = `
+"GraphQL: Could not enable auto-merge: not authorized
+"
+`;
+
+exports[`git.release given: [case3a] release to prod from main (plan mode) when: [t0] release PR extant then: shows status with hint to apply 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to prod --mode plan
+
+🌊 release: chore(release): v1.32.0 🎉
+   ├─ 👌 all checks passed
+   └─ [2mhint: use --mode apply to merge and watch tag workflows[0m
+"
+`;
+
+exports[`git.release given: [case3a] release to prod from main (plan mode) when: [t1] no release pr then: shows latest tag status 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to prod --mode plan
+
+🌊 release: v1.2.0
+   ├─ publish.yml: success
+   └─ no release pr open
+"
+`;
+
+exports[`git.release given: [case3b] release to prod from feat (plan mode) when: [t0] open PR for feature branch then: runs --to main flow first then stops 1`] = `
+"🐢 lets see...
+
+🐚 git.release --to prod --mode plan
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --mode apply to add)
+   └─ [2mhint: use --mode apply to enable automerge and watch[0m
+"
+`;
+
+exports[`git.release given: [case3b] release to prod from feat (plan mode) when: [t1] no PR for feature branch then: fails fast with push hint 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --to prod
+
+🫧 no open pr for turtle/feature-x
+   └─ did you git.commit.push to create the pr yet?
+"
+`;
+
+exports[`git.release given: [case4a] release to prod from main (apply mode) when: [t0] from main: release PR extant with passed checks then: shows radical vibe and watches 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: chore(release): v1.32.0 🎉
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 wait for it...
+   └─ ✨ found it! Xs in action, Xs watched
+
+🌊 release: v1.32.0
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case4a] release to prod from main (apply mode) when: [t1] from main: release PR already merged then: watches tag workflows 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: v1.2.3
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case4a] release to prod from main (apply mode) when: [t2] from main: tag workflow fails then: shows failure with retry hint 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: v1.2.3
+   └─ 🥥 let's watch
+      ├─ ⚓  1 check(s) failed
+      │  └─ 🔴 publish.yml
+      │        ├─ https://github.com/test/repo/actions/runs/789
+      │        └─ failure
+      └─ [2mhint: use --retry to rerun failed workflows[0m
+"
+`;
+
+exports[`git.release given: [case4a] release to prod from main (apply mode) when: [t3] from main: deploy.yml detected then: watches deploy workflow 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: v1.2.3
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! deploy.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case4a] release to prod from main (apply mode) when: [t4] from main: release PR inflight (checks in progress), then merges then: watches release PR then tag workflows 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: chore(release): v1.32.0 🎉
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 wait for it...
+   └─ ✨ found it! Xs in action, Xs watched
+
+🌊 release: v1.32.0
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case4a] release to prod from main (apply mode) when: [t5] from main: release PR passed but no automerge then: adds automerge, watches merge, then watches tag 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: chore(release): v1.32.0 🎉
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 wait for it...
+   └─ ✨ found it! Xs in action, Xs watched
+
+🌊 release: v1.32.0
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case4a] release to prod from main (apply mode) when: [t6] from main: no release PR but tag workflow in progress then: watches tag workflow until complete 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: v1.2.3
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case4a] release to prod from main (apply mode) when: [t7] from main: no release PR and no tag workflows then: reports latest tag with no workflows found 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: v1.2.3
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case4b] release to prod from feat (apply mode) when: [t0] no PR exists then: fails fast with push hint 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --to prod
+
+🫧 no open pr for turtle/feature-x
+   └─ did you git.commit.push to create the pr yet?
+"
+`;
+
+exports[`git.release given: [case4b] release to prod from feat (apply mode) when: [t1] PR merges then release PR merges (full journey) then: runs --to main first then continues to release pr 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 wait for it...
+   └─ ✨ found it! Xs in action, Xs watched
+
+🌊 release: chore(release): v1.2.3 🎉
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 wait for it...
+   └─ ✨ found it! Xs in action, Xs watched
+
+🌊 release: v1.2.3
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case4b] release to prod from feat (apply mode) when: [t2] release PR merges immediately after feature PR (no automerge was set on release) then: shows feature PR watch then release PR -> and merged already 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 🫧 no checks inflight
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 wait for it...
+   └─ ✨ found it! Xs in action, Xs watched
+
+🌊 release: chore(release): v1.32.0 🎉
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 wait for it...
+   └─ ✨ found it! Xs in action, Xs watched
+
+🌊 release: v1.32.0
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case4b] release to prod from feat (apply mode) when: [t3] feature PR already merged (not part of current run) then: proceeds directly to release PR 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 wait for it...
+   └─ ✨ found it! Xs in action, Xs watched
+
+🌊 release: chore(release): v1.32.0 🎉
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 wait for it...
+   └─ ✨ found it! Xs in action, Xs watched
+
+🌊 release: v1.32.0
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case4b] release to prod from feat (apply mode) when: [t4] feature PR checks still in progress then: watches and waits for checks to pass before continuing 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 🐢 3 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💤 await merge, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 wait for it...
+   └─ ✨ found it! Xs in action, Xs watched
+
+🌊 release: chore(release): v1.32.0 🎉
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 wait for it...
+   └─ ✨ found it! Xs in action, Xs watched
+
+🌊 release: v1.32.0
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case5] retry behavior when: [t0] --retry with failed PR checks then: reruns failed workflows 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --to main --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ ⚓  1 check(s) failed
+rerun triggered
+   │  └─ 🔴 test-unit
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ failed after Xm Ys
+   │        └─ 👌 rerun triggered
+   └─ [2mhint: use --retry to rerun failed workflows[0m
+"
+`;
+
+exports[`git.release given: [case5] retry behavior when: [t1] --retry with failed tag workflows then: reruns failed tag workflows 1`] = `
+"🐢 radical!
+
+🐚 git.release --to prod --mode apply
+
+🌊 release: v1.2.3
+rerun triggered
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ ⚓  1 check(s) failed
+      │  └─ 🔴 publish.yml
+      │        ├─ https://github.com/test/repo/actions/runs/789
+      │        └─ failure
+      └─ [2mhint: use --retry to rerun failed workflows[0m
+"
+`;
+
+exports[`git.release given: [case6] boundary conditions when: [t0] keyrack locked then: shows unlock instructions 1`] = `
+"🐢 bummer dude...
+
+🔐 github token not found
+   ├─ run: rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env all
+   └─ then retry this command
+"
+`;
+
+exports[`git.release given: [case7] argument validation when: [t4] --help flag then: shows usage and exits 0 1`] = `
+"usage: git.release [--to main|prod] [--watch] [--mode plan|apply] [--retry] [--dirty block|allow]
+
+  --to main     merge branch to main (default)
+  --to prod     merge branch to main, merge release to main, watch release to prod
+  --watch       watch CI without automerge
+  --mode plan   show status only (default)
+  --mode apply  enable automerge and watch
+  --retry       rerun failed workflows before watch
+  --dirty block fail fast if unstaged changes (default)
+  --dirty allow allow release even with unstaged changes
+"
+`;
+
+exports[`git.release given: [case8] watch loop internals when: [t0] checks in progress then: shows progress status 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to main --mode plan
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge unfound (use --mode apply to add)
+   └─ [2mhint: use --mode apply to enable automerge and watch[0m
+"
+`;
+
+exports[`git.release given: [case8] watch loop internals when: [t1] apply mode with poll progress then: shows sleep lines before completion 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 🐢 2 check(s) in progress
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 2 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case8] watch loop internals when: [t2] rebase required mid-watch (race condition) then: failloud rebase hint and exits 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ✨ done! Xs in action, Xs watched
+      └─ 🐚 but, needs rebase now
+         └─ [2mhint: rhx git.branch.rebase begin[0m
+"
+`;
+
+exports[`git.release given: [case8] watch loop internals when: [t2a] conflicts detected mid-watch (DIRTY) then: failloud rebase hint with conflicts and exits 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ✨ done! Xs in action, Xs watched
+      └─ 🐚 but, needs rebase now, has conflicts
+         └─ [2mhint: rhx git.branch.rebase begin[0m
+"
+`;
+
+exports[`git.release given: [case8] watch loop internals when: [t3] both failed and progress checks (Gap 4) then: shows both failed and progress status 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to main --mode plan
+
+🌊 release: feat(oceans): add reef protection
+   ├─ ⚓  1 check(s) failed
+   │  ├─ 🔴 test-unit
+   │  │     ├─ https://github.com/test/repo/actions/runs/123
+   │  │     └─ failed after Xm Ys
+   │  └─ 🟡 2 check(s) still in progress
+   ├─ 🌴 automerge unfound (use --mode apply to add)
+   └─ [2mhint: use --retry to rerun failed workflows[0m
+"
+`;
+
+exports[`git.release given: [case9] dirty state detection when: [t0] apply mode with modified tracked file (default --dirty block) then: fails fast with hint to stash or use --dirty allow 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --to main --mode apply
+
+   ⚠️  uncommitted changes detected
+   ├─ you have modified tracked files in your work tree
+   ├─ release with dirty state is risky (may not match what CI tests)
+   └─ options:
+      ├─ commit or stash your changes first
+      └─ use --dirty allow to release anyway
+"
+`;
+
+exports[`git.release given: [case9] dirty state detection when: [t1] apply mode with modified tracked file and --dirty allow then: proceeds with release 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case9] dirty state detection when: [t2] plan mode ignores dirty state then: does not fail (dirty check only on apply) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --to main --mode plan
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --mode apply to add)
+   └─ [2mhint: use --mode apply to enable automerge and watch[0m
+"
+`;
+
+exports[`git.release given: [case9] dirty state detection when: [t3] apply mode with clean state then: proceeds without dirty warning 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --to main --mode apply
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added] -> and merged already
+   └─ 🥥 let's watch
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
