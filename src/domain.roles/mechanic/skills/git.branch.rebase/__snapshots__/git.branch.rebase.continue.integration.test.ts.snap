@@ -79,3 +79,25 @@ exports[`git.branch.rebase.continue given: [case6] worktree with no rebase in pr
    └─ error: no rebase in progress
 "
 `;
+
+exports[`git.branch.rebase.continue given: [case7] rebase in progress with unstaged modifications (no unmerged files) when: [t0] attempt continue with unstaged modifications then: shows error: unstaged changes block continue 1`] = `
+"🐢 hang tight...
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  └─ status: blocked
+   ├─ unstaged
+   │  └─ files
+   │     └─ README.md
+   ├─ next steps
+   │  ├─ stage the files above: rhx git.stage.add <files>
+   │  └─ rhx git.branch.rebase continue
+   └─ git.output
+      ├─
+      │
+      │  You must edit all merge conflicts and then
+      │  mark them as resolved using git add
+      │
+      └─
+"
+`;

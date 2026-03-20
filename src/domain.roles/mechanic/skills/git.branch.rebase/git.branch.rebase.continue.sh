@@ -141,7 +141,25 @@ if [[ -n "$NEW_CONFLICTS" ]]; then
   exit 1
 fi
 
-# in progress but no conflicts - show progress
+# check for unstaged modifications that block continue
+UNSTAGED_FILES=$(get_unstaged_files)
+if [[ -n "$UNSTAGED_FILES" ]]; then
+  print_turtle_header "hang tight..."
+  print_tree_start "git.branch.rebase continue"
+  echo "   ├─ rebase"
+  echo "   │  └─ status: blocked"
+  echo "   ├─ unstaged"
+  echo "   │  └─ files"
+  print_files_tree "   │     " "$UNSTAGED_FILES"
+  echo "   ├─ next steps"
+  echo "   │  ├─ stage the files above: rhx git.stage.add <files>"
+  echo "   │  └─ rhx git.branch.rebase continue"
+  echo "   └─ git.output"
+  print_git_output_tree "$GIT_OUTPUT"
+  exit 1
+fi
+
+# in progress but no conflicts or unstaged - show progress
 NEW_COMMITS_LEFT=$(get_commits_left)
 print_turtle_header "righteous!"
 print_tree_start "git.branch.rebase continue"
