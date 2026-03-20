@@ -229,7 +229,7 @@ describe('git.branch.rebase.begin', () => {
 
           // conflict should show specific output
           if (result.stdout.includes('conflict')) {
-            expect(result.stdout).toContain('hold up dude');
+            expect(result.stdout).toContain('hang tight');
             expect(result.stdout).toContain('conflict');
             expect(result.stdout).toContain('settle conflicts');
           }

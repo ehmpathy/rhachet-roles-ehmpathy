@@ -262,7 +262,7 @@ if [[ "$MODE" == "apply" ]]; then
     CONFLICT_FILES=$(get_conflict_files)
     CONFLICT_COMMIT=$(get_conflict_commit)
 
-    print_turtle_header "hold up dude..."
+    print_turtle_header "hang tight..."
     print_tree_start "git.branch.rebase begin --mode apply"
     echo "   ├─ rebase"
     echo "   │  ├─ target: origin/$DEFAULT_BRANCH"

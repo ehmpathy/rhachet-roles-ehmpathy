@@ -61,7 +61,7 @@ fi
 CONFLICT_FILES=$(get_conflict_files)
 if [[ -n "$CONFLICT_FILES" ]]; then
   CONFLICT_COMMIT=$(get_conflict_commit)
-  print_turtle_header "hold up dude..."
+  print_turtle_header "hang tight..."
   print_tree_start "git.branch.rebase continue"
   echo "   ├─ rebase"
   echo "   │  └─ status: conflict"
@@ -123,7 +123,7 @@ fi
 NEW_CONFLICTS=$(get_conflict_files)
 if [[ -n "$NEW_CONFLICTS" ]]; then
   CONFLICT_COMMIT=$(get_conflict_commit)
-  print_turtle_header "hold up dude..."
+  print_turtle_header "hang tight..."
   print_tree_start "git.branch.rebase continue"
   echo "   ├─ rebase"
   echo "   │  └─ status: conflict"
