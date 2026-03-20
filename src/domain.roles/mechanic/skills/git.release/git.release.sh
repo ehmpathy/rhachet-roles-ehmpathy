@@ -39,6 +39,7 @@ TO="main"
 MODE="plan"
 WATCH="false"
 RETRY="false"
+DIRTY="block"  # default: fail fast if unstaged changes on --mode apply
 FROM_PROD="false"  # set by release_to_prod to suppress headers in release_to_main
 
 while [[ $# -gt 0 ]]; do
@@ -59,12 +60,16 @@ while [[ $# -gt 0 ]]; do
       RETRY="true"
       shift
       ;;
+    --dirty)
+      DIRTY="$2"
+      shift 2
+      ;;
     # rhachet passes these - ignore them
     --skill|--repo|--role)
       shift 2
       ;;
     --help|-h)
-      echo "usage: git.release [--to main|prod] [--watch] [--mode plan|apply] [--retry]"
+      echo "usage: git.release [--to main|prod] [--watch] [--mode plan|apply] [--retry] [--dirty block|allow]"
       echo ""
       echo "  --to main     merge branch to main (default)"
       echo "  --to prod     merge branch to main, merge release to main, watch release to prod"
@@ -72,11 +77,13 @@ while [[ $# -gt 0 ]]; do
       echo "  --mode plan   show status only (default)"
       echo "  --mode apply  enable automerge and watch"
       echo "  --retry       rerun failed workflows before watch"
+      echo "  --dirty block fail fast if unstaged changes (default)"
+      echo "  --dirty allow allow release even with unstaged changes"
       exit 0
       ;;
     *)
       echo "error: unknown argument: $1" >&2
-      echo "usage: git.release [--to main|prod] [--watch] [--mode plan|apply] [--retry]" >&2
+      echo "usage: git.release [--to main|prod] [--watch] [--mode plan|apply] [--retry] [--dirty block|allow]" >&2
       exit 2
       ;;
   esac
@@ -98,6 +105,12 @@ if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
   exit 2
 fi
 
+# validate --dirty value
+if [[ "$DIRTY" != "block" && "$DIRTY" != "allow" ]]; then
+  echo "error: --dirty must be 'block' or 'allow', got '$DIRTY'" >&2
+  exit 2
+fi
+
 # ensure in git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository" >&2
@@ -108,6 +121,24 @@ fi
 export IS_TTY="false"
 if [ -t 1 ]; then
   export IS_TTY="true"
+fi
+
+# check for modified tracked files (apply mode only, unless --dirty allow)
+# note: ignores untracked files (??) - only catches modified/deleted/staged tracked files
+if [[ "$MODE" == "apply" && "$DIRTY" == "block" ]]; then
+  DIRTY_FILES=$(git status --porcelain 2>/dev/null | grep -v '^??' || true)
+  if [[ -n "$DIRTY_FILES" ]]; then
+    print_turtle_header "hold up dude..."
+    echo "🐚 git.release --to $TO --mode apply"
+    echo ""
+    echo "   ⚠️  uncommitted changes detected"
+    echo "   ├─ you have modified tracked files in your work tree"
+    echo "   ├─ release with dirty state is risky (may not match what CI tests)"
+    echo "   └─ options:"
+    echo "      ├─ commit or stash your changes first"
+    echo "      └─ use --dirty allow to release anyway"
+    exit 2
+  fi
 fi
 
 ######################################################################

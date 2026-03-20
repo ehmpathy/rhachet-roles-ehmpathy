@@ -3,6 +3,23 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+/**
+ * .what = replace timing values with placeholders for snapshot stability
+ * .why = timing varies between runs (0s vs 1s), causing flaky snapshots
+ */
+const asTimingStable = (output: string): string => {
+  return (
+    output
+      // replace "Ns in action" and "Ns watched" patterns
+      .replace(/\d+s in action/g, 'Xs in action')
+      .replace(/\d+s watched/g, 'Xs watched')
+      // replace "Nm Ns" duration patterns
+      .replace(/\d+m\s*\d+s/g, 'Xm Ys')
+      // replace standalone seconds in duration contexts
+      .replace(/(\d+)s delay/g, 'Xs delay')
+  );
+};
+
 const SKILL_PATH = path.resolve(
   __dirname,
   '../../../../../dist/domain.roles/mechanic/skills/git.release/git.release.sh',
@@ -198,7 +215,7 @@ describe('git.release', () => {
 
           const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -222,7 +239,7 @@ describe('git.release', () => {
 
           const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
@@ -245,7 +262,7 @@ describe('git.release', () => {
         try {
           const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -275,7 +292,7 @@ describe('git.release', () => {
 
           // should find the merged PR and show its status
           expect(result.stdout).toContain('feat(oceans): add reef protection');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -306,7 +323,7 @@ describe('git.release', () => {
             fakeBinDir,
           });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -342,7 +359,7 @@ describe('git.release', () => {
 
           // verify duration appears in output
           expect(result.stdout).toContain('failed after');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(1);
         } finally {
           cleanup();
@@ -367,7 +384,7 @@ describe('git.release', () => {
 
           const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
@@ -394,7 +411,7 @@ describe('git.release', () => {
 
           // should show conflicts message
           expect(result.stdout).toContain('has conflicts');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
@@ -511,7 +528,7 @@ exit 1
           expect(result.stdout).toContain('merged already');
 
           // snapshot output
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           // stderr should NOT contain the GraphQL error (we suppressed it)
           expect(result.stderr).toMatchSnapshot();
         } finally {
@@ -554,7 +571,7 @@ exit 1
           expect(result.stdout).toContain('all checks passed');
 
           // snapshots capture exact output
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.stderr).toMatchSnapshot();
         } finally {
           cleanup();
@@ -578,7 +595,7 @@ exit 1
         try {
           const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -602,7 +619,7 @@ exit 1
 
           const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -632,7 +649,7 @@ exit 1
           // should show unified prod header with feature branch content
           expect(result.stdout).toContain('git.release --to prod');
           expect(result.stdout).toContain('feat(oceans): add reef protection');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -658,7 +675,7 @@ exit 1
           expect(result.stdout).toContain('hold up dude');
           expect(result.stdout).toContain('no open pr');
           expect(result.stdout).toContain('git.commit.push');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
@@ -691,7 +708,7 @@ exit 1
             fakeBinDir,
           });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -717,7 +734,7 @@ exit 1
             fakeBinDir,
           });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -743,7 +760,7 @@ exit 1
             fakeBinDir,
           });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(1);
         } finally {
           cleanup();
@@ -769,7 +786,7 @@ exit 1
             fakeBinDir,
           });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -869,7 +886,7 @@ exit 1
             extraEnv: { GIT_RELEASE_POLL_INTERVAL: '0' },
           });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         });
       },
@@ -898,7 +915,7 @@ exit 1
             fakeBinDir,
           });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -975,7 +992,7 @@ exit 1
           extraEnv: { GIT_RELEASE_POLL_INTERVAL: '0' },
         });
 
-        expect(result.stdout).toMatchSnapshot();
+        expect(asTimingStable(result.stdout)).toMatchSnapshot();
         expect(result.status).toEqual(0);
       });
     });
@@ -997,7 +1014,7 @@ exit 1
             fakeBinDir,
           });
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           // might timeout or complete differently - let's see the snapshot
         } finally {
           cleanup();
@@ -1028,7 +1045,7 @@ exit 1
           expect(result.stdout).toContain('hold up dude');
           expect(result.stdout).toContain('no open pr');
           expect(result.stdout).toContain('git.commit.push');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
@@ -1188,7 +1205,7 @@ exit 1
         expect(result.stdout).toContain('chore(release)');
         // then should show tag workflow watch
         expect(result.stdout).toContain('v1.2.3');
-        expect(result.stdout).toMatchSnapshot();
+        expect(asTimingStable(result.stdout)).toMatchSnapshot();
         expect(result.status).toEqual(0);
       });
     });
@@ -1340,7 +1357,7 @@ exit 1
             // should show release PR with instant merge
             expect(result.stdout).toContain('chore(release)');
             expect(result.stdout).toContain('-> and merged already');
-            expect(result.stdout).toMatchSnapshot();
+            expect(asTimingStable(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
 
             fs.rmSync(tempDir, { recursive: true, force: true });
@@ -1464,7 +1481,7 @@ exit 1
         expect(result.stdout).toContain('merged');
         // should proceed to release PR
         expect(result.stdout).toContain('chore(release)');
-        expect(result.stdout).toMatchSnapshot();
+        expect(asTimingStable(result.stdout)).toMatchSnapshot();
         expect(result.status).toEqual(0);
 
         fs.rmSync(tempDir, { recursive: true, force: true });
@@ -1589,7 +1606,7 @@ exit 1
         expect(result.stdout).toContain('feat(oceans): add reef protection');
         expect(result.stdout).toContain('in progress');
         expect(result.stdout).toContain('chore(release)');
-        expect(result.stdout).toMatchSnapshot();
+        expect(asTimingStable(result.stdout)).toMatchSnapshot();
         expect(result.status).toEqual(0);
 
         fs.rmSync(tempDir, { recursive: true, force: true });
@@ -1625,7 +1642,7 @@ exit 1
             { tempDir, fakeBinDir },
           );
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           // still fails because checks are still failed after rerun trigger
           expect(result.status).toEqual(1);
         } finally {
@@ -1703,7 +1720,7 @@ exit 1
             },
           );
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           // still fails because workflow still shows failure
           expect(result.status).toEqual(1);
         } finally {
@@ -1758,7 +1775,7 @@ exit 1
             },
           );
 
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(1);
         } finally {
           cleanup();
@@ -1857,7 +1874,7 @@ exit 1
           expect(result.stdout).toContain('--to main');
           expect(result.stdout).toContain('--to prod');
           expect(result.stdout).toContain('--retry');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -1932,6 +1949,181 @@ esac
         }
       });
     });
+
+    when('[t6] --dirty invalid value', () => {
+      then('shows error and exits 2', () => {
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv({});
+
+        try {
+          const result = runSkill(['--to', 'main', '--dirty', 'invalid'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          expect(result.stderr).toContain("--dirty must be 'block' or 'allow'");
+          expect(result.status).toEqual(2);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
+
+  given('[case9] dirty state detection', () => {
+    when('[t0] apply mode with modified tracked file (default --dirty block)', () => {
+      then('fails fast with hint to stash or use --dirty allow', () => {
+        const mockResponses = {
+          'pr list': '42',
+          'pr view':
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}',
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          // create a tracked file and modify it to trigger dirty check
+          fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'original');
+          spawnSync('git', ['add', 'tracked.txt'], { cwd: tempDir });
+          spawnSync('git', ['commit', '-m', 'add tracked file'], {
+            cwd: tempDir,
+          });
+          fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'modified');
+
+          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          expect(result.stdout).toContain('hold up dude');
+          expect(result.stdout).toContain('uncommitted changes');
+          expect(result.stdout).toContain('--dirty allow');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(result.status).toEqual(2); // constraint error
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t1] apply mode with modified tracked file and --dirty allow', () => {
+      then('proceeds with release', () => {
+        const mockResponses = {
+          'pr list': '42',
+          'pr view':
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}',
+          'pr merge': 'auto-merge enabled',
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          // create a tracked file and modify it
+          fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'original');
+          spawnSync('git', ['add', 'tracked.txt'], { cwd: tempDir });
+          spawnSync('git', ['commit', '-m', 'add tracked file'], {
+            cwd: tempDir,
+          });
+          fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'modified');
+
+          const result = runSkill(
+            ['--to', 'main', '--mode', 'apply', '--dirty', 'allow'],
+            {
+              tempDir,
+              fakeBinDir,
+            },
+          );
+
+          // should proceed despite modified tracked file
+          expect(result.stdout).toContain('cowabunga');
+          expect(result.stdout).not.toContain('uncommitted changes');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t2] plan mode ignores dirty state', () => {
+      then('does not fail (dirty check only on apply)', () => {
+        const mockResponses = {
+          'pr list': '42',
+          'pr view':
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}',
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          // create a tracked file and modify it
+          fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'original');
+          spawnSync('git', ['add', 'tracked.txt'], { cwd: tempDir });
+          spawnSync('git', ['commit', '-m', 'add tracked file'], {
+            cwd: tempDir,
+          });
+          fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'modified');
+
+          const result = runSkill(['--to', 'main'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // plan mode should not check for dirty state
+          expect(result.stdout).toContain('heres the wave');
+          expect(result.stdout).not.toContain('uncommitted changes');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t3] apply mode with clean state', () => {
+      then('proceeds without dirty warning', () => {
+        const mockResponses = {
+          'pr list': '42',
+          'pr view':
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}',
+          'pr merge': 'auto-merge enabled',
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          // no unstaged changes - clean state
+
+          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // should proceed without dirty warning
+          expect(result.stdout).toContain('cowabunga');
+          expect(result.stdout).not.toContain('unstaged changes');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+        } finally {
+          cleanup();
+        }
+      });
+    });
   });
 
   given('[case8] watch loop internals', () => {
@@ -1954,7 +2146,7 @@ esac
           const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
 
           expect(result.stdout).toContain('in progress');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -2098,7 +2290,7 @@ exit 1
           expect(result.stdout).toContain('in action');
           expect(result.stdout).toContain('watched');
           expect(result.stdout).toContain('✨ done!');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -2228,7 +2420,7 @@ exit 1
           // should detect rebase requirement mid-watch and failfast
           expect(result.stdout).toContain('but, needs rebase now');
           expect(result.stdout).toContain('rhx git.branch.rebase begin');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           // exit 2 = constraint error (user must rebase)
           expect(result.status).toEqual(2);
         } finally {
@@ -2355,7 +2547,7 @@ exit 1
           expect(result.stdout).toContain('but, needs rebase now');
           expect(result.stdout).toContain('has conflicts');
           expect(result.stdout).toContain('rhx git.branch.rebase begin');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2);
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -2389,7 +2581,7 @@ exit 1
           // should show BOTH failed and progress (Gap 9 fix: progress inside failure block)
           expect(result.stdout).toContain('check(s) failed');
           expect(result.stdout).toContain('check(s) still in progress');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();

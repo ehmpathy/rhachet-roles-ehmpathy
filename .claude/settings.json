@@ -45,6 +45,18 @@
             "command": "./node_modules/.bin/rhx route.drive --mode hook",
             "timeout": 5,
             "author": "repo=bhrain/role=driver"
+          },
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet roles boot --repo ehmpathy --role architect",
+            "timeout": 60,
+            "author": "repo=ehmpathy/role=architect"
+          },
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet roles boot --repo ehmpathy --role ergonomist",
+            "timeout": 60,
+            "author": "repo=ehmpathy/role=ergonomist"
           }
         ]
       }
@@ -201,6 +213,11 @@
       "Bash(npx rhachet run --skill cpsafe:*)",
       "Bash(npx rhachet run --skill mvsafe:*)",
       "Bash(npx rhachet run --skill rmsafe:*)",
+      "Bash(npx rhachet run --skill teesafe:*)",
+      "Bash(rhx teesafe:*)",
+      "Bash(cmd | npx rhachet run --skill teesafe file.txt)",
+      "Bash(cmd | rhx teesafe file.txt)",
+      "Bash(cmd | rhx teesafe --into file.txt --append)",
       "Bash(npx rhachet run --skill symlink:*)",
       "Bash(npx rhachet run --skill git.commit.uses:*)",
       "Bash(npx rhachet run --skill git.commit.uses get)",
