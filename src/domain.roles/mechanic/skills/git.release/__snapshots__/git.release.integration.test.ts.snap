@@ -332,7 +332,7 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 🌊 release: v1.2.3
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, 1s in action, 0s watched
+      └─ ✨ done! publish.yml, 0s in action, 0s watched
 "
 `;
 
