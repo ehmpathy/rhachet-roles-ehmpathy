@@ -16,7 +16,7 @@ after every push, immediately watch the release cycle and surface any CI failure
 after `git.commit.set --push` or `git.commit.push`, run:
 
 ```sh
-git release --watch || npx rhachet run --skill show.gh.test.errors
+rhx git.release --watch || rhx show.gh.test.errors
 ```
 
 this will:
@@ -30,7 +30,7 @@ this will:
 printf '...' | npx rhachet run --skill git.commit.set -m @stdin --mode apply --push
 
 # immediately watch release
-git release --watch || npx rhachet run --skill show.gh.test.errors
+rhx git.release --watch || rhx show.gh.test.errors
 
 # if passed, enable automerge
 git release --apply

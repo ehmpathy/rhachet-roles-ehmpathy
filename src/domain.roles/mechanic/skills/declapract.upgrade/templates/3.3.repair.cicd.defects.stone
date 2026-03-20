@@ -18,7 +18,7 @@ push changes and fix cicd until green. document each defect with root cause.
 
 3. watch cicd:
    ```sh
-   git release --watch
+   rhx git.release --watch
    ```
 
 4. if cicd fails:
