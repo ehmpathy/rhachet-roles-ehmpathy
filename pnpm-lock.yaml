@@ -61,7 +61,7 @@ importers:
         version: 1.21.0
       with-simple-cache:
         specifier: 0.15.3
-        version: 0.15.3(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4)
+        version: 0.15.3(zod@4.3.4)
       with-simple-caching:
         specifier: 0.14.4
         version: 0.14.4
@@ -140,7 +140,7 @@ importers:
         version: 0.22.3(@types/node@22.15.21)(rhachet-brains-xai@0.3.1(rhachet@1.37.18(zod@4.3.4)))
       rhachet-roles-bhuild:
         specifier: 0.14.4
-        version: 0.14.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet-roles-bhrain@0.22.3(@types/node@22.15.21)(rhachet-brains-xai@0.3.1(rhachet@1.37.18(zod@4.3.4))))
+        version: 0.14.4(rhachet-roles-bhrain@0.22.3(@types/node@22.15.21)(rhachet-brains-xai@0.3.1(rhachet@1.37.18(zod@4.3.4))))
       rhachet-roles-ehmpathy:
         specifier: link:.
         version: 'link:'
@@ -9469,21 +9469,15 @@ snapshots:
       - aws-crt
       - ws
 
-  rhachet-roles-bhuild@0.14.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet-roles-bhrain@0.22.3(@types/node@22.15.21)(rhachet-brains-xai@0.3.1(rhachet@1.37.18(zod@4.3.4)))):
+  rhachet-roles-bhuild@0.14.4(rhachet-roles-bhrain@0.22.3(@types/node@22.15.21)(rhachet-brains-xai@0.3.1(rhachet@1.37.18(zod@4.3.4)))):
     dependencies:
       domain-objects: 0.31.9
       emoji-space-shim: 0.0.0
       helpful-errors: 1.5.3
       iso-time: 1.11.3
       rhachet-roles-bhrain: 0.22.3(@types/node@22.15.21)(rhachet-brains-xai@0.3.1(rhachet@1.37.18(zod@4.3.4)))
-      test-fns: 1.15.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4)
+      test-fns: 1.15.0(zod@4.3.4)
       zod: 4.3.4
-    transitivePeerDependencies:
-      - '@huggingface/transformers'
-      - '@tensorflow/tfjs'
-      - '@types/node'
-      - aws-crt
-      - ws
 
   rhachet-roles-ehmpathy@1.26.11(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet@1.37.18(zod@4.3.4)):
     dependencies:
@@ -9504,7 +9498,7 @@ snapshots:
       simple-in-memory-cache: 0.4.0
       simple-on-disk-cache: 1.7.3
       type-fns: 1.21.0
-      with-simple-cache: 0.15.3(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4)
+      with-simple-cache: 0.15.3(zod@4.3.4)
       with-simple-caching: 0.14.4
       wrapper-fns: 1.1.7
       zod: 4.3.4
@@ -9801,18 +9795,13 @@ snapshots:
       glob: 7.2.3
       minimatch: 3.1.2
 
-  test-fns@1.15.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4):
+  test-fns@1.15.0(zod@4.3.4):
     dependencies:
       domain-objects: 0.31.7(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4)
       helpful-errors: 1.5.3
       iso-time: 1.11.3
       uuid: 10.0.0
     transitivePeerDependencies:
-      - '@huggingface/transformers'
-      - '@tensorflow/tfjs'
-      - '@types/node'
-      - aws-crt
-      - ws
       - zod
 
   test-fns@1.15.7:
@@ -10061,7 +10050,7 @@ snapshots:
     transitivePeerDependencies:
       - aws-crt
 
-  with-simple-cache@0.15.3(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4):
+  with-simple-cache@0.15.3(zod@4.3.4):
     dependencies:
       '@ehmpathy/uni-time': 1.8.1
       domain-objects: 0.31.7(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4)
@@ -10072,11 +10061,7 @@ snapshots:
       simple-on-disk-cache: 1.7.3
       type-fns: 1.21.0
     transitivePeerDependencies:
-      - '@huggingface/transformers'
-      - '@tensorflow/tfjs'
-      - '@types/node'
       - aws-crt
-      - ws
       - zod
 
   with-simple-caching@0.14.2:

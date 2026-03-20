@@ -71,7 +71,7 @@ run with --mode apply to execute
 `;
 
 exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 commits with 2 conflict files when: [t1] git.branch.rebase begin --mode apply then: shows conflict on first commit (config.json) 1`] = `
-"🐢 hold up dude...
+"🐢 hang tight...
 
 🐚 git.branch.rebase begin --mode apply
    ├─ rebase
@@ -105,7 +105,7 @@ exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 co
 `;
 
 exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 commits with 2 conflict files when: [t2] settle first conflict (config.json) and continue then: shows second conflict (settings.yml) 1`] = `
-"🐢 hold up dude...
+"🐢 hang tight...
 
 🐚 git.branch.rebase continue
    ├─ rebase
@@ -163,7 +163,7 @@ exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 co
 `;
 
 exports[`git.branch.rebase journey given: [journey3] abort mid-conflict after multiple attempts when: [t0] git.branch.rebase begin --mode apply then: shows conflict on first commit 1`] = `
-"🐢 hold up dude...
+"🐢 hang tight...
 
 🐚 git.branch.rebase begin --mode apply
    ├─ rebase
@@ -201,5 +201,71 @@ exports[`git.branch.rebase journey given: [journey3] abort mid-conflict after mu
 
 🐚 git.branch.rebase abort
    └─ status: restored to pre-rebase state
+"
+`;
+
+exports[`git.branch.rebase journey given: [journey4] take ours yields no diff vs main (defect reproduction) when: [t0] git.branch.rebase begin --mode apply then: shows conflict on settings.json 1`] = `
+"🐢 hang tight...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1
+   │  └─ status: conflict
+   ├─ conflict
+   │  ├─ commit: HASH123 fix(settings): dev mode
+   │  └─ files
+   │     └─ settings.json
+   ├─ next steps
+   │  ├─ settle conflicts in files above
+   │  └─ rhx git.branch.rebase continue
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Auto-merging settings.json
+      │  CONFLICT (add/add): Merge conflict in settings.json
+      │  error: could not apply HASH123... fix(settings): dev mode
+      │  hint: Resolve all conflicts manually, mark them as resolved with
+      │  hint: "git add/rm <conflicted_files>", then run "git rebase --continue".
+      │  hint: You can instead skip this commit: run "git rebase --skip".
+      │  hint: To abort and get back to the state before "git rebase", run "git rebase --abort".
+      │  Could not apply HASH123... fix(settings): dev mode
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase journey given: [journey4] take ours yields no diff vs main (defect reproduction) when: [t1] take ours (main version) for the conflict then: file is settled with main content 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: ours
+   ├─ settled
+   │  └─ settings.json ✓
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase journey given: [journey4] take ours yields no diff vs main (defect reproduction) when: [t2] git.branch.rebase continue after take ours then: rebase continues or completes (no conflict error) 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 1 ✓
+   │  └─ status: complete
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  Successfully rebased and updated refs/heads/feature/take-ours-test.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
 "
 `;

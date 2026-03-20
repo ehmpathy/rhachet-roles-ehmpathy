@@ -7,6 +7,8 @@ exports[`git.branch.rebase.take given: [case1] rebase in progress with single co
    ├─ whos: theirs
    ├─ settled
    │  └─ pnpm-lock.yaml ✓
+   ├─ lock taken, refresh it with: ⚡
+   │  └─ rhx git.branch.rebase lock refresh
    └─ done
 "
 `;
@@ -103,5 +105,70 @@ exports[`git.branch.rebase.take given: [case11] file not found (fail-fast) when:
 
 🐚 git.branch.rebase take
    └─ error: file not found: nonexistent.ts
+"
+`;
+
+exports[`git.branch.rebase.take given: [case12] take lock file shows suggestion when: [t0] take theirs pnpm-lock.yaml then: output includes lock refresh suggestion 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: theirs
+   ├─ settled
+   │  └─ pnpm-lock.yaml ✓
+   ├─ lock taken, refresh it with: ⚡
+   │  └─ rhx git.branch.rebase lock refresh
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.take given: [case12] take lock file shows suggestion when: [t1] take theirs package-lock.json then: output includes lock refresh suggestion 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: theirs
+   ├─ settled
+   │  └─ package-lock.json ✓
+   ├─ lock taken, refresh it with: ⚡
+   │  └─ rhx git.branch.rebase lock refresh
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.take given: [case12] take lock file shows suggestion when: [t2] take theirs yarn.lock then: output includes lock refresh suggestion 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: theirs
+   ├─ settled
+   │  └─ yarn.lock ✓
+   ├─ lock taken, refresh it with: ⚡
+   │  └─ rhx git.branch.rebase lock refresh
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.take given: [case13] take multiple files with lock when: [t0] take theirs . (includes lock file) then: suggestion shown once (not per lock file) 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: theirs
+   ├─ settled
+   │  ├─ README.md ✓
+   │  ├─ pnpm-lock.yaml ✓
+   │  └─ src/index.ts ✓
+   ├─ lock taken, refresh it with: ⚡
+   │  └─ rhx git.branch.rebase lock refresh
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.take given: [case14] take non-lock file when: [t0] take theirs for .ts file only then: no lock refresh suggestion shown 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: theirs
+   ├─ settled
+   │  └─ src/index.ts ✓
+   └─ done
 "
 `;

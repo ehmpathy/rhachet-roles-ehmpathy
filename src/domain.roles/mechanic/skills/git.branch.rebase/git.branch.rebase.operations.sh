@@ -175,6 +175,14 @@ is_worktree_dirty() {
 }
 
 ######################################################################
+# get list of files with unstaged modifications
+# returns: newline-separated list of file paths
+######################################################################
+get_unstaged_files() {
+  git diff --name-only 2>/dev/null
+}
+
+######################################################################
 # check if push is allowed in meter
 # returns: 0 if allowed, 1 if blocked
 ######################################################################
