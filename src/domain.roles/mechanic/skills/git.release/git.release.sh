@@ -8,15 +8,18 @@
 #         - wraps extant git release alias with turtle vibes
 #
 # usage:
-#   git.release --to main                           # plan: show pr status
-#   git.release --to main --mode apply              # apply: enable automerge, watch
+#   git.release                                     # plan: show pr status (--to main default)
+#   git.release --watch                             # watch CI without automerge
+#   git.release --mode apply                        # enable automerge and watch
 #   git.release --to prod                           # plan: show release pr status
+#   git.release --to prod --watch                   # watch release CI without automerge
 #   git.release --to prod --mode apply              # apply: full release cycle
-#   git.release --to main --mode apply --retry      # retry failed workflows
+#   git.release --retry                             # retry failed workflows
 #
 # guarantee:
 #   - plan mode is default (safe preview)
-#   - apply mode requires explicit flag
+#   - --watch watches without automerge
+#   - apply mode enables automerge and watches
 #   - watches CI until complete or timeout (5 min)
 #   - surfaces errors with links and retry hints
 ######################################################################
@@ -32,9 +35,11 @@ source "$SKILL_DIR/git.release.operations.sh"
 ######################################################################
 # argument parse
 ######################################################################
-TO=""
+TO="main"
 MODE="plan"
+WATCH="false"
 RETRY="false"
+FROM_PROD="false"  # set by release_to_prod to suppress headers in release_to_main
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -46,6 +51,10 @@ while [[ $# -gt 0 ]]; do
       MODE="$2"
       shift 2
       ;;
+    --watch)
+      WATCH="true"
+      shift
+      ;;
     --retry)
       RETRY="true"
       shift
@@ -55,18 +64,19 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --help|-h)
-      echo "usage: git.release --to main|prod [--mode plan|apply] [--retry]"
+      echo "usage: git.release [--to main|prod] [--watch] [--mode plan|apply] [--retry]"
       echo ""
-      echo "  --to main     merge branch to main"
+      echo "  --to main     merge branch to main (default)"
       echo "  --to prod     merge branch to main, merge release to main, watch release to prod"
-      echo "  --mode plan   watch the branch or release (default)"
-      echo "  --mode apply  enable automerge and watch the branch or release"
+      echo "  --watch       watch CI without automerge"
+      echo "  --mode plan   show status only (default)"
+      echo "  --mode apply  enable automerge and watch"
       echo "  --retry       rerun failed workflows before watch"
       exit 0
       ;;
     *)
       echo "error: unknown argument: $1" >&2
-      echo "usage: git.release --to main|prod [--mode plan|apply] [--retry]" >&2
+      echo "usage: git.release [--to main|prod] [--watch] [--mode plan|apply] [--retry]" >&2
       exit 2
       ;;
   esac
@@ -75,12 +85,6 @@ done
 ######################################################################
 # guards
 ######################################################################
-
-# validate --to (required)
-if [[ -z "$TO" ]]; then
-  echo "error: --to is required (main or prod)" >&2
-  exit 2
-fi
 
 # validate --to value
 if [[ "$TO" != "main" && "$TO" != "prod" ]]; then
@@ -105,6 +109,29 @@ export IS_TTY="false"
 if [ -t 1 ]; then
   export IS_TTY="true"
 fi
+
+######################################################################
+# delay between merges
+# shows "💤 Ns delay to await next runners" and waits (unless test mode)
+######################################################################
+delay_for_next_pr() {
+  local seconds="$1"
+  local reason="${2:-next runners}"
+
+  echo "💤 ${seconds}s delay to await $reason"
+
+  # skip actual sleep in test mode
+  if [[ "${GIT_RELEASE_TEST_MODE:-}" == "true" ]]; then
+    return 0
+  fi
+
+  # also skip if POLL_INTERVAL is set to 0 (test acceleration)
+  if [[ "${GIT_RELEASE_POLL_INTERVAL:-}" == "0" ]]; then
+    return 0
+  fi
+
+  sleep "$seconds"
+}
 
 ######################################################################
 # keyrack token fetch (apply mode only)
@@ -136,6 +163,7 @@ watch_pr_checks() {
   local start_time
   local ci_start_time
   local ci_start_time_set="false"
+  local first_iteration="true"
   local elapsed
   local in_action
   local poll_interval
@@ -153,8 +181,10 @@ watch_pr_checks() {
       return 1
     fi
 
-    # determine poll interval (allow override for tests)
-    if [[ -n "${GIT_RELEASE_POLL_INTERVAL:-}" ]]; then
+    # determine poll interval (skip sleep in test mode)
+    if [[ "${GIT_RELEASE_TEST_MODE:-}" == "true" ]]; then
+      poll_interval=0
+    elif [[ -n "${GIT_RELEASE_POLL_INTERVAL:-}" ]]; then
       poll_interval="$GIT_RELEASE_POLL_INTERVAL"
     elif [[ $elapsed -lt 60 ]]; then
       poll_interval=5
@@ -190,29 +220,36 @@ watch_pr_checks() {
       in_action=$(( $(date +%s) - ci_start_time ))
       in_action_str=$(format_elapsed "$in_action")
       elapsed_str=$(format_elapsed "$elapsed")
+      if [[ "$first_iteration" == "true" ]]; then
+        echo "      ├─ 🫧 no checks inflight"
+      fi
       echo "      └─ ✨ done! $in_action_str in action, $elapsed_str watched"
       return 0
     fi
 
     # check for failures
     if [[ $failed -gt 0 ]]; then
-      echo ""
-      print_check_status "failed" "$failed"
-      show_failed_checks "$status_json"
-      print_retry_hint
+      # show failure tree in watch context (same structure as tag workflow failures)
+      print_watch_check_status "failed" "$failed"
+      show_failed_checks_in_watch "$status_json" "$progress"
+      print_watch_retry_hint
       return 1
     fi
 
     # check if rebase now needed (race: another PR merged while we watched)
     if [[ $(needs_rebase "$status_json") == "true" ]]; then
-      echo ""
+      # show done line with time stats, then rebase status as peer
+      local in_action_now elapsed_now
+      in_action_now=$(( $(date +%s) - ci_start_time ))
+      elapsed_now=$(( $(date +%s) - start_time ))
+      echo "      ├─ ✨ done! $(format_elapsed "$in_action_now") in action, $(format_elapsed "$elapsed_now") watched"
       if [[ $(has_conflicts "$status_json") == "true" ]]; then
-        echo "   └─ 🐚 needs rebase, has conflicts (another PR merged while we watched)"
+        echo "      └─ 🐚 but, needs rebase now, has conflicts"
+        echo -e "         └─ \033[2mhint: rhx git.branch.rebase begin\033[0m"
       else
-        echo "   └─ 🐚 needs rebase (another PR merged while we watched)"
+        echo "      └─ 🐚 but, needs rebase now"
+        echo -e "         └─ \033[2mhint: rhx git.branch.rebase begin\033[0m"
       fi
-      echo ""
-      echo "hint: rebase onto main and retry"
       return 2
     fi
 
@@ -228,6 +265,7 @@ watch_pr_checks() {
       echo "      ├─ 💤 await merge, $in_action_str in action, $elapsed_str watched"
     fi
 
+    first_iteration="false"
     sleep "$poll_interval"
   done
 }
@@ -239,6 +277,7 @@ watch_tag_workflows() {
   local tag="$1"
   local start_time
   local ci_start_time
+  local first_iteration="true"
   local elapsed
   local in_action
   local poll_interval
@@ -256,8 +295,10 @@ watch_tag_workflows() {
       return 1
     fi
 
-    # determine poll interval (allow override for tests)
-    if [[ -n "${GIT_RELEASE_POLL_INTERVAL:-}" ]]; then
+    # determine poll interval (skip sleep in test mode)
+    if [[ "${GIT_RELEASE_TEST_MODE:-}" == "true" ]]; then
+      poll_interval=0
+    elif [[ -n "${GIT_RELEASE_POLL_INTERVAL:-}" ]]; then
       poll_interval="$GIT_RELEASE_POLL_INTERVAL"
     elif [[ $elapsed -lt 60 ]]; then
       poll_interval=5
@@ -268,6 +309,24 @@ watch_tag_workflows() {
     # get tag runs
     local runs_json
     runs_json=$(get_tag_runs "$tag")
+
+    # check if there are no workflows at all
+    local total_runs
+    total_runs=$(echo "$runs_json" | jq 'length')
+    if [[ "$total_runs" == "0" ]]; then
+      local elapsed_str in_action_str
+      in_action=$(( $(date +%s) - ci_start_time ))
+      in_action_str=$(format_elapsed "$in_action")
+      elapsed_str=$(format_elapsed "$elapsed")
+      echo "      ├─ 🫧 no runs inflight"
+      echo "      └─ ✨ done! $in_action_str in action, $elapsed_str watched"
+      return 0
+    fi
+
+    # count failed and in-progress runs
+    local failed_count in_progress_count
+    failed_count=$(echo "$runs_json" | jq '[.[] | select(.conclusion == "failure" or .conclusion == "cancelled")] | length')
+    in_progress_count=$(echo "$runs_json" | jq '[.[] | select(.status != "completed")] | length')
 
     # check for publish.yml or deploy.yml
     local publish_status deploy_status
@@ -290,10 +349,15 @@ watch_tag_workflows() {
       in_action=$(( $(date +%s) - ci_start_time ))
       in_action_str=$(format_elapsed "$in_action")
       elapsed_str=$(format_elapsed "$elapsed")
+      if [[ "$first_iteration" == "true" ]]; then
+        echo "      ├─ 🫧 no runs inflight"
+      fi
       echo "      └─ ✨ done! $target_name, $in_action_str in action, $elapsed_str watched"
       return 0
     elif [[ "$target_status" == "failure" || "$target_status" == "cancelled" ]]; then
-      print_tag_status "$target_name" "failed"
+      # show failure tree (same structure as PR check failures)
+      show_failed_tag_runs "$runs_json" "$in_progress_count"
+      print_watch_retry_hint
       return 1
     fi
 
@@ -304,6 +368,7 @@ watch_tag_workflows() {
     elapsed_str=$(format_elapsed "$elapsed")
     echo "      ├─ 💤 $target_name, $in_action_str in action, $elapsed_str watched"
 
+    first_iteration="false"
     sleep "$poll_interval"
   done
 }
@@ -320,6 +385,121 @@ format_elapsed() {
     echo "${mins}m ${secs}s"
   else
     echo "${secs}s"
+  fi
+}
+
+######################################################################
+# show failed checks with links in watch context
+# same as show_failed_checks but uses watch-level indentation
+######################################################################
+show_failed_checks_in_watch() {
+  local status_json="$1"
+  local in_progress_count="${2:-0}"
+  local failed_json
+  failed_json=$(get_failed_checks "$status_json")
+
+  local count
+  count=$(echo "$failed_json" | jq 'length')
+
+  local i=0
+  while IFS= read -r check; do
+    local name url conclusion
+    name=$(echo "$check" | jq -r '.name')
+    url=$(echo "$check" | jq -r '.url')
+    conclusion=$(echo "$check" | jq -r '.conclusion | ascii_downcase')
+
+    i=$((i + 1))
+    local is_last="false"
+    # only mark as last if this is the last check AND no in-progress items follow
+    if [[ $i -eq $count && "$in_progress_count" -eq 0 ]]; then
+      is_last="true"
+    fi
+
+    # extract run_id from url
+    local run_id
+    run_id=$(echo "$url" | grep -oP 'runs/\K\d+' || true)
+
+    # get step name and duration for message
+    local message="$conclusion"
+    if [[ -n "$run_id" ]]; then
+      local step_name duration_secs
+      step_name=$(get_failed_step_name "$run_id")
+      duration_secs=$(get_run_duration "$run_id")
+
+      if [[ -n "$duration_secs" && "$duration_secs" -gt 0 ]]; then
+        local duration_str
+        duration_str=$(format_duration "$duration_secs")
+        message="failed after $duration_str"
+      elif [[ -n "$step_name" ]]; then
+        message="$step_name"
+      fi
+    fi
+
+    print_watch_failed_check "$name" "$url" "$message" "$is_last"
+  done < <(echo "$failed_json" | jq -c '.[]')
+
+  # show in-progress count if any
+  if [[ "$in_progress_count" -gt 0 ]]; then
+    print_watch_progress_in_failure "$in_progress_count"
+  fi
+}
+
+######################################################################
+# show failed tag runs with links (watch context)
+# matches structure of show_failed_checks but for tag workflow runs
+# and uses watch-level indentation
+######################################################################
+show_failed_tag_runs() {
+  local runs_json="$1"
+  local in_progress_count="${2:-0}"
+
+  # get failed runs
+  local failed_runs
+  failed_runs=$(echo "$runs_json" | jq -c '[.[] | select(.conclusion == "failure" or .conclusion == "cancelled")]')
+
+  local failed_count
+  failed_count=$(echo "$failed_runs" | jq 'length')
+
+  # print header
+  print_watch_check_status "failed" "$failed_count"
+
+  # print each failed run
+  local i=0
+  while IFS= read -r run; do
+    local name url conclusion run_id
+    name=$(echo "$run" | jq -r '.name')
+    url=$(echo "$run" | jq -r '.url')
+    conclusion=$(echo "$run" | jq -r '.conclusion | ascii_downcase')
+
+    # extract run_id from url
+    run_id=$(echo "$url" | grep -oP 'runs/\K\d+' || true)
+
+    # get duration for message
+    local message="$conclusion"
+    if [[ -n "$run_id" ]]; then
+      local duration_secs
+      duration_secs=$(get_run_duration "$run_id")
+
+      if [[ -n "$duration_secs" && "$duration_secs" -gt 0 ]]; then
+        local duration_str
+        duration_str=$(format_duration "$duration_secs")
+        message="failed after $duration_str"
+      fi
+    fi
+
+    i=$((i + 1))
+    local is_last="false"
+    # only mark as last if this is the last check AND no in-progress items follow
+    if [[ $i -eq $failed_count && "$in_progress_count" -eq 0 ]]; then
+      is_last="true"
+    fi
+
+    print_watch_failed_check "$name" "$url" "$message" "$is_last"
+  done < <(echo "$failed_runs" | jq -c '.[]')
+
+  # show in-progress count if any
+  if [[ "$in_progress_count" -gt 0 ]]; then
+    print_watch_progress_in_failure "$in_progress_count"
   fi
 }
 
@@ -411,7 +591,9 @@ release_to_main() {
 
   if [[ -z "$pr_number" ]]; then
     # no pr found - constraint error (user must push)
-    print_turtle_header "crickets..."
+    if [[ "$FROM_PROD" != "true" ]]; then
+      print_turtle_header "crickets..."
+    fi
     print_no_pr_status "$branch" "$(get_unpushed_count)"
     return 2
   fi
@@ -419,6 +601,10 @@ release_to_main() {
   # get pr status
   local status_json
   status_json=$(get_pr_status "$pr_number")
+
+  # extract pr title for display
+  local pr_title
+  pr_title=$(get_pr_title "$status_json")
 
   local counts
   counts=$(parse_check_counts "$status_json")
@@ -430,20 +616,30 @@ release_to_main() {
 
   # check for rebase needed - constraint error (user must rebase)
   if [[ $(needs_rebase "$status_json") == "true" ]]; then
-    print_turtle_header "hold up dude..."
-    echo "🐚 git.release --to main"
-    print_release_header "$branch"
+    if [[ "$FROM_PROD" != "true" ]]; then
+      print_turtle_header "hold up dude..."
+      echo "🐚 git.release --to main"
+    fi
+    echo ""
+    print_release_header "$pr_title"
     print_check_status "passed" "$passed"
     print_rebase_status "$(has_conflicts "$status_json")"
     echo "   └─ 🌴 automerge unfound (use --mode apply to add)"
     return 2
   fi
 
-  # plan mode
+  # plan mode (or watch mode without apply)
   if [[ "$MODE" == "plan" ]]; then
-    print_turtle_header "heres the wave..."
-    echo "🐚 git.release --to main --mode plan"
-    print_release_header "$branch"
+    if [[ "$FROM_PROD" != "true" ]]; then
+      print_turtle_header "heres the wave..."
+      if [[ "$WATCH" == "true" ]]; then
+        echo "🐚 git.release --to main --watch"
+      else
+        echo "🐚 git.release --to main --mode plan"
+      fi
+    fi
+    echo ""
+    print_release_header "$pr_title"
 
     # show failed with in-progress nested inside failure block (Gap 9)
     if [[ $failed -gt 0 ]]; then
@@ -474,7 +670,14 @@ release_to_main() {
       print_automerge_status "unfound"
     fi
 
-    # hints (always last)
+    # if --watch, run watch loop without automerge
+    if [[ "$WATCH" == "true" ]]; then
+      print_watch_status
+      watch_pr_checks "$pr_number"
+      return $?
+    fi
+
+    # hints (always last, only in pure plan mode)
     if [[ $failed -gt 0 ]]; then
       print_retry_hint
     else
@@ -487,18 +690,24 @@ release_to_main() {
   fetch_token_if_needed
 
   if [[ $failed -gt 0 ]]; then
-    print_turtle_header "bummer dude..."
-    echo "🐚 git.release --to main --mode apply"
-    print_release_header "$branch"
+    if [[ "$FROM_PROD" != "true" ]]; then
+      print_turtle_header "bummer dude..."
+      echo "🐚 git.release --to main --mode apply"
+    fi
+    echo ""
+    print_release_header "$pr_title"
     print_check_status "failed" "$failed"
     show_failed_checks "$status_json" "$RETRY"
     print_retry_hint
     return 1
   fi
 
-  print_turtle_header "cowabunga!"
-  echo "🐚 git.release --to main --mode apply"
-  print_release_header "$branch"
+  if [[ "$FROM_PROD" != "true" ]]; then
+    print_turtle_header "cowabunga!"
+    echo "🐚 git.release --to main --mode apply"
+  fi
+  echo ""
+  print_release_header "$pr_title"
 
   if [[ $progress -gt 0 ]]; then
     print_check_status "progress" "$progress"
@@ -540,9 +749,11 @@ release_from_main() {
   local default_branch
   default_branch=$(get_default_branch)
 
-  # look for release pr
+  # look for release pr (fail fast if ambiguous)
   local release_pr
-  release_pr=$(get_release_pr)
+  release_pr=$(get_release_pr) || exit 1
+  local release_pr_title
+  release_pr_title=$(get_release_pr_title) || exit 1
 
   if [[ -n "$release_pr" ]]; then
     # show release pr status
@@ -559,7 +770,8 @@ release_from_main() {
 
     print_turtle_header "heres the wave..."
     echo "🐚 git.release --to main"
-    print_release_header "chore(release)"
+    echo ""
+    print_release_header "$release_pr_title"
 
     # show failed with in-progress nested inside failure block (Gap 9)
     if [[ $failed -gt 0 ]]; then
@@ -626,30 +838,55 @@ release_to_prod() {
       return 2
     fi
 
-    # run --to main flow first
+    # print unified prod header
+    print_turtle_header "radical!"
+    echo "🐚 git.release --to prod --mode $MODE"
+
+    # run --to main flow first (with headers suppressed)
+    FROM_PROD="true"
     release_to_main
 
-    # if plan mode, stop here (don't show prod stuff too)
-    if [[ "$MODE" == "plan" ]]; then
+    # if plan mode without --watch, stop here (don't show prod stuff too)
+    if [[ "$MODE" == "plan" && "$WATCH" != "true" ]]; then
       return 0
+    fi
+
+    # if plan mode with --watch, feature PR watch already ran in release_to_main
+    # but we need to verify it merged before we can continue to release PR
+    if [[ "$MODE" == "plan" && "$WATCH" == "true" ]]; then
+      local post_status
+      post_status=$(get_pr_status "$branch_pr")
+      if [[ $(is_pr_merged "$post_status") != "true" ]]; then
+        echo "✗ UnexpectedCodePathError: feature PR did not merge after watch" >&2
+        echo "   pr: #$branch_pr" >&2
+        echo "   state: $(echo "$post_status" | jq -r '.state // "unknown"')" >&2
+        return 1
+      fi
+      # poll until release PR appears
+      wait_for_target "release_pr"
     fi
 
     # apply mode: verify feature branch merged before next step
     local post_status
     post_status=$(get_pr_status "$branch_pr")
     if [[ $(is_pr_merged "$post_status") != "true" ]]; then
-      # feature branch didn't merge - stop here
+      echo "✗ UnexpectedCodePathError: feature PR did not merge after watch" >&2
+      echo "   pr: #$branch_pr" >&2
+      echo "   state: $(echo "$post_status" | jq -r '.state // "unknown"')" >&2
       return 1
     fi
 
-    echo ""
+    # poll until release PR appears
+    wait_for_target "release_pr"
   fi
 
-  # look for release pr
+  # look for release pr (fail fast if ambiguous)
   local release_pr
-  release_pr=$(get_release_pr)
+  release_pr=$(get_release_pr) || exit 1
+  local release_pr_title
+  release_pr_title=$(get_release_pr_title) || exit 1
 
-  # plan mode
+  # plan mode (with optional --watch)
   if [[ "$MODE" == "plan" ]]; then
     if [[ -n "$release_pr" ]]; then
       local status_json
@@ -663,9 +900,16 @@ release_to_prod() {
       failed=$(echo "$counts" | grep -oP 'failed:\K\d+')
       progress=$(echo "$counts" | grep -oP 'progress:\K\d+')
 
-      print_turtle_header "heres the wave..."
-      echo "🐚 git.release --to prod --mode plan"
-      print_release_header "chore(release)"
+      if [[ "$FROM_PROD" != "true" ]]; then
+        print_turtle_header "heres the wave..."
+        if [[ "$WATCH" == "true" ]]; then
+          echo "🐚 git.release --to prod --watch"
+        else
+          echo "🐚 git.release --to prod --mode plan"
+        fi
+      fi
+      echo ""
+      print_release_header "$release_pr_title"
 
       # show failed with in-progress nested inside failure block (Gap 9)
       if [[ $failed -gt 0 ]]; then
@@ -682,14 +926,49 @@ release_to_prod() {
         print_check_status "passed" "$passed"
       fi
 
-      echo "   └─ hint: use --mode apply to merge and watch tag workflows"
+      # if --watch, watch release PR (no automerge) then tag workflows
+      if [[ "$WATCH" == "true" ]]; then
+        print_watch_status
+        if ! watch_pr_checks "$release_pr"; then
+          return 1
+        fi
+
+        # extract expected tag and poll until tag runs appear
+        local expected_tag
+        expected_tag=$(extract_tag_from_release_title "$release_pr_title")
+
+        if [[ -z "$expected_tag" ]]; then
+          echo "✗ UnexpectedCodePathError: could not extract tag from release PR title" >&2
+          echo "   title: $release_pr_title" >&2
+          return 1
+        fi
+
+        # poll until tag runs appear
+        if ! wait_for_target "tag_run:$expected_tag"; then
+          return 1
+        fi
+
+        echo ""
+        echo "🌊 release: $expected_tag"
+        print_watch_status
+        watch_tag_workflows "$expected_tag"
+        return $?
+      fi
+
+      echo -e "   └─ \033[2mhint: use --mode apply to merge and watch tag workflows\033[0m"
     else
       # no release pr
       local latest_tag
       latest_tag=$(get_latest_tag)
 
-      print_turtle_header "heres the wave..."
-      echo "🐚 git.release --to prod --mode plan"
+      if [[ "$FROM_PROD" != "true" ]]; then
+        print_turtle_header "heres the wave..."
+        if [[ "$WATCH" == "true" ]]; then
+          echo "🐚 git.release --to prod --watch"
+        else
+          echo "🐚 git.release --to prod --mode plan"
+        fi
+      fi
       echo ""
       if [[ -n "$latest_tag" ]]; then
         echo "🌊 release: $latest_tag"
@@ -707,8 +986,16 @@ release_to_prod() {
         elif [[ -n "$deploy_status" ]]; then
           echo "   ├─ deploy.yml: $deploy_status"
         else
-          echo "   ├─ no publish/deploy workflows found"
+          echo "   ├─ no publish/deploy runs found"
         fi
+
+        # if --watch, watch tag workflows
+        if [[ "$WATCH" == "true" ]]; then
+          print_watch_status
+          watch_tag_workflows "$latest_tag"
+          return $?
+        fi
+
         echo "   └─ no release pr open"
       else
         echo "🫧 no tags or release pr found"
@@ -734,18 +1021,24 @@ release_to_prod() {
     progress=$(echo "$counts" | grep -oP 'progress:\K\d+')
 
     if [[ $failed -gt 0 ]]; then
-      print_turtle_header "bummer dude..."
-      echo "🐚 git.release --to prod --mode apply"
-      print_release_header "chore(release)"
+      if [[ "$FROM_PROD" != "true" ]]; then
+        print_turtle_header "bummer dude..."
+        echo "🐚 git.release --to prod --mode apply"
+      fi
+      echo ""
+      print_release_header "$release_pr_title"
       print_check_status "failed" "$failed"
       show_failed_checks "$status_json" "$RETRY"
       print_retry_hint
       return 1
     fi
 
-    print_turtle_header "radical!"
-    echo "🐚 git.release --to prod --mode apply"
-    print_release_header "chore(release)"
+    if [[ "$FROM_PROD" != "true" ]]; then
+      print_turtle_header "radical!"
+      echo "🐚 git.release --to prod --mode apply"
+    fi
+    echo ""
+    print_release_header "$release_pr_title"
 
     if [[ $progress -gt 0 ]]; then
       print_check_status "progress" "$progress"
@@ -758,6 +1051,36 @@ release_to_prod() {
       # failloud: enable_automerge errors go direct to stderr, set -e exits on failure
       enable_automerge "$release_pr"
 
+      # check if pr was instantly merged (all checks passed, no branch protection delay)
+      local post_status
+      post_status=$(get_pr_status "$release_pr")
+      if [[ $(is_pr_merged "$post_status") == "true" ]]; then
+        echo "   ├─ 🌴 automerge enabled [added] -> and merged already"
+        print_watch_status
+        echo "      └─ ✨ done! 0s in action, 0s watched"
+
+        # extract expected tag and poll until tag runs appear
+        local expected_tag
+        expected_tag=$(extract_tag_from_release_title "$release_pr_title")
+
+        if [[ -z "$expected_tag" ]]; then
+          echo "✗ UnexpectedCodePathError: could not extract tag from release PR title" >&2
+          echo "   title: $release_pr_title" >&2
+          return 1
+        fi
+
+        # poll until tag runs appear
+        if ! wait_for_target "tag_run:$expected_tag"; then
+          return 1
+        fi
+
+        echo ""
+        echo "🌊 release: $expected_tag"
+        print_watch_status
+        watch_tag_workflows "$expected_tag"
+        return $?
+      fi
+
       print_automerge_status "enabled" "just added"
     else
       print_automerge_status "enabled"
@@ -769,37 +1092,43 @@ release_to_prod() {
       return 1
     fi
 
-    # wait for tag creation
-    sleep 10
+    # extract expected tag from release pr title
+    local expected_tag
+    expected_tag=$(extract_tag_from_release_title "$release_pr_title")
 
-    # get new tag
-    local new_tag
-    new_tag=$(get_latest_tag)
-
-    if [[ -n "$new_tag" ]]; then
-      echo ""
-      echo "🌊 release: $new_tag"
-      print_watch_status
-      watch_tag_workflows "$new_tag"
-    else
-      echo ""
-      echo "🫧 no new tag detected"
+    if [[ -z "$expected_tag" ]]; then
+      echo "✗ UnexpectedCodePathError: could not extract tag from release PR title" >&2
+      echo "   title: $release_pr_title" >&2
       return 1
     fi
+
+    # poll until tag runs appear
+    if ! wait_for_target "tag_run:$expected_tag"; then
+      return 1
+    fi
+
+    echo ""
+    echo "🌊 release: $expected_tag"
+    print_watch_status
+    watch_tag_workflows "$expected_tag"
   else
     # no release pr, watch latest tag workflows
     local latest_tag
     latest_tag=$(get_latest_tag)
 
     if [[ -z "$latest_tag" ]]; then
-      print_turtle_header "crickets..."
-      echo "🐚 git.release --to prod --mode apply"
+      if [[ "$FROM_PROD" != "true" ]]; then
+        print_turtle_header "crickets..."
+        echo "🐚 git.release --to prod --mode apply"
+      fi
       echo "🫧 no tags or release pr found"
       return 1
     fi
 
-    print_turtle_header "radical!"
-    echo "🐚 git.release --to prod --mode apply"
+    if [[ "$FROM_PROD" != "true" ]]; then
+      print_turtle_header "radical!"
+      echo "🐚 git.release --to prod --mode apply"
+    fi
     echo ""
     echo "🌊 release: $latest_tag"
 

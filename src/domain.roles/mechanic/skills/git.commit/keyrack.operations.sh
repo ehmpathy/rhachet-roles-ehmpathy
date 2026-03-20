@@ -6,7 +6,7 @@
 #         reused by git.commit.push, git.release, etc.
 #
 # usage:
-#   source "$SKILL_DIR/../git.commit/keyrack.operations.sh"
+#   source "$SKILL_DIR/../git.commit/keyrack.operations.bash"
 #   TOKEN=$(fetch_github_token)
 ######################################################################
 

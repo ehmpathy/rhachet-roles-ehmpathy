@@ -32,7 +32,6 @@ fi
 ######################################################################
 print_release_header() {
   local title="$1"
-  echo ""
   echo "🌊 release: $title"
 }
 
@@ -117,6 +116,7 @@ print_rebase_status() {
   else
     echo "   ├─ 🐚 needs rebase"
   fi
+  echo -e "   │  └─ \033[2mhint: rhx git.branch.rebase begin\033[0m"
 }
 
 ######################################################################
@@ -132,7 +132,7 @@ print_no_pr_status() {
   if [[ "$unpushed" -gt 0 ]]; then
     echo "   ├─ $unpushed unpushed commit(s)"
   fi
-  echo "   └─ hint: use git.commit.push to push and findsert pr"
+  echo -e "   └─ \033[2mhint: use git.commit.push to push and findsert pr\033[0m"
 }
 
 ######################################################################
@@ -239,10 +239,78 @@ print_tag_status() {
       ;;
     failed)
       echo "      ├─ 🔴 $name failed"
-      echo "      └─ hint: use --retry to rerun failed workflows"
+      echo -e "      └─ \033[2mhint: use --retry to rerun failed workflows\033[0m"
       ;;
     progress)
       echo "      └─ 🟡 $name in progress"
       ;;
   esac
+}
+
+######################################################################
+# watch-context output functions
+# same as regular functions but with watch-level indentation
+# (used inside the 🥥 let's watch tree)
+######################################################################
+
+######################################################################
+# print check status line in watch context
+# usage: print_watch_check_status "failed" [count]
+######################################################################
+print_watch_check_status() {
+  local status="$1"
+  local count="${2:-}"
+
+  case "$status" in
+    failed)
+      if [[ -n "$count" ]]; then
+        echo "      ├─ ⚓  $count check(s) failed"
+      else
+        echo "      ├─ ⚓  checks failed"
+      fi
+      ;;
+  esac
+}
+
+######################################################################
+# print failed check with link in watch context
+# usage: print_watch_failed_check "name" "url" "message" [is_last]
+######################################################################
+print_watch_failed_check() {
+  local name="$1"
+  local url="$2"
+  local message="$3"
+  local is_last="${4:-false}"
+
+  if [[ "$is_last" == "true" ]]; then
+    echo "      │  └─ 🔴 $name"
+    echo "      │        ├─ $url"
+    echo "      │        └─ $message"
+  else
+    echo "      │  ├─ 🔴 $name"
+    echo "      │  │     ├─ $url"
+    echo "      │  │     └─ $message"
+  fi
+}
+
+######################################################################
+# print in-progress count inside failure block in watch context
+# usage: print_watch_progress_in_failure [count]
+######################################################################
+print_watch_progress_in_failure() {
+  local count="${1:-}"
+
+  if [[ -n "$count" ]]; then
+    echo "      │  └─ 🟡 $count check(s) still in progress"
+  else
+    echo "      │  └─ 🟡 checks still in progress"
+  fi
+}
+
+######################################################################
+# print retry hint in watch context
+# usage: print_watch_retry_hint
+######################################################################
+print_watch_retry_hint() {
+  echo -e "      └─ \033[2mhint: use --retry to rerun failed workflows\033[0m"
 }

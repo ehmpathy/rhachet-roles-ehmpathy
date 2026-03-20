@@ -85,26 +85,71 @@ get_pr_for_branch() {
 #
 # usage: get_release_pr
 # returns: PR number or empty if not found
+# exits: 1 if multiple release PRs found (ambiguous)
 ######################################################################
 get_release_pr() {
   local result
+  result=$(_gh_with_retry gh pr list --state open --json number,title --jq '.[] | select(.title | startswith("chore(release):")) | .number')
 
-  result=$(_gh_with_retry gh pr list --state open --json number,title --jq '.[] | select(.title | startswith("chore(release):")) | .number' | head -1)
+  # fail fast if ambiguous (multiple release PRs)
+  local count
+  count=$(echo "$result" | grep -c . 2>/dev/null || echo "0")
+  if [[ $count -gt 1 ]]; then
+    echo "error: multiple release PRs found ($count), expected at most one" >&2
+    return 1
+  fi
+
+  echo "$result"
+}
+
+######################################################################
+# extract_tag_from_release_title
+# extract version tag from release PR title
+#
+# usage: extract_tag_from_release_title "chore(release): v1.2.3 🎉"
+# returns: "v1.2.3"
+######################################################################
+extract_tag_from_release_title() {
+  local title="$1"
+  # extract vX.Y.Z from "chore(release): vX.Y.Z ..." or "chore(release): vX.Y.Z"
+  echo "$title" | sed -n 's/.*chore(release): \(v[0-9]*\.[0-9]*\.[0-9]*\).*/\1/p'
+}
+
+######################################################################
+# get_release_pr_title
+# get the title of the release PR
+#
+# usage: get_release_pr_title
+# returns: PR title or empty if not found
+# exits: 1 if multiple release PRs found (ambiguous)
+######################################################################
+get_release_pr_title() {
+  local result
+  result=$(_gh_with_retry gh pr list --state open --json number,title --jq '.[] | select(.title | startswith("chore(release):")) | .title')
+
+  # fail fast if ambiguous (multiple release PRs)
+  local count
+  count=$(echo "$result" | grep -c . 2>/dev/null || echo "0")
+  if [[ $count -gt 1 ]]; then
+    echo "error: multiple release PRs found ($count), expected at most one" >&2
+    return 1
+  fi
+
   echo "$result"
 }
 
 ######################################################################
 # get_pr_status
-# get PR status details (checks, automerge, merge state)
+# get PR status details (checks, automerge, merge state, title)
 #
 # usage: get_pr_status "42"
-# returns: JSON with statusCheckRollup, autoMergeRequest, mergeStateStatus
+# returns: JSON with statusCheckRollup, autoMergeRequest, mergeStateStatus, state, title
 ######################################################################
 get_pr_status() {
   local pr_number="$1"
   local result
 
-  result=$(_gh_with_retry gh pr view "$pr_number" --json statusCheckRollup,autoMergeRequest,mergeStateStatus,state)
+  result=$(_gh_with_retry gh pr view "$pr_number" --json statusCheckRollup,autoMergeRequest,mergeStateStatus,state,title)
   echo "$result"
 }
 
@@ -263,6 +308,19 @@ is_pr_merged() {
   else
     echo "false"
   fi
+}
+
+######################################################################
+# get_pr_title
+# get PR title from status JSON
+#
+# usage: get_pr_title "$status_json"
+# returns: PR title string
+######################################################################
+get_pr_title() {
+  local status_json="$1"
+
+  echo "$status_json" | jq -r '.title // empty'
 }
 
 ######################################################################
@@ -442,4 +500,131 @@ get_unpushed_count() {
   local branch
   branch=$(get_current_branch)
   git rev-list --count "origin/$branch..HEAD" 2>/dev/null || echo "0"
+}
+
+######################################################################
+# wait_for_target
+# poll until a release target (PR or tag run) appears
+#
+# usage:
+#   wait_for_target "release_pr"           # wait for release PR to appear
+#   wait_for_target "tag_run:v1.2.3"       # wait for tag run to appear
+#
+# returns:
+#   0 if target found
+#   1 if timeout (5 minutes)
+#
+# output format:
+#   found immediately:
+#     └─ ✨ found it! 0s in action, 0s watched
+#
+#   found after poll:
+#     🫧 wait for it...
+#        ├─ 💤 await release pr, 10s watched
+#        ├─ 💤 await release pr, 20s watched
+#        └─ ✨ found it! 25s in action, 23s watched
+######################################################################
+wait_for_target() {
+  local target="$1"
+  local target_type="${target%%:*}"
+  local target_value="${target#*:}"
+
+  # determine poll interval
+  local poll_interval
+  if [[ "${GIT_RELEASE_TEST_MODE:-}" == "true" ]]; then
+    poll_interval=0
+  elif [[ -n "${GIT_RELEASE_POLL_INTERVAL:-}" ]]; then
+    poll_interval="$GIT_RELEASE_POLL_INTERVAL"
+  else
+    poll_interval=10
+  fi
+
+  local start_time ci_start_time
+  start_time=$(date +%s)
+  ci_start_time="$start_time"
+
+  local first_iteration="true"
+  local found="false"
+  local header_printed="false"
+
+  while [[ "$found" == "false" ]]; do
+    local elapsed
+    elapsed=$(( $(date +%s) - start_time ))
+
+    # timeout after 5 minutes
+    if [[ $elapsed -ge 300 ]]; then
+      if [[ "$header_printed" == "true" ]]; then
+        echo "   └─ ⏱️  timeout after 5 minutes"
+      else
+        echo "   └─ ⏱️  timeout to await $target_type"
+      fi
+      return 1
+    fi
+
+    # check if target extant
+    case "$target_type" in
+      release_pr)
+        local pr
+        pr=$(get_release_pr 2>/dev/null) || true
+        if [[ -n "$pr" ]]; then
+          found="true"
+        fi
+        ;;
+      tag_run)
+        local runs
+        runs=$(get_tag_runs "$target_value" 2>/dev/null) || true
+        local run_count
+        run_count=$(echo "$runs" | jq -r 'length // 0')
+        if [[ "$run_count" -gt 0 ]]; then
+          found="true"
+          # update ci_start_time from the first run
+          local first_started
+          first_started=$(echo "$runs" | jq -r '.[0].startedAt // empty' 2>/dev/null) || true
+          if [[ -n "$first_started" && "$first_started" != "null" ]]; then
+            ci_start_time=$(date -d "$first_started" +%s 2>/dev/null || echo "$start_time")
+          fi
+        fi
+        ;;
+      *)
+        echo "error: unknown target type: $target_type" >&2
+        return 1
+        ;;
+    esac
+
+    # print header on first iteration
+    if [[ "$first_iteration" == "true" ]]; then
+      echo ""
+      echo "🫧 wait for it..."
+      header_printed="true"
+    fi
+
+    # if found, show "found it!" and return
+    if [[ "$found" == "true" ]]; then
+      local in_action
+      in_action=$(( $(date +%s) - ci_start_time ))
+      echo "   └─ ✨ found it! $(format_duration "$in_action") in action, $(format_duration "$elapsed") watched"
+      return 0
+    fi
+
+    # show await line
+    local target_label
+    case "$target_type" in
+      release_pr) target_label="release pr" ;;
+      tag_run) target_label="release run" ;;
+    esac
+    echo "   ├─ 💤 await $target_label, $(format_duration "$elapsed") watched"
+
+    first_iteration="false"
+
+    # skip actual sleep in test mode
+    if [[ "$poll_interval" == "0" ]]; then
+      # in test mode, exit after a few iterations to prevent infinite loop
+      if [[ $elapsed -gt 0 ]]; then
+        echo "   └─ ⏱️  timeout (test mode)"
+        return 1
+      fi
+    else
+      sleep "$poll_interval"
+    fi
+  done
 }
