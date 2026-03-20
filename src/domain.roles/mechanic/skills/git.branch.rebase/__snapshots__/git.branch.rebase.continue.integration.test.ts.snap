@@ -90,7 +90,8 @@ exports[`git.branch.rebase.continue given: [case7] rebase in progress with unsta
    │  └─ files
    │     └─ README.md
    ├─ next steps
-   │  ├─ stage the files above: rhx git.stage.add <files>
+   │  ├─ review: git diff
+   │  ├─ stage: rhx git.stage.add <files>
    │  └─ rhx git.branch.rebase continue
    └─ git.output
       ├─

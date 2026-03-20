@@ -474,102 +474,105 @@ describe('git.branch.rebase journey', () => {
     });
   });
 
-  given('[journey4] take ours yields no diff vs main (defect reproduction)', () => {
-    let workDir: string;
-    let baseDir: string;
+  given(
+    '[journey4] take ours yields no diff vs main (defect reproduction)',
+    () => {
+      let workDir: string;
+      let baseDir: string;
 
-    beforeAll(() => {
-      const setup = setupJourneyRepo();
-      workDir = setup.workDir;
-      baseDir = path.dirname(workDir);
+      beforeAll(() => {
+        const setup = setupJourneyRepo();
+        workDir = setup.workDir;
+        baseDir = path.dirname(workDir);
 
-      // create a scenario where "take ours" yields no diff
-      // main has: settings.json with { "mode": "production" }
-      // feature has: settings.json with { "mode": "development" }
-      // when we take ours (main's version) in rebase, the file is
-      // identical to what's on main, yields an "empty" commit
+        // create a scenario where "take ours" yields no diff
+        // main has: settings.json with { "mode": "production" }
+        // feature has: settings.json with { "mode": "development" }
+        // when we take ours (main's version) in rebase, the file is
+        // identical to what's on main, yields an "empty" commit
 
-      spawnSync('git', ['checkout', 'main'], { cwd: workDir });
+        spawnSync('git', ['checkout', 'main'], { cwd: workDir });
 
-      fs.writeFileSync(
-        path.join(workDir, 'settings.json'),
-        '{"mode": "production"}\n',
-      );
-      spawnSync('git', ['add', 'settings.json'], { cwd: workDir });
-      spawnSync('git', ['commit', '-m', 'chore: add settings.json'], {
-        cwd: workDir,
-      });
-      spawnSync('git', ['push', 'origin', 'main'], { cwd: workDir });
-
-      // reset to before the settings.json commit, create feature branch
-      spawnSync('git', ['reset', '--hard', 'HEAD~1'], { cwd: workDir });
-
-      spawnSync('git', ['checkout', '-b', 'feature/take-ours-test'], {
-        cwd: workDir,
-      });
-
-      // create the same file with different content
-      fs.writeFileSync(
-        path.join(workDir, 'settings.json'),
-        '{"mode": "development"}\n',
-      );
-      spawnSync('git', ['add', 'settings.json'], { cwd: workDir });
-      spawnSync('git', ['commit', '-m', 'fix(settings): dev mode'], {
-        cwd: workDir,
-      });
-
-      grantPushPermission(workDir);
-    });
-
-    afterAll(() => {
-      fs.rmSync(baseDir, { recursive: true, force: true });
-    });
-
-    when('[t0] git.branch.rebase begin --mode apply', () => {
-      then('shows conflict on settings.json', () => {
-        const result = runRebase(workDir, ['begin', '--mode', 'apply']);
-
-        expect(result.status).not.toBe(0);
-        expect(result.stdout).toContain('hang tight');
-        expect(result.stdout).toContain('conflict');
-        expect(result.stdout).toContain('settings.json');
-        expect(result.stdout).toMatchSnapshot();
-      });
-    });
-
-    when('[t1] take ours (main version) for the conflict', () => {
-      then('file is settled with main content', () => {
-        const result = runRebase(workDir, [
-          'take',
-          '--whos',
-          'ours',
-          'settings.json',
-        ]);
-
-        expect(result.status).toBe(0);
-        expect(result.stdout).toContain('settled');
-        expect(result.stdout).toMatchSnapshot();
-
-        // verify content is now main's version
-        const content = fs.readFileSync(
+        fs.writeFileSync(
           path.join(workDir, 'settings.json'),
-          'utf-8',
+          '{"mode": "production"}\n',
         );
-        expect(content).toBe('{"mode": "production"}\n');
-      });
-    });
+        spawnSync('git', ['add', 'settings.json'], { cwd: workDir });
+        spawnSync('git', ['commit', '-m', 'chore: add settings.json'], {
+          cwd: workDir,
+        });
+        spawnSync('git', ['push', 'origin', 'main'], { cwd: workDir });
 
-    when('[t2] git.branch.rebase continue after take ours', () => {
-      then('rebase continues or completes (no conflict error)', () => {
-        const result = runRebase(workDir, ['continue']);
+        // reset to before the settings.json commit, create feature branch
+        spawnSync('git', ['reset', '--hard', 'HEAD~1'], { cwd: workDir });
 
-        // this is the defect: it fails with "You must edit all merge conflicts"
-        // even though git status shows "all conflicts fixed"
-        // the expected behavior is for it to succeed
-        expect(result.status).toBe(0);
-        expect(result.stdout).not.toContain('must edit all merge conflicts');
-        expect(result.stdout).toMatchSnapshot();
+        spawnSync('git', ['checkout', '-b', 'feature/take-ours-test'], {
+          cwd: workDir,
+        });
+
+        // create the same file with different content
+        fs.writeFileSync(
+          path.join(workDir, 'settings.json'),
+          '{"mode": "development"}\n',
+        );
+        spawnSync('git', ['add', 'settings.json'], { cwd: workDir });
+        spawnSync('git', ['commit', '-m', 'fix(settings): dev mode'], {
+          cwd: workDir,
+        });
+
+        grantPushPermission(workDir);
       });
-    });
-  });
+
+      afterAll(() => {
+        fs.rmSync(baseDir, { recursive: true, force: true });
+      });
+
+      when('[t0] git.branch.rebase begin --mode apply', () => {
+        then('shows conflict on settings.json', () => {
+          const result = runRebase(workDir, ['begin', '--mode', 'apply']);
+
+          expect(result.status).not.toBe(0);
+          expect(result.stdout).toContain('hang tight');
+          expect(result.stdout).toContain('conflict');
+          expect(result.stdout).toContain('settings.json');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t1] take ours (main version) for the conflict', () => {
+        then('file is settled with main content', () => {
+          const result = runRebase(workDir, [
+            'take',
+            '--whos',
+            'ours',
+            'settings.json',
+          ]);
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain('settled');
+          expect(result.stdout).toMatchSnapshot();
+
+          // verify content is now main's version
+          const content = fs.readFileSync(
+            path.join(workDir, 'settings.json'),
+            'utf-8',
+          );
+          expect(content).toBe('{"mode": "production"}\n');
+        });
+      });
+
+      when('[t2] git.branch.rebase continue after take ours', () => {
+        then('rebase continues or completes (no conflict error)', () => {
+          const result = runRebase(workDir, ['continue']);
+
+          // this is the defect: it fails with "You must edit all merge conflicts"
+          // even though git status shows "all conflicts fixed"
+          // the expected behavior is for it to succeed
+          expect(result.status).toBe(0);
+          expect(result.stdout).not.toContain('must edit all merge conflicts');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+    },
+  );
 });
