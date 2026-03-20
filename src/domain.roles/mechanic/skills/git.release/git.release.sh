@@ -839,7 +839,11 @@ release_to_prod() {
     fi
 
     # print unified prod header
-    print_turtle_header "radical!"
+    if [[ "$MODE" == "plan" ]]; then
+      print_turtle_header "lets see..."
+    else
+      print_turtle_header "radical!"
+    fi
     echo "🐚 git.release --to prod --mode $MODE"
 
     # run --to main flow first (with headers suppressed)

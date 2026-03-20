@@ -149,7 +149,7 @@ exports[`git.release given: [case3a] release to prod from main (plan mode) when:
 `;
 
 exports[`git.release given: [case3b] release to prod from feat (plan mode) when: [t0] open PR for feature branch then: runs --to main flow first then stops 1`] = `
-"🐢 radical!
+"🐢 lets see...
 
 🐚 git.release --to prod --mode plan
 
@@ -332,7 +332,7 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 🌊 release: v1.2.3
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, 0s in action, 0s watched
+      └─ ✨ done! publish.yml, 1s in action, 0s watched
 "
 `;
 
