@@ -1,0 +1,95 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.rebase.lock given: [case1] rebase in progress with pnpm-lock.yaml when: [t0] lock refresh with pnpm then: lock regenerated, staged, exit 0 1`] = `
+"🐢 shell yeah!
+
+🐚 git.branch.rebase lock refresh
+   ├─ detected: pnpm
+   ├─ run: pnpm install
+   ├─ staged
+   │  └─ pnpm-lock.yaml ✓
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.lock given: [case2] rebase in progress with package-lock.json when: [t0] lock refresh with npm then: lock regenerated, staged, exit 0 1`] = `
+"🐢 shell yeah!
+
+🐚 git.branch.rebase lock refresh
+   ├─ detected: npm
+   ├─ run: npm install
+   ├─ staged
+   │  └─ package-lock.json ✓
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.lock given: [case4] no rebase in progress when: [t0] attempt lock refresh then: shows error: no rebase in progress 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase lock refresh
+   └─ error: no rebase in progress
+"
+`;
+
+exports[`git.branch.rebase.lock given: [case5] rebase in progress but no lock file when: [t0] attempt lock refresh then: shows error: no lock file found 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase lock refresh
+   └─ error: no lock file found
+"
+`;
+
+exports[`git.branch.rebase.lock given: [case6] pnpm-lock.yaml extant but pnpm not installed when: [t0] attempt lock refresh then: shows error: pnpm not found 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase lock refresh
+   └─ error: pnpm not found, install pnpm or use npm
+"
+`;
+
+exports[`git.branch.rebase.lock given: [case8] priority: pnpm > npm when both lock files extant when: [t0] lock refresh (pnpm available) then: uses pnpm (preferred) 1`] = `
+"🐢 shell yeah!
+
+🐚 git.branch.rebase lock refresh
+   ├─ detected: pnpm
+   ├─ run: pnpm install
+   ├─ staged
+   │  └─ pnpm-lock.yaml ✓
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.lock given: [case9] install failure when: [t0] lock refresh with bad package.json then: shows install error 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase lock refresh
+   ├─ detected: npm
+   ├─ run: npm install
+   └─ error: install failed
+
+install output:
+npm error code EJSONPARSE
+npm error path /tmp/git-rebase-lock-test-myoJ2b/package.json
+npm error JSON.parse Unexpected token "i" (0x69), "invalid json content" is not valid JSON while parsing 'invalid json content'
+npm error JSON.parse Failed to parse JSON data.
+npm error JSON.parse Note: package.json must be actual JSON, not just JavaScript.
+npm error A complete log of this run can be found in: /home/vlad/.npm/_logs/2026-03-19T12_35_17_727Z-debug-0.log
+"
+`;
+
+exports[`git.branch.rebase.lock given: [case10] subcommand validation when: [t0] lock without subcommand then: shows error: subcommand required 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase lock
+   └─ error: subcommand required (try: refresh)
+"
+`;
+
+exports[`git.branch.rebase.lock given: [case10] subcommand validation when: [t1] lock with unknown subcommand then: shows error: unknown lock subcommand 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase lock
+   └─ error: unknown lock subcommand: invalidcmd
+"
+`;

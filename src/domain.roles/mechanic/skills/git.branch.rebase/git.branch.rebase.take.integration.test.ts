@@ -40,7 +40,9 @@ const setupRebaseWithConflict = (options: {
   const mainContent = options.mainContent ?? {};
   for (const file of conflictFiles) {
     const content = mainContent[file] ?? `main version of ${file}\n`;
-    fs.writeFileSync(path.join(tempDir, file), content);
+    const filePath = path.join(tempDir, file);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, content);
     spawnSync('git', ['add', file], { cwd: tempDir });
   }
   spawnSync('git', ['commit', '-m', 'fix: add files on main'], {
@@ -61,7 +63,9 @@ const setupRebaseWithConflict = (options: {
   const featureContent = options.featureContent ?? {};
   for (const file of conflictFiles) {
     const content = featureContent[file] ?? `feature version of ${file}\n`;
-    fs.writeFileSync(path.join(tempDir, file), content);
+    const filePath = path.join(tempDir, file);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, content);
     spawnSync('git', ['add', file], { cwd: tempDir });
   }
   spawnSync('git', ['commit', '-m', 'fix: add files on feature'], {
@@ -472,6 +476,144 @@ describe('git.branch.rebase.take', () => {
           expect(result.stdout).toContain('nonexistent.ts');
           // no "settled" section - we fail before any settle
           expect(result.stdout).not.toContain('settled');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+  });
+
+  given('[case12] take lock file shows suggestion', () => {
+    when('[t0] take theirs pnpm-lock.yaml', () => {
+      then('output includes lock refresh suggestion', () => {
+        const tempDir = setupRebaseWithConflict({
+          conflictFiles: ['pnpm-lock.yaml'],
+          mainContent: { 'pnpm-lock.yaml': 'main lock content\n' },
+          featureContent: { 'pnpm-lock.yaml': 'feature lock content\n' },
+        });
+
+        try {
+          const result = runSkill(tempDir, [
+            '--whos',
+            'theirs',
+            'pnpm-lock.yaml',
+          ]);
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain('lock taken, refresh it with:');
+          expect(result.stdout).toContain('rhx git.branch.rebase lock refresh');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t1] take theirs package-lock.json', () => {
+      then('output includes lock refresh suggestion', () => {
+        const tempDir = setupRebaseWithConflict({
+          conflictFiles: ['package-lock.json'],
+          mainContent: { 'package-lock.json': '{"main": true}\n' },
+          featureContent: { 'package-lock.json': '{"feature": true}\n' },
+        });
+
+        try {
+          const result = runSkill(tempDir, [
+            '--whos',
+            'theirs',
+            'package-lock.json',
+          ]);
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain('lock taken, refresh it with:');
+          expect(result.stdout).toContain('rhx git.branch.rebase lock refresh');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t2] take theirs yarn.lock', () => {
+      then('output includes lock refresh suggestion', () => {
+        const tempDir = setupRebaseWithConflict({
+          conflictFiles: ['yarn.lock'],
+          mainContent: { 'yarn.lock': 'main yarn lock\n' },
+          featureContent: { 'yarn.lock': 'feature yarn lock\n' },
+        });
+
+        try {
+          const result = runSkill(tempDir, ['--whos', 'theirs', 'yarn.lock']);
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain('lock taken, refresh it with:');
+          expect(result.stdout).toContain('rhx git.branch.rebase lock refresh');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+  });
+
+  given('[case13] take multiple files with lock', () => {
+    when('[t0] take theirs . (includes lock file)', () => {
+      then('suggestion shown once (not per lock file)', () => {
+        const tempDir = setupRebaseWithConflict({
+          conflictFiles: ['pnpm-lock.yaml', 'src/index.ts', 'README.md'],
+          mainContent: {
+            'pnpm-lock.yaml': 'main lock\n',
+            'src/index.ts': 'main index\n',
+            'README.md': 'main readme\n',
+          },
+          featureContent: {
+            'pnpm-lock.yaml': 'feature lock\n',
+            'src/index.ts': 'feature index\n',
+            'README.md': 'feature readme\n',
+          },
+        });
+
+        try {
+          const result = runSkill(tempDir, ['--whos', 'theirs', '.']);
+
+          expect(result.status).toBe(0);
+          // suggestion appears
+          expect(result.stdout).toContain('lock taken, refresh it with:');
+          // count occurrences - should be exactly one
+          const suggestionCount = (
+            result.stdout.match(/lock taken, refresh it with/g) || []
+          ).length;
+          expect(suggestionCount).toBe(1);
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+  });
+
+  given('[case14] take non-lock file', () => {
+    when('[t0] take theirs for .ts file only', () => {
+      then('no lock refresh suggestion shown', () => {
+        const tempDir = setupRebaseWithConflict({
+          conflictFiles: ['src/index.ts'],
+          mainContent: { 'src/index.ts': 'main code\n' },
+          featureContent: { 'src/index.ts': 'feature code\n' },
+        });
+
+        try {
+          const result = runSkill(tempDir, [
+            '--whos',
+            'theirs',
+            'src/index.ts',
+          ]);
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).not.toContain('lock taken, refresh it with');
+          expect(result.stdout).not.toContain(
+            'rhx git.branch.rebase lock refresh',
+          );
           expect(result.stdout).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });

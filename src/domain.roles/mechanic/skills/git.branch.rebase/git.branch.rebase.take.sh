@@ -196,6 +196,29 @@ for file in "${FILES_TO_SETTLE[@]}"; do
 done
 
 ######################################################################
+# check if any lock file was settled
+######################################################################
+is_lock_file() {
+  local file="$1"
+  case "$file" in
+    pnpm-lock.yaml|package-lock.json|yarn.lock)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+LOCK_FILE_SETTLED=false
+for file in "${FILES_SUCCESS[@]}"; do
+  if is_lock_file "$file"; then
+    LOCK_FILE_SETTLED=true
+    break
+  fi
+done
+
+######################################################################
 # output
 ######################################################################
 HAS_SUCCESS=${#FILES_SUCCESS[@]}
@@ -220,12 +243,18 @@ if [[ $HAS_SUCCESS -gt 0 ]]; then
   i=0
   for file in "${FILES_SUCCESS[@]}"; do
     ((i++)) || true
-    if [[ $i -eq $HAS_SUCCESS && $HAS_FAILED -eq 0 && $HAS_SKIPPED -eq 0 ]]; then
+    if [[ $i -eq $HAS_SUCCESS ]]; then
       echo "   │  └─ $file ✓"
     else
       echo "   │  ├─ $file ✓"
     fi
   done
+fi
+
+# print lock file refresh suggestion (once, after all settled files)
+if [[ "$LOCK_FILE_SETTLED" == "true" ]]; then
+  echo "   ├─ lock taken, refresh it with: ⚡"
+  echo "   │  └─ rhx git.branch.rebase lock refresh"
 fi
 
 # print skipped files
