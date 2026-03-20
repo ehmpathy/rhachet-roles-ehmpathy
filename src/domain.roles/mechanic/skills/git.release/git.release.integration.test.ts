@@ -803,6 +803,24 @@ exit 1
             slug: 'git-release-t4-inflight',
             git: true,
           });
+
+          // initialize git repo with commit (genTempDir only runs git init)
+          spawnSync('git', ['config', 'user.email', 'test@test.com'], {
+            cwd: tempDir,
+          });
+          spawnSync('git', ['config', 'user.name', 'Test User'], {
+            cwd: tempDir,
+          });
+          spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
+            cwd: tempDir,
+          });
+          spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+          spawnSync(
+            'git',
+            ['remote', 'add', 'origin', 'https://github.com/test/repo'],
+            { cwd: tempDir },
+          );
+
           const fakeBinDir = path.join(tempDir, '.fakebin');
           fs.mkdirSync(fakeBinDir, { recursive: true });
 
@@ -930,6 +948,24 @@ exit 1
           slug: 'git-release-t6-tag-inflight',
           git: true,
         });
+
+        // initialize git repo with commit (genTempDir only runs git init)
+        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.name', 'Test User'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+        spawnSync(
+          'git',
+          ['remote', 'add', 'origin', 'https://github.com/test/repo'],
+          { cwd: tempDir },
+        );
+
         const fakeBinDir = path.join(tempDir, '.fakebin');
         fs.mkdirSync(fakeBinDir, { recursive: true });
 
