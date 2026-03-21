@@ -27,13 +27,13 @@ this will:
 
 ```sh
 # commit and push
-printf '...' | npx rhachet run --skill git.commit.set -m @stdin --mode apply --push
+printf '...' | rhx git.commit.set -m @stdin --mode apply --push
 
 # immediately watch release
 rhx git.release --watch || rhx show.gh.test.errors
 
 # if passed, enable automerge
-git release --apply
+rhx git.release --mode apply
 ```
 
 ## .enforcement

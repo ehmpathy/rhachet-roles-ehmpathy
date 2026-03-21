@@ -204,6 +204,7 @@ subject.flow:
     ref:
       - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
       - briefs/practices/work.flow/diagnose/howto.logservation.[lesson].md
+      - briefs/practices/work.flow/release/howto.git-release.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.allowlist-examples.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.jq.[demo].md
       - briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt2.md

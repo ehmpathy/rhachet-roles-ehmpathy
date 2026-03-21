@@ -3,6 +3,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+// all tests use mocked gh CLI, so no remote calls - 5s timeout is plenty
+jest.setTimeout(5000);
+
 /**
  * .what = replace timing values with placeholders for snapshot stability
  * .why = timing varies between runs (0s vs 1s), causing flaky snapshots
@@ -93,6 +96,25 @@ if [[ -n "$RESPONSE" ]]; then
     echo "\${RESPONSE#ERROR:}" >&2
     exit 1
   fi
+
+  # support stateful sequences: prefix "SEQUENCE:" means array of responses
+  # each call returns next item from array (or last if exhausted)
+  if [[ "$RESPONSE" == SEQUENCE:* ]]; then
+    SEQUENCE_JSON="\${RESPONSE#SEQUENCE:}"
+    # counter file lives in cwd (tempDir) so it's unique per test
+    COUNTER_FILE=".gh-mock-counter-$(echo "$CMD_KEY" | tr ' ' '-')"
+    if [[ ! -f "$COUNTER_FILE" ]]; then
+      echo "0" > "$COUNTER_FILE"
+    fi
+    INDEX=$(cat "$COUNTER_FILE")
+    ARRAY_LEN=$(echo "$SEQUENCE_JSON" | jq 'length')
+    if [[ $INDEX -ge $ARRAY_LEN ]]; then
+      INDEX=$((ARRAY_LEN - 1))
+    fi
+    echo "$((INDEX + 1))" > "$COUNTER_FILE"
+    RESPONSE=$(echo "$SEQUENCE_JSON" | jq -r ".[$INDEX]")
+  fi
+
   echo "$RESPONSE"
   exit 0
 fi
@@ -152,6 +174,14 @@ exit 1
     },
   );
 
+  // setup git.commit.uses permission for apply mode tests
+  const meterDir = path.join(tempDir, '.meter');
+  fs.mkdirSync(meterDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(meterDir, 'git.commit.uses.jsonc'),
+    JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+  );
+
   return {
     tempDir,
     fakeBinDir,
@@ -185,6 +215,7 @@ const runSkill = (
       ...(env.extraEnv ?? {}),
     },
     encoding: 'utf-8',
+    timeout: 3000, // 3s hard limit - all mocked, should be instant
   });
 
   return {
@@ -360,7 +391,8 @@ describe('git.release', () => {
           // verify duration appears in output
           expect(result.stdout).toContain('failed after');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
-          expect(result.status).toEqual(1);
+          // per spec: failed checks are constraint errors (exit 2)
+          expect(result.status).toEqual(2);
         } finally {
           cleanup();
         }
@@ -512,6 +544,14 @@ exit 1
         spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
           cwd: tempDir,
         });
+
+        // setup git.commit.uses permission for apply mode
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+        );
 
         try {
           const result = runSkill(['--to', 'main', '--mode', 'apply'], {
@@ -682,6 +722,252 @@ exit 1
         }
       });
     });
+
+    when('[t2] feature PR already merged', () => {
+      then('continues to show release PR status', () => {
+        // use custom mock to differentiate feature PR vs release PR lookups
+        const tempDir = genTempDir({
+          slug: 'git-release-feat-merged-plan',
+          git: true,
+        });
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+
+        const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+ALL_ARGS="$*"
+CMD_KEY="$1 $2"
+
+case "$CMD_KEY" in
+  "pr list")
+    # detect if release PR request (has chore(release) in jq filter)
+    if echo "$ALL_ARGS" | grep -q "chore(release)"; then
+      # check if filter asks for .title or .number
+      if echo "$ALL_ARGS" | grep -q ".title"; then
+        echo "chore(release): v1.33.0 🎉"
+      else
+        echo "99"
+      fi
+    else
+      # feature branch PR request
+      if echo "$ALL_ARGS" | grep -q "merged"; then
+        echo "42"  # found via merged state lookup
+      else
+        echo ""  # no open PR (already merged)
+      fi
+    fi
+    ;;
+  "pr view")
+    PR_NUM="$3"
+    if [[ "$PR_NUM" == "42" ]]; then
+      # feature branch PR - already merged
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+    elif [[ "$PR_NUM" == "99" ]]; then
+      # release PR - checks passed
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "chore(release): v1.33.0 🎉"}'
+    fi
+    ;;
+  *)
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+esac
+`;
+
+        fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        // create rhachet mock for keyrack
+        const rhachetMockContent = `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
+  echo '{"grant":{"key":{"secret":"mock-github-token"}}}'
+  exit 0
+fi
+echo "mock: unhandled rhachet $*" >&2
+exit 1
+`;
+        const nodeModulesBinDir = path.join(tempDir, 'node_modules', '.bin');
+        fs.mkdirSync(nodeModulesBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(nodeModulesBinDir, 'rhachet'),
+          rhachetMockContent,
+        );
+        fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
+        fs.writeFileSync(path.join(fakeBinDir, 'rhachet'), rhachetMockContent);
+        fs.chmodSync(path.join(fakeBinDir, 'rhachet'), '755');
+
+        // init git repo
+        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.name', 'Test User'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+        spawnSync(
+          'git',
+          ['remote', 'add', 'origin', 'https://github.com/test/repo'],
+          { cwd: tempDir },
+        );
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+          // create a tag for latest version display
+          spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
+
+          const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
+
+          // should show unified prod header
+          expect(result.stdout).toContain('git.release --to prod');
+          // should show feature branch section (merged)
+          expect(result.stdout).toContain('feat(oceans): add reef protection');
+          expect(result.stdout).toContain('merged');
+          // should continue to release PR section
+          expect(result.stdout).toContain('chore(release): v1.33.0');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t3] feature PR merged and release PR also merged', () => {
+      then('shows both merged status', () => {
+        // use custom mock to differentiate feature PR vs release PR lookups
+        const tempDir = genTempDir({
+          slug: 'git-release-both-merged-plan',
+          git: true,
+        });
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+
+        const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+ALL_ARGS="$*"
+CMD_KEY="$1 $2"
+
+# debug: write args to temp file
+echo "$ALL_ARGS" >> /tmp/gh-mock-debug.log
+
+case "$CMD_KEY" in
+  "pr list")
+    # detect if release PR request (has chore(release) in jq filter)
+    if echo "$ALL_ARGS" | grep -qF "chore(release)"; then
+      # release PR: no open (already merged), found via merged state lookup
+      if echo "$ALL_ARGS" | grep -qF -- "--state open"; then
+        echo ""  # no open release PR
+      elif echo "$ALL_ARGS" | grep -qF -- "--state merged"; then
+        # check if filter ENDS with .title or .number (both contain .title in select)
+        if echo "$ALL_ARGS" | grep -qE '\\.number$'; then
+          echo "99"
+        else
+          echo "chore(release): v1.33.0"
+        fi
+      fi
+    else
+      # feature branch PR request
+      if echo "$ALL_ARGS" | grep -qF -- "--state merged"; then
+        echo "42"  # found via merged state lookup
+      else
+        echo ""  # no open PR (already merged)
+      fi
+    fi
+    ;;
+  "pr view")
+    PR_NUM="$3"
+    if [[ "$PR_NUM" == "42" ]]; then
+      # feature branch PR - already merged
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+    elif [[ "$PR_NUM" == "99" ]]; then
+      # release PR - also already merged
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.33.0"}'
+    fi
+    ;;
+  "run list")
+    # tag workflow runs for v1.33.0
+    echo '[{"name": "publish.yml", "conclusion": "success", "status": "completed", "url": "https://github.com/test/repo/actions/runs/789"}]'
+    ;;
+  *)
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+esac
+`;
+
+        fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        // create rhachet mock for keyrack
+        const rhachetMockContent = `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
+  echo '{"grant":{"key":{"secret":"mock-github-token"}}}'
+  exit 0
+fi
+echo "mock: unhandled rhachet $*" >&2
+exit 1
+`;
+        const nodeModulesBinDir = path.join(tempDir, 'node_modules', '.bin');
+        fs.mkdirSync(nodeModulesBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(nodeModulesBinDir, 'rhachet'),
+          rhachetMockContent,
+        );
+        fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
+        fs.writeFileSync(path.join(fakeBinDir, 'rhachet'), rhachetMockContent);
+        fs.chmodSync(path.join(fakeBinDir, 'rhachet'), '755');
+
+        // init git repo
+        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.name', 'Test User'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+        spawnSync(
+          'git',
+          ['remote', 'add', 'origin', 'https://github.com/test/repo'],
+          { cwd: tempDir },
+        );
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+          // create tags for version display
+          spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
+          spawnSync('git', ['tag', 'v1.33.0'], { cwd: tempDir }); // merged release tag
+
+          const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
+
+          // should show unified prod header
+          expect(result.stdout).toContain('git.release --to prod');
+          // should show feature branch section (merged)
+          expect(result.stdout).toContain('feat(oceans): add reef protection');
+          expect(result.stdout).toContain('already merged');
+          // should continue to release PR section (also merged)
+          expect(result.stdout).toContain('chore(release): v1.33.0');
+          // should show tag workflow status (the "third find")
+          expect(result.stdout).toContain('v1.33.0');
+          expect(result.stdout).toContain('publish.yml');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
   });
 
   given('[case4a] release to prod from main (apply mode)', () => {
@@ -761,7 +1047,8 @@ exit 1
           });
 
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
-          expect(result.status).toEqual(1);
+          // per spec: failed checks are constraint errors (exit 2)
+          expect(result.status).toEqual(2);
         } finally {
           cleanup();
         }
@@ -830,6 +1117,14 @@ exit 1
 set -e
 ALL_ARGS="$*"
 STATE_FILE="${tempDir}/.gh-state"
+AUTOMERGE_FILE="${tempDir}/.gh-automerge"
+
+# pr merge - track automerge state
+if [[ "$ALL_ARGS" == *"pr merge"* ]]; then
+  echo "true" > "$AUTOMERGE_FILE"
+  echo 'auto-merge enabled'
+  exit 0
+fi
 
 # track pr view calls
 if [[ "$ALL_ARGS" == *"pr view"* ]]; then
@@ -840,12 +1135,18 @@ if [[ "$ALL_ARGS" == *"pr view"* ]]; then
   COUNT=$((COUNT + 1))
   echo "$COUNT" > "$STATE_FILE"
 
+  # check if automerge was enabled
+  AUTOMERGE_JSON='null'
+  if [[ -f "$AUTOMERGE_FILE" ]]; then
+    AUTOMERGE_JSON='{"enabledAt": "2024-01-01T00:00:00Z"}'
+  fi
+
   if [[ $COUNT -le 1 ]]; then
     # first call: in progress
-    echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "chore(release): v1.32.0 🎉"}'
+    echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "test"}], "autoMergeRequest": '"$AUTOMERGE_JSON"', "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "chore(release): v1.32.0 🎉"}'
   else
     # subsequent calls: merged
-    echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0 🎉"}'
+    echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": '"$AUTOMERGE_JSON"', "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0 🎉"}'
   fi
   exit 0
 fi
@@ -857,12 +1158,6 @@ if [[ "$ALL_ARGS" == *"pr list"* ]]; then
   else
     echo '99'
   fi
-  exit 0
-fi
-
-# pr merge
-if [[ "$ALL_ARGS" == *"pr merge"* ]]; then
-  echo 'auto-merge enabled'
   exit 0
 fi
 
@@ -897,6 +1192,14 @@ exit 1
 
           // create a tag
           spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
+
+          // setup git.commit.uses permission for apply mode
+          const meterDir = path.join(tempDir, '.meter');
+          fs.mkdirSync(meterDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(meterDir, 'git.commit.uses.jsonc'),
+            JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          );
 
           const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
             tempDir,
@@ -1021,6 +1324,14 @@ exit 1
         fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
 
         spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
+
+        // setup git.commit.uses permission for apply mode
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+        );
 
         const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
           tempDir,
@@ -1228,6 +1539,14 @@ exit 1
           cwd: tempDir,
         });
 
+        // setup git.commit.uses permission for apply mode
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+        );
+
         const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
           tempDir,
           fakeBinDir,
@@ -1381,6 +1700,18 @@ exit 1
               cwd: tempDir,
             });
 
+            // setup git.commit.uses permission for apply mode
+            const meterDir = path.join(tempDir, '.meter');
+            fs.mkdirSync(meterDir, { recursive: true });
+            fs.writeFileSync(
+              path.join(meterDir, 'git.commit.uses.jsonc'),
+              JSON.stringify({
+                uses: 'infinite',
+                push: 'allow',
+                stage: 'allow',
+              }),
+            );
+
             const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
               tempDir,
               fakeBinDir,
@@ -1506,6 +1837,14 @@ exit 1
         spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
           cwd: tempDir,
         });
+
+        // setup git.commit.uses permission for apply mode
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+        );
 
         const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
           tempDir,
@@ -1633,6 +1972,14 @@ exit 1
           cwd: tempDir,
         });
 
+        // setup git.commit.uses permission for apply mode
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+        );
+
         const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
           tempDir,
           fakeBinDir,
@@ -1652,7 +1999,7 @@ exit 1
 
   given('[case5] retry behavior', () => {
     when('[t0] --retry with failed PR checks', () => {
-      then('reruns failed workflows', () => {
+      then('reruns failed workflows and exits success', () => {
         // mock includes separate responses for step name vs duration (Gap 5)
         const mockResponses = {
           'pr list': '42',
@@ -1679,8 +2026,8 @@ exit 1
           );
 
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
-          // still fails because checks are still failed after rerun trigger
-          expect(result.status).toEqual(1);
+          // retry was triggered successfully — exit 0 (use --watch to monitor)
+          expect(result.status).toEqual(0);
         } finally {
           cleanup();
         }
@@ -1758,7 +2105,8 @@ exit 1
 
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           // still fails because workflow still shows failure
-          expect(result.status).toEqual(1);
+          // per spec: failed checks are constraint errors (exit 2)
+          expect(result.status).toEqual(2);
         } finally {
           cleanup();
         }
@@ -1829,6 +2177,7 @@ exit 1
           const result = runSkill(['--to', 'invalid'], { tempDir, fakeBinDir });
 
           expect(result.stderr).toContain("--to must be 'main' or 'prod'");
+          expect(result.stderr).toMatchSnapshot();
           expect(result.status).toEqual(2);
         } finally {
           cleanup();
@@ -1847,6 +2196,7 @@ exit 1
           });
 
           expect(result.stderr).toContain("--mode must be 'plan' or 'apply'");
+          expect(result.stderr).toMatchSnapshot();
           expect(result.status).toEqual(2);
         } finally {
           cleanup();
@@ -1872,6 +2222,7 @@ exit 1
           });
 
           expect(result.stderr).toContain('not in a git repository');
+          expect(result.stderr).toMatchSnapshot();
           expect(result.status).toEqual(2);
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -1889,10 +2240,16 @@ exit 1
         const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
 
         try {
+          // create feature branch to test --to main behavior
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
           const result = runSkill([], { tempDir, fakeBinDir });
 
           // should default to --to main behavior
           expect(result.stdout).toContain('git.release --to main');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -2303,6 +2660,14 @@ exit 1
           cwd: tempDir,
         });
 
+        // setup git.commit.uses permission for apply mode
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+        );
+
         try {
           // apply mode with watch - should show poll progress
           const result = spawnSync(
@@ -2436,6 +2801,14 @@ exit 1
           cwd: tempDir,
         });
 
+        // setup git.commit.uses permission for apply mode
+        const meterDir2 = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir2, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir2, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+        );
+
         try {
           const result = spawnSync(
             'bash',
@@ -2562,6 +2935,14 @@ exit 1
           cwd: tempDir,
         });
 
+        // setup git.commit.uses permission for apply mode
+        const meterDir2a = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir2a, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir2a, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+        );
+
         try {
           const result = spawnSync(
             'bash',
@@ -2621,9 +3002,451 @@ exit 1
           expect(result.stdout).toContain('check(s) failed');
           expect(result.stdout).toContain('check(s) still in progress');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          // per spec: failed checks are constraint errors (exit 2)
+          expect(result.status).toEqual(2);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+  });
+
+  given('[case8] --watch flag behavior', () => {
+    when('[t0] --watch without --mode apply', () => {
+      then('watches CI but does not enable automerge', () => {
+        // --watch should watch CI complete without automerge
+        // differs from --mode apply which enables automerge AND watches
+        const mockResponses = {
+          'pr list': '42',
+          // checks complete
+          'pr view':
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}',
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--to', 'main', '--watch'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // should show watch header (not apply header)
+          expect(result.stdout).toContain('git.release --to main --watch');
+          // should show automerge is unfound (--watch does not enable it, just reports status)
+          expect(result.stdout).toContain('automerge unfound');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
+        }
+      });
+    });
+
+    when('[t1] --mode apply enables automerge and watches', () => {
+      then('enables automerge then watches CI', () => {
+        // --mode apply should enable automerge AND watch
+        // PR must return MERGED state to complete the watch loop
+        // (this is --to main, so no tag workflow watch happens)
+        const mockResponses = {
+          'pr list': '42',
+          'pr view':
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}',
+          'pr merge': 'auto-merge enabled',
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // should show apply header (not watch header)
+          expect(result.stdout).toContain('git.release --to main --mode apply');
+          // PR returned MERGED state with checks passed, shows success
+          expect(result.stdout).toContain('all checks passed');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t2] --watch with checks in progress', () => {
+      then('polls until checks complete (stateful mock transitions)', () => {
+        // stateful mock: first 2 calls return IN_PROGRESS, then SUCCESS
+        const inProgressResponse =
+          '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "BLOCKED", "state": "OPEN", "title": "feat(oceans): add reef protection"}';
+        const successResponse =
+          '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}';
+
+        const mockResponses = {
+          'pr list': '42',
+          // SEQUENCE: prefix triggers stateful mock - returns responses in order
+          'pr view': `SEQUENCE:${JSON.stringify([inProgressResponse, inProgressResponse, successResponse])}`,
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--to', 'main', '--watch'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // should show watch header and poll through progress to completion
+          expect(result.stdout).toContain('git.release --to main --watch');
+          expect(result.stdout).toContain('in progress');
+          expect(result.stdout).toContain('all checks passed');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          // mocks drove completion, should exit 0
+          expect(result.status).toEqual(0);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when('[t2.1] --watch with checks that transition to complete', () => {
+      then('polls and exits success once checks complete', () => {
+        // stateful mock: IN_PROGRESS on first poll, COMPLETED on second
+        const tempDir = genTempDir({ slug: 'git-release-t2-done', git: true });
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+
+        const counterFile = path.join(tempDir, '.gh-call-counter');
+        fs.writeFileSync(counterFile, '0');
+
+        const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+COUNTER_FILE="${counterFile}"
+COUNT=$(cat "$COUNTER_FILE")
+
+CMD_KEY="$1 $2"
+
+case "$CMD_KEY" in
+  "pr list")
+    echo "42"
+    ;;
+  "pr view")
+    echo $((COUNT + 1)) > "$COUNTER_FILE"
+    if [[ $COUNT -lt 1 ]]; then
+      # poll 1: in progress
+      echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "BLOCKED", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+    else
+      # poll 2+: completed
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+    fi
+    ;;
+  *)
+    echo "unknown command: $*" >&2
+    exit 1
+    ;;
+esac
+`;
+        fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent, {
+          mode: 0o755,
+        });
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--to', 'main', '--watch'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // should show watch mode and checks pass
+          expect(result.stdout).toContain('git.release --to main --watch');
+          expect(result.stdout).toContain('in progress');
+          expect(result.stdout).toContain('passed');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          // exits 0: checks completed
+          expect(result.status).toEqual(0);
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t3] --mode apply with automerge already set', () => {
+      then('does not re-enable automerge, watches until merged', () => {
+        // automerge was set previously, so --mode apply should skip enable step
+        // PR starts OPEN with automerge enabled, then transitions to MERGED after watch
+        const tempDir = genTempDir({
+          slug: 'git-release-automerge-set',
+          git: true,
+        });
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+
+        const counterFile = path.join(tempDir, '.gh-call-counter');
+        fs.writeFileSync(counterFile, '0');
+
+        // counter-based mock: first call OPEN with automerge, subsequent calls MERGED
+        const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+COUNTER_FILE="${counterFile}"
+COUNT=$(cat "$COUNTER_FILE")
+
+CMD_KEY="$1 $2"
+
+case "$CMD_KEY" in
+  "pr list")
+    echo "42"
+    ;;
+  "pr view")
+    echo $((COUNT + 1)) > "$COUNTER_FILE"
+    if [[ $COUNT -lt 1 ]]; then
+      # first call: OPEN with automerge already enabled
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01T00:00:00Z"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+    else
+      # subsequent calls: MERGED (automerge did its job)
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01T00:00:00Z"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+    fi
+    ;;
+  *)
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+esac
+`;
+
+        fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        // keyrack mock for token fetch
+        const rhachetMock = `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
+  echo '{"grant":{"key":{"secret":"mock-github-token"}}}'
+  exit 0
+fi
+exit 1
+`;
+        const nodeModulesBinDir = path.join(tempDir, 'node_modules', '.bin');
+        fs.mkdirSync(nodeModulesBinDir, { recursive: true });
+        fs.writeFileSync(path.join(nodeModulesBinDir, 'rhachet'), rhachetMock);
+        fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
+
+        spawnSync('git', ['init'], { cwd: tempDir });
+        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.name', 'Test User'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+        spawnSync(
+          'git',
+          ['remote', 'add', 'origin', 'https://github.com/test/repo'],
+          { cwd: tempDir },
+        );
+        spawnSync(
+          'git',
+          [
+            'symbolic-ref',
+            'refs/remotes/origin/HEAD',
+            'refs/remotes/origin/main',
+          ],
+          { cwd: tempDir },
+        );
+
+        // setup git.commit.uses permission for apply mode
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+        );
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // should show automerge found (not added)
+          expect(result.stdout).toContain('automerge enabled [found]');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t4] --mode plan with --watch, no automerge', () => {
+      then('watches CI and reports automerge unfound', () => {
+        // plan mode with watch: does not enable automerge, just watches
+        const mockResponses = {
+          'pr list': '42',
+          'pr view':
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}',
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--to', 'main', '--watch'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // should show watch mode
+          expect(result.stdout).toContain('git.release --to main --watch');
+          // should report automerge unfound (plan mode does not enable)
+          expect(result.stdout).toContain('automerge unfound');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+        } finally {
+          cleanup();
+        }
+      });
+    });
+
+    when(
+      '[t5] --mode plan with --watch, automerge already set, PR open',
+      () => {
+        then('watches CI, shows automerge found, then merges', () => {
+          // automerge was set previously, PR starts OPEN with checks passed
+          // --watch reports automerge found (does not add it, just reports)
+          // SEQUENCE: mock transitions OPEN → OPEN → MERGED to show full progression
+          const openResponse =
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01T00:00:00Z"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}';
+          const mergedResponse =
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01T00:00:00Z"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}';
+
+          const mockResponses = {
+            'pr list': '42',
+            // SEQUENCE: initial status display (OPEN) → watch poll 1 (OPEN) → watch poll 2 (MERGED)
+            'pr view': `SEQUENCE:${JSON.stringify([openResponse, openResponse, mergedResponse])}`,
+          };
+
+          const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+          try {
+            spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+              cwd: tempDir,
+            });
+
+            const result = runSkill(['--to', 'main', '--watch'], {
+              tempDir,
+              fakeBinDir,
+            });
+
+            // should show watch mode
+            expect(result.stdout).toContain('git.release --to main --watch');
+            // should show automerge found (not added, not unfound)
+            expect(result.stdout).toContain('automerge enabled [found]');
+            // should show full progression: await merge → done
+            expect(result.stdout).toContain('await merge');
+            expect(result.stdout).toContain('done!');
+            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            // mock drove completion, exits 0
+            expect(result.status).toEqual(0);
+          } finally {
+            cleanup();
+          }
+        });
+      },
+    );
+
+    when('[t5.1] --watch with automerge set, PR transitions to merged', () => {
+      then('polls and exits success once merged', () => {
+        // stateful mock: OPEN with automerge, then MERGED
+        // note: get_pr_status is called BEFORE watch loop, so we need:
+        //   call 0: OPEN (initial status display)
+        //   call 1: OPEN (first watch poll - await merge)
+        //   call 2+: MERGED (second watch poll)
+        const tempDir = genTempDir({ slug: 'git-release-t5-done', git: true });
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+
+        const counterFile = path.join(tempDir, '.gh-call-counter');
+        fs.writeFileSync(counterFile, '0');
+
+        const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+COUNTER_FILE="${counterFile}"
+COUNT=$(cat "$COUNTER_FILE")
+
+CMD_KEY="$1 $2"
+
+case "$CMD_KEY" in
+  "pr list")
+    echo "42"
+    ;;
+  "pr view")
+    echo $((COUNT + 1)) > "$COUNTER_FILE"
+    if [[ $COUNT -lt 2 ]]; then
+      # calls 0-1: open with automerge, checks passed, await merge
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01T00:00:00Z"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+    else
+      # calls 2+: merged
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01T00:00:00Z"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+    fi
+    ;;
+  *)
+    echo "unknown command: $*" >&2
+    exit 1
+    ;;
+esac
+`;
+        fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent, {
+          mode: 0o755,
+        });
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--to', 'main', '--watch'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // should show watch mode with automerge, poll, then done
+          expect(result.stdout).toContain('git.release --to main --watch');
+          expect(result.stdout).toContain('automerge enabled [found]');
+          expect(result.stdout).toContain('await merge');
+          expect(result.stdout).toContain('done!');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          // exits 0: PR merged
+          expect(result.status).toEqual(0);
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
         }
       });
     });

@@ -720,6 +720,6 @@ echo "      └─ push: $PUSH_DISPLAY"
 # remind to watch CI after push
 if [[ "$DO_PUSH" == true && "$PUSH_STATUS" != "skipped" && "$PUSH_STATUS" != *"error"* ]]; then
   echo ""
-  echo "🌊 now lets ride the ci wave and catch any wipeouts"
+  echo "🌊 now lets ride the release wave and catch any wipeouts"
   echo "   └─ rhx git.release --watch || rhx show.gh.test.errors"
 fi

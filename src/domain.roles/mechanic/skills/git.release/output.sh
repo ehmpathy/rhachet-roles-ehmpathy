@@ -49,9 +49,9 @@ print_check_status() {
       ;;
     failed)
       if [[ -n "$count" ]]; then
-        echo "   ├─ ⚓  $count check(s) failed"
+        echo "   ├─ ⚓ $count check(s) failed"
       else
-        echo "   ├─ ⚓  checks failed"
+        echo "   ├─ ⚓ checks failed"
       fi
       ;;
     progress)
@@ -196,7 +196,7 @@ print_progress_in_failure() {
 }
 
 ######################################################################
-# print hint line
+# print hint line (last item in tree)
 # usage: print_hint "message"
 ######################################################################
 print_hint() {
@@ -205,11 +205,28 @@ print_hint() {
 }
 
 ######################################################################
-# print retry hint
+# print hint line (not last item - has more below)
+# usage: print_hint_branch "message"
+######################################################################
+print_hint_branch() {
+  local message="$1"
+  echo -e "   ├─ \033[2mhint: $message\033[0m"
+}
+
+######################################################################
+# print retry hint (uses branch - expects errors hint to follow)
 # usage: print_retry_hint
 ######################################################################
 print_retry_hint() {
-  print_hint "use --retry to rerun failed workflows"
+  print_hint_branch "use --retry to rerun failed workflows"
+}
+
+######################################################################
+# print errors hint
+# usage: print_errors_hint
+######################################################################
+print_errors_hint() {
+  print_hint "use rhx show.gh.test.errors to see test output"
 }
 
 ######################################################################
@@ -264,9 +281,9 @@ print_watch_check_status() {
   case "$status" in
     failed)
       if [[ -n "$count" ]]; then
-        echo "      ├─ ⚓  $count check(s) failed"
+        echo "      ├─ ⚓ $count check(s) failed"
       else
-        echo "      ├─ ⚓  checks failed"
+        echo "      ├─ ⚓ checks failed"
       fi
       ;;
   esac
@@ -308,9 +325,17 @@ print_watch_progress_in_failure() {
 }
 
 ######################################################################
-# print retry hint in watch context
+# print retry hint in watch context (branch - errors hint follows)
 # usage: print_watch_retry_hint
 ######################################################################
 print_watch_retry_hint() {
-  echo -e "      └─ \033[2mhint: use --retry to rerun failed workflows\033[0m"
+  echo -e "      ├─ \033[2mhint: use --retry to rerun failed workflows\033[0m"
+}
+
+######################################################################
+# print errors hint in watch context (last item)
+# usage: print_watch_errors_hint
+######################################################################
+print_watch_errors_hint() {
+  echo -e "      └─ \033[2mhint: use rhx show.gh.test.errors to see test output\033[0m"
 }

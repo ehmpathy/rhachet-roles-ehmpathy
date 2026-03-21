@@ -163,8 +163,8 @@ exports[`git.commit.push.sh given: [case18] CI watch reminder after successful p
    └─ meter
       └─ push: allowed
 
-🌊 now lets ride the ci wave and catch any wipeouts
-   └─ git release --watch || npx rhachet run --skill show.gh.test.errors
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
 

@@ -957,7 +957,7 @@ exec /usr/bin/git "$@"
         expect(result.stdout).toContain('cowabunga');
         expect(result.stdout).toContain('push:');
         expect(result.stdout).toContain('pr:');
-        expect(result.stdout).toContain('🌊 now lets ride the ci wave');
+        expect(result.stdout).toContain('🌊 now lets ride the release wave');
         expect(result.stdout).toContain('wipeouts');
         expect(result.stdout).toContain('rhx git.release --watch');
         expect(result.stdout).toMatchSnapshot();
