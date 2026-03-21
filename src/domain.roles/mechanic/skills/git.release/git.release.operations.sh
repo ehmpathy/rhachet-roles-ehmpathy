@@ -81,7 +81,8 @@ get_pr_for_branch() {
 
 ######################################################################
 # get_release_pr
-# find open release PR (semantic-release format: "chore(release): vX.Y.Z")
+# find release PR (semantic-release format: "chore(release): vX.Y.Z")
+# searches open first, then merged as fallback (similar to get_pr_for_branch)
 #
 # usage: get_release_pr
 # returns: PR number or empty if not found
@@ -89,14 +90,22 @@ get_pr_for_branch() {
 ######################################################################
 get_release_pr() {
   local result
+
+  # check open PRs first
   result=$(_gh_with_retry gh pr list --state open --json number,title --jq '.[] | select(.title | startswith("chore(release):")) | .number')
 
-  # fail fast if ambiguous (multiple release PRs)
+  # fail fast if ambiguous (multiple open release PRs)
   local count
-  count=$(echo "$result" | grep -c . 2>/dev/null || echo "0")
+  # note: grep -c outputs count AND exits 1 when count is 0; use || true to avoid set -e exit
+  count=$(echo "$result" | grep -c . 2>/dev/null) || true
   if [[ $count -gt 1 ]]; then
     echo "error: multiple release PRs found ($count), expected at most one" >&2
     return 1
+  fi
+
+  # fallback to merged PRs (most recent)
+  if [[ -z "$result" ]]; then
+    result=$(_gh_with_retry gh pr list --state merged --limit 1 --json number,title --jq '.[] | select(.title | startswith("chore(release):")) | .number')
   fi
 
   echo "$result"
@@ -118,6 +127,7 @@ extract_tag_from_release_title() {
 ######################################################################
 # get_release_pr_title
 # get the title of the release PR
+# searches open first, then merged as fallback (similar to get_pr_for_branch)
 #
 # usage: get_release_pr_title
 # returns: PR title or empty if not found
@@ -125,14 +135,22 @@ extract_tag_from_release_title() {
 ######################################################################
 get_release_pr_title() {
   local result
+
+  # check open PRs first
   result=$(_gh_with_retry gh pr list --state open --json number,title --jq '.[] | select(.title | startswith("chore(release):")) | .title')
 
-  # fail fast if ambiguous (multiple release PRs)
+  # fail fast if ambiguous (multiple open release PRs)
   local count
-  count=$(echo "$result" | grep -c . 2>/dev/null || echo "0")
+  # note: grep -c outputs count AND exits 1 when count is 0; use || true to avoid set -e exit
+  count=$(echo "$result" | grep -c . 2>/dev/null) || true
   if [[ $count -gt 1 ]]; then
     echo "error: multiple release PRs found ($count), expected at most one" >&2
     return 1
+  fi
+
+  # fallback to merged PRs (most recent)
+  if [[ -z "$result" ]]; then
+    result=$(_gh_with_retry gh pr list --state merged --limit 1 --json number,title --jq '.[] | select(.title | startswith("chore(release):")) | .title')
   fi
 
   echo "$result"
@@ -512,7 +530,7 @@ get_unpushed_count() {
 #
 # returns:
 #   0 if target found
-#   1 if timeout (5 minutes)
+#   1 if timeout (3 minutes)
 #
 # output format:
 #   found immediately:
@@ -523,6 +541,11 @@ get_unpushed_count() {
 #        ├─ 💤 await release pr, 10s watched
 #        ├─ 💤 await release pr, 20s watched
 #        └─ ✨ found it! 25s in action, 23s watched
+#
+# exit codes:
+#   0 = target found
+#   1 = timeout on release_pr (error)
+#   2 = timeout on tag_run (unfound, not error per spec)
 ######################################################################
 wait_for_target() {
   local target="$1"
@@ -546,17 +569,22 @@ wait_for_target() {
   local first_iteration="true"
   local found="false"
   local header_printed="false"
+  local test_iterations=0
 
   while [[ "$found" == "false" ]]; do
     local elapsed
     elapsed=$(( $(date +%s) - start_time ))
 
-    # timeout after 5 minutes
-    if [[ $elapsed -ge 300 ]]; then
+    # timeout after 3 minutes
+    if [[ $elapsed -ge 180 ]]; then
       if [[ "$header_printed" == "true" ]]; then
-        echo "   └─ ⏱️  timeout after 5 minutes"
+        echo "   └─ ⏱️  timeout after 3 minutes"
       else
         echo "   └─ ⏱️  timeout to await $target_type"
+      fi
+      # return 2 for tag_run (unfound per spec = exit 0), 1 for others (error)
+      if [[ "$target_type" == "tag_run" ]]; then
+        return 2
       fi
       return 1
     fi
@@ -618,9 +646,15 @@ wait_for_target() {
 
     # skip actual sleep in test mode
     if [[ "$poll_interval" == "0" ]]; then
-      # in test mode, exit after a few iterations to prevent infinite loop
-      if [[ $elapsed -gt 0 ]]; then
+      # in test mode, exit after 2 iterations to prevent infinite loop
+      # (elapsed time check fails because no wall-clock time passes without sleep)
+      test_iterations=$((test_iterations + 1))
+      if [[ $test_iterations -ge 3 ]]; then
         echo "   └─ ⏱️  timeout (test mode)"
+        # return 2 for tag_run (unfound per spec = exit 0), 1 for others (error)
+        if [[ "$target_type" == "tag_run" ]]; then
+          return 2
+        fi
         return 1
       fi
     else
