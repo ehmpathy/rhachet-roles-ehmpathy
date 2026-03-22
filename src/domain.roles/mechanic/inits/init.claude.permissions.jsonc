@@ -213,7 +213,7 @@
       "Bash(git cat-file:*)",
       // git.release skill — release to main or prod with plan/apply/watch
       "Bash(npx rhachet run --skill git.release:*)",
-      "Bash(rhx git.release:*)"
+      "Bash(rhx git.release:*)",
 
       // sedreplace - safe bulk find-and-replace on git-tracked files only
       // note: glob patterns MUST be single-quoted to prevent shell expansion
