@@ -45,8 +45,8 @@ importers:
         specifier: 1.1.0
         version: 1.1.0
       rhachet-brains-xai:
-        specifier: 0.3.1
-        version: 0.3.1(rhachet@1.37.18(zod@4.3.4))
+        specifier: 0.3.2
+        version: 0.3.2(rhachet@1.37.19(zod@4.3.4))
       serde-fns:
         specifier: 1.2.0
         version: 1.2.0
@@ -130,17 +130,17 @@ importers:
         specifier: 30.2.0
         version: 30.2.0(@types/node@22.15.21)(esbuild-register@3.6.0(esbuild@0.25.12))(ts-node@10.9.2(@swc/core@1.15.3)(@types/node@22.15.21)(typescript@5.4.5))
       rhachet:
-        specifier: 1.37.18
-        version: 1.37.18(zod@4.3.4)
+        specifier: 1.37.19
+        version: 1.37.19(zod@4.3.4)
       rhachet-brains-anthropic:
         specifier: 0.4.0
-        version: 0.4.0(rhachet@1.37.18(zod@4.3.4))
+        version: 0.4.0(rhachet@1.37.19(zod@4.3.4))
       rhachet-roles-bhrain:
-        specifier: 0.23.1
-        version: 0.23.1(@types/node@22.15.21)(rhachet-brains-xai@0.3.1(rhachet@1.37.18(zod@4.3.4)))
+        specifier: 0.23.4
+        version: 0.23.4(@types/node@22.15.21)(rhachet-brains-xai@0.3.2(rhachet@1.37.19(zod@4.3.4)))
       rhachet-roles-bhuild:
         specifier: 0.14.4
-        version: 0.14.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet-roles-bhrain@0.23.1(@types/node@22.15.21)(rhachet-brains-xai@0.3.1(rhachet@1.37.18(zod@4.3.4))))
+        version: 0.14.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet-roles-bhrain@0.23.4(@types/node@22.15.21)(rhachet-brains-xai@0.3.2(rhachet@1.37.19(zod@4.3.4))))
       rhachet-roles-ehmpathy:
         specifier: link:.
         version: 'link:'
@@ -4208,14 +4208,14 @@ packages:
     peerDependencies:
       rhachet: '>=1.21.4'
 
-  rhachet-brains-xai@0.3.1:
-    resolution: {integrity: sha512-vj85omv8vuq2t/qg6gjAcJqIqT2xffCKHSsR1QQhbchTqGGIUx0d+18haR+LsrDG2ZCj4hMFcXQsrRbss5926Q==}
+  rhachet-brains-xai@0.3.2:
+    resolution: {integrity: sha512-uC1Yn2nU75tzED7HokliTa8XJG2xDxxZ81VaXohsKUObmAsMRyZbFkweKx7tSen1/xnnT5Asf5XM0AeA5713jA==}
     engines: {node: '>=8.0.0'}
     peerDependencies:
       rhachet: '>=1.21.4'
 
-  rhachet-roles-bhrain@0.23.1:
-    resolution: {integrity: sha512-KXR4LlPwxGJZGZG6+3uMQnMcL7x4Ap31pM2rQwPT5bwfGzWLfuV05xIvHSQCKEjklB0jFDpK6lZnaLLdXaJmkw==}
+  rhachet-roles-bhrain@0.23.4:
+    resolution: {integrity: sha512-A+uG7Mxdc4GR+EPj84n1v7N+yqCK15QNKGXcTPWEMTwNTgccFvdU2lF+4zJd4f05qvbr/PCVMEl7ODUm5EKNHQ==}
     engines: {node: '>=8.0.0'}
     peerDependencies:
       rhachet-brains-xai: '>=0.3.0'
@@ -4234,8 +4234,8 @@ packages:
     resolution: {integrity: sha512-TLpF70bO31glKEg2xs2GxnaDsCL4h7Skdqt3XoCdoQYIJT5EaRYwPnQJSdrUTnPhuk/jds0MTcjzQy3CgLf0RQ==}
     engines: {node: '>=8.0.0'}
 
-  rhachet@1.37.18:
-    resolution: {integrity: sha512-0aE7cCEkVr+7vsFYyOLDGXesFqiXs/ysCTlKTnAQ3Fa+mNa/dS78d9UUZLBD7q7T3E6vC2UOpRecazVYZCDwQw==}
+  rhachet@1.37.19:
+    resolution: {integrity: sha512-elnSaFFE1hByO18SC2nLDB6N9lfJ9s1SI6eSKAKU3qj36SIdLEfbZHhdPG3Uj7In54uiGJvf58K8jiFX8vE0GQ==}
     engines: {node: '>=22.0.0'}
     hasBin: true
     peerDependencies:
@@ -8044,8 +8044,8 @@ snapshots:
       domain-objects: 0.31.3
       helpful-errors: 1.5.3
       joi: 17.4.0
-      rhachet: 1.37.18(zod@4.3.4)
-      rhachet-roles-ehmpathy: 1.26.11(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet@1.37.18(zod@4.3.4))
+      rhachet: 1.37.19(zod@4.3.4)
+      rhachet-roles-ehmpathy: 1.26.11(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet@1.37.19(zod@4.3.4))
       type-fns: 1.21.0
       uuid-fns: 1.1.3
     transitivePeerDependencies:
@@ -9655,7 +9655,7 @@ snapshots:
       domain-objects: 0.31.9
       helpful-errors: 1.5.3
 
-  rhachet-brains-anthropic@0.4.0(rhachet@1.37.18(zod@4.3.4)):
+  rhachet-brains-anthropic@0.4.0(rhachet@1.37.19(zod@4.3.4)):
     dependencies:
       '@anthropic-ai/claude-agent-sdk': 0.1.76(zod@4.3.4)
       '@anthropic-ai/sdk': 0.71.2(zod@4.3.4)
@@ -9663,19 +9663,19 @@ snapshots:
       helpful-errors: 1.5.3
       iso-price: 1.1.1(domain-objects@0.31.9)
       iso-time: 1.11.1
-      rhachet: 1.37.18(zod@4.3.4)
+      rhachet: 1.37.19(zod@4.3.4)
       rhachet-artifact: 1.0.1
       rhachet-artifact-git: 1.1.5
       type-fns: 1.21.0
       zod: 4.3.4
 
-  rhachet-brains-xai@0.2.1(@types/node@22.15.21)(rhachet@1.37.18(zod@4.3.4)):
+  rhachet-brains-xai@0.2.1(@types/node@22.15.21)(rhachet@1.37.19(zod@4.3.4)):
     dependencies:
       domain-objects: 0.31.9
       helpful-errors: 1.5.3
       iso-price: 1.1.1(domain-objects@0.31.9)
       openai: 5.8.2(zod@4.3.4)
-      rhachet: 1.37.18(zod@4.3.4)
+      rhachet: 1.37.19(zod@4.3.4)
       rhachet-artifact: 1.0.1
       rhachet-artifact-git: 1.1.5
       rhachet-roles-bhrain: 0.7.5(@types/node@22.15.21)
@@ -9686,13 +9686,13 @@ snapshots:
       - aws-crt
       - ws
 
-  rhachet-brains-xai@0.3.1(rhachet@1.37.18(zod@4.3.4)):
+  rhachet-brains-xai@0.3.2(rhachet@1.37.19(zod@4.3.4)):
     dependencies:
       domain-objects: 0.31.9
       helpful-errors: 1.5.3
       iso-price: 1.1.1(domain-objects@0.31.9)
       openai: 5.8.2(zod@4.3.4)
-      rhachet: 1.37.18(zod@4.3.4)
+      rhachet: 1.37.19(zod@4.3.4)
       rhachet-artifact: 1.0.1
       rhachet-artifact-git: 1.1.5
       type-fns: 1.21.0
@@ -9700,7 +9700,7 @@ snapshots:
     transitivePeerDependencies:
       - ws
 
-  rhachet-roles-bhrain@0.23.1(@types/node@22.15.21)(rhachet-brains-xai@0.3.1(rhachet@1.37.18(zod@4.3.4))):
+  rhachet-roles-bhrain@0.23.4(@types/node@22.15.21)(rhachet-brains-xai@0.3.2(rhachet@1.37.19(zod@4.3.4))):
     dependencies:
       '@ehmpathy/as-command': 1.0.3
       '@ehmpathy/uni-time': 1.8.1
@@ -9716,7 +9716,7 @@ snapshots:
       openai: 5.8.2(zod@4.3.4)
       rhachet-artifact: 1.0.0
       rhachet-artifact-git: 1.1.0
-      rhachet-brains-xai: 0.3.1(rhachet@1.37.18(zod@4.3.4))
+      rhachet-brains-xai: 0.3.2(rhachet@1.37.19(zod@4.3.4))
       serde-fns: 1.2.0
       simple-in-memory-cache: 0.4.0
       type-fns: 1.21.0
@@ -9758,13 +9758,13 @@ snapshots:
       - aws-crt
       - ws
 
-  rhachet-roles-bhuild@0.14.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet-roles-bhrain@0.23.1(@types/node@22.15.21)(rhachet-brains-xai@0.3.1(rhachet@1.37.18(zod@4.3.4)))):
+  rhachet-roles-bhuild@0.14.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet-roles-bhrain@0.23.4(@types/node@22.15.21)(rhachet-brains-xai@0.3.2(rhachet@1.37.19(zod@4.3.4)))):
     dependencies:
       domain-objects: 0.31.9
       emoji-space-shim: 0.0.0
       helpful-errors: 1.5.3
       iso-time: 1.11.3
-      rhachet-roles-bhrain: 0.23.1(@types/node@22.15.21)(rhachet-brains-xai@0.3.1(rhachet@1.37.18(zod@4.3.4)))
+      rhachet-roles-bhrain: 0.23.4(@types/node@22.15.21)(rhachet-brains-xai@0.3.2(rhachet@1.37.19(zod@4.3.4)))
       test-fns: 1.15.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4)
       zod: 4.3.4
     transitivePeerDependencies:
@@ -9774,7 +9774,7 @@ snapshots:
       - aws-crt
       - ws
 
-  rhachet-roles-ehmpathy@1.26.11(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet@1.37.18(zod@4.3.4)):
+  rhachet-roles-ehmpathy@1.26.11(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(rhachet@1.37.19(zod@4.3.4)):
     dependencies:
       '@atjsh/llmlingua-2': 2.0.3(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(js-tiktoken@1.0.21)
       '@ehmpathy/as-command': 1.0.3
@@ -9788,7 +9788,7 @@ snapshots:
       openai: 5.8.2(zod@4.3.4)
       rhachet-artifact: 1.0.0
       rhachet-artifact-git: 1.1.0
-      rhachet-brains-xai: 0.2.1(@types/node@22.15.21)(rhachet@1.37.18(zod@4.3.4))
+      rhachet-brains-xai: 0.2.1(@types/node@22.15.21)(rhachet@1.37.19(zod@4.3.4))
       serde-fns: 1.2.0
       simple-in-memory-cache: 0.4.0
       simple-on-disk-cache: 1.7.3
@@ -9805,7 +9805,7 @@ snapshots:
       - rhachet
       - ws
 
-  rhachet@1.37.18(zod@4.3.4):
+  rhachet@1.37.19(zod@4.3.4):
     dependencies:
       '@noble/curves': 2.0.1
       '@noble/hashes': 2.0.1
