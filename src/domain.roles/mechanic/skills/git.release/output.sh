@@ -81,7 +81,7 @@ print_automerge_status() {
       fi
       ;;
     unfound)
-      echo "   ├─ 🌴 automerge unfound (use --mode apply to add)"
+      echo "   ├─ 🌴 automerge unfound (use --apply to add)"
       ;;
     merged)
       echo "   └─ 🌴 merged"
@@ -90,7 +90,7 @@ print_automerge_status() {
 }
 
 ######################################################################
-# print watch status line
+# print watch status line (legacy, kept for backwards compat)
 # usage: print_watch_status [elapsed]
 ######################################################################
 print_watch_status() {
@@ -102,6 +102,70 @@ print_watch_status() {
   else
     echo "   └─ 🥥 let's watch"
   fi
+}
+
+######################################################################
+# print watch header (starts watch tree)
+# usage: print_watch_header
+######################################################################
+print_watch_header() {
+  echo "   └─ 🥥 let's watch"
+}
+
+######################################################################
+# print watch poll line (shows poll cycle in watch tree)
+# usage: print_watch_poll left_count action_time watched_time [is_last]
+######################################################################
+print_watch_poll() {
+  local left="$1"
+  local action_time="$2"
+  local watched_time="$3"
+  local is_last="${4:-false}"
+
+  if [[ "$is_last" == "true" ]]; then
+    echo "      └─ 💤 $left left, ${action_time}s in action, ${watched_time}s watched"
+  else
+    echo "      ├─ 💤 $left left, ${action_time}s in action, ${watched_time}s watched"
+  fi
+}
+
+######################################################################
+# print watch result (terminal state in watch tree)
+# usage: print_watch_result "done|failed|timeout" [details]
+######################################################################
+print_watch_result() {
+  local status="$1"
+  local details="${2:-}"
+
+  case "$status" in
+    done)
+      if [[ -n "$details" ]]; then
+        echo "      └─ ✨ done! $details"
+      else
+        echo "      └─ ✨ done!"
+      fi
+      ;;
+    failed)
+      if [[ -n "$details" ]]; then
+        echo "      └─ ⚓ failed: $details"
+      else
+        echo "      └─ ⚓ failed"
+      fi
+      ;;
+    timeout)
+      echo "      └─ ⏰ timeout after 15 minutes"
+      ;;
+  esac
+}
+
+######################################################################
+# print transition between transports
+# usage: print_transition [message]
+######################################################################
+print_transition() {
+  local message="${1:-and then...}"
+  echo ""
+  echo "🫧 $message"
 }
 
 ######################################################################
@@ -234,7 +298,7 @@ print_errors_hint() {
 # usage: print_apply_hint
 ######################################################################
 print_apply_hint() {
-  print_hint "use --mode apply to enable automerge and watch"
+  print_hint "use --apply to enable automerge and watch"
 }
 
 ######################################################################

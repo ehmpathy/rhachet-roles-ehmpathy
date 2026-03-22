@@ -8,16 +8,16 @@
 #         - wraps extant git release alias with turtle vibes
 #
 # usage:
-#   git.release                                     # plan: show pr status (--to main default)
-#   git.release --watch                             # watch CI without automerge
-#   git.release --mode apply                        # enable automerge and watch
-#   git.release --to prod                           # plan: show release pr status
-#   git.release --to prod --watch                   # watch release CI without automerge
-#   git.release --to prod --mode apply              # apply: full release cycle
-#   git.release --retry                             # retry failed workflows
-#   git.release --from main --to prod               # skip feature branch, release from main
-#   git.release --from main --to prod --watch       # watch main release without automerge
-#   git.release --from main --to prod --mode apply  # apply main release to prod
+#   git.release                                       # plan: show pr status (--into main default)
+#   git.release --watch                               # watch CI without automerge
+#   git.release --apply                               # enable automerge and watch
+#   git.release --into prod                           # plan: show release pr status
+#   git.release --into prod --watch                   # watch release CI without automerge
+#   git.release --into prod --apply                   # apply: full release cycle
+#   git.release --retry                               # retry failed workflows
+#   git.release --from main --into prod               # skip feature branch, release from main
+#   git.release --from main --into prod --watch       # watch main release without automerge
+#   git.release --from main --into prod --apply       # apply main release to prod
 #
 # guarantee:
 #   - plan mode is default (safe preview)
@@ -57,7 +57,12 @@ FROM_PROD="false"  # set by release_to_prod to suppress headers in release_to_ma
 
 while [[ $# -gt 0 ]]; do
   case $1 in
+    --into)
+      TO="$2"
+      shift 2
+      ;;
     --to)
+      # deprecated: use --into instead
       TO="$2"
       shift 2
       ;;
@@ -68,6 +73,12 @@ while [[ $# -gt 0 ]]; do
     --mode)
       MODE="$2"
       shift 2
+      ;;
+    --apply)
+      # alias for --mode apply (implies --watch)
+      MODE="apply"
+      WATCH="true"
+      shift
       ;;
     --watch)
       WATCH="true"
@@ -86,22 +97,25 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --help|-h)
-      echo "usage: git.release [--to main|prod] [--from main] [--watch] [--mode plan|apply] [--retry] [--dirty block|allow]"
+      echo "usage: git.release [--into main|prod] [--from main] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]"
       echo ""
-      echo "  --to main     merge branch to main (default)"
-      echo "  --to prod     merge branch to main, merge release to main, watch release to prod"
+      echo "  --into main   merge branch to main (default)"
+      echo "  --into prod   merge branch to main, merge release to main, watch release to prod"
       echo "  --from main   skip feature branch requirement, act as if on main"
       echo "  --watch       watch CI without automerge"
+      echo "  --apply       enable automerge and watch (alias for --mode apply)"
       echo "  --mode plan   show status only (default)"
       echo "  --mode apply  enable automerge and watch"
       echo "  --retry       rerun failed workflows before watch"
       echo "  --dirty block fail fast if unstaged changes (default)"
       echo "  --dirty allow allow release even with unstaged changes"
+      echo ""
+      echo "  --to          deprecated alias for --into"
       exit 0
       ;;
     *)
       echo "error: unknown argument: $1" >&2
-      echo "usage: git.release [--to main|prod] [--from main] [--watch] [--mode plan|apply] [--retry] [--dirty block|allow]" >&2
+      echo "usage: git.release [--into main|prod] [--from main] [--watch] [--apply] [--mode plan|apply] [--retry]" >&2
       exit 2
       ;;
   esac
@@ -111,9 +125,9 @@ done
 # guards
 ######################################################################
 
-# validate --to value
+# validate --into value
 if [[ "$TO" != "main" && "$TO" != "prod" ]]; then
-  echo "error: --to must be 'main' or 'prod', got '$TO'" >&2
+  echo "error: --into must be 'main' or 'prod', got '$TO'" >&2
   exit 2
 fi
 
@@ -135,15 +149,15 @@ if [[ -n "$FROM" && "$FROM" != "main" ]]; then
   exit 2
 fi
 
-# validate --from main requires --to prod
+# validate --from main requires --into prod
 if [[ "$FROM" == "main" && "$TO" == "main" ]]; then
   echo "" >&2
   echo "🐢 hold up dude..." >&2
   echo "" >&2
-  echo "   --from main --to main is invalid" >&2
+  echo "   --from main --into main is invalid" >&2
   echo "   you're already on main!" >&2
   echo "" >&2
-  echo "   use --from main --to prod to release main to prod" >&2
+  echo "   use --from main --into prod to release main to prod" >&2
   echo "" >&2
   exit 2
 fi
@@ -166,7 +180,7 @@ if [[ "$MODE" == "apply" && "$DIRTY" == "block" ]]; then
   DIRTY_FILES=$(git status --porcelain 2>/dev/null | grep -v '^??' || true)
   if [[ -n "$DIRTY_FILES" ]]; then
     print_turtle_header "hold up dude..."
-    echo "🐚 git.release --to $TO --mode apply"
+    echo "🐚 git.release --into $TO --mode apply"
     echo ""
     echo "   ⚠️  uncommitted changes detected"
     echo "   ├─ you have modified tracked files in your work tree"
@@ -769,7 +783,7 @@ release_to_main() {
   if [[ $(needs_rebase "$status_json") == "true" ]]; then
     if [[ "$FROM_PROD" != "true" ]]; then
       print_turtle_header "hold up dude..."
-      echo "🐚 git.release --to main"
+      echo "🐚 git.release --into main"
     fi
     echo ""
     print_release_header "$pr_title"
@@ -785,7 +799,7 @@ release_to_main() {
     if [[ $failed -gt 0 && "$RETRY" == "true" ]]; then
       if [[ "$FROM_PROD" != "true" ]]; then
         print_turtle_header "heres the wave..."
-        echo "🐚 git.release --to main --retry"
+        echo "🐚 git.release --into main --retry"
         echo ""
         print_release_header "$pr_title"
         print_check_status "failed" "$failed"
@@ -798,9 +812,9 @@ release_to_main() {
     if [[ "$FROM_PROD" != "true" ]]; then
       print_turtle_header "heres the wave..."
       if [[ "$WATCH" == "true" ]]; then
-        echo "🐚 git.release --to main --watch"
+        echo "🐚 git.release --into main --watch"
       else
-        echo "🐚 git.release --to main --mode plan"
+        echo "🐚 git.release --into main --mode plan"
       fi
     fi
     echo ""
@@ -873,7 +887,7 @@ release_to_main() {
       # retry mode: rerun failed, then watch or exit success
       if [[ "$FROM_PROD" != "true" ]]; then
         print_turtle_header "heres the wave..."
-        echo "🐚 git.release --to main --retry"
+        echo "🐚 git.release --into main --retry"
       fi
       echo ""
       print_release_header "$pr_title"
@@ -895,7 +909,7 @@ release_to_main() {
     # no retry: show failure and exit
     if [[ "$FROM_PROD" != "true" ]]; then
       print_turtle_header "bummer dude..."
-      echo "🐚 git.release --to main --mode apply"
+      echo "🐚 git.release --into main --mode apply"
     fi
     echo ""
     print_release_header "$pr_title"
@@ -909,7 +923,7 @@ release_to_main() {
 
   if [[ "$FROM_PROD" != "true" ]]; then
     print_turtle_header "cowabunga!"
-    echo "🐚 git.release --to main --mode apply"
+    echo "🐚 git.release --into main --mode apply"
   fi
   echo ""
   print_release_header "$pr_title"
@@ -980,7 +994,7 @@ release_from_main() {
     progress=$(echo "$counts" | grep -oP 'progress:\K\d+')
 
     print_turtle_header "heres the wave..."
-    echo "🐚 git.release --to main"
+    echo "🐚 git.release --into main"
     echo ""
     print_release_header "$release_pr_title"
 
@@ -1014,12 +1028,12 @@ release_from_main() {
 
   if [[ -n "$latest_tag" ]]; then
     print_turtle_header "heres the wave..."
-    echo "🐚 git.release --to main"
+    echo "🐚 git.release --into main"
     echo "🌊 release: $latest_tag"
     echo "   └─ no release pr open"
   else
     print_turtle_header "crickets..."
-    echo "🐚 git.release --to main"
+    echo "🐚 git.release --into main"
     echo "🫧 no tags or release pr found"
   fi
 }
@@ -1047,7 +1061,7 @@ release_to_prod() {
     if [[ -z "$branch_pr" ]]; then
       # no pr for feature branch - constraint error (user must push)
       print_turtle_header "hold up dude..."
-      echo "🐚 git.release --to prod"
+      echo "🐚 git.release --into prod"
       echo ""
       echo "🫧 no open pr for $current_branch"
       echo "   └─ did you git.commit.push to create the pr yet?"
@@ -1060,7 +1074,7 @@ release_to_prod() {
     else
       print_turtle_header "radical!"
     fi
-    echo "🐚 git.release --to prod --mode $MODE"
+    echo "🐚 git.release --into prod --mode $MODE"
 
     # run --to main flow first (with headers suppressed)
     FROM_PROD="true"
@@ -1124,9 +1138,9 @@ release_to_prod() {
       if [[ "$FROM_PROD" != "true" ]]; then
         print_turtle_header "heres the wave..."
         if [[ "$WATCH" == "true" ]]; then
-          echo "🐚 git.release --to prod --watch"
+          echo "🐚 git.release --into prod --watch"
         else
-          echo "🐚 git.release --to prod --mode plan"
+          echo "🐚 git.release --into prod --mode plan"
         fi
       fi
       echo ""
@@ -1238,9 +1252,9 @@ release_to_prod() {
       if [[ "$FROM_PROD" != "true" ]]; then
         print_turtle_header "heres the wave..."
         if [[ "$WATCH" == "true" ]]; then
-          echo "🐚 git.release --to prod --watch"
+          echo "🐚 git.release --into prod --watch"
         else
-          echo "🐚 git.release --to prod --mode plan"
+          echo "🐚 git.release --into prod --mode plan"
         fi
       fi
       echo ""
@@ -1299,7 +1313,7 @@ release_to_prod() {
         # retry mode: rerun failed, then watch or exit success
         if [[ "$FROM_PROD" != "true" ]]; then
           print_turtle_header "heres the wave..."
-          echo "🐚 git.release --to prod --retry"
+          echo "🐚 git.release --into prod --retry"
         fi
         echo ""
         print_release_header "$release_pr_title"
@@ -1349,7 +1363,7 @@ release_to_prod() {
       # no retry: show failure and exit
       if [[ "$FROM_PROD" != "true" ]]; then
         print_turtle_header "bummer dude..."
-        echo "🐚 git.release --to prod --mode apply"
+        echo "🐚 git.release --into prod --mode apply"
       fi
       echo ""
       print_release_header "$release_pr_title"
@@ -1363,7 +1377,7 @@ release_to_prod() {
 
     if [[ "$FROM_PROD" != "true" ]]; then
       print_turtle_header "radical!"
-      echo "🐚 git.release --to prod --mode apply"
+      echo "🐚 git.release --into prod --mode apply"
     fi
     echo ""
     print_release_header "$release_pr_title"
@@ -1461,7 +1475,7 @@ release_to_prod() {
     if [[ -z "$latest_tag" ]]; then
       if [[ "$FROM_PROD" != "true" ]]; then
         print_turtle_header "crickets..."
-        echo "🐚 git.release --to prod --mode apply"
+        echo "🐚 git.release --into prod --mode apply"
       fi
       echo "🫧 no tags or release pr found"
       return 1
@@ -1470,9 +1484,9 @@ release_to_prod() {
     if [[ "$FROM_PROD" != "true" ]]; then
       print_turtle_header "radical!"
       if [[ "$RETRY" == "true" ]]; then
-        echo "🐚 git.release --to prod --mode apply --retry"
+        echo "🐚 git.release --into prod --mode apply --retry"
       else
-        echo "🐚 git.release --to prod --mode apply"
+        echo "🐚 git.release --into prod --mode apply"
       fi
     fi
     echo ""
