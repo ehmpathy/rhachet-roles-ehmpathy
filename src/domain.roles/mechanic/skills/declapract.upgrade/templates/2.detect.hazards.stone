@@ -6,9 +6,9 @@ scan the changes from declapract upgrade to detect hazards that may break tests,
 
 ## instructions
 
-1. review git diff for all changes:
+1. review git diff for changes introduced by this branch (not missed additions from main):
    ```sh
-   git diff
+   git diff origin/main...HEAD
    ```
 
 2. identify hazards in these categories:

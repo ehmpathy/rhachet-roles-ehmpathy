@@ -68,6 +68,10 @@ echo "✨ apply best practices"
 npx declapract apply && npx declapract apply
 
 echo ""
+echo "🗃️ stage changes"
+git add .
+
+echo ""
 echo "📦 reinstall dependencies"
 pnpm install
 
