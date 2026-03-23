@@ -421,6 +421,20 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('BLOCKED');
       });
+
+      /**
+       * .note = mandatory blocker: sedreplace --old with prefixed quote inside
+       *         double quotes creates consecutive quote pattern at word start.
+       *         use --old "git.release --to" (no prefix quote) instead.
+       */
+      then('sedreplace with prefix quote in old pattern is blocked', () => {
+        const result = runHook(
+          `npx rhachet run --skill sedreplace --old "'git.release --to" --new "'git.release --into" --glob 'src/**/*.ts' --mode apply`,
+        );
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('consecutive quotes');
+      });
     });
   });
 
