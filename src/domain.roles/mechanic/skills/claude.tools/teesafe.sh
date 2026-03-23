@@ -2,7 +2,12 @@
 ######################################################################
 # .what = safe tee within git repo
 #
-# .why  = enables write of stdin to file without:
+# .when = you have content in a pipeline that needs to go to a file.
+#         for direct file writes, use Write/Edit tools instead —
+#         teesafe is specifically an alternative to the `tee` command,
+#         not a replacement for Write/Edit.
+#
+# .why  = enables piped content to reach a file without:
 #         - access to files outside the repo
 #         - accidental path traversal attacks
 #
