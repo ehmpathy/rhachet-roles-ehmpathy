@@ -109,8 +109,8 @@ const isEntryPoint = (skillPath: string): boolean => {
   // group level: entry point if filename matches group name
   // e.g., git.branch.rebase/git.branch.rebase.sh is entry point
   // e.g., git.branch.rebase/git.branch.rebase.abort.sh is subcommand
-  const group = parts[0];
-  const filename = parts[parts.length - 1];
+  const group = parts[0] ?? '';
+  const filename = parts[parts.length - 1] ?? '';
   const filenameWithoutExt = filename.replace(/\.sh$/, '');
 
   // entry point: {group}/{group}.sh
