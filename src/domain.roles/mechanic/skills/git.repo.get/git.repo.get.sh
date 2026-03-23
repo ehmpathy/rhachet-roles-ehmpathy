@@ -21,8 +21,9 @@
 #     rhx git.repo.get files --in ehmpathy/domain-objects --paths '**/*.test.ts'
 #
 #   lines  — search or read file contents
-#     search: rhx git.repo.get lines --in ehmpathy/domain-objects --words 'DomainEntity'
-#     read:   rhx git.repo.get lines --in ehmpathy/domain-objects --paths 'src/index.ts'
+#     search repo:  rhx git.repo.get lines --in ehmpathy/domain-objects --words 'DomainEntity'
+#     search org:   rhx git.repo.get lines --repos 'ehmpathy/*' --words 'DomainEntity'
+#     read file:    rhx git.repo.get lines --in ehmpathy/domain-objects --paths 'src/index.ts'
 #
 #   --words triggers search mode (21 lines radius by default)
 #   no --words triggers read mode (full file)
