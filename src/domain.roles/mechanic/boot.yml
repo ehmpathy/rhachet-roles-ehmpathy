@@ -41,17 +41,31 @@ always:
       - skills/claude.tools/rmsafe.sh
       - skills/claude.tools/sedreplace.sh
       - skills/claude.tools/symlink.sh
+      - skills/claude.tools/teesafe.sh
 
       # package management
       - skills/declapract.upgrade.sh
       - skills/get.package.docs.sh
+      - skills/set.package/set.package.install.sh
+      - skills/set.package/set.package.upgrade.sh
 
       # git commit
       - skills/git.commit/git.commit.bind.sh
       - skills/git.commit/git.commit.push.sh
       - skills/git.commit/git.commit.set.sh
       - skills/git.commit/git.commit.uses.sh
-      - skills/git.commit/output.sh
+
+      # git branch
+      - skills/git.branch.rebase/git.branch.rebase.sh
+
+      # git release
+      - skills/git.release/git.release.sh
+
+      # git repo
+      - skills/git.repo.get/git.repo.get.sh
+
+      # git stage
+      - skills/git.stage/git.stage.add.sh
 
       # github actions
       - skills/show.gh.action.logs.sh
@@ -81,6 +95,7 @@ subject.code.prod:
       # domain operations
       - briefs/practices/code.prod/evolvable.domain.operations/rule.require.sync-filename-opname.md
       - briefs/practices/code.prod/evolvable.domain.operations/rule.require.get-set-gen-verbs.md
+      - briefs/practices/code.prod/evolvable.domain.operations/define.domain-operation-core-variants.md
 
       # architecture
       - briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md
@@ -129,9 +144,6 @@ subject.code.prod:
       - briefs/practices/code.prod/evolvable.procedures/rule.require.dependency-injection.md.pt2.md
       - briefs/practices/code.prod/evolvable.procedures/rule.forbid.positional-args.md.pt2.md
 
-      # domain operations
-      - briefs/practices/code.prod/evolvable.domain.operations/define.domain-operation-core-variants.md
-
       # repo structure
       - briefs/practices/code.prod/evolvable.repo.structure/rule.prefer.dot-dirs.md
 
@@ -162,6 +174,7 @@ subject.code.test:
       - briefs/practices/code.test/frames.behavior/rule.require.given-when-then.md
       - briefs/practices/code.test/frames.behavior/rule.require.useThen-useWhen-for-shared-results.md
       - briefs/practices/code.test/frames.behavior/rule.forbid.redundant-expensive-operations.md
+      - briefs/practices/code.test/frames.behavior/howto.write-bdd.[lesson].md
       - briefs/practices/code.test/frames.caselist/rule.prefer.data-driven.md
       - briefs/practices/code.test/lessons.howto/howto.write.[lesson].md.pt1.md
       - briefs/practices/code.test/lessons.howto/howto.write.[lesson].md.pt2.md
@@ -172,7 +185,6 @@ subject.code.test:
 
     ref:
       - briefs/practices/code.test/consistent.contracts/ref.package.test-fns.[ref].md
-      - briefs/practices/code.test/frames.behavior/howto.write-bdd.[lesson].md
       - briefs/practices/code.test/frames.behavior/howto.write-bdd.[lesson].pt2.md
       - briefs/practices/code.test/lessons.howto/howto.diagnose.[lesson].md
       - briefs/practices/code.test/lessons.howto/howto.run.[lesson].md
@@ -191,8 +203,8 @@ subject.arch:
 subject.flow:
   briefs:
     say:
-      - briefs/practices/work.flow/diagnose/rule.forbid.trust-vscode-diagnostics.md
       - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
+      - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
       - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
       - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
       - briefs/practices/work.flow/release/rule.require.commit-scopes.md
@@ -200,12 +212,11 @@ subject.flow:
       - briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt1.md
       - briefs/practices/work.flow/tools/rule.require.externalized-knowledge.md
       - briefs/practices/work.flow/tools/rule.require.read-package-docs-before-use.md
+      - briefs/practices/work.flow/tools/howto.git-commit-set.[lesson].md
 
     ref:
-      - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
       - briefs/practices/work.flow/diagnose/howto.logservation.[lesson].md
       - briefs/practices/work.flow/release/howto.git-release.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.allowlist-examples.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.jq.[demo].md
       - briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt2.md
-      - briefs/practices/work.flow/tools/howto.git-commit-set.[lesson].md

@@ -5,11 +5,12 @@ import { parse as parseYaml } from 'yaml';
 
 /**
  * .what = unit tests for the mechanic boot.yml
- * .why = validates that boot.yml is consistent with the briefs on disk
+ * .why = validates that boot.yml is consistent with the briefs and skills on disk
  */
 
 const bootYmlPath = resolve(__dirname, 'boot.yml');
 const briefsDir = resolve(__dirname, 'briefs');
+const skillsDir = resolve(__dirname, 'skills');
 
 /**
  * .what = parse boot.yml into a structured map of subjects
@@ -17,7 +18,10 @@ const briefsDir = resolve(__dirname, 'briefs');
  */
 const parseBootYml = (): Record<
   string,
-  { briefs?: { say?: string[]; ref?: string[] } }
+  {
+    briefs?: { say?: string[]; ref?: string[] };
+    skills?: { say?: string[]; ref?: string[] };
+  }
 > => {
   const raw = readFileSync(bootYmlPath, 'utf-8');
   return parseYaml(raw);
@@ -53,6 +57,70 @@ const collectBriefPathsPerSubject = (
     result[subjectName] = paths;
   }
   return result;
+};
+
+/**
+ * .what = collect all skill paths from boot.yml across all subjects and modes
+ * .why = enables completeness checks for skills
+ */
+const collectAllSkillPaths = (
+  bootYml: ReturnType<typeof parseBootYml>,
+): string[] => {
+  const paths: string[] = [];
+  for (const subject of Object.values(bootYml)) {
+    if (subject.skills?.say) paths.push(...subject.skills.say);
+    if (subject.skills?.ref) paths.push(...subject.skills.ref);
+  }
+  return paths;
+};
+
+/**
+ * .what = patterns for internal/helper skill files that are not entry points
+ * .why = these are sourced by other skills, not invoked directly
+ */
+const INTERNAL_SKILL_PATTERNS = [
+  /\/output\.sh$/, // output helpers
+  /\/operations\.sh$/, // shared operations
+  /\.operations\.sh$/, // shared operations (variant)
+  /\/keyrack\.operations\.sh$/, // keyrack helpers
+  /\/templates\//, // template files
+  /\/exec\.sh$/, // subcommand: exec
+  /\/init\.sh$/, // subcommand: init
+];
+
+/**
+ * .what = check if a skill file is an entry point vs a subcommand
+ * .why = subcommands are dispatched by the main entry point, not invoked directly
+ *
+ * entry points:
+ *   - skills/{name}.sh (root level)
+ *   - skills/{group}/{group}.sh (main entry for a group)
+ *
+ * subcommands:
+ *   - skills/{group}/{group}.{subcommand}.sh
+ *   - skills/{group}/{other}.sh where other != group
+ */
+const isEntryPoint = (skillPath: string): boolean => {
+  const parts = skillPath.split('/');
+
+  // root level: always entry point (e.g., declapract.upgrade.sh)
+  if (parts.length === 1) return true;
+
+  // group level: entry point if filename matches group name
+  // e.g., git.branch.rebase/git.branch.rebase.sh is entry point
+  // e.g., git.branch.rebase/git.branch.rebase.abort.sh is subcommand
+  const group = parts[0] ?? '';
+  const filename = parts[parts.length - 1] ?? '';
+  const filenameWithoutExt = filename.replace(/\.sh$/, '');
+
+  // entry point: {group}/{group}.sh
+  if (filenameWithoutExt === group) return true;
+
+  // subcommand: {group}/{group}.{subcommand}.sh
+  if (filenameWithoutExt.startsWith(group + '.')) return false;
+
+  // other files in subdirectory: likely internal
+  return false;
 };
 
 describe('boot.yml', () => {
@@ -129,5 +197,38 @@ describe('boot.yml', () => {
       }
     }
     expect(conflicts).toEqual([]);
+  });
+
+  it('should have every skill path in boot.yml point to a file on disk', () => {
+    const allSkillPaths = collectAllSkillPaths(bootYml);
+    const absent = allSkillPaths.filter((skillPath) => {
+      const fullPath = resolve(__dirname, skillPath);
+      return !existsSync(fullPath);
+    });
+    expect(absent).toEqual([]);
+  });
+
+  it('should account for every entry-point skill in skills/', () => {
+    const skillFilesOnDisk = fg.sync('**/*.sh', {
+      cwd: skillsDir,
+      onlyFiles: true,
+    });
+
+    // filter out internal/helper skills that are not entry points
+    const entryPointSkills = skillFilesOnDisk.filter(
+      (file) =>
+        !INTERNAL_SKILL_PATTERNS.some((pattern) => pattern.test(file)) &&
+        isEntryPoint(file),
+    );
+
+    const allBootPaths = new Set(
+      collectAllSkillPaths(bootYml).map((p) => p.replace(/^skills\//, '')),
+    );
+
+    const unaccounted = entryPointSkills.filter(
+      (file) => !allBootPaths.has(file),
+    );
+
+    expect(unaccounted).toEqual([]);
   });
 });
