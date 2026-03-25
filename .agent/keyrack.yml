@@ -1,9 +1,8 @@
 org: ehmpathy
 extends:
   - .agent/repo=ehmpathy/role=mechanic/keyrack.yml
+env.all: null
 env.prod: null
-env.prep: null
-env.test: null
-env.all:
+env.prep:
   - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
-  - TEST_KEY
+env.test: null

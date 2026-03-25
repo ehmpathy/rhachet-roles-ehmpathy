@@ -264,7 +264,7 @@ fetch_token_if_needed() {
     if [[ -z "$GH_TOKEN" ]]; then
       print_turtle_header "bummer dude..."
       echo "🔐 github token not found"
-      echo "   ├─ run: rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env all"
+      echo "   ├─ run: rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env prep"
       echo "   └─ then retry this command"
       exit 1
     fi
