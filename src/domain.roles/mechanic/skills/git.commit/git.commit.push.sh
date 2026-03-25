@@ -243,6 +243,7 @@ trap "rm -f '$KEYRACK_ERROR_FILE'" EXIT
 KEYRACK_EXIT=0
 "$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
   --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
+  --env prep \
   --allow-dangerous \
   --json >"$KEYRACK_ERROR_FILE" 2>&1 || KEYRACK_EXIT=$?
 
@@ -256,11 +257,12 @@ else
   # fallback: unlock and get from ehmpath (passwordless sshkey)
   [[ "$DEBUG" == "true" ]] && echo "[debug] primary failed, try ehmpath fallback..." >&2
   "$REPO_ROOT/node_modules/.bin/rhachet" keyrack unlock \
-    --owner ehmpath --prikey "$HOME/.ssh/ehmpath" --env all >/dev/null 2>&1 || true
+    --owner ehmpath --prikey "$HOME/.ssh/ehmpath" --env prep >/dev/null 2>&1 || true
   FALLBACK_EXIT=0
   FALLBACK_OUTPUT=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
     --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
     --owner ehmpath \
+    --env prep \
     --allow-dangerous \
     --json 2>&1) || FALLBACK_EXIT=$?
   [[ "$DEBUG" == "true" ]] && echo "[debug] fallback exit=$FALLBACK_EXIT" >&2
