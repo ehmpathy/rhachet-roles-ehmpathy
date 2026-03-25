@@ -496,7 +496,7 @@ exports[`git.release given: [case6] boundary conditions when: [t0] keyrack locke
 "🐢 bummer dude...
 
 🔐 github token not found
-   ├─ run: rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env all
+   ├─ run: rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env prep
    └─ then retry this command
 "
 `;
