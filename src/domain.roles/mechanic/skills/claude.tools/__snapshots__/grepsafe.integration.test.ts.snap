@@ -1,0 +1,51 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`grepsafe.sh given: [case13] output format snapshots when: [t0] match found then: output matches snapshot 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: hello
+   ├─ path: .
+   ├─ lines: 1
+   └─ results
+      ├─
+      │
+      │  src/example.ts:1:const hello = "world";
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case13] output format snapshots when: [t1] no match found then: output matches snapshot 1`] = `
+"🐢 crickets...
+
+🐚 grepsafe
+   ├─ pattern: nonexistent
+   ├─ path: .
+   └─ matches: 0
+"
+`;
+
+exports[`grepsafe.sh given: [case13] output format snapshots when: [t2] regex with pipe alternation then: output matches snapshot 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: foo|bar
+   ├─ path: .
+   ├─ glob: *.ts
+   ├─ lines: 2
+   └─ results
+      ├─
+      │
+      │  src/b.ts:1:const bar = 2;
+      │  src/a.ts:1:const foo = 1;
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case14] --output direct mode when: [t2] direct output snapshot then: output matches snapshot 1`] = `
+"src/b.ts:1:const bar = 2;
+src/a.ts:1:const foo = 1;
+"
+`;

@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`mkdirsafe.sh given: [case9] output format snapshots when: [t0] directory created then: output matches snapshot 1`] = `
+"🐢 sweet
+
+🐚 mkdirsafe
+   ├─ path: src
+   └─ directories: 1
+      └─ src
+"
+`;
+
+exports[`mkdirsafe.sh given: [case9] output format snapshots when: [t1] directory already present then: output matches snapshot 1`] = `
+"🐢 already here
+
+🐚 mkdirsafe
+   ├─ path: src
+   └─ directories: 0 (all present)
+"
+`;
+
+exports[`mkdirsafe.sh given: [case9] output format snapshots when: [t2] nested with parents then: output matches snapshot 1`] = `
+"🐢 sweet
+
+🐚 mkdirsafe
+   ├─ path: a/b/c
+   ├─ parents: true
+   └─ directories: 1
+      └─ a/b/c
+"
+`;
