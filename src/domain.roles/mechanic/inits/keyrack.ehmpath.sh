@@ -99,7 +99,7 @@ REQUIRED_KEYS=(
 ./node_modules/.bin/rhachet keyrack unlock \
   --owner ehmpath \
   --prikey "$EHMPATH_KEY" \
-  --env all </dev/null >/dev/null 2>&1 || true
+  --env prep </dev/null >/dev/null 2>&1 || true
 
 for KEY in "${REQUIRED_KEYS[@]}"; do
   # if manifest is fresh, we know keys need to be configured (skip get check)
@@ -111,7 +111,7 @@ for KEY in "${REQUIRED_KEYS[@]}"; do
       --owner ehmpath \
       --prikey "$EHMPATH_KEY" \
       --key "$KEY" \
-      --env all \
+      --env prep \
       --vault os.secure
 
     # reload just this key into daemon (daemon doesn't auto-refresh on vault changes)
@@ -122,14 +122,14 @@ for KEY in "${REQUIRED_KEYS[@]}"; do
       --owner ehmpath \
       --prikey "$EHMPATH_KEY" \
       --key "$KEY" \
-      --env all </dev/null >/dev/null 2>&1 || true
+      --env prep </dev/null >/dev/null 2>&1 || true
 
     # verify key can be fetched back (fail-fast)
     VERIFY_EXIT=0
     ./node_modules/.bin/rhachet keyrack get \
       --owner ehmpath \
       --key "$KEY" \
-      --env all \
+      --env prep \
       --allow-dangerous </dev/null >/dev/null 2>&1 || VERIFY_EXIT=$?
     if [[ $VERIFY_EXIT -ne 0 ]]; then
       echo "   └─ key $KEY: FAILED to verify after set (exit $VERIFY_EXIT)" >&2
@@ -146,7 +146,7 @@ for KEY in "${REQUIRED_KEYS[@]}"; do
   GET_OUTPUT=$(./node_modules/.bin/rhachet keyrack get \
     --owner ehmpath \
     --key "$KEY" \
-    --env all \
+    --env prep \
     --allow-dangerous </dev/null 2>&1) || GET_EXIT=$?
 
   # skip "already configured" if this is the refresh target (or @all)
@@ -168,7 +168,7 @@ for KEY in "${REQUIRED_KEYS[@]}"; do
       --owner ehmpath \
       --prikey "$EHMPATH_KEY" \
       --key "$KEY" \
-      --env all \
+      --env prep \
       --vault os.secure
 
     # reload just this key into daemon (daemon doesn't auto-refresh on vault changes)
@@ -179,14 +179,14 @@ for KEY in "${REQUIRED_KEYS[@]}"; do
       --owner ehmpath \
       --prikey "$EHMPATH_KEY" \
       --key "$KEY" \
-      --env all </dev/null >/dev/null 2>&1 || true
+      --env prep </dev/null >/dev/null 2>&1 || true
 
     # verify key can be fetched back (fail-fast)
     VERIFY_EXIT=0
     ./node_modules/.bin/rhachet keyrack get \
       --owner ehmpath \
       --key "$KEY" \
-      --env all \
+      --env prep \
       --allow-dangerous </dev/null >/dev/null 2>&1 || VERIFY_EXIT=$?
     if [[ $VERIFY_EXIT -ne 0 ]]; then
       echo "   └─ key $KEY: FAILED to verify after set (exit $VERIFY_EXIT)" >&2
