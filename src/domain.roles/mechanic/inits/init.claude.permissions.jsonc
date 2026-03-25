@@ -58,6 +58,14 @@
       "Bash(git reflog delete:*)",
       "Bash(git config:*)",
 
+      // ls, grep, mkdir - use globsafe, grepsafe, mkdirsafe skills instead
+      // raw ls and grep trigger claude code's suspicious syntax heuristic
+      // on pipe characters (even inside regex patterns), which halts agent workflows
+      // raw mkdir can create directories anywhere on the OS
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(mkdir:*)",
+
       // "anywrite" commands - CRITICAL SECURITY RISK
       //
       // unlike Claude's native Edit/Write tools which are scoped to the repo,
@@ -176,18 +184,15 @@
       "WebSearch",
       "WebFetch",
 
-      // filesystem read operations
-      "Bash(ls:*)",
+      // filesystem read operations (ls and grep denied — use globsafe/grepsafe skills)
       "Bash(tree:*)",
       "Bash(cat:*)",
       "Bash(head:*)",
       "Bash(tail:*)",
-      "Bash(grep:*)",
       "Bash(wc:*)",
       "Bash(diff:*)",
       "Bash(which:*)",
       "Bash(file:*)",
-      "Bash(mkdir:*)",
       "Bash(pwd)",
       "Bash(jq)",
 
@@ -231,6 +236,30 @@
 
       // rmsafe - safe file removal within git repo
       "Bash(npx rhachet run --skill rmsafe:*)",
+
+      // globsafe - safe file discovery within git repo (replaces ls)
+      "Bash(npx rhachet run --skill globsafe:*)",
+      "Bash(rhx globsafe:*)",
+      // examples: find files by glob pattern
+      "Bash(npx rhachet run --skill globsafe --pattern 'src/**/*.ts')",
+      "Bash(npx rhachet run --skill globsafe --pattern '*.md' --path docs/)",
+      "Bash(rhx globsafe --pattern 'src/**/*.ts' --long)",
+
+      // grepsafe - safe content search within git repo (replaces grep)
+      "Bash(npx rhachet run --skill grepsafe:*)",
+      "Bash(rhx grepsafe:*)",
+      // examples: search with regex patterns (pipe chars safe inside quoted args)
+      "Bash(npx rhachet run --skill grepsafe --pattern 'foo|bar')",
+      "Bash(npx rhachet run --skill grepsafe --pattern 'foo|bar' --glob '*.ts')",
+      "Bash(rhx grepsafe --pattern '(ERROR|WARN):' --context 3)",
+
+      // mkdirsafe - safe directory creation within git repo (replaces mkdir)
+      "Bash(npx rhachet run --skill mkdirsafe:*)",
+      "Bash(rhx mkdirsafe:*)",
+      // examples: create directories safely within repo
+      "Bash(npx rhachet run --skill mkdirsafe --path 'src/domain')",
+      "Bash(npx rhachet run --skill mkdirsafe --path 'src/deep/nested' --parents)",
+      "Bash(rhx mkdirsafe --path 'src' --path 'test' --path 'docs')",
 
       // teesafe - safe tee within git repo (alternative to raw tee)
       "Bash(npx rhachet run --skill teesafe:*)",

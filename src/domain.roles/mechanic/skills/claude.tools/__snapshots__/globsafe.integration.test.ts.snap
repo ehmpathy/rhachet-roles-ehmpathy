@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`globsafe.sh given: [case11] output format snapshots when: [t0] files found then: output matches snapshot 1`] = `
+"🐢 sweet
+
+🐚 globsafe
+   ├─ pattern: src/*.ts
+   ├─ path: .
+   ├─ files: 2
+   └─ found
+      ├─
+      │
+      │  src/a.ts
+      │  src/b.ts
+      │
+      └─
+"
+`;
+
+exports[`globsafe.sh given: [case11] output format snapshots when: [t1] no files found then: output matches snapshot 1`] = `
+"🐢 crickets...
+
+🐚 globsafe
+   ├─ pattern: *.xyz
+   ├─ path: .
+   └─ files: 0
+"
+`;
+
+exports[`globsafe.sh given: [case11] output format snapshots when: [t2] long output then: output matches snapshot 1`] = `
+"🐢 sweet
+
+🐚 globsafe
+   ├─ pattern: *.txt
+   ├─ path: .
+   ├─ files: 1
+   └─ found
+      ├─
+      │
+      │  7B  YYYY-MM-DD HH:MM:SS  a.txt
+      │
+      └─
+"
+`;
+
+exports[`globsafe.sh given: [case12] --output direct mode when: [t2] direct output snapshot then: output matches snapshot 1`] = `
+"src/a.ts
+src/b.ts
+"
+`;
