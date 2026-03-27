@@ -95,7 +95,7 @@ done
 
 # require flow unless run-id specified
 if [[ -z "$FLOW" && -z "$RUN_ID" ]]; then
-  echo "⛈️  error: --flow is required"
+  echo "✋ error: --flow is required"
   echo "   usage: show.gh.action.logs.sh --flow <name> [options]"
   echo "   run with --help for more info"
   exit 2
@@ -103,21 +103,21 @@ fi
 
 # ensure gh cli is available
 if ! command -v gh &> /dev/null; then
-  echo "⛈️  error: gh cli is not installed"
+  echo "✋ error: gh cli is not installed"
   echo "   install: https://cli.github.com/"
   exit 2
 fi
 
 # ensure we're authenticated
 if ! gh auth status &> /dev/null; then
-  echo "⛈️  error: not authenticated with gh cli"
+  echo "✋ error: not authenticated with gh cli"
   echo "   run: gh auth login"
   exit 2
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "⛈️  error: not in a git repository"
+  echo "✋ error: not in a git repository"
   exit 2
 fi
 
@@ -125,7 +125,7 @@ fi
 if [[ -z "$BRANCH" ]]; then
   BRANCH=$(git branch --show-current)
   if [[ -z "$BRANCH" ]]; then
-    echo "⛈️  error: could not determine current branch (detached HEAD?)"
+    echo "✋ error: could not determine current branch (detached HEAD?)"
     exit 2
   fi
 fi
@@ -164,7 +164,7 @@ else
       echo "   └─ $FLOW"
     fi
     echo ""
-    echo "⛈️  no runs found"
+    echo "✋ no runs found"
 
     # show most recent run of this workflow on any branch
     if [[ -n "$FLOW" ]]; then
@@ -286,12 +286,45 @@ for JOB_ID in $JOB_IDS; do
   echo "┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
   echo ""
 
+  # fetch logs with retry (github sometimes delays log availability)
+  # note: env vars can override for tests (RETRY_DELAY=0 RETRY_LIMIT=5)
+  MAX_RETRIES="${RETRY_LIMIT:-30}"
+  SLEEP_SECONDS="${RETRY_DELAY:-3}"
+  LOGS=""
+  LOGS_READY=false
+
+  for ((i=1; i<=MAX_RETRIES; i++)); do
+    # capture both stdout and stderr
+    LOGS=$(gh api --method GET "repos/$REPO/actions/jobs/$JOB_ID/logs" 2>&1 || true)
+
+    # check if logs are available:
+    # - not empty
+    # - not "null"
+    # - not an error message about job state
+    if [[ -n "$LOGS" && "$LOGS" != "null" && ! "$LOGS" =~ "still running" && ! "$LOGS" =~ "not available" && ! "$LOGS" =~ "HTTP 4" ]]; then
+      LOGS_READY=true
+      break
+    fi
+
+    if [[ $i -lt $MAX_RETRIES ]]; then
+      echo "   🫧 logs not ready, will retry in ${SLEEP_SECONDS}s... (attempt $i/$MAX_RETRIES)"
+      sleep "$SLEEP_SECONDS"
+    fi
+  done
+
+  if [[ "$LOGS_READY" != "true" ]]; then
+    echo "   💥 logs unavailable after $MAX_RETRIES attempts"
+    echo "   last response: $LOGS"
+    echo "   try: gh run view $RUN_ID --log-failed"
+    continue
+  fi
+
   if [[ "$FULL_LOGS" == "true" ]]; then
     # show full logs for job
-    gh api --method GET "repos/$REPO/actions/jobs/$JOB_ID/logs"
+    echo "$LOGS"
   else
     # capture error sections: from FAIL until next PASS or test summary
-    gh api --method GET "repos/$REPO/actions/jobs/$JOB_ID/logs" | awk '
+    echo "$LOGS" | awk '
       /FAIL / { p=1 }
       /PASS |Ran all test suites/ { p=0 }
       p { print }
