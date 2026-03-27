@@ -64,7 +64,10 @@ export const genTempGitRepo = (input: {
   spawnSync('git', ['add', '.'], { cwd: tempDir });
   spawnSync('git', ['commit', '-m', 'initial commit'], { cwd: tempDir });
 
-  // create and switch to branch
+  // rename default branch to 'main' (git init may create 'master' per config)
+  spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+
+  // create and switch to branch (if not main)
   if (branch !== 'main') {
     spawnSync('git', ['checkout', '-b', branch], { cwd: tempDir });
   }
