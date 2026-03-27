@@ -940,3 +940,179 @@ export const writeSceneGhMock = (input: {
   fs.writeFileSync(ghPath, ghMock);
   fs.chmodSync(ghPath, '755');
 };
+
+// ============================================================================
+// simple key-value mocks (for p1 tests)
+// ============================================================================
+
+/**
+ * .what = generate simple key-value gh mock
+ * .why = supports p1 test pattern: mockResponses[commandKey] = response
+ *
+ * features:
+ * - command keys: "pr list", "pr view", "pr merge", "run list", etc.
+ * - ERROR: prefix for exit 1 with stderr
+ * - SEQUENCE: prefix for array of responses (stateful)
+ * - special cases for "pr list" variants (--state open/merged, .title/.number)
+ * - special cases for "run view" variants (--json jobs/startedAt)
+ */
+export const genSimpleGhMock = (input: {
+  mockResponses: Record<string, string>;
+  stateDir: string;
+}): string => {
+  const { mockResponses, stateDir } = input;
+
+  // escape for bash single quotes
+  const mockJson = JSON.stringify(mockResponses).replace(/'/g, "'\"'\"'");
+
+  return `#!/bin/bash
+set -euo pipefail
+
+# mock gh cli for tests (simple key-value pattern)
+MOCK_RESPONSES='${mockJson}'
+STATE_DIR="${stateDir}"
+
+# build command key from first 2 args only (e.g., "pr list", "pr view")
+CMD_KEY="$1 $2"
+ALL_ARGS="$*"
+
+# distinguish "run view" subvariants by --json flag
+if [[ "$CMD_KEY" == "run view" ]]; then
+  if [[ "$ALL_ARGS" == *"--json jobs"* ]]; then
+    CMD_KEY="run view jobs"
+  elif [[ "$ALL_ARGS" == *"--json startedAt"* ]]; then
+    CMD_KEY="run view duration"
+  fi
+fi
+
+# distinguish "pr list" subvariants by --state flag and --jq query
+if [[ "$CMD_KEY" == "pr list" ]]; then
+  # check for --limit 21 query FIRST (get_latest_merged_release_pr_info)
+  if [[ "$ALL_ARGS" == *"--state merged"* ]] && [[ "$ALL_ARGS" == *"--limit 21"* ]]; then
+    # always return a prior merged release PR by default (realistic behavior)
+    echo "title=chore(release): v1.33.0 🎉"
+    exit 0
+  elif [[ "$ALL_ARGS" == *".title"* ]]; then
+    # check for "pr list title" key first, fallback to "pr list"
+    RESPONSE_TITLE=$(echo "$MOCK_RESPONSES" | jq -r '.["pr list title"] // empty')
+    if [[ -n "$RESPONSE_TITLE" ]]; then
+      CMD_KEY="pr list title"
+    fi
+  elif [[ "$ALL_ARGS" == *"--state open"* ]]; then
+    # check for "pr list open" key first, fallback to "pr list"
+    RESPONSE_OPEN=$(echo "$MOCK_RESPONSES" | jq -r '.["pr list open"] // empty')
+    if [[ -n "$RESPONSE_OPEN" ]]; then
+      CMD_KEY="pr list open"
+    fi
+  elif [[ "$ALL_ARGS" == *"--state merged"* ]]; then
+    # check for "pr list merged" key first, fallback to "pr list"
+    RESPONSE_MERGED=$(echo "$MOCK_RESPONSES" | jq -r '.["pr list merged"] // empty')
+    if [[ -n "$RESPONSE_MERGED" ]]; then
+      CMD_KEY="pr list merged"
+    fi
+  fi
+fi
+
+# lookup response
+RESPONSE=$(echo "$MOCK_RESPONSES" | jq -r --arg key "$CMD_KEY" '.[$key] // empty')
+
+if [[ -n "$RESPONSE" ]]; then
+  # support error responses: prefix "ERROR:" means exit 1 with message to stderr
+  if [[ "$RESPONSE" == ERROR:* ]]; then
+    echo "\${RESPONSE#ERROR:}" >&2
+    exit 1
+  fi
+
+  # support stateful sequences: prefix "SEQUENCE:" means array of responses
+  # each call returns next item from array (or last if exhausted)
+  if [[ "$RESPONSE" == SEQUENCE:* ]]; then
+    SEQUENCE_JSON="\${RESPONSE#SEQUENCE:}"
+    # counter file uses stateDir for isolation
+    COUNTER_FILE="$STATE_DIR/counter-$(echo "$CMD_KEY" | tr ' ' '-')"
+    if [[ ! -f "$COUNTER_FILE" ]]; then
+      echo "0" > "$COUNTER_FILE"
+    fi
+    INDEX=$(cat "$COUNTER_FILE")
+    ARRAY_LEN=$(echo "$SEQUENCE_JSON" | jq 'length')
+    if [[ $INDEX -ge $ARRAY_LEN ]]; then
+      INDEX=$((ARRAY_LEN - 1))
+    fi
+    echo "$((INDEX + 1))" > "$COUNTER_FILE"
+    RESPONSE=$(echo "$SEQUENCE_JSON" | jq -r ".[$INDEX]")
+  fi
+
+  echo "$RESPONSE"
+  exit 0
+fi
+
+# fallback for unhandled commands
+echo "mock: unhandled gh $*" >&2
+exit 1
+`;
+};
+
+/**
+ * .what = write simple key-value gh mock to disk
+ * .why = convenience wrapper for p1 tests
+ */
+export const writeSimpleGhMock = (input: {
+  mockResponses: Record<string, string>;
+  mockBinDir: string;
+  stateDir: string;
+}): void => {
+  const { mockResponses, mockBinDir, stateDir } = input;
+  const ghMock = genSimpleGhMock({ mockResponses, stateDir });
+  const ghPath = path.join(mockBinDir, 'gh');
+  fs.writeFileSync(ghPath, ghMock);
+  fs.chmodSync(ghPath, '755');
+};
+
+/**
+ * .what = write rhachet keyrack mock to disk
+ * .why = keyrack.operations.sh requires rhachet at node_modules/.bin/rhachet
+ *
+ * .note = creates mock at both:
+ *   - tempDir/node_modules/.bin/rhachet (keyrack.operations.sh absolute path)
+ *   - mockBinDir/rhachet (PATH-based fallback)
+ */
+export const writeRhachetMock = (input: {
+  tempDir: string;
+  mockBinDir: string;
+}): void => {
+  const { tempDir, mockBinDir } = input;
+
+  const rhachetMock = `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
+  echo '{"grant":{"key":{"secret":"mock-github-token"}}}'
+  exit 0
+fi
+echo "mock: unhandled rhachet $*" >&2
+exit 1
+`;
+
+  // create at node_modules/.bin path (keyrack.operations.sh uses absolute path)
+  const nodeModulesBinDir = path.join(tempDir, 'node_modules', '.bin');
+  fs.mkdirSync(nodeModulesBinDir, { recursive: true });
+  fs.writeFileSync(path.join(nodeModulesBinDir, 'rhachet'), rhachetMock);
+  fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
+
+  // also create in mockBinDir for PATH-based lookups
+  fs.writeFileSync(path.join(mockBinDir, 'rhachet'), rhachetMock);
+  fs.chmodSync(path.join(mockBinDir, 'rhachet'), '755');
+};
+
+/**
+ * .what = setup git.commit.uses permission for apply mode tests
+ * .why = apply mode requires push permission
+ */
+export const writeGitCommitUsesPermission = (input: {
+  tempDir: string;
+}): void => {
+  const { tempDir } = input;
+  const meterDir = path.join(tempDir, '.meter');
+  fs.mkdirSync(meterDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(meterDir, 'git.commit.uses.jsonc'),
+    JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+  );
+};

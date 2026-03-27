@@ -3,12 +3,19 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import {
+  writeGitCommitUsesPermission,
+  writeRhachetMock,
+  writeSimpleGhMock,
+} from './.test/infra/mockGh';
+import { genMockBinDir, genStateDir, genTempGitRepo } from './.test/infra/setupTestEnv';
+
 // all tests use mocked gh CLI, so no remote calls - 5s timeout is plenty
 jest.setTimeout(5000);
 
 /**
  * .what = replace timing values with placeholders for snapshot stability
- * .why = timing varies between runs (0s vs 1s), causing flaky snapshots
+ * .why = timing varies between runs (0s vs 1s), causes flaky snapshots
  */
 const asTimingStable = (output: string): string => {
   return (
@@ -31,167 +38,27 @@ const SKILL_PATH = path.resolve(
 /**
  * .what = setup a temp git repo with mock gh cli
  * .why = isolate tests from real github api
+ *
+ * .note = uses shared infra from .test/infra/
  */
 const setupTestEnv = (
   mockResponses: Record<string, string>,
 ): { tempDir: string; fakeBinDir: string; cleanup: () => void } => {
-  const tempDir = genTempDir({ slug: 'git-release-test', git: true });
-  const fakeBinDir = path.join(tempDir, '.fakebin');
-  fs.mkdirSync(fakeBinDir, { recursive: true });
+  // create temp repo (stay on main, tests switch branches as needed)
+  const { tempDir, cleanup } = genTempGitRepo({ branch: 'main' });
+  const fakeBinDir = genMockBinDir({ tempDir });
+  const stateDir = genStateDir({ tempDir });
 
-  // create mock gh cli
-  // use first 2 args as key: "pr list", "pr view", "pr merge", "run list", "run rerun"
-  // special case for "run view" which has subvariants: --json jobs vs --json startedAt
-  const ghMockContent = `#!/bin/bash
-set -euo pipefail
+  // write mock gh cli with simple key-value responses
+  writeSimpleGhMock({ mockResponses, mockBinDir: fakeBinDir, stateDir });
 
-# mock gh cli for tests
-MOCK_RESPONSES='${JSON.stringify(mockResponses).replace(/'/g, "'\"'\"'")}'
-
-# build command key from first 2 args only (e.g., "pr list", "pr view")
-CMD_KEY="$1 $2"
-
-# distinguish "run view" subvariants by --json flag
-if [[ "$CMD_KEY" == "run view" ]]; then
-  ALL_ARGS="$*"
-  if [[ "$ALL_ARGS" == *"--json jobs"* ]]; then
-    CMD_KEY="run view jobs"
-  elif [[ "$ALL_ARGS" == *"--json startedAt"* ]]; then
-    CMD_KEY="run view duration"
-  fi
-fi
-
-# distinguish "pr list" subvariants by --state flag and --jq query
-if [[ "$CMD_KEY" == "pr list" ]]; then
-  ALL_ARGS="$*"
-
-  # check for --limit 21 query FIRST (get_latest_merged_release_pr_info)
-  # this must come before .title check since both queries contain .title
-  if [[ "$ALL_ARGS" == *"--state merged"* ]] && [[ "$ALL_ARGS" == *"--limit 21"* ]]; then
-    # always return a prior merged release PR by default (realistic behavior)
-    echo "title=chore(release): v1.33.0 🎉"
-    exit 0
-  elif [[ "$ALL_ARGS" == *".title"* ]]; then
-    # check for "pr list title" key first, fallback to "pr list"
-    RESPONSE_TITLE=$(echo "$MOCK_RESPONSES" | jq -r '.["pr list title"] // empty')
-    if [[ -n "$RESPONSE_TITLE" ]]; then
-      CMD_KEY="pr list title"
-    fi
-  elif [[ "$ALL_ARGS" == *"--state open"* ]]; then
-    # check for "pr list open" key first, fallback to "pr list"
-    RESPONSE_OPEN=$(echo "$MOCK_RESPONSES" | jq -r '.["pr list open"] // empty')
-    if [[ -n "$RESPONSE_OPEN" ]]; then
-      CMD_KEY="pr list open"
-    fi
-  elif [[ "$ALL_ARGS" == *"--state merged"* ]]; then
-    # check for "pr list merged" key first, fallback to "pr list"
-    RESPONSE_MERGED=$(echo "$MOCK_RESPONSES" | jq -r '.["pr list merged"] // empty')
-    if [[ -n "$RESPONSE_MERGED" ]]; then
-      CMD_KEY="pr list merged"
-    fi
-  fi
-fi
-
-# lookup response
-RESPONSE=$(echo "$MOCK_RESPONSES" | jq -r --arg key "$CMD_KEY" '.[$key] // empty')
-
-if [[ -n "$RESPONSE" ]]; then
-  # support error responses: prefix "ERROR:" means exit 1 with message to stderr
-  if [[ "$RESPONSE" == ERROR:* ]]; then
-    echo "\${RESPONSE#ERROR:}" >&2
-    exit 1
-  fi
-
-  # support stateful sequences: prefix "SEQUENCE:" means array of responses
-  # each call returns next item from array (or last if exhausted)
-  if [[ "$RESPONSE" == SEQUENCE:* ]]; then
-    SEQUENCE_JSON="\${RESPONSE#SEQUENCE:}"
-    # counter file lives in cwd (tempDir) so it's unique per test
-    COUNTER_FILE=".gh-mock-counter-$(echo "$CMD_KEY" | tr ' ' '-')"
-    if [[ ! -f "$COUNTER_FILE" ]]; then
-      echo "0" > "$COUNTER_FILE"
-    fi
-    INDEX=$(cat "$COUNTER_FILE")
-    ARRAY_LEN=$(echo "$SEQUENCE_JSON" | jq 'length')
-    if [[ $INDEX -ge $ARRAY_LEN ]]; then
-      INDEX=$((ARRAY_LEN - 1))
-    fi
-    echo "$((INDEX + 1))" > "$COUNTER_FILE"
-    RESPONSE=$(echo "$SEQUENCE_JSON" | jq -r ".[$INDEX]")
-  fi
-
-  echo "$RESPONSE"
-  exit 0
-fi
-
-# fallback for unhandled commands
-echo "mock: unhandled gh $*" >&2
-exit 1
-`;
-
-  fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
-  fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
-
-  // create mock rhachet keyrack
-  // keyrack.operations.sh uses absolute path: "$repo_root/node_modules/.bin/rhachet"
-  // so we must create the mock at tempDir/node_modules/.bin/rhachet
-  const rhachetMockContent = `#!/bin/bash
-if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
-  echo '{"grant":{"key":{"secret":"mock-github-token"}}}'
-  exit 0
-fi
-echo "mock: unhandled rhachet $*" >&2
-exit 1
-`;
-
-  // create at node_modules/.bin path (keyrack.operations.sh uses absolute path)
-  const nodeModulesBinDir = path.join(tempDir, 'node_modules', '.bin');
-  fs.mkdirSync(nodeModulesBinDir, { recursive: true });
-  fs.writeFileSync(path.join(nodeModulesBinDir, 'rhachet'), rhachetMockContent);
-  fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
-
-  // also create in fakeBinDir for PATH-based lookups
-  fs.writeFileSync(path.join(fakeBinDir, 'rhachet'), rhachetMockContent);
-  fs.chmodSync(path.join(fakeBinDir, 'rhachet'), '755');
-
-  // init git repo in temp dir
-  spawnSync('git', ['init'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: tempDir });
-  spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
-    cwd: tempDir,
-  });
-  spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
-
-  // create remote tracking
-  spawnSync(
-    'git',
-    ['remote', 'add', 'origin', 'https://github.com/test/repo'],
-    {
-      cwd: tempDir,
-    },
-  );
-  spawnSync(
-    'git',
-    ['symbolic-ref', 'refs/remotes/origin/HEAD', 'refs/remotes/origin/main'],
-    {
-      cwd: tempDir,
-    },
-  );
+  // write rhachet mock for keyrack
+  writeRhachetMock({ tempDir, mockBinDir: fakeBinDir });
 
   // setup git.commit.uses permission for apply mode tests
-  const meterDir = path.join(tempDir, '.meter');
-  fs.mkdirSync(meterDir, { recursive: true });
-  fs.writeFileSync(
-    path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
-  );
+  writeGitCommitUsesPermission({ tempDir });
 
-  return {
-    tempDir,
-    fakeBinDir,
-    cleanup: () => fs.rmSync(tempDir, { recursive: true, force: true }),
-  };
+  return { tempDir, fakeBinDir, cleanup };
 };
 
 /**
