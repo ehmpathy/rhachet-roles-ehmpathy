@@ -1,0 +1,376 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-1] feat PR: unfound when: [apply] --from feat-branch --apply then: exit 2: crickets, hint push 1`] = `
+"🐢 crickets...
+
+🫧 no open branch pr
+   ├─ turtle/feature-x
+   └─ [2mhint: use git.commit.push to push and findsert pr[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-1] feat PR: unfound when: [plan] --from feat-branch then: exit 2: crickets, hint push 1`] = `
+"🐢 crickets...
+
+🫧 no open branch pr
+   ├─ turtle/feature-x
+   └─ [2mhint: use git.commit.push to push and findsert pr[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-1] feat PR: unfound when: [watch] --from feat-branch --watch then: exit 2: crickets, hint push 1`] = `
+"🐢 crickets...
+
+🫧 no open branch pr
+   ├─ turtle/feature-x
+   └─ [2mhint: use git.commit.push to push and findsert pr[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-4] feat PR: inflight when: [apply] --from feat-branch --apply with transitions then: watch cycles then merged 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --from turtle/feature-x --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-4] feat PR: inflight when: [plan] --from feat-branch then: exit 0: show progress 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --mode plan
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ [2mhint: use --apply to enable automerge and watch[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-4] feat PR: inflight when: [watch] --from feat-branch --watch with transitions then: watch cycles then result 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-7] feat PR: passed:wout-automerge when: [apply] --from feat-branch --apply then: exit 0: automerge added then merged 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --from turtle/feature-x --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-7] feat PR: passed:wout-automerge when: [plan] --from feat-branch then: exit 0: passed, hint apply 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --mode plan
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ [2mhint: use --apply to enable automerge and watch[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-7] feat PR: passed:wout-automerge when: [watch] --from feat-branch --watch then: exit 0: passed (no watch needed) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-10] feat PR: passed:with-automerge when: [apply] --from feat-branch --apply then: exit 0: automerge found then merged 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --from turtle/feature-x --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-10] feat PR: passed:with-automerge when: [plan] --from feat-branch then: exit 0: passed, automerge found 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --mode plan
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [found]
+   └─ [2mhint: use --apply to watch[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-10] feat PR: passed:with-automerge when: [watch] --from feat-branch --watch then: exit 0: watch then merged 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-13] feat PR: failed when: [apply] --from feat-branch --apply then: exit 2: failed, hint retry 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --from turtle/feature-x --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        └─ publish
+   ├─ 🌴 automerge unfound (use --apply to add)
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-13] feat PR: failed when: [plan] --from feat-branch then: exit 2: failed, hint retry 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --mode plan
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        └─ publish
+   ├─ 🌴 automerge unfound (use --apply to add)
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-13] feat PR: failed when: [watch] --from feat-branch --watch then: exit 2: failed, hint retry 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        └─ publish
+   ├─ 🌴 automerge unfound (use --apply to add)
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-16] feat PR: failed with --retry when: [apply+retry] --from feat-branch --retry --apply then: exit 2: rerun triggered then apply 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --from turtle/feature-x --into main --mode apply --watch --retry
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ publish
+   │        └─ 👌 rerun triggered
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ⚓ 1 check(s) failed
+      │  └─ 🔴 test
+      │        ├─ https://github.com/test/repo/actions/runs/123
+      │        └─ publish
+      ├─ [2mhint: use --retry to rerun failed workflows[0m
+      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-16] feat PR: failed with --retry when: [plan+retry] --from feat-branch --retry then: exit 0: rerun triggered (informational) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --mode plan --retry
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ publish
+   │        └─ 👌 rerun triggered
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ [2mhint: use --watch to monitor rerun progress[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-16] feat PR: failed with --retry when: [watch+retry] --from feat-branch --retry --watch then: exit 2: rerun triggered then watch 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --watch --retry
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ publish
+   │        └─ 👌 rerun triggered
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ⚓ 1 check(s) failed
+      │  └─ 🔴 test
+      │        ├─ https://github.com/test/repo/actions/runs/123
+      │        └─ publish
+      ├─ [2mhint: use --retry to rerun failed workflows[0m
+      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-19] feat PR: rebase:behind when: [apply] --from feat-branch --apply then: exit 2: needs rebase 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --from turtle/feature-x --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --apply to add)
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-19] feat PR: rebase:behind when: [plan] --from feat-branch then: exit 2: needs rebase 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --mode plan
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --apply to add)
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-19] feat PR: rebase:behind when: [watch] --from feat-branch --watch then: exit 2: needs rebase 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --apply to add)
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-22] feat PR: rebase:dirty when: [apply] --from feat-branch --apply then: exit 2: needs rebase with conflicts 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --from turtle/feature-x --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase, has conflicts
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --apply to add)
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-22] feat PR: rebase:dirty when: [plan] --from feat-branch then: exit 2: needs rebase with conflicts 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --mode plan
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase, has conflicts
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --apply to add)
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-22] feat PR: rebase:dirty when: [watch] --from feat-branch --watch then: exit 2: needs rebase with conflicts 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase, has conflicts
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --apply to add)
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-25] feat PR: merged when: [apply] --from feat-branch --apply then: exit 0: already merged 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --from turtle/feature-x --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-25] feat PR: merged when: [plan] --from feat-branch then: exit 0: already merged 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --mode plan
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+"
+`;
+
+exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from feat-branch given: [row-25] feat PR: merged when: [watch] --from feat-branch --watch then: exit 0: already merged 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --from turtle/feature-x --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+"
+`;

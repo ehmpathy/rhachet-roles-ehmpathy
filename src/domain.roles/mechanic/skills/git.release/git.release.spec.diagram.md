@@ -16,7 +16,7 @@
             │                         │                         │
             ▼                         ▼                         ▼
      ┌────────────┐           ┌────────────┐           ┌────────────┐
-     │ --to main  │           │ --to prod  │           │ --to prod  │
+     │ --into main│           │ --into prod│           │ --into prod│
      │ from feat  │           │ from feat  │           │ --from main│
      └─────┬──────┘           └─────┬──────┘           └─────┬──────┘
            │                        │                        │
@@ -593,7 +593,7 @@ output shows: "rerun triggered" when workflows are rerun
      no PR found              crickets...          🐢
 
      progress                 lets see...          🐢
-     await                    wait for it...       🫧
+     await                    and then...          🫧
 
 
 ┌─────────────────────────────────────────────────────────────────────────────┐

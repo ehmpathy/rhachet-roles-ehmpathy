@@ -41,7 +41,7 @@ interface Scene {
   branch: 'main' | 'feat';
   /** feature PR state (only relevant when branch=feat) */
   featPr?: PrState;
-  /** release PR state (only relevant for --to prod) */
+  /** release PR state (only relevant for --into prod) */
   releasePr?: PrState;
   /** tag workflow state (only relevant when release PR merged) */
   tagWorkflows?: TagState;
@@ -242,11 +242,13 @@ const genGhMockExecutable = (input: {
     nowIso,
   });
   // feature PR can only auto-merge if checks passed
+  // note: do NOT include `scene.transitions === true` here - for inflight PRs in
+  // transitions mode, we want the counter-based logic (is_passed/should_auto_merge)
+  // to drive the transition, not immediate merge when pr merge is called
   const featPrCanAutoMerge =
     scene.featPr === 'passed:wout-automerge' ||
     scene.featPr === 'passed:with-automerge' ||
-    scene.featPr === 'merged' ||
-    scene.transitions === true; // transitions mode enables automerge after checks pass
+    scene.featPr === 'merged';
   // feature PR passed state (for transitions)
   // preserve automerge if initial state had it
   const featPrViewPassed = genPrViewJson({
@@ -254,6 +256,12 @@ const genGhMockExecutable = (input: {
       scene.featPr === 'passed:with-automerge'
         ? 'passed:with-automerge'
         : 'passed:wout-automerge',
+    title: 'feat(oceans): add reef protection',
+    nowIso,
+  });
+  // feature PR passed state with automerge (for when automerge enabled dynamically)
+  const featPrViewPassedWithAutomerge = genPrViewJson({
+    state: 'passed:with-automerge',
     title: 'feat(oceans): add reef protection',
     nowIso,
   });
@@ -275,11 +283,14 @@ const genGhMockExecutable = (input: {
     nowIso,
   });
   // release PR can only auto-merge if checks passed
+  // note: do NOT include `scene.transitions === true` here - for inflight PRs in
+  // transitions mode, we want the counter-based logic to drive the transition
   const releasePrCanAutoMerge =
     scene.releasePr === 'passed:wout-automerge' ||
     scene.releasePr === 'passed:with-automerge' ||
-    scene.releasePr === 'merged' ||
-    scene.transitions === true; // transitions mode enables automerge after checks pass
+    scene.releasePr === 'merged';
+  // track if release PR starts as merged (needs to stay merged regardless of counters)
+  const releasePrStartsMerged = scene.releasePr === 'merged';
   // release PR passed state (for transitions)
   // preserve automerge if initial state had it
   const releasePrViewPassed = genPrViewJson({
@@ -287,6 +298,12 @@ const genGhMockExecutable = (input: {
       scene.releasePr === 'passed:with-automerge'
         ? 'passed:with-automerge'
         : 'passed:wout-automerge',
+    title: 'chore(release): v1.33.0 🎉',
+    nowIso,
+  });
+  // release PR passed state with automerge (for when automerge enabled dynamically)
+  const releasePrViewPassedWithAutomerge = genPrViewJson({
+    state: 'passed:with-automerge',
     title: 'chore(release): v1.33.0 🎉',
     nowIso,
   });
@@ -318,8 +335,23 @@ mark_merged() {
   touch "$STATE_DIR/merged-$pr_num"
 }
 
+# check if automerge was enabled for a PR (via pr merge --auto)
+has_automerge_enabled() {
+  local pr_num="$1"
+  [[ -f "$STATE_DIR/automerge-$pr_num" ]]
+}
+
+# mark automerge as enabled for a PR
+mark_automerge_enabled() {
+  local pr_num="$1"
+  touch "$STATE_DIR/automerge-$pr_num"
+}
+
 # counter-based transitions (only when transitions=true)
 TRANSITIONS_ENABLED="${scene.transitions ? 'true' : 'false'}"
+
+# track if release PR starts as merged (stays merged regardless of counters)
+RELEASE_PR_STARTS_MERGED="${releasePrStartsMerged ? 'true' : 'false'}"
 
 # increment call counter and return current count
 inc_counter() {
@@ -334,7 +366,8 @@ inc_counter() {
   echo "$count"
 }
 
-# check if PR should be in passed state (after 2 view calls)
+# check if PR should be in passed state (after 7 view calls)
+# threshold chosen to show 3+ poll cycles before checks pass
 is_passed() {
   local pr_num="$1"
   if [[ "$TRANSITIONS_ENABLED" != "true" ]]; then
@@ -342,10 +375,11 @@ is_passed() {
   fi
   local count
   count=$(cat "$STATE_DIR/counter-view-$pr_num" 2>/dev/null || echo "0")
-  [[ $count -ge 2 ]]
+  [[ $count -ge 7 ]]
 }
 
-# check if PR should auto-merge (after 4 view calls in transitions mode)
+# check if PR should auto-merge (after 9 view calls in transitions mode)
+# threshold must be > is_passed threshold to show passed state first
 # simulates GitHub auto-merge: PR merges after automerge enabled and checks pass
 should_auto_merge() {
   local pr_num="$1"
@@ -354,7 +388,7 @@ should_auto_merge() {
   fi
   local count
   count=$(cat "$STATE_DIR/counter-view-$pr_num" 2>/dev/null || echo "0")
-  [[ $count -ge 4 ]]
+  [[ $count -ge 9 ]]
 }
 
 # check if tag workflows should appear (after 2 run list calls)
@@ -379,6 +413,12 @@ tag_runs_complete() {
 
 case "$CMD_KEY" in
   "pr list")
+    # check for get_latest_merged_release_pr_info query (--state merged with --limit 21)
+    if echo "$ALL_ARGS" | grep -q "merged" && echo "$ALL_ARGS" | grep -q -- "--limit 21"; then
+      # return prior merged release PR (note: v1.3.0 is prior to the current v1.33.0 release)
+      echo "title=chore(release): v1.3.0 🎉"
+      exit 0
+    fi
     # detect if release PR request (has chore(release) in jq filter)
     if echo "$ALL_ARGS" | grep -q "chore(release)"; then
       # release PR request - return empty if unfound
@@ -417,15 +457,28 @@ case "$CMD_KEY" in
       if is_merged "${featPrNum}" || should_auto_merge "${featPrNum}"; then
         echo '${featPrViewMerged.replace(/'/g, "'\"'\"'")}'
       elif is_passed "${featPrNum}"; then
-        echo '${featPrViewPassed.replace(/'/g, "'\"'\"'")}'
+        # if automerge was enabled dynamically, return passed:with-automerge
+        if has_automerge_enabled "${featPrNum}"; then
+          echo '${featPrViewPassedWithAutomerge.replace(/'/g, "'\"'\"'")}'
+        else
+          echo '${featPrViewPassed.replace(/'/g, "'\"'\"'")}'
+        fi
       else
         echo '${featPrView.replace(/'/g, "'\"'\"'")}'
       fi
     elif [[ "$PR_NUM" == "${releasePrNum}" ]]; then
-      if is_merged "${releasePrNum}" || should_auto_merge "${releasePrNum}"; then
+      # if release PR started merged, always return merged (ignore counters)
+      if [[ "$RELEASE_PR_STARTS_MERGED" == "true" ]]; then
+        echo '${releasePrViewMerged.replace(/'/g, "'\"'\"'")}'
+      elif is_merged "${releasePrNum}" || should_auto_merge "${releasePrNum}"; then
         echo '${releasePrViewMerged.replace(/'/g, "'\"'\"'")}'
       elif is_passed "${releasePrNum}"; then
-        echo '${releasePrViewPassed.replace(/'/g, "'\"'\"'")}'
+        # if automerge was enabled dynamically, return passed:with-automerge
+        if has_automerge_enabled "${releasePrNum}"; then
+          echo '${releasePrViewPassedWithAutomerge.replace(/'/g, "'\"'\"'")}'
+        else
+          echo '${releasePrViewPassed.replace(/'/g, "'\"'\"'")}'
+        fi
       else
         echo '${releasePrView.replace(/'/g, "'\"'\"'")}'
       fi
@@ -437,7 +490,9 @@ case "$CMD_KEY" in
   "pr merge")
     # extract PR number: gh pr merge <number> ...
     PR_NUM="$3"
-    # only auto-merge if checks passed (match GitHub's behavior)
+    # always mark automerge as enabled (even for inflight PRs)
+    mark_automerge_enabled "$PR_NUM"
+    # only mark merged if checks passed (match GitHub's behavior)
     # inflight PRs enable automerge but don't merge until checks pass
     # in transitions mode, mark merged if checks have transitioned to passed
     if [[ "$PR_NUM" == "${featPrNum}" ]]; then
@@ -556,8 +611,8 @@ exit 1
     { cwd: tempDir },
   );
 
-  // create tag for prod tests
-  spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
+  // create tag for prod tests (must match mock PR title version: chore(release): v1.33.0)
+  spawnSync('git', ['tag', 'v1.33.0'], { cwd: tempDir });
 
   // set up branch per scene
   if (input.scene.branch === 'feat') {
@@ -730,7 +785,7 @@ describe('git.release.p2', () => {
             try {
               const result = runSkill([], { tempDir, fakeBinDir });
               expect(result.stdout).toContain('passed');
-              expect(result.stdout).toContain('--mode apply');
+              expect(result.stdout).toContain('--apply');
               expect(asTimingStable(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
@@ -1008,11 +1063,11 @@ describe('git.release.p2', () => {
               slug: 'main-unfound-unfound-plan',
             });
             try {
-              const result = runSkill(['--to', 'prod'], {
+              const result = runSkill(['--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
-              expect(result.stdout).toContain('v1.2.3');
+              expect(result.stdout).toContain('v1.33.0');
               expect(asTimingStable(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
@@ -1028,11 +1083,11 @@ describe('git.release.p2', () => {
               slug: 'main-unfound-unfound-apply',
             });
             try {
-              const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+              const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
                 tempDir,
                 fakeBinDir,
               });
-              expect(result.stdout).toContain('v1.2.3');
+              expect(result.stdout).toContain('v1.33.0');
               expect(asTimingStable(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
@@ -1058,11 +1113,11 @@ describe('git.release.p2', () => {
               slug: 'main-unfound-inflight-plan',
             });
             try {
-              const result = runSkill(['--to', 'prod'], {
+              const result = runSkill(['--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
-              expect(result.stdout).toContain('v1.2.3');
+              expect(result.stdout).toContain('v1.33.0');
               expect(asTimingStable(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
@@ -1085,11 +1140,11 @@ describe('git.release.p2', () => {
               slug: 'main-unfound-inflight-apply',
             });
             try {
-              const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+              const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
                 tempDir,
                 fakeBinDir,
               });
-              expect(result.stdout).toContain('v1.2.3');
+              expect(result.stdout).toContain('v1.33.0');
               expect(result.stdout).toContain('done!');
               expect(asTimingStable(result.stdout)).toMatchSnapshot();
               // transitions drove completion, exit 0
@@ -1118,11 +1173,11 @@ describe('git.release.p2', () => {
               slug: 'main-unfound-passed-plan',
             });
             try {
-              const result = runSkill(['--to', 'prod'], {
+              const result = runSkill(['--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
-              expect(result.stdout).toContain('v1.2.3');
+              expect(result.stdout).toContain('v1.33.0');
               expect(asTimingStable(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
@@ -1138,11 +1193,11 @@ describe('git.release.p2', () => {
               slug: 'main-unfound-passed-apply',
             });
             try {
-              const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+              const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
                 tempDir,
                 fakeBinDir,
               });
-              expect(result.stdout).toContain('v1.2.3');
+              expect(result.stdout).toContain('v1.33.0');
               expect(asTimingStable(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
@@ -1169,11 +1224,11 @@ describe('git.release.p2', () => {
               slug: 'main-unfound-failed-plan',
             });
             try {
-              const result = runSkill(['--to', 'prod'], {
+              const result = runSkill(['--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
-              expect(result.stdout).toContain('v1.2.3');
+              expect(result.stdout).toContain('v1.33.0');
               expect(asTimingStable(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
@@ -1189,7 +1244,7 @@ describe('git.release.p2', () => {
               slug: 'main-unfound-failed-apply',
             });
             try {
-              const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+              const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1217,7 +1272,10 @@ describe('git.release.p2', () => {
             slug: 'main-inflight-plan',
           });
           try {
-            const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
+            const result = runSkill(['--into', 'prod'], {
+              tempDir,
+              fakeBinDir,
+            });
             expect(result.stdout).toContain('in progress');
             expect(asTimingStable(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
@@ -1240,7 +1298,7 @@ describe('git.release.p2', () => {
             slug: 'main-inflight-apply',
           });
           try {
-            const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+            const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
               tempDir,
               fakeBinDir,
             });
@@ -1272,12 +1330,12 @@ describe('git.release.p2', () => {
               slug: 'main-passed-wout-plan',
             });
             try {
-              const result = runSkill(['--to', 'prod'], {
+              const result = runSkill(['--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
               expect(result.stdout).toContain('passed');
-              expect(result.stdout).toContain('--mode apply');
+              expect(result.stdout).toContain('--apply');
               expect(asTimingStable(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
@@ -1293,7 +1351,7 @@ describe('git.release.p2', () => {
               slug: 'main-passed-wout-apply',
             });
             try {
-              const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+              const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1323,7 +1381,7 @@ describe('git.release.p2', () => {
               slug: 'main-passed-with-plan',
             });
             try {
-              const result = runSkill(['--to', 'prod'], {
+              const result = runSkill(['--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1349,7 +1407,7 @@ describe('git.release.p2', () => {
               slug: 'main-passed-with-apply',
             });
             try {
-              const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+              const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1382,7 +1440,7 @@ describe('git.release.p2', () => {
               slug: 'main-merged-unfound-plan',
             });
             try {
-              const result = runSkill(['--to', 'prod'], {
+              const result = runSkill(['--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1402,7 +1460,7 @@ describe('git.release.p2', () => {
               slug: 'main-merged-unfound-apply',
             });
             try {
-              const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+              const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1432,7 +1490,7 @@ describe('git.release.p2', () => {
               slug: 'main-merged-inflight-plan',
             });
             try {
-              const result = runSkill(['--to', 'prod'], {
+              const result = runSkill(['--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1459,7 +1517,7 @@ describe('git.release.p2', () => {
               slug: 'main-merged-inflight-apply',
             });
             try {
-              const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+              const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1492,7 +1550,7 @@ describe('git.release.p2', () => {
               slug: 'main-merged-passed-plan',
             });
             try {
-              const result = runSkill(['--to', 'prod'], {
+              const result = runSkill(['--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1512,7 +1570,7 @@ describe('git.release.p2', () => {
               slug: 'main-merged-passed-apply',
             });
             try {
-              const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+              const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1543,7 +1601,7 @@ describe('git.release.p2', () => {
               slug: 'main-merged-failed-plan',
             });
             try {
-              const result = runSkill(['--to', 'prod'], {
+              const result = runSkill(['--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1563,7 +1621,7 @@ describe('git.release.p2', () => {
               slug: 'main-merged-failed-apply',
             });
             try {
-              const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+              const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1592,7 +1650,10 @@ describe('git.release.p2', () => {
             slug: 'main-failed-plan',
           });
           try {
-            const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
+            const result = runSkill(['--into', 'prod'], {
+              tempDir,
+              fakeBinDir,
+            });
             expect(result.stdout).toContain('failed');
             expect(asTimingStable(result.stdout)).toMatchSnapshot();
             // per spec: failed checks are constraint errors (exit 2)
@@ -1610,7 +1671,7 @@ describe('git.release.p2', () => {
             slug: 'main-failed-apply',
           });
           try {
-            const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+            const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
               tempDir,
               fakeBinDir,
             });
@@ -1642,14 +1703,14 @@ describe('git.release.p2', () => {
           tagWorkflows: 'passed', // tag workflows complete successfully
         };
 
-        when('[t0] plan mode with --from main --to prod', () => {
+        when('[t0] plan mode with --from main --into prod', () => {
           then('shows release PR status, not feat PR', () => {
             const { tempDir, fakeBinDir, cleanup } = setupScene({
               scene,
               slug: 'from-main-on-feat-plan',
             });
             try {
-              const result = runSkill(['--from', 'main', '--to', 'prod'], {
+              const result = runSkill(['--from', 'main', '--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1664,7 +1725,7 @@ describe('git.release.p2', () => {
           });
         });
 
-        when('[t1] apply mode with --from main --to prod', () => {
+        when('[t1] apply mode with --from main --into prod', () => {
           then('applies release PR, ignores feat PR', () => {
             const { tempDir, fakeBinDir, cleanup } = setupScene({
               scene,
@@ -1672,7 +1733,7 @@ describe('git.release.p2', () => {
             });
             try {
               const result = runSkill(
-                ['--from', 'main', '--to', 'prod', '--mode', 'apply'],
+                ['--from', 'main', '--into', 'prod', '--mode', 'apply'],
                 { tempDir, fakeBinDir },
               );
               // should apply release, exit 0 (merged)
@@ -1689,29 +1750,41 @@ describe('git.release.p2', () => {
       },
     );
 
-    given('[case-from-main-invalid] --from with invalid value', () => {
-      const scene: Scene = { branch: 'feat', featPr: 'passed:wout-automerge' };
+    given(
+      '[case-from-branch-valid] --from <branch> specifies branch to release',
+      () => {
+        // scene.7: --from <branch> releases that branch to main (or prod if --into prod)
+        // valid - allows release of a specific branch from any location
+        const scene: Scene = {
+          branch: 'main', // on main, but release a different branch
+          featPr: 'passed:wout-automerge', // the "other" branch has a PR
+        };
 
-      when('[t0] --from other (not main)', () => {
-        then('exit 2: invalid argument', () => {
-          const { tempDir, fakeBinDir, cleanup } = setupScene({
-            scene,
-            slug: 'from-main-invalid',
-          });
-          try {
-            const result = runSkill(['--from', 'other', '--to', 'prod'], {
-              tempDir,
-              fakeBinDir,
+        when(
+          '[t0] --from other --into main (release other branch to main)',
+          () => {
+            then('exit 0: releases the specified branch', () => {
+              const { tempDir, fakeBinDir, cleanup } = setupScene({
+                scene,
+                slug: 'from-branch-valid',
+              });
+              try {
+                const result = runSkill(['--from', 'other', '--into', 'main'], {
+                  tempDir,
+                  fakeBinDir,
+                });
+                // should show status for the "other" branch (mocked as featPr)
+                expect(result.stdout).toContain('release:');
+                expect(asTimingStable(result.stdout)).toMatchSnapshot();
+                expect(result.status).toEqual(0);
+              } finally {
+                cleanup();
+              }
             });
-            expect(result.stderr).toContain('--from must be');
-            expect(result.stderr).toMatchSnapshot();
-            expect(result.status).toEqual(2);
-          } finally {
-            cleanup();
-          }
-        });
-      });
-    });
+          },
+        );
+      },
+    );
 
     given(
       '[case-from-main-on-main] on main branch, --from main is redundant but valid',
@@ -1723,14 +1796,14 @@ describe('git.release.p2', () => {
           tagWorkflows: 'passed', // complete flow after merge
         };
 
-        when('[t0] plan mode with --from main --to prod', () => {
+        when('[t0] plan mode with --from main --into prod', () => {
           then('shows release PR status (same as without --from)', () => {
             const { tempDir, fakeBinDir, cleanup } = setupScene({
               scene,
               slug: 'from-main-on-main-plan',
             });
             try {
-              const result = runSkill(['--from', 'main', '--to', 'prod'], {
+              const result = runSkill(['--from', 'main', '--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1743,7 +1816,7 @@ describe('git.release.p2', () => {
           });
         });
 
-        when('[t1] apply mode with --from main --to prod', () => {
+        when('[t1] apply mode with --from main --into prod', () => {
           then('applies release PR (same as without --from)', () => {
             const { tempDir, fakeBinDir, cleanup } = setupScene({
               scene,
@@ -1751,7 +1824,7 @@ describe('git.release.p2', () => {
             });
             try {
               const result = runSkill(
-                ['--from', 'main', '--to', 'prod', '--mode', 'apply'],
+                ['--from', 'main', '--into', 'prod', '--mode', 'apply'],
                 { tempDir, fakeBinDir },
               );
               expect(result.stdout).toContain('chore(release)');
@@ -1766,22 +1839,22 @@ describe('git.release.p2', () => {
     );
 
     given(
-      '[case-from-main-to-main] --from main with --to main (invalid)',
+      '[case-from-main-to-main] --from main with --into main (invalid)',
       () => {
-        // --from main --to main is invalid: you can't release main to main
+        // --from main --into main is invalid: you can't release main to main
         const scene: Scene = {
           branch: 'feat',
           featPr: 'inflight',
         };
 
-        when('[t0] --from main --to main', () => {
+        when('[t0] --from main --into main', () => {
           then('exit 2: already on main', () => {
             const { tempDir, fakeBinDir, cleanup } = setupScene({
               scene,
               slug: 'from-main-to-main',
             });
             try {
-              const result = runSkill(['--from', 'main', '--to', 'main'], {
+              const result = runSkill(['--from', 'main', '--into', 'main'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1817,12 +1890,12 @@ describe('git.release.p2', () => {
               slug: 'from-main-release-unfound-plan',
             });
             try {
-              const result = runSkill(['--from', 'main', '--to', 'prod'], {
+              const result = runSkill(['--from', 'main', '--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
-              // latest tag from mock is v1.2.3
-              expect(result.stdout).toContain('v1.2.3');
+              // latest tag from mock is v1.33.0
+              expect(result.stdout).toContain('v1.33.0');
               expect(result.stdout).not.toContain('in progress');
               expect(asTimingStable(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
@@ -1840,11 +1913,11 @@ describe('git.release.p2', () => {
             });
             try {
               const result = runSkill(
-                ['--from', 'main', '--to', 'prod', '--mode', 'apply'],
+                ['--from', 'main', '--into', 'prod', '--mode', 'apply'],
                 { tempDir, fakeBinDir },
               );
-              // latest tag from mock is v1.2.3
-              expect(result.stdout).toContain('v1.2.3');
+              // latest tag from mock is v1.33.0
+              expect(result.stdout).toContain('v1.33.0');
               expect(asTimingStable(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
@@ -1870,7 +1943,7 @@ describe('git.release.p2', () => {
               slug: 'from-main-release-inflight-plan',
             });
             try {
-              const result = runSkill(['--from', 'main', '--to', 'prod'], {
+              const result = runSkill(['--from', 'main', '--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1898,7 +1971,7 @@ describe('git.release.p2', () => {
             });
             try {
               const result = runSkill(
-                ['--from', 'main', '--to', 'prod', '--mode', 'apply'],
+                ['--from', 'main', '--into', 'prod', '--mode', 'apply'],
                 { tempDir, fakeBinDir },
               );
               expect(result.stdout).toContain('in progress');
@@ -1930,7 +2003,7 @@ describe('git.release.p2', () => {
               slug: 'from-main-release-failed-plan',
             });
             try {
-              const result = runSkill(['--from', 'main', '--to', 'prod'], {
+              const result = runSkill(['--from', 'main', '--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -1952,7 +2025,7 @@ describe('git.release.p2', () => {
             });
             try {
               const result = runSkill(
-                ['--from', 'main', '--to', 'prod', '--mode', 'apply'],
+                ['--from', 'main', '--into', 'prod', '--mode', 'apply'],
                 { tempDir, fakeBinDir },
               );
               expect(result.stdout).toContain('failed');
@@ -1984,7 +2057,7 @@ describe('git.release.p2', () => {
               slug: 'from-main-release-merged-plan',
             });
             try {
-              const result = runSkill(['--from', 'main', '--to', 'prod'], {
+              const result = runSkill(['--from', 'main', '--into', 'prod'], {
                 tempDir,
                 fakeBinDir,
               });
@@ -2005,7 +2078,7 @@ describe('git.release.p2', () => {
             });
             try {
               const result = runSkill(
-                ['--from', 'main', '--to', 'prod', '--mode', 'apply'],
+                ['--from', 'main', '--into', 'prod', '--mode', 'apply'],
                 { tempDir, fakeBinDir },
               );
               expect(asTimingStable(result.stdout)).toMatchSnapshot();
@@ -2388,24 +2461,28 @@ describe('git.release.p2', () => {
   // ==========================================================================
 
   describe('argument validation', () => {
-    given('[case-arg-to-invalid] --to invalid value', () => {
-      when('[t0] --to invalid', () => {
+    given('[case-arg-to-invalid] --into invalid value', () => {
+      when('[t0] --into invalid', () => {
         then('exit 2: shows error message', () => {
           const tempDir = genTempDir({ slug: 'arg-to-invalid', git: true });
           const fakeBinDir = path.join(tempDir, '.fakebin');
           fs.mkdirSync(fakeBinDir, { recursive: true });
 
           try {
-            const result = spawnSync('bash', [SKILL_PATH, '--to', 'invalid'], {
-              cwd: tempDir,
-              env: {
-                ...process.env,
-                PATH: `${fakeBinDir}:${process.env.PATH}`,
-                TERM: 'dumb',
+            const result = spawnSync(
+              'bash',
+              [SKILL_PATH, '--into', 'invalid'],
+              {
+                cwd: tempDir,
+                env: {
+                  ...process.env,
+                  PATH: `${fakeBinDir}:${process.env.PATH}`,
+                  TERM: 'dumb',
+                },
+                encoding: 'utf-8',
               },
-              encoding: 'utf-8',
-            });
-            expect(result.stderr).toContain("--to must be 'main' or 'prod'");
+            );
+            expect(result.stderr).toContain("--into must be 'main' or 'prod'");
             expect(result.stderr).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
@@ -2523,8 +2600,8 @@ describe('git.release.p2', () => {
               },
               encoding: 'utf-8',
             });
-            expect(result.stdout).toContain('--to main');
-            expect(result.stdout).toContain('--to prod');
+            expect(result.stdout).toContain('--into main');
+            expect(result.stdout).toContain('--into prod');
             expect(result.stdout).toContain('--mode');
             expect(result.stdout).toMatchSnapshot();
             expect(result.status).toEqual(0);
@@ -2537,7 +2614,7 @@ describe('git.release.p2', () => {
 
     given('[case-arg-defaults] no arguments', () => {
       when('[t0] run with no args', () => {
-        then('exit 0: defaults to --to main', () => {
+        then('exit 0: defaults to --into main', () => {
           const scene: Scene = {
             branch: 'feat',
             featPr: 'passed:wout-automerge',
@@ -2549,7 +2626,7 @@ describe('git.release.p2', () => {
 
           try {
             const result = runSkill([], { tempDir, fakeBinDir });
-            expect(result.stdout).toContain('git.release --to main');
+            expect(result.stdout).toContain('git.release --into main');
             expect(asTimingStable(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
@@ -2634,7 +2711,7 @@ esac
           try {
             const result = spawnSync(
               'bash',
-              [SKILL_PATH, '--to', 'main', '--retry'],
+              [SKILL_PATH, '--into', 'main', '--retry'],
               {
                 cwd: tempDir,
                 env: {

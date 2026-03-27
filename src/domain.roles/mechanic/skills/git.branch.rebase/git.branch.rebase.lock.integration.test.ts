@@ -12,6 +12,26 @@ import { given, then, when } from 'test-fns';
 const SKILL_PATH = path.join(__dirname, 'git.branch.rebase.lock.sh');
 
 /**
+ * .what = prepare output for deterministic snapshots
+ * .why = npm error output contains timestamps and temp paths that vary per run
+ */
+const asSnapshotReady = (input: string): string => {
+  return (
+    input
+      // replace npm log timestamps (e.g., 2026-03-24T19_00_42_330Z)
+      .replace(
+        /\d{4}-\d{2}-\d{2}T\d{2}_\d{2}_\d{2}_\d{3}Z/g,
+        'YYYY-MM-DDTHH_mm_ss_SSSZ',
+      )
+      // replace temp directory paths (e.g., /tmp/git-rebase-lock-test-nGQXp0/)
+      .replace(
+        /\/tmp\/git-rebase-lock-test-[A-Za-z0-9]+\//g,
+        '/tmp/git-rebase-lock-test-XXXXX/',
+      )
+  );
+};
+
+/**
  * .what = setup a git repo with rebase in progress and lock file
  * .why = test lock refresh against actual rebase state
  */
@@ -456,7 +476,7 @@ describe('git.branch.rebase.lock', () => {
           expect(result.status).not.toBe(0);
           expect(result.stdout).toContain('bummer dude');
           expect(result.stdout).toContain('install failed');
-          expect(result.stdout).toMatchSnapshot();
+          expect(asSnapshotReady(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }

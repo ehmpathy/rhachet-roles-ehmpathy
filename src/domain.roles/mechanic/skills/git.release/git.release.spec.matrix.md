@@ -43,17 +43,18 @@
 
 | flags | valid | behavior |
 |-------|-------|----------|
-| (none) | yes | plan mode, --to main (or --to prod when on main) |
-| `--to main` | yes | plan mode, release to main |
-| `--to prod` | yes | plan mode, release to prod |
+| (none) | yes | plan mode, --into main (or --into prod when on main) |
+| `--into main` | yes | plan mode, release to main |
+| `--into prod` | yes | plan mode, release to prod |
+| `--apply` | yes | alias for --mode apply |
 | `--mode apply` | yes | apply mode |
 | `--watch` | yes | watch mode (no automerge) |
 | `--mode apply --watch` | yes | same as `--mode apply` (watch implied) |
 | `--retry` | yes | rerun failed, plan mode |
 | `--retry --watch` | yes | rerun failed, watch until complete |
 | `--retry --mode apply` | yes | rerun failed, apply mode |
-| `--from main --to prod` | yes | skip feature branch, release main to prod |
-| `--from main --to main` | no | exit 2: invalid, already on main |
+| `--from main --into prod` | yes | skip feature branch, release main to prod |
+| `--from main --into main` | no | exit 2: invalid, already on main |
 | `--dirty allow` | yes | skip dirty check (only with apply) |
 | `--dirty allow --mode plan` | yes | ignored (dirty check only on apply) |
 
@@ -230,7 +231,7 @@ These states are unreachable or nonsensical:
 | release PR unmerged + tag workflows not unfound | tags only run after release merges |
 | feat PR unmerged + release PR not — | release PR created after feat merges |
 | apply + rebase:behind/rebase:dirty | apply exits 2 on rebase states, no watch |
-| `--from main --to main` | invalid: already on main, can't release to main |
+| `--from main --into main` | invalid: already on main, can't release to main |
 
 ---
 
@@ -289,24 +290,24 @@ These states are unreachable or nonsensical:
 
 ### branch detection
 
-| flag | current branch | --to | behavior |
+| flag | current branch | --into | behavior |
 |------|----------------|------|----------|
 | (none) | feat | (defaults to main) | feat → main flow |
 | (none) | main | (defaults to prod) | main → prod flow |
-| `--to main` | feat | main | feat → main flow |
-| `--to main` | main | main | exit 2: already on main |
-| `--to prod` | feat | prod | feat → main → prod flow |
-| `--to prod` | main | prod | main → prod flow |
+| `--into main` | feat | main | feat → main flow |
+| `--into main` | main | main | exit 2: already on main |
+| `--into prod` | feat | prod | feat → main → prod flow |
+| `--into prod` | main | prod | main → prod flow |
 | `--from main` | any | main | exit 2: already on main |
 | `--from main` | any | prod | main → prod flow |
 
-**note:** default `--to` target depends on current branch:
-- on feature branch: defaults to `--to main`
-- on main branch: defaults to `--to prod`
+**note:** default `--into` target depends on current branch:
+- on feature branch: defaults to `--into main`
+- on main branch: defaults to `--into prod`
 
 ### --from main state matrix
 
-when `--from main --to prod` is used, feature PR is ignored regardless of its state:
+when `--from main --into prod` is used, feature PR is ignored regardless of its state:
 
 | current branch | feat PR state | release PR | plan | apply | --watch |
 |----------------|---------------|------------|------|-------|---------|
@@ -323,13 +324,13 @@ when `--from main --to prod` is used, feature PR is ignored regardless of its st
 examples:
 ```bash
 # on feature branch, watch main release
-rhx git.release --from main --to prod --watch
+rhx git.release --from main --into prod --watch
 
 # on feature branch, apply main release
-rhx git.release --from main --to prod --mode apply
+rhx git.release --from main --into prod --mode apply
 
 # on any branch, check prod release status
-rhx git.release --from main --to prod
+rhx git.release --from main --into prod
 ```
 
 ---
@@ -355,11 +356,11 @@ apply mode requires git.commit.uses permission (locally or globally).
 
 | condition | exit | message |
 |-----------|------|---------|
-| `--to` invalid value | exit 2 | `--to must be 'main' or 'prod'` |
+| `--into` invalid value | exit 2 | `--into must be 'main' or 'prod'` |
 | `--mode` invalid value | exit 2 | `--mode must be 'plan' or 'apply'` |
 | `--dirty` invalid value | exit 2 | `--dirty must be 'block' or 'allow'` |
 | `--from` invalid value | exit 2 | `--from must be 'main'` |
-| `--from main --to main` | exit 2 | already on main, can't release to main |
+| `--from main --into main` | exit 2 | already on main, can't release to main |
 | not in git repo | exit 2 | not in a git repository |
 | apply without git.commit.uses | exit 2 | hint permission |
 | dirty worktree + apply | exit 2 | hint stash or --dirty allow |
@@ -376,7 +377,7 @@ apply mode requires git.commit.uses permission (locally or globally).
 
 | condition | exit | behavior |
 |-----------|------|----------|
-| no arguments | exit 0 | default --to main, show status |
+| no arguments | exit 0 | default --into main, show status |
 | `--help` | exit 0 | show usage |
 | `-h` | exit 0 | show usage |
 
@@ -397,9 +398,9 @@ apply mode requires git.commit.uses permission (locally or globally).
 ### header line
 
 shows command invocation:
-- `🐚 git.release --to main` (plan)
-- `🐚 git.release --to main --mode apply` (apply)
-- `🐚 git.release --to main --watch` (watch)
+- `🐚 git.release --into main` (plan)
+- `🐚 git.release --into main --mode apply` (apply)
+- `🐚 git.release --into main --watch` (watch)
 
 ### status tree
 

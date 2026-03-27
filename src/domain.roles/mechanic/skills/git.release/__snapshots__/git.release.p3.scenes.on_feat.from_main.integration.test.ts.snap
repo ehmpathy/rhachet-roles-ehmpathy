@@ -1,0 +1,868 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-1] release PR: unfound when: [apply] --from main --apply then: exit 0: no release PR found 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🫧 no open release pr
+   └─ latest: chore(release): v1.3.0 🎉
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-1] release PR: unfound when: [plan] --from main then: exit 0: no release PR found 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🫧 no open release pr
+   └─ latest: chore(release): v1.3.0 🎉
+
+🌊 release: v1.3.0
+   └─ 👌 all checks passed
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-1] release PR: unfound when: [watch] --from main --watch then: exit 0: no release PR found 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🫧 no open release pr
+   └─ latest: chore(release): v1.3.0 🎉
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-2a] release PR: unfound, tags: inflight when: [apply] --from main --apply then: exit 0: watch tags to completion 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🫧 no open release pr
+   └─ latest: chore(release): v1.3.0 🎉
+
+🌊 release: v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-2a] release PR: unfound, tags: inflight when: [plan] --from main then: exit 0: no release PR, tags inflight 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🫧 no open release pr
+   └─ latest: chore(release): v1.3.0 🎉
+
+🌊 release: v1.3.0
+   └─ 🐢 1 check(s) in progress
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-2a] release PR: unfound, tags: inflight when: [watch] --from main --watch then: exit 0: watch tags to completion 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🫧 no open release pr
+   └─ latest: chore(release): v1.3.0 🎉
+
+🌊 release: v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-2d] release PR: unfound, tags: failed when: [apply] --from main --apply then: exit 2: tags failed 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🫧 no open release pr
+   └─ latest: chore(release): v1.3.0 🎉
+
+🌊 release: v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 publish.yml
+   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        └─ failure
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-2d] release PR: unfound, tags: failed when: [plan] --from main then: exit 0: no release PR, tags failed (informational) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🫧 no open release pr
+   └─ latest: chore(release): v1.3.0 🎉
+
+🌊 release: v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 publish.yml
+   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        └─ failure
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-2d] release PR: unfound, tags: failed when: [watch] --from main --watch then: exit 2: tags failed 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🫧 no open release pr
+   └─ latest: chore(release): v1.3.0 🎉
+
+🌊 release: v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 publish.yml
+   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        └─ failure
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-4] release PR: inflight when: [apply] --from main --apply with transitions then: exit 0: watch, merge, then tags 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-4] release PR: inflight when: [plan] --from main then: exit 0: show progress 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ [2mhint: use --apply to enable automerge and watch[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-4] release PR: inflight when: [watch] --from main --watch with transitions then: exit 0: watch cycles then passed 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-7] release PR: inflight:with-automerge when: [apply] --from main --apply then: exit 0: watch to merged (automerge already found), then tags 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-7] release PR: inflight:with-automerge when: [plan] --from main then: exit 0: inflight, automerge found 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [found]
+   └─ [2mhint: use --apply to watch[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-7] release PR: inflight:with-automerge when: [watch] --from main --watch then: exit 0: watch to passed, automerge found 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-10] release PR: passed:wout-automerge when: [apply] --from main --apply then: exit 0: automerge added, merged, then tags 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-10] release PR: passed:wout-automerge when: [plan] --from main then: exit 0: passed, hint apply 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ [2mhint: use --apply to enable automerge and watch[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-10] release PR: passed:wout-automerge when: [watch] --from main --watch then: exit 0: passed (no watch needed) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-13] release PR: passed:with-automerge when: [apply] --from main --apply then: exit 0: automerge found, merged, then tags 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-13] release PR: passed:with-automerge when: [plan] --from main then: exit 0: passed, automerge found 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [found]
+   └─ [2mhint: use --apply to watch[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-13] release PR: passed:with-automerge when: [watch] --from main --watch then: exit 0: watch then merged 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-16] release PR: failed when: [apply] --from main --apply then: exit 2: failed, hint retry 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        └─ publish
+   ├─ 🌴 automerge unfound (use --apply to add)
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-16] release PR: failed when: [plan] --from main then: exit 2: failed, hint retry 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        └─ publish
+   ├─ 🌴 automerge unfound (use --apply to add)
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-16] release PR: failed when: [watch] --from main --watch then: exit 2: failed, hint retry 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        └─ publish
+   ├─ 🌴 automerge unfound (use --apply to add)
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-16r] release PR: failed + retry when: [apply+retry] --from main --apply --retry then: exit 2: rerun triggered then apply (still failed) 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch --retry
+
+🌊 release: chore(release): v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ publish
+   │        └─ 👌 rerun triggered
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ⚓ 1 check(s) failed
+      │  └─ 🔴 test
+      │        ├─ https://github.com/test/repo/actions/runs/123
+      │        └─ publish
+      ├─ [2mhint: use --retry to rerun failed workflows[0m
+      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-16r] release PR: failed + retry when: [plan+retry] --from main --retry then: exit 0: rerun triggered, hint watch 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan --retry
+
+🌊 release: chore(release): v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ publish
+   │        └─ 👌 rerun triggered
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ [2mhint: use --watch to monitor rerun progress[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-16r] release PR: failed + retry when: [watch+retry] --from main --watch --retry then: exit 2: rerun triggered then watch (still failed) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch --retry
+
+🌊 release: chore(release): v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ publish
+   │        └─ 👌 rerun triggered
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ⚓ 1 check(s) failed
+      │  └─ 🔴 test
+      │        ├─ https://github.com/test/repo/actions/runs/123
+      │        └─ publish
+      ├─ [2mhint: use --retry to rerun failed workflows[0m
+      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-19] release PR: rebase:behind when: [apply] --from main --apply then: exit 2: needs rebase 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --apply to add)
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-19] release PR: rebase:behind when: [plan] --from main then: exit 2: needs rebase 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --apply to add)
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-19] release PR: rebase:behind when: [watch] --from main --watch then: exit 2: needs rebase 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --apply to add)
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-22] release PR: rebase:dirty when: [apply] --from main --apply then: exit 2: needs rebase with conflicts 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase, has conflicts
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --apply to add)
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-22] release PR: rebase:dirty when: [plan] --from main then: exit 2: needs rebase with conflicts 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase, has conflicts
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --apply to add)
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-22] release PR: rebase:dirty when: [watch] --from main --watch then: exit 2: needs rebase with conflicts 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🐚 needs rebase, has conflicts
+   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   └─ 🌴 automerge unfound (use --apply to add)
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-25] release PR: merged, tags: unfound when: [apply] --from main --apply then: exit 0: merged, no tag workflows 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-25] release PR: merged, tags: unfound when: [plan] --from main then: exit 0: merged, no tag workflows 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   └─ 👌 all checks passed
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-25] release PR: merged, tags: unfound when: [watch] --from main --watch then: exit 0: merged, no tag workflows 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-28] release PR: merged, tags: inflight when: [apply] --from main --apply with transitions then: exit 0: watch tag workflows 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-28] release PR: merged, tags: inflight when: [plan] --from main then: exit 0: merged, tag workflows in progress 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   └─ 🐢 1 check(s) in progress
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-28] release PR: merged, tags: inflight when: [watch] --from main --watch with transitions then: exit 0: watch tag workflows 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-31] release PR: merged, tags: passed when: [apply] --from main --apply then: exit 0: all done 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-31] release PR: merged, tags: passed when: [plan] --from main then: exit 0: all done 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   └─ 👌 all checks passed
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-31] release PR: merged, tags: passed when: [watch] --from main --watch then: exit 0: all done 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-34] release PR: merged, tags: failed when: [apply] --from main --apply then: exit 2: tags failed 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 publish.yml
+   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        └─ failure
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-34] release PR: merged, tags: failed when: [plan] --from main then: exit 0: informational (tags failed) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 publish.yml
+   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        └─ failure
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-34] release PR: merged, tags: failed when: [watch] --from main --watch then: exit 2: tags failed 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 publish.yml
+   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        └─ failure
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-34r] release PR: merged, tags: failed + retry when: [apply+retry] --from main --apply --retry then: exit 2: tags failed (retry hint only, no actual tag rerun) 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch --retry
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 publish.yml
+   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ failure
+   │        └─ 👌 rerun triggered
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ ⚓ 1 check(s) failed
+      │  └─ 🔴 publish.yml
+      │        ├─ https://github.com/test/repo/actions/runs/789
+      │        └─ failure
+      ├─ [2mhint: use --retry to rerun failed workflows[0m
+      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-34r] release PR: merged, tags: failed + retry when: [plan+retry] --from main --retry then: exit 0: rerun triggered for tags 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan --retry
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 publish.yml
+   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ failure
+   │        └─ 👌 rerun triggered
+   └─ [2mhint: use --watch to monitor rerun progress[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from main (skips feat PR) given: [row-34r] release PR: merged, tags: failed + retry when: [watch+retry] --from main --watch --retry then: exit 2: tags failed (retry hint only, no actual tag rerun) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch --retry
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 publish.yml
+   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ failure
+   │        └─ 👌 rerun triggered
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ ⚓ 1 check(s) failed
+      │  └─ 🔴 publish.yml
+      │        ├─ https://github.com/test/repo/actions/runs/789
+      │        └─ failure
+      ├─ [2mhint: use --retry to rerun failed workflows[0m
+      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.from_main scene.4: --from main --into main (invalid) given: [error] --from main --into main when: rhx git.release --from main --into main then: ConstraintError: cannot merge main into main 1`] = `
+"
+🐢 hold up dude...
+
+   --from main --into main is invalid
+   you're already on main!
+
+   use --from main --into prod to release main to prod
+
+"
+`;

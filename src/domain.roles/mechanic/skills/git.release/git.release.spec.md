@@ -9,13 +9,13 @@
 the skill follows a **plan/apply pattern** (like terraform):
 
 - **plan** (default): show status, no mutations, safe to run anytime
-- **apply**: enable automerge, watch until complete, advance through the release path
+- **apply** (`--mode apply` or `--apply`): enable automerge, watch until complete, advance through the release path
 - **watch**: poll CI without automerge (observe only)
 
 three release paths exist:
 
-| from | to | entities |
-|------|-----|----------|
+| from | into | entities |
+|------|------|----------|
 | feature branch | main | feature PR |
 | main | prod | release PR → tag workflows |
 | feature branch | prod | feature PR → release PR → tag workflows |
@@ -33,7 +33,7 @@ rhx git.release
 ```
 🐢 heres the wave...
 
-🐚 git.release --to main --mode plan
+🐚 git.release --into main --mode plan
 
 🌊 release: feat(auth): add oauth provider
    ├─ 👌 all checks passed
@@ -52,7 +52,7 @@ rhx git.release --watch
 ```
 🐢 heres the wave...
 
-🐚 git.release --to main --watch
+🐚 git.release --into main --watch
 
 🌊 release: feat(auth): add oauth provider
    ├─ 👌 all checks passed
@@ -73,7 +73,7 @@ rhx git.release --mode apply
 ```
 🐢 cowabunga!
 
-🐚 git.release --to main --mode apply
+🐚 git.release --into main --mode apply
 
 🌊 release: feat(auth): add oauth provider
    ├─ 🐢 2 check(s) in progress
@@ -89,19 +89,19 @@ rhx git.release --mode apply
 full release cycle — merge to main, then prod, then watch tag workflows:
 
 ```bash
-rhx git.release --to prod --mode apply
+rhx git.release --into prod --mode apply
 ```
 
 ```
 🐢 radical!
 
-🐚 git.release --to prod --mode apply
+🐚 git.release --into prod --mode apply
 
 🌊 release: feat(auth): add oauth provider
    ├─ 👌 all checks passed
    └─ 🌴 already merged
 
-🫧 wait for it...
+🫧 and then...
    └─ ✨ found it! Xs in action, Xs watched
 
 🌊 release: chore(release): v1.2.3 🎉
@@ -110,7 +110,7 @@ rhx git.release --to prod --mode apply
    └─ 🥥 let's watch
       └─ ✨ done! Xs in action, Xs watched
 
-🫧 wait for it...
+🫧 and then...
    └─ ✨ found it! Xs in action, Xs watched
 
 🌊 release: v1.2.3
@@ -124,13 +124,13 @@ rhx git.release --to prod --mode apply
 release main → prod from any branch (skips feature branch requirement):
 
 ```bash
-rhx git.release --from main --to prod --mode apply
+rhx git.release --from main --into prod --mode apply
 ```
 
 ```
 🐢 radical!
 
-🐚 git.release --to prod --mode apply
+🐚 git.release --into prod --mode apply
 
 🌊 release: chore(release): v1.32.0 🎉
    ├─ 👌 all checks passed
@@ -138,7 +138,7 @@ rhx git.release --from main --to prod --mode apply
    └─ 🥥 let's watch
       └─ ✨ done! Xs in action, Xs watched
 
-🫧 wait for it...
+🫧 and then...
    └─ ✨ found it! Xs in action, Xs watched
 
 🌊 release: v1.32.0
@@ -158,7 +158,7 @@ rhx git.release --mode apply
 ```
 🐢 bummer dude...
 
-🐚 git.release --to main --mode apply
+🐚 git.release --into main --mode apply
 
 🌊 release: feat(auth): add oauth provider
    ├─ ⚓ 1 check(s) failed
@@ -176,7 +176,7 @@ rhx git.release --retry
 ```
 🐢 heres the wave...
 
-🐚 git.release --to main --retry
+🐚 git.release --into main --retry
 
 🌊 release: feat(auth): add oauth provider
    ├─ ⚓ 1 check(s) failed
@@ -194,7 +194,7 @@ rhx git.release --watch
 ```
 🐢 heres the wave...
 
-🐚 git.release --to main --watch
+🐚 git.release --into main --watch
 
 🌊 release: feat(auth): add oauth provider
    ├─ 🐢 1 check(s) in progress
@@ -215,7 +215,7 @@ rhx git.release
 ```
 🐢 hold up dude...
 
-🐚 git.release --to main
+🐚 git.release --into main
 
 🌊 release: feat(auth): add oauth provider
    ├─ 👌 all checks passed

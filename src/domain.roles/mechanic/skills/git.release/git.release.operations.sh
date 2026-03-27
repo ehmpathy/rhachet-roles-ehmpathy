@@ -157,6 +157,29 @@ get_release_pr_title() {
 }
 
 ######################################################################
+# get_latest_merged_release_pr_info
+# get the title of the most recent merged release PR
+#
+# usage: get_latest_merged_release_pr_info
+# returns: "title=<title>" or empty if not found
+######################################################################
+get_latest_merged_release_pr_info() {
+  local result
+
+  # get recent merged PRs and find the first release PR
+  # note: limit 21 to find release PR even if other PRs merged after it
+  result=$(_gh_with_retry gh pr list --state merged --limit 21 --json title --jq '[.[] | select(.title | startswith("chore(release):"))] | first | "title=\(.title)"')
+
+  # jq returns "title=null" if no match found
+  if [[ "$result" == *"title=null"* ]]; then
+    echo ""
+    return
+  fi
+
+  echo "$result"
+}
+
+######################################################################
 # get_pr_status
 # get PR status details (checks, automerge, merge state, title)
 #
@@ -521,144 +544,116 @@ get_unpushed_count() {
 }
 
 ######################################################################
-# wait_for_target
-# poll until a release target (PR or tag run) appears
-#
-# usage:
-#   wait_for_target "release_pr"           # wait for release PR to appear
-#   wait_for_target "tag_run:v1.2.3"       # wait for tag run to appear
-#
-# returns:
-#   0 if target found
-#   1 if timeout (3 minutes)
-#
-# output format:
-#   found immediately:
-#     └─ ✨ found it! 0s in action, 0s watched
-#
-#   found after poll:
-#     🫧 wait for it...
-#        ├─ 💤 await release pr, 10s watched
-#        ├─ 💤 await release pr, 20s watched
-#        └─ ✨ found it! 25s in action, 23s watched
-#
-# exit codes:
-#   0 = target found
-#   1 = timeout on release_pr (error)
-#   2 = timeout on tag_run (unfound, not error per spec)
+# show failed checks with links in watch context
+# same as show_failed_checks but uses watch-level indentation
 ######################################################################
-wait_for_target() {
-  local target="$1"
-  local target_type="${target%%:*}"
-  local target_value="${target#*:}"
+show_failed_checks_in_watch() {
+  local status_json="$1"
+  local in_progress_count="${2:-0}"
+  local failed_json
+  failed_json=$(get_failed_checks "$status_json")
 
-  # determine poll interval
-  local poll_interval
-  if [[ "${GIT_RELEASE_TEST_MODE:-}" == "true" ]]; then
-    poll_interval=0
-  elif [[ -n "${GIT_RELEASE_POLL_INTERVAL:-}" ]]; then
-    poll_interval="$GIT_RELEASE_POLL_INTERVAL"
-  else
-    poll_interval=10
+  local count
+  count=$(echo "$failed_json" | jq 'length')
+
+  local i=0
+  while IFS= read -r check; do
+    local name url conclusion
+    name=$(echo "$check" | jq -r '.name')
+    url=$(echo "$check" | jq -r '.url')
+    conclusion=$(echo "$check" | jq -r '.conclusion | ascii_downcase')
+
+    i=$((i + 1))
+    local is_last="false"
+    # only mark as last if this is the last check AND no in-progress items follow
+    if [[ $i -eq $count && "$in_progress_count" -eq 0 ]]; then
+      is_last="true"
+    fi
+
+    # extract run_id from url
+    local run_id
+    run_id=$(echo "$url" | grep -oP 'runs/\K\d+' || true)
+
+    # get step name and duration for message
+    local message="$conclusion"
+    if [[ -n "$run_id" ]]; then
+      local step_name duration_secs
+      step_name=$(get_failed_step_name "$run_id")
+      duration_secs=$(get_run_duration "$run_id")
+
+      if [[ -n "$duration_secs" && "$duration_secs" -gt 0 ]]; then
+        local duration_str
+        duration_str=$(format_duration "$duration_secs")
+        message="failed after $duration_str"
+      elif [[ -n "$step_name" ]]; then
+        message="$step_name"
+      fi
+    fi
+
+    print_watch_failed_check "$name" "$url" "$message" "$is_last"
+  done < <(echo "$failed_json" | jq -c '.[]')
+
+  # show in-progress count if any
+  if [[ "$in_progress_count" -gt 0 ]]; then
+    print_watch_progress_in_failure "$in_progress_count"
   fi
+}
 
-  local start_time ci_start_time
-  start_time=$(date +%s)
-  ci_start_time="$start_time"
+######################################################################
+# show failed tag runs with links (watch context)
+# matches structure of show_failed_checks but for tag workflow runs
+# and uses watch-level indentation
+######################################################################
+show_failed_tag_runs() {
+  local runs_json="$1"
+  local in_progress_count="${2:-0}"
 
-  local first_iteration="true"
-  local found="false"
-  local header_printed="false"
-  local test_iterations=0
+  # get failed runs
+  local failed_runs
+  failed_runs=$(echo "$runs_json" | jq -c '[.[] | select(.conclusion == "failure" or .conclusion == "cancelled")]')
 
-  while [[ "$found" == "false" ]]; do
-    local elapsed
-    elapsed=$(( $(date +%s) - start_time ))
+  local failed_count
+  failed_count=$(echo "$failed_runs" | jq 'length')
 
-    # timeout after 3 minutes
-    if [[ $elapsed -ge 180 ]]; then
-      if [[ "$header_printed" == "true" ]]; then
-        echo "   └─ ⏱️  timeout after 3 minutes"
-      else
-        echo "   └─ ⏱️  timeout to await $target_type"
+  # print header
+  print_watch_check_status "failed" "$failed_count"
+
+  # print each failed run
+  local i=0
+  while IFS= read -r run; do
+    local name url conclusion run_id
+    name=$(echo "$run" | jq -r '.name')
+    url=$(echo "$run" | jq -r '.url')
+    conclusion=$(echo "$run" | jq -r '.conclusion | ascii_downcase')
+
+    # extract run_id from url
+    run_id=$(echo "$url" | grep -oP 'runs/\K\d+' || true)
+
+    # get duration for message
+    local message="$conclusion"
+    if [[ -n "$run_id" ]]; then
+      local duration_secs
+      duration_secs=$(get_run_duration "$run_id")
+
+      if [[ -n "$duration_secs" && "$duration_secs" -gt 0 ]]; then
+        local duration_str
+        duration_str=$(format_duration "$duration_secs")
+        message="failed after $duration_str"
       fi
-      # return 2 for tag_run (unfound per spec = exit 0), 1 for others (error)
-      if [[ "$target_type" == "tag_run" ]]; then
-        return 2
-      fi
-      return 1
     fi
 
-    # check if target extant
-    case "$target_type" in
-      release_pr)
-        local pr
-        pr=$(get_release_pr 2>/dev/null) || true
-        if [[ -n "$pr" ]]; then
-          found="true"
-        fi
-        ;;
-      tag_run)
-        local runs
-        runs=$(get_tag_runs "$target_value" 2>/dev/null) || true
-        local run_count
-        run_count=$(echo "$runs" | jq -r 'length // 0')
-        if [[ "$run_count" -gt 0 ]]; then
-          found="true"
-          # update ci_start_time from the first run
-          local first_started
-          first_started=$(echo "$runs" | jq -r '.[0].startedAt // empty' 2>/dev/null) || true
-          if [[ -n "$first_started" && "$first_started" != "null" ]]; then
-            ci_start_time=$(date -d "$first_started" +%s 2>/dev/null || echo "$start_time")
-          fi
-        fi
-        ;;
-      *)
-        echo "error: unknown target type: $target_type" >&2
-        return 1
-        ;;
-    esac
-
-    # print header on first iteration
-    if [[ "$first_iteration" == "true" ]]; then
-      echo ""
-      echo "🫧 wait for it..."
-      header_printed="true"
+    i=$((i + 1))
+    local is_last="false"
+    # only mark as last if this is the last check AND no in-progress items follow
+    if [[ $i -eq $failed_count && "$in_progress_count" -eq 0 ]]; then
+      is_last="true"
     fi
 
-    # if found, show "found it!" and return
-    if [[ "$found" == "true" ]]; then
-      local in_action
-      in_action=$(( $(date +%s) - ci_start_time ))
-      echo "   └─ ✨ found it! $(format_duration "$in_action") in action, $(format_duration "$elapsed") watched"
-      return 0
-    fi
+    print_watch_failed_check "$name" "$url" "$message" "$is_last"
+  done < <(echo "$failed_runs" | jq -c '.[]')
 
-    # show await line
-    local target_label
-    case "$target_type" in
-      release_pr) target_label="release pr" ;;
-      tag_run) target_label="release run" ;;
-    esac
-    echo "   ├─ 💤 await $target_label, $(format_duration "$elapsed") watched"
-
-    first_iteration="false"
-
-    # skip actual sleep in test mode
-    if [[ "$poll_interval" == "0" ]]; then
-      # in test mode, exit after 2 iterations to prevent infinite loop
-      # (elapsed time check fails because no wall-clock time passes without sleep)
-      test_iterations=$((test_iterations + 1))
-      if [[ $test_iterations -ge 3 ]]; then
-        echo "   └─ ⏱️  timeout (test mode)"
-        # return 2 for tag_run (unfound per spec = exit 0), 1 for others (error)
-        if [[ "$target_type" == "tag_run" ]]; then
-          return 2
-        fi
-        return 1
-      fi
-    else
-      sleep "$poll_interval"
-    fi
-  done
+  # show in-progress count if any
+  if [[ "$in_progress_count" -gt 0 ]]; then
+    print_watch_progress_in_failure "$in_progress_count"
+  fi
 }
