@@ -8,7 +8,11 @@ import {
   writeRhachetMock,
   writeSimpleGhMock,
 } from './.test/infra/mockGh';
-import { genMockBinDir, genStateDir, genTempGitRepo } from './.test/infra/setupTestEnv';
+import {
+  genMockBinDir,
+  genStateDir,
+  genTempGitRepo,
+} from './.test/infra/setupTestEnv';
 
 // all tests use mocked gh CLI, so no remote calls - 5s timeout is plenty
 jest.setTimeout(5000);
