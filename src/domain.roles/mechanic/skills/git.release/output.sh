@@ -37,28 +37,34 @@ print_release_header() {
 
 ######################################################################
 # print check status line
-# usage: print_check_status "passed|failed|progress" [count]
+# usage: print_check_status "passed|failed|progress" [count] [is_last]
 ######################################################################
 print_check_status() {
   local status="$1"
   local count="${2:-}"
+  local is_last="${3:-false}"
+
+  local prefix="├─"
+  if [[ "$is_last" == "true" ]]; then
+    prefix="└─"
+  fi
 
   case "$status" in
     passed)
-      echo "   ├─ 👌 all checks passed"
+      echo "   $prefix 👌 all checks passed"
       ;;
     failed)
       if [[ -n "$count" ]]; then
-        echo "   ├─ ⚓ $count check(s) failed"
+        echo "   $prefix ⚓ $count check(s) failed"
       else
-        echo "   ├─ ⚓ checks failed"
+        echo "   $prefix ⚓ checks failed"
       fi
       ;;
     progress)
       if [[ -n "$count" ]]; then
-        echo "   ├─ 🐢 $count check(s) in progress"
+        echo "   $prefix 🐢 $count check(s) in progress"
       else
-        echo "   ├─ 🐢 checks in progress"
+        echo "   $prefix 🐢 checks in progress"
       fi
       ;;
   esac
@@ -66,42 +72,34 @@ print_check_status() {
 
 ######################################################################
 # print automerge status line
-# usage: print_automerge_status "enabled|unfound|merged" [extra]
+# usage: print_automerge_status "enabled|unfound|merged" [extra] [is_last]
 ######################################################################
 print_automerge_status() {
   local status="$1"
   local extra="${2:-}"
+  local is_last="${3:-false}"
+
+  local prefix="├─"
+  if [[ "$is_last" == "true" ]]; then
+    prefix="└─"
+  fi
 
   case "$status" in
     enabled)
       if [[ -n "$extra" ]]; then
-        echo "   ├─ 🌴 automerge enabled [added]"
+        echo "   $prefix 🌴 automerge enabled [added]"
       else
-        echo "   ├─ 🌴 automerge enabled [found]"
+        echo "   $prefix 🌴 automerge enabled [found]"
       fi
       ;;
     unfound)
-      echo "   ├─ 🌴 automerge unfound (use --apply to add)"
+      echo "   $prefix 🌴 automerge unfound (use --apply to add)"
       ;;
     merged)
-      echo "   └─ 🌴 merged"
+      # merged is always last (no further actions possible)
+      echo "   └─ 🌴 already merged"
       ;;
   esac
-}
-
-######################################################################
-# print watch status line (legacy, kept for backwards compat)
-# usage: print_watch_status [elapsed]
-######################################################################
-print_watch_status() {
-  local elapsed="${1:-}"
-
-  if [[ -n "$elapsed" ]]; then
-    echo "   └─ 🥥 let's watch"
-    echo "      └─ 👌 merged after $elapsed"
-  else
-    echo "   └─ 🥥 let's watch"
-  fi
 }
 
 ######################################################################
@@ -114,18 +112,18 @@ print_watch_header() {
 
 ######################################################################
 # print watch poll line (shows poll cycle in watch tree)
-# usage: print_watch_poll left_count action_time watched_time [is_last]
+# usage: print_watch_poll message action_time watched_time [is_last]
 ######################################################################
 print_watch_poll() {
-  local left="$1"
+  local message="$1"
   local action_time="$2"
   local watched_time="$3"
   local is_last="${4:-false}"
 
   if [[ "$is_last" == "true" ]]; then
-    echo "      └─ 💤 $left left, ${action_time}s in action, ${watched_time}s watched"
+    echo "      └─ 💤 $message, ${action_time} in action, ${watched_time} watched"
   else
-    echo "      ├─ 💤 $left left, ${action_time}s in action, ${watched_time}s watched"
+    echo "      ├─ 💤 $message, ${action_time} in action, ${watched_time} watched"
   fi
 }
 
@@ -166,6 +164,7 @@ print_transition() {
   local message="${1:-and then...}"
   echo ""
   echo "🫧 $message"
+  echo ""
 }
 
 ######################################################################

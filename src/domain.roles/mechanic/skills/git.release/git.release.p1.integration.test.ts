@@ -65,8 +65,13 @@ fi
 if [[ "$CMD_KEY" == "pr list" ]]; then
   ALL_ARGS="$*"
 
-  # check for title query first (get_release_pr_title uses .title at end)
-  if [[ "$ALL_ARGS" == *".title"* ]]; then
+  # check for --limit 21 query FIRST (get_latest_merged_release_pr_info)
+  # this must come before .title check since both queries contain .title
+  if [[ "$ALL_ARGS" == *"--state merged"* ]] && [[ "$ALL_ARGS" == *"--limit 21"* ]]; then
+    # always return a prior merged release PR by default (realistic behavior)
+    echo "title=chore(release): v1.33.0 🎉"
+    exit 0
+  elif [[ "$ALL_ARGS" == *".title"* ]]; then
     # check for "pr list title" key first, fallback to "pr list"
     RESPONSE_TITLE=$(echo "$MOCK_RESPONSES" | jq -r '.["pr list title"] // empty')
     if [[ -n "$RESPONSE_TITLE" ]]; then
@@ -244,7 +249,7 @@ describe('git.release', () => {
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'main'], { tempDir, fakeBinDir });
 
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
@@ -268,7 +273,7 @@ describe('git.release', () => {
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'main'], { tempDir, fakeBinDir });
 
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
@@ -278,23 +283,20 @@ describe('git.release', () => {
       });
     });
 
-    when('[t2] on main branch with release PR', () => {
-      then('shows release PR status', () => {
-        const mockResponses = {
-          // jq-processed: returns PR number for release PR
-          'pr list': '99',
-          'pr list title': 'chore(release): v1.32.0 🎉',
-          'pr view':
-            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "chore(release): v1.32.0 🎉"}',
-        };
+    when('[t2] on main branch with --into main', () => {
+      then('ConstraintError: cannot merge main into main', () => {
+        // per blueprint scene.6: --from main --into main is invalid
+        // when on main branch, --from defaults to main
+        // so --into main means --from main --into main → ConstraintError
+        const mockResponses = {};
 
         const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
 
         try {
-          const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'main'], { tempDir, fakeBinDir });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
-          expect(result.status).toEqual(0);
+          expect(result.stderr).toContain('--from main --into main is invalid');
+          expect(result.status).toEqual(2);
         } finally {
           cleanup();
         }
@@ -319,7 +321,7 @@ describe('git.release', () => {
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'main'], { tempDir, fakeBinDir });
 
           // should find the merged PR and show its status
           expect(result.stdout).toContain('feat(oceans): add reef protection');
@@ -349,7 +351,7 @@ describe('git.release', () => {
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'main', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
@@ -383,7 +385,7 @@ describe('git.release', () => {
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'main', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
@@ -414,7 +416,7 @@ describe('git.release', () => {
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'main'], { tempDir, fakeBinDir });
 
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
@@ -439,7 +441,7 @@ describe('git.release', () => {
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'main'], { tempDir, fakeBinDir });
 
           // should show conflicts message
           expect(result.stdout).toContain('has conflicts');
@@ -554,7 +556,7 @@ exit 1
         );
 
         try {
-          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'main', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
@@ -565,7 +567,7 @@ exit 1
           // stdout shows success
           expect(result.stdout).toContain('cowabunga');
           expect(result.stdout).toContain('all checks passed');
-          expect(result.stdout).toContain('merged already');
+          expect(result.stdout).toContain('and merged already');
 
           // snapshot output
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
@@ -595,10 +597,15 @@ exit 1
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'main', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
+
+          // debug output
+          console.log('case2 t4 STDOUT:', result.stdout);
+          console.log('case2 t4 STDERR:', result.stderr);
+          console.log('case2 t4 STATUS:', result.status);
 
           // failloud: skill exits 1 (malfunction error) for actual gh errors
           expect(result.status).toEqual(1);
@@ -633,7 +640,7 @@ exit 1
         const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
 
         try {
-          const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'prod'], { tempDir, fakeBinDir });
 
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
@@ -657,7 +664,7 @@ exit 1
           // create a tag
           spawnSync('git', ['tag', 'v1.2.0'], { cwd: tempDir });
 
-          const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'prod'], { tempDir, fakeBinDir });
 
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
@@ -670,7 +677,7 @@ exit 1
 
   given('[case3b] release to prod from feat (plan mode)', () => {
     when('[t0] open PR for feature branch', () => {
-      then('runs --to main flow first then stops', () => {
+      then('runs --into main flow first then stops', () => {
         const mockResponses = {
           'pr list': '42',
           'pr view':
@@ -684,10 +691,10 @@ exit 1
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'prod'], { tempDir, fakeBinDir });
 
           // should show unified prod header with feature branch content
-          expect(result.stdout).toContain('git.release --to prod');
+          expect(result.stdout).toContain('git.release --into prod');
           expect(result.stdout).toContain('feat(oceans): add reef protection');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
@@ -710,10 +717,11 @@ exit 1
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'prod'], { tempDir, fakeBinDir });
 
-          expect(result.stdout).toContain('hold up dude');
-          expect(result.stdout).toContain('no open pr');
+          // per vision: "crickets" for no PR found (informational)
+          expect(result.stdout).toContain('crickets');
+          expect(result.stdout).toContain('no open branch pr');
           expect(result.stdout).toContain('git.commit.push');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
@@ -743,8 +751,8 @@ case "$CMD_KEY" in
   "pr list")
     # detect if release PR request (has chore(release) in jq filter)
     if echo "$ALL_ARGS" | grep -q "chore(release)"; then
-      # check if filter asks for .title or .number
-      if echo "$ALL_ARGS" | grep -q ".title"; then
+      # check if query ends with "| .title" vs "| .number" (shell parses quotes away)
+      if echo "$ALL_ARGS" | grep -qE '\\| \\.title$'; then
         echo "chore(release): v1.33.0 🎉"
       else
         echo "99"
@@ -821,10 +829,10 @@ exit 1
           // create a tag for latest version display
           spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
 
-          const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'prod'], { tempDir, fakeBinDir });
 
           // should show unified prod header
-          expect(result.stdout).toContain('git.release --to prod');
+          expect(result.stdout).toContain('git.release --into prod');
           // should show feature branch section (merged)
           expect(result.stdout).toContain('feat(oceans): add reef protection');
           expect(result.stdout).toContain('merged');
@@ -865,8 +873,8 @@ case "$CMD_KEY" in
       if echo "$ALL_ARGS" | grep -qF -- "--state open"; then
         echo ""  # no open release PR
       elif echo "$ALL_ARGS" | grep -qF -- "--state merged"; then
-        # check if filter ENDS with .title or .number (both contain .title in select)
-        if echo "$ALL_ARGS" | grep -qE '\\.number$'; then
+        # check if filter ends with "| .number" vs "| .title" (shell parses quotes away)
+        if echo "$ALL_ARGS" | grep -qE '\\| \\.number$'; then
           echo "99"
         else
           echo "chore(release): v1.33.0"
@@ -949,18 +957,17 @@ exit 1
           spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
           spawnSync('git', ['tag', 'v1.33.0'], { cwd: tempDir }); // merged release tag
 
-          const result = runSkill(['--to', 'prod'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'prod'], { tempDir, fakeBinDir });
 
           // should show unified prod header
-          expect(result.stdout).toContain('git.release --to prod');
+          expect(result.stdout).toContain('git.release --into prod');
           // should show feature branch section (merged)
           expect(result.stdout).toContain('feat(oceans): add reef protection');
           expect(result.stdout).toContain('already merged');
           // should continue to release PR section (also merged)
           expect(result.stdout).toContain('chore(release): v1.33.0');
-          // should show tag workflow status (the "third find")
+          // should show tag status (the "third find") - note: workflow names only appear in watch mode
           expect(result.stdout).toContain('v1.33.0');
-          expect(result.stdout).toContain('publish.yml');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
@@ -986,10 +993,10 @@ exit 1
         const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
 
         try {
-          // create a tag for the watch to find
-          spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
+          // create a tag matching the mock PR title version
+          spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
 
-          const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
@@ -1015,7 +1022,7 @@ exit 1
         try {
           spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
 
-          const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
@@ -1041,7 +1048,7 @@ exit 1
         try {
           spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
 
-          const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
@@ -1068,7 +1075,7 @@ exit 1
         try {
           spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
 
-          const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
@@ -1190,8 +1197,8 @@ exit 1
           );
           fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
 
-          // create a tag
-          spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
+          // create a tag matching the PR title version
+          spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
 
           // setup git.commit.uses permission for apply mode
           const meterDir = path.join(tempDir, '.meter');
@@ -1201,7 +1208,7 @@ exit 1
             JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
           );
 
-          const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
             extraEnv: { GIT_RELEASE_POLL_INTERVAL: '0' },
@@ -1229,9 +1236,10 @@ exit 1
         const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
 
         try {
-          spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
+          // create a tag matching the mock PR title version
+          spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
 
-          const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
@@ -1278,7 +1286,14 @@ set -e
 ALL_ARGS="$*"
 STATE_FILE="${tempDir}/.gh-state"
 
-# pr list - no release PR
+# check for --limit 21 query (get_latest_merged_release_pr_info) - MUST come first
+if [[ "$ALL_ARGS" == *"pr list"* ]] && [[ "$ALL_ARGS" == *"merged"* ]] && [[ "$ALL_ARGS" == *"--limit 21"* ]]; then
+  # always return a prior merged release PR by default (realistic behavior)
+  echo "title=chore(release): v1.2.3 🎉"
+  exit 0
+fi
+
+# pr list - no release PR (other queries)
 if [[ "$ALL_ARGS" == *"pr list"* ]]; then
   echo ''
   exit 0
@@ -1333,7 +1348,7 @@ exit 1
           JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
         );
 
-        const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+        const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
           tempDir,
           fakeBinDir,
           extraEnv: { GIT_RELEASE_POLL_INTERVAL: '0' },
@@ -1356,7 +1371,7 @@ exit 1
         try {
           spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
 
-          const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
@@ -1384,13 +1399,14 @@ exit 1
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
 
-          expect(result.stdout).toContain('hold up dude');
-          expect(result.stdout).toContain('no open pr');
+          // per vision: "crickets" for no PR found (informational)
+          expect(result.stdout).toContain('crickets');
+          expect(result.stdout).toContain('no open branch pr');
           expect(result.stdout).toContain('git.commit.push');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
@@ -1401,7 +1417,7 @@ exit 1
     });
 
     when('[t1] PR merges then release PR merges (full journey)', () => {
-      then('runs --to main first then continues to release pr', () => {
+      then('runs --into main first then continues to release pr', () => {
         // stateful mock: first pr view is for feature branch (open), second is merged
         const tempDir = genTempDir({ slug: 'git-release-t5', git: true });
         const fakeBinDir = path.join(tempDir, '.fakebin');
@@ -1442,8 +1458,8 @@ case "$CMD_KEY" in
     fi
     ;;
   "pr view")
-    # detect which PR via last arg (the PR number)
-    PR_NUM="\${@: -1}"
+    # detect which PR via third arg (the PR number)
+    PR_NUM="$3"
 
     if [[ "$PR_NUM" == "42" ]]; then
       # feature branch PR - use separate counter
@@ -1474,17 +1490,17 @@ case "$CMD_KEY" in
 
       if [[ $REL_COUNT -lt 1 ]]; then
         # poll 1: active
-        echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+        echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "chore(release): v1.2.3"}'
       elif [[ $REL_COUNT -lt 2 ]]; then
         # poll 2: checks done
-        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "chore(release): v1.2.3"}'
       else
         # poll 3: merged
-        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.2.3"}'
       fi
     else
       # fallback: merged state
-      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.2.3"}'
     fi
     ;;
   "pr merge")
@@ -1547,13 +1563,13 @@ exit 1
           JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
         );
 
-        const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+        const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
           tempDir,
           fakeBinDir,
         });
 
         // should show unified prod header
-        expect(result.stdout).toContain('git.release --to prod');
+        expect(result.stdout).toContain('git.release --into prod');
         // should show feature branch release
         expect(result.stdout).toContain('feat(oceans): add reef protection');
         // then should show release PR
@@ -1597,11 +1613,12 @@ case "$CMD_KEY" in
   "pr list")
     # detect if release PR request (has chore(release) in jq filter)
     if echo "$ALL_ARGS" | grep -q "chore(release)"; then
-      # release PR request - check if filter asks for .title or .number
-      if echo "$ALL_ARGS" | grep -q ".title"; then
-        echo "chore(release): v1.32.0 🎉"
-      else
+      # release PR request - check if filter ends with .number or .title
+      # note: both queries have .title in the middle (in select), so check for .number at the end
+      if echo "$ALL_ARGS" | grep -q "| \\.number"; then
         echo "99"
+      else
+        echo "chore(release): v1.32.0 🎉"
       fi
     else
       # feature branch PR request
@@ -1638,14 +1655,14 @@ case "$CMD_KEY" in
 
       if [[ $REL_COUNT -lt 1 ]]; then
         # first call: PR is open with passed checks, NO automerge
-        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "chore(release): v1.32.0"}'
       else
         # second call: PR is now merged (instant merge)
-        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0"}'
       fi
     else
       # fallback: merged state
-      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0"}'
     fi
     ;;
   "pr merge")
@@ -1694,8 +1711,8 @@ exit 1
             );
             fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
 
-            // setup git repo on feature branch
-            spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
+            // setup git repo on feature branch with tag version that matches mock PR title
+            spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
             spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
               cwd: tempDir,
             });
@@ -1712,7 +1729,7 @@ exit 1
               }),
             );
 
-            const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+            const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
               tempDir,
               fakeBinDir,
             });
@@ -1736,7 +1753,7 @@ exit 1
     when('[t3] feature PR already merged (not part of current run)', () => {
       then('proceeds directly to release PR', () => {
         // scenario: feature branch PR was merged separately (by another mechanic, manually, etc)
-        // when we run --to prod, it should skip to release PR immediately
+        // when we run --into prod, it should skip to release PR immediately
         const tempDir = genTempDir({
           slug: 'git-release-feat-merged',
           git: true,
@@ -1791,16 +1808,16 @@ case "$CMD_KEY" in
 
       if [[ $REL_COUNT -lt 1 ]]; then
         # poll 1: checks in progress
-        echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+        echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "chore(release): v1.32.0 🎉"}'
       elif [[ $REL_COUNT -lt 2 ]]; then
         # poll 2: checks done, automerge enabled
-        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "chore(release): v1.32.0 🎉"}'
       else
         # poll 3: merged
-        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0 🎉"}'
       fi
     else
-      echo '{"statusCheckRollup": [], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+      echo '{"statusCheckRollup": [], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0 🎉"}'
     fi
     ;;
   "pr merge")
@@ -1833,7 +1850,8 @@ exit 1
         fs.writeFileSync(path.join(nodeModulesBinDir, 'rhachet'), rhachetMock);
         fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
 
-        spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
+        // tag version must match mock PR title version
+        spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
         spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
           cwd: tempDir,
         });
@@ -1846,7 +1864,7 @@ exit 1
           JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
         );
 
-        const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+        const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
           tempDir,
           fakeBinDir,
         });
@@ -1927,14 +1945,14 @@ case "$CMD_KEY" in
       echo $((REL_COUNT + 1)) > "$REL_COUNTER_FILE"
 
       if [[ $REL_COUNT -lt 1 ]]; then
-        echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+        echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "chore(release): v1.32.0 🎉"}'
       elif [[ $REL_COUNT -lt 2 ]]; then
-        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci", "startedAt": "'$NOW'"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "chore(release): v1.32.0 🎉"}'
       else
-        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0 🎉"}'
       fi
     else
-      echo '{"statusCheckRollup": [], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+      echo '{"statusCheckRollup": [], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0 🎉"}'
     fi
     ;;
   "pr merge")
@@ -1967,7 +1985,8 @@ exit 1
         fs.writeFileSync(path.join(nodeModulesBinDir, 'rhachet'), rhachetMock);
         fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
 
-        spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
+        // tag version must match mock PR title version
+        spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
         spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
           cwd: tempDir,
         });
@@ -1980,7 +1999,7 @@ exit 1
           JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
         );
 
-        const result = runSkill(['--to', 'prod', '--mode', 'apply'], {
+        const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
           tempDir,
           fakeBinDir,
         });
@@ -1998,8 +2017,8 @@ exit 1
   });
 
   given('[case5] retry behavior', () => {
-    when('[t0] --retry with failed PR checks', () => {
-      then('reruns failed workflows and exits success', () => {
+    when('[t0] --retry without --apply (retry-only)', () => {
+      then('reruns failed workflows and exits success without watch', () => {
         // mock includes separate responses for step name vs duration (Gap 5)
         const mockResponses = {
           'pr list': '42',
@@ -2020,10 +2039,16 @@ exit 1
             cwd: tempDir,
           });
 
-          const result = runSkill(
-            ['--to', 'main', '--mode', 'apply', '--retry'],
-            { tempDir, fakeBinDir },
-          );
+          // note: --retry alone (no --apply or --watch) triggers rerun and exits 0
+          // per blueprint: user monitors separately with --watch
+          const result = runSkill(['--into', 'main', '--retry'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          console.log('DEBUG STDOUT:', result.stdout);
+          console.log('DEBUG STDERR:', result.stderr);
+          console.log('DEBUG STATUS:', result.status);
 
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           // retry was triggered successfully — exit 0 (use --watch to monitor)
@@ -2083,6 +2108,13 @@ if [[ "$CMD_KEY" == "run rerun" ]]; then
   exit 0
 fi
 
+# check for --limit 21 query (get_latest_merged_release_pr_info) - MUST come first
+if [[ "$CMD_KEY" == "pr list" ]] && [[ "$*" == *"merged"* ]] && [[ "$*" == *"--limit 21"* ]]; then
+  # always return a prior merged release PR by default (realistic behavior)
+  echo "title=chore(release): v1.2.3 🎉"
+  exit 0
+fi
+
 if [[ "$CMD_KEY" == "pr list" ]]; then
   echo ""
   exit 0
@@ -2095,7 +2127,7 @@ exit 1
           fs.chmodSync(ghMockPath, '755');
 
           const result = runSkill(
-            ['--to', 'prod', '--mode', 'apply', '--retry'],
+            ['--into', 'prod', '--mode', 'apply', '--retry'],
             {
               tempDir,
               fakeBinDir,
@@ -2112,6 +2144,96 @@ exit 1
         }
       });
     });
+
+    when(
+      '[t2] --retry with failed tag workflows, 3+ poll cycles before failure',
+      () => {
+        then('shows 3+ sleep cycles then still fails', () => {
+          // tests the scenario where retry triggers rerun but checks still fail after watch
+          const mockResponses = {
+            'pr list': '',
+            'run rerun': 'rerun triggered',
+          };
+
+          const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+          try {
+            spawnSync('git', ['tag', 'v1.2.3'], { cwd: tempDir });
+
+            // create stateful mock for run list with 4 poll cycles before failure
+            const counterFile = path.join(tempDir, '.run-list-counter');
+            fs.writeFileSync(counterFile, '0');
+
+            const ghMockPath = path.join(fakeBinDir, 'gh');
+            const statefulGhMock = `#!/bin/bash
+set -euo pipefail
+
+CMD_KEY="$1 $2"
+
+if [[ "$CMD_KEY" == "run list" ]]; then
+  COUNTER_FILE="${counterFile}"
+  COUNT=$(cat "$COUNTER_FILE")
+  NEW_COUNT=$((COUNT + 1))
+  echo "$NEW_COUNT" > "$COUNTER_FILE"
+
+  if [[ "$COUNT" -lt 2 ]]; then
+    # first two calls (status check + show_failed_tag_runs_in_status): failure → triggers rerun
+    echo '[{"name": "publish.yml", "conclusion": "failure", "status": "completed", "url": "https://github.com/test/repo/actions/runs/789"}]'
+  elif [[ "$COUNT" -lt 9 ]]; then
+    # calls 2-8 (watch polls): in progress → shows 💤 lines (need extra buffer for multiple calls per poll)
+    echo '[{"name": "publish.yml", "conclusion": null, "status": "in_progress", "url": "https://github.com/test/repo/actions/runs/789"}]'
+  else
+    # call 9+ (final poll): failure again → retry did not help
+    echo '[{"name": "publish.yml", "conclusion": "failure", "status": "completed", "url": "https://github.com/test/repo/actions/runs/789"}]'
+  fi
+  exit 0
+fi
+
+if [[ "$CMD_KEY" == "run rerun" ]]; then
+  echo "rerun triggered"
+  exit 0
+fi
+
+# check for --limit 21 query (get_latest_merged_release_pr_info) - MUST come first
+if [[ "$CMD_KEY" == "pr list" ]] && [[ "$*" == *"merged"* ]] && [[ "$*" == *"--limit 21"* ]]; then
+  echo "title=chore(release): v1.2.3 🎉"
+  exit 0
+fi
+
+if [[ "$CMD_KEY" == "pr list" ]]; then
+  echo ""
+  exit 0
+fi
+
+echo "mock: unhandled gh $*" >&2
+exit 1
+`;
+            fs.writeFileSync(ghMockPath, statefulGhMock);
+            fs.chmodSync(ghMockPath, '755');
+
+            const result = runSkill(
+              ['--into', 'prod', '--mode', 'apply', '--retry'],
+              {
+                tempDir,
+                fakeBinDir,
+                extraEnv: { GIT_RELEASE_POLL_INTERVAL: '0.1' },
+              },
+            );
+
+            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            // verify we see 3+ poll cycles in output (💤 lines)
+            const pollLines = result.stdout
+              .split('\n')
+              .filter((line: string) => line.includes('💤'));
+            expect(pollLines.length).toBeGreaterThanOrEqual(3);
+            // still fails because workflow still shows failure after retry
+            expect(result.status).toEqual(2);
+          } finally {
+            cleanup();
+          }
+        });
+      },
+    );
   });
 
   given('[case6] boundary conditions', () => {
@@ -2145,7 +2267,7 @@ exit 1
           // so keyrack locked scenario is actually tested
           const result = spawnSync(
             'bash',
-            [SKILL_PATH, '--to', 'main', '--mode', 'apply'],
+            [SKILL_PATH, '--into', 'main', '--mode', 'apply'],
             {
               cwd: tempDir,
               env: {
@@ -2169,14 +2291,17 @@ exit 1
   });
 
   given('[case7] argument validation', () => {
-    when('[t0] --to invalid value', () => {
+    when('[t0] --into invalid value', () => {
       then('shows error and exits 2', () => {
         const { tempDir, fakeBinDir, cleanup } = setupTestEnv({});
 
         try {
-          const result = runSkill(['--to', 'invalid'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'invalid'], {
+            tempDir,
+            fakeBinDir,
+          });
 
-          expect(result.stderr).toContain("--to must be 'main' or 'prod'");
+          expect(result.stderr).toContain("--into must be 'main' or 'prod'");
           expect(result.stderr).toMatchSnapshot();
           expect(result.status).toEqual(2);
         } finally {
@@ -2190,7 +2315,7 @@ exit 1
         const { tempDir, fakeBinDir, cleanup } = setupTestEnv({});
 
         try {
-          const result = runSkill(['--to', 'main', '--mode', 'invalid'], {
+          const result = runSkill(['--into', 'main', '--mode', 'invalid'], {
             tempDir,
             fakeBinDir,
           });
@@ -2211,7 +2336,7 @@ exit 1
         fs.mkdirSync(fakeBinDir, { recursive: true });
 
         try {
-          const result = spawnSync('bash', [SKILL_PATH, '--to', 'main'], {
+          const result = spawnSync('bash', [SKILL_PATH, '--into', 'main'], {
             cwd: tempDir,
             env: {
               ...process.env,
@@ -2230,8 +2355,8 @@ exit 1
       });
     });
 
-    when('[t3] no arguments (defaults to --to main)', () => {
-      then('defaults to --to main and shows status', () => {
+    when('[t3] no arguments (defaults to --into main)', () => {
+      then('defaults to --into main and shows status', () => {
         const mockResponses = {
           'pr list': '42',
           'pr view':
@@ -2240,15 +2365,15 @@ exit 1
         const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
 
         try {
-          // create feature branch to test --to main behavior
+          // create feature branch to test --into main behavior
           spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
             cwd: tempDir,
           });
 
           const result = runSkill([], { tempDir, fakeBinDir });
 
-          // should default to --to main behavior
-          expect(result.stdout).toContain('git.release --to main');
+          // should default to --into main behavior
+          expect(result.stdout).toContain('git.release --into main');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
@@ -2264,8 +2389,8 @@ exit 1
         try {
           const result = runSkill(['--help'], { tempDir, fakeBinDir });
 
-          expect(result.stdout).toContain('--to main');
-          expect(result.stdout).toContain('--to prod');
+          expect(result.stdout).toContain('--into main');
+          expect(result.stdout).toContain('--into prod');
           expect(result.stdout).toContain('--retry');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
@@ -2324,7 +2449,7 @@ esac
         try {
           spawnSync('git', ['checkout', '-b', 'main'], { cwd: tempDir });
 
-          const result = spawnSync('bash', [SKILL_PATH, '--to', 'prod'], {
+          const result = spawnSync('bash', [SKILL_PATH, '--into', 'prod'], {
             cwd: tempDir,
             env: {
               ...process.env,
@@ -2348,7 +2473,7 @@ esac
         const { tempDir, fakeBinDir, cleanup } = setupTestEnv({});
 
         try {
-          const result = runSkill(['--to', 'main', '--dirty', 'invalid'], {
+          const result = runSkill(['--into', 'main', '--dirty', 'invalid'], {
             tempDir,
             fakeBinDir,
           });
@@ -2388,7 +2513,7 @@ esac
             });
             fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'modified');
 
-            const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+            const result = runSkill(['--into', 'main', '--mode', 'apply'], {
               tempDir,
               fakeBinDir,
             });
@@ -2430,7 +2555,7 @@ esac
           fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'modified');
 
           const result = runSkill(
-            ['--to', 'main', '--mode', 'apply', '--dirty', 'allow'],
+            ['--into', 'main', '--mode', 'apply', '--dirty', 'allow'],
             {
               tempDir,
               fakeBinDir,
@@ -2471,7 +2596,7 @@ esac
           });
           fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'modified');
 
-          const result = runSkill(['--to', 'main'], {
+          const result = runSkill(['--into', 'main'], {
             tempDir,
             fakeBinDir,
           });
@@ -2505,7 +2630,7 @@ esac
 
           // no unstaged changes - clean state
 
-          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'main', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
@@ -2539,7 +2664,7 @@ esac
           });
 
           // plan mode shows current status without watch
-          const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'main'], { tempDir, fakeBinDir });
 
           expect(result.stdout).toContain('in progress');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
@@ -2672,7 +2797,7 @@ exit 1
           // apply mode with watch - should show poll progress
           const result = spawnSync(
             'bash',
-            [SKILL_PATH, '--to', 'main', '--mode', 'apply'],
+            [SKILL_PATH, '--into', 'main', '--mode', 'apply'],
             {
               cwd: tempDir,
               env: {
@@ -2812,7 +2937,7 @@ exit 1
         try {
           const result = spawnSync(
             'bash',
-            [SKILL_PATH, '--to', 'main', '--mode', 'apply'],
+            [SKILL_PATH, '--into', 'main', '--mode', 'apply'],
             {
               cwd: tempDir,
               env: {
@@ -2946,7 +3071,7 @@ exit 1
         try {
           const result = spawnSync(
             'bash',
-            [SKILL_PATH, '--to', 'main', '--mode', 'apply'],
+            [SKILL_PATH, '--into', 'main', '--mode', 'apply'],
             {
               cwd: tempDir,
               env: {
@@ -2996,7 +3121,7 @@ exit 1
           });
 
           // plan mode shows current status
-          const result = runSkill(['--to', 'main'], { tempDir, fakeBinDir });
+          const result = runSkill(['--into', 'main'], { tempDir, fakeBinDir });
 
           // should show BOTH failed and progress (Gap 9 fix: progress inside failure block)
           expect(result.stdout).toContain('check(s) failed');
@@ -3030,13 +3155,13 @@ exit 1
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main', '--watch'], {
+          const result = runSkill(['--into', 'main', '--watch'], {
             tempDir,
             fakeBinDir,
           });
 
           // should show watch header (not apply header)
-          expect(result.stdout).toContain('git.release --to main --watch');
+          expect(result.stdout).toContain('git.release --into main --watch');
           // should show automerge is unfound (--watch does not enable it, just reports status)
           expect(result.stdout).toContain('automerge unfound');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
@@ -3051,7 +3176,7 @@ exit 1
       then('enables automerge then watches CI', () => {
         // --mode apply should enable automerge AND watch
         // PR must return MERGED state to complete the watch loop
-        // (this is --to main, so no tag workflow watch happens)
+        // (this is --into main, so no tag workflow watch happens)
         const mockResponses = {
           'pr list': '42',
           'pr view':
@@ -3066,13 +3191,15 @@ exit 1
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'main', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
 
           // should show apply header (not watch header)
-          expect(result.stdout).toContain('git.release --to main --mode apply');
+          expect(result.stdout).toContain(
+            'git.release --into main --mode apply',
+          );
           // PR returned MERGED state with checks passed, shows success
           expect(result.stdout).toContain('all checks passed');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
@@ -3085,7 +3212,11 @@ exit 1
 
     when('[t2] --watch with checks in progress', () => {
       then('polls until checks complete (stateful mock transitions)', () => {
-        // stateful mock: first 2 calls return IN_PROGRESS, then SUCCESS
+        // stateful mock: needs enough entries to cover:
+        // 1. emit_transport_status (call 0)
+        // 2. emit_transport_watch pre-check (call 1)
+        // 3-5. watch loop poll iterations (calls 2-4)
+        // 6. final success (call 5)
         const inProgressResponse =
           '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "BLOCKED", "state": "OPEN", "title": "feat(oceans): add reef protection"}';
         const successResponse =
@@ -3093,8 +3224,8 @@ exit 1
 
         const mockResponses = {
           'pr list': '42',
-          // SEQUENCE: prefix triggers stateful mock - returns responses in order
-          'pr view': `SEQUENCE:${JSON.stringify([inProgressResponse, inProgressResponse, successResponse])}`,
+          // SEQUENCE: status, pre-check, poll1, poll2, poll3, success
+          'pr view': `SEQUENCE:${JSON.stringify([inProgressResponse, inProgressResponse, inProgressResponse, inProgressResponse, inProgressResponse, successResponse])}`,
         };
 
         const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
@@ -3104,15 +3235,16 @@ exit 1
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main', '--watch'], {
+          const result = runSkill(['--into', 'main', '--watch'], {
             tempDir,
             fakeBinDir,
           });
 
           // should show watch header and poll through progress to completion
-          expect(result.stdout).toContain('git.release --to main --watch');
+          expect(result.stdout).toContain('git.release --into main --watch');
           expect(result.stdout).toContain('in progress');
-          expect(result.stdout).toContain('all checks passed');
+          // watch ends with "done!" (check status was shown by emit_transport_status)
+          expect(result.stdout).toContain('done!');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           // mocks drove completion, should exit 0
           expect(result.status).toEqual(0);
@@ -3124,7 +3256,11 @@ exit 1
 
     when('[t2.1] --watch with checks that transition to complete', () => {
       then('polls and exits success once checks complete', () => {
-        // stateful mock: IN_PROGRESS on first poll, COMPLETED on second
+        // stateful mock: needs enough in-progress calls to cover:
+        // - call 0: emit_transport_status
+        // - call 1: emit_transport_watch pre-check
+        // - call 2-4: watch loop polls
+        // - call 5+: completed
         const tempDir = genTempDir({ slug: 'git-release-t2-done', git: true });
         const fakeBinDir = path.join(tempDir, '.fakebin');
         fs.mkdirSync(fakeBinDir, { recursive: true });
@@ -3146,11 +3282,11 @@ case "$CMD_KEY" in
     ;;
   "pr view")
     echo $((COUNT + 1)) > "$COUNTER_FILE"
-    if [[ $COUNT -lt 1 ]]; then
-      # poll 1: in progress
+    if [[ $COUNT -lt 5 ]]; then
+      # calls 0-4: in progress
       echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "BLOCKED", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
     else
-      # poll 2+: completed
+      # calls 5+: completed
       echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
     fi
     ;;
@@ -3169,15 +3305,16 @@ esac
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main', '--watch'], {
+          const result = runSkill(['--into', 'main', '--watch'], {
             tempDir,
             fakeBinDir,
           });
 
-          // should show watch mode and checks pass
-          expect(result.stdout).toContain('git.release --to main --watch');
+          // should show watch mode and poll then complete
+          expect(result.stdout).toContain('git.release --into main --watch');
           expect(result.stdout).toContain('in progress');
-          expect(result.stdout).toContain('passed');
+          // watch ends with "done!" (check status shown by emit_transport_status)
+          expect(result.stdout).toContain('done!');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           // exits 0: checks completed
           expect(result.status).toEqual(0);
@@ -3286,7 +3423,7 @@ exit 1
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main', '--mode', 'apply'], {
+          const result = runSkill(['--into', 'main', '--mode', 'apply'], {
             tempDir,
             fakeBinDir,
           });
@@ -3317,13 +3454,13 @@ exit 1
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main', '--watch'], {
+          const result = runSkill(['--into', 'main', '--watch'], {
             tempDir,
             fakeBinDir,
           });
 
           // should show watch mode
-          expect(result.stdout).toContain('git.release --to main --watch');
+          expect(result.stdout).toContain('git.release --into main --watch');
           // should report automerge unfound (plan mode does not enable)
           expect(result.stdout).toContain('automerge unfound');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
@@ -3348,8 +3485,8 @@ exit 1
 
           const mockResponses = {
             'pr list': '42',
-            // SEQUENCE: initial status display (OPEN) → watch poll 1 (OPEN) → watch poll 2 (MERGED)
-            'pr view': `SEQUENCE:${JSON.stringify([openResponse, openResponse, mergedResponse])}`,
+            // SEQUENCE: emit_transport_status (OPEN) → emit_transport_watch pre-check (OPEN) → watch poll 1 (OPEN, shows "await automerge") → watch poll 2 (MERGED)
+            'pr view': `SEQUENCE:${JSON.stringify([openResponse, openResponse, openResponse, mergedResponse])}`,
           };
 
           const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
@@ -3359,17 +3496,17 @@ exit 1
               cwd: tempDir,
             });
 
-            const result = runSkill(['--to', 'main', '--watch'], {
+            const result = runSkill(['--into', 'main', '--watch'], {
               tempDir,
               fakeBinDir,
             });
 
             // should show watch mode
-            expect(result.stdout).toContain('git.release --to main --watch');
+            expect(result.stdout).toContain('git.release --into main --watch');
             // should show automerge found (not added, not unfound)
             expect(result.stdout).toContain('automerge enabled [found]');
-            // should show full progression: await merge → done
-            expect(result.stdout).toContain('await merge');
+            // should show full progression: await automerge → done
+            expect(result.stdout).toContain('await automerge');
             expect(result.stdout).toContain('done!');
             expect(asTimingStable(result.stdout)).toMatchSnapshot();
             // mock drove completion, exits 0
@@ -3384,10 +3521,11 @@ exit 1
     when('[t5.1] --watch with automerge set, PR transitions to merged', () => {
       then('polls and exits success once merged', () => {
         // stateful mock: OPEN with automerge, then MERGED
-        // note: get_pr_status is called BEFORE watch loop, so we need:
-        //   call 0: OPEN (initial status display)
-        //   call 1: OPEN (first watch poll - await merge)
-        //   call 2+: MERGED (second watch poll)
+        // note: get_pr_status is called multiple times:
+        //   call 0: OPEN (emit_transport_status)
+        //   call 1: OPEN (emit_transport_watch pre-check)
+        //   call 2: OPEN (watch loop iter 1 - shows "await automerge")
+        //   call 3+: MERGED (watch loop iter 2 - shows "done!")
         const tempDir = genTempDir({ slug: 'git-release-t5-done', git: true });
         const fakeBinDir = path.join(tempDir, '.fakebin');
         fs.mkdirSync(fakeBinDir, { recursive: true });
@@ -3409,11 +3547,11 @@ case "$CMD_KEY" in
     ;;
   "pr view")
     echo $((COUNT + 1)) > "$COUNTER_FILE"
-    if [[ $COUNT -lt 2 ]]; then
-      # calls 0-1: open with automerge, checks passed, await merge
+    if [[ $COUNT -lt 3 ]]; then
+      # calls 0-2: open with automerge, checks passed (call 2 shows "await automerge")
       echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01T00:00:00Z"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
     else
-      # calls 2+: merged
+      # calls 3+: merged (shows "done!")
       echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01T00:00:00Z"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
     fi
     ;;
@@ -3432,15 +3570,15 @@ esac
             cwd: tempDir,
           });
 
-          const result = runSkill(['--to', 'main', '--watch'], {
+          const result = runSkill(['--into', 'main', '--watch'], {
             tempDir,
             fakeBinDir,
           });
 
           // should show watch mode with automerge, poll, then done
-          expect(result.stdout).toContain('git.release --to main --watch');
+          expect(result.stdout).toContain('git.release --into main --watch');
           expect(result.stdout).toContain('automerge enabled [found]');
-          expect(result.stdout).toContain('await merge');
+          expect(result.stdout).toContain('await automerge');
           expect(result.stdout).toContain('done!');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           // exits 0: PR merged

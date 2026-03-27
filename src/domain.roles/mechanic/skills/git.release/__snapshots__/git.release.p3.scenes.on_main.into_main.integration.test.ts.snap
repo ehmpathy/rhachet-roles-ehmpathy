@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release.p3.scenes.on_main.into_main scene.6: on main branch, --into main (invalid) given: [error] on main, --into main when: rhx git.release --into main then: ConstraintError: cannot merge main into main 1`] = `
+"
+🐢 hold up dude...
+
+   --from main --into main is invalid
+   you're already on main!
+
+   use --from main --into prod to release main to prod
+
+"
+`;

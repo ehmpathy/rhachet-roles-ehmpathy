@@ -31,3 +31,28 @@
 {"stone":"3.3.1.blueprint.product.v1","status":"passed"}
 {"stone":"4.1.roadmap.v1","status":"passed"}
 {"stone":"5.1.execution.phase0_to_phaseN.v1","status":"blocked","blocker":"review.self","reason":"review.self required: has-pruned-yagni"}
+{"stone":"5.1.execution.phase0_to_phaseN.v1","status":"blocked","blocker":"review.self","reason":"review.self required: has-pruned-yagni"}
+{"stone":"5.1.execution.phase0_to_phaseN.v1","status":"blocked","blocker":"review.self","reason":"review.self required: has-consistent-mechanisms"}
+{"stone":"4.1.roadmap.v1","status":"rewound"}
+{"stone":"5.1.execution.phase0_to_phaseN.v1","status":"rewound"}
+{"stone":"5.2.evaluation.v1","status":"rewound"}
+{"stone":"5.3.verification.v1","status":"rewound"}
+{"stone":"4.1.roadmap.v1","status":"passed"}
+{"stone":"5.1.execution.phase0_to_phaseN.v1","status":"rewound"}
+{"stone":"5.2.evaluation.v1","status":"rewound"}
+{"stone":"5.3.verification.v1","status":"rewound"}
+{"stone":"5.1.execution.phase0_to_phaseN.v1","status":"blocked","blocker":"review.self","reason":"review.self required: has-pruned-yagni"}
+{"stone":"5.1.execution.phase0_to_phaseN.v1","status":"passed"}
+{"stone":"5.2.evaluation.v1","status":"blocked","blocker":"review.self","reason":"review.self required: has-complete-implementation-record"}
+{"stone":"5.2.evaluation.v1","status":"passed"}
+{"stone":"5.3.verification.v1","status":"blocked","blocker":"review.self","reason":"review.self required: has-behavior-coverage"}
+{"stone":"5.3.verification.v1","status":"passed"}
+{"stone":"5.1.execution.phase0_to_phaseN.v1","status":"rewound"}
+{"stone":"5.2.evaluation.v1","status":"rewound"}
+{"stone":"5.3.verification.v1","status":"rewound"}
+{"stone":"5.1.execution.phase0_to_phaseN.v1","status":"blocked","blocker":"review.self","reason":"review.self required: has-pruned-yagni"}
+{"stone":"5.1.execution.phase0_to_phaseN.v1","status":"passed"}
+{"stone":"5.2.evaluation.v1","status":"blocked","blocker":"review.self","reason":"review.self required: has-complete-implementation-record"}
+{"stone":"5.2.evaluation.v1","status":"passed"}
+{"stone":"5.3.verification.v1","status":"blocked","blocker":"review.self","reason":"review.self required: has-behavior-coverage"}
+{"stone":"5.3.verification.v1","status":"passed"}
