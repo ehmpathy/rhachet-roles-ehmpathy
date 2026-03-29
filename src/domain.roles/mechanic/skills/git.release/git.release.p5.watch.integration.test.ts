@@ -1,7 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-
 import { genTempDir, given, then, when } from 'test-fns';
 
 import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
