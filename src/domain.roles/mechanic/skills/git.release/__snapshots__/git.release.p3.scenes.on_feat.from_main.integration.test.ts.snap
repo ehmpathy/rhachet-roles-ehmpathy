@@ -11,7 +11,8 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
+      ├─ 💤 await, Xs in action, Xs watched
+      ├─ 💤 await, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
 "
 `;
@@ -40,7 +41,8 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
+      ├─ 💤 await, Xs in action, Xs watched
+      ├─ 💤 await, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
 "
 `;
@@ -563,7 +565,8 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
+      ├─ 💤 await, Xs in action, Xs watched
+      ├─ 💤 await, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
 "
 `;
@@ -598,7 +601,8 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
+      ├─ 💤 await, Xs in action, Xs watched
+      ├─ 💤 await, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
 "
 `;
