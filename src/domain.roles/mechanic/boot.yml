@@ -203,6 +203,7 @@ subject.arch:
 subject.flow:
   briefs:
     say:
+      - briefs/practices/work.flow/rule.require.trust-but-verify.md
       - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
       - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
       - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md

@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`postcompact.trust-but-verify.sh given: [case1] PostCompact event fires when: [t0] hook executes then: emits reminder to stdout 1`] = `
+"⚠️ compaction occurred
+
+inherited claims may be stale:
+- diagnoses ("X is the problem")
+- assumptions ("Y is true")
+- objectives ("we need to do Z")
+- observations ("file contains W")
+- conclusions ("the fix is V")
+
+verify before you act. question all, especially yourself.
+
+see: rule.require.trust-but-verify
+"
+`;

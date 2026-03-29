@@ -53,6 +53,17 @@
             "author": "repo=ehmpathy/role=ergonomist"
           }
         ]
+      },
+      {
+        "matcher": "PostCompact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/postcompact.trust-but-verify",
+            "timeout": 30,
+            "author": "repo=ehmpathy/role=mechanic"
+          }
+        ]
       }
     ],
     "PreToolUse": [
