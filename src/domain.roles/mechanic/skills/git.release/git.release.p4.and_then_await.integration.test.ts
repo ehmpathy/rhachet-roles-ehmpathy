@@ -44,7 +44,7 @@ interface MockConfig {
   tagCommit?: string;
   /** sequence of tag commits (for poll evolution) */
   tagSequence?: string[];
-  /** workflow status for release-please lookup */
+  /** workflow status for release workflow lookup */
   workflowStatus?: 'failed' | 'in_progress' | 'passed' | 'not_found';
 }
 
@@ -141,8 +141,8 @@ if [[ "$1" == "pr" && "$2" == "list" ]] && echo "$ALL_ARGS" | grep -q "state ope
   exit 0
 fi
 
-# run list --workflow release-please.yml (for timeout diagnostics)
-if [[ "$1" == "run" && "$2" == "list" ]] && echo "$ALL_ARGS" | grep -q "release-please"; then
+# run list --workflow release.yml (for timeout diagnostics)
+if [[ "$1" == "run" && "$2" == "list" ]] && echo "$ALL_ARGS" | grep -q "release.yml"; then
   echo '${workflowJson}'
   exit 0
 fi
@@ -505,7 +505,7 @@ describe('git.release.p4.and_then_await', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('⚓ release pr did not appear');
-        expect(result.stdout).toContain('🔴 release-please');
+        expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('failure');
         expect(asTimeStable(result.stdout)).toMatchSnapshot();
       });
@@ -599,7 +599,7 @@ describe('git.release.p4.and_then_await', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
-        expect(result.stdout).toContain('🔴 release-please');
+        expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('failure');
         expect(asTimeStable(result.stdout)).toMatchSnapshot();
       });
@@ -612,7 +612,7 @@ describe('git.release.p4.and_then_await', () => {
 
   given('[case11] release-pr timeout, workflow failed', () => {
     when('[t0] timeout occurs and workflow failed', () => {
-      then('shows ⚓ + 🔴 release-please + failed', () => {
+      then('shows ⚓ + 🔴 release + failed', () => {
         const tempDir = genTempDir({ slug: 'p4-case11', git: true });
         const { fakeBinDir } = setupMocks({
           tempDir,
@@ -633,7 +633,7 @@ describe('git.release.p4.and_then_await', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('⚓ release pr did not appear');
-        expect(result.stdout).toContain('🔴 release-please');
+        expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('failure');
         expect(asTimeStable(result.stdout)).toMatchSnapshot();
       });
@@ -642,7 +642,7 @@ describe('git.release.p4.and_then_await', () => {
 
   given('[case12] release-pr timeout, workflow in_progress', () => {
     when('[t0] timeout occurs and workflow in progress', () => {
-      then('shows ⚓ + 🔴 release-please + in_progress', () => {
+      then('shows ⚓ + 🔴 release + in_progress', () => {
         const tempDir = genTempDir({ slug: 'p4-case12', git: true });
         const { fakeBinDir } = setupMocks({
           tempDir,
@@ -663,7 +663,7 @@ describe('git.release.p4.and_then_await', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('⚓ release pr did not appear');
-        expect(result.stdout).toContain('🔴 release-please');
+        expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('in_progress');
         expect(asTimeStable(result.stdout)).toMatchSnapshot();
       });
@@ -672,7 +672,7 @@ describe('git.release.p4.and_then_await', () => {
 
   given('[case13] release-pr timeout, workflow passed', () => {
     when('[t0] timeout occurs and workflow passed', () => {
-      then('shows ⚓ + 🔴 release-please + success', () => {
+      then('shows ⚓ + 🔴 release + success', () => {
         const tempDir = genTempDir({ slug: 'p4-case13', git: true });
         const { fakeBinDir } = setupMocks({
           tempDir,
@@ -693,7 +693,7 @@ describe('git.release.p4.and_then_await', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('⚓ release pr did not appear');
-        expect(result.stdout).toContain('🔴 release-please');
+        expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('success');
         expect(asTimeStable(result.stdout)).toMatchSnapshot();
       });
@@ -702,7 +702,7 @@ describe('git.release.p4.and_then_await', () => {
 
   given('[case14] release-pr timeout, workflow not found', () => {
     when('[t0] timeout occurs and workflow not found', () => {
-      then('shows ⚓ + 🔴 release-please + not found', () => {
+      then('shows ⚓ + 🔴 release + not found', () => {
         const tempDir = genTempDir({ slug: 'p4-case14', git: true });
         const { fakeBinDir } = setupMocks({
           tempDir,
@@ -723,7 +723,7 @@ describe('git.release.p4.and_then_await', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('⚓ release pr did not appear');
-        expect(result.stdout).toContain('🔴 release-please');
+        expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('not found');
         expect(asTimeStable(result.stdout)).toMatchSnapshot();
       });
@@ -732,7 +732,7 @@ describe('git.release.p4.and_then_await', () => {
 
   given('[case15] tag timeout, workflow failed', () => {
     when('[t0] timeout occurs and workflow failed', () => {
-      then('shows ⚓ + 🔴 release-please + failed', () => {
+      then('shows ⚓ + 🔴 release + failed', () => {
         const tempDir = genTempDir({ slug: 'p4-case15', git: true });
         const { fakeBinDir } = setupMocks({
           tempDir,
@@ -754,7 +754,7 @@ describe('git.release.p4.and_then_await', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
-        expect(result.stdout).toContain('🔴 release-please');
+        expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('failure');
         expect(asTimeStable(result.stdout)).toMatchSnapshot();
       });
@@ -763,7 +763,7 @@ describe('git.release.p4.and_then_await', () => {
 
   given('[case16] tag timeout, workflow in_progress', () => {
     when('[t0] timeout occurs and workflow in progress', () => {
-      then('shows ⚓ + 🔴 release-please + in_progress', () => {
+      then('shows ⚓ + 🔴 release + in_progress', () => {
         const tempDir = genTempDir({ slug: 'p4-case16', git: true });
         const { fakeBinDir } = setupMocks({
           tempDir,
@@ -785,7 +785,7 @@ describe('git.release.p4.and_then_await', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
-        expect(result.stdout).toContain('🔴 release-please');
+        expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('in_progress');
         expect(asTimeStable(result.stdout)).toMatchSnapshot();
       });
@@ -794,7 +794,7 @@ describe('git.release.p4.and_then_await', () => {
 
   given('[case17] tag timeout, workflow passed', () => {
     when('[t0] timeout occurs and workflow passed', () => {
-      then('shows ⚓ + 🔴 release-please + success', () => {
+      then('shows ⚓ + 🔴 release + success', () => {
         const tempDir = genTempDir({ slug: 'p4-case17', git: true });
         const { fakeBinDir } = setupMocks({
           tempDir,
@@ -816,7 +816,7 @@ describe('git.release.p4.and_then_await', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
-        expect(result.stdout).toContain('🔴 release-please');
+        expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('success');
         expect(asTimeStable(result.stdout)).toMatchSnapshot();
       });
@@ -825,7 +825,7 @@ describe('git.release.p4.and_then_await', () => {
 
   given('[case18] tag timeout, workflow not found', () => {
     when('[t0] timeout occurs and workflow not found', () => {
-      then('shows ⚓ + 🔴 release-please + not found', () => {
+      then('shows ⚓ + 🔴 release + not found', () => {
         const tempDir = genTempDir({ slug: 'p4-case18', git: true });
         const { fakeBinDir } = setupMocks({
           tempDir,
@@ -847,7 +847,7 @@ describe('git.release.p4.and_then_await', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
-        expect(result.stdout).toContain('🔴 release-please');
+        expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('not found');
         expect(asTimeStable(result.stdout)).toMatchSnapshot();
       });
