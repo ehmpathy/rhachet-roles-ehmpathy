@@ -41,6 +41,12 @@ export const ROLE_MECHANIC: Role = Role.build({
             './node_modules/.bin/rhachet roles boot --repo ehmpathy --role mechanic',
           timeout: 'PT60S',
         },
+        {
+          command:
+            './node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/postcompact.trust-but-verify',
+          timeout: 'PT30S',
+          filter: { what: 'PostCompact' },
+        },
       ],
       onTool: [
         {
