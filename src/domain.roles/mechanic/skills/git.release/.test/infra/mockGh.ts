@@ -131,8 +131,13 @@ export const genPrViewJson = (input: {
   state: PrState;
   title: string;
   nowIso?: string;
+  completedAtIso?: string;
 }): string => {
   const now = input.nowIso ?? new Date().toISOString();
+  // completedAt = completion time for completed checks; defaults to 60s after start
+  const completedAt =
+    input.completedAtIso ??
+    new Date(new Date(now).getTime() + 60000).toISOString();
 
   switch (input.state) {
     case 'unfound':
@@ -173,7 +178,13 @@ export const genPrViewJson = (input: {
     case 'passed:wout-automerge':
       return JSON.stringify({
         statusCheckRollup: [
-          { conclusion: 'SUCCESS', status: 'COMPLETED', name: 'test' },
+          {
+            conclusion: 'SUCCESS',
+            status: 'COMPLETED',
+            name: 'test',
+            startedAt: now,
+            completedAt,
+          },
         ],
         autoMergeRequest: null,
         mergeStateStatus: 'CLEAN',
@@ -184,7 +195,13 @@ export const genPrViewJson = (input: {
     case 'passed:with-automerge':
       return JSON.stringify({
         statusCheckRollup: [
-          { conclusion: 'SUCCESS', status: 'COMPLETED', name: 'test' },
+          {
+            conclusion: 'SUCCESS',
+            status: 'COMPLETED',
+            name: 'test',
+            startedAt: now,
+            completedAt,
+          },
         ],
         autoMergeRequest: { enabledAt: '2024-01-01T00:00:00Z' },
         mergeStateStatus: 'CLEAN',
@@ -195,7 +212,13 @@ export const genPrViewJson = (input: {
     case 'merged':
       return JSON.stringify({
         statusCheckRollup: [
-          { conclusion: 'SUCCESS', status: 'COMPLETED', name: 'test' },
+          {
+            conclusion: 'SUCCESS',
+            status: 'COMPLETED',
+            name: 'test',
+            startedAt: now,
+            completedAt,
+          },
         ],
         autoMergeRequest: null,
         mergeStateStatus: 'CLEAN',
@@ -210,6 +233,8 @@ export const genPrViewJson = (input: {
             conclusion: 'FAILURE',
             status: 'COMPLETED',
             name: 'test',
+            startedAt: now,
+            completedAt,
             detailsUrl: 'https://github.com/test/repo/actions/runs/123',
           },
         ],
@@ -222,7 +247,13 @@ export const genPrViewJson = (input: {
     case 'rebase:behind':
       return JSON.stringify({
         statusCheckRollup: [
-          { conclusion: 'SUCCESS', status: 'COMPLETED', name: 'test' },
+          {
+            conclusion: 'SUCCESS',
+            status: 'COMPLETED',
+            name: 'test',
+            startedAt: now,
+            completedAt,
+          },
         ],
         autoMergeRequest: null,
         mergeStateStatus: 'BEHIND',
@@ -233,7 +264,13 @@ export const genPrViewJson = (input: {
     case 'rebase:dirty':
       return JSON.stringify({
         statusCheckRollup: [
-          { conclusion: 'SUCCESS', status: 'COMPLETED', name: 'test' },
+          {
+            conclusion: 'SUCCESS',
+            status: 'COMPLETED',
+            name: 'test',
+            startedAt: now,
+            completedAt,
+          },
         ],
         autoMergeRequest: null,
         mergeStateStatus: 'DIRTY',
@@ -253,8 +290,13 @@ export const genPrViewJson = (input: {
 export const genTagWorkflowJson = (input: {
   state: TagState;
   startedAt?: string;
+  updatedAt?: string;
 }): string => {
   const startedAt = input.startedAt ?? new Date().toISOString();
+  // updatedAt = completion time for completed runs; defaults to 60s after start
+  const updatedAt =
+    input.updatedAt ??
+    new Date(new Date(startedAt).getTime() + 60000).toISOString();
 
   switch (input.state) {
     case 'unfound':
@@ -268,6 +310,7 @@ export const genTagWorkflowJson = (input: {
           status: 'in_progress',
           url: 'https://github.com/test/repo/actions/runs/789',
           startedAt,
+          updatedAt: startedAt, // in progress: updatedAt = startedAt
         },
       ]);
 
@@ -279,6 +322,7 @@ export const genTagWorkflowJson = (input: {
           status: 'completed',
           url: 'https://github.com/test/repo/actions/runs/789',
           startedAt,
+          updatedAt,
         },
       ]);
 
@@ -290,6 +334,7 @@ export const genTagWorkflowJson = (input: {
           status: 'completed',
           url: 'https://github.com/test/repo/actions/runs/789',
           startedAt,
+          updatedAt,
         },
       ]);
 

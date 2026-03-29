@@ -37,7 +37,7 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -66,7 +66,7 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -80,7 +80,7 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -106,7 +106,7 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -121,7 +121,7 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
    └─ 🥥 let's watch
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -148,7 +148,7 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
    └─ 🥥 let's watch
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -215,7 +215,7 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -250,7 +250,7 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 

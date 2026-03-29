@@ -203,7 +203,8 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-release-unfo
 🌊 release: v1.33.0
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
+      ├─ 💤 await, Xs in action, Xs watched
+      ├─ 💤 await, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
 "
 `;
@@ -852,7 +853,8 @@ exports[`git.release.p2 to prod, from main given: [case-main-merged-unfound] rel
 🌊 release: v1.33.0
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
+      ├─ 💤 await, Xs in action, Xs watched
+      ├─ 💤 await, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
 "
 `;
@@ -1046,7 +1048,8 @@ exports[`git.release.p2 to prod, from main given: [case-main-unfound-unfound] re
 🌊 release: v1.33.0
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
+      ├─ 💤 await, Xs in action, Xs watched
+      ├─ 💤 await, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
 "
 `;
