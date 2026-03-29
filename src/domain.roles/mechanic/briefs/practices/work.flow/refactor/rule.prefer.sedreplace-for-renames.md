@@ -37,6 +37,22 @@ npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob 'src/*
 npx rhachet run --skill sedreplace --old "oldName" --new "newName" --glob 'src/**/*.ts' --mode apply
 ```
 
+### special characters via stdin
+
+patterns with `{ } ( ) [ ]` trigger bash safety prompts. bypass with stdin:
+
+```sh
+# single pattern with special chars (reads all stdin)
+echo '{ identity: x }' | rhx sedreplace --old @stdin --new 'y' --glob 'src/**/*.ts'
+
+# both patterns with special chars (NULL byte separator)
+printf '{ old }\0{ new }' | rhx sedreplace --old @stdin --new @stdin --glob 'src/**/*.ts'
+```
+
+- `--old @stdin` alone: reads entire stdin (supports newlines in pattern)
+- `--new @stdin` alone: reads entire stdin (supports newlines in pattern)
+- both `@stdin`: separated by NULL byte (`\0`) to allow newlines in each pattern
+
 ### glob pattern rules
 
 **CRITICAL**: globs MUST be single-quoted to prevent shell expansion
