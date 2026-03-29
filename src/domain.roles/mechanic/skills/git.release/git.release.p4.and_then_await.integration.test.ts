@@ -887,162 +887,174 @@ describe('git.release.p4.and_then_await', () => {
   // ==========================================================================
 
   given('[case19] release-pr requires fetch, then fresh', () => {
-    when('[t0] commit not local initially, fetch makes it available, ancestry passes', () => {
-      then('fetch is called, PR found fresh, exit 0', () => {
-        const tempDir = genTempDir({ slug: 'p4-case19', git: true });
-        const { fakeBinDir, stateDir } = setupMocks({
-          tempDir,
-          config: {
-            prListResponse: JSON.stringify({
-              number: 100,
-              title: 'chore(release): v1.3.0',
-              headRefOid: 'needs_fetch_commit_sha',
-            }),
-            ancestorExitCode: 0, // fresh once fetched
-            requiresFetch: true,
-          },
+    when(
+      '[t0] commit not local initially, fetch makes it available, ancestry passes',
+      () => {
+        then('fetch is called, PR found fresh, exit 0', () => {
+          const tempDir = genTempDir({ slug: 'p4-case19', git: true });
+          const { fakeBinDir, stateDir } = setupMocks({
+            tempDir,
+            config: {
+              prListResponse: JSON.stringify({
+                number: 100,
+                title: 'chore(release): v1.3.0',
+                headRefOid: 'needs_fetch_commit_sha',
+              }),
+              ancestorExitCode: 0, // fresh once fetched
+              requiresFetch: true,
+            },
+          });
+
+          const result = runAndThenAwait(
+            [
+              'artifact_type=release-pr',
+              'artifact_display=release pr',
+              'prior_merge_commit=abc123',
+            ],
+            { tempDir, fakeBinDir },
+          );
+
+          // verify fetch was called
+          const fetchedCommits = fs.existsSync(
+            path.join(stateDir, 'fetched_commits'),
+          )
+            ? fs.readFileSync(path.join(stateDir, 'fetched_commits'), 'utf-8')
+            : '';
+          expect(fetchedCommits).toContain('needs_fetch_commit_sha');
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain('🫧 and then...');
+          expect(asTimeStable(result.stdout)).toMatchSnapshot();
         });
-
-        const result = runAndThenAwait(
-          [
-            'artifact_type=release-pr',
-            'artifact_display=release pr',
-            'prior_merge_commit=abc123',
-          ],
-          { tempDir, fakeBinDir },
-        );
-
-        // verify fetch was called
-        const fetchedCommits = fs.existsSync(
-          path.join(stateDir, 'fetched_commits'),
-        )
-          ? fs.readFileSync(path.join(stateDir, 'fetched_commits'), 'utf-8')
-          : '';
-        expect(fetchedCommits).toContain('needs_fetch_commit_sha');
-
-        expect(result.status).toBe(0);
-        expect(result.stdout).toContain('🫧 and then...');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
-      });
-    });
+      },
+    );
   });
 
   given('[case20] release-pr requires fetch, still stale', () => {
-    when('[t0] commit not local initially, fetch makes it available, but ancestry fails', () => {
-      then('fetch is called, PR still stale, polls until timeout', () => {
-        const tempDir = genTempDir({ slug: 'p4-case20', git: true });
-        const { fakeBinDir, stateDir } = setupMocks({
-          tempDir,
-          config: {
-            prListResponse: JSON.stringify({
-              number: 100,
-              title: 'chore(release): v1.3.0',
-              headRefOid: 'needs_fetch_but_stale_sha',
-            }),
-            ancestorExitCode: 1, // stale even after fetch
-            requiresFetch: true,
-            workflowStatus: 'passed',
-          },
+    when(
+      '[t0] commit not local initially, fetch makes it available, but ancestry fails',
+      () => {
+        then('fetch is called, PR still stale, polls until timeout', () => {
+          const tempDir = genTempDir({ slug: 'p4-case20', git: true });
+          const { fakeBinDir, stateDir } = setupMocks({
+            tempDir,
+            config: {
+              prListResponse: JSON.stringify({
+                number: 100,
+                title: 'chore(release): v1.3.0',
+                headRefOid: 'needs_fetch_but_stale_sha',
+              }),
+              ancestorExitCode: 1, // stale even after fetch
+              requiresFetch: true,
+              workflowStatus: 'passed',
+            },
+          });
+
+          const result = runAndThenAwait(
+            [
+              'artifact_type=release-pr',
+              'artifact_display=release pr',
+              'prior_merge_commit=abc123',
+            ],
+            { tempDir, fakeBinDir },
+          );
+
+          // verify fetch was called (each poll cycle)
+          const fetchedCommits = fs.existsSync(
+            path.join(stateDir, 'fetched_commits'),
+          )
+            ? fs.readFileSync(path.join(stateDir, 'fetched_commits'), 'utf-8')
+            : '';
+          expect(fetchedCommits).toContain('needs_fetch_but_stale_sha');
+
+          expect(result.status).toBe(2);
+          expect(result.stdout).toContain('⚓ release pr did not appear');
+          expect(asTimeStable(result.stdout)).toMatchSnapshot();
         });
-
-        const result = runAndThenAwait(
-          [
-            'artifact_type=release-pr',
-            'artifact_display=release pr',
-            'prior_merge_commit=abc123',
-          ],
-          { tempDir, fakeBinDir },
-        );
-
-        // verify fetch was called (each poll cycle)
-        const fetchedCommits = fs.existsSync(
-          path.join(stateDir, 'fetched_commits'),
-        )
-          ? fs.readFileSync(path.join(stateDir, 'fetched_commits'), 'utf-8')
-          : '';
-        expect(fetchedCommits).toContain('needs_fetch_but_stale_sha');
-
-        expect(result.status).toBe(2);
-        expect(result.stdout).toContain('⚓ release pr did not appear');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
-      });
-    });
+      },
+    );
   });
 
   given('[case21] tag requires fetch, then fresh', () => {
-    when('[t0] tag commit not local initially, fetch makes it available, ancestry passes', () => {
-      then('fetch is called, tag found fresh, exit 0', () => {
-        const tempDir = genTempDir({ slug: 'p4-case21', git: true });
-        const { fakeBinDir, stateDir } = setupMocks({
-          tempDir,
-          config: {
-            tagCommit: 'needs_fetch_tag_commit_sha',
-            ancestorExitCode: 0, // fresh once fetched
-            requiresFetch: true,
-          },
+    when(
+      '[t0] tag commit not local initially, fetch makes it available, ancestry passes',
+      () => {
+        then('fetch is called, tag found fresh, exit 0', () => {
+          const tempDir = genTempDir({ slug: 'p4-case21', git: true });
+          const { fakeBinDir, stateDir } = setupMocks({
+            tempDir,
+            config: {
+              tagCommit: 'needs_fetch_tag_commit_sha',
+              ancestorExitCode: 0, // fresh once fetched
+              requiresFetch: true,
+            },
+          });
+
+          const result = runAndThenAwait(
+            [
+              'artifact_type=tag',
+              'artifact_display=tag v1.3.0',
+              'prior_merge_commit=abc123',
+              'expected_tag=v1.3.0',
+            ],
+            { tempDir, fakeBinDir },
+          );
+
+          // verify fetch was called for the tag commit
+          const fetchedCommits = fs.existsSync(
+            path.join(stateDir, 'fetched_commits'),
+          )
+            ? fs.readFileSync(path.join(stateDir, 'fetched_commits'), 'utf-8')
+            : '';
+          expect(fetchedCommits).toContain('needs_fetch_tag_commit_sha');
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain('🫧 and then...');
+          expect(asTimeStable(result.stdout)).toMatchSnapshot();
         });
-
-        const result = runAndThenAwait(
-          [
-            'artifact_type=tag',
-            'artifact_display=tag v1.3.0',
-            'prior_merge_commit=abc123',
-            'expected_tag=v1.3.0',
-          ],
-          { tempDir, fakeBinDir },
-        );
-
-        // verify fetch was called for the tag commit
-        const fetchedCommits = fs.existsSync(
-          path.join(stateDir, 'fetched_commits'),
-        )
-          ? fs.readFileSync(path.join(stateDir, 'fetched_commits'), 'utf-8')
-          : '';
-        expect(fetchedCommits).toContain('needs_fetch_tag_commit_sha');
-
-        expect(result.status).toBe(0);
-        expect(result.stdout).toContain('🫧 and then...');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
-      });
-    });
+      },
+    );
   });
 
   given('[case22] tag requires fetch, still stale', () => {
-    when('[t0] tag commit not local initially, fetch makes it available, but ancestry fails', () => {
-      then('fetch is called, tag still stale, polls until timeout', () => {
-        const tempDir = genTempDir({ slug: 'p4-case22', git: true });
-        const { fakeBinDir, stateDir } = setupMocks({
-          tempDir,
-          config: {
-            tagCommit: 'needs_fetch_but_stale_tag_sha',
-            ancestorExitCode: 1, // stale even after fetch
-            requiresFetch: true,
-            workflowStatus: 'passed',
-          },
+    when(
+      '[t0] tag commit not local initially, fetch makes it available, but ancestry fails',
+      () => {
+        then('fetch is called, tag still stale, polls until timeout', () => {
+          const tempDir = genTempDir({ slug: 'p4-case22', git: true });
+          const { fakeBinDir, stateDir } = setupMocks({
+            tempDir,
+            config: {
+              tagCommit: 'needs_fetch_but_stale_tag_sha',
+              ancestorExitCode: 1, // stale even after fetch
+              requiresFetch: true,
+              workflowStatus: 'passed',
+            },
+          });
+
+          const result = runAndThenAwait(
+            [
+              'artifact_type=tag',
+              'artifact_display=tag v1.3.0',
+              'prior_merge_commit=abc123',
+              'expected_tag=v1.3.0',
+            ],
+            { tempDir, fakeBinDir },
+          );
+
+          // verify fetch was called (each poll cycle)
+          const fetchedCommits = fs.existsSync(
+            path.join(stateDir, 'fetched_commits'),
+          )
+            ? fs.readFileSync(path.join(stateDir, 'fetched_commits'), 'utf-8')
+            : '';
+          expect(fetchedCommits).toContain('needs_fetch_but_stale_tag_sha');
+
+          expect(result.status).toBe(2);
+          expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
+          expect(asTimeStable(result.stdout)).toMatchSnapshot();
         });
-
-        const result = runAndThenAwait(
-          [
-            'artifact_type=tag',
-            'artifact_display=tag v1.3.0',
-            'prior_merge_commit=abc123',
-            'expected_tag=v1.3.0',
-          ],
-          { tempDir, fakeBinDir },
-        );
-
-        // verify fetch was called (each poll cycle)
-        const fetchedCommits = fs.existsSync(
-          path.join(stateDir, 'fetched_commits'),
-        )
-          ? fs.readFileSync(path.join(stateDir, 'fetched_commits'), 'utf-8')
-          : '';
-        expect(fetchedCommits).toContain('needs_fetch_but_stale_tag_sha');
-
-        expect(result.status).toBe(2);
-        expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
-      });
-    });
+      },
+    );
   });
 });
