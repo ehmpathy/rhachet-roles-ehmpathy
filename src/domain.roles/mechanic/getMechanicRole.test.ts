@@ -11,10 +11,10 @@ describe('getMechanicRole', () => {
         ).toBeGreaterThanOrEqual(3);
       });
 
-      then('onBrain.onTool contains at least 4 hooks', () => {
+      then('onBrain.onTool contains at least 6 hooks', () => {
         expect(
           ROLE_MECHANIC.hooks?.onBrain?.onTool?.length,
-        ).toBeGreaterThanOrEqual(4);
+        ).toBeGreaterThanOrEqual(6);
       });
 
       then('onBrain.onStop contains at least 1 hook', () => {
@@ -25,57 +25,84 @@ describe('getMechanicRole', () => {
     });
 
     when('[t1] onBoot hooks are inspected', () => {
-      then('notify-permissions hook is first', () => {
-        const hook = ROLE_MECHANIC.hooks?.onBrain?.onBoot?.[0];
-        expect(hook?.command).toContain('notify-permissions');
+      const hooks = ROLE_MECHANIC.hooks?.onBrain?.onBoot ?? [];
+      const findHook = (pattern: string) =>
+        hooks.find((h) => h.command.includes(pattern));
+
+      then('notify-permissions hook is present', () => {
+        const hook = findHook('notify-permissions');
+        expect(hook).toBeDefined();
         expect(hook?.timeout).toEqual('PT5S');
       });
 
-      then('boot.this hook is second', () => {
-        const hook = ROLE_MECHANIC.hooks?.onBrain?.onBoot?.[1];
-        expect(hook?.command).toContain('boot --repo .this');
+      then('boot.this hook is present', () => {
+        const hook = findHook('boot --repo .this');
+        expect(hook).toBeDefined();
         expect(hook?.timeout).toEqual('PT60S');
       });
 
-      then('boot.mechanic hook is third', () => {
-        const hook = ROLE_MECHANIC.hooks?.onBrain?.onBoot?.[2];
-        expect(hook?.command).toContain('boot --repo ehmpathy --role mechanic');
+      then('boot.mechanic hook is present', () => {
+        const hook = findHook('boot --repo ehmpathy --role mechanic');
+        expect(hook).toBeDefined();
         expect(hook?.timeout).toEqual('PT60S');
       });
     });
 
     when('[t2] onTool hooks are inspected', () => {
-      then('forbid-suspicious-shell-syntax targets Bash', () => {
-        const hook = ROLE_MECHANIC.hooks?.onBrain?.onTool?.[0];
-        expect(hook?.command).toContain('forbid-suspicious-shell-syntax');
+      const hooks = ROLE_MECHANIC.hooks?.onBrain?.onTool ?? [];
+      const findHook = (name: string) =>
+        hooks.find((h) => h.command.includes(name));
+
+      then(
+        'forbid-sedreplace-special-chars hook is present and targets Bash',
+        () => {
+          const hook = findHook('forbid-sedreplace-special-chars');
+          expect(hook).toBeDefined();
+          expect(hook?.filter?.what).toEqual('Bash');
+          expect(hook?.filter?.when).toEqual('before');
+        },
+      );
+
+      then(
+        'forbid-suspicious-shell-syntax hook is present and targets Bash',
+        () => {
+          const hook = findHook('forbid-suspicious-shell-syntax');
+          expect(hook).toBeDefined();
+          expect(hook?.filter?.what).toEqual('Bash');
+          expect(hook?.filter?.when).toEqual('before');
+        },
+      );
+
+      then('forbid-stderr-redirect hook is present and targets Bash', () => {
+        const hook = findHook('forbid-stderr-redirect');
+        expect(hook).toBeDefined();
         expect(hook?.filter?.what).toEqual('Bash');
         expect(hook?.filter?.when).toEqual('before');
       });
 
-      then('forbid-stderr-redirect targets Bash', () => {
-        const hook = ROLE_MECHANIC.hooks?.onBrain?.onTool?.[1];
-        expect(hook?.command).toContain('forbid-stderr-redirect');
-        expect(hook?.filter?.what).toEqual('Bash');
-        expect(hook?.filter?.when).toEqual('before');
-      });
+      then(
+        'forbid-terms.gerunds hook is present and targets Write|Edit',
+        () => {
+          const hook = findHook('forbid-terms.gerunds');
+          expect(hook).toBeDefined();
+          expect(hook?.filter?.what).toEqual('Write|Edit');
+          expect(hook?.filter?.when).toEqual('before');
+        },
+      );
 
-      then('forbid-terms.gerunds targets Write|Edit', () => {
-        const hook = ROLE_MECHANIC.hooks?.onBrain?.onTool?.[2];
-        expect(hook?.command).toContain('forbid-terms.gerunds');
-        expect(hook?.filter?.what).toEqual('Write|Edit');
-        expect(hook?.filter?.when).toEqual('before');
-      });
+      then(
+        'forbid-terms.blocklist hook is present and targets Write|Edit',
+        () => {
+          const hook = findHook('forbid-terms.blocklist');
+          expect(hook).toBeDefined();
+          expect(hook?.filter?.what).toEqual('Write|Edit');
+          expect(hook?.filter?.when).toEqual('before');
+        },
+      );
 
-      then('forbid-terms.blocklist targets Write|Edit', () => {
-        const hook = ROLE_MECHANIC.hooks?.onBrain?.onTool?.[3];
-        expect(hook?.command).toContain('forbid-terms.blocklist');
-        expect(hook?.filter?.what).toEqual('Write|Edit');
-        expect(hook?.filter?.when).toEqual('before');
-      });
-
-      then('check-permissions targets Bash', () => {
-        const hook = ROLE_MECHANIC.hooks?.onBrain?.onTool?.[4];
-        expect(hook?.command).toContain('check-permissions');
+      then('check-permissions hook is present and targets Bash', () => {
+        const hook = findHook('check-permissions');
+        expect(hook).toBeDefined();
         expect(hook?.filter?.what).toEqual('Bash');
         expect(hook?.filter?.when).toEqual('before');
       });

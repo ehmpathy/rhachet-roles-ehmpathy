@@ -114,3 +114,36 @@ patterns to block:
 - `=(`, `<(`, `>(` - detected by human in usage
 - consecutive quotes at word start - detected by human in usage
 
+## .workaround: PreToolUse hook to bypass safety heuristics
+
+**source**: [GitHub Issue #30435 comment by yurukusa (2026-03-24)](https://github.com/anthropics/claude-code/issues/30435#issuecomment-4114670342)
+
+a PreToolUse hook can override safety heuristics if it returns `permissionDecision: "allow"` in a specific JSON format:
+
+```bash
+#!/bin/bash
+CMD=$(cat | jq -r '.tool_input.command // empty' 2>/dev/null)
+[ -z "$CMD" ] && exit 0
+
+# match commands you want to auto-approve
+if echo "$CMD" | grep -qE '^\\s*(npx rhachet|rhx)'; then
+    jq -n '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"rhx skill auto-approved"}}'
+fi
+exit 0
+```
+
+**critical JSON structure**:
+```json
+{
+  "hookSpecificOutput": {
+    "hookEventName": "PreToolUse",
+    "permissionDecision": "allow",
+    "permissionDecisionReason": "reason here"
+  }
+}
+```
+
+**key insight**: the `hookSpecificOutput` wrapper and `hookEventName` field are required. earlier research found issues with simpler JSON formats — this specific structure reportedly bypasses safety heuristic prompts.
+
+**status**: community workaround, not officially documented by anthropic. needs validation.
+

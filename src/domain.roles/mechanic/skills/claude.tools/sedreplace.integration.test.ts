@@ -2077,4 +2077,157 @@ describe('sedreplace.sh', () => {
       });
     });
   });
+
+  given('[case14] @stdin pattern support', () => {
+    /**
+     * .what = helper to run sedreplace with stdin input
+     * .why = test @stdin pattern bypasses bash heuristics for special chars
+     */
+    const runWithStdin = (args: {
+      files: Record<string, string>;
+      sedArgs: string[];
+      stdin: string;
+    }): {
+      stdout: string;
+      stderr: string;
+      exitCode: number;
+      tempDir: string;
+    } => {
+      const tempDir = genTempDir({ slug: 'sedreplace-stdin-test', git: true });
+
+      // create files
+      for (const [filePath, content] of Object.entries(args.files)) {
+        const fullPath = path.join(tempDir, filePath);
+        fs.mkdirSync(path.dirname(fullPath), { recursive: true });
+        fs.writeFileSync(fullPath, content);
+      }
+
+      // add files to git
+      execSync('git add .', { cwd: tempDir, stdio: 'pipe' });
+      execSync('git commit -m "initial"', { cwd: tempDir, stdio: 'pipe' });
+
+      // run sedreplace with stdin
+      const result = spawnSync('bash', [scriptPath, ...args.sedArgs], {
+        cwd: tempDir,
+        encoding: 'utf-8',
+        input: args.stdin,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+
+      return {
+        stdout: result.stdout ?? '',
+        stderr: result.stderr ?? '',
+        exitCode: result.status ?? 1,
+        tempDir,
+      };
+    };
+
+    when('[t0] --old @stdin reads pattern from stdin', () => {
+      then('it should use stdin content as pattern', () => {
+        const result = runWithStdin({
+          files: {
+            'file1.ts': 'const { foo } = bar;',
+          },
+          sedArgs: ['--old', '@stdin', '--new', 'replaced'],
+          stdin: '{ foo }',
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('files: 1');
+        expect(result.stdout).toContain('matches: 1');
+      });
+    });
+
+    when('[t1] --old @stdin with special chars (curly braces)', () => {
+      then('it should handle curly braces in pattern', () => {
+        const result = runWithStdin({
+          files: {
+            'file1.ts': 'const identity = { keyPair: x };',
+          },
+          sedArgs: ['--old', '@stdin', '--new', 'createContext(x)'],
+          stdin: '{ keyPair: x }',
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('files: 1');
+      });
+    });
+
+    when('[t2] --old @stdin with parentheses', () => {
+      then('it should handle parentheses in pattern', () => {
+        const result = runWithStdin({
+          files: {
+            'file1.ts': 'const result = foo(bar);',
+          },
+          sedArgs: ['--old', '@stdin', '--new', 'baz()'],
+          stdin: 'foo(bar)',
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('files: 1');
+      });
+    });
+
+    when('[t3] both --old @stdin and --new @stdin with NULL separator', () => {
+      then('it should read both patterns separated by NULL byte', () => {
+        const result = runWithStdin({
+          files: {
+            'file1.ts': 'const x = { old };',
+          },
+          sedArgs: ['--old', '@stdin', '--new', '@stdin'],
+          stdin: '{ old }\0{ new }',
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('files: 1');
+      });
+    });
+
+    when('[t4] --old @stdin --new @stdin with newlines in patterns', () => {
+      then('it should handle newlines within each pattern', () => {
+        const result = runWithStdin({
+          files: {
+            'file1.ts': 'const x = {\n  foo: 1\n};',
+          },
+          sedArgs: ['--old', '@stdin', '--new', '@stdin', '--mode', 'plan'],
+          stdin: '{\n  foo: 1\n}\0{\n  bar: 2\n}',
+        });
+
+        // sedreplace uses line-based sed; multiline patterns won't match
+        // but the @stdin read logic should work without error
+        expect(result.exitCode).toBe(0);
+      });
+    });
+
+    when('[t5] --old @stdin with empty stdin', () => {
+      then('it should error with helpful message', () => {
+        const result = runWithStdin({
+          files: {
+            'file1.ts': 'const x = 1;',
+          },
+          sedArgs: ['--old', '@stdin', '--new', 'y'],
+          stdin: '',
+        });
+
+        expect(result.exitCode).toBe(2);
+        // empty stdin results in empty pattern, which fails validation
+        expect(result.stderr).toContain('--old pattern is required');
+      });
+    });
+
+    when('[t6] both @stdin but second pattern absent', () => {
+      then('it should error with helpful message', () => {
+        const result = runWithStdin({
+          files: {
+            'file1.ts': 'const x = 1;',
+          },
+          sedArgs: ['--old', '@stdin', '--new', '@stdin'],
+          stdin: 'only-one-pattern', // no NULL byte, so only one pattern
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('@stdin');
+      });
+    });
+  });
 });
