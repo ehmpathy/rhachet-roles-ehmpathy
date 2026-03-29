@@ -1,0 +1,42 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse.forbid-tmp-writes.sh given: [case12] block message snapshot when: [t0] Write to /tmp produces expected output then: Write block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Write to /tmp/foo.txt
+
+use .temp/ instead:
+
+  echo "data" > .temp/scratch.txt
+
+/tmp is not temporary - it persists and never auto-cleans.
+.temp/ is scoped to this repo and gitignored.
+
+"
+`;
+
+exports[`pretooluse.forbid-tmp-writes.sh given: [case12] block message snapshot when: [t1] Read from /tmp produces expected output then: Read block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Read to /tmp/foo.txt
+
+use .temp/ instead:
+
+  echo "data" > .temp/scratch.txt
+
+/tmp is not temporary - it persists and never auto-cleans.
+.temp/ is scoped to this repo and gitignored.
+
+"
+`;
+
+exports[`pretooluse.forbid-tmp-writes.sh given: [case12] block message snapshot when: [t2] Bash read from /tmp produces expected output then: Bash read block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Bash read from /tmp/other/file
+
+only /tmp/claude* is allowed (agent temp directories).
+for scratch files, use .temp/ instead.
+
+/tmp is not temporary - it persists and never auto-cleans.
+.temp/ is scoped to this repo and gitignored.
+
+"
+`;

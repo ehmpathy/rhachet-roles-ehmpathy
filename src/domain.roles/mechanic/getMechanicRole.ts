@@ -81,6 +81,12 @@ export const ROLE_MECHANIC: Role = Role.build({
         },
         {
           command:
+            './node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-tmp-writes',
+          timeout: 'PT5S',
+          filter: { what: 'Write|Edit|Read|Bash', when: 'before' },
+        },
+        {
+          command:
             './node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-planmode',
           timeout: 'PT5S',
           filter: { what: 'EnterPlanMode', when: 'before' },
