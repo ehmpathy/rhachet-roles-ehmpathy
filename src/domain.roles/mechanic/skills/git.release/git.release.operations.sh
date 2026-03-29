@@ -683,6 +683,9 @@ get_fresh_release_pr() {
     local head_commit
     head_commit=$(echo "$pr_json" | jq -r '.headRefOid')
 
+    # fetch the head commit so git merge-base can check ancestry locally
+    git fetch origin "$head_commit" --quiet 2>/dev/null || true
+
     if git merge-base --is-ancestor "$prior_merge_commit" "$head_commit" 2>/dev/null; then
       echo "$pr_json"
       return 0
@@ -733,6 +736,9 @@ get_fresh_release_tag() {
     echo ""
     return 0
   fi
+
+  # fetch the tag commit so git merge-base can check ancestry locally
+  git fetch origin "$tag_commit" --quiet 2>/dev/null || true
 
   # check freshness: prior_merge_commit must be ancestor of tag_commit
   if git merge-base --is-ancestor "$prior_merge_commit" "$tag_commit" 2>/dev/null; then

@@ -371,3 +371,71 @@ exports[`git.release.p4.and_then_await given: [case18] tag timeout, workflow not
             └─ not found
 "
 `;
+
+exports[`git.release.p4.and_then_await given: [case19] release-pr requires fetch, then fresh when: [t0] commit not local initially, fetch makes it available, ancestry passes then: fetch is called, PR found fresh, exit 0 1`] = `
+"
+🫧 and then...
+
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case20] release-pr requires fetch, still stale when: [t0] commit not local initially, fetch makes it available, but ancestry fails then: fetch is called, PR still stale, polls until timeout 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ release pr did not appear in 90s
+      └─ 🔴 release
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ success
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case21] tag requires fetch, then fresh when: [t0] tag commit not local initially, fetch makes it available, ancestry passes then: fetch is called, tag found fresh, exit 0 1`] = `
+"
+🫧 and then...
+
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case22] tag requires fetch, still stale when: [t0] tag commit not local initially, fetch makes it available, but ancestry fails then: fetch is called, tag still stale, polls until timeout 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ tag v1.3.0 did not appear in 90s
+      └─ 🔴 release
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ success
+"
+`;

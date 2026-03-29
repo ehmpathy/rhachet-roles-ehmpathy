@@ -46,6 +46,11 @@ interface MockConfig {
   tagSequence?: string[];
   /** workflow status for release workflow lookup */
   workflowStatus?: 'failed' | 'in_progress' | 'passed' | 'not_found';
+  /**
+   * requires fetch before ancestry check works (simulates commit not in local repo)
+   * if true: ancestor check returns 128 until fetch is called for that commit
+   */
+  requiresFetch?: boolean;
 }
 
 const setupMocks = (input: {
@@ -153,11 +158,13 @@ exit 1
   fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMock, { mode: 0o755 });
 
   // git mock
+  const requiresFetch = input.config.requiresFetch ? 'true' : 'false';
   const gitMock = `#!/bin/bash
 set -euo pipefail
 
 STATE_DIR="${stateDir}"
 ALL_ARGS="$*"
+REQUIRES_FETCH="${requiresFetch}"
 
 # counter for sequences
 get_counter() {
@@ -173,8 +180,28 @@ inc_counter() {
   echo "$((count + 1))"
 }
 
+# fetch origin <sha> (fetch specific commit)
+if [[ "\${1:-}" == "fetch" && "\${2:-}" == "origin" && -n "\${3:-}" ]]; then
+  # record that this commit was fetched
+  COMMIT="\${3}"
+  echo "$COMMIT" >> "$STATE_DIR/fetched_commits"
+  exit 0
+fi
+
 # merge-base --is-ancestor (freshness check)
 if [[ "\${1:-}" == "merge-base" && "\${2:-}" == "--is-ancestor" ]]; then
+  # if requiresFetch, check that HEAD commit was fetched
+  if [[ "$REQUIRES_FETCH" == "true" ]]; then
+    HEAD_COMMIT="\${4:-}"
+    if [[ -f "$STATE_DIR/fetched_commits" ]] && grep -q "$HEAD_COMMIT" "$STATE_DIR/fetched_commits" 2>/dev/null; then
+      # commit was fetched, proceed with normal check
+      :
+    else
+      # commit not fetched yet, return 128 (object not found)
+      exit 128
+    fi
+  fi
+
   SEQ_FILE="$STATE_DIR/ancestor_sequence.json"
   if [[ -f "$SEQ_FILE" ]]; then
     COUNT=$(get_counter "ancestor")
@@ -849,6 +876,171 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
         expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('not found');
+        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ==========================================================================
+  // matrix 4: fetch-before-ancestry scenarios (cases 19-22)
+  // verifies that commits are fetched before ancestry check
+  // ==========================================================================
+
+  given('[case19] release-pr requires fetch, then fresh', () => {
+    when('[t0] commit not local initially, fetch makes it available, ancestry passes', () => {
+      then('fetch is called, PR found fresh, exit 0', () => {
+        const tempDir = genTempDir({ slug: 'p4-case19', git: true });
+        const { fakeBinDir, stateDir } = setupMocks({
+          tempDir,
+          config: {
+            prListResponse: JSON.stringify({
+              number: 100,
+              title: 'chore(release): v1.3.0',
+              headRefOid: 'needs_fetch_commit_sha',
+            }),
+            ancestorExitCode: 0, // fresh once fetched
+            requiresFetch: true,
+          },
+        });
+
+        const result = runAndThenAwait(
+          [
+            'artifact_type=release-pr',
+            'artifact_display=release pr',
+            'prior_merge_commit=abc123',
+          ],
+          { tempDir, fakeBinDir },
+        );
+
+        // verify fetch was called
+        const fetchedCommits = fs.existsSync(
+          path.join(stateDir, 'fetched_commits'),
+        )
+          ? fs.readFileSync(path.join(stateDir, 'fetched_commits'), 'utf-8')
+          : '';
+        expect(fetchedCommits).toContain('needs_fetch_commit_sha');
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('🫧 and then...');
+        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case20] release-pr requires fetch, still stale', () => {
+    when('[t0] commit not local initially, fetch makes it available, but ancestry fails', () => {
+      then('fetch is called, PR still stale, polls until timeout', () => {
+        const tempDir = genTempDir({ slug: 'p4-case20', git: true });
+        const { fakeBinDir, stateDir } = setupMocks({
+          tempDir,
+          config: {
+            prListResponse: JSON.stringify({
+              number: 100,
+              title: 'chore(release): v1.3.0',
+              headRefOid: 'needs_fetch_but_stale_sha',
+            }),
+            ancestorExitCode: 1, // stale even after fetch
+            requiresFetch: true,
+            workflowStatus: 'passed',
+          },
+        });
+
+        const result = runAndThenAwait(
+          [
+            'artifact_type=release-pr',
+            'artifact_display=release pr',
+            'prior_merge_commit=abc123',
+          ],
+          { tempDir, fakeBinDir },
+        );
+
+        // verify fetch was called (each poll cycle)
+        const fetchedCommits = fs.existsSync(
+          path.join(stateDir, 'fetched_commits'),
+        )
+          ? fs.readFileSync(path.join(stateDir, 'fetched_commits'), 'utf-8')
+          : '';
+        expect(fetchedCommits).toContain('needs_fetch_but_stale_sha');
+
+        expect(result.status).toBe(2);
+        expect(result.stdout).toContain('⚓ release pr did not appear');
+        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case21] tag requires fetch, then fresh', () => {
+    when('[t0] tag commit not local initially, fetch makes it available, ancestry passes', () => {
+      then('fetch is called, tag found fresh, exit 0', () => {
+        const tempDir = genTempDir({ slug: 'p4-case21', git: true });
+        const { fakeBinDir, stateDir } = setupMocks({
+          tempDir,
+          config: {
+            tagCommit: 'needs_fetch_tag_commit_sha',
+            ancestorExitCode: 0, // fresh once fetched
+            requiresFetch: true,
+          },
+        });
+
+        const result = runAndThenAwait(
+          [
+            'artifact_type=tag',
+            'artifact_display=tag v1.3.0',
+            'prior_merge_commit=abc123',
+            'expected_tag=v1.3.0',
+          ],
+          { tempDir, fakeBinDir },
+        );
+
+        // verify fetch was called for the tag commit
+        const fetchedCommits = fs.existsSync(
+          path.join(stateDir, 'fetched_commits'),
+        )
+          ? fs.readFileSync(path.join(stateDir, 'fetched_commits'), 'utf-8')
+          : '';
+        expect(fetchedCommits).toContain('needs_fetch_tag_commit_sha');
+
+        expect(result.status).toBe(0);
+        expect(result.stdout).toContain('🫧 and then...');
+        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case22] tag requires fetch, still stale', () => {
+    when('[t0] tag commit not local initially, fetch makes it available, but ancestry fails', () => {
+      then('fetch is called, tag still stale, polls until timeout', () => {
+        const tempDir = genTempDir({ slug: 'p4-case22', git: true });
+        const { fakeBinDir, stateDir } = setupMocks({
+          tempDir,
+          config: {
+            tagCommit: 'needs_fetch_but_stale_tag_sha',
+            ancestorExitCode: 1, // stale even after fetch
+            requiresFetch: true,
+            workflowStatus: 'passed',
+          },
+        });
+
+        const result = runAndThenAwait(
+          [
+            'artifact_type=tag',
+            'artifact_display=tag v1.3.0',
+            'prior_merge_commit=abc123',
+            'expected_tag=v1.3.0',
+          ],
+          { tempDir, fakeBinDir },
+        );
+
+        // verify fetch was called (each poll cycle)
+        const fetchedCommits = fs.existsSync(
+          path.join(stateDir, 'fetched_commits'),
+        )
+          ? fs.readFileSync(path.join(stateDir, 'fetched_commits'), 'utf-8')
+          : '';
+        expect(fetchedCommits).toContain('needs_fetch_but_stale_tag_sha');
+
+        expect(result.status).toBe(2);
+        expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
         expect(asTimeStable(result.stdout)).toMatchSnapshot();
       });
     });
