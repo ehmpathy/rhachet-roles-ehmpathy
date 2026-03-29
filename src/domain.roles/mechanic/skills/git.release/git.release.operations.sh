@@ -406,12 +406,35 @@ enable_automerge() {
 # list workflow runs for a tag
 #
 # usage: get_tag_runs "v1.2.3"
-# returns: JSON array of runs with name, conclusion, status, url
+# returns: JSON array of runs with name, conclusion, status, url, startedAt
 ######################################################################
 get_tag_runs() {
   local tag="$1"
 
-  _gh_with_retry gh run list --branch "$tag" --json name,conclusion,status,url
+  _gh_with_retry gh run list --branch "$tag" --json name,conclusion,status,url,startedAt
+}
+
+######################################################################
+# get_oldest_tag_run_started_at
+# get the oldest startedAt timestamp from tag workflow runs
+# (for accurate "in action" time calculation)
+#
+# usage: get_oldest_tag_run_started_at "$runs_json"
+# returns: epoch timestamp (seconds) or empty if not available
+######################################################################
+get_oldest_tag_run_started_at() {
+  local runs_json="$1"
+  local oldest_iso
+
+  # get the oldest (minimum) startedAt from all runs
+  oldest_iso=$(echo "$runs_json" | jq -r '[.[] | .startedAt // empty] | map(select(. != null and . != "")) | sort | .[0] // empty')
+
+  if [[ -z "$oldest_iso" || "$oldest_iso" == "null" ]]; then
+    return 0
+  fi
+
+  # convert ISO timestamp to epoch seconds
+  date -d "$oldest_iso" +%s 2>/dev/null || return 0
 }
 
 ######################################################################

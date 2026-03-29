@@ -217,6 +217,7 @@ _watch_tag_transport() {
   local tag_name="$1"
   local start_time
   local ci_start_time
+  local ci_start_time_set="false"
   local first_iteration="true"
   local runs_ever_seen="false"
   local no_runs_polls=0
@@ -323,6 +324,16 @@ _watch_tag_transport() {
 
     # runs found - mark as seen
     runs_ever_seen="true"
+
+    # set ci_start_time from oldest run (for accurate "in action" time)
+    if [[ "$ci_start_time_set" == "false" ]]; then
+      local oldest_started
+      oldest_started=$(get_oldest_tag_run_started_at "$runs_json")
+      if [[ -n "$oldest_started" && "$oldest_started" -gt 0 ]]; then
+        ci_start_time="$oldest_started"
+      fi
+      ci_start_time_set="true"
+    fi
 
     # count states
     local failed_count in_progress_count

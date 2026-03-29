@@ -981,7 +981,8 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 🌊 release: v1.3.0
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
+      ├─ 💤 await, Xs in action, Xs watched
+      ├─ 💤 await, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
 "
 `;
@@ -1028,7 +1029,8 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 🌊 release: v1.3.0
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
+      ├─ 💤 await, Xs in action, Xs watched
+      ├─ 💤 await, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
 "
 `;

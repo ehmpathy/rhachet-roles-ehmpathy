@@ -250,7 +250,12 @@ export const genPrViewJson = (input: {
  * .what = generate tag workflow run list json for a given state
  * .why = reusable mock data for tag workflow states
  */
-export const genTagWorkflowJson = (input: { state: TagState }): string => {
+export const genTagWorkflowJson = (input: {
+  state: TagState;
+  startedAt?: string;
+}): string => {
+  const startedAt = input.startedAt ?? new Date().toISOString();
+
   switch (input.state) {
     case 'unfound':
       return '[]';
@@ -262,6 +267,7 @@ export const genTagWorkflowJson = (input: { state: TagState }): string => {
           conclusion: null,
           status: 'in_progress',
           url: 'https://github.com/test/repo/actions/runs/789',
+          startedAt,
         },
       ]);
 
@@ -272,6 +278,7 @@ export const genTagWorkflowJson = (input: { state: TagState }): string => {
           conclusion: 'success',
           status: 'completed',
           url: 'https://github.com/test/repo/actions/runs/789',
+          startedAt,
         },
       ]);
 
@@ -282,6 +289,7 @@ export const genTagWorkflowJson = (input: { state: TagState }): string => {
           conclusion: 'failure',
           status: 'completed',
           url: 'https://github.com/test/repo/actions/runs/789',
+          startedAt,
         },
       ]);
 
