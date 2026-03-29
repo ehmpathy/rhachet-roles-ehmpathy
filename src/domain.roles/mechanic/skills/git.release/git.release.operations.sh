@@ -757,8 +757,9 @@ get_release_please_status() {
   # get default branch name
   default_branch=$(get_default_branch)
 
-  # query release-please workflow runs on default branch
-  run_json=$(_gh_with_retry gh run list --workflow release-please.yml --branch "$default_branch" --limit 1 --json status,conclusion,url 2>/dev/null) || true
+  # query release workflow runs on default branch
+  # note: workflow name varies by repo (release.yml, release-please.yml, etc.)
+  run_json=$(_gh_with_retry gh run list --workflow release.yml --branch "$default_branch" --limit 1 --json status,conclusion,url 2>/dev/null) || true
 
   # check if we got results
   if [[ -z "$run_json" || "$run_json" == "[]" ]]; then
