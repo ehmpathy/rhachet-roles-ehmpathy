@@ -118,33 +118,36 @@ describe('git.release.p6.timing', () => {
   describe('positive: accurate duration from timestamps', () => {
     given('[case1] PR inflight then merges with known timestamps', () => {
       when('[t0] --watch is called', () => {
-        then('it shows duration from completedAt - startedAt, not now - startedAt', () => {
-          const { tempDir, fakeBinDir, cleanup } = setupScene({
-            scene: {
-              branch: 'feat',
-              featPr: 'inflight',
-              priorReleaseTitle: 'chore(release): v1.2.3',
-              transitions: true,
-            },
-            slug: 'p6-timing-positive-pr',
-          });
-
-          try {
-            const result = runScript({
-              args: ['--watch'],
-              cwd: tempDir,
-              fakeBinDir,
+        then(
+          'it shows duration from completedAt - startedAt, not now - startedAt',
+          () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene: {
+                branch: 'feat',
+                featPr: 'inflight',
+                priorReleaseTitle: 'chore(release): v1.2.3',
+                transitions: true,
+              },
+              slug: 'p6-timing-positive-pr',
             });
 
-            expect(result.status).toBe(0);
-            // mock sets completedAt = startedAt + 60s, so duration should be ~1m
-            // if it showed now - startedAt, it would be ~0s (since test runs fast)
-            expect(result.stdout).toContain('done!');
-            expect(result.stdout).toMatch(/1m.*in action/);
-          } finally {
-            cleanup();
-          }
-        });
+            try {
+              const result = runScript({
+                args: ['--watch'],
+                cwd: tempDir,
+                fakeBinDir,
+              });
+
+              expect(result.status).toBe(0);
+              // mock sets completedAt = startedAt + 60s, so duration should be ~1m
+              // if it showed now - startedAt, it would be ~0s (since test runs fast)
+              expect(result.stdout).toContain('done!');
+              expect(result.stdout).toMatch(/1m.*in action/);
+            } finally {
+              cleanup();
+            }
+          },
+        );
       });
     });
 
@@ -245,35 +248,41 @@ describe('git.release.p6.timing', () => {
     });
 
     given('[case5] tag watch with grace period (no runs yet)', () => {
-      when('[t0] --watch --into prod --from main is called with no initial runs', () => {
-        then('it gracefully handles absent timestamps in grace period', () => {
-          const { tempDir, fakeBinDir, cleanup } = setupScene({
-            scene: {
-              branch: 'main',
-              releasePr: 'merged',
-              // unfound with transitions will go through grace period
-              tagWorkflows: 'unfound',
-              priorReleaseTitle: 'chore(release): v1.2.3',
-              transitions: true,
+      when(
+        '[t0] --watch --into prod --from main is called with no initial runs',
+        () => {
+          then(
+            'it gracefully handles absent timestamps in grace period',
+            () => {
+              const { tempDir, fakeBinDir, cleanup } = setupScene({
+                scene: {
+                  branch: 'main',
+                  releasePr: 'merged',
+                  // unfound with transitions will go through grace period
+                  tagWorkflows: 'unfound',
+                  priorReleaseTitle: 'chore(release): v1.2.3',
+                  transitions: true,
+                },
+                slug: 'p6-timing-negative-grace',
+              });
+
+              try {
+                const result = runScript({
+                  args: ['--watch', '--into', 'prod', '--from', 'main'],
+                  cwd: tempDir,
+                  fakeBinDir,
+                });
+
+                // should complete successfully even with transitions
+                expect(result.status).toBe(0);
+                expect(result.stdout).toContain('done!');
+              } finally {
+                cleanup();
+              }
             },
-            slug: 'p6-timing-negative-grace',
-          });
-
-          try {
-            const result = runScript({
-              args: ['--watch', '--into', 'prod', '--from', 'main'],
-              cwd: tempDir,
-              fakeBinDir,
-            });
-
-            // should complete successfully even with transitions
-            expect(result.status).toBe(0);
-            expect(result.stdout).toContain('done!');
-          } finally {
-            cleanup();
-          }
-        });
-      });
+          );
+        },
+      );
     });
   });
 });
