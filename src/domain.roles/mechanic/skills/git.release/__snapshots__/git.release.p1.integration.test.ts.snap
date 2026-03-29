@@ -333,7 +333,8 @@ exports[`git.release given: [case4a] release to prod from main (apply mode) when
 🌊 release: v1.2.3
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
-      ├─ 🫧 no runs inflight
+      ├─ 💤 await, Xs in action, Xs watched
+      ├─ 💤 await, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
 "
 `;

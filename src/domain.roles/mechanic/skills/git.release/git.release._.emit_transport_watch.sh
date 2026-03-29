@@ -143,7 +143,13 @@ _watch_pr_transport() {
 
     # check if merged
     if [[ $(is_pr_merged "$status_json") == "true" ]]; then
-      in_action=$(( $(date +%s) - ci_start_time ))
+      # use actual completion time, not current time
+      local ci_end_time
+      ci_end_time=$(get_latest_completed_at "$status_json")
+      if [[ -z "$ci_end_time" || "$ci_end_time" -eq 0 ]]; then
+        ci_end_time=$(date +%s)
+      fi
+      in_action=$(( ci_end_time - ci_start_time ))
       local in_action_str elapsed_str
       in_action_str=$(format_duration "$in_action")
       elapsed_str=$(format_duration "$elapsed")
@@ -165,7 +171,13 @@ _watch_pr_transport() {
 
     # check if rebase needed
     if [[ $(needs_rebase "$status_json") == "true" ]]; then
-      in_action=$(( $(date +%s) - ci_start_time ))
+      # use actual completion time, not current time
+      local ci_end_time
+      ci_end_time=$(get_latest_completed_at "$status_json")
+      if [[ -z "$ci_end_time" || "$ci_end_time" -eq 0 ]]; then
+        ci_end_time=$(date +%s)
+      fi
+      in_action=$(( ci_end_time - ci_start_time ))
       local in_action_str elapsed_str
       in_action_str=$(format_duration "$in_action")
       elapsed_str=$(format_duration "$elapsed")
@@ -191,6 +203,14 @@ _watch_pr_transport() {
       # checks done, check automerge state
       if [[ $(has_automerge "$status_json") != "true" ]]; then
         # no automerge = won't merge on its own
+        # use actual completion time, not current time
+        local ci_end_time
+        ci_end_time=$(get_latest_completed_at "$status_json")
+        if [[ -z "$ci_end_time" || "$ci_end_time" -eq 0 ]]; then
+          ci_end_time=$(date +%s)
+        fi
+        in_action=$(( ci_end_time - ci_start_time ))
+        in_action_str=$(format_duration "$in_action")
         if [[ "$first_iteration" == "true" ]]; then
           echo "      ├─ 🫧 no runs inflight"
         fi
@@ -218,6 +238,7 @@ _watch_tag_transport() {
   local start_time
   local ci_start_time
   local ci_start_time_set="false"
+  local ci_end_time=0
   local first_iteration="true"
   local runs_ever_seen="false"
   local no_runs_polls=0
@@ -272,7 +293,11 @@ _watch_tag_transport() {
       # no runs found - check if runs ever existed
       if [[ "$runs_ever_seen" == "true" ]]; then
         # runs existed before, now all finished
-        in_action=$(( $(date +%s) - ci_start_time ))
+        # use last known completion time if available
+        if [[ "$ci_end_time" -eq 0 ]]; then
+          ci_end_time=$(date +%s)
+        fi
+        in_action=$(( ci_end_time - ci_start_time ))
         local in_action_str elapsed_str
         in_action_str=$(format_duration "$in_action")
         elapsed_str=$(format_duration "$elapsed")
@@ -335,6 +360,13 @@ _watch_tag_transport() {
       ci_start_time_set="true"
     fi
 
+    # track latest completion time (for accurate "in action" duration)
+    local latest_completed
+    latest_completed=$(get_latest_tag_run_completed_at "$runs_json")
+    if [[ -n "$latest_completed" && "$latest_completed" -gt 0 ]]; then
+      ci_end_time="$latest_completed"
+    fi
+
     # count states
     local failed_count in_progress_count
     failed_count=$(echo "$runs_json" | jq '[.[] | select(.conclusion == "failure" or .conclusion == "cancelled")] | length')
@@ -357,7 +389,13 @@ _watch_tag_transport() {
 
     # check completion
     if [[ "$target_status" == "success" ]]; then
-      in_action=$(( $(date +%s) - ci_start_time ))
+      # use actual completion time, not current time
+      local ci_end_time
+      ci_end_time=$(get_latest_tag_run_completed_at "$runs_json")
+      if [[ -z "$ci_end_time" || "$ci_end_time" -eq 0 ]]; then
+        ci_end_time=$(date +%s)
+      fi
+      in_action=$(( ci_end_time - ci_start_time ))
       local in_action_str elapsed_str
       in_action_str=$(format_duration "$in_action")
       elapsed_str=$(format_duration "$elapsed")

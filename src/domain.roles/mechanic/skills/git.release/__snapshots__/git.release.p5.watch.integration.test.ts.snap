@@ -13,7 +13,7 @@ exports[`git.release.p5.watch feature-pr watch given: [case1] pr exists, checks 
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -27,7 +27,7 @@ exports[`git.release.p5.watch feature-pr watch given: [case2] pr exists, checks 
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -71,7 +71,7 @@ exports[`git.release.p5.watch release-pr watch given: [case5] release pr exists,
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -90,7 +90,7 @@ exports[`git.release.p5.watch release-pr watch given: [case6] release pr exists,
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -125,7 +125,7 @@ exports[`git.release.p5.watch release-tag watch given: [case8] tag workflows inf
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -144,7 +144,7 @@ exports[`git.release.p5.watch release-tag watch given: [case9] tag workflows alr
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -184,6 +184,6 @@ exports[`git.release.p5.watch release-tag watch given: [case11] tag starts unfou
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;

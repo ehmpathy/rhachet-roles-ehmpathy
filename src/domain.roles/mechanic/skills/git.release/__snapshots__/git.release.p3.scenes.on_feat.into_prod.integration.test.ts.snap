@@ -37,7 +37,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
@@ -46,7 +46,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
@@ -54,7 +54,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -83,7 +83,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -97,7 +97,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
@@ -106,7 +106,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
@@ -114,7 +114,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -140,7 +140,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -155,7 +155,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    └─ 🥥 let's watch
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
@@ -164,7 +164,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
@@ -172,7 +172,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -199,7 +199,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    └─ 🥥 let's watch
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
@@ -208,7 +208,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -275,7 +275,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -310,7 +310,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -410,7 +410,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
@@ -418,7 +418,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -514,7 +514,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
@@ -522,7 +522,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -563,7 +563,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -583,7 +583,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
@@ -591,7 +591,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -629,7 +629,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -650,7 +650,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    └─ 🥥 let's watch
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
@@ -658,7 +658,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -697,7 +697,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    └─ 🥥 let's watch
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
@@ -705,7 +705,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -796,7 +796,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -843,7 +843,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;
 
@@ -1056,7 +1056,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -1103,7 +1103,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -1128,7 +1128,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -1175,7 +1175,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -1287,7 +1287,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -1345,6 +1345,6 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;

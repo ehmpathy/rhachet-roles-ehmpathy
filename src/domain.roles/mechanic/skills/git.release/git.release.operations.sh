@@ -263,6 +263,29 @@ get_oldest_started_at() {
 }
 
 ######################################################################
+# get_latest_completed_at
+# get the latest completedAt timestamp from statusCheckRollup
+# (for accurate "in action" duration when checks finish)
+#
+# usage: get_latest_completed_at "$status_json"
+# returns: epoch timestamp (seconds) or empty if not available
+######################################################################
+get_latest_completed_at() {
+  local status_json="$1"
+  local latest_iso
+
+  # get the latest (maximum) completedAt from all completed checks
+  latest_iso=$(echo "$status_json" | jq -r '[.statusCheckRollup[]? | .completedAt // empty] | map(select(. != null and . != "")) | sort | .[-1] // empty')
+
+  if [[ -z "$latest_iso" || "$latest_iso" == "null" ]]; then
+    return 0
+  fi
+
+  # convert ISO timestamp to epoch seconds
+  date -d "$latest_iso" +%s 2>/dev/null || return 0
+}
+
+######################################################################
 # has_automerge
 # check if automerge is enabled on PR
 #
@@ -411,7 +434,7 @@ enable_automerge() {
 get_tag_runs() {
   local tag="$1"
 
-  _gh_with_retry gh run list --branch "$tag" --json name,conclusion,status,url,startedAt
+  _gh_with_retry gh run list --branch "$tag" --json name,conclusion,status,url,startedAt,updatedAt
 }
 
 ######################################################################
@@ -435,6 +458,29 @@ get_oldest_tag_run_started_at() {
 
   # convert ISO timestamp to epoch seconds
   date -d "$oldest_iso" +%s 2>/dev/null || return 0
+}
+
+######################################################################
+# get_latest_tag_run_completed_at
+# get the latest updatedAt timestamp from completed tag workflow runs
+# (for accurate "in action" duration when workflows finish)
+#
+# usage: get_latest_tag_run_completed_at "$runs_json"
+# returns: epoch timestamp (seconds) or empty if not available
+######################################################################
+get_latest_tag_run_completed_at() {
+  local runs_json="$1"
+  local latest_iso
+
+  # get the latest (maximum) updatedAt from completed runs
+  latest_iso=$(echo "$runs_json" | jq -r '[.[] | select(.status == "completed") | .updatedAt // empty] | map(select(. != null and . != "")) | sort | .[-1] // empty')
+
+  if [[ -z "$latest_iso" || "$latest_iso" == "null" ]]; then
+    return 0
+  fi
+
+  # convert ISO timestamp to epoch seconds
+  date -d "$latest_iso" +%s 2>/dev/null || return 0
 }
 
 ######################################################################
