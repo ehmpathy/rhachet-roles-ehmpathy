@@ -14,6 +14,18 @@ hooks enable guardrails, automation, and custom behavior without changes to Clau
 
 place in `src/domain.roles/{role}/inits/claude.hooks/`:
 
+**CRITICAL: make it executable!**
+```bash
+chmod +x src/domain.roles/{role}/inits/claude.hooks/pretooluse.my-hook.sh
+git add src/domain.roles/{role}/inits/claude.hooks/pretooluse.my-hook.sh
+```
+
+Claude Code silently ignores non-executable hooks. verify with:
+```bash
+git ls-files -s path/to/hook.sh
+# should show 100755, NOT 100644
+```
+
 ```bash
 # src/domain.roles/mechanic/inits/claude.hooks/pretooluse.my-hook.sh
 #!/usr/bin/env bash
@@ -58,10 +70,12 @@ export const ROLE_MECHANIC: Role = Role.build({
 
 ```bash
 npm run build
-rhachet init --hooks --roles mechanic
+npx rhachet init --hooks --roles mechanic
 ```
 
-this syncs hooks from the role definition to `.claude/settings.json`.
+this command inits both the role and its hooks. it writes them to `.claude/settings.json`.
+
+note: `npx rhachet roles init --role mechanic` only inits permissions, not hooks. use `--hooks` flag to include hooks.
 
 ## hook types
 
@@ -106,8 +120,33 @@ Claude Code passes JSON to hooks:
 | `posttooluse.*` | runs after tool |
 | `sessionstart.*` | runs on session start |
 
+## troubleshoot: hook does not run
+
+if your hook is registered but does not fire:
+
+1. **check executable bit** (most common cause)
+   ```bash
+   git ls-files -s path/to/hook.sh
+   # 100644 = NOT executable (broken)
+   # 100755 = executable (correct)
+   ```
+   fix: `chmod +x path/to/hook.sh && git add path/to/hook.sh`
+
+2. **check symlink exists**
+   ```bash
+   file .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/your-hook.sh
+   ```
+
+3. **rebuild and relink**
+   ```bash
+   npm run build && npx rhachet roles link --role mechanic
+   ```
+
+Claude Code silently ignores hooks that fail to execute. no error, no log — just skipped.
+
 ## .summary
 
 1. create hook in `inits/claude.hooks/`
-2. register in `get{Role}Role.ts` under `hooks.onBrain.onTool`
-3. rebuild and reinit to activate
+2. **chmod +x the hook file** (critical!)
+3. register in `get{Role}Role.ts` under `hooks.onBrain.onTool`
+4. `npm run build && npx rhachet init --hooks --roles mechanic`
