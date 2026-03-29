@@ -657,3 +657,115 @@ show_failed_tag_runs() {
     print_watch_progress_in_failure "$in_progress_count"
   fi
 }
+
+######################################################################
+# freshness-check operations for and_then_await
+# these operations check that artifacts come AFTER a prior merge
+######################################################################
+
+######################################################################
+# .what = get fresh release PR (commit-based freshness)
+# .why  = ensures release PR comes AFTER the squash merge just performed,
+#         prevents stale PRs from prior runs from pickup
+#
+# usage: get_fresh_release_pr prior_merge_commit
+# returns: PR JSON (number, title, headRefOid) if fresh, empty if stale/not found
+######################################################################
+get_fresh_release_pr() {
+  local prior_merge_commit="$1"
+  local pr_json
+
+  # try open PRs first
+  pr_json=$(_gh_with_retry gh pr list --state open --json number,title,headRefOid --jq '.[] | select(.title | startswith("chore(release):"))')
+
+  if [[ -n "$pr_json" ]]; then
+    # check freshness via head commit
+    local head_commit
+    head_commit=$(echo "$pr_json" | jq -r '.headRefOid')
+
+    if git merge-base --is-ancestor "$prior_merge_commit" "$head_commit" 2>/dev/null; then
+      echo "$pr_json"
+      return 0
+    fi
+    # stale open PR - continue to check merged
+  fi
+
+  # try merged PRs (release PR might already be merged)
+  pr_json=$(_gh_with_retry gh pr list --state merged --json number,title,mergeCommit --jq '.[] | select(.title | startswith("chore(release):"))' | head -n 1)
+
+  if [[ -n "$pr_json" ]]; then
+    # check freshness via merge commit (the squash commit on main)
+    local merge_commit
+    merge_commit=$(echo "$pr_json" | jq -r '.mergeCommit.oid')
+
+    if git merge-base --is-ancestor "$prior_merge_commit" "$merge_commit" 2>/dev/null; then
+      echo "$pr_json"
+      return 0
+    fi
+    # stale merged PR
+  fi
+
+  # no fresh release PR found
+  echo ""
+}
+
+######################################################################
+# .what = get fresh release tag (commit-based freshness)
+# .why  = ensures tag comes AFTER the squash merge just performed,
+#         prevents stale tags from prior runs from pickup
+#
+# usage: get_fresh_release_tag expected_tag prior_merge_commit
+# returns: tag commit sha if fresh, empty if stale/not found
+######################################################################
+get_fresh_release_tag() {
+  local expected_tag="$1"
+  local prior_merge_commit="$2"
+  local tag_commit
+
+  # fetch tags to ensure we have latest
+  git fetch --tags --quiet 2>/dev/null || true
+
+  # check if tag exists
+  tag_commit=$(git rev-parse "refs/tags/$expected_tag" 2>/dev/null) || true
+
+  # if tag not found, return empty
+  if [[ -z "$tag_commit" ]]; then
+    echo ""
+    return 0
+  fi
+
+  # check freshness: prior_merge_commit must be ancestor of tag_commit
+  if git merge-base --is-ancestor "$prior_merge_commit" "$tag_commit" 2>/dev/null; then
+    echo "$tag_commit"
+  else
+    # stale: tag_commit is not descended from prior_merge_commit
+    echo ""
+  fi
+}
+
+######################################################################
+# .what = get release-please workflow status
+# .why  = provides diagnostic info on timeout (why artifact did not appear)
+#
+# usage: get_release_please_status
+# returns: JSON with status, conclusion, url; or "not_found"
+######################################################################
+get_release_please_status() {
+  local run_json
+  local default_branch
+
+  # get default branch name
+  default_branch=$(get_default_branch)
+
+  # query release-please workflow runs on default branch
+  run_json=$(_gh_with_retry gh run list --workflow release-please.yml --branch "$default_branch" --limit 1 --json status,conclusion,url 2>/dev/null) || true
+
+  # check if we got results
+  if [[ -z "$run_json" || "$run_json" == "[]" ]]; then
+    echo "not_found"
+    return 0
+  fi
+
+  # extract first run
+  echo "$run_json" | jq -c '.[0]'
+}

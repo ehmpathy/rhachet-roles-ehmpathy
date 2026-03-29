@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import { genGitMockExecutable } from './.test/infra/mockGit';
+
 /**
  * .what = v2 test suite for git.release with full spec matrix coverage
  * .why = systematic coverage of all state combinations per git.release.spec.md
@@ -419,8 +421,16 @@ case "$CMD_KEY" in
       echo "title=chore(release): v1.3.0 🎉"
       exit 0
     fi
+    # detect get_fresh_release_pr query (--json number,title,headRefOid)
+    if echo "$ALL_ARGS" | grep -q -- "--json number,title,headRefOid"; then
+      # get_fresh_release_pr: return JSON with headRefOid for freshness check
+      if [[ -z "${releasePrList}" ]]; then
+        echo ""
+      else
+        echo '{"number":${releasePrNum},"title":"chore(release): v1.33.0 🎉","headRefOid":"mock_release_pr_head_sha"}'
+      fi
     # detect if release PR request (has chore(release) in jq filter)
-    if echo "$ALL_ARGS" | grep -q "chore(release)"; then
+    elif echo "$ALL_ARGS" | grep -q "chore(release)"; then
       # release PR request - return empty if unfound
       if [[ -z "${releasePrList}" ]]; then
         echo ""
@@ -578,6 +588,17 @@ const setupScene = (input: {
   // create gh mock
   const ghMock = genGhMockExecutable({ scene: input.scene, stateDir });
   fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMock, { mode: 0o755 });
+
+  // create git mock for merge-base --is-ancestor freshness checks
+  genGitMockExecutable({
+    mockBinDir: fakeBinDir,
+    stateDir,
+    options: {
+      branch: input.scene.branch === 'main' ? 'main' : 'turtle/feature-x',
+      awaitFreshness: 'fresh',
+      tagCommit: 'mock-tag-sha-v1.33.0',
+    },
+  });
 
   // create rhachet mock for keyrack
   const rhachetMock = `#!/bin/bash

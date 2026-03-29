@@ -731,82 +731,117 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
     // ========================================================================
 
     // ------------------------------------------------------------------------
-    // rows 22-24: feat PR merged, release PR unfound
+    // rows 22-24: feat PR merged, release PR unfound → awaited → found
     // ------------------------------------------------------------------------
-    given('[row-22] feat PR: merged, release PR: unfound', () => {
+    given(
+      '[row-22] feat PR: merged, release PR: unfound (found after wait)',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'merged',
+          releasePr: 'unfound',
+          awaitReleasePr: 'after-wait',
+          transitions: true,
+        };
+
+        when('[plan] --into prod', () => {
+          then('exit 0: merged, release PR found after await', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'p3-s2-rpr-unfound-await-plan',
+            });
+            try {
+              const result = runSkill(['--into', 'prod'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.stdout).toContain('merged');
+              expect(result.stdout).toContain('and then...');
+              expect(result.stdout).toContain('found!');
+              expect(asTimeStable(result.stdout)).toMatchSnapshot();
+              expect(result.status).toEqual(0);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+
+        when('[watch] --into prod --watch', () => {
+          then(
+            'exit 0: merged, release PR found after await, watch to merged',
+            () => {
+              const { tempDir, fakeBinDir, cleanup } = setupScene({
+                scene,
+                slug: 'p3-s2-rpr-unfound-await-watch',
+              });
+              try {
+                const result = runSkill(['--into', 'prod', '--watch'], {
+                  tempDir,
+                  fakeBinDir,
+                });
+                expect(result.stdout).toContain('and then...');
+                expect(result.stdout).toContain('found!');
+                expect(asTimeStable(result.stdout)).toMatchSnapshot();
+                expect(result.status).toEqual(0);
+              } finally {
+                cleanup();
+              }
+            },
+          );
+        });
+
+        when('[apply] --into prod --apply', () => {
+          then(
+            'exit 0: merged, release PR found after await, apply to merged',
+            () => {
+              const { tempDir, fakeBinDir, cleanup } = setupScene({
+                scene,
+                slug: 'p3-s2-rpr-unfound-await-apply',
+              });
+              try {
+                const result = runSkill(['--into', 'prod', '--apply'], {
+                  tempDir,
+                  fakeBinDir,
+                });
+                expect(result.stdout).toContain('and then...');
+                expect(result.stdout).toContain('found!');
+                expect(asTimeStable(result.stdout)).toMatchSnapshot();
+                expect(result.status).toEqual(0);
+              } finally {
+                cleanup();
+              }
+            },
+          );
+        });
+      },
+    );
+
+    // ------------------------------------------------------------------------
+    // rows 22b: feat PR merged, release PR unfound → timeout (sad path)
+    // ------------------------------------------------------------------------
+    given('[row-22b] feat PR: merged, release PR: unfound (timeout)', () => {
       const scene: Scene = {
         branch: 'feat',
         featPr: 'merged',
         releasePr: 'unfound',
+        // no awaitReleasePr = 'never' (default) = timeout
       };
 
       when('[plan] --into prod', () => {
-        then('exit 0: merged, no release PR found', () => {
+        then('exit 2: merged, release PR await timeout', () => {
           const { tempDir, fakeBinDir, cleanup } = setupScene({
             scene,
-            slug: 'p3-s2-rpr-unfound-plan',
+            slug: 'p3-s2-rpr-unfound-timeout-plan',
           });
           try {
             const result = runSkill(['--into', 'prod'], {
               tempDir,
               fakeBinDir,
             });
-            // debug: dump state if exit code is 1
-            if (result.status === 1) {
-              const fs = require('fs');
-              const stateDir = path.join(fakeBinDir, '..', '.state');
-              const debugFile = '/tmp/git-release-row22-debug.txt';
-              let debug = '=== DEBUG row-22 ===\n';
-              debug += `stdout:\n${result.stdout}\n`;
-              debug += `stderr:\n${result.stderr}\n`;
-              const debugLog = path.join(stateDir, 'gh-debug.log');
-              if (fs.existsSync(debugLog)) {
-                debug += `gh-debug.log:\n${fs.readFileSync(debugLog, 'utf-8')}\n`;
-              }
-              debug += '=== END DEBUG ===\n';
-              fs.writeFileSync(debugFile, debug);
-            }
             expect(result.stdout).toContain('merged');
+            expect(result.stdout).toContain('release pr did not appear');
             expect(asTimeStable(result.stdout)).toMatchSnapshot();
-            expect(result.status).toEqual(0);
-          } finally {
-            cleanup();
-          }
-        });
-      });
-
-      when('[watch] --into prod --watch', () => {
-        then('exit 0: merged, no release PR found', () => {
-          const { tempDir, fakeBinDir, cleanup } = setupScene({
-            scene,
-            slug: 'p3-s2-rpr-unfound-watch',
-          });
-          try {
-            const result = runSkill(['--into', 'prod', '--watch'], {
-              tempDir,
-              fakeBinDir,
-            });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
-            expect(result.status).toEqual(0);
-          } finally {
-            cleanup();
-          }
-        });
-      });
-
-      when('[apply] --into prod --apply', () => {
-        then('exit 0: merged, no release PR found', () => {
-          const { tempDir, fakeBinDir, cleanup } = setupScene({
-            scene,
-            slug: 'p3-s2-rpr-unfound-apply',
-          });
-          try {
-            const result = runSkill(['--into', 'prod', '--apply'], {
-              tempDir,
-              fakeBinDir,
-            });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
-            expect(result.status).toEqual(0);
+            expect(result.status).toEqual(2);
           } finally {
             cleanup();
           }

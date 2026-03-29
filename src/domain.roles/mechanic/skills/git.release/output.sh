@@ -402,3 +402,73 @@ print_watch_retry_hint() {
 print_watch_errors_hint() {
   echo -e "      └─ \033[2mhint: use rhx show.gh.test.errors to see test output\033[0m"
 }
+
+######################################################################
+# await-context output functions
+# used inside the 🫧 and then... transition for artifact await
+# 3-space indent (one level under 🫧)
+######################################################################
+
+######################################################################
+# .what = emit poll line for await transition
+# .why  = shows progress while await is pending
+#
+# usage: print_await_poll elapsed_seconds [is_last]
+######################################################################
+print_await_poll() {
+  local elapsed_seconds="$1"
+  local is_last="${2:-false}"
+
+  local prefix="├─"
+  if [[ "$is_last" == "true" ]]; then
+    prefix="└─"
+  fi
+
+  echo "   $prefix 💤 ${elapsed_seconds}s in await"
+}
+
+######################################################################
+# .what = emit result line for await transition
+# .why  = shows final state: found or timeout with artifact name
+#
+# usage: print_await_result "found|timeout" [elapsed_or_artifact] [timeout_seconds]
+#   found: print_await_result found 15
+#   timeout: print_await_result timeout "release pr" 90
+######################################################################
+print_await_result() {
+  local status="$1"
+
+  case "$status" in
+    found)
+      local elapsed="$2"
+      echo "   └─ ✨ found! after ${elapsed}s"
+      ;;
+    timeout)
+      local artifact_display="$2"
+      local timeout_seconds="${3:-90}"
+      echo "   └─ ⚓ $artifact_display did not appear in ${timeout_seconds}s"
+      ;;
+  esac
+}
+
+######################################################################
+# .what = emit workflow status nested tree
+# .why  = shows release-please workflow status on timeout for diagnostics
+#
+# usage: print_workflow_status name url status
+#   print_workflow_status "release-please" "https://..." "failed"
+#   print_workflow_status "release-please" "" "not_found"
+######################################################################
+print_workflow_status() {
+  local name="$1"
+  local url="$2"
+  local status="$3"
+
+  echo "      └─ 🔴 $name"
+  if [[ -n "$url" ]]; then
+    echo "            ├─ $url"
+    echo "            └─ $status"
+  else
+    echo "            └─ $status"
+  fi
+}

@@ -392,7 +392,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 "
 `;
 
-exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-22] feat PR: merged, release PR: unfound when: [apply] --into prod --apply then: exit 0: merged, no release PR found 1`] = `
+exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-22] feat PR: merged, release PR: unfound (found after wait) when: [apply] --into prod --apply then: exit 0: merged, release PR found after await, apply to merged 1`] = `
 "🐢 cowabunga!
 
 🐚 git.release --into prod --mode apply --watch
@@ -402,19 +402,27 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    └─ 🌴 already merged
 
 🫧 and then...
+   ├─ 💤 5s in await
+   └─ ✨ found! after 5s
 
-🫧 no open release pr
-   └─ latest: chore(release): v1.3.0 🎉
-
-🌊 release: v1.3.0
+🌊 release: 
    ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
       └─ ✨ done! Xs in action, Xs watched
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
 "
 `;
 
-exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-22] feat PR: merged, release PR: unfound when: [plan] --into prod then: exit 0: merged, no release PR found 1`] = `
+exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-22] feat PR: merged, release PR: unfound (found after wait) when: [plan] --into prod then: exit 0: merged, release PR found after await 1`] = `
 "🐢 heres the wave...
 
 🐚 git.release --into prod --mode plan
@@ -424,16 +432,17 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    └─ 🌴 already merged
 
 🫧 and then...
+   ├─ 💤 5s in await
+   └─ ✨ found! after 5s
 
-🫧 no open release pr
-   └─ latest: chore(release): v1.3.0 🎉
-
-🌊 release: v1.3.0
-   └─ 👌 all checks passed
+🌊 release: 
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ [2mhint: use --apply to enable automerge and watch[0m
 "
 `;
 
-exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-22] feat PR: merged, release PR: unfound when: [watch] --into prod --watch then: exit 0: merged, no release PR found 1`] = `
+exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-22] feat PR: merged, release PR: unfound (found after wait) when: [watch] --into prod --watch then: exit 0: merged, release PR found after await, watch to merged 1`] = `
 "🐢 heres the wave...
 
 🐚 git.release --into prod --watch
@@ -443,15 +452,49 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    └─ 🌴 already merged
 
 🫧 and then...
+   ├─ 💤 5s in await
+   └─ ✨ found! after 5s
 
-🫧 no open release pr
-   └─ latest: chore(release): v1.3.0 🎉
-
-🌊 release: v1.3.0
+🌊 release: 
    ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
       └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-22b] feat PR: merged, release PR: unfound (timeout) when: [plan] --into prod then: exit 2: merged, release PR await timeout 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+   ├─ 💤 5s in await
+   ├─ 💤 10s in await
+   ├─ 💤 15s in await
+   ├─ 💤 20s in await
+   ├─ 💤 25s in await
+   ├─ 💤 30s in await
+   ├─ 💤 35s in await
+   ├─ 💤 40s in await
+   ├─ 💤 45s in await
+   ├─ 💤 50s in await
+   ├─ 💤 55s in await
+   ├─ 💤 60s in await
+   ├─ 💤 65s in await
+   ├─ 💤 70s in await
+   ├─ 💤 75s in await
+   ├─ 💤 80s in await
+   ├─ 💤 85s in await
+   └─ ⚓ release pr did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ success
 "
 `;
 

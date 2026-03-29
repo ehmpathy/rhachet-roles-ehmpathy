@@ -362,8 +362,10 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 🫧 and then...
 
 🌊 release: chore(release): v1.2.3
-   ├─ 👌 all checks passed
-   └─ 🌴 already merged
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
 
 🫧 and then...
 
@@ -414,8 +416,10 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 🫧 and then...
 
 🌊 release: chore(release): v1.32.0 🎉
-   ├─ 👌 all checks passed
-   └─ 🌴 already merged
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
 
 🫧 and then...
 
@@ -442,8 +446,10 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 🫧 and then...
 
 🌊 release: chore(release): v1.32.0 🎉
-   ├─ 👌 all checks passed
-   └─ 🌴 already merged
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
 
 🫧 and then...
 
@@ -805,5 +811,158 @@ exports[`git.release given: [case9] dirty state detection when: [t3] apply mode 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    └─ 🌴 already merged
+"
+`;
+
+exports[`git.release given: [case10] and_then_await full flow when: [t0] feature PR merges, release PR not found immediately, then found after wait then: shows await poll lines then ✨ found! 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 and then...
+   ├─ 💤 5s in await
+   └─ ✨ found! after 5s
+
+🌊 release: chore(release): v1.32.0 🎉
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.32.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case10] and_then_await full flow when: [t1] feature PR merges, release PR never found (timeout) then: shows await poll lines then ⚓ timeout with workflow status 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xs in action, Xs watched
+
+🫧 and then...
+   ├─ 💤 5s in await
+   ├─ 💤 10s in await
+   ├─ 💤 15s in await
+   ├─ 💤 20s in await
+   ├─ 💤 25s in await
+   ├─ 💤 30s in await
+   ├─ 💤 35s in await
+   ├─ 💤 40s in await
+   ├─ 💤 45s in await
+   ├─ 💤 50s in await
+   ├─ 💤 55s in await
+   ├─ 💤 60s in await
+   ├─ 💤 65s in await
+   ├─ 💤 70s in await
+   ├─ 💤 75s in await
+   ├─ 💤 80s in await
+   ├─ 💤 85s in await
+   └─ ⚓ release pr did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ failure
+"
+`;
+
+exports[`git.release given: [case11] and_then_await when skip_watch=true (feat PR already merged) when: [t0] feat PR already merged, release PR found immediately then: shows immediate transition (no poll lines) 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: chore(release): v1.32.0 🎉
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.32.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case11] and_then_await when skip_watch=true (feat PR already merged) when: [t1] feat PR already merged, release PR found after wait then: shows await poll lines then ✨ found! 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+   ├─ 💤 5s in await
+   └─ ✨ found! after 5s
+
+🌊 release: chore(release): v1.32.0 🎉
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.32.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release given: [case11] and_then_await when skip_watch=true (feat PR already merged) when: [t2] feat PR already merged, release PR timeout then: shows await poll lines then ⚓ timeout with workflow status 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+   ├─ 💤 5s in await
+   ├─ 💤 10s in await
+   ├─ 💤 15s in await
+   ├─ 💤 20s in await
+   ├─ 💤 25s in await
+   ├─ 💤 30s in await
+   ├─ 💤 35s in await
+   ├─ 💤 40s in await
+   ├─ 💤 45s in await
+   ├─ 💤 50s in await
+   ├─ 💤 55s in await
+   ├─ 💤 60s in await
+   ├─ 💤 65s in await
+   ├─ 💤 70s in await
+   ├─ 💤 75s in await
+   ├─ 💤 80s in await
+   ├─ 💤 85s in await
+   └─ ⚓ release pr did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ failure
 "
 `;
