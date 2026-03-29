@@ -218,10 +218,16 @@ _watch_tag_transport() {
   local start_time
   local ci_start_time
   local first_iteration="true"
+  local runs_ever_seen="false"
+  local no_runs_polls=0
   local elapsed
   local in_action
   local poll_interval
   local test_iterations=0
+
+  # grace period: if runs don't appear after this many seconds, assume no workflows
+  # in test mode, use poll count instead (3 polls)
+  local grace_threshold_seconds=30
 
   start_time=$(date +%s)
   ci_start_time="$start_time"
@@ -262,14 +268,61 @@ _watch_tag_transport() {
     local total_runs
     total_runs=$(echo "$runs_json" | jq 'length')
     if [[ "$total_runs" == "0" ]]; then
-      in_action=$(( $(date +%s) - ci_start_time ))
-      local in_action_str elapsed_str
-      in_action_str=$(format_duration "$in_action")
-      elapsed_str=$(format_duration "$elapsed")
-      echo "      ├─ 🫧 no runs inflight"
-      print_watch_result "done" "$in_action_str in action, $elapsed_str watched"
-      return 0
+      # no runs found - check if runs ever existed
+      if [[ "$runs_ever_seen" == "true" ]]; then
+        # runs existed before, now all finished
+        in_action=$(( $(date +%s) - ci_start_time ))
+        local in_action_str elapsed_str
+        in_action_str=$(format_duration "$in_action")
+        elapsed_str=$(format_duration "$elapsed")
+        echo "      ├─ 🫧 no runs inflight"
+        print_watch_result "done" "$in_action_str in action, $elapsed_str watched"
+        return 0
+      else
+        # runs not yet started - check grace period
+        no_runs_polls=$((no_runs_polls + 1))
+
+        # grace period logic: exit if runs don't appear
+        local grace_exceeded="false"
+        if [[ "${GIT_RELEASE_TEST_MODE:-}" == "true" ]]; then
+          # test mode: 3 polls grace period
+          if [[ $no_runs_polls -ge 3 ]]; then
+            grace_exceeded="true"
+          fi
+        else
+          # real mode: 30 seconds grace period
+          if [[ $elapsed -ge $grace_threshold_seconds ]]; then
+            grace_exceeded="true"
+          fi
+        fi
+
+        if [[ "$grace_exceeded" == "true" ]]; then
+          # no workflows found after grace period - exit successfully
+          in_action=$(( $(date +%s) - ci_start_time ))
+          local in_action_str elapsed_str
+          in_action_str=$(format_duration "$in_action")
+          elapsed_str=$(format_duration "$elapsed")
+          if [[ "$first_iteration" == "true" ]]; then
+            echo "      ├─ 🫧 no runs inflight"
+          fi
+          print_watch_result "done" "$in_action_str in action, $elapsed_str watched"
+          return 0
+        fi
+
+        # still within grace period - emit poll line and continue
+        in_action=$(( $(date +%s) - ci_start_time ))
+        local in_action_str elapsed_str
+        in_action_str=$(format_duration "$in_action")
+        elapsed_str=$(format_duration "$elapsed")
+        print_watch_poll "await" "$in_action_str" "$elapsed_str"
+        first_iteration="false"
+        sleep "$poll_interval"
+        continue
+      fi
     fi
+
+    # runs found - mark as seen
+    runs_ever_seen="true"
 
     # count states
     local failed_count in_progress_count
