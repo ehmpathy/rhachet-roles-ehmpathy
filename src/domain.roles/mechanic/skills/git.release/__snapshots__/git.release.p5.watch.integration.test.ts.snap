@@ -1,0 +1,189 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release.p5.watch feature-pr watch given: [case1] pr exists, checks inflight when: [t0] --watch is called then: it polls until checks pass and pr merges 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p5.watch feature-pr watch given: [case2] pr exists, checks passed, no automerge when: [t0] --watch is called then: it exits with done immediately 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p5.watch feature-pr watch given: [case3] pr exists, already merged when: [t0] --watch is called then: it exits with already merged immediately 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+"
+`;
+
+exports[`git.release.p5.watch feature-pr watch given: [case4] pr exists, checks failed when: [t0] --watch is called then: it exits with failed status 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        └─ publish
+   ├─ 🌴 automerge unfound (use --apply to add)
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p5.watch release-pr watch given: [case5] release pr exists, checks inflight when: [t0] --watch --into prod is called on main then: it polls until checks pass and pr merges 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p5.watch release-pr watch given: [case6] release pr exists, already merged when: [t0] --watch --into prod is called on main then: it proceeds to tag watch and exits done 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p5.watch release-pr watch given: [case7] release pr exists, checks failed when: [t0] --watch --into prod is called on main then: it exits with failed status 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test
+   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        └─ publish
+   ├─ 🌴 automerge unfound (use --apply to add)
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p5.watch release-tag watch given: [case8] tag workflows inflight when: [t0] --watch --into prod --from main is called then: it polls until workflows complete 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p5.watch release-tag watch given: [case9] tag workflows already passed when: [t0] --watch --into prod --from main is called then: it exits with done immediately 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p5.watch release-tag watch given: [case10] tag workflows failed when: [t0] --watch --into prod --from main is called then: it exits with failed status 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 publish.yml
+   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        └─ failure
+   ├─ [2mhint: use --retry to rerun failed workflows[0m
+   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+"
+`;
+
+exports[`git.release.p5.watch release-tag watch given: [case11] tag starts unfound then appears with transitions when: [t0] --watch --into prod --from main is called then: it transitions through inflight to done 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xs in action, Xs watched
+"
+`;
