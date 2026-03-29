@@ -875,7 +875,7 @@ exports[`git.release given: [case10] and_then_await full flow when: [t1] feature
    ├─ 💤 80s in await
    ├─ 💤 85s in await
    └─ ⚓ release pr did not appear in 90s
-      └─ 🔴 release-please
+      └─ 🔴 release
             ├─ https://github.com/test/repo/actions/runs/12345
             └─ failure
 "
@@ -961,7 +961,7 @@ exports[`git.release given: [case11] and_then_await when skip_watch=true (feat P
    ├─ 💤 80s in await
    ├─ 💤 85s in await
    └─ ⚓ release pr did not appear in 90s
-      └─ 🔴 release-please
+      └─ 🔴 release
             ├─ https://github.com/test/repo/actions/runs/12345
             └─ failure
 "

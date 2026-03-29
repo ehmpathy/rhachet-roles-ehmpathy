@@ -3870,8 +3870,8 @@ case "$CMD_KEY" in
     echo "auto-merge enabled"
     ;;
   "run list")
-    # check if this is release-please workflow query (for timeout diagnostics)
-    if echo "$ALL_ARGS" | grep -q "release-please"; then
+    # check if this is release workflow query (for timeout diagnostics)
+    if echo "$ALL_ARGS" | grep -q "release.yml"; then
       echo '[{"status": "completed", "conclusion": "failure", "url": "https://github.com/test/repo/actions/runs/12345"}]'
     else
       echo '[{"name": "publish.yml", "conclusion": "success", "status": "completed", "url": "https://github.com/test/repo/actions/runs/789"}]'
@@ -3932,7 +3932,7 @@ exit 1
           expect(result.stdout).toContain('did not appear');
           expect(result.stdout).toContain('90s');
           // should show workflow status
-          expect(result.stdout).toContain('release-please');
+          expect(result.stdout).toContain('release');
           expect(result.stdout).toContain('failure');
           expect(asTimingStable(result.stdout)).toMatchSnapshot();
           // exit 2 = constraint error (timeout)
@@ -4376,8 +4376,8 @@ case "$CMD_KEY" in
     echo "auto-merge enabled"
     ;;
   "run list")
-    # check if this is release-please workflow query (for timeout diagnostics)
-    if echo "$ALL_ARGS" | grep -q "release-please"; then
+    # check if this is release workflow query (for timeout diagnostics)
+    if echo "$ALL_ARGS" | grep -q "release.yml"; then
       echo '[{"status": "completed", "conclusion": "failure", "url": "https://github.com/test/repo/actions/runs/12345"}]'
     else
       echo '[{"name": "publish.yml", "conclusion": "success", "status": "completed", "url": "https://github.com/test/repo/actions/runs/789"}]'
@@ -4448,7 +4448,7 @@ exit 1
             expect(result.stdout).toContain('did not appear');
             expect(result.stdout).toContain('90s');
             // should show workflow status
-            expect(result.stdout).toContain('release-please');
+            expect(result.stdout).toContain('release');
             expect(result.stdout).toContain('failure');
             expect(asTimingStable(result.stdout)).toMatchSnapshot();
             // exit 2 = constraint error (timeout)
