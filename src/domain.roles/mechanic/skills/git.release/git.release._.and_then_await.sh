@@ -242,7 +242,7 @@ _emit_timeout() {
   workflow_status=$(get_release_please_status)
 
   if [[ "$workflow_status" == "not_found" ]]; then
-    print_workflow_status "release-please" "" "not found"
+    print_workflow_status "release" "" "not found"
   else
     local url status conclusion
     url=$(echo "$workflow_status" | jq -r '.url // empty')
@@ -257,6 +257,6 @@ _emit_timeout() {
       display_status="$status"
     fi
 
-    print_workflow_status "release-please" "$url" "$display_status"
+    print_workflow_status "release" "$url" "$display_status"
   fi
 }

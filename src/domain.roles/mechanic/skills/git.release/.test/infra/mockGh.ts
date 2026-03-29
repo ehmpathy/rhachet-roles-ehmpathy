@@ -99,7 +99,7 @@ export interface Scene {
    */
   awaitTag?: 'immediate' | 'after-wait' | 'never';
   /**
-   * workflow status for release-please on timeout
+   * workflow status for release workflow on timeout
    */
   awaitWorkflowStatus?: 'failed' | 'in_progress' | 'passed' | 'not_found';
 }
@@ -923,8 +923,8 @@ case "$CMD_KEY" in
     ;;
 
   "run list")
-    # handle release-please workflow status query (for await timeout diagnostics)
-    if echo "$ALL_ARGS" | grep -q "release-please"; then
+    # handle release workflow status query (for await timeout diagnostics)
+    if echo "$ALL_ARGS" | grep -q "release.yml"; then
       ${(() => {
         switch (scene.awaitWorkflowStatus) {
           case 'failed':

@@ -492,7 +492,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 💤 80s in await
    ├─ 💤 85s in await
    └─ ⚓ release pr did not appear in 90s
-      └─ 🔴 release-please
+      └─ 🔴 release
             ├─ https://github.com/test/repo/actions/runs/12345
             └─ success
 "
