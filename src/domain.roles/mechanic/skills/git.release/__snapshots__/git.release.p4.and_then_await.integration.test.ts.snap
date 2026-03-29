@@ -1,0 +1,373 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release.p4.and_then_await given: [case1] release-pr found immediately when: [t0] fresh release PR exists on first check then: output shows transition + blank line, exit 0 1`] = `
+"
+🫧 and then...
+
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case2] release-pr found after wait when: [t0] release PR appears after poll cycles then: output shows poll lines + found, exit 0 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   └─ ✨ found! after Xs
+
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case3] tag found immediately when: [t0] fresh tag exists on first check then: output shows transition + blank line, exit 0 1`] = `
+"
+🫧 and then...
+
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case4] tag found after wait when: [t0] tag appears after poll cycles then: output shows poll lines + found, exit 0 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   └─ ✨ found! after Xs
+
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case5] stale release-pr rejected when: [t0] old PR exists but is stale then: stale PR is rejected, poll continues 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ release pr did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ success
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case6] stale release-pr then fresh appears when: [t0] old PR is rejected, then fresh PR appears then: fresh PR is accepted, exit 0 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   └─ ✨ found! after Xs
+
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case7] stale release-pr then timeout when: [t0] PR stays stale until timeout then: timeout with workflow status, exit 2 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ release pr did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ failure
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case8] stale tag rejected when: [t0] old tag exists but is stale then: stale tag is rejected, poll continues 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ tag v1.3.0 did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ success
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case9] stale tag then fresh appears when: [t0] old tag is rejected, then fresh tag appears then: fresh tag is accepted, exit 0 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   └─ ✨ found! after Xs
+
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case10] stale tag then timeout when: [t0] tag stays stale until timeout then: timeout with workflow status, exit 2 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ tag v1.3.0 did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ failure
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case11] release-pr timeout, workflow failed when: [t0] timeout occurs and workflow failed then: shows ⚓ + 🔴 release-please + failed 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ release pr did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ failure
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case12] release-pr timeout, workflow in_progress when: [t0] timeout occurs and workflow in progress then: shows ⚓ + 🔴 release-please + in_progress 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ release pr did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ in_progress
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case13] release-pr timeout, workflow passed when: [t0] timeout occurs and workflow passed then: shows ⚓ + 🔴 release-please + success 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ release pr did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ success
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case14] release-pr timeout, workflow not found when: [t0] timeout occurs and workflow not found then: shows ⚓ + 🔴 release-please + not found 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ release pr did not appear in 90s
+      └─ 🔴 release-please
+            └─ not found
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case15] tag timeout, workflow failed when: [t0] timeout occurs and workflow failed then: shows ⚓ + 🔴 release-please + failed 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ tag v1.3.0 did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ failure
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case16] tag timeout, workflow in_progress when: [t0] timeout occurs and workflow in progress then: shows ⚓ + 🔴 release-please + in_progress 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ tag v1.3.0 did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ in_progress
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case17] tag timeout, workflow passed when: [t0] timeout occurs and workflow passed then: shows ⚓ + 🔴 release-please + success 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ tag v1.3.0 did not appear in 90s
+      └─ 🔴 release-please
+            ├─ https://github.com/test/repo/actions/runs/12345
+            └─ success
+"
+`;
+
+exports[`git.release.p4.and_then_await given: [case18] tag timeout, workflow not found when: [t0] timeout occurs and workflow not found then: shows ⚓ + 🔴 release-please + not found 1`] = `
+"
+🫧 and then...
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   └─ ⚓ tag v1.3.0 did not appear in 90s
+      └─ 🔴 release-please
+            └─ not found
+"
+`;

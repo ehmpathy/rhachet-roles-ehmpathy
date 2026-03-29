@@ -56,6 +56,7 @@ source "$SKILL_DIR/git.release._.get_one_transport_status.sh"
 source "$SKILL_DIR/git.release._.emit_transport_status.sh"
 source "$SKILL_DIR/git.release._.emit_transport_watch.sh"
 source "$SKILL_DIR/git.release._.emit_one_transport_status_exitcode.sh"
+source "$SKILL_DIR/git.release._.and_then_await.sh"
 
 ######################################################################
 # argument parse
@@ -681,16 +682,35 @@ if [[ "$GOAL_FROM" != "main" ]]; then
     exit 0
   fi
 
-  # transition to next transport
-  print_transition
+  # await release PR after feature PR merge
+  # note: always await even if skip_watch=true - release-please creates PR AFTER the merge
+  # get merge commit from feature PR for freshness check
+  feat_merge_commit=$(_gh_with_retry gh pr view "$pr_number" --json mergeCommit --jq '.mergeCommit.oid')
+
+  # await fresh release PR with commit-based freshness
+  await_result=0
+  and_then_await \
+    artifact_type="release-pr" \
+    artifact_display="release pr" \
+    prior_merge_commit="$feat_merge_commit" || await_result=$?
+
+  if [[ $await_result -ne 0 ]]; then
+    exit $await_result
+  fi
 fi
 
 ######################################################################
 # transport 2: release branch PR (if into=prod)
 ######################################################################
 if [[ "$GOAL_INTO" == "prod" ]]; then
-  # look for release pr
-  release_pr=$(get_release_pr) || exit 1
+  # get release pr: use AWAIT_RESULT if we came from feature branch, else lookup
+  if [[ -n "$AWAIT_RESULT" ]]; then
+    # came from feature branch, use awaited result
+    release_pr=$(echo "$AWAIT_RESULT" | jq -r '.number')
+  else
+    # direct entry via --from main, lookup release pr
+    release_pr=$(get_release_pr) || exit 1
+  fi
 
   if [[ -z "$release_pr" ]]; then
     # no release pr found - check for latest tag
@@ -850,9 +870,6 @@ if [[ "$GOAL_INTO" == "prod" ]]; then
     exit 0
   fi
 
-  # transition to tag transport
-  print_transition
-
   ####################################################################
   # transport 3: release tag workflows
   ####################################################################
@@ -871,27 +888,21 @@ if [[ "$GOAL_INTO" == "prod" ]]; then
     exit 0
   fi
 
-  # wait for expected tag to appear (poll up to 60s, instant in test mode)
-  tag_found="false"
-  max_iterations=12
-  poll_sleep=5
-  if [[ "${GIT_RELEASE_TEST_MODE:-}" == "true" ]]; then
-    max_iterations=1
-    poll_sleep=0
-  fi
-  for ((i=1; i<=max_iterations; i++)); do
-    git fetch --tags --quiet 2>/dev/null || true
-    if git rev-parse "refs/tags/$expected_tag" >/dev/null 2>&1; then
-      tag_found="true"
-      break
-    fi
-    [[ $poll_sleep -gt 0 ]] && sleep "$poll_sleep"
-  done
+  # await tag after release PR merge
+  # note: always await even if skip_watch=true - the tag is created AFTER the merge
+  # get merge commit from release PR for freshness check
+  release_merge_commit=$(_gh_with_retry gh pr view "$release_pr" --json mergeCommit --jq '.mergeCommit.oid')
 
-  if [[ "$tag_found" != "true" ]]; then
-    echo "🫧 tag $expected_tag not yet found"
-    echo "   └─ wait for tag push or check manually"
-    exit 0
+  # await fresh tag with commit-based freshness
+  await_result=0
+  and_then_await \
+    artifact_type="tag" \
+    artifact_display="tag $expected_tag" \
+    prior_merge_commit="$release_merge_commit" \
+    expected_tag="$expected_tag" || await_result=$?
+
+  if [[ $await_result -ne 0 ]]; then
+    exit $await_result
   fi
 
   # emit tag transport status

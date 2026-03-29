@@ -8,6 +8,7 @@ import {
   writeRhachetMock,
   writeSimpleGhMock,
 } from './.test/infra/mockGh';
+import { genGitMockExecutable } from './.test/infra/mockGit';
 import {
   genMockBinDir,
   genStateDir,
@@ -47,6 +48,7 @@ const SKILL_PATH = path.resolve(
  */
 const setupTestEnv = (
   mockResponses: Record<string, string>,
+  options?: { withGitMock?: boolean },
 ): { tempDir: string; fakeBinDir: string; cleanup: () => void } => {
   // create temp repo (stay on main, tests switch branches as needed)
   const { tempDir, cleanup } = genTempGitRepo({ branch: 'main' });
@@ -55,6 +57,18 @@ const setupTestEnv = (
 
   // write mock gh cli with simple key-value responses
   writeSimpleGhMock({ mockResponses, mockBinDir: fakeBinDir, stateDir });
+
+  // optionally add git mock for freshness checks (only for tests that need it)
+  if (options?.withGitMock) {
+    genGitMockExecutable({
+      mockBinDir: fakeBinDir,
+      stateDir,
+      options: {
+        branch: 'main',
+        awaitFreshness: 'fresh', // always pass freshness check
+      },
+    });
+  }
 
   // write rhachet mock for keyrack
   writeRhachetMock({ tempDir, mockBinDir: fakeBinDir });
@@ -622,8 +636,11 @@ case "$CMD_KEY" in
   "pr list")
     # detect if release PR request (has chore(release) in jq filter)
     if echo "$ALL_ARGS" | grep -q "chore(release)"; then
+      # get_fresh_release_pr query: --json number,title,headRefOid
+      if echo "$ALL_ARGS" | grep -q "number,title,headRefOid"; then
+        echo '{"number":99,"title":"chore(release): v1.33.0","headRefOid":"mock_release_pr_head_sha"}'
       # check if query ends with "| .title" vs "| .number" (shell parses quotes away)
-      if echo "$ALL_ARGS" | grep -qE '\\| \\.title$'; then
+      elif echo "$ALL_ARGS" | grep -qE '\\| \\.title$'; then
         echo "chore(release): v1.33.0 🎉"
       else
         echo "99"
@@ -639,6 +656,16 @@ case "$CMD_KEY" in
     ;;
   "pr view")
     PR_NUM="$3"
+    # handle mergeCommit query (for await freshness check)
+    if echo "$ALL_ARGS" | grep -q "mergeCommit"; then
+      # if jq filter requests oid, return just the oid (like real gh does)
+      if echo "$ALL_ARGS" | grep -qE "\\.mergeCommit\\.oid|mergeCommit\\.oid"; then
+        echo 'mock_merge_commit_sha_'"$PR_NUM"
+      else
+        echo '{"mergeCommit":{"oid":"mock_merge_commit_sha_'"$PR_NUM"'"}}'
+      fi
+      exit 0
+    fi
     if [[ "$PR_NUM" == "42" ]]; then
       # feature branch PR - already merged
       echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
@@ -656,6 +683,16 @@ esac
 
         fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
         fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        // git mock: handle merge-base --is-ancestor (freshness check)
+        const gitMockContent = `#!/bin/bash
+if [[ "$1" == "merge-base" && "$2" == "--is-ancestor" ]]; then
+  exit 0  # fresh: is ancestor
+fi
+exec /usr/bin/git "$@"
+`;
+        fs.writeFileSync(path.join(fakeBinDir, 'git'), gitMockContent);
+        fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
 
         // create rhachet mock for keyrack
         const rhachetMockContent = `#!/bin/bash
@@ -742,10 +779,16 @@ case "$CMD_KEY" in
     if echo "$ALL_ARGS" | grep -qF "chore(release)"; then
       # release PR: no open (already merged), found via merged state lookup
       if echo "$ALL_ARGS" | grep -qF -- "--state open"; then
+        # get_fresh_release_pr queries with --json number,title,headRefOid
         echo ""  # no open release PR
       elif echo "$ALL_ARGS" | grep -qF -- "--state merged"; then
-        # check if filter ends with "| .number" vs "| .title" (shell parses quotes away)
-        if echo "$ALL_ARGS" | grep -qE '\\| \\.number$'; then
+        # get_fresh_release_pr queries with --json number,title,mergeCommit
+        # need to return JSON with mergeCommit.oid for freshness check
+        if echo "$ALL_ARGS" | grep -qF -- "--json number,title,mergeCommit"; then
+          # return HEAD sha as merge commit (freshness check will pass)
+          RELEASE_MERGE_SHA=$(/usr/bin/git rev-parse HEAD)
+          echo '{"number":99,"title":"chore(release): v1.33.0","mergeCommit":{"oid":"'"$RELEASE_MERGE_SHA"'"}}'
+        elif echo "$ALL_ARGS" | grep -qE '\\| \\.number$'; then
           echo "99"
         else
           echo "chore(release): v1.33.0"
@@ -764,10 +807,22 @@ case "$CMD_KEY" in
     PR_NUM="$3"
     if [[ "$PR_NUM" == "42" ]]; then
       # feature branch PR - already merged
-      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+      # handle mergeCommit query for and_then_await's prior_merge_commit
+      if echo "$ALL_ARGS" | grep -qF -- "--json mergeCommit"; then
+        FEAT_MERGE_SHA=$(/usr/bin/git rev-parse HEAD)
+        echo "$FEAT_MERGE_SHA"
+      else
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection"}'
+      fi
     elif [[ "$PR_NUM" == "99" ]]; then
       # release PR - also already merged
-      echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.33.0"}'
+      # handle mergeCommit query for and_then_await's prior_merge_commit (tag await)
+      if echo "$ALL_ARGS" | grep -qF -- "--json mergeCommit"; then
+        RELEASE_MERGE_SHA=$(/usr/bin/git rev-parse HEAD)
+        echo "$RELEASE_MERGE_SHA"
+      else
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.33.0"}'
+      fi
     fi
     ;;
   "run list")
@@ -1006,6 +1061,13 @@ fi
 
 # track pr view calls
 if [[ "$ALL_ARGS" == *"pr view"* ]]; then
+  # handle mergeCommit query for and_then_await's prior_merge_commit
+  if echo "$ALL_ARGS" | grep -qF -- "--json mergeCommit"; then
+    RELEASE_MERGE_SHA=$(/usr/bin/git rev-parse HEAD)
+    echo "$RELEASE_MERGE_SHA"
+    exit 0
+  fi
+
   COUNT=0
   if [[ -f "$STATE_FILE" ]]; then
     COUNT=$(cat "$STATE_FILE")
@@ -1031,7 +1093,15 @@ fi
 
 # pr list - return release PR
 if [[ "$ALL_ARGS" == *"pr list"* ]]; then
-  if [[ "$ALL_ARGS" == *".title"* ]]; then
+  # get_fresh_release_pr queries with specific JSON fields
+  if [[ "$ALL_ARGS" == *"--json number,title,headRefOid"* ]]; then
+    # open PR query - return release PR with HEAD as headRefOid (freshness will pass)
+    HEAD_SHA=$(/usr/bin/git rev-parse HEAD)
+    echo '{"number":99,"title":"chore(release): v1.32.0 🎉","headRefOid":"'"$HEAD_SHA"'"}'
+  elif [[ "$ALL_ARGS" == *"--json number,title,mergeCommit"* ]]; then
+    # merged PR query - no merged release PR (it's still open/inflight)
+    echo ""
+  elif [[ "$ALL_ARGS" == *".title"* ]]; then
     echo 'chore(release): v1.32.0 🎉'
   else
     echo '99'
@@ -1294,6 +1364,17 @@ exit 1
         const fakeBinDir = path.join(tempDir, '.fakebin');
         fs.mkdirSync(fakeBinDir, { recursive: true });
 
+        // mock git for freshness check and tag lookup
+        genGitMockExecutable({
+          mockBinDir: fakeBinDir,
+          stateDir: tempDir,
+          options: {
+            branch: 'turtle/feature-x',
+            awaitFreshness: 'fresh',
+            tagCommit: 'mock-tag-sha-v1.2.3',
+          },
+        });
+
         // counter file for stateful mock
         const counterFile = path.join(tempDir, '.gh-call-counter');
         fs.writeFileSync(counterFile, '0');
@@ -1317,8 +1398,10 @@ case "$CMD_KEY" in
   "pr list")
     # detect if release PR request (has chore(release) in jq filter)
     if echo "$ALL_ARGS" | grep -q "chore(release)"; then
-      # release PR request - check if asking for .title or .number
-      if echo "$ALL_ARGS" | grep -q ".title"; then
+      # check for get_fresh_release_pr query (--json number,title,headRefOid)
+      if echo "$ALL_ARGS" | grep -q -- "--json number,title,headRefOid"; then
+        echo '{"number":99,"title":"chore(release): v1.2.3","headRefOid":"mock_release_pr_head_sha"}'
+      elif echo "$ALL_ARGS" | grep -q ".title"; then
         echo "chore(release): v1.2.3 🎉"
       else
         echo "99"
@@ -1465,6 +1548,17 @@ exit 1
             const fakeBinDir = path.join(tempDir, '.fakebin');
             fs.mkdirSync(fakeBinDir, { recursive: true });
 
+            // mock git for freshness check and tag lookup
+            genGitMockExecutable({
+              mockBinDir: fakeBinDir,
+              stateDir: tempDir,
+              options: {
+                branch: 'turtle/feature-x',
+                awaitFreshness: 'fresh',
+                tagCommit: 'mock-tag-sha-v1.32.0',
+              },
+            });
+
             // counter file for stateful mock
             const counterFile = path.join(tempDir, '.gh-call-counter');
             fs.writeFileSync(counterFile, '0');
@@ -1484,9 +1578,10 @@ case "$CMD_KEY" in
   "pr list")
     # detect if release PR request (has chore(release) in jq filter)
     if echo "$ALL_ARGS" | grep -q "chore(release)"; then
-      # release PR request - check if filter ends with .number or .title
-      # note: both queries have .title in the middle (in select), so check for .number at the end
-      if echo "$ALL_ARGS" | grep -q "| \\.number"; then
+      # check for get_fresh_release_pr query (--json number,title,headRefOid)
+      if echo "$ALL_ARGS" | grep -q -- "--json number,title,headRefOid"; then
+        echo '{"number":99,"title":"chore(release): v1.32.0","headRefOid":"mock_release_pr_head_sha"}'
+      elif echo "$ALL_ARGS" | grep -q "| \\.number"; then
         echo "99"
       else
         echo "chore(release): v1.32.0 🎉"
@@ -1632,6 +1727,17 @@ exit 1
         const fakeBinDir = path.join(tempDir, '.fakebin');
         fs.mkdirSync(fakeBinDir, { recursive: true });
 
+        // mock git for freshness check and tag lookup
+        genGitMockExecutable({
+          mockBinDir: fakeBinDir,
+          stateDir: tempDir,
+          options: {
+            branch: 'turtle/feature-x',
+            awaitFreshness: 'fresh',
+            tagCommit: 'mock-tag-sha-v1.32.0',
+          },
+        });
+
         const counterFile = path.join(tempDir, '.gh-call-counter');
         fs.writeFileSync(counterFile, '0');
 
@@ -1649,8 +1755,10 @@ case "$CMD_KEY" in
   "pr list")
     # detect if release PR request (has chore(release) in jq filter)
     if echo "$ALL_ARGS" | grep -q "chore(release)"; then
-      # check if filter asks for .title or .number
-      if echo "$ALL_ARGS" | grep -q ".title"; then
+      # check for get_fresh_release_pr query (--json number,title,headRefOid)
+      if echo "$ALL_ARGS" | grep -q -- "--json number,title,headRefOid"; then
+        echo '{"number":99,"title":"chore(release): v1.32.0","headRefOid":"mock_release_pr_head_sha"}'
+      elif echo "$ALL_ARGS" | grep -q ".title"; then
         echo "chore(release): v1.32.0 🎉"
       else
         echo "99"
@@ -1762,6 +1870,17 @@ exit 1
         const fakeBinDir = path.join(tempDir, '.fakebin');
         fs.mkdirSync(fakeBinDir, { recursive: true });
 
+        // mock git for freshness check and tag lookup
+        genGitMockExecutable({
+          mockBinDir: fakeBinDir,
+          stateDir: tempDir,
+          options: {
+            branch: 'turtle/feature-x',
+            awaitFreshness: 'fresh',
+            tagCommit: 'mock-tag-sha-v1.32.0',
+          },
+        });
+
         const counterFile = path.join(tempDir, '.gh-call-counter');
         fs.writeFileSync(counterFile, '0');
 
@@ -1778,7 +1897,10 @@ CMD_KEY="$1 $2"
 case "$CMD_KEY" in
   "pr list")
     if echo "$ALL_ARGS" | grep -q "chore(release)"; then
-      if echo "$ALL_ARGS" | grep -q ".title"; then
+      # check for get_fresh_release_pr query (--json number,title,headRefOid)
+      if echo "$ALL_ARGS" | grep -q -- "--json number,title,headRefOid"; then
+        echo '{"number":99,"title":"chore(release): v1.32.0","headRefOid":"mock_release_pr_head_sha"}'
+      elif echo "$ALL_ARGS" | grep -q ".title"; then
         echo "chore(release): v1.32.0 🎉"
       else
         echo "99"
@@ -3460,4 +3582,882 @@ esac
       });
     });
   });
+
+  given('[case10] and_then_await full flow', () => {
+    when(
+      '[t0] feature PR merges, release PR not found immediately, then found after wait',
+      () => {
+        then('shows await poll lines then ✨ found!', () => {
+          // scenario: feature PR merges via --into prod, and_then_await polls for release PR
+          // - feature PR: transitions from in-progress → merged
+          // - first 2 polls: no release PR found
+          // - poll 3: release PR found (fresh)
+          // - shows 💤 lines then ✨ found!
+          const tempDir = genTempDir({
+            slug: 'git-release-await-found',
+            git: true,
+          });
+          const fakeBinDir = path.join(tempDir, '.fakebin');
+          fs.mkdirSync(fakeBinDir, { recursive: true });
+
+          // mock git for freshness check
+          genGitMockExecutable({
+            mockBinDir: fakeBinDir,
+            stateDir: tempDir,
+            options: {
+              branch: 'turtle/feature-x',
+              awaitFreshness: 'fresh',
+              tagCommit: 'mock-tag-sha-v1.32.0',
+            },
+          });
+
+          // counters for stateful mock
+          const counterFile = path.join(tempDir, '.gh-call-counter');
+          fs.writeFileSync(counterFile, '0');
+          const awaitCounterFile = path.join(tempDir, '.await-counter');
+          fs.writeFileSync(awaitCounterFile, '0');
+
+          const nowIso = new Date().toISOString();
+
+          // stateful gh mock:
+          // - feature PR: transitions from in-progress → merged (must watch, not skip)
+          // - release PR lookup: first 2 calls empty, then returns PR
+          // - release PR: already merged for faster flow
+          const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+COUNTER_FILE="${counterFile}"
+AWAIT_COUNTER_FILE="${awaitCounterFile}"
+NOW="${nowIso}"
+ALL_ARGS="$*"
+CMD_KEY="$1 $2"
+
+case "$CMD_KEY" in
+  "pr list")
+    # detect release PR query (get_fresh_release_pr)
+    if echo "$ALL_ARGS" | grep -q -- "--json number,title,headRefOid"; then
+      AWAIT_COUNT=$(cat "$AWAIT_COUNTER_FILE")
+      echo $((AWAIT_COUNT + 1)) > "$AWAIT_COUNTER_FILE"
+      if [[ $AWAIT_COUNT -lt 3 ]]; then
+        # first 2 poll iterations: no release PR found
+        # note: threshold=3 because each poll calls 2 queries (open+merged) and we want 2 empty iterations
+        echo ""
+      else
+        # poll 3+: release PR found
+        echo '{"number":99,"title":"chore(release): v1.32.0","headRefOid":"mock_release_pr_head_sha"}'
+      fi
+    elif echo "$ALL_ARGS" | grep -q -- "--state merged"; then
+      # merged PR query (get_fresh_release_pr fallback) - also use await counter
+      AWAIT_COUNT=$(cat "$AWAIT_COUNTER_FILE")
+      if [[ $AWAIT_COUNT -lt 3 ]]; then
+        # first 2 poll iterations: no merged release PR found
+        echo ""
+      else
+        # poll 3+: merged release PR found
+        RELEASE_MERGE_SHA=$(/usr/bin/git rev-parse HEAD)
+        echo '{"number":99,"title":"chore(release): v1.32.0","mergeCommit":{"oid":"'"$RELEASE_MERGE_SHA"'"}}'
+      fi
+    elif echo "$ALL_ARGS" | grep -q "chore(release)"; then
+      # other release PR queries (title lookup)
+      if echo "$ALL_ARGS" | grep -q ".title"; then
+        echo "chore(release): v1.32.0 🎉"
+      else
+        echo "99"
+      fi
+    else
+      # feature branch PR
+      echo "42"
+    fi
+    ;;
+  "pr view")
+    PR_NUM="$3"
+    if [[ "$PR_NUM" == "42" ]]; then
+      # feature PR - stateful: in-progress → merged
+      FEAT_COUNTER_FILE="${counterFile}.feat"
+      if [[ ! -f "$FEAT_COUNTER_FILE" ]]; then echo "0" > "$FEAT_COUNTER_FILE"; fi
+      FEAT_COUNT=$(cat "$FEAT_COUNTER_FILE")
+      echo $((FEAT_COUNT + 1)) > "$FEAT_COUNTER_FILE"
+
+      # handle mergeCommit query (after merge)
+      if echo "$ALL_ARGS" | grep -q "mergeCommit"; then
+        # if jq filter requests oid, return just the oid (like real gh does)
+        if echo "$ALL_ARGS" | grep -qE "\\.mergeCommit\\.oid|mergeCommit\\.oid"; then
+          echo 'mock_feat_merge_commit'
+        else
+          echo '{"mergeCommit":{"oid":"mock_feat_merge_commit"}}'
+        fi
+      elif [[ $FEAT_COUNT -lt 2 ]]; then
+        # polls 1-2: in progress (must watch, not skip)
+        echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "test", "startedAt": "'$NOW'"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+      else
+        # poll 3+: merged
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection", "mergeCommit": {"oid": "mock_feat_merge_commit"}}'
+      fi
+    elif [[ "$PR_NUM" == "99" ]]; then
+      # release PR - already merged for faster flow
+      if echo "$ALL_ARGS" | grep -q "mergeCommit"; then
+        # if jq filter requests oid, return just the oid (like real gh does)
+        if echo "$ALL_ARGS" | grep -qE "\\.mergeCommit\\.oid|mergeCommit\\.oid"; then
+          echo 'mock_release_merge_commit'
+        else
+          echo '{"mergeCommit":{"oid":"mock_release_merge_commit"}}'
+        fi
+      else
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0 🎉", "mergeCommit": {"oid": "mock_release_merge_commit"}}'
+      fi
+    else
+      echo '{"statusCheckRollup": [], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0 🎉"}'
+    fi
+    ;;
+  "pr merge")
+    echo "auto-merge enabled"
+    ;;
+  "run list")
+    echo '[{"name": "publish.yml", "conclusion": "success", "status": "completed", "url": "https://github.com/test/repo/actions/runs/789"}]'
+    ;;
+  "run view")
+    echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
+    ;;
+  *)
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+esac
+`;
+          fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
+          fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+          // mock rhachet keyrack
+          const rhachetMock = `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
+  echo '{"grant":{"key":{"secret":"mock-github-token"}}}'
+  exit 0
+fi
+exit 1
+`;
+          const nodeModulesBinDir = path.join(tempDir, 'node_modules', '.bin');
+          fs.mkdirSync(nodeModulesBinDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(nodeModulesBinDir, 'rhachet'),
+            rhachetMock,
+          );
+          fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
+
+          // tag version must match mock PR title version
+          spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          // setup git.commit.uses permission for apply mode
+          const meterDir = path.join(tempDir, '.meter');
+          fs.mkdirSync(meterDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(meterDir, 'git.commit.uses.jsonc'),
+            JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          );
+
+          // --into prod triggers and_then_await for release PR
+          const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // should show feature PR watch, then await poll, then release PR
+          expect(result.stdout).toContain('feat(oceans): add reef protection');
+          expect(result.stdout).toContain('and then...');
+          // should show await poll lines (at least one)
+          expect(result.stdout).toContain('in await');
+          // should show found
+          expect(result.stdout).toContain('found!');
+          // should proceed to release PR
+          expect(result.stdout).toContain('chore(release)');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        });
+      },
+    );
+
+    when('[t1] feature PR merges, release PR never found (timeout)', () => {
+      then(
+        'shows await poll lines then ⚓ timeout with workflow status',
+        () => {
+          // scenario: feature PR merges, and_then_await polls but release PR never appears
+          // - feature PR: transitions from OPEN → MERGED (must watch, not skip)
+          // - all polls return empty
+          // - after 90s simulated (18 polls in test mode), timeout
+          // - shows 💤 lines then ⚓ timeout with workflow status
+          const tempDir = genTempDir({
+            slug: 'git-release-await-timeout',
+            git: true,
+          });
+          const fakeBinDir = path.join(tempDir, '.fakebin');
+          fs.mkdirSync(fakeBinDir, { recursive: true });
+
+          // mock git for freshness check
+          genGitMockExecutable({
+            mockBinDir: fakeBinDir,
+            stateDir: tempDir,
+            options: {
+              branch: 'turtle/feature-x',
+              awaitFreshness: 'fresh',
+            },
+          });
+
+          // counter for stateful mock
+          const counterFile = path.join(tempDir, '.gh-call-counter');
+          fs.writeFileSync(counterFile, '0');
+
+          const nowIso = new Date().toISOString();
+
+          // stateful gh mock:
+          // - feature PR: transitions OPEN → MERGED (must watch, not skip)
+          // - release PR lookup: always empty (never found)
+          // - workflow status: failed (for timeout diagnostics)
+          const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+COUNTER_FILE="${counterFile}"
+NOW="${nowIso}"
+ALL_ARGS="$*"
+CMD_KEY="$1 $2"
+
+case "$CMD_KEY" in
+  "pr list")
+    # detect release PR query (get_fresh_release_pr)
+    if echo "$ALL_ARGS" | grep -q -- "--json number,title,headRefOid"; then
+      # always return empty - release PR never appears
+      echo ""
+    elif echo "$ALL_ARGS" | grep -q -- "--state merged"; then
+      # merged PR query - always return empty (release PR never appears)
+      echo ""
+    else
+      # feature branch PR
+      echo "42"
+    fi
+    ;;
+  "pr view")
+    PR_NUM="$3"
+    if [[ "$PR_NUM" == "42" ]]; then
+      # feature PR - stateful: in-progress → merged (must watch, not skip)
+      FEAT_COUNTER_FILE="${counterFile}.feat"
+      if [[ ! -f "$FEAT_COUNTER_FILE" ]]; then echo "0" > "$FEAT_COUNTER_FILE"; fi
+      FEAT_COUNT=$(cat "$FEAT_COUNTER_FILE")
+      echo $((FEAT_COUNT + 1)) > "$FEAT_COUNTER_FILE"
+
+      # handle mergeCommit query (after merge)
+      if echo "$ALL_ARGS" | grep -q "mergeCommit"; then
+        # if jq filter requests oid, return just the oid (like real gh does)
+        if echo "$ALL_ARGS" | grep -qE "\\.mergeCommit\\.oid|mergeCommit\\.oid"; then
+          echo 'mock_feat_merge_commit'
+        else
+          echo '{"mergeCommit":{"oid":"mock_feat_merge_commit"}}'
+        fi
+      elif [[ $FEAT_COUNT -lt 2 ]]; then
+        # polls 1-2: in progress (must watch, not skip)
+        echo '{"statusCheckRollup": [{"conclusion": null, "status": "IN_PROGRESS", "name": "test", "startedAt": "'$NOW'"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}'
+      else
+        # poll 3+: merged
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection", "mergeCommit": {"oid": "mock_feat_merge_commit"}}'
+      fi
+    else
+      echo '{"statusCheckRollup": [], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED"}'
+    fi
+    ;;
+  "pr merge")
+    echo "auto-merge enabled"
+    ;;
+  "run list")
+    # check if this is release-please workflow query (for timeout diagnostics)
+    if echo "$ALL_ARGS" | grep -q "release-please"; then
+      echo '[{"status": "completed", "conclusion": "failure", "url": "https://github.com/test/repo/actions/runs/12345"}]'
+    else
+      echo '[{"name": "publish.yml", "conclusion": "success", "status": "completed", "url": "https://github.com/test/repo/actions/runs/789"}]'
+    fi
+    ;;
+  "run view")
+    echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
+    ;;
+  *)
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+esac
+`;
+          fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
+          fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+          // mock rhachet keyrack
+          const rhachetMock = `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
+  echo '{"grant":{"key":{"secret":"mock-github-token"}}}'
+  exit 0
+fi
+exit 1
+`;
+          const nodeModulesBinDir = path.join(tempDir, 'node_modules', '.bin');
+          fs.mkdirSync(nodeModulesBinDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(nodeModulesBinDir, 'rhachet'),
+            rhachetMock,
+          );
+          fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
+
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          // setup git.commit.uses permission for apply mode
+          const meterDir = path.join(tempDir, '.meter');
+          fs.mkdirSync(meterDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(meterDir, 'git.commit.uses.jsonc'),
+            JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          );
+
+          // --into prod triggers and_then_await for release PR
+          const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // should show feature PR merged, then await poll until timeout
+          expect(result.stdout).toContain('feat(oceans): add reef protection');
+          expect(result.stdout).toContain('and then...');
+          // should show await poll lines
+          expect(result.stdout).toContain('in await');
+          // should show timeout anchor
+          expect(result.stdout).toContain('did not appear');
+          expect(result.stdout).toContain('90s');
+          // should show workflow status
+          expect(result.stdout).toContain('release-please');
+          expect(result.stdout).toContain('failure');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          // exit 2 = constraint error (timeout)
+          expect(result.status).toEqual(2);
+
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        },
+      );
+    });
+  });
+
+  given(
+    '[case11] and_then_await when skip_watch=true (feat PR already merged)',
+    () => {
+      // scenario: feature PR is already merged before we start watching
+      // skip_watch=true because we didn't have to watch the feat PR
+      // BUT and_then_await must still run to find the release PR
+
+      when('[t0] feat PR already merged, release PR found immediately', () => {
+        then('shows immediate transition (no poll lines)', () => {
+          // scenario: feat PR is MERGED on first check (skip_watch=true)
+          // release PR is found immediately (fresh) on first check
+          // should show immediate transition: 🫧 and then... + blank line
+          const tempDir = genTempDir({
+            slug: 'git-release-skip-watch-immediate',
+            git: true,
+          });
+          const fakeBinDir = path.join(tempDir, '.fakebin');
+          fs.mkdirSync(fakeBinDir, { recursive: true });
+
+          // mock git for freshness check
+          genGitMockExecutable({
+            mockBinDir: fakeBinDir,
+            stateDir: tempDir,
+            options: {
+              branch: 'turtle/feature-x',
+              awaitFreshness: 'fresh',
+              tagCommit: 'mock-tag-sha-v1.32.0',
+            },
+          });
+
+          const nowIso = new Date().toISOString();
+
+          // gh mock: feat PR is MERGED immediately, release PR found immediately
+          const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+NOW="${nowIso}"
+ALL_ARGS="$*"
+CMD_KEY="$1 $2"
+
+case "$CMD_KEY" in
+  "pr list")
+    # detect release PR query (get_fresh_release_pr)
+    if echo "$ALL_ARGS" | grep -q -- "--json number,title,headRefOid"; then
+      # release PR found immediately
+      echo '{"number":99,"title":"chore(release): v1.32.0","headRefOid":"mock_release_pr_head_sha"}'
+    elif echo "$ALL_ARGS" | grep -q "chore(release)"; then
+      # other release PR queries (title lookup)
+      # check for merged PR with mergeCommit JSON first (and_then_await freshness)
+      if echo "$ALL_ARGS" | grep -q -- "--json number,title,mergeCommit"; then
+        # use HEAD SHA so freshness check passes
+        RELEASE_MERGE_SHA=$(/usr/bin/git rev-parse HEAD)
+        echo '{"number":99,"title":"chore(release): v1.32.0","mergeCommit":{"oid":"'"$RELEASE_MERGE_SHA"'"}}'
+      elif echo "$ALL_ARGS" | grep -q ".title"; then
+        echo "chore(release): v1.32.0 🎉"
+      else
+        echo "99"
+      fi
+    else
+      # feature branch PR
+      echo "42"
+    fi
+    ;;
+  "pr view")
+    PR_NUM="$3"
+    if [[ "$PR_NUM" == "42" ]]; then
+      # feature PR - MERGED immediately (skip_watch=true)
+      if echo "$ALL_ARGS" | grep -q "mergeCommit"; then
+        # if jq filter requests oid, return just the oid (like real gh does)
+        if echo "$ALL_ARGS" | grep -qE "\\.mergeCommit\\.oid|mergeCommit\\.oid"; then
+          echo 'mock_feat_merge_commit'
+        else
+          echo '{"mergeCommit":{"oid":"mock_feat_merge_commit"}}'
+        fi
+      else
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection", "mergeCommit": {"oid": "mock_feat_merge_commit"}}'
+      fi
+    elif [[ "$PR_NUM" == "99" ]]; then
+      # release PR - already merged
+      if echo "$ALL_ARGS" | grep -q "mergeCommit"; then
+        # if jq filter requests oid, return just the oid (like real gh does)
+        if echo "$ALL_ARGS" | grep -qE "\\.mergeCommit\\.oid|mergeCommit\\.oid"; then
+          echo 'mock_release_merge_commit'
+        else
+          echo '{"mergeCommit":{"oid":"mock_release_merge_commit"}}'
+        fi
+      else
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0 🎉", "mergeCommit": {"oid": "mock_release_merge_commit"}}'
+      fi
+    else
+      echo '{"statusCheckRollup": [], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0 🎉"}'
+    fi
+    ;;
+  "pr merge")
+    echo "auto-merge enabled"
+    ;;
+  "run list")
+    echo '[{"name": "publish.yml", "conclusion": "success", "status": "completed", "url": "https://github.com/test/repo/actions/runs/789"}]'
+    ;;
+  "run view")
+    echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
+    ;;
+  *)
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+esac
+`;
+          fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
+          fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+          // mock rhachet keyrack
+          const rhachetMock = `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
+  echo '{"grant":{"key":{"secret":"mock-github-token"}}}'
+  exit 0
+fi
+exit 1
+`;
+          const nodeModulesBinDir = path.join(tempDir, 'node_modules', '.bin');
+          fs.mkdirSync(nodeModulesBinDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(nodeModulesBinDir, 'rhachet'),
+            rhachetMock,
+          );
+          fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
+
+          // tag version must match mock PR title version
+          spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          // setup git.commit.uses permission for apply mode
+          const meterDir = path.join(tempDir, '.meter');
+          fs.mkdirSync(meterDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(meterDir, 'git.commit.uses.jsonc'),
+            JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          );
+
+          // --into prod triggers and_then_await for release PR
+          const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // should show feature PR (already merged), then immediate transition
+          expect(result.stdout).toContain('feat(oceans): add reef protection');
+          expect(result.stdout).toContain('and then...');
+          // should NOT show poll lines (immediate find)
+          expect(result.stdout).not.toContain('in await');
+          // should proceed to release PR
+          expect(result.stdout).toContain('chore(release)');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        });
+      });
+
+      when('[t1] feat PR already merged, release PR found after wait', () => {
+        then('shows await poll lines then ✨ found!', () => {
+          // scenario: feat PR is MERGED on first check (skip_watch=true)
+          // release PR not found on first check, found after 2 polls
+          // should show poll lines then ✨ found!
+          const tempDir = genTempDir({
+            slug: 'git-release-skip-watch-after-wait',
+            git: true,
+          });
+          const fakeBinDir = path.join(tempDir, '.fakebin');
+          fs.mkdirSync(fakeBinDir, { recursive: true });
+
+          // mock git for freshness check
+          genGitMockExecutable({
+            mockBinDir: fakeBinDir,
+            stateDir: tempDir,
+            options: {
+              branch: 'turtle/feature-x',
+              awaitFreshness: 'fresh',
+              tagCommit: 'mock-tag-sha-v1.32.0',
+            },
+          });
+
+          // counter for await polls
+          const awaitCounterFile = path.join(tempDir, '.await-counter');
+          fs.writeFileSync(awaitCounterFile, '0');
+
+          const nowIso = new Date().toISOString();
+
+          // gh mock: feat PR MERGED immediately, release PR found after wait
+          const debugFile = path.join(tempDir, '.gh-debug.log');
+          const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+DEBUG_FILE="${debugFile}"
+AWAIT_COUNTER_FILE="${awaitCounterFile}"
+NOW="${nowIso}"
+ALL_ARGS="$*"
+CMD_KEY="$1 $2"
+
+echo "[$(date +%s)] CMD_KEY=[$CMD_KEY] ALL_ARGS=[$ALL_ARGS]" >> "$DEBUG_FILE"
+
+case "$CMD_KEY" in
+  "pr list")
+    # detect release PR query (get_fresh_release_pr)
+    echo "[$(date +%s)] pr list: args=[$ALL_ARGS]" >> "$DEBUG_FILE"
+    if echo "$ALL_ARGS" | grep -q "headRefOid"; then
+      AWAIT_COUNT=$(cat "$AWAIT_COUNTER_FILE" 2>/dev/null || echo "-1")
+      echo "[$(date +%s)] await query: AWAIT_COUNT=$AWAIT_COUNT" >> "$DEBUG_FILE"
+      echo $((AWAIT_COUNT + 1)) > "$AWAIT_COUNTER_FILE"
+      if [[ $AWAIT_COUNT -lt 3 ]]; then
+        # first 2 poll iterations: no release PR found
+        echo "[$(date +%s)] result: empty (counter < 3)" >> "$DEBUG_FILE"
+        echo ""
+      else
+        # poll 3+: release PR found
+        echo "[$(date +%s)] result: PR (counter >= 3)" >> "$DEBUG_FILE"
+        echo '{"number":99,"title":"chore(release): v1.32.0","headRefOid":"mock_release_pr_head_sha"}'
+      fi
+    elif echo "$ALL_ARGS" | grep -q -- "--state merged"; then
+      # merged PR query (get_fresh_release_pr fallback) - also use await counter
+      echo "[$(date +%s)] hit merged PR query" >> "$DEBUG_FILE"
+      AWAIT_COUNT=$(cat "$AWAIT_COUNTER_FILE" 2>/dev/null || echo "-1")
+      if [[ $AWAIT_COUNT -lt 3 ]]; then
+        # first 2 poll iterations: no merged release PR found
+        echo "[$(date +%s)] result: empty merged (counter < 3)" >> "$DEBUG_FILE"
+        echo ""
+      else
+        # poll 3+: merged release PR found
+        echo "[$(date +%s)] result: merged PR (counter >= 3)" >> "$DEBUG_FILE"
+        RELEASE_MERGE_SHA=$(/usr/bin/git rev-parse HEAD)
+        echo '{"number":99,"title":"chore(release): v1.32.0","mergeCommit":{"oid":"'"$RELEASE_MERGE_SHA"'"}}'
+      fi
+    elif echo "$ALL_ARGS" | grep -q "chore(release)"; then
+      # other release PR queries (title lookup)
+      echo "[$(date +%s)] hit elif chore(release) branch" >> "$DEBUG_FILE"
+      if echo "$ALL_ARGS" | grep -q ".title"; then
+        echo "chore(release): v1.32.0 🎉"
+      else
+        echo "99"
+      fi
+    else
+      # feature branch PR
+      echo "[$(date +%s)] hit else branch for feat PR" >> "$DEBUG_FILE"
+      echo "42"
+    fi
+    ;;
+  "pr view")
+    PR_NUM="$3"
+    if [[ "$PR_NUM" == "42" ]]; then
+      # feature PR - MERGED immediately (skip_watch=true)
+      if echo "$ALL_ARGS" | grep -q "mergeCommit"; then
+        # if jq filter requests oid, return just the oid (like real gh does)
+        if echo "$ALL_ARGS" | grep -qE "\\.mergeCommit\\.oid|mergeCommit\\.oid"; then
+          echo 'mock_feat_merge_commit'
+        else
+          echo '{"mergeCommit":{"oid":"mock_feat_merge_commit"}}'
+        fi
+      else
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection", "mergeCommit": {"oid": "mock_feat_merge_commit"}}'
+      fi
+    elif [[ "$PR_NUM" == "99" ]]; then
+      # release PR - already merged
+      if echo "$ALL_ARGS" | grep -q "mergeCommit"; then
+        # if jq filter requests oid, return just the oid (like real gh does)
+        if echo "$ALL_ARGS" | grep -qE "\\.mergeCommit\\.oid|mergeCommit\\.oid"; then
+          echo 'mock_release_merge_commit'
+        else
+          echo '{"mergeCommit":{"oid":"mock_release_merge_commit"}}'
+        fi
+      else
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "release-ci"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0 🎉", "mergeCommit": {"oid": "mock_release_merge_commit"}}'
+      fi
+    else
+      echo '{"statusCheckRollup": [], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "chore(release): v1.32.0 🎉"}'
+    fi
+    ;;
+  "pr merge")
+    echo "auto-merge enabled"
+    ;;
+  "run list")
+    echo '[{"name": "publish.yml", "conclusion": "success", "status": "completed", "url": "https://github.com/test/repo/actions/runs/789"}]'
+    ;;
+  "run view")
+    echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
+    ;;
+  *)
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+esac
+`;
+          fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
+          fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+          // mock rhachet keyrack
+          const rhachetMock = `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
+  echo '{"grant":{"key":{"secret":"mock-github-token"}}}'
+  exit 0
+fi
+exit 1
+`;
+          const nodeModulesBinDir = path.join(tempDir, 'node_modules', '.bin');
+          fs.mkdirSync(nodeModulesBinDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(nodeModulesBinDir, 'rhachet'),
+            rhachetMock,
+          );
+          fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
+
+          // tag version must match mock PR title version
+          spawnSync('git', ['tag', 'v1.32.0'], { cwd: tempDir });
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          // setup git.commit.uses permission for apply mode
+          const meterDir = path.join(tempDir, '.meter');
+          fs.mkdirSync(meterDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(meterDir, 'git.commit.uses.jsonc'),
+            JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+          );
+
+          // --into prod triggers and_then_await for release PR
+          const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // debug: show gh mock calls
+          const debugContent = fs.existsSync(debugFile)
+            ? fs.readFileSync(debugFile, 'utf-8')
+            : 'debug file not found';
+          console.log('DEBUG gh mock calls:\n', debugContent);
+          console.log('DEBUG stdout:\n', result.stdout);
+          console.log('DEBUG stderr:\n', result.stderr);
+          console.log(
+            'DEBUG counter file:',
+            fs.existsSync(awaitCounterFile)
+              ? fs.readFileSync(awaitCounterFile, 'utf-8')
+              : 'not found',
+          );
+
+          // should show feature PR (already merged), then await poll
+          expect(result.stdout).toContain('feat(oceans): add reef protection');
+          expect(result.stdout).toContain('and then...');
+          // should show poll lines
+          expect(result.stdout).toContain('in await');
+          // should show found
+          expect(result.stdout).toContain('found!');
+          // should proceed to release PR
+          expect(result.stdout).toContain('chore(release)');
+          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(result.status).toEqual(0);
+
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        });
+      });
+
+      when('[t2] feat PR already merged, release PR timeout', () => {
+        then(
+          'shows await poll lines then ⚓ timeout with workflow status',
+          () => {
+            // scenario: feat PR is MERGED on first check (skip_watch=true)
+            // release PR never found, times out after 90s
+            // should show poll lines then ⚓ timeout with workflow status
+            const tempDir = genTempDir({
+              slug: 'git-release-skip-watch-timeout',
+              git: true,
+            });
+            const fakeBinDir = path.join(tempDir, '.fakebin');
+            fs.mkdirSync(fakeBinDir, { recursive: true });
+
+            // mock git for freshness check
+            genGitMockExecutable({
+              mockBinDir: fakeBinDir,
+              stateDir: tempDir,
+              options: {
+                branch: 'turtle/feature-x',
+                awaitFreshness: 'fresh',
+              },
+            });
+
+            const nowIso = new Date().toISOString();
+
+            // gh mock: feat PR MERGED immediately, release PR never found
+            const ghMockContent = `#!/bin/bash
+set -euo pipefail
+
+NOW="${nowIso}"
+ALL_ARGS="$*"
+CMD_KEY="$1 $2"
+
+case "$CMD_KEY" in
+  "pr list")
+    # detect release PR query (get_fresh_release_pr)
+    if echo "$ALL_ARGS" | grep -q -- "--json number,title,headRefOid"; then
+      # always return empty - release PR never appears
+      echo ""
+    elif echo "$ALL_ARGS" | grep -q -- "--state merged"; then
+      # merged PR query - always return empty (release PR never appears)
+      echo ""
+    else
+      # feature branch PR
+      echo "42"
+    fi
+    ;;
+  "pr view")
+    PR_NUM="$3"
+    if [[ "$PR_NUM" == "42" ]]; then
+      # feature PR - MERGED immediately (skip_watch=true)
+      if echo "$ALL_ARGS" | grep -q "mergeCommit"; then
+        # if jq filter requests oid, return just the oid (like real gh does)
+        if echo "$ALL_ARGS" | grep -qE "\\.mergeCommit\\.oid|mergeCommit\\.oid"; then
+          echo 'mock_feat_merge_commit'
+        else
+          echo '{"mergeCommit":{"oid":"mock_feat_merge_commit"}}'
+        fi
+      else
+        echo '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": {"enabledAt": "2024-01-01"}, "mergeStateStatus": "CLEAN", "state": "MERGED", "title": "feat(oceans): add reef protection", "mergeCommit": {"oid": "mock_feat_merge_commit"}}'
+      fi
+    else
+      echo '{"statusCheckRollup": [], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "MERGED"}'
+    fi
+    ;;
+  "pr merge")
+    echo "auto-merge enabled"
+    ;;
+  "run list")
+    # check if this is release-please workflow query (for timeout diagnostics)
+    if echo "$ALL_ARGS" | grep -q "release-please"; then
+      echo '[{"status": "completed", "conclusion": "failure", "url": "https://github.com/test/repo/actions/runs/12345"}]'
+    else
+      echo '[{"name": "publish.yml", "conclusion": "success", "status": "completed", "url": "https://github.com/test/repo/actions/runs/789"}]'
+    fi
+    ;;
+  "run view")
+    echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
+    ;;
+  *)
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+esac
+`;
+            fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMockContent);
+            fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+            // mock rhachet keyrack
+            const rhachetMock = `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "get" ]]; then
+  echo '{"grant":{"key":{"secret":"mock-github-token"}}}'
+  exit 0
+fi
+exit 1
+`;
+            const nodeModulesBinDir = path.join(
+              tempDir,
+              'node_modules',
+              '.bin',
+            );
+            fs.mkdirSync(nodeModulesBinDir, { recursive: true });
+            fs.writeFileSync(
+              path.join(nodeModulesBinDir, 'rhachet'),
+              rhachetMock,
+            );
+            fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
+
+            spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+              cwd: tempDir,
+            });
+
+            // setup git.commit.uses permission for apply mode
+            const meterDir = path.join(tempDir, '.meter');
+            fs.mkdirSync(meterDir, { recursive: true });
+            fs.writeFileSync(
+              path.join(meterDir, 'git.commit.uses.jsonc'),
+              JSON.stringify({
+                uses: 'infinite',
+                push: 'allow',
+                stage: 'allow',
+              }),
+            );
+
+            // --into prod triggers and_then_await for release PR
+            const result = runSkill(['--into', 'prod', '--mode', 'apply'], {
+              tempDir,
+              fakeBinDir,
+            });
+
+            // should show feature PR (already merged), then await poll until timeout
+            expect(result.stdout).toContain(
+              'feat(oceans): add reef protection',
+            );
+            expect(result.stdout).toContain('and then...');
+            // should show await poll lines
+            expect(result.stdout).toContain('in await');
+            // should show timeout anchor
+            expect(result.stdout).toContain('did not appear');
+            expect(result.stdout).toContain('90s');
+            // should show workflow status
+            expect(result.stdout).toContain('release-please');
+            expect(result.stdout).toContain('failure');
+            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            // exit 2 = constraint error (timeout)
+            expect(result.status).toEqual(2);
+
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          },
+        );
+      });
+    },
+  );
 });

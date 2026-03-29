@@ -79,6 +79,29 @@ export interface Scene {
   releasePrTitle?: string;
   /** custom release tag name */
   releaseTag?: string;
+  /**
+   * await freshness config for p4 tests
+   * controls git merge-base --is-ancestor behavior
+   */
+  awaitFreshness?: 'fresh' | 'stale' | 'stale-then-fresh';
+  /**
+   * when release PR becomes available in await
+   * 'immediate' = found on first check
+   * 'after-wait' = found after poll cycles
+   * 'never' = never found (timeout)
+   */
+  awaitReleasePr?: 'immediate' | 'after-wait' | 'never';
+  /**
+   * when tag becomes available in await
+   * 'immediate' = found on first check
+   * 'after-wait' = found after poll cycles
+   * 'never' = never found (timeout)
+   */
+  awaitTag?: 'immediate' | 'after-wait' | 'never';
+  /**
+   * workflow status for release-please on timeout
+   */
+  awaitWorkflowStatus?: 'failed' | 'in_progress' | 'passed' | 'not_found';
 }
 
 export interface MockGhOptions {
@@ -534,6 +557,7 @@ RETRY_SUCCEEDS="${scene.retrySucceeds !== false ? 'true' : 'false'}"
 TRANSITIONS_ENABLED="${scene.transitions ? 'true' : 'false'}"
 FEAT_HAS_AUTOMERGE="${featPrHasAutomerge ? 'true' : 'false'}"
 RELEASE_HAS_AUTOMERGE="${releasePrHasAutomerge ? 'true' : 'false'}"
+AWAIT_RELEASE_PR="${scene.awaitReleasePr ?? 'never'}"
 
 # debug: log all gh calls
 echo "GH: $*" >> "$STATE_DIR/gh-debug.log"
@@ -680,7 +704,46 @@ case "$CMD_KEY" in
     # check if this is a feat PR query (by branch head) or release PR query (by title)
     elif echo "$ALL_ARGS" | grep -q "chore(release)"; then
       # release PR query
-      if echo "$ALL_ARGS" | grep -q "| \\.title"; then
+      # check for get_fresh_release_pr query (--json number,title,headRefOid)
+      if echo "$ALL_ARGS" | grep -q -- "--json number,title,headRefOid"; then
+        # return JSON format for freshness check (open PRs)
+        if is_merged "${releasePrNum}"; then
+          echo ""
+        elif [[ "${scene.releasePr === 'unfound'}" == "true" ]]; then
+          # handle await modes for unfound release PR
+          if [[ "$AWAIT_RELEASE_PR" == "after-wait" ]]; then
+            # use counter: first 2 polls return empty, then PR appears
+            AWAIT_COUNT=$(inc_counter "await-release-pr")
+            if [[ $AWAIT_COUNT -lt 3 ]]; then
+              echo ""
+            else
+              echo '{"number":${releasePrNum},"title":"${releasePrTitle}","headRefOid":"mock_release_pr_head_sha"}'
+            fi
+          elif [[ "$AWAIT_RELEASE_PR" == "immediate" ]]; then
+            # immediate: return PR right away
+            echo '{"number":${releasePrNum},"title":"${releasePrTitle}","headRefOid":"mock_release_pr_head_sha"}'
+          else
+            # never: always return empty (timeout)
+            echo ""
+          fi
+        elif [[ "${scene.featPr === undefined}" == "true" ]] || is_merged "${featPrNum}" || [[ "${scene.featPr === 'merged'}" == "true" ]]; then
+          # featPr undefined = --from main scenario, skip feat PR check
+          echo '{"number":${releasePrNum},"title":"${releasePrTitle}","headRefOid":"mock_release_pr_head_sha"}'
+        else
+          echo ""
+        fi
+      elif echo "$ALL_ARGS" | grep -q -- "--json number,title,mergeCommit"; then
+        # return JSON format for freshness check (merged PRs)
+        # use HEAD SHA so freshness check passes (test creates tag on HEAD)
+        RELEASE_MERGE_SHA=$(/usr/bin/git rev-parse HEAD)
+        if is_merged "${releasePrNum}"; then
+          echo '{"number":${releasePrNum},"title":"${releasePrTitle}","mergeCommit":{"oid":"'"$RELEASE_MERGE_SHA"'"}}'
+        elif [[ "${scene.releasePr === 'merged'}" == "true" ]]; then
+          echo '{"number":${releasePrNum},"title":"${releasePrTitle}","mergeCommit":{"oid":"'"$RELEASE_MERGE_SHA"'"}}'
+        else
+          echo ""
+        fi
+      elif echo "$ALL_ARGS" | grep -q "| \\.title"; then
         # get_release_pr_title
         if is_merged "${releasePrNum}"; then
           echo "${releasePrTitle}"
@@ -735,6 +798,18 @@ case "$CMD_KEY" in
 
   "pr view")
     PR_NUM="$3"
+
+    # handle mergeCommit query (for await freshness check)
+    if echo "$ALL_ARGS" | grep -q "mergeCommit"; then
+      # check if --jq '.mergeCommit.oid' is present (extract just SHA)
+      if echo "$ALL_ARGS" | grep -qF '.mergeCommit.oid'; then
+        echo 'mock_merge_commit_sha_'"\$PR_NUM"
+      else
+        echo '{"mergeCommit":{"oid":"mock_merge_commit_sha_'"\$PR_NUM"'"}}'
+      fi
+      exit 0
+    fi
+
     inc_counter "view-$PR_NUM" > /dev/null
     if [[ "$PR_NUM" == "${featPrNum}" ]]; then
       # handle retry: if rerun was triggered and scene started as failed, show poll cycles then transition
@@ -848,6 +923,26 @@ case "$CMD_KEY" in
     ;;
 
   "run list")
+    # handle release-please workflow status query (for await timeout diagnostics)
+    if echo "$ALL_ARGS" | grep -q "release-please"; then
+      ${(() => {
+        switch (scene.awaitWorkflowStatus) {
+          case 'failed':
+            return `echo '[{"status":"completed","conclusion":"failure","url":"https://github.com/test/repo/actions/runs/12345"}]'`;
+          case 'in_progress':
+            return `echo '[{"status":"in_progress","conclusion":null,"url":"https://github.com/test/repo/actions/runs/12345"}]'`;
+          case 'passed':
+            return `echo '[{"status":"completed","conclusion":"success","url":"https://github.com/test/repo/actions/runs/12345"}]'`;
+          case 'not_found':
+            return `echo '[]'`;
+          default:
+            // default to passed
+            return `echo '[{"status":"completed","conclusion":"success","url":"https://github.com/test/repo/actions/runs/12345"}]'`;
+        }
+      })()}
+      exit 0
+    fi
+
     inc_counter "tag-runs" > /dev/null
     TAG_CALL_COUNT=$(get_counter "tag-runs")
 
@@ -935,10 +1030,72 @@ export const writeSceneGhMock = (input: {
   stateDir: string;
 }): void => {
   const { scene, mockBinDir, stateDir } = input;
+
+  // write gh mock
   const ghMock = genSceneGhMock({ scene, stateDir });
   const ghPath = path.join(mockBinDir, 'gh');
   fs.writeFileSync(ghPath, ghMock);
   fs.chmodSync(ghPath, '755');
+
+  // write git mock (for merge-base --is-ancestor freshness checks)
+  const awaitFreshness = scene.awaitFreshness ?? 'fresh';
+  const gitMock = `#!/bin/bash
+set -euo pipefail
+
+STATE_DIR="${stateDir}"
+
+get_counter() {
+  local key="\$1"
+  local file="\$STATE_DIR/counter-\$key"
+  if [[ -f "\$file" ]]; then
+    cat "\$file"
+  else
+    echo "0"
+  fi
+}
+
+inc_counter() {
+  local key="\$1"
+  local file="\$STATE_DIR/counter-\$key"
+  local count=\$(get_counter "\$key")
+  echo "\$((count + 1))" > "\$file"
+}
+
+# handle merge-base --is-ancestor (freshness check)
+if [[ "\$1" == "merge-base" && "\$2" == "--is-ancestor" ]]; then
+  ${(() => {
+    switch (awaitFreshness) {
+      case 'fresh':
+        return 'exit 0  # fresh: is ancestor';
+      case 'stale':
+        return 'exit 1  # stale: not ancestor';
+      case 'stale-then-fresh':
+        return `COUNT=$(get_counter "merge-base")
+  inc_counter "merge-base" > /dev/null
+  if [[ $COUNT -ge 3 ]]; then
+    exit 0  # now fresh
+  else
+    exit 1  # still stale
+  fi`;
+      default:
+        return 'exit 0  # default: fresh';
+    }
+  })()}
+fi
+
+# handle rev-parse refs/tags/... (tag commit lookup)
+if [[ "\$1" == "rev-parse" ]] && echo "\$*" | grep -q "refs/tags"; then
+  # return a mock tag commit SHA
+  echo "mock_tag_commit_sha"
+  exit 0
+fi
+
+# pass through to real git
+exec /usr/bin/git "\$@"
+`;
+  const gitPath = path.join(mockBinDir, 'git');
+  fs.writeFileSync(gitPath, gitMock);
+  fs.chmodSync(gitPath, '755');
 };
 
 // ============================================================================
@@ -985,12 +1142,26 @@ if [[ "$CMD_KEY" == "run view" ]]; then
   fi
 fi
 
+# handle "pr view --json mergeCommit" for and_then_await freshness checks
+if [[ "$CMD_KEY" == "pr view" ]] && [[ "$ALL_ARGS" == *"--json mergeCommit"* ]]; then
+  # return the actual HEAD commit SHA so freshness check works with real git
+  # (the test creates a tag on HEAD, so this commit is ancestor of the tag)
+  /usr/bin/git rev-parse HEAD
+  exit 0
+fi
+
 # distinguish "pr list" subvariants by --state flag and --jq query
 if [[ "$CMD_KEY" == "pr list" ]]; then
   # check for --limit 21 query FIRST (get_latest_merged_release_pr_info)
   if [[ "$ALL_ARGS" == *"--state merged"* ]] && [[ "$ALL_ARGS" == *"--limit 21"* ]]; then
     # always return a prior merged release PR by default (realistic behavior)
     echo "title=chore(release): v1.33.0 🎉"
+    exit 0
+  # check for mergeCommit query (and_then_await freshness for merged release PR)
+  elif [[ "$ALL_ARGS" == *"--state merged"* ]] && [[ "$ALL_ARGS" == *"mergeCommit"* ]]; then
+    # return merged release PR with actual HEAD SHA for freshness check
+    HEAD_SHA=$(/usr/bin/git rev-parse HEAD)
+    echo '{"number": 99, "title": "chore(release): v1.33.0", "mergeCommit": {"oid": "'"$HEAD_SHA"'"}}'
     exit 0
   elif [[ "$ALL_ARGS" == *".title"* ]]; then
     # check for "pr list title" key first, fallback to "pr list"
