@@ -1,6 +1,6 @@
 {
-  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.md",
-  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.md.min",
+  "from": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.md",
+  "into": "src/domain.roles/mechanic/briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.md.min",
   "pipeline": {
     "supply": "kernelize",
     "press": [
