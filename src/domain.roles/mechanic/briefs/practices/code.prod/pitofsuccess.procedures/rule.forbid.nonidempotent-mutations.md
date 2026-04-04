@@ -139,7 +139,7 @@ interface DaoTask {
 
 #### .exception
 - in-memory state setters (`setState`, `setConfig`) — these are naturally idempotent
-- pure transforms that don't persist — no mutation = no idempotency concern
+- pure transformers that don't persist — no mutation = no idempotency concern
 
 #### .enforcement
 - `create*`, `insert*`, `add*`, `save*` mutation procedures = **BLOCKER**

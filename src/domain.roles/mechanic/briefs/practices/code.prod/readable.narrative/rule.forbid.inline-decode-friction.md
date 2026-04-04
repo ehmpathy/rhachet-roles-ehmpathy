@@ -2,13 +2,13 @@
 
 ## .what
 
-forbid decode-friction inline in orchestrators. all logic that requires mental simulation must be extracted to named transforms.
+forbid decode-friction inline in orchestrators. all logic that requires mental simulation must be extracted to named transformers.
 
 ## .why
 
 - orchestrators must read as narrative
 - inline decode-friction forces readers to simulate implementation
-- named transforms let readers grasp intent immediately
+- named transformers let readers grasp intent immediately
 - readability pays dividends on every read
 
 ## .what is decode-friction
@@ -35,7 +35,7 @@ simple operations that are immediately clear:
 
 "do i have to decode this to understand what it produces?"
 
-- yes = extract to named transform
+- yes = extract to named transformer
 - no = leave inline
 
 ## .enforcement
@@ -44,6 +44,6 @@ decode-friction inline in orchestrator = blocker
 
 ## .see also
 
-- `rule.require.named-transforms` — the require counterpart
+- `rule.require.named-transformers` — the require counterpart
 - `rule.require.narrative-flow` — overall narrative requirement
-- `define.domain-operation-grains` — transforms vs orchestrators (architect level)
+- `define.domain-operation-grains` — transformers, communicators, orchestrators (architect level)

@@ -23,7 +23,7 @@ enforce hard requirement that all procedure args to follow the canonical pattern
   - one `input` arg — a destructurable object
   - optional second `context` arg — also a destructurable object
 
-- **hard requirement** — applies even to trivial utilities, pure transforms, and data extractors
+- **hard requirement** — applies even to trivial utilities, pure transformers, and data extractors
 
 - `input` does **not** need to be destructured at the function boundary; shape like `(input: { ... })` is fine
 - `function` keyword is forbidden unless to implement class methods (see `.tactic:funcs:arrow-only`)

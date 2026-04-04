@@ -1,6 +1,6 @@
 prefer data-driven caselist tests when possible
 
-especially unit tests of transforms
+especially unit tests of transformers
 
 ---
 

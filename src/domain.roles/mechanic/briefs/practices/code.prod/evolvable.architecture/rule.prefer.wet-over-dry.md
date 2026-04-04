@@ -123,7 +123,7 @@ wet-over-dry applies to *reuse* abstraction — wait for 3+ usages before extrac
 
 but *readability* abstraction triggers immediately:
 - if you have to decode it to understand it, extract it now
-- even single-use transforms warrant extraction if they improve readability
+- even single-use transformers warrant extraction if they improve readability
 - see: `rule.forbid.decode-friction-in-orchestrators`
 
 | type | trigger | when |
