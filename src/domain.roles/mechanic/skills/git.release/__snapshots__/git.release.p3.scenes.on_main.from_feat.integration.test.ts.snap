@@ -38,6 +38,8 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       └─ ✨ done! 1m Xs in action, Xs watched
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -81,6 +83,8 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       └─ ✨ done! 1m Xs in action, Xs watched
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -122,6 +126,8 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
       └─ ✨ done! 1m Xs in action, Xs watched
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -350,6 +356,8 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
    └─ 🌴 already merged
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 

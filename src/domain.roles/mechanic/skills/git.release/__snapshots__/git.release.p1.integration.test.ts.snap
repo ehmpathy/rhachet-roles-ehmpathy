@@ -40,6 +40,8 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t0] PR w
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    └─ 🌴 already merged
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -93,6 +95,8 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t3] auto
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    └─ 🌴 automerge enabled [added] -> and merged already
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -604,6 +608,8 @@ exports[`git.release given: [case8] --watch flag behavior when: [t1] --mode appl
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    └─ 🌴 already merged
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -649,6 +655,8 @@ exports[`git.release given: [case8] --watch flag behavior when: [t3] --mode appl
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       └─ ✨ done! merged!
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -717,6 +725,8 @@ exports[`git.release given: [case8] watch loop internals when: [t1] apply mode w
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -789,6 +799,8 @@ exports[`git.release given: [case9] dirty state detection when: [t1] apply mode 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    └─ 🌴 already merged
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -812,6 +824,8 @@ exports[`git.release given: [case9] dirty state detection when: [t3] apply mode 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    └─ 🌴 already merged
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 

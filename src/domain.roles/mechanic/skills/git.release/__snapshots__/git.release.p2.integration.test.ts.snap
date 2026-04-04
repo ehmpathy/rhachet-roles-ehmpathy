@@ -351,6 +351,8 @@ exports[`git.release.p2 dirty state detection given: [case-dirty-apply] dirty wo
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    └─ 🌴 already merged
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -491,6 +493,8 @@ exports[`git.release.p2 to main, from feat given: [case-feat-inflight] feature P
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -513,6 +517,8 @@ exports[`git.release.p2 to main, from feat given: [case-feat-merged] feature PR 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    └─ 🌴 already merged
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -544,6 +550,8 @@ exports[`git.release.p2 to main, from feat given: [case-feat-passed-with-automer
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -567,6 +575,8 @@ exports[`git.release.p2 to main, from feat given: [case-feat-passed-wout-automer
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    └─ 🌴 automerge enabled [added] -> and merged already
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 

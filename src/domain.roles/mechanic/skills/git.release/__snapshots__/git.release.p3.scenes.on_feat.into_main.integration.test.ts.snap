@@ -38,6 +38,8 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       └─ ✨ done! 1m Xs in action, Xs watched
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -81,6 +83,8 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       └─ ✨ done! 1m Xs in action, Xs watched
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -122,6 +126,8 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
       └─ ✨ done! 1m Xs in action, Xs watched
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -216,6 +222,8 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       └─ ✨ done! 1m Xs in action, Xs watched
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
@@ -340,6 +348,8 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
    └─ 🌴 already merged
+
+[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
 `;
 
