@@ -350,8 +350,8 @@
 
       // keyrack unlock - unlock fallback keyrack for push operations
       // note: rhx:* and npx rhx:* already allowed; these are just examples
-      "Bash(rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env all)",
-      "Bash(npx rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env all)",
+      "Bash(rhx keyrack unlock --owner ehmpath --env:*)",
+      "Bash(npx rhx keyrack unlock --owner ehmpath --env:*)",
 
       // show.gh.action.logs - fetch logs from github actions workflow runs
       "Bash(npx rhachet run --skill show.gh.action.logs:*)",
