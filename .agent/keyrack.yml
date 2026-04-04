@@ -5,4 +5,5 @@ env.all: null
 env.prod: null
 env.prep:
   - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+  - XAI_API_KEY
 env.test: null

@@ -134,6 +134,8 @@ subject.code.prod:
       - briefs/practices/code.prod/readable.narrative/rule.require.narrative-flow.md
       - briefs/practices/code.prod/readable.narrative/rule.avoid.unnecessary-ifs.md
       - briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.md
+      - briefs/practices/code.prod/readable.narrative/rule.require.named-transforms.md
+      - briefs/practices/code.prod/readable.narrative/rule.forbid.inline-decode-friction.md
 
       # artifacts
       - briefs/practices/code.prod/consistent.artifacts/rule.require.pinned-versions.md
@@ -214,6 +216,7 @@ subject.flow:
       - briefs/practices/work.flow/tools/rule.require.externalized-knowledge.md
       - briefs/practices/work.flow/tools/rule.require.read-package-docs-before-use.md
       - briefs/practices/work.flow/tools/howto.git-commit-set.[lesson].md
+      - briefs/practices/work.flow/tools/howto.keyrack.[lesson].md
 
     ref:
       - briefs/practices/work.flow/diagnose/howto.logservation.[lesson].md

@@ -117,6 +117,21 @@ const sendDocument = async <T extends { id: string; customer: Customer }>(
 > duplication is far cheaper than the wrong abstraction
 > — sandi metz
 
+#### .exception: readability abstraction
+
+wet-over-dry applies to *reuse* abstraction — wait for 3+ usages before extract.
+
+but *readability* abstraction triggers immediately:
+- if you have to decode it to understand it, extract it now
+- even single-use transforms warrant extraction if they improve readability
+- see: `rule.forbid.decode-friction-in-orchestrators`
+
+| type | trigger | when |
+|------|---------|------|
+| readability abstraction | decode-cost | immediate |
+| reuse abstraction | duplication | wait for 3+ |
+
 #### .see also
 - `rule.forbid.io-as-domain-objects` — inline over extract for single-use shapes
 - `rule.require.single-responsibility` — when you do abstract, keep it focused
+- `rule.forbid.inline-decode-friction` — readability abstraction rule
