@@ -567,28 +567,35 @@ describe('git.branch.rebase.take', () => {
 
       when('[t2] take theirs yarn.lock without package.json', () => {
         // .note = skip when yarn is installed: yarn install may succeed without package.json
-        then.skipIf(isYarnInstalled)('exit 2, shows failed with retry hint', () => {
-          const tempDir = setupRebaseWithConflict({
-            conflictFiles: ['yarn.lock'],
-            mainContent: { 'yarn.lock': 'main yarn lock\n' },
-            featureContent: { 'yarn.lock': 'feature yarn lock\n' },
-          });
+        then.skipIf(isYarnInstalled)(
+          'exit 2, shows failed with retry hint',
+          () => {
+            const tempDir = setupRebaseWithConflict({
+              conflictFiles: ['yarn.lock'],
+              mainContent: { 'yarn.lock': 'main yarn lock\n' },
+              featureContent: { 'yarn.lock': 'feature yarn lock\n' },
+            });
 
-          try {
-            const result = runSkill(tempDir, ['--whos', 'theirs', 'yarn.lock']);
+            try {
+              const result = runSkill(tempDir, [
+                '--whos',
+                'theirs',
+                'yarn.lock',
+              ]);
 
-            // exit 2 = constraint error (user must fix)
-            expect(result.status).toBe(2);
-            expect(result.stdout).toContain(
-              'lock file detected, auto-run lock refresh',
-            );
-            expect(result.stdout).toContain('failed');
-            expect(result.stdout).toContain('try:');
-            expect(result.stdout).toMatchSnapshot();
-          } finally {
-            fs.rmSync(tempDir, { recursive: true, force: true });
-          }
-        });
+              // exit 2 = constraint error (user must fix)
+              expect(result.status).toBe(2);
+              expect(result.stdout).toContain(
+                'lock file detected, auto-run lock refresh',
+              );
+              expect(result.stdout).toContain('failed');
+              expect(result.stdout).toContain('try:');
+              expect(result.stdout).toMatchSnapshot();
+            } finally {
+              fs.rmSync(tempDir, { recursive: true, force: true });
+            }
+          },
+        );
       });
     },
   );
