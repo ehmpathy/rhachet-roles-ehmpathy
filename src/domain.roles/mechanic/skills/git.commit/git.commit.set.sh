@@ -100,6 +100,22 @@ get_commit_prefix() {
 }
 
 ######################################################################
+# helper: check if header has a scope (e.g., fix(api): not fix:)
+######################################################################
+has_scope() {
+  local header="$1"
+  # extract scope via sed - returns non-empty if scope present
+  # e.g., "fix(api): msg" → "api", "fix: msg" → ""
+  local scope
+  scope=$(echo "$header" | sed -n 's/^[a-z]*(\([^)]*\)):.*/\1/p')
+  if [[ -n "$scope" ]]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
+######################################################################
 # source shared domain operations (get_behavioral_commits_on_branch, etc.)
 ######################################################################
 source "$SCRIPT_DIR/git.commit.operations.sh"
@@ -376,16 +392,34 @@ if [[ -n "$BEHAVIORAL_COMMITS" ]]; then
     exit 2
   fi
 else
-  # branch has no behavioral commit yet
-  if [[ "$COMMIT_PREFIX" == "cont" ]]; then
+  # branch has no behavioral commit yet - first commit must be fix(scope) or feat(scope)
+  # chore and other prefixes never trigger tagged releases
+  if [[ "$COMMIT_PREFIX" != "fix" && "$COMMIT_PREFIX" != "feat" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_error "cannot use cont: on fresh branch"
+    print_tree_error "first commit must be fix(<scope>): or feat(<scope>):"
     echo ""
-    echo "   cont: continues a prior behavioral commit"
-    echo "   but this branch has no fix: or feat: yet"
+    echo "   attempted: $COMMIT_PREFIX:"
     echo ""
-    echo "   use \`fix:\` or \`feat:\` prefix for the first behavioral commit"
+    echo "   the first commit establishes the branch purpose"
+    echo "   only fix: and feat: trigger tagged releases"
+    echo ""
+    echo "   use \`fix(<scope>):\` or \`feat(<scope>):\` for the first behavioral commit"
+    exit 2
+  fi
+
+  # guard: first commit must have a scope
+  if ! has_scope "$HEADER"; then
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.commit.set"
+    print_tree_error "first commit requires a scope"
+    echo ""
+    echo "   attempted: $HEADER"
+    echo ""
+    echo "   the first commit must include a scope for changelog clarity"
+    echo "   example: fix(<scope>): or feat(<scope>):"
+    echo ""
+    echo "   change your commit header to include a scope"
     exit 2
   fi
 fi

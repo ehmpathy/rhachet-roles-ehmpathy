@@ -228,7 +228,7 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 0, push: 'block' },
-          commitArgs: ['--message', 'some fix', '--mode', 'apply'],
+          commitArgs: ['--message', 'fix(test): some fix', '--mode', 'apply'],
         });
 
         expect(result.exitCode).toBe(2);
@@ -244,7 +244,7 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 0, push: 'block' },
-          commitArgs: ['--message', 'some fix', '--mode', 'apply'],
+          commitArgs: ['--message', 'fix(test): some fix', '--mode', 'apply'],
         });
 
         const log = spawnSync('git', ['log', '--oneline'], {
@@ -253,7 +253,7 @@ describe('git.commit.set.sh', () => {
         });
         // genTempDir with symlink creates 2 commits (began + fixture) + gitignore setup = 3; verify no new one was added
         expect(log.stdout.trim().split('\n').length).toBe(3);
-        expect(log.stdout).not.toContain('some fix');
+        expect(log.stdout).not.toContain('fix(test): some fix');
       });
     });
 
@@ -262,12 +262,12 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 0, push: 'block' },
-          commitArgs: ['--message', 'fix: zero uses plan'],
+          commitArgs: ['--message', 'fix(test): zero uses plan'],
         });
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('🐢 heres the wave...');
-        expect(result.stdout).toContain('header: fix: zero uses plan');
+        expect(result.stdout).toContain('header: fix(test): zero uses plan');
         expect(result.stdout).toContain('left: 0 → -1');
         expect(result.stdout).toMatchSnapshot();
       });
@@ -280,7 +280,7 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 1, push: 'block' },
-          commitArgs: ['--message', 'some fix', '--push'],
+          commitArgs: ['--message', 'fix(test): some fix', '--push'],
         });
 
         expect(result.exitCode).toBe(2);
@@ -296,7 +296,7 @@ describe('git.commit.set.sh', () => {
       then('exits with error', () => {
         const result = runInTempGitRepo({
           meterState: { uses: 2, push: 'block' },
-          commitArgs: ['--message', 'some fix'],
+          commitArgs: ['--message', 'fix(test): some fix'],
         });
 
         expect(result.exitCode).toBe(2);
@@ -306,7 +306,7 @@ describe('git.commit.set.sh', () => {
       then('uses are not decremented', () => {
         const result = runInTempGitRepo({
           meterState: { uses: 2, push: 'block' },
-          commitArgs: ['--message', 'some fix'],
+          commitArgs: ['--message', 'fix(test): some fix'],
         });
 
         const stateFile = path.join(
@@ -327,7 +327,7 @@ describe('git.commit.set.sh', () => {
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'block' },
           gitUser: { name: '', email: '' },
-          commitArgs: ['--message', 'some fix'],
+          commitArgs: ['--message', 'fix(test): some fix'],
         });
 
         expect(result.exitCode).toBe(2);
@@ -343,7 +343,7 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 3, push: 'block' },
-          commitArgs: ['--message', 'fix: something', '--mode', 'apply'],
+          commitArgs: ['--message', 'fix(test): something', '--mode', 'apply'],
         });
 
         expect(result.exitCode).toBe(0);
@@ -366,7 +366,7 @@ describe('git.commit.set.sh', () => {
           files: { 'staged.txt': 'staged content' },
           filesUnstaged: { 'unstaged.txt': 'unstaged content' },
           meterState: { uses: 2, push: 'block' },
-          commitArgs: ['--message', 'some fix'],
+          commitArgs: ['--message', 'fix(test): some fix'],
         });
 
         expect(result.exitCode).toBe(2);
@@ -379,7 +379,7 @@ describe('git.commit.set.sh', () => {
           files: { 'staged.txt': 'staged content' },
           filesUnstaged: { 'unstaged.txt': 'unstaged content' },
           meterState: { uses: 2, push: 'block' },
-          commitArgs: ['--message', 'some fix'],
+          commitArgs: ['--message', 'fix(test): some fix'],
         });
 
         const log = spawnSync('git', ['log', '--oneline'], {
@@ -387,7 +387,7 @@ describe('git.commit.set.sh', () => {
           encoding: 'utf-8' as BufferEncoding,
         });
         expect(log.stdout.trim().split('\n').length).toBe(3);
-        expect(log.stdout).not.toContain('some fix');
+        expect(log.stdout).not.toContain('fix(test): some fix');
       });
     });
 
@@ -399,7 +399,7 @@ describe('git.commit.set.sh', () => {
           meterState: { uses: 2, push: 'block' },
           commitArgs: [
             '--message',
-            'fix: staged only',
+            'fix(test): staged only',
             '--unstaged',
             'ignore',
             '--mode',
@@ -432,7 +432,7 @@ describe('git.commit.set.sh', () => {
           meterState: { uses: 2, push: 'block' },
           commitArgs: [
             '--message',
-            'fix: all changes',
+            'fix(test): all changes',
             '--unstaged',
             'include',
             '--mode',
@@ -465,7 +465,7 @@ describe('git.commit.set.sh', () => {
           meterState: { uses: 2, push: 'block' },
           commitArgs: [
             '--message',
-            'fix: from unstaged',
+            'fix(test): from unstaged',
             '--unstaged',
             'include',
             '--mode',
@@ -485,7 +485,12 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'block' },
-          commitArgs: ['--message', 'fix: trailer test', '--mode', 'apply'],
+          commitArgs: [
+            '--message',
+            'fix(test): trailer test',
+            '--mode',
+            'apply',
+          ],
         });
 
         expect(result.exitCode).toBe(0);
@@ -503,7 +508,12 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'block' },
-          commitArgs: ['--message', 'fix: blank line test', '--mode', 'apply'],
+          commitArgs: [
+            '--message',
+            'fix(test): blank line test',
+            '--mode',
+            'apply',
+          ],
         });
 
         const log = spawnSync('git', ['log', '--format=%B', '-1'], {
@@ -513,7 +523,7 @@ describe('git.commit.set.sh', () => {
         const body = log.stdout.trim();
         const lines = body.split('\n');
         // should be: header, blank line, body, blank line, Co-authored-by
-        expect(lines[0]).toBe('fix: blank line test');
+        expect(lines[0]).toBe('fix(test): blank line test');
         expect(lines[1]).toBe('');
         expect(lines[2]).toBe('- test change');
         expect(lines[3]).toBe('');
@@ -528,13 +538,13 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 3, push: 'block' },
-          commitArgs: ['--message', 'fix: plan test'],
+          commitArgs: ['--message', 'fix(test): plan test'],
         });
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('🐢 heres the wave...');
         expect(result.stdout).toContain('--mode plan');
-        expect(result.stdout).toContain('header: fix: plan test');
+        expect(result.stdout).toContain('header: fix(test): plan test');
         expect(result.stdout).toContain('run with --mode apply to execute');
         expect(result.stdout).toMatchSnapshot();
 
@@ -543,14 +553,14 @@ describe('git.commit.set.sh', () => {
           cwd: result.tempDir,
           encoding: 'utf-8' as BufferEncoding,
         });
-        expect(log.stdout).not.toContain('fix: plan test');
+        expect(log.stdout).not.toContain('fix(test): plan test');
       });
 
       then('shows meter transition', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 3, push: 'block' },
-          commitArgs: ['--message', 'fix: meter test'],
+          commitArgs: ['--message', 'fix(test): meter test'],
         });
 
         expect(result.stdout).toContain('left: 3 → 2');
@@ -560,7 +570,7 @@ describe('git.commit.set.sh', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 3, push: 'block' },
-          commitArgs: ['--message', 'fix: no decrement'],
+          commitArgs: ['--message', 'fix(test): no decrement'],
         });
 
         const stateFile = path.join(
@@ -646,7 +656,7 @@ exit 1`,
           [
             scriptPath,
             '--message',
-            'feat: new feature\n\n- add feature',
+            'feat(test): new feature\n\n- add feature',
             '--push',
           ],
           {
@@ -664,7 +674,7 @@ exit 1`,
 
         expect(result.status).toBe(0);
         expect(result.stdout).toContain('heres the wave');
-        expect(result.stdout).toContain('title: feat: new feature');
+        expect(result.stdout).toContain('title: feat(test): new feature');
         expect(result.stdout).toContain('findsert draft');
         expect(result.stdout).toMatchSnapshot();
       });
@@ -948,7 +958,12 @@ exit 1`,
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 3, push: 'block' },
           bindLevel: 'fix',
-          commitArgs: ['--message', 'fix: validate input', '--mode', 'apply'],
+          commitArgs: [
+            '--message',
+            'fix(test): validate input',
+            '--mode',
+            'apply',
+          ],
         });
 
         expect(result.exitCode).toBe(0);
@@ -1121,7 +1136,7 @@ exit 1`,
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'allow' },
-          commitArgs: ['--message', 'fix: on main', '--push'],
+          commitArgs: ['--message', 'fix(test): on main', '--push'],
           branch: null, // stay on main
         });
 
@@ -1136,7 +1151,7 @@ exit 1`,
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'allow' },
-          commitArgs: ['--message', 'fix: on main', '--push'],
+          commitArgs: ['--message', 'fix(test): on main', '--push'],
           branch: null,
         });
 
@@ -1146,14 +1161,14 @@ exit 1`,
         });
         // only initial commits, no new commit
         expect(log.stdout.trim().split('\n').length).toBe(3);
-        expect(log.stdout).not.toContain('fix: on main');
+        expect(log.stdout).not.toContain('fix(test): on main');
       });
 
       then('uses are not decremented', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 2, push: 'allow' },
-          commitArgs: ['--message', 'fix: on main', '--push'],
+          commitArgs: ['--message', 'fix(test): on main', '--push'],
           branch: null,
         });
 
@@ -1236,7 +1251,7 @@ exit 1`,
         // run with single-line message (no body) — bypass auto-inject
         const result = spawnSync(
           'bash',
-          [scriptPath, '--message', 'fix: no body'],
+          [scriptPath, '--message', 'fix(test): no body'],
           {
             cwd: tempDir,
             encoding: 'utf-8' as BufferEncoding,
@@ -1256,7 +1271,7 @@ exit 1`,
           meterState: { uses: 2, push: 'block' },
           commitArgs: [
             '--message',
-            'fix: with desc\n\n- fixed the bug\n- added tests',
+            'fix(test): with desc\n\n- fixed the bug\n- added tests',
           ],
         });
 
@@ -1273,7 +1288,7 @@ exit 1`,
           meterState: { uses: 2, push: 'block' },
           commitArgs: [
             '--message',
-            'fix: body in commit\n\n- fixed validation',
+            'fix(test): body in commit\n\n- fixed validation',
             '--mode',
             'apply',
           ],
@@ -1365,7 +1380,7 @@ exit 1`,
           [
             scriptPath,
             '--message',
-            'fix: last use\n\n- last commit before revoke',
+            'fix(test): last use\n\n- last commit before revoke',
             '--push',
           ],
           {
@@ -2195,79 +2210,82 @@ exit 1`,
       });
     });
 
-    when('[t8] chore: then fix: (chore is not first behavioral)', () => {
-      then('fix succeeds as first behavioral commit', () => {
-        const tempDir = genTempDir({
-          slug: 'git-commit-cont-chore-then-fix',
-          git: true,
-        });
+    when(
+      '[t8] fix: after external chore (chore made via raw git, not skill)',
+      () => {
+        then('fix succeeds as first behavioral commit', () => {
+          const tempDir = genTempDir({
+            slug: 'git-commit-cont-chore-then-fix',
+            git: true,
+          });
 
-        // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
-
-        // setup meter
-        const meterDir = path.join(tempDir, '.meter');
-        fs.mkdirSync(meterDir, { recursive: true });
-        fs.writeFileSync(
-          path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
-        );
-        fs.writeFileSync(
-          path.join(tempDir, '.gitignore'),
-          '.meter/\n.agent/\n.fakebin/\n',
-        );
-        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
-        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
-          cwd: tempDir,
-        });
-
-        // create feature branch
-        spawnSync('git', ['checkout', '-b', 'turtle/chore-then-fix'], {
-          cwd: tempDir,
-        });
-
-        // chore commit first (not behavioral)
-        fs.writeFileSync(path.join(tempDir, 'deps.txt'), 'deps');
-        spawnSync('git', ['add', 'deps.txt'], { cwd: tempDir });
-        spawnSync('git', ['commit', '-m', 'chore: update deps'], {
-          cwd: tempDir,
-        });
-
-        // stage fix file
-        fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fix content');
-        spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
-
-        // fix: should succeed (chore doesn't count as behavioral)
-        const isolatedHome = genTempDir({
-          slug: 'chore-then-fix-home',
-          git: false,
-        });
-        const result = spawnSync(
-          'bash',
-          [
-            scriptPath,
-            '--message',
-            'fix(api): validate input\n\n- add validation',
-            '--mode',
-            'apply',
-          ],
-          {
+          // configure git user
+          spawnSync('git', ['config', 'user.name', 'Test Human'], {
             cwd: tempDir,
-            encoding: 'utf-8' as BufferEncoding,
-            stdio: ['pipe', 'pipe', 'pipe'],
-            env: { ...process.env, HOME: isolatedHome },
-          },
-        );
+          });
+          spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+            cwd: tempDir,
+          });
 
-        expect(result.status).toBe(0);
-        expect(result.stdout).toContain('righteous!');
-      });
-    });
+          // setup meter
+          const meterDir = path.join(tempDir, '.meter');
+          fs.mkdirSync(meterDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(meterDir, 'git.commit.uses.jsonc'),
+            JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+          );
+          fs.writeFileSync(
+            path.join(tempDir, '.gitignore'),
+            '.meter/\n.agent/\n.fakebin/\n',
+          );
+          spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+          spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+            cwd: tempDir,
+          });
+
+          // create feature branch
+          spawnSync('git', ['checkout', '-b', 'turtle/chore-then-fix'], {
+            cwd: tempDir,
+          });
+
+          // chore commit first (not behavioral)
+          fs.writeFileSync(path.join(tempDir, 'deps.txt'), 'deps');
+          spawnSync('git', ['add', 'deps.txt'], { cwd: tempDir });
+          spawnSync('git', ['commit', '-m', 'chore: update deps'], {
+            cwd: tempDir,
+          });
+
+          // stage fix file
+          fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fix content');
+          spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+
+          // fix: should succeed (chore doesn't count as behavioral)
+          const isolatedHome = genTempDir({
+            slug: 'chore-then-fix-home',
+            git: false,
+          });
+          const result = spawnSync(
+            'bash',
+            [
+              scriptPath,
+              '--message',
+              'fix(api): validate input\n\n- add validation',
+              '--mode',
+              'apply',
+            ],
+            {
+              cwd: tempDir,
+              encoding: 'utf-8' as BufferEncoding,
+              stdio: ['pipe', 'pipe', 'pipe'],
+              env: { ...process.env, HOME: isolatedHome },
+            },
+          );
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain('righteous!');
+        });
+      },
+    );
 
     when('[t9] cont: on fresh branch (no behavioral yet)', () => {
       then('commit is BLOCKED', () => {
@@ -2333,10 +2351,158 @@ exit 1`,
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('bummer dude');
-        expect(result.stdout).toContain('cannot use cont: on fresh branch');
         expect(result.stdout).toContain(
-          'use `fix:` or `feat:` prefix for the first behavioral commit',
+          'first commit must be fix(<scope>): or feat(<scope>):',
         );
+        expect(result.stdout).toContain('attempted: cont:');
+        expect(result.stdout).toContain(
+          'use `fix(<scope>):` or `feat(<scope>):` for the first behavioral commit',
+        );
+      });
+    });
+
+    when('[t10] chore: on fresh branch (no behavioral yet)', () => {
+      then('commit is BLOCKED (chore never triggers tagged releases)', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-chore-fresh-branch',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // setup meter
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/chore-fresh'], {
+          cwd: tempDir,
+        });
+
+        // stage file
+        fs.writeFileSync(path.join(tempDir, 'deps.txt'), 'updated deps');
+        spawnSync('git', ['add', 'deps.txt'], { cwd: tempDir });
+
+        // chore: on fresh branch should be BLOCKED
+        const isolatedHome = genTempDir({
+          slug: 'chore-fresh-home',
+          git: false,
+        });
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'chore: update deps\n\n- bump versions',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: isolatedHome },
+          },
+        );
+
+        expect(result.status).toBe(2);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain(
+          'first commit must be fix(<scope>): or feat(<scope>):',
+        );
+        expect(result.stdout).toContain('attempted: chore:');
+        expect(result.stdout).toContain(
+          'only fix: and feat: trigger tagged releases',
+        );
+      });
+    });
+
+    when('[t11] fix: without scope on fresh branch', () => {
+      then('commit is BLOCKED (first commit requires scope)', () => {
+        // create temp git repo
+        const tempDir = genTempDir({
+          slug: 'git-commit-noscope-fresh-branch',
+          git: true,
+        });
+
+        // configure git user
+        spawnSync('git', ['config', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
+          cwd: tempDir,
+        });
+
+        // create and set local quota
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'block', stage: 'allow' }, null, 2),
+        );
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n.fakebin/\n',
+        );
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: gitignore'], {
+          cwd: tempDir,
+        });
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'turtle/noscope-fresh'], {
+          cwd: tempDir,
+        });
+
+        // stage file
+        fs.writeFileSync(path.join(tempDir, 'test.txt'), 'test content');
+        spawnSync('git', ['add', 'test.txt'], { cwd: tempDir });
+
+        // try to commit fix: without scope (no behavioral commits on branch yet)
+        const isolatedHome = genTempDir({
+          slug: 'noscope-fresh-home',
+          git: false,
+        });
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'fix: no scope here\n\n- scope not present',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: isolatedHome },
+          },
+        );
+
+        expect(result.status).toBe(2);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain('first commit requires a scope');
+        expect(result.stdout).toContain('attempted: fix: no scope here');
+        expect(result.stdout).toContain('fix(<scope>): or feat(<scope>):');
       });
     });
   });
