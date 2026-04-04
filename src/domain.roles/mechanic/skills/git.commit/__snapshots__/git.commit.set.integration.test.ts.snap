@@ -37,7 +37,7 @@ exports[`git.commit.set.sh given: [case3] no uses left when: [t1] plan mode with
 
 🐚 git.commit.set --mode plan
    ├─ commit
-   │  ├─ header: fix: zero uses plan
+   │  ├─ header: fix(test): zero uses plan
    │  ├─ body
    │  │  └─ - test change
    │  ├─ author
@@ -84,7 +84,7 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t0] pl
 
 🐚 git.commit.set --mode plan
    ├─ commit
-   │  ├─ header: fix: plan test
+   │  ├─ header: fix(test): plan test
    │  ├─ body
    │  │  └─ - test change
    │  ├─ author
@@ -109,7 +109,7 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] pl
 
 🐚 git.commit.set --mode plan
    ├─ commit
-   │  ├─ header: feat: new feature
+   │  ├─ header: feat(test): new feature
    │  ├─ body
    │  │  └─ - add feature
    │  ├─ author
@@ -122,7 +122,7 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] pl
    │     └─ feature.txt
    ├─ push: origin/feat/new-feature
    ├─ pr
-   │  ├─ title: feat: new feature
+   │  ├─ title: feat(test): new feature
    │  └─ action: findsert draft
    └─ meter
       ├─ left: 2 → 1
@@ -269,7 +269,7 @@ exports[`git.commit.set.sh given: [case14] multiline message is required when: [
 
 🐚 git.commit.set --mode plan
    ├─ commit
-   │  ├─ header: fix: with desc
+   │  ├─ header: fix(test): with desc
    │  ├─ body
    │  │  ├─ - fixed the bug
    │  │  └─ - added tests
@@ -295,7 +295,7 @@ exports[`git.commit.set.sh given: [case15] plan mode auto-revoke display with pu
 
 🐚 git.commit.set --mode plan
    ├─ commit
-   │  ├─ header: fix: last use
+   │  ├─ header: fix(test): last use
    │  ├─ body
    │  │  └─ - last commit before revoke
    │  ├─ author
@@ -308,7 +308,7 @@ exports[`git.commit.set.sh given: [case15] plan mode auto-revoke display with pu
    │     └─ fix.txt
    ├─ push: origin/turtle/revoke-test
    ├─ pr
-   │  ├─ title: fix: last use
+   │  ├─ title: fix(test): last use
    │  └─ action: findsert draft
    └─ meter
       ├─ left: 1 → 0
