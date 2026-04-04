@@ -48,6 +48,6 @@ orchestrator with decode-friction = blocker
 
 ## .see also
 
-- `define.domain-operation-grains` — transforms vs orchestrators
+- `define.domain-operation-grains` — transformers, communicators, orchestrators
 - `rule.forbid.decode-friction-in-orchestrators` — what to avoid
-- `philosophy.transform-orchestrator-separation.[philosophy]` — the metaphors
+- `philosophy.transformer-orchestrator-separation.[philosophy]` — the metaphors

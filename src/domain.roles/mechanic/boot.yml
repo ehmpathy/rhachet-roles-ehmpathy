@@ -135,7 +135,7 @@ subject.code.prod:
       - briefs/practices/code.prod/readable.narrative/rule.require.narrative-flow.md
       - briefs/practices/code.prod/readable.narrative/rule.avoid.unnecessary-ifs.md
       - briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.md
-      - briefs/practices/code.prod/readable.narrative/rule.require.named-transforms.md
+      - briefs/practices/code.prod/readable.narrative/rule.require.named-transformers.md
       - briefs/practices/code.prod/readable.narrative/rule.forbid.inline-decode-friction.md
 
       # artifacts

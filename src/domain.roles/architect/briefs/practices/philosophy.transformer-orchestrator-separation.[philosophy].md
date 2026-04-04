@@ -1,12 +1,12 @@
-# philosophy.transform-orchestrator-separation
+# philosophy.transformer-orchestrator-separation
 
 ## .what
 
-orchestrators compose, transforms compute. this separation makes code readable at the call site.
+orchestrators compose. transformers compute. communicators commute. this separation makes code readable at the call site.
 
 ## .the book metaphor
 
-transforms are **vocabulary** — words with precise definitions.
+transformers and communicators are **vocabulary** — words with precise definitions.
 
 orchestrators are **sentences** — composed of vocabulary to tell a story.
 
@@ -34,7 +34,7 @@ const eligible = user.age >= 18 && user.verified && !user.suspended && user.subs
 const eligible = isEligibleForPremiumFeatures({ user });
 ```
 
-### example 3: multi-step transformation
+### example 3: multi-step transformeration
 
 ```ts
 // before — requires simulation: what does this pipeline produce?
@@ -49,7 +49,7 @@ const activeUserEmails = getAllActiveUserEmails({ users });
 
 ## .the compiler metaphor
 
-transforms are the **instruction set** — atomic, well-defined operations.
+transformers and communicators are the **instruction set** — atomic, well-defined operations.
 
 orchestrators are **high-level code** — expressive, readable composition.
 
@@ -63,6 +63,6 @@ the orchestrator is where humans and robots spend read-time. every line should t
 
 ## .see also
 
-- `define.domain-operation-grains` — the two grains
+- `define.domain-operation-grains` — the three grains
 - `rule.require.orchestrators-as-narrative` — the require rule
 - `rule.forbid.decode-friction-in-orchestrators` — the forbid rule
