@@ -190,6 +190,7 @@ subject.code.test:
       - briefs/practices/code.test/lessons.howto/rule.require.snapshots.[lesson].md
       - briefs/practices/code.test/scope.acceptance/rule.require.blackbox.md
       - briefs/practices/code.test/scope.unit/rule.forbid.remote-boundaries.md
+      - briefs/practices/code.test/scope.coverage/rule.require.test-coverage-by-grain.md
 
     ref:
       - briefs/practices/code.test/consistent.contracts/ref.package.test-fns.[ref].md
