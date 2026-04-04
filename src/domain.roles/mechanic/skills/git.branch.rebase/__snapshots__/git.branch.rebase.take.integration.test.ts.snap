@@ -1,14 +1,12 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`git.branch.rebase.take given: [case1] rebase in progress with single conflict file when: [t0] take theirs for single file then: file is replaced with theirs, staged, exit 0 1`] = `
+exports[`git.branch.rebase.take given: [case1] rebase in progress with single non-lock conflict file when: [t0] take theirs for single file then: file is replaced with theirs, staged, exit 0 1`] = `
 "🐢 righteous!
 
 🐚 git.branch.rebase take
    ├─ whos: theirs
    ├─ settled
-   │  └─ pnpm-lock.yaml ✓
-   ├─ lock taken, refresh it with: ⚡
-   │  └─ rhx git.branch.rebase lock refresh
+   │  └─ config.json ✓
    └─ done
 "
 `;
@@ -108,46 +106,96 @@ exports[`git.branch.rebase.take given: [case11] file not found (fail-fast) when:
 "
 `;
 
-exports[`git.branch.rebase.take given: [case12] take lock file shows suggestion when: [t0] take theirs pnpm-lock.yaml then: output includes lock refresh suggestion 1`] = `
+exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock refresh (negative - no package.json) when: [t0] take theirs pnpm-lock.yaml without package.json then: exit 2, shows failed with retry hint 1`] = `
 "🐢 righteous!
 
 🐚 git.branch.rebase take
    ├─ whos: theirs
    ├─ settled
    │  └─ pnpm-lock.yaml ✓
-   ├─ lock taken, refresh it with: ⚡
-   │  └─ rhx git.branch.rebase lock refresh
-   └─ done
+   ├─ lock file detected, auto-run lock refresh ⚡
+   │  └─ failed ✗
+   │     ├─
+   │     │
+   │     │  🐢 bummer dude...
+   │     │  
+   │     │  🐚 git.branch.rebase lock refresh
+   │     │     ├─ detected: pnpm
+   │     │     ├─ run: pnpm install
+   │     │     └─ error: install failed
+   │     │  
+   │     │  install output:
+   │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/git-rebase-take-test-R2UO5l[39m
+   │     │
+   │     └─
+   └─ incomplete
+      └─ try: rhx git.branch.rebase lock refresh
 "
 `;
 
-exports[`git.branch.rebase.take given: [case12] take lock file shows suggestion when: [t1] take theirs package-lock.json then: output includes lock refresh suggestion 1`] = `
+exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock refresh (negative - no package.json) when: [t1] take theirs package-lock.json without package.json then: exit 2, shows failed with retry hint 1`] = `
 "🐢 righteous!
 
 🐚 git.branch.rebase take
    ├─ whos: theirs
    ├─ settled
    │  └─ package-lock.json ✓
-   ├─ lock taken, refresh it with: ⚡
-   │  └─ rhx git.branch.rebase lock refresh
-   └─ done
+   ├─ lock file detected, auto-run lock refresh ⚡
+   │  └─ failed ✗
+   │     ├─
+   │     │
+   │     │  🐢 bummer dude...
+   │     │  
+   │     │  🐚 git.branch.rebase lock refresh
+   │     │     ├─ detected: npm
+   │     │     ├─ run: npm install
+   │     │     └─ error: install failed
+   │     │  
+   │     │  install output:
+   │     │  npm warn ancient lockfile
+   │     │  npm warn ancient lockfile The package-lock.json file was created with an old version of npm,
+   │     │  npm warn ancient lockfile so supplemental metadata must be fetched from the registry.
+   │     │  npm warn ancient lockfile
+   │     │  npm warn ancient lockfile This is a one-time fix-up, please be patient...
+   │     │  npm warn ancient lockfile
+   │     │  npm error code ENOENT
+   │     │  npm error syscall open
+   │     │  npm error path /tmp/git-rebase-take-test-q5b4Tl/package.json
+   │     │  npm error errno -2
+   │     │  npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/tmp/git-rebase-take-test-q5b4Tl/package.json'
+   │     │  npm error enoent This is related to npm not being able to find a file.
+   │     │  npm error enoent
+   │     │  npm error A complete log of this run can be found in: /home/vlad/.npm/_logs/2026-04-04T21_31_32_181Z-debug-0.log
+   │     │
+   │     └─
+   └─ incomplete
+      └─ try: rhx git.branch.rebase lock refresh
 "
 `;
 
-exports[`git.branch.rebase.take given: [case12] take lock file shows suggestion when: [t2] take theirs yarn.lock then: output includes lock refresh suggestion 1`] = `
+exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock refresh (negative - no package.json) when: [t2] take theirs yarn.lock without package.json then: exit 2, shows failed with retry hint 1`] = `
 "🐢 righteous!
 
 🐚 git.branch.rebase take
    ├─ whos: theirs
    ├─ settled
    │  └─ yarn.lock ✓
-   ├─ lock taken, refresh it with: ⚡
-   │  └─ rhx git.branch.rebase lock refresh
-   └─ done
+   ├─ lock file detected, auto-run lock refresh ⚡
+   │  └─ failed ✗
+   │     ├─
+   │     │
+   │     │  🐢 hold up dude...
+   │     │  
+   │     │  🐚 git.branch.rebase lock refresh
+   │     │     └─ error: yarn not found, install yarn
+   │     │
+   │     └─
+   └─ incomplete
+      └─ try: rhx git.branch.rebase lock refresh
 "
 `;
 
-exports[`git.branch.rebase.take given: [case13] take multiple files with lock when: [t0] take theirs . (includes lock file) then: suggestion shown once (not per lock file) 1`] = `
+exports[`git.branch.rebase.take given: [case13] take multiple files with lock (negative - no package.json) when: [t0] take theirs . (includes lock file) then: auto-run shown once, exit 2 on refresh failure 1`] = `
 "🐢 righteous!
 
 🐚 git.branch.rebase take
@@ -156,19 +204,46 @@ exports[`git.branch.rebase.take given: [case13] take multiple files with lock wh
    │  ├─ README.md ✓
    │  ├─ pnpm-lock.yaml ✓
    │  └─ src/index.ts ✓
-   ├─ lock taken, refresh it with: ⚡
-   │  └─ rhx git.branch.rebase lock refresh
-   └─ done
+   ├─ lock file detected, auto-run lock refresh ⚡
+   │  └─ failed ✗
+   │     ├─
+   │     │
+   │     │  🐢 bummer dude...
+   │     │  
+   │     │  🐚 git.branch.rebase lock refresh
+   │     │     ├─ detected: pnpm
+   │     │     ├─ run: pnpm install
+   │     │     └─ error: install failed
+   │     │  
+   │     │  install output:
+   │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/git-rebase-take-test-uekhSo[39m
+   │     │
+   │     └─
+   └─ incomplete
+      └─ try: rhx git.branch.rebase lock refresh
 "
 `;
 
-exports[`git.branch.rebase.take given: [case14] take non-lock file when: [t0] take theirs for .ts file only then: no lock refresh suggestion shown 1`] = `
+exports[`git.branch.rebase.take given: [case14] take non-lock file when: [t0] take theirs for .ts file only then: no lock refresh auto-run 1`] = `
 "🐢 righteous!
 
 🐚 git.branch.rebase take
    ├─ whos: theirs
    ├─ settled
    │  └─ src/index.ts ✓
+   └─ done
+"
+`;
+
+exports[`git.branch.rebase.take given: [case15] take lock file with valid package.json (positive) when: [t0] take theirs pnpm-lock.yaml with package.json present then: lock refresh succeeds, exit 0 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: theirs
+   ├─ settled
+   │  └─ pnpm-lock.yaml ✓
+   ├─ lock file detected, auto-run lock refresh ⚡
+   │  └─ done ✓
    └─ done
 "
 `;

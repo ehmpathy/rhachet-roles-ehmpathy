@@ -19,6 +19,8 @@ const setupRebaseWithConflict = (options: {
   conflictFiles?: string[];
   featureContent?: Record<string, string>;
   mainContent?: Record<string, string>;
+  /** extra files to add before conflict (no conflict on these) */
+  extraFiles?: Record<string, string>;
 }): string => {
   const tempDir = fs.mkdtempSync(
     path.join(os.tmpdir(), 'git-rebase-take-test-'),
@@ -32,6 +34,16 @@ const setupRebaseWithConflict = (options: {
   // create initial commit on main
   fs.writeFileSync(path.join(tempDir, 'README.md'), '# Test Repo\n');
   spawnSync('git', ['add', 'README.md'], { cwd: tempDir });
+
+  // add extra files if specified (not in conflict, shared by both branches)
+  const extraFiles = options.extraFiles ?? {};
+  for (const [file, content] of Object.entries(extraFiles)) {
+    const filePath = path.join(tempDir, file);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, content);
+    spawnSync('git', ['add', file], { cwd: tempDir });
+  }
+
   spawnSync('git', ['commit', '-m', 'init: initial commit'], { cwd: tempDir });
   spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
 
@@ -178,33 +190,29 @@ const runSkill = (
 };
 
 describe('git.branch.rebase.take', () => {
-  given('[case1] rebase in progress with single conflict file', () => {
+  given('[case1] rebase in progress with single non-lock conflict file', () => {
     when('[t0] take theirs for single file', () => {
       then('file is replaced with theirs, staged, exit 0', () => {
         const tempDir = setupRebaseWithConflict({
-          conflictFiles: ['pnpm-lock.yaml'],
-          mainContent: { 'pnpm-lock.yaml': 'main lock content\n' },
-          featureContent: { 'pnpm-lock.yaml': 'feature lock content\n' },
+          conflictFiles: ['config.json'],
+          mainContent: { 'config.json': '{"main": true}\n' },
+          featureContent: { 'config.json': '{"feature": true}\n' },
         });
 
         try {
-          const result = runSkill(tempDir, [
-            '--whos',
-            'theirs',
-            'pnpm-lock.yaml',
-          ]);
+          const result = runSkill(tempDir, ['--whos', 'theirs', 'config.json']);
 
           expect(result.status).toBe(0);
           expect(result.stdout).toContain('righteous!');
           expect(result.stdout).toContain('whos: theirs');
-          expect(result.stdout).toContain('pnpm-lock.yaml');
+          expect(result.stdout).toContain('config.json');
           expect(result.stdout).toContain('done');
           expect(result.stdout).toMatchSnapshot();
 
           // verify file has theirs content (feature branch = theirs in rebase)
           // in rebase: ours = base branch (origin/main), theirs = commit in replay
           const content = fs.readFileSync(
-            path.join(tempDir, 'pnpm-lock.yaml'),
+            path.join(tempDir, 'config.json'),
             'utf-8',
           );
           expect(content).toContain('feature');
@@ -484,118 +492,145 @@ describe('git.branch.rebase.take', () => {
     });
   });
 
-  given('[case12] take lock file shows suggestion', () => {
-    when('[t0] take theirs pnpm-lock.yaml', () => {
-      then('output includes lock refresh suggestion', () => {
-        const tempDir = setupRebaseWithConflict({
-          conflictFiles: ['pnpm-lock.yaml'],
-          mainContent: { 'pnpm-lock.yaml': 'main lock content\n' },
-          featureContent: { 'pnpm-lock.yaml': 'feature lock content\n' },
+  given(
+    '[case12] take lock file auto-runs lock refresh (negative - no package.json)',
+    () => {
+      when('[t0] take theirs pnpm-lock.yaml without package.json', () => {
+        then('exit 2, shows failed with retry hint', () => {
+          const tempDir = setupRebaseWithConflict({
+            conflictFiles: ['pnpm-lock.yaml'],
+            mainContent: { 'pnpm-lock.yaml': 'main lock content\n' },
+            featureContent: { 'pnpm-lock.yaml': 'feature lock content\n' },
+          });
+
+          try {
+            const result = runSkill(tempDir, [
+              '--whos',
+              'theirs',
+              'pnpm-lock.yaml',
+            ]);
+
+            // exit 2 = constraint error (user must fix)
+            expect(result.status).toBe(2);
+            expect(result.stdout).toContain(
+              'lock file detected, auto-run lock refresh',
+            );
+            expect(result.stdout).toContain('failed');
+            expect(result.stdout).toContain(
+              'try: rhx git.branch.rebase lock refresh',
+            );
+            expect(result.stdout).toContain('incomplete');
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
         });
-
-        try {
-          const result = runSkill(tempDir, [
-            '--whos',
-            'theirs',
-            'pnpm-lock.yaml',
-          ]);
-
-          expect(result.status).toBe(0);
-          expect(result.stdout).toContain('lock taken, refresh it with:');
-          expect(result.stdout).toContain('rhx git.branch.rebase lock refresh');
-          expect(result.stdout).toMatchSnapshot();
-        } finally {
-          fs.rmSync(tempDir, { recursive: true, force: true });
-        }
       });
-    });
 
-    when('[t1] take theirs package-lock.json', () => {
-      then('output includes lock refresh suggestion', () => {
-        const tempDir = setupRebaseWithConflict({
-          conflictFiles: ['package-lock.json'],
-          mainContent: { 'package-lock.json': '{"main": true}\n' },
-          featureContent: { 'package-lock.json': '{"feature": true}\n' },
+      when('[t1] take theirs package-lock.json without package.json', () => {
+        then('exit 2, shows failed with retry hint', () => {
+          const tempDir = setupRebaseWithConflict({
+            conflictFiles: ['package-lock.json'],
+            mainContent: { 'package-lock.json': '{"main": true}\n' },
+            featureContent: { 'package-lock.json': '{"feature": true}\n' },
+          });
+
+          try {
+            const result = runSkill(tempDir, [
+              '--whos',
+              'theirs',
+              'package-lock.json',
+            ]);
+
+            // exit 2 = constraint error (user must fix)
+            expect(result.status).toBe(2);
+            expect(result.stdout).toContain(
+              'lock file detected, auto-run lock refresh',
+            );
+            expect(result.stdout).toContain('failed');
+            expect(result.stdout).toContain('try:');
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
         });
-
-        try {
-          const result = runSkill(tempDir, [
-            '--whos',
-            'theirs',
-            'package-lock.json',
-          ]);
-
-          expect(result.status).toBe(0);
-          expect(result.stdout).toContain('lock taken, refresh it with:');
-          expect(result.stdout).toContain('rhx git.branch.rebase lock refresh');
-          expect(result.stdout).toMatchSnapshot();
-        } finally {
-          fs.rmSync(tempDir, { recursive: true, force: true });
-        }
       });
-    });
 
-    when('[t2] take theirs yarn.lock', () => {
-      then('output includes lock refresh suggestion', () => {
-        const tempDir = setupRebaseWithConflict({
-          conflictFiles: ['yarn.lock'],
-          mainContent: { 'yarn.lock': 'main yarn lock\n' },
-          featureContent: { 'yarn.lock': 'feature yarn lock\n' },
+      when('[t2] take theirs yarn.lock without package.json', () => {
+        then('exit 2, shows failed with retry hint', () => {
+          const tempDir = setupRebaseWithConflict({
+            conflictFiles: ['yarn.lock'],
+            mainContent: { 'yarn.lock': 'main yarn lock\n' },
+            featureContent: { 'yarn.lock': 'feature yarn lock\n' },
+          });
+
+          try {
+            const result = runSkill(tempDir, ['--whos', 'theirs', 'yarn.lock']);
+
+            // exit 2 = constraint error (user must fix)
+            expect(result.status).toBe(2);
+            expect(result.stdout).toContain(
+              'lock file detected, auto-run lock refresh',
+            );
+            expect(result.stdout).toContain('failed');
+            expect(result.stdout).toContain('try:');
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
         });
-
-        try {
-          const result = runSkill(tempDir, ['--whos', 'theirs', 'yarn.lock']);
-
-          expect(result.status).toBe(0);
-          expect(result.stdout).toContain('lock taken, refresh it with:');
-          expect(result.stdout).toContain('rhx git.branch.rebase lock refresh');
-          expect(result.stdout).toMatchSnapshot();
-        } finally {
-          fs.rmSync(tempDir, { recursive: true, force: true });
-        }
       });
-    });
-  });
+    },
+  );
 
-  given('[case13] take multiple files with lock', () => {
-    when('[t0] take theirs . (includes lock file)', () => {
-      then('suggestion shown once (not per lock file)', () => {
-        const tempDir = setupRebaseWithConflict({
-          conflictFiles: ['pnpm-lock.yaml', 'src/index.ts', 'README.md'],
-          mainContent: {
-            'pnpm-lock.yaml': 'main lock\n',
-            'src/index.ts': 'main index\n',
-            'README.md': 'main readme\n',
-          },
-          featureContent: {
-            'pnpm-lock.yaml': 'feature lock\n',
-            'src/index.ts': 'feature index\n',
-            'README.md': 'feature readme\n',
-          },
+  given(
+    '[case13] take multiple files with lock (negative - no package.json)',
+    () => {
+      when('[t0] take theirs . (includes lock file)', () => {
+        then('auto-run shown once, exit 2 on refresh failure', () => {
+          const tempDir = setupRebaseWithConflict({
+            conflictFiles: ['pnpm-lock.yaml', 'src/index.ts', 'README.md'],
+            mainContent: {
+              'pnpm-lock.yaml': 'main lock\n',
+              'src/index.ts': 'main index\n',
+              'README.md': 'main readme\n',
+            },
+            featureContent: {
+              'pnpm-lock.yaml': 'feature lock\n',
+              'src/index.ts': 'feature index\n',
+              'README.md': 'feature readme\n',
+            },
+          });
+
+          try {
+            const result = runSkill(tempDir, ['--whos', 'theirs', '.']);
+
+            // exit 2 because lock refresh fails
+            expect(result.status).toBe(2);
+            // auto-run message appears
+            expect(result.stdout).toContain(
+              'lock file detected, auto-run lock refresh',
+            );
+            // count occurrences - should be exactly one
+            const autoRunCount = (
+              result.stdout.match(
+                /lock file detected, auto-run lock refresh/g,
+              ) || []
+            ).length;
+            expect(autoRunCount).toBe(1);
+            expect(result.stdout).toContain('try:');
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
         });
-
-        try {
-          const result = runSkill(tempDir, ['--whos', 'theirs', '.']);
-
-          expect(result.status).toBe(0);
-          // suggestion appears
-          expect(result.stdout).toContain('lock taken, refresh it with:');
-          // count occurrences - should be exactly one
-          const suggestionCount = (
-            result.stdout.match(/lock taken, refresh it with/g) || []
-          ).length;
-          expect(suggestionCount).toBe(1);
-          expect(result.stdout).toMatchSnapshot();
-        } finally {
-          fs.rmSync(tempDir, { recursive: true, force: true });
-        }
       });
-    });
-  });
+    },
+  );
 
   given('[case14] take non-lock file', () => {
     when('[t0] take theirs for .ts file only', () => {
-      then('no lock refresh suggestion shown', () => {
+      then('no lock refresh auto-run', () => {
         const tempDir = setupRebaseWithConflict({
           conflictFiles: ['src/index.ts'],
           mainContent: { 'src/index.ts': 'main code\n' },
@@ -610,11 +645,56 @@ describe('git.branch.rebase.take', () => {
           ]);
 
           expect(result.status).toBe(0);
-          expect(result.stdout).not.toContain('lock taken, refresh it with');
-          expect(result.stdout).not.toContain(
-            'rhx git.branch.rebase lock refresh',
-          );
+          expect(result.stdout).not.toContain('lock file detected');
+          expect(result.stdout).not.toContain('auto-run lock refresh');
           expect(result.stdout).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+  });
+
+  given('[case15] take lock file with valid package.json (positive)', () => {
+    when('[t0] take theirs pnpm-lock.yaml with package.json present', () => {
+      then('lock refresh succeeds, exit 0', () => {
+        const tempDir = setupRebaseWithConflict({
+          conflictFiles: ['pnpm-lock.yaml'],
+          mainContent: { 'pnpm-lock.yaml': 'lockfileVersion: 6.0\n' },
+          featureContent: { 'pnpm-lock.yaml': 'lockfileVersion: 6.1\n' },
+          // package.json with no deps - pnpm install will succeed
+          extraFiles: {
+            'package.json': JSON.stringify(
+              { name: 'test-pkg', version: '1.0.0' },
+              null,
+              2,
+            ),
+          },
+        });
+
+        try {
+          const result = runSkill(tempDir, [
+            '--whos',
+            'theirs',
+            'pnpm-lock.yaml',
+          ]);
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain(
+            'lock file detected, auto-run lock refresh',
+          );
+          expect(result.stdout).toContain('done');
+          expect(result.stdout).not.toContain('failed');
+          expect(result.stdout).toMatchSnapshot();
+
+          // verify lock file was regenerated and staged
+          const gitStatus = spawnSync('git', ['status', '--porcelain'], {
+            cwd: tempDir,
+            encoding: 'utf-8',
+          });
+          // pnpm-lock.yaml should be staged (M = modified and staged)
+          // node_modules/ will be untracked (??) which is expected
+          expect(gitStatus.stdout).toContain('M  pnpm-lock.yaml');
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }

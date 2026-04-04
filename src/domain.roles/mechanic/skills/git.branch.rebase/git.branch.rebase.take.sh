@@ -251,10 +251,30 @@ if [[ $HAS_SUCCESS -gt 0 ]]; then
   done
 fi
 
-# print lock file refresh suggestion (once, after all settled files)
+# auto-refresh lock file if one was settled
+LOCK_REFRESH_FAILED=false
 if [[ "$LOCK_FILE_SETTLED" == "true" ]]; then
-  echo "   ├─ lock taken, refresh it with: ⚡"
-  echo "   │  └─ rhx git.branch.rebase lock refresh"
+  echo "   ├─ lock file detected, auto-run lock refresh ⚡"
+
+  # run lock refresh
+  LOCK_REFRESH_OUTPUT=""
+  LOCK_REFRESH_EXIT=0
+  LOCK_REFRESH_OUTPUT=$("$SKILL_DIR/git.branch.rebase.lock.sh" refresh 2>&1) || LOCK_REFRESH_EXIT=$?
+
+  if [[ $LOCK_REFRESH_EXIT -eq 0 ]]; then
+    echo "   │  └─ done ✓"
+  else
+    echo "   │  └─ failed ✗"
+    echo "   │     ├─"
+    echo "   │     │"
+    # indent each line of the output
+    while IFS= read -r line; do
+      echo "   │     │  $line"
+    done <<< "$LOCK_REFRESH_OUTPUT"
+    echo "   │     │"
+    echo "   │     └─"
+    LOCK_REFRESH_FAILED=true
+  fi
 fi
 
 # print skipped files
@@ -289,6 +309,10 @@ fi
 if [[ $HAS_FAILED -gt 0 ]]; then
   echo "   └─ done (with errors)"
   exit 1
+elif [[ "$LOCK_REFRESH_FAILED" == "true" ]]; then
+  echo "   └─ incomplete"
+  echo "      └─ try: rhx git.branch.rebase lock refresh"
+  exit 2
 else
   echo "   └─ done"
   exit 0
