@@ -113,11 +113,12 @@ subject.code.prod:
       - briefs/practices/code.prod/evolvable.repo.structure/rule.forbid.index-ts.md
       - briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md
 
-      # errors
+      # errors — the most important rules
       - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt1.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failloud.md
       - briefs/practices/code.prod/pitofsuccess.errors/rule.prefer.helpful-error-wrap.md
       - briefs/practices/code.prod/pitofsuccess.errors/rule.require.exit-code-semantics.md
-      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.md
 
       # procedures (pit of success)
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md
@@ -151,8 +152,8 @@ subject.code.prod:
 
       # errors
       - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt2.md
-      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.[seed].md
-      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.fail-fast.[demo].shell.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[seed].md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[demo].shell.md
 
       # procedures
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotency.[seed].md
@@ -173,6 +174,11 @@ subject.code.prod:
 subject.code.test:
   briefs:
     say:
+      # errors — the most important rules
+      - briefs/practices/code.test/pitofsuccess.errors/rule.forbid.failhide.md
+      - briefs/practices/code.test/pitofsuccess.errors/rule.require.failfast.md
+      - briefs/practices/code.test/pitofsuccess.errors/rule.require.failloud.md
+
       - briefs/practices/code.test/frames.behavior/rule.require.given-when-then.md
       - briefs/practices/code.test/frames.behavior/rule.require.useThen-useWhen-for-shared-results.md
       - briefs/practices/code.test/frames.behavior/rule.forbid.redundant-expensive-operations.md

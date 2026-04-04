@@ -335,7 +335,6 @@
       "Bash(pnpm help:*)",
       "Bash(pnpm why:*)",
       "Bash(npm ci)",
-      "Bash(pnpm install --frozen-lockfile)",
       "Bash(npx tsx ./bin/run:*)",
       "Bash(npm run build:*)",
       "Bash(npm run build:compile)",
