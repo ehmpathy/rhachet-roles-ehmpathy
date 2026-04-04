@@ -675,12 +675,12 @@ describe('git.branch.rebase.take', () => {
   given('[case15] take lock file with valid package.json (positive)', () => {
     when('[t0] take theirs pnpm-lock.yaml with package.json present', () => {
       then('lock refresh succeeds, exit 0', () => {
-        // .note = use different placeholder content to create conflict
-        // pnpm install will regenerate a valid lock file from package.json
+        // .note = use valid pnpm lockfile YAML with different versions to create conflict
+        // pnpm install will see version mismatch and regenerate from package.json
         const tempDir = setupRebaseWithConflict({
           conflictFiles: ['pnpm-lock.yaml'],
-          mainContent: { 'pnpm-lock.yaml': '# main lock\n' },
-          featureContent: { 'pnpm-lock.yaml': '# feature lock\n' },
+          mainContent: { 'pnpm-lock.yaml': "lockfileVersion: '6.0'\n" },
+          featureContent: { 'pnpm-lock.yaml': "lockfileVersion: '9.0'\n" },
           // package.json with no deps - pnpm install will succeed and create valid lock
           extraFiles: {
             'package.json': JSON.stringify(
