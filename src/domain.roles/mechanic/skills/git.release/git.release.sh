@@ -671,6 +671,11 @@ if [[ "$GOAL_FROM" != "main" ]]; then
 
   # if not bound for prod, done here
   if [[ "$GOAL_INTO" != "prod" ]]; then
+    # show hint to release to prod (only if apply mode was used)
+    if [[ "$MODE" == "apply" ]]; then
+      echo ""
+      echo -e "\033[2m🐚 continue?: rhx git.release --into prod --mode apply\033[0m"
+    fi
     exit 0
   fi
 
