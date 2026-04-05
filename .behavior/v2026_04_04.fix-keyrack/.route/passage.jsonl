@@ -12,3 +12,6 @@
 {"stone":"3.3.1.blueprint.product.v1","status":"blocked","blocker":"review.self","reason":"review.self required: has-research-traceability"}
 {"stone":"3.3.1.blueprint.product.v1","status":"blocked","blocker":"review.self","reason":"review.self required: has-zero-deferrals"}
 {"stone":"3.3.1.blueprint.product.v1","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"3.3.1.blueprint.product.v1","status":"approved"}
+{"stone":"3.3.1.blueprint.product.v1","status":"passed"}
+{"stone":"4.1.roadmap.v1","status":"passed"}
