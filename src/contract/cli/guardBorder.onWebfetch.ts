@@ -1,6 +1,6 @@
 import * as path from 'path';
-import { genBrainAtom } from 'rhachet-brains-xai';
 import { keyrack } from 'rhachet/keyrack';
+import { genBrainAtom } from 'rhachet-brains-xai';
 
 import { decideIsContentAdmissibleOnWebfetch } from '@src/domain.operations/guardBorder/decideIsContentAdmissibleOnWebfetch';
 
