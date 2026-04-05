@@ -47,7 +47,9 @@ export const guardBorderOnWebfetch = async (): Promise<void> => {
     try {
       stdin = await readStdin();
     } catch (error) {
-      console.error(`\n🚫 stdin read error: ${error instanceof Error ? error.message : String(error)}\n`);
+      console.error(
+        `\n🚫 stdin read error: ${error instanceof Error ? error.message : String(error)}\n`,
+      );
       process.exit(1); // malfunction: stdin read failure
     }
 
@@ -61,7 +63,9 @@ export const guardBorderOnWebfetch = async (): Promise<void> => {
     try {
       input = JSON.parse(stdin) as typeof input;
     } catch (error) {
-      console.error(`\n🚫 invalid JSON input: ${error instanceof Error ? error.message : String(error)}\n`);
+      console.error(
+        `\n🚫 invalid JSON input: ${error instanceof Error ? error.message : String(error)}\n`,
+      );
       process.exit(2); // constraint: invalid input format
     }
 
@@ -89,7 +93,9 @@ export const guardBorderOnWebfetch = async (): Promise<void> => {
     process.exit(0);
   } catch (error) {
     // catch-all for unexpected errors
-    console.error(`\n🚫 border guard error: ${error instanceof Error ? error.message : String(error)}\n`);
+    console.error(
+      `\n🚫 border guard error: ${error instanceof Error ? error.message : String(error)}\n`,
+    );
     process.exit(1); // malfunction: unexpected error
   }
 };
