@@ -1,5 +1,6 @@
 import * as path from 'path';
 import { genBrainAtom } from 'rhachet-brains-xai';
+import { keyrack } from 'rhachet/keyrack';
 
 import { decideIsContentAdmissibleOnWebfetch } from '@src/domain.operations/guardBorder/decideIsContentAdmissibleOnWebfetch';
 
@@ -24,18 +25,21 @@ const readStdin = async (): Promise<string> => {
  * .why = reads stdin JSON, adapts webfetch format, invokes decideIsContentAdmissible
  */
 export const guardBorderOnWebfetch = async (): Promise<void> => {
-  // failfast if XAI_API_KEY not configured
-  if (!process.env.XAI_API_KEY) {
-    console.error(`
-🚫 webfetch blocked: border guard not configured
+  // fetch XAI_API_KEY from keyrack
+  const keyGrant = await keyrack.get({
+    for: { key: 'XAI_API_KEY' },
+    owner: 'ehmpath',
+    env: 'prep',
+  });
 
-the XAI_API_KEY environment variable is required to enable webfetch.
-please ask the human to add XAI_API_KEY to their environment to enable web research.
-
-see: https://github.com/ehmpathy/rhachet-brains-xai#setup
-`);
+  // failfast if not granted
+  if (keyGrant.attempt.status !== 'granted') {
+    console.error(keyGrant.emit.stdout);
     process.exit(2);
   }
+
+  // set env var for downstream
+  process.env.XAI_API_KEY = keyGrant.attempt.grant.key.secret;
 
   // read stdin
   const stdin = await readStdin();

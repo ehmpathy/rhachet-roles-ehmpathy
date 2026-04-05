@@ -91,7 +91,7 @@ const runSkill = (
     extraEnv?: Record<string, string>;
   },
 ): { stdout: string; stderr: string; status: number } => {
-  // note: pass EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN via env
+  // note: pass EHMPATHY_SEATURTLE_GITHUB_TOKEN via env
   // keyrack returns env var value if already set, so no real keyrack fetch needed
   const result = spawnSync('bash', [SKILL_PATH, ...args], {
     cwd: env.tempDir,
@@ -100,7 +100,7 @@ const runSkill = (
       PATH: `${env.fakeBinDir}:${process.env.PATH}`,
       TERM: 'dumb',
       HOME: env.tempDir,
-      EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+      EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
       GIT_RELEASE_TEST_MODE: 'true',
       ...(env.extraEnv ?? {}),
     },
@@ -2256,7 +2256,7 @@ exit 1
             cwd: tempDir,
           });
 
-          // custom runSkill without EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+          // custom runSkill without EHMPATHY_SEATURTLE_GITHUB_TOKEN
           // so keyrack locked scenario is actually tested
           const result = spawnSync(
             'bash',
@@ -2268,7 +2268,7 @@ exit 1
                 PATH: `${fakeBinDir}:${process.env.PATH}`,
                 TERM: 'dumb',
                 HOME: tempDir,
-                EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: '', // explicitly empty
+                EHMPATHY_SEATURTLE_GITHUB_TOKEN: '', // explicitly empty
               },
               encoding: 'utf-8',
             },
@@ -2798,7 +2798,7 @@ exit 1
                 PATH: `${fakeBinDir}:${process.env.PATH}`,
                 TERM: 'dumb',
                 HOME: tempDir,
-                EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+                EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
                 // skip sleeps in test mode
                 GIT_RELEASE_TEST_MODE: 'true',
               },
@@ -2938,7 +2938,7 @@ exit 1
                 PATH: `${fakeBinDir}:${process.env.PATH}`,
                 TERM: 'dumb',
                 HOME: tempDir,
-                EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+                EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
                 // skip sleeps in test mode
                 GIT_RELEASE_TEST_MODE: 'true',
               },
@@ -3072,7 +3072,7 @@ exit 1
                 PATH: `${fakeBinDir}:${process.env.PATH}`,
                 TERM: 'dumb',
                 HOME: tempDir,
-                EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+                EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
                 // skip sleeps in test mode
                 GIT_RELEASE_TEST_MODE: 'true',
               },

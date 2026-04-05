@@ -15,7 +15,7 @@
 #   - only pushes if HEAD commit was authored by seaturtle[bot]
 #   - only pushes if push permission granted in .meter/git.commit.uses.jsonc
 #   - never pushes to main/master
-#   - requires EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN for pr findsert
+#   - requires EHMPATHY_SEATURTLE_GITHUB_TOKEN for pr findsert
 #   - does NOT decrement uses (that is git.commit.set's job)
 #   - defaults to plan mode (preview only); use --mode apply to execute
 ######################################################################
@@ -242,7 +242,7 @@ trap "rm -f '$KEYRACK_ERROR_FILE'" EXIT
 # capture output and exit code (use || to prevent set -e from early exit)
 KEYRACK_EXIT=0
 "$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
-  --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
+  --key EHMPATHY_SEATURTLE_GITHUB_TOKEN \
   --env prep \
   --allow-dangerous \
   --json >"$KEYRACK_ERROR_FILE" 2>&1 || KEYRACK_EXIT=$?
@@ -251,8 +251,8 @@ KEYRACK_EXIT=0
 [[ "$DEBUG" == "true" ]] && echo "[debug] keyrack output: $(cat "$KEYRACK_ERROR_FILE")" >&2
 
 if [[ $KEYRACK_EXIT -eq 0 ]]; then
-  EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(cat "$KEYRACK_ERROR_FILE" | jq -r '.grant.key.secret // empty')
-  [[ "$DEBUG" == "true" ]] && echo "[debug] extracted token length: ${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN}" >&2
+  EHMPATHY_SEATURTLE_GITHUB_TOKEN=$(cat "$KEYRACK_ERROR_FILE" | jq -r '.grant.key.secret // empty')
+  [[ "$DEBUG" == "true" ]] && echo "[debug] extracted token length: ${#EHMPATHY_SEATURTLE_GITHUB_TOKEN}" >&2
 else
   # fallback: unlock and get from ehmpath (passwordless sshkey)
   [[ "$DEBUG" == "true" ]] && echo "[debug] primary failed, try ehmpath fallback..." >&2
@@ -260,7 +260,7 @@ else
     --owner ehmpath --prikey "$HOME/.ssh/ehmpath" --env prep >/dev/null 2>&1 || true
   FALLBACK_EXIT=0
   FALLBACK_OUTPUT=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
-    --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
+    --key EHMPATHY_SEATURTLE_GITHUB_TOKEN \
     --owner ehmpath \
     --env prep \
     --allow-dangerous \
@@ -268,8 +268,8 @@ else
   [[ "$DEBUG" == "true" ]] && echo "[debug] fallback exit=$FALLBACK_EXIT" >&2
   [[ "$DEBUG" == "true" ]] && echo "[debug] fallback output: $FALLBACK_OUTPUT" >&2
   if [[ $FALLBACK_EXIT -eq 0 ]]; then
-    EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN=$(echo "$FALLBACK_OUTPUT" | jq -r '.grant.key.secret // empty')
-    [[ "$DEBUG" == "true" ]] && echo "[debug] extracted fallback token length: ${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN}" >&2
+    EHMPATHY_SEATURTLE_GITHUB_TOKEN=$(echo "$FALLBACK_OUTPUT" | jq -r '.grant.key.secret // empty')
+    [[ "$DEBUG" == "true" ]] && echo "[debug] extracted fallback token length: ${#EHMPATHY_SEATURTLE_GITHUB_TOKEN}" >&2
   else
     # both failed — show original error + guidance for human
     echo "" >&2
@@ -279,7 +279,7 @@ else
     echo "" >&2
     echo "to fix this, ask a human to either:" >&2
     echo "  1. unlock their keyrack for this key:" >&2
-    echo "     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" >&2
+    echo "     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_GITHUB_TOKEN" >&2
     echo "" >&2
     echo "  2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:" >&2
     echo "     $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath" >&2
@@ -289,7 +289,7 @@ else
 fi
 
 # fail-fast: verify we got a token
-if [[ -z "$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" ]]; then
+if [[ -z "$EHMPATHY_SEATURTLE_GITHUB_TOKEN" ]]; then
   echo "" >&2
   echo "🐢 bummer dude, keyrack returned empty token" >&2
   echo "" >&2
@@ -324,7 +324,7 @@ PUSH_STATUS="$PUSH_TARGET ✓"
 PR_STATUS=""
 PR_LIST_OUTPUT=""
 PR_LIST_EXIT=0
-PR_LIST_OUTPUT=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr list --head "$CURRENT_BRANCH" --json number --jq '.[0].number' 2>&1) || PR_LIST_EXIT=$?
+PR_LIST_OUTPUT=$(GH_TOKEN="$EHMPATHY_SEATURTLE_GITHUB_TOKEN" gh pr list --head "$CURRENT_BRANCH" --json number --jq '.[0].number' 2>&1) || PR_LIST_EXIT=$?
 [[ "$DEBUG" == "true" ]] && echo "[debug] pr list exit=$PR_LIST_EXIT, output: '$PR_LIST_OUTPUT'" >&2
 PR_FOUND=""
 if [[ $PR_LIST_EXIT -eq 0 && -n "$PR_LIST_OUTPUT" && "$PR_LIST_OUTPUT" != "null" ]]; then
@@ -342,10 +342,10 @@ else
 
 ---
 🐢🌊 surfed in by seaturtle[bot]"
-  [[ "$DEBUG" == "true" ]] && echo "[debug] token for pr create: ${EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN:0:10}... (len=${#EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN})" >&2
+  [[ "$DEBUG" == "true" ]] && echo "[debug] token for pr create: ${EHMPATHY_SEATURTLE_GITHUB_TOKEN:0:10}... (len=${#EHMPATHY_SEATURTLE_GITHUB_TOKEN})" >&2
   PR_CREATE_OUTPUT=""
   PR_CREATE_EXIT=0
-  PR_CREATE_OUTPUT=$(GH_TOKEN="$EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN" gh pr create \
+  PR_CREATE_OUTPUT=$(GH_TOKEN="$EHMPATHY_SEATURTLE_GITHUB_TOKEN" gh pr create \
     --title "$PR_TITLE" \
     --body "$PR_BODY_FULL" \
     2>&1) || PR_CREATE_EXIT=$?

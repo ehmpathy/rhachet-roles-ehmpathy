@@ -631,7 +631,7 @@ describe('git.commit.set.sh', () => {
           path.join(agentDir, 'keyrack.yml'),
           `org: ehmpathy
 env.all:
-  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+  - EHMPATHY_SEATURTLE_GITHUB_TOKEN
 env.prod:
   # required for valid schema
 `,
@@ -666,7 +666,7 @@ exit 1`,
             env: {
               ...process.env,
               HOME: isolatedHome,
-              EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+              EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
               PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
           },
@@ -741,7 +741,7 @@ exit 1`,
           path.join(agentDir, 'keyrack.yml'),
           `org: ehmpathy
 env.all:
-  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+  - EHMPATHY_SEATURTLE_GITHUB_TOKEN
 env.prod:
   # required for valid schema
 `,
@@ -780,7 +780,7 @@ exit 1`,
             env: {
               ...process.env,
               HOME: isolatedHome,
-              EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+              EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
               PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
           },
@@ -877,7 +877,7 @@ exit 1`,
           path.join(agentDir, 'keyrack.yml'),
           `org: ehmpathy
 env.all:
-  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+  - EHMPATHY_SEATURTLE_GITHUB_TOKEN
 env.prod:
   # required for valid schema
 `,
@@ -916,7 +916,7 @@ exit 1`,
             env: {
               ...process.env,
               HOME: isolatedHome,
-              EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+              EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
               PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
           },
@@ -1352,7 +1352,7 @@ exit 1`,
           path.join(agentDir, 'keyrack.yml'),
           `org: ehmpathy
 env.all:
-  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+  - EHMPATHY_SEATURTLE_GITHUB_TOKEN
 env.prod:
   # required for valid schema
 `,
@@ -1390,7 +1390,7 @@ exit 1`,
             env: {
               ...process.env,
               HOME: isolatedHome,
-              EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+              EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
               PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
           },

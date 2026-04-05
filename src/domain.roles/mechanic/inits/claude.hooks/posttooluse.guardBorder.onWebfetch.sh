@@ -17,11 +17,6 @@
 ######################################################################
 set -euo pipefail
 
-# load api keys from user config only if not already defined
-# note: respects XAI_API_KEY='' to allow tests to simulate unconfigured state
-if [[ -z "${XAI_API_KEY+x}" && -f ~/.config/rhachet/apikeys.env ]]; then
-  source ~/.config/rhachet/apikeys.env
-fi
-
 # delegate to the TypeScript CLI via location-independent package import
+# note: TypeScript handles credentials via keyrack SDK
 exec node -e "import('rhachet-roles-ehmpathy/cli').then(m => m.guardBorderOnWebfetch())" -- "$@"

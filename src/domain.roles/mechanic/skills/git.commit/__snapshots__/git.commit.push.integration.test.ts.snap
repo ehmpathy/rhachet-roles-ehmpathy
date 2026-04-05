@@ -68,14 +68,14 @@ exports[`git.commit.push.sh given: [case12] keyrack not configured (sad path) wh
 🐢 bummer dude, keyrack token fetch failed
 
 
-⛈️ BadRequestError: no keyrack.yml found in repo
+⛈️ ✋ ConstraintError: cannot construct slug for key 'EHMPATHY_SEATURTLE_GITHUB_TOKEN' without keyrack.yml. use full slug format (org.env.KEY) or add keyrack.yml to repo.
 
-[args] keyrack,get,--key,EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN,--env,prep,--allow-dangerous,--json
+[args] keyrack,get,--key,EHMPATHY_SEATURTLE_GITHUB_TOKEN,--env,prep,--allow-dangerous,--json
 
 
 to fix this, ask a human to either:
   1. unlock their keyrack for this key:
-     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
 
   2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
      $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath
@@ -106,7 +106,7 @@ keyrack output:
 {
   "status": "granted",
   "grant": {
-    "slug": "ehmpathy.prep.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN",
+    "slug": "ehmpathy.prep.EHMPATHY_SEATURTLE_GITHUB_TOKEN",
     "key": {
       "secret": "",
       "grade": {
@@ -134,7 +134,7 @@ keyrack output:
 {
   "status": "granted",
   "grant": {
-    "slug": "ehmpathy.prep.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN",
+    "slug": "ehmpathy.prep.EHMPATHY_SEATURTLE_GITHUB_TOKEN",
     "key": {
       "secret": "",
       "grade": {
@@ -191,7 +191,7 @@ keyrack output:
 {
   "status": "granted",
   "grant": {
-    "slug": "ehmpathy.prep.EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN",
+    "slug": "ehmpathy.prep.EHMPATHY_SEATURTLE_GITHUB_TOKEN",
     "key": {
       "secret": "",
       "grade": {

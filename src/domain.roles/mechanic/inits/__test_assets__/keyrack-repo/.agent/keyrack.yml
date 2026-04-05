@@ -1,7 +1,7 @@
 org: ehmpathy
 
 env.all:
-  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+  - EHMPATHY_SEATURTLE_GITHUB_TOKEN
 
 env.prod:
   # empty
