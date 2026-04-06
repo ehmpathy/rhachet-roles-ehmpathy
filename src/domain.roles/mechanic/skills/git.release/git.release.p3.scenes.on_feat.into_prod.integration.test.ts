@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
 
 /**
@@ -72,8 +74,7 @@ exit 1
     mode: 0o755,
   });
 
-  spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: tempDir });
+  configureTestGitUser({ cwd: tempDir });
   spawnSync(
     'git',
     ['remote', 'add', 'origin', 'https://github.com/test/repo'],

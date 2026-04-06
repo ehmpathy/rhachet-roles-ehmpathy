@@ -9,6 +9,8 @@ import { spawnSync } from 'child_process';
 import path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 // ============================================================================
 // test infrastructure
 // ============================================================================
@@ -22,10 +24,7 @@ const setupTempGitRepo = (slug: string): { tempDir: string } => {
   const tempDir = genTempDir({ slug, git: true });
 
   // configure git
-  spawnSync('git', ['config', 'user.email', 'test@example.com'], {
-    cwd: tempDir,
-  });
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: tempDir });
+  configureTestGitUser({ cwd: tempDir });
   spawnSync('git', ['checkout', '-b', 'main'], { cwd: tempDir });
   spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
     cwd: tempDir,

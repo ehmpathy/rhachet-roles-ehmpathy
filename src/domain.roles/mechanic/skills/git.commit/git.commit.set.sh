@@ -529,6 +529,30 @@ if [[ -z "$HUMAN_NAME" || -z "$HUMAN_EMAIL" ]]; then
   exit 2  # blocked by constraints
 fi
 
+# guard: reject placeholder test user identity (skip in test env)
+if [[ "${NODE_ENV:-}" != "test" ]]; then
+  HUMAN_NAME_LOWER=$(echo "$HUMAN_NAME" | tr '[:upper:]' '[:lower:]')
+  if [[ "$HUMAN_NAME_LOWER" == *"test user"* || "$HUMAN_NAME_LOWER" == *"test human"* ]]; then
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.commit.set"
+    print_tree_error "placeholder identity detected"
+    echo ""
+    echo "   found: $HUMAN_NAME <$HUMAN_EMAIL>"
+    echo ""
+    echo "   'Test User' and 'Test Human' are placeholder identities"
+    echo "   used in tests. commits must be co-authored by a real human."
+    echo ""
+    echo "   fix with:"
+    echo "     git config --local --unset user.name"
+    echo "     git config --local --unset user.email"
+    echo ""
+    echo "   or set your real identity:"
+    echo "     git config user.name \"Your Name\""
+    echo "     git config user.email \"your@email.com\""
+    exit 2  # blocked by constraints
+  fi
+fi
+
 # get current branch for output
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 

@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 /**
  * .what = integration tests for git.commit.set.sh
  * .why = verify metered commit with seaturtle[bot] attribution works correctly
@@ -29,20 +31,13 @@ describe('git.commit.set.sh', () => {
 
     // configure git user (patron)
     if (args.gitUser) {
-      spawnSync('git', ['config', 'user.name', args.gitUser.name], {
+      configureTestGitUser({
         cwd: tempDir,
-      });
-      spawnSync('git', ['config', 'user.email', args.gitUser.email], {
-        cwd: tempDir,
+        name: args.gitUser.name,
+        email: args.gitUser.email,
       });
     } else {
-      // default test user
-      spawnSync('git', ['config', 'user.name', 'Test Human'], {
-        cwd: tempDir,
-      });
-      spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-        cwd: tempDir,
-      });
+      configureTestGitUser({ cwd: tempDir });
     }
 
     // create .meter state (gitignored to match real repo setup)
@@ -592,12 +587,7 @@ describe('git.commit.set.sh', () => {
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter with .gitignore (before feature branch)
         const meterDir = path.join(tempDir, '.meter');
@@ -687,12 +677,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter before branch creation
         const meterDir = path.join(tempDir, '.meter');
@@ -805,12 +790,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup .gitignore for .meter on main
         const meterDir = path.join(tempDir, '.meter');
@@ -1223,12 +1203,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter
         const meterDir = path.join(tempDir, '.meter');
@@ -1317,12 +1292,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter
         const meterDir = path.join(tempDir, '.meter');
@@ -1639,12 +1609,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter
         const meterDir = path.join(tempDir, '.meter');
@@ -1706,12 +1671,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter
         const meterDir = path.join(tempDir, '.meter');
@@ -1773,12 +1733,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter
         const meterDir = path.join(tempDir, '.meter');
@@ -1852,12 +1807,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter
         const meterDir = path.join(tempDir, '.meter');
@@ -1925,12 +1875,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter
         const meterDir = path.join(tempDir, '.meter');
@@ -1999,12 +1944,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter
         const meterDir = path.join(tempDir, '.meter');
@@ -2073,12 +2013,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter
         const meterDir = path.join(tempDir, '.meter');
@@ -2147,12 +2082,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter
         const meterDir = path.join(tempDir, '.meter');
@@ -2220,12 +2150,7 @@ exit 1`,
           });
 
           // configure git user
-          spawnSync('git', ['config', 'user.name', 'Test Human'], {
-            cwd: tempDir,
-          });
-          spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-            cwd: tempDir,
-          });
+          configureTestGitUser({ cwd: tempDir });
 
           // setup meter
           const meterDir = path.join(tempDir, '.meter');
@@ -2295,12 +2220,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter
         const meterDir = path.join(tempDir, '.meter');
@@ -2369,12 +2289,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // setup meter
         const meterDir = path.join(tempDir, '.meter');
@@ -2444,12 +2359,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // create and set local quota
         const meterDir = path.join(tempDir, '.meter');
@@ -2541,12 +2451,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // create local quota
         const meterDir = path.join(tempDir, '.meter');
@@ -2623,12 +2528,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // create local quota
         const meterDir = path.join(tempDir, '.meter');
@@ -2715,12 +2615,7 @@ exit 1`,
         });
 
         // configure git user
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // create local quota
         const meterDir = path.join(tempDir, '.meter');
@@ -2825,6 +2720,136 @@ exit 1`,
         expect(result.stdout).toContain('heres the wave');
         expect(result.stdout).toContain('left: unlimited');
         expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case28] placeholder identity guard', () => {
+    when('[t0] git user.name is Test User and NODE_ENV is not test', () => {
+      then('exits with placeholder identity error', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-set-placeholder-test',
+          git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
+
+        // configure git user to placeholder (bypasses configureTestGitUser guard via direct spawnSync)
+        spawnSync('git', ['config', '--local', 'user.name', 'Test User'], {
+          cwd: tempDir,
+        });
+        spawnSync(
+          'git',
+          ['config', '--local', 'user.email', 'test@example.com'],
+          {
+            cwd: tempDir,
+          },
+        );
+
+        // setup meter and branch
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 3, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup'], { cwd: tempDir });
+        spawnSync('git', ['checkout', '-b', 'fix/test-branch'], {
+          cwd: tempDir,
+        });
+
+        // create and stage file
+        fs.writeFileSync(path.join(tempDir, 'test.txt'), 'content');
+        spawnSync('git', ['add', 'test.txt'], { cwd: tempDir });
+
+        // run with NODE_ENV=production to trigger failfast
+        const isolatedHome = genTempDir({ slug: 'git-set-home', git: false });
+        const result = spawnSync(
+          'bash',
+          [scriptPath, '-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            env: { ...process.env, HOME: isolatedHome, NODE_ENV: 'production' },
+          },
+        );
+
+        expect(result.status).toBe(2);
+        expect(result.stdout).toContain('placeholder identity detected');
+        expect(result.stdout).toContain('Test User');
+      });
+    });
+
+    when('[t1] git user.name is Test Human and NODE_ENV is not test', () => {
+      then('exits with placeholder identity error', () => {
+        const tempDir = genTempDir({
+          slug: 'git-commit-set-placeholder-test',
+          git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
+
+        // configure git user to placeholder
+        spawnSync('git', ['config', '--local', 'user.name', 'Test Human'], {
+          cwd: tempDir,
+        });
+        spawnSync(
+          'git',
+          ['config', '--local', 'user.email', 'human@test.com'],
+          {
+            cwd: tempDir,
+          },
+        );
+
+        // setup meter and branch
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 3, push: 'block' }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup'], { cwd: tempDir });
+        spawnSync('git', ['checkout', '-b', 'fix/test-branch'], {
+          cwd: tempDir,
+        });
+
+        // create and stage file
+        fs.writeFileSync(path.join(tempDir, 'test.txt'), 'content');
+        spawnSync('git', ['add', 'test.txt'], { cwd: tempDir });
+
+        // run with NODE_ENV=production to trigger failfast
+        const isolatedHome = genTempDir({ slug: 'git-set-home', git: false });
+        const result = spawnSync(
+          'bash',
+          [scriptPath, '-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as BufferEncoding,
+            env: { ...process.env, HOME: isolatedHome, NODE_ENV: 'production' },
+          },
+        );
+
+        expect(result.status).toBe(2);
+        expect(result.stdout).toContain('placeholder identity detected');
+        expect(result.stdout).toContain('Test Human');
+      });
+    });
+
+    when('[t2] git user.name is Test User but NODE_ENV is test', () => {
+      then('commit succeeds (guard bypassed for tests)', () => {
+        const result = runInTempGitRepo({
+          files: { 'test.txt': 'content' },
+          staged: true,
+          meterState: { uses: 3, push: 'block' },
+          gitUser: { name: 'Test User', email: 'test@example.com' },
+          commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+        });
+
+        // NODE_ENV=test is set by jest, so this should pass
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('righteous');
       });
     });
   });

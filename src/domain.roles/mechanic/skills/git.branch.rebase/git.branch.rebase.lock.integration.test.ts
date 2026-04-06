@@ -4,6 +4,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 /**
  * .what = integration tests for git.branch.rebase.lock skill
  * .why = verify lock refresh regenerates lock file with correct output per criteria
@@ -45,8 +47,7 @@ const setupRebaseWithLockFile = (options: {
 
   // init git repo
   spawnSync('git', ['init'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: tempDir });
+  configureTestGitUser({ cwd: tempDir });
 
   // create package.json for install to work
   if (options.includePackageJson !== false) {
@@ -130,8 +131,7 @@ const setupRebaseWithoutLockFile = (): string => {
 
   // init git repo
   spawnSync('git', ['init'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: tempDir });
+  configureTestGitUser({ cwd: tempDir });
 
   // create initial commit
   fs.writeFileSync(path.join(tempDir, 'README.md'), '# Test Repo\n');
@@ -163,8 +163,7 @@ const setupNoRebase = (): string => {
 
   // init git repo
   spawnSync('git', ['init'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: tempDir });
+  configureTestGitUser({ cwd: tempDir });
 
   // create initial commit with lock file
   fs.writeFileSync(path.join(tempDir, 'README.md'), '# Test Repo\n');

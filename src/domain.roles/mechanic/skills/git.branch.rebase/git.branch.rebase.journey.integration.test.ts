@@ -4,6 +4,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 /**
  * .what = acceptance test for the full git.branch.rebase journey
  * .why = demonstrates what a real caller sees at each step of a rebase workflow
@@ -28,8 +30,7 @@ const setupJourneyRepo = (): { workDir: string; bareDir: string } => {
 
   // clone to work directory
   spawnSync('git', ['clone', bareDir, workDir]);
-  spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: workDir });
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: workDir });
+  configureTestGitUser({ cwd: workDir });
 
   // create initial commit on main
   fs.writeFileSync(path.join(workDir, 'README.md'), '# Test Repo\n');

@@ -4,6 +4,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 /**
  * .what = integration tests for git.repo.get skill
  * .why = verify repos, files, and lines subcommands work correctly
@@ -66,10 +68,7 @@ describe('git.repo.get.sh', () => {
         ['config', '--global', '--add', 'safe.directory', repoPath],
         { cwd: repoPath },
       );
-      spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-        cwd: repoPath,
-      });
-      spawnSync('git', ['config', 'user.name', 'Test'], { cwd: repoPath });
+      configureTestGitUser({ cwd: repoPath });
       spawnSync('git', ['add', '.'], { cwd: repoPath });
       spawnSync('git', ['commit', '-m', 'initial'], { cwd: repoPath });
       spawnSync('git', ['checkout', '-B', 'main'], { cwd: repoPath });
@@ -731,12 +730,7 @@ describe('git.repo.get.sh', () => {
         spawnSync('git', ['init'], {
           cwd: path.join(customRoot, 'myorg', 'myrepo'),
         });
-        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-          cwd: path.join(customRoot, 'myorg', 'myrepo'),
-        });
-        spawnSync('git', ['config', 'user.name', 'Test'], {
-          cwd: path.join(customRoot, 'myorg', 'myrepo'),
-        });
+        configureTestGitUser({ cwd: path.join(customRoot, 'myorg', 'myrepo') });
         spawnSync('git', ['add', '.'], {
           cwd: path.join(customRoot, 'myorg', 'myrepo'),
         });

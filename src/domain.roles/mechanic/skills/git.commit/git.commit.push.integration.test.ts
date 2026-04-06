@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 /**
  * .what = integration tests for git.commit.push.sh
  * .why = verify standalone push + pr findsert works correctly with all guards and output modes
@@ -33,12 +35,7 @@ describe('git.commit.push.sh', () => {
     });
 
     // configure git user
-    spawnSync('git', ['config', 'user.name', 'Test Human'], {
-      cwd: tempDir,
-    });
-    spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-      cwd: tempDir,
-    });
+    configureTestGitUser({ cwd: tempDir });
 
     // setup keyrack fixture
     if (args.withKeyrack !== false) {
@@ -722,12 +719,7 @@ exit 1`,
           });
 
           // configure git user
-          spawnSync('git', ['config', 'user.name', 'Test Human'], {
-            cwd: tempDir,
-          });
-          spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-            cwd: tempDir,
-          });
+          configureTestGitUser({ cwd: tempDir });
 
           // create keyrack.yml that does NOT include EHMPATHY_SEATURTLE_GITHUB_TOKEN
           const agentDir = path.join(tempDir, '.agent');
@@ -992,12 +984,7 @@ exec /usr/bin/git "$@"
             });
 
             // configure git user
-            spawnSync('git', ['config', 'user.name', 'Test Human'], {
-              cwd: tempDir,
-            });
-            spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-              cwd: tempDir,
-            });
+            configureTestGitUser({ cwd: tempDir });
 
             // ensure default branch is main (CI may default to master)
             spawnSync('git', ['branch', '-m', 'master', 'main'], {
@@ -1174,12 +1161,7 @@ exit 1
           symlink: [{ at: 'node_modules', to: 'node_modules' }],
         });
 
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         const agentDir = path.join(tempDir, '.agent');
         fs.mkdirSync(agentDir, { recursive: true });
