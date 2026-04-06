@@ -25,21 +25,24 @@ const readStdin = async (): Promise<string> => {
  * .why = reads stdin JSON, adapts webfetch format, invokes decideIsContentAdmissible
  */
 export const guardBorderOnWebfetch = async (): Promise<void> => {
-  // fetch XAI_API_KEY from keyrack
-  const keyGrant = await keyrack.get({
-    for: { key: 'XAI_API_KEY' },
-    owner: 'ehmpath',
-    env: 'prep',
-  });
+  // check env first (CI, direct env var), then keyrack (local dev)
+  if (!process.env.XAI_API_KEY) {
+    // fetch XAI_API_KEY from keyrack
+    const keyGrant = await keyrack.get({
+      for: { key: 'XAI_API_KEY' },
+      owner: 'ehmpath',
+      env: 'prep',
+    });
 
-  // failfast if not granted
-  if (keyGrant.attempt.status !== 'granted') {
-    console.error(keyGrant.emit.stdout);
-    process.exit(2);
+    // failfast if not granted
+    if (keyGrant.attempt.status !== 'granted') {
+      console.error(keyGrant.emit.stdout);
+      process.exit(2);
+    }
+
+    // set env var for downstream
+    process.env.XAI_API_KEY = keyGrant.attempt.grant.key.secret;
   }
-
-  // set env var for downstream
-  process.env.XAI_API_KEY = keyGrant.attempt.grant.key.secret;
 
   // read stdin and parse input
   const stdin = await readStdin();
