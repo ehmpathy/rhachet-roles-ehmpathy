@@ -48,7 +48,7 @@ describe('keyrack.ehmpath.sh', () => {
     // strip tokens that could leak from host env into isolated keyrack
     const {
       GITHUB_TOKEN: _gt,
-      EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: _est,
+      EHMPATHY_SEATURTLE_GITHUB_TOKEN: _est,
       ...envClean
     } = process.env;
 
@@ -134,7 +134,7 @@ describe('keyrack.ehmpath.sh', () => {
     // strip tokens that could leak from host env
     const {
       GITHUB_TOKEN: _gt,
-      EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: _est,
+      EHMPATHY_SEATURTLE_GITHUB_TOKEN: _est,
       ...envClean
     } = process.env;
 
@@ -180,9 +180,8 @@ describe('keyrack.ehmpath.sh', () => {
         console.log('tempHome after:\n' + treeDir(tempHome));
 
         expect(first.stdout).toContain('keyrack: init for owner ehmpath');
-        expect(first.stdout).toContain(
-          'key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: configure...',
-        );
+        expect(first.stdout).toContain('fill keys from keyrack.yml');
+        expect(first.stdout).toContain('keyrack fill complete');
         expect(first.exitCode).toBe(0);
 
         // unlock to verify key was stored
@@ -218,7 +217,7 @@ describe('keyrack.ehmpath.sh', () => {
             '--owner',
             'ehmpath',
             '--key',
-            'EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN',
+            'EHMPATHY_SEATURTLE_GITHUB_TOKEN',
             '--env',
             'all',
             '--allow-dangerous',
@@ -258,8 +257,8 @@ describe('keyrack.ehmpath.sh', () => {
         console.log('exit:', second.exitCode);
         console.log('tempHome after:\n' + treeDir(tempHome));
 
-        expect(second.stdout).toContain('configured');
-        expect(second.stdout).not.toContain('configure...');
+        expect(second.stdout).toContain('found vaulted');
+        expect(second.stdout).not.toContain('set the key');
         expect(second.exitCode).toBe(0);
       });
     });
@@ -296,7 +295,7 @@ describe('keyrack.ehmpath.sh', () => {
           stdin: 'first-secret',
         });
         expect(first.exitCode).toBe(0);
-        expect(first.stdout).toContain('configure...');
+        expect(first.stdout).toContain('fill keys from keyrack.yml');
 
         // relock before refresh
         spawnSync(
@@ -314,7 +313,7 @@ describe('keyrack.ehmpath.sh', () => {
           home: tempHome,
           cwd: tempRepo,
           stdin: 'refreshed-secret',
-          extraArgs: ['--refresh', 'EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN'],
+          extraArgs: ['--refresh', 'EHMPATHY_SEATURTLE_GITHUB_TOKEN'],
         });
 
         console.log('=== REFRESH RUN ===');
@@ -322,7 +321,7 @@ describe('keyrack.ehmpath.sh', () => {
         console.log('stderr:', refresh.stderr);
         console.log('exit:', refresh.exitCode);
 
-        expect(refresh.stdout).toContain('refresh...');
+        expect(refresh.stdout).toContain('fill keys from keyrack.yml');
         expect(refresh.exitCode).toBe(0);
       });
     });
@@ -384,7 +383,7 @@ describe('keyrack.ehmpath.sh', () => {
         console.log('stderr:', refresh.stderr);
         console.log('exit:', refresh.exitCode);
 
-        expect(refresh.stdout).toContain('refresh...');
+        expect(refresh.stdout).toContain('fill keys from keyrack.yml');
         expect(refresh.exitCode).toBe(0);
       });
     });

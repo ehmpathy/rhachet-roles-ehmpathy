@@ -113,7 +113,7 @@ const runSkill = (
       PATH: `${env.fakeBinDir}:${process.env.PATH}`,
       TERM: 'dumb',
       HOME: env.tempDir,
-      EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+      EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
       GIT_RELEASE_TEST_MODE: 'true',
     },
     encoding: 'utf-8',

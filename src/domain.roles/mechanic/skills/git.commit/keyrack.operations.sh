@@ -30,7 +30,7 @@ fetch_github_token() {
   # try keyrack get with --json for proper extraction
   keyrack_exit=0
   keyrack_output=$("$repo_root/node_modules/.bin/rhachet" keyrack get \
-    --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
+    --key EHMPATHY_SEATURTLE_GITHUB_TOKEN \
     --env prep \
     --allow-dangerous \
     --json 2>&1) || keyrack_exit=$?
@@ -45,7 +45,7 @@ fetch_github_token() {
     local fallback_exit=0
     local fallback_output
     fallback_output=$("$repo_root/node_modules/.bin/rhachet" keyrack get \
-      --key EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN \
+      --key EHMPATHY_SEATURTLE_GITHUB_TOKEN \
       --owner ehmpath \
       --env prep \
       --allow-dangerous \

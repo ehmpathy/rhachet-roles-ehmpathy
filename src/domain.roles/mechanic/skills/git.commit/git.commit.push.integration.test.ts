@@ -11,7 +11,7 @@ describe('git.commit.push.sh', () => {
   const pushScriptPath = path.join(__dirname, 'git.commit.push.sh');
   const setScriptPath = path.join(__dirname, 'git.commit.set.sh');
 
-  // note: happy path tests pass EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN via env
+  // note: happy path tests pass EHMPATHY_SEATURTLE_GITHUB_TOKEN via env
   // keyrack returns env var value if already set, so no real keyrack fetch needed
   // sad path tests use fake HOME to force keyrack errors
 
@@ -48,7 +48,7 @@ describe('git.commit.push.sh', () => {
         path.join(agentDir, 'keyrack.yml'),
         `org: ehmpathy
 env.all:
-  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+  - EHMPATHY_SEATURTLE_GITHUB_TOKEN
 env.prod:
   # required for valid schema
 `,
@@ -104,7 +104,7 @@ env.prod:
   /**
    * .what = run git.commit.push in the given temp dir
    * .why = consistent invocation across test cases
-   * .note = always excludes EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN from process.env
+   * .note = always excludes EHMPATHY_SEATURTLE_GITHUB_TOKEN from process.env
    *         for deterministic tests; pass explicit token via env if needed
    * .note = always isolates HOME to prevent global blocker from affecting tests
    */
@@ -115,7 +115,7 @@ env.prod:
     tempHome?: string;
   }): { stdout: string; stderr: string; exitCode: number } => {
     // always exclude token from process.env for deterministic tests
-    const { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: _token, ...envWithoutToken } =
+    const { EHMPATHY_SEATURTLE_GITHUB_TOKEN: _token, ...envWithoutToken } =
       process.env;
 
     // always use isolated HOME to prevent global blocker from affecting tests
@@ -167,7 +167,7 @@ exit 1`,
           tempDir,
           pushArgs: ['--mode', 'plan'],
           env: {
-            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
             PATH: `${fakeBinDir}:${process.env.PATH}`,
           },
         });
@@ -196,7 +196,7 @@ exit 1`,
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'apply'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+          env: { EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token' },
         });
 
         expect(result.exitCode).toBe(2); // blocked by constraints
@@ -238,7 +238,7 @@ exit 1`,
           tempDir,
           pushArgs: ['--mode', 'plan'],
           env: {
-            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
             PATH: `${fakeBinDir}:${process.env.PATH}`,
           },
         });
@@ -261,7 +261,7 @@ exit 1`,
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'plan'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+          env: { EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token' },
         });
 
         expect(result.exitCode).toBe(2); // blocked by constraints
@@ -285,7 +285,7 @@ exit 1`,
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'plan'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+          env: { EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token' },
         });
 
         expect(result.exitCode).toBe(2); // blocked by constraints
@@ -306,7 +306,7 @@ exit 1`,
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'plan'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+          env: { EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token' },
         });
 
         expect(result.exitCode).toBe(2); // blocked by constraints
@@ -344,7 +344,7 @@ exit 1`,
           tempDir,
           pushArgs: ['--mode', 'plan', '--output', 'json'],
           env: {
-            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
             PATH: `${fakeBinDir}:${process.env.PATH}`,
           },
         });
@@ -371,7 +371,7 @@ exit 1`,
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'plan', '--output', 'json'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+          env: { EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token' },
         });
 
         expect(result.exitCode).toBe(2); // blocked by constraints
@@ -443,7 +443,7 @@ exit 1`,
           tempDir,
           pushArgs: ['--mode', 'plan'],
           env: {
-            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
             PATH: `${fakeBinDir}:${process.env.PATH}`,
           },
         });
@@ -468,7 +468,7 @@ exit 1`,
         runPush({
           tempDir,
           pushArgs: ['--mode', 'plan'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+          env: { EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token' },
         });
 
         const stateFile = path.join(tempDir, '.meter', 'git.commit.uses.jsonc');
@@ -513,7 +513,7 @@ exit 1`,
               'feat: fallback title',
             ],
             env: {
-              EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+              EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
               PATH: `${fakeBinDir}:${process.env.PATH}`,
             },
           });
@@ -591,7 +591,7 @@ exit 1`,
         const result = runPush({
           tempDir,
           pushArgs: ['--mode', 'apply'],
-          env: { EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token' },
+          env: { EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token' },
         });
 
         // should NOT contain the author guard error
@@ -629,7 +629,7 @@ exit 1`,
           tempDir,
           pushArgs: ['--mode', 'plan'],
           env: {
-            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
             PATH: `${fakeBinDir}:${process.env.PATH}`,
           },
         });
@@ -676,7 +676,7 @@ exit 1`,
           env: {
             HOME: fakeHome,
             // clear token so keyrack actually tries to fetch
-            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: '',
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: '',
           },
         });
 
@@ -729,7 +729,7 @@ exit 1`,
             cwd: tempDir,
           });
 
-          // create keyrack.yml that does NOT include EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+          // create keyrack.yml that does NOT include EHMPATHY_SEATURTLE_GITHUB_TOKEN
           const agentDir = path.join(tempDir, '.agent');
           fs.mkdirSync(agentDir, { recursive: true });
           fs.writeFileSync(
@@ -782,7 +782,7 @@ env.prod:
             env: {
               HOME: fakeHome,
               // clear token so keyrack actually tries to fetch
-              EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: '',
+              EHMPATHY_SEATURTLE_GITHUB_TOKEN: '',
             },
           });
 
@@ -948,7 +948,7 @@ exec /usr/bin/git "$@"
           tempDir,
           pushArgs: ['--mode', 'apply'],
           env: {
-            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
             PATH: `${fakeBinDir}:${process.env.PATH}`,
           },
         });
@@ -1011,7 +1011,7 @@ exec /usr/bin/git "$@"
               path.join(agentDir, 'keyrack.yml'),
               `org: ehmpathy
 env.all:
-  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+  - EHMPATHY_SEATURTLE_GITHUB_TOKEN
 env.prod:
   # required for valid schema
 `,
@@ -1140,7 +1140,7 @@ exit 1
               tempDir,
               pushArgs: ['--mode', 'plan', '--output', 'json'],
               env: {
-                EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+                EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
                 PATH: `${fakeBinDir}:${process.env.PATH}`,
               },
             });
@@ -1187,7 +1187,7 @@ exit 1
           path.join(agentDir, 'keyrack.yml'),
           `org: ehmpathy
 env.all:
-  - EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN
+  - EHMPATHY_SEATURTLE_GITHUB_TOKEN
 env.prod:
 `,
         );
@@ -1266,7 +1266,7 @@ exit 1
           tempDir,
           pushArgs: ['--mode', 'plan'],
           env: {
-            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
             PATH: `${fakeBinDir}:${process.env.PATH}`,
           },
         });
@@ -1316,7 +1316,7 @@ exit 1
           env: {
             HOME: fakeHome,
             // clear token so keyrack actually tries to fetch
-            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: '',
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: '',
           },
         });
 
@@ -1362,7 +1362,7 @@ exit 1
           pushArgs: ['--mode', 'plan'],
           env: {
             HOME: fakeHome,
-            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
           },
         });
 
@@ -1406,7 +1406,7 @@ exit 1`,
           pushArgs: ['--mode', 'plan'],
           env: {
             HOME: fakeHome,
-            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
             PATH: `${fakeBinDir}:${process.env.PATH}`,
           },
         });
@@ -1446,7 +1446,7 @@ exit 1`,
           pushArgs: ['--mode', 'plan'],
           env: {
             HOME: fakeHome,
-            EHMPATHY_SEATURTLE_PROD_GITHUB_TOKEN: 'fake-token',
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
           },
         });
 

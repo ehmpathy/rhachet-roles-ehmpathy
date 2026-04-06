@@ -314,9 +314,9 @@ This is a helpful library.
         expect(res.result.code).toBe(2);
       });
 
-      then('stderr instructs agent to ask human for XAI_API_KEY', () => {
+      then('stderr instructs agent how to unlock XAI_API_KEY', () => {
         expect(res.result.stderr).toContain('XAI_API_KEY');
-        expect(res.result.stderr).toContain('ask the human');
+        expect(res.result.stderr).toContain('keyrack unlock');
       });
     });
   });
