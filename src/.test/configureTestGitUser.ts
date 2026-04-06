@@ -17,10 +17,10 @@ export const configureTestGitUser = (input: {
 }): void => {
   const { cwd, name = 'Test Human', email = 'human@test.com' } = input;
 
-  // guard: cwd must be within a .temp directory
-  if (!cwd.includes('.temp')) {
+  // guard: cwd must be within a temp directory (.temp or /tmp/)
+  if (!cwd.includes('.temp') && !cwd.startsWith('/tmp/')) {
     throw new Error(
-      `configureTestGitUser: cwd must be within a .temp directory to prevent pollution. got: ${cwd}`,
+      `configureTestGitUser: cwd must be within a temp directory (.temp or /tmp/) to prevent pollution. got: ${cwd}`,
     );
   }
 
@@ -36,7 +36,9 @@ export const configureTestGitUser = (input: {
     cwd: process.cwd(),
     encoding: 'utf-8',
   }).stdout.trim();
-  if (cwd === repoRoot || cwd.startsWith(repoRoot + '/') && !cwd.includes('.temp')) {
+  const isInMainRepo = cwd === repoRoot || cwd.startsWith(repoRoot + '/');
+  const isInTempDir = cwd.includes('.temp') || cwd.startsWith('/tmp/');
+  if (isInMainRepo && !isInTempDir) {
     throw new Error(
       `configureTestGitUser: cwd must not be within the main repo. got: ${cwd}`,
     );
