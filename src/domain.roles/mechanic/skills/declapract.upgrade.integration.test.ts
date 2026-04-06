@@ -4,6 +4,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 const SKILL_PATH = path.join(__dirname, 'declapract.upgrade.sh');
 
 /**
@@ -16,8 +18,7 @@ const createTempRepo = (options: { hasDeclapractConfig: boolean }): string => {
 
   // init git repo with initial commit (HEAD must exist)
   spawnSync('git', ['init'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.name', 'Test'], { cwd: tempDir });
+  configureTestGitUser({ cwd: tempDir });
   fs.writeFileSync(path.join(tempDir, '.gitkeep'), '');
   spawnSync('git', ['add', '.gitkeep'], { cwd: tempDir });
   spawnSync('git', ['commit', '-m', 'init'], { cwd: tempDir });

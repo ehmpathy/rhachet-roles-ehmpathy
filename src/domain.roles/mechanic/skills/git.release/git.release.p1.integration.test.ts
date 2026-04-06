@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 import {
   writeGitCommitUsesPermission,
   writeRhachetMock,
@@ -404,12 +406,7 @@ exit 1
         fs.chmodSync(path.join(nodeModulesBinDir3, 'rhachet'), '755');
 
         spawnSync('git', ['init'], { cwd: tempDir });
-        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.name', 'Test User'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
         spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
           cwd: tempDir,
         });
@@ -714,12 +711,7 @@ exit 1
         fs.chmodSync(path.join(fakeBinDir, 'rhachet'), '755');
 
         // init git repo
-        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.name', 'Test User'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
         spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
           cwd: tempDir,
         });
@@ -859,12 +851,7 @@ exit 1
         fs.chmodSync(path.join(fakeBinDir, 'rhachet'), '755');
 
         // init git repo
-        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.name', 'Test User'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
         spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
           cwd: tempDir,
         });
@@ -1025,12 +1012,7 @@ exit 1
           });
 
           // initialize git repo with commit (genTempDir only runs git init)
-          spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-            cwd: tempDir,
-          });
-          spawnSync('git', ['config', 'user.name', 'Test User'], {
-            cwd: tempDir,
-          });
+          configureTestGitUser({ cwd: tempDir });
           spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
             cwd: tempDir,
           });
@@ -1202,12 +1184,7 @@ exit 1
         });
 
         // initialize git repo with commit (genTempDir only runs git init)
-        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.name', 'Test User'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
         spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
           cwd: tempDir,
         });
@@ -2750,12 +2727,7 @@ exit 1
 
         // init git repo
         spawnSync('git', ['init'], { cwd: tempDir });
-        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.name', 'Test User'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
         spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
           cwd: tempDir,
         });
@@ -2891,12 +2863,7 @@ exit 1
 
         // init git repo
         spawnSync('git', ['init'], { cwd: tempDir });
-        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.name', 'Test User'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
         spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
           cwd: tempDir,
         });
@@ -3025,12 +2992,7 @@ exit 1
         fs.chmodSync(path.join(nodeModulesBinDir2a, 'rhachet'), '755');
 
         spawnSync('git', ['init'], { cwd: tempDir });
-        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.name', 'Test User'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
         spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
           cwd: tempDir,
         });
@@ -3378,12 +3340,7 @@ exit 1
         fs.chmodSync(path.join(nodeModulesBinDir, 'rhachet'), '755');
 
         spawnSync('git', ['init'], { cwd: tempDir });
-        spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.name', 'Test User'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
         spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
           cwd: tempDir,
         });

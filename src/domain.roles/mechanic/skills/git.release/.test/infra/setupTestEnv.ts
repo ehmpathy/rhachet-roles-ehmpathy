@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 /**
  * .what = test environment setup utilities for git.release tests
  * .why = provides reusable test infrastructure across operation and journey tests
@@ -55,8 +57,7 @@ export const genTempGitRepo = (input: {
   const tempDir = genTempDir({ slug, git: true });
 
   // configure git repo
-  spawnSync('git', ['config', 'user.email', 'test@example.com'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: tempDir });
+  configureTestGitUser({ cwd: tempDir, name: 'Test User', email: 'test@example.com' });
   spawnSync('git', ['remote', 'add', 'origin', remoteUrl], { cwd: tempDir });
 
   // create initial commit (genTempDir with git:true creates 'began' commit, but we need our own)

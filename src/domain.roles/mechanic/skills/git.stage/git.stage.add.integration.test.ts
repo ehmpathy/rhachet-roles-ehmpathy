@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 /**
  * .what = integration tests for git.stage.add.sh
  * .why = verify stage permission gate and file stage works correctly
@@ -18,10 +20,7 @@ describe('git.stage.add.sh', () => {
     const tempDir = genTempDir({ slug: 'git-stage-add-test', git: true });
 
     // configure git user
-    spawnSync('git', ['config', 'user.name', 'Test Human'], { cwd: tempDir });
-    spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-      cwd: tempDir,
-    });
+    configureTestGitUser({ cwd: tempDir });
 
     // create .meter state
     if (args.meterState) {
@@ -84,10 +83,7 @@ describe('git.stage.add.sh', () => {
     );
 
     // configure git user
-    spawnSync('git', ['config', 'user.name', 'Test Human'], { cwd: tempDir });
-    spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-      cwd: tempDir,
-    });
+    configureTestGitUser({ cwd: tempDir });
 
     // create local .meter state
     if (args.meterState) {
@@ -309,12 +305,7 @@ describe('git.stage.add.sh', () => {
     when('[t0] file is already staged', () => {
       then('operation succeeds (no-op)', () => {
         const tempDir = genTempDir({ slug: 'git-stage-add-test', git: true });
-        spawnSync('git', ['config', 'user.name', 'Test Human'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-          cwd: tempDir,
-        });
+        configureTestGitUser({ cwd: tempDir });
 
         // create meter
         const meterDir = path.join(tempDir, '.meter');

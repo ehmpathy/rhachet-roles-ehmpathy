@@ -4,6 +4,8 @@ import * as os from 'os';
 import * as path from 'path';
 import { given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 /**
  * .what = integration tests for git.branch.rebase.take skill
  * .why = verify take settles conflicts with correct output per criteria
@@ -37,8 +39,7 @@ const setupRebaseWithConflict = (options: {
 
   // init git repo
   spawnSync('git', ['init'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: tempDir });
+  configureTestGitUser({ cwd: tempDir });
 
   // create initial commit on main
   fs.writeFileSync(path.join(tempDir, 'README.md'), '# Test Repo\n');
@@ -130,8 +131,7 @@ const setupSimulatedRebase = (): string => {
 
   // init git repo
   spawnSync('git', ['init'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: tempDir });
+  configureTestGitUser({ cwd: tempDir });
 
   // create initial commit
   fs.writeFileSync(path.join(tempDir, 'README.md'), '# Test Repo\n');
@@ -163,8 +163,7 @@ const setupNoRebase = (): string => {
 
   // init git repo
   spawnSync('git', ['init'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: tempDir });
+  configureTestGitUser({ cwd: tempDir });
 
   // create initial commit
   fs.writeFileSync(path.join(tempDir, 'README.md'), '# Test Repo\n');

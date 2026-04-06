@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 import { genGitMockExecutable } from './.test/infra/mockGit';
 
 /**
@@ -619,8 +621,7 @@ exit 1
   });
 
   // setup git repo
-  spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tempDir });
-  spawnSync('git', ['config', 'user.name', 'Test User'], { cwd: tempDir });
+  configureTestGitUser({ cwd: tempDir });
   spawnSync(
     'git',
     ['remote', 'add', 'origin', 'https://github.com/test/repo'],
@@ -2701,12 +2702,7 @@ esac
           fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
 
           // init git repo
-          spawnSync('git', ['config', 'user.email', 'test@test.com'], {
-            cwd: tempDir,
-          });
-          spawnSync('git', ['config', 'user.name', 'Test User'], {
-            cwd: tempDir,
-          });
+          configureTestGitUser({ cwd: tempDir });
           spawnSync('git', ['commit', '--allow-empty', '-m', 'initial'], {
             cwd: tempDir,
           });

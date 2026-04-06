@@ -4,7 +4,42 @@ import { join } from 'path';
 import util from 'util';
 
 // eslint-disable-next-line no-undef
-jest.setTimeout(90000); // since we're calling downstream apis
+jest.setTimeout(90000); // since we call downstream apis
+
+/**
+ * .what = isolate git config to prevent tests from polluted global or repo config
+ * .why = tests that set git user.name/email should never leak outside their temp directories
+ */
+process.env.GIT_CONFIG_GLOBAL = '/dev/null';
+process.env.GIT_CONFIG_SYSTEM = '/dev/null';
+
+/**
+ * .what = fail fast if repo git config has placeholder test user identity
+ * .why = prevents commits from being attributed to 'Test User' instead of actual human
+ */
+try {
+  const gitUserName = execSync('git config --local user.name 2>/dev/null', {
+    encoding: 'utf-8',
+  }).trim();
+  if (gitUserName.toLowerCase().includes('test user')) {
+    throw new Error(`
+✋ git config user.name contains 'Test User' placeholder
+
+   found: ${gitUserName}
+
+   this pollutes commit coauthorship. fix with:
+     git config --local --unset user.name
+     git config --local --unset user.email
+
+   or set your real identity:
+     git config --local user.name "Your Name"
+     git config --local user.email "your@email.com"
+`);
+  }
+} catch (error) {
+  // if git config --local user.name fails (no local config), that's fine
+  if (error instanceof Error && error.message.includes('Test User')) throw error;
+}
 
 // set console.log to not truncate nested objects
 util.inspect.defaultOptions.depth = 5;

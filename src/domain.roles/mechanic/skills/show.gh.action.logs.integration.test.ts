@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+
 /**
  * .what = integration tests for show.gh.action.logs.sh
  * .why = verify log fetch handles github api delays and error responses
@@ -21,12 +23,7 @@ describe('show.gh.action.logs.sh', () => {
     });
 
     // configure git user
-    spawnSync('git', ['config', 'user.name', 'Test Human'], {
-      cwd: tempDir,
-    });
-    spawnSync('git', ['config', 'user.email', 'human@test.com'], {
-      cwd: tempDir,
-    });
+    configureTestGitUser({ cwd: tempDir });
 
     // create branch if specified
     if (args.branch) {
