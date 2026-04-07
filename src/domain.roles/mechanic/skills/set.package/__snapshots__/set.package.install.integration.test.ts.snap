@@ -1,5 +1,18 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: --for dev error matches snapshot: for-dev-error 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: test-fns
+   ├─ version: X.Y.Z
+   ├─ for: dev
+   └─ error: --for dev is not valid. use --for prep instead.
+
+prep = prepare, pre-production. describes what happens there, not who uses it.
+"
+`;
+
 exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: absent --at error matches snapshot: absent-at 1`] = `
 "🐢 bummer dude...
 
@@ -66,7 +79,7 @@ exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all
    ├─ version: X.Y.Z
    ├─ for: prod
    └─ security
-      └─ audit: FAILED (8 vulnerabilities)
+      └─ audit: FAILED (10 vulnerabilities)
          ├─ moderate: Prototype Pollution in lodash
          ├─ high: Command Injection in lodash
          ├─ high: Prototype Pollution in lodash
@@ -74,7 +87,9 @@ exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all
          ├─ high: Prototype Pollution in lodash
          ├─ moderate: Regular Expression Denial of Service (ReDoS) in lodash
          ├─ moderate: Regular Expression Denial of Service (ReDoS) in lodash
-         └─ moderate: Lodash has Prototype Pollution Vulnerability in \`_.unset\` and \`_.omit\` functions
+         ├─ moderate: Lodash has Prototype Pollution Vulnerability in \`_.unset\` and \`_.omit\` functions
+         ├─ high: lodash vulnerable to Code Injection via \`_.template\` imports key names
+         └─ moderate: lodash vulnerable to Prototype Pollution via array path bypass in \`_.unset\` and \`_.omit\`
 
 install blocked. choose a safer package or version.
 "
