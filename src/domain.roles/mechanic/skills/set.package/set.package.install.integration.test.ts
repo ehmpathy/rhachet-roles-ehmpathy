@@ -473,6 +473,48 @@ PATH="\${PATH#*:}" exec npm "$@"
     });
   });
 
+  given('[case8b] --for dev (common mistake)', () => {
+    when('[t0] install is called with --for dev', () => {
+      const { tempDir, fakeBinDir, cleanup } = createTempDir();
+      afterAll(() => cleanup());
+
+      then('exit code is 2', () => {
+        const result = runSkill(
+          [
+            '--package',
+            'test-fns',
+            '--at',
+            '1.0.0',
+            '--for',
+            'dev',
+            '--reason',
+            'test',
+          ],
+          { cwd: tempDir, fakeBinDir },
+        );
+        expect(result.exitCode).toBe(2);
+      });
+
+      then('error suggests --for prep', () => {
+        const result = runSkill(
+          [
+            '--package',
+            'test-fns',
+            '--at',
+            '1.0.0',
+            '--for',
+            'dev',
+            '--reason',
+            'test',
+          ],
+          { cwd: tempDir, fakeBinDir },
+        );
+        expect(result.stderr).toContain('--for prep');
+        expect(result.stderr).toContain('prep = prepare');
+      });
+    });
+  });
+
   given('[case9] @latest version', () => {
     when('[t0] install is called with @latest', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir();
@@ -787,6 +829,23 @@ PATH="\${PATH#*:}" exec npm "$@"
           { cwd: tempDir, fakeBinDir },
         );
         expect(asStableOutput(result.stderr)).toMatchSnapshot('invalid-for');
+      });
+
+      then('--for dev error matches snapshot', () => {
+        const result = runSkill(
+          [
+            '--package',
+            'test-fns',
+            '--at',
+            '1.0.0',
+            '--for',
+            'dev',
+            '--reason',
+            'test',
+          ],
+          { cwd: tempDir, fakeBinDir },
+        );
+        expect(asStableOutput(result.stderr)).toMatchSnapshot('for-dev-error');
       });
     });
   });

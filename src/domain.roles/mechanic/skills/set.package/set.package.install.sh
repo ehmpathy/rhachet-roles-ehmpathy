@@ -98,6 +98,19 @@ validate_flags() {
     exit 2
   fi
 
+  # failfast on --for dev with helpful hint
+  if [[ "$DEP_TYPE" == "dev" ]]; then
+    OUTPUT_STREAM="stderr"
+    print_turtle_header "bummer dude..."
+    print_tree_start "set.package.install"
+    print_tree_leaf "package" "$PACKAGE"
+    print_tree_leaf "version" "$VERSION"
+    print_tree_leaf "for" "$DEP_TYPE"
+    print_error "--for dev is not valid. use --for prep instead."
+    print_footer "prep = prepare, pre-production. describes what happens there, not who uses it."
+    exit 2
+  fi
+
   if [[ "$DEP_TYPE" != "prod" && "$DEP_TYPE" != "prep" ]]; then
     OUTPUT_STREAM="stderr"
     print_turtle_header "bummer dude..."
