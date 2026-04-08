@@ -106,8 +106,8 @@ export const ROLE_MECHANIC: Role = Role.build({
       ],
       onStop: [
         {
-          command: 'pnpm run --if-present fix',
-          timeout: 'PT30S',
+          command: './node_modules/.bin/rhx git.repo.test --what lint',
+          timeout: 'PT60S',
         },
       ],
     },

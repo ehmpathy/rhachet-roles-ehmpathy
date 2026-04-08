@@ -220,6 +220,10 @@
       "Bash(npx rhachet run --skill git.release:*)",
       "Bash(rhx git.release:*)",
 
+      // git.repo.test - run lint check
+      "Bash(npx rhachet run --skill git.repo.test:*)",
+      "Bash(rhx git.repo.test:*)",
+
       // sedreplace - safe bulk find-and-replace on git-tracked files only
       // note: glob patterns MUST be single-quoted to prevent shell expansion
       // note: unbound globs (e.g., **/*.ts) are blocked - use bounded globs (e.g., src/**/*.ts)

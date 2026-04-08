@@ -63,6 +63,7 @@ always:
 
       # git repo
       - skills/git.repo.get/git.repo.get.sh
+      - skills/git.repo.test/git.repo.test.sh
 
       # git stage
       - skills/git.stage/git.stage.add.sh

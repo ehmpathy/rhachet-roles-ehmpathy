@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.repo.test.sh given: [case1] lint passes when: [t0] \`rhx git.repo.test --what lint\` is run then: output matches snapshot 1`] = `
+"🐢 cowabunga!
+
+🐚 git.repo.test --what lint
+   └─ status: passed
+"
+`;
+
+exports[`git.repo.test.sh given: [case2] lint fails when: [t0] \`rhx git.repo.test --what lint\` is run then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint
+   ├─ status: failed
+   ├─ defects: 3
+   ├─ log: .log/role=mechanic/skill=git.repo.test/ISOTIME.stdout.log
+   └─ tip: try \`npm run fix\` then rerun, or Read the log path above for details
+"
+`;
+
+exports[`git.repo.test.sh given: [case3] npm error (malfunction) when: [t0] \`rhx git.repo.test --what lint\` is run then: output matches snapshot 1`] = `
+"npm ERR! command not found
+"
+`;
+
+exports[`git.repo.test.sh given: [case4] no package.json when: [t0] \`rhx git.repo.test --what lint\` is run then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint
+   └─ error: no package.json found
+
+this skill requires a node.js project with package.json
+"
+`;
+
+exports[`git.repo.test.sh given: [case7] argument validation when: [t0] --what is omitted then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test
+   └─ error: --what is required
+
+usage: git.repo.test.sh --what lint
+"
+`;
+
+exports[`git.repo.test.sh given: [case7] argument validation when: [t1] --what has unsupported value then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what types
+   └─ error: only 'lint' is supported (got 'types')
+"
+`;
+
+exports[`git.repo.test.sh given: [case8] not in git repo when: [t0] run outside any git repo then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint
+   └─ error: not in a git repository
+"
+`;
+
+exports[`git.repo.test.sh given: [case9] warnings only (no errors) when: [t0] lint outputs only warnings, no errors then: output matches snapshot 1`] = `
+"🐢 cowabunga!
+
+🐚 git.repo.test --what lint
+   └─ status: passed
+"
+`;
