@@ -1,10 +1,15 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`git.repo.test.sh given: [case1] lint passes when: [t0] \`rhx git.repo.test --what lint\` is run then: output matches snapshot 1`] = `
-"🐢 cowabunga!
+"🐢 lets ride...
 
 🐚 git.repo.test --what lint
-   └─ status: passed
+   ├─ status
+   │  ├─ 💤 inflight (0s)
+   │  └─ 🎉 passed (0s)
+   └─ log
+      ├─ (omitted on success by default)
+      └─ hint: use \`--log always\` to persist when desired
 "
 `;
 
@@ -12,15 +17,24 @@ exports[`git.repo.test.sh given: [case2] lint fails when: [t0] \`rhx git.repo.te
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
-   ├─ status: failed
+   │  └─ ✋ failed (0s)
    ├─ defects: 3
-   ├─ log: .log/role=mechanic/skill=git.repo.test/ISOTIME.stdout.log
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
    └─ tip: try \`npm run fix\` then rerun, or Read the log path above for details
 "
 `;
 
 exports[`git.repo.test.sh given: [case3] npm error (malfunction) when: [t0] \`rhx git.repo.test --what lint\` is run then: output matches snapshot 1`] = `
-"npm ERR! command not found
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint
+   │  └─ 💥 malfunction (0s)
+   └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+
+npm command failed. check the log for details.
+npm ERR! command not found
 "
 `;
 
@@ -40,7 +54,7 @@ exports[`git.repo.test.sh given: [case7] argument validation when: [t0] --what i
 🐚 git.repo.test
    └─ error: --what is required
 
-usage: git.repo.test.sh --what lint
+usage: git.repo.test.sh --what <lint|unit|integration|acceptance|all>
 "
 `;
 
@@ -48,7 +62,9 @@ exports[`git.repo.test.sh given: [case7] argument validation when: [t1] --what h
 "🐢 bummer dude...
 
 🐚 git.repo.test --what types
-   └─ error: only 'lint' is supported (got 'types')
+   └─ error: invalid --what value 'types'
+
+valid values: lint | unit | integration | acceptance | all
 "
 `;
 
@@ -60,10 +76,14 @@ exports[`git.repo.test.sh given: [case8] not in git repo when: [t0] run outside 
 "
 `;
 
-exports[`git.repo.test.sh given: [case9] warnings only (no errors) when: [t0] lint outputs only warnings, no errors then: output matches snapshot 1`] = `
-"🐢 cowabunga!
+exports[`git.repo.test.sh given: [case9] lint exits with non-zero (warnings or errors) when: [t0] lint exits with code 1 then: output matches snapshot 1`] = `
+"🐢 bummer dude...
 
 🐚 git.repo.test --what lint
-   └─ status: passed
+   │  └─ ✋ failed (0s)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+   └─ tip: try \`npm run fix\` then rerun, or Read the log path above for details
 "
 `;

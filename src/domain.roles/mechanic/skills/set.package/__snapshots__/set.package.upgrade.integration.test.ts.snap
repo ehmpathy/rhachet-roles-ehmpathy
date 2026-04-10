@@ -39,7 +39,7 @@ exports[`set.package.upgrade.sh given: [snapshots] output formats when: [t1] sec
    ├─ from: X.Y.Z
    ├─ to: X.Y.Z
    └─ security
-      └─ audit: FAILED (8 vulnerabilities)
+      └─ audit: FAILED (10 vulnerabilities)
          ├─ moderate: Prototype Pollution in lodash
          ├─ high: Command Injection in lodash
          ├─ high: Prototype Pollution in lodash
@@ -47,7 +47,9 @@ exports[`set.package.upgrade.sh given: [snapshots] output formats when: [t1] sec
          ├─ high: Prototype Pollution in lodash
          ├─ moderate: Regular Expression Denial of Service (ReDoS) in lodash
          ├─ moderate: Regular Expression Denial of Service (ReDoS) in lodash
-         └─ moderate: Lodash has Prototype Pollution Vulnerability in \`_.unset\` and \`_.omit\` functions
+         ├─ moderate: Lodash has Prototype Pollution Vulnerability in \`_.unset\` and \`_.omit\` functions
+         ├─ high: lodash vulnerable to Code Injection via \`_.template\` imports key names
+         └─ moderate: lodash vulnerable to Prototype Pollution via array path bypass in \`_.unset\` and \`_.omit\`
 
 upgrade blocked. choose a safer version.
 "

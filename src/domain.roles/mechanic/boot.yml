@@ -198,6 +198,7 @@ subject.code.test:
       - briefs/practices/code.test/frames.behavior/howto.write-bdd.[lesson].pt2.md
       - briefs/practices/code.test/lessons.howto/howto.diagnose.[lesson].md
       - briefs/practices/code.test/lessons.howto/howto.run.[lesson].md
+      - briefs/practices/code.test/lessons.howto/howto.run-tests.[lesson].md
       - briefs/practices/code.test/lessons.howto/howto.use.[lesson].md
 
 subject.arch:

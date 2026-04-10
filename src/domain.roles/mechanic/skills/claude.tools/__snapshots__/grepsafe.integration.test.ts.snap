@@ -37,15 +37,15 @@ exports[`grepsafe.sh given: [case13] output format snapshots when: [t2] regex wi
    └─ results
       ├─
       │
-      │  src/b.ts:1:const bar = 2;
       │  src/a.ts:1:const foo = 1;
+      │  src/b.ts:1:const bar = 2;
       │
       └─
 "
 `;
 
 exports[`grepsafe.sh given: [case14] --output direct mode when: [t2] direct output snapshot then: output matches snapshot 1`] = `
-"src/b.ts:1:const bar = 2;
-src/a.ts:1:const foo = 1;
+"src/a.ts:1:const foo = 1;
+src/b.ts:1:const bar = 2;
 "
 `;

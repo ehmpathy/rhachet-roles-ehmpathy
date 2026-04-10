@@ -121,7 +121,7 @@ exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 co
       ├─
       │
       │  [detached HEAD HASH123] fix(config): feature config
-      │   Author: Test User <test@test.com>
+      │   Author: Test Human <human@test.com>
       │   1 file changed, 1 insertion(+), 1 deletion(-)
       │  Rebasing (2/3)
       │  Auto-merging settings.yml
@@ -150,7 +150,7 @@ exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 co
       ├─
       │
       │  [detached HEAD HASH123] fix(settings): feature settings
-      │   Author: Test User <test@test.com>
+      │   Author: Test Human <human@test.com>
       │   1 file changed, 2 insertions(+), 1 deletion(-)
       │  Rebasing (3/3)
       │  Successfully rebased and updated refs/heads/feature/conflict-heavy.

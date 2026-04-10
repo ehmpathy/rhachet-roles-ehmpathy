@@ -125,7 +125,7 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
    │     │     └─ error: install failed
    │     │  
    │     │  install output:
-   │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/git-rebase-take-test-mEdMn8[39m
+   │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/git-rebase-take-test-PN2FKK[39m
    │     │
    │     └─
    └─ incomplete
@@ -160,12 +160,12 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
    │     │  npm warn ancient lockfile
    │     │  npm error code ENOENT
    │     │  npm error syscall open
-   │     │  npm error path /tmp/git-rebase-take-test-RS3giM/package.json
+   │     │  npm error path /tmp/git-rebase-take-test-qsE8ei/package.json
    │     │  npm error errno -2
-   │     │  npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/tmp/git-rebase-take-test-RS3giM/package.json'
+   │     │  npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/tmp/git-rebase-take-test-qsE8ei/package.json'
    │     │  npm error enoent This is related to npm not being able to find a file.
    │     │  npm error enoent
-   │     │  npm error A complete log of this run can be found in: /home/vlad/.npm/_logs/2026-04-05T14_30_33_666Z-debug-0.log
+   │     │  npm error A complete log of this run can be found in: /home/vlad/.npm/_logs/2026-04-10T12_46_09_971Z-debug-0.log
    │     │
    │     └─
    └─ incomplete
@@ -216,7 +216,7 @@ exports[`git.branch.rebase.take given: [case13] take multiple files with lock (n
    │     │     └─ error: install failed
    │     │  
    │     │  install output:
-   │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/git-rebase-take-test-yHNkLm[39m
+   │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/git-rebase-take-test-UJH3Vb[39m
    │     │
    │     └─
    └─ incomplete

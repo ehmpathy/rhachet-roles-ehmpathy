@@ -97,18 +97,23 @@ describe('git.repo.test.sh', () => {
         expect(result.exitCode).toBe(0);
       });
 
-      then('stdout shows turtle success summary', () => {
-        const result = runInTempGitRepo({
-          sourceFiles: {
-            'src/valid.js': 'const x = 1;\nconsole.log(x);\n',
-          },
-          testLintScript: 'echo "lint passed"',
-          gitRepoTestArgs: ['--what', 'lint'],
-        });
+      then(
+        'stdout shows turtle success summary (per rule.require.skill-output-streams)',
+        () => {
+          const result = runInTempGitRepo({
+            sourceFiles: {
+              'src/valid.js': 'const x = 1;\nconsole.log(x);\n',
+            },
+            testLintScript: 'echo "lint passed"',
+            gitRepoTestArgs: ['--what', 'lint'],
+          });
 
-        expect(result.stdout).toContain('cowabunga');
-        expect(result.stdout).toContain('git.repo.test --what lint');
-      });
+          // success: output to stdout only (per rule)
+          // progressive output starts with "lets ride..." header
+          expect(result.stdout).toContain('lets ride');
+          expect(result.stdout).toContain('git.repo.test --what lint');
+        },
+      );
 
       then('stdout shows status: passed', () => {
         const result = runInTempGitRepo({
@@ -119,7 +124,7 @@ describe('git.repo.test.sh', () => {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(result.stdout).toContain('status: passed');
+        expect(result.stdout).toContain('🎉 passed');
       });
 
       then('stdout does NOT show log path (no log on success)', () => {
@@ -145,7 +150,7 @@ describe('git.repo.test.sh', () => {
 
         const logDir = path.join(
           result.tempDir,
-          '.log/role=mechanic/skill=git.repo.test',
+          '.log/role=mechanic/skill=git.repo.test/what=lint',
         );
         if (fs.existsSync(logDir)) {
           const logFiles = fs
@@ -155,17 +160,20 @@ describe('git.repo.test.sh', () => {
         }
       });
 
-      then('stderr is empty', () => {
-        const result = runInTempGitRepo({
-          sourceFiles: {
-            'src/valid.js': 'const x = 1;\nconsole.log(x);\n',
-          },
-          testLintScript: 'echo "lint passed"',
-          gitRepoTestArgs: ['--what', 'lint'],
-        });
+      then(
+        'stderr is empty on success (per rule.require.skill-output-streams)',
+        () => {
+          const result = runInTempGitRepo({
+            sourceFiles: {
+              'src/valid.js': 'const x = 1;\nconsole.log(x);\n',
+            },
+            testLintScript: 'echo "lint passed"',
+            gitRepoTestArgs: ['--what', 'lint'],
+          });
 
-        expect(result.stderr).toBe('');
-      });
+          expect(result.stderr).toBe('');
+        },
+      );
 
       then('output matches snapshot', () => {
         const result = runInTempGitRepo({
@@ -176,6 +184,7 @@ describe('git.repo.test.sh', () => {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
+        // success output goes to stdout
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
@@ -217,7 +226,7 @@ describe('git.repo.test.sh', () => {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(result.stderr).toContain('status: failed');
+        expect(result.stderr).toContain('✋ failed');
       });
 
       then('stderr shows defect count', () => {
@@ -258,7 +267,7 @@ describe('git.repo.test.sh', () => {
         expect(result.stderr).toContain('npm run fix');
       });
 
-      then('stdout is empty', () => {
+      then('stdout has progressive output (header + summary)', () => {
         const result = runInTempGitRepo({
           sourceFiles: {
             'src/broken.js': 'const unused = 1;\n',
@@ -267,7 +276,9 @@ describe('git.repo.test.sh', () => {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(result.stdout).toBe('');
+        // failure: both stdout and stderr have output (per rule)
+        expect(result.stdout).toContain('lets ride');
+        expect(result.stdout).toContain('✋ failed');
       });
 
       then('output matches snapshot', () => {
@@ -336,14 +347,14 @@ describe('git.repo.test.sh', () => {
         expect(result.exitCode).toBe(2);
       });
 
-      then('stdout explains absent package.json', () => {
+      then('stderr explains absent package.json', () => {
         const result = runInTempGitRepo({
           packageJson: null,
           eslintConfig: null,
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(result.stdout).toContain('no package.json');
+        expect(result.stderr).toContain('no package.json');
       });
 
       then('output matches snapshot', () => {
@@ -353,7 +364,7 @@ describe('git.repo.test.sh', () => {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -371,7 +382,7 @@ describe('git.repo.test.sh', () => {
 
         const logDir = path.join(
           result.tempDir,
-          '.log/role=mechanic/skill=git.repo.test',
+          '.log/role=mechanic/skill=git.repo.test/what=lint',
         );
         expect(fs.existsSync(logDir)).toBe(true);
       });
@@ -387,7 +398,7 @@ describe('git.repo.test.sh', () => {
 
         const gitignorePath = path.join(
           result.tempDir,
-          '.log/role=mechanic/skill=git.repo.test/.gitignore',
+          '.log/role=mechanic/skill=git.repo.test/what=lint/.gitignore',
         );
         expect(fs.existsSync(gitignorePath)).toBe(true);
       });
@@ -403,7 +414,7 @@ describe('git.repo.test.sh', () => {
 
         const gitignorePath = path.join(
           result.tempDir,
-          '.log/role=mechanic/skill=git.repo.test/.gitignore',
+          '.log/role=mechanic/skill=git.repo.test/what=lint/.gitignore',
         );
         const content = fs.readFileSync(gitignorePath, 'utf-8');
         expect(content).toContain('*');
@@ -424,7 +435,7 @@ describe('git.repo.test.sh', () => {
 
         const logDir = path.join(
           result.tempDir,
-          '.log/role=mechanic/skill=git.repo.test',
+          '.log/role=mechanic/skill=git.repo.test/what=lint',
         );
         const logFiles = fs
           .readdirSync(logDir)
@@ -450,12 +461,12 @@ describe('git.repo.test.sh', () => {
         expect(result.exitCode).toBe(2);
       });
 
-      then('stdout shows error about --what required', () => {
+      then('stderr shows error about --what required', () => {
         const result = runInTempGitRepo({
           gitRepoTestArgs: [],
         });
 
-        expect(result.stdout).toContain('--what is required');
+        expect(result.stderr).toContain('--what is required');
       });
 
       then('output matches snapshot', () => {
@@ -463,7 +474,7 @@ describe('git.repo.test.sh', () => {
           gitRepoTestArgs: [],
         });
 
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
 
@@ -476,12 +487,15 @@ describe('git.repo.test.sh', () => {
         expect(result.exitCode).toBe(2);
       });
 
-      then('stdout shows error about only lint supported', () => {
+      then('stderr shows error about invalid --what value', () => {
         const result = runInTempGitRepo({
           gitRepoTestArgs: ['--what', 'types'],
         });
 
-        expect(result.stdout).toContain("only 'lint' is supported");
+        expect(result.stderr).toContain("invalid --what value 'types'");
+        expect(result.stderr).toContain(
+          'valid values: lint | unit | integration | acceptance | all',
+        );
       });
 
       then('output matches snapshot', () => {
@@ -489,7 +503,7 @@ describe('git.repo.test.sh', () => {
           gitRepoTestArgs: ['--what', 'types'],
         });
 
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -511,7 +525,7 @@ describe('git.repo.test.sh', () => {
         });
 
         expect(result.status).toBe(2);
-        expect(result.stdout).toContain('not in a git repository');
+        expect(result.stderr).toContain('not in a git repository');
       });
 
       then('output matches snapshot', () => {
@@ -528,14 +542,14 @@ describe('git.repo.test.sh', () => {
           stdio: ['pipe', 'pipe', 'pipe'],
         });
 
-        expect(sanitizeOutput(result.stdout ?? '')).toMatchSnapshot();
+        expect(sanitizeOutput(result.stderr ?? '')).toMatchSnapshot();
       });
     });
   });
 
-  given('[case9] warnings only (no errors)', () => {
-    when('[t0] lint outputs only warnings, no errors', () => {
-      then('exit code is 0 (treat as pass)', () => {
+  given('[case9] lint exits with non-zero (warnings or errors)', () => {
+    when('[t0] lint exits with code 1', () => {
+      then('exit code is 2 (failure)', () => {
         const result = runInTempGitRepo({
           sourceFiles: {
             'src/file.js': 'const x = 1;\n',
@@ -544,10 +558,10 @@ describe('git.repo.test.sh', () => {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(result.exitCode).toBe(0);
+        expect(result.exitCode).toBe(2);
       });
 
-      then('stdout shows success summary', () => {
+      then('stderr shows failure summary', () => {
         const result = runInTempGitRepo({
           sourceFiles: {
             'src/file.js': 'const x = 1;\n',
@@ -556,11 +570,11 @@ describe('git.repo.test.sh', () => {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(result.stdout).toContain('cowabunga');
-        expect(result.stdout).toContain('status: passed');
+        expect(result.stderr).toContain('bummer dude');
+        expect(result.stderr).toContain('✋ failed');
       });
 
-      then('no log file is created', () => {
+      then('log file is created (failure persists logs)', () => {
         const result = runInTempGitRepo({
           sourceFiles: {
             'src/file.js': 'const x = 1;\n',
@@ -571,14 +585,13 @@ describe('git.repo.test.sh', () => {
 
         const logDir = path.join(
           result.tempDir,
-          '.log/role=mechanic/skill=git.repo.test',
+          '.log/role=mechanic/skill=git.repo.test/what=lint',
         );
-        if (fs.existsSync(logDir)) {
-          const logFiles = fs
-            .readdirSync(logDir)
-            .filter((f) => f.endsWith('.stdout.log'));
-          expect(logFiles.length).toBe(0);
-        }
+        expect(fs.existsSync(logDir)).toBe(true);
+        const logFiles = fs
+          .readdirSync(logDir)
+          .filter((f) => f.endsWith('.stdout.log'));
+        expect(logFiles.length).toBeGreaterThan(0);
       });
 
       then('output matches snapshot', () => {
@@ -590,7 +603,7 @@ describe('git.repo.test.sh', () => {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
