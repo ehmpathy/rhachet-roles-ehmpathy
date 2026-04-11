@@ -17,7 +17,7 @@ exports[`git.repo.test.sh given: [case2] lint fails when: [t0] \`rhx git.repo.te
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
-   │  └─ ✋ failed (0s)
+   │  └─ ✋ failed (1s)
    ├─ defects: 3
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
@@ -30,7 +30,7 @@ exports[`git.repo.test.sh given: [case3] npm error (malfunction) when: [t0] \`rh
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
-   │  └─ 💥 malfunction (1s)
+   │  └─ 💥 malfunction (0s)
    └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
 
 npm command failed. check the log for details.
@@ -61,10 +61,11 @@ usage: git.repo.test.sh --what <lint|unit|integration|acceptance|all>
 exports[`git.repo.test.sh given: [case7] argument validation when: [t1] --what has unsupported value then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what types
-   └─ error: invalid --what value 'types'
+🐚 git.repo.test --what foobar
+   └─ error: invalid --what value 'foobar'
 
-valid values: lint | unit | integration | acceptance | all
+valid values: types | format | lint | unit | integration | acceptance | all
+example: --what types,lint,unit
 "
 `;
 
@@ -76,14 +77,97 @@ exports[`git.repo.test.sh given: [case8] not in git repo when: [t0] run outside 
 "
 `;
 
-exports[`git.repo.test.sh given: [case9] lint exits with non-zero (warnings or errors) when: [t0] lint exits with code 1 then: output matches snapshot 1`] = `
+exports[`git.repo.test.sh given: [case9] no test:lint script in package.json when: [t0] \`rhx git.repo.test --what lint\` is run (default) then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
-   │  └─ ✋ failed (0s)
+   ├─ status: constraint
+   └─ error: no 'test:lint' command in package.json
+
+hint: ehmpathy convention uses 'test:lint', 'test:unit', 'test:integration', 'test:acceptance'
+"
+`;
+
+exports[`git.repo.test.sh given: [case10] lint exits with non-zero (warnings or errors) when: [t0] lint exits with code 1 then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what lint
+   │  └─ ✋ failed (1s)
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
    └─ tip: try \`npm run fix\` then rerun, or Read the log path above for details
+"
+`;
+
+exports[`git.repo.test.sh given: [case11] types passes when: [t0] \`rhx git.repo.test --what types\` is run then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what types
+   ├─ status
+   │  ├─ 💤 inflight (0s)
+   │  └─ 🎉 passed (1s)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test.sh given: [case12] types fails when: [t0] \`rhx git.repo.test --what types\` is run then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what types
+   │  └─ ✋ failed (0s)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=types/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=types/ISOTIME.stderr.log
+   └─ tip: Read the log for full test output and failure details
+"
+`;
+
+exports[`git.repo.test.sh given: [case13] format passes when: [t0] \`rhx git.repo.test --what format\` is run then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what format
+   ├─ status
+   │  ├─ 💤 inflight (0s)
+   │  └─ 🎉 passed (1s)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test.sh given: [case14] format fails when: [t0] \`rhx git.repo.test --what format\` is run then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what format
+   │  └─ ✋ failed (1s)
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=format/ISOTIME.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=format/ISOTIME.stderr.log
+   └─ tip: Read the log for full test output and failure details
+"
+`;
+
+exports[`git.repo.test.sh given: [case17] comma-separated --what values when: [t0] \`rhx git.repo.test --what types,format\` is run then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what types
+   ├─ status
+   │  ├─ 💤 inflight (0s)
+   │  └─ 🎉 passed (1s)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what format
+   ├─ status
+   │  ├─ 💤 inflight (0s)
+   │  └─ 🎉 passed (0s)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
 "
 `;

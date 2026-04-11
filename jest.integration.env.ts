@@ -14,6 +14,12 @@ process.env.GIT_CONFIG_GLOBAL = '/dev/null';
 process.env.GIT_CONFIG_SYSTEM = '/dev/null';
 
 /**
+ * .what = suppress git credential prompts
+ * .why = tests that accidentally hit remotes should fail fast, not hang on input
+ */
+process.env.GIT_TERMINAL_PROMPT = '0';
+
+/**
  * .what = fail fast if repo git config has placeholder test user identity
  * .why = prevents commits from being attributed to 'Test User' instead of actual human
  */

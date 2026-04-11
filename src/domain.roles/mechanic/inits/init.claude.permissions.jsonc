@@ -220,9 +220,24 @@
       "Bash(npx rhachet run --skill git.release:*)",
       "Bash(rhx git.release:*)",
 
-      // git.repo.test - run lint check
+      // git.repo.test — run tests with turtle vibes output, auto keyrack, log capture
       "Bash(npx rhachet run --skill git.repo.test:*)",
       "Bash(rhx git.repo.test:*)",
+      // examples: --what types|format|lint|unit|integration|acceptance
+      "Bash(rhx git.repo.test --what types)",
+      "Bash(rhx git.repo.test --what format)",
+      "Bash(rhx git.repo.test --what lint)",
+      "Bash(rhx git.repo.test --what unit)",
+      "Bash(rhx git.repo.test --what integration)",
+      "Bash(rhx git.repo.test --what acceptance)",
+      // examples: with --scope to filter by name or path
+      "Bash(rhx git.repo.test --what unit --scope getUserById)",
+      "Bash(rhx git.repo.test --what integration --scope invoice)",
+      "Bash(rhx git.repo.test --what unit --scope src/domain.operations/customer)",
+      // examples: with --resnap to update snapshots
+      "Bash(rhx git.repo.test --what unit --resnap)",
+      "Bash(rhx git.repo.test --what integration --resnap)",
+      "Bash(rhx git.repo.test --what unit --scope getUserById --resnap)",
 
       // sedreplace - safe bulk find-and-replace on git-tracked files only
       // note: glob patterns MUST be single-quoted to prevent shell expansion
@@ -426,39 +441,7 @@
       "Bash(npm run build:compile)",
       "Bash(npm run start:testdb:*)",
 
-      // test operations
-      "Bash(npm run test:*)",
-      "Bash(npm run test:types:*)",
-      "Bash(npm run test:format:*)",
-      "Bash(npm run test:lint:*)",
-      "Bash(npm run test:unit:*)",
-      "Bash(npm run test:integration:*)",
-      "Bash(npm run test:acceptance:*)",
-      "Bash(npm run test:acceptance:locally:*)",
-      "Bash(npm run test:unit -- path/to/file/example.ts)",
-      "Bash(npm run test:integration -- path/to/file/example.ts)",
-      "Bash(npm run test:acceptance -- path/to/file/example.ts)",
-      "Bash(npm run test:acceptance:locally -- path/to/file/example.ts)",
-
-      // thorough test operations
-      "Bash(THOROUGH=true npm run test:*)",
-      "Bash(THOROUGH=true npm run test:types:*)",
-      "Bash(THOROUGH=true npm run test:format:*)",
-      "Bash(THOROUGH=true npm run test:lint:*)",
-      "Bash(THOROUGH=true npm run test:unit:*)",
-      "Bash(THOROUGH=true npm run test:integration:*)",
-      "Bash(THOROUGH=true npm run test:acceptance:*)",
-      "Bash(THOROUGH=true npm run test:acceptance:locally:*)",
-
-      // resnap test operations
-      "Bash(RESNAP=true npm run test:unit:*)",
-      "Bash(RESNAP=true npm run test:integration:*)",
-      "Bash(RESNAP=true npm run test:acceptance:*)",
-      "Bash(RESNAP=true npm run test:acceptance:locally:*)",
-      "Bash(RESNAP=true THOROUGH=true npm run test:unit:*)",
-      "Bash(RESNAP=true THOROUGH=true npm run test:integration:*)",
-      "Bash(RESNAP=true THOROUGH=true npm run test:acceptance:*)",
-      "Bash(RESNAP=true THOROUGH=true npm run test:acceptance:locally:*)",
+      // test operations — use `rhx git.repo.test --what <types|format|lint|unit|integration|acceptance>`
 
       // test list operation
       "Bash(npx jest --listTests:*)",

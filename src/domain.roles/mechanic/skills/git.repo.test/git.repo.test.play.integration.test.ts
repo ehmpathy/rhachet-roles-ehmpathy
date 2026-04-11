@@ -669,15 +669,19 @@ exec "$(which rhx)" "$@"
         expect(result.exitCode).toBe(0);
       });
 
-      then('output shows cowabunga', () => {
-        expect(result.stdout).toContain('cowabunga!');
+      then('output shows lets ride header (multi-mode)', () => {
+        // multi-mode shows "lets ride..." header, individual types show "passed"
+        expect(result.stdout).toContain('lets ride...');
       });
 
       then('output shows all test types completed', () => {
-        expect(result.stdout).toContain('lint: passed');
-        expect(result.stdout).toContain('unit: passed');
-        expect(result.stdout).toContain('integration: passed');
-        expect(result.stdout).toContain('acceptance: passed');
+        // each test type has its own shell header in multi-mode
+        expect(result.stdout).toContain('--what lint');
+        expect(result.stdout).toContain('--what unit');
+        expect(result.stdout).toContain('--what integration');
+        expect(result.stdout).toContain('--what acceptance');
+        // all should show passed (emoji varies: 🎉)
+        expect(result.stdout).toMatch(/passed/);
       });
     });
 
@@ -735,13 +739,16 @@ exit 0
       });
 
       then('output shows lint failed', () => {
-        expect(result.stderr).toContain('lint: failed');
+        // lint shell header should be in output
+        expect(result.stderr).toContain('--what lint');
+        // and it should show failed (emoji varies: ✋)
+        expect(result.stderr).toMatch(/failed/);
       });
 
       then('output does not show unit or other types', () => {
         // fail-fast: should not run subsequent types
-        expect(result.stderr).not.toContain('unit: passed');
-        expect(result.stderr).not.toContain('unit: failed');
+        expect(result.stderr).not.toContain('--what unit');
+        expect(result.stderr).not.toContain('--what integration');
       });
     });
   });

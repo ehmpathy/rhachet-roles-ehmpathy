@@ -18,6 +18,8 @@ describe('git.repo.test.sh', () => {
     packageJson?: object | null;
     eslintConfig?: object | null;
     sourceFiles?: Record<string, string>;
+    testTypesScript?: string;
+    testFormatScript?: string;
     testLintScript?: string;
     gitRepoTestArgs: string[];
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
@@ -28,6 +30,10 @@ describe('git.repo.test.sh', () => {
       const pkgJson = args.packageJson ?? {
         name: 'test-repo',
         scripts: {
+          ...(args.testTypesScript && { 'test:types': args.testTypesScript }),
+          ...(args.testFormatScript && {
+            'test:format': args.testFormatScript,
+          }),
           'test:lint': args.testLintScript ?? 'eslint src/',
         },
       };
@@ -481,7 +487,7 @@ describe('git.repo.test.sh', () => {
     when('[t1] --what has unsupported value', () => {
       then('exit code is 2', () => {
         const result = runInTempGitRepo({
-          gitRepoTestArgs: ['--what', 'types'],
+          gitRepoTestArgs: ['--what', 'foobar'],
         });
 
         expect(result.exitCode).toBe(2);
@@ -489,18 +495,18 @@ describe('git.repo.test.sh', () => {
 
       then('stderr shows error about invalid --what value', () => {
         const result = runInTempGitRepo({
-          gitRepoTestArgs: ['--what', 'types'],
+          gitRepoTestArgs: ['--what', 'foobar'],
         });
 
-        expect(result.stderr).toContain("invalid --what value 'types'");
+        expect(result.stderr).toContain("invalid --what value 'foobar'");
         expect(result.stderr).toContain(
-          'valid values: lint | unit | integration | acceptance | all',
+          'valid values: types | format | lint | unit | integration | acceptance | all',
         );
       });
 
       then('output matches snapshot', () => {
         const result = runInTempGitRepo({
-          gitRepoTestArgs: ['--what', 'types'],
+          gitRepoTestArgs: ['--what', 'foobar'],
         });
 
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -547,7 +553,70 @@ describe('git.repo.test.sh', () => {
     });
   });
 
-  given('[case9] lint exits with non-zero (warnings or errors)', () => {
+  given('[case9] no test:lint script in package.json', () => {
+    when('[t0] `rhx git.repo.test --what lint` is run (default)', () => {
+      then('exit code is 2 (constraint)', () => {
+        const result = runInTempGitRepo({
+          packageJson: { name: 'test-repo', scripts: {} },
+          gitRepoTestArgs: ['--what', 'lint'],
+        });
+
+        expect(result.exitCode).toBe(2);
+      });
+
+      then('stderr shows error about absent command', () => {
+        const result = runInTempGitRepo({
+          packageJson: { name: 'test-repo', scripts: {} },
+          gitRepoTestArgs: ['--what', 'lint'],
+        });
+
+        expect(result.stderr).toContain("no 'test:lint' command");
+      });
+
+      then('output matches snapshot', () => {
+        const result = runInTempGitRepo({
+          packageJson: { name: 'test-repo', scripts: {} },
+          gitRepoTestArgs: ['--what', 'lint'],
+        });
+
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
+
+    when(
+      '[t1] `rhx git.repo.test --what lint --when hook.onStop` is run',
+      () => {
+        then('exit code is 0 (silent success)', () => {
+          const result = runInTempGitRepo({
+            packageJson: { name: 'test-repo', scripts: {} },
+            gitRepoTestArgs: ['--what', 'lint', '--when', 'hook.onStop'],
+          });
+
+          expect(result.exitCode).toBe(0);
+        });
+
+        then('stdout is empty (silent)', () => {
+          const result = runInTempGitRepo({
+            packageJson: { name: 'test-repo', scripts: {} },
+            gitRepoTestArgs: ['--what', 'lint', '--when', 'hook.onStop'],
+          });
+
+          expect(result.stdout).toBe('');
+        });
+
+        then('stderr is empty (silent)', () => {
+          const result = runInTempGitRepo({
+            packageJson: { name: 'test-repo', scripts: {} },
+            gitRepoTestArgs: ['--what', 'lint', '--when', 'hook.onStop'],
+          });
+
+          expect(result.stderr).toBe('');
+        });
+      },
+    );
+  });
+
+  given('[case10] lint exits with non-zero (warnings or errors)', () => {
     when('[t0] lint exits with code 1', () => {
       then('exit code is 2 (failure)', () => {
         const result = runInTempGitRepo({
@@ -604,6 +673,322 @@ describe('git.repo.test.sh', () => {
         });
 
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case11] types passes', () => {
+    when('[t0] `rhx git.repo.test --what types` is run', () => {
+      then('exit code is 0', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "types ok"',
+          gitRepoTestArgs: ['--what', 'types'],
+        });
+
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('stdout shows success summary', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "types ok"',
+          gitRepoTestArgs: ['--what', 'types'],
+        });
+
+        expect(result.stdout).toContain('lets ride');
+        expect(result.stdout).toContain('🎉 passed');
+      });
+
+      then('output matches snapshot', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "types ok"',
+          gitRepoTestArgs: ['--what', 'types'],
+        });
+
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case12] types fails', () => {
+    when('[t0] `rhx git.repo.test --what types` is run', () => {
+      then('exit code is 2', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "TS2322: Type error" && exit 1',
+          gitRepoTestArgs: ['--what', 'types'],
+        });
+
+        expect(result.exitCode).toBe(2);
+      });
+
+      then('stderr shows failure summary', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "TS2322: Type error" && exit 1',
+          gitRepoTestArgs: ['--what', 'types'],
+        });
+
+        expect(result.stderr).toContain('bummer dude');
+        expect(result.stderr).toContain('failed');
+      });
+
+      then('output matches snapshot', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "TS2322: Type error" && exit 1',
+          gitRepoTestArgs: ['--what', 'types'],
+        });
+
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case13] format passes', () => {
+    when('[t0] `rhx git.repo.test --what format` is run', () => {
+      then('exit code is 0', () => {
+        const result = runInTempGitRepo({
+          testFormatScript: 'echo "format ok"',
+          gitRepoTestArgs: ['--what', 'format'],
+        });
+
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('stdout shows success summary', () => {
+        const result = runInTempGitRepo({
+          testFormatScript: 'echo "format ok"',
+          gitRepoTestArgs: ['--what', 'format'],
+        });
+
+        expect(result.stdout).toContain('lets ride');
+        expect(result.stdout).toContain('🎉 passed');
+      });
+
+      then('output matches snapshot', () => {
+        const result = runInTempGitRepo({
+          testFormatScript: 'echo "format ok"',
+          gitRepoTestArgs: ['--what', 'format'],
+        });
+
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case14] format fails', () => {
+    when('[t0] `rhx git.repo.test --what format` is run', () => {
+      then('exit code is 2', () => {
+        const result = runInTempGitRepo({
+          testFormatScript: 'echo "formatting error" && exit 1',
+          gitRepoTestArgs: ['--what', 'format'],
+        });
+
+        expect(result.exitCode).toBe(2);
+      });
+
+      then('stderr shows failure summary', () => {
+        const result = runInTempGitRepo({
+          testFormatScript: 'echo "formatting error" && exit 1',
+          gitRepoTestArgs: ['--what', 'format'],
+        });
+
+        expect(result.stderr).toContain('bummer dude');
+        expect(result.stderr).toContain('failed');
+      });
+
+      then('output matches snapshot', () => {
+        const result = runInTempGitRepo({
+          testFormatScript: 'echo "formatting error" && exit 1',
+          gitRepoTestArgs: ['--what', 'format'],
+        });
+
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case15] no test:types command in package.json', () => {
+    when('[t0] `rhx git.repo.test --what types` is run (default)', () => {
+      then('exit code is 2 (constraint)', () => {
+        const result = runInTempGitRepo({
+          packageJson: { name: 'test-repo', scripts: {} },
+          gitRepoTestArgs: ['--what', 'types'],
+        });
+
+        expect(result.exitCode).toBe(2);
+      });
+
+      then('stderr shows error about absent command', () => {
+        const result = runInTempGitRepo({
+          packageJson: { name: 'test-repo', scripts: {} },
+          gitRepoTestArgs: ['--what', 'types'],
+        });
+
+        expect(result.stderr).toContain("no 'test:types' command");
+      });
+    });
+
+    when(
+      '[t1] `rhx git.repo.test --what types --when hook.onStop` is run',
+      () => {
+        then('exit code is 0 (silent success)', () => {
+          const result = runInTempGitRepo({
+            packageJson: { name: 'test-repo', scripts: {} },
+            gitRepoTestArgs: ['--what', 'types', '--when', 'hook.onStop'],
+          });
+
+          expect(result.exitCode).toBe(0);
+        });
+
+        then('stdout is empty (silent)', () => {
+          const result = runInTempGitRepo({
+            packageJson: { name: 'test-repo', scripts: {} },
+            gitRepoTestArgs: ['--what', 'types', '--when', 'hook.onStop'],
+          });
+
+          expect(result.stdout).toBe('');
+        });
+
+        then('stderr is empty (silent)', () => {
+          const result = runInTempGitRepo({
+            packageJson: { name: 'test-repo', scripts: {} },
+            gitRepoTestArgs: ['--what', 'types', '--when', 'hook.onStop'],
+          });
+
+          expect(result.stderr).toBe('');
+        });
+      },
+    );
+  });
+
+  given('[case16] no test:format command in package.json', () => {
+    when('[t0] `rhx git.repo.test --what format` is run (default)', () => {
+      then('exit code is 2 (constraint)', () => {
+        const result = runInTempGitRepo({
+          packageJson: { name: 'test-repo', scripts: {} },
+          gitRepoTestArgs: ['--what', 'format'],
+        });
+
+        expect(result.exitCode).toBe(2);
+      });
+
+      then('stderr shows error about absent command', () => {
+        const result = runInTempGitRepo({
+          packageJson: { name: 'test-repo', scripts: {} },
+          gitRepoTestArgs: ['--what', 'format'],
+        });
+
+        expect(result.stderr).toContain("no 'test:format' command");
+      });
+    });
+
+    when(
+      '[t1] `rhx git.repo.test --what format --when hook.onStop` is run',
+      () => {
+        then('exit code is 0 (silent success)', () => {
+          const result = runInTempGitRepo({
+            packageJson: { name: 'test-repo', scripts: {} },
+            gitRepoTestArgs: ['--what', 'format', '--when', 'hook.onStop'],
+          });
+
+          expect(result.exitCode).toBe(0);
+        });
+
+        then('stdout is empty (silent)', () => {
+          const result = runInTempGitRepo({
+            packageJson: { name: 'test-repo', scripts: {} },
+            gitRepoTestArgs: ['--what', 'format', '--when', 'hook.onStop'],
+          });
+
+          expect(result.stdout).toBe('');
+        });
+
+        then('stderr is empty (silent)', () => {
+          const result = runInTempGitRepo({
+            packageJson: { name: 'test-repo', scripts: {} },
+            gitRepoTestArgs: ['--what', 'format', '--when', 'hook.onStop'],
+          });
+
+          expect(result.stderr).toBe('');
+        });
+      },
+    );
+  });
+
+  given('[case17] comma-separated --what values', () => {
+    when('[t0] `rhx git.repo.test --what types,format` is run', () => {
+      then('exit code is 0 (all pass)', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "types ok"',
+          testFormatScript: 'echo "format ok"',
+          gitRepoTestArgs: ['--what', 'types,format'],
+        });
+
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('stdout shows both test sections', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "types ok"',
+          testFormatScript: 'echo "format ok"',
+          gitRepoTestArgs: ['--what', 'types,format'],
+        });
+
+        expect(result.stdout).toContain('git.repo.test --what types');
+        expect(result.stdout).toContain('git.repo.test --what format');
+      });
+
+      then('output matches snapshot', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "types ok"',
+          testFormatScript: 'echo "format ok"',
+          gitRepoTestArgs: ['--what', 'types,format'],
+        });
+
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] first type fails', () => {
+      then('exit code is 2 (stops at first failure)', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "type error" && exit 1',
+          testFormatScript: 'echo "format ok"',
+          gitRepoTestArgs: ['--what', 'types,format'],
+        });
+
+        expect(result.exitCode).toBe(2);
+      });
+
+      then('stdout shows only first test section', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "type error" && exit 1',
+          testFormatScript: 'echo "format ok"',
+          gitRepoTestArgs: ['--what', 'types,format'],
+        });
+
+        expect(result.stdout).toContain('git.repo.test --what types');
+        expect(result.stdout).not.toContain('git.repo.test --what format');
+      });
+    });
+  });
+
+  given('[case18] invalid type in comma-separated list', () => {
+    when('[t0] `rhx git.repo.test --what types,invalid` is run', () => {
+      then('exit code is 2', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "types ok"',
+          gitRepoTestArgs: ['--what', 'types,invalid'],
+        });
+
+        expect(result.exitCode).toBe(2);
+      });
+
+      then('stderr shows error about invalid type', () => {
+        const result = runInTempGitRepo({
+          testTypesScript: 'echo "types ok"',
+          gitRepoTestArgs: ['--what', 'types,invalid'],
+        });
+
+        expect(result.stderr).toContain("invalid type 'invalid'");
       });
     });
   });
