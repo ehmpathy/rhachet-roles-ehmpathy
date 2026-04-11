@@ -531,7 +531,7 @@ output_success() {
   else
     # auto mode: logs not persisted on success
     echo "   └─ log"
-    echo "      ├─ (omitted on success by default)"
+    echo "      ├─ omitted on success by default"
     echo "      └─ hint: use \`--log always\` to persist when desired"
   fi
 }

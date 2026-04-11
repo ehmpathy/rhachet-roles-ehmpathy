@@ -8,7 +8,7 @@ exports[`git.repo.test.sh given: [case1] lint passes when: [t0] \`rhx git.repo.t
    │  ├─ 💤 inflight (0s)
    │  └─ 🎉 passed (0s)
    └─ log
-      ├─ (omitted on success by default)
+      ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
 "
 `;
@@ -30,7 +30,7 @@ exports[`git.repo.test.sh given: [case3] npm error (malfunction) when: [t0] \`rh
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
-   │  └─ 💥 malfunction (0s)
+   │  └─ 💥 malfunction (1s)
    └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
 
 npm command failed. check the log for details.

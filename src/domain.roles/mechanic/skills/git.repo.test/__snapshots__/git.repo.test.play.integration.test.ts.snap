@@ -12,7 +12,7 @@ exports[`git.repo.test given: [case1] repo with tests that pass when: [t0] --wha
    │  ├─ tests: 3 passed, 0 failed, 0 skipped
    │  └─ time: X.XXXs
    └─ log
-      ├─ (omitted on success by default)
+      ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
 "
 `;
@@ -47,7 +47,7 @@ exports[`git.repo.test given: [case3] repo with multiple test files when: [t0] -
    │  ├─ tests: 2 passed, 0 failed, 0 skipped
    │  └─ time: X.XXXs
    └─ log
-      ├─ (omitted on success by default)
+      ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
 "
 `;
@@ -65,7 +65,7 @@ exports[`git.repo.test given: [case5] repo with integration tests when: [t0] --w
    │  ├─ tests: 5 passed, 0 failed, 0 skipped
    │  └─ time: X.XXXs
    └─ log
-      ├─ (omitted on success by default)
+      ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
 "
 `;
