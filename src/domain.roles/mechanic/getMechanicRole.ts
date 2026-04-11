@@ -106,7 +106,8 @@ export const ROLE_MECHANIC: Role = Role.build({
       ],
       onStop: [
         {
-          command: './node_modules/.bin/rhx git.repo.test --what lint',
+          command:
+            './node_modules/.bin/rhx git.repo.test --what lint --when hook.onStop',
           timeout: 'PT60S',
         },
       ],

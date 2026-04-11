@@ -8,11 +8,14 @@
 #         - consistent vibes across mechanic skills
 #
 # usage:
+#   git.repo.test.sh --what types                     # run type check
+#   git.repo.test.sh --what format                    # run format check
 #   git.repo.test.sh --what lint                      # run lint check
 #   git.repo.test.sh --what unit                      # run unit tests
 #   git.repo.test.sh --what integration               # run integration tests (auto keyrack)
 #   git.repo.test.sh --what acceptance                # run acceptance tests (auto keyrack)
 #   git.repo.test.sh --what all                       # run all test types in sequence
+#   git.repo.test.sh --what types,lint,unit           # run specific types in sequence
 #   git.repo.test.sh --what unit --scope getUserById  # filter to scope pattern
 #   git.repo.test.sh --what unit --resnap             # update snapshots
 #   git.repo.test.sh --what unit --thorough           # run full suite
@@ -138,6 +141,7 @@ SCOPE=""
 RESNAP=false
 THOROUGH=false
 LOG_MODE="auto"  # auto | always (auto = persist on failure; always = persist always)
+MULTI_CHILD=false  # internal flag: set when invoked as child of multi-mode
 REST_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -169,6 +173,10 @@ while [[ $# -gt 0 ]]; do
     --log)
       LOG_MODE="$2"
       shift 2
+      ;;
+    --_multi-child)
+      MULTI_CHILD=true
+      shift
       ;;
     --)
       shift
@@ -216,23 +224,64 @@ if [[ -z "$WHAT" ]]; then
   exit 2
 fi
 
-case "$WHAT" in
-  lint|unit|integration|acceptance|all)
-    # valid
-    ;;
-  *)
+# validate --what value(s)
+# supports: single value, comma-separated list, or "all"
+VALID_TYPES=("types" "format" "lint" "unit" "integration" "acceptance")
+
+# "all" means the traditional test types (not types/format which are optional)
+ALL_TYPES=("lint" "unit" "integration" "acceptance")
+
+validate_what_value() {
+  local value="$1"
+  for valid in "${VALID_TYPES[@]}"; do
+    if [[ "$value" == "$valid" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
+# check if comma-separated
+if [[ "$WHAT" == *","* ]]; then
+  # split and validate each
+  IFS=',' read -ra WHAT_TYPES <<< "$WHAT"
+  for wtype in "${WHAT_TYPES[@]}"; do
+    if ! validate_what_value "$wtype"; then
+      _output=$(
+        print_turtle_header "bummer dude..."
+        print_tree_start "git.repo.test --what $WHAT"
+        echo "   └─ error: invalid type '$wtype' in --what list"
+        echo ""
+        echo "valid values: types | format | lint | unit | integration | acceptance | all"
+        echo "example: --what types,lint,unit"
+      )
+      echo "$_output"      # stdout
+      echo "$_output" >&2  # stderr
+      exit 2
+    fi
+  done
+  # mark as multi-mode
+  MULTI_MODE=true
+elif [[ "$WHAT" == "all" ]]; then
+  WHAT_TYPES=("${ALL_TYPES[@]}")
+  MULTI_MODE=true
+else
+  # single value validation
+  if ! validate_what_value "$WHAT"; then
     _output=$(
       print_turtle_header "bummer dude..."
       print_tree_start "git.repo.test --what $WHAT"
       echo "   └─ error: invalid --what value '$WHAT'"
       echo ""
-      echo "valid values: lint | unit | integration | acceptance | all"
+      echo "valid values: types | format | lint | unit | integration | acceptance | all"
+      echo "example: --what types,lint,unit"
     )
     echo "$_output"      # stdout
     echo "$_output" >&2  # stderr
     exit 2
-    ;;
-esac
+  fi
+  MULTI_MODE=false
+fi
 
 # compute namespaced log directory
 LOG_DIR="${LOG_BASE}/what=${WHAT}"
@@ -276,6 +325,11 @@ validate_npm_command() {
   local test_type="$1"
   local cmd="test:${test_type}"
   if ! grep -q "\"$cmd\"" "$REPO_ROOT/package.json"; then
+    # hook.onStop context: silently exit — repo may lack this command
+    if [[ "$WHEN" == "hook.onStop" ]]; then
+      exit 0
+    fi
+
     local _output
     _output=$(
       print_turtle_header "bummer dude..."
@@ -291,7 +345,8 @@ validate_npm_command() {
   fi
 }
 
-if [[ "$WHAT" != "all" ]]; then
+# validate npm command exists (skip for multi-mode - validated per-type in loop)
+if [[ "$MULTI_MODE" != "true" ]]; then
   validate_npm_command "$WHAT"
 fi
 
@@ -301,9 +356,9 @@ fi
 KEYRACK_STATUS=""
 
 unlock_keyrack() {
-  # skip for lint and unit
+  # skip for types, format, lint, and unit — only integration/acceptance need credentials
   local test_type="$1"
-  if [[ "$test_type" == "lint" ]] || [[ "$test_type" == "unit" ]]; then
+  if [[ "$test_type" == "types" ]] || [[ "$test_type" == "format" ]] || [[ "$test_type" == "lint" ]] || [[ "$test_type" == "unit" ]]; then
     return 0
   fi
 
@@ -330,7 +385,8 @@ unlock_keyrack() {
   fi
 }
 
-if [[ "$WHAT" != "all" ]]; then
+# unlock keyrack (skip for multi-mode - handled per-type in loop)
+if [[ "$MULTI_MODE" != "true" ]]; then
   unlock_keyrack "$WHAT"
 fi
 
@@ -631,127 +687,50 @@ output_no_tests() {
 }
 
 ######################################################################
-# handle --what all
+# handle multi-mode (comma-separated or "all")
+# just loop and run each type as separate invocation
 ######################################################################
-if [[ "$WHAT" == "all" ]]; then
-  ALL_TYPES=("lint" "unit" "integration" "acceptance")
-  ALL_START=$(date +%s)
-  ALL_LOGS=()
-  ALL_FAILED=false
-  FAILED_TYPE=""
+if [[ "$MULTI_MODE" == "true" ]]; then
+  SCRIPT_PATH="${BASH_SOURCE[0]}"
+  MULTI_EXIT_CODE=0
 
-  print_turtle_header "heres the wave..."
-  print_tree_start "git.repo.test --what all"
+  # emit turtle header once for multi-mode
+  print_turtle_header "lets ride..."
 
-  for test_type in "${ALL_TYPES[@]}"; do
-    # validate command exists
-    if ! grep -q "\"test:${test_type}\"" "$REPO_ROOT/package.json"; then
-      echo "   ├─ ${test_type}: skipped (no test:${test_type} command)"
-      continue
+  for test_type in "${WHAT_TYPES[@]}"; do
+    # build args for this type
+    type_args=("--what" "$test_type")
+    [[ -n "$SCOPE" ]] && type_args+=("--scope" "$SCOPE")
+    [[ "$RESNAP" == "true" ]] && type_args+=("--resnap")
+    [[ "$THOROUGH" == "true" ]] && type_args+=("--thorough")
+    [[ "$LOG_MODE" != "auto" ]] && type_args+=("--log" "$LOG_MODE")
+    [[ -n "$WHEN" ]] && type_args+=("--when" "$WHEN")
+    [[ ${#REST_ARGS[@]} -gt 0 ]] && type_args+=("--" "${REST_ARGS[@]}")
+
+    # run this type (output goes directly to stdout/stderr)
+    # pass --_multi-child to suppress turtle header in child
+    bash "$SCRIPT_PATH" "${type_args[@]}" --_multi-child || MULTI_EXIT_CODE=$?
+
+    # stop on first failure
+    if [[ $MULTI_EXIT_CODE -ne 0 ]]; then
+      exit $MULTI_EXIT_CODE
     fi
 
-    # unlock keyrack if needed
-    if [[ "$test_type" == "integration" ]] || [[ "$test_type" == "acceptance" ]]; then
-      unlock_keyrack "$test_type"
-    fi
-
-    # setup log paths for this type
-    type_log_dir="${LOG_BASE}/what=${test_type}"
-    type_log_path="$REPO_ROOT/$type_log_dir"
-    mkdir -p "$type_log_path"
-
-    # findsert .gitignore
-    type_gitignore="$type_log_path/.gitignore"
-    if [[ ! -f "$type_gitignore" ]]; then
-      echo "# auto-generated by git.repo.test skill" > "$type_gitignore"
-      echo "*" >> "$type_gitignore"
-    fi
-
-    type_isotime=$(date -u +"%Y-%m-%dT%H-%M-%SZ")
-    type_stdout_log="$type_log_path/${type_isotime}.stdout.log"
-    type_stderr_log="$type_log_path/${type_isotime}.stderr.log"
-    type_rel_stdout="$type_log_dir/${type_isotime}.stdout.log"
-
-    # run test
-    type_start=$(date +%s)
-    type_exit_code=0
-    run_single_test "$test_type" "$TEMP_STDOUT" "$TEMP_STDERR" || type_exit_code=$?
-    type_end=$(date +%s)
-    type_duration=$((type_end - type_start))
-
-    # always persist logs for all mode
-    cp "$TEMP_STDOUT" "$type_stdout_log"
-    cp "$TEMP_STDERR" "$type_stderr_log"
-    ALL_LOGS+=("$test_type: $type_rel_stdout")
-
-    # check result
-    if [[ $type_exit_code -eq 0 ]]; then
-      echo "   ├─ ${test_type}: passed (${type_duration}s)"
-    else
-      # check for npm error vs test failure
-      if grep -q "npm ERR!" "$TEMP_STDERR"; then
-        echo "   ├─ ${test_type}: malfunction (${type_duration}s)" | emit_to_both
-        ALL_FAILED=true
-        FAILED_TYPE="$test_type"
-        break
-      else
-        echo "   ├─ ${test_type}: failed (${type_duration}s)" | emit_to_both
-        ALL_FAILED=true
-        FAILED_TYPE="$test_type"
-        break
-      fi
-    fi
+    # blank line between types
+    echo ""
   done
 
-  # final summary
-  all_end=$(date +%s)
-  all_duration=$((all_end - ALL_START))
-
-  if [[ "$ALL_FAILED" == "false" ]]; then
-    # clear and reprint with success header
-    echo ""
-    print_turtle_header "cowabunga!"
-    print_tree_start "git.repo.test --what all"
-    for test_type in "${ALL_TYPES[@]}"; do
-      if grep -q "\"test:${test_type}\"" "$REPO_ROOT/package.json"; then
-        echo "   ├─ ${test_type}: passed"
-      fi
-    done
-    echo "   ├─ total: ${all_duration}s"
-    echo "   └─ log"
-    for i in "${!ALL_LOGS[@]}"; do
-      if [[ $i -eq $((${#ALL_LOGS[@]} - 1)) ]]; then
-        echo "      └─ ${ALL_LOGS[$i]}"
-      else
-        echo "      ├─ ${ALL_LOGS[$i]}"
-      fi
-    done
-    exit 0
-  else
-    # failure: output to both stdout and stderr
-    {
-      echo "   ├─ total: ${all_duration}s"
-      echo "   └─ log"
-      for i in "${!ALL_LOGS[@]}"; do
-        if [[ $i -eq $((${#ALL_LOGS[@]} - 1)) ]]; then
-          echo "      └─ ${ALL_LOGS[$i]}"
-        else
-          echo "      ├─ ${ALL_LOGS[$i]}"
-        fi
-      done
-      echo ""
-      echo "stopped at ${FAILED_TYPE}. fix and rerun."
-    } | emit_to_both
-    exit 2
-  fi
+  exit $MULTI_EXIT_CODE
 fi
 
 ######################################################################
 # run single test type (non-all)
 ######################################################################
 
-# emit progressive header immediately
-print_turtle_header "lets ride..."
+# emit progressive header immediately (skip if multi-child)
+if [[ "$MULTI_CHILD" != "true" ]]; then
+  print_turtle_header "lets ride..."
+fi
 print_tree_start "git.repo.test $DISPLAY_ARGS"
 
 # show keyrack status if applicable

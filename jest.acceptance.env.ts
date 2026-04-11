@@ -5,6 +5,19 @@ import util from 'util';
 // eslint-disable-next-line no-undef
 jest.setTimeout(90000); // we're calling downstream apis
 
+/**
+ * .what = isolate git config to prevent tests from polluted global or repo config
+ * .why = tests that set git user.name/email should never leak outside their temp directories
+ */
+process.env.GIT_CONFIG_GLOBAL = '/dev/null';
+process.env.GIT_CONFIG_SYSTEM = '/dev/null';
+
+/**
+ * .what = suppress git credential prompts
+ * .why = tests that accidentally hit remotes should fail fast, not hang on input
+ */
+process.env.GIT_TERMINAL_PROMPT = '0';
+
 // set console.log to not truncate nested objects
 util.inspect.defaultOptions.depth = 5;
 
