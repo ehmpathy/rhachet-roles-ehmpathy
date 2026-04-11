@@ -1,0 +1,85 @@
+artifacts:
+  # track playtest progress
+  - "$route/5.5.playtest.v1.i1.md"
+  # track actual implementation in src/
+  - "src/**/*"
+
+reviews:
+  self:
+    - slug: has-clear-instructions
+      say: |
+        double-check: are the instructions followable?
+
+        - can the foreman follow without prior context?
+        - are commands copy-pasteable?
+        - are expected outcomes explicit?
+
+    - slug: has-vision-coverage
+      say: |
+        double-check: does the playtest cover all behaviors?
+
+        - is every behavior in 0.wish.md verified?
+        - is every behavior in 1.vision.md verified?
+        - are any requirements left untested?
+
+    - slug: has-edgecase-coverage
+      say: |
+        double-check: are edge cases covered?
+
+        - what could go wrong?
+        - what inputs are unusual but valid?
+        - are boundaries tested?
+
+    - slug: has-acceptance-test-citations
+      say: |
+        coverage check: cite the acceptance test for each playtest step.
+
+        **zero unproven steps.** every step must map to an acceptance test.
+
+        for each step in the playtest:
+        - which acceptance test file verifies this behavior?
+        - which specific test case (given/when/then) covers it?
+        - cite the exact file path and test name
+
+        example citation:
+        ```
+        step: "run `bhuild behavior init`"
+        test: src/contract/cli/behavior.init.acceptance.test.ts
+        case: given('[case1] fresh repo') when('[t0] init') then('creates .behavior')
+        ```
+
+        if a step lacks acceptance test coverage:
+        - this is a BLOCKER — write the test before you proceed
+        - "untestable via automation" is almost never true — find a way
+
+        **zero gaps.** if you cannot cite a test, the step is unproven.
+        unproven steps do not pass this gate.
+
+    - slug: has-self-run-verification
+      say: |
+        dogfood check: did you run the playtest yourself?
+
+        **zero self-skip.** you must run every step before emit.
+
+        before you hand off to the foreman, run every step yourself:
+        - follow each instruction exactly as written
+        - verify each expected outcome matches reality
+        - note any friction, confusion, or absent context
+
+        **cite your run.** for each step, note:
+        - command you ran
+        - output you observed
+        - whether it matched expected
+
+        if you found issues while you ran it:
+        - did you fix the instructions?
+        - did you update expected outcomes?
+        - is the playtest now accurate to what you observed?
+
+        the foreman deserves a playtest that works. prove it works by self-test first.
+
+        **if you did not run it yourself, you did not verify it.**
+        this is a BLOCKER, not a suggestion.
+
+judges:
+  - npx rhachet run --repo bhrain --skill route.stone.judge --mechanism approved? --stone $stone --route $route

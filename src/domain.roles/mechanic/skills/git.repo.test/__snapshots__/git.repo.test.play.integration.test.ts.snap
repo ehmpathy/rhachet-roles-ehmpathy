@@ -1,0 +1,90 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.repo.test given: [case1] repo with tests that pass when: [t0] --what unit is called then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit
+   ├─ status
+   │  ├─ 💤 inflight (0s)
+   │  └─ 🎉 passed (0s)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 3 passed, 0 failed, 0 skipped
+   │  └─ time: X.XXXs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test given: [case2] repo with tests that fail when: [t0] --what unit is called then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit
+   │  └─ ✋ failed (0s)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 0 passed, 1 failed, 0 skipped
+   │  └─ time: X.XXXs
+   ├─ log
+   │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stdout.log
+   │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stderr.log
+   └─ tip: Read the log for full test output and failure details
+"
+`;
+
+exports[`git.repo.test given: [case3] repo with multiple test files when: [t0] --what unit --scope is called then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope user
+   ├─ scope: user
+   │  └─ matched: 0 files
+   ├─ status
+   │  ├─ 💤 inflight (0s)
+   │  └─ 🎉 passed (0s)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 2 passed, 0 failed, 0 skipped
+   │  └─ time: X.XXXs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test given: [case5] repo with integration tests when: [t0] --what integration is called then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what integration
+   ├─ keyrack: unlocked ehmpath/test
+   ├─ status
+   │  ├─ 💤 inflight (0s)
+   │  └─ 🎉 passed (0s)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 5 passed, 0 failed, 0 skipped
+   │  └─ time: X.XXXs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test given: [case6] repo with no matched tests when: [t0] --what unit --scope with no matches is called then: output matches snapshot 1`] = `
+"   ├─ status: constraint
+   └─ error: no tests matched scope 'nonexistent'
+
+hint: check the scope pattern or run without --scope to see all tests
+"
+`;
+
+exports[`git.repo.test given: [case7] repo without test command when: [t0] --what unit is called then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit
+   ├─ status: constraint
+   └─ error: no 'test:unit' command in package.json
+
+hint: ehmpathy convention uses 'test:lint', 'test:unit', 'test:integration', 'test:acceptance'
+"
+`;
