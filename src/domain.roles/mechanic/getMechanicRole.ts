@@ -104,13 +104,8 @@ export const ROLE_MECHANIC: Role = Role.build({
           filter: { what: 'WebFetch', when: 'after' },
         },
       ],
-      onStop: [
-        {
-          command:
-            './node_modules/.bin/rhx git.repo.test --what lint --when hook.onStop',
-          timeout: 'PT60S',
-        },
-      ],
+      // .note = lint onStop removed: 60s blocks session end, too expensive
+      // .todo = revisit when brain.hooks.onPush lands
     },
   },
 });
