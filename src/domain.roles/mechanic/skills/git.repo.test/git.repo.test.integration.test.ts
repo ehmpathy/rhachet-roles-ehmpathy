@@ -1,7 +1,7 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { genTempDir, given, then, when } from 'test-fns';
+import { genTempDir, given, then, useThen, when } from 'test-fns';
 
 /**
  * .what = integration tests for git.repo.test.sh skill
@@ -9,6 +9,9 @@ import { genTempDir, given, then, when } from 'test-fns';
  */
 describe('git.repo.test.sh', () => {
   const scriptPath = path.join(__dirname, 'git.repo.test.sh');
+
+  // repo root for symlink to node_modules (required for jest --listTests)
+  const repoRoot = path.join(__dirname, '../../../../..');
 
   /**
    * .what = run git.repo.test.sh in a temp git repo
@@ -18,9 +21,18 @@ describe('git.repo.test.sh', () => {
     packageJson?: object | null;
     eslintConfig?: object | null;
     sourceFiles?: Record<string, string>;
+    jestConfigs?: Array<'unit' | 'integration' | 'acceptance'>;
+    testFiles?: Array<{
+      type: 'unit' | 'integration' | 'acceptance';
+      name: string;
+    }>;
+    symlinkNodeModules?: boolean;
     testTypesScript?: string;
     testFormatScript?: string;
     testLintScript?: string;
+    testUnitScript?: string;
+    testIntegrationScript?: string;
+    testAcceptanceScript?: string;
     gitRepoTestArgs: string[];
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
     const tempDir = genTempDir({ slug: 'git-repo-test', git: true });
@@ -34,7 +46,14 @@ describe('git.repo.test.sh', () => {
           ...(args.testFormatScript && {
             'test:format': args.testFormatScript,
           }),
-          'test:lint': args.testLintScript ?? 'eslint src/',
+          ...(args.testLintScript && { 'test:lint': args.testLintScript }),
+          ...(args.testUnitScript && { 'test:unit': args.testUnitScript }),
+          ...(args.testIntegrationScript && {
+            'test:integration': args.testIntegrationScript,
+          }),
+          ...(args.testAcceptanceScript && {
+            'test:acceptance': args.testAcceptanceScript,
+          }),
         },
       };
       fs.writeFileSync(
@@ -53,6 +72,62 @@ describe('git.repo.test.sh', () => {
       fs.writeFileSync(
         path.join(tempDir, '.eslintrc.json'),
         JSON.stringify(eslintConfig, null, 2),
+      );
+    }
+
+    // create jest config files
+    if (args.jestConfigs) {
+      for (const configType of args.jestConfigs) {
+        // use .js files to skip ts-jest compilation overhead
+        // unit uses *.test.js but excludes *.integration.test.js and *.acceptance.test.js
+        // integration/acceptance use their specific suffix
+        const testMatch =
+          configType === 'unit' ? '**/*.test.js' : `**/*.${configType}.test.js`;
+        // unit must exclude other test types to avoid overlap
+        const testPathIgnorePatterns =
+          configType === 'unit'
+            ? `testPathIgnorePatterns: ['.integration.test.js', '.acceptance.test.js'],`
+            : '';
+        // minimal config: no transforms, no test environment overhead
+        const configContent = `
+module.exports = {
+  testMatch: ['${testMatch}'],
+  ${testPathIgnorePatterns}
+  transform: {},
+  testEnvironment: 'node',
+};
+`;
+        fs.writeFileSync(
+          path.join(tempDir, `jest.${configType}.config.ts`),
+          configContent,
+        );
+      }
+    }
+
+    // create test files for scope filtering tests
+    if (args.testFiles) {
+      fs.mkdirSync(path.join(tempDir, 'src'), { recursive: true });
+      for (const testFile of args.testFiles) {
+        // use .js to skip ts-jest compilation overhead
+        const suffix =
+          testFile.type === 'unit' ? 'test.js' : `${testFile.type}.test.js`;
+        const filePath = path.join(
+          tempDir,
+          'src',
+          `${testFile.name}.${suffix}`,
+        );
+        fs.writeFileSync(
+          filePath,
+          `describe('${testFile.name}', () => { it('passes', () => {}); });\n`,
+        );
+      }
+    }
+
+    // symlink node_modules for jest --listTests to work
+    if (args.symlinkNodeModules) {
+      fs.symlinkSync(
+        path.join(repoRoot, 'node_modules'),
+        path.join(tempDir, 'node_modules'),
       );
     }
 
@@ -991,5 +1066,410 @@ describe('git.repo.test.sh', () => {
         expect(result.stderr).toContain("invalid type 'invalid'");
       });
     });
+  });
+
+  given('[case19] --scope matches 0 files', () => {
+    when(
+      '[t0] `rhx git.repo.test --what unit --scope nonexistent-pattern-xyz` is run',
+      () => {
+        const result = useThen('command executes', () =>
+          runInTempGitRepo({
+            jestConfigs: ['unit'],
+            testUnitScript: 'jest --config jest.unit.config.ts',
+            symlinkNodeModules: true,
+            gitRepoTestArgs: [
+              '--what',
+              'unit',
+              '--scope',
+              'nonexistent-pattern-xyz-12345',
+            ],
+          }),
+        );
+
+        then('exit code is 2 (constraint)', () => {
+          expect(result.exitCode).toBe(2);
+        });
+
+        then('stdout shows scope matched 0 files', () => {
+          expect(result.stdout).toContain('matched: 0 files');
+        });
+
+        then('stderr shows constraint error about no tests matched', () => {
+          expect(result.stderr).toContain('status: constraint');
+          expect(result.stderr).toContain(
+            "no tests matched scope 'nonexistent-pattern-xyz-12345'",
+          );
+        });
+
+        then(
+          'output does NOT show inflight timer (failfast before timer start)',
+          () => {
+            // should NOT have timer output since we failfast before timer start
+            expect(result.stdout).not.toContain('inflight');
+          },
+        );
+
+        then('output matches snapshot', () => {
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      },
+    );
+
+    when(
+      '[t1] `rhx git.repo.test --what unit --scope another-nonexistent` is run',
+      () => {
+        then('completes quickly with 0 matches', () => {
+          // verify failfast is fast (< 5s) for 0 matches
+          const start = Date.now();
+          const result = runInTempGitRepo({
+            jestConfigs: ['unit'],
+            testUnitScript: 'jest --config jest.unit.config.ts',
+            symlinkNodeModules: true,
+            gitRepoTestArgs: [
+              '--what',
+              'unit',
+              '--scope',
+              'another-nonexistent-xyz-12345',
+            ],
+          });
+          const elapsed = Date.now() - start;
+
+          expect(result.exitCode).toBe(2);
+          expect(elapsed).toBeLessThan(5000);
+        });
+      },
+    );
+  });
+
+  given('[case20] --scope matches some files', () => {
+    when(
+      '[t0] `rhx git.repo.test --what unit --scope myfeature` is run',
+      () => {
+        const result = useThen('command executes', () =>
+          runInTempGitRepo({
+            jestConfigs: ['unit'],
+            testUnitScript: 'jest --config jest.unit.config.ts',
+            testFiles: [{ type: 'unit', name: 'myfeature' }],
+            symlinkNodeModules: true,
+            gitRepoTestArgs: ['--what', 'unit', '--scope', 'myfeature'],
+          }),
+        );
+
+        then('stdout shows matched files count > 0', () => {
+          // should show matched count (myfeature test file matches)
+          expect(result.stdout).toMatch(/matched: [1-9]\d* files/);
+        });
+
+        then('output shows inflight timer (test actually runs)', () => {
+          // should have timer output since test runs
+          expect(result.stdout).toContain('inflight');
+        });
+      },
+    );
+  });
+
+  given('[case21] jest config file absent', () => {
+    when(
+      '[t0] `rhx git.repo.test --what unit` is run without jest.unit.config.ts',
+      () => {
+        then('exit code is 2 (constraint)', () => {
+          const result = runInTempGitRepo({
+            packageJson: {
+              name: 'test-repo',
+              scripts: {
+                'test:unit': 'jest',
+              },
+            },
+            // no jest.unit.config.ts created
+            gitRepoTestArgs: ['--what', 'unit'],
+          });
+
+          expect(result.exitCode).toBe(2);
+        });
+
+        then('stdout shows config file not found error', () => {
+          const result = runInTempGitRepo({
+            packageJson: {
+              name: 'test-repo',
+              scripts: {
+                'test:unit': 'jest',
+              },
+            },
+            gitRepoTestArgs: ['--what', 'unit'],
+          });
+
+          expect(result.stdout).toContain('jest.unit.config.ts not found');
+          expect(result.stdout).toContain('status: constraint');
+        });
+
+        then('stderr shows same error (per output streams rule)', () => {
+          const result = runInTempGitRepo({
+            packageJson: {
+              name: 'test-repo',
+              scripts: {
+                'test:unit': 'jest',
+              },
+            },
+            gitRepoTestArgs: ['--what', 'unit'],
+          });
+
+          expect(result.stderr).toContain('jest.unit.config.ts not found');
+        });
+
+        then('output matches snapshot', () => {
+          const result = runInTempGitRepo({
+            packageJson: {
+              name: 'test-repo',
+              scripts: {
+                'test:unit': 'jest',
+              },
+            },
+            gitRepoTestArgs: ['--what', 'unit'],
+          });
+
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      },
+    );
+
+    when(
+      '[t1] `rhx git.repo.test --what integration` is run without jest.integration.config.ts',
+      () => {
+        then('exit code is 2 and mentions integration config', () => {
+          const result = runInTempGitRepo({
+            packageJson: {
+              name: 'test-repo',
+              scripts: {
+                'test:integration': 'jest',
+              },
+            },
+            gitRepoTestArgs: ['--what', 'integration'],
+          });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            'jest.integration.config.ts not found',
+          );
+        });
+      },
+    );
+
+    when(
+      '[t2] `rhx git.repo.test --what lint` is run (no config needed)',
+      () => {
+        then('does NOT failfast for absent config (lint uses eslint)', () => {
+          const result = runInTempGitRepo({
+            packageJson: {
+              name: 'test-repo',
+              scripts: {
+                'test:lint': 'echo "lint passed"',
+              },
+            },
+            gitRepoTestArgs: ['--what', 'lint'],
+          });
+
+          // lint should pass (no jest config required)
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).not.toContain('config.ts not found');
+        });
+      },
+    );
+  });
+
+  given('[case22] --timeout flag', () => {
+    when(
+      '[t0] `rhx git.repo.test --what lint --timeout 1` with slow command',
+      () => {
+        then('exit code is 1 (malfunction) when timeout exceeded', () => {
+          const result = runInTempGitRepo({
+            packageJson: {
+              name: 'test-repo',
+              scripts: {
+                'test:lint': 'sleep 5',
+              },
+            },
+            gitRepoTestArgs: ['--what', 'lint', '--timeout', '1'],
+          });
+
+          expect(result.exitCode).toBe(1);
+        });
+
+        then('stdout shows timeout message', () => {
+          const result = runInTempGitRepo({
+            packageJson: {
+              name: 'test-repo',
+              scripts: {
+                'test:lint': 'sleep 5',
+              },
+            },
+            gitRepoTestArgs: ['--what', 'lint', '--timeout', '1'],
+          });
+
+          expect(result.stdout).toContain('timeout');
+          expect(result.stdout).toContain('1s');
+        });
+
+        then('output matches snapshot', () => {
+          const result = runInTempGitRepo({
+            packageJson: {
+              name: 'test-repo',
+              scripts: {
+                'test:lint': 'sleep 5',
+              },
+            },
+            gitRepoTestArgs: ['--what', 'lint', '--timeout', '1'],
+          });
+
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      },
+    );
+
+    when(
+      '[t1] `rhx git.repo.test --what lint --timeout 10` with fast command',
+      () => {
+        then('completes normally when under timeout', () => {
+          const result = runInTempGitRepo({
+            packageJson: {
+              name: 'test-repo',
+              scripts: {
+                'test:lint': 'echo "fast lint"',
+              },
+            },
+            gitRepoTestArgs: ['--what', 'lint', '--timeout', '10'],
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).not.toContain('timeout');
+        });
+      },
+    );
+  });
+
+  given('[case23] --scope filtering with jest configs', () => {
+    when('[t0] `rhx git.repo.test --what unit --scope cpsafe` is run', () => {
+      // fixture: unit test file named cpsafe that matches scope
+      const result = useThen('command executes', () =>
+        runInTempGitRepo({
+          eslintConfig: null,
+          jestConfigs: ['unit'],
+          testUnitScript: 'jest --config jest.unit.config.ts',
+          testFiles: [{ type: 'unit', name: 'cpsafe' }],
+          symlinkNodeModules: true,
+          gitRepoTestArgs: ['--what', 'unit', '--scope', 'cpsafe'],
+        }),
+      );
+
+      then('stdout shows scope and matched files for unit tests', () => {
+        expect(result.stdout).toContain('scope: cpsafe');
+        expect(result.stdout).toContain('matched: 1 files');
+      });
+
+      then('stdout matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] `rhx git.repo.test --what unit --scope other` is run', () => {
+      // fixture: multiple unit test files, scope matches one
+      const result = useThen('command executes', () =>
+        runInTempGitRepo({
+          eslintConfig: null,
+          jestConfigs: ['unit'],
+          testUnitScript: 'jest --config jest.unit.config.ts',
+          testFiles: [
+            { type: 'unit', name: 'foo' },
+            { type: 'unit', name: 'bar' },
+            { type: 'unit', name: 'other' },
+          ],
+          symlinkNodeModules: true,
+          gitRepoTestArgs: ['--what', 'unit', '--scope', 'other'],
+        }),
+      );
+
+      then('stdout shows scope matches only one file', () => {
+        expect(result.stdout).toContain('scope: other');
+        expect(result.stdout).toContain('matched: 1 files');
+      });
+
+      then('stdout matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] `rhx git.repo.test --what unit --scope xyz` is run', () => {
+      // fixture: unit tests exist but none match scope
+      const result = useThen('command executes', () =>
+        runInTempGitRepo({
+          eslintConfig: null,
+          jestConfigs: ['unit'],
+          testUnitScript: 'jest --config jest.unit.config.ts',
+          testFiles: [
+            { type: 'unit', name: 'foo' },
+            { type: 'unit', name: 'bar' },
+          ],
+          symlinkNodeModules: true,
+          gitRepoTestArgs: ['--what', 'unit', '--scope', 'nonexistent-xyz'],
+        }),
+      );
+
+      then('stdout shows scope matched 0 files', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('scope: nonexistent-xyz');
+        expect(result.stdout).toContain('matched: 0 files');
+      });
+
+      then('stdout matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
+
+    when(
+      '[t3] unit config only matches unit test files, not integration files',
+      () => {
+        // fixture: both unit and integration files exist, but unit config only sees *.test.ts
+        const result = useThen('command executes', () =>
+          runInTempGitRepo({
+            eslintConfig: null,
+            jestConfigs: ['unit'],
+            testUnitScript: 'jest --config jest.unit.config.ts',
+            testFiles: [
+              { type: 'unit', name: 'myfeature' }, // myfeature.test.ts
+              { type: 'integration', name: 'myfeature' }, // myfeature.integration.test.ts
+              { type: 'integration', name: 'myfeature.extra' }, // myfeature.extra.integration.test.ts
+            ],
+            symlinkNodeModules: true,
+            gitRepoTestArgs: ['--what', 'unit', '--scope', 'myfeature'],
+          }),
+        );
+
+        then('unit config only matches unit test file', () => {
+          expect(result.stdout).toContain('scope: myfeature');
+          // should find only 1 file (myfeature.test.ts), not the integration files
+          expect(result.stdout).toContain('matched: 1 files');
+        });
+
+        then('stdout matches snapshot', () => {
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+
+        then('stderr matches snapshot', () => {
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      },
+    );
   });
 });

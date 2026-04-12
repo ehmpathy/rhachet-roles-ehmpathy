@@ -10,7 +10,7 @@ exports[`git.repo.test given: [case1] repo with tests that pass when: [t0] --wha
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 3 passed, 0 failed, 0 skipped
-   │  └─ time: X.XXXs
+   │  └─ time: 0s
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -25,7 +25,7 @@ exports[`git.repo.test given: [case2] repo with tests that fail when: [t0] --wha
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 1 failed, 0 skipped
-   │  └─ time: X.XXXs
+   │  └─ time: 0s
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stderr.log
@@ -38,14 +38,14 @@ exports[`git.repo.test given: [case3] repo with multiple test files when: [t0] -
 
 🐚 git.repo.test --what unit --scope user
    ├─ scope: user
-   │  └─ matched: 0 files
+   │  └─ matched: 1 files
    ├─ status
    │  ├─ 💤 inflight (0s)
    │  └─ 🎉 passed (0s)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 2 passed, 0 failed, 0 skipped
-   │  └─ time: X.XXXs
+   │  └─ time: 0s
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -63,7 +63,7 @@ exports[`git.repo.test given: [case5] repo with integration tests when: [t0] --w
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 5 passed, 0 failed, 0 skipped
-   │  └─ time: X.XXXs
+   │  └─ time: 0s
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
