@@ -17,11 +17,8 @@ describe('getMechanicRole', () => {
         ).toBeGreaterThanOrEqual(6);
       });
 
-      then('onBrain.onStop contains at least 1 hook', () => {
-        expect(
-          ROLE_MECHANIC.hooks?.onBrain?.onStop?.length,
-        ).toBeGreaterThanOrEqual(1);
-      });
+      // .note = onStop removed: lint hook was too expensive (60s block)
+      // .todo = add onStop tests when brain.hooks.onPush lands
     });
 
     when('[t1] onBoot hooks are inspected', () => {
