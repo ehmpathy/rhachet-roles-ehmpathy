@@ -105,20 +105,88 @@ stop_timer() {
 trap 'stop_timer; rm -f "$TEMP_STDOUT" "$TEMP_STDERR"' EXIT
 
 ######################################################################
-# scope preview: show matched files before run
+# validate jest config exists for unit/integration/acceptance
+# returns 0 if valid, exits 2 if config absent
 ######################################################################
-preview_scope_matches() {
+validate_jest_config() {
+  local test_type="$1"
+
+  # skip for types, format, lint (no jest config needed)
+  if [[ "$test_type" == "types" ]] || [[ "$test_type" == "format" ]] || [[ "$test_type" == "lint" ]]; then
+    return 0
+  fi
+
+  # determine expected config file based on test type
+  local config_file=""
+  case "$test_type" in
+    unit)
+      config_file="jest.unit.config.ts"
+      ;;
+    integration)
+      config_file="jest.integration.config.ts"
+      ;;
+    acceptance)
+      config_file="jest.acceptance.config.ts"
+      ;;
+  esac
+
+  # check if config file exists
+  if [[ -n "$config_file" ]] && [[ ! -f "$REPO_ROOT/$config_file" ]]; then
+    local _output
+    _output=$(
+      print_turtle_header "bummer dude..."
+      print_tree_start "git.repo.test --what $test_type"
+      print_tree_branch "status" "constraint"
+      echo "   └─ error: $config_file not found"
+      echo ""
+      echo "hint: create $config_file for ${test_type} tests"
+      echo "      ehmpathy convention uses jest.{unit,integration,acceptance}.config.ts"
+    )
+    echo "$_output"      # stdout
+    echo "$_output" >&2  # stderr
+    exit 2
+  fi
+}
+
+######################################################################
+# scope check: count matched files for scope
+# returns count via stdout
+######################################################################
+get_scope_file_count() {
   local test_type="$1"
   local scope="$2"
 
-  # skip for lint (no jest)
-  if [[ "$test_type" == "lint" ]]; then
+  # skip for types, format, lint (no jest)
+  if [[ "$test_type" == "types" ]] || [[ "$test_type" == "format" ]] || [[ "$test_type" == "lint" ]]; then
+    echo "-1"  # -1 means N/A (these don't use jest)
     return
   fi
 
+  # determine jest config file based on test type
+  local jest_config=""
+  case "$test_type" in
+    unit)
+      if [[ -f "$REPO_ROOT/jest.unit.config.ts" ]]; then
+        jest_config="-c ./jest.unit.config.ts"
+      fi
+      ;;
+    integration)
+      if [[ -f "$REPO_ROOT/jest.integration.config.ts" ]]; then
+        jest_config="-c ./jest.integration.config.ts"
+      fi
+      ;;
+    acceptance)
+      if [[ -f "$REPO_ROOT/jest.acceptance.config.ts" ]]; then
+        jest_config="-c ./jest.acceptance.config.ts"
+      fi
+      ;;
+  esac
+
   # use jest --listTests to get matched files
   local matched_files
-  if ! matched_files=$(npx jest --listTests --testPathPatterns "$scope" 2>/dev/null); then
+  # shellcheck disable=SC2086
+  if ! matched_files=$(npx jest $jest_config --listTests --testPathPatterns "$scope" 2>/dev/null); then
+    echo "-1"  # -1 means couldn't check
     return
   fi
 
@@ -127,6 +195,16 @@ preview_scope_matches() {
   file_count=$(echo "$matched_files" | grep -cE '^\/' 2>/dev/null || true)
   # ensure file_count is a number (grep -c can return empty on some systems)
   [[ -z "$file_count" ]] && file_count=0
+
+  echo "$file_count"
+}
+
+######################################################################
+# scope preview: show matched files before run
+######################################################################
+preview_scope_matches() {
+  local scope="$1"
+  local file_count="$2"
 
   echo "   ├─ scope: $scope"
   echo "   │  └─ matched: $file_count files"
@@ -142,6 +220,7 @@ RESNAP=false
 THOROUGH=false
 LOG_MODE="auto"  # auto | always (auto = persist on failure; always = persist always)
 MULTI_CHILD=false  # internal flag: set when invoked as child of multi-mode
+TIMEOUT=""  # optional timeout in seconds (e.g., "30" for 30s)
 REST_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -178,13 +257,17 @@ while [[ $# -gt 0 ]]; do
       MULTI_CHILD=true
       shift
       ;;
+    --timeout)
+      TIMEOUT="$2"
+      shift 2
+      ;;
     --)
       shift
       REST_ARGS=("$@")
       break
       ;;
     --help|-h)
-      echo "usage: git.repo.test.sh --what <type> [--scope <pattern>] [--resnap] [--thorough] [-- <jest-args>]"
+      echo "usage: git.repo.test.sh --what <type> [--scope <pattern>] [--resnap] [--thorough] [--timeout <secs>] [-- <jest-args>]"
       echo ""
       echo "run repo tests with turtle vibes summary and log capture"
       echo ""
@@ -193,6 +276,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --scope <pat>    regex pattern for jest --testPathPatterns (optional)"
       echo "  --resnap         set RESNAP=true to update snapshots (optional)"
       echo "  --thorough       set THOROUGH=true for full test runs (optional)"
+      echo "  --timeout <secs> max time in seconds before timeout (optional)"
       echo "  --log <mode>     auto | always (default: auto)"
       echo "                   auto = persist logs on failure only"
       echo "                   always = persist logs on success and failure"
@@ -348,6 +432,11 @@ validate_npm_command() {
 # validate npm command exists (skip for multi-mode - validated per-type in loop)
 if [[ "$MULTI_MODE" != "true" ]]; then
   validate_npm_command "$WHAT"
+fi
+
+# validate jest config exists (skip for multi-mode - validated per-type in loop)
+if [[ "$MULTI_MODE" != "true" ]]; then
+  validate_jest_config "$WHAT"
 fi
 
 ######################################################################
@@ -533,9 +622,14 @@ run_single_test() {
     env_prefix="${env_prefix}THOROUGH=true "
   fi
 
-  # run command
+  # run command (with optional timeout)
   local exit_code=0
-  eval "${env_prefix}${npm_cmd}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+  if [[ -n "$TIMEOUT" ]]; then
+    # use timeout command; exit 124 means timeout exceeded
+    timeout "${TIMEOUT}s" bash -c "${env_prefix}${npm_cmd}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+  else
+    eval "${env_prefix}${npm_cmd}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+  fi
 
   return $exit_code
 }
@@ -575,7 +669,7 @@ output_success() {
     echo "   ├─ stats"
     echo "   │  ├─ suites: ${JEST_SUITES} files"
     echo "   │  ├─ tests: ${JEST_PASSED:-0} passed, ${JEST_FAILED:-0} failed, ${JEST_SKIPPED:-0} skipped"
-    echo "   │  └─ time: ${JEST_TIME:-?}"
+    echo "   │  └─ time: ${total_time:-?}s"
   fi
 
   # log section based on LOG_MODE
@@ -644,7 +738,7 @@ output_failure() {
       echo "   ├─ stats"
       echo "   │  ├─ suites: ${JEST_SUITES} files"
       echo "   │  ├─ tests: ${JEST_PASSED:-0} passed, ${JEST_FAILED:-0} failed, ${JEST_SKIPPED:-0} skipped"
-      echo "   │  └─ time: ${JEST_TIME:-?}"
+      echo "   │  └─ time: ${total_time:-?}s"
     elif [[ "$test_type" == "lint" ]]; then
       local error_count
       error_count=$(parse_lint_output "$TEMP_STDOUT")
@@ -738,12 +832,22 @@ if [[ -n "$KEYRACK_STATUS" ]]; then
   print_tree_branch "keyrack" "$KEYRACK_STATUS"
 fi
 
-# show scope preview if applicable
+# show scope preview if applicable and failfast if 0 matches
 SCOPE_PREVIEW_OUTPUT=""
+SCOPE_FILE_COUNT=""
 if [[ -n "$SCOPE" ]] && [[ "$WHAT" != "lint" ]]; then
-  SCOPE_PREVIEW_OUTPUT=$(preview_scope_matches "$WHAT" "$SCOPE")
-  if [[ -n "$SCOPE_PREVIEW_OUTPUT" ]]; then
+  SCOPE_FILE_COUNT=$(get_scope_file_count "$WHAT" "$SCOPE")
+
+  # show preview (skip if count check failed)
+  if [[ "$SCOPE_FILE_COUNT" != "-1" ]]; then
+    SCOPE_PREVIEW_OUTPUT=$(preview_scope_matches "$SCOPE" "$SCOPE_FILE_COUNT")
     echo "$SCOPE_PREVIEW_OUTPUT"
+
+    # failfast if scope matched 0 files
+    if [[ "$SCOPE_FILE_COUNT" == "0" ]]; then
+      output_no_tests "true" | emit_to_both
+      exit 2
+    fi
   fi
 fi
 
@@ -790,6 +894,43 @@ REL_STDERR_LOG="$LOG_DIR/${ISOTIME}.stderr.log"
 if [[ "$JEST_NO_TESTS" == "true" ]]; then
   output_no_tests "true" | emit_to_both
   exit 2
+fi
+
+######################################################################
+# check for timeout (exit code 124 from timeout command)
+######################################################################
+if [[ $NPM_EXIT_CODE -eq 124 ]]; then
+  # persist logs
+  cp "$TEMP_STDOUT" "$STDOUT_LOG"
+  cp "$TEMP_STDERR" "$STDERR_LOG"
+
+  # output timeout error
+  _output=$(
+    echo "   │  └─ ⏱️ timeout (${TOTAL_ELAPSED}s)"
+    print_tree_branch "status" "malfunction"
+    echo "   ├─ error: test exceeded ${TIMEOUT}s timeout"
+    echo "   └─ log"
+    echo "      ├─ stdout: $REL_STDOUT_LOG"
+    echo "      └─ stderr: $REL_STDERR_LOG"
+    echo ""
+    echo "hint: increase --timeout or check for slow tests"
+  )
+  echo "$_output"
+
+  # stderr gets full output
+  {
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.repo.test $DISPLAY_ARGS"
+    if [[ -n "$KEYRACK_STATUS" ]]; then
+      print_tree_branch "keyrack" "$KEYRACK_STATUS"
+    fi
+    if [[ -n "$SCOPE_PREVIEW_OUTPUT" ]]; then
+      echo "$SCOPE_PREVIEW_OUTPUT"
+    fi
+    echo "$_output"
+  } >&2
+
+  exit 1
 fi
 
 ######################################################################

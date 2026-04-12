@@ -37,6 +37,7 @@ describe('git.repo.test', () => {
   const setupFixture = (config: {
     packageJson: object;
     jestConfig?: string;
+    jestConfigs?: Array<'unit' | 'integration' | 'acceptance'>;
     testFiles?: Record<string, string>;
     mockKeyrack?: boolean;
     mockNpm?: { exitCode: number; stdout?: string; stderr?: string };
@@ -49,9 +50,19 @@ describe('git.repo.test', () => {
       JSON.stringify(config.packageJson, null, 2),
     );
 
-    // write jest.config.js if provided
+    // write jest.config.js if provided (legacy)
     if (config.jestConfig) {
       fs.writeFileSync(path.join(tempDir, 'jest.config.js'), config.jestConfig);
+    }
+
+    // write jest.{type}.config.ts files (required by skill validation)
+    if (config.jestConfigs) {
+      for (const configType of config.jestConfigs) {
+        fs.writeFileSync(
+          path.join(tempDir, `jest.${configType}.config.ts`),
+          `module.exports = { testMatch: ['**/*.${configType}.test.ts'] };`,
+        );
+      }
     }
 
     // write test files if provided
@@ -136,6 +147,7 @@ exit ${npmExitCode}
               'test:unit': 'echo "run tests" && exit 0',
             },
           },
+          jestConfigs: ['unit'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:unit',
@@ -190,6 +202,7 @@ Time:        0.5 s`,
               'test:unit': 'jest',
             },
           },
+          jestConfigs: ['unit'],
           mockNpm: {
             exitCode: 1,
             stdout: '> test-repo@1.0.0 test:unit',
@@ -244,10 +257,15 @@ Time:        0.3 s`,
               'test:unit': 'jest',
             },
           },
+          jestConfigs: ['unit'],
+          testFiles: {
+            'src/user.unit.test.ts': `test('user works', () => expect(true).toBe(true));`,
+            'src/product.unit.test.ts': `test('product works', () => expect(true).toBe(true));`,
+          },
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:unit',
-            stderr: `PASS src/user.test.ts
+            stderr: `PASS src/user.unit.test.ts
 Test Suites: 1 passed, 1 total
 Tests:       2 passed, 2 total
 Snapshots:   0 total
@@ -290,6 +308,7 @@ Ran all test suites matched user.`,
                 'echo "RESNAP=$RESNAP" && [ "$RESNAP" = "true" ] && exit 0',
             },
           },
+          jestConfigs: ['unit'],
           mockNpm: {
             exitCode: 0,
             stdout: 'RESNAP=true',
@@ -331,6 +350,7 @@ Time:        0.3 s`,
               'test:integration': 'jest --config jest.integration.config.js',
             },
           },
+          jestConfigs: ['integration'],
           mockKeyrack: true,
           mockNpm: {
             exitCode: 0,
@@ -380,6 +400,7 @@ Time:        2.1 s`,
               'test:unit': 'jest',
             },
           },
+          jestConfigs: ['unit'],
           mockNpm: {
             exitCode: 1,
             stdout: '',
@@ -462,6 +483,7 @@ No tests found related to files changed since last commit.`,
               'test:unit': 'jest',
             },
           },
+          jestConfigs: ['unit'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:unit -- --verbose',
@@ -546,6 +568,7 @@ Time:        0.2 s`,
               'test:acceptance': 'jest --config=jest.acceptance.config.js',
             },
           },
+          jestConfigs: ['acceptance'],
           mockKeyrack: true,
           mockNpm: {
             exitCode: 0,
@@ -607,6 +630,14 @@ Time:        4.5 s`,
             2,
           ),
         );
+
+        // create jest config files (required by skill validation)
+        for (const configType of ['unit', 'integration', 'acceptance']) {
+          fs.writeFileSync(
+            path.join(tempDir, `jest.${configType}.config.ts`),
+            `module.exports = { testMatch: ['**/*.${configType}.test.ts'] };`,
+          );
+        }
 
         // create mock npm that tracks calls and returns success for all
         const fakeBinDir = path.join(tempDir, '.fakebin');
@@ -706,6 +737,14 @@ exec "$(which rhx)" "$@"
           ),
         );
 
+        // create jest config files (required by skill validation)
+        for (const configType of ['unit', 'integration', 'acceptance']) {
+          fs.writeFileSync(
+            path.join(tempDir, `jest.${configType}.config.ts`),
+            `module.exports = { testMatch: ['**/*.${configType}.test.ts'] };`,
+          );
+        }
+
         // mock npm: lint fails
         const fakeBinDir = path.join(tempDir, '.fakebin');
         fs.mkdirSync(fakeBinDir, { recursive: true });
@@ -766,6 +805,7 @@ exit 0
               'test:unit': 'jest',
             },
           },
+          jestConfigs: ['unit'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:unit',
@@ -806,6 +846,7 @@ Time:        3.5 s`,
               'test:unit': 'jest',
             },
           },
+          jestConfigs: ['unit'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:unit',

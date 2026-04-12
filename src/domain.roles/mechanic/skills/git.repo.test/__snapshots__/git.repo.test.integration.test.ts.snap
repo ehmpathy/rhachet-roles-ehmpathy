@@ -6,7 +6,7 @@ exports[`git.repo.test.sh given: [case1] lint passes when: [t0] \`rhx git.repo.t
 🐚 git.repo.test --what lint
    ├─ status
    │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  └─ 🎉 passed (1s)
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -17,7 +17,7 @@ exports[`git.repo.test.sh given: [case2] lint fails when: [t0] \`rhx git.repo.te
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
-   │  └─ ✋ failed (1s)
+   │  └─ ✋ failed (0s)
    ├─ defects: 3
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
@@ -106,7 +106,7 @@ exports[`git.repo.test.sh given: [case11] types passes when: [t0] \`rhx git.repo
 🐚 git.repo.test --what types
    ├─ status
    │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (1s)
+   │  └─ 🎉 passed (0s)
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -169,5 +169,139 @@ exports[`git.repo.test.sh given: [case17] comma-separated --what values when: [t
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
 
+"
+`;
+
+exports[`git.repo.test.sh given: [case19] --scope matches 0 files when: [t0] \`rhx git.repo.test --what unit --scope nonexistent-pattern-xyz\` is run then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope nonexistent-pattern-xyz-12345
+   ├─ scope: nonexistent-pattern-xyz-12345
+   │  └─ matched: 0 files
+   ├─ status: constraint
+   └─ error: no tests matched scope 'nonexistent-pattern-xyz-12345'
+
+hint: check the scope pattern or run without --scope to see all tests
+"
+`;
+
+exports[`git.repo.test.sh given: [case19] --scope matches 0 files when: [t0] \`rhx git.repo.test --what unit --scope nonexistent-pattern-xyz\` is run then: output matches snapshot 2`] = `
+"   ├─ status: constraint
+   └─ error: no tests matched scope 'nonexistent-pattern-xyz-12345'
+
+hint: check the scope pattern or run without --scope to see all tests
+"
+`;
+
+exports[`git.repo.test.sh given: [case21] jest config file absent when: [t0] \`rhx git.repo.test --what unit\` is run without jest.unit.config.ts then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit
+   ├─ status: constraint
+   └─ error: jest.unit.config.ts not found
+
+hint: create jest.unit.config.ts for unit tests
+      ehmpathy convention uses jest.{unit,integration,acceptance}.config.ts
+"
+`;
+
+exports[`git.repo.test.sh given: [case22] --timeout flag when: [t0] \`rhx git.repo.test --what lint --timeout 1\` with slow command then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint
+   ├─ status
+   │  ├─ 💤 inflight (0s)
+   │  └─ ⏱️ timeout (2s)
+   ├─ status: malfunction
+   ├─ error: test exceeded 1s timeout
+   └─ log
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
+
+hint: increase --timeout or check for slow tests
+"
+`;
+
+exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t0] \`rhx git.repo.test --what unit --scope cpsafe\` is run then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t0] \`rhx git.repo.test --what unit --scope cpsafe\` is run then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope cpsafe
+   ├─ scope: cpsafe
+   │  └─ matched: 1 files
+   ├─ status
+   │  ├─ 💤 inflight (0s)
+   │  └─ 🎉 passed (2s)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 0 passed, 0 failed, 0 skipped
+   │  └─ time: 2s
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t1] \`rhx git.repo.test --what unit --scope other\` is run then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t1] \`rhx git.repo.test --what unit --scope other\` is run then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope other
+   ├─ scope: other
+   │  └─ matched: 1 files
+   ├─ status
+   │  ├─ 💤 inflight (0s)
+   │  └─ 🎉 passed (2s)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 0 passed, 0 failed, 0 skipped
+   │  └─ time: 2s
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t2] \`rhx git.repo.test --what unit --scope xyz\` is run then: stderr matches snapshot 1`] = `
+"   ├─ status: constraint
+   └─ error: no tests matched scope 'nonexistent-xyz'
+
+hint: check the scope pattern or run without --scope to see all tests
+"
+`;
+
+exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t2] \`rhx git.repo.test --what unit --scope xyz\` is run then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope nonexistent-xyz
+   ├─ scope: nonexistent-xyz
+   │  └─ matched: 0 files
+   ├─ status: constraint
+   └─ error: no tests matched scope 'nonexistent-xyz'
+
+hint: check the scope pattern or run without --scope to see all tests
+"
+`;
+
+exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t3] unit config only matches unit test files, not integration files then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t3] unit config only matches unit test files, not integration files then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope myfeature
+   ├─ scope: myfeature
+   │  └─ matched: 1 files
+   ├─ status
+   │  ├─ 💤 inflight (0s)
+   │  └─ 🎉 passed (2s)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 0 passed, 0 failed, 0 skipped
+   │  └─ time: 2s
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
 "
 `;

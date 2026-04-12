@@ -1,0 +1,15 @@
+slug: 'git-repo-test-config-failfast'
+source: 'peer:human'
+status:
+  choice: 'complete'
+  reason: 'status updated'
+updatedAt: '2026-04-12'
+why:
+  ask: 'failfast if jest config file dne for unit/integration/acceptance'
+  purpose: 'prevent unclear test runs when jest config is absent'
+  benefit: 'clear error message instead of cryptic jest failures'
+what:
+  outcome: 'skill exits 2 with helpful error when config file absent'
+how:
+  task: "- add validate_jest_config function that checks for config file\n- call validation before scope check for unit/integration/acceptance\n- output clear error with hint about required config file\n- add test coverage for absent config scenario\n"
+  gate: "- test:integration passes with new test cases\n- manually verify error message when config absent\n"

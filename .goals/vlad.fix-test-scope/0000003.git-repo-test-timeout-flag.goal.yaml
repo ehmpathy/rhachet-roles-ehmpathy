@@ -1,0 +1,15 @@
+slug: 'git-repo-test-timeout-flag'
+source: 'peer:human'
+status:
+  choice: 'complete'
+  reason: 'status updated'
+updatedAt: '2026-04-12'
+why:
+  ask: 'add --timeout flag for expected-fast test runs'
+  purpose: 'enable fast-fail for tests expected to complete quickly'
+  benefit: 'CI pipelines and local dev can timeout slow tests early'
+what:
+  outcome: '--timeout <secs> flag limits max run time, exits 1 on timeout'
+how:
+  task: "- add --timeout argument parse (done)\n- wrap test execution in timeout command\n- emit clear timeout error with elapsed time\n- add test coverage for timeout scenario\n"
+  gate: "- test:integration passes with new test cases\n- manually verify timeout exits 1 with message\n"

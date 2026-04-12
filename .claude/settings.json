@@ -149,6 +149,12 @@
             "command": "./node_modules/.bin/rhx route.mutate.guard --mode hook",
             "timeout": 5,
             "author": "repo=bhrain/role=driver"
+          },
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhx goal.guard",
+            "timeout": 5,
+            "author": "repo=bhrain/role=achiever"
           }
         ]
       },
