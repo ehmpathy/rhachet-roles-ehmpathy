@@ -1,0 +1,82 @@
+{
+  "flakes": [
+    {
+      "test": "src/domain.roles/librarian/skills/brief.compress/brief.compress.integration.test.ts",
+      "count": 3,
+      "errors": [
+        "2026-04-12T19:11:35.9750392Z FAIL src/domain.roles/librarian/skills/brief.compress/brief.compress.integration.test.ts (63.961 s) 2026-04-12T19:11:35.9751366Z   brief.compress.sh 2026-04-12T19:11:35.97",
+        "2026-04-11T19:16:16.0576709Z FAIL src/domain.roles/librarian/skills/brief.compress/brief.compress.integration.test.ts (64.088 s) 2026-04-11T19:16:16.0577549Z   brief.compress.sh 2026-04-11T19:16:16.05",
+        "2026-04-11T15:08:27.5653771Z FAIL src/domain.roles/librarian/skills/brief.compress/brief.compress.integration.test.ts (63.984 s) 2026-04-11T15:08:27.5654767Z   brief.compress.sh 2026-04-11T15:08:27.56"
+      ],
+      "run_ids": [
+        "24314200076",
+        "24289601579",
+        "24285181906"
+      ],
+      "branches": [
+        "release/v1.34.29",
+        "release/v1.34.30",
+        "vlad/fix-test-scope"
+      ],
+      "first_seen": "2026-04-11T15:05:52Z",
+      "last_seen": "2026-04-12T19:09:05Z",
+      "diagnose": [
+        {
+          "run_id": "24314200076",
+          "attempt": 1,
+          "cmds": {
+            "1_gh_run_view": "gh run view 24314200076 --log-failed --attempt 1",
+            "2_github_web_url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/actions/runs/24314200076/attempts/1"
+          }
+        },
+        {
+          "run_id": "24289601579",
+          "attempt": 1,
+          "cmds": {
+            "1_gh_run_view": "gh run view 24289601579 --log-failed --attempt 1",
+            "2_github_web_url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/actions/runs/24289601579/attempts/1"
+          }
+        },
+        {
+          "run_id": "24285181906",
+          "attempt": 1,
+          "cmds": {
+            "1_gh_run_view": "gh run view 24285181906 --log-failed --attempt 1",
+            "2_github_web_url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/actions/runs/24285181906/attempts/1"
+          }
+        }
+      ]
+    },
+    {
+      "test": "src/domain.roles/mechanic/skills/git.release/git.release.p3.scenes.on_main.into_prod.integration.test.ts",
+      "count": 1,
+      "errors": [
+        "2026-04-11T15:02:45.6890474Z FAIL src/domain.roles/mechanic/skills/git.release/git.release.p3.scenes.on_main.into_prod.integration.test.ts (33.504 s) 2026-04-11T15:02:45.6894111Z   git.release.p3.scen"
+      ],
+      "run_ids": [
+        "24285101206"
+      ],
+      "branches": [
+        "vlad/git-repo-test"
+      ],
+      "first_seen": "2026-04-11T15:01:32Z",
+      "last_seen": "2026-04-11T15:01:32Z",
+      "diagnose": [
+        {
+          "run_id": "24285101206",
+          "attempt": 1,
+          "cmds": {
+            "1_gh_run_view": "gh run view 24285101206 --log-failed --attempt 1",
+            "2_github_web_url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/actions/runs/24285101206/attempts/1"
+          }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "days": 30,
+    "scanned_at": "2026-04-12T21:46:15-05:00",
+    "runs_analyzed": 100,
+    "retried_runs_found": 4
+  }
+}

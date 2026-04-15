@@ -1,0 +1,72 @@
+execute the repair plan.
+
+.why = make the repairs, release, verify CI passes at least once.
+
+---
+
+## how to execute
+
+for each repair from the plan:
+
+### step 1: make the repair
+
+follow the repair steps from 3.plan.yield.md exactly:
+- modify the codepath node identified in diagnosis
+- apply the repair pattern specified in plan
+- ensure the change is minimal and focused
+
+### step 2: verify locally
+
+run the local verification from the plan:
+```sh
+npm run test:integration -- {test-name} --runInBand
+```
+- run 10x to confirm stability
+- if flake persists, revisit diagnosis
+
+### step 3: commit and release
+
+```sh
+# commit the repair
+printf 'fix(test): deflake {test-name}
+
+- {what was changed}
+- {why it fixes the flake}' | rhx git.commit.set -m @stdin --mode apply --push
+
+# watch CI to ensure it passes at least once
+rhx git.release --watch
+```
+
+### step 4: document
+
+record in the yield what was done for each repair.
+
+---
+
+## execution checklist
+
+- [ ] repairs made (code or infra)
+- [ ] local verification passed (10x run)
+- [ ] changes committed
+- [ ] PR merged to main
+- [ ] CI passed at least once (`rhx git.release --watch` shows green)
+
+---
+
+## repairs made
+
+for each flake:
+
+### flake: {test name}
+
+**repair applied:** {what was changed}
+
+**local verification:** {10x run result}
+
+**commit:** {commit hash or PR link}
+
+**ci status:** {passed / awaited}
+
+---
+
+emit into $route/4.execution.yield.md

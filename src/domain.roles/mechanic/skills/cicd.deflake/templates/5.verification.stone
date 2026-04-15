@@ -1,0 +1,53 @@
+verify zero flakes with 3 consecutive CI runs.
+
+.why = prove stability, not luck.
+
+---
+
+## how to verify
+
+use `rhx git.release` to watch CI runs and retry on success:
+
+### run 1
+```sh
+rhx git.release --watch
+```
+- if FAILED → rewind to plan: `rhx route.stone.set --stone 3.plan --as rewound`
+- if PASSED → continue to run 2
+
+### run 2
+```sh
+rhx git.release --retry   # triggers new workflow run
+rhx git.release --watch   # watch until complete
+```
+- if FAILED → rewind to plan: `rhx route.stone.set --stone 3.plan --as rewound`
+- if PASSED → continue to run 3
+
+### run 3
+```sh
+rhx git.release --retry   # triggers new workflow run
+rhx git.release --watch   # watch until complete
+```
+- if FAILED → rewind to plan: `rhx route.stone.set --stone 3.plan --as rewound`
+- if PASSED → all 3 consecutive runs passed, proceed to itemize
+
+---
+
+## verification runs
+
+| run | result | link | command |
+|-----|--------|------|---------|
+| 1 | ? | | `rhx git.release --watch` |
+| 2 | ? | | `rhx git.release --retry && rhx git.release --watch` |
+| 3 | ? | | `rhx git.release --retry && rhx git.release --watch` |
+
+---
+
+## outcome
+
+- [ ] all 3 runs passed → proceed to itemize
+- [ ] any run failed → rewind to plan: `rhx route.stone.set --stone 3.plan --as rewound`
+
+---
+
+emit into $route/5.verification.yield.md

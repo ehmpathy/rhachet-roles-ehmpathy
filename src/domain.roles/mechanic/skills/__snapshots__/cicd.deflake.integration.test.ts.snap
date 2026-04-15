@@ -1,0 +1,69 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`cicd.deflake given: [case1] help: shows usage when: [t0] help subcommand is invoked then: shows subcommands and usage 1`] = `""`;
+
+exports[`cicd.deflake given: [case1] help: shows usage when: [t0] help subcommand is invoked then: shows subcommands and usage 2`] = `
+"usage: rhx cicd.deflake <subcommand>
+
+subcommands:
+  init      create route and bind to branch
+  detect    scan CI history for flaky tests
+  exhume    fetch failed attempt logs for diagnosis
+  help      show this help
+
+examples:
+  rhx cicd.deflake init
+  rhx cicd.deflake detect --days 30 --into $route/1.evidence.yield._.detected.json
+  rhx cicd.deflake exhume --run 24289601579 --attempt 1
+"
+`;
+
+exports[`cicd.deflake given: [case2] unknown subcommand when: [t0] unknown subcommand is provided then: exits with error and shows hint 1`] = `
+"🐢 bummer dude...
+
+🐚 cicd.deflake
+   └─ error: unknown subcommand: foo
+
+   valid subcommands: init, detect, exhume, help
+
+   run \`rhx cicd.deflake help\` for usage
+"
+`;
+
+exports[`cicd.deflake given: [case2] unknown subcommand when: [t0] unknown subcommand is provided then: exits with error and shows hint 2`] = `""`;
+
+exports[`cicd.deflake given: [case3] no subcommand provided when: [t0] no subcommand is provided then: shows usage 1`] = `""`;
+
+exports[`cicd.deflake given: [case3] no subcommand provided when: [t0] no subcommand is provided then: shows usage 2`] = `
+"usage: rhx cicd.deflake <subcommand>
+
+subcommands:
+  init      create route and bind to branch
+  detect    scan CI history for flaky tests
+  exhume    fetch failed attempt logs for diagnosis
+  help      show this help
+
+examples:
+  rhx cicd.deflake init
+  rhx cicd.deflake detect --days 30 --into $route/1.evidence.yield._.detected.json
+  rhx cicd.deflake exhume --run 24289601579 --attempt 1
+"
+`;
+
+exports[`cicd.deflake given: [case4] main command: --help flag when: [t0] --help is passed to main command then: shows usage with subcommands 1`] = `
+"usage: rhx cicd.deflake <subcommand>
+
+subcommands:
+  init      create route and bind to branch
+  detect    scan CI history for flaky tests
+  exhume    fetch failed attempt logs for diagnosis
+  help      show this help
+
+examples:
+  rhx cicd.deflake init
+  rhx cicd.deflake detect --days 30 --into $route/1.evidence.yield._.detected.json
+  rhx cicd.deflake exhume --run 24289601579 --attempt 1
+"
+`;
+
+exports[`cicd.deflake given: [case4] main command: --help flag when: [t0] --help is passed to main command then: shows usage with subcommands 2`] = `""`;

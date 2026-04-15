@@ -59,6 +59,8 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
       └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
@@ -87,6 +89,8 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
@@ -156,14 +160,17 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
       └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
 🌊 release: v1.3.0
-   ├─ 🐢 1 check(s) in progress
+   ├─ 👌 all checks passed
    └─ 🥥 let's watch
-      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 🫧 no runs inflight
       └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
@@ -208,14 +215,17 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
       └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
 
 🌊 release: v1.3.0
-   ├─ 🐢 1 check(s) in progress
+   ├─ 👌 all checks passed
    └─ 🥥 let's watch
-      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 🫧 no runs inflight
       └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
@@ -243,6 +253,9 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
       └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
@@ -251,7 +264,6 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -264,8 +276,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 👌 all checks passed
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
-      ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! merged!
 
 🫧 and then...
 
@@ -312,8 +323,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 👌 all checks passed
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
-      ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ 🫧 no runs inflight
       └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
@@ -347,8 +357,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 👌 all checks passed
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
-      ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ 🫧 no runs inflight
       └─ ✨ done! 1m Xs in action, Xs watched
 
 🫧 and then...
@@ -559,15 +568,6 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    └─ 🌴 already merged
-
-🫧 and then...
-
-🌊 release: v1.3.0
-   ├─ 👌 all checks passed
-   └─ 🥥 let's watch
-      ├─ 💤 await, Xs in action, Xs watched
-      ├─ 💤 await, Xs in action, Xs watched
-      └─ ✨ done! Xs in action, Xs watched
 "
 `;
 
@@ -622,6 +622,8 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
       └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
@@ -656,6 +658,8 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "

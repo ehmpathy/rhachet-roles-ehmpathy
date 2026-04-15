@@ -1,0 +1,7 @@
+{"stone":"1.evidence","status":"passed"}
+{"stone":"2.1.diagnose.research","status":"blocked","blocker":"review.self","reason":"review.self required: has-complete-coverage"}
+{"stone":"2.1.diagnose.research","status":"passed"}
+{"stone":"2.2.diagnose.rootcause","status":"blocked","blocker":"review.self","reason":"review.self required: has-complete-coverage"}
+{"stone":"2.2.diagnose.rootcause","status":"passed"}
+{"stone":"3.plan","status":"blocked","blocker":"review.self","reason":"review.self required: has-preserved-test-intent"}
+{"stone":"3.plan","status":"passed"}

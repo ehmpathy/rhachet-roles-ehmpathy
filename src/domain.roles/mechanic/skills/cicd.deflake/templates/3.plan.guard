@@ -1,0 +1,18 @@
+artifacts:
+  - $route/3.plan.yield.md
+
+protect:
+  - src/**/*
+
+reviews:
+  self:
+    - slug: has-preserved-test-intent
+      say: |
+        does the plan preserve test intent?
+
+        BLOCKERS:
+        - plan includes test skip
+        - plan includes accepted failure
+        - plan removes assertions without replacement
+
+        test intent must be preserved. repair the flake, not the covered behavior.

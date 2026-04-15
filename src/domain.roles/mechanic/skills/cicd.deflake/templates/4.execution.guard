@@ -1,0 +1,43 @@
+artifacts:
+  - $route/4.execution.yield.md
+  - src/**/*
+
+reviews:
+  peer:
+    - npx rhachet run --repo bhrain --skill review --rules '.agent/repo=ehmpathy/role=mechanic/briefs/practices/code.{prod,test}/pitofsuccess.errors/rule.*.md' --diffs since-main --paths-with 'src/**/*' --join intersect --output '$route/.reviews/$stone.peer-review.failhides.md' --mode hard
+
+  self:
+    - slug: has-no-failhide
+      say: |
+        does the repair avoid failhide patterns?
+
+        BLOCKERS:
+        - try/catch that swallows errors without rethrow
+        - empty catch blocks
+        - catch that returns success on error
+        - timeout increase without root cause fix
+
+        failhide degrades reliability. fix root cause, not symptoms.
+
+    - slug: has-failfast
+      say: |
+        does the repair preserve failfast behavior?
+
+        BLOCKERS:
+        - removed validation that should remain
+        - removed early return that guards invalid state
+        - added retry that masks root cause
+
+        failfast catches bugs early. do not weaken it.
+
+    - slug: has-local-verification
+      say: |
+        was the repair verified locally before commit?
+
+        check: 4.execution.yield.md shows "local verification: 10x run passed"
+        check: each flake repair has local verification status
+
+        BLOCKER if local verification absent or failed.
+
+judges:
+  - npx rhachet run --repo bhrain --skill route.stone.judge --mechanism reviewed? --stone $stone --route $route --allow-blockers 0 --allow-nitpicks 3

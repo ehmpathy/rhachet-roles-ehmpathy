@@ -1,0 +1,76 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`cicd.deflake exhume given: [case1] requires --run argument when: [t0] exhume is invoked without --run then: exits with code 2 and shows error 1`] = `
+"🐢 bummer dude...
+
+🐚 cicd.deflake exhume
+   └─ error: --run is required
+
+   usage: rhx cicd.deflake exhume --run <id> --attempt <n>
+"
+`;
+
+exports[`cicd.deflake exhume given: [case1] requires --run argument when: [t0] exhume is invoked without --run then: exits with code 2 and shows error 2`] = `""`;
+
+exports[`cicd.deflake exhume given: [case2] requires --attempt argument when: [t0] exhume is invoked without --attempt then: exits with code 2 and shows error with note about attempts 1`] = `
+"🐢 bummer dude...
+
+🐚 cicd.deflake exhume
+   └─ error: --attempt is required
+
+   usage: rhx cicd.deflake exhume --run <id> --attempt <n>
+
+   note: each attempt must be fetched explicitly
+         attempt 1 = first try (usually the failure)
+         attempt 2+ = retries
+"
+`;
+
+exports[`cicd.deflake exhume given: [case2] requires --attempt argument when: [t0] exhume is invoked without --attempt then: exits with code 2 and shows error with note about attempts 2`] = `""`;
+
+exports[`cicd.deflake exhume given: [case3] invalid --run value when: [t0] exhume is invoked with non-numeric --run then: exits with code 2 and shows error 1`] = `
+"🐢 bummer dude...
+
+🐚 cicd.deflake exhume
+   └─ error: --run must be a numeric run id
+
+   got: abc
+   usage: rhx cicd.deflake exhume --run 24289601579 --attempt 1
+"
+`;
+
+exports[`cicd.deflake exhume given: [case3] invalid --run value when: [t0] exhume is invoked with non-numeric --run then: exits with code 2 and shows error 2`] = `""`;
+
+exports[`cicd.deflake exhume given: [case4] shows help when: [t0] exhume --help is invoked then: shows usage with required --run and --attempt 1`] = `
+"usage: cicd.deflake exhume [options]
+
+fetch failed attempt logs for a flaky run
+
+options:
+  --run <id>       workflow run id (required)
+  --attempt <n>    attempt number (required)
+  --help, -h       show this help
+
+examples:
+  rhx cicd.deflake exhume --run 24289601579 --attempt 1
+"
+`;
+
+exports[`cicd.deflake exhume given: [case4] shows help when: [t0] exhume --help is invoked then: shows usage with required --run and --attempt 2`] = `""`;
+
+exports[`cicd.deflake exhume given: [case5] positive path with mocked gh when: [t0] exhume is invoked with valid args then: caches logs and outputs file path 1`] = `""`;
+
+exports[`cicd.deflake exhume given: [case5] positive path with mocked gh when: [t0] exhume is invoked with valid args then: caches logs and outputs file path 2`] = `
+"🐢 let's see what we find...
+
+🐚 cicd.deflake exhume
+   ├─ run: 12345
+   ├─ attempt: 1
+   ├─ status: cached
+   ├─ lines: 5
+   └─ into: .cache/repo=ehmpathy/role=mechanic/skill=cicd.deflake.exhume/run=12345.attempt=1.log
+
+⚓ wreck exhumed
+   └─ read .cache/repo=ehmpathy/role=mechanic/skill=cicd.deflake.exhume/run=12345.attempt=1.log for details
+"
+`;

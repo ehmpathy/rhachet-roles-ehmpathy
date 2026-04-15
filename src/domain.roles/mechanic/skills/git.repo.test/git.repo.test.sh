@@ -514,6 +514,8 @@ unlock_keyrack() {
   local unlock_output
   if unlock_output=$(rhx keyrack unlock --owner ehmpath --env test 2>&1); then
     KEYRACK_STATUS="unlocked ehmpath/test"
+    # export credentials as env vars so subprocesses can access them
+    eval "$(rhx keyrack source --owner ehmpath --env test --lenient 2>/dev/null)" || true
     return 0
   else
     local _output

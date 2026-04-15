@@ -17,7 +17,7 @@ exports[`git.repo.test.sh given: [case2] lint fails when: [t0] \`rhx git.repo.te
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
-   │  └─ ✋ failed (0s)
+   │  └─ ✋ failed (1s)
    ├─ defects: 3
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log

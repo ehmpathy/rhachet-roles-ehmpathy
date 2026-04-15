@@ -37,6 +37,9 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 await automerge, Xs in action, Xs watched
       └─ ✨ done! 1m Xs in action, Xs watched
 
 [2m🐚 continue?: rhx git.release --into prod --mode apply[0m
@@ -81,8 +84,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
    ├─ 👌 all checks passed
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
-      ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! merged!
 
 [2m🐚 continue?: rhx git.release --into prod --mode apply[0m
 "
@@ -123,8 +125,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
    ├─ 👌 all checks passed
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
-      ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ 🫧 no runs inflight
       └─ ✨ done! 1m Xs in action, Xs watched
 
 [2m🐚 continue?: rhx git.release --into prod --mode apply[0m
@@ -152,8 +153,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
    ├─ 👌 all checks passed
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
-      ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ 🫧 no runs inflight
       └─ ✨ done! 1m Xs in action, Xs watched
 "
 `;

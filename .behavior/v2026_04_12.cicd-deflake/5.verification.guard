@@ -1,0 +1,16 @@
+artifacts:
+  - $route/5.verification.yield.md
+
+reviews:
+  self:
+    - slug: has-three-passes
+      say: |
+        did all 3 verification runs pass?
+
+        check: 5.verification.yield.md shows 3 runs
+        check: all 3 runs show "pass" result
+
+        if any run failed, driver must run:
+          rhx route.stone.set --stone 3.plan --as rewound
+
+        this is a BLOCKER if any run failed.

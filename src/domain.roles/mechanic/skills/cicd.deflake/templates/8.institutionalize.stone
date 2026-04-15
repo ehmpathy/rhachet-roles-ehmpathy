@@ -1,0 +1,119 @@
+institutionalize the approved lessons.
+
+.why = crystallize lessons into reusable briefs or upgrade handoffs for future travelers.
+
+---
+
+## how to institutionalize
+
+### step 1: review approved lessons
+
+read 7.reflection.yield.md and identify lessons with human approval:
+
+| lesson | type | approved | action |
+|--------|------|----------|--------|
+| {name} | rule/howto/handoff | yes/no | create brief / skip |
+
+only institutionalize lessons that received human approval.
+
+### step 2: determine brief type
+
+| if the lesson... | then create... | example |
+|------------------|----------------|---------|
+| forbids a pattern | `rule.forbid.*.md` | rule.forbid.shared-mutable-state.md |
+| requires a pattern | `rule.require.*.md` | rule.require.test-isolation.md |
+| teaches a technique | `howto.*.md` | howto.mock-timers-safely.md |
+| needs infra change | `handoff.*.md` | handoff.ci-parallel-isolation.md |
+
+### step 3: write the brief
+
+for rules and howtos, use this structure:
+
+```markdown
+# {title}
+
+## .what
+{one line description}
+
+## .why
+{what problem this solves, what flakes this prevents}
+
+## .pattern
+{the concrete pattern to follow}
+
+## .examples
+### good
+{code example that follows the pattern}
+
+### bad
+{code example that violates the pattern}
+
+## .source
+from cicd.deflake reflection on {date}
+```
+
+for handoffs, use this structure:
+
+```markdown
+# handoff: {title}
+
+## .what
+{what needs to change}
+
+## .why
+{root cause this addresses}
+
+## .proposed fix
+{concrete steps to implement}
+
+## .files to modify
+- path/to/file.ts
+- .github/workflows/test.yml
+
+## .validation
+{how to verify the fix worked}
+
+## .source
+from cicd.deflake reflection on {date}
+```
+
+### step 4: commit each brief
+
+```sh
+# stage the brief
+git add .agent/repo=.this/role=any/briefs/{brief-name}.md
+
+# commit with traceable message
+git commit -m "fix(briefs): add {brief-name} from cicd.deflake reflection
+
+- institutionalizes lesson from deflake cycle on {date}
+- prevents: {what flake pattern this prevents}"
+```
+
+---
+
+## lessons to institutionalize
+
+| lesson | type | source | status |
+|--------|------|--------|--------|
+| {name} | {rule/howto/handoff} | 7.reflection.yield.md | [ ] done |
+
+### lesson 1: {name}
+
+**type:** rule / howto / handoff
+**path:** `.agent/repo=.this/role=any/briefs/{name}.md`
+**status:** [ ] created [ ] committed
+
+---
+
+## verification
+
+- [ ] all approved lessons have matched briefs
+- [ ] brief names follow convention: `rule.*.md`, `howto.*.md`, `handoff.*.md`
+- [ ] each brief has `.what`, `.why`, and `.source` sections
+- [ ] commits reference cicd.deflake reflection as source
+- [ ] handoffs include actionable next steps
+
+---
+
+emit into $route/8.institutionalize.yield.md
