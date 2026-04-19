@@ -1489,40 +1489,43 @@ exec "$(which rhx)" "$@"
       });
     });
 
-    when('[t4] --what all acceptance fails (after lint+unit+integration pass)', () => {
-      const result = useThen('skill executes', () => {
-        const tempDir = genTempDir({ slug: 'git-repo-test', git: true });
+    when(
+      '[t4] --what all acceptance fails (after lint+unit+integration pass)',
+      () => {
+        const result = useThen('skill executes', () => {
+          const tempDir = genTempDir({ slug: 'git-repo-test', git: true });
 
-        fs.writeFileSync(
-          path.join(tempDir, 'package.json'),
-          JSON.stringify(
-            {
-              name: 'test-repo',
-              scripts: {
-                'test:lint': 'eslint .',
-                'test:unit': 'jest --config=jest.unit.config.js',
-                'test:integration': 'jest --config=jest.integration.config.js',
-                'test:acceptance': 'jest --config=jest.acceptance.config.js',
-              },
-            },
-            null,
-            2,
-          ),
-        );
-
-        for (const configType of ['unit', 'integration', 'acceptance']) {
           fs.writeFileSync(
-            path.join(tempDir, `jest.${configType}.config.ts`),
-            `module.exports = { testMatch: ['**/*.${configType}.test.ts'] };`,
+            path.join(tempDir, 'package.json'),
+            JSON.stringify(
+              {
+                name: 'test-repo',
+                scripts: {
+                  'test:lint': 'eslint .',
+                  'test:unit': 'jest --config=jest.unit.config.js',
+                  'test:integration':
+                    'jest --config=jest.integration.config.js',
+                  'test:acceptance': 'jest --config=jest.acceptance.config.js',
+                },
+              },
+              null,
+              2,
+            ),
           );
-        }
 
-        const fakeBinDir = path.join(tempDir, '.fakebin');
-        fs.mkdirSync(fakeBinDir, { recursive: true });
+          for (const configType of ['unit', 'integration', 'acceptance']) {
+            fs.writeFileSync(
+              path.join(tempDir, `jest.${configType}.config.ts`),
+              `module.exports = { testMatch: ['**/*.${configType}.test.ts'] };`,
+            );
+          }
 
-        fs.writeFileSync(
-          path.join(fakeBinDir, 'npm'),
-          `#!/bin/bash
+          const fakeBinDir = path.join(tempDir, '.fakebin');
+          fs.mkdirSync(fakeBinDir, { recursive: true });
+
+          fs.writeFileSync(
+            path.join(fakeBinDir, 'npm'),
+            `#!/bin/bash
 if [[ "$*" == *"test:lint"* ]]; then
   exit 0
 elif [[ "$*" == *"test:unit"* ]]; then
@@ -1537,46 +1540,47 @@ elif [[ "$*" == *"test:acceptance"* ]]; then
 fi
 exit 0
 `,
-        );
-        fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
 
-        fs.writeFileSync(
-          path.join(fakeBinDir, 'rhx'),
-          `#!/bin/bash
+          fs.writeFileSync(
+            path.join(fakeBinDir, 'rhx'),
+            `#!/bin/bash
 if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
   echo "unlocked ehmpath/test"
   exit 0
 fi
 exec "$(which rhx)" "$@"
 `,
-        );
-        fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
 
-        const env = {
-          ...process.env,
-          PATH: `${fakeBinDir}:${process.env.PATH}`,
-        };
+          const env = {
+            ...process.env,
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
+          };
 
-        return runGitRepoTest({
-          tempDir,
-          gitRepoTestArgs: ['--what', 'all'],
-          env,
+          return runGitRepoTest({
+            tempDir,
+            gitRepoTestArgs: ['--what', 'all'],
+            env,
+          });
         });
-      });
 
-      then('exit code is 2', () => {
-        expect(result.exitCode).toBe(2);
-      });
+        then('exit code is 2', () => {
+          expect(result.exitCode).toBe(2);
+        });
 
-      then('output shows acceptance failed', () => {
-        expect(result.stderr).toContain('--what acceptance');
-        expect(result.stderr).toMatch(/failed/);
-      });
+        then('output shows acceptance failed', () => {
+          expect(result.stderr).toContain('--what acceptance');
+          expect(result.stderr).toMatch(/failed/);
+        });
 
-      then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
-      });
-    });
+        then('output matches snapshot', () => {
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      },
+    );
   });
 
   // ######################################################################
@@ -2084,7 +2088,9 @@ Time:        0.1 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout || result.stderr)).toMatchSnapshot();
+        expect(
+          sanitizeOutput(result.stdout || result.stderr),
+        ).toMatchSnapshot();
       });
     });
   });
@@ -2115,7 +2121,9 @@ Time:        0.1 s`,
 
       then('keyrack was called (output contains keyrack info)', () => {
         // real keyrack will either unlock or show an error
-        expect(result.stdout + result.stderr).toMatch(/keyrack|unlock|ehmpath/i);
+        expect(result.stdout + result.stderr).toMatch(
+          /keyrack|unlock|ehmpath/i,
+        );
       });
 
       then('output has treestruct shape', () => {
@@ -2144,7 +2152,9 @@ Time:        0.1 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout || result.stderr)).toMatchSnapshot();
+        expect(
+          sanitizeOutput(result.stdout || result.stderr),
+        ).toMatchSnapshot();
       });
     });
   });
@@ -2368,7 +2378,14 @@ Time:        0.5 s`,
         });
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'unit', '--log', 'always', '--scope', 'user'],
+          gitRepoTestArgs: [
+            '--what',
+            'unit',
+            '--log',
+            'always',
+            '--scope',
+            'user',
+          ],
           env,
         });
       });
@@ -2453,7 +2470,9 @@ Time:        0.1 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout || result.stderr)).toMatchSnapshot();
+        expect(
+          sanitizeOutput(result.stdout || result.stderr),
+        ).toMatchSnapshot();
       });
     });
   });
