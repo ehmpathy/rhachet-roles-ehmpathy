@@ -35,6 +35,9 @@
 
 set -euo pipefail
 
+# Failfast timeout (seconds) - exit with error if exceeded
+FAILFAST_TIMEOUT=4
+
 # Parse flags
 MODE="HARDNUDGE"  # default
 HARDNUDGE_WINDOW_SECONDS=60  # default: 60 seconds
@@ -109,67 +112,55 @@ mapfile -t ALLOWED_PATTERNS < <(
   } | sort -u
 )
 
-# Check if a single command matches any allowed pattern
-match_pattern() {
+# Build lookup structures at load time
+declare -A EXACT_PATTERNS=()
+declare -a PREFIX_PATTERNS=()
+
+for pattern in "${ALLOWED_PATTERNS[@]}"; do
+  if [[ "$pattern" == *":*" ]]; then
+    # Prefix pattern - strip :* suffix and store
+    PREFIX_PATTERNS+=("${pattern%:*}")
+  else
+    # Exact pattern - add to hash for O(1) lookup
+    EXACT_PATTERNS["$pattern"]=1
+  fi
+done
+
+# Check if command starts with prefix (no subshells)
+match_prefix() {
   local cmd="$1"
-  local pattern="$2"
-
-  # Handle Claude Code's :* suffix matcher
-  # :* means "match anything after" (any suffix, including spaces)
-  # e.g., "mkdir:*" matches "mkdir", "mkdir /path", "mkdir -p /foo/bar"
-  # e.g., "npm run test:*" matches "npm run test", "npm run test:unit"
-
-  # Collapse newlines to spaces for matching (bash regex . doesn't match newlines)
-  local cmd_flat
-  cmd_flat=$(printf '%s' "$cmd" | tr '\n' ' ')
-
-  # DEBUG: trace matching
-  if [[ -n "${DEBUG_MATCH:-}" ]]; then
-    echo "DEBUG match_pattern: cmd_flat='$cmd_flat' pattern='$pattern'" >&2
-  fi
-
-  # First, escape regex special chars except * and :
-  local escaped_pattern
-  escaped_pattern=$(printf '%s' "$pattern" | sed 's/[.^$+?{}()[\]|\\]/\\&/g')
-
-  # Convert :* to placeholder first (to avoid * -> .* conversion interfering)
-  escaped_pattern="${escaped_pattern//:\*/__ANY_SUFFIX_PLACEHOLDER__}"
-
-  # Convert remaining * to .* (glob-style wildcard)
-  escaped_pattern="${escaped_pattern//\*/.*}"
-
-  # Now replace placeholder with .* for "any suffix" matching
-  escaped_pattern="${escaped_pattern//__ANY_SUFFIX_PLACEHOLDER__/.*}"
-
-  # Build final regex
-  local regex="^${escaped_pattern}$"
-
-  if [[ -n "${DEBUG_MATCH:-}" ]]; then
-    echo "DEBUG match_pattern: regex='$regex'" >&2
-  fi
-
-  if [[ "$cmd_flat" =~ $regex ]]; then
-    return 0
-  fi
-  return 1
+  local prefix="$2"
+  [[ "$cmd" == "$prefix"* ]]
 }
 
 # Check if a single command matches ANY allowed pattern
 command_is_allowed() {
   local cmd="$1"
-  # Trim leading/trailing whitespace
-  cmd=$(echo "$cmd" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
-  # Empty commands are allowed (e.g., trailing &&)
+  # Trim lead/trail whitespace (pure bash, no subshell)
+  while [[ "$cmd" == [[:space:]]* ]]; do cmd="${cmd#?}"; done
+  while [[ "$cmd" == *[[:space:]] ]]; do cmd="${cmd%?}"; done
+
+  # Empty commands are allowed (e.g., post &&)
   if [[ -z "$cmd" ]]; then
     return 0
   fi
 
-  for pattern in "${ALLOWED_PATTERNS[@]}"; do
-    if match_pattern "$cmd" "$pattern"; then
+  # Collapse newlines to spaces for match
+  cmd="${cmd//$'\n'/ }"
+
+  # O(1) exact match via hash lookup
+  if [[ -n "${EXACT_PATTERNS[$cmd]+x}" ]]; then
+    return 0
+  fi
+
+  # O(n) prefix match but no subshells - fast enough
+  for prefix in "${PREFIX_PATTERNS[@]}"; do
+    if match_prefix "$cmd" "$prefix"; then
       return 0
     fi
   done
+
   return 1
 }
 
@@ -257,25 +248,30 @@ split_compound_command() {
 all_parts_allowed() {
   local cmd="$1"
   local parts
-  local failed_part=""
+  local part
 
-  # Collapse newlines to spaces FIRST, before splitting on &&/||/;
-  # This prevents `while read` from splitting multiline content into separate parts
-  cmd=$(printf '%s' "$cmd" | tr '\n' ' ')
+  # Collapse newlines to spaces (pure bash)
+  cmd="${cmd//$'\n'/ }"
 
   # Split command into parts
   parts=$(split_compound_command "$cmd")
 
   # Check each part
   while IFS= read -r part; do
-    # Trim whitespace
-    part=$(echo "$part" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+    # Trim whitespace (pure bash, no subshell)
+    while [[ "$part" == [[:space:]]* ]]; do part="${part#?}"; done
+    while [[ "$part" == *[[:space:]] ]]; do part="${part%?}"; done
 
     # Skip empty parts
     [[ -z "$part" ]] && continue
 
+    # Failfast timeout check
+    if [[ $SECONDS -ge $FAILFAST_TIMEOUT ]]; then
+      echo "__FAILFAST_TIMEOUT__"
+      return 1
+    fi
+
     if ! command_is_allowed "$part"; then
-      # Store the failed part for error reporting
       echo "$part"
       return 1
     fi
@@ -301,6 +297,12 @@ format_pattern() {
 
 # Check if all parts of the command (including compound commands) are allowed
 FAILED_PART=$(all_parts_allowed "$COMMAND") && exit 0
+
+# Handle failfast timeout
+if [[ "$FAILED_PART" == "__FAILFAST_TIMEOUT__" ]]; then
+  echo "🛑 BLOCKED: permission check exceeded ${FAILFAST_TIMEOUT}s timeout" >&2
+  exit 2
+fi
 
 # Command not matched - handle based on mode
 # FAILED_PART contains the first disallowed part of the command
