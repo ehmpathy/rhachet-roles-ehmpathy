@@ -11,10 +11,10 @@ describe('getMechanicRole', () => {
         ).toBeGreaterThanOrEqual(3);
       });
 
-      then('onBrain.onTool contains at least 6 hooks', () => {
+      then('onBrain.onTool contains at least 7 hooks', () => {
         expect(
           ROLE_MECHANIC.hooks?.onBrain?.onTool?.length,
-        ).toBeGreaterThanOrEqual(6);
+        ).toBeGreaterThanOrEqual(7);
       });
 
       // .note = onStop removed: lint hook was too expensive (60s block)
@@ -49,6 +49,13 @@ describe('getMechanicRole', () => {
       const hooks = ROLE_MECHANIC.hooks?.onBrain?.onTool ?? [];
       const findHook = (name: string) =>
         hooks.find((h) => h.command.includes(name));
+
+      then('forbid-test-background hook is present and targets Bash', () => {
+        const hook = findHook('forbid-test-background');
+        expect(hook).toBeDefined();
+        expect(hook?.filter?.what).toEqual('Bash');
+        expect(hook?.filter?.when).toEqual('before');
+      });
 
       then(
         'forbid-sedreplace-special-chars hook is present and targets Bash',
@@ -114,6 +121,12 @@ describe('getMechanicRole', () => {
         for (const hook of allHooks) {
           expect(hook.command).toMatch(/^\.\/node_modules\/\.bin\/rhachet/);
         }
+      });
+    });
+
+    when('[t4] role structure is captured', () => {
+      then('ROLE_MECHANIC matches snapshot', () => {
+        expect(ROLE_MECHANIC).toMatchSnapshot();
       });
     });
   });

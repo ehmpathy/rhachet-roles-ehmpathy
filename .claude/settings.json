@@ -93,6 +93,12 @@
             "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-suspicious-shell-syntax",
             "timeout": 5,
             "author": "repo=ehmpathy/role=mechanic"
+          },
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-test-background",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
           }
         ]
       },
@@ -185,6 +191,18 @@
             "command": "./node_modules/.bin/rhx route.drive --mode hook",
             "timeout": 5,
             "author": "repo=bhrain/role=driver"
+          },
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhx goal.infer.triage --mode hook.onStop",
+            "timeout": 10,
+            "author": "repo=bhrain/role=achiever"
+          },
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhx goal.triage.next --when hook.onStop",
+            "timeout": 10,
+            "author": "repo=bhrain/role=achiever"
           }
         ]
       }
