@@ -1043,7 +1043,10 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
   given('[case23] performance with 500 rules', () => {
     when('[t0] hook completes within 3 seconds', () => {
       then('allowed command matches in under 3s with 500 rules', () => {
-        const tempDir = genTempDir({ slug: 'permissions-hook-perf', git: true });
+        const tempDir = genTempDir({
+          slug: 'permissions-hook-perf',
+          git: true,
+        });
         const claudeDir = path.join(tempDir, '.claude');
         fs.mkdirSync(claudeDir, { recursive: true });
 
@@ -1081,7 +1084,10 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
       });
 
       then('disallowed command blocks in under 3s with 500 rules', () => {
-        const tempDir = genTempDir({ slug: 'permissions-hook-perf', git: true });
+        const tempDir = genTempDir({
+          slug: 'permissions-hook-perf',
+          git: true,
+        });
         const claudeDir = path.join(tempDir, '.claude');
         fs.mkdirSync(claudeDir, { recursive: true });
 
