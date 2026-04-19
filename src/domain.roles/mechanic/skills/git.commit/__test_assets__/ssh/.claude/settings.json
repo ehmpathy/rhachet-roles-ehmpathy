@@ -21,8 +21,6 @@
       "Bash(jq)",
       "Bash(echo:*)",
       "Bash(printf:*)",
-      "Bash(git mv:*)",
-      "Bash(git rm:*)",
       "Bash(git log:*)",
       "Bash(git status:*)",
       "Bash(git diff:*)",

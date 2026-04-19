@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = findsert passwordless ehmpath keyrack host + configure keys
+# .what = findsert passwordless ehmpath keyrack host
 #
 # .why  = enables ehmpathy roles to auto-fetch tokens without
 #         human intervention. the ehmpath keyrack is a shared,
@@ -9,16 +9,9 @@
 #
 # .how  = 1. findsert passwordless ssh key at ~/.ssh/ehmpath
 #         2. findsert ehmpath host keyrack with that key
-#         3. fill required keys from keyrack.yml via keyrack fill
 #
 # usage:
 #   npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath
-#   npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath --refresh EHMPATHY_SEATURTLE_GITHUB_TOKEN
-#   npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath --refresh @all
-#
-# options:
-#   --refresh <key>   force re-prompt for this key (use when token expires)
-#   --refresh @all    force re-prompt for all keys
 #
 # guarantee:
 #   - idempotent (safe to rerun)
@@ -30,20 +23,6 @@ set -euo pipefail
 
 # fail loud: print what failed
 trap 'echo "💥 keyrack.ehmpath.sh failed at line $LINENO" >&2' ERR
-
-# parse arguments
-REFRESH_KEY=""
-while [[ $# -gt 0 ]]; do
-  case $1 in
-    --refresh)
-      REFRESH_KEY="$2"
-      shift 2
-      ;;
-    *)
-      shift
-      ;;
-  esac
-done
 
 EHMPATH_KEY="$HOME/.ssh/ehmpath"
 EHMPATH_KEY_PUB="$HOME/.ssh/ehmpath.pub"
@@ -72,42 +51,14 @@ fi
 # step 2: findsert ehmpath host keyrack
 ######################################################################
 KEYRACK_HOST_MANIFEST="$HOME/.rhachet/keyrack/keyrack.host.ehmpath.age"
-MANIFEST_FRESH=false
 
 if [[ -f "$KEYRACK_HOST_MANIFEST" ]]; then
-  echo "   ├─ keyrack: found at $KEYRACK_HOST_MANIFEST"
+  echo "   └─ keyrack: found at $KEYRACK_HOST_MANIFEST"
 else
   echo "   ├─ keyrack: init for owner ehmpath..."
   ./node_modules/.bin/rhachet keyrack init --owner ehmpath --pubkey "$EHMPATH_KEY_PUB"
-  echo "   ├─ keyrack: initialized"
-  MANIFEST_FRESH=true
+  echo "   └─ keyrack: initialized"
 fi
 
-######################################################################
-# step 3: fill required keys from keyrack.yml
-######################################################################
-
-# build fill args
-FILL_ARGS=(
-  "--owner" "ehmpath"
-  "--prikey" "$EHMPATH_KEY"
-  "--env" "prep"
-  "--allow-dangerous"
-)
-
-# add refresh flag if requested
-if [[ -n "$REFRESH_KEY" ]]; then
-  if [[ "$REFRESH_KEY" == "@all" ]]; then
-    FILL_ARGS+=("--refresh")
-  else
-    FILL_ARGS+=("--key" "$REFRESH_KEY" "--refresh")
-  fi
-fi
-
-# fill keys from keyrack.yml
-echo "   ├─ fill keys from keyrack.yml..."
-./node_modules/.bin/rhachet keyrack fill "${FILL_ARGS[@]}"
-
-echo "   └─ done"
 echo ""
 echo "👌 ehmpath keyrack ready"

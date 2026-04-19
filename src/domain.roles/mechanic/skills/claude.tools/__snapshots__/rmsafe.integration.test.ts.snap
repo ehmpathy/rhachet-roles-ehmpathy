@@ -1,5 +1,129 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`rmsafe.sh given: [case1] positional args (like rm) when: [t0] single positional arg provided then: file is removed 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./target.txt
+   ├─ files: 1
+   └─ removed
+      └─ target.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case1] positional args (like rm) when: [t0] single positional arg provided then: output shows relative path 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./target.txt
+   ├─ files: 1
+   └─ removed
+      └─ target.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case2] named args (--path) when: [t0] --path provided then: file is removed 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./target.txt
+   ├─ files: 1
+   └─ removed
+      └─ target.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case3] argument validation when: [t0] no arguments provided then: exits with error 1`] = `
+"error: path is required
+usage: rmsafe.sh <path>
+       rmsafe.sh -r <path>
+       rmsafe.sh --path <path> [--recursive]
+"
+`;
+
+exports[`rmsafe.sh given: [case3] argument validation when: [t0] no arguments provided then: shows usage 1`] = `
+"error: path is required
+usage: rmsafe.sh <path>
+       rmsafe.sh -r <path>
+       rmsafe.sh --path <path> [--recursive]
+"
+`;
+
+exports[`rmsafe.sh given: [case3] argument validation when: [t1] unknown option provided then: exits with error 1`] = `
+"error: unknown option: --unknown
+usage: rmsafe.sh <path>
+       rmsafe.sh -r <path>
+       rmsafe.sh --path <path> [--recursive]
+       rmsafe.sh --literal <path>
+see: rmsafe.sh --help
+"
+`;
+
+exports[`rmsafe.sh given: [case3] argument validation when: [t2] --help flag then: shows usage info and exits 0 1`] = `
+"usage: rmsafe.sh <path>
+       rmsafe.sh -r <path>
+       rmsafe.sh --path <path> [--recursive]
+       rmsafe.sh --literal <path>
+
+options:
+  --path <path>    file or glob pattern to remove
+  --recursive, -r  remove directories recursively
+  --literal, -l    treat path as literal (no glob expansion)
+                   use when path contains [ or ] characters
+
+examples:
+  rmsafe.sh 'build/*.tmp'                   # glob pattern
+  rmsafe.sh --literal 'file.[ref].md'       # literal brackets
+  rmsafe.sh 'file.\\[ref\\].md'               # escaped brackets
+"
+`;
+
+exports[`rmsafe.sh given: [case4] target validation when: [t0] target does not exist then: exits with error 1`] = `
+"error: path does not exist: ./nonexistent.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case4] target validation when: [t1] target is directory without -r then: exits with error 1`] = `
+"error: target is a directory, use -r or --recursive to delete
+"
+`;
+
+exports[`rmsafe.sh given: [case4] target validation when: [t2] target is repo root then: exits with error 1`] = `
+"error: cannot delete the repository root
+"
+`;
+
+exports[`rmsafe.sh given: [case5] safety boundary - target outside repo when: [t0] target path is absolute outside repo then: exits with error 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: /tmp/TEMP_DIR
+   ├─ files: 1
+   └─ removed
+error: path must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  path:      /tmp/TEMP_DIR
+"
+`;
+
+exports[`rmsafe.sh given: [case5] safety boundary - target outside repo when: [t2] target uses .. to escape repo then: exits with error 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: /tmp/TEMP_DIR
+   ├─ files: 1
+   └─ removed
+error: path must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  path:      /tmp/TEMP_DIR
+"
+`;
+
+exports[`rmsafe.sh given: [case7] not in git repo when: [t0] run outside any git repo then: exits with error 1`] = `
+"error: not in a git repository
+"
+`;
+
 exports[`rmsafe.sh given: [case11] glob patterns when: [t0] glob matches multiple files then: output shows each file removed 1`] = `
 "🐢 sweet
 
@@ -33,5 +157,72 @@ exports[`rmsafe.sh given: [case11] glob patterns when: [t2] recursive glob **/*.
       ├─ src/core/bar.bak
       ├─ src/deep/nested/baz.bak
       └─ src/utils/foo.bak
+"
+`;
+
+exports[`rmsafe.sh given: [case12] tree output format when: [t0] single file removal then: output has turtle, shell, and tree structure 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./target.txt
+   ├─ files: 1
+   └─ removed
+      └─ target.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case13] bracket characters with --literal flag when: [t0] file with brackets exists and --literal used then: file is removed successfully 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./doc.[ref].md
+   ├─ files: 1
+   └─ removed
+      └─ doc.[ref].md
+"
+`;
+
+exports[`rmsafe.sh given: [case13] bracket characters with --literal flag when: [t1] file with brackets absent and --literal used then: exits with error for absent file 1`] = `
+"error: path does not exist: ./absent.[ref].md
+"
+`;
+
+exports[`rmsafe.sh given: [case13] bracket characters with --literal flag when: [t2] file with brackets exists and escape syntax used then: file is removed successfully 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./doc.\\[ref\\].md
+   ├─ files: 1
+   └─ removed
+      └─ doc.[ref].md
+"
+`;
+
+exports[`rmsafe.sh given: [case13] bracket characters with --literal flag when: [t3] brackets used without --literal and no match then: shows did-you-know hint 1`] = `
+"🐢 crickets...
+
+🐚 rmsafe
+   ├─ path: ./doc.[ref].md
+   ├─ files: 0
+   └─ removed
+      └─ (none)
+
+🥥 did you know?
+   ├─ path contains \`[\` which is a glob character
+   ├─ to treat \`[\` as literal, use either:
+   │  ├─ --literal flag: rhx rmsafe --literal './doc.[ref].md'
+   │  └─ escape syntax: rhx rmsafe './doc.\\[ref\\].md'
+   └─ see: rhx rmsafe --help
+"
+`;
+
+exports[`rmsafe.sh given: [case13] bracket characters with --literal flag when: [t4] brackets used without --literal but file matches then: hint does not appear on success 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./doc.[ref].md
+   ├─ files: 1
+   └─ removed
+      └─ doc.r.md
 "
 `;

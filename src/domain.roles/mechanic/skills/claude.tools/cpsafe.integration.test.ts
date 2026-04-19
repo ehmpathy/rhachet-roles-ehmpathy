@@ -74,6 +74,7 @@ describe('cpsafe.sh', () => {
           true,
         );
         expect(fs.existsSync(path.join(result.tempDir, 'dest.txt'))).toBe(true);
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
 
       then('content is preserved', () => {
@@ -115,6 +116,7 @@ describe('cpsafe.sh', () => {
         expect(result.stdout).toContain('source.txt');
         expect(result.stdout).toContain('dest.txt');
         expect(result.stdout).toContain('->');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -129,6 +131,7 @@ describe('cpsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(fs.existsSync(path.join(result.tempDir, 'dest.txt'))).toBe(true);
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -159,6 +162,7 @@ describe('cpsafe.sh', () => {
         expect(result.stdout).toContain(
           '--into is required when --from is specified',
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -173,6 +177,7 @@ describe('cpsafe.sh', () => {
         expect(result.stdout).toContain(
           '--from is required when --into is specified',
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -186,6 +191,7 @@ describe('cpsafe.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('source path is required');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
 
       then('shows usage', () => {
@@ -195,6 +201,7 @@ describe('cpsafe.sh', () => {
 
         expect(result.stdout).toContain('usage:');
         expect(result.stdout).toContain('cpsafe.sh');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -207,6 +214,7 @@ describe('cpsafe.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('destination path is required');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -219,6 +227,20 @@ describe('cpsafe.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('unknown option');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] --help flag', () => {
+      then('shows usage info and exits 0', () => {
+        const result = runInTempGitRepo({
+          cpsafeArgs: ['--help'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('usage:');
+        expect(result.stdout).toContain('--from');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -232,6 +254,7 @@ describe('cpsafe.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('source does not exist');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -244,6 +267,7 @@ describe('cpsafe.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('must be a file');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -263,6 +287,7 @@ describe('cpsafe.sh', () => {
           expect(result.stdout).toContain(
             'source must be within the git repository',
           );
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.unlinkSync(outsideFile);
         }
@@ -284,6 +309,7 @@ describe('cpsafe.sh', () => {
           expect(result.stdout).toContain(
             'source must be within the git repository',
           );
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.unlinkSync(outsideFile);
         }
@@ -335,6 +361,7 @@ describe('cpsafe.sh', () => {
         expect(result.stdout).toContain(
           'destination must be within the git repository',
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -350,6 +377,7 @@ describe('cpsafe.sh', () => {
         expect(result.stdout).toContain(
           'destination must be within the git repository',
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -364,6 +392,7 @@ describe('cpsafe.sh', () => {
         expect(result.stdout).toContain(
           'destination must be within the git repository',
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -479,6 +508,7 @@ describe('cpsafe.sh', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('not in a git repository');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -677,6 +707,79 @@ describe('cpsafe.sh', () => {
         expect(result.stdout).toContain('into:');
         expect(result.stdout).toContain('files:');
         expect(result.stdout).toContain('copied');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case14] bracket characters with --literal flag', () => {
+    when('[t0] file with brackets exists and --literal used', () => {
+      then('file is copied successfully', () => {
+        const result = runInTempGitRepo({
+          files: { 'doc.[ref].md': 'bracket content' },
+          cpsafeArgs: ['--literal', './doc.[ref].md', './copy.[ref].md'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(fs.existsSync(path.join(result.tempDir, 'copy.[ref].md'))).toBe(
+          true,
+        );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] file with brackets absent and --literal used', () => {
+      then('exits with error for absent file', () => {
+        const result = runInTempGitRepo({
+          cpsafeArgs: ['--literal', './absent.[ref].md', './dest.md'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).not.toContain('did you know');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] file with brackets exists and escape syntax used', () => {
+      then('file is copied successfully', () => {
+        const result = runInTempGitRepo({
+          files: { 'doc.[ref].md': 'bracket content' },
+          cpsafeArgs: ['./doc.\\[ref\\].md', './copy.[ref].md'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(fs.existsSync(path.join(result.tempDir, 'copy.[ref].md'))).toBe(
+          true,
+        );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] brackets used without --literal and no match', () => {
+      then('shows did-you-know hint', () => {
+        const result = runInTempGitRepo({
+          files: { 'other.md': 'other content' },
+          cpsafeArgs: ['./doc.[ref].md', './dest.md'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('files: 0');
+        expect(result.stdout).toContain('did you know');
+        expect(result.stdout).toContain('--literal');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t4] brackets used without --literal but file matches', () => {
+      then('hint does not appear on success', () => {
+        const result = runInTempGitRepo({
+          files: { 'doc.r.md': 'matches [ref] as r' },
+          cpsafeArgs: ['./doc.[ref].md', './dest/'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).not.toContain('did you know');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
