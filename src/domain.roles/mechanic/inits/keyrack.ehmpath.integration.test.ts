@@ -104,5 +104,4 @@ describe('keyrack.ehmpath.sh', () => {
       );
     });
   });
-
 });
