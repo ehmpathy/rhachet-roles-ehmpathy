@@ -1,0 +1,147 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`getMechanicRole given: [case1] the mechanic role definition when: [t4] role structure is captured then: ROLE_MECHANIC matches snapshot 1`] = `
+Role {
+  "boot": {
+    "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/boot.yml",
+  },
+  "briefs": {
+    "dirs": {
+      "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/briefs",
+    },
+  },
+  "hooks": {
+    "onBrain": {
+      "onBoot": [
+        {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/sessionstart.notify-permissions",
+          "timeout": "PT5S",
+        },
+        {
+          "command": "./node_modules/.bin/rhachet roles boot --repo .this --role any --if-present",
+          "timeout": "PT60S",
+        },
+        {
+          "command": "./node_modules/.bin/rhachet roles boot --repo ehmpathy --role mechanic",
+          "timeout": "PT60S",
+        },
+        {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/postcompact.trust-but-verify",
+          "filter": {
+            "what": "PostCompact",
+          },
+          "timeout": "PT30S",
+        },
+      ],
+      "onTool": [
+        {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-test-background",
+          "filter": {
+            "what": "Bash",
+            "when": "before",
+          },
+          "timeout": "PT5S",
+        },
+        {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-sedreplace-special-chars",
+          "filter": {
+            "what": "Bash",
+            "when": "before",
+          },
+          "timeout": "PT5S",
+        },
+        {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-suspicious-shell-syntax",
+          "filter": {
+            "what": "Bash",
+            "when": "before",
+          },
+          "timeout": "PT5S",
+        },
+        {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-stderr-redirect",
+          "filter": {
+            "what": "Bash",
+            "when": "before",
+          },
+          "timeout": "PT5S",
+        },
+        {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-terms.gerunds",
+          "filter": {
+            "what": "Write|Edit",
+            "when": "before",
+          },
+          "timeout": "PT5S",
+        },
+        {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-terms.blocklist",
+          "filter": {
+            "what": "Write|Edit",
+            "when": "before",
+          },
+          "timeout": "PT5S",
+        },
+        {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.check-permissions",
+          "filter": {
+            "what": "Bash",
+            "when": "before",
+          },
+          "timeout": "PT5S",
+        },
+        {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-tmp-writes",
+          "filter": {
+            "what": "Write|Edit|Read|Bash",
+            "when": "before",
+          },
+          "timeout": "PT5S",
+        },
+        {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-planmode",
+          "filter": {
+            "what": "EnterPlanMode",
+            "when": "before",
+          },
+          "timeout": "PT5S",
+        },
+        {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/posttooluse.guardBorder.onWebfetch",
+          "filter": {
+            "what": "WebFetch",
+            "when": "after",
+          },
+          "timeout": "PT60S",
+        },
+      ],
+    },
+  },
+  "inits": {
+    "dirs": {
+      "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/inits",
+    },
+    "exec": [
+      {
+        "cmd": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/inits/init.claude.sh",
+      },
+    ],
+  },
+  "keyrack": {
+    "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/keyrack.yml",
+  },
+  "name": "Mechanic",
+  "purpose": "write code",
+  "readme": {
+    "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/readme.md",
+  },
+  "skills": {
+    "dirs": {
+      "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/skills",
+    },
+    "refs": [],
+  },
+  "slug": "mechanic",
+  "traits": [],
+}
+`;

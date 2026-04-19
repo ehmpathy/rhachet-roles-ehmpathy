@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse.forbid-test-background.sh given: [case6] block message content when: [t0] block message is actionable then: block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: git.repo.test must run in foreground
+
+background + poll wastes tokens (2500+ vs 50 from curated output).
+the skill is designed to minimize token consumption - foreground is required.
+
+fix: remove run_in_background from your Bash tool call
+
+instead of:
+  Bash(command: 'rhx git.repo.test ...', run_in_background: true)
+
+use:
+  Bash(command: 'rhx git.repo.test ...')
+
+"
+`;
