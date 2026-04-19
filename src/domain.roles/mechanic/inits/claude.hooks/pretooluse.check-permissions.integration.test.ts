@@ -1040,6 +1040,91 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
     });
   });
 
+  given('[case23] performance with 500 rules', () => {
+    when('[t0] hook completes within 3 seconds', () => {
+      then('allowed command matches in under 3s with 500 rules', () => {
+        const tempDir = genTempDir({
+          slug: 'permissions-hook-perf',
+          git: true,
+        });
+        const claudeDir = path.join(tempDir, '.claude');
+        fs.mkdirSync(claudeDir, { recursive: true });
+
+        // generate 500 rules: mix of prefix and exact patterns
+        const rules: string[] = [];
+        for (let i = 0; i < 250; i++) {
+          rules.push(`Bash(prefix-cmd-${i}:*)`);
+          rules.push(`Bash(exact-cmd-${i})`);
+        }
+        // add a real pattern we'll match against
+        rules.push('Bash(git status:*)');
+
+        fs.writeFileSync(
+          path.join(claudeDir, 'settings.json'),
+          JSON.stringify({ permissions: { allow: rules, deny: [], ask: [] } }),
+        );
+
+        const stdinJson = JSON.stringify({
+          tool_name: 'Bash',
+          tool_input: { command: 'git status' },
+        });
+
+        const start = Date.now();
+        const result = spawnSync('bash', [scriptPath], {
+          cwd: tempDir,
+          encoding: 'utf-8',
+          input: stdinJson,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 5000,
+        });
+        const elapsed = Date.now() - start;
+
+        expect(result.status).toBe(0);
+        expect(elapsed).toBeLessThan(3000);
+      });
+
+      then('disallowed command blocks in under 3s with 500 rules', () => {
+        const tempDir = genTempDir({
+          slug: 'permissions-hook-perf',
+          git: true,
+        });
+        const claudeDir = path.join(tempDir, '.claude');
+        fs.mkdirSync(claudeDir, { recursive: true });
+
+        // generate 500 rules
+        const rules: string[] = [];
+        for (let i = 0; i < 250; i++) {
+          rules.push(`Bash(prefix-cmd-${i}:*)`);
+          rules.push(`Bash(exact-cmd-${i})`);
+        }
+
+        fs.writeFileSync(
+          path.join(claudeDir, 'settings.json'),
+          JSON.stringify({ permissions: { allow: rules, deny: [], ask: [] } }),
+        );
+
+        const stdinJson = JSON.stringify({
+          tool_name: 'Bash',
+          tool_input: { command: 'curl http://example.com' },
+        });
+
+        const start = Date.now();
+        const result = spawnSync('bash', [scriptPath], {
+          cwd: tempDir,
+          encoding: 'utf-8',
+          input: stdinJson,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: 5000,
+        });
+        const elapsed = Date.now() - start;
+
+        expect(result.status).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+        expect(elapsed).toBeLessThan(3000);
+      });
+    });
+  });
+
   given('[case11] edge cases', () => {
     when('[t0] empty command', () => {
       then('produces no output', () => {
