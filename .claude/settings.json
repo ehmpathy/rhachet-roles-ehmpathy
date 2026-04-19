@@ -200,7 +200,7 @@
           },
           {
             "type": "command",
-            "command": "./node_modules/.bin/rhx goal.triage.infer --when hook.onStop",
+            "command": "./node_modules/.bin/rhx goal.infer.triage --mode hook.onStop",
             "timeout": 10,
             "author": "repo=bhrain/role=achiever"
           }
