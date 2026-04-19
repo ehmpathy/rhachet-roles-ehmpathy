@@ -12,19 +12,22 @@
 #   git.repo.test.sh --what format                    # run format check
 #   git.repo.test.sh --what lint                      # run lint check
 #   git.repo.test.sh --what unit                      # run unit tests
-#   git.repo.test.sh --what integration               # run integration tests (auto keyrack)
-#   git.repo.test.sh --what acceptance                # run acceptance tests (auto keyrack)
-#   git.repo.test.sh --what all                       # run all test types in sequence
-#   git.repo.test.sh --what types,lint,unit           # run specific types in sequence
-#   git.repo.test.sh --what unit --scope getUserById  # filter to scope pattern
+#   git.repo.test.sh --what integration               # run integration tests
+#   git.repo.test.sh --what acceptance                # run acceptance tests
+#   git.repo.test.sh --what all                       # run all test types
+#   git.repo.test.sh --what unit --scope 'invoice'    # filter by file path
+#   git.repo.test.sh --what unit --scope 'path(src/domain)' # match file path only
+#   git.repo.test.sh --what unit --scope 'name(should return)' # match test name only
 #   git.repo.test.sh --what unit --resnap             # update snapshots
 #   git.repo.test.sh --what unit --thorough           # run full suite
-#   git.repo.test.sh --what unit --log always         # persist logs even on success
-#   git.repo.test.sh --what unit -- --verbose         # pass raw args to jest
+#
+# scope patterns:
+#   'foo'         - match file path (default, backwards compatible)
+#   'path(foo)'   - match file path (explicit)
+#   'name(foo)'   - match test/describe name (jest --testNamePattern)
 #
 # guarantee:
 #   - logs raw output to .log/role=mechanic/skill=git.repo.test/what=${WHAT}/
-#   - findserts .gitignore in log directory
 #   - auto keyrack unlock for integration/acceptance
 #   - exit 0 = passed, exit 1 = malfunction, exit 2 = constraint
 ######################################################################
@@ -267,22 +270,23 @@ while [[ $# -gt 0 ]]; do
       break
       ;;
     --help|-h)
-      echo "usage: git.repo.test.sh --what <type> [--scope <pattern>] [--resnap] [--thorough] [--timeout <secs>] [-- <jest-args>]"
+      echo "usage: git.repo.test.sh --what <type> [--scope <pattern>] [--resnap] [--thorough] [--timeout <secs>]"
       echo ""
       echo "run repo tests with turtle vibes summary and log capture"
       echo ""
       echo "options:"
-      echo "  --what <type>    lint | unit | integration | acceptance | all (required)"
-      echo "  --scope <pat>    regex pattern for jest --testPathPatterns (optional)"
-      echo "  --resnap         set RESNAP=true to update snapshots (optional)"
-      echo "  --thorough       set THOROUGH=true for full test runs (optional)"
-      echo "  --timeout <secs> max time in seconds before timeout (optional)"
-      echo "  --log <mode>     auto | always (default: auto)"
-      echo "                   auto = persist logs on failure only"
-      echo "                   always = persist logs on success and failure"
-      echo "  --when <context> context hint (optional, for future use)"
-      echo "  --               separator for raw args passed to jest"
-      echo "  --help, -h       show this help"
+      echo "  --what <type>       test type: types | format | lint | unit | integration | acceptance | all"
+      echo "  --scope <pattern>   filter tests by pattern (regex supported)"
+      echo "                        'foo'         match file path (default)"
+      echo "                        'path(foo)'   match file path (explicit)"
+      echo "                        'name(foo)'   match test/describe name"
+      echo "  --resnap            update snapshots (sets RESNAP=true)"
+      echo "  --thorough          run full suite (sets THOROUGH=true)"
+      echo "  --timeout <secs>    max time in seconds before timeout"
+      echo "  --log <mode>        auto | always (default: auto)"
+      echo "                        auto = persist logs on failure only"
+      echo "                        always = persist logs on success and failure"
+      echo "  --help, -h          show this help"
       exit 0
       ;;
     *)
@@ -290,6 +294,61 @@ while [[ $# -gt 0 ]]; do
       exit 2
       ;;
   esac
+done
+
+######################################################################
+# parse scope pattern: 'foo', 'path(foo)', or 'name(foo)'
+######################################################################
+SCOPE_MODE="both"  # both | path | name
+SCOPE_PATTERN=""
+
+if [[ -n "$SCOPE" ]]; then
+  if [[ "$SCOPE" =~ ^path\((.+)\)$ ]]; then
+    SCOPE_MODE="path"
+    SCOPE_PATTERN="${BASH_REMATCH[1]}"
+  elif [[ "$SCOPE" =~ ^name\((.+)\)$ ]]; then
+    SCOPE_MODE="name"
+    SCOPE_PATTERN="${BASH_REMATCH[1]}"
+  else
+    SCOPE_MODE="both"
+    SCOPE_PATTERN="$SCOPE"
+  fi
+fi
+
+######################################################################
+# block raw filter flags in REST_ARGS
+######################################################################
+for arg in "${REST_ARGS[@]}"; do
+  if [[ "$arg" == "--testNamePattern" ]] || [[ "$arg" == "-t" ]]; then
+    _output=$(
+      print_turtle_header "hold up, dude..."
+      print_tree_start "git.repo.test"
+      echo "   └─ ✋ blocked: raw --testNamePattern detected"
+      echo ""
+      echo "🥥 did you know?"
+      echo "   ├─ --scope 'foo' filters by file path"
+      echo "   ├─ --scope 'path(foo)' filters by file path (explicit)"
+      echo "   └─ --scope 'name(foo)' filters by test name"
+    )
+    echo "$_output"      # stdout
+    echo "$_output" >&2  # stderr
+    exit 2
+  fi
+  if [[ "$arg" == "--testPathPattern" ]] || [[ "$arg" == "--testPathPatterns" ]]; then
+    _output=$(
+      print_turtle_header "hold up, dude..."
+      print_tree_start "git.repo.test"
+      echo "   └─ ✋ blocked: raw $arg detected"
+      echo ""
+      echo "🥥 did you know?"
+      echo "   ├─ --scope 'foo' filters by file path"
+      echo "   ├─ --scope 'path(foo)' filters by file path (explicit)"
+      echo "   └─ --scope 'name(foo)' filters by test name"
+    )
+    echo "$_output"      # stdout
+    echo "$_output" >&2  # stderr
+    exit 2
+  fi
 done
 
 ######################################################################
@@ -598,9 +657,17 @@ run_single_test() {
   # build jest args
   local jest_args=()
 
-  # add --testPathPatterns if --scope (skip for lint)
-  if [[ -n "$SCOPE" ]] && [[ "$test_type" != "lint" ]]; then
-    jest_args+=("--testPathPatterns" "$SCOPE")
+  # add scope filters (skip for lint)
+  if [[ -n "$SCOPE_PATTERN" ]] && [[ "$test_type" != "lint" ]]; then
+    case "$SCOPE_MODE" in
+      name)
+        jest_args+=("--testNamePattern" "$SCOPE_PATTERN")
+        ;;
+      path|both)
+        # bare --scope 'foo' and --scope 'path(foo)' both filter by path
+        jest_args+=("--testPathPatterns" "$SCOPE_PATTERN")
+        ;;
+    esac
   fi
 
   # add REST_ARGS (skip for lint)
@@ -767,17 +834,32 @@ output_failure() {
 ######################################################################
 output_no_tests() {
   local progressive="${1:-false}"
+  local has_scope="${2:-false}"
 
   # only print header if not progressive
   if [[ "$progressive" != "true" ]]; then
-    print_turtle_header "bummer dude..."
+    if [[ "$has_scope" == "true" ]]; then
+      print_turtle_header "bummer dude..."
+    else
+      print_turtle_header "all clear..."
+    fi
     print_tree_start "git.repo.test $DISPLAY_ARGS"
   fi
 
-  print_tree_branch "status" "constraint"
-  echo "   └─ error: no tests matched scope '$SCOPE'"
-  echo ""
-  echo "hint: check the scope pattern or run without --scope to see all tests"
+  if [[ "$has_scope" == "true" ]]; then
+    print_tree_branch "status" "constraint"
+    echo "   └─ error: no tests matched scope '$SCOPE'"
+    echo ""
+    echo "hint: check the scope pattern or run without --scope to see all tests"
+  else
+    print_tree_branch "status" "skipped"
+    echo "   ├─ files: 0 (no test files changed since origin/main)"
+    echo "   └─ tests: 0 (no tests to run)"
+    echo ""
+    echo "🥥 did you know?"
+    echo "   ├─ jest --changedSince may miss some file changes"
+    echo "   └─ use --scope and --thorough to target tests directly"
+  fi
 }
 
 ######################################################################
@@ -845,7 +927,7 @@ if [[ -n "$SCOPE" ]] && [[ "$WHAT" != "lint" ]]; then
 
     # failfast if scope matched 0 files
     if [[ "$SCOPE_FILE_COUNT" == "0" ]]; then
-      output_no_tests "true" | emit_to_both
+      output_no_tests "true" "true" | emit_to_both
       exit 2
     fi
   fi
@@ -892,8 +974,15 @@ REL_STDERR_LOG="$LOG_DIR/${ISOTIME}.stderr.log"
 # check for no tests matched
 ######################################################################
 if [[ "$JEST_NO_TESTS" == "true" ]]; then
-  output_no_tests "true" | emit_to_both
-  exit 2
+  if [[ -n "$SCOPE" ]]; then
+    # scope was specified but matched zero files = constraint error
+    output_no_tests "true" "true" | emit_to_both
+    exit 2
+  else
+    # no scope, zero tests due to --changedSince = success
+    output_no_tests "true" "false" | emit_to_both
+    exit 0
+  fi
 fi
 
 ######################################################################
