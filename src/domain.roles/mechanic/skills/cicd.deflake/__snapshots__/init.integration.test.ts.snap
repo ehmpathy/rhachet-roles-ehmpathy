@@ -107,7 +107,7 @@ exports[`cicd.deflake init given: [case5] --help shows init subcommand help when
 "🐢 tubular!
 
 🐚 cicd.deflake init
-   ├─ route: .behavior/v2026_04_15.cicd-deflake/ ✨
+   ├─ route: .behavior/v$DATE.cicd-deflake/ ✨
    └─ created
       ├─ 1.evidence.stone
       ├─ 2.1.diagnose.research.stone
@@ -126,7 +126,7 @@ exports[`cicd.deflake init given: [case5] --help shows init subcommand help when
       └─ 8.institutionalize.stone
 
 🥥 hang ten! we'll ride this in
-   └─ [2mbranch main <-> route .behavior/v2026_04_15.cicd-deflake[0m
+   └─ [2mbranch main <-> route .behavior/v$DATE.cicd-deflake[0m
 "
 `;
 
@@ -134,7 +134,7 @@ exports[`cicd.deflake init given: [case6] with extra unknown arguments when: [t0
 "🐢 tubular!
 
 🐚 cicd.deflake init
-   ├─ route: .behavior/v2026_04_15.cicd-deflake/ ✨
+   ├─ route: .behavior/v$DATE.cicd-deflake/ ✨
    └─ created
       ├─ 1.evidence.stone
       ├─ 2.1.diagnose.research.stone
@@ -153,7 +153,7 @@ exports[`cicd.deflake init given: [case6] with extra unknown arguments when: [t0
       └─ 8.institutionalize.stone
 
 🥥 hang ten! we'll ride this in
-   └─ [2mbranch main <-> route .behavior/v2026_04_15.cicd-deflake[0m
+   └─ [2mbranch main <-> route .behavior/v$DATE.cicd-deflake[0m
 "
 `;
 

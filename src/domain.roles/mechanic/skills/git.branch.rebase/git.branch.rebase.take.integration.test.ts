@@ -14,6 +14,22 @@ import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 const SKILL_PATH = path.join(__dirname, 'git.branch.rebase.take.sh');
 
 /**
+ * .what = sanitize output for snapshot stability
+ * .why = temp paths, timestamps, and version banners change between runs
+ */
+const sanitizeOutput = (output: string): string =>
+  output
+    // mask temp dir paths: /tmp/git-rebase-take-test-ajvAgu -> /tmp/TEMP_DIR
+    .replace(/\/tmp\/git-rebase-take-test-[^\s/]+/g, '/tmp/TEMP_DIR')
+    // mask npm debug log timestamps: 2026-04-17T12_32_29_632Z -> TIMESTAMP
+    .replace(/\d{4}-\d{2}-\d{2}T\d{2}_\d{2}_\d{2}_\d{3}Z/g, 'TIMESTAMP')
+    // mask pnpm update banner (version varies)
+    .replace(
+      /\[33m\[39m\n\s*\[33m\s*╭[^╯]+╯\[39m\n\s*\[33m\[39m\n/gs,
+      '[pnpm update banner masked]\n',
+    );
+
+/**
  * .what = check if yarn is installed
  * .why = yarn test should skip when yarn is installed (behavior differs)
  */
@@ -215,7 +231,7 @@ describe('git.branch.rebase.take', () => {
           expect(result.stdout).toContain('whos: theirs');
           expect(result.stdout).toContain('config.json');
           expect(result.stdout).toContain('done');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
 
           // verify file has theirs content (feature branch = theirs in rebase)
           // in rebase: ours = base branch (origin/main), theirs = commit in replay
@@ -252,7 +268,7 @@ describe('git.branch.rebase.take', () => {
           expect(result.stdout).toContain('whos: ours');
           expect(result.stdout).toContain('.eslintrc.json');
           expect(result.stdout).toContain('done');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
 
           // verify file has ours content (main branch = ours in rebase)
           // in rebase: ours = base branch (origin/main), theirs = commit in replay
@@ -294,7 +310,7 @@ describe('git.branch.rebase.take', () => {
           expect(result.stdout).toContain('b.ts');
           expect(result.stdout).toContain('c.ts');
           expect(result.stdout).toContain('done');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -317,7 +333,7 @@ describe('git.branch.rebase.take', () => {
           expect(result.status).not.toBe(0);
           expect(result.stdout).toContain('hold up dude');
           expect(result.stdout).toContain('no rebase in progress');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -337,7 +353,7 @@ describe('git.branch.rebase.take', () => {
           expect(result.stdout).toContain('hold up dude');
           // no conflict files at all in simulated rebase
           expect(result.stdout).toContain('no files in conflict');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -360,7 +376,7 @@ describe('git.branch.rebase.take', () => {
           expect(result.status).not.toBe(0);
           expect(result.stdout).toContain('hold up dude');
           expect(result.stdout).toContain('whos must be ours or theirs');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -379,7 +395,7 @@ describe('git.branch.rebase.take', () => {
           expect(result.status).not.toBe(0);
           expect(result.stdout).toContain('hold up dude');
           expect(result.stdout).toContain('paths required');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -398,7 +414,7 @@ describe('git.branch.rebase.take', () => {
           expect(result.status).not.toBe(0);
           expect(result.stdout).toContain('hold up dude');
           expect(result.stdout).toContain('--whos required');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -424,7 +440,7 @@ describe('git.branch.rebase.take', () => {
           expect(result.stdout).toContain('whos:');
           // ends with done
           expect(result.stdout).toContain('done');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -459,7 +475,7 @@ describe('git.branch.rebase.take', () => {
           expect(result.stdout).toContain('b.lock');
           // c.ts should not be in settled (not matched by glob)
           expect(result.stdout).not.toContain('c.ts');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -492,7 +508,7 @@ describe('git.branch.rebase.take', () => {
           expect(result.stdout).toContain('nonexistent.ts');
           // no "settled" section - we fail before any settle
           expect(result.stdout).not.toContain('settled');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -528,7 +544,7 @@ describe('git.branch.rebase.take', () => {
               'try: rhx git.branch.rebase lock refresh',
             );
             expect(result.stdout).toContain('incomplete');
-            expect(result.stdout).toMatchSnapshot();
+            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
           } finally {
             fs.rmSync(tempDir, { recursive: true, force: true });
           }
@@ -557,7 +573,7 @@ describe('git.branch.rebase.take', () => {
             );
             expect(result.stdout).toContain('failed');
             expect(result.stdout).toContain('try:');
-            expect(result.stdout).toMatchSnapshot();
+            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
           } finally {
             fs.rmSync(tempDir, { recursive: true, force: true });
           }
@@ -589,7 +605,7 @@ describe('git.branch.rebase.take', () => {
               );
               expect(result.stdout).toContain('failed');
               expect(result.stdout).toContain('try:');
-              expect(result.stdout).toMatchSnapshot();
+              expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
             } finally {
               fs.rmSync(tempDir, { recursive: true, force: true });
             }
@@ -635,7 +651,7 @@ describe('git.branch.rebase.take', () => {
             ).length;
             expect(autoRunCount).toBe(1);
             expect(result.stdout).toContain('try:');
-            expect(result.stdout).toMatchSnapshot();
+            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
           } finally {
             fs.rmSync(tempDir, { recursive: true, force: true });
           }
@@ -663,7 +679,7 @@ describe('git.branch.rebase.take', () => {
           expect(result.status).toBe(0);
           expect(result.stdout).not.toContain('lock file detected');
           expect(result.stdout).not.toContain('auto-run lock refresh');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -717,7 +733,7 @@ describe('git.branch.rebase.take', () => {
           );
           expect(result.stdout).toContain('done');
           expect(result.stdout).not.toContain('failed');
-          expect(result.stdout).toMatchSnapshot();
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }

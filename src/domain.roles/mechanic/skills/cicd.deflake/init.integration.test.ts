@@ -176,7 +176,12 @@ describe('cicd.deflake init', () => {
         expect(result.status).toEqual(0);
         expect(result.stderr).toMatchSnapshot();
         expect(result.stdout).toContain('init');
-        expect(result.stdout).toMatchSnapshot();
+        // redact date for snapshot stability
+        const stdoutStable = result.stdout.replace(
+          /v\d{4}_\d{2}_\d{2}\.cicd-deflake/g,
+          'v$DATE.cicd-deflake',
+        );
+        expect(stdoutStable).toMatchSnapshot();
       });
     });
   });
@@ -202,7 +207,12 @@ describe('cicd.deflake init', () => {
 
         // init should succeed even with unknown args (graceful ignore)
         expect(result.status).toEqual(0);
-        expect(result.stdout).toMatchSnapshot();
+        // redact date for snapshot stability
+        const stdoutStable = result.stdout.replace(
+          /v\d{4}_\d{2}_\d{2}\.cicd-deflake/g,
+          'v$DATE.cicd-deflake',
+        );
+        expect(stdoutStable).toMatchSnapshot();
         expect(result.stderr).toMatchSnapshot();
       });
     });

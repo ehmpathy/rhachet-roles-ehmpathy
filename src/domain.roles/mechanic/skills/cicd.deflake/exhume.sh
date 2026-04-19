@@ -163,3 +163,8 @@ LINE_COUNT=$(wc -l < "$LOG_FILE")
 print_tree_branch "status" "cached"
 print_tree_branch "lines" "$LINE_COUNT"
 print_tree_branch "into" "$LOG_FILE" "true"
+
+# success message
+echo ""
+echo "⚓ wreck exhumed"
+echo "   └─ read $LOG_FILE for details"
