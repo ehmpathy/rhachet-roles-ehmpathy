@@ -27,12 +27,15 @@ const readStdin = async (): Promise<string> => {
 export const guardBorderOnWebfetch = async (): Promise<void> => {
   // check env first (CI, direct env var), then keyrack (local dev)
   if (!process.env.XAI_API_KEY) {
+    // use test env when NODE_ENV=test, otherwise prep
+    const keyrackEnv = process.env.NODE_ENV === 'test' ? 'test' : 'prep';
+
     // fetch XAI_API_KEY from keyrack
     try {
       const keyGrant = await keyrack.get({
         for: { key: 'XAI_API_KEY' },
         owner: 'ehmpath',
-        env: 'prep',
+        env: keyrackEnv,
       });
 
       // failfast if not granted
@@ -47,7 +50,7 @@ export const guardBorderOnWebfetch = async (): Promise<void> => {
       // keyrack SDK throws ConstraintError when keyrack.yml is absent
       // emit helpful unlock instructions and exit 2
       console.error(
-        `\n🔐 XAI_API_KEY locked\n\nrun: rhx keyrack unlock --owner ehmpath --env prep\n`,
+        `\n🔐 XAI_API_KEY locked\n\nrun: rhx keyrack unlock --owner ehmpath --env ${keyrackEnv}\n`,
       );
       process.exit(2);
     }

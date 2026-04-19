@@ -16,6 +16,8 @@
 #   rmsafe.sh --path 'path/to/dir' --recursive  # named + recursive
 #   rmsafe.sh --path 'build/*.tmp'              # glob pattern
 #   rmsafe.sh --path 'src/**/*.bak'             # recursive glob
+#   rmsafe.sh --literal 'file.[ref].md'         # literal brackets
+#   rmsafe.sh 'file.\[ref\].md'                 # escaped brackets
 #
 # guarantee:
 #   - path must be within repo
@@ -35,6 +37,7 @@ shopt -s globstar nullglob
 # parse arguments (supports both positional and named)
 TARGET=""
 RECURSIVE=false
+LITERAL=false
 POSITIONAL_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -47,6 +50,10 @@ while [[ $# -gt 0 ]]; do
       RECURSIVE=true
       shift
       ;;
+    --literal|-l)
+      LITERAL=true
+      shift
+      ;;
     --repo|--role|--skill)
       # rhachet passthrough args - ignore
       shift 2
@@ -55,11 +62,31 @@ while [[ $# -gt 0 ]]; do
       # args separator - ignore
       shift
       ;;
+    --help|-h)
+      echo "usage: rmsafe.sh <path>"
+      echo "       rmsafe.sh -r <path>"
+      echo "       rmsafe.sh --path <path> [--recursive]"
+      echo "       rmsafe.sh --literal <path>"
+      echo ""
+      echo "options:"
+      echo "  --path <path>    file or glob pattern to remove"
+      echo "  --recursive, -r  remove directories recursively"
+      echo "  --literal, -l    treat path as literal (no glob expansion)"
+      echo "                   use when path contains [ or ] characters"
+      echo ""
+      echo "examples:"
+      echo "  rmsafe.sh 'build/*.tmp'                   # glob pattern"
+      echo "  rmsafe.sh --literal 'file.[ref].md'       # literal brackets"
+      echo "  rmsafe.sh 'file.\\[ref\\].md'               # escaped brackets"
+      exit 0
+      ;;
     --*)
       echo "error: unknown option: $1"
       echo "usage: rmsafe.sh <path>"
       echo "       rmsafe.sh -r <path>"
       echo "       rmsafe.sh --path <path> [--recursive]"
+      echo "       rmsafe.sh --literal <path>"
+      echo "see: rmsafe.sh --help"
       exit 2
       ;;
     *)
@@ -99,7 +126,12 @@ is_glob_pattern() {
   [[ "$pattern" == *"*"* || "$pattern" == *"?"* || "$pattern" == *"["* ]]
 }
 
-IS_GLOB=$(is_glob_pattern "$TARGET" && echo "true" || echo "false")
+# --literal flag forces literal interpretation
+if [[ "$LITERAL" == true ]]; then
+  IS_GLOB=false
+else
+  IS_GLOB=$(is_glob_pattern "$TARGET" && echo "true" || echo "false")
+fi
 
 # expand glob pattern to array of files
 FILES=()
@@ -181,6 +213,20 @@ if [[ $FILE_COUNT -eq 0 ]]; then
   print_tree_branch "files" "0"
   print_tree_leaf "removed"
   print_tree_file_line "(none)" true
+
+  # hint if path contains [ and --literal was not used
+  if [[ "$LITERAL" != true && "$TARGET" == *"["* ]]; then
+    # escape brackets for display
+    TARGET_ESCAPED="${TARGET//\[/\\[}"
+    TARGET_ESCAPED="${TARGET_ESCAPED//\]/\\]}"
+    echo ""
+    echo "🥥 did you know?"
+    echo "   ├─ path contains \`[\` which is a glob character"
+    echo "   ├─ to treat \`[\` as literal, use either:"
+    echo "   │  ├─ --literal flag: rhx rmsafe --literal '$TARGET'"
+    echo "   │  └─ escape syntax: rhx rmsafe '$TARGET_ESCAPED'"
+    echo "   └─ see: rhx rmsafe --help"
+  fi
   exit 0
 fi
 

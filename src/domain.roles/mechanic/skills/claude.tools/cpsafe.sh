@@ -14,6 +14,8 @@
 #   cpsafe.sh --from 'path/to/source' --into 'path/to/dest'  # named args
 #   cpsafe.sh --from 'src/*.md' --into 'dest/'               # glob pattern
 #   cpsafe.sh --from 'src/**/*.ts' --into 'archive/'         # recursive glob
+#   cpsafe.sh --literal 'file.[ref].md' 'dest.[ref].md'      # literal brackets
+#   cpsafe.sh 'file.\[ref\].md' 'dest.\[ref\].md'            # escaped brackets
 #
 # guarantee:
 #   - source must be within repo
@@ -34,6 +36,7 @@ shopt -s globstar nullglob
 # parse arguments (supports both positional and named)
 FROM=""
 INTO=""
+LITERAL=false
 NAMED_ARG_USED=false
 POSITIONAL_ARGS=()
 
@@ -49,6 +52,10 @@ while [[ $# -gt 0 ]]; do
       NAMED_ARG_USED=true
       shift 2
       ;;
+    --literal|-l)
+      LITERAL=true
+      shift
+      ;;
     --repo|--role|--skill)
       # rhachet passthrough args - ignore
       shift 2
@@ -57,10 +64,29 @@ while [[ $# -gt 0 ]]; do
       # args separator - ignore
       shift
       ;;
+    --help|-h)
+      echo "usage: cpsafe.sh <from> <into>"
+      echo "       cpsafe.sh --from <source> --into <destination>"
+      echo "       cpsafe.sh --literal <from> <into>"
+      echo ""
+      echo "options:"
+      echo "  --from <path>    source path or glob pattern"
+      echo "  --into <path>    destination path"
+      echo "  --literal, -l    treat path as literal (no glob expansion)"
+      echo "                   use when path contains [ or ] characters"
+      echo ""
+      echo "examples:"
+      echo "  cpsafe.sh 'src/*.ts' 'dest/'              # glob pattern"
+      echo "  cpsafe.sh --literal 'file.[ref].md' 'new.[ref].md'  # literal brackets"
+      echo "  cpsafe.sh 'file.\\[ref\\].md' 'new.\\[ref\\].md'      # escaped brackets"
+      exit 0
+      ;;
     --*)
       echo "error: unknown option: $1"
       echo "usage: cpsafe.sh <from> <into>"
       echo "       cpsafe.sh --from <source> --into <destination>"
+      echo "       cpsafe.sh --literal <from> <into>"
+      echo "see: cpsafe.sh --help"
       exit 2
       ;;
     *)
@@ -121,7 +147,12 @@ is_glob_pattern() {
   [[ "$pattern" == *"*"* || "$pattern" == *"?"* || "$pattern" == *"["* ]]
 }
 
-IS_GLOB=$(is_glob_pattern "$FROM" && echo "true" || echo "false")
+# --literal flag forces literal interpretation
+if [[ "$LITERAL" == true ]]; then
+  IS_GLOB=false
+else
+  IS_GLOB=$(is_glob_pattern "$FROM" && echo "true" || echo "false")
+fi
 
 # expand glob pattern to array of files
 FILES=()
@@ -155,6 +186,20 @@ if [[ $FILE_COUNT -eq 0 ]]; then
   print_tree_branch "files" "0"
   print_tree_leaf "copied"
   print_tree_file_line "(none)" true
+
+  # hint if path contains [ and --literal was not used
+  if [[ "$LITERAL" != true && "$FROM" == *"["* ]]; then
+    # escape brackets for display
+    FROM_ESCAPED="${FROM//\[/\\[}"
+    FROM_ESCAPED="${FROM_ESCAPED//\]/\\]}"
+    echo ""
+    echo "🥥 did you know?"
+    echo "   ├─ path contains \`[\` which is a glob character"
+    echo "   ├─ to treat \`[\` as literal, use either:"
+    echo "   │  ├─ --literal flag: rhx cpsafe --literal '$FROM' '$INTO'"
+    echo "   │  └─ escape syntax: rhx cpsafe '$FROM_ESCAPED' ..."
+    echo "   └─ see: rhx cpsafe --help"
+  fi
   exit 0
 fi
 

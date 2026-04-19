@@ -1,5 +1,184 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`cpsafe.sh given: [case1] positional args (like cp) when: [t0] two positional args provided then: file is copied 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: ./source.txt
+   ├─ into: ./dest.txt
+   ├─ files: 1
+   └─ copied
+      └─ source.txt -> dest.txt
+"
+`;
+
+exports[`cpsafe.sh given: [case1] positional args (like cp) when: [t0] two positional args provided then: output shows relative paths 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: ./source.txt
+   ├─ into: ./dest.txt
+   ├─ files: 1
+   └─ copied
+      └─ source.txt -> dest.txt
+"
+`;
+
+exports[`cpsafe.sh given: [case2] named args (--from, --into) when: [t0] both named args provided then: file is copied 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: ./source.txt
+   ├─ into: ./dest.txt
+   ├─ files: 1
+   └─ copied
+      └─ source.txt -> dest.txt
+"
+`;
+
+exports[`cpsafe.sh given: [case2] named args (--from, --into) when: [t2] only --from provided then: exits with error 1`] = `
+"error: --into is required when --from is specified
+"
+`;
+
+exports[`cpsafe.sh given: [case2] named args (--from, --into) when: [t3] only --into provided then: exits with error 1`] = `
+"error: --from is required when --into is specified
+"
+`;
+
+exports[`cpsafe.sh given: [case3] argument validation when: [t0] no arguments provided then: exits with error 1`] = `
+"error: source path is required
+usage: cpsafe.sh <from> <into>
+       cpsafe.sh --from <source> --into <destination>
+"
+`;
+
+exports[`cpsafe.sh given: [case3] argument validation when: [t0] no arguments provided then: shows usage 1`] = `
+"error: source path is required
+usage: cpsafe.sh <from> <into>
+       cpsafe.sh --from <source> --into <destination>
+"
+`;
+
+exports[`cpsafe.sh given: [case3] argument validation when: [t1] only source provided then: exits with error 1`] = `
+"error: destination path is required
+usage: cpsafe.sh <from> <into>
+       cpsafe.sh --from <source> --into <destination>
+"
+`;
+
+exports[`cpsafe.sh given: [case3] argument validation when: [t2] unknown option provided then: exits with error 1`] = `
+"error: unknown option: --unknown
+usage: cpsafe.sh <from> <into>
+       cpsafe.sh --from <source> --into <destination>
+       cpsafe.sh --literal <from> <into>
+see: cpsafe.sh --help
+"
+`;
+
+exports[`cpsafe.sh given: [case3] argument validation when: [t3] --help flag then: shows usage info and exits 0 1`] = `
+"usage: cpsafe.sh <from> <into>
+       cpsafe.sh --from <source> --into <destination>
+       cpsafe.sh --literal <from> <into>
+
+options:
+  --from <path>    source path or glob pattern
+  --into <path>    destination path
+  --literal, -l    treat path as literal (no glob expansion)
+                   use when path contains [ or ] characters
+
+examples:
+  cpsafe.sh 'src/*.ts' 'dest/'              # glob pattern
+  cpsafe.sh --literal 'file.[ref].md' 'new.[ref].md'  # literal brackets
+  cpsafe.sh 'file.\\[ref\\].md' 'new.\\[ref\\].md'      # escaped brackets
+"
+`;
+
+exports[`cpsafe.sh given: [case4] source validation when: [t0] source does not exist then: exits with error 1`] = `
+"error: source does not exist: ./nonexistent.txt
+"
+`;
+
+exports[`cpsafe.sh given: [case4] source validation when: [t1] source is a directory then: exits with error 1`] = `
+"error: source must be a file, not a directory: ./srcdir
+"
+`;
+
+exports[`cpsafe.sh given: [case5] safety boundary - source outside repo when: [t0] source path is absolute outside repo then: exits with error 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: /tmp/TEMP_DIR
+   ├─ into: ./dest.txt
+   ├─ files: 1
+   └─ copied
+error: source must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  source:    /tmp/TEMP_DIR
+"
+`;
+
+exports[`cpsafe.sh given: [case5] safety boundary - source outside repo when: [t1] source is symlink that resolves outside repo then: exits with error 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: ./sneaky-link.txt
+   ├─ into: ./dest.txt
+   ├─ files: 1
+   └─ copied
+error: source must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  source:    /tmp/TEMP_DIR
+"
+`;
+
+exports[`cpsafe.sh given: [case6] safety boundary - dest outside repo when: [t0] dest path is absolute outside repo then: exits with error 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: ./source.txt
+   ├─ into: /tmp/TEMP_DIR
+   ├─ files: 1
+   └─ copied
+error: destination must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  dest:      /tmp/TEMP_DIR
+"
+`;
+
+exports[`cpsafe.sh given: [case6] safety boundary - dest outside repo when: [t1] dest parent is symlink that resolves outside repo then: exits with error 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: ./source.txt
+   ├─ into: ./sneaky-dir/dest.txt
+   ├─ files: 1
+   └─ copied
+error: destination must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  dest:      /tmp/TEMP_DIR
+"
+`;
+
+exports[`cpsafe.sh given: [case6] safety boundary - dest outside repo when: [t2] dest uses .. to escape repo then: exits with error 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: ./source.txt
+   ├─ into: ../../../tmp/TEMP_DIR
+   ├─ files: 1
+   └─ copied
+error: destination must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  dest:      /tmp/TEMP_DIR
+"
+`;
+
+exports[`cpsafe.sh given: [case9] not in git repo when: [t0] run outside any git repo then: exits with error 1`] = `
+"error: not in a git repository
+"
+`;
+
 exports[`cpsafe.sh given: [case12] glob patterns when: [t0] glob matches multiple files then: output shows each file with arrow 1`] = `
 "🐢 sweet
 
@@ -36,5 +215,77 @@ exports[`cpsafe.sh given: [case12] glob patterns when: [t2] recursive glob **/*.
       ├─ src/core/bar.ts -> archive/bar.ts
       ├─ src/deep/nested/baz.ts -> archive/baz.ts
       └─ src/utils/foo.ts -> archive/foo.ts
+"
+`;
+
+exports[`cpsafe.sh given: [case13] tree output format when: [t0] single file copy then: output has turtle, shell, and tree structure 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: ./source.txt
+   ├─ into: ./dest.txt
+   ├─ files: 1
+   └─ copied
+      └─ source.txt -> dest.txt
+"
+`;
+
+exports[`cpsafe.sh given: [case14] bracket characters with --literal flag when: [t0] file with brackets exists and --literal used then: file is copied successfully 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: ./doc.[ref].md
+   ├─ into: ./copy.[ref].md
+   ├─ files: 1
+   └─ copied
+      └─ doc.[ref].md -> copy.[ref].md
+"
+`;
+
+exports[`cpsafe.sh given: [case14] bracket characters with --literal flag when: [t1] file with brackets absent and --literal used then: exits with error for absent file 1`] = `
+"error: source does not exist: ./absent.[ref].md
+"
+`;
+
+exports[`cpsafe.sh given: [case14] bracket characters with --literal flag when: [t2] file with brackets exists and escape syntax used then: file is copied successfully 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: ./doc.\\[ref\\].md
+   ├─ into: ./copy.[ref].md
+   ├─ files: 1
+   └─ copied
+      └─ doc.[ref].md -> copy.[ref].md
+"
+`;
+
+exports[`cpsafe.sh given: [case14] bracket characters with --literal flag when: [t3] brackets used without --literal and no match then: shows did-you-know hint 1`] = `
+"🐢 crickets...
+
+🐚 cpsafe
+   ├─ from: ./doc.[ref].md
+   ├─ into: ./dest.md
+   ├─ files: 0
+   └─ copied
+      └─ (none)
+
+🥥 did you know?
+   ├─ path contains \`[\` which is a glob character
+   ├─ to treat \`[\` as literal, use either:
+   │  ├─ --literal flag: rhx cpsafe --literal './doc.[ref].md' './dest.md'
+   │  └─ escape syntax: rhx cpsafe './doc.\\[ref\\].md' ...
+   └─ see: rhx cpsafe --help
+"
+`;
+
+exports[`cpsafe.sh given: [case14] bracket characters with --literal flag when: [t4] brackets used without --literal but file matches then: hint does not appear on success 1`] = `
+"🐢 sweet
+
+🐚 cpsafe
+   ├─ from: ./doc.[ref].md
+   ├─ into: ./dest/
+   ├─ files: 1
+   └─ copied
+      └─ doc.r.md -> dest
 "
 `;

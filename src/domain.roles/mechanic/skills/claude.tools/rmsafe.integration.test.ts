@@ -73,6 +73,7 @@ describe('rmsafe.sh', () => {
         expect(fs.existsSync(path.join(result.tempDir, 'target.txt'))).toBe(
           false,
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
 
       then('output shows relative path', () => {
@@ -83,6 +84,7 @@ describe('rmsafe.sh', () => {
 
         expect(result.stdout).toContain('removed');
         expect(result.stdout).toContain('target.txt');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -116,6 +118,7 @@ describe('rmsafe.sh', () => {
         expect(fs.existsSync(path.join(result.tempDir, 'target.txt'))).toBe(
           false,
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -143,6 +146,7 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('path is required');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
 
       then('shows usage', () => {
@@ -152,6 +156,7 @@ describe('rmsafe.sh', () => {
 
         expect(result.stdout).toContain('usage:');
         expect(result.stdout).toContain('rmsafe.sh');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -164,6 +169,20 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('unknown option');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] --help flag', () => {
+      then('shows usage info and exits 0', () => {
+        const result = runInTempGitRepo({
+          rmsafeArgs: ['--help'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('usage:');
+        expect(result.stdout).toContain('--path');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -177,6 +196,7 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('path does not exist');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -190,6 +210,7 @@ describe('rmsafe.sh', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('target is a directory');
         expect(result.stdout).toContain('--recursive');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -202,6 +223,7 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('cannot delete the repository root');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -221,6 +243,7 @@ describe('rmsafe.sh', () => {
           expect(result.stdout).toContain(
             'path must be within the git repository',
           );
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
           // verify file was NOT deleted
           expect(fs.existsSync(outsideFile)).toBe(true);
         } finally {
@@ -280,6 +303,7 @@ describe('rmsafe.sh', () => {
           expect(result.stdout).toContain(
             'path must be within the git repository',
           );
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
           // verify file was NOT deleted
           expect(fs.existsSync(outsideFile)).toBe(true);
         } finally {
@@ -372,6 +396,7 @@ describe('rmsafe.sh', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('not in a git repository');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -590,6 +615,79 @@ describe('rmsafe.sh', () => {
         expect(result.stdout).toContain('path:');
         expect(result.stdout).toContain('files:');
         expect(result.stdout).toContain('removed');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case13] bracket characters with --literal flag', () => {
+    when('[t0] file with brackets exists and --literal used', () => {
+      then('file is removed successfully', () => {
+        const result = runInTempGitRepo({
+          files: { 'doc.[ref].md': 'bracket content' },
+          rmsafeArgs: ['--literal', './doc.[ref].md'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(fs.existsSync(path.join(result.tempDir, 'doc.[ref].md'))).toBe(
+          false,
+        );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] file with brackets absent and --literal used', () => {
+      then('exits with error for absent file', () => {
+        const result = runInTempGitRepo({
+          rmsafeArgs: ['--literal', './absent.[ref].md'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).not.toContain('did you know');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] file with brackets exists and escape syntax used', () => {
+      then('file is removed successfully', () => {
+        const result = runInTempGitRepo({
+          files: { 'doc.[ref].md': 'bracket content' },
+          rmsafeArgs: ['./doc.\\[ref\\].md'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(fs.existsSync(path.join(result.tempDir, 'doc.[ref].md'))).toBe(
+          false,
+        );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] brackets used without --literal and no match', () => {
+      then('shows did-you-know hint', () => {
+        const result = runInTempGitRepo({
+          files: { 'other.md': 'other content' },
+          rmsafeArgs: ['./doc.[ref].md'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('files: 0');
+        expect(result.stdout).toContain('did you know');
+        expect(result.stdout).toContain('--literal');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t4] brackets used without --literal but file matches', () => {
+      then('hint does not appear on success', () => {
+        const result = runInTempGitRepo({
+          files: { 'doc.r.md': 'matches [ref] as r' },
+          rmsafeArgs: ['./doc.[ref].md'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).not.toContain('did you know');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });

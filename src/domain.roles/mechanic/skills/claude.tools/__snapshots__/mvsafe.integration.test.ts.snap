@@ -1,5 +1,191 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`mvsafe.sh given: [case1] positional args (like mv) when: [t0] two positional args provided then: file is moved 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: ./source.txt
+   ├─ into: ./dest.txt
+   ├─ files: 1
+   └─ moved
+      └─ source.txt -> dest.txt
+"
+`;
+
+exports[`mvsafe.sh given: [case1] positional args (like mv) when: [t0] two positional args provided then: output shows relative paths 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: ./source.txt
+   ├─ into: ./dest.txt
+   ├─ files: 1
+   └─ moved
+      └─ source.txt -> dest.txt
+"
+`;
+
+exports[`mvsafe.sh given: [case2] named args (--from, --into) when: [t0] both named args provided then: file is moved 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: ./source.txt
+   ├─ into: ./dest.txt
+   ├─ files: 1
+   └─ moved
+      └─ source.txt -> dest.txt
+"
+`;
+
+exports[`mvsafe.sh given: [case2] named args (--from, --into) when: [t2] only --from provided then: exits with error 1`] = `
+"error: --into is required when --from is specified
+"
+`;
+
+exports[`mvsafe.sh given: [case2] named args (--from, --into) when: [t3] only --into provided then: exits with error 1`] = `
+"error: --from is required when --into is specified
+"
+`;
+
+exports[`mvsafe.sh given: [case3] argument validation when: [t0] no arguments provided then: exits with error 1`] = `
+"error: source path is required
+usage: mvsafe.sh <from> <into>
+       mvsafe.sh --from <source> --into <destination>
+"
+`;
+
+exports[`mvsafe.sh given: [case3] argument validation when: [t0] no arguments provided then: shows usage 1`] = `
+"error: source path is required
+usage: mvsafe.sh <from> <into>
+       mvsafe.sh --from <source> --into <destination>
+"
+`;
+
+exports[`mvsafe.sh given: [case3] argument validation when: [t1] only source provided then: exits with error 1`] = `
+"error: destination path is required
+usage: mvsafe.sh <from> <into>
+       mvsafe.sh --from <source> --into <destination>
+"
+`;
+
+exports[`mvsafe.sh given: [case3] argument validation when: [t2] unknown option provided then: exits with error 1`] = `
+"error: unknown option: --unknown
+usage: mvsafe.sh <from> <into>
+       mvsafe.sh --from <source> --into <destination>
+       mvsafe.sh --literal <from> <into>
+see: mvsafe.sh --help
+"
+`;
+
+exports[`mvsafe.sh given: [case3] argument validation when: [t3] --help flag then: shows usage info and exits 0 1`] = `
+"usage: mvsafe.sh <from> <into>
+       mvsafe.sh --from <source> --into <destination>
+       mvsafe.sh --literal <from> <into>
+
+options:
+  --from <path>    source path or glob pattern
+  --into <path>    destination path
+  --literal, -l    treat path as literal (no glob expansion)
+                   use when path contains [ or ] characters
+
+examples:
+  mvsafe.sh 'src/*.ts' 'dest/'              # glob pattern
+  mvsafe.sh --literal 'file.[ref].md' 'new.[ref].md'  # literal brackets
+  mvsafe.sh 'file.\\[ref\\].md' 'new.\\[ref\\].md'      # escaped brackets
+"
+`;
+
+exports[`mvsafe.sh given: [case4] source validation when: [t0] source does not exist then: exits with error 1`] = `
+"error: source does not exist: ./nonexistent.txt
+"
+`;
+
+exports[`mvsafe.sh given: [case5] safety boundary - source outside repo when: [t0] source path is absolute outside repo then: exits with error 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: /tmp/TEMP_DIR
+   ├─ into: ./dest.txt
+   ├─ files: 1
+   └─ moved
+error: source must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  source:    /tmp/TEMP_DIR
+"
+`;
+
+exports[`mvsafe.sh given: [case5] safety boundary - source outside repo when: [t1] source is symlink that resolves outside repo then: exits with error 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: ./sneaky-link.txt
+   ├─ into: ./dest.txt
+   ├─ files: 1
+   └─ moved
+error: source must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  source:    /tmp/TEMP_DIR
+"
+`;
+
+exports[`mvsafe.sh given: [case6] safety boundary - dest outside repo when: [t0] dest path is absolute outside repo then: exits with error 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: ./source.txt
+   ├─ into: /tmp/TEMP_DIR
+   ├─ files: 1
+   └─ moved
+error: destination must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  dest:      /tmp/TEMP_DIR
+"
+`;
+
+exports[`mvsafe.sh given: [case6] safety boundary - dest outside repo when: [t1] dest parent is symlink that resolves outside repo then: exits with error 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: ./source.txt
+   ├─ into: ./sneaky-dir/dest.txt
+   ├─ files: 1
+   └─ moved
+error: destination must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  dest:      /tmp/TEMP_DIR
+"
+`;
+
+exports[`mvsafe.sh given: [case6] safety boundary - dest outside repo when: [t2] dest uses .. to escape repo then: exits with error 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: ./source.txt
+   ├─ into: ../../../tmp/TEMP_DIR
+   ├─ files: 1
+   └─ moved
+error: destination must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  dest:      /tmp/TEMP_DIR
+"
+`;
+
+exports[`mvsafe.sh given: [case7] parent directory creation when: [t0] dest parent does not exist then: output shows nested path in tree 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: ./source.txt
+   ├─ into: ./deep/nested/dir/dest.txt
+   ├─ files: 1
+   └─ moved
+      └─ source.txt -> deep/nested/dir/dest.txt
+"
+`;
+
+exports[`mvsafe.sh given: [case12] not in git repo when: [t0] run outside any git repo then: exits with error 1`] = `
+"error: not in a git repository
+"
+`;
+
 exports[`mvsafe.sh given: [case16] glob patterns when: [t0] glob matches multiple files then: output shows each file with arrow 1`] = `
 "🐢 sweet
 
@@ -36,5 +222,77 @@ exports[`mvsafe.sh given: [case16] glob patterns when: [t2] recursive glob **/*.
       ├─ src/core/bar.ts -> archive/bar.ts
       ├─ src/deep/nested/baz.ts -> archive/baz.ts
       └─ src/utils/foo.ts -> archive/foo.ts
+"
+`;
+
+exports[`mvsafe.sh given: [case17] tree output format when: [t0] single file move then: output has turtle, shell, and tree structure 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: ./source.txt
+   ├─ into: ./dest.txt
+   ├─ files: 1
+   └─ moved
+      └─ source.txt -> dest.txt
+"
+`;
+
+exports[`mvsafe.sh given: [case18] bracket characters with --literal flag when: [t0] file with brackets exists and --literal used then: file is moved successfully 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: ./doc.[ref].md
+   ├─ into: ./renamed.[ref].md
+   ├─ files: 1
+   └─ moved
+      └─ doc.[ref].md -> renamed.[ref].md
+"
+`;
+
+exports[`mvsafe.sh given: [case18] bracket characters with --literal flag when: [t1] file with brackets absent and --literal used then: exits with error for absent file 1`] = `
+"error: source does not exist: ./absent.[ref].md
+"
+`;
+
+exports[`mvsafe.sh given: [case18] bracket characters with --literal flag when: [t2] file with brackets exists and escape syntax used then: file is moved successfully 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: ./doc.\\[ref\\].md
+   ├─ into: ./renamed.[ref].md
+   ├─ files: 1
+   └─ moved
+      └─ doc.[ref].md -> renamed.[ref].md
+"
+`;
+
+exports[`mvsafe.sh given: [case18] bracket characters with --literal flag when: [t3] brackets used without --literal and no match then: shows did-you-know hint 1`] = `
+"🐢 crickets...
+
+🐚 mvsafe
+   ├─ from: ./doc.[ref].md
+   ├─ into: ./dest.md
+   ├─ files: 0
+   └─ moved
+      └─ (none)
+
+🥥 did you know?
+   ├─ path contains \`[\` which is a glob character
+   ├─ to treat \`[\` as literal, use either:
+   │  ├─ --literal flag: rhx mvsafe --literal './doc.[ref].md' './dest.md'
+   │  └─ escape syntax: rhx mvsafe './doc.\\[ref\\].md' ...
+   └─ see: rhx mvsafe --help
+"
+`;
+
+exports[`mvsafe.sh given: [case18] bracket characters with --literal flag when: [t4] brackets used without --literal but file matches then: hint does not appear on success 1`] = `
+"🐢 sweet
+
+🐚 mvsafe
+   ├─ from: ./doc.[ref].md
+   ├─ into: ./dest/
+   ├─ files: 1
+   └─ moved
+      └─ doc.r.md -> dest
 "
 `;

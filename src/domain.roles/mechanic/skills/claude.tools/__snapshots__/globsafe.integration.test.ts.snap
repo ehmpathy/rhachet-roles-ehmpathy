@@ -48,3 +48,78 @@ exports[`globsafe.sh given: [case12] --output direct mode when: [t2] direct outp
 src/b.ts
 "
 `;
+
+exports[`globsafe.sh given: [case14] bracket characters with --literal flag when: [t0] file with brackets exists and --literal used then: file is found successfully 1`] = `
+"🐢 sweet
+
+🐚 globsafe
+   ├─ pattern: doc.[ref].md
+   ├─ path: .
+   ├─ files: 1
+   └─ found
+      ├─
+      │
+      │  doc.[ref].md
+      │
+      └─
+"
+`;
+
+exports[`globsafe.sh given: [case14] bracket characters with --literal flag when: [t1] file with brackets absent and --literal used then: shows zero files without hint 1`] = `
+"🐢 crickets...
+
+🐚 globsafe
+   ├─ pattern: absent.[ref].md
+   ├─ path: .
+   └─ files: 0
+"
+`;
+
+exports[`globsafe.sh given: [case14] bracket characters with --literal flag when: [t2] file with brackets exists and escape syntax used then: file is found successfully 1`] = `
+"🐢 sweet
+
+🐚 globsafe
+   ├─ pattern: doc.\\[ref\\].md
+   ├─ path: .
+   ├─ files: 1
+   └─ found
+      ├─
+      │
+      │  doc.[ref].md
+      │
+      └─
+"
+`;
+
+exports[`globsafe.sh given: [case14] bracket characters with --literal flag when: [t3] brackets used without --literal and no match then: shows did-you-know hint 1`] = `
+"🐢 crickets...
+
+🐚 globsafe
+   ├─ pattern: doc.[ref].md
+   ├─ path: .
+   └─ files: 0
+
+🥥 did you know?
+   ├─ pattern contains \`[\` which is a glob character
+   ├─ to treat \`[\` as literal, use either:
+   │  ├─ --literal flag: rhx globsafe --pattern 'doc.[ref].md' --literal
+   │  └─ escape syntax: rhx globsafe --pattern 'doc.\\[ref\\].md'
+   └─ see: rhx globsafe --help
+"
+`;
+
+exports[`globsafe.sh given: [case14] bracket characters with --literal flag when: [t4] brackets used without --literal but file matches then: hint does not appear on success 1`] = `
+"🐢 sweet
+
+🐚 globsafe
+   ├─ pattern: doc.[ref].md
+   ├─ path: .
+   ├─ files: 1
+   └─ found
+      ├─
+      │
+      │  doc.r.md
+      │
+      └─
+"
+`;

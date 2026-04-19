@@ -438,4 +438,75 @@ describe('globsafe.sh', () => {
       });
     });
   });
+
+  given('[case14] bracket characters with --literal flag', () => {
+    when('[t0] file with brackets exists and --literal used', () => {
+      then('file is found successfully', () => {
+        const result = runInTempGitRepo({
+          files: { 'doc.[ref].md': 'bracket content' },
+          globsafeArgs: ['--literal', '--pattern', 'doc.[ref].md'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('doc.[ref].md');
+        expect(result.stdout).toContain('files: 1');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] file with brackets absent and --literal used', () => {
+      then('shows zero files without hint', () => {
+        const result = runInTempGitRepo({
+          globsafeArgs: ['--literal', '--pattern', 'absent.[ref].md'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('files: 0');
+        expect(result.stdout).not.toContain('did you know');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] file with brackets exists and escape syntax used', () => {
+      then('file is found successfully', () => {
+        const result = runInTempGitRepo({
+          files: { 'doc.[ref].md': 'bracket content' },
+          globsafeArgs: ['--pattern', 'doc.\\[ref\\].md'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('doc.[ref].md');
+        expect(result.stdout).toContain('files: 1');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] brackets used without --literal and no match', () => {
+      then('shows did-you-know hint', () => {
+        const result = runInTempGitRepo({
+          files: { 'other.md': 'other content' },
+          globsafeArgs: ['--pattern', 'doc.[ref].md'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('files: 0');
+        expect(result.stdout).toContain('did you know');
+        expect(result.stdout).toContain('--literal');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t4] brackets used without --literal but file matches', () => {
+      then('hint does not appear on success', () => {
+        const result = runInTempGitRepo({
+          files: { 'doc.r.md': 'matches [ref] as r' },
+          globsafeArgs: ['--pattern', 'doc.[ref].md'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).not.toContain('did you know');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
 });

@@ -19,6 +19,8 @@
 #   globsafe.sh --pattern 'src/**/*.ts' --sort time          # sort by mtime
 #   globsafe.sh --pattern 'src/**/*.ts' --sort size          # sort by size
 #   globsafe.sh --pattern 'src/**/*.ts' --output direct      # pipe-friendly output
+#   globsafe.sh --pattern '*.[ref].md' --literal             # literal brackets
+#   globsafe.sh --pattern '*.\[ref\].md'                     # escaped brackets
 #
 # guarantee:
 #   - search path must be within repo
@@ -40,6 +42,7 @@ shopt -s globstar nullglob 2>/dev/null || true
 PATTERN=""
 SEARCH_PATH="."
 LONG=false
+LITERAL=false
 HEAD_LIMIT=""
 SORT_BY="name"
 OUTPUT_MODE="vibes"
@@ -70,6 +73,10 @@ while [[ $# -gt 0 ]]; do
       OUTPUT_MODE="$2"
       shift 2
       ;;
+    --literal)
+      LITERAL=true
+      shift
+      ;;
     --repo|--role|--skill)
       # rhachet passthrough args - ignore
       shift 2
@@ -87,6 +94,13 @@ while [[ $# -gt 0 ]]; do
       echo "  --head N           limit output to N files"
       echo "  --sort name|time|size  sort order (default: name)"
       echo "  --output vibes|direct  output format (default: vibes)"
+      echo "  --literal          treat pattern as literal (no glob expansion)"
+      echo "                     use when pattern contains [ or ] characters"
+      echo ""
+      echo "examples:"
+      echo "  globsafe.sh --pattern 'src/**/*.ts'                  # glob pattern"
+      echo "  globsafe.sh --pattern '*.[ref].md' --literal         # literal brackets"
+      echo "  globsafe.sh --pattern '*.\\[ref\\].md'                 # escaped brackets"
       exit 0
       ;;
     --*)
@@ -162,9 +176,20 @@ FILES=()
 
 # use bash glob expansion from search path
 cd "$SEARCH_PATH_ABS"
-eval "for f in $PATTERN; do [[ -e \"\$f\" ]] && FILES+=(\"\$f\"); done" 2>/dev/null || true
 
-# sort files
+# expand pattern to files
+if [[ "$LITERAL" == true ]]; then
+  # literal mode: check if file exists directly (no glob expansion)
+  if [[ -e "$PATTERN" ]]; then
+    FILES+=("$PATTERN")
+  fi
+else
+  # glob mode: use eval to expand pattern
+  eval "for f in $PATTERN; do [[ -e \"\$f\" ]] && FILES+=(\"\$f\"); done" 2>/dev/null || true
+fi
+
+# sort files (disable glob to preserve brackets in filenames)
+set -f
 case "$SORT_BY" in
   name)
     IFS=$'\n' FILES=($(printf '%s\n' "${FILES[@]}" | sort)); unset IFS
@@ -176,6 +201,7 @@ case "$SORT_BY" in
     IFS=$'\n' FILES=($(for f in "${FILES[@]}"; do echo "$(stat -c '%s' "$f" 2>/dev/null || stat -f '%z' "$f" 2>/dev/null || echo 0) $f"; done | sort -rn | cut -d' ' -f2-)); unset IFS
     ;;
 esac
+set +f
 
 FILE_COUNT=${#FILES[@]}
 
@@ -203,6 +229,20 @@ else
     print_tree_branch "pattern" "$PATTERN"
     print_tree_branch "path" "$SEARCH_PATH"
     print_tree_leaf "files: 0"
+
+    # hint if pattern contains [ and --literal was not used
+    if [[ "$LITERAL" != true && "$PATTERN" == *"["* ]]; then
+      # escape brackets for display
+      PATTERN_ESCAPED="${PATTERN//\[/\\[}"
+      PATTERN_ESCAPED="${PATTERN_ESCAPED//\]/\\]}"
+      echo ""
+      echo "🥥 did you know?"
+      echo "   ├─ pattern contains \`[\` which is a glob character"
+      echo "   ├─ to treat \`[\` as literal, use either:"
+      echo "   │  ├─ --literal flag: rhx globsafe --pattern '$PATTERN' --literal"
+      echo "   │  └─ escape syntax: rhx globsafe --pattern '$PATTERN_ESCAPED'"
+      echo "   └─ see: rhx globsafe --help"
+    fi
   else
     print_turtle_header "sweet"
     print_tree_start "globsafe"

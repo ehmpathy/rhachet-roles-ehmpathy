@@ -201,10 +201,6 @@
       "Bash(echo:*)",
       "Bash(printf:*)",
 
-      // git mv/rm are safe - constrained to repo, all changes revertable
-      "Bash(git mv:*)",
-      "Bash(git rm:*)",
-
       // git read-only - all have no write variants
       "Bash(git log:*)",
       "Bash(git status:*)",
