@@ -721,13 +721,11 @@ describe('rmsafe.sh', () => {
         });
 
         expect(result.exitCode).toBe(0);
+        expect(fs.existsSync(path.join(result.tempDir, 'src/target.txt'))).toBe(
+          false,
+        );
         expect(
-          fs.existsSync(path.join(result.tempDir, 'src/target.txt')),
-        ).toBe(false);
-        expect(
-          fs.existsSync(
-            path.join(result.tempDir, TRASH_REL, 'src/target.txt'),
-          ),
+          fs.existsSync(path.join(result.tempDir, TRASH_REL, 'src/target.txt')),
         ).toBe(true);
         expect(
           fs.readFileSync(
@@ -745,9 +743,15 @@ describe('rmsafe.sh', () => {
         });
 
         expect(result.exitCode).toBe(0);
-        const gitignorePath = path.join(result.tempDir, TRASH_REL, '.gitignore');
+        const gitignorePath = path.join(
+          result.tempDir,
+          TRASH_REL,
+          '.gitignore',
+        );
         expect(fs.existsSync(gitignorePath)).toBe(true);
-        expect(fs.readFileSync(gitignorePath, 'utf-8')).toBe('*\n!.gitignore\n');
+        expect(fs.readFileSync(gitignorePath, 'utf-8')).toBe(
+          '*\n!.gitignore\n',
+        );
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
 
@@ -778,7 +782,9 @@ describe('rmsafe.sh', () => {
         expect(result.exitCode).toBe(0);
         expect(fs.existsSync(path.join(result.tempDir, 'mydir'))).toBe(false);
         expect(
-          fs.existsSync(path.join(result.tempDir, TRASH_REL, 'mydir/file1.txt')),
+          fs.existsSync(
+            path.join(result.tempDir, TRASH_REL, 'mydir/file1.txt'),
+          ),
         ).toBe(true);
         expect(
           fs.existsSync(
@@ -847,7 +853,11 @@ describe('rmsafe.sh', () => {
           fs.readFileSync(path.join(result.tempDir, 'real-file.txt'), 'utf-8'),
         ).toBe('real content');
         // symlink in trash (as symlink, not dereferenced)
-        const trashLink = path.join(result.tempDir, TRASH_REL, 'link-to-file.txt');
+        const trashLink = path.join(
+          result.tempDir,
+          TRASH_REL,
+          'link-to-file.txt',
+        );
         expect(fs.lstatSync(trashLink).isSymbolicLink()).toBe(true);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
