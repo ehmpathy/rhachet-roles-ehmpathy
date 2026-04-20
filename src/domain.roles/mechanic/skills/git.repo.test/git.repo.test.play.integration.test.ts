@@ -2100,66 +2100,69 @@ Time:        0.1 s`,
   // journey 19: real keyrack call (no mocks)
   // ######################################################################
   // .note = skip in CI: real npm/keyrack calls can hang due to npx install prompts
-  given.skipIf(!!process.env.CI)('[case19] real integration test with keyrack', () => {
-    when('[t0] --what integration calls real keyrack', () => {
-      const result = useThen('skill executes', () => {
-        const { tempDir } = setupFixture({
-          packageJson: {
-            name: 'real-test-repo',
-            scripts: {
-              'test:integration': 'echo "integration test" && exit 0',
+  given.skipIf(!!process.env.CI)(
+    '[case19] real integration test with keyrack',
+    () => {
+      when('[t0] --what integration calls real keyrack', () => {
+        const result = useThen('skill executes', () => {
+          const { tempDir } = setupFixture({
+            packageJson: {
+              name: 'real-test-repo',
+              scripts: {
+                'test:integration': 'echo "integration test" && exit 0',
+              },
             },
-          },
-          jestConfigs: ['integration'],
-          // no mockKeyrack - uses real keyrack
-          // no mockNpm - uses real npm
+            jestConfigs: ['integration'],
+            // no mockKeyrack - uses real keyrack
+            // no mockNpm - uses real npm
+          });
+          return runGitRepoTest({
+            tempDir,
+            gitRepoTestArgs: ['--what', 'integration'],
+            // no env override - uses real PATH with real rhx/keyrack
+          });
         });
-        return runGitRepoTest({
-          tempDir,
-          gitRepoTestArgs: ['--what', 'integration'],
-          // no env override - uses real PATH with real rhx/keyrack
+
+        then('keyrack was called (output contains keyrack info)', () => {
+          // real keyrack will either unlock or show an error
+          expect(result.stdout + result.stderr).toMatch(
+            /keyrack|unlock|ehmpath/i,
+          );
+        });
+
+        then('output has treestruct shape', () => {
+          // validate output follows treestruct format
+          const output = result.stdout + result.stderr;
+          expect(output).toMatch(/🐢|🐚|git\.repo\.test/);
+          expect(output).toMatch(/├─|└─|--what/);
+        });
+
+        then('keyrack response has valid structure', () => {
+          // validate keyrack output has expected fields
+          const output = result.stdout + result.stderr;
+          // keyrack output shows either unlocked or error
+          expect(output).toMatch(/keyrack:|unlocked|failed|vault|ehmpath/i);
+        });
+
+        then('skill output has expected fields', () => {
+          // validate skill output structure
+          const output = result.stdout + result.stderr;
+          // output should show keyrack info (success or failure)
+          expect(output).toMatch(/keyrack|unlock|malfunction/i);
+          // output should have status
+          expect(output).toMatch(/status|passed|failed|error/i);
+          // output should be integration type
+          expect(output).toMatch(/--what\s+integration|integration/i);
+        });
+
+        then('output matches snapshot', () => {
+          expect(
+            sanitizeOutput(result.stdout || result.stderr),
+          ).toMatchSnapshot();
         });
       });
-
-      then('keyrack was called (output contains keyrack info)', () => {
-        // real keyrack will either unlock or show an error
-        expect(result.stdout + result.stderr).toMatch(
-          /keyrack|unlock|ehmpath/i,
-        );
-      });
-
-      then('output has treestruct shape', () => {
-        // validate output follows treestruct format
-        const output = result.stdout + result.stderr;
-        expect(output).toMatch(/🐢|🐚|git\.repo\.test/);
-        expect(output).toMatch(/├─|└─|--what/);
-      });
-
-      then('keyrack response has valid structure', () => {
-        // validate keyrack output has expected fields
-        const output = result.stdout + result.stderr;
-        // keyrack output shows either unlocked or error
-        expect(output).toMatch(/keyrack:|unlocked|failed|vault|ehmpath/i);
-      });
-
-      then('skill output has expected fields', () => {
-        // validate skill output structure
-        const output = result.stdout + result.stderr;
-        // output should show keyrack info (success or failure)
-        expect(output).toMatch(/keyrack|unlock|malfunction/i);
-        // output should have status
-        expect(output).toMatch(/status|passed|failed|error/i);
-        // output should be integration type
-        expect(output).toMatch(/--what\s+integration|integration/i);
-      });
-
-      then('output matches snapshot', () => {
-        expect(
-          sanitizeOutput(result.stdout || result.stderr),
-        ).toMatchSnapshot();
-      });
-    });
-  });
+    },
+  );
 
   // ######################################################################
   // journey 20: flag combinations
