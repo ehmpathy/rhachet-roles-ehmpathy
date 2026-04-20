@@ -1167,6 +1167,11 @@ Ran all test suites matched checkout.`,
           );
         }
 
+        // lookup real rhx path BEFORE PATH is modified (to avoid mock self-reference)
+        const realRhxPath = spawnSync('which', ['rhx'], {
+          encoding: 'utf-8',
+        }).stdout.trim();
+
         // create mock npm that tracks calls and returns success for all
         const fakeBinDir = path.join(tempDir, '.fakebin');
         fs.mkdirSync(fakeBinDir, { recursive: true });
@@ -1207,7 +1212,8 @@ if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
   echo "unlocked ehmpath/test"
   exit 0
 fi
-exec "$(which rhx)" "$@"
+# pass through to real rhx (use absolute path to avoid recursion)
+exec "${realRhxPath}" "$@"
 `,
         );
         fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
@@ -1355,6 +1361,11 @@ exit 0
           );
         }
 
+        // lookup real rhx path BEFORE PATH is modified (to avoid mock self-reference)
+        const realRhxPath = spawnSync('which', ['rhx'], {
+          encoding: 'utf-8',
+        }).stdout.trim();
+
         const fakeBinDir = path.join(tempDir, '.fakebin');
         fs.mkdirSync(fakeBinDir, { recursive: true });
 
@@ -1379,7 +1390,8 @@ if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
   echo "unlocked ehmpath/test"
   exit 0
 fi
-exec "$(which rhx)" "$@"
+# pass through to real rhx (use absolute path to avoid recursion)
+exec "${realRhxPath}" "$@"
 `,
         );
         fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
@@ -1443,6 +1455,11 @@ exec "$(which rhx)" "$@"
           );
         }
 
+        // lookup real rhx path BEFORE PATH is modified (to avoid mock self-reference)
+        const realRhxPath = spawnSync('which', ['rhx'], {
+          encoding: 'utf-8',
+        }).stdout.trim();
+
         const fakeBinDir = path.join(tempDir, '.fakebin');
         fs.mkdirSync(fakeBinDir, { recursive: true });
 
@@ -1470,7 +1487,8 @@ if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
   echo "unlocked ehmpath/test"
   exit 0
 fi
-exec "$(which rhx)" "$@"
+# pass through to real rhx (use absolute path to avoid recursion)
+exec "${realRhxPath}" "$@"
 `,
         );
         fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
@@ -1536,6 +1554,11 @@ exec "$(which rhx)" "$@"
             );
           }
 
+          // lookup real rhx path BEFORE PATH is modified (to avoid mock self-reference)
+          const realRhxPath = spawnSync('which', ['rhx'], {
+            encoding: 'utf-8',
+          }).stdout.trim();
+
           const fakeBinDir = path.join(tempDir, '.fakebin');
           fs.mkdirSync(fakeBinDir, { recursive: true });
 
@@ -1566,7 +1589,8 @@ if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
   echo "unlocked ehmpath/test"
   exit 0
 fi
-exec "$(which rhx)" "$@"
+# pass through to real rhx (use absolute path to avoid recursion)
+exec "${realRhxPath}" "$@"
 `,
           );
           fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
