@@ -17,6 +17,8 @@
 #   ✔ detect: scans CI history for flaky tests
 #   ✔ exhume: fetches failed attempt logs for diagnosis
 #   ✔ fail-fast on any error
+#
+# .note = v1
 ######################################################################
 
 set -euo pipefail
