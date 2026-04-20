@@ -78,6 +78,9 @@ describe('git.repo.test', () => {
 
     let env = { ...process.env };
 
+    // lookup real rhx path BEFORE modifying PATH (to avoid mock finding itself)
+    const realRhxPath = spawnSync('which', ['rhx'], { encoding: 'utf-8' }).stdout.trim();
+
     // mock keyrack for hermetic tests
     if (config.mockKeyrack) {
       const fakeBinDir = path.join(tempDir, '.fakebin');
@@ -89,8 +92,13 @@ if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
   echo "unlocked ehmpath/test"
   exit 0
 fi
-# pass through to real rhx for other commands
-exec "$(which rhx)" "$@"
+if [[ "$1" == "keyrack" && "$2" == "source" ]]; then
+  # emit no-op env vars (skill expects eval-able output)
+  echo "# mock keyrack source"
+  exit 0
+fi
+# pass through to real rhx for other commands (use absolute path to avoid recursion)
+exec "${realRhxPath}" "$@"
 `,
       );
       fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
@@ -108,8 +116,13 @@ if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
   echo "keyrack unlock failed: vault locked" >&2
   exit 1
 fi
-# pass through to real rhx for other commands
-exec "$(which rhx)" "$@"
+if [[ "$1" == "keyrack" && "$2" == "source" ]]; then
+  # emit no-op env vars (skill expects eval-able output)
+  echo "# mock keyrack source"
+  exit 0
+fi
+# pass through to real rhx for other commands (use absolute path to avoid recursion)
+exec "${realRhxPath}" "$@"
 `,
       );
       fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
