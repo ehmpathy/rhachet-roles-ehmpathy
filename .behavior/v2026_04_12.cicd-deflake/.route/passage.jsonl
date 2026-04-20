@@ -5,3 +5,4 @@
 {"stone":"2.2.diagnose.rootcause","status":"passed"}
 {"stone":"3.plan","status":"blocked","blocker":"review.self","reason":"review.self required: has-preserved-test-intent"}
 {"stone":"3.plan","status":"passed"}
+{"stone":"4.execution","status":"blocked"}
