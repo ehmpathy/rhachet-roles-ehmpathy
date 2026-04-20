@@ -405,7 +405,7 @@ set -euo pipefail
 
 STATE_DIR="${stateDir}"
 
-# increment pr view call counter (separate from other calls)
+# increment pr view call counter (separate from run list)
 get_pr_view_count() {
   local COUNTER_FILE="\$STATE_DIR/gh_pr_view_count"
   if [[ -f "\$COUNTER_FILE" ]]; then
@@ -418,6 +418,23 @@ get_pr_view_count() {
 increment_pr_view_count() {
   local COUNTER_FILE="\$STATE_DIR/gh_pr_view_count"
   local COUNT=\$(get_pr_view_count)
+  COUNT=\$((COUNT + 1))
+  echo "\$COUNT" > "\$COUNTER_FILE"
+}
+
+# increment run list call counter (separate from pr view)
+get_run_list_count() {
+  local COUNTER_FILE="\$STATE_DIR/gh_run_list_count"
+  if [[ -f "\$COUNTER_FILE" ]]; then
+    cat "\$COUNTER_FILE"
+  else
+    echo "0"
+  fi
+}
+
+increment_run_list_count() {
+  local COUNTER_FILE="\$STATE_DIR/gh_run_list_count"
+  local COUNT=\$(get_run_list_count)
   COUNT=\$((COUNT + 1))
   echo "\$COUNT" > "\$COUNTER_FILE"
 }
@@ -489,8 +506,8 @@ if [[ "\$1" == "run" && "\$2" == "list" ]]; then
   # check for watch sequence
   SEQUENCE_FILE="\$STATE_DIR/watch_sequence.json"
   if [[ -f "\$SEQUENCE_FILE" ]]; then
-    COUNT=\$(get_pr_view_count)
-    increment_pr_view_count
+    COUNT=\$(get_run_list_count)
+    increment_run_list_count
 
     # get sequence length
     SEQ_LEN=\$(jq 'length' "\$SEQUENCE_FILE")
@@ -701,7 +718,10 @@ has_release_automerge_enabled() {
   [[ "$RELEASE_HAS_AUTOMERGE" == "true" ]] || [[ -f "$STATE_DIR/automerge-enabled-$pr_num" ]]
 }
 
-# check if should auto-merge (counter >= 9 means ready to merge)
+# check if should auto-merge
+# note: merge one poll after checks pass to simulate GitHub's slight delay
+# is_passed >= 7, should_auto_merge >= 8
+# this ensures watch sees "passed with automerge" before merge
 should_auto_merge_feat() {
   local pr_num="$1"
   if ! has_feat_automerge_enabled "$pr_num"; then
@@ -710,11 +730,15 @@ should_auto_merge_feat() {
   if [[ "$TRANSITIONS_ENABLED" == "true" ]]; then
     local count
     count=$(get_counter "view-$pr_num")
-    [[ $count -ge 9 ]] && return 0
+    # merge one poll after checks pass (is_passed >= 7, merge >= 8)
+    # this ensures watch sees "passed with automerge" before merge
+    [[ $count -ge 8 ]] && return 0
+  else
+    # without transitions, merge after fewer polls (show ~2 watch cycles)
+    local count
+    count=$(get_counter "view-$pr_num")
+    [[ $count -ge 3 ]] && return 0
   fi
-  local count
-  count=$(get_counter "view-$pr_num")
-  [[ $count -ge 5 ]] && return 0
   return 1
 }
 
@@ -726,22 +750,28 @@ should_auto_merge_release() {
   if [[ "$TRANSITIONS_ENABLED" == "true" ]]; then
     local count
     count=$(get_counter "view-$pr_num")
-    [[ $count -ge 9 ]] && return 0
+    # merge one poll after checks pass (is_passed >= 7, merge >= 8)
+    # this ensures watch sees "passed with automerge" before merge
+    [[ $count -ge 8 ]] && return 0
+  else
+    # without transitions, merge after fewer polls (show ~2 watch cycles)
+    local count
+    count=$(get_counter "view-$pr_num")
+    [[ $count -ge 3 ]] && return 0
   fi
-  local count
-  count=$(get_counter "view-$pr_num")
-  [[ $count -ge 5 ]] && return 0
   return 1
 }
 
 # check if tag workflows are done
+# note: threshold is 5 (not 3) to account for pre-watch calls
+# the skill may call get_tag_runs 1-2 times before watch starts
 is_tag_done() {
   if [[ "$TRANSITIONS_ENABLED" != "true" ]]; then
     return 1
   fi
   local count
   count=$(get_counter "tag-runs")
-  [[ $count -ge 3 ]]
+  [[ $count -ge 5 ]]
 }
 
 # ============================================================================
@@ -760,6 +790,8 @@ case "$CMD_KEY" in
       # check for get_fresh_release_pr query (--json number,title,headRefOid)
       if echo "$ALL_ARGS" | grep -q -- "--json number,title,headRefOid"; then
         # return JSON format for freshness check (open PRs)
+        # use HEAD SHA so freshness check passes (test creates tag on HEAD)
+        RELEASE_HEAD_SHA=$(/usr/bin/git rev-parse HEAD)
         if is_merged "${releasePrNum}"; then
           echo ""
         elif [[ "${scene.releasePr === 'unfound'}" == "true" ]]; then
@@ -770,18 +802,18 @@ case "$CMD_KEY" in
             if [[ $AWAIT_COUNT -lt 3 ]]; then
               echo ""
             else
-              echo '{"number":${releasePrNum},"title":"${releasePrTitle}","headRefOid":"mock_release_pr_head_sha"}'
+              echo '{"number":${releasePrNum},"title":"${releasePrTitle}","headRefOid":"'"$RELEASE_HEAD_SHA"'"}'
             fi
           elif [[ "$AWAIT_RELEASE_PR" == "immediate" ]]; then
             # immediate: return PR right away
-            echo '{"number":${releasePrNum},"title":"${releasePrTitle}","headRefOid":"mock_release_pr_head_sha"}'
+            echo '{"number":${releasePrNum},"title":"${releasePrTitle}","headRefOid":"'"$RELEASE_HEAD_SHA"'"}'
           else
             # never: always return empty (timeout)
             echo ""
           fi
         elif [[ "${scene.featPr === undefined}" == "true" ]] || is_merged "${featPrNum}" || [[ "${scene.featPr === 'merged'}" == "true" ]]; then
           # featPr undefined = --from main scenario, skip feat PR check
-          echo '{"number":${releasePrNum},"title":"${releasePrTitle}","headRefOid":"mock_release_pr_head_sha"}'
+          echo '{"number":${releasePrNum},"title":"${releasePrTitle}","headRefOid":"'"$RELEASE_HEAD_SHA"'"}'
         else
           echo ""
         fi
@@ -853,12 +885,14 @@ case "$CMD_KEY" in
     PR_NUM="$3"
 
     # handle mergeCommit query (for await freshness check)
+    # use HEAD SHA so freshness check passes (test creates tag on HEAD)
     if echo "$ALL_ARGS" | grep -q "mergeCommit"; then
+      MERGE_COMMIT_SHA=$(/usr/bin/git rev-parse HEAD)
       # check if --jq '.mergeCommit.oid' is present (extract just SHA)
       if echo "$ALL_ARGS" | grep -qF '.mergeCommit.oid'; then
-        echo 'mock_merge_commit_sha_'"\$PR_NUM"
+        echo "$MERGE_COMMIT_SHA"
       else
-        echo '{"mergeCommit":{"oid":"mock_merge_commit_sha_'"\$PR_NUM"'"}}'
+        echo '{"mergeCommit":{"oid":"'"$MERGE_COMMIT_SHA"'"}}'
       fi
       exit 0
     fi
@@ -897,14 +931,16 @@ case "$CMD_KEY" in
         mark_merged "${featPrNum}"
         echo '${esc(featPrViewMerged)}'
       elif is_passed "${featPrNum}"; then
-        if [[ -f "$STATE_DIR/automerge-enabled-$PR_NUM" ]] && [[ "$FEAT_HAS_AUTOMERGE" != "true" ]]; then
+        # return passed:with-automerge if initial or dynamic automerge
+        if [[ "$FEAT_HAS_AUTOMERGE" == "true" ]] || [[ -f "$STATE_DIR/automerge-enabled-$PR_NUM" ]]; then
           echo '${esc(featPrViewPassedWithAutomerge)}'
         else
           echo '${esc(featPrViewPassed)}'
         fi
       else
         if [[ -f "$STATE_DIR/automerge-enabled-$PR_NUM" ]] && [[ "$FEAT_HAS_AUTOMERGE" != "true" ]]; then
-          echo '${esc(featPrViewWithAutomerge)}'
+          # automerge was dynamically enabled
+          echo '${esc(scene.featPr?.startsWith('passed') ? featPrViewPassedWithAutomerge : featPrViewWithAutomerge)}'
         else
           echo '${esc(featPrView)}'
         fi
@@ -914,7 +950,7 @@ case "$CMD_KEY" in
       if was_rerun_triggered "${releasePrNum}" && [[ "${scene.releasePr}" == "failed" ]]; then
         RETRY_COUNT=$(get_counter "view-$PR_NUM")
         if [[ $RETRY_COUNT -ge 4 ]]; then
-          # after 4 polls, check if retry succeeds or fails
+          # after enough polls, check if retry succeeds or fails
           if [[ "$RETRY_SUCCEEDS" == "true" ]]; then
             # transition to passed (retry success path)
             if [[ -f "$STATE_DIR/automerge-enabled-$PR_NUM" ]]; then
@@ -942,14 +978,16 @@ case "$CMD_KEY" in
         mark_merged "${releasePrNum}"
         echo '${esc(releasePrViewMerged)}'
       elif is_passed "${releasePrNum}"; then
-        if [[ -f "$STATE_DIR/automerge-enabled-$PR_NUM" ]] && [[ "$RELEASE_HAS_AUTOMERGE" != "true" ]]; then
+        # return passed:with-automerge if initial or dynamic automerge
+        if [[ "$RELEASE_HAS_AUTOMERGE" == "true" ]] || [[ -f "$STATE_DIR/automerge-enabled-$PR_NUM" ]]; then
           echo '${esc(releasePrViewPassedWithAutomerge)}'
         else
           echo '${esc(releasePrViewPassed)}'
         fi
       else
         if [[ -f "$STATE_DIR/automerge-enabled-$PR_NUM" ]] && [[ "$RELEASE_HAS_AUTOMERGE" != "true" ]]; then
-          echo '${esc(releasePrViewWithAutomerge)}'
+          # automerge was dynamically enabled
+          echo '${esc(scene.releasePr?.startsWith('passed') ? releasePrViewPassedWithAutomerge : releasePrViewWithAutomerge)}'
         else
           echo '${esc(releasePrView)}'
         fi
@@ -1003,7 +1041,7 @@ case "$CMD_KEY" in
     if was_tag_rerun_triggered && [[ "${scene.tagWorkflows}" == "failed" ]]; then
       RETRY_COUNT=$TAG_CALL_COUNT
       if [[ $RETRY_COUNT -ge 4 ]]; then
-        # after 4 polls, check if retry succeeds or fails
+        # after enough polls, check if retry succeeds or fails
         if [[ "$RETRY_SUCCEEDS" == "true" ]]; then
           # transition to passed (retry success path)
           echo '${esc(tagRunsPassed)}'
@@ -1026,11 +1064,16 @@ case "$CMD_KEY" in
     fi
 
     # for non-failed states, use normal transition logic
+    # note: threshold 6 accounts for pre-watch calls (1-2) + watch polls
     if is_tag_done; then
       echo '${esc(tagRunsPassed)}'
+    elif [[ "${scene.tagWorkflows}" == "passed" ]]; then
+      # if scene already has passed tags, respect that state
+      # (don't force inflight→passed transition when already passed)
+      echo '${esc(tagRunsPassed)}'
     elif [[ "$TRANSITIONS_ENABLED" == "true" ]] && [[ $TAG_CALL_COUNT -ge 1 ]]; then
-      # after first call, show inflight then transition to passed
-      if [[ $TAG_CALL_COUNT -ge 4 ]]; then
+      # show inflight then transition to passed after enough polls
+      if [[ $TAG_CALL_COUNT -ge 6 ]]; then
         echo '${esc(tagRunsPassed)}'
       else
         echo '${esc(tagRunsInflight)}'
@@ -1138,8 +1181,9 @@ fi
 
 # handle rev-parse refs/tags/... (tag commit lookup)
 if [[ "\$1" == "rev-parse" ]] && echo "\$*" | grep -q "refs/tags"; then
-  # return a mock tag commit SHA
-  echo "mock_tag_commit_sha"
+  # return real HEAD SHA so freshness check passes
+  # (test creates tag on HEAD, so tag commit = HEAD)
+  /usr/bin/git rev-parse HEAD
   exit 0
 fi
 

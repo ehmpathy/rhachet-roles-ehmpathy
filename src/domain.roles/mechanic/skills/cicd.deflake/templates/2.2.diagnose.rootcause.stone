@@ -1,0 +1,64 @@
+predict root cause for each flake based on research.
+
+.why = rank hypotheses before you plan repair.
+
+---
+
+## how to diagnose root cause
+
+for each flake, use the research from 2.1.diagnose.research.yield.md to predict the root cause.
+
+### step 1: rank hypotheses
+
+for each flake candidate identified in research, assign probability:
+
+| hypothesis | probability | evidence from research |
+|------------|-------------|------------------------|
+| race condition in X | high | found shared state, concurrent access |
+| timeout in Y | medium | found network call, no timeout config |
+| shared state in Z | low | found singleton, but properly isolated |
+
+### step 2: define verification approach
+
+for each hypothesis, define how to verify:
+
+| hypothesis | verification approach |
+|------------|----------------------|
+| race condition | add mutex, run 10x, observe |
+| timeout | increase timeout, add elapsed log |
+| shared state | isolate test, compare results |
+
+### step 3: attempt reproduction
+
+- can you reproduce the flake locally? run 10x with `--runInBand`
+- if not reproducible, add log statements at each candidate node
+- wait for next flake occurrence with observability in place
+
+---
+
+## root cause per flake
+
+for each flake from research:
+
+### flake: {test name}
+
+**root cause hypotheses:**
+
+| rank | hypothesis | probability | evidence | verification |
+|------|------------|-------------|----------|--------------|
+| 1 | {most likely} | high | {from research} | {how to verify} |
+| 2 | {next likely} | medium | {from research} | {how to verify} |
+| 3 | {less likely} | low | {from research} | {how to verify} |
+
+**observability additions needed:**
+- [ ] {log output or instrumentation to add}
+
+**reproduction status:**
+- [ ] reproduced locally — root cause confirmed
+- [ ] not reproducible — awaited observability
+
+**predicted root cause:** {your best prediction based on evidence}
+
+---
+
+emit into $route/2.2.diagnose.rootcause.yield.md

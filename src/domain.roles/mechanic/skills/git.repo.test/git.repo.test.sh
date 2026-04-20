@@ -186,9 +186,10 @@ get_scope_file_count() {
   esac
 
   # use jest --listTests to get matched files
+  # --no-install prevents npx from stall on "install jest?" prompt
   local matched_files
   # shellcheck disable=SC2086
-  if ! matched_files=$(npx jest $jest_config --listTests --testPathPatterns "$scope" 2>/dev/null); then
+  if ! matched_files=$(npx --no-install jest $jest_config --listTests --testPathPatterns "$scope" 2>/dev/null); then
     echo "-1"  # -1 means couldn't check
     return
   fi
@@ -514,6 +515,8 @@ unlock_keyrack() {
   local unlock_output
   if unlock_output=$(rhx keyrack unlock --owner ehmpath --env test 2>&1); then
     KEYRACK_STATUS="unlocked ehmpath/test"
+    # export credentials as env vars so subprocesses can access them
+    eval "$(rhx keyrack source --owner ehmpath --env test --lenient 2>/dev/null)" || true
     return 0
   else
     local _output

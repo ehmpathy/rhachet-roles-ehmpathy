@@ -1,0 +1,16 @@
+artifacts:
+  - $route/7.reflection.yield.md
+
+reviews:
+  self:
+    - slug: has-proposed-briefs
+      say: |
+        does the reflection include proposed briefs?
+
+        check: 7.reflection.yield.md has ## proposed briefs section
+        check: at least one brief is proposed with name, content, and why
+
+        if no briefs proposed, ask: were there truly no systemic lessons?
+
+judges:
+  - npx rhachet run --repo bhrain --skill route.stone.judge --mechanism approved? --stone $stone --route $route

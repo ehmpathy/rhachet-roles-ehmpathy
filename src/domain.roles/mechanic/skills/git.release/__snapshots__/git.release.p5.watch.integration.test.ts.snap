@@ -125,6 +125,8 @@ exports[`git.release.p5.watch release-tag watch given: [case8] tag workflows inf
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
       └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
@@ -183,6 +185,8 @@ exports[`git.release.p5.watch release-tag watch given: [case11] tag starts unfou
 🌊 release: v1.3.0
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "

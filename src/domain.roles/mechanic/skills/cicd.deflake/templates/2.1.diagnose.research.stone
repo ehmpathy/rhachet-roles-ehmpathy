@@ -1,0 +1,100 @@
+trace codepaths and gather ground truth for each flake.
+
+.why = understand the full execution path before you predict root cause.
+
+---
+
+## how to research
+
+for each flake, trace BOTH the test codepath AND the prod codepath to identify all spots where the flake COULD have come from.
+
+### step 1: trace the test codepath
+
+use behavior blueprint style treestruct to map the test execution:
+
+```
+testName.integration.test.ts
+├── given: [setup]
+│   ├── createTestData()
+│   │   └── daoUser.upsert() ← potential: db connection delay
+│   └── mockExternalService()
+│       └── jest.mock() ← potential: mock not reset between runs
+├── when: [action]
+│   └── invokeFeature()
+│       └── {prod function called here — trace in step 2}
+└── then: [assertion]
+    └── expect(result).toEqual() ← potential: snapshot drift
+```
+
+### step 2: trace the prod codepath
+
+for the prod code invoked by the test, trace the execution:
+
+```
+src/domain.operations/doFeature.ts
+├── doFeature(input, context)
+│   ├── validateInput(input) ← potential: validation race
+│   ├── getRelatedData(input.id, context)
+│   │   └── context.daoEntity.findByRef() ← potential: db timeout
+│   ├── computeResult(data)
+│   │   └── pureTransform() ← unlikely: deterministic
+│   └── persistResult(result, context)
+│       ├── context.daoResult.upsert() ← potential: db contention
+│       └── context.svcNotify.emit() ← potential: network timeout
+```
+
+### step 3: annotate flake candidates
+
+for each node in BOTH codepaths, mark potential flake sources:
+
+| location | node | why it could flake |
+|----------|------|-------------------|
+| test | createTestData() | db connection delay |
+| test | mockExternalService() | mock not reset |
+| prod | getRelatedData() | db timeout |
+| prod | persistResult() | db contention |
+
+### step 4: gather ground truth
+
+for each flake candidate, gather concrete evidence:
+
+1. **read the code** — what does it actually do?
+2. **check shared state** — any globals, singletons, closures?
+3. **check time dependencies** — setTimeout, Date.now, timestamps?
+4. **check external i/o** — network, filesystem, database?
+5. **check parallelism** — Promise.all, concurrent tests?
+6. **check order dependencies** — test isolation, cleanup?
+
+---
+
+## research per flake
+
+for each flake from evidence:
+
+### flake: {test name}
+
+**test codepath treestruct:**
+```
+{trace the test execution path — REQUIRED}
+```
+
+**prod codepath treestruct:**
+```
+{trace the prod execution path — REQUIRED}
+```
+
+**flake candidates:**
+| location | node | why it could flake | evidence |
+|----------|------|-------------------|----------|
+| test/prod | {node} | {reason} | {what you observed in code} |
+
+**ground truth notes:**
+- shared state found: {yes/no, details}
+- time dependencies found: {yes/no, details}
+- external i/o found: {yes/no, details}
+- parallelism found: {yes/no, details}
+- order dependencies found: {yes/no, details}
+
+---
+
+emit into $route/2.1.diagnose.research.yield.md

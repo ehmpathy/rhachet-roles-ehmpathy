@@ -1,0 +1,185 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`cicd.deflake detect given: [case1] requires --into argument when: [t0] detect subcommand is invoked without --into then: exits with code 2 and shows error 1`] = `
+"🐢 bummer dude...
+
+🐚 cicd.deflake detect
+   └─ error: --into is required
+
+   usage: rhx cicd.deflake detect --into <path>
+"
+`;
+
+exports[`cicd.deflake detect given: [case1] requires --into argument when: [t0] detect subcommand is invoked without --into then: exits with code 2 and shows error 2`] = `""`;
+
+exports[`cicd.deflake detect given: [case2] positive path with --into when: [t0] detect subcommand is invoked with valid --into then: scans and writes empty inventory 1`] = `""`;
+
+exports[`cicd.deflake detect given: [case2] positive path with --into when: [t0] detect subcommand is invoked with valid --into then: scans and writes empty inventory 2`] = `
+"🐢 let's dive in...
+
+🐚 cicd.deflake detect
+   ├─ days: 30
+   ├─ signal: retried runs (run_attempt > 1)
+   └─ into: .temp/$TEMP/evidence.json
+
+🥥 no flakes found
+   └─ [2mruns_analyzed: $N[0m
+"
+`;
+
+exports[`cicd.deflake detect given: [case3] gh auth failure when: [t0] detect subcommand is invoked without auth then: exits with error and shows auth hint 1`] = `
+"🐢 bummer dude...
+
+🐚 cicd.deflake detect
+   └─ error: not authenticated with gh cli
+
+   run: gh auth login
+"
+`;
+
+exports[`cicd.deflake detect given: [case3] gh auth failure when: [t0] detect subcommand is invoked without auth then: exits with error and shows auth hint 2`] = `""`;
+
+exports[`cicd.deflake detect given: [case4] real GitHub API integration when: [t0] detect is invoked against real GitHub API then: returns valid response shape from GitHub 1`] = `""`;
+
+exports[`cicd.deflake detect given: [case4] real GitHub API integration when: [t0] detect is invoked against real GitHub API then: returns valid response shape from GitHub 2`] = `
+"🐢 let's dive in...
+
+🐚 cicd.deflake detect
+   ├─ days: 7
+   ├─ signal: retried runs (run_attempt > 1)
+   └─ into: .temp/$TEMP/evidence.json
+
+🥥 evidence gathered
+   └─ [2mruns_analyzed: $N, flakes: 2[0m
+"
+`;
+
+exports[`cicd.deflake detect given: [case5] --help shows detect subcommand help when: [t0] detect subcommand is invoked with --help then: shows detect-specific usage and options 1`] = `""`;
+
+exports[`cicd.deflake detect given: [case5] --help shows detect subcommand help when: [t0] detect subcommand is invoked with --help then: shows detect-specific usage and options 2`] = `
+"usage: cicd.deflake detect [options]
+
+scan CI history to identify flaky tests on main branch
+
+options:
+  --days <n>       lookback period in days (default: 30)
+  --into <path>    write JSON inventory to this path (required)
+  --help, -h       show this help
+
+examples:
+  rhx cicd.deflake detect --days 30 --into .behavior/v2026_04_11.cicd-deflake/1.evidence.yield._.detected.json
+"
+`;
+
+exports[`cicd.deflake detect given: [case6] invalid --days value when: [t0] detect is invoked with non-numeric --days then: exits with code 2 and shows error 1`] = `
+"🐢 bummer dude...
+
+🐚 cicd.deflake detect
+   └─ error: --days must be a positive integer
+
+   got: abc
+   usage: rhx cicd.deflake detect --days 30 --into <path>
+"
+`;
+
+exports[`cicd.deflake detect given: [case6] invalid --days value when: [t0] detect is invoked with non-numeric --days then: exits with code 2 and shows error 2`] = `""`;
+
+exports[`cicd.deflake detect given: [case7] zero --days value when: [t0] detect is invoked with --days 0 then: exits with code 2 and shows error 1`] = `
+"🐢 bummer dude...
+
+🐚 cicd.deflake detect
+   └─ error: --days must be greater than zero
+
+   got: 0
+   usage: rhx cicd.deflake detect --days 30 --into <path>
+"
+`;
+
+exports[`cicd.deflake detect given: [case7] zero --days value when: [t0] detect is invoked with --days 0 then: exits with code 2 and shows error 2`] = `""`;
+
+exports[`cicd.deflake detect given: [case8] positive path with flakes found when: [t0] detect finds flaky tests then: writes inventory with flakes and shows summary 1`] = `""`;
+
+exports[`cicd.deflake detect given: [case8] positive path with flakes found when: [t0] detect finds flaky tests then: writes inventory with flakes and shows summary 2`] = `
+"🐢 let's dive in...
+
+🐚 cicd.deflake detect
+   ├─ days: 30
+   ├─ signal: retried runs (run_attempt > 1)
+   └─ into: .temp/$TEMP/evidence.json
+
+🥥 evidence gathered
+   └─ [2mruns_analyzed: $N, flakes: 1[0m
+"
+`;
+
+exports[`cicd.deflake detect given: [case9] negative --days value when: [t0] detect is invoked with --days -1 then: exits with code 2 and shows error 1`] = `
+"🐢 bummer dude...
+
+🐚 cicd.deflake detect
+   └─ error: --days must be a positive integer
+
+   got: -1
+   usage: rhx cicd.deflake detect --days 30 --into <path>
+"
+`;
+
+exports[`cicd.deflake detect given: [case9] negative --days value when: [t0] detect is invoked with --days -1 then: exits with code 2 and shows error 2`] = `""`;
+
+exports[`cicd.deflake detect given: [case10] gh api call failure when: [t0] detect is invoked but API fails then: handles gracefully with empty results 1`] = `""`;
+
+exports[`cicd.deflake detect given: [case10] gh api call failure when: [t0] detect is invoked but API fails then: handles gracefully with empty results 2`] = `
+"🐢 let's dive in...
+
+🐚 cicd.deflake detect
+   ├─ days: 30
+   ├─ signal: retried runs (run_attempt > 1)
+   └─ into: .temp/$TEMP/evidence.json
+
+🥥 no flakes found
+   └─ [2mruns_analyzed: $N[0m
+"
+`;
+
+exports[`cicd.deflake detect given: [case11] not in git repo when: [t0] detect subcommand is invoked outside git repo then: exits with code 2 and shows error 1`] = `
+"🐢 bummer dude...
+
+🐚 cicd.deflake detect
+   └─ error: not in a git repository
+"
+`;
+
+exports[`cicd.deflake detect given: [case11] not in git repo when: [t0] detect subcommand is invoked outside git repo then: exits with code 2 and shows error 2`] = `""`;
+
+exports[`cicd.deflake detect given: [case12] runs exist but no flakes when: [t0] detect finds runs but no flakes then: writes empty inventory and shows analyzed count 1`] = `""`;
+
+exports[`cicd.deflake detect given: [case12] runs exist but no flakes when: [t0] detect finds runs but no flakes then: writes empty inventory and shows analyzed count 2`] = `
+"🐢 let's dive in...
+
+🐚 cicd.deflake detect
+   ├─ days: 30
+   ├─ signal: retried runs (run_attempt > 1)
+   └─ into: .temp/$TEMP/evidence.json
+
+🥥 no flakes found
+   └─ [2mruns_analyzed: $N[0m
+"
+`;
+
+exports[`cicd.deflake detect given: [case13] invalid --into path (directory) when: [t0] detect --into points to directory then: exits with error about invalid path 1`] = `
+"/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.cicd-deflake-route/src/domain.roles/mechanic/skills/cicd.deflake/detect.sh: line 175: .temp/$TEMP/evidence-dir: Is a directory
+"
+`;
+
+exports[`cicd.deflake detect given: [case13] invalid --into path (directory) when: [t0] detect --into points to directory then: exits with error about invalid path 2`] = `
+"🐢 let's dive in...
+
+🐚 cicd.deflake detect
+   ├─ days: 30
+   ├─ signal: retried runs (run_attempt > 1)
+   └─ into: .temp/$TEMP/evidence-dir
+"
+`;
+
+exports[`cicd.deflake detect given: [case14] gh repo view fails when: [t0] detect is invoked and repo view fails then: exits with error about repo detection 1`] = `""`;
+
+exports[`cicd.deflake detect given: [case14] gh repo view fails when: [t0] detect is invoked and repo view fails then: exits with error about repo detection 2`] = `""`;

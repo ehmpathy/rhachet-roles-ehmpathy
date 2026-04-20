@@ -1,0 +1,56 @@
+propose a plan to deflake each test.
+
+.why = concrete steps with verification criteria.
+
+---
+
+## how to plan repairs
+
+for each diagnosed flake, map the repair to the codepath node that causes the flake:
+
+### repair patterns by flake type
+
+| flake type | repair pattern | example |
+|------------|---------------|---------|
+| race condition | add mutex or serialization | `await lock.acquire()` before shared access |
+| time dependency | use frozen time or relative assertions | `jest.useFakeTimers()` or `expect(elapsed).toBeLessThan(threshold)` |
+| shared state | isolate state per test | `beforeEach(() => state = fresh())` |
+| network timeout | increase timeout or add retry | `{ timeout: 30000 }` or `withRetry(fetch, 3)` |
+| parallelism | run in band or add isolation | `--runInBand` or resource locks |
+| snapshot drift | mask dynamic values | `result.replace(/\d{4}-\d{2}-\d{2}/g, '$DATE')` |
+| cleanup failure | add explicit cleanup | `afterEach(() => cleanup())` |
+
+### verification criteria
+
+for each repair, define:
+1. **local verification**: how to prove the fix works locally
+2. **ci verification**: what ci must show to confirm stability
+3. **regression guard**: what prevents reintroduction
+
+---
+
+## plan per flake
+
+for each diagnosed flake:
+
+### flake: {test name}
+
+**root cause confirmed:** {from diagnosis}
+
+**repair steps:**
+1. [ ] {codepath node}: {change to make}
+2. [ ] {codepath node}: {change to make}
+
+**verification criteria:**
+- local: run test 10x with `npm run test:integration -- {test} --runInBand`
+- ci: 3x consecutive green runs on main
+- guard: {what prevents reintroduction — e.g., code review rule, test isolation pattern}
+
+**tips for future travelers:**
+- {is it inherently probabilistic? → use `when.repeatedly` pattern}
+- {is there a time issue? → consider frozen time or relative thresholds}
+- {is it a snapshot issue? → mask the dynamic part with stability regex}
+
+---
+
+emit into $route/3.plan.yield.md

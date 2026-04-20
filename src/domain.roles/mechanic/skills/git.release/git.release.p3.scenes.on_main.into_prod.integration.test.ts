@@ -416,6 +416,7 @@ describe('git.release.p3.scenes.on_main.into_prod', () => {
           const sceneWithTransition: Scene = {
             ...scene,
             transitions: true,
+            tagWorkflows: 'passed',
           };
           const { tempDir, fakeBinDir, cleanup } = setupScene({
             scene: sceneWithTransition,
@@ -1157,6 +1158,7 @@ describe('git.release.p3.scenes.on_main.into_prod', () => {
             branch: 'main',
             releasePr: 'merged',
             tagWorkflows: 'failed',
+            transitions: true, // enable transition logic for retry watch
             enableRetry: true,
             retrySucceeds: false, // retry triggers but tag workflows still fail
           };

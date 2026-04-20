@@ -1,0 +1,35 @@
+artifacts:
+  - $route/2.1.diagnose.research.yield.md
+
+reviews:
+  self:
+    - slug: has-complete-coverage
+      say: |
+        does the research cover every flake from evidence?
+
+        check: count flakes in 1.evidence.yield.md
+        check: count research entries in 2.1.diagnose.research.yield.md
+
+        if any flake is absent from research, this is a BLOCKER.
+
+    - slug: has-test-codepath-treestruct
+      say: |
+        does every flake have a test codepath treestruct?
+
+        for each flake in 2.1.diagnose.research.yield.md:
+        - check: "test codepath treestruct:" section exists
+        - check: treestruct uses proper format (├── └── │)
+        - check: treestruct traces from test file through all setup, action, assertion
+
+        ABSOLUTE BLOCKER if any flake lacks test codepath treestruct.
+
+    - slug: has-prod-codepath-treestruct
+      say: |
+        does every flake have a prod codepath treestruct?
+
+        for each flake in 2.1.diagnose.research.yield.md:
+        - check: "prod codepath treestruct:" section exists
+        - check: treestruct uses proper format (├── └── │)
+        - check: treestruct traces from entry function through all called functions
+
+        ABSOLUTE BLOCKER if any flake lacks prod codepath treestruct.

@@ -1,0 +1,137 @@
+reflect on systemic lessons.
+
+.why = prevent future flakes via institutional memory.
+
+---
+
+## how to reflect
+
+### step 1: analyze root cause patterns
+
+review all repairs from 6.repairs.yield.md and identify commonalities.
+
+common patterns include (but are not limited to):
+- race conditions
+- state leaks
+- timeouts
+- snapshot drift
+- cleanup failures
+- parallelism issues
+- order dependencies
+- mock setup issues
+- resource contention
+- {other patterns specific to your codebase}
+
+for each pattern you identify, document:
+
+| pattern | tests affected | count | notes |
+|---------|---------------|-------|-------|
+| {pattern name} | {list tests} | {n} | {why this pattern emerged} |
+
+questions to answer:
+- what technical pattern appears multiple times?
+- what domain area has the most flakes?
+- what test setup pattern correlates with flakes?
+- are there patterns specific to this codebase not listed above?
+
+### step 2: trace introduction vectors
+
+for each flake, use git blame to find:
+
+```sh
+git log --oneline --follow -- path/to/flaky.test.ts | head -20
+git blame path/to/flaky.test.ts | grep -A5 "<flaky line>"
+```
+
+document:
+- when was the flaky code added?
+- who added it? (not for blame, for context)
+- what PR introduced it?
+- was it a rush job, a refactor, a new feature?
+- did review catch any concerns?
+
+### step 3: derive prevention strategies
+
+for each root cause pattern, ask:
+
+| question | answer → strategy |
+|----------|-------------------|
+| would a lint rule catch this? | eslint plugin or custom rule |
+| would a test pattern catch this? | brief with test pattern |
+| would peer review catch this? | peer-review self-review rule |
+| would factory upgrade catch this? | upgrade handoff for declapract |
+| would infra upgrade catch this? | ci workflow change |
+
+prioritize strategies by:
+1. automation > manual review
+2. prevent > detect
+3. fail-fast > fail-loud
+
+### step 4: propose briefs
+
+for each actionable lesson, draft a brief:
+
+```markdown
+# brief.{type}.{name}.md
+
+## .what
+{one line: what the brief teaches}
+
+## .why
+{why this matters, what it prevents}
+
+## .how
+{concrete steps or patterns}
+
+## .examples
+{good vs bad examples}
+```
+
+brief types:
+- `rule.*.md` — forbidden or required pattern
+- `howto.*.md` — step-by-step guide
+- `handoff.*.md` — upgrade request for infra/factory
+
+---
+
+## root cause patterns
+
+what patterns caused these flakes?
+
+| pattern | count | tests | severity |
+|---------|-------|-------|----------|
+| {pattern} | {n} | {list} | high/med/low |
+
+## introduction vectors
+
+why were these flakes introduced?
+
+| flake | introduced by | pr | date | context |
+|-------|---------------|-----|------|---------|
+| {test} | {commit} | {pr} | {date} | {rush/refactor/feature} |
+
+## prevention strategies
+
+how could we systemically prevent these?
+
+| strategy | type | effort | impact |
+|----------|------|--------|--------|
+| {strategy} | lint/review/infra | low/med/high | low/med/high |
+
+## proposed briefs
+
+### brief 1: {name}
+
+**type:** rule / howto / handoff
+**path:** `.agent/repo=.this/role=any/briefs/{name}.md`
+
+**content:**
+```markdown
+{full brief content here}
+```
+
+**why it assists:** {what future travelers avoid}
+
+---
+
+emit into $route/7.reflection.yield.md

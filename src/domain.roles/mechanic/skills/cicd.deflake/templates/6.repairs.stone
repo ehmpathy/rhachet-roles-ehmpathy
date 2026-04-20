@@ -1,0 +1,52 @@
+itemize each repair with traceability.
+
+.why = document exactly how each flake was fixed.
+
+---
+
+## how to itemize
+
+for each flake from evidence, trace the full journey:
+
+### traceability chain
+
+```
+evidence → diagnosis → plan → execution → verification
+   ↓           ↓          ↓         ↓            ↓
+ flake     hypotheses   steps    commits      3x pass
+```
+
+### fundamental check
+
+for each repair, ask:
+- does the root cause explanation make sense fundamentally?
+- does the repair address the root cause, not just the symptom?
+- would a future traveler understand why this fixes the flake?
+
+---
+
+## repair inventory
+
+for each flake from evidence:
+
+### flake: {test name}
+
+| aspect | value |
+|--------|-------|
+| **evidence** | {from 1.evidence.yield.md: frequency, error message} |
+| **research** | {from 2.1.diagnose.research.yield.md: codepath treestructs} |
+| **rootcause** | {from 2.2.diagnose.rootcause.yield.md: confirmed root cause} |
+| **plan** | {from 3.plan.yield.md: repair steps} |
+| **execution** | {from 4.execution.yield.md: commit hash, PR link} |
+| **verification** | {from 5.verification.yield.md: which of 3 runs proved it} |
+
+**fundamental sense check:**
+- [ ] root cause explanation is sound
+- [ ] repair addresses cause, not symptom
+- [ ] future traveler would understand
+
+**summary:** {one sentence: "X flaked because Y; fixed by Z"}
+
+---
+
+emit into $route/6.repairs.yield.md

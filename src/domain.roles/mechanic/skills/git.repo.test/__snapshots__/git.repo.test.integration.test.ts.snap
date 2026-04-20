@@ -5,8 +5,8 @@ exports[`git.repo.test.sh given: [case1] lint passes when: [t0] \`rhx git.repo.t
 
 🐚 git.repo.test --what lint
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (1s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -17,7 +17,7 @@ exports[`git.repo.test.sh given: [case2] lint fails when: [t0] \`rhx git.repo.te
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
-   │  └─ ✋ failed (0s)
+   │  └─ ✋ failed (Xs)
    ├─ defects: 3
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
@@ -30,7 +30,7 @@ exports[`git.repo.test.sh given: [case3] npm error (malfunction) when: [t0] \`rh
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
-   │  └─ 💥 malfunction (0s)
+   │  └─ 💥 malfunction (Xs)
    └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
 
 npm command failed. check the log for details.
@@ -92,7 +92,7 @@ exports[`git.repo.test.sh given: [case10] lint exits with non-zero (warnings or 
 "🐢 bummer dude...
 
 🐚 git.repo.test --what lint
-   │  └─ ✋ failed (1s)
+   │  └─ ✋ failed (Xs)
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
@@ -105,8 +105,8 @@ exports[`git.repo.test.sh given: [case11] types passes when: [t0] \`rhx git.repo
 
 🐚 git.repo.test --what types
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -117,7 +117,7 @@ exports[`git.repo.test.sh given: [case12] types fails when: [t0] \`rhx git.repo.
 "🐢 bummer dude...
 
 🐚 git.repo.test --what types
-   │  └─ ✋ failed (0s)
+   │  └─ ✋ failed (Xs)
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=types/ISOTIME.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=types/ISOTIME.stderr.log
@@ -130,8 +130,8 @@ exports[`git.repo.test.sh given: [case13] format passes when: [t0] \`rhx git.rep
 
 🐚 git.repo.test --what format
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (1s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -142,7 +142,7 @@ exports[`git.repo.test.sh given: [case14] format fails when: [t0] \`rhx git.repo
 "🐢 bummer dude...
 
 🐚 git.repo.test --what format
-   │  └─ ✋ failed (1s)
+   │  └─ ✋ failed (Xs)
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=format/ISOTIME.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=format/ISOTIME.stderr.log
@@ -155,16 +155,16 @@ exports[`git.repo.test.sh given: [case17] comma-separated --what values when: [t
 
 🐚 git.repo.test --what types
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (1s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
 
 🐚 git.repo.test --what format
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -210,8 +210,8 @@ exports[`git.repo.test.sh given: [case22] --timeout flag when: [t0] \`rhx git.re
 
 🐚 git.repo.test --what lint
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ ⏱️ timeout (2s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ ⏱️ timeout (Xs)
    ├─ status: malfunction
    ├─ error: test exceeded 1s timeout
    └─ log
@@ -231,12 +231,12 @@ exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs wh
    ├─ scope: cpsafe
    │  └─ matched: 1 files
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (2s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
-   │  └─ time: 2s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -252,12 +252,12 @@ exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs wh
    ├─ scope: other
    │  └─ matched: 1 files
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (2s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
-   │  └─ time: 2s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -294,12 +294,12 @@ exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs wh
    ├─ scope: myfeature
    │  └─ matched: 1 files
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (2s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
-   │  └─ time: 2s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired

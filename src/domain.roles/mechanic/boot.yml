@@ -72,6 +72,9 @@ always:
       - skills/show.gh.action.logs.sh
       - skills/show.gh.test.errors.sh
 
+      # cicd
+      - skills/cicd.deflake.sh
+
 subject.code.prod:
   briefs:
     say:

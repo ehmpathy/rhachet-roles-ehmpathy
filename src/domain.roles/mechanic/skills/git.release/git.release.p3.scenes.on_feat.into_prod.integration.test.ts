@@ -20,8 +20,8 @@ import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
  * total: 54 snapshots
  */
 
-// all tests use mocked gh CLI, so no remote calls - 5s timeout is plenty
-jest.setTimeout(5000);
+// mock I/O takes real time (~200ms per poll), so longer tests need headroom
+jest.setTimeout(15000);
 
 // ============================================================================
 // test infrastructure
@@ -122,7 +122,7 @@ const runSkill = (
       GIT_RELEASE_TEST_MODE: 'true',
     },
     encoding: 'utf-8',
-    timeout: 3000,
+    timeout: 12000, // mock I/O takes real time (~200ms per poll), allow up to 12s
   });
 
   return {

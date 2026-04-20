@@ -1,0 +1,227 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`cicd.deflake init given: [case1] creates route and binds when: [t0] init subcommand is invoked then: route directory is created with stones and guards 1`] = `""`;
+
+exports[`cicd.deflake init given: [case1] creates route and binds when: [t0] init subcommand is invoked then: route directory is created with stones and guards 2`] = `
+"🐢 tubular!
+
+🐚 cicd.deflake init
+   ├─ route: .behavior/v$DATE.cicd-deflake/ ✨
+   └─ created
+      ├─ 1.evidence.stone
+      ├─ 2.1.diagnose.research.stone
+      ├─ 2.1.diagnose.research.guard
+      ├─ 2.2.diagnose.rootcause.stone
+      ├─ 2.2.diagnose.rootcause.guard
+      ├─ 3.plan.stone
+      ├─ 3.plan.guard
+      ├─ 4.execution.stone
+      ├─ 4.execution.guard
+      ├─ 5.verification.stone
+      ├─ 5.verification.guard
+      ├─ 6.repairs.stone
+      ├─ 7.reflection.stone
+      ├─ 7.reflection.guard
+      └─ 8.institutionalize.stone
+
+🥥 hang ten! we'll ride this in
+   └─ [2mbranch main <-> route .behavior/v$DATE.cicd-deflake[0m
+"
+`;
+
+exports[`cicd.deflake init given: [case2] output format when: [t0] init subcommand is invoked then: stdout matches snapshot (turtle vibes, bind confirmation) 1`] = `""`;
+
+exports[`cicd.deflake init given: [case2] output format when: [t0] init subcommand is invoked then: stdout matches snapshot (turtle vibes, bind confirmation) 2`] = `
+"🐢 tubular!
+
+🐚 cicd.deflake init
+   ├─ route: .behavior/v$DATE.cicd-deflake/ ✨
+   └─ created
+      ├─ 1.evidence.stone
+      ├─ 2.1.diagnose.research.stone
+      ├─ 2.1.diagnose.research.guard
+      ├─ 2.2.diagnose.rootcause.stone
+      ├─ 2.2.diagnose.rootcause.guard
+      ├─ 3.plan.stone
+      ├─ 3.plan.guard
+      ├─ 4.execution.stone
+      ├─ 4.execution.guard
+      ├─ 5.verification.stone
+      ├─ 5.verification.guard
+      ├─ 6.repairs.stone
+      ├─ 7.reflection.stone
+      ├─ 7.reflection.guard
+      └─ 8.institutionalize.stone
+
+🥥 hang ten! we'll ride this in
+   └─ [2mbranch main <-> route .behavior/v$DATE.cicd-deflake[0m
+"
+`;
+
+exports[`cicd.deflake init given: [case3] already bound (same day) when: [t0] init subcommand is invoked twice then: findsert semantics - no duplicate, same route reused 1`] = `""`;
+
+exports[`cicd.deflake init given: [case3] already bound (same day) when: [t0] init subcommand is invoked twice then: findsert semantics - no duplicate, same route reused 2`] = `""`;
+
+exports[`cicd.deflake init given: [case3] already bound (same day) when: [t0] init subcommand is invoked twice then: findsert semantics - no duplicate, same route reused 3`] = `
+"🐢 tubular!
+
+🐚 cicd.deflake init
+   ├─ route: .behavior/v$DATE.cicd-deflake/ ✨
+   └─ created
+      ├─ 1.evidence.stone
+      ├─ 2.1.diagnose.research.stone
+      ├─ 2.1.diagnose.research.guard
+      ├─ 2.2.diagnose.rootcause.stone
+      ├─ 2.2.diagnose.rootcause.guard
+      ├─ 3.plan.stone
+      ├─ 3.plan.guard
+      ├─ 4.execution.stone
+      ├─ 4.execution.guard
+      ├─ 5.verification.stone
+      ├─ 5.verification.guard
+      ├─ 6.repairs.stone
+      ├─ 7.reflection.stone
+      ├─ 7.reflection.guard
+      └─ 8.institutionalize.stone
+
+🥥 hang ten! we'll ride this in
+   └─ [2mbranch main <-> route .behavior/v$DATE.cicd-deflake[0m
+"
+`;
+
+exports[`cicd.deflake init given: [case4] not in git repo when: [t0] init subcommand is invoked outside git repo then: exits with code 2 and shows error 1`] = `
+"🐢 bummer dude...
+
+🐚 cicd.deflake init
+   └─ error: not in a git repository
+
+   run this command from within a git repository
+"
+`;
+
+exports[`cicd.deflake init given: [case4] not in git repo when: [t0] init subcommand is invoked outside git repo then: exits with code 2 and shows error 2`] = `""`;
+
+exports[`cicd.deflake init given: [case5] --help shows init subcommand help when: [t0] init subcommand is invoked with --help then: shows init-specific usage and options 1`] = `""`;
+
+exports[`cicd.deflake init given: [case5] --help shows init subcommand help when: [t0] init subcommand is invoked with --help then: shows init-specific usage and options 2`] = `
+"🐢 tubular!
+
+🐚 cicd.deflake init
+   ├─ route: .behavior/v$DATE.cicd-deflake/ ✨
+   └─ created
+      ├─ 1.evidence.stone
+      ├─ 2.1.diagnose.research.stone
+      ├─ 2.1.diagnose.research.guard
+      ├─ 2.2.diagnose.rootcause.stone
+      ├─ 2.2.diagnose.rootcause.guard
+      ├─ 3.plan.stone
+      ├─ 3.plan.guard
+      ├─ 4.execution.stone
+      ├─ 4.execution.guard
+      ├─ 5.verification.stone
+      ├─ 5.verification.guard
+      ├─ 6.repairs.stone
+      ├─ 7.reflection.stone
+      ├─ 7.reflection.guard
+      └─ 8.institutionalize.stone
+
+🥥 hang ten! we'll ride this in
+   └─ [2mbranch main <-> route .behavior/v$DATE.cicd-deflake[0m
+"
+`;
+
+exports[`cicd.deflake init given: [case6] with extra unknown arguments when: [t0] init is invoked with unknown argument then: ignores unknown args and succeeds 1`] = `
+"🐢 tubular!
+
+🐚 cicd.deflake init
+   ├─ route: .behavior/v$DATE.cicd-deflake/ ✨
+   └─ created
+      ├─ 1.evidence.stone
+      ├─ 2.1.diagnose.research.stone
+      ├─ 2.1.diagnose.research.guard
+      ├─ 2.2.diagnose.rootcause.stone
+      ├─ 2.2.diagnose.rootcause.guard
+      ├─ 3.plan.stone
+      ├─ 3.plan.guard
+      ├─ 4.execution.stone
+      ├─ 4.execution.guard
+      ├─ 5.verification.stone
+      ├─ 5.verification.guard
+      ├─ 6.repairs.stone
+      ├─ 7.reflection.stone
+      ├─ 7.reflection.guard
+      └─ 8.institutionalize.stone
+
+🥥 hang ten! we'll ride this in
+   └─ [2mbranch main <-> route .behavior/v$DATE.cicd-deflake[0m
+"
+`;
+
+exports[`cicd.deflake init given: [case6] with extra unknown arguments when: [t0] init is invoked with unknown argument then: ignores unknown args and succeeds 2`] = `""`;
+
+exports[`cicd.deflake init given: [case7] with route bind operation when: [t0] init subcommand is invoked with bind enabled then: shows full output with bind confirmation 1`] = `""`;
+
+exports[`cicd.deflake init given: [case7] with route bind operation when: [t0] init subcommand is invoked with bind enabled then: shows full output with bind confirmation 2`] = `
+"🐢 tubular!
+
+🐚 cicd.deflake init
+   ├─ route: .behavior/v$DATE.cicd-deflake/ ✨
+   └─ created
+      ├─ 1.evidence.stone
+      ├─ 2.1.diagnose.research.stone
+      ├─ 2.1.diagnose.research.guard
+      ├─ 2.2.diagnose.rootcause.stone
+      ├─ 2.2.diagnose.rootcause.guard
+      ├─ 3.plan.stone
+      ├─ 3.plan.guard
+      ├─ 4.execution.stone
+      ├─ 4.execution.guard
+      ├─ 5.verification.stone
+      ├─ 5.verification.guard
+      ├─ 6.repairs.stone
+      ├─ 7.reflection.stone
+      ├─ 7.reflection.guard
+      └─ 8.institutionalize.stone
+
+🥥 hang ten! we'll ride this in
+   └─ [2mbranch main <-> route .behavior/v$DATE.cicd-deflake[0m
+"
+`;
+
+exports[`cicd.deflake init given: [case8] route bind fails when: [t0] init is invoked with bind failure mock then: captures bind failure behavior 1`] = `""`;
+
+exports[`cicd.deflake init given: [case8] route bind fails when: [t0] init is invoked with bind failure mock then: captures bind failure behavior 2`] = `
+"🐢 tubular!
+
+🐚 cicd.deflake init
+   ├─ route: .behavior/v$DATE.cicd-deflake/ ✨
+   └─ created
+      ├─ 1.evidence.stone
+      ├─ 2.1.diagnose.research.stone
+      ├─ 2.1.diagnose.research.guard
+      ├─ 2.2.diagnose.rootcause.stone
+      ├─ 2.2.diagnose.rootcause.guard
+      ├─ 3.plan.stone
+      ├─ 3.plan.guard
+      ├─ 4.execution.stone
+      ├─ 4.execution.guard
+      ├─ 5.verification.stone
+      ├─ 5.verification.guard
+      ├─ 6.repairs.stone
+      ├─ 7.reflection.stone
+      ├─ 7.reflection.guard
+      └─ 8.institutionalize.stone
+
+🥥 hang ten! we'll ride this in
+   └─ [2mbranch main <-> route .behavior/v$DATE.cicd-deflake[0m
+"
+`;
+
+exports[`cicd.deflake init given: [case9] git repo with no commits when: [t0] init is invoked in repo with no commits then: handles gracefully or shows appropriate error 1`] = `
+"fatal: ambiguous argument 'HEAD': unknown revision or path not in the working tree.
+Use '--' to separate paths from revisions, like this:
+'git <command> [<revision>...] -- [<file>...]'
+"
+`;
+
+exports[`cicd.deflake init given: [case9] git repo with no commits when: [t0] init is invoked in repo with no commits then: handles gracefully or shows appropriate error 2`] = `""`;

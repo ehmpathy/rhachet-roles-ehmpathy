@@ -1,0 +1,34 @@
+artifacts:
+  - $route/2.2.diagnose.rootcause.yield.md
+
+reviews:
+  self:
+    - slug: has-complete-coverage
+      say: |
+        does the diagnosis cover every flake from research?
+
+        check: count flakes in 2.1.diagnose.research.yield.md
+        check: count diagnoses in 2.2.diagnose.rootcause.yield.md
+
+        if any flake is absent from diagnosis, this is a BLOCKER.
+
+    - slug: has-ranked-hypotheses
+      say: |
+        does every flake have ranked hypotheses?
+
+        for each flake in 2.2.diagnose.rootcause.yield.md:
+        - check: "root cause hypotheses:" table exists
+        - check: at least one hypothesis with probability and evidence
+        - check: verification approach defined for each hypothesis
+
+        BLOCKER if any flake lacks ranked hypotheses.
+
+    - slug: has-predicted-rootcause
+      say: |
+        does every flake have a predicted root cause?
+
+        for each flake in 2.2.diagnose.rootcause.yield.md:
+        - check: "predicted root cause:" field exists
+        - check: prediction is based on evidence, not speculation
+
+        BLOCKER if any flake lacks predicted root cause.

@@ -68,7 +68,7 @@ exports[`git.commit.push.sh given: [case12] keyrack not configured (sad path) wh
 🐢 bummer dude, keyrack token fetch failed
 
 
-⛈️ ✋ ConstraintError: cannot construct slug for key 'EHMPATHY_SEATURTLE_GITHUB_TOKEN' without keyrack.yml. use full slug format (org.env.KEY) or add keyrack.yml to repo.
+✋ ConstraintError: cannot construct slug for key 'EHMPATHY_SEATURTLE_GITHUB_TOKEN' without keyrack.yml. use full slug format (org.env.KEY) or add keyrack.yml to repo.
 
 [args] keyrack,get,--key,EHMPATHY_SEATURTLE_GITHUB_TOKEN,--env,prep,--allow-dangerous,--json
 

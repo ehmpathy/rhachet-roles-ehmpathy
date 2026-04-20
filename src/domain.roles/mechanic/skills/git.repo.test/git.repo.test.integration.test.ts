@@ -157,12 +157,16 @@ module.exports = {
 
   /**
    * .what = sanitize stdout for snapshot stability
-   * .why = temp dir paths and timestamps change between runs
+   * .why = temp dir paths, timestamps, and elapsed times change between runs
    */
   const sanitizeOutput = (stdout: string): string =>
     stdout
       .replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR')
-      .replace(/\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z/g, 'ISOTIME');
+      .replace(/\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z/g, 'ISOTIME')
+      // mask elapsed times: (0s), (5s), (123s) -> (Xs)
+      .replace(/\((\d+)s\)/g, '(Xs)')
+      // mask time stats: time: 2s -> time: Xs
+      .replace(/time: \d+s/g, 'time: Xs');
 
   given('[case1] lint passes', () => {
     when('[t0] `rhx git.repo.test --what lint` is run', () => {

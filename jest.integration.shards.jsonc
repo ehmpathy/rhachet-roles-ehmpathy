@@ -3,7 +3,10 @@
   // add tests here if they take 60+ seconds on their own
   "explicit": [
     { "patterns": ["src/domain.roles/librarian/skills/brief.condense/brief.condense.integration.test.ts"] },
-    { "patterns": ["src/domain.operations/guardBorder/imagineIsContentAdmissible.integration.test.ts"] }
+    { "patterns": ["src/domain.operations/guardBorder/imagineIsContentAdmissible.integration.test.ts"] },
+    // .note = isolated to own shard after CI hang investigation: cases 18/19 have skipIf(CI) guards
+    //         but shard 4/5 still hung for 6+ hours. isolate to determine if this file is the cause.
+    { "patterns": ["src/domain.roles/mechanic/skills/git.repo.test/git.repo.test.play.integration.test.ts"] }
   ],
 
   // dynamic shards split all tests evenly

@@ -1,0 +1,79 @@
+gather evidence of flaky tests from main-branch CI runs.
+
+.why = enumerate all flakes before diagnosis to ensure completeness.
+
+---
+
+## how to gather evidence
+
+### step 1: run detect to scan CI history
+
+```sh
+rhx cicd.deflake detect --days 30 --into $route/1.evidence.yield._.detected.json
+```
+
+this will:
+1. fetch workflow runs from main branch (last 30 days)
+2. identify tests that passed on retry (flake signal)
+3. group by test name with frequency and error patterns
+4. write structured JSON to `1.evidence.yield._.detected.json`
+
+### step 2: review the detected flakes
+
+read the JSON output:
+
+```sh
+cat $route/1.evidence.yield._.detected.json | jq .
+```
+
+### step 3: research each flake
+
+for each flake in the JSON, gather additional context:
+
+1. **read the test file** — understand what the test covers
+2. **read the CI logs** — find the exact error output
+3. **check git history** — when was the test added or last modified?
+4. **check related PRs** — any recent changes to the tested code?
+
+### step 4: write the evidence yield
+
+create `1.evidence.yield.md` with full context for each flake:
+
+| flake | frequency | error pattern | test file | context |
+|-------|-----------|---------------|-----------|---------|
+| {from JSON} | {from JSON} | {from JSON} | {path} | {your research notes} |
+
+---
+
+## flake inventory
+
+for each flake from `1.evidence.yield._.detected.json`:
+
+### flake: {test name}
+
+**frequency:** {count} in last {days} days
+**error pattern:** {error message}
+**test file:** {path to test}
+
+**ci log excerpt:**
+```
+{relevant error output from CI}
+```
+
+**context from research:**
+- test added: {date, PR}
+- last modified: {date, PR}
+- tested code last changed: {date, PR}
+- notes: {any relevant context}
+
+---
+
+## evidence sources
+
+- github actions workflow runs on main
+- lookback period: 30 days (default, configurable via --days)
+- raw detection output: `1.evidence.yield._.detected.json`
+
+---
+
+emit into $route/1.evidence.yield.md
