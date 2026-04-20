@@ -79,7 +79,9 @@ describe('git.repo.test', () => {
     let env = { ...process.env };
 
     // lookup real rhx path BEFORE modifying PATH (to avoid mock finding itself)
-    const realRhxPath = spawnSync('which', ['rhx'], { encoding: 'utf-8' }).stdout.trim();
+    const realRhxPath = spawnSync('which', ['rhx'], {
+      encoding: 'utf-8',
+    }).stdout.trim();
 
     // mock keyrack for hermetic tests
     if (config.mockKeyrack) {
