@@ -23,6 +23,7 @@ describe('git.repo.test', () => {
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
       env: args.env ?? process.env,
+      timeout: 60_000, // 60s timeout to prevent indefinite hangs
     });
     return {
       stdout: result.stdout ?? '',
