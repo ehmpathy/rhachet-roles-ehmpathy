@@ -58,3 +58,14 @@ print_tree_file_line() {
     echo "      ├─ $content"
   fi
 }
+
+# print coconut hint section
+# usage: print_coconut_hint "trash/path/to/file.ts" "./path/to/file.ts"
+print_coconut_hint() {
+  local trash_path="$1"
+  local restore_dest="$2"
+  echo ""
+  echo "🥥 did you know?"
+  echo "   ├─ you can restore from trash"
+  echo "   └─ rhx cpsafe $trash_path $restore_dest"
+}

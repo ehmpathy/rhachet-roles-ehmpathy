@@ -74,6 +74,7 @@ describe('rmsafe.sh', () => {
           false,
         );
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
 
       then('output shows relative path', () => {
@@ -102,6 +103,7 @@ describe('rmsafe.sh', () => {
         expect(fs.existsSync(path.join(result.tempDir, 'targetdir'))).toBe(
           false,
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -133,6 +135,7 @@ describe('rmsafe.sh', () => {
         expect(fs.existsSync(path.join(result.tempDir, 'targetdir'))).toBe(
           false,
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -147,6 +150,7 @@ describe('rmsafe.sh', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('path is required');
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
 
       then('shows usage', () => {
@@ -180,8 +184,11 @@ describe('rmsafe.sh', () => {
         });
 
         expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('rmsafe.sh - safe file removal');
         expect(result.stdout).toContain('usage:');
-        expect(result.stdout).toContain('--path');
+        expect(result.stdout).toContain('options:');
+        expect(result.stdout).toContain('--literal');
+        expect(result.stdout).toContain('trash');
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
@@ -277,6 +284,7 @@ describe('rmsafe.sh', () => {
             ).toBe(false);
             // external target preserved
             expect(fs.existsSync(outsideFile)).toBe(true);
+            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
           } finally {
             fs.unlinkSync(outsideFile);
           }
@@ -332,6 +340,7 @@ describe('rmsafe.sh', () => {
           expect(result.stdout).toContain(
             'path must be within the git repository',
           );
+          expect(sanitizeOutput(result.stdout ?? '')).toMatchSnapshot();
           // verify file was NOT deleted
           expect(fs.existsSync(outsideFile)).toBe(true);
         } finally {
@@ -358,6 +367,7 @@ describe('rmsafe.sh', () => {
         expect(fs.existsSync(path.join(result.tempDir, 'targetdir'))).toBe(
           false,
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -377,6 +387,7 @@ describe('rmsafe.sh', () => {
 
         expect(result.status).toBe(0);
         expect(fs.existsSync(path.join(tempDir, 'emptydir'))).toBe(false);
+        expect(sanitizeOutput(result.stdout ?? '')).toMatchSnapshot();
       });
     });
   });
@@ -396,7 +407,7 @@ describe('rmsafe.sh', () => {
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('not in a git repository');
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput(result.stdout ?? '')).toMatchSnapshot();
       });
     });
   });
@@ -443,6 +454,7 @@ describe('rmsafe.sh', () => {
         expect(fs.existsSync(path.join(result.tempDir, 'real-file.txt'))).toBe(
           true,
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -459,6 +471,7 @@ describe('rmsafe.sh', () => {
         expect(
           fs.existsSync(path.join(result.tempDir, 'target file.txt')),
         ).toBe(false);
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -474,6 +487,7 @@ describe('rmsafe.sh', () => {
         expect(fs.existsSync(path.join(result.tempDir, '目标文件.txt'))).toBe(
           false,
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -500,6 +514,7 @@ describe('rmsafe.sh', () => {
         expect(fs.existsSync(path.join(result.tempDir, 'keep2.txt'))).toBe(
           true,
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -530,6 +545,7 @@ describe('rmsafe.sh', () => {
         expect(fs.existsSync(path.join(result.tempDir, 'build/keep.txt'))).toBe(
           true,
         );
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
 
       then('output shows each file removed', () => {
@@ -554,6 +570,7 @@ describe('rmsafe.sh', () => {
         });
 
         expect(result.stdout).toContain('sweet');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -679,13 +696,173 @@ describe('rmsafe.sh', () => {
     });
 
     when('[t4] brackets used without --literal but file matches', () => {
-      then('hint does not appear on success', () => {
+      then('bracket hint does not appear on success', () => {
         const result = runInTempGitRepo({
           files: { 'doc.r.md': 'matches [ref] as r' },
           rmsafeArgs: ['./doc.[ref].md'],
         });
 
         expect(result.exitCode).toBe(0);
+        expect(result.stdout).not.toContain('--literal');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case14] trash feature', () => {
+    const TRASH_REL =
+      '.agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash';
+
+    when('[t0] single file deleted', () => {
+      then('file extant in trash at mirrored path', () => {
+        const result = runInTempGitRepo({
+          files: { 'src/target.txt': 'content to trash' },
+          rmsafeArgs: ['./src/target.txt'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(
+          fs.existsSync(path.join(result.tempDir, 'src/target.txt')),
+        ).toBe(false);
+        expect(
+          fs.existsSync(
+            path.join(result.tempDir, TRASH_REL, 'src/target.txt'),
+          ),
+        ).toBe(true);
+        expect(
+          fs.readFileSync(
+            path.join(result.tempDir, TRASH_REL, 'src/target.txt'),
+            'utf-8',
+          ),
+        ).toBe('content to trash');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('trash dir has .gitignore', () => {
+        const result = runInTempGitRepo({
+          files: { 'target.txt': 'content' },
+          rmsafeArgs: ['./target.txt'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        const gitignorePath = path.join(result.tempDir, TRASH_REL, '.gitignore');
+        expect(fs.existsSync(gitignorePath)).toBe(true);
+        expect(fs.readFileSync(gitignorePath, 'utf-8')).toBe('*\n!.gitignore\n');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('output includes coconut restore hint', () => {
+        const result = runInTempGitRepo({
+          files: { 'target.txt': 'content' },
+          rmsafeArgs: ['./target.txt'],
+        });
+
+        expect(result.stdout).toContain('🥥 did you know?');
+        expect(result.stdout).toContain('you can restore from trash');
+        expect(result.stdout).toContain('rhx cpsafe');
+        expect(result.stdout).toContain(TRASH_REL);
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] directory deleted with -r', () => {
+      then('directory structure preserved in trash', () => {
+        const result = runInTempGitRepo({
+          files: {
+            'mydir/file1.txt': 'content 1',
+            'mydir/subdir/file2.txt': 'content 2',
+          },
+          rmsafeArgs: ['-r', './mydir'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(fs.existsSync(path.join(result.tempDir, 'mydir'))).toBe(false);
+        expect(
+          fs.existsSync(path.join(result.tempDir, TRASH_REL, 'mydir/file1.txt')),
+        ).toBe(true);
+        expect(
+          fs.existsSync(
+            path.join(result.tempDir, TRASH_REL, 'mydir/subdir/file2.txt'),
+          ),
+        ).toBe(true);
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('output includes coconut restore hint', () => {
+        const result = runInTempGitRepo({
+          files: { 'mydir/file.txt': 'content' },
+          rmsafeArgs: ['-r', './mydir'],
+        });
+
+        expect(result.stdout).toContain('🥥 did you know?');
+        expect(result.stdout).toContain('rhx cpsafe');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] same file deleted twice', () => {
+      then('second version overwrites first in trash', () => {
+        const tempDir = genTempDir({ slug: 'rmsafe-overwrite', git: true });
+        const filePath = path.join(tempDir, 'target.txt');
+        const trashPath = path.join(tempDir, TRASH_REL, 'target.txt');
+
+        // first delete
+        fs.writeFileSync(filePath, 'version 1');
+        const result1 = spawnSync('bash', [scriptPath, './target.txt'], {
+          cwd: tempDir,
+          encoding: 'utf-8',
+        });
+        expect(fs.readFileSync(trashPath, 'utf-8')).toBe('version 1');
+        expect(sanitizeOutput(result1.stdout ?? '')).toMatchSnapshot();
+
+        // second delete with different content
+        fs.writeFileSync(filePath, 'version 2');
+        const result2 = spawnSync('bash', [scriptPath, './target.txt'], {
+          cwd: tempDir,
+          encoding: 'utf-8',
+        });
+        expect(fs.readFileSync(trashPath, 'utf-8')).toBe('version 2');
+        expect(sanitizeOutput(result2.stdout ?? '')).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] symlink deleted', () => {
+      then('symlink in trash, not target', () => {
+        const result = runInTempGitRepo({
+          files: { 'real-file.txt': 'real content' },
+          symlinks: { 'link-to-file.txt': './real-file.txt' },
+          rmsafeArgs: ['./link-to-file.txt'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        // original symlink removed
+        expect(
+          fs.existsSync(path.join(result.tempDir, 'link-to-file.txt')),
+        ).toBe(false);
+        // target file unchanged
+        expect(fs.existsSync(path.join(result.tempDir, 'real-file.txt'))).toBe(
+          true,
+        );
+        expect(
+          fs.readFileSync(path.join(result.tempDir, 'real-file.txt'), 'utf-8'),
+        ).toBe('real content');
+        // symlink in trash (as symlink, not dereferenced)
+        const trashLink = path.join(result.tempDir, TRASH_REL, 'link-to-file.txt');
+        expect(fs.lstatSync(trashLink).isSymbolicLink()).toBe(true);
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t4] glob matches zero files', () => {
+      then('no coconut hint (crickets output)', () => {
+        const result = runInTempGitRepo({
+          files: { 'keep.txt': 'content' },
+          rmsafeArgs: ['--path', '*.xyz'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('crickets');
+        expect(result.stdout).not.toContain('🥥');
         expect(result.stdout).not.toContain('did you know');
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });

@@ -63,21 +63,23 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help|-h)
-      echo "usage: rmsafe.sh <path>"
-      echo "       rmsafe.sh -r <path>"
-      echo "       rmsafe.sh --path <path> [--recursive]"
-      echo "       rmsafe.sh --literal <path>"
+      echo "rmsafe.sh - safe file removal within git repo"
+      echo ""
+      echo "usage:"
+      echo "  rmsafe.sh <path>                      # delete file"
+      echo "  rmsafe.sh -r <path>                   # delete directory"
+      echo "  rmsafe.sh --path <path> [--recursive] # named args"
+      echo "  rmsafe.sh --path 'build/*.tmp'        # glob pattern"
+      echo "  rmsafe.sh --literal 'file.[ref].md'   # literal brackets"
       echo ""
       echo "options:"
-      echo "  --path <path>    file or glob pattern to remove"
-      echo "  --recursive, -r  remove directories recursively"
-      echo "  --literal, -l    treat path as literal (no glob expansion)"
-      echo "                   use when path contains [ or ] characters"
+      echo "  -r, --recursive  delete directories"
+      echo "  -l, --literal    treat path as literal (no glob expansion)"
+      echo "  -h, --help       show this help"
       echo ""
-      echo "examples:"
-      echo "  rmsafe.sh 'build/*.tmp'                   # glob pattern"
-      echo "  rmsafe.sh --literal 'file.[ref].md'       # literal brackets"
-      echo "  rmsafe.sh 'file.\\[ref\\].md'               # escaped brackets"
+      echo "guarantee:"
+      echo "  - path must be within repo"
+      echo "  - deleted files go to trash for restore"
       exit 0
       ;;
     --*)
@@ -120,6 +122,61 @@ fi
 # get repo root (expand symlinks fully)
 REPO_ROOT=$(realpath "$(git rev-parse --show-toplevel)")
 
+# compute trash directory path
+TRASH_DIR="$REPO_ROOT/.agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash"
+
+# findsert trash directory with gitignore
+findsert_trash_dir() {
+  if [[ ! -d "$TRASH_DIR" ]]; then
+    mkdir -p "$TRASH_DIR"
+  fi
+  if [[ ! -f "$TRASH_DIR/.gitignore" ]]; then
+    printf '*\n!.gitignore\n' > "$TRASH_DIR/.gitignore"
+  fi
+}
+
+# compute absolute path, preserve symlink basename
+compute_abs_path() {
+  local path="$1"
+  if [[ -L "$path" ]]; then
+    local dir=$(dirname "$path")
+    local base=$(basename "$path")
+    if [[ -e "$dir" ]]; then
+      echo "$(realpath "$dir")/$base"
+    else
+      realpath -m "$path"
+    fi
+  else
+    realpath "$path"
+  fi
+}
+
+# check if path is within repo boundary
+is_path_within_repo() {
+  local path="$1"
+  [[ "$path" == "$REPO_ROOT" || "$path" == "$REPO_ROOT/"* ]]
+}
+
+# compute relative path from repo root
+as_relative_path() {
+  local abs_path="$1"
+  echo "${abs_path#$REPO_ROOT/}"
+}
+
+# expand glob pattern to array of files
+expand_glob_to_files() {
+  local pattern="$1"
+  local -n result_array=$2
+  eval "for f in $pattern; do [[ -f \"\$f\" || -L \"\$f\" ]] && result_array+=(\"\$f\"); done"
+}
+
+# check if index is last in array
+is_last_index() {
+  local index="$1"
+  local count="$2"
+  [[ $((index + 1)) -eq $count ]]
+}
+
 # detect if TARGET is a glob pattern or literal path
 is_glob_pattern() {
   local pattern="$1"
@@ -137,8 +194,7 @@ fi
 FILES=()
 IS_DIR_REMOVE=false
 if [[ "$IS_GLOB" == "true" ]]; then
-  # glob pattern: use eval to expand (preserves spaces in paths)
-  eval "for f in $TARGET; do [[ -f \"\$f\" || -L \"\$f\" ]] && FILES+=(\"\$f\"); done"
+  expand_glob_to_files "$TARGET" FILES
 else
   # literal path: validate directly
   if [[ ! -e "$TARGET" && ! -L "$TARGET" ]]; then
@@ -161,21 +217,10 @@ if [[ "$IS_DIR_REMOVE" == "true" ]]; then
     exit 2
   fi
 
-  # handle via symlink path for boundary check
-  if [[ -L "$TARGET" ]]; then
-    TARGET_DIR=$(dirname "$TARGET")
-    TARGET_BASE=$(basename "$TARGET")
-    if [[ -e "$TARGET_DIR" ]]; then
-      TARGET_ABS="$(realpath "$TARGET_DIR")/$TARGET_BASE"
-    else
-      TARGET_ABS=$(realpath -m "$TARGET")
-    fi
-  else
-    TARGET_ABS=$(realpath "$TARGET")
-  fi
+  TARGET_ABS=$(compute_abs_path "$TARGET")
 
   # validate target is within repo
-  if [[ "$TARGET_ABS" != "$REPO_ROOT" && "$TARGET_ABS" != "$REPO_ROOT/"* ]]; then
+  if ! is_path_within_repo "$TARGET_ABS"; then
     echo "error: path must be within the git repository"
     echo "  repo root: $REPO_ROOT"
     echo "  path:      $TARGET_ABS"
@@ -188,17 +233,24 @@ if [[ "$IS_DIR_REMOVE" == "true" ]]; then
     exit 2
   fi
 
+  TARGET_REL=$(as_relative_path "$TARGET_ABS")
+
+  # copy to trash before removal
+  findsert_trash_dir
+  mkdir -p "$TRASH_DIR/$(dirname "$TARGET_REL")"
+  cp -rP "$TARGET_ABS" "$TRASH_DIR/$TARGET_REL"
+
   # perform the removal
   rm -rf "$TARGET_ABS"
 
   # output
-  TARGET_REL="${TARGET_ABS#$REPO_ROOT/}"
   print_turtle_header "sweet"
   print_tree_start "rmsafe"
   print_tree_branch "path" "$TARGET"
   print_tree_branch "type" "directory"
   print_tree_leaf "removed"
   print_tree_file_line "$TARGET_REL" true
+  print_coconut_hint ".agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/$TARGET_REL" "./$TARGET_REL"
   exit 0
 fi
 
@@ -241,23 +293,12 @@ print_tree_leaf "removed"
 REMOVED_COUNT=0
 for i in "${!FILES[@]}"; do
   FILE="${FILES[$i]}"
-  IS_LAST=$([[ $((i + 1)) -eq $FILE_COUNT ]] && echo "true" || echo "false")
+  IS_LAST=$(is_last_index "$i" "$FILE_COUNT" && echo "true" || echo "false")
 
-  # handle via symlink path for boundary check
-  if [[ -L "$FILE" ]]; then
-    FILE_DIR=$(dirname "$FILE")
-    FILE_BASE=$(basename "$FILE")
-    if [[ -e "$FILE_DIR" ]]; then
-      TARGET_ABS="$(realpath "$FILE_DIR")/$FILE_BASE"
-    else
-      TARGET_ABS=$(realpath -m "$FILE")
-    fi
-  else
-    TARGET_ABS=$(realpath "$FILE")
-  fi
+  TARGET_ABS=$(compute_abs_path "$FILE")
 
   # validate target is within repo
-  if [[ "$TARGET_ABS" != "$REPO_ROOT" && "$TARGET_ABS" != "$REPO_ROOT/"* ]]; then
+  if ! is_path_within_repo "$TARGET_ABS"; then
     echo "error: path must be within the git repository"
     echo "  repo root: $REPO_ROOT"
     echo "  path:      $TARGET_ABS"
@@ -270,12 +311,26 @@ for i in "${!FILES[@]}"; do
     exit 2
   fi
 
+  TARGET_REL=$(as_relative_path "$TARGET_ABS")
+
+  # copy to trash before removal
+  findsert_trash_dir
+  mkdir -p "$TRASH_DIR/$(dirname "$TARGET_REL")"
+  cp -P "$TARGET_ABS" "$TRASH_DIR/$TARGET_REL"
+
   # perform the removal
   rm "$TARGET_ABS"
 
   # output relative path
-  TARGET_REL="${TARGET_ABS#$REPO_ROOT/}"
   print_tree_file_line "$TARGET_REL" "$IS_LAST"
 
   REMOVED_COUNT=$((REMOVED_COUNT + 1))
+  LAST_TARGET_REL="$TARGET_REL"
 done
+
+# show coconut hint for restore (use first file if multiple)
+if [[ $REMOVED_COUNT -gt 0 ]]; then
+  FIRST_ABS=$(compute_abs_path "${FILES[0]}")
+  FIRST_REL=$(as_relative_path "$FIRST_ABS")
+  print_coconut_hint ".agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/$FIRST_REL" "./$FIRST_REL"
+fi

@@ -8,8 +8,14 @@ exports[`rmsafe.sh given: [case1] positional args (like rm) when: [t0] single po
    ├─ files: 1
    └─ removed
       └─ target.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/target.txt ./target.txt
 "
 `;
+
+exports[`rmsafe.sh given: [case1] positional args (like rm) when: [t0] single positional arg provided then: file is removed 2`] = `""`;
 
 exports[`rmsafe.sh given: [case1] positional args (like rm) when: [t0] single positional arg provided then: output shows relative path 1`] = `
 "🐢 sweet
@@ -19,6 +25,25 @@ exports[`rmsafe.sh given: [case1] positional args (like rm) when: [t0] single po
    ├─ files: 1
    └─ removed
       └─ target.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/target.txt ./target.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case1] positional args (like rm) when: [t1] -r flag with directory then: directory is removed recursively 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./targetdir
+   ├─ type: directory
+   └─ removed
+      └─ targetdir
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/targetdir ./targetdir
 "
 `;
 
@@ -30,6 +55,25 @@ exports[`rmsafe.sh given: [case2] named args (--path) when: [t0] --path provided
    ├─ files: 1
    └─ removed
       └─ target.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/target.txt ./target.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case2] named args (--path) when: [t1] --path with --recursive then: directory is removed 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./targetdir
+   ├─ type: directory
+   └─ removed
+      └─ targetdir
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/targetdir ./targetdir
 "
 `;
 
@@ -40,6 +84,8 @@ usage: rmsafe.sh <path>
        rmsafe.sh --path <path> [--recursive]
 "
 `;
+
+exports[`rmsafe.sh given: [case3] argument validation when: [t0] no arguments provided then: exits with error 2`] = `""`;
 
 exports[`rmsafe.sh given: [case3] argument validation when: [t0] no arguments provided then: shows usage 1`] = `
 "error: path is required
@@ -60,21 +106,23 @@ see: rmsafe.sh --help
 `;
 
 exports[`rmsafe.sh given: [case3] argument validation when: [t2] --help flag then: shows usage info and exits 0 1`] = `
-"usage: rmsafe.sh <path>
-       rmsafe.sh -r <path>
-       rmsafe.sh --path <path> [--recursive]
-       rmsafe.sh --literal <path>
+"rmsafe.sh - safe file removal within git repo
+
+usage:
+  rmsafe.sh <path>                      # delete file
+  rmsafe.sh -r <path>                   # delete directory
+  rmsafe.sh --path <path> [--recursive] # named args
+  rmsafe.sh --path 'build/*.tmp'        # glob pattern
+  rmsafe.sh --literal 'file.[ref].md'   # literal brackets
 
 options:
-  --path <path>    file or glob pattern to remove
-  --recursive, -r  remove directories recursively
-  --literal, -l    treat path as literal (no glob expansion)
-                   use when path contains [ or ] characters
+  -r, --recursive  delete directories
+  -l, --literal    treat path as literal (no glob expansion)
+  -h, --help       show this help
 
-examples:
-  rmsafe.sh 'build/*.tmp'                   # glob pattern
-  rmsafe.sh --literal 'file.[ref].md'       # literal brackets
-  rmsafe.sh 'file.\\[ref\\].md'               # escaped brackets
+guarantee:
+  - path must be within repo
+  - deleted files go to trash for restore
 "
 `;
 
@@ -106,6 +154,21 @@ error: path must be within the git repository
 "
 `;
 
+exports[`rmsafe.sh given: [case5] safety boundary - target outside repo when: [t1] target is symlink inside repo (even if it points outside) then: symlink is removed but external target is preserved 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./link-to-outside.txt
+   ├─ files: 1
+   └─ removed
+      └─ link-to-outside.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/link-to-outside.txt ./link-to-outside.txt
+"
+`;
+
 exports[`rmsafe.sh given: [case5] safety boundary - target outside repo when: [t2] target uses .. to escape repo then: exits with error 1`] = `
 "🐢 sweet
 
@@ -119,8 +182,128 @@ error: path must be within the git repository
 "
 `;
 
+exports[`rmsafe.sh given: [case5] safety boundary - target outside repo when: [t3] target is in sibling directory with repo-prefix name then: exits with error (prevents /repo from match of /repo-evil) 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: /home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.rmsafe-restore/.temp/genTempDir.symlink/2026-04-20T12-02-42.483Z.rmsafe-test.f1008597-evil/malicious.txt
+   ├─ files: 1
+   └─ removed
+error: path must be within the git repository
+  repo root: /tmp/TEMP_DIR
+  path:      /tmp/TEMP_DIR
+"
+`;
+
+exports[`rmsafe.sh given: [case6] recursive removal when: [t0] directory with nested content then: all content is removed 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./targetdir
+   ├─ type: directory
+   └─ removed
+      └─ targetdir
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/targetdir ./targetdir
+"
+`;
+
+exports[`rmsafe.sh given: [case6] recursive removal when: [t1] empty directory then: directory is removed 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./emptydir
+   ├─ type: directory
+   └─ removed
+      └─ emptydir
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/emptydir ./emptydir
+"
+`;
+
 exports[`rmsafe.sh given: [case7] not in git repo when: [t0] run outside any git repo then: exits with error 1`] = `
 "error: not in a git repository
+"
+`;
+
+exports[`rmsafe.sh given: [case8] symlink chain resolution when: [t1] target is symlink within repo then: symlink itself is removed (not target) 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./link-to-file.txt
+   ├─ files: 1
+   └─ removed
+      └─ link-to-file.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/link-to-file.txt ./link-to-file.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case9] special characters in paths when: [t0] filename has spaces then: file is removed correctly 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./target file.txt
+   ├─ files: 1
+   └─ removed
+      └─ target file.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/target file.txt ./target file.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case9] special characters in paths when: [t1] filename has unicode then: file is removed correctly 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./目标文件.txt
+   ├─ files: 1
+   └─ removed
+      └─ 目标文件.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/目标文件.txt ./目标文件.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case10] other files remain when: [t0] multiple files exist then: only target is removed 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./target.txt
+   ├─ files: 1
+   └─ removed
+      └─ target.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/target.txt ./target.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case11] glob patterns when: [t0] glob matches multiple files then: all files are removed 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: build/*.tmp
+   ├─ files: 3
+   └─ removed
+      ├─ build/a.tmp
+      ├─ build/b.tmp
+      └─ build/c.tmp
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/build/a.tmp ./build/a.tmp
 "
 `;
 
@@ -133,6 +316,25 @@ exports[`rmsafe.sh given: [case11] glob patterns when: [t0] glob matches multipl
    └─ removed
       ├─ build/a.tmp
       └─ build/b.tmp
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/build/a.tmp ./build/a.tmp
+"
+`;
+
+exports[`rmsafe.sh given: [case11] glob patterns when: [t0] glob matches multiple files then: output shows turtle sweet header 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: build/*.tmp
+   ├─ files: 1
+   └─ removed
+      └─ build/a.tmp
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/build/a.tmp ./build/a.tmp
 "
 `;
 
@@ -157,6 +359,10 @@ exports[`rmsafe.sh given: [case11] glob patterns when: [t2] recursive glob **/*.
       ├─ src/core/bar.bak
       ├─ src/deep/nested/baz.bak
       └─ src/utils/foo.bak
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/src/core/bar.bak ./src/core/bar.bak
 "
 `;
 
@@ -168,6 +374,10 @@ exports[`rmsafe.sh given: [case12] tree output format when: [t0] single file rem
    ├─ files: 1
    └─ removed
       └─ target.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/target.txt ./target.txt
 "
 `;
 
@@ -179,6 +389,10 @@ exports[`rmsafe.sh given: [case13] bracket characters with --literal flag when: 
    ├─ files: 1
    └─ removed
       └─ doc.[ref].md
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/doc.[ref].md ./doc.[ref].md
 "
 `;
 
@@ -195,6 +409,10 @@ exports[`rmsafe.sh given: [case13] bracket characters with --literal flag when: 
    ├─ files: 1
    └─ removed
       └─ doc.[ref].md
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/doc.[ref].md ./doc.[ref].md
 "
 `;
 
@@ -216,7 +434,7 @@ exports[`rmsafe.sh given: [case13] bracket characters with --literal flag when: 
 "
 `;
 
-exports[`rmsafe.sh given: [case13] bracket characters with --literal flag when: [t4] brackets used without --literal but file matches then: hint does not appear on success 1`] = `
+exports[`rmsafe.sh given: [case13] bracket characters with --literal flag when: [t4] brackets used without --literal but file matches then: bracket hint does not appear on success 1`] = `
 "🐢 sweet
 
 🐚 rmsafe
@@ -224,5 +442,140 @@ exports[`rmsafe.sh given: [case13] bracket characters with --literal flag when: 
    ├─ files: 1
    └─ removed
       └─ doc.r.md
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/doc.r.md ./doc.r.md
+"
+`;
+
+exports[`rmsafe.sh given: [case14] trash feature when: [t0] single file deleted then: file extant in trash at mirrored path 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./src/target.txt
+   ├─ files: 1
+   └─ removed
+      └─ src/target.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/src/target.txt ./src/target.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case14] trash feature when: [t0] single file deleted then: output includes coconut restore hint 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./target.txt
+   ├─ files: 1
+   └─ removed
+      └─ target.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/target.txt ./target.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case14] trash feature when: [t0] single file deleted then: trash dir has .gitignore 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./target.txt
+   ├─ files: 1
+   └─ removed
+      └─ target.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/target.txt ./target.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case14] trash feature when: [t1] directory deleted with -r then: directory structure preserved in trash 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./mydir
+   ├─ type: directory
+   └─ removed
+      └─ mydir
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/mydir ./mydir
+"
+`;
+
+exports[`rmsafe.sh given: [case14] trash feature when: [t1] directory deleted with -r then: output includes coconut restore hint 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./mydir
+   ├─ type: directory
+   └─ removed
+      └─ mydir
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/mydir ./mydir
+"
+`;
+
+exports[`rmsafe.sh given: [case14] trash feature when: [t2] same file deleted twice then: second version overwrites first in trash 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./target.txt
+   ├─ files: 1
+   └─ removed
+      └─ target.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/target.txt ./target.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case14] trash feature when: [t2] same file deleted twice then: second version overwrites first in trash 2`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./target.txt
+   ├─ files: 1
+   └─ removed
+      └─ target.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/target.txt ./target.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case14] trash feature when: [t3] symlink deleted then: symlink in trash, not target 1`] = `
+"🐢 sweet
+
+🐚 rmsafe
+   ├─ path: ./link-to-file.txt
+   ├─ files: 1
+   └─ removed
+      └─ link-to-file.txt
+
+🥥 did you know?
+   ├─ you can restore from trash
+   └─ rhx cpsafe .agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/link-to-file.txt ./link-to-file.txt
+"
+`;
+
+exports[`rmsafe.sh given: [case14] trash feature when: [t4] glob matches zero files then: no coconut hint (crickets output) 1`] = `
+"🐢 crickets...
+
+🐚 rmsafe
+   ├─ path: *.xyz
+   ├─ files: 0
+   └─ removed
+      └─ (none)
 "
 `;
