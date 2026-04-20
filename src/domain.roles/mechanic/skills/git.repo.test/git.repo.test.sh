@@ -186,9 +186,10 @@ get_scope_file_count() {
   esac
 
   # use jest --listTests to get matched files
+  # --no-install prevents npx from stall on "install jest?" prompt
   local matched_files
   # shellcheck disable=SC2086
-  if ! matched_files=$(npx jest $jest_config --listTests --testPathPatterns "$scope" 2>/dev/null); then
+  if ! matched_files=$(npx --no-install jest $jest_config --listTests --testPathPatterns "$scope" 2>/dev/null); then
     echo "-1"  # -1 means couldn't check
     return
   fi
