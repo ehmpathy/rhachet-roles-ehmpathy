@@ -282,7 +282,7 @@ else
     echo "     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_GITHUB_TOKEN" >&2
     echo "" >&2
     echo "  2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:" >&2
-    echo "     $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath" >&2
+    echo "     $ npx rhachet run --init keyrack.ehmpath" >&2
     echo "" >&2
     exit 1
   fi

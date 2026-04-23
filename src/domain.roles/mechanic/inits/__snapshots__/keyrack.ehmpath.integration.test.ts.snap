@@ -1,0 +1,40 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`keyrack.ehmpath.sh given: [case2] fresh environment stdout format when: [t0] init creates resources then: stdout matches treebucket format 1`] = `
+"🔑 findsert ehmpath keyrack host...
+   ├─ ssh key: create passwordless key...
+   │  ├─
+   │  │
+   │  │  Generating public/private ed25519 key pair.
+   │  │  Your identification has been saved in <HOME>/.ssh/ehmpath
+   │  │  Your public key has been saved in <HOME>/.ssh/ehmpath.pub
+   │  │  The key fingerprint is:
+   │  │  SHA256:<fingerprint> ehmpath@<hostname>
+   │  │  The key's randomart image is:
+   │  │  +--[ED25519 256]--+
+
+   │  │  <randomart>
+
+   │  │  +----[SHA256]-----+
+   │  │
+   │  └─
+   │  └─ created at <HOME>/.ssh/ehmpath
+
+   └─ keyrack: init for owner ehmpath...
+      ├─
+      │
+      │  
+      │  🔐 keyrack init
+      │     ├─ host manifest: freshly minted ✨
+      │     │   ├─ path: ~/.rhachet/keyrack/keyrack.host.ehmpath.age
+      │     │   ├─ owner: ehmpath
+      │     │   └─ recipient: default
+      │     └─ repo manifest: not in repo
+      │         └─ run 'rhachet keyrack init --org <org>' to init one
+      │  
+      │
+      └─
+
+👌 ehmpath keyrack ready
+"
+`;

@@ -78,7 +78,40 @@ describe('keyrack.ehmpath.sh', () => {
     });
   });
 
-  given('[case2] environment with ssh key and keyrack already present', () => {
+  given('[case2] fresh environment stdout format', () => {
+    when('[t0] init creates resources', () => {
+      then('stdout matches treebucket format', async () => {
+        const tempHome = genTempDir({ slug: 'keyrack-home' });
+        const tempRepo = genTempDir({
+          slug: 'keyrack-repo',
+          git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
+
+        const result = runInit({ home: tempHome, cwd: tempRepo });
+
+        // stabilize dynamic values for snapshot consistency
+        const stdoutStable = result.stdout
+          // replace temp home paths (preserves tree prefixes)
+          .replace(
+            new RegExp(tempHome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+            '<HOME>',
+          )
+          .replace(/ehmpath@[^\s]+/g, 'ehmpath@<hostname>')
+          .replace(/SHA256:[^\s]+/g, 'SHA256:<fingerprint>')
+          // replace randomart block (preserve tree prefix on each line)
+          .replace(
+            /(\s*│\s*│\s*)\+--\[ED25519 256\]--\+[\s\S]*?\+----\[SHA256\]-----\+/g,
+            '$1+--[ED25519 256]--+\n$1<randomart>\n$1+----[SHA256]-----+',
+          );
+
+        expect(stdoutStable).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+      });
+    });
+  });
+
+  given('[case3] environment with ssh key and keyrack already present', () => {
     when('[t0] init is run twice', () => {
       then(
         'second run detects resources are already present (findsert)',

@@ -36,15 +36,20 @@ if [[ -f "$EHMPATH_KEY" ]]; then
   echo "   ├─ ssh key: found at $EHMPATH_KEY"
 else
   echo "   ├─ ssh key: create passwordless key..."
+  echo "   │  ├─"
+  echo "   │  │"
 
   # ensure ~/.ssh exists with correct permissions
   mkdir -p "$HOME/.ssh"
   chmod 700 "$HOME/.ssh"
 
   # generate passwordless ed25519 key
-  ssh-keygen -t ed25519 -f "$EHMPATH_KEY" -N "" -C "ehmpath@$(hostname)"
+  ssh-keygen -t ed25519 -f "$EHMPATH_KEY" -N "" -C "ehmpath@$(hostname)" 2>&1 | sed 's/^/   │  │  /'
 
-  echo "   ├─ ssh key: created at $EHMPATH_KEY"
+  echo "   │  │"
+  echo "   │  └─"
+  echo "   │  └─ created at $EHMPATH_KEY"
+  echo ""
 fi
 
 ######################################################################
@@ -55,9 +60,12 @@ KEYRACK_HOST_MANIFEST="$HOME/.rhachet/keyrack/keyrack.host.ehmpath.age"
 if [[ -f "$KEYRACK_HOST_MANIFEST" ]]; then
   echo "   └─ keyrack: found at $KEYRACK_HOST_MANIFEST"
 else
-  echo "   ├─ keyrack: init for owner ehmpath..."
-  ./node_modules/.bin/rhachet keyrack init --owner ehmpath --pubkey "$EHMPATH_KEY_PUB"
-  echo "   └─ keyrack: initialized"
+  echo "   └─ keyrack: init for owner ehmpath..."
+  echo "      ├─"
+  echo "      │"
+  ./node_modules/.bin/rhachet keyrack init --owner ehmpath --pubkey "$EHMPATH_KEY_PUB" 2>&1 | sed 's/^/      │  /'
+  echo "      │"
+  echo "      └─"
 fi
 
 echo ""

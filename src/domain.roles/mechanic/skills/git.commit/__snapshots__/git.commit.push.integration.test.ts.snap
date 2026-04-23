@@ -78,7 +78,7 @@ to fix this, ask a human to either:
      $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
 
   2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
-     $ npx rhachet roles init --repo ehmpathy --role mechanic --init keyrack.ehmpath
+     $ npx rhachet run --init keyrack.ehmpath
 
 "
 `;
