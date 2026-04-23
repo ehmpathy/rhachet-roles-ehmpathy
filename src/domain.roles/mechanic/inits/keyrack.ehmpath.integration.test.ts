@@ -93,7 +93,10 @@ describe('keyrack.ehmpath.sh', () => {
         // stabilize dynamic values for snapshot consistency
         const stdoutStable = result.stdout
           // replace temp home paths (preserves tree prefixes)
-          .replace(new RegExp(tempHome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), '<HOME>')
+          .replace(
+            new RegExp(tempHome.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+            '<HOME>',
+          )
           .replace(/ehmpath@[^\s]+/g, 'ehmpath@<hostname>')
           .replace(/SHA256:[^\s]+/g, 'SHA256:<fingerprint>')
           // replace randomart block (preserve tree prefix on each line)
