@@ -173,23 +173,26 @@ exports[`git.repo.test.sh given: [case17] comma-separated --what values when: [t
 `;
 
 exports[`git.repo.test.sh given: [case19] --scope matches 0 files when: [t0] \`rhx git.repo.test --what unit --scope nonexistent-pattern-xyz\` is run then: output matches snapshot 1`] = `
-"🐢 lets ride...
+"🐢 bummer dude...
 
 🐚 git.repo.test --what unit --scope nonexistent-pattern-xyz-12345
    ├─ scope: nonexistent-pattern-xyz-12345
    │  └─ matched: 0 files
-   ├─ status: constraint
-   └─ error: no tests matched scope 'nonexistent-pattern-xyz-12345'
+   └─ error: no files matched
 
-hint: check the scope pattern or run without --scope to see all tests
+hint: check the scope pattern or try without --scope
 "
 `;
 
 exports[`git.repo.test.sh given: [case19] --scope matches 0 files when: [t0] \`rhx git.repo.test --what unit --scope nonexistent-pattern-xyz\` is run then: output matches snapshot 2`] = `
-"   ├─ status: constraint
-   └─ error: no tests matched scope 'nonexistent-pattern-xyz-12345'
+"🐢 bummer dude...
 
-hint: check the scope pattern or run without --scope to see all tests
+🐚 git.repo.test --what unit --scope nonexistent-pattern-xyz-12345
+   ├─ scope: nonexistent-pattern-xyz-12345
+   │  └─ matched: 0 files
+   └─ error: no files matched
+
+hint: check the scope pattern or try without --scope
 "
 `;
 
@@ -225,83 +228,103 @@ hint: increase --timeout or check for slow tests
 exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t0] \`rhx git.repo.test --what unit --scope cpsafe\` is run then: stderr matches snapshot 1`] = `""`;
 
 exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t0] \`rhx git.repo.test --what unit --scope cpsafe\` is run then: stdout matches snapshot 1`] = `
-"🐢 lets ride...
+"🐢 heres the wave...
 
 🐚 git.repo.test --what unit --scope cpsafe
    ├─ scope: cpsafe
    │  └─ matched: 1 files
-   ├─ status
-   │  ├─ 💤 inflight (Xs)
-   │  └─ 🎉 passed (Xs)
-   ├─ stats
-   │  ├─ suites: 1 files
-   │  ├─ tests: 0 passed, 0 failed, 0 skipped
-   │  └─ time: Xs
-   └─ log
-      ├─ omitted on success by default
-      └─ hint: use \`--log always\` to persist when desired
+   └─ files
+      └─ src/cpsafe.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute
 "
 `;
 
 exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t1] \`rhx git.repo.test --what unit --scope other\` is run then: stderr matches snapshot 1`] = `""`;
 
 exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t1] \`rhx git.repo.test --what unit --scope other\` is run then: stdout matches snapshot 1`] = `
-"🐢 lets ride...
+"🐢 heres the wave...
 
 🐚 git.repo.test --what unit --scope other
    ├─ scope: other
    │  └─ matched: 1 files
-   ├─ status
-   │  ├─ 💤 inflight (Xs)
-   │  └─ 🎉 passed (Xs)
-   ├─ stats
-   │  ├─ suites: 1 files
-   │  ├─ tests: 0 passed, 0 failed, 0 skipped
-   │  └─ time: Xs
-   └─ log
-      ├─ omitted on success by default
-      └─ hint: use \`--log always\` to persist when desired
+   └─ files
+      └─ src/other.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute
 "
 `;
 
 exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t2] \`rhx git.repo.test --what unit --scope xyz\` is run then: stderr matches snapshot 1`] = `
-"   ├─ status: constraint
-   └─ error: no tests matched scope 'nonexistent-xyz'
-
-hint: check the scope pattern or run without --scope to see all tests
-"
-`;
-
-exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t2] \`rhx git.repo.test --what unit --scope xyz\` is run then: stdout matches snapshot 1`] = `
-"🐢 lets ride...
+"🐢 bummer dude...
 
 🐚 git.repo.test --what unit --scope nonexistent-xyz
    ├─ scope: nonexistent-xyz
    │  └─ matched: 0 files
-   ├─ status: constraint
-   └─ error: no tests matched scope 'nonexistent-xyz'
+   └─ error: no files matched
 
-hint: check the scope pattern or run without --scope to see all tests
+hint: check the scope pattern or try without --scope
+"
+`;
+
+exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t2] \`rhx git.repo.test --what unit --scope xyz\` is run then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope nonexistent-xyz
+   ├─ scope: nonexistent-xyz
+   │  └─ matched: 0 files
+   └─ error: no files matched
+
+hint: check the scope pattern or try without --scope
 "
 `;
 
 exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t3] unit config only matches unit test files, not integration files then: stderr matches snapshot 1`] = `""`;
 
 exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs when: [t3] unit config only matches unit test files, not integration files then: stdout matches snapshot 1`] = `
-"🐢 lets ride...
+"🐢 heres the wave...
 
 🐚 git.repo.test --what unit --scope myfeature
    ├─ scope: myfeature
    │  └─ matched: 1 files
-   ├─ status
-   │  ├─ 💤 inflight (Xs)
-   │  └─ 🎉 passed (Xs)
-   ├─ stats
-   │  ├─ suites: 1 files
-   │  ├─ tests: 0 passed, 0 failed, 0 skipped
-   │  └─ time: Xs
-   └─ log
-      ├─ omitted on success by default
-      └─ hint: use \`--log always\` to persist when desired
+   └─ files
+      └─ src/myfeature.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute
+"
+`;
+
+exports[`git.repo.test.sh given: [case24] URI format scope syntax (path://, name://) when: [t0] \`rhx git.repo.test --what unit --scope path://myfeature\` is run then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh given: [case24] URI format scope syntax (path://, name://) when: [t0] \`rhx git.repo.test --what unit --scope path://myfeature\` is run then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope path://myfeature
+   ├─ scope: path://myfeature
+   │  └─ matched: 1 files
+   └─ files
+      └─ src/myfeature.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute
+"
+`;
+
+exports[`git.repo.test.sh given: [case24] URI format scope syntax (path://, name://) when: [t1] \`rhx git.repo.test --what unit --scope name://should\` is run then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh given: [case24] URI format scope syntax (path://, name://) when: [t1] \`rhx git.repo.test --what unit --scope name://should\` is run then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope name://should --thorough
+   ├─ scope: name://should
+   │  └─ matched: 1 files (name filter applies at runtime)
+   └─ files
+      └─ src/mytest.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute
 "
 `;

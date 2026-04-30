@@ -3,11 +3,11 @@
 exports[`getMechanicRole given: [case1] the mechanic role definition when: [t4] role structure is captured then: ROLE_MECHANIC matches snapshot 1`] = `
 Role {
   "boot": {
-    "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/boot.yml",
+    "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/src/domain.roles/mechanic/boot.yml",
   },
   "briefs": {
     "dirs": {
-      "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/briefs",
+      "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/src/domain.roles/mechanic/briefs",
     },
   },
   "hooks": {
@@ -119,25 +119,25 @@ Role {
   },
   "inits": {
     "dirs": {
-      "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/inits",
+      "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/src/domain.roles/mechanic/inits",
     },
     "exec": [
       {
-        "cmd": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/inits/init.claude.sh",
+        "cmd": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/src/domain.roles/mechanic/inits/init.claude.sh",
       },
     ],
   },
   "keyrack": {
-    "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/keyrack.yml",
+    "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/src/domain.roles/mechanic/keyrack.yml",
   },
   "name": "Mechanic",
   "purpose": "write code",
   "readme": {
-    "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/readme.md",
+    "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/src/domain.roles/mechanic/readme.md",
   },
   "skills": {
     "dirs": {
-      "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-test-in-background-but-polled/src/domain.roles/mechanic/skills",
+      "uri": "/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/src/domain.roles/mechanic/skills",
     },
     "refs": [],
   },

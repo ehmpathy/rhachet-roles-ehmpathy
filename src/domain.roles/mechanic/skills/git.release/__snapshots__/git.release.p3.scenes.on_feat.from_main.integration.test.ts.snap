@@ -264,6 +264,9 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 🐢 1 check(s) in progress
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
 "
 `;
 
@@ -568,6 +571,15 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 💤 await, Xs in action, Xs watched
+      ├─ 💤 await, Xs in action, Xs watched
+      └─ ✨ done! Xs in action, Xs watched
 "
 `;
 

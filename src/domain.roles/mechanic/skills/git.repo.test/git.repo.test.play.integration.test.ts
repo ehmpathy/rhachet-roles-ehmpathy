@@ -18,7 +18,27 @@ describe('git.repo.test', () => {
     gitRepoTestArgs: string[];
     env?: NodeJS.ProcessEnv;
   }): { stdout: string; stderr: string; exitCode: number } => {
-    const result = spawnSync('bash', [skillPath, ...args.gitRepoTestArgs], {
+    // add --mode apply by default if no mode specified (plan mode is now default)
+    // insert before -- if present, otherwise append
+    const hasMode = args.gitRepoTestArgs.includes('--mode');
+    let effectiveArgs: string[];
+    if (hasMode) {
+      effectiveArgs = args.gitRepoTestArgs;
+    } else {
+      const dashDashIndex = args.gitRepoTestArgs.indexOf('--');
+      if (dashDashIndex >= 0) {
+        // insert before -- so --mode apply goes to skill, not jest
+        effectiveArgs = [
+          ...args.gitRepoTestArgs.slice(0, dashDashIndex),
+          '--mode',
+          'apply',
+          ...args.gitRepoTestArgs.slice(dashDashIndex),
+        ];
+      } else {
+        effectiveArgs = [...args.gitRepoTestArgs, '--mode', 'apply'];
+      }
+    }
+    const result = spawnSync('bash', [skillPath, ...effectiveArgs], {
       cwd: args.tempDir,
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -2122,8 +2142,7 @@ Time:        0.1 s`,
         const output = result.stdout + result.stderr;
         // skill output should show the test what type
         expect(output).toMatch(/--what\s+unit/);
-        // output should have scope info
-        expect(output).toMatch(/scope:/i);
+        // note: scope info is shown in plan mode, not apply mode
         // output should have status info
         expect(output).toMatch(/status|passed|failed|skipped/i);
       });

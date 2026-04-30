@@ -7,10 +7,10 @@ exports[`git.repo.get.sh given: [case1] repos with local clones when: [t0] --rep
    ├─ repos: testorg/*
    │
    ├─ testorg
-   │  ├─ short                ~/git/testorg/short (local)
+   │  ├─ a                    ~/git/testorg/a (local)
    │  ├─ medium-name          ~/git/testorg/medium-name (local)
-   │  ├─ very-long-repo-name  ~/git/testorg/very-long-repo-name (local)
-   │  └─ a                    ~/git/testorg/a (local)
+   │  ├─ short                ~/git/testorg/short (local)
+   │  └─ very-long-repo-name  ~/git/testorg/very-long-repo-name (local)
    │
    └─ found: 4 repos
 "
@@ -32,11 +32,11 @@ exports[`git.repo.get.sh given: [case3] repos with repo name glob when: [t0] --r
 🐚 git.repo.get repos
    ├─ repos: *-repo*
    │
-   ├─ testorg
-   │  └─ very-long-repo-name  ~/git/testorg/very-long-repo-name (local)
-   │
    ├─ otherorg
    │  └─ another-repo         ~/git/otherorg/another-repo (local)
+   │
+   ├─ testorg
+   │  └─ very-long-repo-name  ~/git/testorg/very-long-repo-name (local)
    │
    └─ found: 2 repos
 "
@@ -48,14 +48,14 @@ exports[`git.repo.get.sh given: [case4] repos across orgs when: [t0] --repos */*
 🐚 git.repo.get repos
    ├─ repos: */*
    │
-   ├─ testorg
-   │  ├─ short                ~/git/testorg/short (local)
-   │  ├─ medium-name          ~/git/testorg/medium-name (local)
-   │  ├─ very-long-repo-name  ~/git/testorg/very-long-repo-name (local)
-   │  └─ a                    ~/git/testorg/a (local)
-   │
    ├─ otherorg
    │  └─ another-repo         ~/git/otherorg/another-repo (local)
+   │
+   ├─ testorg
+   │  ├─ a                    ~/git/testorg/a (local)
+   │  ├─ medium-name          ~/git/testorg/medium-name (local)
+   │  ├─ short                ~/git/testorg/short (local)
+   │  └─ very-long-repo-name  ~/git/testorg/very-long-repo-name (local)
    │
    └─ found: 5 repos
 "
@@ -184,16 +184,16 @@ exports[`git.repo.get.sh given: [case13] files across repos when: [t0] --repos w
    ├─ repos: testorg/*
    ├─ words: hello
    │
-   ├─ testorg/short (local)
+   ├─ testorg/a (local)
    │  └─ src/index.ts
    │
    ├─ testorg/medium-name (local)
    │  └─ src/index.ts
    │
-   ├─ testorg/very-long-repo-name (local)
+   ├─ testorg/short (local)
    │  └─ src/index.ts
    │
-   ├─ testorg/a (local)
+   ├─ testorg/very-long-repo-name (local)
    │  └─ src/index.ts
    │
    └─ found: 4 files in 4 repos
@@ -207,19 +207,19 @@ exports[`git.repo.get.sh given: [case13] files across repos when: [t1] --words o
    ├─ repos: */*
    ├─ words: hello
    │
-   ├─ testorg/short (local)
-   │  └─ src/index.ts
-   │
-   ├─ testorg/medium-name (local)
-   │  └─ src/index.ts
-   │
-   ├─ testorg/very-long-repo-name (local)
+   ├─ otherorg/another-repo (local)
    │  └─ src/index.ts
    │
    ├─ testorg/a (local)
    │  └─ src/index.ts
    │
-   ├─ otherorg/another-repo (local)
+   ├─ testorg/medium-name (local)
+   │  └─ src/index.ts
+   │
+   ├─ testorg/short (local)
+   │  └─ src/index.ts
+   │
+   ├─ testorg/very-long-repo-name (local)
    │  └─ src/index.ts
    │
    └─ found: 5 files in 5 repos
@@ -233,7 +233,7 @@ exports[`git.repo.get.sh given: [case14] lines across repos when: [t0] --repos w
    ├─ repos: testorg/*
    ├─ words: hello
    │
-   ├─ testorg/short (local) — 1 matches
+   ├─ testorg/a (local) — 1 matches
    │  └─ src/index.ts
    │  │  >    1: export const hello = "world";
    │
@@ -241,11 +241,11 @@ exports[`git.repo.get.sh given: [case14] lines across repos when: [t0] --repos w
    │  └─ src/index.ts
    │  │  >    1: export const hello = "world";
    │
-   ├─ testorg/very-long-repo-name (local) — 1 matches
+   ├─ testorg/short (local) — 1 matches
    │  └─ src/index.ts
    │  │  >    1: export const hello = "world";
    │
-   ├─ testorg/a (local) — 1 matches
+   ├─ testorg/very-long-repo-name (local) — 1 matches
    │  └─ src/index.ts
    │  │  >    1: export const hello = "world";
    │
@@ -260,15 +260,7 @@ exports[`git.repo.get.sh given: [case14] lines across repos when: [t1] --words o
    ├─ repos: */*
    ├─ words: hello
    │
-   ├─ testorg/short (local) — 1 matches
-   │  └─ src/index.ts
-   │  │  >    1: export const hello = "world";
-   │
-   ├─ testorg/medium-name (local) — 1 matches
-   │  └─ src/index.ts
-   │  │  >    1: export const hello = "world";
-   │
-   ├─ testorg/very-long-repo-name (local) — 1 matches
+   ├─ otherorg/another-repo (local) — 1 matches
    │  └─ src/index.ts
    │  │  >    1: export const hello = "world";
    │
@@ -276,7 +268,15 @@ exports[`git.repo.get.sh given: [case14] lines across repos when: [t1] --words o
    │  └─ src/index.ts
    │  │  >    1: export const hello = "world";
    │
-   ├─ otherorg/another-repo (local) — 1 matches
+   ├─ testorg/medium-name (local) — 1 matches
+   │  └─ src/index.ts
+   │  │  >    1: export const hello = "world";
+   │
+   ├─ testorg/short (local) — 1 matches
+   │  └─ src/index.ts
+   │  │  >    1: export const hello = "world";
+   │
+   ├─ testorg/very-long-repo-name (local) — 1 matches
    │  └─ src/index.ts
    │  │  >    1: export const hello = "world";
    │
@@ -301,14 +301,14 @@ exports[`git.repo.get.sh given: [case15] repos without --repos flag when: [t0] n
 🐚 git.repo.get repos
    ├─ repos: */*
    │
-   ├─ testorg
-   │  ├─ short                ~/git/testorg/short (local)
-   │  ├─ medium-name          ~/git/testorg/medium-name (local)
-   │  ├─ very-long-repo-name  ~/git/testorg/very-long-repo-name (local)
-   │  └─ a                    ~/git/testorg/a (local)
-   │
    ├─ otherorg
    │  └─ another-repo         ~/git/otherorg/another-repo (local)
+   │
+   ├─ testorg
+   │  ├─ a                    ~/git/testorg/a (local)
+   │  ├─ medium-name          ~/git/testorg/medium-name (local)
+   │  ├─ short                ~/git/testorg/short (local)
+   │  └─ very-long-repo-name  ~/git/testorg/very-long-repo-name (local)
    │
    └─ found: 5 repos
 "
@@ -346,7 +346,7 @@ exports[`git.repo.get.sh given: [case17] regex patterns with pipe when: [t0] --w
    ├─ repos: testorg/*
    ├─ words: hello|add
    │
-   ├─ testorg/short (local)
+   ├─ testorg/a (local)
    │  ├─ src/index.ts
    │  └─ src/utils.ts
    │
@@ -354,11 +354,11 @@ exports[`git.repo.get.sh given: [case17] regex patterns with pipe when: [t0] --w
    │  ├─ src/index.ts
    │  └─ src/utils.ts
    │
-   ├─ testorg/very-long-repo-name (local)
+   ├─ testorg/short (local)
    │  ├─ src/index.ts
    │  └─ src/utils.ts
    │
-   ├─ testorg/a (local)
+   ├─ testorg/very-long-repo-name (local)
    │  ├─ src/index.ts
    │  └─ src/utils.ts
    │

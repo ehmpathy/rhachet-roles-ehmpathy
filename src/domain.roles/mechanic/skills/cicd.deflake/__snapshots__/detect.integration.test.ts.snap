@@ -50,7 +50,7 @@ exports[`cicd.deflake detect given: [case4] real GitHub API integration when: [t
    └─ into: .temp/$TEMP/evidence.json
 
 🥥 evidence gathered
-   └─ [2mruns_analyzed: $N, flakes: 2[0m
+   └─ [2mruns_analyzed: $N, flakes: 0[0m
 "
 `;
 
@@ -166,7 +166,7 @@ exports[`cicd.deflake detect given: [case12] runs exist but no flakes when: [t0]
 `;
 
 exports[`cicd.deflake detect given: [case13] invalid --into path (directory) when: [t0] detect --into points to directory then: exits with error about invalid path 1`] = `
-"/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.cicd-deflake-route/src/domain.roles/mechanic/skills/cicd.deflake/detect.sh: line 175: .temp/$TEMP/evidence-dir: Is a directory
+"/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/src/domain.roles/mechanic/skills/cicd.deflake/detect.sh: line 175: .temp/$TEMP/evidence-dir: Is a directory
 "
 `;
 
