@@ -140,6 +140,11 @@ module.exports = {
       }
     }
 
+    // commit all files on main to establish git history
+    // required for --changedSince=main to work in plan mode
+    spawnSync('git', ['add', '.'], { cwd: tempDir });
+    spawnSync('git', ['commit', '-m', 'initial'], { cwd: tempDir });
+
     // run git.repo.test.sh
     const result = spawnSync('bash', [scriptPath, ...args.gitRepoTestArgs], {
       cwd: tempDir,
@@ -1569,6 +1574,11 @@ module.exports = {
           path.join(repoRoot, 'node_modules'),
           path.join(tempDir, 'node_modules'),
         );
+
+        // commit all files on main to establish git history
+        // required for --changedSince=main to work
+        spawnSync('git', ['add', '.'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'initial'], { cwd: tempDir });
 
         // create feature branch
         spawnSync('git', ['checkout', '-b', 'feature'], { cwd: tempDir });
