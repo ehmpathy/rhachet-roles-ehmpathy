@@ -1530,7 +1530,14 @@ module.exports = {
             testUnitScript: 'jest --config jest.unit.config.js',
             testFiles: [{ type: 'unit', name: 'mytest' }],
             symlinkNodeModules: true,
-            gitRepoTestArgs: ['--what', 'unit', '--scope', 'name://should'],
+            // --thorough bypasses changedSince (this verifies name:// scope feature, not changedSince)
+            gitRepoTestArgs: [
+              '--what',
+              'unit',
+              '--scope',
+              'name://should',
+              '--thorough',
+            ],
           }),
         );
 
@@ -1568,6 +1575,9 @@ module.exports = {
             './src/domain.roles/mechanic/skills/git.repo.test/__test_assets__/changedSince',
           git: true,
         });
+
+        // ensure branch is named 'main' (git init may default to 'master' in some envs)
+        spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
 
         // symlink node_modules manually (genTempDir symlink expects relative paths)
         fs.symlinkSync(

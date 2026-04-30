@@ -313,26 +313,18 @@ exports[`git.repo.test.sh given: [case24] URI format scope syntax (path://, name
 "
 `;
 
-exports[`git.repo.test.sh given: [case24] URI format scope syntax (path://, name://) when: [t1] \`rhx git.repo.test --what unit --scope name://should\` is run then: stderr matches snapshot 1`] = `
-"🐢 bummer dude...
-
-🐚 git.repo.test --what unit --scope name://should
-   ├─ scope: name://should
-   │  └─ matched: 0 files
-   └─ error: no files matched
-
-hint: check the scope pattern or try without --scope
-"
-`;
+exports[`git.repo.test.sh given: [case24] URI format scope syntax (path://, name://) when: [t1] \`rhx git.repo.test --what unit --scope name://should\` is run then: stderr matches snapshot 1`] = `""`;
 
 exports[`git.repo.test.sh given: [case24] URI format scope syntax (path://, name://) when: [t1] \`rhx git.repo.test --what unit --scope name://should\` is run then: stdout matches snapshot 1`] = `
-"🐢 bummer dude...
+"🐢 heres the wave...
 
-🐚 git.repo.test --what unit --scope name://should
+🐚 git.repo.test --what unit --scope name://should --thorough
    ├─ scope: name://should
-   │  └─ matched: 0 files
-   └─ error: no files matched
+   │  └─ matched: 1 files (name filter applies at runtime)
+   └─ files
+      └─ src/mytest.test.js
 
-hint: check the scope pattern or try without --scope
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute
 "
 `;
