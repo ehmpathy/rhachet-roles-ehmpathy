@@ -1559,7 +1559,8 @@ module.exports = {
         // provision temp repo from fixture (committed on main via git: true)
         const tempDir = genTempDir({
           slug: 'changed-since',
-          clone: './src/domain.roles/mechanic/skills/git.repo.test/__test_assets__/changedSince',
+          clone:
+            './src/domain.roles/mechanic/skills/git.repo.test/__test_assets__/changedSince',
           git: true,
         });
 
