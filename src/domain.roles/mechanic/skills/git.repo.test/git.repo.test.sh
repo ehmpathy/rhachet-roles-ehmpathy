@@ -126,30 +126,34 @@ validate_jest_config() {
     return 0
   fi
 
-  # determine expected config file based on test type
-  local config_file=""
+  # determine expected config files based on test type (.js preferred, .ts fallback)
+  local config_file_js=""
+  local config_file_ts=""
   case "$test_type" in
     unit)
-      config_file="jest.unit.config.ts"
+      config_file_js="jest.unit.config.js"
+      config_file_ts="jest.unit.config.ts"
       ;;
     integration)
-      config_file="jest.integration.config.ts"
+      config_file_js="jest.integration.config.js"
+      config_file_ts="jest.integration.config.ts"
       ;;
     acceptance)
-      config_file="jest.acceptance.config.ts"
+      config_file_js="jest.acceptance.config.js"
+      config_file_ts="jest.acceptance.config.ts"
       ;;
   esac
 
-  # check if config file exists
-  if [[ -n "$config_file" ]] && [[ ! -f "$REPO_ROOT/$config_file" ]]; then
+  # check if either config file exists
+  if [[ -n "$config_file_js" ]] && [[ ! -f "$REPO_ROOT/$config_file_js" ]] && [[ ! -f "$REPO_ROOT/$config_file_ts" ]]; then
     local _output
     _output=$(
       print_turtle_header "bummer dude..."
       print_tree_start "git.repo.test --what $test_type"
       print_tree_branch "status" "constraint"
-      echo "   └─ error: $config_file not found"
+      echo "   └─ error: $config_file_ts not found"
       echo ""
-      echo "hint: create $config_file for ${test_type} tests"
+      echo "hint: create $config_file_ts for ${test_type} tests"
       echo "      ehmpathy convention uses jest.{unit,integration,acceptance}.config.ts"
     )
     echo "$_output"      # stdout
@@ -172,21 +176,27 @@ get_scope_file_count() {
     return
   fi
 
-  # determine jest config file based on test type
+  # determine jest config file based on test type (.js preferred, .ts fallback)
   local jest_config=""
   case "$test_type" in
     unit)
-      if [[ -f "$REPO_ROOT/jest.unit.config.ts" ]]; then
+      if [[ -f "$REPO_ROOT/jest.unit.config.js" ]]; then
+        jest_config="-c ./jest.unit.config.js"
+      elif [[ -f "$REPO_ROOT/jest.unit.config.ts" ]]; then
         jest_config="-c ./jest.unit.config.ts"
       fi
       ;;
     integration)
-      if [[ -f "$REPO_ROOT/jest.integration.config.ts" ]]; then
+      if [[ -f "$REPO_ROOT/jest.integration.config.js" ]]; then
+        jest_config="-c ./jest.integration.config.js"
+      elif [[ -f "$REPO_ROOT/jest.integration.config.ts" ]]; then
         jest_config="-c ./jest.integration.config.ts"
       fi
       ;;
     acceptance)
-      if [[ -f "$REPO_ROOT/jest.acceptance.config.ts" ]]; then
+      if [[ -f "$REPO_ROOT/jest.acceptance.config.js" ]]; then
+        jest_config="-c ./jest.acceptance.config.js"
+      elif [[ -f "$REPO_ROOT/jest.acceptance.config.ts" ]]; then
         jest_config="-c ./jest.acceptance.config.ts"
       fi
       ;;
@@ -236,21 +246,27 @@ get_scope_files() {
     return
   fi
 
-  # determine jest config file based on test type
+  # determine jest config file based on test type (.js preferred, .ts fallback)
   local jest_config=""
   case "$test_type" in
     unit)
-      if [[ -f "$REPO_ROOT/jest.unit.config.ts" ]]; then
+      if [[ -f "$REPO_ROOT/jest.unit.config.js" ]]; then
+        jest_config="-c ./jest.unit.config.js"
+      elif [[ -f "$REPO_ROOT/jest.unit.config.ts" ]]; then
         jest_config="-c ./jest.unit.config.ts"
       fi
       ;;
     integration)
-      if [[ -f "$REPO_ROOT/jest.integration.config.ts" ]]; then
+      if [[ -f "$REPO_ROOT/jest.integration.config.js" ]]; then
+        jest_config="-c ./jest.integration.config.js"
+      elif [[ -f "$REPO_ROOT/jest.integration.config.ts" ]]; then
         jest_config="-c ./jest.integration.config.ts"
       fi
       ;;
     acceptance)
-      if [[ -f "$REPO_ROOT/jest.acceptance.config.ts" ]]; then
+      if [[ -f "$REPO_ROOT/jest.acceptance.config.js" ]]; then
+        jest_config="-c ./jest.acceptance.config.js"
+      elif [[ -f "$REPO_ROOT/jest.acceptance.config.ts" ]]; then
         jest_config="-c ./jest.acceptance.config.ts"
       fi
       ;;

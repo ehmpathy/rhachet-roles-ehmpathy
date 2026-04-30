@@ -98,7 +98,7 @@ module.exports = {
 };
 `;
         fs.writeFileSync(
-          path.join(tempDir, `jest.${configType}.config.ts`),
+          path.join(tempDir, `jest.${configType}.config.js`),
           configContent,
         );
       }
@@ -1079,7 +1079,7 @@ module.exports = {
         const result = useThen('command executes', () =>
           runInTempGitRepo({
             jestConfigs: ['unit'],
-            testUnitScript: 'jest --config jest.unit.config.ts',
+            testUnitScript: 'jest --config jest.unit.config.js',
             symlinkNodeModules: true,
             gitRepoTestArgs: [
               '--what',
@@ -1126,7 +1126,7 @@ module.exports = {
           const start = Date.now();
           const result = runInTempGitRepo({
             jestConfigs: ['unit'],
-            testUnitScript: 'jest --config jest.unit.config.ts',
+            testUnitScript: 'jest --config jest.unit.config.js',
             symlinkNodeModules: true,
             gitRepoTestArgs: [
               '--what',
@@ -1151,7 +1151,7 @@ module.exports = {
         const result = useThen('command executes', () =>
           runInTempGitRepo({
             jestConfigs: ['unit'],
-            testUnitScript: 'jest --config jest.unit.config.ts',
+            testUnitScript: 'jest --config jest.unit.config.js',
             testFiles: [{ type: 'unit', name: 'myfeature' }],
             symlinkNodeModules: true,
             gitRepoTestArgs: [
@@ -1363,7 +1363,7 @@ module.exports = {
         runInTempGitRepo({
           eslintConfig: null,
           jestConfigs: ['unit'],
-          testUnitScript: 'jest --config jest.unit.config.ts',
+          testUnitScript: 'jest --config jest.unit.config.js',
           testFiles: [{ type: 'unit', name: 'cpsafe' }],
           symlinkNodeModules: true,
           gitRepoTestArgs: ['--what', 'unit', '--scope', 'cpsafe'],
@@ -1390,7 +1390,7 @@ module.exports = {
         runInTempGitRepo({
           eslintConfig: null,
           jestConfigs: ['unit'],
-          testUnitScript: 'jest --config jest.unit.config.ts',
+          testUnitScript: 'jest --config jest.unit.config.js',
           testFiles: [
             { type: 'unit', name: 'foo' },
             { type: 'unit', name: 'bar' },
@@ -1421,7 +1421,7 @@ module.exports = {
         runInTempGitRepo({
           eslintConfig: null,
           jestConfigs: ['unit'],
-          testUnitScript: 'jest --config jest.unit.config.ts',
+          testUnitScript: 'jest --config jest.unit.config.js',
           testFiles: [
             { type: 'unit', name: 'foo' },
             { type: 'unit', name: 'bar' },
@@ -1454,7 +1454,7 @@ module.exports = {
           runInTempGitRepo({
             eslintConfig: null,
             jestConfigs: ['unit'],
-            testUnitScript: 'jest --config jest.unit.config.ts',
+            testUnitScript: 'jest --config jest.unit.config.js',
             testFiles: [
               { type: 'unit', name: 'myfeature' }, // myfeature.test.ts
               { type: 'integration', name: 'myfeature' }, // myfeature.integration.test.ts
@@ -1490,7 +1490,7 @@ module.exports = {
           runInTempGitRepo({
             eslintConfig: null,
             jestConfigs: ['unit'],
-            testUnitScript: 'jest --config jest.unit.config.ts',
+            testUnitScript: 'jest --config jest.unit.config.js',
             testFiles: [
               { type: 'unit', name: 'myfeature' },
               { type: 'unit', name: 'other' },
@@ -1522,7 +1522,7 @@ module.exports = {
           runInTempGitRepo({
             eslintConfig: null,
             jestConfigs: ['unit'],
-            testUnitScript: 'jest --config jest.unit.config.ts',
+            testUnitScript: 'jest --config jest.unit.config.js',
             testFiles: [{ type: 'unit', name: 'mytest' }],
             symlinkNodeModules: true,
             gitRepoTestArgs: ['--what', 'unit', '--scope', 'name://should'],
