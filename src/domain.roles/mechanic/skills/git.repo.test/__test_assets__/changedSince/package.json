@@ -1,0 +1,7 @@
+{
+  "name": "test-repo",
+  "type": "commonjs",
+  "scripts": {
+    "test:unit": "jest --config jest.unit.config.ts"
+  }
+}

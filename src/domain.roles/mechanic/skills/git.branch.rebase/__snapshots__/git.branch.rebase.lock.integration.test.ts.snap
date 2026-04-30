@@ -24,6 +24,18 @@ exports[`git.branch.rebase.lock given: [case2] rebase in progress with package-l
 "
 `;
 
+exports[`git.branch.rebase.lock given: [case3] rebase in progress with yarn.lock when: [t0] lock refresh with yarn then: lock regenerated, staged, exit 0 1`] = `
+"🐢 shell yeah!
+
+🐚 git.branch.rebase lock refresh
+   ├─ detected: yarn
+   ├─ run: yarn install
+   ├─ staged
+   │  └─ yarn.lock ✓
+   └─ done
+"
+`;
+
 exports[`git.branch.rebase.lock given: [case4] no rebase in progress when: [t0] attempt lock refresh then: shows error: no rebase in progress 1`] = `
 "🐢 hold up dude...
 
@@ -45,6 +57,14 @@ exports[`git.branch.rebase.lock given: [case6] pnpm-lock.yaml extant but pnpm no
 
 🐚 git.branch.rebase lock refresh
    └─ error: pnpm not found, install pnpm or use npm
+"
+`;
+
+exports[`git.branch.rebase.lock given: [case7] yarn.lock extant but yarn not installed when: [t0] attempt lock refresh then: shows error: yarn not found 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase lock refresh
+   └─ error: yarn not found, install yarn
 "
 `;
 

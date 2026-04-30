@@ -1098,11 +1098,9 @@ module.exports = {
           expect(result.stdout).toContain('matched: 0 files');
         });
 
-        then('stderr shows constraint error about no tests matched', () => {
-          expect(result.stderr).toContain('status: constraint');
-          expect(result.stderr).toContain(
-            "no tests matched scope 'nonexistent-pattern-xyz-12345'",
-          );
+        then('stderr shows error about no files matched', () => {
+          // in plan mode (default), 0 matches shows error
+          expect(result.stderr).toContain('error: no files matched');
         });
 
         then(
@@ -1146,9 +1144,9 @@ module.exports = {
     );
   });
 
-  given('[case20] --scope matches some files', () => {
+  given('[case20] --scope matches some files (apply mode)', () => {
     when(
-      '[t0] `rhx git.repo.test --what unit --scope myfeature` is run',
+      '[t0] `rhx git.repo.test --what unit --scope myfeature --mode apply` is run',
       () => {
         const result = useThen('command executes', () =>
           runInTempGitRepo({
@@ -1156,7 +1154,14 @@ module.exports = {
             testUnitScript: 'jest --config jest.unit.config.ts',
             testFiles: [{ type: 'unit', name: 'myfeature' }],
             symlinkNodeModules: true,
-            gitRepoTestArgs: ['--what', 'unit', '--scope', 'myfeature'],
+            gitRepoTestArgs: [
+              '--what',
+              'unit',
+              '--scope',
+              'myfeature',
+              '--mode',
+              'apply',
+            ],
           }),
         );
 
@@ -1166,7 +1171,7 @@ module.exports = {
         });
 
         then('output shows inflight timer (test actually runs)', () => {
-          // should have timer output since test runs
+          // should have timer output since test runs (apply mode)
           expect(result.stdout).toContain('inflight');
         });
       },
@@ -1475,5 +1480,148 @@ module.exports = {
         });
       },
     );
+  });
+
+  given('[case24] URI format scope syntax (path://, name://)', () => {
+    when(
+      '[t0] `rhx git.repo.test --what unit --scope path://myfeature` is run',
+      () => {
+        const result = useThen('command executes', () =>
+          runInTempGitRepo({
+            eslintConfig: null,
+            jestConfigs: ['unit'],
+            testUnitScript: 'jest --config jest.unit.config.ts',
+            testFiles: [
+              { type: 'unit', name: 'myfeature' },
+              { type: 'unit', name: 'other' },
+            ],
+            symlinkNodeModules: true,
+            gitRepoTestArgs: ['--what', 'unit', '--scope', 'path://myfeature'],
+          }),
+        );
+
+        then('stdout shows scope with uri format', () => {
+          expect(result.stdout).toContain('scope: path://myfeature');
+          expect(result.stdout).toContain('matched: 1 files');
+        });
+
+        then('stdout matches snapshot', () => {
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+
+        then('stderr matches snapshot', () => {
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      },
+    );
+
+    when(
+      '[t1] `rhx git.repo.test --what unit --scope name://should` is run',
+      () => {
+        const result = useThen('command executes', () =>
+          runInTempGitRepo({
+            eslintConfig: null,
+            jestConfigs: ['unit'],
+            testUnitScript: 'jest --config jest.unit.config.ts',
+            testFiles: [{ type: 'unit', name: 'mytest' }],
+            symlinkNodeModules: true,
+            gitRepoTestArgs: ['--what', 'unit', '--scope', 'name://should'],
+          }),
+        );
+
+        then('stdout shows runtime note for name filter', () => {
+          // name:// scope cannot be verified at plan time (jest --listTests does not support name filter)
+          // so output shows all files with note that name filter applies at runtime
+          expect(result.stdout).toContain('scope: name://should');
+        });
+
+        then('stdout matches snapshot', () => {
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+
+        then('stderr matches snapshot', () => {
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      },
+    );
+  });
+
+  // ######################################################################
+  // plan mode respects --changedSince (only shows impacted tests)
+  // ######################################################################
+  given('[case25] plan mode with --changedSince', () => {
+    /**
+     * .what = verify skill respects --changedSince when no scope specified
+     * .why = plan mode should only show tests impacted by changes since main
+     */
+    when('[t0] only one source file changed since main', () => {
+      const result = useThen('skill is run in plan mode', () => {
+        // provision temp repo from fixture (committed on main via git: true)
+        const tempDir = genTempDir({
+          slug: 'changed-since',
+          clone: './src/domain.roles/mechanic/skills/git.repo.test/__test_assets__/changedSince',
+          git: true,
+        });
+
+        // symlink node_modules manually (genTempDir symlink expects relative paths)
+        fs.symlinkSync(
+          path.join(repoRoot, 'node_modules'),
+          path.join(tempDir, 'node_modules'),
+        );
+
+        // create feature branch
+        spawnSync('git', ['checkout', '-b', 'feature'], { cwd: tempDir });
+
+        // modify ONLY moduleA.js (impacts only moduleA.test.js)
+        fs.writeFileSync(
+          path.join(tempDir, 'src/moduleA.js'),
+          'module.exports = { a: 100 }; // changed',
+        );
+        spawnSync('git', ['add', '.'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'change moduleA'], { cwd: tempDir });
+
+        // run skill in plan mode (no --scope, no --thorough)
+        const skillResult = spawnSync(
+          'bash',
+          [scriptPath, '--what', 'unit', '--mode', 'plan'],
+          { cwd: tempDir, encoding: 'utf-8' as const },
+        );
+
+        // extract matched file count from output
+        const matchedLine = (skillResult.stdout ?? '')
+          .split('\n')
+          .find((l) => l.includes('matched:'));
+        const matchedCount = matchedLine
+          ? parseInt(matchedLine.match(/matched: (\d+)/)?.[1] ?? '0', 10)
+          : 0;
+
+        // extract file list from output
+        const filesSection = (skillResult.stdout ?? '').includes('files');
+        const fileLines = (skillResult.stdout ?? '')
+          .split('\n')
+          .filter((l) => l.includes('.test.js'));
+
+        return {
+          exitCode: skillResult.status ?? 1,
+          matchedCount,
+          fileLines,
+          stdout: skillResult.stdout ?? '',
+        };
+      });
+
+      then('exit code is 0 (success)', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('matched count is 1 (only moduleA.test.js)', () => {
+        expect(result.matchedCount).toBe(1);
+      });
+
+      then('output shows only the impacted test file', () => {
+        expect(result.stdout).toContain('moduleA.test.js');
+        expect(result.stdout).not.toContain('moduleB.test.js');
+        expect(result.stdout).not.toContain('moduleC.test.js');
+      });
+    });
   });
 });

@@ -226,7 +226,11 @@
       "Bash(rhx git.repo.test --what unit)",
       "Bash(rhx git.repo.test --what integration)",
       "Bash(rhx git.repo.test --what acceptance)",
-      // examples: with --scope to filter by name or path
+      // examples: with --scope to filter by name or path (uri format preferred)
+      "Bash(rhx git.repo.test --what unit --scope 'name://getUserById')",
+      "Bash(rhx git.repo.test --what integration --scope 'name://invoice')",
+      "Bash(rhx git.repo.test --what unit --scope 'path://src/domain.operations/customer')",
+      // legacy format (backwards compatible)
       "Bash(rhx git.repo.test --what unit --scope getUserById)",
       "Bash(rhx git.repo.test --what integration --scope invoice)",
       "Bash(rhx git.repo.test --what unit --scope src/domain.operations/customer)",

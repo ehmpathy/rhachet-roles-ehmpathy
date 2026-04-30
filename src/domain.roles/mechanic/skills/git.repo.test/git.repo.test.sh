@@ -11,20 +11,27 @@
 #   git.repo.test.sh --what types                     # run type check
 #   git.repo.test.sh --what format                    # run format check
 #   git.repo.test.sh --what lint                      # run lint check
-#   git.repo.test.sh --what unit                      # run unit tests
-#   git.repo.test.sh --what integration               # run integration tests
-#   git.repo.test.sh --what acceptance                # run acceptance tests
-#   git.repo.test.sh --what all                       # run all test types
+#   git.repo.test.sh --what unit                      # preview matched files (plan mode default)
+#   git.repo.test.sh --what unit --mode apply         # run unit tests
+#   git.repo.test.sh --what integration --mode apply  # run integration tests
+#   git.repo.test.sh --what acceptance --mode apply   # run acceptance tests
+#   git.repo.test.sh --what all --mode apply          # run all test types
 #   git.repo.test.sh --what unit --scope 'invoice'    # filter by file path
-#   git.repo.test.sh --what unit --scope 'path(src/domain)' # match file path only
-#   git.repo.test.sh --what unit --scope 'name(should return)' # match test name only
-#   git.repo.test.sh --what unit --resnap             # update snapshots
-#   git.repo.test.sh --what unit --thorough           # run full suite
+#   git.repo.test.sh --what unit --scope 'path://src/domain' # match file path only
+#   git.repo.test.sh --what unit --scope 'name://should return' # match test name only
+#   git.repo.test.sh --what unit --mode apply --resnap     # update snapshots
+#   git.repo.test.sh --what unit --mode apply --thorough   # run full suite
+#
+# mode:
+#   plan   - preview matched files (default)
+#   apply  - execute tests
 #
 # scope patterns:
-#   'foo'         - match file path (default, backwards compatible)
-#   'path(foo)'   - match file path (explicit)
-#   'name(foo)'   - match test/describe name (jest --testNamePattern)
+#   'foo'           - match file path (default, backwards compatible)
+#   'path://foo'    - match file path (explicit, uri format)
+#   'name://foo'    - match test/describe name (jest --testNamePattern)
+#   'path(foo)'     - match file path (legacy paren format)
+#   'name(foo)'     - match test/describe name (legacy paren format)
 #
 # guarantee:
 #   - logs raw output to .log/role=mechanic/skill=git.repo.test/what=${WHAT}/
@@ -187,9 +194,22 @@ get_scope_file_count() {
 
   # use jest --listTests to get matched files
   # --no-install prevents npx from stall on "install jest?" prompt
+  # respect THOROUGH flag: add --changedSince=main when not thorough
+  local changed_since=""
+  if [[ "$THOROUGH" != "true" ]]; then
+    changed_since="--changedSince=main"
+  fi
+
+  # only include --testPathPatterns when scope is not "." (the default)
+  # reason: --testPathPatterns "." overrides --changedSince behavior in jest
+  local test_path_arg=""
+  if [[ "$scope" != "." ]]; then
+    test_path_arg="--testPathPatterns $scope"
+  fi
+
   local matched_files
   # shellcheck disable=SC2086
-  if ! matched_files=$(npx --no-install jest $jest_config --listTests --testPathPatterns "$scope" 2>/dev/null); then
+  if ! matched_files=$(npx --no-install jest $jest_config --listTests $test_path_arg $changed_since 2>/dev/null); then
     echo "-1"  # -1 means couldn't check
     return
   fi
@@ -201,6 +221,137 @@ get_scope_file_count() {
   [[ -z "$file_count" ]] && file_count=0
 
   echo "$file_count"
+}
+
+######################################################################
+# get matched files list for scope
+# returns file paths via stdout (one per line)
+######################################################################
+get_scope_files() {
+  local test_type="$1"
+  local scope="$2"
+
+  # skip for types, format, lint (no jest)
+  if [[ "$test_type" == "types" ]] || [[ "$test_type" == "format" ]] || [[ "$test_type" == "lint" ]]; then
+    return
+  fi
+
+  # determine jest config file based on test type
+  local jest_config=""
+  case "$test_type" in
+    unit)
+      if [[ -f "$REPO_ROOT/jest.unit.config.ts" ]]; then
+        jest_config="-c ./jest.unit.config.ts"
+      fi
+      ;;
+    integration)
+      if [[ -f "$REPO_ROOT/jest.integration.config.ts" ]]; then
+        jest_config="-c ./jest.integration.config.ts"
+      fi
+      ;;
+    acceptance)
+      if [[ -f "$REPO_ROOT/jest.acceptance.config.ts" ]]; then
+        jest_config="-c ./jest.acceptance.config.ts"
+      fi
+      ;;
+  esac
+
+  # use jest --listTests to get matched files
+  # respect THOROUGH flag: add --changedSince=main when not thorough
+  local changed_since=""
+  if [[ "$THOROUGH" != "true" ]]; then
+    changed_since="--changedSince=main"
+  fi
+
+  # only include --testPathPatterns when scope is not "." (the default)
+  # reason: --testPathPatterns "." overrides --changedSince behavior in jest
+  local test_path_arg=""
+  if [[ "$scope" != "." ]]; then
+    test_path_arg="--testPathPatterns $scope"
+  fi
+
+  local matched_files
+  # shellcheck disable=SC2086
+  if ! matched_files=$(npx --no-install jest $jest_config --listTests $test_path_arg $changed_since 2>/dev/null); then
+    return
+  fi
+
+  # output only lines that look like file paths (start with /)
+  echo "$matched_files" | grep -E '^\/' 2>/dev/null || true
+}
+
+######################################################################
+# output plan mode result with file list
+######################################################################
+output_plan_mode() {
+  local display_args="$1"
+  local scope="$2"
+  local scope_mode="$3"
+  local file_count="$4"
+  local files_output="$5"
+  local resnap="${6:-false}"
+  local max_display=30
+
+  print_turtle_header "heres the wave..."
+  print_tree_start "git.repo.test $display_args"
+
+  # show scope info with optional name filter note
+  echo "   ├─ scope: $scope"
+  if [[ "$scope_mode" == "name" ]]; then
+    echo "   │  └─ matched: $file_count files (name filter applies at runtime)"
+  else
+    echo "   │  └─ matched: $file_count files"
+  fi
+
+  # show file list
+  echo "   └─ files"
+  local total_files="$file_count"
+  local rest=0
+  local files_to_show="$max_display"
+
+  if [[ "$total_files" -gt "$max_display" ]]; then
+    rest=$((total_files - max_display))
+  fi
+
+  # collect files into array for proper last-item detection
+  local -a file_array=()
+  while IFS= read -r file_path; do
+    [[ -z "$file_path" ]] && continue
+    file_array+=("$file_path")
+    [[ ${#file_array[@]} -ge $max_display ]] && break
+  done <<< "$files_output"
+
+  local display_count=${#file_array[@]}
+  if [[ $display_count -eq 0 ]]; then
+    echo "      └─ (none)"
+  else
+    for i in "${!file_array[@]}"; do
+      local rel_path="${file_array[$i]#$REPO_ROOT/}"
+      local is_last=$(( i == display_count - 1 ))
+
+      if [[ $is_last -eq 1 ]]; then
+        if [[ $rest -gt 0 ]]; then
+          echo "      ├─ $rel_path"
+          echo "      └─ ... ($rest more, $total_files total)"
+        else
+          echo "      └─ $rel_path"
+        fi
+      else
+        echo "      ├─ $rel_path"
+      fi
+    done
+  fi
+
+  # warn if --resnap used with plan mode
+  if [[ "$resnap" == "true" ]]; then
+    echo ""
+    echo "⚠️  note: --resnap has no effect in plan mode"
+  fi
+
+  # hint as coconut
+  echo ""
+  echo "🥥 did you know?"
+  echo "   └─ run with \`--mode apply\` to execute"
 }
 
 ######################################################################
@@ -220,6 +371,7 @@ preview_scope_matches() {
 WHAT=""
 WHEN=""
 SCOPE=""
+MODE="plan"  # plan | apply (plan = preview files, apply = run tests)
 RESNAP=false
 THOROUGH=false
 LOG_MODE="auto"  # auto | always (auto = persist on failure; always = persist always)
@@ -243,6 +395,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --scope)
       SCOPE="$2"
+      shift 2
+      ;;
+    --mode)
+      MODE="$2"
       shift 2
       ;;
     --resnap)
@@ -271,17 +427,22 @@ while [[ $# -gt 0 ]]; do
       break
       ;;
     --help|-h)
-      echo "usage: git.repo.test.sh --what <type> [--scope <pattern>] [--resnap] [--thorough] [--timeout <secs>]"
+      echo "usage: git.repo.test.sh --what <type> [--mode plan|apply] [--scope <pattern>] [--resnap] [--thorough]"
       echo ""
       echo "run repo tests with turtle vibes summary and log capture"
       echo ""
       echo "options:"
       echo "  --what <type>       test type: types | format | lint | unit | integration | acceptance | all"
+      echo "  --mode <mode>       plan | apply (default: plan)"
+      echo "                        plan  = preview matched files"
+      echo "                        apply = execute tests"
       echo "  --scope <pattern>   filter tests by pattern (regex supported)"
-      echo "                        'foo'         match file path (default)"
-      echo "                        'path(foo)'   match file path (explicit)"
-      echo "                        'name(foo)'   match test/describe name"
-      echo "  --resnap            update snapshots (sets RESNAP=true)"
+      echo "                        'foo'           match file path (default)"
+      echo "                        'path://foo'    match file path (explicit, uri format)"
+      echo "                        'name://foo'    match test/describe name"
+      echo "                        'path(foo)'     match file path (legacy)"
+      echo "                        'name(foo)'     match test/describe name (legacy)"
+      echo "  --resnap            update snapshots (sets RESNAP=true, requires --mode apply)"
       echo "  --thorough          run full suite (sets THOROUGH=true)"
       echo "  --timeout <secs>    max time in seconds before timeout"
       echo "  --log <mode>        auto | always (default: auto)"
@@ -298,19 +459,28 @@ while [[ $# -gt 0 ]]; do
 done
 
 ######################################################################
-# parse scope pattern: 'foo', 'path(foo)', or 'name(foo)'
+# parse scope pattern: uri format (path://foo, name://foo) or legacy paren format
 ######################################################################
 SCOPE_MODE="both"  # both | path | name
 SCOPE_PATTERN=""
 
 if [[ -n "$SCOPE" ]]; then
-  if [[ "$SCOPE" =~ ^path\((.+)\)$ ]]; then
+  # uri format: path://foo or name://foo
+  if [[ "$SCOPE" =~ ^path://(.+)$ ]]; then
+    SCOPE_MODE="path"
+    SCOPE_PATTERN="${BASH_REMATCH[1]}"
+  elif [[ "$SCOPE" =~ ^name://(.+)$ ]]; then
+    SCOPE_MODE="name"
+    SCOPE_PATTERN="${BASH_REMATCH[1]}"
+  # legacy paren format: path(foo) or name(foo)
+  elif [[ "$SCOPE" =~ ^path\((.+)\)$ ]]; then
     SCOPE_MODE="path"
     SCOPE_PATTERN="${BASH_REMATCH[1]}"
   elif [[ "$SCOPE" =~ ^name\((.+)\)$ ]]; then
     SCOPE_MODE="name"
     SCOPE_PATTERN="${BASH_REMATCH[1]}"
   else
+    # bare scope defaults to path
     SCOPE_MODE="both"
     SCOPE_PATTERN="$SCOPE"
   fi
@@ -429,6 +599,26 @@ fi
 
 # compute namespaced log directory
 LOG_DIR="${LOG_BASE}/what=${WHAT}"
+
+######################################################################
+# validate mode
+######################################################################
+if [[ "$MODE" != "plan" ]] && [[ "$MODE" != "apply" ]]; then
+  _output=$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.repo.test --what $WHAT"
+    echo "   └─ error: invalid --mode value '$MODE'"
+    echo ""
+    echo "valid values: plan | apply"
+    echo "  plan  = preview matched files (default)"
+    echo "  apply = execute tests"
+  )
+  echo "$_output"      # stdout
+  echo "$_output" >&2  # stderr
+  exit 2
+fi
+
+# note: --resnap note for plan mode is shown inline in output_plan_mode
 
 ######################################################################
 # validate git repo context
@@ -573,6 +763,7 @@ cd "$REPO_ROOT"
 # build args for display
 DISPLAY_ARGS="--what $WHAT"
 [[ -n "$SCOPE" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --scope $SCOPE"
+[[ "$MODE" == "apply" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --mode apply"
 [[ "$RESNAP" == "true" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --resnap"
 [[ "$THOROUGH" == "true" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --thorough"
 
@@ -880,6 +1071,7 @@ if [[ "$MULTI_MODE" == "true" ]]; then
     # build args for this type
     type_args=("--what" "$test_type")
     [[ -n "$SCOPE" ]] && type_args+=("--scope" "$SCOPE")
+    [[ -n "$MODE" ]] && type_args+=("--mode" "$MODE")
     [[ "$RESNAP" == "true" ]] && type_args+=("--resnap")
     [[ "$THOROUGH" == "true" ]] && type_args+=("--thorough")
     [[ "$LOG_MODE" != "auto" ]] && type_args+=("--log" "$LOG_MODE")
@@ -906,6 +1098,75 @@ fi
 # run single test type (non-all)
 ######################################################################
 
+# for types/format/lint, plan mode has no meaning - treat as apply
+if [[ "$MODE" == "plan" ]] && [[ "$WHAT" == "types" || "$WHAT" == "format" || "$WHAT" == "lint" ]]; then
+  MODE="apply"
+fi
+
+######################################################################
+# handle plan mode for jest-based tests
+######################################################################
+if [[ "$MODE" == "plan" ]]; then
+  # get scope pattern or default to "." for all files
+  # for name:// scope, use "." since jest --listTests can't filter by test name
+  if [[ "$SCOPE_MODE" == "name" ]]; then
+    local_scope="."
+  else
+    local_scope="${SCOPE_PATTERN:-}"
+    [[ -z "$local_scope" ]] && local_scope="."
+  fi
+
+  # get file count
+  SCOPE_FILE_COUNT=$(get_scope_file_count "$WHAT" "$local_scope")
+
+  # if count check failed, fall back to apply mode with warning
+  if [[ "$SCOPE_FILE_COUNT" == "-1" ]]; then
+    _output=$(
+      print_turtle_header "hold up..."
+      print_tree_start "git.repo.test $DISPLAY_ARGS"
+      echo "   └─ warning: could not list matched files"
+      echo ""
+      echo "hint: jest --listTests may have failed"
+      echo "      try: rhx git.repo.test --what $WHAT --mode apply"
+    )
+    echo "$_output"
+    exit 1
+  fi
+
+  # handle 0 matches
+  if [[ "$SCOPE_FILE_COUNT" == "0" ]]; then
+    _output=$(
+      print_turtle_header "bummer dude..."
+      print_tree_start "git.repo.test $DISPLAY_ARGS"
+      echo "   ├─ scope: ${SCOPE:-all}"
+      echo "   │  └─ matched: 0 files"
+      echo "   └─ error: no files matched"
+      echo ""
+      if [[ -n "$SCOPE" ]]; then
+        echo "hint: check the scope pattern or try without --scope"
+      else
+        echo "hint: check that test files exist for --what $WHAT"
+      fi
+    )
+    echo "$_output"      # stdout
+    echo "$_output" >&2  # stderr
+    exit 2
+  fi
+
+  # get the actual file list
+  FILES_OUTPUT=$(get_scope_files "$WHAT" "$local_scope")
+
+  # output plan mode result
+  output_plan_mode "$DISPLAY_ARGS" "${SCOPE:-all}" "$SCOPE_MODE" "$SCOPE_FILE_COUNT" "$FILES_OUTPUT" "$RESNAP"
+
+  # done - plan mode complete
+  exit 0
+fi
+
+######################################################################
+# apply mode: run tests
+######################################################################
+
 # emit progressive header immediately (skip if multi-child)
 if [[ "$MULTI_CHILD" != "true" ]]; then
   print_turtle_header "lets ride..."
@@ -921,7 +1182,13 @@ fi
 SCOPE_PREVIEW_OUTPUT=""
 SCOPE_FILE_COUNT=""
 if [[ -n "$SCOPE" ]] && [[ "$WHAT" != "lint" ]]; then
-  SCOPE_FILE_COUNT=$(get_scope_file_count "$WHAT" "$SCOPE")
+  # for name:// scope, use "." since jest --listTests can't filter by test name
+  local_scope="${SCOPE_PATTERN:-}"
+  [[ -z "$local_scope" ]] && local_scope="."
+  if [[ "$SCOPE_MODE" == "name" ]]; then
+    local_scope="."
+  fi
+  SCOPE_FILE_COUNT=$(get_scope_file_count "$WHAT" "$local_scope")
 
   # show preview (skip if count check failed)
   if [[ "$SCOPE_FILE_COUNT" != "-1" ]]; then
