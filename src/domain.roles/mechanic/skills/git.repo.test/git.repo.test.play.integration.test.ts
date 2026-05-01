@@ -63,6 +63,8 @@ describe('git.repo.test', () => {
     mockKeyrack?: boolean;
     mockKeyrackFail?: boolean;
     mockNpm?: { exitCode: number; stdout?: string; stderr?: string };
+    /** mock npx jest --listTests response (files to return, or 'fail' to simulate failure) */
+    mockListTests?: string[] | 'fail';
   }): { tempDir: string; env: NodeJS.ProcessEnv } => {
     const tempDir = genTempDir({ slug: 'git-repo-test', git: true });
 
@@ -172,6 +174,48 @@ exit ${npmExitCode}
       env = { ...env, PATH: `${fakeBinDir}:${process.env.PATH}` };
     }
 
+    // mock npx jest --listTests for scope verification
+    if (config.mockListTests !== undefined) {
+      const fakeBinDir = path.join(tempDir, '.fakebin');
+      fs.mkdirSync(fakeBinDir, { recursive: true });
+
+      // lookup real npx path before modifying PATH
+      const realNpxPath = spawnSync('which', ['npx'], {
+        encoding: 'utf-8',
+      }).stdout.trim();
+
+      if (config.mockListTests === 'fail') {
+        // mock npx to fail for jest --listTests
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'npx'),
+          `#!/bin/bash
+# fail for jest --listTests, pass through everything else
+if [[ "$*" == *"jest"* && "$*" == *"--listTests"* ]]; then
+  echo "jest not found or --listTests failed" >&2
+  exit 1
+fi
+exec "${realNpxPath}" "$@"
+`,
+        );
+      } else {
+        // mock npx to return configured file list for jest --listTests
+        const fileList = config.mockListTests.join('\n');
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'npx'),
+          `#!/bin/bash
+# return mock file list for jest --listTests, pass through everything else
+if [[ "$*" == *"jest"* && "$*" == *"--listTests"* ]]; then
+  echo "${fileList}"
+  exit 0
+fi
+exec "${realNpxPath}" "$@"
+`,
+        );
+      }
+      fs.chmodSync(path.join(fakeBinDir, 'npx'), '755');
+      env = { ...env, PATH: `${fakeBinDir}:${process.env.PATH}` };
+    }
+
     return { tempDir, env };
   };
 
@@ -185,8 +229,17 @@ exit ${npmExitCode}
         .replace(/\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z/g, 'TIMESTAMP')
         // sanitize temp paths
         .replace(/\/tmp\/[^/\s]+/g, '/tmp/TEMP')
-        // sanitize time values: 1.234s -> X.XXXs
+        // sanitize time values: 1.234s -> X.XXXs, 5s -> Xs
         .replace(/\d+\.\d+s/g, 'X.XXXs')
+        .replace(/\((\d+)s\)/g, '(Xs)')
+        .replace(/time: (\d+)s/g, 'time: Xs')
+        // sanitize worktree paths: /home/.../rhachet-roles-ehmpathy.vlad.xxx/ -> WORKTREE/
+        .replace(
+          /\/home\/[^/]+\/git\/ehmpathy\/_worktrees\/[^/]+\//g,
+          'WORKTREE/',
+        )
+        // sanitize rhachet versions: rhachet@1.40.7 -> rhachet@X.X.X
+        .replace(/rhachet@\d+\.\d+\.\d+/g, 'rhachet@X.X.X')
     );
   };
 
@@ -318,6 +371,7 @@ Time:        0.3 s`,
             'src/user.unit.test.ts': `test('user works', () => expect(true).toBe(true));`,
             'src/product.unit.test.ts': `test('product works', () => expect(true).toBe(true));`,
           },
+          mockListTests: ['/tmp/test-repo/src/user.unit.test.ts'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:unit',
@@ -774,6 +828,7 @@ Time:        1.8 s`,
             },
           },
           jestConfigs: ['unit'],
+          mockListTests: [], // no files match scope
           mockNpm: {
             exitCode: 1,
             stdout: '',
@@ -1122,6 +1177,7 @@ Time:        32.1 s`,
             'src/login.acceptance.test.ts': `test('login works', () => expect(true).toBe(true));`,
           },
           mockKeyrack: true,
+          mockListTests: ['src/checkout.acceptance.test.ts'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:acceptance',
@@ -2102,7 +2158,7 @@ Time:        0.1 s`,
   given.skipIf(!!process.env.CI)('[case18] real repo with real npm', () => {
     when('[t0] --what unit --scope with real npm call', () => {
       const result = useThen('skill executes', () => {
-        const { tempDir } = setupFixture({
+        const { tempDir, env } = setupFixture({
           packageJson: {
             name: 'real-test-repo',
             scripts: {
@@ -2110,24 +2166,26 @@ Time:        0.1 s`,
             },
           },
           jestConfigs: ['unit'],
-          // no mockNpm - uses real npm
+          // mockListTests returns empty array = scope matched 0 files
+          // this triggers constraint error before npm runs (per original behavior)
+          mockListTests: [],
+          // no mockNpm - uses real npm (if it were to run)
         });
         return runGitRepoTest({
           tempDir,
           gitRepoTestArgs: ['--what', 'unit', '--scope', 'nonexistent'],
-          // no env override - uses real PATH
+          env,
         });
       });
 
-      then('npm was called (exit code reflects real execution)', () => {
-        // real npm will run the echo command and exit 0
-        // skill interprets "no tests" output and exits appropriately
-        expect([0, 2]).toContain(result.exitCode);
+      then('scope verification ran (exit code reflects constraint)', () => {
+        // scope 'nonexistent' matched 0 files, skill exits with constraint
+        expect(result.exitCode).toBe(2);
       });
 
-      then('output reflects real npm execution', () => {
-        // output should contain real npm/skill output, not mocked
-        expect(result.stdout + result.stderr).toBeTruthy();
+      then('output shows constraint error', () => {
+        const output = result.stdout + result.stderr;
+        expect(output).toMatch(/constraint|no tests matched/i);
       });
 
       then('output has treestruct shape', () => {
@@ -2137,14 +2195,12 @@ Time:        0.1 s`,
         expect(output).toMatch(/├─|└─|--what/);
       });
 
-      then('npm response has valid structure', () => {
-        // validate npm output has expected shape
+      then('output shows scope info', () => {
         const output = result.stdout + result.stderr;
-        // skill output should show the test what type
-        expect(output).toMatch(/--what\s+unit/);
-        // note: scope info is shown in plan mode, not apply mode
-        // output should have status info
-        expect(output).toMatch(/status|passed|failed|skipped/i);
+        // skill output should show the scope
+        expect(output).toMatch(/scope.*nonexistent/i);
+        // should show matched: 0 files
+        expect(output).toMatch(/matched.*0/i);
       });
 
       then('output matches snapshot', () => {
@@ -2240,6 +2296,7 @@ Time:        0.1 s`,
           testFiles: {
             'src/user.unit.test.ts': `test('user works', () => expect(true).toBe(true));`,
           },
+          mockListTests: ['src/user.unit.test.ts'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:unit',
@@ -2283,6 +2340,7 @@ Time:        0.3 s`,
           testFiles: {
             'src/user.unit.test.ts': `test('user works', () => expect(true).toBe(true));`,
           },
+          mockListTests: ['src/user.unit.test.ts'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:unit',
@@ -2326,6 +2384,7 @@ Time:        1.2 s`,
           testFiles: {
             'src/user.unit.test.ts': `test('user works', () => expect(true).toBe(true));`,
           },
+          mockListTests: ['src/user.unit.test.ts'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:unit',
@@ -2377,6 +2436,7 @@ Time:        2.1 s`,
             'src/api.integration.test.ts': `test('api works', () => expect(true).toBe(true));`,
           },
           mockKeyrack: true,
+          mockListTests: ['src/api.integration.test.ts'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:integration',
@@ -2430,6 +2490,7 @@ Time:        3.5 s`,
           testFiles: {
             'src/user.unit.test.ts': `test('user works', () => expect(true).toBe(true));`,
           },
+          mockListTests: ['src/user.unit.test.ts'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:unit',
@@ -2516,6 +2577,7 @@ Time:        0.1 s`,
             },
           },
           jestConfigs: ['unit'],
+          mockListTests: [], // no files match special pattern
           mockNpm: {
             exitCode: 1,
             stdout: '',
@@ -2529,14 +2591,448 @@ Time:        0.1 s`,
         });
       });
 
-      then('exit code reflects test result', () => {
-        expect([0, 2]).toContain(result.exitCode);
+      then('exit code is 2 (no tests found)', () => {
+        expect(result.exitCode).toBe(2);
       });
 
       then('output matches snapshot', () => {
         expect(
           sanitizeOutput(result.stdout || result.stderr),
         ).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ######################################################################
+  // journey 21b: --listTests failure must failfast
+  // ######################################################################
+  // .note = verifies zero failhide when jest --listTests fails
+  given('[case21b] --listTests failure', () => {
+    when('[t0] jest --listTests fails', () => {
+      const result = useThen('skill executes', () => {
+        const { tempDir, env } = setupFixture({
+          packageJson: {
+            name: 'test-repo',
+            scripts: {
+              'test:unit': 'jest',
+            },
+          },
+          jestConfigs: ['unit'],
+          testFiles: {
+            'src/user.unit.test.ts': `test('user works', () => expect(true).toBe(true));`,
+          },
+          mockListTests: 'fail', // simulate jest --listTests failure
+          mockNpm: {
+            exitCode: 0,
+            stdout: '> test-repo@1.0.0 test:unit',
+            stderr: 'PASS src/user.unit.test.ts',
+          },
+        });
+        return runGitRepoTest({
+          tempDir,
+          gitRepoTestArgs: ['--what', 'unit', '--scope', 'user'],
+          env,
+        });
+      });
+
+      then('exit code is 1 (malfunction)', () => {
+        // --scope requires jest --listTests to verify scope matches files
+        // when jest --listTests fails, skill must fail fast with malfunction
+        expect(result.exitCode).toBe(1);
+      });
+
+      then('output shows malfunction status', () => {
+        const output = result.stdout + result.stderr;
+        expect(output).toContain('malfunction');
+      });
+
+      then('output explains the error clearly', () => {
+        const output = result.stdout + result.stderr;
+        expect(output).toMatch(/cannot verify scope|jest --listTests failed/i);
+      });
+
+      then('output provides a hint', () => {
+        const output = result.stdout + result.stderr;
+        expect(output).toMatch(/hint:/i);
+      });
+
+      then('output matches snapshot', () => {
+        expect(
+          sanitizeOutput(result.stdout || result.stderr),
+        ).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ######################################################################
+  // journey 22: additional flag combinations for exhaustive coverage
+  // ######################################################################
+  given('[case22] additional flag combinations', () => {
+    when('[t0] --what all --thorough combined', () => {
+      const result = useThen('skill executes', () => {
+        const tempDir = genTempDir({ slug: 'git-repo-test', git: true });
+
+        fs.writeFileSync(
+          path.join(tempDir, 'package.json'),
+          JSON.stringify(
+            {
+              name: 'test-repo',
+              scripts: {
+                'test:lint': 'eslint .',
+                'test:unit': 'jest --config=jest.unit.config.js',
+                'test:integration': 'jest --config=jest.integration.config.js',
+                'test:acceptance': 'jest --config=jest.acceptance.config.js',
+              },
+            },
+            null,
+            2,
+          ),
+        );
+
+        for (const configType of ['unit', 'integration', 'acceptance']) {
+          fs.writeFileSync(
+            path.join(tempDir, `jest.${configType}.config.ts`),
+            `module.exports = { testMatch: ['**/*.${configType}.test.ts'] };`,
+          );
+        }
+
+        const realRhxPath = spawnSync('which', ['rhx'], {
+          encoding: 'utf-8',
+        }).stdout.trim();
+
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'npm'),
+          `#!/bin/bash
+if [[ "$*" == *"test:lint"* ]]; then
+  echo "lint passed" >&2
+  exit 0
+elif [[ "$*" == *"test:unit"* ]]; then
+  echo "Test Suites: 5 passed, 5 total
+Tests: 25 passed, 25 total
+Time: 2.5 s" >&2
+  exit 0
+elif [[ "$*" == *"test:integration"* ]]; then
+  echo "Test Suites: 3 passed, 3 total
+Tests: 12 passed, 12 total
+Time: 5.0 s" >&2
+  exit 0
+elif [[ "$*" == *"test:acceptance"* ]]; then
+  echo "Test Suites: 2 passed, 2 total
+Tests: 8 passed, 8 total
+Time: 8.0 s" >&2
+  exit 0
+fi
+exit 1
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
+
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'rhx'),
+          `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
+  echo "unlocked ehmpath/test"
+  exit 0
+fi
+exec "${realRhxPath}" "$@"
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
+
+        const env = {
+          ...process.env,
+          PATH: `${fakeBinDir}:${process.env.PATH}`,
+          THOROUGH: 'true',
+        };
+
+        return runGitRepoTest({
+          tempDir,
+          gitRepoTestArgs: ['--what', 'all', '--thorough'],
+          env,
+        });
+      });
+
+      then('exit code is 0', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('output shows all test types completed', () => {
+        expect(result.stdout).toContain('--what lint');
+        expect(result.stdout).toContain('--what unit');
+        expect(result.stdout).toContain('--what integration');
+        expect(result.stdout).toContain('--what acceptance');
+      });
+
+      then('output matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] --what all --resnap combined', () => {
+      const result = useThen('skill executes', () => {
+        const tempDir = genTempDir({ slug: 'git-repo-test', git: true });
+
+        fs.writeFileSync(
+          path.join(tempDir, 'package.json'),
+          JSON.stringify(
+            {
+              name: 'test-repo',
+              scripts: {
+                'test:lint': 'eslint .',
+                'test:unit': 'jest --config=jest.unit.config.js',
+                'test:integration': 'jest --config=jest.integration.config.js',
+                'test:acceptance': 'jest --config=jest.acceptance.config.js',
+              },
+            },
+            null,
+            2,
+          ),
+        );
+
+        for (const configType of ['unit', 'integration', 'acceptance']) {
+          fs.writeFileSync(
+            path.join(tempDir, `jest.${configType}.config.ts`),
+            `module.exports = { testMatch: ['**/*.${configType}.test.ts'] };`,
+          );
+        }
+
+        const realRhxPath = spawnSync('which', ['rhx'], {
+          encoding: 'utf-8',
+        }).stdout.trim();
+
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'npm'),
+          `#!/bin/bash
+if [[ "$*" == *"test:lint"* ]]; then
+  echo "lint passed" >&2
+  exit 0
+elif [[ "$*" == *"test:unit"* ]]; then
+  echo "Test Suites: 3 passed, 3 total
+Tests: 15 passed, 15 total
+Snapshots: 5 updated, 5 total
+Time: 1.8 s" >&2
+  exit 0
+elif [[ "$*" == *"test:integration"* ]]; then
+  echo "Test Suites: 2 passed, 2 total
+Tests: 10 passed, 10 total
+Snapshots: 3 updated, 3 total
+Time: 4.0 s" >&2
+  exit 0
+elif [[ "$*" == *"test:acceptance"* ]]; then
+  echo "Test Suites: 1 passed, 1 total
+Tests: 5 passed, 5 total
+Snapshots: 2 updated, 2 total
+Time: 6.0 s" >&2
+  exit 0
+fi
+exit 1
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
+
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'rhx'),
+          `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
+  echo "unlocked ehmpath/test"
+  exit 0
+fi
+exec "${realRhxPath}" "$@"
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
+
+        const env = {
+          ...process.env,
+          PATH: `${fakeBinDir}:${process.env.PATH}`,
+          RESNAP: 'true',
+        };
+
+        return runGitRepoTest({
+          tempDir,
+          gitRepoTestArgs: ['--what', 'all', '--resnap'],
+          env,
+        });
+      });
+
+      then('exit code is 0', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('output shows all test types completed', () => {
+        expect(result.stdout).toContain('--what lint');
+        expect(result.stdout).toContain('--what unit');
+        expect(result.stdout).toContain('--what integration');
+        expect(result.stdout).toContain('--what acceptance');
+      });
+
+      then('output matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] --what integration --scope --resnap --thorough combined', () => {
+      const result = useThen('skill executes', () => {
+        const { tempDir, env } = setupFixture({
+          packageJson: {
+            name: 'test-repo',
+            scripts: {
+              'test:integration': 'jest --config jest.integration.config.js',
+            },
+          },
+          jestConfigs: ['integration'],
+          testFiles: {
+            'src/api.integration.test.ts': `test('api works', () => expect(true).toBe(true));`,
+          },
+          mockKeyrack: true,
+          mockListTests: ['src/api.integration.test.ts'],
+          mockNpm: {
+            exitCode: 0,
+            stdout: '> test-repo@1.0.0 test:integration',
+            stderr: `PASS src/api.integration.test.ts
+Test Suites: 1 passed, 1 total
+Tests:       12 passed, 12 total
+Snapshots:   4 updated, 4 total
+Time:        5.2 s`,
+          },
+        });
+        return runGitRepoTest({
+          tempDir,
+          gitRepoTestArgs: [
+            '--what',
+            'integration',
+            '--scope',
+            'api',
+            '--resnap',
+            '--thorough',
+          ],
+          env: { ...env, RESNAP: 'true', THOROUGH: 'true' },
+        });
+      });
+
+      then('exit code is 0', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('output shows keyrack unlock', () => {
+        expect(result.stdout).toContain('keyrack:');
+      });
+
+      then('output shows passed', () => {
+        expect(result.stdout).toContain('🎉 passed');
+      });
+
+      then('output matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] --what acceptance --scope --resnap --thorough combined', () => {
+      const result = useThen('skill executes', () => {
+        const { tempDir, env } = setupFixture({
+          packageJson: {
+            name: 'test-repo',
+            scripts: {
+              'test:acceptance': 'jest --config jest.acceptance.config.js',
+            },
+          },
+          jestConfigs: ['acceptance'],
+          testFiles: {
+            'src/checkout.acceptance.test.ts': `test('checkout works', () => expect(true).toBe(true));`,
+          },
+          mockKeyrack: true,
+          mockListTests: ['src/checkout.acceptance.test.ts'],
+          mockNpm: {
+            exitCode: 0,
+            stdout: '> test-repo@1.0.0 test:acceptance',
+            stderr: `PASS src/checkout.acceptance.test.ts
+Test Suites: 1 passed, 1 total
+Tests:       8 passed, 8 total
+Snapshots:   3 updated, 3 total
+Time:        10.5 s`,
+          },
+        });
+        return runGitRepoTest({
+          tempDir,
+          gitRepoTestArgs: [
+            '--what',
+            'acceptance',
+            '--scope',
+            'checkout',
+            '--resnap',
+            '--thorough',
+          ],
+          env: { ...env, RESNAP: 'true', THOROUGH: 'true' },
+        });
+      });
+
+      then('exit code is 0', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('output shows keyrack unlock', () => {
+        expect(result.stdout).toContain('keyrack:');
+      });
+
+      then('output shows passed', () => {
+        expect(result.stdout).toContain('🎉 passed');
+      });
+
+      then('output matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t4] --what unit --log always --resnap combined', () => {
+      const result = useThen('skill executes', () => {
+        const { tempDir, env } = setupFixture({
+          packageJson: {
+            name: 'test-repo',
+            scripts: {
+              'test:unit': 'jest',
+            },
+          },
+          jestConfigs: ['unit'],
+          testFiles: {
+            'src/user.unit.test.ts': `test('user works', () => expect(true).toBe(true));`,
+          },
+          mockNpm: {
+            exitCode: 0,
+            stdout: '> test-repo@1.0.0 test:unit',
+            stderr: `PASS src/user.unit.test.ts
+Test Suites: 1 passed, 1 total
+Tests:       4 passed, 4 total
+Snapshots:   2 updated, 2 total
+Time:        0.6 s`,
+          },
+        });
+        return runGitRepoTest({
+          tempDir,
+          gitRepoTestArgs: ['--what', 'unit', '--log', 'always', '--resnap'],
+          env: { ...env, RESNAP: 'true' },
+        });
+      });
+
+      then('exit code is 0', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('log path contains what=unit', () => {
+        expect(result.stdout).toContain('what=unit');
+      });
+
+      then('output shows passed', () => {
+        expect(result.stdout).toContain('🎉 passed');
+      });
+
+      then('output matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });

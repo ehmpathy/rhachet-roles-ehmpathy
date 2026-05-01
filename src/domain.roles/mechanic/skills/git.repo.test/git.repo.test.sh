@@ -163,6 +163,41 @@ validate_jest_config() {
 }
 
 ######################################################################
+# get jest path pattern flag based on version
+# jest ≤29: --testPathPattern (singular)
+# jest ≥30: --testPathPatterns (plural)
+######################################################################
+get_jest_path_pattern_flag() {
+  # read jest version from package.json (check both deps and devDeps)
+  local jest_version
+  jest_version=$(jq -r '.devDependencies.jest // .dependencies.jest // ""' "$REPO_ROOT/package.json" 2>/dev/null || echo "")
+
+  # if jest not found, fail fast
+  if [[ -z "$jest_version" ]]; then
+    echo "--testPathPatterns"  # default to newer flag, let jest fail with clear error
+    return
+  fi
+
+  # extract major version (strip prefix chars like ^, ~, >=, etc.)
+  # e.g., ^29.7.0 → 29, ~30.0.0 → 30, >=29.0.0 → 29
+  local jest_major
+  jest_major=$(echo "$jest_version" | grep -oE '[0-9]+' | head -1)
+
+  # if we couldn't parse a number, default to newer flag
+  if [[ -z "$jest_major" ]] || ! [[ "$jest_major" =~ ^[0-9]+$ ]]; then
+    echo "--testPathPatterns"
+    return
+  fi
+
+  # jest ≤29 uses singular, jest ≥30 uses plural
+  if [[ "$jest_major" -lt 30 ]]; then
+    echo "--testPathPattern"
+  else
+    echo "--testPathPatterns"
+  fi
+}
+
+######################################################################
 # scope check: count matched files for scope
 # returns count via stdout
 ######################################################################
@@ -210,11 +245,15 @@ get_scope_file_count() {
     changed_since="--changedSince=main"
   fi
 
-  # only include --testPathPatterns when scope is not "." (the default)
+  # get the correct flag based on jest version (singular for ≤29, plural for ≥30)
+  local path_flag
+  path_flag=$(get_jest_path_pattern_flag)
+
+  # only include path flag when scope is not "." (the default)
   # reason: --testPathPatterns "." overrides --changedSince behavior in jest
   local test_path_arg=""
   if [[ "$scope" != "." ]]; then
-    test_path_arg="--testPathPatterns $scope"
+    test_path_arg="$path_flag $scope"
   fi
 
   local matched_files
@@ -224,9 +263,11 @@ get_scope_file_count() {
     return
   fi
 
-  # count only lines that look like file paths (start with /)
+  # count non-empty lines (jest outputs one file per line)
+  # note: handles both absolute (/path/to/file) and relative (src/file.ts) paths
+  # note: matches .ts, .tsx, .js, .jsx files
   local file_count
-  file_count=$(echo "$matched_files" | grep -cE '^\/' 2>/dev/null || true)
+  file_count=$(echo "$matched_files" | grep -cE '.+\.(tsx?|jsx?)$' 2>/dev/null || true)
   # ensure file_count is a number (grep -c can return empty on some systems)
   [[ -z "$file_count" ]] && file_count=0
 
@@ -875,7 +916,10 @@ run_single_test() {
         ;;
       path|both)
         # bare --scope 'foo' and --scope 'path(foo)' both filter by path
-        jest_args+=("--testPathPatterns" "$SCOPE_PATTERN")
+        # use correct flag based on jest version (singular for ≤29, plural for ≥30)
+        local path_flag
+        path_flag=$(get_jest_path_pattern_flag)
+        jest_args+=("$path_flag" "$SCOPE_PATTERN")
         ;;
     esac
   fi
@@ -1194,7 +1238,7 @@ if [[ -n "$KEYRACK_STATUS" ]]; then
   print_tree_branch "keyrack" "$KEYRACK_STATUS"
 fi
 
-# show scope preview if applicable and failfast if 0 matches
+# show scope preview if applicable and failfast if 0 matches or check failed
 SCOPE_PREVIEW_OUTPUT=""
 SCOPE_FILE_COUNT=""
 if [[ -n "$SCOPE" ]] && [[ "$WHAT" != "lint" ]]; then
@@ -1206,16 +1250,25 @@ if [[ -n "$SCOPE" ]] && [[ "$WHAT" != "lint" ]]; then
   fi
   SCOPE_FILE_COUNT=$(get_scope_file_count "$WHAT" "$local_scope")
 
-  # show preview (skip if count check failed)
-  if [[ "$SCOPE_FILE_COUNT" != "-1" ]]; then
-    SCOPE_PREVIEW_OUTPUT=$(preview_scope_matches "$SCOPE" "$SCOPE_FILE_COUNT")
-    echo "$SCOPE_PREVIEW_OUTPUT"
+  # failfast if scope check failed (can't verify scope without jest --listTests)
+  if [[ "$SCOPE_FILE_COUNT" == "-1" ]]; then
+    {
+      echo "   ├─ status: malfunction"
+      echo "   └─ error: cannot verify scope - jest --listTests failed"
+      echo ""
+      echo "hint: ensure jest is installed and supports --listTests"
+    } | emit_to_both
+    exit 1
+  fi
 
-    # failfast if scope matched 0 files
-    if [[ "$SCOPE_FILE_COUNT" == "0" ]]; then
-      output_no_tests "true" "true" | emit_to_both
-      exit 2
-    fi
+  # show preview
+  SCOPE_PREVIEW_OUTPUT=$(preview_scope_matches "$SCOPE" "$SCOPE_FILE_COUNT")
+  echo "$SCOPE_PREVIEW_OUTPUT"
+
+  # failfast if scope matched 0 files
+  if [[ "$SCOPE_FILE_COUNT" == "0" ]]; then
+    output_no_tests "true" "true" | emit_to_both
+    exit 2
   fi
 fi
 
