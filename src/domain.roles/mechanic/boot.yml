@@ -192,8 +192,10 @@ subject.code.test:
       - briefs/practices/code.test/lessons.howto/howto.write.[lesson].md.pt2.md
       - briefs/practices/code.test/lessons.howto/howto.write.[lesson].md.pt3.md
       - briefs/practices/code.test/lessons.howto/rule.require.snapshots.[lesson].md
-      - briefs/practices/code.test/scope.acceptance/rule.require.blackbox.md
-      - briefs/practices/code.test/scope.unit/rule.forbid.remote-boundaries.md
+      - briefs/practices/code.test/scope.acceptance/rule.require.acceptance.blackbox.md
+      - briefs/practices/code.test/scope.acceptance/rule.forbid.acceptance.mocks.md
+      - briefs/practices/code.test/scope.integration/rule.forbid.integration.mocks.md
+      - briefs/practices/code.test/scope.unit/rule.forbid.unit.remote-boundaries.md
       - briefs/practices/code.test/scope.coverage/rule.require.test-coverage-by-grain.md
 
     ref:
