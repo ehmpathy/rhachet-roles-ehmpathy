@@ -58,7 +58,8 @@ describe('init.claude.permissions.sh', () => {
     }
 
     return {
-      stdout: (result.stdout ?? '') + '\n---settings.json---\n' + settingsResult,
+      stdout:
+        (result.stdout ?? '') + '\n---settings.json---\n' + settingsResult,
       stderr: result.stderr ?? '',
       exitCode: result.status ?? 1,
     };
