@@ -42,9 +42,11 @@ if [[ ! -f "$PERMISSIONS_FILE" ]]; then
   exit 2
 fi
 
-# load and parse JSONC (strip comments before parsing)
-# - removes // line comments (both standalone and trailing)
-PERMISSIONS_CONFIG=$(grep -v '^\s*//' "$PERMISSIONS_FILE" | sed 's|//.*||' | jq -c '.')
+# load and parse JSONC (strip comments before jq parse)
+# - grep removes standalone // comment lines
+# - sed removes // comments only when preceded by whitespace
+#   this preserves :// in strings like 'name://foo' or 'path://bar'
+PERMISSIONS_CONFIG=$(grep -v '^\s*//' "$PERMISSIONS_FILE" | sed 's|[[:space:]]//.*||' | jq -c '.')
 
 # ensure .claude directory exists
 mkdir -p "$(dirname "$SETTINGS_FILE")"
