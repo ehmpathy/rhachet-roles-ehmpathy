@@ -137,4 +137,7 @@ especially critical for:
 
 - `define.domain-operation-grains` — the three grains (architect)
 - `rule.require.snapshots.[lesson]` — why snapshots matter
-- `rule.forbid.remote-boundaries` — unit vs integration distinction
+- `rule.forbid.unit.remote-boundaries` — unit tests must not cross boundaries
+- `rule.forbid.integration.mocks` — integration tests must not mock
+- `rule.forbid.acceptance.mocks` — acceptance tests must not mock
+- `rule.require.acceptance.blackbox` — acceptance tests must test via contract

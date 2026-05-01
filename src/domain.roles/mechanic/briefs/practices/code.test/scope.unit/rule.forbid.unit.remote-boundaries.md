@@ -1,4 +1,4 @@
-# rule.forbid.remote-boundaries
+# rule.forbid.unit.remote-boundaries
 
 ## .what
 
@@ -146,6 +146,12 @@ mocks are forbidden because:
 unit test that crosses remote boundary = **BLOCKER**
 
 mock usage in unit tests = **BLOCKER**
+
+## .see also
+
+- `rule.forbid.integration.mocks` — integration tests must not mock
+- `rule.forbid.acceptance.mocks` — acceptance tests must not mock
+- `rule.require.test-coverage-by-grain` — grain determines test scope
 
 ---
 
