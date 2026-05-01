@@ -3,14 +3,14 @@
 exports[`git.repo.test given: [case1] repo with tests that pass when: [t0] --what unit is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --mode apply
+🐚 git.repo.test --what unit
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 3 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -20,12 +20,12 @@ exports[`git.repo.test given: [case1] repo with tests that pass when: [t0] --wha
 exports[`git.repo.test given: [case2] repo with tests that fail when: [t0] --what unit is called then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what unit --mode apply
-   │  └─ ✋ failed (0s)
+🐚 git.repo.test --what unit
+   │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 1 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stderr.log
@@ -36,14 +36,16 @@ exports[`git.repo.test given: [case2] repo with tests that fail when: [t0] --wha
 exports[`git.repo.test given: [case3] repo with multiple test files when: [t0] --what unit --scope is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --scope user --mode apply
+🐚 git.repo.test --what unit --scope user
+   ├─ scope: user
+   │  └─ matched: 1 files
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 2 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -53,14 +55,14 @@ exports[`git.repo.test given: [case3] repo with multiple test files when: [t0] -
 exports[`git.repo.test given: [case4] repo with snapshot to update when: [t0] --what unit --resnap is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --mode apply --resnap
+🐚 git.repo.test --what unit --resnap
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 1 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -70,12 +72,12 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t0] --
 exports[`git.repo.test given: [case4] repo with snapshot to update when: [t1] --what unit --resnap fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what unit --mode apply --resnap
-   │  └─ ✋ failed (0s)
+🐚 git.repo.test --what unit --resnap
+   │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 1 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stderr.log
@@ -86,15 +88,15 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t1] --
 exports[`git.repo.test given: [case4] repo with snapshot to update when: [t2] --what integration --resnap is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what integration --mode apply --resnap
+🐚 git.repo.test --what integration --resnap
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 2 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -104,13 +106,13 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t2] --
 exports[`git.repo.test given: [case4] repo with snapshot to update when: [t3] --what integration --resnap fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what integration --mode apply --resnap
+🐚 git.repo.test --what integration --resnap
    ├─ keyrack: unlocked ehmpath/test
-   │  └─ ✋ failed (0s)
+   │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 1 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=integration/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=integration/TIMESTAMP.stderr.log
@@ -121,15 +123,15 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t3] --
 exports[`git.repo.test given: [case4] repo with snapshot to update when: [t4] --what acceptance --resnap is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what acceptance --mode apply --resnap
+🐚 git.repo.test --what acceptance --resnap
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 3 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -139,13 +141,13 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t4] --
 exports[`git.repo.test given: [case4] repo with snapshot to update when: [t5] --what acceptance --resnap fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what acceptance --mode apply --resnap
+🐚 git.repo.test --what acceptance --resnap
    ├─ keyrack: unlocked ehmpath/test
-   │  └─ ✋ failed (0s)
+   │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 1 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=acceptance/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=acceptance/TIMESTAMP.stderr.log
@@ -156,15 +158,15 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t5] --
 exports[`git.repo.test given: [case5] repo with integration tests when: [t0] --what integration is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what integration --mode apply
+🐚 git.repo.test --what integration
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 5 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -174,13 +176,13 @@ exports[`git.repo.test given: [case5] repo with integration tests when: [t0] --w
 exports[`git.repo.test given: [case5] repo with integration tests when: [t1] --what integration fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what integration --mode apply
+🐚 git.repo.test --what integration
    ├─ keyrack: unlocked ehmpath/test
-   │  └─ ✋ failed (0s)
+   │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 1 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=integration/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=integration/TIMESTAMP.stderr.log
@@ -223,14 +225,14 @@ hint: ehmpathy convention uses 'test:lint', 'test:unit', 'test:integration', 'te
 exports[`git.repo.test given: [case8] repo with tests that need extra args when: [t0] --what unit -- --verbose is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --mode apply
+🐚 git.repo.test --what unit
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 1 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -240,10 +242,10 @@ exports[`git.repo.test given: [case8] repo with tests that need extra args when:
 exports[`git.repo.test given: [case9] repo with lint command when: [t0] --what lint --scope --resnap is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what lint --scope src --mode apply --resnap
+🐚 git.repo.test --what lint --scope src --resnap
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -253,8 +255,8 @@ exports[`git.repo.test given: [case9] repo with lint command when: [t0] --what l
 exports[`git.repo.test given: [case9] repo with lint command when: [t1] --what lint fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what lint --mode apply
-   │  └─ ✋ failed (0s)
+🐚 git.repo.test --what lint
+   │  └─ ✋ failed (Xs)
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/TIMESTAMP.stderr.log
@@ -265,15 +267,15 @@ exports[`git.repo.test given: [case9] repo with lint command when: [t1] --what l
 exports[`git.repo.test given: [case10] repo with acceptance tests when: [t0] --what acceptance is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what acceptance --mode apply
+🐚 git.repo.test --what acceptance
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 2 files
    │  ├─ tests: 8 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -283,13 +285,13 @@ exports[`git.repo.test given: [case10] repo with acceptance tests when: [t0] --w
 exports[`git.repo.test given: [case10] repo with acceptance tests when: [t1] --what acceptance fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what acceptance --mode apply
+🐚 git.repo.test --what acceptance
    ├─ keyrack: unlocked ehmpath/test
-   │  └─ ✋ failed (0s)
+   │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 1 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=acceptance/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=acceptance/TIMESTAMP.stderr.log
@@ -313,15 +315,17 @@ keyrack unlock failed: vault locked
 exports[`git.repo.test given: [case10] repo with acceptance tests when: [t3] --what acceptance --scope is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what acceptance --scope checkout --mode apply
+🐚 git.repo.test --what acceptance --scope checkout
    ├─ keyrack: unlocked ehmpath/test
+   ├─ scope: checkout
+   │  └─ matched: 1 files
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 1 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -331,48 +335,48 @@ exports[`git.repo.test given: [case10] repo with acceptance tests when: [t3] --w
 exports[`git.repo.test given: [case11] repo with all test commands when: [t0] --what all is called and all pass then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what lint --mode apply
+🐚 git.repo.test --what lint
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
 
-🐚 git.repo.test --what unit --mode apply
+🐚 git.repo.test --what unit
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 3 files
    │  ├─ tests: 10 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
 
-🐚 git.repo.test --what integration --mode apply
+🐚 git.repo.test --what integration
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 2 files
    │  ├─ tests: 5 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
 
-🐚 git.repo.test --what acceptance --mode apply
+🐚 git.repo.test --what acceptance
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 2 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -383,8 +387,8 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t0] --
 exports[`git.repo.test given: [case11] repo with all test commands when: [t1] --what all is called and lint fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what lint --mode apply
-   │  └─ ✋ failed (0s)
+🐚 git.repo.test --what lint
+   │  └─ ✋ failed (Xs)
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=lint/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=lint/TIMESTAMP.stderr.log
@@ -395,12 +399,12 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t1] --
 exports[`git.repo.test given: [case11] repo with all test commands when: [t2] --what all unit fails (after lint passes) then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what unit --mode apply
-   │  └─ ✋ failed (0s)
+🐚 git.repo.test --what unit
+   │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stderr.log
@@ -411,13 +415,13 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t2] --
 exports[`git.repo.test given: [case11] repo with all test commands when: [t3] --what all integration fails (after lint+unit pass) then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what integration --mode apply
+🐚 git.repo.test --what integration
    ├─ keyrack: unlocked ehmpath/test
-   │  └─ ✋ failed (0s)
+   │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=integration/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=integration/TIMESTAMP.stderr.log
@@ -428,13 +432,13 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t3] --
 exports[`git.repo.test given: [case11] repo with all test commands when: [t4] --what all acceptance fails (after lint+unit+integration pass) then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what acceptance --mode apply
+🐚 git.repo.test --what acceptance
    ├─ keyrack: unlocked ehmpath/test
-   │  └─ ✋ failed (0s)
+   │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=acceptance/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=acceptance/TIMESTAMP.stderr.log
@@ -445,14 +449,14 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t4] --
 exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t0] --what unit --thorough is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --mode apply --thorough
+🐚 git.repo.test --what unit --thorough
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 5 files
    │  ├─ tests: 20 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -462,12 +466,12 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t0
 exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t1] --what unit --thorough fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what unit --mode apply --thorough
-   │  └─ ✋ failed (0s)
+🐚 git.repo.test --what unit --thorough
+   │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 5 files
    │  ├─ tests: 19 passed, 1 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stderr.log
@@ -478,15 +482,15 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t1
 exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t2] --what integration --thorough is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what integration --mode apply --thorough
+🐚 git.repo.test --what integration --thorough
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 3 files
    │  ├─ tests: 15 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -496,13 +500,13 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t2
 exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t3] --what integration --thorough fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what integration --mode apply --thorough
+🐚 git.repo.test --what integration --thorough
    ├─ keyrack: unlocked ehmpath/test
-   │  └─ ✋ failed (0s)
+   │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 3 files
    │  ├─ tests: 14 passed, 1 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=integration/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=integration/TIMESTAMP.stderr.log
@@ -513,15 +517,15 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t3
 exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t4] --what acceptance --thorough is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what acceptance --mode apply --thorough
+🐚 git.repo.test --what acceptance --thorough
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 2 files
    │  ├─ tests: 10 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -531,13 +535,13 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t4
 exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t5] --what acceptance --thorough fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what acceptance --mode apply --thorough
+🐚 git.repo.test --what acceptance --thorough
    ├─ keyrack: unlocked ehmpath/test
-   │  └─ ✋ failed (0s)
+   │  └─ ✋ failed (Xs)
    ├─ stats
    │  ├─ suites: 2 files
    │  ├─ tests: 9 passed, 1 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    ├─ log
    │  ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=acceptance/TIMESTAMP.stdout.log
    │  └─ stderr: .log/role=mechanic/skill=git.repo.test/what=acceptance/TIMESTAMP.stderr.log
@@ -548,14 +552,14 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t5
 exports[`git.repo.test given: [case13] repo with unit tests when: [t0] --what unit --log always creates namespaced log then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --mode apply
+🐚 git.repo.test --what unit
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 1 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stdout.log
       └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stderr.log
@@ -565,9 +569,9 @@ exports[`git.repo.test given: [case13] repo with unit tests when: [t0] --what un
 exports[`git.repo.test given: [case14] repo with no changed test files when: [t0] --what unit with no tests found (no scope) then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --mode apply
+🐚 git.repo.test --what unit
    ├─ status
-   │  ├─ 💤 inflight (0s)
+   │  ├─ 💤 inflight (Xs)
    ├─ status: skipped
    ├─ files: 0 (no test files changed since origin/main)
    └─ tests: 0 (no tests to run)
@@ -579,22 +583,17 @@ exports[`git.repo.test given: [case14] repo with no changed test files when: [t0
 `;
 
 exports[`git.repo.test given: [case15] user requests help when: [t0] --help is called then: output matches snapshot 1`] = `
-"usage: git.repo.test.sh --what <type> [--mode plan|apply] [--scope <pattern>] [--resnap] [--thorough]
+"usage: git.repo.test.sh --what <type> [--scope <pattern>] [--resnap] [--thorough] [--timeout <secs>]
 
 run repo tests with turtle vibes summary and log capture
 
 options:
   --what <type>       test type: types | format | lint | unit | integration | acceptance | all
-  --mode <mode>       plan | apply (default: plan)
-                        plan  = preview matched files
-                        apply = execute tests
   --scope <pattern>   filter tests by pattern (regex supported)
-                        'foo'           match file path (default)
-                        'path://foo'    match file path (explicit, uri format)
-                        'name://foo'    match test/describe name
-                        'path(foo)'     match file path (legacy)
-                        'name(foo)'     match test/describe name (legacy)
-  --resnap            update snapshots (sets RESNAP=true, requires --mode apply)
+                        'foo'         match file path (default)
+                        'path(foo)'   match file path (explicit)
+                        'name(foo)'   match test/describe name
+  --resnap            update snapshots (sets RESNAP=true)
   --thorough          run full suite (sets THOROUGH=true)
   --timeout <secs>    max time in seconds before timeout
   --log <mode>        auto | always (default: auto)
@@ -628,13 +627,13 @@ usage: git.repo.test.sh --what <lint|unit|integration|acceptance|all>
 exports[`git.repo.test given: [case18] real repo with real npm when: [t0] --what unit --scope with real npm call then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --scope nonexistent --mode apply
-   ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
-   └─ log
-      ├─ omitted on success by default
-      └─ hint: use \`--log always\` to persist when desired
+🐚 git.repo.test --what unit --scope nonexistent
+   ├─ scope: nonexistent
+   │  └─ matched: 0 files
+   ├─ status: constraint
+   └─ error: no tests matched scope 'nonexistent'
+
+hint: check the scope pattern or run without --scope to see all tests
 "
 `;
 
@@ -648,7 +647,7 @@ exports[`git.repo.test given: [case19] real integration test with keyrack when: 
 hint: check keyrack setup with 'rhx keyrack status --owner ehmpath'
 
 
-/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/node_modules/.pnpm/rhachet@1.41.4_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/rhachet/dist/domain.operations/keyrack/session/unlockKeyrackKeys.js:66
+WORKTREE/node_modules/.pnpm/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/rhachet/dist/domain.operations/keyrack/session/unlockKeyrackKeys.js:67
             throw new helpful_errors_1.UnexpectedCodePathError('no keyrack.yml found in repo', {
                   ^
 
@@ -657,11 +656,11 @@ UnexpectedCodePathError: UnexpectedCodePathError: no keyrack.yml found in repo
 {
   "note": "keyrack.yml declares which keys are required"
 }
-    at unlockKeyrackKeys (/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/node_modules/[4m.pnpm[24m/rhachet@1.41.4_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/[4mrhachet[24m/src/domain.operations/keyrack/session/unlockKeyrackKeys.ts:95:13)
-    at async Command.<anonymous> (/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/node_modules/[4m.pnpm[24m/rhachet@1.41.4_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/[4mrhachet[24m/src/contract/cli/invokeKeyrack.ts:1017:39)
-    at async Command.parseAsync (/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/node_modules/[4m.pnpm[24m/commander@14.0.0/node_modules/[4mcommander[24m/lib/command.js:1123:5)
-    at async _invoke (/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/node_modules/[4m.pnpm[24m/rhachet@1.41.4_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/[4mrhachet[24m/src/contract/cli/invoke.ts:76:3)
-    at async withEmojiSpaceShim (/home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/node_modules/[4m.pnpm[24m/emoji-space-shim@0.1.3/node_modules/[4memoji-space-shim[24m/src/contract/sdk/withEmojiSpaceShim.ts:15:12)
+    at unlockKeyrackKeys (WORKTREE/node_modules/[4m.pnpm[24m/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/[4mrhachet[24m/src/domain.operations/keyrack/session/unlockKeyrackKeys.ts:96:13)
+    at async Command.<anonymous> (WORKTREE/node_modules/[4m.pnpm[24m/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/[4mrhachet[24m/src/contract/cli/invokeKeyrack.ts:1037:39)
+    at async Command.parseAsync (WORKTREE/node_modules/[4m.pnpm[24m/commander@14.0.0/node_modules/[4mcommander[24m/lib/command.js:1123:5)
+    at async _invoke (WORKTREE/node_modules/[4m.pnpm[24m/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/[4mrhachet[24m/src/contract/cli/invoke.ts:76:3)
+    at async withEmojiSpaceShim (WORKTREE/node_modules/[4m.pnpm[24m/emoji-space-shim@0.1.3/node_modules/[4memoji-space-shim[24m/src/contract/sdk/withEmojiSpaceShim.ts:15:12)
 
 Node.js v22.21.0
 "
@@ -670,14 +669,16 @@ Node.js v22.21.0
 exports[`git.repo.test given: [case20] flag combinations when: [t0] --what unit --scope --resnap combined then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --scope user --mode apply --resnap
+🐚 git.repo.test --what unit --scope user --resnap
+   ├─ scope: user
+   │  └─ matched: 1 files
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 2 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -687,14 +688,16 @@ exports[`git.repo.test given: [case20] flag combinations when: [t0] --what unit 
 exports[`git.repo.test given: [case20] flag combinations when: [t1] --what unit --scope --thorough combined then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --scope user --mode apply --thorough
+🐚 git.repo.test --what unit --scope user --thorough
+   ├─ scope: user
+   │  └─ matched: 1 files
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 5 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -704,14 +707,16 @@ exports[`git.repo.test given: [case20] flag combinations when: [t1] --what unit 
 exports[`git.repo.test given: [case20] flag combinations when: [t2] --what unit --scope --resnap --thorough all combined then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --scope user --mode apply --resnap --thorough
+🐚 git.repo.test --what unit --scope user --resnap --thorough
+   ├─ scope: user
+   │  └─ matched: 1 files
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 10 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -721,15 +726,17 @@ exports[`git.repo.test given: [case20] flag combinations when: [t2] --what unit 
 exports[`git.repo.test given: [case20] flag combinations when: [t3] --what integration --scope --thorough combined then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what integration --scope api --mode apply --thorough
+🐚 git.repo.test --what integration --scope api --thorough
    ├─ keyrack: unlocked ehmpath/test
+   ├─ scope: api
+   │  └─ matched: 1 files
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 8 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -739,14 +746,16 @@ exports[`git.repo.test given: [case20] flag combinations when: [t3] --what integ
 exports[`git.repo.test given: [case20] flag combinations when: [t4] --what unit --log always --scope combined then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --scope user --mode apply
+🐚 git.repo.test --what unit --scope user
+   ├─ scope: user
+   │  └─ matched: 1 files
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 1 files
    │  ├─ tests: 3 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stdout.log
       └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stderr.log
@@ -756,14 +765,14 @@ exports[`git.repo.test given: [case20] flag combinations when: [t4] --what unit 
 exports[`git.repo.test given: [case21] edge cases when: [t0] --scope with empty string (ignored) then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --mode apply
+🐚 git.repo.test --what unit
    ├─ status
-   │  ├─ 💤 inflight (0s)
-   │  └─ 🎉 passed (0s)
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: 0 files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
-   │  └─ time: 0s
+   │  └─ time: Xs
    └─ log
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
@@ -773,12 +782,184 @@ exports[`git.repo.test given: [case21] edge cases when: [t0] --scope with empty 
 exports[`git.repo.test given: [case21] edge cases when: [t1] --scope with special characters then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what unit --scope path(src/*) --mode apply
-   ├─ status
-   │  ├─ 💤 inflight (0s)
+🐚 git.repo.test --what unit --scope path(src/*)
+   ├─ scope: path(src/*)
+   │  └─ matched: 0 files
    ├─ status: constraint
    └─ error: no tests matched scope 'path(src/*)'
 
 hint: check the scope pattern or run without --scope to see all tests
+"
+`;
+
+exports[`git.repo.test given: [case21b] --listTests failure when: [t0] jest --listTests fails then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope user
+   ├─ status: malfunction
+   └─ error: cannot verify scope - jest --listTests failed
+
+hint: ensure jest is installed and supports --listTests
+"
+`;
+
+exports[`git.repo.test given: [case22] additional flag combinations when: [t0] --what all --thorough combined then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint --thorough
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what unit --thorough
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 5 files
+   │  ├─ tests: 25 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what integration --thorough
+   ├─ keyrack: unlocked ehmpath/test
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 3 files
+   │  ├─ tests: 12 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what acceptance --thorough
+   ├─ keyrack: unlocked ehmpath/test
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 2 files
+   │  ├─ tests: 8 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+"
+`;
+
+exports[`git.repo.test given: [case22] additional flag combinations when: [t1] --what all --resnap combined then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what lint --resnap
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what unit --resnap
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 3 files
+   │  ├─ tests: 15 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what integration --resnap
+   ├─ keyrack: unlocked ehmpath/test
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 2 files
+   │  ├─ tests: 10 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+🐚 git.repo.test --what acceptance --resnap
+   ├─ keyrack: unlocked ehmpath/test
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 5 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+
+"
+`;
+
+exports[`git.repo.test given: [case22] additional flag combinations when: [t2] --what integration --scope --resnap --thorough combined then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what integration --scope api --resnap --thorough
+   ├─ keyrack: unlocked ehmpath/test
+   ├─ scope: api
+   │  └─ matched: 1 files
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 12 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test given: [case22] additional flag combinations when: [t3] --what acceptance --scope --resnap --thorough combined then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what acceptance --scope checkout --resnap --thorough
+   ├─ keyrack: unlocked ehmpath/test
+   ├─ scope: checkout
+   │  └─ matched: 1 files
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 8 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test given: [case22] additional flag combinations when: [t4] --what unit --log always --resnap combined then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --resnap
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: 1 files
+   │  ├─ tests: 4 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ stdout: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stdout.log
+      └─ stderr: .log/role=mechanic/skill=git.repo.test/what=unit/TIMESTAMP.stderr.log
 "
 `;
