@@ -1,4 +1,0 @@
-acceptance tests: black box
-
-- cannot assert internals
-- access only via @src/contract
