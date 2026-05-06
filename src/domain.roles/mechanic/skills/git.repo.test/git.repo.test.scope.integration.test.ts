@@ -24,7 +24,7 @@ describe('git.repo.test.sh scope', () => {
       .replace(/\d+m?s/g, 'Xs') // time without parens
       .replace(/\/tmp\/[^\s\n]+/g, '/tmp/__sanitized__') // temp paths
       .replace(/\/home\/[^\s]+\/node_modules\/.pnpm\/[^\s]+/g, '__pkg__') // absolute pnpm paths
-      .replace(/    at [^\n]+\n/g, '    at __stack__\n') // stack traces (4 space indent)
+      .replace(/ {4}at [^\n]+\n/g, '    at __stack__\n') // stack traces (4 space indent)
       .replace(/Node\.js v[\d.]+/g, 'Node.js vX.X.X') // node version
       .trim();
 
@@ -373,42 +373,45 @@ describe('git.repo.test.sh scope', () => {
     });
   });
 
-  given('[case8] scope with --what integration (keyrack failure in temp repo)', () => {
-    // .note = this tests the ERROR PATH when keyrack unlock fails, NOT keyrack integration.
-    // purpose: verify git.repo.test.sh surfaces keyrack errors correctly to the user.
-    // keyrack integration tests belong in keyrack's own test suite.
-    when('[t0] --scope myfeature --what integration is used', () => {
-      const result = useThen('skill executes', () =>
-        runWithScope({
-          testFiles: [
-            { type: 'integration', name: 'myfeature' },
-            { type: 'integration', name: 'other' },
-          ],
-          scope: 'myfeature',
-          what: 'integration',
-          thorough: true,
-        }),
-      );
+  given(
+    '[case8] scope with --what integration (keyrack failure in temp repo)',
+    () => {
+      // .note = this tests the ERROR PATH when keyrack unlock fails, NOT keyrack integration.
+      // purpose: verify git.repo.test.sh surfaces keyrack errors correctly to the user.
+      // keyrack integration tests belong in keyrack's own test suite.
+      when('[t0] --scope myfeature --what integration is used', () => {
+        const result = useThen('skill executes', () =>
+          runWithScope({
+            testFiles: [
+              { type: 'integration', name: 'myfeature' },
+              { type: 'integration', name: 'other' },
+            ],
+            scope: 'myfeature',
+            what: 'integration',
+            thorough: true,
+          }),
+        );
 
-      then('exit code is 1 (malfunction from keyrack failure)', () => {
-        // temp repo has no keyrack.yml, so integration tests fail at keyrack unlock
-        // this verifies git.repo.test.sh returns exit 1 (malfunction) for keyrack errors
-        expect(result.exitCode).toBe(1);
-      });
+        then('exit code is 1 (malfunction from keyrack failure)', () => {
+          // temp repo has no keyrack.yml, so integration tests fail at keyrack unlock
+          // this verifies git.repo.test.sh returns exit 1 (malfunction) for keyrack errors
+          expect(result.exitCode).toBe(1);
+        });
 
-      then('stdout shows keyrack error message', () => {
-        expect(result.stdout).toContain('keyrack');
-      });
+        then('stdout shows keyrack error message', () => {
+          expect(result.stdout).toContain('keyrack');
+        });
 
-      then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
-      });
+        then('stdout matches snapshot', () => {
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
 
-      then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        then('stderr matches snapshot', () => {
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
       });
-    });
-  });
+    },
+  );
 
   given('[case9] scope with invalid:// prefix (unknown prefix)', () => {
     when('[t0] --scope invalid://foo is used', () => {
@@ -527,38 +530,41 @@ describe('git.repo.test.sh scope', () => {
     });
   });
 
-  given('[case13] scope with path:// matches multiple files --mode apply', () => {
-    when('[t0] --scope path://feature --mode apply finds multiple', () => {
-      const result = useThen('skill executes', () =>
-        runWithScope({
-          testFiles: [
-            { type: 'unit', name: 'feature-a' },
-            { type: 'unit', name: 'feature-b' },
-            { type: 'unit', name: 'other' },
-          ],
-          scope: 'path://feature',
-          mode: 'apply',
-          thorough: true,
-        }),
-      );
+  given(
+    '[case13] scope with path:// matches multiple files --mode apply',
+    () => {
+      when('[t0] --scope path://feature --mode apply finds multiple', () => {
+        const result = useThen('skill executes', () =>
+          runWithScope({
+            testFiles: [
+              { type: 'unit', name: 'feature-a' },
+              { type: 'unit', name: 'feature-b' },
+              { type: 'unit', name: 'other' },
+            ],
+            scope: 'path://feature',
+            mode: 'apply',
+            thorough: true,
+          }),
+        );
 
-      then('exit code is 0 (tests passed)', () => {
-        expect(result.exitCode).toBe(0);
-      });
+        then('exit code is 0 (tests passed)', () => {
+          expect(result.exitCode).toBe(0);
+        });
 
-      then('stdout shows test execution for multiple files', () => {
-        expect(result.stdout).toContain('passed');
-      });
+        then('stdout shows test execution for multiple files', () => {
+          expect(result.stdout).toContain('passed');
+        });
 
-      then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
-      });
+        then('stdout matches snapshot', () => {
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
 
-      then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        then('stderr matches snapshot', () => {
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
       });
-    });
-  });
+    },
+  );
 
   given('[case14] scope with name:// prefix --mode apply', () => {
     when('[t0] --scope name://passes --mode apply is used', () => {
@@ -574,10 +580,13 @@ describe('git.repo.test.sh scope', () => {
         }),
       );
 
-      then('exit code is 2 (constraint: jest found files but no tests match pattern)', () => {
-        // files found but jest --testNamePattern finds no tests = constraint
-        expect(result.exitCode).toBe(2);
-      });
+      then(
+        'exit code is 2 (constraint: jest found files but no tests match pattern)',
+        () => {
+          // files found but jest --testNamePattern finds no tests = constraint
+          expect(result.exitCode).toBe(2);
+        },
+      );
 
       then('stdout shows no tests matched error', () => {
         expect(result.stdout).toContain('no tests matched scope');
@@ -593,38 +602,41 @@ describe('git.repo.test.sh scope', () => {
     });
   });
 
-  given('[case15] scope with name:// prefix --mode apply that matches tests', () => {
-    when('[t0] --scope name://myfeature --mode apply is used', () => {
-      const result = useThen('skill executes', () =>
-        runWithScope({
-          testFiles: [
-            { type: 'unit', name: 'myfeature' },
-            { type: 'unit', name: 'other' },
-          ],
-          scope: 'name://myfeature',
-          mode: 'apply',
-          thorough: true,
-        }),
-      );
+  given(
+    '[case15] scope with name:// prefix --mode apply that matches tests',
+    () => {
+      when('[t0] --scope name://myfeature --mode apply is used', () => {
+        const result = useThen('skill executes', () =>
+          runWithScope({
+            testFiles: [
+              { type: 'unit', name: 'myfeature' },
+              { type: 'unit', name: 'other' },
+            ],
+            scope: 'name://myfeature',
+            mode: 'apply',
+            thorough: true,
+          }),
+        );
 
-      then('exit code is 0 (test name pattern matched)', () => {
-        // describe block is named 'myfeature', so name://myfeature should match
-        expect(result.exitCode).toBe(0);
-      });
+        then('exit code is 0 (test name pattern matched)', () => {
+          // describe block is named 'myfeature', so name://myfeature should match
+          expect(result.exitCode).toBe(0);
+        });
 
-      then('stdout shows test execution results', () => {
-        expect(result.stdout).toContain('passed');
-      });
+        then('stdout shows test execution results', () => {
+          expect(result.stdout).toContain('passed');
+        });
 
-      then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
-      });
+        then('stdout matches snapshot', () => {
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
 
-      then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        then('stderr matches snapshot', () => {
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
       });
-    });
-  });
+    },
+  );
 
   given('[case16] scope with invalid:// prefix --mode apply', () => {
     when('[t0] --scope invalid://foo --mode apply is used', () => {
@@ -686,5 +698,4 @@ describe('git.repo.test.sh scope', () => {
       });
     });
   });
-
 });
