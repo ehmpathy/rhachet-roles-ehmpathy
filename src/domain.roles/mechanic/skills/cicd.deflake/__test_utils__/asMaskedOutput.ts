@@ -17,6 +17,12 @@ export const asMaskedOutput = (input: {
   // mask worktree paths (e.g., /home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.xxx/)
   output = output.replace(/\/home\/[^\s]*\/_worktrees\/[^\s/]+/g, '$WORKTREE');
 
+  // mask CI runner paths (e.g., /home/runner/work/rhachet-roles-ehmpathy/rhachet-roles-ehmpathy/)
+  output = output.replace(
+    /\/home\/runner\/work\/[^\s/]+\/[^\s/]+/g,
+    '$WORKTREE',
+  );
+
   // mask /tmp/ paths (e.g., /tmp/cicd-deflake-test-xxx/)
   output = output.replace(/\/tmp\/[^\s/]+/g, '/tmp/$TEMP');
 

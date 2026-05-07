@@ -19,6 +19,6 @@ exports[`declapract.upgrade given: [case1] init: repo with declapract.use.yml wh
       └─ 3.4.reflect.cicd.defects.guard
 
 🥥 hang ten! we'll ride this in
-   └─ [2mbranch main <-> route .route/v$DATE.declapract.upgrade[0m
+   └─ [2mbranch $BRANCH <-> route .route/v$DATE.declapract.upgrade[0m
 "
 `;

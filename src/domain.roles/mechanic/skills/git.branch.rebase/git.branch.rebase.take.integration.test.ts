@@ -23,10 +23,19 @@ const sanitizeOutput = (output: string): string =>
     .replace(/\/tmp\/git-rebase-take-test-[^\s/]+/g, '/tmp/TEMP_DIR')
     // mask npm debug log timestamps: 2026-04-17T12_32_29_632Z -> TIMESTAMP
     .replace(/\d{4}-\d{2}-\d{2}T\d{2}_\d{2}_\d{2}_\d{3}Z/g, 'TIMESTAMP')
+    // mask username in npm log paths: /home/vlad/ or /home/runner/ -> /home/USER/
+    .replace(/\/home\/[^/]+\//g, '/home/USER/')
     // mask pnpm update banner (version varies)
     .replace(
       /\[33m\[39m\n\s*\[33m\s*╭[^╯]+╯\[39m\n\s*\[33m\[39m\n/gs,
       '[pnpm update banner masked]\n',
+    )
+    // mask pnpm not installed vs pnpm error (CI may not have pnpm)
+    // when pnpm not installed: "hold up dude...\n\n🐚 git.branch.rebase lock refresh\n   └─ error: pnpm not found..."
+    // when pnpm installed: "bummer dude...\n\n🐚 git.branch.rebase lock refresh\n   ├─ detected: pnpm\n   ..."
+    .replace(
+      /🐢 (hold up|bummer) dude\.\.\.\s*\n\s*\n\s*🐚 git\.branch\.rebase lock refresh\n([\s\S]*?)(?=\s*│\s*└─|\s*└─ incomplete)/,
+      '🐢 [lock refresh error - output varies by environment]\n\n🐚 git.branch.rebase lock refresh\n   └─ [error details masked]\n',
     );
 
 /**
