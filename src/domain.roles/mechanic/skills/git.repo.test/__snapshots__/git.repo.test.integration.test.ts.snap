@@ -34,6 +34,7 @@ exports[`git.repo.test.sh given: [case3] npm error (malfunction) when: [t0] \`rh
    └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
 
 npm command failed. check the log for details.
+[2m$ echo "npm ERR! command not found" >&2 && exit 127[22m
 npm ERR! command not found
 "
 `;
@@ -320,7 +321,7 @@ exports[`git.repo.test.sh given: [case24] URI format scope syntax (path://, name
 
 🐚 git.repo.test --what unit --scope name://should --thorough
    ├─ scope: name://should
-   │  └─ matched: 1 files (name filter applies at runtime)
+   │  └─ matched: 1 files
    └─ files
       └─ src/mytest.test.js
 

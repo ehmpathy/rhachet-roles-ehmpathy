@@ -5,7 +5,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 
 🫧 no open branch pr
    ├─ turtle/feature-x
-   └─ [2mhint: use git.commit.push to push and findsert pr[0m
+   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
 "
 `;
 
@@ -14,7 +14,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 
 🫧 no open branch pr
    ├─ turtle/feature-x
-   └─ [2mhint: use git.commit.push to push and findsert pr[0m
+   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
 "
 `;
 
@@ -23,7 +23,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 
 🫧 no open branch pr
    ├─ turtle/feature-x
-   └─ [2mhint: use git.commit.push to push and findsert pr[0m
+   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
 "
 `;
 
@@ -40,9 +40,9 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -54,7 +54,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ 🐢 1 check(s) in progress
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -70,8 +70,8 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! 1m Xs in action, Xs watched
+      ├─ ... (Nx more)
+      └─ ✨ done! Xm Ys in action, Xs watched
 "
 `;
 
@@ -86,7 +86,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
    └─ 🥥 let's watch
       └─ ✨ done! merged!
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -98,7 +98,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -112,7 +112,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
 "
 `;
 
@@ -126,9 +126,9 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -140,7 +140,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
    ├─ 🌴 automerge enabled [found]
-   └─ [2mhint: use --apply to watch[0m
+   └─ [dim]hint: use --apply to watch[/dim]
 "
 `;
 
@@ -154,7 +154,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
 "
 `;
 
@@ -166,11 +166,11 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -182,11 +182,11 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -198,11 +198,11 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -214,7 +214,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ publish
    │        └─ 👌 rerun triggered
    ├─ 🌴 automerge unfound (use --apply to add)
@@ -223,10 +223,10 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ ⚓ 1 check(s) failed
       │  └─ 🔴 test
-      │        ├─ https://github.com/test/repo/actions/runs/123
+      │        ├─ https://github.com/test/repo/actions/runs/XXX
       │        └─ publish
-      ├─ [2mhint: use --retry to rerun failed workflows[0m
-      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+      ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+      └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -238,11 +238,11 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ publish
    │        └─ 👌 rerun triggered
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --watch to monitor rerun progress[0m
+   └─ [dim]hint: use --watch to monitor rerun progress[/dim]
 "
 `;
 
@@ -254,7 +254,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ publish
    │        └─ 👌 rerun triggered
    ├─ 🌴 automerge unfound (use --apply to add)
@@ -263,10 +263,10 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ ⚓ 1 check(s) failed
       │  └─ 🔴 test
-      │        ├─ https://github.com/test/repo/actions/runs/123
+      │        ├─ https://github.com/test/repo/actions/runs/XXX
       │        └─ publish
-      ├─ [2mhint: use --retry to rerun failed workflows[0m
-      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+      ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+      └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -278,7 +278,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -291,7 +291,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -304,7 +304,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -317,7 +317,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase, has conflicts
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -330,7 +330,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase, has conflicts
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -343,7 +343,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase, has conflicts
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -357,7 +357,7 @@ exports[`git.release.p3.scenes.on_main.from_feat scene.7: on main branch, --from
    ├─ 👌 all checks passed
    └─ 🌴 already merged
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 

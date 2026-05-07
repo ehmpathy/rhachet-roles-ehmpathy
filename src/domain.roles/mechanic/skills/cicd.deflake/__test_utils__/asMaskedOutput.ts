@@ -8,10 +8,16 @@ export const asMaskedOutput = (input: {
 }): string => {
   let output = input.stdout;
 
-  // mask full genTempDir paths with repo root prefix (e.g., /path/to/repo/.temp/genTempDir.symlink/xxx/)
+  // mask full worktree + genTempDir paths (e.g., /home/.../worktree/.temp/genTempDir.symlink/xxx/)
   output = output.replace(
-    /[^\s]*\.temp\/genTempDir\.symlink\/[^\s/]+/g,
+    /\/[^\s]*\.temp\/genTempDir\.symlink\/[^\s/]+/g,
     '.temp/$TEMP',
+  );
+
+  // mask worktree paths (e.g., /home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.xxx/)
+  output = output.replace(
+    /\/home\/[^\s]*\/_worktrees\/[^\s/]+/g,
+    '$WORKTREE',
   );
 
   // mask /tmp/ paths (e.g., /tmp/cicd-deflake-test-xxx/)

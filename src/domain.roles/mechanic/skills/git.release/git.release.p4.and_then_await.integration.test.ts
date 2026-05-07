@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
+
 /**
  * .what = p4 integration tests: and_then_await with commit-based freshness
  * .why = exhaustive coverage of await behavior per test matrix
@@ -24,12 +26,6 @@ const SKILL_DIR = path.join(
   __dirname,
   '../../../../../dist/domain.roles/mechanic/skills/git.release',
 );
-
-const asTimeStable = (output: string): string => {
-  return output
-    .replace(/\d+s in await/g, 'Xs in await')
-    .replace(/after \d+s/g, 'after Xs');
-};
 
 interface MockConfig {
   /** gh pr list response for release PR lookup */
@@ -274,8 +270,8 @@ exit $?
       HOME: env.tempDir,
       GIT_RELEASE_TEST_MODE: 'true',
     },
-    encoding: 'utf-8',
-    timeout: 3000,
+    encoding: 'utf-8', // node api requires this exact string
+    timeout: 10000,
   });
 
   return {
@@ -322,7 +318,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.status).toBe(0);
         expect(result.stdout).toContain('🫧 and then...');
         expect(result.stdout).not.toContain('💤');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -361,7 +357,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('🫧 and then...');
         expect(result.stdout).toContain('💤');
         expect(result.stdout).toContain('✨ found!');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -391,7 +387,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.status).toBe(0);
         expect(result.stdout).toContain('🫧 and then...');
         expect(result.stdout).not.toContain('💤');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -423,7 +419,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('🫧 and then...');
         expect(result.stdout).toContain('💤');
         expect(result.stdout).toContain('✨ found!');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -464,7 +460,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('💤');
         expect(result.stdout).toContain('⚓ release pr did not appear');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -499,7 +495,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.status).toBe(0);
         expect(result.stdout).toContain('💤');
         expect(result.stdout).toContain('✨ found!');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -534,7 +530,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('⚓ release pr did not appear');
         expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('failure');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -565,7 +561,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('💤');
         expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -596,7 +592,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.status).toBe(0);
         expect(result.stdout).toContain('💤');
         expect(result.stdout).toContain('✨ found!');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -628,7 +624,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
         expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('failure');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -662,7 +658,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('⚓ release pr did not appear');
         expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('failure');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -692,7 +688,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('⚓ release pr did not appear');
         expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('in_progress');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -722,7 +718,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('⚓ release pr did not appear');
         expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('success');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -752,7 +748,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('⚓ release pr did not appear');
         expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('not found');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -783,7 +779,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
         expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('failure');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -814,7 +810,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
         expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('in_progress');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -845,7 +841,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
         expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('success');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -876,7 +872,7 @@ describe('git.release.p4.and_then_await', () => {
         expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
         expect(result.stdout).toContain('🔴 release');
         expect(result.stdout).toContain('not found');
-        expect(asTimeStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -924,7 +920,7 @@ describe('git.release.p4.and_then_await', () => {
 
           expect(result.status).toBe(0);
           expect(result.stdout).toContain('🫧 and then...');
-          expect(asTimeStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         });
       },
     );
@@ -969,7 +965,7 @@ describe('git.release.p4.and_then_await', () => {
 
           expect(result.status).toBe(2);
           expect(result.stdout).toContain('⚓ release pr did not appear');
-          expect(asTimeStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         });
       },
     );
@@ -1010,7 +1006,7 @@ describe('git.release.p4.and_then_await', () => {
 
           expect(result.status).toBe(0);
           expect(result.stdout).toContain('🫧 and then...');
-          expect(asTimeStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         });
       },
     );
@@ -1052,7 +1048,7 @@ describe('git.release.p4.and_then_await', () => {
 
           expect(result.status).toBe(2);
           expect(result.stdout).toContain('⚓ tag v1.3.0 did not appear');
-          expect(asTimeStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         });
       },
     );

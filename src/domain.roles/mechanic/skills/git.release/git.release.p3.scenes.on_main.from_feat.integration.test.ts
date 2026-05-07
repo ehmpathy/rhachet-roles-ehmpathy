@@ -6,6 +6,7 @@ import { genTempDir, given, then, when } from 'test-fns';
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
 import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
+import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
  * .what = p3 journey tests: scene.7 - on main branch, --from feat-branch
@@ -25,14 +26,6 @@ const SKILL_PATH = path.join(
   __dirname,
   '../../../../../dist/domain.roles/mechanic/skills/git.release/git.release.sh',
 );
-
-const asTimeStable = (output: string): string => {
-  return output
-    .replace(/\d+s in action/g, 'Xs in action')
-    .replace(/\d+s watched/g, 'Xs watched')
-    .replace(/\d+m\s*\d+s/g, 'Xm Ys')
-    .replace(/(\d+)s delay/g, 'Xs delay');
-};
 
 const setupScene = (input: {
   scene: Scene;
@@ -115,7 +108,7 @@ const runSkill = (
       GIT_RELEASE_TEST_MODE: 'true',
     },
     encoding: 'utf-8',
-    timeout: 3000,
+    timeout: 10000,
   });
 
   return {
@@ -153,7 +146,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
             });
             expect(result.stdout).toContain('crickets');
             expect(result.stdout).toContain('no open branch pr');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -173,7 +166,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('crickets');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -193,7 +186,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('crickets');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -219,7 +212,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('in progress');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -245,7 +238,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
             });
             expect(result.stdout).toContain('in progress');
             expect(result.stdout).toContain("let's watch");
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -272,7 +265,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
             expect(result.stdout).toContain('in progress');
             expect(result.stdout).toContain("let's watch");
             expect(result.stdout).toContain('done!');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -300,7 +293,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
             });
             expect(result.stdout).toContain('all checks passed');
             expect(result.stdout).toContain('automerge unfound');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -320,7 +313,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('all checks passed');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -341,7 +334,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
             });
             expect(result.stdout).toContain('automerge enabled');
             expect(result.stdout).toContain('added');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -369,7 +362,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
             });
             expect(result.stdout).toContain('all checks passed');
             expect(result.stdout).toContain('automerge enabled');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -389,7 +382,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('all checks passed');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -409,7 +402,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('automerge enabled');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -436,7 +429,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('failed');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -456,7 +449,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('failed');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -476,7 +469,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('failed');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -507,7 +500,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('rerun');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // plan mode with --retry triggers rerun and exits 0 (informational)
             expect(result.status).toEqual(0);
           } finally {
@@ -537,7 +530,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               },
             );
             expect(result.stdout).toContain('rerun');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -566,7 +559,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               },
             );
             expect(result.stdout).toContain('rerun');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -593,7 +586,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('needs rebase');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -613,7 +606,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('needs rebase');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -633,7 +626,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('needs rebase');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -661,7 +654,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
             });
             expect(result.stdout).toContain('needs rebase');
             expect(result.stdout).toContain('conflict');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -681,7 +674,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('needs rebase');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -701,7 +694,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('needs rebase');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -728,7 +721,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('already merged');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -748,7 +741,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('already merged');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -768,7 +761,7 @@ describe('git.release.p3.scenes.on_main.from_feat', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('already merged');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();

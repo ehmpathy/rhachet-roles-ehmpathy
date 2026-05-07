@@ -61,7 +61,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -92,7 +92,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -107,10 +107,10 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failure
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -125,10 +125,10 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failure
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -143,10 +143,10 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failure
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -163,7 +163,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
 
 🫧 and then...
 
@@ -171,7 +171,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -183,7 +183,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ 🐢 1 check(s) in progress
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -199,8 +199,8 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! 1m Xs in action, Xs watched
+      ├─ ... (Nx more)
+      └─ ✨ done! Xm Ys in action, Xs watched
 "
 `;
 
@@ -216,9 +216,9 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ... (Nx more)
       ├─ 💤 await automerge, Xs in action, Xs watched
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
 
 🫧 and then...
 
@@ -226,7 +226,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -238,7 +238,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ 🐢 1 check(s) in progress
    ├─ 🌴 automerge enabled [found]
-   └─ [2mhint: use --apply to watch[0m
+   └─ [dim]hint: use --apply to watch[/dim]
 "
 `;
 
@@ -254,9 +254,9 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ... (Nx more)
       ├─ 💤 await automerge, Xs in action, Xs watched
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
 
 🫧 and then...
 
@@ -266,7 +266,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -287,7 +287,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -299,7 +299,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -313,7 +313,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
 "
 `;
 
@@ -327,7 +327,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
 
 🫧 and then...
 
@@ -335,7 +335,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -347,7 +347,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    ├─ 🌴 automerge enabled [found]
-   └─ [2mhint: use --apply to watch[0m
+   └─ [dim]hint: use --apply to watch[/dim]
 "
 `;
 
@@ -361,7 +361,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
 
 🫧 and then...
 
@@ -369,7 +369,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -381,11 +381,11 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -397,11 +397,11 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -413,11 +413,11 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -429,7 +429,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ publish
    │        └─ 👌 rerun triggered
    ├─ 🌴 automerge unfound (use --apply to add)
@@ -438,10 +438,10 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ ⚓ 1 check(s) failed
       │  └─ 🔴 test
-      │        ├─ https://github.com/test/repo/actions/runs/123
+      │        ├─ https://github.com/test/repo/actions/runs/XXX
       │        └─ publish
-      ├─ [2mhint: use --retry to rerun failed workflows[0m
-      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+      ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+      └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -453,11 +453,11 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ publish
    │        └─ 👌 rerun triggered
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --watch to monitor rerun progress[0m
+   └─ [dim]hint: use --watch to monitor rerun progress[/dim]
 "
 `;
 
@@ -469,7 +469,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ publish
    │        └─ 👌 rerun triggered
    ├─ 🌴 automerge unfound (use --apply to add)
@@ -478,10 +478,10 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ ⚓ 1 check(s) failed
       │  └─ 🔴 test
-      │        ├─ https://github.com/test/repo/actions/runs/123
+      │        ├─ https://github.com/test/repo/actions/runs/XXX
       │        └─ publish
-      ├─ [2mhint: use --retry to rerun failed workflows[0m
-      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+      ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+      └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -493,7 +493,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -506,7 +506,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -519,7 +519,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -532,7 +532,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase, has conflicts
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -545,7 +545,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase, has conflicts
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -558,7 +558,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase, has conflicts
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -636,7 +636,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -673,7 +673,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -692,7 +692,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -727,7 +727,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -745,10 +745,10 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failure
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -766,10 +766,10 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failure
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -787,10 +787,10 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failure
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -808,7 +808,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ failure
    │        └─ 👌 rerun triggered
    └─ 🥥 let's watch
@@ -817,10 +817,10 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ ⚓ 1 check(s) failed
       │  └─ 🔴 publish.yml
-      │        ├─ https://github.com/test/repo/actions/runs/789
+      │        ├─ https://github.com/test/repo/actions/runs/XXX
       │        └─ failure
-      ├─ [2mhint: use --retry to rerun failed workflows[0m
-      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+      ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+      └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -838,10 +838,10 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ failure
    │        └─ 👌 rerun triggered
-   └─ [2mhint: use --watch to monitor rerun progress[0m
+   └─ [dim]hint: use --watch to monitor rerun progress[/dim]
 "
 `;
 
@@ -859,7 +859,7 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
 🌊 release: v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ failure
    │        └─ 👌 rerun triggered
    └─ 🥥 let's watch
@@ -868,10 +868,10 @@ exports[`git.release.p3.scenes.on_feat.from_main scene.3: on feat branch, --from
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ ⚓ 1 check(s) failed
       │  └─ 🔴 publish.yml
-      │        ├─ https://github.com/test/repo/actions/runs/789
+      │        ├─ https://github.com/test/repo/actions/runs/XXX
       │        └─ failure
-      ├─ [2mhint: use --retry to rerun failed workflows[0m
-      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+      ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+      └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 

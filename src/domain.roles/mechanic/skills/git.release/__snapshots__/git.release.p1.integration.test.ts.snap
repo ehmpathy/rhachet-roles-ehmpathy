@@ -8,7 +8,7 @@ exports[`git.release given: [case1] release to main (plan mode) when: [t0] featu
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -17,7 +17,7 @@ exports[`git.release given: [case1] release to main (plan mode) when: [t1] featu
 
 🫧 no open branch pr
    ├─ turtle/feature-x
-   └─ [2mhint: use git.commit.push to push and findsert pr[0m
+   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
 "
 `;
 
@@ -41,7 +41,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t0] PR w
    ├─ 👌 all checks passed
    └─ 🌴 already merged
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -53,11 +53,11 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t1] PR w
 🌊 release: feat(oceans): add reef protection
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test-unit
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failed after Xm Ys
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -69,7 +69,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t2] PR n
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -82,7 +82,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t2a] PR 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase, has conflicts
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -96,7 +96,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t3] auto
    ├─ 👌 all checks passed
    └─ 🌴 automerge enabled [added] -> and merged already
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -125,7 +125,7 @@ exports[`git.release given: [case3a] release to prod from main (plan mode) when:
 🌊 release: chore(release): v1.32.0 🎉
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -150,7 +150,7 @@ exports[`git.release given: [case3b] release to prod from feat (plan mode) when:
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -159,7 +159,7 @@ exports[`git.release given: [case3b] release to prod from feat (plan mode) when:
 
 🫧 no open branch pr
    ├─ turtle/feature-x
-   └─ [2mhint: use git.commit.push to push and findsert pr[0m
+   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
 "
 `;
 
@@ -177,7 +177,7 @@ exports[`git.release given: [case3b] release to prod from feat (plan mode) when:
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -249,10 +249,10 @@ exports[`git.release given: [case4a] release to prod from main (apply mode) when
 🌊 release: v1.2.3
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failure
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -348,7 +348,7 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 
 🫧 no open branch pr
    ├─ turtle/feature-x
-   └─ [2mhint: use git.commit.push to push and findsert pr[0m
+   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
 "
 `;
 
@@ -474,11 +474,11 @@ exports[`git.release given: [case5] retry behavior when: [t0] --retry without --
 🌊 release: feat(oceans): add reef protection
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test-unit
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ failed after Xm Ys
    │        └─ 👌 rerun triggered
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --watch to monitor rerun progress[0m
+   └─ [dim]hint: use --watch to monitor rerun progress[/dim]
 "
 `;
 
@@ -495,10 +495,10 @@ exports[`git.release given: [case5] retry behavior when: [t1] --retry with faile
    └─ 🥥 let's watch
       ├─ ⚓ 1 check(s) failed
       │  └─ 🔴 publish.yml
-      │        ├─ https://github.com/test/repo/actions/runs/789
+      │        ├─ https://github.com/test/repo/actions/runs/XXX
       │        └─ failure
-      ├─ [2mhint: use --retry to rerun failed workflows[0m
-      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+      ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+      └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -513,23 +513,20 @@ exports[`git.release given: [case5] retry behavior when: [t2] --retry with faile
 🌊 release: v1.2.3
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ failure
    │        └─ 👌 rerun triggered
    └─ 🥥 let's watch
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      ├─ 💤 publish.yml, Xs in action, Xs watched
-      ├─ 💤 publish.yml, Xs in action, Xs watched
-      ├─ 💤 publish.yml, Xs in action, Xs watched
-      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ ... (Nx more)
       ├─ ⚓ 1 check(s) failed
       │  └─ 🔴 publish.yml
-      │        ├─ https://github.com/test/repo/actions/runs/789
+      │        ├─ https://github.com/test/repo/actions/runs/XXX
       │        └─ failure
-      ├─ [2mhint: use --retry to rerun failed workflows[0m
-      └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+      ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+      └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -566,7 +563,7 @@ exports[`git.release given: [case7] argument validation when: [t3] no arguments 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -609,7 +606,7 @@ exports[`git.release given: [case8] --watch flag behavior when: [t1] --mode appl
    ├─ 👌 all checks passed
    └─ 🌴 already merged
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -656,7 +653,7 @@ exports[`git.release given: [case8] --watch flag behavior when: [t3] --mode appl
    └─ 🥥 let's watch
       └─ ✨ done! merged!
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -710,7 +707,7 @@ exports[`git.release given: [case8] watch loop internals when: [t0] checks in pr
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 1 check(s) in progress
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -726,7 +723,7 @@ exports[`git.release given: [case8] watch loop internals when: [t1] apply mode w
       ├─ 💤 1 left, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -741,7 +738,7 @@ exports[`git.release given: [case8] watch loop internals when: [t2] rebase requi
    └─ 🥥 let's watch
       ├─ ✨ done! Xs in action, Xs watched
       ├─ 🐚 but, needs rebase now
-      └─ [2mhint: rhx git.branch.rebase begin[0m
+      └─ [dim]hint: rhx git.branch.rebase begin[/dim]
 "
 `;
 
@@ -756,7 +753,7 @@ exports[`git.release given: [case8] watch loop internals when: [t2a] conflicts d
    └─ 🥥 let's watch
       ├─ ✨ done! Xs in action, Xs watched
       ├─ 🐚 but, needs rebase now, has conflicts
-      └─ [2mhint: rhx git.branch.rebase begin[0m
+      └─ [dim]hint: rhx git.branch.rebase begin[/dim]
 "
 `;
 
@@ -768,12 +765,12 @@ exports[`git.release given: [case8] watch loop internals when: [t3] both failed 
 🌊 release: feat(oceans): add reef protection
    ├─ ⚓ 1 check(s) failed
    │  ├─ 🔴 test-unit
-   │  │     ├─ https://github.com/test/repo/actions/runs/123
+   │  │     ├─ https://github.com/test/repo/actions/runs/XXX
    │  │     └─ failed after Xm Ys
    │  └─ 🟡 2 check(s) still in progress
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -800,7 +797,7 @@ exports[`git.release given: [case9] dirty state detection when: [t1] apply mode 
    ├─ 👌 all checks passed
    └─ 🌴 already merged
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -812,7 +809,7 @@ exports[`git.release given: [case9] dirty state detection when: [t2] plan mode i
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -825,7 +822,7 @@ exports[`git.release given: [case9] dirty state detection when: [t3] apply mode 
    ├─ 👌 all checks passed
    └─ 🌴 already merged
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -842,8 +839,8 @@ exports[`git.release given: [case10] and_then_await full flow when: [t0] feature
       └─ ✨ done! Xs in action, Xs watched
 
 🫧 and then...
-   ├─ 💤 5s in await
-   └─ ✨ found! after 5s
+   ├─ 💤 Xs in await
+   └─ ✨ found! after Xs
 
 🌊 release: chore(release): v1.32.0 🎉
    ├─ 👌 all checks passed
@@ -872,26 +869,13 @@ exports[`git.release given: [case10] and_then_await full flow when: [t1] feature
       └─ ✨ done! Xs in action, Xs watched
 
 🫧 and then...
-   ├─ 💤 5s in await
-   ├─ 💤 10s in await
-   ├─ 💤 15s in await
-   ├─ 💤 20s in await
-   ├─ 💤 25s in await
-   ├─ 💤 30s in await
-   ├─ 💤 35s in await
-   ├─ 💤 40s in await
-   ├─ 💤 45s in await
-   ├─ 💤 50s in await
-   ├─ 💤 55s in await
-   ├─ 💤 60s in await
-   ├─ 💤 65s in await
-   ├─ 💤 70s in await
-   ├─ 💤 75s in await
-   ├─ 💤 80s in await
-   ├─ 💤 85s in await
-   └─ ⚓ release pr did not appear in 90s
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ ... (Nx more)
+   └─ ⚓ release pr did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ failure
 "
 `;
@@ -931,8 +915,8 @@ exports[`git.release given: [case11] and_then_await when skip_watch=true (feat P
    └─ 🌴 already merged
 
 🫧 and then...
-   ├─ 💤 5s in await
-   └─ ✨ found! after 5s
+   ├─ 💤 Xs in await
+   └─ ✨ found! after Xs
 
 🌊 release: chore(release): v1.32.0 🎉
    ├─ 👌 all checks passed
@@ -958,26 +942,13 @@ exports[`git.release given: [case11] and_then_await when skip_watch=true (feat P
    └─ 🌴 already merged
 
 🫧 and then...
-   ├─ 💤 5s in await
-   ├─ 💤 10s in await
-   ├─ 💤 15s in await
-   ├─ 💤 20s in await
-   ├─ 💤 25s in await
-   ├─ 💤 30s in await
-   ├─ 💤 35s in await
-   ├─ 💤 40s in await
-   ├─ 💤 45s in await
-   ├─ 💤 50s in await
-   ├─ 💤 55s in await
-   ├─ 💤 60s in await
-   ├─ 💤 65s in await
-   ├─ 💤 70s in await
-   ├─ 💤 75s in await
-   ├─ 💤 80s in await
-   ├─ 💤 85s in await
-   └─ ⚓ release pr did not appear in 90s
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ 💤 Xs in await
+   ├─ ... (Nx more)
+   └─ ⚓ release pr did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ failure
 "
 `;

@@ -59,7 +59,11 @@ describe('rmsafe.sh', () => {
    * .why = temp dir paths change between runs
    */
   const sanitizeOutput = (stdout: string): string =>
-    stdout.replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR');
+    stdout
+      .replace(/\/home\/[^\s]*\/_worktrees\/[^\s/]+/g, '/WORKTREE')
+      .replace(/\/home\/[^\s]*\/\.temp\/genTempDir\.symlink\/[^\s/]+/g, '/TEMP')
+      .replace(/\.temp\/genTempDir\.symlink\/[^\s/]+/g, '.temp/TEMP')
+      .replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR');
 
   given('[case1] positional args (like rm)', () => {
     when('[t0] single positional arg provided', () => {

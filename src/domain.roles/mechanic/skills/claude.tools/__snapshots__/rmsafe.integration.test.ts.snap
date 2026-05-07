@@ -186,7 +186,7 @@ exports[`rmsafe.sh given: [case5] safety boundary - target outside repo when: [t
 "🐢 sweet
 
 🐚 rmsafe
-   ├─ path: /home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.fix-git-repo-test-plan/.temp/genTempDir.symlink/2026-04-27T19-32-55.774Z.rmsafe-test.e5dc4400-evil/malicious.txt
+   ├─ path: /WORKTREE/.temp/TEMP/malicious.txt
    ├─ files: 1
    └─ removed
 error: path must be within the git repository

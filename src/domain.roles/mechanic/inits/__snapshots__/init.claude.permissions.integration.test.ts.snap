@@ -3,7 +3,7 @@
 exports[`init.claude.permissions.sh given: [case1] jsonc with :// in strings when: [t0] permissions file has name:// and path:// scope patterns then: it should preserve :// in strings and produce valid json 1`] = `
 "🔐 mechanic permissions configured successfully!
    .claude/settings.json
-   .claude/settings.2026-04-30T19-38-11Z.bak.json
+   .claude/settings.TIMESTAMP.bak.json
 
 ✨ permissions applied:
    • allow: replaced entirely
@@ -28,7 +28,7 @@ exports[`init.claude.permissions.sh given: [case1] jsonc with :// in strings whe
 exports[`init.claude.permissions.sh given: [case2] jsonc with only // comments (no :// strings) when: [t0] permissions file has standard comments then: it should strip comments and produce valid json 1`] = `
 "🔐 mechanic permissions configured successfully!
    .claude/settings.json
-   .claude/settings.2026-04-30T19-38-11Z.bak.json
+   .claude/settings.TIMESTAMP.bak.json
 
 ✨ permissions applied:
    • allow: replaced entirely
@@ -52,7 +52,7 @@ exports[`init.claude.permissions.sh given: [case2] jsonc with only // comments (
 exports[`init.claude.permissions.sh given: [case3] jsonc with https:// url in string when: [t0] permissions file has url with :// then: it should preserve the url 1`] = `
 "🔐 mechanic permissions configured successfully!
    .claude/settings.json
-   .claude/settings.2026-04-30T19-38-11Z.bak.json
+   .claude/settings.TIMESTAMP.bak.json
 
 ✨ permissions applied:
    • allow: replaced entirely
@@ -75,7 +75,7 @@ exports[`init.claude.permissions.sh given: [case3] jsonc with https:// url in st
 exports[`init.claude.permissions.sh given: [case4] empty settings file when: [t0] no prior settings.json exists then: it should create settings.json with permissions 1`] = `
 "🔐 mechanic permissions configured successfully!
    .claude/settings.json
-   .claude/settings.2026-04-30T19-38-11Z.bak.json
+   .claude/settings.TIMESTAMP.bak.json
 
 ✨ permissions applied:
    • allow: replaced entirely
@@ -98,7 +98,7 @@ exports[`init.claude.permissions.sh given: [case4] empty settings file when: [t0
 exports[`init.claude.permissions.sh given: [case5] prior settings exist when: [t0] settings.json has prior content then: it should merge permissions without loss of prior settings 1`] = `
 "🔐 mechanic permissions configured successfully!
    .claude/settings.json
-   .claude/settings.2026-04-30T19-38-11Z.bak.json
+   .claude/settings.TIMESTAMP.bak.json
 
 ✨ permissions applied:
    • allow: replaced entirely

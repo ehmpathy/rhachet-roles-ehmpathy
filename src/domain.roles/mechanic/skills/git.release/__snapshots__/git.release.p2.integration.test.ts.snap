@@ -8,7 +8,7 @@ exports[`git.release.p2 --from main behavior given: [case-from-branch-valid] --f
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -20,7 +20,7 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-on-feat] on 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -51,7 +51,7 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-on-main] on 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -82,11 +82,11 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-release-fail
 🌊 release: chore(release): v1.33.0 🎉
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -98,11 +98,11 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-release-fail
 🌊 release: chore(release): v1.33.0 🎉
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -114,7 +114,7 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-release-infl
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 🐢 1 check(s) in progress
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -229,11 +229,11 @@ exports[`git.release.p2 --watch flag behavior given: [case-watch-failed] checks 
 🌊 release: feat(oceans): add reef protection
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -274,9 +274,7 @@ exports[`git.release.p2 --watch flag behavior given: [case-watch-passed-with-aut
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ ... (Nx more)
       └─ ✨ done! Xs in action, Xs watched
 "
 `;
@@ -289,7 +287,7 @@ exports[`git.release.p2 argument validation given: [case-arg-defaults] no argume
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -352,7 +350,7 @@ exports[`git.release.p2 dirty state detection given: [case-dirty-apply] dirty wo
    ├─ 👌 all checks passed
    └─ 🌴 already merged
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -364,7 +362,7 @@ exports[`git.release.p2 dirty state detection given: [case-dirty-plan] dirty wor
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -414,7 +412,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-plan-no-check]
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -426,11 +424,11 @@ exports[`git.release.p2 retry behavior given: [case-retry-failed-pr] --retry wit
 🌊 release: feat: test
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test-unit
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ failed after Xm Ys
    │        └─ 👌 rerun triggered
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --watch to monitor rerun progress[0m
+   └─ [dim]hint: use --watch to monitor rerun progress[/dim]
 "
 `;
 
@@ -442,11 +440,11 @@ exports[`git.release.p2 to main, from feat given: [case-feat-failed] feature PR 
 🌊 release: feat(oceans): add reef protection
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -458,11 +456,11 @@ exports[`git.release.p2 to main, from feat given: [case-feat-failed] feature PR 
 🌊 release: feat(oceans): add reef protection
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -474,7 +472,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-inflight] feature P
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 1 check(s) in progress
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -494,7 +492,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-inflight] feature P
       ├─ 💤 await automerge, Xs in action, Xs watched
       └─ ✨ done! Xs in action, Xs watched
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -518,7 +516,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-merged] feature PR 
    ├─ 👌 all checks passed
    └─ 🌴 already merged
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -530,7 +528,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-passed-with-automer
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🌴 automerge enabled [found]
-   └─ [2mhint: use --apply to watch[0m
+   └─ [dim]hint: use --apply to watch[/dim]
 "
 `;
 
@@ -546,12 +544,10 @@ exports[`git.release.p2 to main, from feat given: [case-feat-passed-with-automer
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ ... (Nx more)
       └─ ✨ done! Xs in action, Xs watched
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -563,7 +559,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-passed-wout-automer
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -576,7 +572,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-passed-wout-automer
    ├─ 👌 all checks passed
    └─ 🌴 automerge enabled [added] -> and merged already
 
-[2m🐚 continue?: rhx git.release --into prod --mode apply[0m
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
 `;
 
@@ -588,7 +584,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-rebase-behind] feat
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -601,7 +597,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-rebase-behind] feat
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -614,7 +610,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-rebase-dirty] featu
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase, has conflicts
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -627,7 +623,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-rebase-dirty] featu
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
    ├─ 🐚 needs rebase, has conflicts
-   │  └─ [2mhint: rhx git.branch.rebase begin[0m
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
 "
 `;
@@ -637,7 +633,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-unfound] feature PR
 
 🫧 no open branch pr
    ├─ turtle/feature-x
-   └─ [2mhint: use git.commit.push to push and findsert pr[0m
+   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
 "
 `;
 
@@ -646,7 +642,7 @@ exports[`git.release.p2 to main, from feat given: [case-feat-unfound] feature PR
 
 🫧 no open branch pr
    ├─ turtle/feature-x
-   └─ [2mhint: use git.commit.push to push and findsert pr[0m
+   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
 "
 `;
 
@@ -658,11 +654,11 @@ exports[`git.release.p2 to prod, from main given: [case-main-failed] release PR 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -674,11 +670,11 @@ exports[`git.release.p2 to prod, from main given: [case-main-failed] release PR 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ test
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -690,7 +686,7 @@ exports[`git.release.p2 to prod, from main given: [case-main-inflight] release P
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 🐢 1 check(s) in progress
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -734,10 +730,10 @@ exports[`git.release.p2 to prod, from main given: [case-main-merged-failed] rele
 🌊 release: v1.33.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failure
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -755,10 +751,10 @@ exports[`git.release.p2 to prod, from main given: [case-main-merged-failed] rele
 🌊 release: v1.33.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failure
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -877,7 +873,7 @@ exports[`git.release.p2 to prod, from main given: [case-main-passed-with-automer
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
    ├─ 🌴 automerge enabled [found]
-   └─ [2mhint: use --apply to watch[0m
+   └─ [dim]hint: use --apply to watch[/dim]
 "
 `;
 
@@ -893,9 +889,7 @@ exports[`git.release.p2 to prod, from main given: [case-main-passed-with-automer
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
-      ├─ 💤 await automerge, Xs in action, Xs watched
+      ├─ ... (Nx more)
       └─ ✨ done! Xs in action, Xs watched
 
 🫧 and then...
@@ -916,7 +910,7 @@ exports[`git.release.p2 to prod, from main given: [case-main-passed-wout-automer
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
-   └─ [2mhint: use --apply to enable automerge and watch[0m
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
 `;
 
@@ -950,10 +944,10 @@ exports[`git.release.p2 to prod, from main given: [case-main-unfound-failed] rel
 🌊 release: v1.33.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failure
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -968,10 +962,10 @@ exports[`git.release.p2 to prod, from main given: [case-main-unfound-failed] rel
 🌊 release: v1.33.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failure
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 

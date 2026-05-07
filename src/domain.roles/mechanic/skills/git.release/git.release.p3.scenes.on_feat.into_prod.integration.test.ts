@@ -6,6 +6,7 @@ import { genTempDir, given, then, when } from 'test-fns';
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
 import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
+import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
  * .what = p3 journey tests: scene.2 - on feat branch, --into prod
@@ -31,14 +32,6 @@ const SKILL_PATH = path.join(
   __dirname,
   '../../../../../dist/domain.roles/mechanic/skills/git.release/git.release.sh',
 );
-
-const asTimeStable = (output: string): string => {
-  return output
-    .replace(/\d+s in action/g, 'Xs in action')
-    .replace(/\d+s watched/g, 'Xs watched')
-    .replace(/\d+m\s*\d+s/g, 'Xm Ys')
-    .replace(/(\d+)s delay/g, 'Xs delay');
-};
 
 const setupScene = (input: {
   scene: Scene;
@@ -161,7 +154,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('no open branch pr');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -181,7 +174,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('no open branch pr');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -201,7 +194,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('no open branch pr');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -244,7 +237,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fs.writeFileSync(debugFile, debug);
             }
             expect(result.stdout).toContain('in progress');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -270,7 +263,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -296,7 +289,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -323,7 +316,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('passed');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -342,7 +335,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -367,7 +360,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -396,7 +389,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('automerge');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -421,7 +414,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -446,7 +439,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -473,7 +466,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('failed');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -492,7 +485,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -511,7 +504,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -543,7 +536,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('rerun');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // --retry without --watch exits 0 once rerun triggered (per p1 case5 t0)
             expect(result.status).toEqual(0);
           } finally {
@@ -565,7 +558,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
             });
             expect(result.stdout).toContain('rerun');
             expect(result.stdout).toContain('left'); // poll cycles show 💤 N left
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // after retry triggers rerun and watch completes to success, exit 0
             expect(result.status).toEqual(0);
           } finally {
@@ -587,7 +580,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
             });
             expect(result.stdout).toContain('rerun');
             expect(result.stdout).toContain('left'); // poll cycles show 💤 N left
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // after retry triggers rerun and apply completes to success, exit 0
             expect(result.status).toEqual(0);
           } finally {
@@ -615,7 +608,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('rebase');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -634,7 +627,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -653,7 +646,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -680,7 +673,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('conflict');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -699,7 +692,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -718,7 +711,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -759,7 +752,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               expect(result.stdout).toContain('merged');
               expect(result.stdout).toContain('and then...');
               expect(result.stdout).toContain('found!');
-              expect(asTimeStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -782,7 +775,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
                 });
                 expect(result.stdout).toContain('and then...');
                 expect(result.stdout).toContain('found!');
-                expect(asTimeStable(result.stdout)).toMatchSnapshot();
+                expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
                 expect(result.status).toEqual(0);
               } finally {
                 cleanup();
@@ -806,7 +799,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
                 });
                 expect(result.stdout).toContain('and then...');
                 expect(result.stdout).toContain('found!');
-                expect(asTimeStable(result.stdout)).toMatchSnapshot();
+                expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
                 expect(result.status).toEqual(0);
               } finally {
                 cleanup();
@@ -841,7 +834,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
             });
             expect(result.stdout).toContain('merged');
             expect(result.stdout).toContain('release pr did not appear');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -871,7 +864,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('in progress');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -897,7 +890,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -923,7 +916,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -954,7 +947,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('passed');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -973,7 +966,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -998,7 +991,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1028,7 +1021,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('automerge');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1053,7 +1046,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1078,7 +1071,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1109,7 +1102,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('failed');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1128,7 +1121,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1147,7 +1140,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1180,7 +1173,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('rerun');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // --retry without --watch exits 0 once rerun triggered (per p1 case5 t0)
             expect(result.status).toEqual(0);
           } finally {
@@ -1202,7 +1195,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
             });
             expect(result.stdout).toContain('rerun');
             expect(result.stdout).toContain('left'); // poll cycles show 💤 N left
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // after retry triggers rerun and watch completes to success, exit 0
             expect(result.status).toEqual(0);
           } finally {
@@ -1224,7 +1217,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
             });
             expect(result.stdout).toContain('rerun');
             expect(result.stdout).toContain('left'); // poll cycles show 💤 N left
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // after retry triggers rerun and apply completes to success, exit 0
             expect(result.status).toEqual(0);
           } finally {
@@ -1256,7 +1249,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('rebase');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1275,7 +1268,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1294,7 +1287,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1325,7 +1318,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('conflict');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1344,7 +1337,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1363,7 +1356,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1398,7 +1391,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1417,7 +1410,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1436,7 +1429,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1466,7 +1459,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1492,7 +1485,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1518,7 +1511,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1549,7 +1542,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1568,7 +1561,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1587,7 +1580,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1618,7 +1611,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1637,7 +1630,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1656,7 +1649,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1692,7 +1685,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('rerun');
-              expect(asTimeStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // --retry without --watch exits 0 once rerun triggered (per p1 case5 t0)
               expect(result.status).toEqual(0);
             } finally {
@@ -1718,7 +1711,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               expect(result.stdout).toContain('rerun');
               // tag watch shows workflow name in poll cycles, not "N left"
               expect(result.stdout).toContain('publish.yml');
-              expect(asTimeStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // after retry triggers rerun and watch completes to success, exit 0
               expect(result.status).toEqual(0);
             } finally {
@@ -1744,7 +1737,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               expect(result.stdout).toContain('rerun');
               // tag watch shows workflow name in poll cycles, not "N left"
               expect(result.stdout).toContain('publish.yml');
-              expect(asTimeStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // after retry triggers rerun and apply completes to success, exit 0
               expect(result.status).toEqual(0);
             } finally {

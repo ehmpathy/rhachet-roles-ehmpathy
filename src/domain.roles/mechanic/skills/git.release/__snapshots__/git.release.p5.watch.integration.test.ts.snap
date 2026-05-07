@@ -12,8 +12,8 @@ exports[`git.release.p5.watch feature-pr watch given: [case1] pr exists, checks 
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! 1m Xs in action, Xs watched
+      ├─ ... (Nx more)
+      └─ ✨ done! Xm Ys in action, Xs watched
 "
 `;
 
@@ -27,7 +27,7 @@ exports[`git.release.p5.watch feature-pr watch given: [case2] pr exists, checks 
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! 1m Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
 "
 `;
 
@@ -50,11 +50,11 @@ exports[`git.release.p5.watch feature-pr watch given: [case4] pr exists, checks 
 🌊 release: feat(ocean): add surfboards
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -70,8 +70,8 @@ exports[`git.release.p5.watch release-pr watch given: [case5] release pr exists,
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
-      ├─ 💤 1 left, Xs in action, Xs watched
-      └─ ✨ done! 1m Xs in action, Xs watched
+      ├─ ... (Nx more)
+      └─ ✨ done! Xm Ys in action, Xs watched
 "
 `;
 
@@ -90,7 +90,7 @@ exports[`git.release.p5.watch release-pr watch given: [case6] release pr exists,
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -102,11 +102,11 @@ exports[`git.release.p5.watch release-pr watch given: [case7] release pr exists,
 🌊 release: chore(release): v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 test
-   │        ├─ https://github.com/test/repo/actions/runs/123
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
    ├─ 🌴 automerge unfound (use --apply to add)
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -127,7 +127,7 @@ exports[`git.release.p5.watch release-tag watch given: [case8] tag workflows inf
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -146,7 +146,7 @@ exports[`git.release.p5.watch release-tag watch given: [case9] tag workflows alr
    ├─ 👌 all checks passed
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;
 
@@ -164,10 +164,10 @@ exports[`git.release.p5.watch release-tag watch given: [case10] tag workflows fa
 🌊 release: v1.3.0
    ├─ ⚓ 1 check(s) failed
    │  └─ 🔴 publish.yml
-   │        ├─ https://github.com/test/repo/actions/runs/789
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failure
-   ├─ [2mhint: use --retry to rerun failed workflows[0m
-   └─ [2mhint: use rhx show.gh.test.errors to see test output[0m
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
 "
 `;
 
@@ -188,6 +188,6 @@ exports[`git.release.p5.watch release-tag watch given: [case11] tag starts unfou
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
       ├─ 💤 publish.yml, Xs in action, Xs watched
-      └─ ✨ done! publish.yml, 1m Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
 "
 `;

@@ -62,6 +62,63 @@ export const asAnsiMarked = (input: string): string => {
 };
 
 // ============================================================================
+// poll operations
+// ============================================================================
+
+/**
+ * .what = collapse consecutive identical poll lines after the 3rd one
+ * .why = poll count varies with time; show first 3, collapse rest
+ */
+export const asPollCollapsed = (input: string): string => {
+  const lines = input.split('\n');
+  const collapsedLines: string[] = [];
+  let lastPollLine: string | null = null;
+  let pollCount = 0;
+
+  const flushPollLines = () => {
+    if (lastPollLine === null || pollCount === 0) return;
+    // show up to 3 poll lines, collapse rest
+    const showCount = Math.min(pollCount, 3);
+    for (let i = 0; i < showCount; i++) {
+      collapsedLines.push(lastPollLine);
+    }
+    if (pollCount > 3) {
+      // extract lead whitespace for indentation
+      const indent = lastPollLine.match(/^(\s*)/)?.[1] ?? '';
+      collapsedLines.push(`${indent}├─ ... (Nx more)`);
+    }
+    lastPollLine = null;
+    pollCount = 0;
+  };
+
+  for (const line of lines) {
+    // match poll lines: contain 💤 and time info (Xs pattern after time replacement)
+    const isPollLine = line.includes('💤') && line.includes('Xs');
+
+    if (isPollLine) {
+      if (line === lastPollLine) {
+        // consecutive duplicate poll line, just count it
+        pollCount++;
+      } else {
+        // new poll line pattern, flush previous if any
+        flushPollLines();
+        lastPollLine = line;
+        pollCount = 1;
+      }
+    } else {
+      // non-poll line, flush any queued poll lines
+      flushPollLines();
+      collapsedLines.push(line);
+    }
+  }
+
+  // flush any left poll lines
+  flushPollLines();
+
+  return collapsedLines.join('\n');
+};
+
+// ============================================================================
 // full preparation
 // ============================================================================
 
@@ -71,9 +128,10 @@ export const asAnsiMarked = (input: string): string => {
  */
 export const asSnapshotReady = (input: string): string => {
   let result = input;
+  result = asAnsiStripped(result); // strip ANSI first so time regex does not match [2m, [0m
   result = asTimeReplaced(result);
   result = asUrlReplaced(result);
-  result = asAnsiStripped(result);
+  result = asPollCollapsed(result);
   return result;
 };
 
@@ -83,8 +141,9 @@ export const asSnapshotReady = (input: string): string => {
  */
 export const asSnapshotReadyWithAnsi = (input: string): string => {
   let result = input;
+  result = asAnsiMarked(result); // mark ANSI first so time regex does not match [2m, [0m
   result = asTimeReplaced(result);
   result = asUrlReplaced(result);
-  result = asAnsiMarked(result);
+  result = asPollCollapsed(result);
   return result;
 };

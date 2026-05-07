@@ -2,7 +2,7 @@ import { given, then, when } from 'test-fns';
 
 import { genGhMockExecutable } from './.test/infra/mockGh';
 import { runOperation, setupTestEnv } from './.test/infra/setupTestEnv';
-import { asSnapshotReady } from './.test/infra/snapshotOps';
+import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
  * .what = integration tests for emit_transport_status operation
@@ -35,7 +35,7 @@ describe('emit_transport_status', () => {
           args: ['pr', '42', 'false', 'false', 'false', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         expect(output).toContain('check(s) in progress');
         expect(output).toContain('automerge unfound');
         expect(result.status).toBe(0);
@@ -67,7 +67,7 @@ describe('emit_transport_status', () => {
           args: ['pr', '42', 'false', 'false', 'false', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         expect(output).toContain('all checks passed');
         expect(output).toContain('automerge unfound');
         expect(output).toContain('--apply');
@@ -100,7 +100,7 @@ describe('emit_transport_status', () => {
           args: ['pr', '42', 'false', 'false', 'false', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         expect(output).toContain('all checks passed');
         expect(output).toContain('automerge enabled');
         expect(result.status).toBe(0);
@@ -132,7 +132,7 @@ describe('emit_transport_status', () => {
           args: ['pr', '42', 'false', 'false', 'false', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         expect(output).toContain('check(s) failed');
         expect(output).toContain('--retry');
         expect(result.status).toBe(2);
@@ -164,7 +164,7 @@ describe('emit_transport_status', () => {
           args: ['pr', '42', 'false', 'false', 'false', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         expect(output).toContain('already merged');
         expect(result.status).toBe(3); // 3 = already merged, caller should skip watch
 
@@ -195,7 +195,7 @@ describe('emit_transport_status', () => {
           args: ['pr', '42', 'false', 'false', 'false', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         expect(output).toContain('needs rebase');
         expect(result.status).toBe(2);
 
@@ -226,7 +226,7 @@ describe('emit_transport_status', () => {
           args: ['pr', '42', 'false', 'false', 'false', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         expect(output).toContain('conflicts');
         expect(result.status).toBe(2);
 
@@ -257,7 +257,7 @@ describe('emit_transport_status', () => {
           args: ['pr', '42', 'true', 'false', 'false', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         expect(output).toMatch(/automerge enabled.*added/i);
         expect(result.status).toBe(0);
 
@@ -288,7 +288,7 @@ describe('emit_transport_status', () => {
           args: ['pr', '42', 'false', 'true', 'false', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         expect(output).toContain('rerun');
         expect(result.status).toBe(2);
 
@@ -319,7 +319,7 @@ describe('emit_transport_status', () => {
           args: ['tag', 'v1.2.3', 'false', 'false', 'false', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         // no tag workflows = no blockers = passed
         expect(output).toContain('passed');
         expect(result.status).toBe(0);
@@ -351,7 +351,7 @@ describe('emit_transport_status', () => {
           args: ['tag', 'v1.2.3', 'false', 'false', 'false', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         expect(output).toContain('passed');
         expect(result.status).toBe(0);
 

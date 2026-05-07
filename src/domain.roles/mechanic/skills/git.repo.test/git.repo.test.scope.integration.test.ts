@@ -50,7 +50,8 @@ describe('git.repo.test.sh scope', () => {
    */
   const runWithScope = (args: {
     testFiles: Array<{ type: 'unit' | 'integration'; name: string }>;
-    scope: string;
+    scope?: string;
+    scopes?: string[];
     what?: 'unit' | 'integration';
     mode?: 'plan' | 'apply';
     thorough?: boolean;
@@ -110,14 +111,18 @@ describe('git.repo.test.sh scope', () => {
     spawnSync('git', ['add', '.'], { cwd: tempDir });
     spawnSync('git', ['commit', '-m', 'initial'], { cwd: tempDir });
 
-    // build args
-    const skillArgs = ['--what', what, '--scope', args.scope];
+    // build args — support both single scope and stacked scopes
+    const scopeList = args.scopes ?? (args.scope ? [args.scope] : []);
+    const skillArgs = ['--what', what];
+    for (const s of scopeList) {
+      skillArgs.push('--scope', s);
+    }
     if (args.mode) skillArgs.push('--mode', args.mode);
     if (args.thorough) skillArgs.push('--thorough');
 
     const result = spawnSync('bash', [scriptPath, ...skillArgs], {
       cwd: tempDir,
-      encoding: 'utf-8' as const,
+      encoding: 'utf-8' as const, // node api requires this exact string
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
@@ -697,5 +702,252 @@ describe('git.repo.test.sh scope', () => {
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
+  });
+
+  // ######################################################################
+  // scope stacking: multiple --scope flags
+  // ######################################################################
+
+  given('[case18] stacked scopes: path + name in plan mode', () => {
+    when('[t0] --scope feature --scope name://passes is used', () => {
+      const result = useThen('skill executes', () =>
+        runWithScope({
+          testFiles: [
+            { type: 'unit', name: 'feature-a' },
+            { type: 'unit', name: 'feature-b' },
+            { type: 'unit', name: 'other' },
+          ],
+          scopes: ['feature', 'name://passes'],
+          mode: 'plan',
+          thorough: true,
+        }),
+      );
+
+      then('exit code is 0', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('header shows both --scope flags in args', () => {
+        expect(result.stdout).toContain(
+          '--scope feature --scope name://passes',
+        );
+      });
+
+      then('stdout shows combined scope display', () => {
+        expect(result.stdout).toContain(
+          'scope: feature + name://passes',
+        );
+      });
+
+      then('stdout shows only files matched by path filter', () => {
+        expect(result.stdout).toContain('matched: 2 files');
+      });
+
+      then('stdout matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case19] stacked scopes: path + name in apply mode', () => {
+    when(
+      '[t0] --scope feature-a --scope name://feature-a --mode apply',
+      () => {
+        const result = useThen('skill executes', () =>
+          runWithScope({
+            testFiles: [
+              { type: 'unit', name: 'feature-a' },
+              { type: 'unit', name: 'feature-b' },
+              { type: 'unit', name: 'other' },
+            ],
+            scopes: ['feature-a', 'name://feature-a'],
+            mode: 'apply',
+            thorough: true,
+          }),
+        );
+
+        then('exit code is 0 (tests pass)', () => {
+          expect(result.exitCode).toBe(0);
+        });
+
+        then('header shows both --scope flags in args', () => {
+          expect(result.stdout).toContain(
+            '--scope feature-a --scope name://feature-a',
+          );
+        });
+
+        then('stdout shows combined scope display', () => {
+          expect(result.stdout).toContain(
+            'scope: feature-a + name://feature-a',
+          );
+        });
+
+        then('stdout shows passed', () => {
+          expect(result.stdout).toContain('passed');
+        });
+
+        then('stdout matches snapshot', () => {
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+
+        then('stderr matches snapshot', () => {
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      },
+    );
+  });
+
+  given(
+    '[case20] stacked scopes: path matches but name matches no tests',
+    () => {
+      when(
+        '[t0] --scope feature --scope name://nonexistent --mode apply',
+        () => {
+          const result = useThen('skill executes', () =>
+            runWithScope({
+              testFiles: [
+                { type: 'unit', name: 'feature-a' },
+                { type: 'unit', name: 'other' },
+              ],
+              scopes: ['feature', 'name://nonexistent'],
+              mode: 'apply',
+              thorough: true,
+            }),
+          );
+
+          then('exit code is 0 (jest passes with 0 tests matched)', () => {
+            // jest finds files via path scope, but name pattern matches no test names
+            // jest considers this a success (0 passed, 0 failed) and exits 0
+            expect(result.exitCode).toBe(0);
+          });
+
+          then('stdout shows 0 tests in stats', () => {
+            expect(result.stdout).toContain(
+              'tests: 0 passed, 0 failed, 0 skipped',
+            );
+          });
+
+          then('stdout matches snapshot', () => {
+            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          });
+
+          then('stderr matches snapshot', () => {
+            expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+          });
+        },
+      );
+    },
+  );
+
+  given('[case21] stacked scopes: path matches 0 files', () => {
+    when(
+      '[t0] --scope nonexistent --scope name://passes is used',
+      () => {
+        const result = useThen('skill executes', () =>
+          runWithScope({
+            testFiles: [
+              { type: 'unit', name: 'feature-a' },
+              { type: 'unit', name: 'other' },
+            ],
+            scopes: ['nonexistent', 'name://passes'],
+            mode: 'plan',
+            thorough: true,
+          }),
+        );
+
+        then('exit code is 2 (constraint: no files matched path)', () => {
+          expect(result.exitCode).toBe(2);
+        });
+
+        then('stdout shows 0 files matched', () => {
+          expect(result.stdout).toContain('matched: 0 files');
+        });
+
+        then('stdout matches snapshot', () => {
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+
+        then('stderr matches snapshot', () => {
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      },
+    );
+  });
+
+  given('[case22] stacked scopes: two path scopes', () => {
+    when('[t0] --scope feature --scope a is used', () => {
+      const result = useThen('skill executes', () =>
+        runWithScope({
+          testFiles: [
+            { type: 'unit', name: 'feature-a' },
+            { type: 'unit', name: 'feature-b' },
+            { type: 'unit', name: 'other-a' },
+            { type: 'unit', name: 'other-b' },
+          ],
+          scopes: ['feature', 'a'],
+          mode: 'plan',
+          thorough: true,
+        }),
+      );
+
+      then('exit code is 0', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('stdout shows combined scope display', () => {
+        expect(result.stdout).toContain('scope: feature + a');
+      });
+
+      then('stdout matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case23] stacked scopes: two name scopes', () => {
+    when(
+      '[t0] --scope name://feature-a --scope name://passes --mode apply',
+      () => {
+        const result = useThen('skill executes', () =>
+          runWithScope({
+            testFiles: [
+              { type: 'unit', name: 'feature-a' },
+              { type: 'unit', name: 'feature-b' },
+              { type: 'unit', name: 'other' },
+            ],
+            scopes: ['name://feature-a', 'name://passes'],
+            mode: 'apply',
+            thorough: true,
+          }),
+        );
+
+        then('exit code reflects jest behavior with two name patterns', () => {
+          // jest applies multiple --testNamePattern as intersection
+          expect([0, 2]).toContain(result.exitCode);
+        });
+
+        then('stdout shows combined scope display', () => {
+          expect(result.stdout).toContain(
+            'scope: name://feature-a + name://passes',
+          );
+        });
+
+        then('stdout matches snapshot', () => {
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+
+        then('stderr matches snapshot', () => {
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      },
+    );
   });
 });

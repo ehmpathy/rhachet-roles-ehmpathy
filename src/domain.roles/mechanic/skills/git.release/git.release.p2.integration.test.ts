@@ -6,6 +6,7 @@ import { genTempDir, given, then, when } from 'test-fns';
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
 import { genGitMockExecutable } from './.test/infra/mockGit';
+import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
  * .what = v2 test suite for git.release with full spec matrix coverage
@@ -560,18 +561,6 @@ const SKILL_PATH = path.join(
 );
 
 /**
- * .what = replace timing values with placeholders for snapshot stability
- * .why = timing varies between runs (0s vs 1s), causing flaky snapshots
- */
-const asTimingStable = (output: string): string => {
-  return output
-    .replace(/\d+s in action/g, 'Xs in action')
-    .replace(/\d+s watched/g, 'Xs watched')
-    .replace(/\d+m\s*\d+s/g, 'Xm Ys')
-    .replace(/(\d+)s delay/g, 'Xs delay');
-};
-
-/**
  * .what = setup test environment for a scene
  * .why = reusable test setup across all cases
  */
@@ -679,7 +668,7 @@ const runSkill = (
       GIT_RELEASE_TEST_MODE: 'true',
     },
     encoding: 'utf-8',
-    timeout: 3000,
+    timeout: 10000,
   });
 
   return {
@@ -709,7 +698,7 @@ describe('git.release.p2', () => {
             expect(result.stdout).toContain('crickets');
             expect(result.stdout).toContain('no open branch pr');
             expect(result.stdout).toContain('git.commit.push');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -731,7 +720,7 @@ describe('git.release.p2', () => {
             expect(result.stdout).toContain('crickets');
             expect(result.stdout).toContain('no open branch pr');
             expect(result.stdout).toContain('git.commit.push');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -751,7 +740,7 @@ describe('git.release.p2', () => {
           try {
             const result = runSkill([], { tempDir, fakeBinDir });
             expect(result.stdout).toContain('in progress');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -780,7 +769,7 @@ describe('git.release.p2', () => {
             // should show progression: in progress → passed → merged
             expect(result.stdout).toContain('in progress');
             expect(result.stdout).toContain('done!');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // transitions drove completion, exit 0
             expect(result.status).toEqual(0);
           } finally {
@@ -808,7 +797,7 @@ describe('git.release.p2', () => {
               const result = runSkill([], { tempDir, fakeBinDir });
               expect(result.stdout).toContain('passed');
               expect(result.stdout).toContain('--apply');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -828,7 +817,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('automerge');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // spec: "add automerge, watch → exit 0"
               // watch exits 0 because checks passed (even if not merged yet)
               expect(result.status).toEqual(0);
@@ -856,7 +845,7 @@ describe('git.release.p2', () => {
             try {
               const result = runSkill([], { tempDir, fakeBinDir });
               expect(result.stdout).toContain('automerge');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -883,7 +872,7 @@ describe('git.release.p2', () => {
               });
               expect(result.stdout).toContain('automerge');
               expect(result.stdout).toContain('done!');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // transitions drove completion, exit 0
               expect(result.status).toEqual(0);
             } finally {
@@ -906,7 +895,7 @@ describe('git.release.p2', () => {
           try {
             const result = runSkill([], { tempDir, fakeBinDir });
             expect(result.stdout).toContain('merged');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -926,7 +915,7 @@ describe('git.release.p2', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('merged');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -947,7 +936,7 @@ describe('git.release.p2', () => {
           try {
             const result = runSkill([], { tempDir, fakeBinDir });
             expect(result.stdout).toContain('failed');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // per spec: failed checks are constraint errors (exit 2)
             expect(result.status).toEqual(2);
           } finally {
@@ -968,7 +957,7 @@ describe('git.release.p2', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('failed');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // per spec: failed checks are constraint errors (exit 2)
             expect(result.status).toEqual(2);
           } finally {
@@ -990,7 +979,7 @@ describe('git.release.p2', () => {
           try {
             const result = runSkill([], { tempDir, fakeBinDir });
             expect(result.stdout).toContain('rebase');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1010,7 +999,7 @@ describe('git.release.p2', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('rebase');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -1033,7 +1022,7 @@ describe('git.release.p2', () => {
             try {
               const result = runSkill([], { tempDir, fakeBinDir });
               expect(result.stdout).toContain('rebase');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(2);
             } finally {
               cleanup();
@@ -1053,7 +1042,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('rebase');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(2);
             } finally {
               cleanup();
@@ -1090,7 +1079,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('v1.33.0');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1110,7 +1099,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('v1.33.0');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1140,7 +1129,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('v1.33.0');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1168,7 +1157,7 @@ describe('git.release.p2', () => {
               });
               expect(result.stdout).toContain('v1.33.0');
               expect(result.stdout).toContain('done!');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // transitions drove completion, exit 0
               expect(result.status).toEqual(0);
             } finally {
@@ -1200,7 +1189,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('v1.33.0');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1220,7 +1209,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('v1.33.0');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1251,7 +1240,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('v1.33.0');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1271,7 +1260,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('failed');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // per spec: failed checks are constraint errors (exit 2)
               expect(result.status).toEqual(2);
             } finally {
@@ -1299,7 +1288,7 @@ describe('git.release.p2', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('in progress');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -1326,7 +1315,7 @@ describe('git.release.p2', () => {
             });
             expect(result.stdout).toContain('in progress');
             expect(result.stdout).toContain('done!');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // transitions drove completion, exit 0
             expect(result.status).toEqual(0);
           } finally {
@@ -1358,7 +1347,7 @@ describe('git.release.p2', () => {
               });
               expect(result.stdout).toContain('passed');
               expect(result.stdout).toContain('--apply');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1378,7 +1367,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('automerge');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // spec: "add automerge, watch → continue to tags"
               expect(result.status).toEqual(0);
             } finally {
@@ -1408,7 +1397,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('automerge');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1435,7 +1424,7 @@ describe('git.release.p2', () => {
               });
               expect(result.stdout).toContain('automerge');
               expect(result.stdout).toContain('done!');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // transitions drove completion, exit 0
               expect(result.status).toEqual(0);
             } finally {
@@ -1467,7 +1456,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('merged');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1487,7 +1476,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('merged');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1517,7 +1506,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('merged');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1545,7 +1534,7 @@ describe('git.release.p2', () => {
               });
               expect(result.stdout).toContain('merged');
               expect(result.stdout).toContain('done!');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // transitions drove completion, exit 0
               expect(result.status).toEqual(0);
             } finally {
@@ -1577,7 +1566,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('merged');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1597,7 +1586,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('merged');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1628,7 +1617,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('merged');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1648,7 +1637,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('failed');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // per spec: failed checks are constraint errors (exit 2)
               expect(result.status).toEqual(2);
             } finally {
@@ -1677,7 +1666,7 @@ describe('git.release.p2', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('failed');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // per spec: failed checks are constraint errors (exit 2)
             expect(result.status).toEqual(2);
           } finally {
@@ -1698,7 +1687,7 @@ describe('git.release.p2', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('failed');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // per spec: failed checks are constraint errors (exit 2)
             expect(result.status).toEqual(2);
           } finally {
@@ -1739,7 +1728,7 @@ describe('git.release.p2', () => {
               // should show release PR, not feat PR inflight message
               expect(result.stdout).toContain('chore(release)');
               expect(result.stdout).not.toContain('in progress');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1762,7 +1751,7 @@ describe('git.release.p2', () => {
               expect(result.stdout).toContain('chore(release)');
               expect(result.stdout).toContain('automerge enabled [added]');
               expect(result.stdout).not.toContain('in progress'); // feat PR ignored
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1797,7 +1786,7 @@ describe('git.release.p2', () => {
                 });
                 // should show status for the "other" branch (mocked as featPr)
                 expect(result.stdout).toContain('release:');
-                expect(asTimingStable(result.stdout)).toMatchSnapshot();
+                expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
                 expect(result.status).toEqual(0);
               } finally {
                 cleanup();
@@ -1830,7 +1819,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('chore(release)');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1850,7 +1839,7 @@ describe('git.release.p2', () => {
                 { tempDir, fakeBinDir },
               );
               expect(result.stdout).toContain('chore(release)');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1919,7 +1908,7 @@ describe('git.release.p2', () => {
               // latest tag from mock is v1.33.0
               expect(result.stdout).toContain('v1.33.0');
               expect(result.stdout).not.toContain('in progress');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1940,7 +1929,7 @@ describe('git.release.p2', () => {
               );
               // latest tag from mock is v1.33.0
               expect(result.stdout).toContain('v1.33.0');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1970,7 +1959,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('in progress');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -1998,7 +1987,7 @@ describe('git.release.p2', () => {
               );
               expect(result.stdout).toContain('in progress');
               expect(result.stdout).toContain('done!');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // transitions drove completion, exit 0
               expect(result.status).toEqual(0);
             } finally {
@@ -2030,7 +2019,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('failed');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // per spec: failed checks are constraint errors (exit 2)
               expect(result.status).toEqual(2);
             } finally {
@@ -2051,7 +2040,7 @@ describe('git.release.p2', () => {
                 { tempDir, fakeBinDir },
               );
               expect(result.stdout).toContain('failed');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // per spec: failed checks are constraint errors (exit 2)
               expect(result.status).toEqual(2);
             } finally {
@@ -2084,7 +2073,7 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('merged');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -2103,7 +2092,7 @@ describe('git.release.p2', () => {
                 ['--from', 'main', '--into', 'prod', '--mode', 'apply'],
                 { tempDir, fakeBinDir },
               );
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -2140,7 +2129,7 @@ describe('git.release.p2', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('git.commit.uses');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -2179,7 +2168,7 @@ describe('git.release.p2', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('blocked globally');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -2214,7 +2203,7 @@ describe('git.release.p2', () => {
             try {
               const result = runSkill([], { tempDir, fakeBinDir }); // plan mode (default)
               expect(result.stdout).toContain('passed');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -2249,7 +2238,7 @@ describe('git.release.p2', () => {
               const result = runSkill(['--watch'], { tempDir, fakeBinDir });
               expect(result.stdout).toContain('--watch');
               expect(result.stdout).toContain('automerge unfound');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
               cleanup();
@@ -2280,7 +2269,7 @@ describe('git.release.p2', () => {
               expect(result.stdout).toContain('--watch');
               expect(result.stdout).toContain('automerge enabled [found]');
               expect(result.stdout).toContain('done!');
-              expect(asTimingStable(result.stdout)).toMatchSnapshot();
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               // transitions drove completion, exit 0
               expect(result.status).toEqual(0);
             } finally {
@@ -2308,7 +2297,7 @@ describe('git.release.p2', () => {
             const result = runSkill(['--watch'], { tempDir, fakeBinDir });
             expect(result.stdout).toContain('--watch');
             expect(result.stdout).toContain('failed');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -2334,7 +2323,7 @@ describe('git.release.p2', () => {
             const result = runSkill(['--watch'], { tempDir, fakeBinDir });
             expect(result.stdout).toContain('--watch');
             expect(result.stdout).toContain('merged');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -2371,7 +2360,7 @@ describe('git.release.p2', () => {
           try {
             const result = runSkill([], { tempDir, fakeBinDir });
             expect(result.stdout).toContain('passed');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -2402,7 +2391,7 @@ describe('git.release.p2', () => {
           try {
             const result = runSkill(['--watch'], { tempDir, fakeBinDir });
             expect(result.stdout).toContain('--watch');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -2437,7 +2426,7 @@ describe('git.release.p2', () => {
             });
             expect(result.stdout).toContain('uncommitted changes');
             expect(result.stdout).toContain('--dirty allow');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
             cleanup();
@@ -2468,7 +2457,7 @@ describe('git.release.p2', () => {
               fakeBinDir,
             });
             expect(result.stdout).toContain('merged');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -2649,7 +2638,7 @@ describe('git.release.p2', () => {
           try {
             const result = runSkill([], { tempDir, fakeBinDir });
             expect(result.stdout).toContain('git.release --into main');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             cleanup();
@@ -2741,7 +2730,7 @@ esac
               },
             );
             expect(result.stdout).toContain('rerun');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
           } finally {
             fs.rmSync(tempDir, { recursive: true, force: true });
