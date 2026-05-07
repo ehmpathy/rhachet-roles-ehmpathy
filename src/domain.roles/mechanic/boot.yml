@@ -205,6 +205,8 @@ subject.code.test:
       - briefs/practices/code.test/lessons.howto/howto.run.[lesson].md
       - briefs/practices/code.test/lessons.howto/howto.run-tests.[lesson].md
       - briefs/practices/code.test/lessons.howto/howto.use.[lesson].md
+      - briefs/practices/code.test/pitofsuccess.portability/rule.forbid.bare-host-deps.md
+      - briefs/practices/code.test/pitofsuccess.portability/rule.require.hermetic-tests.md
 
 subject.arch:
   briefs:
