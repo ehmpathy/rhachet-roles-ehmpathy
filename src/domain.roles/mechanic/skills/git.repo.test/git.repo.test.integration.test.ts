@@ -145,6 +145,9 @@ module.exports = {
     spawnSync('git', ['add', '.'], { cwd: tempDir });
     spawnSync('git', ['commit', '-m', 'initial'], { cwd: tempDir });
 
+    // rename branch to 'main' for cross-environment consistency
+    spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+
     // run git.repo.test.sh
     const result = spawnSync('bash', [scriptPath, ...args.gitRepoTestArgs], {
       cwd: tempDir,

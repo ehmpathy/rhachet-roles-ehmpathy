@@ -111,6 +111,9 @@ describe('git.repo.test.sh scope', () => {
     spawnSync('git', ['add', '.'], { cwd: tempDir });
     spawnSync('git', ['commit', '-m', 'initial'], { cwd: tempDir });
 
+    // rename branch to 'main' for cross-environment consistency
+    spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+
     // build args — support both single scope and stacked scopes
     const scopeList = args.scopes ?? (args.scope ? [args.scope] : []);
     const skillArgs = ['--what', what];

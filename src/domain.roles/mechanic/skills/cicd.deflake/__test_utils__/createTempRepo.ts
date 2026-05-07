@@ -18,5 +18,8 @@ export const createTempRepo = (): string => {
   spawnSync('git', ['add', '.gitkeep'], { cwd: tempDir });
   spawnSync('git', ['commit', '-m', 'init'], { cwd: tempDir });
 
+  // rename branch to 'main' for cross-environment consistency
+  spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+
   return tempDir;
 };
