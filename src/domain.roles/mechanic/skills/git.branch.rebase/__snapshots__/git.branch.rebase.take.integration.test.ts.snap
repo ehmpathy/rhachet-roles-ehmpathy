@@ -117,15 +117,10 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
    │  └─ failed ✗
    │     ├─
    │     │
-   │     │  🐢 bummer dude...
-   │     │  
+   │     │  🐢 hold up dude...
+   │     │
    │     │  🐚 git.branch.rebase lock refresh
-   │     │     ├─ detected: pnpm
-   │     │     ├─ run: pnpm install
-   │     │     └─ error: install failed
-   │     │  
-   │     │  install output:
-   │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/TEMP_DIR
+   │     │     └─ error: pnpm not found, install pnpm or use npm
    │     │
    │     └─
    └─ incomplete
@@ -145,27 +140,14 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
    │     ├─
    │     │
    │     │  🐢 bummer dude...
-   │     │  
+   │     │
    │     │  🐚 git.branch.rebase lock refresh
    │     │     ├─ detected: npm
    │     │     ├─ run: npm install
    │     │     └─ error: install failed
-   │     │  
+   │     │
    │     │  install output:
-   │     │  npm warn ancient lockfile
-   │     │  npm warn ancient lockfile The package-lock.json file was created with an old version of npm,
-   │     │  npm warn ancient lockfile so supplemental metadata must be fetched from the registry.
-   │     │  npm warn ancient lockfile
-   │     │  npm warn ancient lockfile This is a one-time fix-up, please be patient...
-   │     │  npm warn ancient lockfile
-   │     │  npm error code ENOENT
-   │     │  npm error syscall open
-   │     │  npm error path /tmp/TEMP_DIR/package.json
-   │     │  npm error errno -2
-   │     │  npm error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/tmp/TEMP_DIR/package.json'
-   │     │  npm error enoent This is related to npm not being able to find a file.
-   │     │  npm error enoent
-   │     │  npm error A complete log of this run can be found in: /home/USER/.npm/_logs/TIMESTAMP-debug-0.log
+   │     │  [npm error output masked - varies by version]
    │     │
    │     └─
    └─ incomplete
@@ -185,7 +167,7 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
    │     ├─
    │     │
    │     │  🐢 hold up dude...
-   │     │  
+   │     │
    │     │  🐚 git.branch.rebase lock refresh
    │     │     └─ error: yarn not found, install yarn
    │     │
@@ -208,15 +190,10 @@ exports[`git.branch.rebase.take given: [case13] take multiple files with lock (n
    │  └─ failed ✗
    │     ├─
    │     │
-   │     │  🐢 bummer dude...
-   │     │  
+   │     │  🐢 hold up dude...
+   │     │
    │     │  🐚 git.branch.rebase lock refresh
-   │     │     ├─ detected: pnpm
-   │     │     ├─ run: pnpm install
-   │     │     └─ error: install failed
-   │     │  
-   │     │  install output:
-   │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/TEMP_DIR
+   │     │     └─ error: pnpm not found, install pnpm or use npm
    │     │
    │     └─
    └─ incomplete
