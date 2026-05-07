@@ -82,7 +82,7 @@ exit 1
     );
     fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
 
-    // create fake npm that writes to package.json
+    // create fake npm that writes to package.json and mocks view for version lookup
     fs.writeFileSync(
       path.join(fakeBinDir, 'npm'),
       `#!/bin/bash
@@ -99,11 +99,15 @@ if [[ "$1" == "install" ]]; then
   jq "$DEV_FLAG[\\"$PKG_NAME\\"] = \\"$PKG_VERSION\\"" package.json > package.json.tmp && mv package.json.tmp package.json
   exit 0
 fi
-# passthrough for non-install commands (e.g., npm view for version lookup)
-# use pnpm from outside our fakebin
-REAL_PNPM=$(PATH="\${PATH#*:}" command -v pnpm 2>/dev/null || echo "")
-if [[ -n "$REAL_PNPM" ]]; then
-  exec "$REAL_PNPM" "$@"
+# mock npm view for version lookup (hermetic test - no network)
+if [[ "$1" == "view" && "$3" == "version" ]]; then
+  echo "99.0.0"
+  exit 0
+fi
+# passthrough for non-install commands — find real npm outside fakebin
+REAL_NPM=$(PATH="\${PATH#*:}" command -v npm 2>/dev/null || echo "")
+if [[ -n "$REAL_NPM" ]]; then
+  exec "$REAL_NPM" "$@"
 fi
 exit 1
 `,
