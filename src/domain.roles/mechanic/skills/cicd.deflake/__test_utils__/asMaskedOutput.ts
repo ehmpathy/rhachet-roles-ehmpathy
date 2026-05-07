@@ -37,5 +37,8 @@ export const asMaskedOutput = (input: {
   // mask runs_analyzed counts
   output = output.replace(/runs_analyzed: \d+/g, 'runs_analyzed: $N');
 
+  // mask flakes count (varies with real GitHub data)
+  output = output.replace(/flakes: \d+/g, 'flakes: $N');
+
   return output;
 };

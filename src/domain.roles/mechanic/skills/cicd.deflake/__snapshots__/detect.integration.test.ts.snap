@@ -50,7 +50,7 @@ exports[`cicd.deflake detect given: [case4] real GitHub API integration when: [t
    └─ into: .temp/$TEMP/evidence.json
 
 🥥 evidence gathered
-   └─ [2mruns_analyzed: $N, flakes: 0[0m
+   └─ [2mruns_analyzed: $N, flakes: $N[0m
 "
 `;
 
@@ -108,7 +108,7 @@ exports[`cicd.deflake detect given: [case8] positive path with flakes found when
    └─ into: .temp/$TEMP/evidence.json
 
 🥥 evidence gathered
-   └─ [2mruns_analyzed: $N, flakes: 1[0m
+   └─ [2mruns_analyzed: $N, flakes: $N[0m
 "
 `;
 
