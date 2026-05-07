@@ -25,6 +25,8 @@ const sanitizeOutput = (output: string): string =>
     .join('\n')
     // convert thin space (U+2009) to regular space for pnpm error output consistency
     .replace(/\u2009/g, ' ')
+    // collapse whitespace between ANSI codes (handles platform variations)
+    .replace(/(\[\d+m)\s+/g, '$1 ')
     // mask temp dir paths: /tmp/git-rebase-take-test-ajvAgu -> /tmp/TEMP_DIR
     .replace(/\/tmp\/git-rebase-take-test-[^\s/]+/g, '/tmp/TEMP_DIR')
     // mask npm debug log timestamps: 2026-04-17T12_32_29_632Z -> TIMESTAMP
