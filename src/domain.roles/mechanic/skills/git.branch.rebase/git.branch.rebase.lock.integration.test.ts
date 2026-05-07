@@ -15,7 +15,8 @@ const SKILL_PATH = path.join(__dirname, 'git.branch.rebase.lock.sh');
 
 /**
  * .what = prepare output for deterministic snapshots
- * .why = npm error output contains timestamps and temp paths that vary per run
+ * .why = npm error output contains timestamps, temp paths, and version-specific
+ *        message formats that vary per run and per npm version
  */
 const asSnapshotReady = (input: string): string => {
   return (
@@ -29,6 +30,11 @@ const asSnapshotReady = (input: string): string => {
       .replace(
         /\/tmp\/git-rebase-lock-test-[A-Za-z0-9]+\//g,
         '/tmp/git-rebase-lock-test-XXXXX/',
+      )
+      // mask npm error output (format varies by npm version)
+      .replace(
+        /install output:\n(npm (error|ERR!)[^\n]*\n?)+/g,
+        'install output:\n[npm error output masked - varies by version]\n',
       )
   );
 };
