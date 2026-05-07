@@ -125,7 +125,7 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
    │     │     └─ error: install failed
    │     │  
    │     │  install output:
-   │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/TEMP_DIR
+   │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/TEMP_DIR
    │     │
    │     └─
    └─ incomplete
@@ -216,7 +216,7 @@ exports[`git.branch.rebase.take given: [case13] take multiple files with lock (n
    │     │     └─ error: install failed
    │     │  
    │     │  install output:
-   │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/TEMP_DIR
+   │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/TEMP_DIR
    │     │
    │     └─
    └─ incomplete
