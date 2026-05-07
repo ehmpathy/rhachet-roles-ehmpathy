@@ -775,7 +775,9 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
                 });
                 expect(result.stdout).toContain('and then...');
                 expect(result.stdout).toContain('found!');
-                expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+                expect(
+                  asSnapshotReadyWithAnsi(result.stdout),
+                ).toMatchSnapshot();
                 expect(result.status).toEqual(0);
               } finally {
                 cleanup();
@@ -799,7 +801,9 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
                 });
                 expect(result.stdout).toContain('and then...');
                 expect(result.stdout).toContain('found!');
-                expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+                expect(
+                  asSnapshotReadyWithAnsi(result.stdout),
+                ).toMatchSnapshot();
                 expect(result.status).toEqual(0);
               } finally {
                 cleanup();

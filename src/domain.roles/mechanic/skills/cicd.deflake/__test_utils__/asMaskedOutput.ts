@@ -15,10 +15,7 @@ export const asMaskedOutput = (input: {
   );
 
   // mask worktree paths (e.g., /home/vlad/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.vlad.xxx/)
-  output = output.replace(
-    /\/home\/[^\s]*\/_worktrees\/[^\s/]+/g,
-    '$WORKTREE',
-  );
+  output = output.replace(/\/home\/[^\s]*\/_worktrees\/[^\s/]+/g, '$WORKTREE');
 
   // mask /tmp/ paths (e.g., /tmp/cicd-deflake-test-xxx/)
   output = output.replace(/\/tmp\/[^\s/]+/g, '/tmp/$TEMP');

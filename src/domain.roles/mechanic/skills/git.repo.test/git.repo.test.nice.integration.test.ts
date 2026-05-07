@@ -18,21 +18,30 @@ describe('git.repo.test.sh nice', () => {
     what: 'unit' | 'integration';
     scope?: string;
     timeout?: string;
-  }): { stdout: string; stderr: string; exitCode: number; capturedNice: string } => {
+  }): {
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+    capturedNice: string;
+  } => {
     const tempDir = genTempDir({ slug: 'nice-test', git: true });
     const what = args.what;
 
     // create package.json
     fs.writeFileSync(
       path.join(tempDir, 'package.json'),
-      JSON.stringify({
-        name: 'test-repo',
-        devDependencies: { jest: '30.2.0' },
-        scripts: {
-          'test:unit': 'jest --config jest.unit.config.js',
-          'test:integration': 'jest --config jest.integration.config.js',
+      JSON.stringify(
+        {
+          name: 'test-repo',
+          devDependencies: { jest: '30.2.0' },
+          scripts: {
+            'test:unit': 'jest --config jest.unit.config.js',
+            'test:integration': 'jest --config jest.integration.config.js',
+          },
         },
-      }, null, 2),
+        null,
+        2,
+      ),
     );
 
     // create jest configs
@@ -216,19 +225,22 @@ exec "${realRhxPath}" "$@"
   });
 
   given('[case5] unit tests with scope and timeout', () => {
-    when('[t0] --what unit --scope example --timeout 30 --mode apply is called', () => {
-      const result = useThen('skill executes', () =>
-        runAndCapture({ what: 'unit', scope: 'example', timeout: '30' }),
-      );
+    when(
+      '[t0] --what unit --scope example --timeout 30 --mode apply is called',
+      () => {
+        const result = useThen('skill executes', () =>
+          runAndCapture({ what: 'unit', scope: 'example', timeout: '30' }),
+        );
 
-      then('exit code is 0', () => {
-        expect(result.exitCode).toBe(0);
-      });
+        then('exit code is 0', () => {
+          expect(result.exitCode).toBe(0);
+        });
 
-      then('test process ran at nice level 5 or higher', () => {
-        const level = parseInt(result.capturedNice, 10);
-        expect(level).toBeGreaterThanOrEqual(5);
-      });
-    });
+        then('test process ran at nice level 5 or higher', () => {
+          const level = parseInt(result.capturedNice, 10);
+          expect(level).toBeGreaterThanOrEqual(5);
+        });
+      },
+    );
   });
 });

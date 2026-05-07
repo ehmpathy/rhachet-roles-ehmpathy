@@ -734,9 +734,7 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout shows combined scope display', () => {
-        expect(result.stdout).toContain(
-          'scope: feature + name://passes',
-        );
+        expect(result.stdout).toContain('scope: feature + name://passes');
       });
 
       then('stdout shows only files matched by path filter', () => {
@@ -754,51 +752,46 @@ describe('git.repo.test.sh scope', () => {
   });
 
   given('[case19] stacked scopes: path + name in apply mode', () => {
-    when(
-      '[t0] --scope feature-a --scope name://feature-a --mode apply',
-      () => {
-        const result = useThen('skill executes', () =>
-          runWithScope({
-            testFiles: [
-              { type: 'unit', name: 'feature-a' },
-              { type: 'unit', name: 'feature-b' },
-              { type: 'unit', name: 'other' },
-            ],
-            scopes: ['feature-a', 'name://feature-a'],
-            mode: 'apply',
-            thorough: true,
-          }),
+    when('[t0] --scope feature-a --scope name://feature-a --mode apply', () => {
+      const result = useThen('skill executes', () =>
+        runWithScope({
+          testFiles: [
+            { type: 'unit', name: 'feature-a' },
+            { type: 'unit', name: 'feature-b' },
+            { type: 'unit', name: 'other' },
+          ],
+          scopes: ['feature-a', 'name://feature-a'],
+          mode: 'apply',
+          thorough: true,
+        }),
+      );
+
+      then('exit code is 0 (tests pass)', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('header shows both --scope flags in args', () => {
+        expect(result.stdout).toContain(
+          '--scope feature-a --scope name://feature-a',
         );
+      });
 
-        then('exit code is 0 (tests pass)', () => {
-          expect(result.exitCode).toBe(0);
-        });
+      then('stdout shows combined scope display', () => {
+        expect(result.stdout).toContain('scope: feature-a + name://feature-a');
+      });
 
-        then('header shows both --scope flags in args', () => {
-          expect(result.stdout).toContain(
-            '--scope feature-a --scope name://feature-a',
-          );
-        });
+      then('stdout shows passed', () => {
+        expect(result.stdout).toContain('passed');
+      });
 
-        then('stdout shows combined scope display', () => {
-          expect(result.stdout).toContain(
-            'scope: feature-a + name://feature-a',
-          );
-        });
+      then('stdout matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
 
-        then('stdout shows passed', () => {
-          expect(result.stdout).toContain('passed');
-        });
-
-        then('stdout matches snapshot', () => {
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
-        });
-
-        then('stderr matches snapshot', () => {
-          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
-        });
-      },
-    );
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
   });
 
   given(
@@ -844,38 +837,35 @@ describe('git.repo.test.sh scope', () => {
   );
 
   given('[case21] stacked scopes: path matches 0 files', () => {
-    when(
-      '[t0] --scope nonexistent --scope name://passes is used',
-      () => {
-        const result = useThen('skill executes', () =>
-          runWithScope({
-            testFiles: [
-              { type: 'unit', name: 'feature-a' },
-              { type: 'unit', name: 'other' },
-            ],
-            scopes: ['nonexistent', 'name://passes'],
-            mode: 'plan',
-            thorough: true,
-          }),
-        );
+    when('[t0] --scope nonexistent --scope name://passes is used', () => {
+      const result = useThen('skill executes', () =>
+        runWithScope({
+          testFiles: [
+            { type: 'unit', name: 'feature-a' },
+            { type: 'unit', name: 'other' },
+          ],
+          scopes: ['nonexistent', 'name://passes'],
+          mode: 'plan',
+          thorough: true,
+        }),
+      );
 
-        then('exit code is 2 (constraint: no files matched path)', () => {
-          expect(result.exitCode).toBe(2);
-        });
+      then('exit code is 2 (constraint: no files matched path)', () => {
+        expect(result.exitCode).toBe(2);
+      });
 
-        then('stdout shows 0 files matched', () => {
-          expect(result.stdout).toContain('matched: 0 files');
-        });
+      then('stdout shows 0 files matched', () => {
+        expect(result.stdout).toContain('matched: 0 files');
+      });
 
-        then('stdout matches snapshot', () => {
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
-        });
+      then('stdout matches snapshot', () => {
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
 
-        then('stderr matches snapshot', () => {
-          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
-        });
-      },
-    );
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+      });
+    });
   });
 
   given('[case22] stacked scopes: two path scopes', () => {

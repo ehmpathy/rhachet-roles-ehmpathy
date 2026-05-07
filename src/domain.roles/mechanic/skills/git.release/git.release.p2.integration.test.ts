@@ -1786,7 +1786,9 @@ describe('git.release.p2', () => {
                 });
                 // should show status for the "other" branch (mocked as featPr)
                 expect(result.stdout).toContain('release:');
-                expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+                expect(
+                  asSnapshotReadyWithAnsi(result.stdout),
+                ).toMatchSnapshot();
                 expect(result.status).toEqual(0);
               } finally {
                 cleanup();
