@@ -61,10 +61,7 @@ describe('rmsafe.sh', () => {
   const sanitizeOutput = (stdout: string): string =>
     stdout
       // mask genTempDir paths (handles both worktree and CI environments)
-      .replace(
-        /\/home\/[^\s]*\/\.temp\/genTempDir\.symlink\/[^\s/]+/g,
-        '/TEMP',
-      )
+      .replace(/\/home\/[^\s]*\/\.temp\/genTempDir\.symlink\/[^\s/]+/g, '/TEMP')
       .replace(/\.temp\/genTempDir\.symlink\/[^\s/]+/g, '/TEMP')
       .replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR');
 
