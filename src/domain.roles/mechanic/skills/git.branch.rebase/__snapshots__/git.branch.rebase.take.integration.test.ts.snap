@@ -118,12 +118,12 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
    │     ├─
    │     │
    │     │  🐢 bummer dude...
-   │     │  
+   │     │
    │     │  🐚 git.branch.rebase lock refresh
    │     │     ├─ detected: pnpm
    │     │     ├─ run: pnpm install
    │     │     └─ error: install failed
-   │     │  
+   │     │
    │     │  install output:
    │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/TEMP_DIR
    │     │
@@ -145,12 +145,12 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
    │     ├─
    │     │
    │     │  🐢 bummer dude...
-   │     │  
+   │     │
    │     │  🐚 git.branch.rebase lock refresh
    │     │     ├─ detected: npm
    │     │     ├─ run: npm install
    │     │     └─ error: install failed
-   │     │  
+   │     │
    │     │  install output:
    │     │  npm warn ancient lockfile
    │     │  npm warn ancient lockfile The package-lock.json file was created with an old version of npm,
@@ -209,12 +209,12 @@ exports[`git.branch.rebase.take given: [case13] take multiple files with lock (n
    │     ├─
    │     │
    │     │  🐢 bummer dude...
-   │     │  
+   │     │
    │     │  🐚 git.branch.rebase lock refresh
    │     │     ├─ detected: pnpm
    │     │     ├─ run: pnpm install
    │     │     └─ error: install failed
-   │     │  
+   │     │
    │     │  install output:
    │     │  [41m[30m ERR_PNPM_NO_PKG_MANIFEST [39m[49m [31mNo package.json found in /tmp/TEMP_DIR
    │     │

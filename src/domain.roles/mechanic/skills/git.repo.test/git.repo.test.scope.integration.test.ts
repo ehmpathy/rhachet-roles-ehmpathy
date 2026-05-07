@@ -26,6 +26,8 @@ describe('git.repo.test.sh scope', () => {
       .replace(/\/home\/[^\s]+\/node_modules\/.pnpm\/[^\s]+/g, '__pkg__') // absolute pnpm paths
       .replace(/ {4}at [^\n]+\n/g, '    at __stack__\n') // stack traces (4 space indent)
       .replace(/Node\.js v[\d.]+/g, 'Node.js vX.X.X') // node version
+      .replace(/\[keyrack-daemon\][^\n]*\n?/g, '') // keyrack daemon output
+      .replace(/host manifest not found/g, 'no keyrack.yml found in repo') // keyrack error variant
       .trim();
 
   /**

@@ -19,6 +19,10 @@ const SKILL_PATH = path.join(__dirname, 'git.branch.rebase.take.sh');
  */
 const sanitizeOutput = (output: string): string =>
   output
+    // trim end-of-line whitespace (pnpm output varies)
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .join('\n')
     // convert thin space (U+2009) to regular space for pnpm error output consistency
     .replace(/\u2009/g, ' ')
     // mask temp dir paths: /tmp/git-rebase-take-test-ajvAgu -> /tmp/TEMP_DIR
