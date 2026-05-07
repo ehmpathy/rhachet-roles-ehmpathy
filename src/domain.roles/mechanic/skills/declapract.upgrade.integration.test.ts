@@ -87,7 +87,10 @@ describe('declapract.upgrade', () => {
 
         // snapshot stdout for aesthetic verification (redact date and branch for stability)
         const stdoutStable = result.stdout
-          .replace(/v\d{4}_\d{2}_\d{2}\.declapract\.upgrade/g, 'v$DATE.declapract.upgrade')
+          .replace(
+            /v\d{4}_\d{2}_\d{2}\.declapract\.upgrade/g,
+            'v$DATE.declapract.upgrade',
+          )
           .replace(/branch (main|master)/g, 'branch $BRANCH');
         expect(stdoutStable).toMatchSnapshot();
 
