@@ -1,5 +1,17 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`git.branch.rebase.lock given: [case1] rebase in progress with pnpm-lock.yaml when: [t0] lock refresh with pnpm then: lock regenerated, staged, exit 0 1`] = `
+"🐢 shell yeah!
+
+🐚 git.branch.rebase lock refresh
+   ├─ detected: pnpm
+   ├─ run: pnpm install
+   ├─ staged
+   │  └─ pnpm-lock.yaml ✓
+   └─ done
+"
+`;
+
 exports[`git.branch.rebase.lock given: [case2] rebase in progress with package-lock.json when: [t0] lock refresh with npm then: lock regenerated, staged, exit 0 1`] = `
 "🐢 shell yeah!
 
@@ -40,11 +52,31 @@ exports[`git.branch.rebase.lock given: [case5] rebase in progress but no lock fi
 "
 `;
 
+exports[`git.branch.rebase.lock given: [case6] pnpm-lock.yaml extant but pnpm not installed when: [t0] attempt lock refresh then: shows error: pnpm not found 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase lock refresh
+   └─ error: pnpm not found, install pnpm or use npm
+"
+`;
+
 exports[`git.branch.rebase.lock given: [case7] yarn.lock extant but yarn not installed when: [t0] attempt lock refresh then: shows error: yarn not found 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase lock refresh
    └─ error: yarn not found, install yarn
+"
+`;
+
+exports[`git.branch.rebase.lock given: [case8] priority: pnpm > npm when both lock files extant when: [t0] lock refresh (pnpm available) then: uses pnpm (preferred) 1`] = `
+"🐢 shell yeah!
+
+🐚 git.branch.rebase lock refresh
+   ├─ detected: pnpm
+   ├─ run: pnpm install
+   ├─ staged
+   │  └─ pnpm-lock.yaml ✓
+   └─ done
 "
 `;
 

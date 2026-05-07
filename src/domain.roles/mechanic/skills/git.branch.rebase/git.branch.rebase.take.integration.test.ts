@@ -536,12 +536,34 @@ describe('git.branch.rebase.take', () => {
             featureContent: { 'pnpm-lock.yaml': 'feature lock content\n' },
           });
 
+          // .note = mock pnpm via PATH override to ensure consistent behavior
+          // pnpm is detected but fails with "no package.json" error
+          // thin space (U+2009) around error code matches real pnpm output
+          const fakeBinDir = path.join(tempDir, '.fakebin');
+          fs.mkdirSync(fakeBinDir);
+          fs.writeFileSync(
+            path.join(fakeBinDir, 'pnpm'),
+            `#!/bin/bash
+# thin space = $'\\xe2\\x80\\x89' (U+2009)
+printf '\\033[41m\\033[30m\\xe2\\x80\\x89ERR_PNPM_NO_PKG_MANIFEST\\xe2\\x80\\x89\\033[39m\\033[49m \\033[31mNo package.json found in %s\\n' "$(pwd)" >&2
+exit 1
+`,
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
+
           try {
-            const result = runSkill(tempDir, [
-              '--whos',
-              'theirs',
-              'pnpm-lock.yaml',
-            ]);
+            const result = spawnSync(
+              'bash',
+              [SKILL_PATH, '--whos', 'theirs', 'pnpm-lock.yaml'],
+              {
+                cwd: tempDir,
+                encoding: 'utf-8',
+                env: {
+                  ...process.env,
+                  PATH: `${fakeBinDir}:${process.env.PATH}`,
+                },
+              },
+            );
 
             // exit 2 = constraint error (user must fix)
             expect(result.status).toBe(2);
@@ -643,8 +665,33 @@ describe('git.branch.rebase.take', () => {
             },
           });
 
+          // .note = mock pnpm via PATH override to ensure consistent behavior
+          // thin space (U+2009) around error code matches real pnpm output
+          const fakeBinDir = path.join(tempDir, '.fakebin');
+          fs.mkdirSync(fakeBinDir);
+          fs.writeFileSync(
+            path.join(fakeBinDir, 'pnpm'),
+            `#!/bin/bash
+# thin space = $'\\xe2\\x80\\x89' (U+2009)
+printf '\\033[41m\\033[30m\\xe2\\x80\\x89ERR_PNPM_NO_PKG_MANIFEST\\xe2\\x80\\x89\\033[39m\\033[49m \\033[31mNo package.json found in %s\\n' "$(pwd)" >&2
+exit 1
+`,
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
+
           try {
-            const result = runSkill(tempDir, ['--whos', 'theirs', '.']);
+            const result = spawnSync(
+              'bash',
+              [SKILL_PATH, '--whos', 'theirs', '.'],
+              {
+                cwd: tempDir,
+                encoding: 'utf-8',
+                env: {
+                  ...process.env,
+                  PATH: `${fakeBinDir}:${process.env.PATH}`,
+                },
+              },
+            );
 
             // exit 2 because lock refresh fails
             expect(result.status).toBe(2);
