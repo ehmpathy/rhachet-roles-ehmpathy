@@ -152,7 +152,7 @@ exec "${realRhxPath}" "$@"
       stdout: result.stdout ?? '',
       stderr: result.stderr ?? '',
       exitCode: result.status ?? 1,
-      capturedNice: niceMatch ? niceMatch[1] : 'NOT_FOUND',
+      capturedNice: niceMatch?.[1] ?? 'NOT_FOUND',
     };
   };
 
