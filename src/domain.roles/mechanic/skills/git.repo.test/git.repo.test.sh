@@ -1390,15 +1390,16 @@ if [[ "$WHAT" != "lint" ]]; then
     JEST_NO_TESTS=true
   fi
 
-  # additional check: name:// scope used but 0 tests ran = no tests matched
+  # additional check: name:// scope used but 0 suites ran = no tests matched
   # jest behavior varies by environment: some output "No tests found", others just run 0 tests
-  # this catches the latter case where jest exits 0 with 0 tests
+  # key distinction:
+  #   - suites > 0, tests = 0 → name pattern filtered tests but suites ran → SUCCESS
+  #   - suites = 0, tests = 0 → no suite files executed → CONSTRAINT ERROR
+  # this catches the latter case where jest exits 0 but ran no suites
   if [[ ${#NAME_PATTERNS[@]} -gt 0 ]] && [[ "$NPM_EXIT_CODE" == "0" ]]; then
-    # check if 0 tests were run (passed + failed = 0)
-    local total_tests=0
-    [[ -n "$JEST_PASSED" ]] && total_tests=$((total_tests + JEST_PASSED))
-    [[ -n "$JEST_FAILED" ]] && total_tests=$((total_tests + JEST_FAILED))
-    if [[ $total_tests -eq 0 ]]; then
+    # check if 0 suites were run (no test files executed)
+    suites_ran="${JEST_SUITES:-0}"
+    if [[ "$suites_ran" == "0" ]]; then
       JEST_NO_TESTS=true
     fi
   fi

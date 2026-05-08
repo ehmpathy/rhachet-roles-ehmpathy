@@ -73,6 +73,7 @@ describe('git.repo.test.sh scope', () => {
     const what = args.what ?? 'unit';
 
     // create package.json with jest
+    // note: --verbose ensures jest outputs "Tests:" summary line for test count
     fs.writeFileSync(
       path.join(tempDir, 'package.json'),
       JSON.stringify(
@@ -80,8 +81,9 @@ describe('git.repo.test.sh scope', () => {
           name: 'test-repo',
           devDependencies: { jest: '30.2.0' },
           scripts: {
-            'test:unit': 'jest --config jest.unit.config.js',
-            'test:integration': 'jest --config jest.integration.config.js',
+            'test:unit': 'jest --config jest.unit.config.js --verbose',
+            'test:integration':
+              'jest --config jest.integration.config.js --verbose',
           },
         },
         null,
@@ -90,27 +92,34 @@ describe('git.repo.test.sh scope', () => {
     );
 
     // create jest configs
+    // use minimal config - jest defaults find *.test.js files automatically
     for (const configType of ['unit', 'integration']) {
       const testMatch =
-        configType === 'unit' ? '**/*.test.js' : `**/*.integration.test.js`;
+        configType === 'unit'
+          ? '**/*.test.js'
+          : '**/*.integration.test.js';
       const ignorePatterns =
         configType === 'unit'
-          ? `testPathIgnorePatterns: ['.integration.test.js'],`
+          ? `testPathIgnorePatterns: ['integration\\\\.test\\\\.js$'],`
           : '';
       fs.writeFileSync(
         path.join(tempDir, `jest.${configType}.config.js`),
-        `module.exports = { testMatch: ['${testMatch}'], ${ignorePatterns} transform: {}, testEnvironment: 'node' };`,
+        `module.exports = { testMatch: ['${testMatch}'], ${ignorePatterns} testEnvironment: 'node' };`,
       );
     }
 
     // create test files
+    // note: include testFile.name in the it() block name so --testNamePattern definitely matches
+    // jest's full test name is: "describe-name it-name" (e.g., "myfeature myfeature test")
+    // we use 'test' as the suffix so 'name://passes' patterns don't accidentally match
+    // use expect(true).toBe(true) to ensure jest counts the test
     fs.mkdirSync(path.join(tempDir, 'src'), { recursive: true });
     for (const testFile of args.testFiles) {
       const suffix =
         testFile.type === 'unit' ? 'test.js' : 'integration.test.js';
       fs.writeFileSync(
         path.join(tempDir, 'src', `${testFile.name}.${suffix}`),
-        `describe('${testFile.name}', () => { it('passes', () => {}); });`,
+        `describe('${testFile.name}', () => { it('${testFile.name} test', () => { expect(true).toBe(true); }); });`,
       );
     }
 
