@@ -1382,7 +1382,7 @@ module.exports = {
       );
 
       then('stdout shows scope and matched files for unit tests', () => {
-        expect(result.stdout).toContain('scope: cpsafe');
+        expect(result.stdout).toContain('scope: path://cpsafe');
         expect(result.stdout).toContain('matched: 1 files');
       });
 
@@ -1413,7 +1413,7 @@ module.exports = {
       );
 
       then('stdout shows scope matches only one file', () => {
-        expect(result.stdout).toContain('scope: other');
+        expect(result.stdout).toContain('scope: path://other');
         expect(result.stdout).toContain('matched: 1 files');
       });
 
@@ -1444,7 +1444,7 @@ module.exports = {
 
       then('stdout shows scope matched 0 files', () => {
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('scope: nonexistent-xyz');
+        expect(result.stdout).toContain('scope: path://nonexistent-xyz');
         expect(result.stdout).toContain('matched: 0 files');
       });
 
@@ -1477,7 +1477,7 @@ module.exports = {
         );
 
         then('unit config only matches unit test file', () => {
-          expect(result.stdout).toContain('scope: myfeature');
+          expect(result.stdout).toContain('scope: path://myfeature');
           // should find only 1 file (myfeature.test.ts), not the integration files
           expect(result.stdout).toContain('matched: 1 files');
         });

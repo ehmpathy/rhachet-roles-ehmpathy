@@ -37,7 +37,7 @@ exports[`git.repo.test given: [case3] repo with multiple test files when: [t0] -
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply
-   ├─ scope: user
+   ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
    │  └─ /tmp/TEMP/src/user.unit.test.ts
@@ -207,7 +207,7 @@ keyrack unlock failed: vault locked
 
 exports[`git.repo.test given: [case6] repo with no matched tests when: [t0] --what unit --scope with no matches is called then: output matches snapshot 1`] = `
 "   ├─ status: constraint
-   └─ error: no tests matched scope 'nonexistent'
+   └─ error: no tests matched scope 'path://nonexistent'
 
 hint: check the scope pattern or run without --scope to see all tests
 "
@@ -319,7 +319,7 @@ exports[`git.repo.test given: [case10] repo with acceptance tests when: [t3] --w
 
 🐚 git.repo.test --what acceptance --scope checkout --mode apply
    ├─ keyrack: unlocked ehmpath/test
-   ├─ scope: checkout
+   ├─ scope: path://checkout
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/checkout.acceptance.test.ts
@@ -636,12 +636,12 @@ exports[`git.repo.test given: [case18] real repo with real npm when: [t0] --what
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope nonexistent --mode apply
-   ├─ scope: nonexistent
+   ├─ scope: path://nonexistent
    │  └─ matched: 0 files
    ├─ files
    │  └─ (none)
    ├─ status: constraint
-   └─ error: no tests matched scope 'nonexistent'
+   └─ error: no tests matched scope 'path://nonexistent'
 
 hint: check the scope pattern or run without --scope to see all tests
 "
@@ -666,11 +666,11 @@ UnexpectedCodePathError: UnexpectedCodePathError: no keyrack.yml found in repo
 {
   "note": "keyrack.yml declares which keys are required"
 }
-    at unlockKeyrackKeys (WORKTREE/node_modules/[4m.pnpm[24m/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/[4mrhachet[24m/src/domain.operations/keyrack/session/unlockKeyrackKeys.ts:95:13)
-    at async Command.<anonymous> (WORKTREE/node_modules/[4m.pnpm[24m/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/[4mrhachet[24m/src/contract/cli/invokeKeyrack.ts:1017:39)
-    at async Command.parseAsync (WORKTREE/node_modules/[4m.pnpm[24m/commander@14.0.0/node_modules/[4mcommander[24m/lib/command.js:1123:5)
-    at async _invoke (WORKTREE/node_modules/[4m.pnpm[24m/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/[4mrhachet[24m/src/contract/cli/invoke.ts:76:3)
-    at async withEmojiSpaceShim (WORKTREE/node_modules/[4m.pnpm[24m/emoji-space-shim@0.1.3/node_modules/[4memoji-space-shim[24m/src/contract/sdk/withEmojiSpaceShim.ts:15:12)
+    at unlockKeyrackKeys (WORKTREE/node_modules/.pnpm/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/rhachet/src/domain.operations/keyrack/session/unlockKeyrackKeys.ts:95:13)
+    at async Command.<anonymous> (WORKTREE/node_modules/.pnpm/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/rhachet/src/contract/cli/invokeKeyrack.ts:1017:39)
+    at async Command.parseAsync (WORKTREE/node_modules/.pnpm/commander@14.0.0/node_modules/commander/lib/command.js:1123:5)
+    at async _invoke (WORKTREE/node_modules/.pnpm/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/rhachet/src/contract/cli/invoke.ts:76:3)
+    at async withEmojiSpaceShim (WORKTREE/node_modules/.pnpm/emoji-space-shim@0.1.3/node_modules/emoji-space-shim/src/contract/sdk/withEmojiSpaceShim.ts:15:12)
 
 Node.js v22.21.0
 "
@@ -680,7 +680,7 @@ exports[`git.repo.test given: [case20] flag combinations when: [t0] --what unit 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply --resnap
-   ├─ scope: user
+   ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/user.unit.test.ts
@@ -701,7 +701,7 @@ exports[`git.repo.test given: [case20] flag combinations when: [t1] --what unit 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply --thorough
-   ├─ scope: user
+   ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/user.unit.test.ts
@@ -722,7 +722,7 @@ exports[`git.repo.test given: [case20] flag combinations when: [t2] --what unit 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply --resnap --thorough
-   ├─ scope: user
+   ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/user.unit.test.ts
@@ -744,7 +744,7 @@ exports[`git.repo.test given: [case20] flag combinations when: [t3] --what integ
 
 🐚 git.repo.test --what integration --scope api --mode apply --thorough
    ├─ keyrack: unlocked ehmpath/test
-   ├─ scope: api
+   ├─ scope: path://api
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/api.integration.test.ts
@@ -765,7 +765,7 @@ exports[`git.repo.test given: [case20] flag combinations when: [t4] --what unit 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply
-   ├─ scope: user
+   ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/user.unit.test.ts
@@ -803,12 +803,12 @@ exports[`git.repo.test given: [case21] edge cases when: [t1] --scope with specia
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope path(src/*) --mode apply
-   ├─ scope: path(src/*)
+   ├─ scope: path://path(src/*)
    │  └─ matched: 0 files
    ├─ files
    │  └─ (none)
    ├─ status: constraint
-   └─ error: no tests matched scope 'path(src/*)'
+   └─ error: no tests matched scope 'path://path(src/*)'
 
 hint: check the scope pattern or run without --scope to see all tests
 "
@@ -934,7 +934,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t2] -
 
 🐚 git.repo.test --what integration --scope api --mode apply --resnap --thorough
    ├─ keyrack: unlocked ehmpath/test
-   ├─ scope: api
+   ├─ scope: path://api
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/api.integration.test.ts
@@ -956,7 +956,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t3] -
 
 🐚 git.repo.test --what acceptance --scope checkout --mode apply --resnap --thorough
    ├─ keyrack: unlocked ehmpath/test
-   ├─ scope: checkout
+   ├─ scope: path://checkout
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/checkout.acceptance.test.ts
