@@ -983,7 +983,7 @@ run_single_test() {
       done
     fi
 
-    # add name patterns
+    # add name patterns (test name filter only, does not filter file list)
     if [[ ${#NAME_PATTERNS[@]} -gt 0 ]]; then
       for pattern in "${NAME_PATTERNS[@]}"; do
         jest_args+=("--testNamePattern" "$pattern")
@@ -1239,7 +1239,7 @@ fi
 if [[ "$MODE" == "plan" ]]; then
   # determine local_scope for file count check
   # - use first path pattern if any, since jest --listTests filters by path
-  # - use "." if only name patterns (jest --listTests can't filter by name)
+  # - use "." if no path patterns (name:// doesn't filter file list)
   local_scope="."
   if [[ ${#PATH_PATTERNS[@]} -gt 0 ]]; then
     local_scope="${PATH_PATTERNS[0]}"
@@ -1323,7 +1323,7 @@ SCOPE_FILE_COUNT=""
 if [[ ${#SCOPES[@]} -gt 0 ]] && [[ "$WHAT" != "lint" ]]; then
   # determine local_scope for file count check
   # - use first path pattern if any, since jest --listTests filters by path
-  # - use "." if only name patterns (jest --listTests can't filter by name)
+  # - use "." if no path patterns (name:// doesn't filter file list)
   local_scope="."
   if [[ ${#PATH_PATTERNS[@]} -gt 0 ]]; then
     local_scope="${PATH_PATTERNS[0]}"
