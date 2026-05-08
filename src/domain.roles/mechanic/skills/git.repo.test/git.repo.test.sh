@@ -941,13 +941,22 @@ parse_jest_output() {
   fi
 
   # parse Tests line: "Tests: 12 passed, 2 skipped, 14 total" or "Tests: 1 failed, 11 passed, 2 skipped, 14 total"
+  # note: jest 30 may output "Tests: 0 total" with no passed/failed/skipped when testNamePattern matches 0
   local tests_line
   tests_line=$(grep -E "^Tests:" "$stdout_file" | tail -1 || true)
   if [[ -n "$tests_line" ]]; then
     JEST_PASSED=$(echo "$tests_line" | grep -oE "[0-9]+ passed" | grep -oE "[0-9]+" || echo "0")
     JEST_FAILED=$(echo "$tests_line" | grep -oE "[0-9]+ failed" | grep -oE "[0-9]+" || echo "0")
     JEST_SKIPPED=$(echo "$tests_line" | grep -oE "[0-9]+ skipped" | grep -oE "[0-9]+" || echo "0")
-    JEST_TOTAL=$(echo "$tests_line" | grep -oE "[0-9]+ total" | grep -oE "[0-9]+" || echo "0")
+    # parse total if present, otherwise compute from components
+    local total_field
+    total_field=$(echo "$tests_line" | grep -oE "[0-9]+ total" | grep -oE "[0-9]+" || echo "")
+    if [[ -n "$total_field" ]]; then
+      JEST_TOTAL="$total_field"
+    else
+      # jest 30 may not include "total" field - compute from passed+failed+skipped
+      JEST_TOTAL=$((${JEST_PASSED:-0} + ${JEST_FAILED:-0} + ${JEST_SKIPPED:-0}))
+    fi
   fi
 
   # parse Time line: "Time: 12.345 s" or "Time: 1.234s"

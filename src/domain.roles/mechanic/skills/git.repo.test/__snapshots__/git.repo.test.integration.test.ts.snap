@@ -34,8 +34,7 @@ exports[`git.repo.test.sh given: [case3] npm error (malfunction) when: [t0] \`rh
    └─ log: .log/role=mechanic/skill=git.repo.test/what=lint/ISOTIME.stderr.log
 
 npm command failed. check the log for details.
-[2m$ echo "npm ERR! command not found" >&2 && exit 127[22m
-npm ERR! command not found
+npm ERR! command not found
 "
 `;
 

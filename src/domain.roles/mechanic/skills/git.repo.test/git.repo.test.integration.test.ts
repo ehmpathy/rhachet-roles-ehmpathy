@@ -174,7 +174,10 @@ module.exports = {
       // mask elapsed times: (0s), (5s), (123s) -> (Xs)
       .replace(/\((\d+)s\)/g, '(Xs)')
       // mask time stats: time: 2s -> time: Xs
-      .replace(/time: \d+s/g, 'time: Xs');
+      .replace(/time: \d+s/g, 'time: Xs')
+      // mask npm command line in dim text (appears in some envs, not others)
+      // e.g., [2m$ echo "npm ERR!..."[22m
+      .replace(/\[2m\$ [^\n]*\[22m\n?/g, '');
 
   given('[case1] lint passes', () => {
     when('[t0] `rhx git.repo.test --what lint` is run', () => {
