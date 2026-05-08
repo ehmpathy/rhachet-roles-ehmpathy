@@ -1,0 +1,36 @@
+always:
+  briefs:
+    say:
+      # essential repo context
+      - briefs/repo.structure.md
+
+      # critical rules for this repo
+      - briefs/rule.require.jest-tests-for-skills.[rule].md
+      - briefs/rule.require.skill-output-streams.[rule].md
+
+    ref:
+      # howtos — fetch when needed
+      - briefs/howto.register-claude-hooks.md
+      - briefs/howto.register-role-boot-hook.[lesson].md
+      - briefs/howto.block-writes-via-hooks.[lesson].md
+      - briefs/howto.debug-hooks.[lesson].md
+      - briefs/howto.debug-bash-syntax-errors.[sketch].md
+      - briefs/howto.mock-cli-via-path.[lesson].md
+      - briefs/howto.check-role-costs.[lesson].md
+      - briefs/howto.test-skills.[lesson].md
+      - briefs/howto.spinner-vibes.[lesson].md
+
+      # supplementary
+      - briefs/define.thorough-flag.[article].md
+      - briefs/tactic.chain-of-thought-via-schema.[lesson].md
+      - briefs/rule.require.snap-review-on-skill-change.[rule].md
+      - briefs/rule.prefer.internal-briefs-location.[rule].md
+
+      # research/handoffs
+      - briefs/research.claude-code-suspicious-syntax.md
+      - briefs/handoff.test-fns-flaky-genTempDir.md
+
+  skills:
+    say:
+      - skills/cicd.action.act.sh
+      - skills/show.claude.debug.sh

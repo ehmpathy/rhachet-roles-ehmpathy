@@ -223,7 +223,6 @@ subject.flow:
     say:
       - briefs/practices/work.flow/rule.require.trust-but-verify.md
       - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
-      - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
       - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
       - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
       - briefs/practices/work.flow/release/rule.require.commit-scopes.md
@@ -235,6 +234,7 @@ subject.flow:
       - briefs/practices/work.flow/tools/howto.keyrack.[lesson].md
 
     ref:
+      - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
       - briefs/practices/work.flow/diagnose/howto.logservation.[lesson].md
       - briefs/practices/work.flow/release/howto.git-release.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.allowlist-examples.[lesson].md

@@ -1,0 +1,30 @@
+# keyrack
+
+unlock credentials for integrations.
+
+## usage
+
+```sh
+rhx keyrack unlock --owner ehmpath --env test
+rhx keyrack unlock --owner ehmpath --env prep
+rhx keyrack unlock --owner ehmpath --env prod
+```
+
+**always use `--owner ehmpath`** — without it, hits human's yubikey-protected keyrack.
+
+credentials expire ~9 hours. re-unlock if expired.
+
+## status
+
+```sh
+rhx keyrack status --owner ehmpath
+```
+
+## errors
+
+| error | fix |
+|-------|-----|
+| `credential is locked` | run unlock |
+| `credential not found` | check key name, env |
+| `credential not filled` | human runs `rhx keyrack fill --owner ehmpath` |
+| `host manifest not found` | human runs `rhx keyrack init --owner ehmpath` |

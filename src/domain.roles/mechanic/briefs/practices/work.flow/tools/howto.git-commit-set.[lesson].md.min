@@ -1,0 +1,27 @@
+# git.commit.set
+
+creates commits as seaturtle[bot] with human co-author credit.
+
+## usage
+
+```bash
+printf 'type(scope): summary\n\n- detail' | rhx git.commit.set -m @stdin --mode apply
+```
+
+## message format
+
+line 1 = header (required), line 2 = blank (required), lines 3+ = body (required)
+
+## options
+
+| option | description |
+|--------|-------------|
+| `--mode plan` | preview (default) |
+| `--mode apply` | execute |
+| `--push` | push + findsert pr |
+| `--unstaged ignore` | staged only |
+| `--unstaged include` | stage all first |
+
+## prerequisite
+
+human must grant quota: `git.commit.uses set --quant N --push allow|block`

@@ -1389,6 +1389,19 @@ if [[ "$WHAT" != "lint" ]]; then
   if grep -qE "No tests found" "$TEMP_STDOUT"; then
     JEST_NO_TESTS=true
   fi
+
+  # additional check: name:// scope used but 0 tests ran = no tests matched
+  # jest behavior varies by environment: some output "No tests found", others just run 0 tests
+  # this catches the latter case where jest exits 0 with 0 tests
+  if [[ ${#NAME_PATTERNS[@]} -gt 0 ]] && [[ "$NPM_EXIT_CODE" == "0" ]]; then
+    # check if 0 tests were run (passed + failed = 0)
+    local total_tests=0
+    [[ -n "$JEST_PASSED" ]] && total_tests=$((total_tests + JEST_PASSED))
+    [[ -n "$JEST_FAILED" ]] && total_tests=$((total_tests + JEST_FAILED))
+    if [[ $total_tests -eq 0 ]]; then
+      JEST_NO_TESTS=true
+    fi
+  fi
 fi
 
 # relative log paths for display
