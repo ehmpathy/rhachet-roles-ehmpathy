@@ -37,6 +37,12 @@ describe('git.repo.test.sh scope', () => {
         /\{\s*"owner":\s*"ehmpath"\s*\}/g,
         '{\n  "note": "keyrack.yml declares which keys are required"\n}',
       )
+      // mask keyrack error throw line format (metadata object varies by version)
+      // converts single-line `{ owner: input.owner });` to multiline `{` to match snapshot
+      .replace(
+        /UnexpectedCodePathError\('no keyrack\.yml found in repo', \{[^}]*\}\);/g,
+        "UnexpectedCodePathError('no keyrack.yml found in repo', {",
+      )
       // remove caret position indicators entirely (indentation varies by node version)
       .replace(/^\s+\^\s*$/gm, '')
       .trim();

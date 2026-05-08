@@ -918,6 +918,7 @@ parse_jest_output() {
   JEST_PASSED=""
   JEST_FAILED=""
   JEST_SKIPPED=""
+  JEST_TOTAL=""
   JEST_TIME=""
   JEST_NO_TESTS=false
 
@@ -946,6 +947,7 @@ parse_jest_output() {
     JEST_PASSED=$(echo "$tests_line" | grep -oE "[0-9]+ passed" | grep -oE "[0-9]+" || echo "0")
     JEST_FAILED=$(echo "$tests_line" | grep -oE "[0-9]+ failed" | grep -oE "[0-9]+" || echo "0")
     JEST_SKIPPED=$(echo "$tests_line" | grep -oE "[0-9]+ skipped" | grep -oE "[0-9]+" || echo "0")
+    JEST_TOTAL=$(echo "$tests_line" | grep -oE "[0-9]+ total" | grep -oE "[0-9]+" || echo "0")
   fi
 
   # parse Time line: "Time: 12.345 s" or "Time: 1.234s"
@@ -1390,14 +1392,10 @@ if [[ "$WHAT" != "lint" ]]; then
     JEST_NO_TESTS=true
   fi
 
-  # additional check: name:// scope used but 0 suites ran = no tests matched
-  # jest behavior varies by environment: some output "No tests found", others just run 0 tests
-  # key distinction:
-  #   - suites > 0, tests = 0 → name pattern filtered tests but suites ran → SUCCESS
-  #   - suites = 0, tests = 0 → no suite files executed → CONSTRAINT ERROR
-  # this catches the latter case where jest exits 0 but ran no suites
+  # additional check: name:// scope used but 0 suites loaded = no files matched the pattern
+  # note: only check suites, not tests - jest can run 0 tests but still be a valid run
+  # (e.g., testNamePattern matches describe block but all tests inside are skipped)
   if [[ ${#NAME_PATTERNS[@]} -gt 0 ]] && [[ "$NPM_EXIT_CODE" == "0" ]]; then
-    # check if 0 suites were run (no test files executed)
     suites_ran="${JEST_SUITES:-0}"
     if [[ "$suites_ran" == "0" ]]; then
       JEST_NO_TESTS=true
