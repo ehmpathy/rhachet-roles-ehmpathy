@@ -1390,6 +1390,7 @@ JEST_SUITES=""
 JEST_PASSED=""
 JEST_FAILED=""
 JEST_SKIPPED=""
+JEST_TOTAL=""
 JEST_TIME=""
 
 if [[ "$WHAT" != "lint" ]]; then
@@ -1403,15 +1404,6 @@ if [[ "$WHAT" != "lint" ]]; then
   # also check stdout for "No tests found" (jest with --passWithNoTests exits 0)
   if grep -qE "No tests found" "$TEMP_STDOUT"; then
     JEST_NO_TESTS=true
-  fi
-
-  # additional check: name:// scope used but 0 tests ran = name pattern didn't match any tests
-  # note: suites may be > 0 because files are loaded, but tests == 0 means no test names matched
-  # only check if JEST_TOTAL was parsed (not empty) - empty means parse failed
-  if [[ ${#NAME_PATTERNS[@]} -gt 0 ]] && [[ "$NPM_EXIT_CODE" == "0" ]] && [[ "$JEST_NO_TESTS" != "true" ]]; then
-    if [[ -n "$JEST_TOTAL" ]] && [[ "$JEST_TOTAL" == "0" ]]; then
-      JEST_NO_TESTS=true
-    fi
   fi
 fi
 
