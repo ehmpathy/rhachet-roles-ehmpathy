@@ -158,7 +158,6 @@ hint: check keyrack setup with 'rhx keyrack status --owner ehmpath'
 
 __pkg__
             throw new helpful_errors_1.UnexpectedCodePathError('no keyrack.yml found in repo', {
-                  ^
 
 UnexpectedCodePathError: UnexpectedCodePathError: no keyrack.yml found in repo
 
@@ -186,7 +185,6 @@ hint: check keyrack setup with 'rhx keyrack status --owner ehmpath'
 
 __pkg__
             throw new helpful_errors_1.UnexpectedCodePathError('no keyrack.yml found in repo', {
-                  ^
 
 UnexpectedCodePathError: UnexpectedCodePathError: no keyrack.yml found in repo
 

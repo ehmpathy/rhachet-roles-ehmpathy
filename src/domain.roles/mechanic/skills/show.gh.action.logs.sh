@@ -288,8 +288,9 @@ for JOB_ID in $JOB_IDS; do
 
   # fetch logs with retry (github sometimes delays log availability)
   # note: env vars can override for tests (RETRY_DELAY=0 RETRY_LIMIT=5)
-  MAX_RETRIES="${RETRY_LIMIT:-30}"
-  SLEEP_SECONDS="${RETRY_DELAY:-3}"
+  # default: 60 retries × 5s = 5 minutes max wait
+  MAX_RETRIES="${RETRY_LIMIT:-60}"
+  SLEEP_SECONDS="${RETRY_DELAY:-5}"
   LOGS=""
   LOGS_READY=false
 

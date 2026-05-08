@@ -37,6 +37,8 @@ describe('git.repo.test.sh scope', () => {
         /\{\s*"owner":\s*"ehmpath"\s*\}/g,
         '{\n  "note": "keyrack.yml declares which keys are required"\n}',
       )
+      // remove caret position indicators entirely (indentation varies by node version)
+      .replace(/^\s+\^\s*$/gm, '')
       .trim();
 
   /**
@@ -102,15 +104,13 @@ describe('git.repo.test.sh scope', () => {
     }
 
     // create test files
-    // .note = test names must NOT contain common scope patterns like "passes", "feature", etc.
-    //         to avoid false matches with --testNamePattern. use "works" as a neutral test name.
     fs.mkdirSync(path.join(tempDir, 'src'), { recursive: true });
     for (const testFile of args.testFiles) {
       const suffix =
         testFile.type === 'unit' ? 'test.js' : 'integration.test.js';
       fs.writeFileSync(
         path.join(tempDir, 'src', `${testFile.name}.${suffix}`),
-        `describe('${testFile.name}', () => { it('works', () => {}); });`,
+        `describe('${testFile.name}', () => { it('passes', () => {}); });`,
       );
     }
 

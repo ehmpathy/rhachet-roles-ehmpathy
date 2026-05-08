@@ -6,7 +6,7 @@ import { setContentToQuarantine } from './setContentToQuarantine';
 
 describe('setContentToQuarantine', () => {
   given('content to quarantine', () => {
-    const tempDir = genTempDir({ slug: 'quarantine-test' });
+    const tempDir = genTempDir({ slug: 'quarantine-test', git: true });
     const quarantineDir = path.join(tempDir, '.quarantine');
 
     when('setContentToQuarantine is called', () => {
