@@ -82,12 +82,14 @@ describe('git.repo.test.sh scope', () => {
     const what = args.what ?? 'unit';
 
     // create package.json with jest
+    // note: type: commonjs required for jest to properly parse .js test files
     // note: --verbose ensures jest outputs "Tests:" summary line for test count
     fs.writeFileSync(
       path.join(tempDir, 'package.json'),
       JSON.stringify(
         {
           name: 'test-repo',
+          type: 'commonjs',
           devDependencies: { jest: '30.2.0' },
           scripts: {
             'test:unit': 'jest --config jest.unit.config.js --verbose',
@@ -101,7 +103,8 @@ describe('git.repo.test.sh scope', () => {
     );
 
     // create jest configs
-    // use minimal config - jest defaults find *.test.js files automatically
+    // note: transform: {} required to disable parent repo's @swc/jest transform
+    // which breaks plain JS files in temp repos with symlinked node_modules
     for (const configType of ['unit', 'integration']) {
       const testMatch =
         configType === 'unit' ? '**/*.test.js' : '**/*.integration.test.js';
@@ -111,7 +114,7 @@ describe('git.repo.test.sh scope', () => {
           : '';
       fs.writeFileSync(
         path.join(tempDir, `jest.${configType}.config.js`),
-        `module.exports = { testMatch: ['${testMatch}'], ${ignorePatterns} testEnvironment: 'node' };`,
+        `module.exports = { testMatch: ['${testMatch}'], ${ignorePatterns} testEnvironment: 'node', transform: {} };`,
       );
     }
 
@@ -337,7 +340,7 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout shows scope filter', () => {
-        expect(result.stdout).toContain('scope: myfeature');
+        expect(result.stdout).toContain('scope: path://myfeature');
         expect(result.stdout).toContain('matched: 1 files');
       });
 
@@ -766,7 +769,7 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout shows combined scope display', () => {
-        expect(result.stdout).toContain('scope: feature + name://passes');
+        expect(result.stdout).toContain('scope: path://feature, name://passes');
       });
 
       then('stdout shows only files matched by path filter', () => {
@@ -809,7 +812,7 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout shows combined scope display', () => {
-        expect(result.stdout).toContain('scope: feature-a + name://feature-a');
+        expect(result.stdout).toContain('scope: path://feature-a, name://feature-a');
       });
 
       then('stdout shows passed', () => {
@@ -844,16 +847,14 @@ describe('git.repo.test.sh scope', () => {
             }),
           );
 
-          then('exit code is 0 (jest passes with 0 tests matched)', () => {
+          then('exit code is 2 (constraint: name pattern matched no tests)', () => {
             // jest finds files via path scope, but name pattern matches no test names
-            // jest considers this a success (0 passed, 0 failed) and exits 0
-            expect(result.exitCode).toBe(0);
+            // skill detects 0 tests ran and reports constraint error
+            expect(result.exitCode).toBe(2);
           });
 
-          then('stdout shows 0 tests in stats', () => {
-            expect(result.stdout).toContain(
-              'tests: 0 passed, 0 failed, 0 skipped',
-            );
+          then('stdout shows no tests matched error', () => {
+            expect(result.stdout).toContain('no tests matched scope');
           });
 
           then('stdout matches snapshot', () => {
@@ -921,7 +922,7 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout shows combined scope display', () => {
-        expect(result.stdout).toContain('scope: feature + a');
+        expect(result.stdout).toContain('scope: path://feature, path://a');
       });
 
       then('stdout matches snapshot', () => {
@@ -958,7 +959,7 @@ describe('git.repo.test.sh scope', () => {
 
         then('stdout shows combined scope display', () => {
           expect(result.stdout).toContain(
-            'scope: name://feature-a + name://passes',
+            'scope: name://feature-a, name://passes',
           );
         });
 

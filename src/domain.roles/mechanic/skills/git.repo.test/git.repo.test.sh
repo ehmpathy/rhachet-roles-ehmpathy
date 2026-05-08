@@ -33,12 +33,21 @@
 #   'name://foo'    - match test/describe name (jest --testNamePattern)
 #   (multiple --scope flags stack together)
 #
+# best practice: stack path + name for fastest feedback loops
+#   1. start narrow: --scope path://myfeature --scope name://case3
+#   2. widen path:   --scope path://myfeature (all tests in file)
+#   3. widen name:   --scope name://case3 (all files, one test)
+#   4. full suite:   (no --scope) only to verify no regressions
+#
 # guarantee:
 #   - logs raw output to .log/role=mechanic/skill=git.repo.test/what=${WHAT}/
 #   - auto keyrack unlock for integration/acceptance
 #   - exit 0 = passed, exit 1 = malfunction, exit 2 = constraint
 ######################################################################
 set -euo pipefail
+
+# disable ANSI colors so we can parse jest output (e.g., "Tests:" lines)
+export FORCE_COLOR=0
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -58,6 +67,33 @@ emit_to_both() {
   content=$(cat)
   echo "$content"      # stdout
   echo "$content" >&2  # stderr
+}
+
+######################################################################
+# helper: format scope array for display
+# - normalizes bare scopes to path:// prefix
+# - joins with ", " separator
+######################################################################
+format_scope_display() {
+  local -a scopes=("$@")
+  local -a normalized=()
+  for scope in "${scopes[@]}"; do
+    if [[ "$scope" == name://* ]] || [[ "$scope" == path://* ]]; then
+      normalized+=("$scope")
+    else
+      # bare scope treated as path filter
+      normalized+=("path://$scope")
+    fi
+  done
+  # join with ", " (IFS only uses first char, so use printf)
+  local result=""
+  for i in "${!normalized[@]}"; do
+    if [[ $i -gt 0 ]]; then
+      result+=", "
+    fi
+    result+="${normalized[$i]}"
+  done
+  echo "$result"
 }
 
 ######################################################################
@@ -976,8 +1012,8 @@ run_single_test() {
   local temp_stdout="$2"
   local temp_stderr="$3"
 
-  # build npm command
-  local npm_cmd="npm run test:${test_type}"
+  # npm command name for this test type
+  local npm_target="test:${test_type}"
 
   # build jest args
   local jest_args=()
@@ -994,7 +1030,7 @@ run_single_test() {
       done
     fi
 
-    # add name patterns (test name filter only, does not filter file list)
+    # add name patterns
     if [[ ${#NAME_PATTERNS[@]} -gt 0 ]]; then
       for pattern in "${NAME_PATTERNS[@]}"; do
         jest_args+=("--testNamePattern" "$pattern")
@@ -1007,26 +1043,30 @@ run_single_test() {
     jest_args+=("${REST_ARGS[@]}")
   fi
 
-  # build full command with args
-  if [[ ${#jest_args[@]} -gt 0 ]]; then
-    npm_cmd="$npm_cmd -- ${jest_args[*]}"
-  fi
-
-  # set env vars
-  local env_prefix=""
+  # set env vars for execution
+  local -a env_vars=()
   if [[ "$RESNAP" == "true" ]] && [[ "$test_type" != "lint" ]]; then
-    env_prefix="RESNAP=true "
+    env_vars+=("RESNAP=true")
   fi
   if [[ "$THOROUGH" == "true" ]]; then
-    env_prefix="${env_prefix}THOROUGH=true "
+    env_vars+=("THOROUGH=true")
   fi
 
   # run command (with optional timeout, at lower priority to avoid lockup)
+  # use env + array execution to avoid bash -c string issues
   local exit_code=0
   if [[ -n "$TIMEOUT" ]]; then
-    timeout "${TIMEOUT}s" nice -n 5 bash -c "${env_prefix}${npm_cmd}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+    if [[ ${#jest_args[@]} -gt 0 ]]; then
+      timeout "${TIMEOUT}s" nice -n 5 env "${env_vars[@]}" npm run "$npm_target" -- "${jest_args[@]}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+    else
+      timeout "${TIMEOUT}s" nice -n 5 env "${env_vars[@]}" npm run "$npm_target" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+    fi
   else
-    nice -n 5 bash -c "${env_prefix}${npm_cmd}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+    if [[ ${#jest_args[@]} -gt 0 ]]; then
+      nice -n 5 env "${env_vars[@]}" npm run "$npm_target" -- "${jest_args[@]}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+    else
+      nice -n 5 env "${env_vars[@]}" npm run "$npm_target" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+    fi
   fi
 
   return $exit_code
@@ -1179,7 +1219,7 @@ output_no_tests() {
 
   if [[ "$has_scope" == "true" ]]; then
     local scope_display
-    scope_display=$(printf "%s + " "${SCOPES[@]}" | sed 's/ + $//')
+    scope_display=$(format_scope_display "${SCOPES[@]}")
     print_tree_branch "status" "constraint"
     echo "   └─ error: no tests matched scope '$scope_display'"
     echo ""
@@ -1280,7 +1320,7 @@ if [[ "$MODE" == "plan" ]]; then
       print_tree_start "git.repo.test $DISPLAY_ARGS"
       scope_display="all"
       if [[ ${#SCOPES[@]} -gt 0 ]]; then
-        scope_display=$(printf "%s + " "${SCOPES[@]}" | sed 's/ + $//')
+        scope_display=$(format_scope_display "${SCOPES[@]}")
       fi
       echo "   ├─ scope: $scope_display"
       echo "   │  └─ matched: 0 files"
@@ -1303,7 +1343,7 @@ if [[ "$MODE" == "plan" ]]; then
   # build scope display (join all scopes or show "all")
   SCOPE_DISPLAY="all"
   if [[ ${#SCOPES[@]} -gt 0 ]]; then
-    SCOPE_DISPLAY=$(printf "%s + " "${SCOPES[@]}" | sed 's/ + $//')
+    SCOPE_DISPLAY=$(format_scope_display "${SCOPES[@]}")
   fi
 
   # output plan mode result
@@ -1356,7 +1396,7 @@ if [[ ${#SCOPES[@]} -gt 0 ]] && [[ "$WHAT" != "lint" ]]; then
   SCOPE_FILES=$(get_scope_files "$WHAT" "$local_scope")
 
   # build scope display (join all scopes)
-  SCOPE_DISPLAY=$(printf "%s + " "${SCOPES[@]}" | sed 's/ + $//')
+  SCOPE_DISPLAY=$(format_scope_display "${SCOPES[@]}")
 
   # show preview
   SCOPE_PREVIEW_OUTPUT=$(preview_scope_matches "$SCOPE_DISPLAY" "$SCOPE_FILE_COUNT" "$SCOPE_FILES")
@@ -1423,6 +1463,19 @@ if [[ "$JEST_NO_TESTS" == "true" ]]; then
     # no scope, zero tests due to --changedSince = success
     output_no_tests "true" "false" | emit_to_both
     exit 0
+  fi
+fi
+
+######################################################################
+# check for name pattern with zero tests matched
+# jest passes with 0 tests when --testNamePattern yields no matches
+# (skipped tests don't count - only passed + failed = tests that ran)
+######################################################################
+if [[ ${#NAME_PATTERNS[@]} -gt 0 ]] && [[ "$NPM_EXIT_CODE" -eq 0 ]]; then
+  TESTS_RAN=$((${JEST_PASSED:-0} + ${JEST_FAILED:-0}))
+  if [[ "$TESTS_RAN" -eq 0 ]]; then
+    output_no_tests "true" "true" | emit_to_both
+    exit 2
   fi
 fi
 
