@@ -812,7 +812,9 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout shows combined scope display', () => {
-        expect(result.stdout).toContain('scope: path://feature-a, name://feature-a');
+        expect(result.stdout).toContain(
+          'scope: path://feature-a, name://feature-a',
+        );
       });
 
       then('stdout shows passed', () => {
@@ -847,11 +849,14 @@ describe('git.repo.test.sh scope', () => {
             }),
           );
 
-          then('exit code is 2 (constraint: name pattern matched no tests)', () => {
-            // jest finds files via path scope, but name pattern matches no test names
-            // skill detects 0 tests ran and reports constraint error
-            expect(result.exitCode).toBe(2);
-          });
+          then(
+            'exit code is 2 (constraint: name pattern matched no tests)',
+            () => {
+              // jest finds files via path scope, but name pattern matches no test names
+              // skill detects 0 tests ran and reports constraint error
+              expect(result.exitCode).toBe(2);
+            },
+          );
 
           then('stdout shows no tests matched error', () => {
             expect(result.stdout).toContain('no tests matched scope');
