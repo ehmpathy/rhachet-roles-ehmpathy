@@ -1384,20 +1384,23 @@ JEST_SKIPPED=""
 JEST_TIME=""
 
 if [[ "$WHAT" != "lint" ]]; then
-  # jest outputs stats to stderr, so parse stderr
-  parse_jest_output "$TEMP_STDERR"
+  # jest 30 outputs stats to stdout (older versions used stderr)
+  # try stdout first, fall back to stderr for compatibility
+  parse_jest_output "$TEMP_STDOUT"
+  if [[ -z "$JEST_SUITES" ]]; then
+    parse_jest_output "$TEMP_STDERR"
+  fi
 
   # also check stdout for "No tests found" (jest with --passWithNoTests exits 0)
   if grep -qE "No tests found" "$TEMP_STDOUT"; then
     JEST_NO_TESTS=true
   fi
 
-  # additional check: name:// scope used but 0 suites loaded = no files matched the pattern
-  # note: only check suites, not tests - jest can run 0 tests but still be a valid run
-  # (e.g., testNamePattern matches describe block but all tests inside are skipped)
-  if [[ ${#NAME_PATTERNS[@]} -gt 0 ]] && [[ "$NPM_EXIT_CODE" == "0" ]]; then
-    suites_ran="${JEST_SUITES:-0}"
-    if [[ "$suites_ran" == "0" ]]; then
+  # additional check: name:// scope used but 0 tests ran = name pattern didn't match any tests
+  # note: suites may be > 0 because files are loaded, but tests == 0 means no test names matched
+  # only check if JEST_TOTAL was parsed (not empty) - empty means parse failed
+  if [[ ${#NAME_PATTERNS[@]} -gt 0 ]] && [[ "$NPM_EXIT_CODE" == "0" ]] && [[ "$JEST_NO_TESTS" != "true" ]]; then
+    if [[ -n "$JEST_TOTAL" ]] && [[ "$JEST_TOTAL" == "0" ]]; then
       JEST_NO_TESTS=true
     fi
   fi

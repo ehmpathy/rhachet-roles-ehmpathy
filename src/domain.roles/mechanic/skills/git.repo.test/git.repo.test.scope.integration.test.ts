@@ -22,6 +22,7 @@ describe('git.repo.test.sh scope', () => {
     output
       .replace(/\(\d+m?s\)/g, '(Xs)') // time values
       .replace(/\d+m?s/g, 'Xs') // time without parens
+      .replace(/suites: \d+ files/g, 'suites: N files') // suites count (varies by jest version/env)
       .replace(/\/tmp\/[^\s\n]+/g, '/tmp/__sanitized__') // temp paths
       .replace(/\/home\/[^\s]+\/node_modules\/.pnpm\/[^\s]+/g, '__pkg__') // absolute pnpm paths
       .replace(/ {4}at [^\n]+\n/g, '    at __stack__\n') // stack traces (4 space indent)
@@ -43,6 +44,8 @@ describe('git.repo.test.sh scope', () => {
         /UnexpectedCodePathError\('no keyrack\.yml found in repo', \{[^}]*\}\);/g,
         "UnexpectedCodePathError('no keyrack.yml found in repo', {",
       )
+      // standardize leading whitespace before 'throw' (varies by node/jest version)
+      .replace(/^\s+throw /gm, '            throw ')
       // remove caret position indicators entirely (indentation varies by node version)
       .replace(/^\s+\^\s*$/gm, '')
       .trim();

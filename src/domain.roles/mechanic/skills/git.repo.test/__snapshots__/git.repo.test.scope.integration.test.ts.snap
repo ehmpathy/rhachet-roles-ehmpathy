@@ -92,7 +92,7 @@ exports[`git.repo.test.sh scope given: [case4] scope with --mode apply (executio
    │  ├─ 💤 inflight (Xs)
    │  └─ 🎉 passed (Xs)
    ├─ stats
-   │  ├─ suites: 1 files
+   │  ├─ suites: N files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
    │  └─ time: Xs
    └─ log
@@ -292,7 +292,7 @@ exports[`git.repo.test.sh scope given: [case13] scope with path:// matches multi
    │  ├─ 💤 inflight (Xs)
    │  └─ 🎉 passed (Xs)
    ├─ stats
-   │  ├─ suites: 2 files
+   │  ├─ suites: N files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
    │  └─ time: Xs
    └─ log
@@ -339,7 +339,7 @@ exports[`git.repo.test.sh scope given: [case15] scope with name:// prefix --mode
    │  ├─ 💤 inflight (Xs)
    │  └─ 🎉 passed (Xs)
    ├─ stats
-   │  ├─ suites: 1 files
+   │  ├─ suites: N files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
    │  └─ time: Xs
    └─ log
@@ -434,7 +434,7 @@ exports[`git.repo.test.sh scope given: [case19] stacked scopes: path + name in a
    │  ├─ 💤 inflight (Xs)
    │  └─ 🎉 passed (Xs)
    ├─ stats
-   │  ├─ suites: 1 files
+   │  ├─ suites: N files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
    │  └─ time: Xs
    └─ log
@@ -456,7 +456,7 @@ exports[`git.repo.test.sh scope given: [case20] stacked scopes: path matches but
    │  ├─ 💤 inflight (Xs)
    │  └─ 🎉 passed (Xs)
    ├─ stats
-   │  ├─ suites: 1 files
+   │  ├─ suites: N files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
    │  └─ time: Xs
    └─ log
@@ -518,7 +518,7 @@ exports[`git.repo.test.sh scope given: [case23] stacked scopes: two name scopes 
    │  ├─ 💤 inflight (Xs)
    │  └─ 🎉 passed (Xs)
    ├─ stats
-   │  ├─ suites: 1 files
+   │  ├─ suites: N files
    │  ├─ tests: 0 passed, 0 failed, 0 skipped
    │  └─ time: Xs
    └─ log
