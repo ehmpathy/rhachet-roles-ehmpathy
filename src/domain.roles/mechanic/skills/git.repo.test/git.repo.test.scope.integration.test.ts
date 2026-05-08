@@ -95,9 +95,7 @@ describe('git.repo.test.sh scope', () => {
     // use minimal config - jest defaults find *.test.js files automatically
     for (const configType of ['unit', 'integration']) {
       const testMatch =
-        configType === 'unit'
-          ? '**/*.test.js'
-          : '**/*.integration.test.js';
+        configType === 'unit' ? '**/*.test.js' : '**/*.integration.test.js';
       const ignorePatterns =
         configType === 'unit'
           ? `testPathIgnorePatterns: ['integration\\\\.test\\\\.js$'],`
