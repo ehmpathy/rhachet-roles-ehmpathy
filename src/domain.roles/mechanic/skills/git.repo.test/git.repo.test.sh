@@ -19,6 +19,7 @@
 #   git.repo.test.sh --what unit --scope 'invoice'    # filter by file path
 #   git.repo.test.sh --what unit --scope 'path://src/domain' # match file path only
 #   git.repo.test.sh --what unit --scope 'name://should return' # match test name only
+#   git.repo.test.sh --what unit --scope getAllLeads --scope case3  # stack scopes
 #   git.repo.test.sh --what unit --mode apply --resnap     # update snapshots
 #   git.repo.test.sh --what unit --mode apply --thorough   # run full suite
 #
@@ -27,11 +28,16 @@
 #   apply  - execute tests
 #
 # scope patterns:
-#   'foo'           - match file path (default, backwards compatible)
-#   'path://foo'    - match file path (explicit, uri format)
+#   'foo'           - match file path (default)
+#   'path://foo'    - match file path (explicit)
 #   'name://foo'    - match test/describe name (jest --testNamePattern)
-#   'path(foo)'     - match file path (legacy paren format)
-#   'name(foo)'     - match test/describe name (legacy paren format)
+#   (multiple --scope flags stack together)
+#
+# best practice: stack path + name for fastest feedback loops
+#   1. start narrow: --scope path://myfeature --scope name://case3
+#   2. widen path:   --scope path://myfeature (all tests in file)
+#   3. widen name:   --scope name://case3 (all files, one test)
+#   4. full suite:   (no --scope) only to verify no regressions
 #
 # guarantee:
 #   - logs raw output to .log/role=mechanic/skill=git.repo.test/what=${WHAT}/
@@ -39,6 +45,9 @@
 #   - exit 0 = passed, exit 1 = malfunction, exit 2 = constraint
 ######################################################################
 set -euo pipefail
+
+# disable ANSI colors so we can parse jest output (e.g., "Tests:" lines)
+export FORCE_COLOR=0
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
@@ -58,6 +67,33 @@ emit_to_both() {
   content=$(cat)
   echo "$content"      # stdout
   echo "$content" >&2  # stderr
+}
+
+######################################################################
+# helper: format scope array for display
+# - normalizes bare scopes to path:// prefix
+# - joins with ", " separator
+######################################################################
+format_scope_display() {
+  local -a scopes=("$@")
+  local -a normalized=()
+  for scope in "${scopes[@]}"; do
+    if [[ "$scope" == name://* ]] || [[ "$scope" == path://* ]]; then
+      normalized+=("$scope")
+    else
+      # bare scope treated as path filter
+      normalized+=("path://$scope")
+    fi
+  done
+  # join with ", " (IFS only uses first char, so use printf)
+  local result=""
+  for i in "${!normalized[@]}"; do
+    if [[ $i -gt 0 ]]; then
+      result+=", "
+    fi
+    result+="${normalized[$i]}"
+  done
+  echo "$result"
 }
 
 ######################################################################
@@ -257,18 +293,23 @@ get_scope_file_count() {
   fi
 
   local matched_files
+  local jest_bin="$REPO_ROOT/node_modules/.bin/jest"
+
+  # failfast if jest not installed
+  if [[ ! -x "$jest_bin" ]]; then
+    echo "-1"  # -1 means couldn't check
+    return
+  fi
+
   # shellcheck disable=SC2086
-  if ! matched_files=$(npx --no-install jest $jest_config --listTests $test_path_arg $changed_since 2>/dev/null); then
+  if ! matched_files=$(nice -n 5 "$jest_bin" $jest_config --listTests $test_path_arg $changed_since 2>/dev/null); then
     echo "-1"  # -1 means couldn't check
     return
   fi
 
   # count non-empty lines (jest outputs one file per line)
-  # note: handles both absolute (/path/to/file) and relative (src/file.ts) paths
-  # note: matches .ts, .tsx, .js, .jsx files
   local file_count
   file_count=$(echo "$matched_files" | grep -cE '.+\.(tsx?|jsx?)$' 2>/dev/null || true)
-  # ensure file_count is a number (grep -c can return empty on some systems)
   [[ -z "$file_count" ]] && file_count=0
 
   echo "$file_count"
@@ -328,13 +369,21 @@ get_scope_files() {
   fi
 
   local matched_files
-  # shellcheck disable=SC2086
-  if ! matched_files=$(npx --no-install jest $jest_config --listTests $test_path_arg $changed_since 2>/dev/null); then
+  local jest_bin="$REPO_ROOT/node_modules/.bin/jest"
+
+  # skip if jest not installed
+  if [[ ! -x "$jest_bin" ]]; then
     return
   fi
 
-  # output only lines that look like file paths (start with /)
-  echo "$matched_files" | grep -E '^\/' 2>/dev/null || true
+  # shellcheck disable=SC2086
+  if ! matched_files=$(nice -n 5 "$jest_bin" $jest_config --listTests $test_path_arg $changed_since 2>/dev/null); then
+    return
+  fi
+
+  # output lines that look like file paths (absolute or relative .ts/.js/.tsx/.jsx)
+  # sort for deterministic output across runs
+  echo "$matched_files" | grep -E '\.(tsx?|jsx?)$' 2>/dev/null | sort || true
 }
 
 ######################################################################
@@ -347,18 +396,14 @@ output_plan_mode() {
   local file_count="$4"
   local files_output="$5"
   local resnap="${6:-false}"
-  local max_display=30
+  local max_display=21
 
   print_turtle_header "heres the wave..."
   print_tree_start "git.repo.test $display_args"
 
-  # show scope info with optional name filter note
+  # show scope info
   echo "   ├─ scope: $scope"
-  if [[ "$scope_mode" == "name" ]]; then
-    echo "   │  └─ matched: $file_count files (name filter applies at runtime)"
-  else
-    echo "   │  └─ matched: $file_count files"
-  fi
+  echo "   │  └─ matched: $file_count files"
 
   # show file list
   echo "   └─ files"
@@ -417,9 +462,49 @@ output_plan_mode() {
 preview_scope_matches() {
   local scope="$1"
   local file_count="$2"
+  local files_output="$3"
+  local max_display=21
 
   echo "   ├─ scope: $scope"
   echo "   │  └─ matched: $file_count files"
+
+  # show file list (peer to scope, not nested)
+  echo "   ├─ files"
+  local total_files="$file_count"
+  local rest=0
+
+  if [[ "$total_files" -gt "$max_display" ]]; then
+    rest=$((total_files - max_display))
+  fi
+
+  # collect files into array for proper last-item detection
+  local -a file_array=()
+  while IFS= read -r file_path; do
+    [[ -z "$file_path" ]] && continue
+    file_array+=("$file_path")
+    [[ ${#file_array[@]} -ge $max_display ]] && break
+  done <<< "$files_output"
+
+  local display_count=${#file_array[@]}
+  if [[ $display_count -eq 0 ]]; then
+    echo "   │  └─ (none)"
+  else
+    for i in "${!file_array[@]}"; do
+      local rel_path="${file_array[$i]#$REPO_ROOT/}"
+      local is_last=$(( i == display_count - 1 ))
+
+      if [[ $is_last -eq 1 ]]; then
+        if [[ $rest -gt 0 ]]; then
+          echo "   │  ├─ $rel_path"
+          echo "   │  └─ ... ($rest more, $total_files total)"
+        else
+          echo "   │  └─ $rel_path"
+        fi
+      else
+        echo "   │  ├─ $rel_path"
+      fi
+    done
+  fi
 }
 
 ######################################################################
@@ -427,7 +512,7 @@ preview_scope_matches() {
 ######################################################################
 WHAT=""
 WHEN=""
-SCOPE=""
+SCOPES=()  # array to support multiple --scope flags
 MODE="plan"  # plan | apply (plan = preview files, apply = run tests)
 RESNAP=false
 THOROUGH=false
@@ -451,7 +536,8 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --scope)
-      SCOPE="$2"
+      # skip empty scope values
+      [[ -n "$2" ]] && SCOPES+=("$2")
       shift 2
       ;;
     --mode)
@@ -493,12 +579,11 @@ while [[ $# -gt 0 ]]; do
       echo "  --mode <mode>       plan | apply (default: plan)"
       echo "                        plan  = preview matched files"
       echo "                        apply = execute tests"
-      echo "  --scope <pattern>   filter tests by pattern (regex supported)"
+      echo "  --scope <pattern>   filter tests by pattern (regex supported, stackable)"
       echo "                        'foo'           match file path (default)"
-      echo "                        'path://foo'    match file path (explicit, uri format)"
+      echo "                        'path://foo'    match file path (explicit)"
       echo "                        'name://foo'    match test/describe name"
-      echo "                        'path(foo)'     match file path (legacy)"
-      echo "                        'name(foo)'     match test/describe name (legacy)"
+      echo "                        (use multiple --scope flags to combine filters)"
       echo "  --resnap            update snapshots (sets RESNAP=true, requires --mode apply)"
       echo "  --thorough          run full suite (sets THOROUGH=true)"
       echo "  --timeout <secs>    max time in seconds before timeout"
@@ -516,32 +601,44 @@ while [[ $# -gt 0 ]]; do
 done
 
 ######################################################################
-# parse scope pattern: uri format (path://foo, name://foo) or legacy paren format
+# parse scope patterns: uri format (path://foo, name://foo)
+# supports multiple --scope flags that stack together
 ######################################################################
-SCOPE_MODE="both"  # both | path | name
-SCOPE_PATTERN=""
+PATH_PATTERNS=()   # patterns to filter by file path
+NAME_PATTERNS=()   # patterns to filter by test name
+SCOPE=""           # legacy: first scope for display and backwards compat
+SCOPE_MODE="both"  # legacy: both | path | name (for first scope only)
+SCOPE_PATTERN=""   # legacy: pattern for first scope
 
-if [[ -n "$SCOPE" ]]; then
+for scope_item in "${SCOPES[@]}"; do
+  # set legacy SCOPE to first item for backwards compatibility
+  [[ -z "$SCOPE" ]] && SCOPE="$scope_item"
+
   # uri format: path://foo or name://foo
-  if [[ "$SCOPE" =~ ^path://(.+)$ ]]; then
-    SCOPE_MODE="path"
-    SCOPE_PATTERN="${BASH_REMATCH[1]}"
-  elif [[ "$SCOPE" =~ ^name://(.+)$ ]]; then
-    SCOPE_MODE="name"
-    SCOPE_PATTERN="${BASH_REMATCH[1]}"
-  # legacy paren format: path(foo) or name(foo)
-  elif [[ "$SCOPE" =~ ^path\((.+)\)$ ]]; then
-    SCOPE_MODE="path"
-    SCOPE_PATTERN="${BASH_REMATCH[1]}"
-  elif [[ "$SCOPE" =~ ^name\((.+)\)$ ]]; then
-    SCOPE_MODE="name"
-    SCOPE_PATTERN="${BASH_REMATCH[1]}"
+  if [[ "$scope_item" =~ ^path://(.+)$ ]]; then
+    PATH_PATTERNS+=("${BASH_REMATCH[1]}")
+    # set legacy mode/pattern for first scope
+    if [[ "${#SCOPES[@]}" -eq 1 ]] || [[ "$scope_item" == "${SCOPES[0]}" ]]; then
+      SCOPE_MODE="path"
+      SCOPE_PATTERN="${BASH_REMATCH[1]}"
+    fi
+  elif [[ "$scope_item" =~ ^name://(.+)$ ]]; then
+    NAME_PATTERNS+=("${BASH_REMATCH[1]}")
+    # set legacy mode/pattern for first scope
+    if [[ "${#SCOPES[@]}" -eq 1 ]] || [[ "$scope_item" == "${SCOPES[0]}" ]]; then
+      SCOPE_MODE="name"
+      SCOPE_PATTERN="${BASH_REMATCH[1]}"
+    fi
   else
     # bare scope defaults to path
-    SCOPE_MODE="both"
-    SCOPE_PATTERN="$SCOPE"
+    PATH_PATTERNS+=("$scope_item")
+    # set legacy mode/pattern for first scope
+    if [[ "${#SCOPES[@]}" -eq 1 ]] || [[ "$scope_item" == "${SCOPES[0]}" ]]; then
+      SCOPE_MODE="both"
+      SCOPE_PATTERN="$scope_item"
+    fi
   fi
-fi
+done
 
 ######################################################################
 # block raw filter flags in REST_ARGS
@@ -555,8 +652,8 @@ for arg in "${REST_ARGS[@]}"; do
       echo ""
       echo "🥥 did you know?"
       echo "   ├─ --scope 'foo' filters by file path"
-      echo "   ├─ --scope 'path(foo)' filters by file path (explicit)"
-      echo "   └─ --scope 'name(foo)' filters by test name"
+      echo "   ├─ --scope 'path://foo' filters by file path (explicit)"
+      echo "   └─ --scope 'name://foo' filters by test name"
     )
     echo "$_output"      # stdout
     echo "$_output" >&2  # stderr
@@ -570,8 +667,8 @@ for arg in "${REST_ARGS[@]}"; do
       echo ""
       echo "🥥 did you know?"
       echo "   ├─ --scope 'foo' filters by file path"
-      echo "   ├─ --scope 'path(foo)' filters by file path (explicit)"
-      echo "   └─ --scope 'name(foo)' filters by test name"
+      echo "   ├─ --scope 'path://foo' filters by file path (explicit)"
+      echo "   └─ --scope 'name://foo' filters by test name"
     )
     echo "$_output"      # stdout
     echo "$_output" >&2  # stderr
@@ -819,7 +916,9 @@ cd "$REPO_ROOT"
 
 # build args for display
 DISPLAY_ARGS="--what $WHAT"
-[[ -n "$SCOPE" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --scope $SCOPE"
+for scope_item in "${SCOPES[@]}"; do
+  DISPLAY_ARGS="$DISPLAY_ARGS --scope $scope_item"
+done
 [[ "$MODE" == "apply" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --mode apply"
 [[ "$RESNAP" == "true" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --resnap"
 [[ "$THOROUGH" == "true" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --thorough"
@@ -855,6 +954,7 @@ parse_jest_output() {
   JEST_PASSED=""
   JEST_FAILED=""
   JEST_SKIPPED=""
+  JEST_TOTAL=""
   JEST_TIME=""
   JEST_NO_TESTS=false
 
@@ -877,12 +977,22 @@ parse_jest_output() {
   fi
 
   # parse Tests line: "Tests: 12 passed, 2 skipped, 14 total" or "Tests: 1 failed, 11 passed, 2 skipped, 14 total"
+  # note: jest 30 may output "Tests: 0 total" with no passed/failed/skipped when testNamePattern matches 0
   local tests_line
   tests_line=$(grep -E "^Tests:" "$stdout_file" | tail -1 || true)
   if [[ -n "$tests_line" ]]; then
     JEST_PASSED=$(echo "$tests_line" | grep -oE "[0-9]+ passed" | grep -oE "[0-9]+" || echo "0")
     JEST_FAILED=$(echo "$tests_line" | grep -oE "[0-9]+ failed" | grep -oE "[0-9]+" || echo "0")
     JEST_SKIPPED=$(echo "$tests_line" | grep -oE "[0-9]+ skipped" | grep -oE "[0-9]+" || echo "0")
+    # parse total if present, otherwise compute from components
+    local total_field
+    total_field=$(echo "$tests_line" | grep -oE "[0-9]+ total" | grep -oE "[0-9]+" || echo "")
+    if [[ -n "$total_field" ]]; then
+      JEST_TOTAL="$total_field"
+    else
+      # jest 30 may not include "total" field - compute from passed+failed+skipped
+      JEST_TOTAL=$((${JEST_PASSED:-0} + ${JEST_FAILED:-0} + ${JEST_SKIPPED:-0}))
+    fi
   fi
 
   # parse Time line: "Time: 12.345 s" or "Time: 1.234s"
@@ -902,26 +1012,30 @@ run_single_test() {
   local temp_stdout="$2"
   local temp_stderr="$3"
 
-  # build npm command
-  local npm_cmd="npm run test:${test_type}"
+  # npm command name for this test type
+  local npm_target="test:${test_type}"
 
   # build jest args
   local jest_args=()
 
   # add scope filters (skip for lint)
-  if [[ -n "$SCOPE_PATTERN" ]] && [[ "$test_type" != "lint" ]]; then
-    case "$SCOPE_MODE" in
-      name)
-        jest_args+=("--testNamePattern" "$SCOPE_PATTERN")
-        ;;
-      path|both)
-        # bare --scope 'foo' and --scope 'path(foo)' both filter by path
-        # use correct flag based on jest version (singular for ≤29, plural for ≥30)
-        local path_flag
-        path_flag=$(get_jest_path_pattern_flag)
-        jest_args+=("$path_flag" "$SCOPE_PATTERN")
-        ;;
-    esac
+  # supports stacked scopes: multiple path patterns AND name patterns
+  if [[ "$test_type" != "lint" ]]; then
+    # add path patterns
+    if [[ ${#PATH_PATTERNS[@]} -gt 0 ]]; then
+      local path_flag
+      path_flag=$(get_jest_path_pattern_flag)
+      for pattern in "${PATH_PATTERNS[@]}"; do
+        jest_args+=("$path_flag" "$pattern")
+      done
+    fi
+
+    # add name patterns
+    if [[ ${#NAME_PATTERNS[@]} -gt 0 ]]; then
+      for pattern in "${NAME_PATTERNS[@]}"; do
+        jest_args+=("--testNamePattern" "$pattern")
+      done
+    fi
   fi
 
   # add REST_ARGS (skip for lint)
@@ -929,27 +1043,30 @@ run_single_test() {
     jest_args+=("${REST_ARGS[@]}")
   fi
 
-  # build full command with args
-  if [[ ${#jest_args[@]} -gt 0 ]]; then
-    npm_cmd="$npm_cmd -- ${jest_args[*]}"
-  fi
-
-  # set env vars
-  local env_prefix=""
+  # set env vars for execution
+  local -a env_vars=()
   if [[ "$RESNAP" == "true" ]] && [[ "$test_type" != "lint" ]]; then
-    env_prefix="RESNAP=true "
+    env_vars+=("RESNAP=true")
   fi
   if [[ "$THOROUGH" == "true" ]]; then
-    env_prefix="${env_prefix}THOROUGH=true "
+    env_vars+=("THOROUGH=true")
   fi
 
-  # run command (with optional timeout)
+  # run command (with optional timeout, at lower priority to avoid lockup)
+  # use env + array execution to avoid bash -c string issues
   local exit_code=0
   if [[ -n "$TIMEOUT" ]]; then
-    # use timeout command; exit 124 means timeout exceeded
-    timeout "${TIMEOUT}s" bash -c "${env_prefix}${npm_cmd}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+    if [[ ${#jest_args[@]} -gt 0 ]]; then
+      timeout "${TIMEOUT}s" nice -n 5 env "${env_vars[@]}" npm run "$npm_target" -- "${jest_args[@]}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+    else
+      timeout "${TIMEOUT}s" nice -n 5 env "${env_vars[@]}" npm run "$npm_target" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+    fi
   else
-    eval "${env_prefix}${npm_cmd}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+    if [[ ${#jest_args[@]} -gt 0 ]]; then
+      nice -n 5 env "${env_vars[@]}" npm run "$npm_target" -- "${jest_args[@]}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+    else
+      nice -n 5 env "${env_vars[@]}" npm run "$npm_target" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
+    fi
   fi
 
   return $exit_code
@@ -1101,8 +1218,10 @@ output_no_tests() {
   fi
 
   if [[ "$has_scope" == "true" ]]; then
+    local scope_display
+    scope_display=$(format_scope_display "${SCOPES[@]}")
     print_tree_branch "status" "constraint"
-    echo "   └─ error: no tests matched scope '$SCOPE'"
+    echo "   └─ error: no tests matched scope '$scope_display'"
     echo ""
     echo "hint: check the scope pattern or run without --scope to see all tests"
   else
@@ -1130,7 +1249,9 @@ if [[ "$MULTI_MODE" == "true" ]]; then
   for test_type in "${WHAT_TYPES[@]}"; do
     # build args for this type
     type_args=("--what" "$test_type")
-    [[ -n "$SCOPE" ]] && type_args+=("--scope" "$SCOPE")
+    for scope_item in "${SCOPES[@]}"; do
+      type_args+=("--scope" "$scope_item")
+    done
     [[ -n "$MODE" ]] && type_args+=("--mode" "$MODE")
     [[ "$RESNAP" == "true" ]] && type_args+=("--resnap")
     [[ "$THOROUGH" == "true" ]] && type_args+=("--thorough")
@@ -1167,13 +1288,12 @@ fi
 # handle plan mode for jest-based tests
 ######################################################################
 if [[ "$MODE" == "plan" ]]; then
-  # get scope pattern or default to "." for all files
-  # for name:// scope, use "." since jest --listTests can't filter by test name
-  if [[ "$SCOPE_MODE" == "name" ]]; then
-    local_scope="."
-  else
-    local_scope="${SCOPE_PATTERN:-}"
-    [[ -z "$local_scope" ]] && local_scope="."
+  # determine local_scope for file count check
+  # - use first path pattern if any, since jest --listTests filters by path
+  # - use "." if no path patterns (name:// doesn't filter file list)
+  local_scope="."
+  if [[ ${#PATH_PATTERNS[@]} -gt 0 ]]; then
+    local_scope="${PATH_PATTERNS[0]}"
   fi
 
   # get file count
@@ -1198,11 +1318,15 @@ if [[ "$MODE" == "plan" ]]; then
     _output=$(
       print_turtle_header "bummer dude..."
       print_tree_start "git.repo.test $DISPLAY_ARGS"
-      echo "   ├─ scope: ${SCOPE:-all}"
+      scope_display="all"
+      if [[ ${#SCOPES[@]} -gt 0 ]]; then
+        scope_display=$(format_scope_display "${SCOPES[@]}")
+      fi
+      echo "   ├─ scope: $scope_display"
       echo "   │  └─ matched: 0 files"
       echo "   └─ error: no files matched"
       echo ""
-      if [[ -n "$SCOPE" ]]; then
+      if [[ ${#SCOPES[@]} -gt 0 ]]; then
         echo "hint: check the scope pattern or try without --scope"
       else
         echo "hint: check that test files exist for --what $WHAT"
@@ -1216,8 +1340,14 @@ if [[ "$MODE" == "plan" ]]; then
   # get the actual file list
   FILES_OUTPUT=$(get_scope_files "$WHAT" "$local_scope")
 
+  # build scope display (join all scopes or show "all")
+  SCOPE_DISPLAY="all"
+  if [[ ${#SCOPES[@]} -gt 0 ]]; then
+    SCOPE_DISPLAY=$(format_scope_display "${SCOPES[@]}")
+  fi
+
   # output plan mode result
-  output_plan_mode "$DISPLAY_ARGS" "${SCOPE:-all}" "$SCOPE_MODE" "$SCOPE_FILE_COUNT" "$FILES_OUTPUT" "$RESNAP"
+  output_plan_mode "$DISPLAY_ARGS" "$SCOPE_DISPLAY" "$SCOPE_MODE" "$SCOPE_FILE_COUNT" "$FILES_OUTPUT" "$RESNAP"
 
   # done - plan mode complete
   exit 0
@@ -1241,12 +1371,13 @@ fi
 # show scope preview if applicable and failfast if 0 matches or check failed
 SCOPE_PREVIEW_OUTPUT=""
 SCOPE_FILE_COUNT=""
-if [[ -n "$SCOPE" ]] && [[ "$WHAT" != "lint" ]]; then
-  # for name:// scope, use "." since jest --listTests can't filter by test name
-  local_scope="${SCOPE_PATTERN:-}"
-  [[ -z "$local_scope" ]] && local_scope="."
-  if [[ "$SCOPE_MODE" == "name" ]]; then
-    local_scope="."
+if [[ ${#SCOPES[@]} -gt 0 ]] && [[ "$WHAT" != "lint" ]]; then
+  # determine local_scope for file count check
+  # - use first path pattern if any, since jest --listTests filters by path
+  # - use "." if no path patterns (name:// doesn't filter file list)
+  local_scope="."
+  if [[ ${#PATH_PATTERNS[@]} -gt 0 ]]; then
+    local_scope="${PATH_PATTERNS[0]}"
   fi
   SCOPE_FILE_COUNT=$(get_scope_file_count "$WHAT" "$local_scope")
 
@@ -1261,8 +1392,14 @@ if [[ -n "$SCOPE" ]] && [[ "$WHAT" != "lint" ]]; then
     exit 1
   fi
 
+  # get files for display
+  SCOPE_FILES=$(get_scope_files "$WHAT" "$local_scope")
+
+  # build scope display (join all scopes)
+  SCOPE_DISPLAY=$(format_scope_display "${SCOPES[@]}")
+
   # show preview
-  SCOPE_PREVIEW_OUTPUT=$(preview_scope_matches "$SCOPE" "$SCOPE_FILE_COUNT")
+  SCOPE_PREVIEW_OUTPUT=$(preview_scope_matches "$SCOPE_DISPLAY" "$SCOPE_FILE_COUNT" "$SCOPE_FILES")
   echo "$SCOPE_PREVIEW_OUTPUT"
 
   # failfast if scope matched 0 files
@@ -1293,11 +1430,16 @@ JEST_SUITES=""
 JEST_PASSED=""
 JEST_FAILED=""
 JEST_SKIPPED=""
+JEST_TOTAL=""
 JEST_TIME=""
 
 if [[ "$WHAT" != "lint" ]]; then
-  # jest outputs stats to stderr, so parse stderr
-  parse_jest_output "$TEMP_STDERR"
+  # jest 30 outputs stats to stdout (older versions used stderr)
+  # try stdout first, fall back to stderr for compatibility
+  parse_jest_output "$TEMP_STDOUT"
+  if [[ -z "$JEST_SUITES" ]]; then
+    parse_jest_output "$TEMP_STDERR"
+  fi
 
   # also check stdout for "No tests found" (jest with --passWithNoTests exits 0)
   if grep -qE "No tests found" "$TEMP_STDOUT"; then
@@ -1313,7 +1455,7 @@ REL_STDERR_LOG="$LOG_DIR/${ISOTIME}.stderr.log"
 # check for no tests matched
 ######################################################################
 if [[ "$JEST_NO_TESTS" == "true" ]]; then
-  if [[ -n "$SCOPE" ]]; then
+  if [[ ${#SCOPES[@]} -gt 0 ]]; then
     # scope was specified but matched zero files = constraint error
     output_no_tests "true" "true" | emit_to_both
     exit 2
@@ -1321,6 +1463,19 @@ if [[ "$JEST_NO_TESTS" == "true" ]]; then
     # no scope, zero tests due to --changedSince = success
     output_no_tests "true" "false" | emit_to_both
     exit 0
+  fi
+fi
+
+######################################################################
+# check for name pattern with zero tests matched
+# jest passes with 0 tests when --testNamePattern yields no matches
+# (skipped tests don't count - only passed + failed = tests that ran)
+######################################################################
+if [[ ${#NAME_PATTERNS[@]} -gt 0 ]] && [[ "$NPM_EXIT_CODE" -eq 0 ]]; then
+  TESTS_RAN=$((${JEST_PASSED:-0} + ${JEST_FAILED:-0}))
+  if [[ "$TESTS_RAN" -eq 0 ]]; then
+    output_no_tests "true" "true" | emit_to_both
+    exit 2
   fi
 fi
 

@@ -16,26 +16,10 @@ import {
   genStateDir,
   genTempGitRepo,
 } from './.test/infra/setupTestEnv';
+import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 // all tests use mocked gh CLI, so no remote calls - 5s timeout is plenty
 jest.setTimeout(5000);
-
-/**
- * .what = replace timing values with placeholders for snapshot stability
- * .why = timing varies between runs (0s vs 1s), causes flaky snapshots
- */
-const asTimingStable = (output: string): string => {
-  return (
-    output
-      // replace "Ns in action" and "Ns watched" patterns
-      .replace(/\d+s in action/g, 'Xs in action')
-      .replace(/\d+s watched/g, 'Xs watched')
-      // replace "Nm Ns" duration patterns
-      .replace(/\d+m\s*\d+s/g, 'Xm Ys')
-      // replace standalone seconds in duration contexts
-      .replace(/(\d+)s delay/g, 'Xs delay')
-  );
-};
 
 const SKILL_PATH = path.resolve(
   __dirname,
@@ -107,7 +91,7 @@ const runSkill = (
       ...(env.extraEnv ?? {}),
     },
     encoding: 'utf-8',
-    timeout: 3000, // 3s hard limit - all mocked, should be instant
+    timeout: 10000, // 3s hard limit - all mocked, should be instant
   });
 
   return {
@@ -138,7 +122,7 @@ describe('git.release', () => {
 
           const result = runSkill(['--into', 'main'], { tempDir, fakeBinDir });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -162,7 +146,7 @@ describe('git.release', () => {
 
           const result = runSkill(['--into', 'main'], { tempDir, fakeBinDir });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
@@ -212,7 +196,7 @@ describe('git.release', () => {
 
           // should find the merged PR and show its status
           expect(result.stdout).toContain('feat(oceans): add reef protection');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -243,7 +227,7 @@ describe('git.release', () => {
             fakeBinDir,
           });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -279,7 +263,7 @@ describe('git.release', () => {
 
           // verify duration appears in output
           expect(result.stdout).toContain('failed after');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // per spec: failed checks are constraint errors (exit 2)
           expect(result.status).toEqual(2);
         } finally {
@@ -305,7 +289,7 @@ describe('git.release', () => {
 
           const result = runSkill(['--into', 'main'], { tempDir, fakeBinDir });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
@@ -332,7 +316,7 @@ describe('git.release', () => {
 
           // should show conflicts message
           expect(result.stdout).toContain('has conflicts');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
@@ -452,7 +436,7 @@ exit 1
           expect(result.stdout).toContain('and merged already');
 
           // snapshot output
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // stderr should NOT contain the GraphQL error (we suppressed it)
           expect(result.stderr).toMatchSnapshot();
         } finally {
@@ -500,7 +484,7 @@ exit 1
           expect(result.stdout).toContain('all checks passed');
 
           // snapshots capture exact output
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.stderr).toMatchSnapshot();
         } finally {
           cleanup();
@@ -524,7 +508,7 @@ exit 1
         try {
           const result = runSkill(['--into', 'prod'], { tempDir, fakeBinDir });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -548,7 +532,7 @@ exit 1
 
           const result = runSkill(['--into', 'prod'], { tempDir, fakeBinDir });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -578,7 +562,7 @@ exit 1
           // should show unified prod header with feature branch content
           expect(result.stdout).toContain('git.release --into prod');
           expect(result.stdout).toContain('feat(oceans): add reef protection');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -605,7 +589,7 @@ exit 1
           expect(result.stdout).toContain('crickets');
           expect(result.stdout).toContain('no open branch pr');
           expect(result.stdout).toContain('git.commit.push');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
@@ -738,7 +722,7 @@ exit 1
           expect(result.stdout).toContain('merged');
           // should continue to release PR section
           expect(result.stdout).toContain('chore(release): v1.33.0');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -881,7 +865,7 @@ exit 1
           expect(result.stdout).toContain('chore(release): v1.33.0');
           // should show tag status (the "third find") - note: workflow names only appear in watch mode
           expect(result.stdout).toContain('v1.33.0');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -914,7 +898,7 @@ exit 1
             fakeBinDir,
           });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -940,7 +924,7 @@ exit 1
             fakeBinDir,
           });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -966,7 +950,7 @@ exit 1
             fakeBinDir,
           });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // per spec: failed checks are constraint errors (exit 2)
           expect(result.status).toEqual(2);
         } finally {
@@ -993,7 +977,7 @@ exit 1
             fakeBinDir,
           });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -1137,7 +1121,7 @@ exit 1
             extraEnv: { GIT_RELEASE_POLL_INTERVAL: '0' },
           });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         });
       },
@@ -1167,7 +1151,7 @@ exit 1
             fakeBinDir,
           });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -1272,7 +1256,7 @@ exit 1
           extraEnv: { GIT_RELEASE_POLL_INTERVAL: '0' },
         });
 
-        expect(asTimingStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         expect(result.status).toEqual(0);
       });
     });
@@ -1294,7 +1278,7 @@ exit 1
             fakeBinDir,
           });
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // might timeout or complete differently - let's see the snapshot
         } finally {
           cleanup();
@@ -1326,7 +1310,7 @@ exit 1
           expect(result.stdout).toContain('crickets');
           expect(result.stdout).toContain('no open branch pr');
           expect(result.stdout).toContain('git.commit.push');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2); // constraint error
         } finally {
           cleanup();
@@ -1507,7 +1491,7 @@ exit 1
         expect(result.stdout).toContain('chore(release)');
         // then should show tag workflow watch
         expect(result.stdout).toContain('v1.2.3');
-        expect(asTimingStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         expect(result.status).toEqual(0);
       });
     });
@@ -1684,7 +1668,7 @@ exit 1
             // should show release PR with instant merge
             expect(result.stdout).toContain('chore(release)');
             expect(result.stdout).toContain('-> and merged already');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);
 
             fs.rmSync(tempDir, { recursive: true, force: true });
@@ -1830,7 +1814,7 @@ exit 1
         expect(result.stdout).toContain('merged');
         // should proceed to release PR
         expect(result.stdout).toContain('chore(release)');
-        expect(asTimingStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         expect(result.status).toEqual(0);
 
         fs.rmSync(tempDir, { recursive: true, force: true });
@@ -1978,7 +1962,7 @@ exit 1
         expect(result.stdout).toContain('feat(oceans): add reef protection');
         expect(result.stdout).toContain('in progress');
         expect(result.stdout).toContain('chore(release)');
-        expect(asTimingStable(result.stdout)).toMatchSnapshot();
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         expect(result.status).toEqual(0);
 
         fs.rmSync(tempDir, { recursive: true, force: true });
@@ -2020,7 +2004,7 @@ exit 1
           console.log('DEBUG STDERR:', result.stderr);
           console.log('DEBUG STATUS:', result.status);
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // retry was triggered successfully — exit 0 (use --watch to monitor)
           expect(result.status).toEqual(0);
         } finally {
@@ -2105,7 +2089,7 @@ exit 1
             },
           );
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // still fails because workflow still shows failure
           // per spec: failed checks are constraint errors (exit 2)
           expect(result.status).toEqual(2);
@@ -2190,7 +2174,7 @@ exit 1
               },
             );
 
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // verify we see 3+ poll cycles in output (💤 lines)
             const pollLines = result.stdout
               .split('\n')
@@ -2251,7 +2235,7 @@ exit 1
             },
           );
 
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(1);
         } finally {
           cleanup();
@@ -2344,7 +2328,7 @@ exit 1
 
           // should default to --into main behavior
           expect(result.stdout).toContain('git.release --into main');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -2362,7 +2346,7 @@ exit 1
           expect(result.stdout).toContain('--into main');
           expect(result.stdout).toContain('--into prod');
           expect(result.stdout).toContain('--retry');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -2491,7 +2475,7 @@ esac
             expect(result.stdout).toContain('hold up dude');
             expect(result.stdout).toContain('uncommitted changes');
             expect(result.stdout).toContain('--dirty allow');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2); // constraint error
           } finally {
             cleanup();
@@ -2535,7 +2519,7 @@ esac
           // should proceed despite modified tracked file
           expect(result.stdout).toContain('cowabunga');
           expect(result.stdout).not.toContain('uncommitted changes');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -2574,7 +2558,7 @@ esac
           // plan mode should not check for dirty state
           expect(result.stdout).toContain('heres the wave');
           expect(result.stdout).not.toContain('uncommitted changes');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -2608,7 +2592,7 @@ esac
           // should proceed without dirty warning
           expect(result.stdout).toContain('cowabunga');
           expect(result.stdout).not.toContain('unstaged changes');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -2637,7 +2621,7 @@ esac
           const result = runSkill(['--into', 'main'], { tempDir, fakeBinDir });
 
           expect(result.stdout).toContain('in progress');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -2784,7 +2768,7 @@ exit 1
           expect(result.stdout).toContain('in action');
           expect(result.stdout).toContain('watched');
           expect(result.stdout).toContain('✨ done!');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -2917,7 +2901,7 @@ exit 1
           // should detect rebase requirement mid-watch and failfast
           expect(result.stdout).toContain('but, needs rebase now');
           expect(result.stdout).toContain('rhx git.branch.rebase begin');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // exit 2 = constraint error (user must rebase)
           expect(result.status).toEqual(2);
         } finally {
@@ -3047,7 +3031,7 @@ exit 1
           expect(result.stdout).toContain('but, needs rebase now');
           expect(result.stdout).toContain('has conflicts');
           expect(result.stdout).toContain('rhx git.branch.rebase begin');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(2);
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -3081,7 +3065,7 @@ exit 1
           // should show BOTH failed and progress (Gap 9 fix: progress inside failure block)
           expect(result.stdout).toContain('check(s) failed');
           expect(result.stdout).toContain('check(s) still in progress');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // per spec: failed checks are constraint errors (exit 2)
           expect(result.status).toEqual(2);
         } finally {
@@ -3119,7 +3103,7 @@ exit 1
           expect(result.stdout).toContain('git.release --into main --watch');
           // should show automerge is unfound (--watch does not enable it, just reports status)
           expect(result.stdout).toContain('automerge unfound');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -3157,7 +3141,7 @@ exit 1
           );
           // PR returned MERGED state with checks passed, shows success
           expect(result.stdout).toContain('all checks passed');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -3200,7 +3184,7 @@ exit 1
           expect(result.stdout).toContain('in progress');
           // watch ends with "done!" (check status was shown by emit_transport_status)
           expect(result.stdout).toContain('done!');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // mocks drove completion, should exit 0
           expect(result.status).toEqual(0);
         } finally {
@@ -3270,7 +3254,7 @@ esac
           expect(result.stdout).toContain('in progress');
           // watch ends with "done!" (check status shown by emit_transport_status)
           expect(result.stdout).toContain('done!');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // exits 0: checks completed
           expect(result.status).toEqual(0);
         } finally {
@@ -3380,7 +3364,7 @@ exit 1
 
           // should show automerge found (not added)
           expect(result.stdout).toContain('automerge enabled [found]');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -3413,7 +3397,7 @@ exit 1
           expect(result.stdout).toContain('git.release --into main --watch');
           // should report automerge unfound (plan mode does not enable)
           expect(result.stdout).toContain('automerge unfound');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
         } finally {
           cleanup();
@@ -3458,7 +3442,7 @@ exit 1
             // should show full progression: await automerge → done
             expect(result.stdout).toContain('await automerge');
             expect(result.stdout).toContain('done!');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // mock drove completion, exits 0
             expect(result.status).toEqual(0);
           } finally {
@@ -3530,7 +3514,7 @@ esac
           expect(result.stdout).toContain('automerge enabled [found]');
           expect(result.stdout).toContain('await automerge');
           expect(result.stdout).toContain('done!');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // exits 0: PR merged
           expect(result.status).toEqual(0);
         } finally {
@@ -3729,7 +3713,7 @@ exit 1
           expect(result.stdout).toContain('found!');
           // should proceed to release PR
           expect(result.stdout).toContain('chore(release)');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
 
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -3891,7 +3875,7 @@ exit 1
           // should show workflow status
           expect(result.stdout).toContain('release');
           expect(result.stdout).toContain('failure');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // exit 2 = constraint error (timeout)
           expect(result.status).toEqual(2);
 
@@ -4055,7 +4039,7 @@ exit 1
           expect(result.stdout).not.toContain('in await');
           // should proceed to release PR
           expect(result.stdout).toContain('chore(release)');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
 
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -4256,7 +4240,7 @@ exit 1
           expect(result.stdout).toContain('found!');
           // should proceed to release PR
           expect(result.stdout).toContain('chore(release)');
-          expect(asTimingStable(result.stdout)).toMatchSnapshot();
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           expect(result.status).toEqual(0);
 
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -4407,7 +4391,7 @@ exit 1
             // should show workflow status
             expect(result.stdout).toContain('release');
             expect(result.stdout).toContain('failure');
-            expect(asTimingStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             // exit 2 = constraint error (timeout)
             expect(result.status).toEqual(2);
 

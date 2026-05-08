@@ -12,6 +12,15 @@ describe('init.claude.permissions.sh', () => {
   const initPath = path.join(__dirname, 'init.claude.permissions.sh');
 
   /**
+   * .what = sanitize dynamic values from output for stable snapshots
+   */
+  const sanitizeOutput = (output: string): string =>
+    output.replace(
+      /settings\.\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z\.bak\.json/g,
+      'settings.TIMESTAMP.bak.json',
+    );
+
+  /**
    * .what = helper to run init in a temp git repo
    */
   const runInit = (input: {
@@ -88,7 +97,7 @@ describe('init.claude.permissions.sh', () => {
         expect(result.stderr).not.toContain('parse error');
         expect(result.stdout).toContain('name://getUserById');
         expect(result.stdout).toContain('path://src/domain');
-        expect(result.stdout).toMatchSnapshot();
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -115,7 +124,7 @@ describe('init.claude.permissions.sh', () => {
         expect(result.stderr).not.toContain('parse error');
         expect(result.stdout).toContain('echo hello');
         expect(result.stdout).toContain('pwd');
-        expect(result.stdout).toMatchSnapshot();
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -138,7 +147,7 @@ describe('init.claude.permissions.sh', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stderr).not.toContain('parse error');
         expect(result.stdout).toContain('https://api.example.com/v1');
-        expect(result.stdout).toMatchSnapshot();
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -159,7 +168,7 @@ describe('init.claude.permissions.sh', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('permissions');
         expect(result.stdout).toContain('pwd');
-        expect(result.stdout).toMatchSnapshot();
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -197,7 +206,7 @@ describe('init.claude.permissions.sh', () => {
         // deny should be merged (both old and new)
         expect(result.stdout).toContain('rm -rf');
         expect(result.stdout).toContain('old-deny');
-        expect(result.stdout).toMatchSnapshot();
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });

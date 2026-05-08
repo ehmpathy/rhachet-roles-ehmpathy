@@ -42,10 +42,14 @@ describe('git.stage.add.sh', () => {
       }
     }
 
+    // isolate HOME to prevent host global blocker from test interference
+    const tempHome = genTempDir({ slug: 'git-stage-home', git: false });
+
     const result = spawnSync('bash', [scriptPath, ...args.args], {
       cwd: tempDir,
-      encoding: 'utf-8' as const,
+      encoding: 'utf-8' as const, // node api requires this exact string
       stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, HOME: tempHome },
     });
 
     return {
@@ -319,11 +323,13 @@ describe('git.stage.add.sh', () => {
         fs.writeFileSync(path.join(tempDir, 'test.txt'), 'content');
         spawnSync('git', ['add', 'test.txt'], { cwd: tempDir });
 
-        // run stage again
+        // run stage again (isolate HOME to prevent global blocker)
+        const tempHome = genTempDir({ slug: 'git-stage-home', git: false });
         const result = spawnSync('bash', [scriptPath, 'test.txt'], {
           cwd: tempDir,
-          encoding: 'utf-8' as const,
+          encoding: 'utf-8' as const, // node api requires this exact string
           stdio: ['pipe', 'pipe', 'pipe'],
+          env: { ...process.env, HOME: tempHome },
         });
 
         expect(result.status).toBe(0);

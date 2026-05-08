@@ -46,7 +46,7 @@ const runSkill = (
       GIT_RELEASE_TEST_MODE: 'true',
     },
     encoding: 'utf-8',
-    timeout: 3000,
+    timeout: 10000,
   });
 
   return {

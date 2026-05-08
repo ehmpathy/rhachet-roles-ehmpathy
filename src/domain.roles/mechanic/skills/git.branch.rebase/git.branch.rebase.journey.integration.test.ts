@@ -68,6 +68,18 @@ const sanitizeOutput = (output: string): string => {
       .replace(/\b[0-9a-f]{7}\b/g, 'HASH123')
       // strip control chars from git output
       .replace(/\[K/g, '')
+      // mask git advice.mergeConflict hint (git version varies)
+      .replace(
+        /^\s*│\s*hint: Disable this message with "git config set advice\.mergeConflict false"\n/gm,
+        '',
+      )
+      // mask # prefix in "Could not apply" message (git version varies)
+      // older: "Could not apply HASH123... fix(scope): msg"
+      // newer: "Could not apply HASH123... # fix(scope): msg"
+      .replace(
+        /Could not apply ([A-Za-z0-9]+)\.\.\.\s*#?\s*/g,
+        'Could not apply $1... ',
+      )
   );
 };
 

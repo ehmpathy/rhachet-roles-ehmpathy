@@ -19,14 +19,31 @@ const SKILL_PATH = path.join(__dirname, 'git.branch.rebase.take.sh');
  */
 const sanitizeOutput = (output: string): string =>
   output
+    // trim end-of-line whitespace (pnpm output varies)
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .join('\n')
+    // convert thin space (U+2009) to regular space for pnpm error output consistency
+    .replace(/\u2009/g, ' ')
+    // collapse whitespace between ANSI codes (handles platform variations)
+    .replace(/(\[\d+m)\s+/g, '$1 ')
     // mask temp dir paths: /tmp/git-rebase-take-test-ajvAgu -> /tmp/TEMP_DIR
     .replace(/\/tmp\/git-rebase-take-test-[^\s/]+/g, '/tmp/TEMP_DIR')
     // mask npm debug log timestamps: 2026-04-17T12_32_29_632Z -> TIMESTAMP
     .replace(/\d{4}-\d{2}-\d{2}T\d{2}_\d{2}_\d{2}_\d{3}Z/g, 'TIMESTAMP')
+    // mask username in npm log paths: /home/vlad/ or /home/runner/ -> /home/USER/
+    .replace(/\/home\/[^/]+\//g, '/home/USER/')
     // mask pnpm update banner (version varies)
     .replace(
       /\[33m\[39m\n\s*\[33m\s*╭[^╯]+╯\[39m\n\s*\[33m\[39m\n/gs,
       '[pnpm update banner masked]\n',
+    )
+    // mask pnpm not installed vs pnpm error (CI may not have pnpm)
+    // when pnpm not installed: "hold up dude...\n\n🐚 git.branch.rebase lock refresh\n   └─ error: pnpm not found..."
+    // when pnpm installed: "bummer dude...\n\n🐚 git.branch.rebase lock refresh\n   ├─ detected: pnpm\n   ..."
+    .replace(
+      /🐢 (hold up|bummer) dude\.\.\.\s*\n\s*\n\s*🐚 git\.branch\.rebase lock refresh\n([\s\S]*?)(?=\s*│\s*└─|\s*└─ incomplete)/,
+      '🐢 [lock refresh error - output varies by environment]\n\n🐚 git.branch.rebase lock refresh\n   └─ [error details masked]\n',
     );
 
 /**
@@ -527,12 +544,34 @@ describe('git.branch.rebase.take', () => {
             featureContent: { 'pnpm-lock.yaml': 'feature lock content\n' },
           });
 
+          // .note = mock pnpm via PATH override to ensure consistent behavior
+          // pnpm is detected but fails with "no package.json" error
+          // thin space (U+2009) around error code matches real pnpm output
+          const fakeBinDir = path.join(tempDir, '.fakebin');
+          fs.mkdirSync(fakeBinDir);
+          fs.writeFileSync(
+            path.join(fakeBinDir, 'pnpm'),
+            `#!/bin/bash
+# thin space = $'\\xe2\\x80\\x89' (U+2009)
+printf '\\033[41m\\033[30m\\xe2\\x80\\x89ERR_PNPM_NO_PKG_MANIFEST\\xe2\\x80\\x89\\033[39m\\033[49m \\033[31mNo package.json found in %s\\n' "$(pwd)" >&2
+exit 1
+`,
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
+
           try {
-            const result = runSkill(tempDir, [
-              '--whos',
-              'theirs',
-              'pnpm-lock.yaml',
-            ]);
+            const result = spawnSync(
+              'bash',
+              [SKILL_PATH, '--whos', 'theirs', 'pnpm-lock.yaml'],
+              {
+                cwd: tempDir,
+                encoding: 'utf-8',
+                env: {
+                  ...process.env,
+                  PATH: `${fakeBinDir}:${process.env.PATH}`,
+                },
+              },
+            );
 
             // exit 2 = constraint error (user must fix)
             expect(result.status).toBe(2);
@@ -634,8 +673,33 @@ describe('git.branch.rebase.take', () => {
             },
           });
 
+          // .note = mock pnpm via PATH override to ensure consistent behavior
+          // thin space (U+2009) around error code matches real pnpm output
+          const fakeBinDir = path.join(tempDir, '.fakebin');
+          fs.mkdirSync(fakeBinDir);
+          fs.writeFileSync(
+            path.join(fakeBinDir, 'pnpm'),
+            `#!/bin/bash
+# thin space = $'\\xe2\\x80\\x89' (U+2009)
+printf '\\033[41m\\033[30m\\xe2\\x80\\x89ERR_PNPM_NO_PKG_MANIFEST\\xe2\\x80\\x89\\033[39m\\033[49m \\033[31mNo package.json found in %s\\n' "$(pwd)" >&2
+exit 1
+`,
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
+
           try {
-            const result = runSkill(tempDir, ['--whos', 'theirs', '.']);
+            const result = spawnSync(
+              'bash',
+              [SKILL_PATH, '--whos', 'theirs', '.'],
+              {
+                cwd: tempDir,
+                encoding: 'utf-8',
+                env: {
+                  ...process.env,
+                  PATH: `${fakeBinDir}:${process.env.PATH}`,
+                },
+              },
+            );
 
             // exit 2 because lock refresh fails
             expect(result.status).toBe(2);

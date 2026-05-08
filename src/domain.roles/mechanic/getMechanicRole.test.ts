@@ -126,7 +126,15 @@ describe('getMechanicRole', () => {
 
     when('[t4] role structure is captured', () => {
       then('ROLE_MECHANIC matches snapshot', () => {
-        expect(ROLE_MECHANIC).toMatchSnapshot();
+        // replace absolute paths for deterministic snapshots across environments
+        const asPathReplaced = (input: string): string =>
+          input.replace(
+            /\/[^\s"]+\/src\/domain\.roles\/mechanic/g,
+            '<repo>/src/domain.roles/mechanic',
+          );
+        const roleJson = JSON.stringify(ROLE_MECHANIC, null, 2);
+        const replaced = asPathReplaced(roleJson);
+        expect(JSON.parse(replaced)).toMatchSnapshot();
       });
     });
   });

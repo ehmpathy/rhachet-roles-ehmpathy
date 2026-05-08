@@ -56,10 +56,14 @@ describe('rmsafe.sh', () => {
 
   /**
    * .what = sanitize stdout for snapshot stability
-   * .why = temp dir paths change between runs
+   * .why = temp dir paths change between runs and between CI vs local
    */
   const sanitizeOutput = (stdout: string): string =>
-    stdout.replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR');
+    stdout
+      // mask genTempDir paths (handles both worktree and CI environments)
+      .replace(/\/home\/[^\s]*\/\.temp\/genTempDir\.symlink\/[^\s/]+/g, '/TEMP')
+      .replace(/\.temp\/genTempDir\.symlink\/[^\s/]+/g, '/TEMP')
+      .replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR');
 
   given('[case1] positional args (like rm)', () => {
     when('[t0] single positional arg provided', () => {

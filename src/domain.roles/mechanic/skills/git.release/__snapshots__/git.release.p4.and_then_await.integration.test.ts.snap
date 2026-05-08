@@ -38,23 +38,10 @@ exports[`git.release.p4.and_then_await given: [case5] stale release-pr rejected 
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ release pr did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ release pr did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ success
 "
 `;
@@ -74,23 +61,10 @@ exports[`git.release.p4.and_then_await given: [case7] stale release-pr then time
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ release pr did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ release pr did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ failure
 "
 `;
@@ -101,23 +75,10 @@ exports[`git.release.p4.and_then_await given: [case8] stale tag rejected when: [
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ tag v1.3.0 did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ tag v1.3.0 did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ success
 "
 `;
@@ -137,23 +98,10 @@ exports[`git.release.p4.and_then_await given: [case10] stale tag then timeout wh
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ tag v1.3.0 did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ tag v1.3.0 did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ failure
 "
 `;
@@ -164,23 +112,10 @@ exports[`git.release.p4.and_then_await given: [case11] release-pr timeout, workf
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ release pr did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ release pr did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ failure
 "
 `;
@@ -191,23 +126,10 @@ exports[`git.release.p4.and_then_await given: [case12] release-pr timeout, workf
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ release pr did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ release pr did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ in_progress
 "
 `;
@@ -218,23 +140,10 @@ exports[`git.release.p4.and_then_await given: [case13] release-pr timeout, workf
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ release pr did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ release pr did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ success
 "
 `;
@@ -245,21 +154,8 @@ exports[`git.release.p4.and_then_await given: [case14] release-pr timeout, workf
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ release pr did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ release pr did not appear in Xs
       └─ 🔴 release
             └─ not found
 "
@@ -271,23 +167,10 @@ exports[`git.release.p4.and_then_await given: [case15] tag timeout, workflow fai
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ tag v1.3.0 did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ tag v1.3.0 did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ failure
 "
 `;
@@ -298,23 +181,10 @@ exports[`git.release.p4.and_then_await given: [case16] tag timeout, workflow in_
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ tag v1.3.0 did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ tag v1.3.0 did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ in_progress
 "
 `;
@@ -325,23 +195,10 @@ exports[`git.release.p4.and_then_await given: [case17] tag timeout, workflow pas
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ tag v1.3.0 did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ tag v1.3.0 did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ success
 "
 `;
@@ -352,21 +209,8 @@ exports[`git.release.p4.and_then_await given: [case18] tag timeout, workflow not
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ tag v1.3.0 did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ tag v1.3.0 did not appear in Xs
       └─ 🔴 release
             └─ not found
 "
@@ -385,23 +229,10 @@ exports[`git.release.p4.and_then_await given: [case20] release-pr requires fetch
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ release pr did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ release pr did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ success
 "
 `;
@@ -419,23 +250,10 @@ exports[`git.release.p4.and_then_await given: [case22] tag requires fetch, still
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
    ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   ├─ 💤 Xs in await
-   └─ ⚓ tag v1.3.0 did not appear in 90s
+   ├─ ... (Nx more)
+   └─ ⚓ tag v1.3.0 did not appear in Xs
       └─ 🔴 release
-            ├─ https://github.com/test/repo/actions/runs/12345
+            ├─ https://github.com/test/repo/actions/runs/XXX
             └─ success
 "
 `;

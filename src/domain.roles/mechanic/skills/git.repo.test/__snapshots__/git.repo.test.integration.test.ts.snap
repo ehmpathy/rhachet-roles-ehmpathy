@@ -176,7 +176,7 @@ exports[`git.repo.test.sh given: [case19] --scope matches 0 files when: [t0] \`r
 "🐢 bummer dude...
 
 🐚 git.repo.test --what unit --scope nonexistent-pattern-xyz-12345
-   ├─ scope: nonexistent-pattern-xyz-12345
+   ├─ scope: path://nonexistent-pattern-xyz-12345
    │  └─ matched: 0 files
    └─ error: no files matched
 
@@ -188,7 +188,7 @@ exports[`git.repo.test.sh given: [case19] --scope matches 0 files when: [t0] \`r
 "🐢 bummer dude...
 
 🐚 git.repo.test --what unit --scope nonexistent-pattern-xyz-12345
-   ├─ scope: nonexistent-pattern-xyz-12345
+   ├─ scope: path://nonexistent-pattern-xyz-12345
    │  └─ matched: 0 files
    └─ error: no files matched
 
@@ -231,7 +231,7 @@ exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs wh
 "🐢 heres the wave...
 
 🐚 git.repo.test --what unit --scope cpsafe
-   ├─ scope: cpsafe
+   ├─ scope: path://cpsafe
    │  └─ matched: 1 files
    └─ files
       └─ src/cpsafe.test.js
@@ -247,7 +247,7 @@ exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs wh
 "🐢 heres the wave...
 
 🐚 git.repo.test --what unit --scope other
-   ├─ scope: other
+   ├─ scope: path://other
    │  └─ matched: 1 files
    └─ files
       └─ src/other.test.js
@@ -261,7 +261,7 @@ exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs wh
 "🐢 bummer dude...
 
 🐚 git.repo.test --what unit --scope nonexistent-xyz
-   ├─ scope: nonexistent-xyz
+   ├─ scope: path://nonexistent-xyz
    │  └─ matched: 0 files
    └─ error: no files matched
 
@@ -273,7 +273,7 @@ exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs wh
 "🐢 bummer dude...
 
 🐚 git.repo.test --what unit --scope nonexistent-xyz
-   ├─ scope: nonexistent-xyz
+   ├─ scope: path://nonexistent-xyz
    │  └─ matched: 0 files
    └─ error: no files matched
 
@@ -287,7 +287,7 @@ exports[`git.repo.test.sh given: [case23] --scope filtering with jest configs wh
 "🐢 heres the wave...
 
 🐚 git.repo.test --what unit --scope myfeature
-   ├─ scope: myfeature
+   ├─ scope: path://myfeature
    │  └─ matched: 1 files
    └─ files
       └─ src/myfeature.test.js
@@ -320,7 +320,7 @@ exports[`git.repo.test.sh given: [case24] URI format scope syntax (path://, name
 
 🐚 git.repo.test --what unit --scope name://should --thorough
    ├─ scope: name://should
-   │  └─ matched: 1 files (name filter applies at runtime)
+   │  └─ matched: 1 files
    └─ files
       └─ src/mytest.test.js
 

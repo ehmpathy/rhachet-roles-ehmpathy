@@ -327,9 +327,10 @@ describe('git.commit.uses.sh', () => {
   given('[case5] get shows remaining', () => {
     when('[t0] state exists with 2 uses', () => {
       then('outputs lets check the meter with remaining', () => {
-        const result = runInTempGitRepo({
+        const result = runWithGlobalStorage({
           args: ['get'],
           meterState: { uses: 2, push: 'allow' },
+          globalBlocker: true,
         });
 
         expect(result.exitCode).toBe(0);
@@ -344,9 +345,10 @@ describe('git.commit.uses.sh', () => {
   given('[case6] get with 0 uses and push allow (push-only mode)', () => {
     when('[t0] state exists with 0 uses and push allow', () => {
       then('shows push allowed for push-only use case', () => {
-        const result = runInTempGitRepo({
+        const result = runWithGlobalStorage({
           args: ['get'],
           meterState: { uses: 0, push: 'allow' },
+          globalBlocker: true,
         });
 
         expect(result.exitCode).toBe(0);
@@ -360,8 +362,9 @@ describe('git.commit.uses.sh', () => {
   given('[case7] get when no state file', () => {
     when('[t0] no .meter/git.commit.uses.jsonc exists', () => {
       then('shows no quota set', () => {
-        const result = runInTempGitRepo({
+        const result = runWithGlobalStorage({
           args: ['get'],
+          globalBlocker: true,
         });
 
         expect(result.exitCode).toBe(0);
@@ -620,9 +623,10 @@ describe('git.commit.uses.sh', () => {
   given('[case18] get with stage permission', () => {
     when('[t0] state has stage: allow', () => {
       then('get displays stage: allowed', () => {
-        const result = runInTempGitRepo({
+        const result = runWithGlobalStorage({
           args: ['get'],
           meterState: { uses: 3, push: 'allow', stage: 'allow' },
+          globalBlocker: true,
         });
 
         expect(result.exitCode).toBe(0);
@@ -633,9 +637,10 @@ describe('git.commit.uses.sh', () => {
 
     when('[t1] state has stage: block', () => {
       then('get displays stage: blocked', () => {
-        const result = runInTempGitRepo({
+        const result = runWithGlobalStorage({
           args: ['get'],
           meterState: { uses: 3, push: 'allow', stage: 'block' },
+          globalBlocker: true,
         });
 
         expect(result.exitCode).toBe(0);
@@ -645,9 +650,10 @@ describe('git.commit.uses.sh', () => {
 
     when('[t2] state has no stage field (legacy)', () => {
       then('get displays stage: blocked (default)', () => {
-        const result = runInTempGitRepo({
+        const result = runWithGlobalStorage({
           args: ['get'],
           meterState: { uses: 3, push: 'allow' },
+          globalBlocker: true,
         });
 
         expect(result.exitCode).toBe(0);

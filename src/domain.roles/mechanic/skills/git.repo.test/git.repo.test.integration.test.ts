@@ -145,6 +145,9 @@ module.exports = {
     spawnSync('git', ['add', '.'], { cwd: tempDir });
     spawnSync('git', ['commit', '-m', 'initial'], { cwd: tempDir });
 
+    // rename branch to 'main' for cross-environment consistency
+    spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+
     // run git.repo.test.sh
     const result = spawnSync('bash', [scriptPath, ...args.gitRepoTestArgs], {
       cwd: tempDir,
@@ -171,7 +174,10 @@ module.exports = {
       // mask elapsed times: (0s), (5s), (123s) -> (Xs)
       .replace(/\((\d+)s\)/g, '(Xs)')
       // mask time stats: time: 2s -> time: Xs
-      .replace(/time: \d+s/g, 'time: Xs');
+      .replace(/time: \d+s/g, 'time: Xs')
+      // mask npm command line in dim text (appears in some envs, not others)
+      // e.g., [2m$ echo "npm ERR!..."[22m
+      .replace(/\[2m\$ [^\n]*\[22m\n?/g, '');
 
   given('[case1] lint passes', () => {
     when('[t0] `rhx git.repo.test --what lint` is run', () => {
@@ -1376,7 +1382,7 @@ module.exports = {
       );
 
       then('stdout shows scope and matched files for unit tests', () => {
-        expect(result.stdout).toContain('scope: cpsafe');
+        expect(result.stdout).toContain('scope: path://cpsafe');
         expect(result.stdout).toContain('matched: 1 files');
       });
 
@@ -1407,7 +1413,7 @@ module.exports = {
       );
 
       then('stdout shows scope matches only one file', () => {
-        expect(result.stdout).toContain('scope: other');
+        expect(result.stdout).toContain('scope: path://other');
         expect(result.stdout).toContain('matched: 1 files');
       });
 
@@ -1438,7 +1444,7 @@ module.exports = {
 
       then('stdout shows scope matched 0 files', () => {
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('scope: nonexistent-xyz');
+        expect(result.stdout).toContain('scope: path://nonexistent-xyz');
         expect(result.stdout).toContain('matched: 0 files');
       });
 
@@ -1471,7 +1477,7 @@ module.exports = {
         );
 
         then('unit config only matches unit test file', () => {
-          expect(result.stdout).toContain('scope: myfeature');
+          expect(result.stdout).toContain('scope: path://myfeature');
           // should find only 1 file (myfeature.test.ts), not the integration files
           expect(result.stdout).toContain('matched: 1 files');
         });

@@ -2,7 +2,7 @@ import { given, then, when } from 'test-fns';
 
 import { genGhMockExecutable } from './.test/infra/mockGh';
 import { runOperation, setupTestEnv } from './.test/infra/setupTestEnv';
-import { asSnapshotReady } from './.test/infra/snapshotOps';
+import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
  * .what = integration tests for emit_transport_watch operation
@@ -42,7 +42,7 @@ describe('emit_transport_watch', () => {
           args: ['pr', '42', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         // verify 3+ poll cycles
         const pollCount = (output.match(/💤/g) || []).length;
         expect(pollCount).toBeGreaterThanOrEqual(3);
@@ -84,7 +84,7 @@ describe('emit_transport_watch', () => {
           args: ['pr', '42', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         // verify 3+ poll cycles
         const pollCount = (output.match(/💤/g) || []).length;
         expect(pollCount).toBeGreaterThanOrEqual(3);
@@ -125,7 +125,7 @@ describe('emit_transport_watch', () => {
           args: ['pr', '42', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         const pollCount = (output.match(/💤/g) || []).length;
         expect(pollCount).toBeGreaterThanOrEqual(3);
         expect(output).toContain('done!');
@@ -163,7 +163,7 @@ describe('emit_transport_watch', () => {
           console.log('stderr:', result.stderr);
         }
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         // no poll cycles when already terminal
         const pollCount = (output.match(/💤/g) || []).length;
         expect(pollCount).toBe(0);
@@ -200,7 +200,7 @@ describe('emit_transport_watch', () => {
 
         // already merged = emit watch header and done for tree consistency
         // (emit_transport_status may have used ├─ for automerge line)
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         const pollCount = (output.match(/💤/g) || []).length;
         expect(pollCount).toBe(0);
         expect(output).toContain("🥥 let's watch");
@@ -241,7 +241,7 @@ describe('emit_transport_watch', () => {
           args: ['tag', 'v1.2.3', ''],
         });
 
-        const output = asSnapshotReady(result.stdout);
+        const output = asSnapshotReadyWithAnsi(result.stdout);
         const pollCount = (output.match(/💤/g) || []).length;
         expect(pollCount).toBeGreaterThanOrEqual(3);
         expect(output).toContain('done!');

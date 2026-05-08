@@ -153,7 +153,10 @@ exec "${realRhxPath}" "$@"
       env = { ...env, PATH: `${fakeBinDir}:${process.env.PATH}` };
     }
 
-    // mock npm for controlled test output
+    // mock npm/pnpm for controlled test output
+    // note: on systems where `npm` is a shell function that delegates to `pnpm`,
+    // we must mock BOTH binaries to ensure the mock is used regardless of which
+    // package manager the shell function dispatches to.
     if (config.mockNpm) {
       const fakeBinDir = path.join(tempDir, '.fakebin');
       fs.mkdirSync(fakeBinDir, { recursive: true });
@@ -162,58 +165,57 @@ exec "${realRhxPath}" "$@"
       const npmStderr = config.mockNpm.stderr ?? '';
       const npmExitCode = config.mockNpm.exitCode;
 
-      fs.writeFileSync(
-        path.join(fakeBinDir, 'npm'),
-        `#!/bin/bash
+      const mockScript = `#!/bin/bash
 echo "${npmStdout.replace(/"/g, '\\"')}"
 echo "${npmStderr.replace(/"/g, '\\"')}" >&2
 exit ${npmExitCode}
-`,
-      );
-      fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
+`;
+
+      // mock both npm and pnpm binaries
+      for (const bin of ['npm', 'pnpm']) {
+        fs.writeFileSync(path.join(fakeBinDir, bin), mockScript);
+        fs.chmodSync(path.join(fakeBinDir, bin), '755');
+      }
       env = { ...env, PATH: `${fakeBinDir}:${process.env.PATH}` };
     }
 
-    // mock npx jest --listTests for scope verification
+    // mock jest --listTests for scope verification
+    // the skill calls node_modules/.bin/jest directly, so we need to mock that
     if (config.mockListTests !== undefined) {
-      const fakeBinDir = path.join(tempDir, '.fakebin');
-      fs.mkdirSync(fakeBinDir, { recursive: true });
-
-      // lookup real npx path before modifying PATH
-      const realNpxPath = spawnSync('which', ['npx'], {
-        encoding: 'utf-8',
-      }).stdout.trim();
+      const jestBinDir = path.join(tempDir, 'node_modules', '.bin');
+      fs.mkdirSync(jestBinDir, { recursive: true });
 
       if (config.mockListTests === 'fail') {
-        // mock npx to fail for jest --listTests
+        // mock jest to fail for --listTests
         fs.writeFileSync(
-          path.join(fakeBinDir, 'npx'),
+          path.join(jestBinDir, 'jest'),
           `#!/bin/bash
-# fail for jest --listTests, pass through everything else
-if [[ "$*" == *"jest"* && "$*" == *"--listTests"* ]]; then
-  echo "jest not found or --listTests failed" >&2
+# fail for --listTests
+if [[ "$*" == *"--listTests"* ]]; then
+  echo "jest --listTests failed" >&2
   exit 1
 fi
-exec "${realNpxPath}" "$@"
+# pass through for other commands (shouldn't happen in tests)
+exit 1
 `,
         );
       } else {
-        // mock npx to return configured file list for jest --listTests
+        // mock jest to return configured file list for --listTests
         const fileList = config.mockListTests.join('\n');
         fs.writeFileSync(
-          path.join(fakeBinDir, 'npx'),
+          path.join(jestBinDir, 'jest'),
           `#!/bin/bash
-# return mock file list for jest --listTests, pass through everything else
-if [[ "$*" == *"jest"* && "$*" == *"--listTests"* ]]; then
+# return mock file list for --listTests
+if [[ "$*" == *"--listTests"* ]]; then
   echo "${fileList}"
   exit 0
 fi
-exec "${realNpxPath}" "$@"
+# pass through for other commands (shouldn't happen in tests)
+exit 1
 `,
         );
       }
-      fs.chmodSync(path.join(fakeBinDir, 'npx'), '755');
-      env = { ...env, PATH: `${fakeBinDir}:${process.env.PATH}` };
+      fs.chmodSync(path.join(jestBinDir, 'jest'), '755');
     }
 
     return { tempDir, env };
@@ -257,6 +259,7 @@ exec "${realNpxPath}" "$@"
             },
           },
           jestConfigs: ['unit'],
+          mockListTests: ['/tmp/test-repo/src/example.unit.test.ts'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:unit',
@@ -287,9 +290,9 @@ Time:        0.5 s`,
       });
 
       then('output shows stats', () => {
-        expect(result.stdout).toContain('suites:');
-        expect(result.stdout).toContain('tests:');
-        expect(result.stdout).toContain('time:');
+        expect(result.stdout).toContain('stats');
+        expect(result.stdout).toContain('suites: 1 files');
+        expect(result.stdout).toContain('3 passed, 0 failed, 0 skipped');
       });
 
       then('output matches snapshot', () => {
@@ -312,6 +315,7 @@ Time:        0.5 s`,
             },
           },
           jestConfigs: ['unit'],
+          mockListTests: ['/tmp/test-repo/src/example.unit.test.ts'],
           mockNpm: {
             exitCode: 1,
             stdout: '> test-repo@1.0.0 test:unit',
@@ -419,6 +423,7 @@ Ran all test suites matched user.`,
             },
           },
           jestConfigs: ['unit'],
+          mockListTests: ['/tmp/test-repo/src/example.unit.test.ts'],
           mockNpm: {
             exitCode: 0,
             stdout: 'RESNAP=true',
@@ -460,6 +465,7 @@ Time:        0.3 s`,
             },
           },
           jestConfigs: ['unit'],
+          mockListTests: ['/tmp/test-repo/src/example.unit.test.ts'],
           mockNpm: {
             exitCode: 1,
             stdout: 'RESNAP=true',
@@ -513,6 +519,7 @@ Time:        0.4 s`,
           },
           jestConfigs: ['integration'],
           mockKeyrack: true,
+          mockListTests: ['/tmp/test-repo/src/api.integration.test.ts'],
           mockNpm: {
             exitCode: 0,
             stdout: 'RESNAP=true',
@@ -554,6 +561,7 @@ Time:        1.2 s`,
           },
           jestConfigs: ['integration'],
           mockKeyrack: true,
+          mockListTests: ['/tmp/test-repo/src/api.integration.test.ts'],
           mockNpm: {
             exitCode: 1,
             stdout: 'RESNAP=true',
@@ -605,6 +613,7 @@ Time:        1.5 s`,
           },
           jestConfigs: ['acceptance'],
           mockKeyrack: true,
+          mockListTests: ['/tmp/test-repo/src/e2e.acceptance.test.ts'],
           mockNpm: {
             exitCode: 0,
             stdout: 'RESNAP=true',
@@ -646,6 +655,7 @@ Time:        2.5 s`,
           },
           jestConfigs: ['acceptance'],
           mockKeyrack: true,
+          mockListTests: ['/tmp/test-repo/src/e2e.acceptance.test.ts'],
           mockNpm: {
             exitCode: 1,
             stdout: 'RESNAP=true',
@@ -702,6 +712,7 @@ Time:        3.1 s`,
           },
           jestConfigs: ['integration'],
           mockKeyrack: true,
+          mockListTests: ['/tmp/test-repo/src/api.integration.test.ts'],
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:integration',
@@ -1280,6 +1291,13 @@ exit 1
         );
         fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
 
+        // mock pnpm too (npm shell function may delegate to pnpm)
+        fs.copyFileSync(
+          path.join(fakeBinDir, 'npm'),
+          path.join(fakeBinDir, 'pnpm'),
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
+
         // mock keyrack
         fs.writeFileSync(
           path.join(fakeBinDir, 'rhx'),
@@ -1374,6 +1392,12 @@ exit 0
 `,
         );
         fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
+        // mock pnpm too (npm shell function may delegate to pnpm)
+        fs.copyFileSync(
+          path.join(fakeBinDir, 'npm'),
+          path.join(fakeBinDir, 'pnpm'),
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
 
         const env = {
           ...process.env,
@@ -1458,6 +1482,12 @@ exit 0
 `,
         );
         fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
+        // mock pnpm too (npm shell function may delegate to pnpm)
+        fs.copyFileSync(
+          path.join(fakeBinDir, 'npm'),
+          path.join(fakeBinDir, 'pnpm'),
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
 
         fs.writeFileSync(
           path.join(fakeBinDir, 'rhx'),
@@ -1555,6 +1585,12 @@ exit 0
 `,
         );
         fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
+        // mock pnpm too (npm shell function may delegate to pnpm)
+        fs.copyFileSync(
+          path.join(fakeBinDir, 'npm'),
+          path.join(fakeBinDir, 'pnpm'),
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
 
         fs.writeFileSync(
           path.join(fakeBinDir, 'rhx'),
@@ -1657,6 +1693,12 @@ exit 0
 `,
           );
           fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
+          // mock pnpm too (npm shell function may delegate to pnpm)
+          fs.copyFileSync(
+            path.join(fakeBinDir, 'npm'),
+            path.join(fakeBinDir, 'pnpm'),
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
 
           fs.writeFileSync(
             path.join(fakeBinDir, 'rhx'),
@@ -2729,6 +2771,12 @@ exit 1
 `,
         );
         fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
+        // mock pnpm too (npm shell function may delegate to pnpm)
+        fs.copyFileSync(
+          path.join(fakeBinDir, 'npm'),
+          path.join(fakeBinDir, 'pnpm'),
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
 
         fs.writeFileSync(
           path.join(fakeBinDir, 'rhx'),
@@ -2835,6 +2883,12 @@ exit 1
 `,
         );
         fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
+        // mock pnpm too (npm shell function may delegate to pnpm)
+        fs.copyFileSync(
+          path.join(fakeBinDir, 'npm'),
+          path.join(fakeBinDir, 'pnpm'),
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
 
         fs.writeFileSync(
           path.join(fakeBinDir, 'rhx'),

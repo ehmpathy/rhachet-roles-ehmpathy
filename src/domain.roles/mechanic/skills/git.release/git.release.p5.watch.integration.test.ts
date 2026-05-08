@@ -6,6 +6,7 @@ import { genTempDir, given, then, when } from 'test-fns';
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
 import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
+import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
  * .what = p5 watch behavior tests
@@ -23,14 +24,6 @@ const SKILL_PATH = path.join(
   __dirname,
   '../../../../../dist/domain.roles/mechanic/skills/git.release/git.release.sh',
 );
-
-const asTimeStable = (output: string): string => {
-  return output
-    .replace(/\d+s in action/g, 'Xs in action')
-    .replace(/\d+s watched/g, 'Xs watched')
-    .replace(/\d+m\s*\d+s/g, 'Xm Ys')
-    .replace(/(\d+)s delay/g, 'Xs delay');
-};
 
 const setupScene = (input: {
   scene: Scene;
@@ -148,7 +141,7 @@ describe('git.release.p5.watch', () => {
             expect(result.status).toBe(0);
             expect(result.stdout).toContain("let's watch");
             expect(result.stdout).toContain('done!');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -177,7 +170,7 @@ describe('git.release.p5.watch', () => {
 
             expect(result.status).toBe(0);
             expect(result.stdout).toContain('done!');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -206,7 +199,7 @@ describe('git.release.p5.watch', () => {
 
             expect(result.status).toBe(0);
             expect(result.stdout).toContain('already merged');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -235,7 +228,7 @@ describe('git.release.p5.watch', () => {
 
             expect(result.status).toBe(2);
             expect(result.stdout).toContain('failed');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -268,7 +261,7 @@ describe('git.release.p5.watch', () => {
             expect(result.status).toBe(0);
             expect(result.stdout).toContain("let's watch");
             expect(result.stdout).toContain('done!');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -298,7 +291,7 @@ describe('git.release.p5.watch', () => {
 
             expect(result.status).toBe(0);
             expect(result.stdout).toContain('done!');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -327,7 +320,7 @@ describe('git.release.p5.watch', () => {
 
             expect(result.status).toBe(2);
             expect(result.stdout).toContain('failed');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -361,7 +354,7 @@ describe('git.release.p5.watch', () => {
             expect(result.status).toBe(0);
             expect(result.stdout).toContain("let's watch");
             expect(result.stdout).toContain('done!');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -391,7 +384,7 @@ describe('git.release.p5.watch', () => {
 
             expect(result.status).toBe(0);
             expect(result.stdout).toContain('done!');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -421,7 +414,7 @@ describe('git.release.p5.watch', () => {
 
             expect(result.status).toBe(2);
             expect(result.stdout).toContain('failed');
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -455,7 +448,7 @@ describe('git.release.p5.watch', () => {
             // verify successful completion
             expect(result.stdout).toContain('done!');
             expect(result.status).toBe(0);
-            expect(asTimeStable(result.stdout)).toMatchSnapshot();
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }

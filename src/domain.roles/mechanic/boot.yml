@@ -205,6 +205,8 @@ subject.code.test:
       - briefs/practices/code.test/lessons.howto/howto.run.[lesson].md
       - briefs/practices/code.test/lessons.howto/howto.run-tests.[lesson].md
       - briefs/practices/code.test/lessons.howto/howto.use.[lesson].md
+      - briefs/practices/code.test/pitofsuccess.portability/rule.forbid.bare-host-deps.md
+      - briefs/practices/code.test/pitofsuccess.portability/rule.require.hermetic-tests.md
 
 subject.arch:
   briefs:
@@ -221,7 +223,6 @@ subject.flow:
     say:
       - briefs/practices/work.flow/rule.require.trust-but-verify.md
       - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
-      - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
       - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
       - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
       - briefs/practices/work.flow/release/rule.require.commit-scopes.md
@@ -233,6 +234,7 @@ subject.flow:
       - briefs/practices/work.flow/tools/howto.keyrack.[lesson].md
 
     ref:
+      - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
       - briefs/practices/work.flow/diagnose/howto.logservation.[lesson].md
       - briefs/practices/work.flow/release/howto.git-release.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.allowlist-examples.[lesson].md

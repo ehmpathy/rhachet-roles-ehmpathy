@@ -283,6 +283,23 @@ cmd_repos() {
     fi
   fi
 
+  # sort repos alphabetically for deterministic output
+  # create combined array for parallel sort, then split back
+  local combined=()
+  for i in "${!repos[@]}"; do
+    combined+=("${repos[$i]}|${sources[$i]}")
+  done
+  IFS=$'\n' combined=($(printf '%s\n' "${combined[@]}" | sort))
+  unset IFS
+
+  # split back into repos and sources
+  repos=()
+  sources=()
+  for entry in "${combined[@]}"; do
+    repos+=("${entry%|*}")
+    sources+=("${entry#*|}")
+  done
+
   # output
   local count=${#repos[@]}
   if [[ $count -eq 0 ]]; then
@@ -392,6 +409,21 @@ cmd_files_multi() {
       fi
     done < <(get_all_local_repos)
   fi
+
+  # sort repos alphabetically for deterministic output
+  local combined=()
+  for i in "${!repos[@]}"; do
+    combined+=("${repos[$i]}|${sources[$i]}")
+  done
+  IFS=$'\n' combined=($(printf '%s\n' "${combined[@]}" | sort))
+  unset IFS
+
+  repos=()
+  sources=()
+  for entry in "${combined[@]}"; do
+    repos+=("${entry%|*}")
+    sources+=("${entry#*|}")
+  done
 
   if [[ ${#repos[@]} -eq 0 ]]; then
     print_turtle_header "crickets..."
@@ -685,6 +717,21 @@ cmd_lines_multi() {
       fi
     done < <(get_all_local_repos)
   fi
+
+  # sort repos alphabetically for deterministic output
+  local combined=()
+  for i in "${!repos[@]}"; do
+    combined+=("${repos[$i]}|${sources[$i]}")
+  done
+  IFS=$'\n' combined=($(printf '%s\n' "${combined[@]}" | sort))
+  unset IFS
+
+  repos=()
+  sources=()
+  for entry in "${combined[@]}"; do
+    repos+=("${entry%|*}")
+    sources+=("${entry#*|}")
+  done
 
   if [[ ${#repos[@]} -eq 0 ]]; then
     print_turtle_header "crickets..."

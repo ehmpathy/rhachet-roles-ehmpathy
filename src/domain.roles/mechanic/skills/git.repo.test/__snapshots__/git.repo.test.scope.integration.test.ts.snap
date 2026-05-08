@@ -1,0 +1,529 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.repo.test.sh scope given: [case0] --help output when: [t0] --help is passed then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case0] --help output when: [t0] --help is passed then: stdout matches snapshot 1`] = `
+"usage: git.repo.test.sh --what <type> [--mode plan|apply] [--scope <pattern>] [--resnap] [--thorough]
+
+run repo tests with turtle vibes summary and log capture
+
+options:
+  --what <type>       test type: types | format | lint | unit | integration | acceptance | all
+  --mode <mode>       plan | apply (default: plan)
+                        plan  = preview matched files
+                        apply = execute tests
+  --scope <pattern>   filter tests by pattern (regex supported, stackable)
+                        'foo'           match file path (default)
+                        'path://foo'    match file path (explicit)
+                        'name://foo'    match test/describe name
+                        (use multiple --scope flags to combine filters)
+  --resnap            update snapshots (sets RESNAP=true, requires --mode apply)
+  --thorough          run full suite (sets THOROUGH=true)
+  --timeout <secs>    max time in seconds before timeout
+  --log <mode>        auto | always (default: auto)
+                        auto = persist logs on failure only
+                        always = persist logs on success and failure
+  --help, -h          show this help"
+`;
+
+exports[`git.repo.test.sh scope given: [case1] scope with path:// prefix when: [t0] --scope path://myfeature is used then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case1] scope with path:// prefix when: [t0] --scope path://myfeature is used then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope path://myfeature --thorough
+   ├─ scope: path://myfeature
+   │  └─ matched: 1 files
+   └─ files
+      └─ src/myfeature.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute"
+`;
+
+exports[`git.repo.test.sh scope given: [case2] scope without prefix (bare scope) when: [t0] --scope myfeature is used then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case2] scope without prefix (bare scope) when: [t0] --scope myfeature is used then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope myfeature --thorough
+   ├─ scope: path://myfeature
+   │  └─ matched: 1 files
+   └─ files
+      └─ src/myfeature.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute"
+`;
+
+exports[`git.repo.test.sh scope given: [case3] scope matches 0 files when: [t0] --scope nonexistent is used then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope nonexistent --thorough
+   ├─ scope: path://nonexistent
+   │  └─ matched: 0 files
+   └─ error: no files matched
+
+hint: check the scope pattern or try without --scope"
+`;
+
+exports[`git.repo.test.sh scope given: [case3] scope matches 0 files when: [t0] --scope nonexistent is used then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope nonexistent --thorough
+   ├─ scope: path://nonexistent
+   │  └─ matched: 0 files
+   └─ error: no files matched
+
+hint: check the scope pattern or try without --scope"
+`;
+
+exports[`git.repo.test.sh scope given: [case4] scope with --mode apply (execution) when: [t0] --scope myfeature --mode apply is used then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case4] scope with --mode apply (execution) when: [t0] --scope myfeature --mode apply is used then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope myfeature --mode apply --thorough
+   ├─ scope: path://myfeature
+   │  └─ matched: 1 files
+   ├─ files
+   │  └─ src/myfeature.test.js
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: N files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh scope given: [case5] scope with explicit --mode plan when: [t0] --scope myfeature --mode plan is used then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case5] scope with explicit --mode plan when: [t0] --scope myfeature --mode plan is used then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope myfeature --thorough
+   ├─ scope: path://myfeature
+   │  └─ matched: 1 files
+   └─ files
+      └─ src/myfeature.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute"
+`;
+
+exports[`git.repo.test.sh scope given: [case6] scope with name:// prefix (test name filter) when: [t0] --scope name://passes is used then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case6] scope with name:// prefix (test name filter) when: [t0] --scope name://passes is used then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope name://passes --thorough
+   ├─ scope: name://passes
+   │  └─ matched: 2 files
+   └─ files
+      ├─ src/myfeature.test.js
+      └─ src/other.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute"
+`;
+
+exports[`git.repo.test.sh scope given: [case7] scope without --thorough (changedSince mode) when: [t0] --scope myfeature without --thorough is used then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case7] scope without --thorough (changedSince mode) when: [t0] --scope myfeature without --thorough is used then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope myfeature
+   ├─ scope: path://myfeature
+   │  └─ matched: 1 files
+   └─ files
+      └─ src/myfeature.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute"
+`;
+
+exports[`git.repo.test.sh scope given: [case8] scope with --what integration (keyrack failure in temp repo) when: [t0] --scope myfeature --what integration is used then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what integration
+   ├─ status: malfunction
+   └─ error: keyrack unlock failed
+
+hint: check keyrack setup with 'rhx keyrack status --owner ehmpath'
+
+
+__pkg__
+            throw new helpful_errors_1.UnexpectedCodePathError('no keyrack.yml found in repo', {
+
+UnexpectedCodePathError: UnexpectedCodePathError: no keyrack.yml found in repo
+
+{
+  "note": "keyrack.yml declares which keys are required"
+}
+    at __stack__
+    at __stack__
+    at __stack__
+    at __stack__
+    at __stack__
+
+Node.js vX.X.X"
+`;
+
+exports[`git.repo.test.sh scope given: [case8] scope with --what integration (keyrack failure in temp repo) when: [t0] --scope myfeature --what integration is used then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what integration
+   ├─ status: malfunction
+   └─ error: keyrack unlock failed
+
+hint: check keyrack setup with 'rhx keyrack status --owner ehmpath'
+
+
+__pkg__
+            throw new helpful_errors_1.UnexpectedCodePathError('no keyrack.yml found in repo', {
+
+UnexpectedCodePathError: UnexpectedCodePathError: no keyrack.yml found in repo
+
+{
+  "note": "keyrack.yml declares which keys are required"
+}
+    at __stack__
+    at __stack__
+    at __stack__
+    at __stack__
+    at __stack__
+
+Node.js vX.X.X"
+`;
+
+exports[`git.repo.test.sh scope given: [case9] scope with invalid:// prefix (unknown prefix) when: [t0] --scope invalid://foo is used then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope invalid://foo --thorough
+   ├─ scope: path://invalid://foo
+   │  └─ matched: 0 files
+   └─ error: no files matched
+
+hint: check the scope pattern or try without --scope"
+`;
+
+exports[`git.repo.test.sh scope given: [case9] scope with invalid:// prefix (unknown prefix) when: [t0] --scope invalid://foo is used then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope invalid://foo --thorough
+   ├─ scope: path://invalid://foo
+   │  └─ matched: 0 files
+   └─ error: no files matched
+
+hint: check the scope pattern or try without --scope"
+`;
+
+exports[`git.repo.test.sh scope given: [case10] scope with special characters when: [t0] --scope with dots and hyphens is used then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case10] scope with special characters when: [t0] --scope with dots and hyphens is used then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope my-feature.utils --thorough
+   ├─ scope: path://my-feature.utils
+   │  └─ matched: 1 files
+   └─ files
+      └─ src/my-feature.utils.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute"
+`;
+
+exports[`git.repo.test.sh scope given: [case11] scope with name:// that matches no tests at runtime when: [t0] --scope name://nonexistent --mode apply is used then: stderr matches snapshot 1`] = `
+"├─ status: constraint
+   └─ error: no tests matched scope 'name://nonexistent'
+
+hint: check the scope pattern or run without --scope to see all tests"
+`;
+
+exports[`git.repo.test.sh scope given: [case11] scope with name:// that matches no tests at runtime when: [t0] --scope name://nonexistent --mode apply is used then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope name://nonexistent --mode apply --thorough
+   ├─ scope: name://nonexistent
+   │  └─ matched: 2 files
+   ├─ files
+   │  ├─ src/myfeature.test.js
+   │  └─ src/other.test.js
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   ├─ status: constraint
+   └─ error: no tests matched scope 'name://nonexistent'
+
+hint: check the scope pattern or run without --scope to see all tests"
+`;
+
+exports[`git.repo.test.sh scope given: [case12] scope with path:// matching multiple files when: [t0] --scope path://feature matches multiple then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case12] scope with path:// matching multiple files when: [t0] --scope path://feature matches multiple then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope path://feature --thorough
+   ├─ scope: path://feature
+   │  └─ matched: 2 files
+   └─ files
+      ├─ src/feature-a.test.js
+      └─ src/feature-b.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute"
+`;
+
+exports[`git.repo.test.sh scope given: [case13] scope with path:// matches multiple files --mode apply when: [t0] --scope path://feature --mode apply finds multiple then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case13] scope with path:// matches multiple files --mode apply when: [t0] --scope path://feature --mode apply finds multiple then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope path://feature --mode apply --thorough
+   ├─ scope: path://feature
+   │  └─ matched: 2 files
+   ├─ files
+   │  ├─ src/feature-a.test.js
+   │  └─ src/feature-b.test.js
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: N files
+   │  ├─ tests: 2 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh scope given: [case14] scope with name:// prefix --mode apply when: [t0] --scope name://passes --mode apply is used then: stderr matches snapshot 1`] = `
+"├─ status: constraint
+   └─ error: no tests matched scope 'name://passes'
+
+hint: check the scope pattern or run without --scope to see all tests"
+`;
+
+exports[`git.repo.test.sh scope given: [case14] scope with name:// prefix --mode apply when: [t0] --scope name://passes --mode apply is used then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope name://passes --mode apply --thorough
+   ├─ scope: name://passes
+   │  └─ matched: 2 files
+   ├─ files
+   │  ├─ src/myfeature.test.js
+   │  └─ src/other.test.js
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   ├─ status: constraint
+   └─ error: no tests matched scope 'name://passes'
+
+hint: check the scope pattern or run without --scope to see all tests"
+`;
+
+exports[`git.repo.test.sh scope given: [case15] scope with name:// prefix --mode apply that matches tests when: [t0] --scope name://myfeature --mode apply is used then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case15] scope with name:// prefix --mode apply that matches tests when: [t0] --scope name://myfeature --mode apply is used then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope name://myfeature --mode apply --thorough
+   ├─ scope: name://myfeature
+   │  └─ matched: 2 files
+   ├─ files
+   │  ├─ src/myfeature.test.js
+   │  └─ src/other.test.js
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: N files
+   │  ├─ tests: 1 passed, 0 failed, 1 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh scope given: [case16] scope with invalid:// prefix --mode apply when: [t0] --scope invalid://foo --mode apply is used then: stderr matches snapshot 1`] = `
+"├─ status: constraint
+   └─ error: no tests matched scope 'path://invalid://foo'
+
+hint: check the scope pattern or run without --scope to see all tests"
+`;
+
+exports[`git.repo.test.sh scope given: [case16] scope with invalid:// prefix --mode apply when: [t0] --scope invalid://foo --mode apply is used then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope invalid://foo --mode apply --thorough
+   ├─ scope: path://invalid://foo
+   │  └─ matched: 0 files
+   ├─ files
+   │  └─ (none)
+   ├─ status: constraint
+   └─ error: no tests matched scope 'path://invalid://foo'
+
+hint: check the scope pattern or run without --scope to see all tests"
+`;
+
+exports[`git.repo.test.sh scope given: [case17] scope with many files truncates display when: [t0] more than 21 files match scope then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case17] scope with many files truncates display when: [t0] more than 21 files match scope then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope feature --thorough
+   ├─ scope: path://feature
+   │  └─ matched: 23 files
+   └─ files
+      ├─ src/feature-01.test.js
+      ├─ src/feature-02.test.js
+      ├─ src/feature-03.test.js
+      ├─ src/feature-04.test.js
+      ├─ src/feature-05.test.js
+      ├─ src/feature-06.test.js
+      ├─ src/feature-07.test.js
+      ├─ src/feature-08.test.js
+      ├─ src/feature-09.test.js
+      ├─ src/feature-10.test.js
+      ├─ src/feature-11.test.js
+      ├─ src/feature-12.test.js
+      ├─ src/feature-13.test.js
+      ├─ src/feature-14.test.js
+      ├─ src/feature-15.test.js
+      ├─ src/feature-16.test.js
+      ├─ src/feature-17.test.js
+      ├─ src/feature-18.test.js
+      ├─ src/feature-19.test.js
+      ├─ src/feature-20.test.js
+      ├─ src/feature-21.test.js
+      └─ ... (2 more, 23 total)
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute"
+`;
+
+exports[`git.repo.test.sh scope given: [case18] stacked scopes: path + name in plan mode when: [t0] --scope feature --scope name://passes is used then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case18] stacked scopes: path + name in plan mode when: [t0] --scope feature --scope name://passes is used then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope feature --scope name://passes --thorough
+   ├─ scope: path://feature, name://passes
+   │  └─ matched: 2 files
+   └─ files
+      ├─ src/feature-a.test.js
+      └─ src/feature-b.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute"
+`;
+
+exports[`git.repo.test.sh scope given: [case19] stacked scopes: path + name in apply mode when: [t0] --scope feature-a --scope name://feature-a --mode apply then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case19] stacked scopes: path + name in apply mode when: [t0] --scope feature-a --scope name://feature-a --mode apply then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope feature-a --scope name://feature-a --mode apply --thorough
+   ├─ scope: path://feature-a, name://feature-a
+   │  └─ matched: 1 files
+   ├─ files
+   │  └─ src/feature-a.test.js
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   ├─ stats
+   │  ├─ suites: N files
+   │  ├─ tests: 1 passed, 0 failed, 0 skipped
+   │  └─ time: Xs
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired"
+`;
+
+exports[`git.repo.test.sh scope given: [case20] stacked scopes: path matches but name matches no tests when: [t0] --scope feature --scope name://nonexistent --mode apply then: stderr matches snapshot 1`] = `
+"├─ status: constraint
+   └─ error: no tests matched scope 'path://feature, name://nonexistent'
+
+hint: check the scope pattern or run without --scope to see all tests"
+`;
+
+exports[`git.repo.test.sh scope given: [case20] stacked scopes: path matches but name matches no tests when: [t0] --scope feature --scope name://nonexistent --mode apply then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope feature --scope name://nonexistent --mode apply --thorough
+   ├─ scope: path://feature, name://nonexistent
+   │  └─ matched: 1 files
+   ├─ files
+   │  └─ src/feature-a.test.js
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   ├─ status: constraint
+   └─ error: no tests matched scope 'path://feature, name://nonexistent'
+
+hint: check the scope pattern or run without --scope to see all tests"
+`;
+
+exports[`git.repo.test.sh scope given: [case21] stacked scopes: path matches 0 files when: [t0] --scope nonexistent --scope name://passes is used then: stderr matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope nonexistent --scope name://passes --thorough
+   ├─ scope: path://nonexistent, name://passes
+   │  └─ matched: 0 files
+   └─ error: no files matched
+
+hint: check the scope pattern or try without --scope"
+`;
+
+exports[`git.repo.test.sh scope given: [case21] stacked scopes: path matches 0 files when: [t0] --scope nonexistent --scope name://passes is used then: stdout matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --scope nonexistent --scope name://passes --thorough
+   ├─ scope: path://nonexistent, name://passes
+   │  └─ matched: 0 files
+   └─ error: no files matched
+
+hint: check the scope pattern or try without --scope"
+`;
+
+exports[`git.repo.test.sh scope given: [case22] stacked scopes: two path scopes when: [t0] --scope feature --scope a is used then: stderr matches snapshot 1`] = `""`;
+
+exports[`git.repo.test.sh scope given: [case22] stacked scopes: two path scopes when: [t0] --scope feature --scope a is used then: stdout matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit --scope feature --scope a --thorough
+   ├─ scope: path://feature, path://a
+   │  └─ matched: 2 files
+   └─ files
+      ├─ src/feature-a.test.js
+      └─ src/feature-b.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute"
+`;
+
+exports[`git.repo.test.sh scope given: [case23] stacked scopes: two name scopes when: [t0] --scope name://feature-a --scope name://passes --mode apply then: stderr matches snapshot 1`] = `
+"├─ status: constraint
+   └─ error: no tests matched scope 'name://feature-a, name://passes'
+
+hint: check the scope pattern or run without --scope to see all tests"
+`;
+
+exports[`git.repo.test.sh scope given: [case23] stacked scopes: two name scopes when: [t0] --scope name://feature-a --scope name://passes --mode apply then: stdout matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --scope name://feature-a --scope name://passes --mode apply --thorough
+   ├─ scope: name://feature-a, name://passes
+   │  └─ matched: 3 files
+   ├─ files
+   │  ├─ src/feature-a.test.js
+   │  ├─ src/feature-b.test.js
+   │  └─ src/other.test.js
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   ├─ status: constraint
+   └─ error: no tests matched scope 'name://feature-a, name://passes'
+
+hint: check the scope pattern or run without --scope to see all tests"
+`;

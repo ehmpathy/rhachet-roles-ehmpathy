@@ -54,7 +54,7 @@ describe('set.package.install.sh', () => {
       );
     }
 
-    // create fake pnpm that writes to package.json
+    // create fake pnpm that writes to package.json (add) and passes through other cmds
     fs.writeFileSync(
       path.join(fakeBinDir, 'pnpm'),
       `#!/bin/bash
@@ -72,12 +72,17 @@ if [[ "$1" == "add" ]]; then
   jq "$DEV_FLAG[\\"$PKG_NAME\\"] = \\"$PKG_VERSION\\"" package.json > package.json.tmp && mv package.json.tmp package.json
   exit 0
 fi
+# passthrough for other commands (e.g., view) — find real pnpm outside fakebin
+REAL_PNPM=$(PATH="\${PATH#*:}" command -v pnpm 2>/dev/null || echo "")
+if [[ -n "$REAL_PNPM" ]]; then
+  exec "$REAL_PNPM" "$@"
+fi
 exit 1
 `,
     );
     fs.chmodSync(path.join(fakeBinDir, 'pnpm'), '755');
 
-    // create fake npm that writes to package.json
+    // create fake npm that writes to package.json and mocks view for version lookup
     fs.writeFileSync(
       path.join(fakeBinDir, 'npm'),
       `#!/bin/bash
@@ -94,14 +99,17 @@ if [[ "$1" == "install" ]]; then
   jq "$DEV_FLAG[\\"$PKG_NAME\\"] = \\"$PKG_VERSION\\"" package.json > package.json.tmp && mv package.json.tmp package.json
   exit 0
 fi
-# passthrough npm view for version lookup - find real npm
-for NPM_PATH in /usr/local/bin/npm /usr/bin/npm /opt/homebrew/bin/npm; do
-  if [[ -x "$NPM_PATH" ]]; then
-    exec "$NPM_PATH" "$@"
-  fi
-done
-# fallback - remove fake bin from PATH and retry
-PATH="\${PATH#*:}" exec npm "$@"
+# mock npm view for version lookup (hermetic test - no network)
+if [[ "$1" == "view" && "$3" == "version" ]]; then
+  echo "99.0.0"
+  exit 0
+fi
+# passthrough for non-install commands — find real npm outside fakebin
+REAL_NPM=$(PATH="\${PATH#*:}" command -v npm 2>/dev/null || echo "")
+if [[ -n "$REAL_NPM" ]]; then
+  exec "$REAL_NPM" "$@"
+fi
+exit 1
 `,
     );
     fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
