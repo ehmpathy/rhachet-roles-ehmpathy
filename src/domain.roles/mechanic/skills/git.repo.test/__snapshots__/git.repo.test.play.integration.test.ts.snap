@@ -603,6 +603,8 @@ options:
                         (use multiple --scope flags to combine filters)
   --resnap            update snapshots (sets RESNAP=true, requires --mode apply)
   --thorough          run full suite (sets THOROUGH=true)
+  --env <name>        keyrack environment: test | prep | prod (default: test)
+  --locally           run test:acceptance:locally instead of test:acceptance
   --timeout <secs>    max time in seconds before timeout
   --log <mode>        auto | always (default: auto)
                         auto = persist logs on failure only
@@ -657,7 +659,7 @@ exports[`git.repo.test given: [case19] real integration test with keyrack when: 
 hint: check keyrack setup with 'rhx keyrack status --owner ehmpath'
 
 
-WORKTREE/node_modules/.pnpm/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/rhachet/dist/domain.operations/keyrack/session/unlockKeyrackKeys.js:66
+WORKTREE/node_modules/.pnpm/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/rhachet/dist/domain.operations/keyrack/session/unlockKeyrackKeys.js:68
             throw new helpful_errors_1.UnexpectedCodePathError('no keyrack.yml found in repo', {
                   ^
 
@@ -666,8 +668,8 @@ UnexpectedCodePathError: UnexpectedCodePathError: no keyrack.yml found in repo
 {
   "note": "keyrack.yml declares which keys are required"
 }
-    at unlockKeyrackKeys (WORKTREE/node_modules/.pnpm/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/rhachet/src/domain.operations/keyrack/session/unlockKeyrackKeys.ts:95:13)
-    at async Command.<anonymous> (WORKTREE/node_modules/.pnpm/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/rhachet/src/contract/cli/invokeKeyrack.ts:1017:39)
+    at unlockKeyrackKeys (WORKTREE/node_modules/.pnpm/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/rhachet/src/domain.operations/keyrack/session/unlockKeyrackKeys.ts:97:13)
+    at async Command.<anonymous> (WORKTREE/node_modules/.pnpm/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/rhachet/src/contract/cli/invokeKeyrack.ts:1018:39)
     at async Command.parseAsync (WORKTREE/node_modules/.pnpm/commander@14.0.0/node_modules/commander/lib/command.js:1123:5)
     at async _invoke (WORKTREE/node_modules/.pnpm/rhachet@X.X.X_@huggingface+transformers@3.8.1_@tensorflow+tfjs@4.22.0_seedrandom@3.0.5__@types+node@22.15.21_zod@4.3.4/node_modules/rhachet/src/contract/cli/invoke.ts:76:3)
     at async withEmojiSpaceShim (WORKTREE/node_modules/.pnpm/emoji-space-shim@0.1.3/node_modules/emoji-space-shim/src/contract/sdk/withEmojiSpaceShim.ts:15:12)
