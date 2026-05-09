@@ -22,6 +22,9 @@
 #   git.repo.test.sh --what unit --scope getAllLeads --scope case3  # stack scopes
 #   git.repo.test.sh --what unit --mode apply --resnap     # update snapshots
 #   git.repo.test.sh --what unit --mode apply --thorough   # run full suite
+#   git.repo.test.sh --what integration --mode apply --env prep  # unlock keyrack for prep, set CONFIG=prep
+#   git.repo.test.sh --what acceptance --mode apply --locally  # run test:acceptance:locally
+#   git.repo.test.sh --what acceptance --mode apply --locally --env prep  # run test:acceptance:locally with prep keyrack
 #
 # mode:
 #   plan   - preview matched files (default)
@@ -519,6 +522,8 @@ THOROUGH=false
 LOG_MODE="auto"  # auto | always (auto = persist on failure; always = persist always)
 MULTI_CHILD=false  # internal flag: set when invoked as child of multi-mode
 TIMEOUT=""  # optional timeout in seconds (e.g., "30" for 30s)
+ENV_NAME="test"  # keyrack environment: test | prep | prod (default: test)
+LOCALLY=false  # run test:acceptance:locally instead of test:acceptance
 REST_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -550,6 +555,14 @@ while [[ $# -gt 0 ]]; do
       ;;
     --thorough)
       THOROUGH=true
+      shift
+      ;;
+    --env)
+      ENV_NAME="$2"
+      shift 2
+      ;;
+    --locally)
+      LOCALLY=true
       shift
       ;;
     --log)
@@ -586,6 +599,8 @@ while [[ $# -gt 0 ]]; do
       echo "                        (use multiple --scope flags to combine filters)"
       echo "  --resnap            update snapshots (sets RESNAP=true, requires --mode apply)"
       echo "  --thorough          run full suite (sets THOROUGH=true)"
+      echo "  --env <name>        keyrack environment: test | prep | prod (default: test)"
+      echo "  --locally           run test:acceptance:locally instead of test:acceptance"
       echo "  --timeout <secs>    max time in seconds before timeout"
       echo "  --log <mode>        auto | always (default: auto)"
       echo "                        auto = persist logs on failure only"
@@ -775,6 +790,22 @@ fi
 # note: --resnap note for plan mode is shown inline in output_plan_mode
 
 ######################################################################
+# validate --locally (only valid with acceptance)
+######################################################################
+if [[ "$LOCALLY" == "true" ]] && [[ "$WHAT" != "acceptance" ]]; then
+  _output=$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.repo.test --what $WHAT --locally"
+    echo "   └─ error: --locally only valid with --what acceptance"
+    echo ""
+    echo "usage: git.repo.test.sh --what acceptance --locally"
+  )
+  echo "$_output"      # stdout
+  echo "$_output" >&2  # stderr
+  exit 2
+fi
+
+######################################################################
 # validate git repo context
 ######################################################################
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
@@ -812,16 +843,24 @@ fi
 validate_npm_command() {
   local test_type="$1"
   local cmd="test:${test_type}"
+  # use test:acceptance:locally when --locally is set
+  if [[ "$test_type" == "acceptance" ]] && [[ "$LOCALLY" == "true" ]]; then
+    cmd="test:acceptance:locally"
+  fi
   if ! grep -q "\"$cmd\"" "$REPO_ROOT/package.json"; then
     # hook.onStop context: silently exit — repo may lack this command
     if [[ "$WHEN" == "hook.onStop" ]]; then
       exit 0
     fi
 
+    # build display string
+    local display_str="git.repo.test --what $test_type"
+    [[ "$LOCALLY" == "true" ]] && display_str="$display_str --locally"
+
     local _output
     _output=$(
       print_turtle_header "bummer dude..."
-      print_tree_start "git.repo.test --what $test_type"
+      print_tree_start "$display_str"
       print_tree_branch "status" "constraint"
       echo "   └─ error: no '$cmd' command in package.json"
       echo ""
@@ -857,10 +896,10 @@ unlock_keyrack() {
 
   # unlock keyrack for integration/acceptance
   local unlock_output
-  if unlock_output=$(rhx keyrack unlock --owner ehmpath --env test 2>&1); then
-    KEYRACK_STATUS="unlocked ehmpath/test"
+  if unlock_output=$(rhx keyrack unlock --owner ehmpath --env "$ENV_NAME" 2>&1); then
+    KEYRACK_STATUS="unlocked ehmpath/$ENV_NAME"
     # export credentials as env vars so subprocesses can access them
-    eval "$(rhx keyrack source --owner ehmpath --env test --lenient 2>/dev/null)" || true
+    eval "$(rhx keyrack source --owner ehmpath --env "$ENV_NAME" --lenient 2>/dev/null)" || true
     return 0
   else
     local _output
@@ -922,6 +961,8 @@ done
 [[ "$MODE" == "apply" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --mode apply"
 [[ "$RESNAP" == "true" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --resnap"
 [[ "$THOROUGH" == "true" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --thorough"
+[[ "$ENV_NAME" != "test" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --env $ENV_NAME"
+[[ "$LOCALLY" == "true" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --locally"
 
 ######################################################################
 # parse lint output (for defect count)
@@ -1014,6 +1055,10 @@ run_single_test() {
 
   # npm command name for this test type
   local npm_target="test:${test_type}"
+  # use test:acceptance:locally when --locally is set
+  if [[ "$test_type" == "acceptance" ]] && [[ "$LOCALLY" == "true" ]]; then
+    npm_target="test:acceptance:locally"
+  fi
 
   # build jest args
   local jest_args=()

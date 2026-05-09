@@ -19,6 +19,8 @@ options:
                         (use multiple --scope flags to combine filters)
   --resnap            update snapshots (sets RESNAP=true, requires --mode apply)
   --thorough          run full suite (sets THOROUGH=true)
+  --env <name>        keyrack environment: test | prep | prod (default: test)
+  --locally           run test:acceptance:locally instead of test:acceptance
   --timeout <secs>    max time in seconds before timeout
   --log <mode>        auto | always (default: auto)
                         auto = persist logs on failure only
