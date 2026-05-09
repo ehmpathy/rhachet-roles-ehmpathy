@@ -35,17 +35,17 @@ describe('git.repo.test --locally', () => {
       fs.mkdirSync(fakeBinDir, { recursive: true });
       const mockRhx = `#!/bin/bash
 # mock rhx for keyrack commands in tests
-if [[ "\$1" == "keyrack" && "\$2" == "unlock" ]]; then
+if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
   echo "unlocked ehmpath/test"
   exit 0
 fi
-if [[ "\$1" == "keyrack" && "\$2" == "source" ]]; then
+if [[ "$1" == "keyrack" && "$2" == "source" ]]; then
   # emit no-op env vars (skill expects eval-able output)
   echo "# mock keyrack source"
   exit 0
 fi
 # pass through to real rhx for other commands (use absolute path to avoid recursion)
-exec "${realRhxPath}" "\$@"
+exec "${realRhxPath}" "$@"
 `;
       fs.writeFileSync(path.join(fakeBinDir, 'rhx'), mockRhx);
       fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
@@ -134,7 +134,13 @@ module.exports = {
           acceptanceLocallyCmd: 'echo "acceptance locally passed"',
           jestConfigs: ['acceptance'],
           mockRhxKeyrack: true,
-          gitRepoTestArgs: ['--what', 'acceptance', '--locally', '--mode', 'apply'],
+          gitRepoTestArgs: [
+            '--what',
+            'acceptance',
+            '--locally',
+            '--mode',
+            'apply',
+          ],
         }),
       );
 
@@ -192,7 +198,9 @@ module.exports = {
       });
 
       then('output shows --locally only valid with acceptance', () => {
-        expect(result.stdout).toContain('--locally only valid with --what acceptance');
+        expect(result.stdout).toContain(
+          '--locally only valid with --what acceptance',
+        );
       });
 
       then('output matches snapshot', () => {

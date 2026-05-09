@@ -33,26 +33,26 @@ describe('git.repo.test --env', () => {
     // mock rhx that succeeds for keyrack commands and echoes the correct env
     const mockRhx = `#!/bin/bash
 # mock rhx for keyrack commands in tests
-if [[ "\$1" == "keyrack" && "\$2" == "unlock" ]]; then
+if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
   # parse --env argument (defaults to test)
   env_name="test"
   shift 2
-  while [[ \$# -gt 0 ]]; do
-    case "\$1" in
-      --env) env_name="\$2"; shift 2 ;;
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --env) env_name="$2"; shift 2 ;;
       *) shift ;;
     esac
   done
   echo "unlocked ehmpath/\${env_name}"
   exit 0
 fi
-if [[ "\$1" == "keyrack" && "\$2" == "source" ]]; then
+if [[ "$1" == "keyrack" && "$2" == "source" ]]; then
   # emit no-op env vars (skill expects eval-able output)
   echo "# mock keyrack source"
   exit 0
 fi
 # pass through to real rhx for other commands (use absolute path to avoid recursion)
-exec "${realRhxPath}" "\$@"
+exec "${realRhxPath}" "$@"
 `;
     fs.writeFileSync(path.join(fakeBinDir, 'rhx'), mockRhx);
     fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
@@ -158,7 +158,14 @@ module.exports = {
         runInTempGitRepo({
           integrationCmd: 'echo "integration passed"',
           jestConfigs: ['integration'],
-          gitRepoTestArgs: ['--what', 'integration', '--env', 'test', '--mode', 'apply'],
+          gitRepoTestArgs: [
+            '--what',
+            'integration',
+            '--env',
+            'test',
+            '--mode',
+            'apply',
+          ],
         }),
       );
 
@@ -182,7 +189,14 @@ module.exports = {
         runInTempGitRepo({
           integrationCmd: 'echo "integration passed"',
           jestConfigs: ['integration'],
-          gitRepoTestArgs: ['--what', 'integration', '--env', 'prep', '--mode', 'apply'],
+          gitRepoTestArgs: [
+            '--what',
+            'integration',
+            '--env',
+            'prep',
+            '--mode',
+            'apply',
+          ],
         }),
       );
 
@@ -206,7 +220,14 @@ module.exports = {
         runInTempGitRepo({
           integrationCmd: 'echo "integration passed"',
           jestConfigs: ['integration'],
-          gitRepoTestArgs: ['--what', 'integration', '--env', 'prod', '--mode', 'apply'],
+          gitRepoTestArgs: [
+            '--what',
+            'integration',
+            '--env',
+            'prod',
+            '--mode',
+            'apply',
+          ],
         }),
       );
 
@@ -230,7 +251,14 @@ module.exports = {
         runInTempGitRepo({
           unitCmd: 'echo "unit passed"',
           jestConfigs: ['unit'],
-          gitRepoTestArgs: ['--what', 'unit', '--env', 'prep', '--mode', 'apply'],
+          gitRepoTestArgs: [
+            '--what',
+            'unit',
+            '--env',
+            'prep',
+            '--mode',
+            'apply',
+          ],
         }),
       );
 
