@@ -2833,7 +2833,8 @@ Time:        0.1 s`,
                 'test:lint': 'eslint .',
                 'test:unit': 'jest --config=jest.unit.config.js',
                 'test:integration': 'jest --config=jest.integration.config.js',
-                'test:acceptance:locally': 'jest --config=jest.acceptance.config.js',
+                'test:acceptance:locally':
+                  'jest --config=jest.acceptance.config.js',
               },
             },
             null,
@@ -2950,7 +2951,8 @@ exec "${realRhxPath}" "$@"
                 'test:lint': 'eslint .',
                 'test:unit': 'jest --config=jest.unit.config.js',
                 'test:integration': 'jest --config=jest.integration.config.js',
-                'test:acceptance:locally': 'jest --config=jest.acceptance.config.js',
+                'test:acceptance:locally':
+                  'jest --config=jest.acceptance.config.js',
               },
             },
             null,
@@ -3119,7 +3121,8 @@ Time:        5.2 s`,
           packageJson: {
             name: 'test-repo',
             scripts: {
-              'test:acceptance:locally': 'jest --config jest.acceptance.config.js',
+              'test:acceptance:locally':
+                'jest --config jest.acceptance.config.js',
             },
           },
           jestConfigs: ['acceptance'],

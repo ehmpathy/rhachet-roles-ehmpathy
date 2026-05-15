@@ -469,9 +469,7 @@ module.exports = {
       });
 
       then('output shows invalid --against value', () => {
-        expect(result.stdout).toContain(
-          "--against must be 'local' or 'cloud'",
-        );
+        expect(result.stdout).toContain("--against must be 'local' or 'cloud'");
       });
 
       then('output matches snapshot', () => {
