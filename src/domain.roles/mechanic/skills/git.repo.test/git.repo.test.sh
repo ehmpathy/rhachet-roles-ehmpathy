@@ -14,7 +14,8 @@
 #   git.repo.test.sh --what unit                      # preview matched files (plan mode default)
 #   git.repo.test.sh --what unit --mode apply         # run unit tests
 #   git.repo.test.sh --what integration --mode apply  # run integration tests
-#   git.repo.test.sh --what acceptance --mode apply   # run acceptance tests
+#   git.repo.test.sh --what acceptance --against local --env test --mode apply   # run against local server
+#   git.repo.test.sh --what acceptance --against cloud --env prep --mode apply   # run against deployed prep
 #   git.repo.test.sh --what all --mode apply          # run all test types
 #   git.repo.test.sh --what unit --scope 'invoice'    # filter by file path
 #   git.repo.test.sh --what unit --scope 'path://src/domain' # match file path only
@@ -23,8 +24,14 @@
 #   git.repo.test.sh --what unit --mode apply --resnap     # update snapshots
 #   git.repo.test.sh --what unit --mode apply --thorough   # run full suite
 #   git.repo.test.sh --what integration --mode apply --env prep  # unlock keyrack for prep, set CONFIG=prep
-#   git.repo.test.sh --what acceptance --mode apply --locally  # run test:acceptance:locally
-#   git.repo.test.sh --what acceptance --mode apply --locally --env prep  # run test:acceptance:locally with prep keyrack
+#
+# acceptance tests require --against and --env:
+#   git.repo.test.sh --what acceptance --against local --env test --mode apply   # local server, test creds
+#   git.repo.test.sh --what acceptance --against local --env prep --mode apply   # local server, prep creds
+#   git.repo.test.sh --what acceptance --against cloud --env prep --mode apply   # deployed prep
+#   git.repo.test.sh --what acceptance --against cloud --env prod --mode apply   # deployed prod (smoke test)
+#
+# note: --env test --against cloud is invalid (test is not deployed to cloud)
 #
 # mode:
 #   plan   - preview matched files (default)
@@ -522,8 +529,8 @@ THOROUGH=false
 LOG_MODE="auto"  # auto | always (auto = persist on failure; always = persist always)
 MULTI_CHILD=false  # internal flag: set when invoked as child of multi-mode
 TIMEOUT=""  # optional timeout in seconds (e.g., "30" for 30s)
-ENV_NAME="test"  # keyrack environment: test | prep | prod (default: test)
-LOCALLY=false  # run test:acceptance:locally instead of test:acceptance
+ENV_NAME=""  # keyrack environment: test | prep | prod (default: test, required for acceptance)
+AGAINST=""  # test target: local | cloud (required for acceptance)
 REST_ARGS=()
 
 while [[ $# -gt 0 ]]; do
@@ -561,9 +568,27 @@ while [[ $# -gt 0 ]]; do
       ENV_NAME="$2"
       shift 2
       ;;
+    --against)
+      AGAINST="$2"
+      shift 2
+      ;;
     --locally)
-      LOCALLY=true
-      shift
+      # deprecated: hardcut, provide clear error
+      _output=$(
+        print_turtle_header "hold up, dude..."
+        print_tree_start "git.repo.test --locally"
+        echo "   └─ error: --locally is deprecated"
+        echo ""
+        echo "use --against local|cloud instead:"
+        echo "  --against local  = test against local server"
+        echo "  --against cloud  = test against deployed service"
+        echo ""
+        echo "example:"
+        echo "  git.repo.test.sh --what acceptance --against local --env test --mode apply"
+      )
+      echo "$_output"      # stdout
+      echo "$_output" >&2  # stderr
+      exit 2
       ;;
     --log)
       LOG_MODE="$2"
@@ -599,8 +624,11 @@ while [[ $# -gt 0 ]]; do
       echo "                        (use multiple --scope flags to combine filters)"
       echo "  --resnap            update snapshots (sets RESNAP=true, requires --mode apply)"
       echo "  --thorough          run full suite (sets THOROUGH=true)"
-      echo "  --env <name>        keyrack environment: test | prep | prod (default: test)"
-      echo "  --locally           run test:acceptance:locally instead of test:acceptance"
+      echo "  --env <name>        keyrack environment: test | prep | prod (required for acceptance)"
+      echo "  --against <target>  test target: local | cloud (required for acceptance)"
+      echo "                        local = test against local server (test:acceptance:locally)"
+      echo "                        cloud = test against deployed service (test:acceptance)"
+      echo "                        note: --env test --against cloud is invalid"
       echo "  --timeout <secs>    max time in seconds before timeout"
       echo "  --log <mode>        auto | always (default: auto)"
       echo "                        auto = persist logs on failure only"
@@ -790,19 +818,123 @@ fi
 # note: --resnap note for plan mode is shown inline in output_plan_mode
 
 ######################################################################
-# validate --locally (only valid with acceptance)
+# validate --against (only valid with acceptance/all, required for acceptance/all)
 ######################################################################
-if [[ "$LOCALLY" == "true" ]] && [[ "$WHAT" != "acceptance" ]]; then
+if [[ -n "$AGAINST" ]] && [[ "$WHAT" != "acceptance" ]] && [[ "$WHAT" != "all" ]]; then
   _output=$(
     print_turtle_header "bummer dude..."
-    print_tree_start "git.repo.test --what $WHAT --locally"
-    echo "   └─ error: --locally only valid with --what acceptance"
+    print_tree_start "git.repo.test --what $WHAT --against $AGAINST"
+    echo "   └─ error: --against only valid with --what acceptance or --what all"
     echo ""
-    echo "usage: git.repo.test.sh --what acceptance --locally"
+    echo "unit and integration tests do not need --against"
   )
   echo "$_output"      # stdout
   echo "$_output" >&2  # stderr
   exit 2
+fi
+
+if [[ "$WHAT" == "all" ]] && [[ -z "$AGAINST" ]]; then
+  _output=$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.repo.test --what all"
+    echo "   └─ error: --against local|cloud required for --what all"
+    echo ""
+    echo "--what all includes acceptance tests, which require --against"
+    echo "  --against local  = test against local server"
+    echo "  --against cloud  = test against deployed service"
+  )
+  echo "$_output"      # stdout
+  echo "$_output" >&2  # stderr
+  exit 2
+fi
+
+if [[ "$WHAT" == "acceptance" ]] && [[ -z "$AGAINST" ]]; then
+  _output=$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.repo.test --what acceptance"
+    echo "   └─ error: --against local|cloud required for acceptance"
+    echo ""
+    echo "specify where to run acceptance tests:"
+    echo "  --against local  = test against local server"
+    echo "  --against cloud  = test against deployed service"
+  )
+  echo "$_output"      # stdout
+  echo "$_output" >&2  # stderr
+  exit 2
+fi
+
+if [[ -n "$AGAINST" ]] && [[ "$AGAINST" != "local" ]] && [[ "$AGAINST" != "cloud" ]]; then
+  _output=$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.repo.test --against $AGAINST"
+    echo "   └─ error: --against must be 'local' or 'cloud'"
+    echo ""
+    echo "valid values:"
+    echo "  --against local  = test against local server"
+    echo "  --against cloud  = test against deployed service"
+  )
+  echo "$_output"      # stdout
+  echo "$_output" >&2  # stderr
+  exit 2
+fi
+
+######################################################################
+# validate --env (required for acceptance/all)
+######################################################################
+if [[ "$WHAT" == "acceptance" ]] && [[ -z "$ENV_NAME" ]]; then
+  _output=$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.repo.test --what acceptance --against $AGAINST"
+    echo "   └─ error: --env test|prep|prod required for acceptance"
+    echo ""
+    echo "specify which credentials to use:"
+    echo "  --env test  = test credentials (local only)"
+    echo "  --env prep  = prep credentials"
+    echo "  --env prod  = prod credentials"
+  )
+  echo "$_output"      # stdout
+  echo "$_output" >&2  # stderr
+  exit 2
+fi
+
+if [[ "$WHAT" == "all" ]] && [[ -z "$ENV_NAME" ]]; then
+  _output=$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.repo.test --what all --against $AGAINST"
+    echo "   └─ error: --env test|prep|prod required for --what all"
+    echo ""
+    echo "--what all includes acceptance tests, which require --env"
+    echo "  --env test  = test credentials (local only)"
+    echo "  --env prep  = prep credentials"
+    echo "  --env prod  = prod credentials"
+  )
+  echo "$_output"      # stdout
+  echo "$_output" >&2  # stderr
+  exit 2
+fi
+
+######################################################################
+# validate --env test --against cloud is invalid
+######################################################################
+if [[ "$ENV_NAME" == "test" ]] && [[ "$AGAINST" == "cloud" ]]; then
+  _output=$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.repo.test --env test --against cloud"
+    echo "   └─ error: --env test is not deployed to cloud"
+    echo ""
+    echo "test environment only works with local:"
+    echo "  --against local --env test  = valid"
+    echo "  --against cloud --env prep  = valid"
+    echo "  --against cloud --env prod  = valid"
+  )
+  echo "$_output"      # stdout
+  echo "$_output" >&2  # stderr
+  exit 2
+fi
+
+# default --env to test for non-acceptance tests (integration still needs keyrack)
+if [[ -z "$ENV_NAME" ]] && [[ "$WHAT" != "acceptance" ]]; then
+  ENV_NAME="test"
 fi
 
 ######################################################################
@@ -843,8 +975,8 @@ fi
 validate_npm_command() {
   local test_type="$1"
   local cmd="test:${test_type}"
-  # use test:acceptance:locally when --locally is set
-  if [[ "$test_type" == "acceptance" ]] && [[ "$LOCALLY" == "true" ]]; then
+  # use test:acceptance:locally when --against local
+  if [[ "$test_type" == "acceptance" ]] && [[ "$AGAINST" == "local" ]]; then
     cmd="test:acceptance:locally"
   fi
   if ! grep -q "\"$cmd\"" "$REPO_ROOT/package.json"; then
@@ -855,7 +987,7 @@ validate_npm_command() {
 
     # build display string
     local display_str="git.repo.test --what $test_type"
-    [[ "$LOCALLY" == "true" ]] && display_str="$display_str --locally"
+    [[ -n "$AGAINST" ]] && display_str="$display_str --against $AGAINST"
 
     local _output
     _output=$(
@@ -961,8 +1093,8 @@ done
 [[ "$MODE" == "apply" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --mode apply"
 [[ "$RESNAP" == "true" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --resnap"
 [[ "$THOROUGH" == "true" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --thorough"
-[[ "$ENV_NAME" != "test" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --env $ENV_NAME"
-[[ "$LOCALLY" == "true" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --locally"
+[[ -n "$AGAINST" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --against $AGAINST"
+[[ -n "$ENV_NAME" ]] && [[ "$WHAT" == "acceptance" || "$ENV_NAME" != "test" ]] && DISPLAY_ARGS="$DISPLAY_ARGS --env $ENV_NAME"
 
 ######################################################################
 # parse lint output (for defect count)
@@ -1055,8 +1187,8 @@ run_single_test() {
 
   # npm command name for this test type
   local npm_target="test:${test_type}"
-  # use test:acceptance:locally when --locally is set
-  if [[ "$test_type" == "acceptance" ]] && [[ "$LOCALLY" == "true" ]]; then
+  # use test:acceptance:locally when --against local
+  if [[ "$test_type" == "acceptance" ]] && [[ "$AGAINST" == "local" ]]; then
     npm_target="test:acceptance:locally"
   fi
 
@@ -1302,6 +1434,11 @@ if [[ "$MULTI_MODE" == "true" ]]; then
     [[ "$THOROUGH" == "true" ]] && type_args+=("--thorough")
     [[ "$LOG_MODE" != "auto" ]] && type_args+=("--log" "$LOG_MODE")
     [[ -n "$WHEN" ]] && type_args+=("--when" "$WHEN")
+    # pass --against and --env for acceptance tests (required by acceptance)
+    if [[ "$test_type" == "acceptance" ]]; then
+      [[ -n "$AGAINST" ]] && type_args+=("--against" "$AGAINST")
+      [[ -n "$ENV_NAME" ]] && type_args+=("--env" "$ENV_NAME")
+    fi
     [[ ${#REST_ARGS[@]} -gt 0 ]] && type_args+=("--" "${REST_ARGS[@]}")
 
     # run this type (output goes directly to stdout/stderr)
