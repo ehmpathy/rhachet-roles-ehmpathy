@@ -46,10 +46,50 @@ describe('grepsafe.sh', () => {
 
   /**
    * .what = sanitize stdout for snapshot stability
-   * .why = temp dir paths change between runs
+   * .why = temp dir paths change between runs, grep result order varies
    */
-  const sanitizeOutput = (stdout: string): string =>
-    stdout.replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR');
+  const sanitizeOutput = (stdout: string): string => {
+    // replace temp paths
+    let output = stdout.replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR');
+
+    // sort grep result lines for deterministic order
+    // matches lines like "src/a.ts:1:content" or "│  src/a.ts:1:content"
+    const lines = output.split('\n');
+    const resultLinePattern = /^(\s*│?\s*)(\S+:\d+:.*)$/;
+
+    // find contiguous blocks of result lines and sort them
+    let i = 0;
+    while (i < lines.length) {
+      const blockStart = i;
+      const resultLines: Array<{ prefix: string; content: string }> = [];
+
+      // collect contiguous result lines
+      while (i < lines.length) {
+        const match = lines[i]?.match(resultLinePattern);
+        if (match) {
+          resultLines.push({ prefix: match[1] ?? '', content: match[2] ?? '' });
+          i++;
+        } else {
+          break;
+        }
+      }
+
+      // sort and replace if we found results
+      if (resultLines.length > 1) {
+        resultLines.sort((a, b) => a.content.localeCompare(b.content));
+        for (let j = 0; j < resultLines.length; j++) {
+          const item = resultLines[j];
+          if (item) {
+            lines[blockStart + j] = item.prefix + item.content;
+          }
+        }
+      }
+
+      i++;
+    }
+
+    return lines.join('\n');
+  };
 
   given('[case1] basic pattern search', () => {
     when('[t0] pattern matches content in files', () => {

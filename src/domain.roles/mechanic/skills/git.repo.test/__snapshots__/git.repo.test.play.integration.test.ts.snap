@@ -125,7 +125,7 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t3] --
 exports[`git.repo.test given: [case4] repo with snapshot to update when: [t4] --what acceptance --resnap is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what acceptance --mode apply --resnap
+🐚 git.repo.test --what acceptance --mode apply --resnap --against local --env test
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
    │  ├─ 💤 inflight (Xs)
@@ -143,7 +143,7 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t4] --
 exports[`git.repo.test given: [case4] repo with snapshot to update when: [t5] --what acceptance --resnap fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what acceptance --mode apply --resnap
+🐚 git.repo.test --what acceptance --mode apply --resnap --against local --env test
    ├─ keyrack: unlocked ehmpath/test
    │  └─ ✋ failed (Xs)
    ├─ stats
@@ -269,7 +269,7 @@ exports[`git.repo.test given: [case9] repo with lint command when: [t1] --what l
 exports[`git.repo.test given: [case10] repo with acceptance tests when: [t0] --what acceptance is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what acceptance --mode apply
+🐚 git.repo.test --what acceptance --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
    │  ├─ 💤 inflight (Xs)
@@ -287,7 +287,7 @@ exports[`git.repo.test given: [case10] repo with acceptance tests when: [t0] --w
 exports[`git.repo.test given: [case10] repo with acceptance tests when: [t1] --what acceptance fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what acceptance --mode apply
+🐚 git.repo.test --what acceptance --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
    │  └─ ✋ failed (Xs)
    ├─ stats
@@ -317,7 +317,7 @@ keyrack unlock failed: vault locked
 exports[`git.repo.test given: [case10] repo with acceptance tests when: [t3] --what acceptance --scope is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what acceptance --scope checkout --mode apply
+🐚 git.repo.test --what acceptance --scope checkout --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
    ├─ scope: path://checkout
    │  └─ matched: 1 files
@@ -372,7 +372,7 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t0] --
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
 
-🐚 git.repo.test --what acceptance --mode apply
+🐚 git.repo.test --what acceptance --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
    │  ├─ 💤 inflight (Xs)
@@ -436,7 +436,7 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t3] --
 exports[`git.repo.test given: [case11] repo with all test commands when: [t4] --what all acceptance fails (after lint+unit+integration pass) then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what acceptance --mode apply
+🐚 git.repo.test --what acceptance --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
    │  └─ ✋ failed (Xs)
    ├─ stats
@@ -521,7 +521,7 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t3
 exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t4] --what acceptance --thorough is called then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what acceptance --mode apply --thorough
+🐚 git.repo.test --what acceptance --mode apply --thorough --against local --env test
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
    │  ├─ 💤 inflight (Xs)
@@ -539,7 +539,7 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t4
 exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t5] --what acceptance --thorough fails then: output matches snapshot 1`] = `
 "🐢 bummer dude...
 
-🐚 git.repo.test --what acceptance --mode apply --thorough
+🐚 git.repo.test --what acceptance --mode apply --thorough --against local --env test
    ├─ keyrack: unlocked ehmpath/test
    │  └─ ✋ failed (Xs)
    ├─ stats
@@ -603,8 +603,11 @@ options:
                         (use multiple --scope flags to combine filters)
   --resnap            update snapshots (sets RESNAP=true, requires --mode apply)
   --thorough          run full suite (sets THOROUGH=true)
-  --env <name>        keyrack environment: test | prep | prod (default: test)
-  --locally           run test:acceptance:locally instead of test:acceptance
+  --env <name>        keyrack environment: test | prep | prod (required for acceptance)
+  --against <target>  test target: local | cloud (required for acceptance)
+                        local = test against local server (test:acceptance:locally)
+                        cloud = test against deployed service (test:acceptance)
+                        note: --env test --against cloud is invalid
   --timeout <secs>    max time in seconds before timeout
   --log <mode>        auto | always (default: auto)
                         auto = persist logs on failure only
@@ -863,7 +866,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t0] -
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
 
-🐚 git.repo.test --what acceptance --mode apply --thorough
+🐚 git.repo.test --what acceptance --mode apply --thorough --against local --env test
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
    │  ├─ 💤 inflight (Xs)
@@ -915,7 +918,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t1] -
       ├─ omitted on success by default
       └─ hint: use \`--log always\` to persist when desired
 
-🐚 git.repo.test --what acceptance --mode apply --resnap
+🐚 git.repo.test --what acceptance --mode apply --resnap --against local --env test
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
    │  ├─ 💤 inflight (Xs)
@@ -956,7 +959,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t2] -
 exports[`git.repo.test given: [case22] additional flag combinations when: [t3] --what acceptance --scope --resnap --thorough combined then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
-🐚 git.repo.test --what acceptance --scope checkout --mode apply --resnap --thorough
+🐚 git.repo.test --what acceptance --scope checkout --mode apply --resnap --thorough --against local --env test
    ├─ keyrack: unlocked ehmpath/test
    ├─ scope: path://checkout
    │  └─ matched: 1 files

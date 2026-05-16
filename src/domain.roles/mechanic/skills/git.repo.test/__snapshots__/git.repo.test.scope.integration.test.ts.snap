@@ -19,8 +19,11 @@ options:
                         (use multiple --scope flags to combine filters)
   --resnap            update snapshots (sets RESNAP=true, requires --mode apply)
   --thorough          run full suite (sets THOROUGH=true)
-  --env <name>        keyrack environment: test | prep | prod (default: test)
-  --locally           run test:acceptance:locally instead of test:acceptance
+  --env <name>        keyrack environment: test | prep | prod (required for acceptance)
+  --against <target>  test target: local | cloud (required for acceptance)
+                        local = test against local server (test:acceptance:locally)
+                        cloud = test against deployed service (test:acceptance)
+                        note: --env test --against cloud is invalid
   --timeout <secs>    max time in seconds before timeout
   --log <mode>        auto | always (default: auto)
                         auto = persist logs on failure only

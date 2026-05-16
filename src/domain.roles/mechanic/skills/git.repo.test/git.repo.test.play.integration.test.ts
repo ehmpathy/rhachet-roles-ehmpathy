@@ -608,7 +608,8 @@ Time:        1.5 s`,
           packageJson: {
             name: 'test-repo',
             scripts: {
-              'test:acceptance': 'jest --config jest.acceptance.config.js',
+              'test:acceptance:locally':
+                'jest --config jest.acceptance.config.js',
             },
           },
           jestConfigs: ['acceptance'],
@@ -626,7 +627,15 @@ Time:        2.5 s`,
         });
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'acceptance', '--resnap'],
+          gitRepoTestArgs: [
+            '--what',
+            'acceptance',
+            '--against',
+            'local',
+            '--env',
+            'test',
+            '--resnap',
+          ],
           env: { ...env, RESNAP: 'true' },
         });
       });
@@ -650,7 +659,8 @@ Time:        2.5 s`,
           packageJson: {
             name: 'test-repo',
             scripts: {
-              'test:acceptance': 'jest --config jest.acceptance.config.js',
+              'test:acceptance:locally':
+                'jest --config jest.acceptance.config.js',
             },
           },
           jestConfigs: ['acceptance'],
@@ -678,7 +688,15 @@ Time:        3.1 s`,
         });
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'acceptance', '--resnap'],
+          gitRepoTestArgs: [
+            '--what',
+            'acceptance',
+            '--against',
+            'local',
+            '--env',
+            'test',
+            '--resnap',
+          ],
           env: { ...env, RESNAP: 'true' },
         });
       });
@@ -1052,14 +1070,15 @@ Time:        0.2 s`,
           packageJson: {
             name: 'test-repo',
             scripts: {
-              'test:acceptance': 'jest --config=jest.acceptance.config.js',
+              'test:acceptance:locally':
+                'jest --config=jest.acceptance.config.js',
             },
           },
           jestConfigs: ['acceptance'],
           mockKeyrack: true,
           mockNpm: {
             exitCode: 0,
-            stdout: '> test-repo@1.0.0 test:acceptance',
+            stdout: '> test-repo@1.0.0 test:acceptance:locally',
             stderr: `PASS src/example.acceptance.test.ts
 Test Suites: 2 passed, 2 total
 Tests:       8 passed, 8 total
@@ -1069,7 +1088,14 @@ Time:        4.5 s`,
         });
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'acceptance'],
+          gitRepoTestArgs: [
+            '--what',
+            'acceptance',
+            '--against',
+            'local',
+            '--env',
+            'test',
+          ],
           env,
         });
       });
@@ -1102,14 +1128,15 @@ Time:        4.5 s`,
           packageJson: {
             name: 'test-repo',
             scripts: {
-              'test:acceptance': 'jest --config=jest.acceptance.config.js',
+              'test:acceptance:locally':
+                'jest --config=jest.acceptance.config.js',
             },
           },
           jestConfigs: ['acceptance'],
           mockKeyrack: true,
           mockNpm: {
             exitCode: 1,
-            stdout: '> test-repo@1.0.0 test:acceptance',
+            stdout: '> test-repo@1.0.0 test:acceptance:locally',
             stderr: `FAIL src/e2e.acceptance.test.ts
   ● E2E tests › should complete checkout flow
 
@@ -1123,7 +1150,14 @@ Time:        32.1 s`,
         });
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'acceptance'],
+          gitRepoTestArgs: [
+            '--what',
+            'acceptance',
+            '--against',
+            'local',
+            '--env',
+            'test',
+          ],
           env,
         });
       });
@@ -1147,7 +1181,8 @@ Time:        32.1 s`,
           packageJson: {
             name: 'test-repo',
             scripts: {
-              'test:acceptance': 'jest --config=jest.acceptance.config.js',
+              'test:acceptance:locally':
+                'jest --config=jest.acceptance.config.js',
             },
           },
           jestConfigs: ['acceptance'],
@@ -1155,7 +1190,14 @@ Time:        32.1 s`,
         });
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'acceptance'],
+          gitRepoTestArgs: [
+            '--what',
+            'acceptance',
+            '--against',
+            'local',
+            '--env',
+            'test',
+          ],
           env,
         });
       });
@@ -1179,7 +1221,8 @@ Time:        32.1 s`,
           packageJson: {
             name: 'test-repo',
             scripts: {
-              'test:acceptance': 'jest --config=jest.acceptance.config.js',
+              'test:acceptance:locally':
+                'jest --config=jest.acceptance.config.js',
             },
           },
           jestConfigs: ['acceptance'],
@@ -1191,7 +1234,7 @@ Time:        32.1 s`,
           mockListTests: ['src/checkout.acceptance.test.ts'],
           mockNpm: {
             exitCode: 0,
-            stdout: '> test-repo@1.0.0 test:acceptance',
+            stdout: '> test-repo@1.0.0 test:acceptance:locally',
             stderr: `PASS src/checkout.acceptance.test.ts
 Test Suites: 1 passed, 1 total
 Tests:       1 passed, 1 total
@@ -1202,7 +1245,16 @@ Ran all test suites matched checkout.`,
         });
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'acceptance', '--scope', 'checkout'],
+          gitRepoTestArgs: [
+            '--what',
+            'acceptance',
+            '--against',
+            'local',
+            '--env',
+            'test',
+            '--scope',
+            'checkout',
+          ],
           env,
         });
       });
@@ -1238,7 +1290,8 @@ Ran all test suites matched checkout.`,
                 'test:lint': 'eslint .',
                 'test:unit': 'jest --config=jest.unit.config.js',
                 'test:integration': 'jest --config=jest.integration.config.js',
-                'test:acceptance': 'jest --config=jest.acceptance.config.js',
+                'test:acceptance:locally':
+                  'jest --config=jest.acceptance.config.js',
               },
             },
             null,
@@ -1280,7 +1333,7 @@ elif [[ "$*" == *"test:integration"* ]]; then
 Tests: 5 passed, 5 total
 Time: 3.0 s" >&2
   exit 0
-elif [[ "$*" == *"test:acceptance"* ]]; then
+elif [[ "$*" == *"test:acceptance:locally"* ]]; then
   echo "Test Suites: 1 passed, 1 total
 Tests: 2 passed, 2 total
 Time: 2.0 s" >&2
@@ -1319,7 +1372,14 @@ exec "${realRhxPath}" "$@"
 
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'all'],
+          gitRepoTestArgs: [
+            '--what',
+            'all',
+            '--against',
+            'local',
+            '--env',
+            'test',
+          ],
           env,
         });
       });
@@ -1361,7 +1421,8 @@ exec "${realRhxPath}" "$@"
                 'test:lint': 'eslint .',
                 'test:unit': 'jest --config=jest.unit.config.js',
                 'test:integration': 'jest --config=jest.integration.config.js',
-                'test:acceptance': 'jest --config=jest.acceptance.config.js',
+                'test:acceptance:locally':
+                  'jest --config=jest.acceptance.config.js',
               },
             },
             null,
@@ -1406,7 +1467,14 @@ exit 0
 
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'all'],
+          gitRepoTestArgs: [
+            '--what',
+            'all',
+            '--against',
+            'local',
+            '--env',
+            'test',
+          ],
           env,
         });
       });
@@ -1446,7 +1514,8 @@ exit 0
                 'test:lint': 'eslint .',
                 'test:unit': 'jest --config=jest.unit.config.js',
                 'test:integration': 'jest --config=jest.integration.config.js',
-                'test:acceptance': 'jest --config=jest.acceptance.config.js',
+                'test:acceptance:locally':
+                  'jest --config=jest.acceptance.config.js',
               },
             },
             null,
@@ -1509,7 +1578,14 @@ exec "${realRhxPath}" "$@"
 
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'all'],
+          gitRepoTestArgs: [
+            '--what',
+            'all',
+            '--against',
+            'local',
+            '--env',
+            'test',
+          ],
           env,
         });
       });
@@ -1546,7 +1622,8 @@ exec "${realRhxPath}" "$@"
                 'test:lint': 'eslint .',
                 'test:unit': 'jest --config=jest.unit.config.js',
                 'test:integration': 'jest --config=jest.integration.config.js',
-                'test:acceptance': 'jest --config=jest.acceptance.config.js',
+                'test:acceptance:locally':
+                  'jest --config=jest.acceptance.config.js',
               },
             },
             null,
@@ -1612,7 +1689,14 @@ exec "${realRhxPath}" "$@"
 
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'all'],
+          gitRepoTestArgs: [
+            '--what',
+            'all',
+            '--against',
+            'local',
+            '--env',
+            'test',
+          ],
           env,
         });
       });
@@ -1651,7 +1735,8 @@ exec "${realRhxPath}" "$@"
                   'test:unit': 'jest --config=jest.unit.config.js',
                   'test:integration':
                     'jest --config=jest.integration.config.js',
-                  'test:acceptance': 'jest --config=jest.acceptance.config.js',
+                  'test:acceptance:locally':
+                    'jest --config=jest.acceptance.config.js',
                 },
               },
               null,
@@ -1685,7 +1770,7 @@ elif [[ "$*" == *"test:unit"* ]]; then
 elif [[ "$*" == *"test:integration"* ]]; then
   echo "Test Suites: 1 passed, 1 total" >&2
   exit 0
-elif [[ "$*" == *"test:acceptance"* ]]; then
+elif [[ "$*" == *"test:acceptance:locally"* ]]; then
   echo "Test Suites: 1 failed, 1 total" >&2
   exit 1
 fi
@@ -1720,7 +1805,14 @@ exec "${realRhxPath}" "$@"
 
           return runGitRepoTest({
             tempDir,
-            gitRepoTestArgs: ['--what', 'all'],
+            gitRepoTestArgs: [
+              '--what',
+              'all',
+              '--against',
+              'local',
+              '--env',
+              'test',
+            ],
             env,
           });
         });
@@ -1924,14 +2016,15 @@ Time:        9.2 s`,
           packageJson: {
             name: 'test-repo',
             scripts: {
-              'test:acceptance': 'jest --config jest.acceptance.config.js',
+              'test:acceptance:locally':
+                'jest --config jest.acceptance.config.js',
             },
           },
           jestConfigs: ['acceptance'],
           mockKeyrack: true,
           mockNpm: {
             exitCode: 0,
-            stdout: '> test-repo@1.0.0 test:acceptance',
+            stdout: '> test-repo@1.0.0 test:acceptance:locally',
             stderr: `PASS src/e2e.acceptance.test.ts
 Test Suites: 2 passed, 2 total
 Tests:       10 passed, 10 total
@@ -1941,7 +2034,15 @@ Time:        12.5 s`,
         });
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'acceptance', '--thorough'],
+          gitRepoTestArgs: [
+            '--what',
+            'acceptance',
+            '--against',
+            'local',
+            '--env',
+            'test',
+            '--thorough',
+          ],
           env: { ...env, THOROUGH: 'true' },
         });
       });
@@ -1965,14 +2066,15 @@ Time:        12.5 s`,
           packageJson: {
             name: 'test-repo',
             scripts: {
-              'test:acceptance': 'jest --config jest.acceptance.config.js',
+              'test:acceptance:locally':
+                'jest --config jest.acceptance.config.js',
             },
           },
           jestConfigs: ['acceptance'],
           mockKeyrack: true,
           mockNpm: {
             exitCode: 1,
-            stdout: '> test-repo@1.0.0 test:acceptance',
+            stdout: '> test-repo@1.0.0 test:acceptance:locally',
             stderr: `FAIL src/checkout.acceptance.test.ts
   ● Checkout flow › should complete thorough payment
 
@@ -1986,7 +2088,15 @@ Time:        15.1 s`,
         });
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'acceptance', '--thorough'],
+          gitRepoTestArgs: [
+            '--what',
+            'acceptance',
+            '--against',
+            'local',
+            '--env',
+            'test',
+            '--thorough',
+          ],
           env: { ...env, THOROUGH: 'true' },
         });
       });
@@ -2723,7 +2833,8 @@ Time:        0.1 s`,
                 'test:lint': 'eslint .',
                 'test:unit': 'jest --config=jest.unit.config.js',
                 'test:integration': 'jest --config=jest.integration.config.js',
-                'test:acceptance': 'jest --config=jest.acceptance.config.js',
+                'test:acceptance:locally':
+                  'jest --config=jest.acceptance.config.js',
               },
             },
             null,
@@ -2761,7 +2872,7 @@ elif [[ "$*" == *"test:integration"* ]]; then
 Tests: 12 passed, 12 total
 Time: 5.0 s" >&2
   exit 0
-elif [[ "$*" == *"test:acceptance"* ]]; then
+elif [[ "$*" == *"test:acceptance:locally"* ]]; then
   echo "Test Suites: 2 passed, 2 total
 Tests: 8 passed, 8 total
 Time: 8.0 s" >&2
@@ -2798,7 +2909,15 @@ exec "${realRhxPath}" "$@"
 
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'all', '--thorough'],
+          gitRepoTestArgs: [
+            '--what',
+            'all',
+            '--against',
+            'local',
+            '--env',
+            'test',
+            '--thorough',
+          ],
           env,
         });
       });
@@ -2832,7 +2951,8 @@ exec "${realRhxPath}" "$@"
                 'test:lint': 'eslint .',
                 'test:unit': 'jest --config=jest.unit.config.js',
                 'test:integration': 'jest --config=jest.integration.config.js',
-                'test:acceptance': 'jest --config=jest.acceptance.config.js',
+                'test:acceptance:locally':
+                  'jest --config=jest.acceptance.config.js',
               },
             },
             null,
@@ -2872,7 +2992,7 @@ Tests: 10 passed, 10 total
 Snapshots: 3 updated, 3 total
 Time: 4.0 s" >&2
   exit 0
-elif [[ "$*" == *"test:acceptance"* ]]; then
+elif [[ "$*" == *"test:acceptance:locally"* ]]; then
   echo "Test Suites: 1 passed, 1 total
 Tests: 5 passed, 5 total
 Snapshots: 2 updated, 2 total
@@ -2910,7 +3030,15 @@ exec "${realRhxPath}" "$@"
 
         return runGitRepoTest({
           tempDir,
-          gitRepoTestArgs: ['--what', 'all', '--resnap'],
+          gitRepoTestArgs: [
+            '--what',
+            'all',
+            '--against',
+            'local',
+            '--env',
+            'test',
+            '--resnap',
+          ],
           env,
         });
       });
@@ -2993,7 +3121,8 @@ Time:        5.2 s`,
           packageJson: {
             name: 'test-repo',
             scripts: {
-              'test:acceptance': 'jest --config jest.acceptance.config.js',
+              'test:acceptance:locally':
+                'jest --config jest.acceptance.config.js',
             },
           },
           jestConfigs: ['acceptance'],
@@ -3004,7 +3133,7 @@ Time:        5.2 s`,
           mockListTests: ['src/checkout.acceptance.test.ts'],
           mockNpm: {
             exitCode: 0,
-            stdout: '> test-repo@1.0.0 test:acceptance',
+            stdout: '> test-repo@1.0.0 test:acceptance:locally',
             stderr: `PASS src/checkout.acceptance.test.ts
 Test Suites: 1 passed, 1 total
 Tests:       8 passed, 8 total
@@ -3017,6 +3146,10 @@ Time:        10.5 s`,
           gitRepoTestArgs: [
             '--what',
             'acceptance',
+            '--against',
+            'local',
+            '--env',
+            'test',
             '--scope',
             'checkout',
             '--resnap',

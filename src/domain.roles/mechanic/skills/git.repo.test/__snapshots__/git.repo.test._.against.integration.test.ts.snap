@@ -1,0 +1,146 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.repo.test --against given: [case1] --against local with test:acceptance:locally present when: [t0] --what acceptance --against local --env test is run then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what acceptance --mode apply --against local --env test
+   ├─ keyrack: unlocked ehmpath/test
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test --against given: [case1b] --against local --env prep when: [t0] --what acceptance --against local --env prep is run then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what acceptance --mode apply --against local --env prep
+   ├─ keyrack: unlocked ehmpath/prep
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test --against given: [case1c] --against local --env prod when: [t0] --what acceptance --against local --env prod is run then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what acceptance --mode apply --against local --env prod
+   ├─ keyrack: unlocked ehmpath/prod
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test --against given: [case2] --against cloud with test:acceptance present when: [t0] --what acceptance --against cloud --env prep is run then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what acceptance --mode apply --against cloud --env prep
+   ├─ keyrack: unlocked ehmpath/prep
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test --against given: [case2b] --against cloud --env prod when: [t0] --what acceptance --against cloud --env prod is run then: output matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what acceptance --mode apply --against cloud --env prod
+   ├─ keyrack: unlocked ehmpath/prod
+   ├─ status
+   │  ├─ 💤 inflight (Xs)
+   │  └─ 🎉 passed (Xs)
+   └─ log
+      ├─ omitted on success by default
+      └─ hint: use \`--log always\` to persist when desired
+"
+`;
+
+exports[`git.repo.test --against given: [case3] --against absent for acceptance test when: [t0] --what acceptance without --against is run then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what acceptance
+   └─ error: --against local|cloud required for acceptance
+
+specify where to run acceptance tests:
+  --against local  = test against local server
+  --against cloud  = test against deployed service
+"
+`;
+
+exports[`git.repo.test --against given: [case4] --env absent for acceptance test when: [t0] --what acceptance --against local without --env is run then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what acceptance --against local
+   └─ error: --env test|prep|prod required for acceptance
+
+specify which credentials to use:
+  --env test  = test credentials (local only)
+  --env prep  = prep credentials
+  --env prod  = prod credentials
+"
+`;
+
+exports[`git.repo.test --against given: [case5] --env test --against cloud is invalid when: [t0] --what acceptance --against cloud --env test is run then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --env test --against cloud
+   └─ error: --env test is not deployed to cloud
+
+test environment only works with local:
+  --against local --env test  = valid
+  --against cloud --env prep  = valid
+  --against cloud --env prod  = valid
+"
+`;
+
+exports[`git.repo.test --against given: [case6] --against used with non-acceptance test type when: [t0] --what unit --against local is run then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --what unit --against local
+   └─ error: --against only valid with --what acceptance or --what all
+
+unit and integration tests do not need --against
+"
+`;
+
+exports[`git.repo.test --against given: [case7] deprecated --locally flag when: [t0] --what acceptance --locally is run then: output matches snapshot 1`] = `
+"🐢 hold up, dude...
+
+🐚 git.repo.test --locally
+   └─ error: --locally is deprecated
+
+use --against local|cloud instead:
+  --against local  = test against local server
+  --against cloud  = test against deployed service
+
+example:
+  git.repo.test.sh --what acceptance --against local --env test --mode apply
+"
+`;
+
+exports[`git.repo.test --against given: [case8] invalid --against value when: [t0] --what acceptance --against foo is run then: output matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.test --against foo
+   └─ error: --against must be 'local' or 'cloud'
+
+valid values:
+  --against local  = test against local server
+  --against cloud  = test against deployed service
+"
+`;
