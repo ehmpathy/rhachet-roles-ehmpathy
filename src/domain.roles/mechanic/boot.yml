@@ -175,6 +175,9 @@ subject.code.prod:
       # contracts
       - briefs/practices/code.prod/consistent.contracts/ref.package.as-command.[ref].md
 
+      # lint
+      - briefs/practices/code.prod/pitofsuccess.lint/rule.forbid.dpdm-exclude-change.md
+
 subject.code.test:
   briefs:
     say:
