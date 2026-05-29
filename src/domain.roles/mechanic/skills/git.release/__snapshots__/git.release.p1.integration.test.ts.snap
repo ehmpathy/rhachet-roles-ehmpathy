@@ -117,6 +117,22 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t4] auto
 "
 `;
 
+exports[`git.release given: [case2] release to main (apply mode) when: [t5] automerge unavailable but direct merge succeeds (free tier) then: falls back to direct merge, exits 0 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xs in action, Xs watched
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
 exports[`git.release given: [case3a] release to prod from main (plan mode) when: [t0] release PR extant then: shows status with hint to apply 1`] = `
 "🐢 heres the wave...
 

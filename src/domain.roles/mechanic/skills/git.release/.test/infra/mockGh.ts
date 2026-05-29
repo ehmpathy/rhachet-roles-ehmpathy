@@ -1247,6 +1247,23 @@ if [[ "$CMD_KEY" == "pr view" ]] && [[ "$ALL_ARGS" == *"--json mergeCommit"* ]];
   exit 0
 fi
 
+# distinguish "pr merge" subvariants: --auto vs direct merge
+if [[ "$CMD_KEY" == "pr merge" ]]; then
+  if [[ "$ALL_ARGS" == *"--auto"* ]]; then
+    # check for "pr merge auto" key first, fallback to "pr merge"
+    RESPONSE_AUTO=$(echo "$MOCK_RESPONSES" | jq -r '.["pr merge auto"] // empty')
+    if [[ -n "$RESPONSE_AUTO" ]]; then
+      CMD_KEY="pr merge auto"
+    fi
+  else
+    # direct merge (no --auto): check for "pr merge direct" key first
+    RESPONSE_DIRECT=$(echo "$MOCK_RESPONSES" | jq -r '.["pr merge direct"] // empty')
+    if [[ -n "$RESPONSE_DIRECT" ]]; then
+      CMD_KEY="pr merge direct"
+    fi
+  fi
+fi
+
 # distinguish "pr list" subvariants by --state flag and --jq query
 if [[ "$CMD_KEY" == "pr list" ]]; then
   # check for --limit 21 query FIRST (get_latest_merged_release_pr_info)

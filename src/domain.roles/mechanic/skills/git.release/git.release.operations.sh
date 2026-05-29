@@ -390,11 +390,15 @@ get_pr_title() {
 ######################################################################
 # enable_automerge
 # enable automerge on PR via gh pr merge --auto --squash
+# falls back to direct merge if automerge is unavailable (free tier orgs)
 #
 # handles "clean status" error: when PR is ready to merge now, gh returns
 # "GraphQL: Pull request is in clean status (enablePullRequestAutoMerge)"
 # this is NOT an error - it means the PR merged or can merge immediately.
 # we suppress this specific error and let the caller check merge status.
+#
+# handles "automerge unavailable" error: when org/repo doesn't support
+# automerge (free tier), falls back to direct merge via gh pr merge --squash
 #
 # usage: enable_automerge "42"
 # returns: 0 on success or "clean status", non-zero on actual errors
@@ -417,6 +421,31 @@ enable_automerge() {
   if echo "$output" | grep -qi "clean status"; then
     # suppress error, let caller check if PR merged
     return 0
+  fi
+
+  # check for automerge unavailable errors (free tier orgs, repo settings)
+  # note: "not authorized" is a permissions error, NOT automerge unavailability
+  # patterns: "Auto merge is not allowed for this repository", "not enabled"
+  if echo "$output" | grep -qiE "(auto[- ]?merge is not allowed|not enabled|auto_merge_allowed)"; then
+    # fallback to direct merge (without --auto)
+    local direct_output
+    local direct_exit_code
+    direct_output=$(gh pr merge "$pr_number" --squash 2>&1) && direct_exit_code=0 || direct_exit_code=$?
+
+    if [[ $direct_exit_code -eq 0 ]]; then
+      # direct merge succeeded
+      return 0
+    fi
+
+    # check for "clean status" on direct merge too
+    if echo "$direct_output" | grep -qi "clean status"; then
+      return 0
+    fi
+
+    # direct merge also failed - failloud with original automerge error + fallback error
+    echo "automerge unavailable (free tier?): $output" >&2
+    echo "direct merge also failed: $direct_output" >&2
+    return $direct_exit_code
   fi
 
   # actual error - failloud

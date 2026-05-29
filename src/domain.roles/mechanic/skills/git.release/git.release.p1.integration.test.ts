@@ -491,6 +491,50 @@ exit 1
         }
       });
     });
+
+    when('[t5] automerge unavailable but direct merge succeeds (free tier)', () => {
+      then('falls back to direct merge, exits 0', () => {
+        // automerge fails with "not allowed" (free tier), but direct merge succeeds
+        const mockResponses = {
+          'pr list': '42',
+          'pr view':
+            '{"statusCheckRollup": [{"conclusion": "SUCCESS", "status": "COMPLETED", "name": "test"}], "autoMergeRequest": null, "mergeStateStatus": "CLEAN", "state": "OPEN", "title": "feat(oceans): add reef protection"}',
+          'pr merge auto':
+            'ERROR:GraphQL: Auto merge is not allowed for this repository (enablePullRequestAutoMerge)',
+          'pr merge direct': 'Squash and merge pull request #42',
+        };
+
+        const { tempDir, fakeBinDir, cleanup } = setupTestEnv(mockResponses);
+
+        try {
+          spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], {
+            cwd: tempDir,
+          });
+
+          const result = runSkill(['--into', 'main', '--mode', 'apply'], {
+            tempDir,
+            fakeBinDir,
+          });
+
+          // debug output
+          console.log('case2 t5 STDOUT:', result.stdout);
+          console.log('case2 t5 STDERR:', result.stderr);
+          console.log('case2 t5 STATUS:', result.status);
+
+          // fallback succeeds: skill exits 0
+          expect(result.status).toEqual(0);
+
+          // stdout shows success
+          expect(result.stdout).toContain('cowabunga');
+          expect(result.stdout).toContain('all checks passed');
+
+          // snapshots capture exact output
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+        } finally {
+          cleanup();
+        }
+      });
+    });
   });
 
   given('[case3a] release to prod from main (plan mode)', () => {
