@@ -50,7 +50,7 @@ describe('grepsafe.sh', () => {
    */
   const sanitizeOutput = (stdout: string): string => {
     // replace temp paths
-    let output = stdout.replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR');
+    const output = stdout.replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR');
 
     // sort grep result lines for deterministic order
     // matches lines like "src/a.ts:1:content" or "│  src/a.ts:1:content"
