@@ -7,6 +7,7 @@ always:
 
       # architecture
       - briefs/practices/rule.require.solve-at-cause.md
+      - briefs/practices/rule.prefer.most-common-denominator.md
       - briefs/practices/prefer.env_access.prep_over_dev.md
 
       # domain operations
