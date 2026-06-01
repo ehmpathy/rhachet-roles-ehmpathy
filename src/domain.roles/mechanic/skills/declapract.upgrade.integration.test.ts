@@ -109,6 +109,7 @@ describe('declapract.upgrade', () => {
 
         // stones and guards should exist
         expect(files).toContain('1.upgrade.invoke.stone');
+        expect(files).toContain('1.upgrade.invoke.guard');
         expect(files).toContain('2.detect.hazards.stone');
         expect(files).toContain('2.detect.hazards.guard');
         expect(files).toContain('3.1.repair.test.defects.stone');

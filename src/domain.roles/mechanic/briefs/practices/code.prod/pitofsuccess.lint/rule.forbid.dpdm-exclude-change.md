@@ -2,54 +2,86 @@
 
 ## .what
 
-never change the dpdm `--exclude` pattern. the pattern `--exclude '^$'` is intentional.
+never add prod dependencies to `.dpdmrc.yaml` exclude array. only devDependencies may be excluded.
 
 ## .why
 
-the `--exclude '^$'` pattern is a regex that matches no paths, which means **all files are checked for cycles, including node_modules**.
+the `.dpdmrc.yaml` file controls dpdm cycle detection:
 
-this is intentional:
-- cycles in dependencies (node_modules) can cause issues at runtime
-- detect dependency cycles early to prevent subtle bugs
-- the empty regex ensures comprehensive coverage
+```yaml
+# only exclude devDependencies here
+# if you exclude a prod dependency, you ship cycles to consumers and break their builds
+exclude: []
+```
+
+an empty `exclude: []` array means **all files are checked for cycles — node_modules included**.
+
+**we avoid all cycles, even in dependencies.**
+
+we check node_modules for all dependencies on purpose — prod and dev:
+- cycles in prod dependencies break consumers at runtime
+- cycles in dev dependencies break development workflows
+- we check all deps by default to catch both
+- devDeps may be excluded as escape hatch if needed, but default is check all
+- empty exclude ensures comprehensive coverage
+
+## .why node_modules cycles matter
+
+cycles in production dependencies break consumers.
+
+if a consumer attempts to load one of the deps with that cycle, dependent on their install scheme, it breaks at runtime. the consumer's bundler or runtime hits the cycle at module resolution and fails — sometimes with cryptic errors, sometimes silently with `undefined` exports.
+
+**this breaks downstream users of your package**, not just your own repo. you may never see the failure locally, but your consumers will.
+
+| who | what breaks | when |
+|-----|-------------|------|
+| consumer | runtime crash or `undefined` exports | first load of cyclic dep |
+| consumer | bundler emits broken code | production build |
+| consumer | install fails or produces corrupt tree | `npm install` / `pnpm install` |
+
+**devDependencies are exempt** — they are not shipped to consumers, so cycles there do not propagate.
+
+**production dependencies require thorough eradication of cycles.** any cycle in a prod dep can break consumers at runtime. this is rare but catastrophic when it occurs. if you exclude node_modules from cycle detection, these issues hide until a consumer reports them.
 
 ## .common misunderstand
 
-folks sometimes see `--exclude '^$'` and assume:
-- "this is a syntax error — should be a glob not regex"
-- "this should exclude node_modules"
-- "let me fix this by use of `--exclude '^node_modules'`"
+folks sometimes see dpdm cycle errors and think:
+- "i'll just add the dep to the exclude array"
+- "node_modules shouldn't be checked anyway"
+- "this is a lint config issue, not a code issue"
 
-**all of these are wrong.** the `'^$'` pattern is intentional — it ensures node_modules IS checked for cycles.
+**all of these are wrong.** the exclude array is for devDependencies only. prod deps must never be excluded.
 
 ## .the truth
 
-| pattern | what it does | correct? |
-|---------|--------------|----------|
-| `--exclude '^$'` | excludes no paths (check all files including node_modules) | **yes — use this** |
-| `--exclude '^node_modules'` | excludes node_modules from cycle check | **wrong — do not use** |
-| `--exclude 'node_modules'` | would be a glob, not what dpdm expects | wrong |
+| exclude array | what it does | correct? |
+|---------------|--------------|----------|
+| `exclude: []` | checks all files, node_modules included | **yes — use this** |
+| `exclude: ['some-prod-dep']` | hides cycle in prod dep | **wrong — never do this** |
+| `exclude: ['jest', 'eslint']` | excludes devDeps only | ok if devDeps only |
 
-the correct pattern is `--exclude '^$'` which matches no paths, so **all files including node_modules are checked for cycles**.
+the correct pattern is `exclude: []` (empty array) for prod deps. devDependencies may be added to exclude if they cause spurious cycle errors.
 
-folks sometimes "fix" this to `--exclude '^node_modules'` because they assume it's a syntax error. it is not. the `'^$'` pattern is deliberate.
+folks sometimes "fix" cycle errors by addition of the dep to exclude. this hides the problem. fix the actual cycle instead.
 
 ## .enforcement
 
-- change to dpdm --exclude pattern = blocker
-- classification as "syntax error" = blocker
-- "fix" that reduces cycle coverage = blocker
+- addition of prod dep to exclude array = blocker
+- addition of node_modules or ^node_modules to exclude = blocker
+- change of default to exclude node_modules = blocker
+- removal of prod dep from exclude = blocker (hides regression)
+- devDep addition to exclude = ok
 
 ## .when you see this pattern
 
-if you encounter `--exclude '^$'` in a repo:
+if you see `exclude: []` in `.dpdmrc.yaml`:
 
-1. **do not change it** — it is intentional
-2. **do not classify it as a defect** — it is not
-3. **do not suggest "fix"** — there is no issue to fix
+1. **do not add prod deps** — they must be cycle-free
+2. **devDeps only** — jest, eslint, etc. are ok to exclude
+3. **fix cycles** — if a prod dep has cycles, fix the code
 
-if you encounter `--exclude '^node_modules'` in a repo:
+if you see a prod dep in the exclude array:
 
-1. **this is wrong** — change it to `--exclude '^$'`
-2. node_modules should be checked for cycles
-3. the `'^node_modules'` pattern was likely a misguided "fix"
+1. **this is wrong** — remove it from exclude
+2. **fix the cycle** — the cycle must be resolved
+3. **the exclude was likely a misguided "fix"**

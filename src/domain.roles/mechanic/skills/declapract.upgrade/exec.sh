@@ -54,6 +54,9 @@ fi
 # run upgrade
 ######################################################################
 
+# trap errors and emit BLOCKER output
+trap 'print_exec_blocker; exit 2' ERR
+
 print_turtle_header "upgrade time!"
 
 echo "📦 ensure node version"
@@ -78,6 +81,9 @@ pnpm install
 echo ""
 echo "🔧 auto fix"
 pnpm fix
+
+# clear trap on success
+trap - ERR
 
 echo ""
 print_turtle_header "shell yeah!"
