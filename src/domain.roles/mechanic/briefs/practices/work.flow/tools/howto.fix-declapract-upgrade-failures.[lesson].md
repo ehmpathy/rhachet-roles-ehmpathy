@@ -41,7 +41,7 @@ or build fails because esbuild/other native packages have not built.
 3. re-run `rhx declapract.upgrade exec`
 
 **why this happens:**
-pnpm 10.25+ blocks postinstall hooks by default and requires explicit approval via `pnpm approve-builds`. v10.24 excludes packages by default with optional opt-out, which avoids this approval flow.
+pnpm 11+ changed `strictDepBuilds` to default to `true`, which fails installs when postinstall hooks lack approval. pnpm 10.24 has `strictDepBuilds: false` by default — hooks are skipped with a warning but don't fail the install.
 
 ## if none of the above
 
