@@ -95,3 +95,16 @@ print_error() {
   echo ""
   echo "   └─ error: $message"
 }
+
+# print blocker message for exec failure
+# usage: print_exec_blocker
+print_exec_blocker() {
+  echo "🐢 bummer dude..."
+  echo ""
+  echo "🐚 declapract.upgrade exec"
+  echo "   └─ ⛔ BLOCKER: upgrade failed"
+  echo ""
+  echo "   see brief: howto.fix-declapract-upgrade-failures"
+  echo ""
+  echo "   do NOT proceed to next stone. fix this failure first."
+}

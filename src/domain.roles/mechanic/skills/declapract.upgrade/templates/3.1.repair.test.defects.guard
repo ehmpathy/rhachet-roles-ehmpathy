@@ -60,3 +60,30 @@ reviews:
         - how: what changed? (diff against origin/main is documented)
         - why: root cause is documented (why the change caused the defect)
         - fix: how it was fixed is documented
+
+    - slug: has-respected-dpdm-exclude
+      say: |
+        did the driver modify .dpdmrc.yaml exclude array incorrectly?
+
+        we avoid all cycles, even in dependencies — ON PURPOSE.
+        we check node_modules for all deps (prod and dev) by default.
+
+        the .dpdmrc.yaml file controls dpdm cycle detection:
+        - exclude: [] means check all files, node_modules included
+        - devDeps may be excluded as escape hatch if needed
+        - prod dependencies must never be excluded
+        - node_modules must never be excluded
+
+        forbidden changes:
+        - add prod dep to exclude array
+        - add node_modules or ^node_modules to exclude
+        - change default to exclude node_modules
+
+        if you exclude a prod dependency or node_modules, you ship
+        cycles to consumers and break their builds.
+        see brief rule.forbid.dpdm-exclude-change.
+
+        if git diff shows any forbidden change to .dpdmrc.yaml:
+        - this is a BLOCKER
+        - revert the change
+        - fix the actual circular imports instead
