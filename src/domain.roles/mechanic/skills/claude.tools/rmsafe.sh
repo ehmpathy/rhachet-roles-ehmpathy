@@ -43,6 +43,11 @@ POSITIONAL_ARGS=()
 while [[ $# -gt 0 ]]; do
   case $1 in
     --path)
+      if [[ -z "${2:-}" ]]; then
+        emit_error "error: --path requires a value"
+        emit_error "usage: rmsafe.sh --path <path> [--recursive]"
+        exit 2
+      fi
       TARGET="$2"
       shift 2
       ;;
@@ -79,16 +84,18 @@ while [[ $# -gt 0 ]]; do
       echo ""
       echo "guarantee:"
       echo "  - path must be within repo"
-      echo "  - deleted files go to trash for restore"
+      echo "  - trackable files go to trash for restore"
+      echo "  - not trackable files are direct-deleted (no trash)"
       exit 0
       ;;
     --*)
-      echo "error: unknown option: $1"
-      echo "usage: rmsafe.sh <path>"
-      echo "       rmsafe.sh -r <path>"
-      echo "       rmsafe.sh --path <path> [--recursive]"
-      echo "       rmsafe.sh --literal <path>"
-      echo "see: rmsafe.sh --help"
+      emit_error "error: unknown option: $1"
+      emit_error "hint: use a valid option from --help"
+      emit_error "usage: rmsafe.sh <path>"
+      emit_error "       rmsafe.sh -r <path>"
+      emit_error "       rmsafe.sh --path <path> [--recursive]"
+      emit_error "       rmsafe.sh --literal <path>"
+      emit_error "see: rmsafe.sh --help"
       exit 2
       ;;
     *)
@@ -106,16 +113,19 @@ fi
 
 # validate required args
 if [[ -z "$TARGET" ]]; then
-  echo "error: path is required"
-  echo "usage: rmsafe.sh <path>"
-  echo "       rmsafe.sh -r <path>"
-  echo "       rmsafe.sh --path <path> [--recursive]"
+  emit_error "error: path is required"
+  emit_error "hint: provide a path to delete"
+  emit_error "usage: rmsafe.sh <path>"
+  emit_error "       rmsafe.sh -r <path>"
+  emit_error "       rmsafe.sh --path <path> [--recursive]"
+  emit_error "see: rmsafe.sh --help"
   exit 2
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "error: not in a git repository"
+  emit_error "error: not in a git repository"
+  emit_error "hint: cd into a git repository or run 'git init' first"
   exit 2
 fi
 
@@ -123,7 +133,8 @@ fi
 REPO_ROOT=$(realpath "$(git rev-parse --show-toplevel)")
 
 # compute trash directory path
-TRASH_DIR="$REPO_ROOT/.agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash"
+TRASH_CACHE_REL=".agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash"
+TRASH_DIR="$REPO_ROOT/$TRASH_CACHE_REL"
 
 # findsert trash directory with gitignore
 findsert_trash_dir() {
@@ -157,6 +168,41 @@ is_path_within_repo() {
   [[ "$path" == "$REPO_ROOT" || "$path" == "$REPO_ROOT/"* ]]
 }
 
+# get trackable paths from git
+# .what = returns trackable paths for a file or directory
+# .why  = git is the source of truth. git ls-files --cached --others --exclude-standard
+#         returns all trackable files (tracked + untracked but not ignored).
+# .note = -c core.quotePath=false outputs literal unicode instead of octal escapes
+get_trackable_paths() {
+  local path="$1"
+  git -c core.quotePath=false ls-files --cached --others --exclude-standard -- "$path" 2>/dev/null || true
+}
+
+# copy trackable files to trash
+# .what = backs up trackable files before deletion
+# .why  = trackable files go to trash for recovery; not trackable files skip trash
+# .note = git ls-files returns paths relative to repo root
+cp_trackable_to_trash() {
+  local path="$1"
+  local trackable_paths
+  trackable_paths=$(get_trackable_paths "$path")
+
+  local count=0
+  if [[ -n "$trackable_paths" ]]; then
+    findsert_trash_dir
+    while IFS= read -r file_rel; do
+      [[ -z "$file_rel" ]] && continue
+      # git ls-files returns relative paths; construct absolute for cp
+      local file_abs="$REPO_ROOT/$file_rel"
+      mkdir -p "$TRASH_DIR/$(dirname "$file_rel")"
+      cp -P "$file_abs" "$TRASH_DIR/$file_rel"
+      count=$((count + 1))
+    done <<< "$trackable_paths"
+  fi
+
+  echo "$count"
+}
+
 # compute relative path from repo root
 as_relative_path() {
   local abs_path="$1"
@@ -164,10 +210,15 @@ as_relative_path() {
 }
 
 # expand glob pattern to array of files
+# .note = uses compgen -G for safe glob expansion (handles escape sequences, no eval)
+# .note = sorts results for consistent output order
 expand_glob_to_files() {
   local pattern="$1"
   local -n result_array=$2
-  eval "for f in $pattern; do [[ -f \"\$f\" || -L \"\$f\" ]] && result_array+=(\"\$f\"); done"
+  local file
+  while IFS= read -r file; do
+    [[ -f "$file" || -L "$file" ]] && result_array+=("$file")
+  done < <(compgen -G "$pattern" 2>/dev/null | sort)
 }
 
 # check if index is last in array
@@ -177,17 +228,35 @@ is_last_index() {
   [[ $((index + 1)) -eq $count ]]
 }
 
+# validate target is within repo and not repo root — fail-fast on violation
+validate_target_within_repo_or_fail() {
+  local abs_path="$1"
+  if ! is_path_within_repo "$abs_path"; then
+    emit_error "error: path must be within the git repository"
+    emit_error "  repo root: $REPO_ROOT"
+    emit_error "  path:      $abs_path"
+    emit_error "hint: use a relative path from within the repo"
+    exit 2
+  fi
+  if [[ "$abs_path" == "$REPO_ROOT" ]]; then
+    emit_error "error: cannot delete the repository root"
+    emit_error "hint: specify a subdirectory or file within the repo"
+    exit 2
+  fi
+}
+
 # detect if TARGET is a glob pattern or literal path
 is_glob_pattern() {
   local pattern="$1"
   [[ "$pattern" == *"*"* || "$pattern" == *"?"* || "$pattern" == *"["* ]]
 }
 
-# --literal flag forces literal interpretation
+# default: check for glob pattern
+IS_GLOB=$(is_glob_pattern "$TARGET" && echo "true" || echo "false")
+
+# override: --literal flag forces literal interpretation
 if [[ "$LITERAL" == true ]]; then
   IS_GLOB=false
-else
-  IS_GLOB=$(is_glob_pattern "$TARGET" && echo "true" || echo "false")
 fi
 
 # expand glob pattern to array of files
@@ -198,7 +267,9 @@ if [[ "$IS_GLOB" == "true" ]]; then
 else
   # literal path: validate directly
   if [[ ! -e "$TARGET" && ! -L "$TARGET" ]]; then
-    echo "error: path does not exist: $TARGET"
+    emit_error "error: path does not exist: $TARGET"
+    emit_error "hint: check the path and try again"
+    emit_error "see: rmsafe.sh --help"
     exit 2
   fi
   if [[ -d "$TARGET" ]]; then
@@ -213,44 +284,38 @@ fi
 if [[ "$IS_DIR_REMOVE" == "true" ]]; then
   # check recursive flag
   if [[ "$RECURSIVE" != true ]]; then
-    echo "error: target is a directory, use -r or --recursive to delete"
+    emit_error "error: target is a directory, use -r or --recursive to delete"
+    emit_error "hint: add -r flag to delete directories"
+    emit_error "see: rmsafe.sh --help"
     exit 2
   fi
 
   TARGET_ABS=$(compute_abs_path "$TARGET")
-
-  # validate target is within repo
-  if ! is_path_within_repo "$TARGET_ABS"; then
-    echo "error: path must be within the git repository"
-    echo "  repo root: $REPO_ROOT"
-    echo "  path:      $TARGET_ABS"
-    exit 2
-  fi
-
-  # prevent delete of repo root itself
-  if [[ "$TARGET_ABS" == "$REPO_ROOT" ]]; then
-    echo "error: cannot delete the repository root"
-    exit 2
-  fi
-
+  validate_target_within_repo_or_fail "$TARGET_ABS"
   TARGET_REL=$(as_relative_path "$TARGET_ABS")
 
-  # copy to trash before removal
-  findsert_trash_dir
-  mkdir -p "$TRASH_DIR/$(dirname "$TARGET_REL")"
-  cp -rP "$TARGET_ABS" "$TRASH_DIR/$TARGET_REL"
-
-  # perform the removal
+  # copy trackable files to trash, then remove directory
+  TRASHED_COUNT=$(cp_trackable_to_trash "$TARGET_ABS")
   rm -rf "$TARGET_ABS"
+
+  # determine output type based on whether any trackable files existed
+  DIR_TYPE="directory"
+  if [[ $TRASHED_COUNT -eq 0 ]]; then
+    DIR_TYPE="directory (not trackable)"
+  fi
 
   # output
   print_turtle_header "sweet"
   print_tree_start "rmsafe"
   print_tree_branch "path" "$TARGET"
-  print_tree_branch "type" "directory"
+  print_tree_branch "type" "$DIR_TYPE"
   print_tree_leaf "removed"
-  print_tree_file_line "$TARGET_REL" true
-  print_coconut_hint ".agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/$TARGET_REL" "./$TARGET_REL"
+  print_tree_file_line "$TARGET_REL/" true
+
+  # only show coconut hint if trackable files were trashed
+  if [[ $TRASHED_COUNT -gt 0 ]]; then
+    print_coconut_hint "$TRASH_CACHE_REL/$TARGET_REL" "./$TARGET_REL"
+  fi
   exit 0
 fi
 
@@ -291,46 +356,33 @@ print_tree_leaf "removed"
 
 # remove each file with incremental output
 REMOVED_COUNT=0
+TRASHED_COUNT=0
+FIRST_TRASHED_REL=""
 for i in "${!FILES[@]}"; do
   FILE="${FILES[$i]}"
   IS_LAST=$(is_last_index "$i" "$FILE_COUNT" && echo "true" || echo "false")
 
   TARGET_ABS=$(compute_abs_path "$FILE")
-
-  # validate target is within repo
-  if ! is_path_within_repo "$TARGET_ABS"; then
-    echo "error: path must be within the git repository"
-    echo "  repo root: $REPO_ROOT"
-    echo "  path:      $TARGET_ABS"
-    exit 2
-  fi
-
-  # prevent delete of repo root itself
-  if [[ "$TARGET_ABS" == "$REPO_ROOT" ]]; then
-    echo "error: cannot delete the repository root"
-    exit 2
-  fi
-
+  validate_target_within_repo_or_fail "$TARGET_ABS"
   TARGET_REL=$(as_relative_path "$TARGET_ABS")
 
-  # copy to trash before removal
-  findsert_trash_dir
-  mkdir -p "$TRASH_DIR/$(dirname "$TARGET_REL")"
-  cp -P "$TARGET_ABS" "$TRASH_DIR/$TARGET_REL"
-
-  # perform the removal
+  # copy trackable file to trash, then remove
+  FILE_TRASHED_COUNT=$(cp_trackable_to_trash "$TARGET_ABS")
   rm "$TARGET_ABS"
 
-  # output relative path
-  print_tree_file_line "$TARGET_REL" "$IS_LAST"
+  # output based on whether file was trackable
+  if [[ $FILE_TRASHED_COUNT -gt 0 ]]; then
+    print_tree_file_line "$TARGET_REL" "$IS_LAST"
+    TRASHED_COUNT=$((TRASHED_COUNT + 1))
+    FIRST_TRASHED_REL="${FIRST_TRASHED_REL:-$TARGET_REL}"
+  else
+    print_tree_file_line "$TARGET_REL (not trackable)" "$IS_LAST"
+  fi
 
   REMOVED_COUNT=$((REMOVED_COUNT + 1))
-  LAST_TARGET_REL="$TARGET_REL"
 done
 
-# show coconut hint for restore (use first file if multiple)
-if [[ $REMOVED_COUNT -gt 0 ]]; then
-  FIRST_ABS=$(compute_abs_path "${FILES[0]}")
-  FIRST_REL=$(as_relative_path "$FIRST_ABS")
-  print_coconut_hint ".agent/.cache/repo=ehmpathy/role=mechanic/skill=rmsafe/trash/$FIRST_REL" "./$FIRST_REL"
+# show coconut hint for restore only if trackable files were trashed
+if [[ $TRASHED_COUNT -gt 0 ]]; then
+  print_coconut_hint "$TRASH_CACHE_REL/$FIRST_TRASHED_REL" "./$FIRST_TRASHED_REL"
 fi

@@ -69,3 +69,12 @@ print_coconut_hint() {
   echo "   ├─ you can restore from trash"
   echo "   └─ rhx cpsafe $trash_path $restore_dest"
 }
+
+# print error message to both stdout and stderr
+# usage: emit_error "path is required"
+# usage: emit_error "usage: rmsafe.sh <path>"
+emit_error() {
+  local message="$1"
+  echo "$message"      # stdout
+  echo "$message" >&2  # stderr
+}
