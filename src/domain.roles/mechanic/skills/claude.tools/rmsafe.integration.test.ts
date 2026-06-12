@@ -1,11 +1,14 @@
-import { spawnSync, SpawnSyncReturns } from 'child_process';
+import { execSync, type SpawnSyncReturns, spawnSync } from 'child_process';
 import * as crypto from 'crypto';
 import * as fs from 'fs';
+import {
+  ConstraintError,
+  MalfunctionError,
+  UnexpectedCodePathError,
+} from 'helpful-errors';
 import * as os from 'os';
 import * as path from 'path';
-import { ConstraintError, MalfunctionError, UnexpectedCodePathError } from 'helpful-errors';
 import { given, then, useThen, when } from 'test-fns';
-import { execSync } from 'child_process';
 
 /**
  * .what = integration tests for rmsafe.sh skill
@@ -44,9 +47,12 @@ describe('rmsafe.sh', () => {
 
     // fail loud if env var value is invalid (caller must fix config)
     if (Number.isNaN(parsed) || parsed <= 0) {
-      throw new ConstraintError(`invalid RMSAFE_TEST_TIMEOUT_MS: ${input.envValue}`, {
-        hint: 'set RMSAFE_TEST_TIMEOUT_MS to a positive integer in milliseconds',
-      });
+      throw new ConstraintError(
+        `invalid RMSAFE_TEST_TIMEOUT_MS: ${input.envValue}`,
+        {
+          hint: 'set RMSAFE_TEST_TIMEOUT_MS to a positive integer in milliseconds',
+        },
+      );
     }
 
     return parsed;
@@ -59,7 +65,9 @@ describe('rmsafe.sh', () => {
    * .default = 30 seconds (30000ms) - sufficient for local ssd, may need increase for ci/slow disk
    * .computed-at = module load time from environment
    */
-  const commandTimeoutMs = asTimeoutMsOrDefault({ envValue: getEnvTimeoutMs() });
+  const commandTimeoutMs = asTimeoutMsOrDefault({
+    envValue: getEnvTimeoutMs(),
+  });
 
   // --- transformers: pure computation (no i/o) ---
 
@@ -98,7 +106,8 @@ describe('rmsafe.sh', () => {
    * .grain = transformer (pure string computation)
    * .why = 8 chars provides sufficient uniqueness while paths stay short
    */
-  const asUuidSuffix = (input: { uuid: string }): string => input.uuid.slice(0, 8);
+  const asUuidSuffix = (input: { uuid: string }): string =>
+    input.uuid.slice(0, 8);
 
   /**
    * .what = generate uuid-based unique suffix
@@ -121,7 +130,10 @@ describe('rmsafe.sh', () => {
    * .why = uuid suffix ensures order-independent uniqueness
    */
   const createTempDir = (input: { slug: string }): string => {
-    const dirPath = asTempDirPath({ slug: input.slug, suffix: genUuidSuffix() });
+    const dirPath = asTempDirPath({
+      slug: input.slug,
+      suffix: genUuidSuffix(),
+    });
     mkdirp({ at: dirPath });
     return dirPath;
   };
@@ -139,7 +151,10 @@ describe('rmsafe.sh', () => {
         timeout: commandTimeoutMs,
       });
     },
-    { message: 'execGit failed', metadata: { hint: 'check if git is installed and directory is valid' } },
+    {
+      message: 'execGit failed',
+      metadata: { hint: 'check if git is installed and directory is valid' },
+    },
   );
 
   /**
@@ -187,7 +202,6 @@ describe('rmsafe.sh', () => {
   const asTrashPath = (input: { tempDir: string; fileName: string }): string =>
     path.join(input.tempDir, trashRel, input.fileName);
 
-
   /**
    * .what = create single-file record from filename and content
    * .grain = transformer (pure computation)
@@ -215,8 +229,6 @@ describe('rmsafe.sh', () => {
   const asOutsideRepoFilePath = (input: { basePath: string }): string =>
     `${input.basePath}.txt`;
 
-
-
   // --- leaf communicators: encapsulate raw i/o (single operation only) ---
 
   /**
@@ -228,7 +240,10 @@ describe('rmsafe.sh', () => {
     (input: { at: string; content: string }): void => {
       fs.writeFileSync(input.at, input.content);
     },
-    { message: 'writeFile failed', metadata: { hint: 'check file permissions and parent directory exists' } },
+    {
+      message: 'writeFile failed',
+      metadata: { hint: 'check file permissions and parent directory exists' },
+    },
   );
 
   /**
@@ -239,7 +254,10 @@ describe('rmsafe.sh', () => {
     (input: { at: string }): void => {
       fs.mkdirSync(input.at, { recursive: true });
     },
-    { message: 'mkdirp failed', metadata: { hint: 'check directory permissions and disk space' } },
+    {
+      message: 'mkdirp failed',
+      metadata: { hint: 'check directory permissions and disk space' },
+    },
   );
 
   /**
@@ -250,7 +268,10 @@ describe('rmsafe.sh', () => {
     (input: { at: string; to: string }): void => {
       fs.symlinkSync(input.to, input.at);
     },
-    { message: 'symlink failed', metadata: { hint: 'check symlink permissions and target path exists' } },
+    {
+      message: 'symlink failed',
+      metadata: { hint: 'check symlink permissions and target path exists' },
+    },
   );
 
   /**
@@ -261,7 +282,10 @@ describe('rmsafe.sh', () => {
     (input: { at: string }): void => {
       fs.unlinkSync(input.at);
     },
-    { message: 'unlinkFile failed', metadata: { hint: 'check file exists and permissions' } },
+    {
+      message: 'unlinkFile failed',
+      metadata: { hint: 'check file exists and permissions' },
+    },
   );
 
   /**
@@ -272,7 +296,10 @@ describe('rmsafe.sh', () => {
     (input: { at: string }): void => {
       fs.rmSync(input.at, { recursive: true, force: true });
     },
-    { message: 'rmdirRecursive failed', metadata: { hint: 'check directory exists and permissions' } },
+    {
+      message: 'rmdirRecursive failed',
+      metadata: { hint: 'check directory exists and permissions' },
+    },
   );
 
   /**
@@ -294,9 +321,11 @@ describe('rmsafe.sh', () => {
     (input: { at: string }): void => {
       fs.rmSync(input.at, { force: true });
     },
-    { message: 'unlinkIfExists failed', metadata: { hint: 'check permissions' } },
+    {
+      message: 'unlinkIfExists failed',
+      metadata: { hint: 'check permissions' },
+    },
   );
-
 
   /**
    * .what = read file content
@@ -304,7 +333,10 @@ describe('rmsafe.sh', () => {
    */
   const readFile = MalfunctionError.wrap(
     (input: { at: string }): string => fs.readFileSync(input.at, 'utf-8'),
-    { message: 'readFile failed', metadata: { hint: 'check file exists and is readable' } },
+    {
+      message: 'readFile failed',
+      metadata: { hint: 'check file exists and is readable' },
+    },
   );
 
   /**
@@ -323,7 +355,6 @@ describe('rmsafe.sh', () => {
    */
   const setOutsideFile = (input: { at: string; content: string }): void =>
     writeFile({ at: input.at, content: input.content });
-
 
   /**
    * .what = spawn process synchronously
@@ -360,43 +391,55 @@ describe('rmsafe.sh', () => {
   }): { stdout: string; stderr: string; exitCode: number } => {
     // fail loud if spawn itself failed
     if (input.result.error) {
-      throw new MalfunctionError(`${input.label} spawn failed: ${input.result.error.message}`, {
-        command: input.command,
-        args: input.args,
-        cwd: input.cwd,
-        hint: input.hint,
-      });
+      throw new MalfunctionError(
+        `${input.label} spawn failed: ${input.result.error.message}`,
+        {
+          command: input.command,
+          args: input.args,
+          cwd: input.cwd,
+          hint: input.hint,
+        },
+      );
     }
 
     // fail loud if command timed out
     if (input.result.signal === 'SIGTERM') {
-      throw new MalfunctionError(`${input.label} timed out after ${commandTimeoutMs}ms`, {
-        command: input.command,
-        args: input.args,
-        cwd: input.cwd,
-        hint: 'command took too long; check for infinite loops or deadlocks',
-      });
+      throw new MalfunctionError(
+        `${input.label} timed out after ${commandTimeoutMs}ms`,
+        {
+          command: input.command,
+          args: input.args,
+          cwd: input.cwd,
+          hint: 'command took too long; check for infinite loops or deadlocks',
+        },
+      );
     }
 
     // fail loud if process was killed by other signal
     if (input.result.signal) {
-      throw new MalfunctionError(`${input.label} was killed by signal ${input.result.signal}`, {
-        command: input.command,
-        args: input.args,
-        cwd: input.cwd,
-        signal: input.result.signal,
-        hint: 'process received unexpected signal',
-      });
+      throw new MalfunctionError(
+        `${input.label} was killed by signal ${input.result.signal}`,
+        {
+          command: input.command,
+          args: input.args,
+          cwd: input.cwd,
+          signal: input.result.signal,
+          hint: 'process received unexpected signal',
+        },
+      );
     }
 
     // fail loud if status is null (invariant: should not happen after signal checks)
     if (input.result.status === null) {
-      throw new UnexpectedCodePathError(`${input.label} has null exit status with no signal`, {
-        command: input.command,
-        args: input.args,
-        cwd: input.cwd,
-        hint: 'internal invariant violation: status null without signal',
-      });
+      throw new UnexpectedCodePathError(
+        `${input.label} has null exit status with no signal`,
+        {
+          command: input.command,
+          args: input.args,
+          cwd: input.cwd,
+          hint: 'internal invariant violation: status null without signal',
+        },
+      );
     }
 
     return {
@@ -417,7 +460,11 @@ describe('rmsafe.sh', () => {
     label: string;
     hint: string;
   }): { stdout: string; stderr: string; exitCode: number } => {
-    const result = spawnProcess({ command: input.command, args: input.args, cwd: input.cwd });
+    const result = spawnProcess({
+      command: input.command,
+      args: input.args,
+      cwd: input.cwd,
+    });
     return asSpawnResultOrThrow({
       result,
       label: input.label,
@@ -433,10 +480,10 @@ describe('rmsafe.sh', () => {
    * .why = prepends executable to args list for bash invocation
    * .grain = transformer (pure array construction)
    */
-  const asBashArgs = (input: { executable: string; args: string[] }): string[] => [
-    input.executable,
-    ...input.args,
-  ];
+  const asBashArgs = (input: {
+    executable: string;
+    args: string[];
+  }): string[] => [input.executable, ...input.args];
 
   /**
    * .what = run bash command with args
@@ -468,7 +515,10 @@ describe('rmsafe.sh', () => {
     relativePath: string;
     content: string;
   }): void => {
-    const fullPath = asFullPath({ dir: input.dir, relativePath: input.relativePath });
+    const fullPath = asFullPath({
+      dir: input.dir,
+      relativePath: input.relativePath,
+    });
     const parentDir = asParentDir({ of: fullPath });
     mkdirp({ at: parentDir });
     writeFile({ at: fullPath, content: input.content });
@@ -498,7 +548,10 @@ describe('rmsafe.sh', () => {
     relativePath: string;
     target: string;
   }): void => {
-    const fullPath = asFullPath({ dir: input.dir, relativePath: input.relativePath });
+    const fullPath = asFullPath({
+      dir: input.dir,
+      relativePath: input.relativePath,
+    });
     const parentDir = asParentDir({ of: fullPath });
     mkdirp({ at: parentDir });
     symlink({ at: fullPath, to: input.target });
@@ -527,7 +580,11 @@ describe('rmsafe.sh', () => {
     cwd: string;
     args: string[];
   }): { stdout: string; stderr: string; exitCode: number } =>
-    runBashCommand({ executable: scriptPath, args: input.args, cwd: input.cwd });
+    runBashCommand({
+      executable: scriptPath,
+      args: input.args,
+      cwd: input.cwd,
+    });
 
   // --- orchestrators: compose leaf communicators ---
 
@@ -604,14 +661,29 @@ describe('rmsafe.sh', () => {
    */
   const givenSiblingDirAttackAndRmsafe = (args: {
     siblingFileName: string;
-  }): { stdout: string; stderr: string; exitCode: number; tempDir: string; siblingDir: string; siblingFile: string; cleanup: () => void } => {
+  }): {
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+    tempDir: string;
+    siblingDir: string;
+    siblingFile: string;
+    cleanup: () => void;
+  } => {
     // set up temp git repo with sibling attack directory
     const tempDir = genTempGitRepo({ slug: 'rmsafe-sibling' });
     const siblingDir = asSiblingAttackDir({ tempDir });
-    const siblingFile = asFullPath({ dir: siblingDir, relativePath: args.siblingFileName });
+    const siblingFile = asFullPath({
+      dir: siblingDir,
+      relativePath: args.siblingFileName,
+    });
 
     // create malicious file in sibling directory
-    setFileInDir({ dir: siblingDir, relativePath: args.siblingFileName, content: 'should not be deleted' });
+    setFileInDir({
+      dir: siblingDir,
+      relativePath: args.siblingFileName,
+      content: 'should not be deleted',
+    });
 
     // run rmsafe with siblingFile as target
     const result = runRmsafe({ cwd: tempDir, args: [siblingFile] });
@@ -629,13 +701,27 @@ describe('rmsafe.sh', () => {
   const givenSymlinkChainEscapeAndRmsafe = (args: {
     outsideFileName: string;
     rmsafeArgs: string[];
-  }): { stdout: string; stderr: string; exitCode: number; tempDir: string; outsideDir: string; cleanup: () => void } => {
+  }): {
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+    tempDir: string;
+    outsideDir: string;
+    cleanup: () => void;
+  } => {
     const outsideDir = genOutsideRepoPath({ slug: 'rmsafe-chain' });
     const cleanup = (): void => rmdirRecursive({ at: outsideDir });
 
-    setFileInDir({ dir: outsideDir, relativePath: args.outsideFileName, content: 'outside content' });
+    setFileInDir({
+      dir: outsideDir,
+      relativePath: args.outsideFileName,
+      content: 'outside content',
+    });
     const tempDir = genTempGitRepo({ slug: 'rmsafe-symchain' });
-    setSymlinksInDir({ dir: tempDir, symlinks: { 'link-to-outside': outsideDir } });
+    setSymlinksInDir({
+      dir: tempDir,
+      symlinks: { 'link-to-outside': outsideDir },
+    });
     const result = runRmsafe({ cwd: tempDir, args: args.rmsafeArgs });
     return { ...result, tempDir, outsideDir, cleanup };
   };
@@ -652,7 +738,14 @@ describe('rmsafe.sh', () => {
     content: string;
     files: Record<string, string>;
     symlinks: Record<string, string>;
-  }): { stdout: string; stderr: string; exitCode: number; tempDir: string; outsideFile: string; cleanup: () => void } => {
+  }): {
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+    tempDir: string;
+    outsideFile: string;
+    cleanup: () => void;
+  } => {
     // create file outside any repo
     const outsideBasePath = genOutsideRepoPath({ slug: args.slug });
     const outsideFile = asOutsideRepoFilePath({ basePath: outsideBasePath });
@@ -680,14 +773,25 @@ describe('rmsafe.sh', () => {
     slug: string;
     symlinkName: string;
     rmsafeArgs: string[];
-  }): { stdout: string; stderr: string; exitCode: number; tempDir: string; outsideFile: string; cleanup: () => void } => {
+  }): {
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+    tempDir: string;
+    outsideFile: string;
+    cleanup: () => void;
+  } => {
     const outsideBasePath = genOutsideRepoPath({ slug: args.slug });
     const outsideFile = asOutsideRepoFilePath({ basePath: outsideBasePath });
     const cleanup = (): void => unlinkIfExists({ at: outsideFile });
 
     setOutsideFile({ at: outsideFile, content: 'outside content' });
     const tempDir = genTempGitRepo({ slug: 'rmsafe-symlink-outside' });
-    setSymlinkInDir({ dir: tempDir, relativePath: args.symlinkName, target: outsideFile });
+    setSymlinkInDir({
+      dir: tempDir,
+      relativePath: args.symlinkName,
+      target: outsideFile,
+    });
     const result = runRmsafe({ cwd: tempDir, args: args.rmsafeArgs });
     return { ...result, tempDir, outsideFile, cleanup };
   };
@@ -702,15 +806,26 @@ describe('rmsafe.sh', () => {
     content1: string;
     content2: string;
     rmsafeArgs: string[];
-  }): { result1: { stdout: string; stderr: string; exitCode: number }; result2: { stdout: string; stderr: string; exitCode: number }; tempDir: string; trashPath: string } => {
+  }): {
+    result1: { stdout: string; stderr: string; exitCode: number };
+    result2: { stdout: string; stderr: string; exitCode: number };
+    tempDir: string;
+    trashPath: string;
+  } => {
     const tempDir = genTempGitRepo({ slug: 'rmsafe-overwrite' });
     const trashPath = asTrashPath({ tempDir, fileName: args.fileName });
 
-    const files1 = asFilesRecord({ fileName: args.fileName, content: args.content1 });
+    const files1 = asFilesRecord({
+      fileName: args.fileName,
+      content: args.content1,
+    });
     setFilesInDir({ dir: tempDir, files: files1 });
     const result1 = runRmsafe({ cwd: tempDir, args: args.rmsafeArgs });
 
-    const files2 = asFilesRecord({ fileName: args.fileName, content: args.content2 });
+    const files2 = asFilesRecord({
+      fileName: args.fileName,
+      content: args.content2,
+    });
     setFilesInDir({ dir: tempDir, files: files2 });
     const result2 = runRmsafe({ cwd: tempDir, args: args.rmsafeArgs });
 
@@ -791,7 +906,10 @@ describe('rmsafe.sh', () => {
     const tempDir = genTempGitRepo({ slug: 'rmsafe-tracked-ignored' });
 
     // create and commit the file first (makes it tracked)
-    const files = asFilesRecord({ fileName: args.fileName, content: args.content });
+    const files = asFilesRecord({
+      fileName: args.fileName,
+      content: args.content,
+    });
     setFilesInDir({ dir: tempDir, files });
 
     // stage the file
@@ -811,7 +929,10 @@ describe('rmsafe.sh', () => {
     });
 
     // add gitignore pattern that matches the tracked file
-    const gitignoreFiles = asFilesRecord({ fileName: '.gitignore', content: args.gitignorePattern });
+    const gitignoreFiles = asFilesRecord({
+      fileName: '.gitignore',
+      content: args.gitignorePattern,
+    });
     setFilesInDir({ dir: tempDir, files: gitignoreFiles });
 
     // run rmsafe on the tracked+gitignored file
@@ -856,7 +977,10 @@ describe('rmsafe.sh', () => {
     });
 
     // add gitignore pattern that matches the tracked file
-    const gitignoreFiles = asFilesRecord({ fileName: '.gitignore', content: args.gitignorePattern });
+    const gitignoreFiles = asFilesRecord({
+      fileName: '.gitignore',
+      content: args.gitignorePattern,
+    });
     setFilesInDir({ dir: tempDir, files: gitignoreFiles });
 
     // run rmsafe on the directory with tracked+gitignored file
@@ -879,10 +1003,15 @@ describe('rmsafe.sh', () => {
    */
   const sanitizeOutput = (output: string): string => {
     const tempPrefix = asTempDirPrefix();
-    const tempRegex = new RegExp(`${tempPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^\\s]*`, 'g');
-    return output
-      // mask any paths under OS temp directory (cross-platform)
-      .replace(tempRegex, '/TEMP_DIR');
+    const tempRegex = new RegExp(
+      `${tempPrefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}[^\\s]*`,
+      'g',
+    );
+    return (
+      output
+        // mask any paths under OS temp directory (cross-platform)
+        .replace(tempRegex, '/TEMP_DIR')
+    );
   };
 
   given('[case1] positional args (like rm)', () => {
@@ -898,7 +1027,9 @@ describe('rmsafe.sh', () => {
       then('file is removed', () => {
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'target.txt' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'target.txt' }),
+          }),
         ).toBe(false);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -923,7 +1054,9 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'targetdir' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'targetdir' }),
+          }),
         ).toBe(false);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -942,7 +1075,9 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'target.txt' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'target.txt' }),
+          }),
         ).toBe(false);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -959,7 +1094,9 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'targetdir' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'targetdir' }),
+          }),
         ).toBe(false);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1226,7 +1363,9 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'targetdir' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'targetdir' }),
+          }),
         ).toBe(false);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1242,7 +1381,9 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'emptydir' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'emptydir' }),
+          }),
         ).toBe(false);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1282,7 +1423,12 @@ describe('rmsafe.sh', () => {
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
         // verify outside file was NOT deleted
         expect(
-          pathExists({ at: asFullPath({ dir: result.outsideDir, relativePath: 'file.txt' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.outsideDir,
+              relativePath: 'file.txt',
+            }),
+          }),
         ).toBe(true);
         result.cleanup();
       });
@@ -1299,11 +1445,21 @@ describe('rmsafe.sh', () => {
         expect(result.exitCode).toBe(0);
         // symlink removed
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'link-to-file.txt' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'link-to-file.txt',
+            }),
+          }),
         ).toBe(false);
         // target still exists
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'real-file.txt' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'real-file.txt',
+            }),
+          }),
         ).toBe(true);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1322,7 +1478,12 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'target file.txt' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'target file.txt',
+            }),
+          }),
         ).toBe(false);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1340,7 +1501,12 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: '目标文件.txt' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: '目标文件.txt',
+            }),
+          }),
         ).toBe(false);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1363,13 +1529,19 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'target.txt' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'target.txt' }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'keep1.txt' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'keep1.txt' }),
+          }),
         ).toBe(true);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'keep2.txt' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'keep2.txt' }),
+          }),
         ).toBe(true);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1395,16 +1567,36 @@ describe('rmsafe.sh', () => {
       then('all files are removed', () => {
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'build/a.tmp' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'build/a.tmp',
+            }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'build/b.tmp' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'build/b.tmp',
+            }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'build/c.tmp' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'build/c.tmp',
+            }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'build/keep.txt' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'build/keep.txt',
+            }),
+          }),
         ).toBe(true);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1454,16 +1646,36 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src/utils/foo.bak' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'src/utils/foo.bak',
+            }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src/core/bar.bak' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'src/core/bar.bak',
+            }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src/deep/nested/baz.bak' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'src/deep/nested/baz.bak',
+            }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src/keep.ts' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'src/keep.ts',
+            }),
+          }),
         ).toBe(true);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1502,7 +1714,12 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'doc.[ref].md' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'doc.[ref].md',
+            }),
+          }),
         ).toBe(false);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1534,7 +1751,12 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'doc.[ref].md' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'doc.[ref].md',
+            }),
+          }),
         ).toBe(false);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1587,13 +1809,28 @@ describe('rmsafe.sh', () => {
       then('file extant in trash at mirrored path', () => {
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src/target.txt' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'src/target.txt',
+            }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/target.txt` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/src/target.txt`,
+            }),
+          }),
         ).toBe(true);
         expect(
-          readFile({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/target.txt` }) }),
+          readFile({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/src/target.txt`,
+            }),
+          }),
         ).toBe('content to trash');
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1629,13 +1866,25 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'mydir' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'mydir' }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/mydir/file1.txt` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/mydir/file1.txt`,
+            }),
+          }),
         ).toBe(true);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/mydir/subdir/file2.txt` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/mydir/subdir/file2.txt`,
+            }),
+          }),
         ).toBe(true);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
         expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
@@ -1683,14 +1932,29 @@ describe('rmsafe.sh', () => {
         expect(result.exitCode).toBe(0);
         // original symlink removed
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'link-to-file.txt' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'link-to-file.txt',
+            }),
+          }),
         ).toBe(false);
         // target file unchanged
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'real-file.txt' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'real-file.txt',
+            }),
+          }),
         ).toBe(true);
         expect(
-          readFile({ at: asFullPath({ dir: result.tempDir, relativePath: 'real-file.txt' }) }),
+          readFile({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'real-file.txt',
+            }),
+          }),
         ).toBe('real content');
         // symlink in trash (as symlink, not dereferenced)
         const trashLink = asFullPath({
@@ -1735,10 +1999,20 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src/trackable.ts' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'src/trackable.ts',
+            }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/trackable.ts` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/src/trackable.ts`,
+            }),
+          }),
         ).toBe(true);
         expect(result.stdout).not.toContain('(not trackable)');
         expect(result.stdout).toContain('🥥');
@@ -1760,10 +2034,17 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'debug.log' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'debug.log' }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/debug.log` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/debug.log`,
+            }),
+          }),
         ).toBe(false);
         expect(result.stdout).toContain('(not trackable)');
         expect(result.stdout).not.toContain('🥥');
@@ -1786,10 +2067,17 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'node_modules' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'node_modules',
+            }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: trashRel }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: trashRel }),
+          }),
         ).toBe(false);
         expect(result.stdout).toContain('(not trackable)');
         expect(result.stdout).not.toContain('🥥');
@@ -1812,13 +2100,25 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'src' }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/index.ts` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/src/index.ts`,
+            }),
+          }),
         ).toBe(true);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/utils/helper.ts` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/src/utils/helper.ts`,
+            }),
+          }),
         ).toBe(true);
         expect(result.stdout).not.toContain('(not trackable)');
         expect(result.stdout).toContain('🥥');
@@ -1828,37 +2128,57 @@ describe('rmsafe.sh', () => {
     });
 
     when('[t4] directory has mixed trackable and not trackable files', () => {
-      then('trackable files go to trash, not trackable files are direct deleted', () => {
-        const result = givenTempGitRepoWithFilesAndRmsafe({
-          files: {
-            '.gitignore': '*.log\n.cache/\n',
-            'src/index.ts': 'export {}',
-            'src/debug.log': 'debug output',
-            'src/.cache/temp.json': '{}',
-          },
-          symlinks: {},
-          rmsafeArgs: ['-r', './src'],
-        });
+      then(
+        'trackable files go to trash, not trackable files are direct deleted',
+        () => {
+          const result = givenTempGitRepoWithFilesAndRmsafe({
+            files: {
+              '.gitignore': '*.log\n.cache/\n',
+              'src/index.ts': 'export {}',
+              'src/debug.log': 'debug output',
+              'src/.cache/temp.json': '{}',
+            },
+            symlinks: {},
+            rmsafeArgs: ['-r', './src'],
+          });
 
-        expect(result.exitCode).toBe(0);
-        expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src' }) }),
-        ).toBe(false);
-        // trackable file in trash
-        expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/index.ts` }) }),
-        ).toBe(true);
-        // not trackable files NOT in trash
-        expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/debug.log` }) }),
-        ).toBe(false);
-        expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/.cache/temp.json` }) }),
-        ).toBe(false);
-        expect(result.stdout).toContain('🥥');
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
-      });
+          expect(result.exitCode).toBe(0);
+          expect(
+            pathExists({
+              at: asFullPath({ dir: result.tempDir, relativePath: 'src' }),
+            }),
+          ).toBe(false);
+          // trackable file in trash
+          expect(
+            pathExists({
+              at: asFullPath({
+                dir: result.tempDir,
+                relativePath: `${trashRel}/src/index.ts`,
+              }),
+            }),
+          ).toBe(true);
+          // not trackable files NOT in trash
+          expect(
+            pathExists({
+              at: asFullPath({
+                dir: result.tempDir,
+                relativePath: `${trashRel}/src/debug.log`,
+              }),
+            }),
+          ).toBe(false);
+          expect(
+            pathExists({
+              at: asFullPath({
+                dir: result.tempDir,
+                relativePath: `${trashRel}/src/.cache/temp.json`,
+              }),
+            }),
+          ).toBe(false);
+          expect(result.stdout).toContain('🥥');
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        },
+      );
     });
 
     when('[t5] glob matches both trackable and not trackable files', () => {
@@ -1875,18 +2195,38 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'build/output.ts' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'build/output.ts',
+            }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'build/generated/types.ts' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'build/generated/types.ts',
+            }),
+          }),
         ).toBe(false);
         // trackable file in trash
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/build/output.ts` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/build/output.ts`,
+            }),
+          }),
         ).toBe(true);
         // not trackable file NOT in trash
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/build/generated/types.ts` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/build/generated/types.ts`,
+            }),
+          }),
         ).toBe(false);
         expect(result.stdout).toContain('(not trackable)');
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
@@ -1911,17 +2251,34 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'build/generated/types.d.ts' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'build/generated/types.d.ts',
+            }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'build/generated/index.d.ts' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'build/generated/index.d.ts',
+            }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'build/generated/deep/nested.d.ts' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'build/generated/deep/nested.d.ts',
+            }),
+          }),
         ).toBe(false);
         // no trash created - all matched files were gitignored
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: trashRel }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: trashRel }),
+          }),
         ).toBe(false);
         // files marked as gitignored
         expect(result.stdout).toContain('(not trackable)');
@@ -1945,15 +2302,30 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'links/to-src.ts' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'links/to-src.ts',
+            }),
+          }),
         ).toBe(false);
         // symlink NOT in trash (not trackable)
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/links/to-src.ts` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/links/to-src.ts`,
+            }),
+          }),
         ).toBe(false);
         // target still exists
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src/real.ts' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'src/real.ts',
+            }),
+          }),
         ).toBe(true);
         expect(result.stdout).toContain('(not trackable)');
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
@@ -1973,7 +2345,12 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src/link-to-lib.ts' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'src/link-to-lib.ts',
+            }),
+          }),
         ).toBe(false);
         // symlink IS in trash as symlink (use isSymlink since symlink target is relative and broken in trash)
         const trashLink = asFullPath({
@@ -1983,7 +2360,12 @@ describe('rmsafe.sh', () => {
         expect(isSymlink({ at: trashLink })).toBe(true);
         // target still exists
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'lib/utils.ts' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'lib/utils.ts',
+            }),
+          }),
         ).toBe(true);
         expect(result.stdout).not.toContain('(not trackable)');
         expect(result.stdout).toContain('🥥');
@@ -1992,38 +2374,61 @@ describe('rmsafe.sh', () => {
       });
     });
 
-    when('[t8] nested not trackable subdirectory inside trackable directory', () => {
-      then('trackable files trashed, not trackable subdir direct deleted', () => {
-        const result = givenTempGitRepoWithFilesAndRmsafe({
-          files: {
-            '.gitignore': '.cache/\n',
-            'src/index.ts': 'export {}',
-            'src/.cache/temp.json': '{"cached": true}',
-            'src/.cache/data.bin': 'binary',
-          },
-          symlinks: {},
-          rmsafeArgs: ['-r', './src'],
-        });
+    when(
+      '[t8] nested not trackable subdirectory inside trackable directory',
+      () => {
+        then(
+          'trackable files trashed, not trackable subdir direct deleted',
+          () => {
+            const result = givenTempGitRepoWithFilesAndRmsafe({
+              files: {
+                '.gitignore': '.cache/\n',
+                'src/index.ts': 'export {}',
+                'src/.cache/temp.json': '{"cached": true}',
+                'src/.cache/data.bin': 'binary',
+              },
+              symlinks: {},
+              rmsafeArgs: ['-r', './src'],
+            });
 
-        expect(result.exitCode).toBe(0);
-        expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src' }) }),
-        ).toBe(false);
-        // trackable file in trash
-        expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/index.ts` }) }),
-        ).toBe(true);
-        // not trackable .cache/ contents NOT in trash
-        expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/.cache/temp.json` }) }),
-        ).toBe(false);
-        expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/.cache/data.bin` }) }),
-        ).toBe(false);
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
-      });
-    });
+            expect(result.exitCode).toBe(0);
+            expect(
+              pathExists({
+                at: asFullPath({ dir: result.tempDir, relativePath: 'src' }),
+              }),
+            ).toBe(false);
+            // trackable file in trash
+            expect(
+              pathExists({
+                at: asFullPath({
+                  dir: result.tempDir,
+                  relativePath: `${trashRel}/src/index.ts`,
+                }),
+              }),
+            ).toBe(true);
+            // not trackable .cache/ contents NOT in trash
+            expect(
+              pathExists({
+                at: asFullPath({
+                  dir: result.tempDir,
+                  relativePath: `${trashRel}/src/.cache/temp.json`,
+                }),
+              }),
+            ).toBe(false);
+            expect(
+              pathExists({
+                at: asFullPath({
+                  dir: result.tempDir,
+                  relativePath: `${trashRel}/src/.cache/data.bin`,
+                }),
+              }),
+            ).toBe(false);
+            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+            expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+          },
+        );
+      },
+    );
 
     when('[t9] glob matches only trackable files (gitignore present)', () => {
       then('all files go to trash, no not trackable label', () => {
@@ -2041,23 +2446,44 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src/a.ts' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'src/a.ts' }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src/b.ts' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'src/b.ts' }),
+          }),
         ).toBe(false);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src/c.ts' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'src/c.ts' }),
+          }),
         ).toBe(false);
         // all trackable files in trash
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/a.ts` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/src/a.ts`,
+            }),
+          }),
         ).toBe(true);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/b.ts` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/src/b.ts`,
+            }),
+          }),
         ).toBe(true);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/c.ts` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/src/c.ts`,
+            }),
+          }),
         ).toBe(true);
         // no not trackable label (all files are trackable)
         expect(result.stdout).not.toContain('(not trackable)');
@@ -2082,7 +2508,12 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src/link-to-cache.json' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'src/link-to-cache.json',
+            }),
+          }),
         ).toBe(false);
         // symlink IS in trash (based on symlink path, not target)
         const trashLink = asFullPath({
@@ -2092,7 +2523,12 @@ describe('rmsafe.sh', () => {
         expect(isSymlink({ at: trashLink })).toBe(true);
         // not trackable target still exists
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'cache/data.json' }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'cache/data.json',
+            }),
+          }),
         ).toBe(true);
         // symlink path is trackable, so no not trackable label
         expect(result.stdout).not.toContain('(not trackable)');
@@ -2117,11 +2553,18 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'debug.log' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'debug.log' }),
+          }),
         ).toBe(false);
         // tracked file goes to trash (git is the source of truth)
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/debug.log` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/debug.log`,
+            }),
+          }),
         ).toBe(true);
         // no "not trackable" label (file is trackable per git)
         expect(result.stdout).not.toContain('(not trackable)');
@@ -2147,11 +2590,18 @@ describe('rmsafe.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: 'src' }) }),
+          pathExists({
+            at: asFullPath({ dir: result.tempDir, relativePath: 'src' }),
+          }),
         ).toBe(false);
         // tracked file goes to trash (git is the source of truth)
         expect(
-          pathExists({ at: asFullPath({ dir: result.tempDir, relativePath: `${trashRel}/src/debug.log` }) }),
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: `${trashRel}/src/debug.log`,
+            }),
+          }),
         ).toBe(true);
         // coconut hint shown (trash was used)
         expect(result.stdout).toContain('🥥');
