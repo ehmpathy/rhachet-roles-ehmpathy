@@ -121,7 +121,7 @@ fi
 # skip in test environments
 if [[ "${SKIP_ROUTE_BIND:-}" != "1" ]]; then
   # get bound route
-  BOUND_ROUTE=$(npx rhachet run --repo bhrain --skill route.bind.get 2>/dev/null | grep -o '\.behavior/[^ ]*' || true)
+  BOUND_ROUTE=$(rhx route.bind.get 2>/dev/null | grep -o '\.behavior/[^ ]*' || true)
   if [[ -z "$BOUND_ROUTE" ]]; then
     print_error "no route bound" "cicd.deflake detect"
     echo ""

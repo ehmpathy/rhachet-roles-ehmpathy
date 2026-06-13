@@ -94,7 +94,7 @@ TEMPLATES_DIR="$SKILL_DIR/cicd.deflake/templates"
 
 # skip check in test environments
 if [[ "${SKIP_ROUTE_BIND:-}" != "1" ]]; then
-  BOUND_ROUTE=$(npx rhachet run --repo bhrain --skill route.bind.get 2>/dev/null | grep -o '\.behavior/[^ ]*' || true)
+  BOUND_ROUTE=$(rhx route.bind.get 2>/dev/null | grep -o '\.behavior/[^ ]*' || true)
   if [[ -n "$BOUND_ROUTE" && "$BOUND_ROUTE" == *"cicd-deflake"* ]]; then
     print_error "already bound to cicd-deflake route" "cicd.deflake init"
     echo ""
@@ -127,7 +127,7 @@ CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # skip route.bind.set in test environments (no rhachet installed locally)
 if [[ "${SKIP_ROUTE_BIND:-}" != "1" ]]; then
-  npx rhachet run --repo bhrain --skill route.bind.set --route "$ROUTE_PATH" > /dev/null 2>&1 || true
+  rhx route.bind.set --route "$ROUTE_PATH" > /dev/null 2>&1 || true
 fi
 
 ######################################################################

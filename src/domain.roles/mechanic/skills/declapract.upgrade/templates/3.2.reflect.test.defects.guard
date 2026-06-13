@@ -13,4 +13,4 @@ reviews:
         for each practice bug, cite the root cause with a link or search result.
 
 judges:
-  - npx rhachet run --repo bhrain --skill route.stone.judge --mechanism approved? --stone $stone --route $route
+  - $rhx route.stone.judge --mechanism approved? --stone $stone --route $route
