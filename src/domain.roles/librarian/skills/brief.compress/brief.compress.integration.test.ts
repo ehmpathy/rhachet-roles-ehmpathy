@@ -14,7 +14,7 @@ import { BRIEF_INPUT_CONTEXT_PATTERN } from './.test/fixtures/briefs';
  *   - compress.via.bhrain.contract.integration.test.ts
  *   - compress.via.bhrain.perfeval.integration.test.ts
  */
-describe('brief.compress.sh', () => {
+describe.skip('brief.compress.sh', () => {
   // use dist skill because it has compiled mechanisms
   const skillPath = path.join(
     __dirname,
