@@ -66,7 +66,7 @@ CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # skip route.bind.set in test environments (no rhachet installed locally)
 if [[ "${SKIP_ROUTE_BIND:-}" != "1" ]]; then
-  npx rhachet run --repo bhrain --skill route.bind.set --route "$ROUTE_PATH" > /dev/null 2>&1 || true
+  rhx route.bind.set --route "$ROUTE_PATH" > /dev/null 2>&1 || true
 fi
 
 ######################################################################

@@ -13,4 +13,4 @@ reviews:
         if no briefs proposed, ask: were there truly no systemic lessons?
 
 judges:
-  - npx rhachet run --repo bhrain --skill route.stone.judge --mechanism approved? --stone $stone --route $route
+  - $rhx route.stone.judge --mechanism approved? --stone $stone --route $route
