@@ -21,13 +21,13 @@ rhx declapract.upgrade exec
 3. only proceed after exec succeeds
 
 if the failure is not resolvable after brief triage:
-- document the defect in `1.upgrade.invoke.v1.i1.md`
+- document the defect in `1.upgrade.invoke.yield.md`
 - mark stone as blocked: `rhx route.stone.set --stone 1.upgrade.invoke --as blocked`
 - escalate to human
 
 ## on success
 
-emit `1.upgrade.invoke.v1.i1.md` with:
+emit `1.upgrade.invoke.yield.md` with:
 - confirmation that upgrade completed
 - any warnings or notes
 

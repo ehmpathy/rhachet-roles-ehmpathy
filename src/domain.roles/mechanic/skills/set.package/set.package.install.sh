@@ -153,7 +153,7 @@ _persist_reason() {
   safe_name=$(_sanitize_package_name "$package")
 
   local route_dir="$repo_root/.route/v${date_prefix}.package.install"
-  local reason_file="$route_dir/3.reason.for_${safe_name}.v1.i1.md"
+  local reason_file="$route_dir/3.reason.for_${safe_name}.yield.md"
 
   mkdir -p "$route_dir"
 

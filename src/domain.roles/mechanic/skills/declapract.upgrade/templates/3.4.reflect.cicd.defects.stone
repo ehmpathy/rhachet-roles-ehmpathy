@@ -6,7 +6,7 @@ classify each cicd defect for feedback to infrastructure.
 
 ## instructions
 
-for each defect in `3.3.repair.cicd.defects.v1.i1.md`, classify:
+for each defect in `3.3.repair.cicd.defects.yield.md`, classify:
 
 1. **repo quirk**: special to this repo
 2. **practice bug**: defective practice that should be fixed
@@ -16,4 +16,4 @@ for practice bugs, search declapract-typescript-ehmpathy via gh cli.
 
 ## emit
 
-emit `3.4.reflect.cicd.defects.v1.i1.md` with classifications and citations.
+emit `3.4.reflect.cicd.defects.yield.md` with classifications and citations.

@@ -31,7 +31,7 @@ run tests until all pass. document each defect with root cause.
 
 ## emit
 
-emit incrementally to `3.1.repair.test.defects.v1.i1.md`:
+emit incrementally to `3.1.repair.test.defects.yield.md`:
 - when defect found → add to inventory
 - when root cause found → add to inventory
 - when fixed → add to inventory
