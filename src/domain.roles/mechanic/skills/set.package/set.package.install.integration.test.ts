@@ -202,7 +202,7 @@ exit 1
           { cwd: tempDir, fakeBinDir },
         );
 
-        // .route/v{date}.package.install/3.reason.for_{pkg}.v1.i1.md
+        // .route/v{date}.package.install/3.reason.for_{pkg}.yield.md
         const routeBase = path.join(tempDir, '.route');
         expect(fs.existsSync(routeBase)).toBe(true);
 
@@ -587,7 +587,7 @@ exit 1
           { cwd: tempDir, fakeBinDir },
         );
 
-        // .route/v{date}.package.install/3.reason.for_{pkg}.v1.i1.md
+        // .route/v{date}.package.install/3.reason.for_{pkg}.yield.md
         const routeBase = path.join(tempDir, '.route');
         const versionDirs = fs.readdirSync(routeBase);
         const versionDir = path.join(routeBase, versionDirs[0]!);
@@ -628,7 +628,7 @@ exit 1
           },
         );
 
-        // .route/v{date}.package.install/3.reason.for_{pkg}.v1.i1.md
+        // .route/v{date}.package.install/3.reason.for_{pkg}.yield.md
         const routeBase = path.join(tempDir, '.route');
         const versionDirs = fs.readdirSync(routeBase);
         const versionDir = path.join(routeBase, versionDirs[0]!);

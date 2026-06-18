@@ -24,4 +24,4 @@ scan the changes from declapract upgrade to detect hazards that may break tests,
 
 ## emit
 
-emit `2.detect.hazards.v1.i1.md` with the hazard list.
+emit `2.detect.hazards.yield.md` with the hazard list.
