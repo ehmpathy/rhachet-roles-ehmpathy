@@ -4,7 +4,8 @@ extends:
   - .agent/repo=bhuild/role=dispatcher/keyrack.yml
   - .agent/repo=ehmpathy/role=mechanic/keyrack.yml
 env.all: null
-env.prod: null
+env.prod:
+  - GITHUB_TOKEN
 env.test:
   - EHMPATHY_SEATURTLE_GITHUB_TOKEN
   - XAI_API_KEY
