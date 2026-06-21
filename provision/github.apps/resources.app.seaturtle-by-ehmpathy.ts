@@ -23,7 +23,8 @@ export const getResourcesOfAppSeaturtleByEhmpathy = async (): Promise<
     owner,
     slug: 'seaturtle-by-ehmpathy',
     name: 'Seaturtle, by Ehmpathy',
-    description: 'grant narrow auth to ehmpath seaturtles for commits, prs, and cicd',
+    description:
+      'grant narrow auth to ehmpath seaturtles for commits, prs, and cicd',
     homepageUrl: 'https://github.com/ehmpathy/rhachet-roles-ehmpathy',
     public: true,
 

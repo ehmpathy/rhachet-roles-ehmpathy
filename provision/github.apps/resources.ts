@@ -1,5 +1,4 @@
 import { execSync } from 'child_process';
-
 import type { DeclastructProvider } from 'declastruct';
 import { getDeclastructGithubProvider } from 'declastruct-github';
 import type { DomainEntity } from 'domain-objects';
