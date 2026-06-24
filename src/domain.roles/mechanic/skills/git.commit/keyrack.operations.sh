@@ -40,7 +40,8 @@ fetch_github_token() {
   else
     # fallback: unlock ehmpath keyrack and retry
     "$repo_root/node_modules/.bin/rhachet" keyrack unlock \
-      --owner ehmpath --prikey "$HOME/.ssh/ehmpath" --env prep >/dev/null 2>&1 || true
+      --owner ehmpath --prikey "$HOME/.ssh/ehmpath" --env prep \
+      --key EHMPATHY_SEATURTLE_GITHUB_TOKEN >/dev/null 2>&1 || true
 
     local fallback_exit=0
     local fallback_output
@@ -76,7 +77,7 @@ require_github_token() {
     echo "🐢 bummer dude..." >&2
     echo "" >&2
     echo "🔐 github token not found" >&2
-    echo "   ├─ run: rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env prep" >&2
+    echo "   ├─ run: rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN" >&2
     echo "   └─ then retry this command" >&2
     exit 1
   fi
