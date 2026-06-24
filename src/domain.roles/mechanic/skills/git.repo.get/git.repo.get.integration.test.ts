@@ -104,8 +104,7 @@ describe('git.repo.get.sh', () => {
     env: { HOME: string },
     options?: { refresh?: 'on' | 'off' },
   ): { stdout: string; stderr: string; exitCode: number } => {
-    const refreshFlag =
-      options?.refresh === 'on' ? '' : '--refresh off';
+    const refreshFlag = options?.refresh === 'on' ? '' : '--refresh off';
     const fullArgs = `${args} ${refreshFlag}`.trim();
 
     const result = spawnSync(
