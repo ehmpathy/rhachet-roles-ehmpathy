@@ -422,5 +422,6 @@ options:
   --words <pattern>  search for pattern (triggers search mode)
   --radius <N>       context lines around matches (default: 21)
   --ref <ref>        git ref to use (default: origin/main)
+  --refresh <on|off> fetch latest before query (default: on)
 "
 `;

@@ -46,6 +46,7 @@ PATHS_GLOB=""
 WORDS_PATTERN=""
 RADIUS="21"
 REF=""
+REFRESH="on"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -83,6 +84,10 @@ while [[ $# -gt 0 ]]; do
       REF="$2"
       shift 2
       ;;
+    --refresh)
+      REFRESH="$2"
+      shift 2
+      ;;
     --help|-h)
       echo "usage: rhx git.repo.get <subcommand> [options]"
       echo ""
@@ -98,6 +103,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --words <pattern>  search for pattern (triggers search mode)"
       echo "  --radius <N>       context lines around matches (default: 21)"
       echo "  --ref <ref>        git ref to use (default: origin/main)"
+      echo "  --refresh <on|off> fetch latest before query (default: on)"
       exit 0
       ;;
     *)
@@ -107,6 +113,11 @@ while [[ $# -gt 0 ]]; do
       ;;
   esac
 done
+
+######################################################################
+# export for operations.sh
+######################################################################
+export REFRESH
 
 ######################################################################
 # subcommand dispatch

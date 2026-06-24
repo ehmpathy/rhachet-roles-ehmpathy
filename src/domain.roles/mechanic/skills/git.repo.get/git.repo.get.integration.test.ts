@@ -94,14 +94,22 @@ describe('git.repo.get.sh', () => {
   /**
    * .what = helper to run git.repo.get.sh with custom HOME
    * .why = standardize invocation and result capture
+   *
+   * .note = --refresh off is added by default because test repos use fake
+   *         remote URLs. tests that explicitly want to test refresh behavior
+   *         can pass options.refresh = 'on'.
    */
   const runSkill = (
     args: string,
     env: { HOME: string },
+    options?: { refresh?: 'on' | 'off' },
   ): { stdout: string; stderr: string; exitCode: number } => {
+    const refreshFlag = options?.refresh === 'on' ? '' : '--refresh off';
+    const fullArgs = `${args} ${refreshFlag}`.trim();
+
     const result = spawnSync(
       'bash',
-      [scriptPath, ...args.split(' ').filter(Boolean)],
+      [scriptPath, ...fullArgs.split(' ').filter(Boolean)],
       {
         cwd: process.cwd(),
         encoding: 'utf-8',
