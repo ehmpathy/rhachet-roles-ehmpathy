@@ -132,6 +132,9 @@ importers:
       rhachet-brains-anthropic:
         specifier: 0.4.1
         version: 0.4.1(rhachet@1.42.2(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4))
+      rhachet-brains-fireworksai:
+        specifier: 0.1.3
+        version: 0.1.3(rhachet@1.42.2(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4))
       rhachet-brains-xai:
         specifier: 0.3.3
         version: 0.3.3(rhachet@1.42.2(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4))

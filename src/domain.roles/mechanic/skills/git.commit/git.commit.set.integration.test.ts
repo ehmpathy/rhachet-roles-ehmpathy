@@ -50,15 +50,18 @@ describe('git.commit.set.sh', () => {
         JSON.stringify(args.meterState, null, 2),
       );
 
-      // commit .gitignore for .meter/ so it doesn't trigger the unstaged guard
+      // commit .gitignore for .meter/ and .agent/ so they don't trigger the unstaged guard
       const gitignorePath = path.join(tempDir, '.gitignore');
       const prior = fs.existsSync(gitignorePath)
         ? fs.readFileSync(gitignorePath, 'utf-8')
         : '';
-      if (!prior.includes('.meter/')) {
-        fs.writeFileSync(gitignorePath, `${prior}\n.meter/\n`);
+      if (!prior.includes('.meter/') || !prior.includes('.agent/')) {
+        const additions = [];
+        if (!prior.includes('.meter/')) additions.push('.meter/');
+        if (!prior.includes('.agent/')) additions.push('.agent/');
+        fs.writeFileSync(gitignorePath, `${prior}\n${additions.join('\n')}\n`);
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
-        spawnSync('git', ['commit', '-m', 'setup: add .gitignore for .meter'], {
+        spawnSync('git', ['commit', '-m', 'setup: add .gitignore'], {
           cwd: tempDir,
         });
       }
@@ -124,6 +127,33 @@ describe('git.commit.set.sh', () => {
 
     // always use isolated HOME to prevent global blocker from effects
     const isolatedHome = genTempDir({ slug: 'git-set-home', git: false });
+
+    // set up org permission so org blocker check passes
+    const orgMeterDir = path.join(
+      isolatedHome,
+      '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+    );
+    fs.mkdirSync(orgMeterDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+      JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+    );
+
+    // set up .agent/keyrack.yml so org can be detected from repo
+    const agentDir = path.join(tempDir, '.agent');
+    fs.mkdirSync(agentDir, { recursive: true });
+    fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+    // create stub bash alias files to prevent warnings when HOME is fake
+    // (user's .bash_aliases sources these from $HOME, which breaks with fake HOME)
+    fs.writeFileSync(
+      path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+      '',
+    );
+    fs.writeFileSync(
+      path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+      '',
+    );
 
     const result = spawnSync('bash', [scriptPath, ...finalArgs], {
       cwd: tempDir,
@@ -641,6 +671,28 @@ exit 1`,
 
         // run in plan mode with push (with isolated HOME to avoid global blocker)
         const isolatedHome = genTempDir({ slug: 'plan-pr-home', git: false });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -750,6 +802,28 @@ exit 1`,
           slug: 'plan-pr-history-home',
           git: false,
         });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -881,6 +955,28 @@ exit 1`,
           slug: 'stacked-branch-home',
           git: false,
         });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -1345,6 +1441,28 @@ exit 1`,
           slug: 'autorevoke-home',
           git: false,
         });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -1641,6 +1759,33 @@ exit 1`,
           slug: 'cont-first-fix-home',
           git: false,
         });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files to prevent warnings when HOME is fake
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -1703,6 +1848,33 @@ exit 1`,
           slug: 'cont-first-feat-home',
           git: false,
         });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files to prevent warnings when HOME is fake
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -1914,6 +2086,33 @@ exit 1`,
           slug: 'cont-prefix-home',
           git: false,
         });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -1983,6 +2182,33 @@ exit 1`,
           slug: 'cont-scope-home',
           git: false,
         });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -2052,6 +2278,33 @@ exit 1`,
           slug: 'cont-chore-home',
           git: false,
         });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -2118,6 +2371,33 @@ exit 1`,
 
         // docs: should succeed (exempt)
         const isolatedHome = genTempDir({ slug: 'cont-docs-home', git: false });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -2189,6 +2469,36 @@ exit 1`,
             slug: 'chore-then-fix-home',
             git: false,
           });
+
+          // set up org permission in isolated HOME
+          const orgMeterDir = path.join(
+            isolatedHome,
+            '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+          );
+          fs.mkdirSync(orgMeterDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+            JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+          );
+
+          // set up .agent/keyrack.yml so org can be detected from repo
+          const agentDir = path.join(tempDir, '.agent');
+          fs.mkdirSync(agentDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(agentDir, 'keyrack.yml'),
+            'org: ehmpathy\n',
+          );
+
+          // create stub bash alias files
+          fs.writeFileSync(
+            path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+            '',
+          );
+          fs.writeFileSync(
+            path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+            '',
+          );
+
           const result = spawnSync(
             'bash',
             [
@@ -2252,6 +2562,33 @@ exit 1`,
           slug: 'cont-fresh-home',
           git: false,
         });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -2321,6 +2658,33 @@ exit 1`,
           slug: 'chore-fresh-home',
           git: false,
         });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -2391,6 +2755,33 @@ exit 1`,
           slug: 'noscope-fresh-home',
           git: false,
         });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [
@@ -2460,7 +2851,7 @@ exit 1`,
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n.agent/\n');
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: add .gitignore'], {
           cwd: tempDir,
@@ -2474,6 +2865,21 @@ exit 1`,
         // create and stage test file
         fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fixed content');
         spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files to prevent warnings when HOME is fake
+        fs.writeFileSync(
+          path.join(tempHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(tempHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
 
         // run commit with injected HOME
         const result = spawnSync(
@@ -2520,6 +2926,17 @@ exit 1`,
           git: false,
         });
 
+        // set up org permission so org blocker check passes
+        const orgMeterDir = path.join(
+          tempHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
         // create temp git repo with local quota
         const tempDir = genTempDir({
           slug: 'git-commit-set-test',
@@ -2537,7 +2954,7 @@ exit 1`,
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 3, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n.agent/\n');
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: add .gitignore'], {
           cwd: tempDir,
@@ -2551,6 +2968,21 @@ exit 1`,
         // create and stage test file
         fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fixed content');
         spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files to prevent warnings when HOME is fake
+        fs.writeFileSync(
+          path.join(tempHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(tempHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
 
         // run commit with injected HOME (no global blocker)
         const result = spawnSync(
@@ -2624,7 +3056,7 @@ exit 1`,
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n.agent/\n');
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: add .gitignore'], {
           cwd: tempDir,
@@ -2638,6 +3070,21 @@ exit 1`,
         // create and stage test file
         fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fixed content');
         spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files to prevent warnings when HOME is fake
+        fs.writeFileSync(
+          path.join(tempHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(tempHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
 
         // run commit with injected HOME (corrupt global blocker)
         const result = spawnSync(
@@ -2752,7 +3199,7 @@ exit 1`,
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 3, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n.agent/\n');
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup'], { cwd: tempDir });
         spawnSync('git', ['checkout', '-b', 'fix/test-branch'], {
@@ -2765,6 +3212,33 @@ exit 1`,
 
         // run with NODE_ENV=production to trigger failfast
         const isolatedHome = genTempDir({ slug: 'git-set-home', git: false });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [scriptPath, '-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
@@ -2808,7 +3282,7 @@ exit 1`,
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 3, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n');
+        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n.agent/\n');
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup'], { cwd: tempDir });
         spawnSync('git', ['checkout', '-b', 'fix/test-branch'], {
@@ -2821,6 +3295,33 @@ exit 1`,
 
         // run with NODE_ENV=production to trigger failfast
         const isolatedHome = genTempDir({ slug: 'git-set-home', git: false });
+
+        // set up org permission in isolated HOME
+        const orgMeterDir = path.join(
+          isolatedHome,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+        );
+        fs.mkdirSync(orgMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        );
+
+        // set up .agent/keyrack.yml so org can be detected from repo
+        const agentDir = path.join(tempDir, '.agent');
+        fs.mkdirSync(agentDir, { recursive: true });
+        fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
+
+        // create stub bash alias files
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
+          '',
+        );
+        fs.writeFileSync(
+          path.join(isolatedHome, '.bash_aliases.termwork.sh'),
+          '',
+        );
+
         const result = spawnSync(
           'bash',
           [scriptPath, '-m', 'fix(api): test\n\n- change', '--mode', 'apply'],

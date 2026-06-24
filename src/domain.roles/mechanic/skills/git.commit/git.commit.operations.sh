@@ -16,7 +16,9 @@
 ######################################################################
 ROLE_REPO="ehmpathy"
 ROLE_SLUG="mechanic"
-GLOBAL_METER_FILE="$HOME/.rhachet/storage/repo=$ROLE_REPO/role=$ROLE_SLUG/.meter/git.commit.uses.jsonc"
+GLOBAL_METER_DIR="$HOME/.rhachet/storage/repo=$ROLE_REPO/role=$ROLE_SLUG/.meter"
+GLOBAL_METER_FILE="$GLOBAL_METER_DIR/git.commit.uses.jsonc"
+ORG_METER_FILE="$GLOBAL_METER_DIR/git.commit.uses.org.jsonc"
 
 ######################################################################
 # helper: check if global blocker is active
@@ -45,6 +47,102 @@ check_global_blocker() {
   fi
 
   return 0  # not blocked
+}
+
+######################################################################
+# helper: get org from .agent/keyrack.yml
+# returns:
+#   - 0 if found, sets ORG_VALUE to org name
+#   - 2 if not found or unset, sets ORG_ERROR
+# note: uses global ORG_VALUE instead of echo to avoid subshell issues
+#       (ORG_ERROR wouldn't propagate if called via command substitution)
+######################################################################
+get_org_from_keyrack() {
+  ORG_ERROR=""
+  ORG_VALUE=""
+  local keyrack_file
+  local git_root
+
+  # find git root
+  git_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$git_root" ]]; then
+    ORG_ERROR="not in a git repository"
+    return 2
+  fi
+
+  keyrack_file="$git_root/.agent/keyrack.yml"
+
+  # check file exists
+  if [[ ! -f "$keyrack_file" ]]; then
+    ORG_ERROR=".agent/keyrack.yml not found"
+    return 2
+  fi
+
+  # parse org field (simple grep + sed, no yq dependency)
+  local org_val
+  org_val=$(grep -E "^org:" "$keyrack_file" 2>/dev/null | head -n1 | sed 's/^org:[[:space:]]*//' | tr -d '[:space:]')
+
+  if [[ -z "$org_val" ]]; then
+    ORG_ERROR=".agent/keyrack.yml#org required"
+    return 2
+  fi
+
+  ORG_VALUE="$org_val"
+  return 0
+}
+
+######################################################################
+# helper: check if org blocker is active
+# returns:
+#   - 0 (success) if NOT blocked (continue)
+#   - 2 if blocked (caller should exit 2)
+#   - sets ORG_BLOCK_REASON if blocked
+######################################################################
+check_org_blocker() {
+  ORG_BLOCK_REASON=""
+
+  # get org from keyrack (called directly, not via subshell, so ORG_ERROR propagates)
+  if ! get_org_from_keyrack; then
+    ORG_BLOCK_REASON="$ORG_ERROR"
+    return 2
+  fi
+  local org="$ORG_VALUE"
+
+  # check if org state file exists
+  if [[ ! -f "$ORG_METER_FILE" ]]; then
+    # no org config = unset = check for @all
+    ORG_BLOCK_REASON="no org config for $org (org permissions not configured)"
+    return 2
+  fi
+
+  # read org-specific state
+  local org_state
+  org_state=$(jq -r ".orgs[\"$org\"] // \"unset\"" "$ORG_METER_FILE" 2>/dev/null)
+
+  # if org-specific state exists, use it
+  if [[ "$org_state" != "unset" && "$org_state" != "null" ]]; then
+    if [[ "$org_state" == "blocked" ]]; then
+      ORG_BLOCK_REASON="commits blocked for org $org"
+      return 2
+    fi
+    return 0  # org is allowed
+  fi
+
+  # fall back to @all default
+  local all_state
+  all_state=$(jq -r ".orgs[\"@all\"] // \"unset\"" "$ORG_METER_FILE" 2>/dev/null)
+
+  if [[ "$all_state" == "unset" || "$all_state" == "null" ]]; then
+    ORG_BLOCK_REASON="no org config for $org (org permissions not configured)"
+    return 2
+  fi
+
+  if [[ "$all_state" == "blocked" ]]; then
+    ORG_BLOCK_REASON="commits blocked for org $org (from @all)"
+    return 2
+  fi
+
+  return 0  # @all is allowed
 }
 
 ######################################################################

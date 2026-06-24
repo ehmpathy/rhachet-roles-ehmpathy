@@ -221,3 +221,86 @@ exports[`git.commit.uses.sh given: [case21] TTY guard for global mutations when:
    └─ error: only humans can run this command
 "
 `;
+
+exports[`git.commit.uses.sh given: [case22] allow --org ehmpathy when: [t0] no org config then: creates org state with ehmpathy allowed 1`] = `
+"🐢 shell yeah, back in the water!
+
+🐚 git.commit.uses allow --org ehmpathy
+   └─ ehmpathy: allowed
+"
+`;
+
+exports[`git.commit.uses.sh given: [case23] block --org ehmpathy when: [t0] org was allowed then: updates to blocked 1`] = `
+"🐢 groovy, bond fire time
+
+🐚 git.commit.uses block --org ehmpathy
+   └─ ehmpathy: blocked
+"
+`;
+
+exports[`git.commit.uses.sh given: [case24] allow --org @all when: [t0] orgs had mixed states then: resets all and sets @all to allowed 1`] = `
+"🐢 shell yeah, back in the water!
+
+🐚 git.commit.uses allow --org @all
+   ├─ reset: all orgs → allowed
+   └─ @all: allowed
+"
+`;
+
+exports[`git.commit.uses.sh given: [case25] block --org @all when: [t0] orgs had mixed states then: resets all and sets @all to blocked 1`] = `
+"🐢 groovy, bond fire time
+
+🐚 git.commit.uses block --org @all
+   ├─ reset: all orgs → blocked
+   └─ @all: blocked
+"
+`;
+
+exports[`git.commit.uses.sh given: [case26] del --org ehmpathy when: [t0] org has config then: removes org config, defers to @all 1`] = `
+"🐢 righteous!
+
+🐚 git.commit.uses del --org ehmpathy
+   └─ ehmpathy: removed (inherits from @all)
+"
+`;
+
+exports[`git.commit.uses.sh given: [case27] get --org when: [t0] orgs have config then: shows all org configs 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses get --org
+   ├─ @all: blocked
+   └─ ehmpathy: allowed
+"
+`;
+
+exports[`git.commit.uses.sh given: [case27] get --org when: [t1] no org config then: shows no org configs set 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses get --org
+   └─ no org configs set
+"
+`;
+
+exports[`git.commit.uses.sh given: [case28] get --org ehmpathy when: [t1] org unset but @all set then: shows inherited from @all 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses get --org ehmpathy
+   └─ ehmpathy: blocked (from @all)
+"
+`;
+
+exports[`git.commit.uses.sh given: [case29] typo protection: all vs @all when: [t0] user types "all" instead of "@all" then: suggests @all 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses block --org all
+   └─ error: did you mean @all?
+"
+`;
+
+exports[`git.commit.uses.sh given: [case30] TTY guard for org mutations when: [t0] allow --org is called from non-TTY then: blocks with human-only error 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses allow --org ehmpathy
+   └─ error: only humans can run this command
+"
+`;

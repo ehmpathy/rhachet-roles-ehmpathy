@@ -807,6 +807,350 @@ describe('git.commit.uses.sh', () => {
     });
   });
 
+  // ========================================
+  // org-level permission tests
+  // ========================================
+
+  /**
+   * .what = run command with org state file
+   * .why = tests org-level permission management
+   */
+  const runWithOrgStorage = (args: {
+    args: string[];
+    orgState?: Record<string, string>;
+  }): {
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+    tempDir: string;
+    tempHome: string;
+    orgStateFile: string;
+  } => {
+    const tempDir = genTempDir({ slug: 'git-commit-uses-org-test', git: true });
+    const tempHome = genTempDir({
+      slug: 'git-commit-uses-org-home',
+      git: false,
+    });
+    const globalMeterDir = path.join(
+      tempHome,
+      '.rhachet',
+      'storage',
+      'repo=ehmpathy',
+      'role=mechanic',
+      '.meter',
+    );
+    const orgStateFile = path.join(globalMeterDir, 'git.commit.uses.org.jsonc');
+
+    // create org state if provided
+    if (args.orgState) {
+      fs.mkdirSync(globalMeterDir, { recursive: true });
+      fs.writeFileSync(
+        orgStateFile,
+        JSON.stringify({ orgs: args.orgState }, null, 2),
+      );
+    }
+
+    const result = spawnSync('bash', [scriptPath, ...args.args], {
+      cwd: tempDir,
+      encoding: 'utf-8' as const,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, HOME: tempHome, __I_AM_HUMAN: 'true' },
+    });
+
+    return {
+      stdout: result.stdout ?? '',
+      stderr: result.stderr ?? '',
+      exitCode: result.status ?? 1,
+      tempDir,
+      tempHome,
+      orgStateFile,
+    };
+  };
+
+  given('[case22] allow --org ehmpathy', () => {
+    when('[t0] no org config', () => {
+      then('creates org state with ehmpathy allowed', () => {
+        const result = runWithOrgStorage({
+          args: ['allow', '--org', 'ehmpathy'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('shell yeah');
+        expect(result.stdout).toContain('ehmpathy: allowed');
+        expect(fs.existsSync(result.orgStateFile)).toBe(true);
+
+        const state = JSON.parse(fs.readFileSync(result.orgStateFile, 'utf-8'));
+        expect(state.orgs.ehmpathy).toBe('allowed');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] org was blocked', () => {
+      then('updates to allowed', () => {
+        const result = runWithOrgStorage({
+          args: ['allow', '--org', 'ehmpathy'],
+          orgState: { ehmpathy: 'blocked' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('ehmpathy: allowed');
+
+        const state = JSON.parse(fs.readFileSync(result.orgStateFile, 'utf-8'));
+        expect(state.orgs.ehmpathy).toBe('allowed');
+      });
+    });
+  });
+
+  given('[case23] block --org ehmpathy', () => {
+    when('[t0] org was allowed', () => {
+      then('updates to blocked', () => {
+        const result = runWithOrgStorage({
+          args: ['block', '--org', 'ehmpathy'],
+          orgState: { ehmpathy: 'allowed' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('groovy, bond fire time');
+        expect(result.stdout).toContain('ehmpathy: blocked');
+
+        const state = JSON.parse(fs.readFileSync(result.orgStateFile, 'utf-8'));
+        expect(state.orgs.ehmpathy).toBe('blocked');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case24] allow --org @all', () => {
+    when('[t0] orgs had mixed states', () => {
+      then('resets all and sets @all to allowed', () => {
+        const result = runWithOrgStorage({
+          args: ['allow', '--org', '@all'],
+          orgState: { ehmpathy: 'blocked', ahbode: 'allowed' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('reset: all orgs');
+        expect(result.stdout).toContain('@all: allowed');
+
+        const state = JSON.parse(fs.readFileSync(result.orgStateFile, 'utf-8'));
+        expect(state.orgs).toEqual({ '@all': 'allowed' });
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case25] block --org @all', () => {
+    when('[t0] orgs had mixed states', () => {
+      then('resets all and sets @all to blocked', () => {
+        const result = runWithOrgStorage({
+          args: ['block', '--org', '@all'],
+          orgState: { ehmpathy: 'allowed', ahbode: 'blocked' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('reset: all orgs');
+        expect(result.stdout).toContain('@all: blocked');
+
+        const state = JSON.parse(fs.readFileSync(result.orgStateFile, 'utf-8'));
+        expect(state.orgs).toEqual({ '@all': 'blocked' });
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case26] del --org ehmpathy', () => {
+    when('[t0] org has config', () => {
+      then('removes org config, defers to @all', () => {
+        const result = runWithOrgStorage({
+          args: ['del', '--org', 'ehmpathy'],
+          orgState: { '@all': 'blocked', ehmpathy: 'allowed' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('righteous');
+        expect(result.stdout).toContain('ehmpathy: removed');
+        expect(result.stdout).toContain('inherits from @all');
+
+        const state = JSON.parse(fs.readFileSync(result.orgStateFile, 'utf-8'));
+        expect(state.orgs.ehmpathy).toBeUndefined();
+        expect(state.orgs['@all']).toBe('blocked');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] del --org @all', () => {
+      then('errors - cannot delete @all', () => {
+        const result = runWithOrgStorage({
+          args: ['del', '--org', '@all'],
+          orgState: { '@all': 'allowed' },
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('cannot delete @all');
+      });
+    });
+  });
+
+  given('[case27] get --org', () => {
+    when('[t0] orgs have config', () => {
+      then('shows all org configs', () => {
+        const result = runWithOrgStorage({
+          args: ['get', '--org'],
+          orgState: { '@all': 'blocked', ehmpathy: 'allowed' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('lets check the meter');
+        expect(result.stdout).toContain('@all: blocked');
+        expect(result.stdout).toContain('ehmpathy: allowed');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] no org config', () => {
+      then('shows no org configs set', () => {
+        const result = runWithOrgStorage({
+          args: ['get', '--org'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('no org configs set');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case28] get --org ehmpathy', () => {
+    when('[t0] org has explicit config', () => {
+      then('shows org config', () => {
+        const result = runWithOrgStorage({
+          args: ['get', '--org', 'ehmpathy'],
+          orgState: { ehmpathy: 'allowed' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('ehmpathy: allowed');
+      });
+    });
+
+    when('[t1] org unset but @all set', () => {
+      then('shows inherited from @all', () => {
+        const result = runWithOrgStorage({
+          args: ['get', '--org', 'ehmpathy'],
+          orgState: { '@all': 'blocked' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('ehmpathy: blocked (from @all)');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case29] typo protection: all vs @all', () => {
+    when('[t0] user types "all" instead of "@all"', () => {
+      then('suggests @all', () => {
+        const result = runWithOrgStorage({
+          args: ['block', '--org', 'all'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain('did you mean @all');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] user types "ALL" instead of "@all"', () => {
+      then('suggests @all', () => {
+        const result = runWithOrgStorage({
+          args: ['allow', '--org', 'ALL'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('did you mean @all');
+      });
+    });
+  });
+
+  given('[case30] TTY guard for org mutations', () => {
+    const runOrgWithoutTtyBypass = (args: {
+      args: string[];
+    }): {
+      stdout: string;
+      stderr: string;
+      exitCode: number;
+    } => {
+      const tempDir = genTempDir({
+        slug: 'git-commit-uses-org-tty-test',
+        git: true,
+      });
+      const tempHome = genTempDir({
+        slug: 'git-commit-uses-org-tty-home',
+        git: false,
+      });
+
+      const result = spawnSync('bash', [scriptPath, ...args.args], {
+        cwd: tempDir,
+        encoding: 'utf-8' as const,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: { ...process.env, HOME: tempHome },
+        // no __I_AM_HUMAN
+      });
+
+      return {
+        stdout: result.stdout ?? '',
+        stderr: result.stderr ?? '',
+        exitCode: result.status ?? 1,
+      };
+    };
+
+    when('[t0] allow --org is called from non-TTY', () => {
+      then('blocks with human-only error', () => {
+        const result = runOrgWithoutTtyBypass({
+          args: ['allow', '--org', 'ehmpathy'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] block --org is called from non-TTY', () => {
+      then('blocks with human-only error', () => {
+        const result = runOrgWithoutTtyBypass({
+          args: ['block', '--org', 'ehmpathy'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('only humans can run this command');
+      });
+    });
+
+    when('[t2] del --org is called from non-TTY', () => {
+      then('blocks with human-only error', () => {
+        const result = runOrgWithoutTtyBypass({
+          args: ['del', '--org', 'ehmpathy'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('only humans can run this command');
+      });
+    });
+
+    when('[t3] get --org is called from non-TTY', () => {
+      then('succeeds (get is not a mutation)', () => {
+        const result = runOrgWithoutTtyBypass({
+          args: ['get', '--org'],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('no org configs set');
+      });
+    });
+  });
+
   given('[case21] TTY guard for global mutations', () => {
     const runGlobalWithoutTtyBypass = (args: {
       args: string[];

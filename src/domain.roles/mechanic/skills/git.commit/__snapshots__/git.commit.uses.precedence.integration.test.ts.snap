@@ -1,0 +1,71 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.commit.uses precedence matrix given: [global=blocked, org=allowed, local=allowed] when: [t0] push is attempted then: blocked by global 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: commits blocked globally
+
+ask your human to lift:
+  $ git.commit.uses allow --global
+"
+`;
+
+exports[`git.commit.uses precedence matrix given: [global=unset, org=@all-blocked, local=allowed] when: [t0] push is attempted then: blocked by @all default 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: commits blocked for org ehmpathy (from @all)
+
+ask your human to allow:
+  $ git.commit.uses allow --org <org>
+"
+`;
+
+exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, local=allowed] when: [t0] push is attempted then: allowed - shows plan 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.push --mode plan
+   ├─ push: origin/turtle/feature
+   ├─ pr
+   │  ├─ title: feat: test commit
+   │  └─ action: findsert
+   └─ meter
+      └─ push: allowed
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, local=blocked] when: [t0] push is attempted then: blocked by local push config 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: push not allowed
+
+ask your human to grant with --push allow:
+  $ git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.commit.uses precedence matrix given: [global=unset, org=blocked, local=allowed] when: [t0] push is attempted then: blocked by org 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: commits blocked for org ehmpathy
+
+ask your human to allow:
+  $ git.commit.uses allow --org <org>
+"
+`;
+
+exports[`git.commit.uses precedence matrix given: [global=unset, org=unset, local=allowed] when: [t0] push is attempted then: blocked - org config required 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: no org config for ehmpathy (org permissions not configured)
+
+ask your human to allow:
+  $ git.commit.uses allow --org <org>
+"
+`;

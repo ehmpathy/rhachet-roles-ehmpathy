@@ -433,6 +433,15 @@ if ! check_global_blocker; then
   exit 2
 fi
 
+# check org blocker (after global, before local)
+if ! check_org_blocker; then
+  print_turtle_header "bummer dude..."
+  print_tree_start "git.commit.set"
+  print_tree_error "$ORG_BLOCK_REASON"
+  print_instruction "ask your human to allow:" "  \$ git.commit.uses allow --org <org>"
+  exit 2
+fi
+
 # check state file exists
 if [[ ! -f "$STATE_FILE" ]]; then
   print_turtle_header "bummer dude..."
