@@ -367,7 +367,7 @@
       // multi-repo search (find files with pattern across all repos in org)
       "Bash(rhx git.repo.get files --repos 'ehmpathy/*' --words 'DomainEntity')",
 
-      // keyrack unlock - unlock fallback keyrack for push operations
+      // keyrack unlock - for git.repo.test (broad) or skills (narrow with --key)
       // note: rhx:* and npx rhx:* already allowed; these are just examples
       "Bash(rhx keyrack unlock --owner ehmpath --env:*)",
       "Bash(npx rhx keyrack unlock --owner ehmpath --env:*)",

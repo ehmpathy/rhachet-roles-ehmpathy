@@ -257,7 +257,8 @@ else
   # fallback: unlock and get from ehmpath (passwordless sshkey)
   [[ "$DEBUG" == "true" ]] && echo "[debug] primary failed, try ehmpath fallback..." >&2
   "$REPO_ROOT/node_modules/.bin/rhachet" keyrack unlock \
-    --owner ehmpath --prikey "$HOME/.ssh/ehmpath" --env prep >/dev/null 2>&1 || true
+    --owner ehmpath --prikey "$HOME/.ssh/ehmpath" --env prep \
+    --key EHMPATHY_SEATURTLE_GITHUB_TOKEN >/dev/null 2>&1 || true
   FALLBACK_EXIT=0
   FALLBACK_OUTPUT=$("$REPO_ROOT/node_modules/.bin/rhachet" keyrack get \
     --key EHMPATHY_SEATURTLE_GITHUB_TOKEN \

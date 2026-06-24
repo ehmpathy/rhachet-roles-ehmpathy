@@ -273,10 +273,12 @@ fetch_token_if_needed() {
   if [[ "$MODE" == "apply" ]]; then
     GH_TOKEN=$(fetch_github_token)
     if [[ -z "$GH_TOKEN" ]]; then
-      print_turtle_header "bummer dude..."
-      echo "🔐 github token not found"
-      echo "   ├─ run: rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env prep"
-      echo "   └─ then retry this command"
+      {
+        print_turtle_header "bummer dude..."
+        echo "🔐 github token not found"
+        echo "   ├─ run: rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+        echo "   └─ then retry this command"
+      } | tee /dev/stderr
       exit 1
     fi
     export GH_TOKEN
