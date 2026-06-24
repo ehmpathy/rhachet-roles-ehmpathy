@@ -146,14 +146,8 @@ describe('git.commit.set.sh', () => {
 
     // create stub bash alias files to prevent warnings when HOME is fake
     // (user's .bash_aliases sources these from $HOME, which breaks with fake HOME)
-    fs.writeFileSync(
-      path.join(isolatedHome, '.bash_aliases.ductwork.sh'),
-      '',
-    );
-    fs.writeFileSync(
-      path.join(isolatedHome, '.bash_aliases.termwork.sh'),
-      '',
-    );
+    fs.writeFileSync(path.join(isolatedHome, '.bash_aliases.ductwork.sh'), '');
+    fs.writeFileSync(path.join(isolatedHome, '.bash_aliases.termwork.sh'), '');
 
     const result = spawnSync('bash', [scriptPath, ...finalArgs], {
       cwd: tempDir,
@@ -2851,7 +2845,10 @@ exit 1`,
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n.agent/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: add .gitignore'], {
           cwd: tempDir,
@@ -2872,14 +2869,8 @@ exit 1`,
         fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
 
         // create stub bash alias files to prevent warnings when HOME is fake
-        fs.writeFileSync(
-          path.join(tempHome, '.bash_aliases.ductwork.sh'),
-          '',
-        );
-        fs.writeFileSync(
-          path.join(tempHome, '.bash_aliases.termwork.sh'),
-          '',
-        );
+        fs.writeFileSync(path.join(tempHome, '.bash_aliases.ductwork.sh'), '');
+        fs.writeFileSync(path.join(tempHome, '.bash_aliases.termwork.sh'), '');
 
         // run commit with injected HOME
         const result = spawnSync(
@@ -2954,7 +2945,10 @@ exit 1`,
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 3, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n.agent/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: add .gitignore'], {
           cwd: tempDir,
@@ -2975,14 +2969,8 @@ exit 1`,
         fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
 
         // create stub bash alias files to prevent warnings when HOME is fake
-        fs.writeFileSync(
-          path.join(tempHome, '.bash_aliases.ductwork.sh'),
-          '',
-        );
-        fs.writeFileSync(
-          path.join(tempHome, '.bash_aliases.termwork.sh'),
-          '',
-        );
+        fs.writeFileSync(path.join(tempHome, '.bash_aliases.ductwork.sh'), '');
+        fs.writeFileSync(path.join(tempHome, '.bash_aliases.termwork.sh'), '');
 
         // run commit with injected HOME (no global blocker)
         const result = spawnSync(
@@ -3056,7 +3044,10 @@ exit 1`,
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n.agent/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup: add .gitignore'], {
           cwd: tempDir,
@@ -3077,14 +3068,8 @@ exit 1`,
         fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), 'org: ehmpathy\n');
 
         // create stub bash alias files to prevent warnings when HOME is fake
-        fs.writeFileSync(
-          path.join(tempHome, '.bash_aliases.ductwork.sh'),
-          '',
-        );
-        fs.writeFileSync(
-          path.join(tempHome, '.bash_aliases.termwork.sh'),
-          '',
-        );
+        fs.writeFileSync(path.join(tempHome, '.bash_aliases.ductwork.sh'), '');
+        fs.writeFileSync(path.join(tempHome, '.bash_aliases.termwork.sh'), '');
 
         // run commit with injected HOME (corrupt global blocker)
         const result = spawnSync(
@@ -3199,7 +3184,10 @@ exit 1`,
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 3, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n.agent/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup'], { cwd: tempDir });
         spawnSync('git', ['checkout', '-b', 'fix/test-branch'], {
@@ -3282,7 +3270,10 @@ exit 1`,
           path.join(meterDir, 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 3, push: 'block' }, null, 2),
         );
-        fs.writeFileSync(path.join(tempDir, '.gitignore'), '.meter/\n.agent/\n');
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n',
+        );
         spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'setup'], { cwd: tempDir });
         spawnSync('git', ['checkout', '-b', 'fix/test-branch'], {

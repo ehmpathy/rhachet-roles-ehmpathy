@@ -28,7 +28,10 @@ describe('git.commit.uses precedence matrix', () => {
    */
   const runPushWithPrecedence = (args: {
     globalState?: 'blocked' | 'allowed';
-    orgState?: { org: string; state: 'blocked' | 'allowed' } | '@all-blocked' | '@all-allowed';
+    orgState?:
+      | { org: string; state: 'blocked' | 'allowed' }
+      | '@all-blocked'
+      | '@all-allowed';
     localState?: { uses: number; push: 'allow' | 'block' };
     keyrackOrg: string;
   }): {
@@ -44,7 +47,10 @@ describe('git.commit.uses precedence matrix', () => {
     // create .agent/keyrack.yml with org
     const agentDir = path.join(tempDir, '.agent');
     fs.mkdirSync(agentDir, { recursive: true });
-    fs.writeFileSync(path.join(agentDir, 'keyrack.yml'), `org: ${args.keyrackOrg}\n`);
+    fs.writeFileSync(
+      path.join(agentDir, 'keyrack.yml'),
+      `org: ${args.keyrackOrg}\n`,
+    );
 
     // create global state if provided
     const globalMeterDir = path.join(
@@ -94,11 +100,19 @@ describe('git.commit.uses precedence matrix', () => {
     spawnSync('git', ['checkout', '-b', 'turtle/feature'], { cwd: tempDir });
     fs.writeFileSync(path.join(tempDir, 'file.txt'), 'content');
     spawnSync('git', ['add', 'file.txt'], { cwd: tempDir });
-    spawnSync('git', [
-      '-c', 'user.name=seaturtle[bot]',
-      '-c', 'user.email=seaturtle@ehmpath.com',
-      'commit', '-m', 'feat: test commit',
-    ], { cwd: tempDir });
+    spawnSync(
+      'git',
+      [
+        '-c',
+        'user.name=seaturtle[bot]',
+        '-c',
+        'user.email=seaturtle@ehmpath.com',
+        'commit',
+        '-m',
+        'feat: test commit',
+      ],
+      { cwd: tempDir },
+    );
 
     const result = spawnSync('bash', [pushScriptPath, '--mode', 'plan'], {
       cwd: tempDir,
