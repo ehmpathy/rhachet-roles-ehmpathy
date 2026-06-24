@@ -98,6 +98,33 @@ filter_by_glob() {
 }
 
 ######################################################################
+# refresh_local_repo — fetch latest from origin
+# args: repo_path
+# returns: 0 on success, non-zero on failure (failfast)
+######################################################################
+refresh_local_repo() {
+  local repo_path="$1"
+
+  # skip if refresh is off
+  if [[ "${REFRESH:-on}" == "off" ]]; then
+    return 0
+  fi
+
+  cd "$repo_path" || return 1
+
+  # skip if no origin remote configured (e.g., test repos)
+  if ! git remote get-url origin &>/dev/null; then
+    return 0
+  fi
+
+  if ! git fetch origin --quiet 2>/dev/null; then
+    echo "error: failed to fetch from origin" >&2
+    echo "hint: use --refresh off to query stale local refs" >&2
+    return 1
+  fi
+}
+
+######################################################################
 # lookup_repo — find repo (local-first, cloud fallback)
 # args: org/repo slug
 # returns: "local <path>" or "cloud <url>" or exits with error
@@ -452,6 +479,9 @@ cmd_files_multi() {
     git_root=$(get_git_root)
     local location="$git_root/$slug"
 
+    # refresh local repo before query
+    refresh_local_repo "$location" 2>/dev/null || continue
+
     # get ref
     local ref="$REF"
     if [[ -z "$ref" ]]; then
@@ -595,6 +625,17 @@ cmd_files() {
   fi
 
   read -r source location <<< "$lookup_result"
+
+  # refresh local repo before query
+  if [[ "$source" == "local" ]]; then
+    if ! refresh_local_repo "$location"; then
+      print_turtle_header "bummer dude"
+      print_tree_start "git.repo.get files"
+      print_tree_branch "repo: $REPO_SLUG"
+      print_tree_error "failed to fetch latest from origin"
+      exit 1
+    fi
+  fi
 
   # determine ref
   local ref="$REF"
@@ -758,6 +799,9 @@ cmd_lines_multi() {
     git_root=$(get_git_root)
     local location="$git_root/$slug"
 
+    # refresh local repo before query
+    refresh_local_repo "$location" 2>/dev/null || continue
+
     # get ref
     local ref="$REF"
     if [[ -z "$ref" ]]; then
@@ -905,6 +949,17 @@ cmd_lines() {
   fi
 
   read -r source location <<< "$lookup_result"
+
+  # refresh local repo before query
+  if [[ "$source" == "local" ]]; then
+    if ! refresh_local_repo "$location"; then
+      print_turtle_header "bummer dude"
+      print_tree_start "git.repo.get lines"
+      print_tree_branch "repo: $REPO_SLUG"
+      print_tree_error "failed to fetch latest from origin"
+      exit 1
+    fi
+  fi
 
   # determine ref
   local ref="$REF"
