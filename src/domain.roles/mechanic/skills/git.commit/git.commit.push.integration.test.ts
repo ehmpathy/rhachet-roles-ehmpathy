@@ -1,5 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import { MalfunctionError } from 'helpful-errors';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
@@ -103,21 +104,44 @@ env.prod:
    * .why = consistent invocation across test cases
    * .note = always excludes EHMPATHY_SEATURTLE_GITHUB_TOKEN from process.env
    *         for deterministic tests; pass explicit token via env if needed
-   * .note = always isolates HOME to prevent global blocker from affecting tests
+   * .note = always isolates HOME so global blocker does not leak into tests
+   * .note = sets up org permission by default (ehmpathy allowed) unless skipOrgSetup
    */
   const runPush = (args: {
     tempDir: string;
     pushArgs: string[];
     env?: Record<string, string>;
     tempHome?: string;
+    skipOrgSetup?: boolean;
   }): { stdout: string; stderr: string; exitCode: number } => {
     // always exclude token from process.env for deterministic tests
     const { EHMPATHY_SEATURTLE_GITHUB_TOKEN: _token, ...envWithoutToken } =
       process.env;
 
-    // always use isolated HOME to prevent global blocker from affecting tests
+    // always use isolated HOME so global blocker does not leak into tests
+    // note: args.env?.HOME can override isolatedHome, so org state must be set up
+    //       in the actual HOME that will be used
     const isolatedHome =
       args.tempHome ?? genTempDir({ slug: 'git-push-home', git: false });
+    const effectiveHome = args.env?.HOME ?? isolatedHome;
+
+    // set up org permission by default so org blocker check passes
+    if (!args.skipOrgSetup) {
+      const orgMeterDir = path.join(
+        effectiveHome,
+        '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+      );
+      fs.mkdirSync(orgMeterDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
+        JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+      );
+    }
+
+    // create stub bash alias files to prevent warnings when HOME is fake
+    // (user's .bash_aliases sources these from $HOME, which breaks with fake HOME)
+    fs.writeFileSync(path.join(effectiveHome, '.bash_aliases.ductwork.sh'), '');
+    fs.writeFileSync(path.join(effectiveHome, '.bash_aliases.termwork.sh'), '');
 
     const result = spawnSync('bash', [pushScriptPath, ...args.pushArgs], {
       cwd: args.tempDir,
@@ -125,7 +149,7 @@ env.prod:
       stdio: ['pipe', 'pipe', 'pipe'],
       env: {
         ...envWithoutToken,
-        HOME: isolatedHome,
+        HOME: effectiveHome,
         ...args.env,
       },
     });
@@ -527,7 +551,7 @@ exit 1`,
     when('[t0] no keyrack.yml in repo and no host manifest', () => {
       then('exits with clear message to ask human to configure', () => {
         // relock ehmpath to clear daemon cache
-        spawnSync(
+        const relockResult = spawnSync(
           'npx',
           ['rhachet', 'keyrack', 'relock', '--owner', 'ehmpath'],
           {
@@ -535,6 +559,12 @@ exit 1`,
             stdio: 'pipe',
           },
         );
+        if (relockResult.status !== 0) {
+          throw new MalfunctionError('keyrack relock failed', {
+            status: relockResult.status,
+            stderr: relockResult.stderr,
+          });
+        }
 
         // create fake HOME with no keyrack host manifests
         const fakeHome = genTempDir({
@@ -642,7 +672,7 @@ exit 1`,
     when('[t0] keyrack.yml exists but no host manifest', () => {
       then('exits with clear unlock message, no fallback noise', () => {
         // relock ehmpath to clear daemon cache
-        spawnSync(
+        const relockResult = spawnSync(
           'npx',
           ['rhachet', 'keyrack', 'relock', '--owner', 'ehmpath'],
           {
@@ -650,6 +680,12 @@ exit 1`,
             stdio: 'pipe',
           },
         );
+        if (relockResult.status !== 0) {
+          throw new MalfunctionError('keyrack relock failed', {
+            status: relockResult.status,
+            stderr: relockResult.stderr,
+          });
+        }
 
         // create fake HOME with no keyrack host manifests
         const fakeHome = genTempDir({
@@ -697,7 +733,7 @@ exit 1`,
       when('[t0] keyrack.yml exists but key declaration absent', () => {
         then('exits with clear message about key not declared', () => {
           // relock ehmpath to clear daemon cache
-          spawnSync(
+          const relockResult = spawnSync(
             'npx',
             ['rhachet', 'keyrack', 'relock', '--owner', 'ehmpath'],
             {
@@ -705,6 +741,12 @@ exit 1`,
               stdio: 'pipe',
             },
           );
+          if (relockResult.status !== 0) {
+            throw new MalfunctionError('keyrack relock failed', {
+              status: relockResult.status,
+              stderr: relockResult.stderr,
+            });
+          }
 
           // create fake HOME with no keyrack host manifests
           const fakeHome = genTempDir({
@@ -1267,7 +1309,7 @@ exit 1
     when('[t0] no user keyrack, no ehmpath host manifest', () => {
       then('exits with first error only, no fallback noise', () => {
         // relock ehmpath to clear daemon cache
-        spawnSync(
+        const relockResult = spawnSync(
           'npx',
           ['rhachet', 'keyrack', 'relock', '--owner', 'ehmpath'],
           {
@@ -1275,6 +1317,12 @@ exit 1
             stdio: 'pipe',
           },
         );
+        if (relockResult.status !== 0) {
+          throw new MalfunctionError('keyrack relock failed', {
+            status: relockResult.status,
+            stderr: relockResult.stderr,
+          });
+        }
 
         // create fake HOME with no keyrack host manifests
         const fakeHome = genTempDir({

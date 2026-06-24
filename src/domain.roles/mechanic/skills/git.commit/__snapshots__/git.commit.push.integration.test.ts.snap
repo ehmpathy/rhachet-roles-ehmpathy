@@ -64,22 +64,17 @@ run with --mode apply to execute
 `;
 
 exports[`git.commit.push.sh given: [case12] keyrack not configured (sad path) when: [t0] no keyrack.yml in repo and no host manifest then: exits with clear message to ask human to configure 1`] = `
-"
-🐢 bummer dude, keyrack token fetch failed
+"🐢 bummer dude...
 
+🐚 git.commit.push
+   └─ error: .agent/keyrack.yml not found
 
-✋ ConstraintError: cannot construct slug for key 'EHMPATHY_SEATURTLE_GITHUB_TOKEN' without keyrack.yml. use full slug format (org.env.KEY) or add keyrack.yml to repo.
-
-[args] keyrack,get,--key,EHMPATHY_SEATURTLE_GITHUB_TOKEN,--env,prep,--allow-dangerous,--json
-
-
-to fix this, ask a human to either:
-  1. unlock their keyrack for this key:
-     $ rhx keyrack unlock --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-
-  2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
-     $ npx rhachet run --init keyrack.ehmpath
-
+🥥 to fix this, ask a human to either:
+   ├─ 1. add .agent/keyrack.yml with their org:
+   │     $ echo 'org: ehmpathy' > .agent/keyrack.yml
+   │
+   └─ 2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
+         $ npx rhachet run --init keyrack.ehmpath
 "
 `;
 

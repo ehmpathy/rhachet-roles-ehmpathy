@@ -105,16 +105,21 @@ fi
 
 ######################################################################
 # helper: emit error in the chosen output format
+# note: errors go to both stdout and stderr per skill output streams brief
 ######################################################################
 emit_error() {
   local message="$1"
+  local output
   if [[ "$OUTPUT" == "json" ]]; then
-    printf '{"status":"error","error":"%s"}\n' "$message"
+    output=$(printf '{"status":"error","error":"%s"}\n' "$message")
   else
-    print_turtle_header "bummer dude..."
+    output=$(print_turtle_header "bummer dude..."
     print_tree_start "git.commit.push"
-    print_tree_error "$message"
+    print_tree_error "$message")
   fi
+  # output to both stdout and stderr
+  echo "$output"
+  echo "$output" >&2
 }
 
 ######################################################################
@@ -126,6 +131,32 @@ if ! check_global_blocker; then
   emit_error "$GLOBAL_BLOCK_REASON"
   if [[ "$OUTPUT" == "tree" ]]; then
     print_instruction "ask your human to lift:" "  \$ git.commit.uses allow --global"
+  fi
+  exit 2
+fi
+
+# guard: org blocker must not be active
+if ! check_org_blocker; then
+  emit_error "$ORG_BLOCK_REASON"
+  if [[ "$OUTPUT" == "tree" ]]; then
+    # different guidance based on error type
+    if [[ "$ORG_BLOCK_REASON" == *"keyrack.yml not found"* ]]; then
+      # output to both stdout and stderr per skill output streams brief
+      KEYRACK_HINT=$(cat <<'EOF'
+
+🥥 to fix this, ask a human to either:
+   ├─ 1. add .agent/keyrack.yml with their org:
+   │     $ echo 'org: ehmpathy' > .agent/keyrack.yml
+   │
+   └─ 2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
+         $ npx rhachet run --init keyrack.ehmpath
+EOF
+)
+      echo "$KEYRACK_HINT"
+      echo "$KEYRACK_HINT" >&2
+    else
+      print_instruction "ask your human to allow:" "  \$ git.commit.uses allow --org <org>"
+    fi
   fi
   exit 2
 fi
