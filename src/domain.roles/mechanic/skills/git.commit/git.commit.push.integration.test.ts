@@ -1,5 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import { MalfunctionError } from 'helpful-errors';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
