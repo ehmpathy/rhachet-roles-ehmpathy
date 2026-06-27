@@ -1,0 +1,62 @@
+# eval case: decomposed-orchestrator
+# .what = correct pattern - orchestrator with named operations
+# .why  = should NOT be flagged (true negative)
+
+id: arch-opport-decomposition-decomposed-orchestrator
+rubric: arch-opport-decomposition
+description: decomposed orchestrator should NOT be flagged for decomposition
+
+code: |
+  const processOrder = async (order: Order, context: Context) => {
+    // validate
+    validateOrderFormat({ order });
+
+    // compute
+    const totals = computeOrderTotals({ order });
+
+    // create invoice
+    const invoice = genInvoice({ order, totals });
+    await context.invoiceDao.insert(invoice);
+
+    // notify
+    await sendInvoiceEmail({ invoice, customer: order.customer }, context);
+
+    // update status
+    await setOrderStatus({ order, status: 'INVOICED' }, context);
+
+    return invoice;
+  };
+
+  // transformer: validate
+  const validateOrderFormat = ({ order }: { order: Order }) => {
+    if (!order.items.length) throw new BadRequestError('no items');
+    if (!order.customer) throw new BadRequestError('no customer');
+  };
+
+  // transformer: compute
+  const computeOrderTotals = ({ order }: { order: Order }) => {
+    const subtotal = order.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0
+    );
+    const tax = subtotal * 0.08;
+    return { subtotal, tax, total: subtotal + tax };
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: no-false-flag
+    description: should NOT flag decomposed orchestrator
+    expected: absent
+    severity: blocker|nitpick
+    reason: |
+      the orchestrator is well-decomposed:
+      - validateOrderFormat handles validation
+      - computeOrderTotals handles computation
+      - genInvoice handles creation
+      - sendInvoiceEmail handles notification
+      - setOrderStatus handles status update
+
+      each responsibility is a named operation. this is the correct pattern.

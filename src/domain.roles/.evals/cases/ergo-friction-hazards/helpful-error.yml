@@ -1,0 +1,56 @@
+# eval case: helpful-error
+# .what = correct pattern - helpful error messages
+# .why  = should NOT be flagged (true negative)
+
+id: ergo-friction-hazards-helpful-error
+rubric: ergo-friction-hazards
+description: helpful error messages should NOT be flagged as friction
+
+code: |
+  const validateConfig = (config: Config) => {
+    if (!config.apiKey) {
+      throw new BadRequestError('config.apiKey is required', {
+        hint: 'set MYAPP_API_KEY environment variable or pass apiKey in config',
+        docs: 'https://docs.example.com/config#api-key',
+      });
+    }
+
+    if (!config.endpoint) {
+      throw new BadRequestError('config.endpoint is required', {
+        hint: 'specify the API endpoint URL, e.g., https://api.example.com/v1',
+        received: config,
+      });
+    }
+
+    if (!config.timeout || config.timeout < 0) {
+      throw new BadRequestError('config.timeout must be a positive number', {
+        hint: 'timeout is in milliseconds, e.g., 30000 for 30 seconds',
+        received: config.timeout,
+      });
+    }
+
+    if (config.retries > 10) {
+      throw new BadRequestError('config.retries cannot exceed 10', {
+        hint: 'reduce retries or contact support for higher limits',
+        received: config.retries,
+        max: 10,
+      });
+    }
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: no-false-flag
+    description: should NOT flag helpful error messages
+    expected: absent
+    severity: blocker|nitpick
+    reason: |
+      the code uses helpful errors:
+      - clear message states what is wrong
+      - hint tells user how to fix
+      - docs provides reference
+      - received shows actual value
+
+      this is the correct pattern - errors are actionable.

@@ -1,0 +1,50 @@
+# eval case: cryptic-error
+# .what = detect cryptic error messages that frustrate users
+# .why  = friction hazard from unhelpful errors
+
+id: ergo-friction-hazards-cryptic-error
+rubric: ergo-friction-hazards
+description: cryptic error should be flagged as friction hazard
+
+code: |
+  const validateConfig = (config: Config) => {
+    if (!config.apiKey) {
+      throw new Error('E001');
+    }
+
+    if (!config.endpoint) {
+      throw new Error('invalid');
+    }
+
+    if (!config.timeout) {
+      throw new Error('failed');
+    }
+
+    if (config.timeout < 0) {
+      throw new Error('bad value');
+    }
+
+    if (config.retries > 10) {
+      throw new Error('out of range');
+    }
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: cryptic-error-friction
+    description: should flag cryptic errors as friction hazard
+    expected: present
+    severity: blocker
+    reason: |
+      the code throws cryptic errors:
+      - 'E001' - what does this mean?
+      - 'invalid' - what is invalid?
+      - 'failed' - what failed?
+      - 'bad value' - which value?
+      - 'out of range' - what range?
+
+      user cannot diagnose without code inspection.
+
+      keywords: friction, cryptic, error, unhelpful, message

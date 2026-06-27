@@ -1,0 +1,59 @@
+# eval case: consistent-verbs
+# .what = correct pattern - consistent verb usage
+# .why  = should NOT be flagged (true negative)
+
+id: arch-ambiguous-terms-consistent-verbs
+rubric: arch-ambiguous-terms
+description: consistent verb usage should NOT be flagged as ambiguous
+
+code: |
+  // file: src/domain.operations/user/getUser.ts
+
+  // consistent use of "get" for retrieval
+  const getOneUser = async (
+    input: { userId: string },
+    context: Context,
+  ) => {
+    return context.userDao.findById(input.userId);
+  };
+
+  const getAllUsersForOrg = async (
+    input: { orgId: string },
+    context: Context,
+  ) => {
+    return context.userDao.findByOrgId(input.orgId);
+  };
+
+  // consistent use of "set" for mutation
+  const setUserEmail = async (
+    input: { userId: string; email: string },
+    context: Context,
+  ) => {
+    return context.userDao.upsert({ id: input.userId, email: input.email });
+  };
+
+  // consistent use of "gen" for find-or-create
+  const genUser = async (
+    input: { email: string },
+    context: Context,
+  ) => {
+    const userFound = await context.userDao.findByEmail(input.email);
+    if (userFound) return userFound;
+    return context.userDao.insert({ email: input.email });
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: no-false-flag
+    description: should NOT flag consistent verb usage
+    expected: absent
+    severity: blocker|nitpick
+    reason: |
+      the code uses consistent verbs:
+      - get* for retrieval (getOneUser, getAllUsersForOrg)
+      - set* for mutation (setUserEmail)
+      - gen* for find-or-create (genUser)
+
+      this follows the get/set/gen convention. no synonym drift.

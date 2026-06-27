@@ -1,0 +1,36 @@
+# eval case: inline-reduce
+# .what = detect inline reduce operations in orchestrators
+# .why  = reduce is decode-friction - requires simulation to understand
+
+id: mech-decode-friction-inline-reduce
+rubric: mech-decode-friction
+description: inline reduce should be flagged as decode-friction
+
+code: |
+  const calculateInvoiceTotal = async (invoice: Invoice, context: Context) => {
+    // decode-friction: reader must simulate reduce to understand
+    const total = invoice.lineItems.reduce(
+      (sum, item) => sum + item.amount * item.quantity,
+      0
+    );
+
+    await context.invoiceDao.update({ id: invoice.id, total });
+    return { ...invoice, total };
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: inline-reduce-friction
+    description: should flag inline reduce as blocker
+    expected: present
+    severity: blocker
+    reason: |
+      the orchestrator contains inline decode-friction:
+      - reduce requires mental simulation to understand
+      - (sum, item) => sum + item.amount * item.quantity
+
+      should extract to named transformer like computeInvoiceTotal
+
+      keywords: decode-friction, reduce, inline
