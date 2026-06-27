@@ -1,0 +1,61 @@
+# eval case: explicit-null-declared
+# .what = correct pattern - explicit null with clear types
+# .why  = should NOT be flagged (true negative)
+
+id: arch-hazards-behavior-explicit-null-declared
+rubric: arch-hazards-behavior
+description: explicit null with declared type should NOT be flagged
+
+code: |
+  /**
+   * .what = get discount for customer if eligible
+   * .why  = returns null when customer has no active subscription
+   */
+  const getCustomerDiscount = async (
+    input: { customerId: string },
+    context: Context,
+  ): Promise<{ discountPercent: number } | null> => {
+    const customer = await context.customerDao.findById(input.customerId);
+
+    // explicit: customer not found
+    if (!customer) {
+      return null;
+    }
+
+    // explicit: no subscription means no discount
+    if (!customer.subscriptionId) {
+      return null;
+    }
+
+    const subscription = await context.subscriptionDao.findById(
+      customer.subscriptionId,
+    );
+
+    // explicit: subscription not found (defensive)
+    if (!subscription) {
+      context.log.warn('customer has orphaned subscriptionId', {
+        customerId: input.customerId,
+        subscriptionId: customer.subscriptionId,
+      });
+      return null;
+    }
+
+    return { discountPercent: subscription.discountPercent };
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: no-false-flag
+    description: should NOT flag explicit null with declared type
+    expected: absent
+    severity: blocker|nitpick
+    reason: |
+      the code has explicit null paths:
+      - return type declares | null
+      - jsdoc explains why null is returned
+      - comments explain each null path
+      - orphan subscription is logged
+
+      this is the correct pattern - behavior is explicit, not hidden.

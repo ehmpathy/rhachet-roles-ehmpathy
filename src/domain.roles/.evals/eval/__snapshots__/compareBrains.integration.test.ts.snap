@@ -1,0 +1,9 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`compareBrains given: [case1] single brain baseline when: [t0] compared against one brain then: table output matches snapshot 1`] = `
+"# brain comparison: mech-failhides
+
+| brain | passed | failed | sensitivity | specificity | duration |
+|-------|--------|--------|--------|-------------|----------|
+| fireworks/deepseek/v4-flash | 4/5 | 1 | 80% | 100% | 91.7s |"
+`;

@@ -1,0 +1,34 @@
+# eval case: empty-catch
+# .what = detect empty catch blocks that hide errors
+# .why  = empty catch is a classic failhide pattern
+
+id: mech-failhides-empty-catch
+rubric: mech-failhides
+description: empty catch block should be flagged as failhide
+
+code: |
+  const fetchUser = async (userId: string) => {
+    try {
+      const user = await db.query('SELECT * FROM users WHERE id = ?', [userId]);
+      return user;
+    } catch (error) {
+      // silently ignore error - failhide!
+    }
+    return null;
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: swallowed-error
+    description: should flag empty catch block as blocker
+    expected: present
+    severity: blocker
+    reason: |
+      the catch block is empty and swallows the error without:
+      - a throw statement
+      - a HelpfulError wrap
+      - a return with error value
+
+      keywords: swallow, hidden, empty catch, failhide

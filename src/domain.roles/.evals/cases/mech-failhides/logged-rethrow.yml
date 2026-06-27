@@ -1,0 +1,32 @@
+# eval case: logged-rethrow
+# .what = correct pattern - log and rethrow
+# .why  = should NOT be flagged as failhide (true negative)
+
+id: mech-failhides-logged-rethrow
+rubric: mech-failhides
+description: log and rethrow should NOT be flagged as failhide
+
+code: |
+  const fetchUser = async (userId: string, context: { log: LogMethods }) => {
+    try {
+      const user = await db.query('SELECT * FROM users WHERE id = ?', [userId]);
+      return user;
+    } catch (error) {
+      context.log.error('failed to fetch user', { userId, error });
+      throw error; // rethrow - not a failhide
+    }
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: no-false-flag
+    description: should NOT flag logged rethrow
+    expected: absent
+    severity: blocker|nitpick
+    reason: |
+      the catch block logs and rethrows, which is valid:
+      - catch (error) { log(error); throw error; }
+
+      this should NOT be flagged as failhide

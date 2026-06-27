@@ -1,0 +1,43 @@
+# eval case: cross-domain-import
+# .what = detect cross-domain boundary violations
+# .why  = scope leaks couple unrelated domains
+
+id: arch-smell-scopeleaks-cross-domain-import
+rubric: arch-smell-scopeleaks
+description: cross-domain import should be flagged as scope leak
+
+code: |
+  // file: src/domain.operations/invoice/generateInvoice.ts
+  import { Customer } from '../../customer/Customer';
+  import { calculateDiscount } from '../../customer/discountUtils';
+  import { getCustomerTier } from '../../customer/tierLogic';
+
+  const generateInvoice = async (input: { orderId: string }, context: Context) => {
+    const order = await context.orderDao.findById(input.orderId);
+    const customer = await context.customerDao.findById(order.customerId);
+
+    // reach into customer domain internals
+    const tier = getCustomerTier(customer);
+    const discount = calculateDiscount(customer, tier);
+
+    const total = order.subtotal - discount;
+    return context.invoiceDao.insert({ orderId: order.id, total });
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: cross-domain-import
+    description: should flag cross-domain import as scope leak
+    expected: present
+    severity: blocker
+    reason: |
+      invoice domain imports customer domain internals:
+      - import { calculateDiscount } from '../../customer/discountUtils';
+      - import { getCustomerTier } from '../../customer/tierLogic';
+
+      this violates bounded context - invoice should not know customer internals.
+      should use contract interface instead.
+
+      keywords: scope leak, boundary, cross-domain, bounded context

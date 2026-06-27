@@ -1,0 +1,48 @@
+# eval case: magic-string
+# .what = detect magic strings and hardcoded values
+# .why  = maintenance hazard from undocumented literals
+
+id: arch-hazards-maintenance-magic-string
+rubric: arch-hazards-maintenance
+description: magic string should be flagged as maintenance hazard
+
+code: |
+  const processPayment = async (payment: Payment, context: Context) => {
+    // magic strings scattered throughout
+    if (payment.method === 'STRIPE_CARD') {
+      await context.stripe.charge(payment);
+    } else if (payment.method === 'STRIPE_ACH') {
+      await context.stripe.achTransfer(payment);
+    } else if (payment.method === 'PAYPAL') {
+      await context.paypal.pay(payment);
+    }
+
+    // magic status values
+    await context.paymentDao.update({
+      id: payment.id,
+      status: payment.amount > 10000 ? 'PENDING_REVIEW' : 'COMPLETED',
+    });
+
+    // magic threshold
+    if (payment.amount > 5000) {
+      await context.slack.notify('#high-value-payments', `Payment: ${payment.id}`);
+    }
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: magic-strings
+    description: should flag magic strings as maintenance hazard
+    expected: present
+    severity: blocker
+    reason: |
+      the code has magic values scattered throughout:
+      - 'STRIPE_CARD', 'STRIPE_ACH', 'PAYPAL' as literal strings
+      - 'PENDING_REVIEW', 'COMPLETED' as literal status values
+      - 10000, 5000 as magic thresholds
+
+      should use enums and named constants.
+
+      keywords: magic, hardcode, literal, constant, enum
