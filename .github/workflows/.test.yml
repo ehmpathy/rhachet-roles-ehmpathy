@@ -230,6 +230,9 @@ jobs:
       - name: build
         run: npm run build
 
+      - name: link roles into .agent (for cross-repo skill discovery in evals)
+        run: npx rhachet init --roles mechanic behaver driver architect ergonomist reviewer dreamer dispatcher enroller learner
+
       - name: test:integration (explicit ${{ matrix.shard.index }})
         if: matrix.shard.type == 'explicit'
         env:
