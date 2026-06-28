@@ -1,0 +1,1 @@
+export FIREWORKS_API_KEY='fw_Gx7PC3SfhfSpTSbtLzUhvE'

@@ -23,9 +23,11 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# ensure keyrack is unlocked for this subprocess
-# .note = bhrain review hardcodes keyrack supplier which needs active session
-rhx keyrack unlock --owner ehmpath --env prep || true
+# .note = no explicit keyrack unlock here.
+#         in CI, keyrack reads creds from env vars (passthrough fallback).
+#         locally, an active keyrack session (daemon) supplies creds.
+#         a failed unlock (no host manifest in CI) would spawn an empty
+#         daemon that poisons the env-var fallback, so we omit it.
 
 # hardcoded rules for this rubric (multiple --rules for node glob)
 RULES_PROD='.agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/pitofsuccess.errors/rule.*.md'
