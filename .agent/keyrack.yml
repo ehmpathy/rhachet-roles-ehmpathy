@@ -4,7 +4,10 @@ org: ehmpathy
 env.all: null
 env.prod:
   - GITHUB_TOKEN
-env.test:
+env.prep:
+  # note: git.commit.push requests this token at env=prep, and the host
+  #        vault stores it at ehmpathy.prep.EHMPATHY_SEATURTLE_GITHUB_TOKEN
   - EHMPATHY_SEATURTLE_GITHUB_TOKEN
+env.test:
   - FIREWORKS_API_KEY
   - XAI_API_KEY
