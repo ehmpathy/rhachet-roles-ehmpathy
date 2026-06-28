@@ -1,0 +1,15 @@
+# rubrics.yml — ergonomist role review rubrics
+#
+# .what = defines the rubrics available for ergonomist role reviews
+#
+# .why  = enables review.by to discover and run rubric skills
+#         - each rubric has a slug that maps to a skill
+#         - purpose explains what the rubric detects
+#         - rules lists the briefs that back the rubric
+
+rubrics:
+  - slug: ergo-friction-hazards
+    purpose: detect friction hazards and surprise behaviors
+    rules:
+      - .agent/repo=ehmpathy/role=ergonomist/briefs/rule.forbid.surprises.md
+      - .agent/repo=ehmpathy/role=ergonomist/briefs/cli/rule.require.treestruct-output.md

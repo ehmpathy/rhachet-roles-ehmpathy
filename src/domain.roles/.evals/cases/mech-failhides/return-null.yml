@@ -1,0 +1,34 @@
+# eval case: return-null
+# .what = detect catch blocks that return null instead of throw
+# .why  = return null on error is a failhide pattern
+
+id: mech-failhides-return-null
+rubric: mech-failhides
+description: catch that returns null should be flagged as failhide
+
+code: |
+  const getConfig = async (key: string) => {
+    try {
+      const config = await configService.get(key);
+      return config;
+    } catch (error) {
+      // return null on error - failhide!
+      return null;
+    }
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: return-null-failhide
+    description: should flag return null in catch block as blocker
+    expected: present
+    severity: blocker
+    reason: |
+      the catch block returns null instead of:
+      - a throw statement to surface the error
+      - a HelpfulError wrap with context
+      - a log + rethrow pattern
+
+      keywords: failhide, return null, silent, swallow

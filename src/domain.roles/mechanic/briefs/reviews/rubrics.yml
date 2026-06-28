@@ -1,0 +1,25 @@
+# rubrics.yml — mechanic role review rubrics
+#
+# .what = defines the rubrics available for mechanic role reviews
+#
+# .why  = enables review.by to discover and run rubric skills
+#         - each rubric has a slug that maps to a skill
+#         - purpose explains what the rubric detects
+#         - rules lists the briefs that back the rubric
+
+rubrics:
+  - slug: mech-failhides
+    purpose: detect hidden errors and failhide patterns
+    rules:
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.md
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/pitofsuccess.errors/rule.require.failloud.md
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.test/pitofsuccess.errors/rule.forbid.failhide.md
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.test/pitofsuccess.errors/rule.require.failfast.md
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.test/pitofsuccess.errors/rule.require.failloud.md
+
+  - slug: mech-decode-friction
+    purpose: detect inline decode-friction that hides intent
+    rules:
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/readable.narrative/rule.forbid.inline-decode-friction.md
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/readable.narrative/rule.require.named-transformers.md

@@ -8,7 +8,7 @@ domain-specific action verbs (e.g., `dispatch`, `enqueue`, `disrupt`) are allowe
 #### .scope
 - applies to all operations in `domain.operations/`
 - applies to all dao methods
-- exempt: contract/cli entry points (e.g., `invokeAct`) and imperative action commands (e.g., `dispatchTask`, `enqueueTask`)
+- exempt: contract/cli entry points (e.g., `invokeAct`), imperative action commands (e.g., `dispatchTask`, `enqueueTask`), and HOF wrappers with `with*` prefix (e.g., `withLogTrail`, `withRetry`, `withSimpleCache`)
 
 #### .why
 

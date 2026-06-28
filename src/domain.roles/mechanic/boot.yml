@@ -160,8 +160,15 @@ subject.code.prod:
       - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[demo].shell.md
 
       # procedures
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.magic-values.md
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotency.[seed].md
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.pitofsuccess.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/ref.reviewer.test-infrastructure-context.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.hidden-side-effects.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.order-dependence.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.race-conditions.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.time-assumptions.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.unexpected-defaults.md
 
       # typedefs
       - briefs/practices/code.prod/pitofsuccess.typedefs/define.bivariance-for-generics.[lesson].md

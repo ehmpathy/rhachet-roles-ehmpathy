@@ -1,0 +1,39 @@
+# eval case: contract-import
+# .what = correct pattern - import via contract
+# .why  = should NOT be flagged (true negative)
+
+id: arch-smell-scopeleaks-contract-import
+rubric: arch-smell-scopeleaks
+description: contract import should NOT be flagged as scope leak
+
+code: |
+  // file: src/domain.operations/invoice/generateInvoice.ts
+  import { Customer } from '@/contract/Customer';
+  import { getCustomerDiscount } from '@/contract/customerService';
+
+  const generateInvoice = async (input: { orderId: string }, context: Context) => {
+    const order = await context.orderDao.findById(input.orderId);
+
+    // use contract interface, not internal implementation
+    const discount = await getCustomerDiscount({
+      customerId: order.customerId,
+    }, context);
+
+    const total = order.subtotal - discount;
+    return context.invoiceDao.insert({ orderId: order.id, total });
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: no-false-flag
+    description: should NOT flag contract import
+    expected: absent
+    severity: blocker|nitpick
+    reason: |
+      invoice domain uses contract interface:
+      - import { getCustomerDiscount } from '@/contract/customerService';
+
+      this respects bounded context - invoice knows only the contract,
+      not customer domain internals. this is the correct pattern.

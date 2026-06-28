@@ -1,0 +1,36 @@
+# eval case: inline-filter-map
+# .what = detect inline filter-map pipelines in orchestrators
+# .why  = decode-friction hides intent
+
+id: mech-decode-friction-inline-filter-map
+rubric: mech-decode-friction
+description: inline filter-map pipeline should be flagged as decode-friction
+
+code: |
+  const sendNotifications = async (users: User[], context: Context) => {
+    // decode-friction: reader must simulate to understand
+    const emails = users
+      .filter(u => u.active && u.emailVerified)
+      .map(u => u.email.toLowerCase())
+      .sort();
+
+    await context.emailService.sendBulk({ to: emails });
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: inline-pipeline-friction
+    description: should flag inline filter-map-sort pipeline as blocker
+    expected: present
+    severity: blocker
+    reason: |
+      the orchestrator contains inline decode-friction:
+      - filter + map + sort pipeline requires mental simulation
+      - reader must decode .filter(u => u.active && u.emailVerified)
+      - reader must decode .map(u => u.email.toLowerCase())
+
+      should extract to named transformer like getAllActiveUserEmails
+
+      keywords: decode-friction, filter, map, inline, pipeline

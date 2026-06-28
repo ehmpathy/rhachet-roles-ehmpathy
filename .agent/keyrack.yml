@@ -1,11 +1,13 @@
 org: ehmpathy
-extends:
-  - .agent/repo=bhrain/role=reviewer/keyrack.yml
-  - .agent/repo=bhuild/role=dispatcher/keyrack.yml
-  - .agent/repo=ehmpathy/role=mechanic/keyrack.yml
+# note: extends removed - those keyrack files are symlinked by rhachet init
+#       and absent in CI. all needed credentials are declared inline below.
 env.all: null
 env.prod:
   - GITHUB_TOKEN
-env.test:
+env.prep:
+  # note: git.commit.push requests this token at env=prep, and the host
+  #        vault stores it at ehmpathy.prep.EHMPATHY_SEATURTLE_GITHUB_TOKEN
   - EHMPATHY_SEATURTLE_GITHUB_TOKEN
+env.test:
+  - FIREWORKS_API_KEY
   - XAI_API_KEY

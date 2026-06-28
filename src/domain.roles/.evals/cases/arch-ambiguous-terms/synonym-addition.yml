@@ -1,0 +1,47 @@
+# eval case: synonym-addition
+# .what = detect synonym term additions that cause confusion
+# .why  = term drift makes domain language ambiguous
+
+id: arch-ambiguous-terms-synonym-addition
+rubric: arch-ambiguous-terms
+description: synonym term addition should be flagged as ambiguous
+
+code: |
+  // file: src/domain.operations/fetchUser.ts
+
+  // new operation adds "fetch" synonym for "get"
+  const fetchUser = async (input: { userId: string }, context: Context) => {
+    return context.userDao.findById(input.userId);
+  };
+
+  // prior operation uses "get"
+  const getUser = async (input: { userId: string }, context: Context) => {
+    return context.userDao.findById(input.userId);
+  };
+
+  // another synonym: "retrieve"
+  const retrieveUser = async (input: { userId: string }, context: Context) => {
+    return context.userDao.findById(input.userId);
+  };
+
+  // yet another: "load"
+  const loadUser = async (input: { userId: string }, context: Context) => {
+    return context.userDao.findById(input.userId);
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: synonym-drift
+    description: should flag synonym term addition as ambiguous
+    expected: present
+    severity: blocker
+    reason: |
+      the code introduces multiple synonyms for the same action:
+      - fetchUser, getUser, retrieveUser, loadUser
+
+      all perform the same operation but with different verbs.
+      violates ubiquitous language - should use only "get".
+
+      keywords: synonym, ambiguous, term, name, drift

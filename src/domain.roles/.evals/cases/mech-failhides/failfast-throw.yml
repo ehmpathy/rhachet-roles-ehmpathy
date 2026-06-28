@@ -1,0 +1,42 @@
+# eval case: failfast-throw
+# .what = correct pattern - throw error with context
+# .why  = should NOT be flagged (true negative)
+
+id: mech-failhides-failfast-throw
+rubric: mech-failhides
+description: throw with context should NOT be flagged as failhide
+
+code: |
+  import { UnexpectedCodePathError } from 'helpful-errors';
+
+  const processOrder = async (orderId: string) => {
+    const order = await orderDao.findById(orderId);
+
+    if (!order) {
+      throw new UnexpectedCodePathError('order not found', { orderId });
+    }
+
+    if (order.status !== 'PENDING') {
+      throw new UnexpectedCodePathError('order not in PENDING status', {
+        orderId,
+        status: order.status
+      });
+    }
+
+    return await processPayment(order);
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: no-false-flag
+    description: should NOT flag throw with context
+    expected: absent
+    severity: blocker|nitpick
+    reason: |
+      the code uses UnexpectedCodePathError with context:
+      - throws on invalid state
+      - includes metadata for debug
+
+      this is the correct failfast pattern, not a failhide

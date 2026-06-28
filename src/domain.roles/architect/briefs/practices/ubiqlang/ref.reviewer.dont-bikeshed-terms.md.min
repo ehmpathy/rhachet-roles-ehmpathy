@@ -1,0 +1,14 @@
+# ref: dont bikeshed terms
+
+first: check if term is established in codebase. if yes: defer to convention.
+
+## step 1: check convention
+
+search codebase. if term used consistently: do not flag.
+- brain, skill, journey, focus — established, defer
+
+## step 2: only for new terms
+
+if not established, check:
+1. rule.forbid.term.addition.synonym — duplicates established term?
+2. rule.forbid.term.addition.ambiguous — globally ambiguous?
