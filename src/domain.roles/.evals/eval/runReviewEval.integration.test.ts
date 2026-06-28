@@ -12,8 +12,8 @@ describe('runReviewEval', () => {
   // .note = these tests run LLM calls which can take 2-3 minutes
   jest.setTimeout(300_000); // 5 minutes
 
-  const domainRolesDir = path.join(__dirname, '..');
-  const evalsDir = __dirname;
+  const domainRolesDir = path.join(__dirname, '../..');
+  const evalsDir = path.join(__dirname, '..');
 
   given('[case1] mech-failhides rubric', () => {
     when('[t0] eval suite is run', () => {
