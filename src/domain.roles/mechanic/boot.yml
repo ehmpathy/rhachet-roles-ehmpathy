@@ -160,6 +160,7 @@ subject.code.prod:
       - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[demo].shell.md
 
       # procedures
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.magic-values.md
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotency.[seed].md
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.pitofsuccess.md
       - briefs/practices/code.prod/pitofsuccess.procedures/ref.reviewer.test-infrastructure-context.md
