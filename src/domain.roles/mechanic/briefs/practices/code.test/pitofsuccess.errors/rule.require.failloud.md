@@ -28,7 +28,7 @@ throw new Error('test failed');
 ```ts
 // caller must fix — ConstraintError
 throw new ConstraintError('API key required for this test', {
-  hint: 'run: source .agent/repo=.this/role=any/skills/use.apikeys.sh',
+  hint: 'run: rhx keyrack unlock --owner ehmpath --env test',
   env: 'EHMPATHY_API_KEY',
 });
 

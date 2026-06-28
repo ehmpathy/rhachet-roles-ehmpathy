@@ -24,7 +24,7 @@ if (!hasApiKey) {
 // caller must fix (ConstraintError)
 if (!hasApiKey) {
   throw new ConstraintError('API key required for this test', {
-    hint: 'run: source .agent/repo=.this/role=any/skills/use.apikeys.sh',
+    hint: 'run: rhx keyrack unlock --owner ehmpath --env test',
   });
 }
 

@@ -482,10 +482,7 @@
       "Bash(gh search commits:*)",
       // api read operations (explicit GET for safe suffix matching)
       "Bash(gh api -X GET:*)",
-      "Bash(gh api --method GET:*)",
-
-      // apikey sources
-      "Bash(source .agent/repo=.this/role=any/skills/use.apikeys.sh)"
+      "Bash(gh api --method GET:*)"
     ]
   }
 }
