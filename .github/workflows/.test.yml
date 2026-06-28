@@ -16,6 +16,9 @@ on:
       XAI_API_KEY:
         description: "api key for xai (grok) - required for border guard acceptance tests"
         required: false
+      FIREWORKS_API_KEY:
+        description: "api key for fireworks - required for review eval integration tests"
+        required: false
 
 permissions:
   id-token: write # required for oidc
@@ -231,6 +234,7 @@ jobs:
         if: matrix.shard.type == 'explicit'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
         run: |
           patterns='${{ join(matrix.shard.patterns, '|') }}'
           THOROUGH=true npm run test:integration -- --testPathPatterns="$patterns" --json --outputFile=jest-results.json
@@ -239,6 +243,7 @@ jobs:
         if: matrix.shard.type == 'dynamic'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
         run: |
           exclude='${{ needs.enshard.outputs.integration-patterns }}'
           if [[ -n "$exclude" ]]; then
@@ -304,6 +309,7 @@ jobs:
         if: matrix.shard.type == 'explicit'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
         run: |
           patterns='${{ join(matrix.shard.patterns, '|') }}'
           THOROUGH=true npm run test:acceptance -- --testPathPatterns="$patterns" --json --outputFile=jest-results.json
@@ -312,6 +318,7 @@ jobs:
         if: matrix.shard.type == 'dynamic'
         env:
           XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
         run: |
           exclude='${{ needs.enshard.outputs.acceptance-patterns }}'
           if [[ -n "$exclude" ]]; then
