@@ -19,7 +19,7 @@ export const parseReviewCounts = (input: {
       stdoutLength: input.stdout.length,
       stdoutPreview: input.stdout.slice(0, 200),
       stderrLength: input.stderr?.length,
-      stderrPreview: input.stderr?.slice(0, 500),
+      stderrPreview: input.stderr,
     });
   }
 
@@ -29,7 +29,7 @@ export const parseReviewCounts = (input: {
       stdoutLength: input.stdout.length,
       stdoutPreview: input.stdout.slice(0, 200),
       stderrLength: input.stderr?.length,
-      stderrPreview: input.stderr?.slice(0, 500),
+      stderrPreview: input.stderr,
     });
   }
 

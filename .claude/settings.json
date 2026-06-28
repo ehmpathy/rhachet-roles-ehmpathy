@@ -423,7 +423,8 @@
       "Bash(gh search prs:*)",
       "Bash(gh search commits:*)",
       "Bash(gh api -X GET:*)",
-      "Bash(gh api --method GET:*)"
+      "Bash(gh api --method GET:*)",
+      "Bash(source .agent/repo=.this/role=any/skills/use.apikeys.sh)"
     ],
     "deny": [
       "Bash(bash:*)",
