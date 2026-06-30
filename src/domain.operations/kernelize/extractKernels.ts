@@ -19,7 +19,7 @@ import { existsSync } from 'fs';
 import * as path from 'path';
 import { genContextBrain } from 'rhachet';
 import { createCache } from 'simple-on-disk-cache';
-import { withSimpleCachingAsync } from 'with-simple-caching';
+import { withSimpleCacheAsync } from 'with-simple-cache';
 import { withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
@@ -47,7 +47,7 @@ const CACHE_DIR = path.join(
   'kernelize',
 );
 const kernelizeCache = createCache({
-  directory: { mounted: { path: CACHE_DIR } },
+  directory: { local: { path: CACHE_DIR } },
 });
 
 /**
@@ -181,10 +181,10 @@ ${input.content}`;
  *       - attempt is used for parallel runs in consensus mode
  *       - use force=true to bypass cache lookup
  */
-export const extractKernels = withSimpleCachingAsync(_extractKernels, {
+export const extractKernels = withSimpleCacheAsync(_extractKernels, {
   cache: kernelizeCache,
   serialize: {
-    key: ({ forInput: [input] }) =>
+    key: (input) =>
       genKernelizeCacheKey({
         content: input.content,
         brainSlug: input.brainSlug,
@@ -192,7 +192,7 @@ export const extractKernels = withSimpleCachingAsync(_extractKernels, {
       }),
   },
   bypass: {
-    get: ([input]) => input.force === true,
+    get: (input) => input.force === true,
   },
 });
 

@@ -19,7 +19,7 @@ import { existsSync } from 'fs';
 import * as path from 'path';
 import { genContextBrain } from 'rhachet';
 import { createCache } from 'simple-on-disk-cache';
-import { withSimpleCachingAsync } from 'with-simple-caching';
+import { withSimpleCacheAsync } from 'with-simple-cache';
 import { withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
@@ -47,7 +47,7 @@ const CACHE_DIR = path.join(
   'cluster',
 );
 const clusterCache = createCache({
-  directory: { mounted: { path: CACHE_DIR } },
+  directory: { local: { path: CACHE_DIR } },
 });
 
 /**
@@ -238,10 +238,10 @@ ${kernelList}`;
  *       - attempt is used for parallel runs
  *       - use force=true to bypass cache lookup
  */
-export const clusterKernels = withSimpleCachingAsync(_clusterKernels, {
+export const clusterKernels = withSimpleCacheAsync(_clusterKernels, {
   cache: clusterCache,
   serialize: {
-    key: ({ forInput: [input] }) =>
+    key: (input) =>
       genClusterCacheKey({
         kernels: input.kernels,
         brainSlug: input.brainSlug,
@@ -249,7 +249,7 @@ export const clusterKernels = withSimpleCachingAsync(_clusterKernels, {
       }),
   },
   bypass: {
-    get: ([input]) => input.force === true,
+    get: (input) => input.force === true,
   },
 });
 
