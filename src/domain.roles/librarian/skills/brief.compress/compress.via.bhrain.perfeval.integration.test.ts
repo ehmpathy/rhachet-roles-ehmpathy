@@ -5,7 +5,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { createCache } from 'simple-on-disk-cache';
 import { given, then, useThen, when } from 'test-fns';
-import { withSimpleCachingAsync } from 'with-simple-caching';
+import { withSimpleCacheAsync } from 'with-simple-cache';
 
 import {
   type ConceptKernel,
@@ -98,7 +98,7 @@ const CACHE_DIR = path.join(
   'compress',
 );
 const perfevalCache = createCache({
-  directory: { mounted: { path: CACHE_DIR } },
+  directory: { local: { path: CACHE_DIR } },
 });
 
 /**
@@ -159,7 +159,7 @@ const logProgress = (entry: {
  *
  * .note = attemptIndex ensures distinct results per run (same content + mechanisms + different attempt = different cache key)
  */
-const compressViaBhrain = withSimpleCachingAsync(
+const compressViaBhrain = withSimpleCacheAsync(
   async (input: {
     content: string;
     brainSlug: string;
@@ -179,7 +179,7 @@ const compressViaBhrain = withSimpleCachingAsync(
   {
     cache: perfevalCache,
     serialize: {
-      key: ({ forInput }) => {
+      key: (...forInput: any[]) => {
         const input = forInput[0];
         const hash = createHash('sha256')
           .update(input.content)
@@ -200,10 +200,10 @@ const compressViaBhrain = withSimpleCachingAsync(
  * .what = wrap extractKernels with on-disk cache
  * .why = re-use results when content/brain are identical
  */
-const extractKernels = withSimpleCachingAsync(extractKernelsRaw, {
+const extractKernels = withSimpleCacheAsync(extractKernelsRaw, {
   cache: perfevalCache,
   serialize: {
-    key: ({ forInput }) => {
+    key: (...forInput: any[]) => {
       const input = forInput[0];
       const hash = createHash('sha256')
         .update(input.content)
@@ -219,10 +219,10 @@ const extractKernels = withSimpleCachingAsync(extractKernelsRaw, {
  * .what = wrap compareKernels with on-disk cache
  * .why = re-use results when original/compressed content are identical
  */
-const compareKernels = withSimpleCachingAsync(compareKernelsRaw, {
+const compareKernels = withSimpleCacheAsync(compareKernelsRaw, {
   cache: perfevalCache,
   serialize: {
-    key: ({ forInput }) => {
+    key: (...forInput: any[]) => {
       const input = forInput[0];
       const hash = createHash('sha256')
         .update(input.contentOriginal)
@@ -239,10 +239,10 @@ const compareKernels = withSimpleCachingAsync(compareKernelsRaw, {
  * .what = wrap checkKernelRetention with on-disk cache
  * .why = re-use retention checks when kernels/compressed are identical
  */
-const checkKernelRetention = withSimpleCachingAsync(checkKernelRetentionRaw, {
+const checkKernelRetention = withSimpleCacheAsync(checkKernelRetentionRaw, {
   cache: perfevalCache,
   serialize: {
-    key: ({ forInput }) => {
+    key: (...forInput: any[]) => {
       const input = forInput[0];
       const hash = createHash('sha256')
         .update(JSON.stringify(input.kernels))

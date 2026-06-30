@@ -10,7 +10,7 @@ import { createHash } from 'crypto';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { createCache } from 'simple-on-disk-cache';
-import { withSimpleCachingAsync } from 'with-simple-caching';
+import { withSimpleCacheAsync } from 'with-simple-cache';
 
 import { clusterKernels as clusterKernelsBrain } from '../../../../domain.operations/kernelize/clusterKernels';
 import {
@@ -61,14 +61,14 @@ const CACHE_DIR = path.join(
   'kernelize',
 );
 const perfevalCache = createCache({
-  directory: { mounted: { path: CACHE_DIR } },
+  directory: { local: { path: CACHE_DIR } },
 });
 
 /**
  * .what = wrap extractKernels with on-disk cache + attempt index
  * .why = distinct cache key per run (same content + different attempt = different key)
  */
-const extractKernels = withSimpleCachingAsync(
+const extractKernels = withSimpleCacheAsync(
   async (input: {
     content: string;
     brainSlug: string;
@@ -82,7 +82,7 @@ const extractKernels = withSimpleCachingAsync(
   {
     cache: perfevalCache,
     serialize: {
-      key: ({ forInput }) => {
+      key: (...forInput: any[]) => {
         const input = forInput[0];
         const hash = createHash('sha256')
           .update(input.content)

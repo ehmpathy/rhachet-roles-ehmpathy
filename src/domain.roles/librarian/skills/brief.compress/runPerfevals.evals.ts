@@ -20,7 +20,7 @@ import * as fsSync from 'fs';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { createCache } from 'simple-on-disk-cache';
-import { withSimpleCachingAsync } from 'with-simple-caching';
+import { withSimpleCacheAsync } from 'with-simple-cache';
 
 import {
   type ConceptKernel,
@@ -104,11 +104,11 @@ const CACHE_DIR = path.join(
   'compress',
 );
 const perfevalCache = createCache({
-  directory: { mounted: { path: CACHE_DIR } },
+  directory: { local: { path: CACHE_DIR } },
 });
 
 // wrap compressViaBhrain with on-disk cache
-const compressViaBhrain = withSimpleCachingAsync(
+const compressViaBhrain = withSimpleCacheAsync(
   async (input: {
     content: string;
     brainSlug: string;
@@ -126,7 +126,7 @@ const compressViaBhrain = withSimpleCachingAsync(
   {
     cache: perfevalCache,
     serialize: {
-      key: ({ forInput }) => {
+      key: (...forInput: any[]) => {
         const input = forInput[0];
         const hash = createHash('sha256')
           .update(input.content)
@@ -143,10 +143,10 @@ const compressViaBhrain = withSimpleCachingAsync(
 );
 
 // wrap extractKernels with on-disk cache
-const extractKernels = withSimpleCachingAsync(extractKernelsRaw, {
+const extractKernels = withSimpleCacheAsync(extractKernelsRaw, {
   cache: perfevalCache,
   serialize: {
-    key: ({ forInput }) => {
+    key: (...forInput: any[]) => {
       const input = forInput[0];
       const hash = createHash('sha256')
         .update(input.content)
@@ -159,10 +159,10 @@ const extractKernels = withSimpleCachingAsync(extractKernelsRaw, {
 });
 
 // wrap checkKernelRetention with on-disk cache
-const checkKernelRetention = withSimpleCachingAsync(checkKernelRetentionRaw, {
+const checkKernelRetention = withSimpleCacheAsync(checkKernelRetentionRaw, {
   cache: perfevalCache,
   serialize: {
-    key: ({ forInput }) => {
+    key: (...forInput: any[]) => {
       const input = forInput[0];
       const hash = createHash('sha256')
         .update(JSON.stringify(input.kernels))

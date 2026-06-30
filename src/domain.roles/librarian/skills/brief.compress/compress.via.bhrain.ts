@@ -23,7 +23,7 @@ import { BrainChoiceNotFoundError, genContextBrain } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { createCache } from 'simple-on-disk-cache';
 import { parseArgs } from 'util';
-import { withSimpleCachingAsync } from 'with-simple-caching';
+import { withSimpleCacheAsync } from 'with-simple-cache';
 import { withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
@@ -51,7 +51,7 @@ const CACHE_DIR = path.join(
   'compress',
 );
 const compressionCache = createCache({
-  directory: { mounted: { path: CACHE_DIR } },
+  directory: { local: { path: CACHE_DIR } },
 });
 
 // resolve paths to briefs (collocated with this module)
@@ -422,10 +422,10 @@ const genCacheKey = (input: {
  *       - cache auto-invalidates when source content changes
  *       - use force=true to bypass cache lookup
  */
-export const compressViaBhrain = withSimpleCachingAsync(_compressViaBhrain, {
+export const compressViaBhrain = withSimpleCacheAsync(_compressViaBhrain, {
   cache: compressionCache,
   serialize: {
-    key: ({ forInput: [input] }) =>
+    key: (input) =>
       genCacheKey({
         content: input.content,
         brainSlug: input.brainSlug,
@@ -435,7 +435,7 @@ export const compressViaBhrain = withSimpleCachingAsync(_compressViaBhrain, {
       }),
   },
   bypass: {
-    get: ([input]) => input.force === true,
+    get: (input) => input.force === true,
   },
 });
 
