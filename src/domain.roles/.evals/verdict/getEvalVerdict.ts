@@ -27,8 +27,12 @@ export const getEvalVerdict = async (input: {
   const { evalCase, reviewResult } = input;
 
   // create evaluator brain context
+  // .note = creds via keyrack supplier, same as bhrain review skill.
+  //         in CI, keyrack reads the api key from env vars (passthrough);
+  //         locally, an active keyrack session supplies it.
   const contextBrain = await genContextBrain({
     choice: { atom: evalCase.evaluator.brain },
+    creds: { keyrack: { owner: 'ehmpath', env: 'prep' } },
   });
 
   // format checks for evaluator prompt

@@ -3,8 +3,14 @@
 .what
 enforce top-down dependency flow; lower layers must not import from higher ones
 
+.the direction
+contract <- domain.* <- access
+- read right-to-left: access is lowest, domain.* depends on it, contract depends on domain.*
+- flows downward only: contract → domain.* → access
+- utils/ and infra/ are cross-layer: available to all layers, depend on none
+
 .scope
-applies to src/ folders and modules; required for contract/, access/, domain.objects/, domain.operations/; governs imports and references
+applies to src/ folders and modules; required for contract/, domain.operations/, domain.objects/, access/; governs imports and references
 
 .why
 upholds separation of concerns and clean architecture; prevents circular dependencies; eases tests and isolation; aligns with arch:bounded-contexts for orchestration
@@ -18,36 +24,85 @@ src/
     sdk/             // public exports
     cli/             // public cli contracts
 
-  access/            // infrastructure layer
-    daos/            // persistence logic
-    sdks/            // third party contracts
-    svcs/            // first party contracts
+  domain.operations/ // domain behavior      — depends on access/
+  domain.objects/    // domain declarations  — depends on access/svcs, access/sdks
 
-  domain.objects/    // domain declarations
-  domain.operations/ // domain behavior
+  access/            // lowest layer; domain depends on it, not reverse
+    svcs/            // first party contracts — pure types, referenced by uuid
+    sdks/            // third party contracts — pure types
+    daos/            // persistence logic — imports the domain object it persists
 
+  utils/             // cross-layer; available to all, depends on none
   infra/             // adapters
 ```
 
+.the consumption direction
+domain.objects/ and domain.operations/ are expected consumers of access/. access is the lowest layer: domain depends on it, never the reverse.
+- domain.operations/ MAY import access/ (daos, sdks, svcs)
+- domain.objects/ MAY import access/svcs and access/sdks (e.g. external service type referenced by uuid)
+- access/ MUST NOT import domain.operations/ or contract/
+
+.the one caveat
+access/daos is a persistence adapter: it bridges db rows ↔ domain objects, so a dao imports the domain object it persists (jobDao imports Job). this is the only upward import allowed anywhere: access/daos → domain.objects, and only domain.objects — never domain.operations or contract. that single pair is the only reason domain.objects → access/daos stays forbidden — it would close the one cycle (domain.objects → daos → domain.objects). access/svcs and access/sdks are pure type contracts with no dependency back on domain.objects, so domain that depends on them is never circular.
+
 .how
-each layer depends only on layers below; contract/ on domain.objects/ and domain.operations/; access/ on domain.objects/ and domain.operations/; domain.operations/ on domain.objects/ or infra/; domain.objects/ and infra/ self-contained; stitched flows in domain.operations/ or contract/cmd/; no upward imports; shared types follow rules
+each layer depends only on the layer directly below:
+- contract/ on domain.operations/, domain.objects/ — never access/ (reach access through domain.*)
+- domain.operations/ on domain.objects/, access/, utils/, infra/
+- domain.objects/ on access/svcs, access/sdks, utils/, infra/ — never access/daos (circular)
+- access/daos on domain.objects/ as its only upward import; access/svcs and access/sdks stay pure type contracts
+- utils/ and infra/ available to every layer (daos, svcs, sdks, domain.*, contract); they are self-contained
+
+.the edges
+| edge | verdict |
+|------|---------|
+| domain.objects → access/svcs, access/sdks | allowed (expected) |
+| domain.objects → access/daos | blocker (circular) |
+| domain.operations → access/* | allowed (expected) |
+| contract → access/* | blocker (reach access through domain.*) |
+| access/daos → domain.objects | allowed (only upward import) |
+| access/daos → domain.operations, contract/ | blocker |
+| access/* → domain.operations, contract/ | blocker |
+| * → utils/, infra/ | allowed (cross-layer) |
 
 .enforcement
-upward imports = blocker; circular dependencies = blocker; domain.objects/ isolated; domain.operations/ uses only infra/ adapters; access/ free of business rules; infra/ free of domain knowledge
+- domain.objects → access/daos = blocker (closes the one domain.objects → daos → domain.objects cycle)
+- contract/ → access/* = blocker (contract reaches access through domain.*)
+- access/* → domain.operations/ or contract/ = blocker (bottom-up)
+- domain.operations/ → contract/ = blocker (upward)
+- any import that violates top-down boundary = blocker
+- circular dependencies between layers = blocker
+- access/ free of business rules (may import domain objects to persist them, but holds no business logic)
+- utils/ and infra/ free of domain knowledge
 
 .examples
 
 👍 positive
-// contract/endpoints/sendinvoice.ts
-import { generateinvoice } from '@/domain.operations/generateinvoice';
-import { invoicedao } from '@/access/daos/invoicedao';
+// domain object references an external service type contract, by uuid
+// domain.objects/claimSearchScope.ts
+import { svcHomeServicesHomeService } from '@/access/svcs/svcHomeServices';
 
-// access/daos/jobdao.ts
-import { job } from '@/domain.objects/job';
+// domain operation uses a dao
+// domain.operations/ingestClaims.ts
+import { claimDao } from '@/access/daos/claimDao';
+
+// dao persists the domain object it knows (only upward import allowed)
+// access/daos/jobDao.ts
+import { Job } from '@/domain.objects/Job';
 
 👎 negative
-// domain.objects/customer.ts
-import { customerdao } from '@/access/daos/customerdao'; // illegal
+// domain object depends on persistence logic (circular)
+// domain.objects/Customer.ts
+import { customerDao } from '@/access/daos/customerDao'; // illegal: domain.objects → access/daos
 
-// domain.operations/invoiceops.ts
-import { runflow } from '@/contract/commands'; // violation
+// contract reaches past domain.* directly into access
+// contract/endpoints/sendInvoice.ts
+import { invoiceDao } from '@/access/daos/invoiceDao'; // contract → access; reach access through domain.*
+
+// dao reaches past domain.objects into domain.operations
+// access/daos/jobDao.ts
+import { generateInvoice } from '@/domain.operations/generateInvoice'; // daos may import domain.objects only
+
+// access reaches upward into contract
+// access/svcs/sdkWrapper.ts
+import { dispatchFlow } from '@/contract/'; // bottom-up reference
