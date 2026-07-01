@@ -767,4 +767,74 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       });
     });
   });
+
+  given('[case19] echo of a quoted dash-prefixed separator', () => {
+    when('[t0] echo of a quoted string that starts with a dash', () => {
+      then("echo '---abc' is blocked", () => {
+        const result = runHook("echo '---abc'");
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('starts with a dash');
+      });
+
+      then('echo "---abc" is blocked', () => {
+        const result = runHook('echo "---abc"');
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then("echo '-- is blocked", () => {
+        const result = runHook("echo '--");
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then("echo '- is blocked", () => {
+        const result = runHook("echo '-");
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+
+      then('chained separator between safe commands is blocked', () => {
+        const result = runHook(
+          'gh pr list --state open --limit 5; echo "---all open---"; gh pr list --limit 10',
+        );
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('BLOCKED');
+      });
+    });
+
+    when('[t1] safe echoes remain allowed', () => {
+      then('echo "not found" is allowed', () => {
+        const result = runHook('echo "not found"');
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+
+      then("echo 'hello world' is allowed", () => {
+        const result = runHook("echo 'hello world'");
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+
+      then('echo of a non-dash divider is allowed', () => {
+        const result = runHook("echo '=== all open ==='");
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+
+      then('echo with dashes off the start is allowed', () => {
+        const result = runHook("echo 'all open ---'");
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toBe('');
+      });
+    });
+
+    when('[t2] block message snapshot', () => {
+      then('dash-prefixed echo block message matches snapshot', () => {
+        const result = runHook('echo "---all open---"');
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+  });
 });
