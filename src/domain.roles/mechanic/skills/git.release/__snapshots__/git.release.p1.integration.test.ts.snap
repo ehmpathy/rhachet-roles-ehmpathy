@@ -584,11 +584,11 @@ exports[`git.release given: [case7] argument validation when: [t3] no arguments 
 `;
 
 exports[`git.release given: [case7] argument validation when: [t4] --help flag then: shows usage and exits 0 1`] = `
-"usage: git.release [--into main|prod] [--from main] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+"usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+       git.release --from main --into prod   # special-circumstance only
 
-  --into main   merge feature branch to main (default when on feature branch)
-  --into prod   full release to prod (default when on main, or with --from main)
-  --from main   skip feature branch requirement, act as if on main
+  --into prod   full release to prod (the default, safe way to ship your work)
+  --into main   merge feature branch to main only (stops before prod)
   --watch       watch CI without automerge
   --apply       enable automerge and watch (alias for --mode apply)
   --mode plan   show status only (default)
@@ -596,6 +596,9 @@ exports[`git.release given: [case7] argument validation when: [t4] --help flag t
   --retry       rerun failed workflows before watch
   --dirty block fail fast if unstaged changes (default)
   --dirty allow allow release even with unstaged changes
+
+  special circumstances only (footgun — prefer --into prod):
+  --from main   skip the feature branch, release whatever is on main
 "
 `;
 

@@ -142,6 +142,10 @@ const runSkill = (
       HOME: env.tempDir,
       EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
       GIT_RELEASE_TEST_MODE: 'true',
+      // these scenes exercise the --from main FLOW (not the --why guard),
+      // so run as human to bypass the non-human --from main constraint.
+      // the guard itself is covered by git.release.p7.from_main.why_guard.*
+      __I_AM_HUMAN: 'true',
     },
     encoding: 'utf-8',
     timeout: 10000,
