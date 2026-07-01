@@ -2,6 +2,7 @@
 *.local.json
 *.log
 .agent/.cache/
+.cache/
 bin/
 *.tsbuildinfo
 .artifact
