@@ -119,3 +119,17 @@ Alternatives:
 
 "
 `;
+
+exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case19] echo of a quoted dash-prefixed separator when: [t2] block message snapshot then: dash-prefixed echo block message matches snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains an echo of a quoted string that starts with a dash.
+
+The harness reads the dash at the start as a quoted flag name and reports 'quoted characters in flag names'; harness asks for permission, which interrupts the delegation.
+
+Alternatives:
+  - Use a divider that does not start with a dash: echo '=== all open ==='
+  - Or move the dashes off the start: echo 'all open ---'
+  - Or drop the separator echo entirely; chained commands run fine without it
+
+"
+`;

@@ -59,6 +59,17 @@
       ]
     },
     {
+      "match": "(^|[^[:alnum:]_])echo[[:space:]]+['\"]-",
+      "type": "regex",
+      "message": "Command contains an echo of a quoted string that starts with a dash",
+      "why": "the harness reads the dash at the start as a quoted flag name and reports 'quoted characters in flag names'",
+      "alt": [
+        "Use a divider that does not start with a dash: echo '=== all open ==='",
+        "Or move the dashes off the start: echo 'all open ---'",
+        "Or drop the separator echo entirely; chained commands run fine without it"
+      ]
+    },
+    {
       "match": "$'",
       "type": "unquoted",
       "message": "Command contains ANSI-C $'...' syntax",
