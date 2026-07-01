@@ -230,6 +230,7 @@ subject.flow:
       - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
       - briefs/practices/work.flow/release/rule.require.commit-scopes.md
       - briefs/practices/work.flow/release/rule.require.watch-release-after-push.md
+      - briefs/practices/work.flow/release/rule.require.git-release-confidence.md
       - briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt1.md
       - briefs/practices/work.flow/tools/rule.require.externalized-knowledge.md
       - briefs/practices/work.flow/tools/rule.require.read-package-docs-before-use.md
