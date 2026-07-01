@@ -70,7 +70,7 @@ get_all_flags_from_input() {
         shift 2
         ;;
       # skip other flags (handled by goal inference or main skill)
-      --into|--from)
+      --into|--from|--why)
         shift 2
         ;;
       # rhachet passes these - skip

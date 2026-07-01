@@ -666,6 +666,8 @@ const runSkill = (
       HOME: env.tempDir,
       EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
       GIT_RELEASE_TEST_MODE: 'true',
+      // exercises release flows (incl. --from main), not the --why guard; run as human
+      __I_AM_HUMAN: 'true',
     },
     encoding: 'utf-8',
     timeout: 10000,

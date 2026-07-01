@@ -95,7 +95,7 @@ importers:
         version: 1.7.3(domain-objects@0.31.14)
       declastruct-github:
         specifier: 1.3.0
-        version: 1.3.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)
+        version: 1.3.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4)
       depcheck:
         specifier: 1.4.3
         version: 1.4.3
@@ -4569,10 +4569,6 @@ packages:
     resolution: {integrity: sha512-NJw/bOHh1LtD7z4eSR4DIepppfMe5GizfVGrxuHaCa+sR/pDtGT28dsvX7KpH2dCMl29HCgYK1ITr8BAGFUXEA==}
     engines: {node: '>=8.0.0'}
 
-  simple-in-memory-cache@0.4.3:
-    resolution: {integrity: sha512-NiR2Mnq/YPhMHQ6gxmr7ef+xJArMOJJPCbg8Dy1x18JWZ40Neravr+SBXv3TiDD6onolDInCQao9aaNbmq3MGA==}
-    engines: {node: '>=8.0.0'}
-
   simple-log-methods@0.6.1:
     resolution: {integrity: sha512-POHiGnZqnQSivzgSDJfVE3/GAVPUEG0zc5vRLKIPpTnIQ6IY0QhOJOO3Ur0rKgXzwU/hlYpqabkELR62CauMhA==}
     engines: {node: '>=8.0.0'}
@@ -7343,7 +7339,7 @@ snapshots:
 
   '@smithy/property-provider@4.2.5':
     dependencies:
-      '@smithy/types': 4.9.0
+      '@smithy/types': 4.15.0
       tslib: 2.8.1
 
   '@smithy/protocol-http@5.3.5':
@@ -8470,7 +8466,7 @@ snapshots:
       uuid: 9.0.0
       yaml: 1.6.0
 
-  declastruct-github@1.3.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21):
+  declastruct-github@1.3.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4):
     dependencies:
       '@ehmpathy/uni-time': 1.7.4
       '@octokit/rest': 21.1.1
@@ -8488,6 +8484,7 @@ snapshots:
       - '@types/node'
       - aws-crt
       - ws
+      - zod
 
   declastruct@1.7.3(domain-objects@0.31.14):
     dependencies:
@@ -10382,7 +10379,7 @@ snapshots:
       iso-time: 1.11.3
       rhachet-brains-xai: 0.3.3(rhachet@1.42.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4))
       rhachet-roles-bhrain: 0.29.12(@types/node@22.15.21)(rhachet-brains-fireworksai@0.1.3(rhachet@1.42.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4)))(rhachet-brains-xai@0.3.3(rhachet@1.42.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4)))
-      test-fns: 1.15.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)
+      test-fns: 1.15.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4)
       zod: 4.3.4
     transitivePeerDependencies:
       - '@huggingface/transformers'
@@ -10607,13 +10604,6 @@ snapshots:
       iso-time: 1.11.7
       type-fns: 1.21.2
 
-  simple-in-memory-cache@0.4.3:
-    dependencies:
-      domain-objects: 0.31.9
-      helpful-errors: 1.7.3
-      iso-time: 1.11.7
-      type-fns: 1.21.2
-
   simple-log-methods@0.6.1:
     dependencies:
       '@ehmpathy/error-fns': 1.3.7
@@ -10643,7 +10633,7 @@ snapshots:
       domain-glossary-procedure: 1.0.0
       domain-objects: 0.31.9
       helpful-errors: 1.5.3
-      iso-time: 1.11.7
+      iso-time: 1.11.4
       type-fns: 1.21.0
 
   simple-on-disk-cache@1.7.10:
@@ -10666,7 +10656,7 @@ snapshots:
       hash-fns: 1.1.0
       helpful-errors: 1.5.3
       serde-fns: 1.3.1
-      simple-in-memory-cache: 0.4.3
+      simple-in-memory-cache: 0.4.0
       type-fns: 1.21.0
     transitivePeerDependencies:
       - aws-crt
@@ -10799,7 +10789,7 @@ snapshots:
       glob: 7.2.3
       minimatch: 3.1.2
 
-  test-fns@1.15.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21):
+  test-fns@1.15.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4):
     dependencies:
       domain-objects: 0.31.7(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(@types/node@22.15.21)(zod@4.3.4)
       helpful-errors: 1.5.3
@@ -10811,6 +10801,7 @@ snapshots:
       - '@types/node'
       - aws-crt
       - ws
+      - zod
 
   test-fns@1.15.7:
     dependencies:
@@ -10931,7 +10922,7 @@ snapshots:
 
   type-fns@1.21.0:
     dependencies:
-      helpful-errors: 1.7.3
+      helpful-errors: 1.5.3
 
   type-fns@1.21.2:
     dependencies:
@@ -11074,7 +11065,7 @@ snapshots:
       '@ehmpathy/uni-time': 1.8.1
       procedure-fns: 1.0.1
       serde-fns: 1.3.1
-      simple-in-memory-cache: 0.4.3
+      simple-in-memory-cache: 0.4.0
       simple-on-disk-cache: 1.7.10
       type-fns: 1.21.3
 
@@ -11085,7 +11076,7 @@ snapshots:
       helpful-errors: 1.5.3
       procedure-fns: 1.0.1
       serde-fns: 1.3.1
-      simple-in-memory-cache: 0.4.3
+      simple-in-memory-cache: 0.4.0
       simple-on-disk-cache: 1.7.10
       type-fns: 1.21.0
     transitivePeerDependencies:
@@ -11110,8 +11101,8 @@ snapshots:
   with-simple-caching@0.14.2:
     dependencies:
       '@ehmpathy/uni-time': 1.8.1
-      serde-fns: 1.3.1
-      simple-in-memory-cache: 0.4.3
+      serde-fns: 1.2.0
+      simple-in-memory-cache: 0.4.0
       simple-on-disk-cache: 1.7.10
       type-fns: 1.21.3
       visualogic: 1.3.3
@@ -11121,7 +11112,7 @@ snapshots:
       '@ehmpathy/uni-time': 1.8.1
       procedure-fns: 1.0.1
       serde-fns: 1.3.1
-      simple-in-memory-cache: 0.4.3
+      simple-in-memory-cache: 0.4.0
       simple-on-disk-cache: 1.7.10
       type-fns: 1.21.3
 

@@ -44,6 +44,17 @@ if cicd fails at any step:
 3. push the fix
 4. watch again: `rhx git.release --watch`
 
+## .default: `--into prod`
+
+to ship your work, the default and safe command is:
+
+```bash
+rhx git.release --into prod --mode apply --watch
+```
+
+this handles the full feat→main→prod cycle and, critically, **awaits the fresh
+release pr for your merge** — so you never race release-please.
+
 ## .footguns
 
 both of these are footguns — avoid unless human explicitly prescribes:
@@ -51,13 +62,39 @@ both of these are footguns — avoid unless human explicitly prescribes:
 | footgun | why |
 |---------|-----|
 | `rhx git.release --mode apply` | stops at main, leaves prod dirty |
-| `rhx git.release --from main ...` | skips feature branch, assumes main is correct |
+| `rhx git.release --from main ...` | skips feature branch; grabs the STALE prior release pr |
 
 ```bash
 # avoid these:
 rhx git.release --mode apply                        # stops at main
 rhx git.release --from main --into prod --mode apply  # skips feature branch
 ```
+
+### why `--from main` is dangerous
+
+right after `--into main` merges your pr, release-please takes ~30s to open the
+**fresh** release pr. if you run `--from main` in that window, it targets the
+**stale prior** release pr — not yours. `--into prod` avoids this entirely: it
+awaits the release pr that corresponds to your merge.
+
+so: **if you just want to ship your current work, use `--into prod`.** that is
+almost always what you actually want.
+
+### the reconsider gate (non-humans)
+
+a non-human (clone) on a feature branch that runs `--from main` is **stopped** with a
+ConstraintError (exit 2) that asks "can you just `--into prod`?" and points you back to
+the safe default. this keeps clones in the pit of success — nine times out of ten,
+`--into prod` is exactly what you wanted.
+
+```bash
+# stopped for a clone on a feature branch:
+rhx git.release --from main --into prod
+# → exit 2: "can you just --into prod?"
+```
+
+if you are truly in a hotfix/recovery situation where `--from main` is required, the
+block message tells you how to proceed. humans at a terminal (TTY) are not gated.
 
 when you might need them (rare, human-prescribed only):
 - `--mode apply` alone: human wants to pause before prod release

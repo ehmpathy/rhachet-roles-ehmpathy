@@ -7,17 +7,18 @@
 #         - full release cycle: merge → watch CI → tag → deploy
 #         - wraps extant git release alias with turtle vibes
 #
-# usage:
+# usage (the normal, safe way — prefer these):
 #   git.release                                       # plan: show pr status (infers --into based on branch)
 #   git.release --watch                               # watch CI without automerge
 #   git.release --apply                               # enable automerge and watch
-#   git.release --into prod                           # plan: show release pr status
+#   git.release --into prod                           # plan: release your work to prod (THE default way to ship)
 #   git.release --into prod --watch                   # watch release CI without automerge
-#   git.release --into prod --apply                   # apply: full release cycle
+#   git.release --into prod --apply                   # apply: full release cycle (feat -> main -> prod)
 #   git.release --retry                               # retry failed workflows
-#   git.release --from main --into prod               # skip feature branch, release from main
-#   git.release --from main --into prod --watch       # watch main release without automerge
-#   git.release --from main --into prod --apply       # apply main release to prod
+#
+# special circumstances ONLY (footgun — prefer --into prod):
+#   git.release --from main --into prod          # skip feature branch, release from main
+#   git.release --from main --into prod --apply  # apply main release to prod
 #
 # inference:
 #   - on feature branch, no flags: --into main
@@ -31,7 +32,7 @@
 #   - apply mode requires git.commit.uses permission (locally or globally)
 #   - watches CI until complete or timeout (15 min)
 #   - surfaces errors with links and retry hints
-#   - --from main skips feature branch requirement
+#   - --into prod is the default, safe path; --from main is special-circumstance only
 #
 # note:
 #   - MUST run in FOREGROUND (never background)
@@ -63,6 +64,7 @@ source "$SKILL_DIR/git.release._.and_then_await.sh"
 ######################################################################
 TO=""  # inferred by get_one_goal_from_input when not specified
 FROM=""  # --from main: skip feature branch requirement
+WHY=""  # --why: required articulation when a non-human uses --from main from a feature branch
 MODE="plan"
 WATCH="false"
 RETRY="false"
@@ -77,6 +79,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --from)
       FROM="$2"
+      shift 2
+      ;;
+    --why)
+      WHY="$2"
       shift 2
       ;;
     --mode)
@@ -106,11 +112,11 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --help|-h)
-      echo "usage: git.release [--into main|prod] [--from main] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]"
+      echo "usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]"
+      echo "       git.release --from main --into prod   # special-circumstance only"
       echo ""
-      echo "  --into main   merge feature branch to main (default when on feature branch)"
-      echo "  --into prod   full release to prod (default when on main, or with --from main)"
-      echo "  --from main   skip feature branch requirement, act as if on main"
+      echo "  --into prod   full release to prod (the default, safe way to ship your work)"
+      echo "  --into main   merge feature branch to main only (stops before prod)"
       echo "  --watch       watch CI without automerge"
       echo "  --apply       enable automerge and watch (alias for --mode apply)"
       echo "  --mode plan   show status only (default)"
@@ -118,11 +124,14 @@ while [[ $# -gt 0 ]]; do
       echo "  --retry       rerun failed workflows before watch"
       echo "  --dirty block fail fast if unstaged changes (default)"
       echo "  --dirty allow allow release even with unstaged changes"
+      echo ""
+      echo "  special circumstances only (footgun — prefer --into prod):"
+      echo "  --from main   skip the feature branch, release whatever is on main"
       exit 0
       ;;
     *)
       echo "error: unknown argument: $1" >&2
-      echo "usage: git.release [--into main|prod] [--from main] [--watch] [--apply] [--mode plan|apply] [--retry]" >&2
+      echo "usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry]" >&2
       exit 2
       ;;
   esac
@@ -159,6 +168,59 @@ fi
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
   echo "error: not in a git repository" >&2
   exit 2
+fi
+
+######################################################################
+# guard: --from main needs a --why when a non-human is on a feature branch
+#
+# .why = --from main skips your feature branch and releases whatever is
+#        already on main. for a non-human this is almost always a mistake:
+#        - after --into main merges, release-please takes ~30s to open the
+#          fresh release pr; --from main in that window grabs the STALE prior
+#          release pr (not yours).
+#        - --into prod is safer: it awaits the FRESH release pr for your merge.
+#        so we steer non-humans to --into prod unless they articulate --why.
+#
+# human detection = stdin is a tty, or __I_AM_HUMAN=true (test bypass).
+# "on a feature branch" = current branch != default branch (per the vision,
+#   goal_from cannot be used here: it collapses to "main" whenever --from main
+#   is passed, regardless of the physical branch).
+######################################################################
+if [[ "$FROM" == "main" ]]; then
+  GUARD_CURRENT_BRANCH=$(get_current_branch)
+  GUARD_DEFAULT_BRANCH=$(get_default_branch)
+
+  # trim whitespace from --why; empty articulation does not count
+  WHY_TRIMMED="$(echo -n "$WHY" | tr -d '[:space:]')"
+
+  # human if stdin is a tty, or explicit test bypass
+  IS_HUMAN="false"
+  if [[ -t 0 || "${__I_AM_HUMAN:-}" == "true" ]]; then
+    IS_HUMAN="true"
+  fi
+
+  if [[ "$GUARD_CURRENT_BRANCH" != "$GUARD_DEFAULT_BRANCH" && "$IS_HUMAN" != "true" && -z "$WHY_TRIMMED" ]]; then
+    # capture the message once, then emit to BOTH stdout and stderr.
+    # note: we avoid `tee /dev/stderr` here — in spawned (non-tty) contexts
+    # /dev/stderr may be unopenable, which swallows the message.
+    GUARD_MSG="$(
+      print_turtle_header "hold up dude..."
+      echo "🐚 git.release --from main${TO:+ --into $TO}"
+      echo "   └─ ✋ blocked: --from main needs a --why"
+      echo ""
+      echo "   you're on a feature branch. --from main skips your branch and"
+      echo "   releases whatever is already on main — often the stale prior release."
+      echo ""
+      echo "   ➤ if you just want to ship your work, that's safer:"
+      echo "     rhx git.release --into prod"
+      echo ""
+      echo "   ➤ if you really need --from main (hotfix, recovery), say why:"
+      echo "     rhx git.release --from main --into prod --why \"<reason>\""
+    )"
+    echo "$GUARD_MSG"
+    echo "$GUARD_MSG" >&2
+    exit 2
+  fi
 fi
 
 # detect tty for output mode (exported for output.sh)

@@ -1,0 +1,95 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release.p7.from_main.why_guard given: [case1] non-human on a feature branch, --from main, no --why when: [t0] rhx git.release --from main --into prod then: blocks with exit 2 and steers to --into prod 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --from main --into prod
+   └─ ✋ blocked: --from main needs a --why
+
+   you're on a feature branch. --from main skips your branch and
+   releases whatever is already on main — often the stale prior release.
+
+   ➤ if you just want to ship your work, that's safer:
+     rhx git.release --into prod
+
+   ➤ if you really need --from main (hotfix, recovery), say why:
+     rhx git.release --from main --into prod --why "<reason>"
+"
+`;
+
+exports[`git.release.p7.from_main.why_guard given: [case2] non-human on a feature branch, --from main, --why "reason" when: [t0] rhx git.release --from main --into prod --why "<reason>" then: allows the release (not blocked) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   └─ 👌 all checks passed
+"
+`;
+
+exports[`git.release.p7.from_main.why_guard given: [case3] non-human on a feature branch, --from main, whitespace --why when: [t0] rhx git.release --from main --into prod --why "   " then: blocks with exit 2 (empty articulation does not count) 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --from main --into prod
+   └─ ✋ blocked: --from main needs a --why
+
+   you're on a feature branch. --from main skips your branch and
+   releases whatever is already on main — often the stale prior release.
+
+   ➤ if you just want to ship your work, that's safer:
+     rhx git.release --into prod
+
+   ➤ if you really need --from main (hotfix, recovery), say why:
+     rhx git.release --from main --into prod --why "<reason>"
+"
+`;
+
+exports[`git.release.p7.from_main.why_guard given: [case4] human on a feature branch, --from main, no --why when: [t0] rhx git.release --from main --into prod (human/TTY) then: allows the release (humans are not gated) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   └─ 👌 all checks passed
+"
+`;
+
+exports[`git.release.p7.from_main.why_guard given: [case5] non-human ON main, --from main, no --why when: [t0] rhx git.release --from main --into prod (already on main) then: allows the release (guard skipped — no feature branch to skip) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --mode plan
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   └─ 👌 all checks passed
+"
+`;
+
+exports[`git.release.p7.from_main.why_guard given: [case6] --why supplied WITHOUT --from main (inert) when: [t0] rhx git.release --why "<reason>" on a feature branch then: --why is accepted and the guard is skipped (never fires) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --mode plan
+
+🌊 release: 
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
+"
+`;

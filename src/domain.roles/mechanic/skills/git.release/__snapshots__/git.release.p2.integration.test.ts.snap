@@ -297,11 +297,11 @@ exports[`git.release.p2 argument validation given: [case-arg-dirty-invalid] --di
 `;
 
 exports[`git.release.p2 argument validation given: [case-arg-help] --help flag when: [t0] --help then: exit 0: shows usage 1`] = `
-"usage: git.release [--into main|prod] [--from main] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+"usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+       git.release --from main --into prod   # special-circumstance only
 
-  --into main   merge feature branch to main (default when on feature branch)
-  --into prod   full release to prod (default when on main, or with --from main)
-  --from main   skip feature branch requirement, act as if on main
+  --into prod   full release to prod (the default, safe way to ship your work)
+  --into main   merge feature branch to main only (stops before prod)
   --watch       watch CI without automerge
   --apply       enable automerge and watch (alias for --mode apply)
   --mode plan   show status only (default)
@@ -309,6 +309,9 @@ exports[`git.release.p2 argument validation given: [case-arg-help] --help flag w
   --retry       rerun failed workflows before watch
   --dirty block fail fast if unstaged changes (default)
   --dirty allow allow release even with unstaged changes
+
+  special circumstances only (footgun — prefer --into prod):
+  --from main   skip the feature branch, release whatever is on main
 "
 `;
 

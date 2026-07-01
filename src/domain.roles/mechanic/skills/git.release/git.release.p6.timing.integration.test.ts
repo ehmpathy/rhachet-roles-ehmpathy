@@ -106,6 +106,8 @@ const runScript = (input: {
       ...process.env,
       GIT_RELEASE_TEST_MODE: 'true',
       PATH: `${input.fakeBinDir}:${process.env.PATH}`,
+      // exercises the --from main flow, not the --why guard; run as human
+      __I_AM_HUMAN: 'true',
     },
   });
   return {
