@@ -102,6 +102,27 @@ get_one_seaturtle_identity() {
 }
 
 ######################################################################
+# is_one_seaturtle_identity_name
+#
+# .what = predicate: is this author name one of our seaturtle bots?
+# .why  = push guard must accept commits from either identity
+#         (standard seaturtle[bot] or the app bot), since
+#         get_one_seaturtle_identity now picks based on token kind
+#
+# usage: if is_one_seaturtle_identity_name "$name"; then ...
+# returns: exit 0 if name matches a known seaturtle identity, else 1
+######################################################################
+is_one_seaturtle_identity_name() {
+  local name="${1:-}"
+
+  # names must match those emitted by get_one_seaturtle_identity
+  local name_standard="seaturtle[bot]"
+  local name_alternative="seaturtle-by-ehmpathy[bot]"
+
+  [[ "$name" == "$name_standard" || "$name" == "$name_alternative" ]]
+}
+
+######################################################################
 # require_github_token
 # fetch token and fail-fast with instructions if unavailable
 #

@@ -86,3 +86,52 @@ describe('keyrack.operations.sh :: get_one_seaturtle_identity', () => {
     });
   });
 });
+
+/**
+ * .what = integration tests for is_one_seaturtle_identity_name in keyrack.operations.sh
+ * .why = the push guard must accept commits from either seaturtle identity, since
+ *        get_one_seaturtle_identity picks the app bot for app tokens
+ */
+describe('keyrack.operations.sh :: is_one_seaturtle_identity_name', () => {
+  const operationsPath = path.join(__dirname, 'keyrack.operations.sh');
+
+  /**
+   * .what = source keyrack.operations.sh and call the predicate
+   * .why = exercises the identity acceptance check in isolation
+   */
+  const isSeaturtleName = (name: string): { exitCode: number } => {
+    const bashCode = `
+      source "${operationsPath}"
+      is_one_seaturtle_identity_name "${name}"
+    `;
+    const result = spawnSync('bash', ['-c', bashCode], {
+      encoding: 'utf-8' as const,
+      stdio: ['pipe', 'pipe', 'pipe'],
+    });
+    return { exitCode: result.status ?? 1 };
+  };
+
+  given('[case1] the standard seaturtle name', () => {
+    when('[t0] the predicate is checked', () => {
+      then('it accepts (exit 0)', () => {
+        expect(isSeaturtleName('seaturtle[bot]').exitCode).toBe(0);
+      });
+    });
+  });
+
+  given('[case2] the alternative seaturtle name (app bot)', () => {
+    when('[t0] the predicate is checked', () => {
+      then('it accepts (exit 0)', () => {
+        expect(isSeaturtleName('seaturtle-by-ehmpathy[bot]').exitCode).toBe(0);
+      });
+    });
+  });
+
+  given('[case3] a foreign author name', () => {
+    when('[t0] the predicate is checked', () => {
+      then('it rejects (exit 1)', () => {
+        expect(isSeaturtleName('Some Human').exitCode).toBe(1);
+      });
+    });
+  });
+});
