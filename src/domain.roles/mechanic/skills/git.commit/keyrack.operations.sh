@@ -61,6 +61,47 @@ fetch_github_token() {
 }
 
 ######################################################################
+# get_one_seaturtle_identity
+# derive the seaturtle commit-author identity from a github token's kind
+#
+# .what = maps a token to the seaturtle author name + email that fits it
+# .why  = github squash sets the squash-commit author to the PR opener.
+#         to land 2 contributors (seaturtle + human) the commit author
+#         must equal whoever opens the PR. opener identity follows the
+#         token kind, so we derive the author from the token kind too.
+#
+# token kinds:
+#   ghs_*                  app installation token  → alternative seaturtle (app bot)
+#   ghp_* / github_pat_*   personal access token   → standard seaturtle (turtle user)
+#   empty / unknown        fail-safe               → standard seaturtle
+#
+# usage: IFS=$'\t' read -r name email < <(get_one_seaturtle_identity "$token")
+# returns: "<name>\t<email>" on stdout
+######################################################################
+get_one_seaturtle_identity() {
+  local token="${1:-}"
+
+  # standard seaturtle (turtle user / PAT) — also the fail-safe default
+  local name_standard="seaturtle[bot]"
+  local email_standard="seaturtle@ehmpath.com"
+
+  # alternative seaturtle (app installation bot)
+  # verified: gh api users/seaturtle-by-ehmpathy[bot] → id 295111357, type Bot
+  # matches the squash author of app-opened PRs (e.g. declapract #509)
+  local name_alternative="seaturtle-by-ehmpathy[bot]"
+  local email_alternative="295111357+seaturtle-by-ehmpathy[bot]@users.noreply.github.com"
+
+  # app installation token → alternative
+  if [[ "$token" == ghs_* ]]; then
+    printf '%s\t%s\n' "$name_alternative" "$email_alternative"
+    return 0
+  fi
+
+  # pat (classic or fine-grained) or empty/unknown → standard
+  printf '%s\t%s\n' "$name_standard" "$email_standard"
+}
+
+######################################################################
 # require_github_token
 # fetch token and fail-fast with instructions if unavailable
 #
