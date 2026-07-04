@@ -6,10 +6,10 @@ import {
 } from 'declastruct-github';
 
 /**
- * .what = declares the seaturtle-by-ehmpathy app resources
+ * .what = declares the ehm-a-seaturtle app resources
  * .why = enables mechanic role to push commits, create PRs, watch CI
  */
-export const getResourcesOfAppSeaturtleByEhmpathy = async (): Promise<
+export const getResourcesOfAppEhmASeaturtle = async (): Promise<
   DeclaredResource[]
 > => {
   // declare the owner
@@ -21,10 +21,10 @@ export const getResourcesOfAppSeaturtleByEhmpathy = async (): Promise<
   // declare the app
   const app = DeclaredGithubApp.as({
     owner,
-    slug: 'seaturtle-by-ehmpathy',
-    name: 'Seaturtle, by Ehmpathy',
+    slug: 'ehm-a-seaturtle',
+    name: 'Ehm a Seaturtle',
     description:
-      'grant narrow auth to ehmpath seaturtles for commits, prs, and cicd',
+      'rise the tide, lift all ships\n\nthis app grants seaturtle@ehmpath.com the auth required to reliably and securely surf in ready to ship prs 🐢🌊',
     homepageUrl: 'https://github.com/ehmpathy/rhachet-roles-ehmpathy',
     public: true,
 

@@ -32,10 +32,21 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/output.sh"
+source "$SCRIPT_DIR/keyrack.operations.sh"
 
-# robot identity (currently seaturtle[bot])
-ROBOT_NAME="seaturtle[bot]"
-ROBOT_EMAIL="seaturtle@ehmpath.com"
+# robot identity — derived from the active token's kind so the commit
+# author equals the PR opener (github squash sets squash-author = opener).
+# app token → alternative seaturtle (app bot); pat/none → standard seaturtle.
+# in test env we skip the token fetch to keep tests hermetic (default standard).
+ROBOT_TOKEN=""
+if [[ "${NODE_ENV:-}" != "test" ]]; then
+  ROBOT_TOKEN=$(fetch_github_token 2>/dev/null || echo "")
+
+  # failfast: an app token must map to the bot identity we hardcode for it,
+  # else the squash-merge could silently show a 3rd contributor
+  assert_token_identity_in_sync "$ROBOT_TOKEN" || exit 2
+fi
+IFS=$'\t' read -r ROBOT_NAME ROBOT_EMAIL < <(get_one_seaturtle_identity "$ROBOT_TOKEN")
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then

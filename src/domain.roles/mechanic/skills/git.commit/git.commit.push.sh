@@ -24,8 +24,9 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/output.sh"
 source "$SCRIPT_DIR/git.commit.operations.sh"
+source "$SCRIPT_DIR/keyrack.operations.sh"
 
-# robot identity
+# robot identity (label for messages; guard accepts any seaturtle identity)
 ROBOT_NAME="seaturtle[bot]"
 
 # ensure we're in a git repo
@@ -179,7 +180,7 @@ fi
 # guard: author check (apply mode only — plan mode skips since commit may not exist yet)
 if [[ "$MODE" == "apply" ]]; then
   HEAD_AUTHOR=$(git log -1 --format='%an')
-  if [[ "$HEAD_AUTHOR" != "$ROBOT_NAME" ]]; then
+  if ! is_one_seaturtle_identity_name "$HEAD_AUTHOR"; then
     emit_error "HEAD commit not authored by $ROBOT_NAME"
     if [[ "$OUTPUT" == "tree" ]]; then
       echo ""
