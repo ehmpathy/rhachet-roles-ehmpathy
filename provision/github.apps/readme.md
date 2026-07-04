@@ -8,7 +8,7 @@ this directory houses the declared GitHub Apps used by rhachet-roles-ehmpathy.
 provision/github.apps/
 ├── readme.md                                   # this file
 ├── resources.ts                                # main declastruct resources file
-└── resources.app.seaturtle-by-ehmpathy.ts      # app auth for mechanic role
+└── resources.app.ehm-a-seaturtle.ts            # app auth for mechanic role
 ```
 
 ## usage

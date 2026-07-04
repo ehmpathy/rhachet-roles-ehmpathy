@@ -4,7 +4,7 @@ import { getDeclastructGithubProvider } from 'declastruct-github';
 import type { DomainEntity } from 'domain-objects';
 import { UnexpectedCodePathError } from 'helpful-errors';
 
-import { getResourcesOfAppSeaturtleByEhmpathy } from './resources.app.seaturtle-by-ehmpathy';
+import { getResourcesOfAppEhmASeaturtle } from './resources.app.ehm-a-seaturtle';
 
 /**
  * .what = grabs github token from keyrack (admin scope)
@@ -59,11 +59,10 @@ export const getProviders = async (): Promise<DeclastructProvider[]> => [
  */
 export const getResources = async (): Promise<DomainEntity<any>[]> => {
   // gather all app resources
-  const resourcesOfAppSeaturtleByEhmpathy =
-    await getResourcesOfAppSeaturtleByEhmpathy();
+  const resourcesOfAppEhmASeaturtle = await getResourcesOfAppEhmASeaturtle();
 
   return [
     // app for mechanic role github operations
-    ...resourcesOfAppSeaturtleByEhmpathy,
+    ...resourcesOfAppEhmASeaturtle,
   ];
 };

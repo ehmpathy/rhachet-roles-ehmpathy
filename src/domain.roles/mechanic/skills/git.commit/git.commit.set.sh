@@ -41,6 +41,10 @@ source "$SCRIPT_DIR/keyrack.operations.sh"
 ROBOT_TOKEN=""
 if [[ "${NODE_ENV:-}" != "test" ]]; then
   ROBOT_TOKEN=$(fetch_github_token 2>/dev/null || echo "")
+
+  # failfast: an app token must map to the bot identity we hardcode for it,
+  # else the squash-merge could silently show a 3rd contributor
+  assert_token_identity_in_sync "$ROBOT_TOKEN" || exit 2
 fi
 IFS=$'\t' read -r ROBOT_NAME ROBOT_EMAIL < <(get_one_seaturtle_identity "$ROBOT_TOKEN")
 
