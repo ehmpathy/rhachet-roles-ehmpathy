@@ -1,0 +1,49 @@
+# eval case: implicit-null-return
+# .what = detect implicit null returns that hide behavior
+# .why  = behavior hazard from hidden edge cases
+
+id: arch-hazards-behavior-implicit-null-return
+rubric: arch-hazards-behavior
+description: implicit null return should be flagged as behavior hazard
+
+code: |
+  const getCustomerDiscount = async (
+    input: { customerId: string },
+    context: Context,
+  ) => {
+    const customer = await context.customerDao.findById(input.customerId);
+
+    // implicit null - caller has no idea why
+    if (!customer) return null;
+
+    // implicit null - another hidden path
+    if (!customer.subscriptionId) return null;
+
+    const subscription = await context.subscriptionDao.findById(
+      customer.subscriptionId,
+    );
+
+    // yet another implicit null
+    if (!subscription) return null;
+
+    return subscription.discountPercent;
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: implicit-null-hazard
+    description: should flag implicit null returns as behavior hazard
+    expected: present
+    severity: blocker
+    reason: |
+      the code has multiple implicit null returns:
+      - if (!customer) return null;
+      - if (!customer.subscriptionId) return null;
+      - if (!subscription) return null;
+
+      caller cannot distinguish why null was returned.
+      hidden edge cases lead to behavior hazards.
+
+      keywords: implicit, null, hidden, behavior, edge case

@@ -1,0 +1,58 @@
+# eval case: enum-constant
+# .what = correct pattern - enums and named constants
+# .why  = should NOT be flagged (true negative)
+
+id: arch-hazards-maintenance-enum-constant
+rubric: arch-hazards-maintenance
+description: enum and constant usage should NOT be flagged
+
+code: |
+  enum PaymentMethod {
+    STRIPE_CARD = 'STRIPE_CARD',
+    STRIPE_ACH = 'STRIPE_ACH',
+    PAYPAL = 'PAYPAL',
+  }
+
+  enum PaymentStatus {
+    PENDING_REVIEW = 'PENDING_REVIEW',
+    COMPLETED = 'COMPLETED',
+  }
+
+  const HIGH_VALUE_THRESHOLD = 5000;
+  const REVIEW_THRESHOLD = 10000;
+
+  const processPayment = async (payment: Payment, context: Context) => {
+    if (payment.method === PaymentMethod.STRIPE_CARD) {
+      await context.stripe.charge(payment);
+    } else if (payment.method === PaymentMethod.STRIPE_ACH) {
+      await context.stripe.achTransfer(payment);
+    } else if (payment.method === PaymentMethod.PAYPAL) {
+      await context.paypal.pay(payment);
+    }
+
+    const status = payment.amount > REVIEW_THRESHOLD
+      ? PaymentStatus.PENDING_REVIEW
+      : PaymentStatus.COMPLETED;
+
+    await context.paymentDao.update({ id: payment.id, status });
+
+    if (payment.amount > HIGH_VALUE_THRESHOLD) {
+      await context.slack.notify('#high-value-payments', `Payment: ${payment.id}`);
+    }
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: no-false-flag
+    description: should NOT flag enum and constant usage
+    expected: absent
+    severity: blocker|nitpick
+    reason: |
+      the code uses proper enums and named constants:
+      - PaymentMethod enum for method types
+      - PaymentStatus enum for status values
+      - HIGH_VALUE_THRESHOLD, REVIEW_THRESHOLD for numeric limits
+
+      this is the correct pattern - no magic values.

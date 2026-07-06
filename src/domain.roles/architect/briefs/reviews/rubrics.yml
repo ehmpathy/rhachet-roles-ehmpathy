@@ -1,0 +1,46 @@
+# rubrics.yml — architect role review rubrics
+#
+# .what = defines the rubrics available for architect role reviews
+#
+# .why  = enables review.by to discover and run rubric skills
+#         - each rubric has a slug that maps to a skill
+#         - purpose explains what the rubric detects
+#         - rules lists the briefs that back the rubric
+
+rubrics:
+  - slug: arch-opport-decomposition
+    purpose: identify opportunities for decomposition and recomposition
+    rules:
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/rule.prefer.most-common-denominator.md
+    refs:
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/philosophy.domain-as-a-garden.[philosophy].md
+
+  - slug: arch-smell-scopeleaks
+    purpose: detect scope leaks and boundary violations
+    rules:
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/evolvable.architecture/rule.require.bounded-contexts.md
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md
+
+  - slug: arch-hazards-maintenance
+    purpose: detect maintenance hazards from workarounds, decode-friction, and magic values
+    rules:
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/rule.require.solve-at-cause.md
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/rule.require.orchestrators-as-narrative.md
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/rule.forbid.decode-friction-in-orchestrators.md
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.magic-values.md
+    refs:
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/philosophy.transformer-orchestrator-separation.[philosophy].md
+
+  - slug: arch-hazards-behavior
+    purpose: detect behavior hazards from implicit nulls and hidden complexity
+    rules:
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.nullable-without-reason.md
+      - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md
+
+  - slug: arch-ambiguous-terms
+    purpose: detect ambiguous or synonym term additions
+    rules:
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/ubiqlang/rule.forbid.term.addition.synonym.md
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/ubiqlang/rule.forbid.term.addition.ambiguous.md
+    refs:
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/ubiqlang/ref.reviewer.dont-bikeshed-terms.md

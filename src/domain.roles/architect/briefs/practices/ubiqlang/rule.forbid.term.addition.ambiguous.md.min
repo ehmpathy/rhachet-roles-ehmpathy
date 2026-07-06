@@ -1,0 +1,25 @@
+# rule.forbid.term.addition.ambiguous
+
+## severity: blocker
+
+do not introduce terms that are globally ambiguous.
+
+## .scope
+
+applies to new terms only. if established, defer to convention.
+
+## .how
+
+1. identify new terms in blueprint
+2. check if globally ambiguous or overloaded
+3. if vague or overloaded: flag
+
+## blocker examples
+
+- "data" — too vague
+- "handler" — overloaded
+- "process" — verb or noun?
+
+## not a blocker
+
+- "brain" — specific within this domain

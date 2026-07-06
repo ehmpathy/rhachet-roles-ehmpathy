@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`review.by given: [case1] --help flag when: [t0] invoked with --help then: output matches snapshot 1`] = `
+"
+🐢 at your service
+
+🐚 review.by --help
+   ├─ .what
+   │  └─ review aggregator for role-based rubric reviews
+   ├─ usage
+   │  └─ rhx review.by --role <role> [--for <slug>] [passthrough args...]
+   ├─ required
+   │  └─ --role <role>    role slug: mechanic, architect, ergonomist
+   ├─ optional
+   │  ├─ --for <slug>     run specific rubric only (default: all)
+   │  ├─ --paths <glob>   target paths (forwarded to rubric skills)
+   │  ├─ --diffs <range>  diff scope (forwarded to rubric skills)
+   │  ├─ --mode <mode>    pull or push (forwarded to rubric skills)
+   │  └─ --help           show this help
+   └─ examples
+      ├─ rhx review.by --role mechanic --paths 'src/**/*.ts'
+      ├─ rhx review.by --role mechanic --for mech-failhides --diffs since-main
+      └─ rhx review.by --role architect --mode pull --paths 'src/**/*.ts'
+"
+`;
+
+exports[`review.by given: [case2] no --role argument when: [t0] invoked without --role then: output matches snapshot 1`] = `
+"
+🐢 bummer dude...
+
+🐚 review.by
+   └─ error: --role is required
+"
+`;
+
+exports[`review.by given: [case3] invalid role when: [t0] invoked with unknown role then: output matches snapshot 1`] = `
+"
+🐢 bummer dude...
+
+🐚 review.by --role nonexistent
+   └─ error: unknown role 'nonexistent'. valid roles: mechanic, architect, ergonomist
+"
+`;
+
+exports[`review.by given: [case4] valid role with --for invalid rubric when: [t0] invoked with unknown rubric slug then: output matches snapshot 1`] = `
+"
+🐢 bummer dude...
+
+🐚 review.by --role mechanic --for nonexistent-rubric
+   └─ error: rubric not found: nonexistent-rubric
+"
+`;
+
+exports[`review.by given: [case5] valid role with clean fixture path when: [t0] invoked with mechanic role and clean fixture then: output matches snapshot 1`] = `
+"
+🐢 cowabunga!
+
+🐚 review.by --role mechanic
+   ├─ rubrics
+   │  ├─ r1 mech-failhides ✓
+   │  └─ r2 mech-decode-friction ✓
+   └─ summary
+      ├─ 0 blockers 🔴
+      └─ 0 nitpicks 🟠
+"
+`;

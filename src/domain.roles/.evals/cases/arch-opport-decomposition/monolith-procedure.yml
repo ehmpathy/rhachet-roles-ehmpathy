@@ -1,0 +1,71 @@
+# eval case: monolith-procedure
+# .what = detect monolith procedures that should be decomposed
+# .why  = monoliths hide complexity and prevent recomposition
+
+id: arch-opport-decomposition-monolith-procedure
+rubric: arch-opport-decomposition
+description: monolith procedure should be flagged for decomposition opportunity
+
+code: |
+  const processOrder = async (order: Order, context: Context) => {
+    // validates order format
+    if (!order.items.length) throw new Error('no items');
+    if (!order.customer) throw new Error('no customer');
+
+    // computes totals
+    let subtotal = 0;
+    for (const item of order.items) {
+      subtotal += item.price * item.quantity;
+    }
+    const tax = subtotal * 0.08;
+    const total = subtotal + tax;
+
+    // creates invoice
+    const invoice = {
+      id: generateUuid(),
+      orderId: order.id,
+      subtotal,
+      tax,
+      total,
+      createdAt: new Date(),
+    };
+
+    // saves to database
+    await context.invoiceDao.insert(invoice);
+
+    // sends notification
+    await context.emailService.send({
+      to: order.customer.email,
+      subject: `Invoice ${invoice.id}`,
+      body: renderInvoiceEmail(invoice),
+    });
+
+    // updates order status
+    await context.orderDao.update({
+      id: order.id,
+      status: 'INVOICED',
+    });
+
+    return invoice;
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: monolith-decomposition
+    description: should flag monolith procedure as decomposition opportunity
+    expected: present
+    severity: blocker
+    reason: |
+      the procedure does too much in one place:
+      - validates order format
+      - computes totals with inline loop
+      - creates invoice object
+      - saves to database
+      - sends notification
+      - updates order status
+
+      each responsibility should be extracted to a named operation.
+
+      keywords: decompose, monolith, single responsibility, extract

@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`runReviewEval given: [case1] mech-failhides rubric when: [t0] eval suite is run then: verdict ids match expected eval cases 1`] = `
+[
+  "mech-failhides-empty-catch",
+  "mech-failhides-failfast-silent-return",
+  "mech-failhides-failfast-throw",
+  "mech-failhides-logged-rethrow",
+  "mech-failhides-return-null",
+]
+`;

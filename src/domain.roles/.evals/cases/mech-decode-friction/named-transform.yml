@@ -1,0 +1,38 @@
+# eval case: named-transform
+# .what = correct pattern - named transformer
+# .why  = should NOT be flagged (true negative)
+
+id: mech-decode-friction-named-transform
+rubric: mech-decode-friction
+description: named transformer should NOT be flagged as decode-friction
+
+code: |
+  const sendNotifications = async (users: User[], context: Context) => {
+    // reads as narrative - no decode needed
+    const emails = getAllActiveUserEmails({ users });
+    await context.emailService.sendBulk({ to: emails });
+  };
+
+  // transformer extracted with domain name
+  const getAllActiveUserEmails = (input: { users: User[] }): string[] => {
+    return input.users
+      .filter(u => u.active && u.emailVerified)
+      .map(u => u.email.toLowerCase())
+      .sort();
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: no-false-flag
+    description: should NOT flag named transformer
+    expected: absent
+    severity: blocker|nitpick
+    reason: |
+      the orchestrator reads as narrative:
+      - const emails = getAllActiveUserEmails({ users });
+      - no decode required, intent is clear from name
+
+      the filter-map logic is in the transformer, not the orchestrator.
+      this is the correct pattern.

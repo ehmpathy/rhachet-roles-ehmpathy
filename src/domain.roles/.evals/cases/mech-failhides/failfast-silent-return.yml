@@ -1,0 +1,36 @@
+# eval case: failfast-silent-return
+# .what = detect silent early returns without error
+# .why  = silent return on invalid state is a failhide pattern
+
+id: mech-failhides-failfast-silent-return
+rubric: mech-failhides
+description: silent return on invalid state should be flagged as failhide
+
+code: |
+  const sendNotification = async (userId: string) => {
+    const user = await userDao.findById(userId);
+
+    // silent return - failhide!
+    if (!user) return;
+    if (!user.email) return;
+
+    await emailService.send({ to: user.email, subject: 'Hello' });
+  };
+
+evaluator:
+  brain: fireworks/deepseek/v4-pro
+
+checks:
+  - slug: silent-return-failhide
+    description: should flag silent early return as blocker
+    expected: present
+    severity: blocker
+    reason: |
+      the code has silent returns on invalid state:
+      - if (!user) return;
+      - if (!user.email) return;
+
+      these hide errors - caller has no idea why notification was not sent.
+      should throw or return explicit error result.
+
+      keywords: failhide, silent return, early return, hidden failure

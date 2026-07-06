@@ -12,6 +12,7 @@ applies to:
 exempt:
 - contract/cli entry points (e.g., invokeAct)
 - imperative action commands (e.g., dispatchTask, enqueueTask)
+- HOF wrappers with `with*` prefix (e.g., withLogTrail, withRetry, withSimpleCache)
 
 #### .why
 symmetry makes mutations explicit

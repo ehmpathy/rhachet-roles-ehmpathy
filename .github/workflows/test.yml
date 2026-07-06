@@ -24,3 +24,4 @@ jobs:
       creds-aws-role-arn: ${{ vars.CREDS_CICD_AWS_DEV_OIDC_ROLE_ARN }} # use aws auth via oidc, if this repo supplies it
     secrets:
       XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
+      FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}

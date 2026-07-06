@@ -1,0 +1,24 @@
+# rule.forbid.term.addition.synonym
+
+## severity: blocker
+
+do not introduce terms that duplicate established vocabulary.
+
+## .scope
+
+applies to new terms only. if established, defer to convention.
+
+## .how
+
+1. identify new terms in blueprint
+2. search codebase for synonyms
+3. if established term exists for same concept: flag
+
+## blocker examples
+
+- "client" when "customer" established
+- "fetch" when "get" established
+
+## not a blocker
+
+- "brain" already established: defer to convention
