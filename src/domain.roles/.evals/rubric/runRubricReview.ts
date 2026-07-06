@@ -23,12 +23,15 @@ export const runRubricReview = async (input: {
   brain?: string;
 }): Promise<ReviewResult> => {
   // write code to temp file within repo
-  // .note = bhrain review skill expects paths relative to repo root
+  // .note = bhrain review resolves --paths via globby, which respects
+  //         .gitignore. the fixture must live OUTSIDE gitignored dirs
+  //         (not under .cache/ or dist/) or the review sees zero files.
+  //         cleanup in the finally block keeps the fixture out of commits.
   // domainRolesDir = repo/src/domain.roles, so go up two levels
   const repoRoot = path.join(input.domainRolesDir, '..', '..');
-  const cacheDir = path.join(repoRoot, '.cache', 'review-eval');
-  if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir, { recursive: true });
-  const tempDir = fs.mkdtempSync(path.join(cacheDir, 'run-'));
+  const scratchDir = path.join(repoRoot, '.review-eval');
+  if (!fs.existsSync(scratchDir)) fs.mkdirSync(scratchDir, { recursive: true });
+  const tempDir = fs.mkdtempSync(path.join(scratchDir, 'run-'));
   const tempFile = path.join(tempDir, 'code.ts');
   fs.writeFileSync(tempFile, input.code);
 
