@@ -60,9 +60,18 @@ describe('compareBrains', () => {
         expect(table).toContain('| brain |');
       });
 
-      then('table output matches snapshot', () => {
+      then('table renders a data row for the brain', () => {
         const table = formatBrainComparisonTable({ comparison });
-        expect(table).toMatchSnapshot();
+        // .note = exact counts, metrics, and wall-clock durations vary per
+        //         LLM run, so assert the row renders (not its volatile values)
+        const dataRow = table
+          .split('\n')
+          .find(
+            (line) =>
+              line.startsWith('|') &&
+              line.includes('fireworks/deepseek/v4-flash'),
+          );
+        expect(dataRow).toBeDefined();
       });
     });
   });

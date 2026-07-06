@@ -163,11 +163,14 @@ describe('review.by', () => {
         expect(result.stdout).toContain('review.by');
       });
 
-      then('output matches snapshot', () => {
-        // .note = output varies with repo state, but snapshot enables:
-        //         - vibecheck of success format in PRs
-        //         - drift detection when format changes
-        expect(result.stdout).toMatchSnapshot();
+      then('output has rubrics and summary sections', () => {
+        // .note = exact blocker/nitpick counts and the pass/fail header vary
+        //         per LLM run and repo state, so assert the output structure
+        //         (sections + count lines) rather than the volatile values
+        expect(result.stdout).toContain('rubrics');
+        expect(result.stdout).toContain('summary');
+        expect(result.stdout).toMatch(/\d+ blockers/);
+        expect(result.stdout).toMatch(/\d+ nitpicks/);
       });
     });
   });

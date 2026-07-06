@@ -64,21 +64,3 @@ exports[`review.by given: [case5] valid role with clean fixture path when: [t0] 
       └─ 0 nitpicks 🟠
 "
 `;
-
-exports[`review.by given: [case6] valid role without paths when: [t0] invoked with mechanic role but no target paths then: output matches snapshot 1`] = `
-"
-🐢 bummer dude...
-
-🐚 review.by --role mechanic
-   ├─ rubrics
-   │  ├─ r1 mech-failhides ✗
-   │  │  ├─ 3 blockers 🔴
-   │  │  └─ 4 nitpicks 🟠
-   │  └─ r2 mech-decode-friction ✗
-   │     ├─ 3 blockers 🔴
-   │     └─ 1 nitpicks 🟠
-   └─ summary
-      ├─ 6 blockers 🔴
-      └─ 5 nitpicks 🟠
-"
-`;
