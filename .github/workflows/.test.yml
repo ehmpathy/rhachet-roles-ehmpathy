@@ -12,13 +12,6 @@ on:
         required: false
         type: string
         default: "us-east-1"
-    secrets:
-      XAI_API_KEY:
-        description: "api key for xai (grok) - required for border guard acceptance tests"
-        required: false
-      FIREWORKS_API_KEY:
-        description: "api key for fireworks - required for review eval integration tests"
-        required: false
 
 permissions:
   id-token: write # required for oidc
@@ -233,20 +226,23 @@ jobs:
       - name: prepare:rhachet (link roles into .agent for cross-repo skill discovery in evals)
         run: npm run prepare:rhachet
 
+      # .why = keyrack firewall translates and validates secrets before tests run
+      #        - filters to declared keys in keyrack.yml (env test)
+      #        - blocks dangerous patterns (ghp_*, AKIA*, etc.)
+      #        - exports to $GITHUB_ENV with mask applied
+      - name: keyrack firewall
+        run: npx rhachet keyrack firewall --env test --from 'json(env://SECRETS_JSON)' --into github.actions
+        env:
+          SECRETS_JSON: ${{ toJSON(secrets) }}
+
       - name: test:integration (explicit ${{ matrix.shard.index }})
         if: matrix.shard.type == 'explicit'
-        env:
-          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
         run: |
           patterns='${{ join(matrix.shard.patterns, '|') }}'
           THOROUGH=true npm run test:integration -- --testPathPatterns="$patterns" --json --outputFile=jest-results.json
 
       - name: test:integration (dynamic ${{ matrix.shard.shard }}/${{ matrix.shard.total }})
         if: matrix.shard.type == 'dynamic'
-        env:
-          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
         run: |
           exclude='${{ needs.enshard.outputs.integration-patterns }}'
           if [[ -n "$exclude" ]]; then
@@ -308,20 +304,26 @@ jobs:
       - name: build
         run: npm run build
 
+      - name: prepare:rhachet (link roles into .agent for cross-repo skill discovery)
+        run: npm run prepare:rhachet
+
+      # .why = keyrack firewall translates and validates secrets before tests run
+      #        - filters to declared keys in keyrack.yml (env test)
+      #        - blocks dangerous patterns (ghp_*, AKIA*, etc.)
+      #        - exports to $GITHUB_ENV with mask applied
+      - name: keyrack firewall
+        run: npx rhachet keyrack firewall --env test --from 'json(env://SECRETS_JSON)' --into github.actions
+        env:
+          SECRETS_JSON: ${{ toJSON(secrets) }}
+
       - name: test:acceptance (explicit ${{ matrix.shard.index }})
         if: matrix.shard.type == 'explicit'
-        env:
-          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
         run: |
           patterns='${{ join(matrix.shard.patterns, '|') }}'
           THOROUGH=true npm run test:acceptance -- --testPathPatterns="$patterns" --json --outputFile=jest-results.json
 
       - name: test:acceptance (dynamic ${{ matrix.shard.shard }}/${{ matrix.shard.total }})
         if: matrix.shard.type == 'dynamic'
-        env:
-          XAI_API_KEY: ${{ secrets.XAI_API_KEY }}
-          FIREWORKS_API_KEY: ${{ secrets.FIREWORKS_API_KEY }}
         run: |
           exclude='${{ needs.enshard.outputs.acceptance-patterns }}'
           if [[ -n "$exclude" ]]; then
