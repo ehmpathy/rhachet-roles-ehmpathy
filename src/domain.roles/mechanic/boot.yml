@@ -133,6 +133,7 @@ subject.code.prod:
       # typedefs
       - briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md
       - briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.shapefit.md
+      - briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.assure-via-type-checks.md
 
       # readability
       - briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.md

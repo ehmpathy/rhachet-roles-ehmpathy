@@ -1,0 +1,26 @@
+always:
+  briefs:
+    say:
+      # ergonomics fundamentals — the cited canon
+      - briefs/fundamentals/ref.ergonomics.fundamentals.md
+
+      # the scorable definitions
+      - briefs/fundamentals/def.ergonomic.md
+      - briefs/fundamentals/def.frictionless.md
+
+      # the rules that back the definitions
+      - briefs/fundamentals/rule.require.discoverability.md
+      - briefs/fundamentals/rule.require.status-feedback.md
+      - briefs/fundamentals/rule.require.errors-name-the-fix.md
+      - briefs/fundamentals/rule.require.safe-by-default.md
+      - briefs/fundamentals/rule.require.help-on-demand.md
+      - briefs/fundamentals/rule.forbid.ambiguous-labels.md
+      - briefs/fundamentals/rule.prefer.defaults-match-common-case.md
+      - briefs/fundamentals/rule.prefer.prevent-over-correct.md
+
+    ref:
+      # role rationale + adjacent rules (loaded on demand)
+      - briefs/define.why-ergonomist-not-designer.md
+      - briefs/rule.forbid.surprises.md
+      - briefs/rule.prefer.symmetric-term-pairs.md
+      - briefs/cli/rule.require.treestruct-output.md

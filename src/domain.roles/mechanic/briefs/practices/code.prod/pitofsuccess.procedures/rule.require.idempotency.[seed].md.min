@@ -11,7 +11,7 @@ methods:
 - findsert: find or insert
   - before = dao.findByRef()
   - if before && no diff return before
-  - if before && diff BadRequestError.throw('cannot findsert; entity exists with diff attributes')
+  - if before && diff ConstraintError.throw('cannot findsert; entity exists with diff attributes')
   - after = dao.upsert()
   - return after
 - upsert: update or insert – standard db overwrite

@@ -51,7 +51,7 @@ every meaningful block of lines must start with a one-line summary:
 ```ts
 // load invoice and raise on pastdue
 const invoice = await getInvoiceById(invoiceId);
-if (invoice.status === 'PASTDUE') UnexpectedCodePathError.throw(...)
+if (invoice.status === 'PASTDUE') MalfunctionError.throw(...)
 ```
 
 rules:

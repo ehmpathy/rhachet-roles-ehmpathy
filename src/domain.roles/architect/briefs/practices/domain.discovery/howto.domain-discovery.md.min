@@ -1,0 +1,49 @@
+# howto.domain-discovery
+
+## .what
+surface a domain's true objects, operations, and ubiqlang before/while you model them in code
+find what exists in the domain and what to call it, so code speaks the domain's own words
+
+## .why
+- code that speaks ubiqlang is legible to domain experts and robots
+- names found from the domain resist drift — no synonym sprawl, no overload
+- objects/operations discovered early compose later (the garden)
+- a term you did not discover is a term you invent badly under deadline
+
+## .the two things you discover
+| kind | what | shaped as |
+|------|------|-----------|
+| domain-objects (dobjs) | nouns the domain holds — Surfer, SurfLesson, WaveReport | [...noun][state]? |
+| domain-operations (dops) | verbs the domain performs — genSurfLesson, setSurferSkillLevel | [verb][...noun] |
+
+## .how — the moves
+loop expand→collect until converge (exhaust). moves:
+1. listen to the domain expert — adopt their exact word; do not translate
+2. name from the motive — name from why it exists, not its mechanism
+3. decompose dimensionally — walk the product of orthogonal axes (howto.dimensional-decomposition); axes=attributes, cells=objects, forbidden=invariants
+4. narrate a scenario as a timeline — ordered events; the nouns that repeat=dobjs, events=dops, state changes=attributes
+5. probe the lifecycle — states + the event that drives each move
+6. hunt the relationships — refs, back-refs, natural key
+7. vet the term — no synonym, no ambiguous overload; one word per concept
+
+## .premier tactics
+reach for these two first:
+- dimensional decomposition — walk the product to surface objects, attributes, forbidden invariants
+- scenario timeline narration — narrate a scenario as a timeline; surfaces the domain in motion, catches dops a static object-list misses
+
+## .the test — discovered, not invented
+- domain expert recognizes it with no gloss
+- names what IS or why, never how
+- exactly one sense in the domain
+- composes: object nests, operation chains
+
+## .the caveat
+discover what the domain holds today; do not invent speculative objects (rule.prefer.wet-over-dry)
+a discovered gap is a note on record, not a mandate to build
+
+## .see also
+- howto.dimensional-decomposition.md — a premier discovery tactic
+- rule.require.domain-discovery-for-term-proposals — apply this when you propose a new dobj/dop to a distillate
+- rule.require.persist-domain-term-evidence — persist the discovery evidence long-term in domain.terms/
+- rule.require.ubiqlang — one canonical word per concept
+- philosophy.domain-as-a-garden — why discovered pieces compose over time

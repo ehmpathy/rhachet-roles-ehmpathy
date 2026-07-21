@@ -1,0 +1,40 @@
+# rule.require.persist-domain-term-evidence
+
+## .what
+the domain-discovery evidence behind a proposed term must be persisted long-term at a canonical spot: .agent/repo=.this/role=any/briefs/domain.terms/*
+one file per term, that records its etymology and the evidence that backed its choice
+pairs with rule.require.domain-discovery-for-term-proposals: that requires discovery happen; this requires it be kept
+
+## .why
+- future travelers need the why — code shows what was chosen; the file shows why, so nobody re-litigates a settled choice
+- a canonical home — one predictable place for etymology + evidence, not scattered across PRs, chats, lost sessions
+- a guarantee of rigor — a reviewer can confirm sufficient evidence was supplied (timelines, decomposition, citations, precedent, narratives)
+- evidence outlives the conversation — session discovery evaporates; the file is durable (pairs with rule.require.timeless-comments)
+
+## .where
+.agent/repo=.this/role=any/briefs/domain.terms/<term>.md   # one file per term
+use repo=.this/role=any: a domain term is a fact of this repo's domain, shared across every role, not owned by one
+
+## .what the file must hold
+1. the term — canonical word + shape ([...noun][state]? dobj, [verb][...noun] dop)
+2. the etymology — where the word comes from; why this word, not its rejected synonyms
+3. the evidence — at least one of: dimensional decomposition, scenario timeline, citations/precedent, domain-expert narrative
+4. attributes/states/refs (dobj) or inputs/effect (dop)
+5. invariants — forbidden combinations as checkable rules
+
+## .the guarantee
+a term without a persisted, sufficiently-evidenced file is not curated — it is a guess on record as if a decision
+the file is what makes the choice auditable
+
+## .enforcement
+- term proposed to a distillate with no domain.terms/<term>.md file = blocker
+- domain.terms file with no discovery evidence = blocker
+- domain.terms file that records the choice but not etymology/rejected alternatives = nitpick
+
+## .see also
+- rule.require.domain-discovery-for-term-proposals — requires the discovery this persists
+- howto.domain-discovery.md — the discovery moves whose output lands here
+- howto.dimensional-decomposition.md — one premier evidence form
+- def.dimensional-decomposition.history.morphological-analysis.md — citations/precedent to record
+- rule.require.ubiqlang — the term this evidence justifies must satisfy ubiqlang
+- rule.require.timeless-comments — why the evidence must be durable, not conversational

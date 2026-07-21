@@ -12,11 +12,11 @@ benefits:
 
 use:
 ```ts
-import { UnexpectedCodePathError } from 'helpful-errors';
-throw new UnexpectedCodePathError(message, metadata);
+import { MalfunctionError } from 'helpful-errors';
+throw new MalfunctionError(message, metadata);
 ```
 or
 ```ts
-import { BadRequestError } from 'helpful-errors';
-throw new BadRequestError(message, metadata);
+import { ConstraintError } from 'helpful-errors';
+throw new ConstraintError(message, metadata);
 ```

@@ -14,15 +14,15 @@ this contributes to a pit of success
 specifically, you should choose from
 
 ```ts
-import { UnexpectedCodePathError } from 'helpful-errors';
+import { MalfunctionError } from 'helpful-errors';
 
-throw new UnexpectedCodePathError(message, metadata)
+throw new MalfunctionError(message, metadata)
 ```
 
 or
 
 ```ts
-import { BadRequestError } from 'helpful-errors';
+import { ConstraintError } from 'helpful-errors';
 
-throw new BadRequestError(message, metadata)
+throw new ConstraintError(message, metadata)
 ```

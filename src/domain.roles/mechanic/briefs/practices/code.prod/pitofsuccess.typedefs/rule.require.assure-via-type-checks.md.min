@@ -1,0 +1,62 @@
+# rule.require.assure-via-type-checks
+
+## .what
+to assert a value's type, use a reusable is$Noun type-check + its .assure method (type-fns); never an ad-hoc `if (!isFoo(x)) throw` guard
+
+a type.check is a boolean type predicate `(input: I): input is C`; wrapped with withAssure it gains:
+- .assess — the boolean check, to narrow in an if
+- .assure — the ASSERT: throws if false, returns value narrowed to C if true
+
+.assure IS the assert. type-fns names the assert-variant .assure (not .assert) — a check that assures the type holds, or throws. when you reach for what other libs call `assert`, reach for .assure
+use .assure (or standalone assure(value, isFoo)) wherever you'd write a throw-guard
+
+## .why
+- fail-fast in one expression — const uuid = isUuid.assure(input) narrows AND validates inline
+- fewer code paths — throw-branch absorbed; happy path reads straight through (rule.require.narrative-flow)
+- reusable — is$Noun defined once, serves both narrow (.assess) and assert (.assure)
+- rich errors — .assure throws AssureIsOfTypeRejectionError (a HelpfulError) (rule.require.failloud)
+
+## .how — define with assure
+```ts
+import { withAssure } from 'type-fns';
+type Uuid = string & { __brand: 'Uuid' };
+export const isUuid = withAssure(
+  (value: string): value is Uuid => /^[0-9a-f-]{36}$/i.test(value),
+  { name: 'isUuid' },
+);
+// narrow: if (isUuid.assess(input)) { ... }
+// assert: const uuid: Uuid = isUuid.assure(input);
+```
+
+## .how — inline
+```ts
+import { assure } from 'type-fns';
+const uuid: Uuid = assure(input.uuid, isUuid); // throws if invalid, narrows if valid
+```
+
+## .examples
+👎 bad — ad-hoc throw-guard + as-cast
+```ts
+if (!isUuid(input.surferId)) throw new Error('not a uuid');
+const surferId = input.surferId as Uuid; // 👎 as-cast (rule.forbid.as-cast)
+```
+👍 good — assure via the type-check
+```ts
+const surferId = isUuid.assure(input.surferId); // narrows to Uuid, throws if not
+```
+
+## .the names
+- check = is$Noun (isUuid, isSurfer, isWaveReport) — get-set-gen-verbs transformer prefix
+- assert = is$Noun.assure(x) — the check assures the type
+- narrow = is$Noun.assess(x) — the check assesses the boolean
+
+## .enforcement
+- ad-hoc `if (!isFoo(x)) throw` type-assertion where isFoo.assure(x) (or assure(x, isFoo)) applies = **blocker**
+- throw-guard + as-cast to narrow = **blocker** (use .assure — narrows without the cast; rule.forbid.as-cast)
+- hand-rolled assert helper that duplicates .assure/assure = **blocker** (use type-fns)
+
+## .see also
+- rule.forbid.as-cast — .assure narrows without an as-cast
+- rule.require.failfast / rule.require.failloud — fail-fast, HelpfulError throw
+- rule.require.get-set-gen-verbs — the is* transformer prefix
+- type-fns readme — withAssure, asAssure, assure

@@ -51,7 +51,7 @@ src/
 - `access/` MUST NOT import from `domain.operations/` or `contract/`
 
 .the one caveat
-`access/daos` is a persistence adapter: it bridges db rows ↔ domain objects, so a dao legitimately imports the domain object it persists (`jobDao` imports `Job`, `castFromDatabaseObject` builds a domain object).
+`access/daos` is a persistence adapter: it bridges db rows ↔ domain objects, so a dao legitimately imports the domain object it persists (`jobDao` imports `Job`, `asJobFromDatabaseRow` builds a domain object).
 
 this is the **only** upward import allowed anywhere: `access/daos → domain.objects`, and only `domain.objects` — never `domain.operations` or `contract`.
 

@@ -15,9 +15,9 @@
 .how:
   - use **early returns or throws** for all guard clauses
     - never use `if (...) else` or deep nested blocks to control flow
-  - prefer `UnexpectedCodePathError.throw(...)` for internal invariant violations
+  - prefer `MalfunctionError.throw(...)` for internal invariant violations
     - these signal logic errors that “should never happen”
-  - prefer `BadRequestError.throw(...)` to reject invalid input or user requests
+  - prefer `ConstraintError.throw(...)` to reject invalid input or user requests
     - these signal invalid calls, not system failures
   - use `.throw(...)` syntax for clean 1-liners inside nullish chains or short circuits
   - include **context objects** in all thrown errors to aid debug
@@ -30,8 +30,8 @@
 
   ```ts
   // reject if user does not exist
-  if (!user) return BadRequestError.throw('user not found', { userUuid });
+  if (!user) return ConstraintError.throw('user not found', { userUuid });
 
   // halt if state is invalid
   if (!input.customer.phone)
-    UnexpectedCodePathError.throw('customer lacks phone, invalid state', { customer });
+    MalfunctionError.throw('customer lacks phone, invalid state', { customer });

@@ -1,0 +1,40 @@
+# rule.require.domain-discovery-for-term-proposals
+
+## .what
+whenever you intend to propose a new term to a domain distillate (a new dobj or dop added to the domain's shared vocabulary), back the proposal with domain discovery
+do not propose a term you have not discovered
+
+## .why
+- a term proposed without discovery drifts, overloads, or duplicates an extant concept
+- discovery surfaces attributes, states, relationships before they harden in the distillate
+- terms from the domain compose; terms invented at the keyboard do not
+- a distillate is shared vocabulary — a bad term there costs every reader and reference downstream
+
+## .when it applies
+| applies | does not apply |
+|---------|----------------|
+| propose a new dobj to the distillate (noun not yet named) | reuse/extend an extant discovered term |
+| propose a new dop to the distillate (verb not yet performed) | pure rename of a discovered term |
+| a new bounded concept enters the vocabulary | incidental non-domain code |
+
+## .what it requires
+before a term proposal enters the distillate:
+1. run at least one discovery move (howto.domain-discovery) to back the term — premier tactics: dimensional decomposition + scenario timeline narration
+2. confirm against ubiqlang rules — no synonym, no ambiguous overload
+3. record discovered attributes, states, refs, and forbidden combinations as invariants
+the discovery is the evidence behind the proposal; a term without it is a guess, not a distillate entry
+
+## .the caveat
+discovery is proportionate — an obvious dobj needs a quick vet, not a full matrix
+the mandate: do not propose a domain term in a vacuum; anchor it in the domain first
+
+## .enforcement
+- term proposed to the distillate with no discovery that turns out a synonym/overload = blocker
+- proposed dobj with no account of attributes/states/refs = nitpick
+- proposed dobj/dop that spans variants, entered with no dimensional walk = nitpick (rule.require.dimensional-decomposition)
+
+## .see also
+- howto.domain-discovery.md — what it is and how to do it
+- howto.dimensional-decomposition.md — a premier discovery tactic
+- rule.require.persist-domain-term-evidence — persist the discovery evidence long-term
+- rule.require.ubiqlang — vet the proposed term
