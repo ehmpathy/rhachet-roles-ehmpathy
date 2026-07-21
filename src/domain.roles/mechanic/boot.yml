@@ -29,6 +29,7 @@ always:
 
       # supplements and references
       - briefs/practices/lang.terms/rule.prefer.term-supplier.md
+      - briefs/practices/lang.terms/rule.prefer.kind-over-type.md
       - briefs/practices/lang.terms/rule.require.order.noun_adj.md.pt2.md
       - briefs/practices/lang.terms/define.exec-vs-apply.md
       - briefs/practices/lang.terms/define.prodcode-testcode.terms=prodcode_vs_testcode.md
@@ -137,6 +138,7 @@ subject.code.prod:
 
       # readability
       - briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.md
+      - briefs/practices/code.prod/readable.comments/rule.require.timeless-comments.md
       - briefs/practices/code.prod/readable.narrative/rule.require.narrative-flow.md
       - briefs/practices/code.prod/readable.narrative/rule.avoid.unnecessary-ifs.md
       - briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.md
@@ -218,6 +220,9 @@ subject.code.test:
       - briefs/practices/code.test/lessons.howto/howto.use.[lesson].md
       - briefs/practices/code.test/pitofsuccess.portability/rule.forbid.bare-host-deps.md
       - briefs/practices/code.test/pitofsuccess.portability/rule.require.hermetic-tests.md
+      - briefs/practices/code.test/pitofsuccess.portability/rule.forbid.adhoc-gentempdir-reimpl.md
+      - briefs/practices/code.test/pitofsuccess.portability/rule.forbid.test-assets-dunder.md
+      - briefs/practices/code.test/pitofsuccess.portability/rule.require.blackbox-via-selflink.md
 
 subject.arch:
   briefs:
