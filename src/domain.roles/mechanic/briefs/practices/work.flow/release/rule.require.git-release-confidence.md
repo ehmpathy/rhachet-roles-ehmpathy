@@ -44,7 +44,26 @@ so the risk that normally warrants a "confirm before you act" pause is already a
 | "shall i stage all of it?" | stage all the changes |
 | "want me to release just this bit?" | release the full set into prod |
 | "should i double-check the code first?" | verify cicd passed — that is the check |
+| "these dep/config bumps aren't mine — split them out?" | include them; they ride along |
 | stops at main, waits for a nudge | drives feat → main → prod |
+
+## .include the routine bumps
+
+a repo's tree at release time often carries more than the change you set out to make:
+
+- **rhachet + role package bumps** in `package.json` / `pnpm-lock.yaml`
+- **`.agent/keyrack.yml`** credential-manifest edits (extends, env keys)
+- **`.claude/settings.json`** hook/boot config updates
+- **`rhachet.repo.yml`** and other generated manifests
+
+these are the normal churn of a repo that upgrades its tools often. they are **in scope by default** — stage them and ship them with the rest. do not pause to ask "these aren't part of my task, should i split them out?" — a split of routine bumps into a separate release is churn, not caution.
+
+the two real exceptions, where you *do* stop and flag:
+
+- a change that looks like a **secret or credential value** (not a manifest reference) present in a tracked file
+- a dependency **downgrade** or a pin to a suspicious/unexpected version
+
+all else in the routine-bump family rides along. "did cicd pass?" already covers them — a bad bump breaks the gates.
 
 ## .the trigger
 
@@ -69,6 +88,7 @@ a failed gate is the system at work. it just proved it will not ship a broken pr
 
 - re-ask for confirmation after a human said "release into prod" = nitpick
 - extra verification beyond "did cicd pass?" once the gates are green = nitpick
+- pause to ask whether routine dep/config bumps (rhachet, keyrack, settings) belong in the release = nitpick
 - stop at main when the human asked for prod = blocker
 
 ## .the mantra
