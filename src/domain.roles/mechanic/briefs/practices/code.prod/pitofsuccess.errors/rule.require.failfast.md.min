@@ -12,9 +12,9 @@
 
 ```ts
 // reject if user does not exist
-if (!user) return BadRequestError.throw('user not found', { userUuid });
+if (!user) return ConstraintError.throw('user not found', { userUuid });
 
 // halt if state is invalid
 if (!input.customer.phone)
-  UnexpectedCodePathError.throw('customer lacks phone, invalid state', { customer });
+  MalfunctionError.throw('customer lacks phone, invalid state', { customer });
 ```

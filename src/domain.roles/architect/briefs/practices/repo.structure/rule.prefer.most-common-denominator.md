@@ -78,7 +78,7 @@ src/logic/advertise/invoice/
     ├── draft/
     │   ├── genInvoiceDraft.ts                          # draft orchestrator
     │   ├── castProspectToInvoiceItemExid.ts            # draft-specific transformer
-    │   ├── castToStripeInvoiceItem.ts                  # draft-specific transformer
+    │   ├── asStripeInvoiceItem.ts                  # draft-specific transformer
     │   ├── getProspectsAsInvoiceItems.ts               # draft-specific
     │   ├── setInvoiceItems.ts                          # draft-specific
     │   ├── setProspectAsInvoiceItem.ts                 # draft-specific
@@ -91,7 +91,7 @@ src/logic/advertise/invoice/
 ```
 
 draft-stage operations stay nested under `draft/`:
-- `castToStripeInvoiceItem` only used by draft → stays in `draft/`
+- `asStripeInvoiceItem` only used by draft → stays in `draft/`
 - `syncInvoiceDraftToStripe` only used by draft → stays in `draft/`
 - `reqInvoiceCharge` used across stages → lives at `lifecycle/` level
 
@@ -101,7 +101,7 @@ draft-stage operations stay nested under `draft/`:
 src/logic/
 ├── genInvoiceDraft.ts
 ├── castProspectToInvoiceItemExid.ts
-├── castToStripeInvoiceItem.ts
+├── asStripeInvoiceItem.ts
 ├── getProspectsAsInvoiceItems.ts
 ├── setInvoiceItems.ts
 ├── syncInvoiceDraft.ts
@@ -117,11 +117,11 @@ namespace polluted. hard to see what belongs to draft vs adjust vs charge.
 
 ### evolution: lift when reused
 
-if `castToStripeInvoiceItem` becomes needed by `adjust/` — lift immediately to `lifecycle/`:
+if `asStripeInvoiceItem` becomes needed by `adjust/` — lift immediately to `lifecycle/`:
 
 ```
 src/logic/advertise/invoice/lifecycle/
-├── castToStripeInvoiceItem.ts                  # lifted: reused by draft + adjust
+├── asStripeInvoiceItem.ts                  # lifted: reused by draft + adjust
 │
 ├── draft/
 │   ├── genInvoiceDraft.ts
@@ -136,7 +136,7 @@ src/logic/advertise/invoice/lifecycle/
     └── ...
 ```
 
-only `castToStripeInvoiceItem` lifted. all other operations stay at their leaf.
+only `asStripeInvoiceItem` lifted. all other operations stay at their leaf.
 
 ## .signal: shared operations reveal domain relationships
 

@@ -13,3 +13,15 @@ rubrics:
     rules:
       - .agent/repo=ehmpathy/role=ergonomist/briefs/rule.forbid.surprises.md
       - .agent/repo=ehmpathy/role=ergonomist/briefs/cli/rule.require.treestruct-output.md
+
+  - slug: ergo-fundamentals
+    purpose: score a surface against the ergonomics fundamentals (frictionless + ergonomic)
+    rules:
+      - .agent/repo=ehmpathy/role=ergonomist/briefs/fundamentals/rule.require.discoverability.md
+      - .agent/repo=ehmpathy/role=ergonomist/briefs/fundamentals/rule.require.status-feedback.md
+      - .agent/repo=ehmpathy/role=ergonomist/briefs/fundamentals/rule.require.errors-name-the-fix.md
+      - .agent/repo=ehmpathy/role=ergonomist/briefs/fundamentals/rule.require.safe-by-default.md
+      - .agent/repo=ehmpathy/role=ergonomist/briefs/fundamentals/rule.forbid.ambiguous-labels.md
+      - .agent/repo=ehmpathy/role=ergonomist/briefs/fundamentals/rule.prefer.defaults-match-common-case.md
+      - .agent/repo=ehmpathy/role=ergonomist/briefs/fundamentals/rule.prefer.prevent-over-correct.md
+      - .agent/repo=ehmpathy/role=ergonomist/briefs/fundamentals/rule.require.help-on-demand.md

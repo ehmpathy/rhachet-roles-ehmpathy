@@ -53,3 +53,8 @@ blueprint introduces "task" but codebase uses "job":
 
 blueprint uses "brain" which is already established in the codebase:
 - no flag: defer to convention
+
+## .see also
+
+- `rule.require.domain-discovery-for-term-proposals` — discover before you propose a new term
+- `rule.require.persist-domain-term-evidence` — record the rejected synonyms in the term's etymology file

@@ -14,8 +14,8 @@ errors must use proper error classes with full context.
 
 | who fixes | class | exit code |
 |-----------|-------|-----------|
-| caller | ConstraintError, BadRequestError | 2 |
-| server | MalfunctionError, UnexpectedCodePathError | 1 |
+| caller | ConstraintError | 2 |
+| server | MalfunctionError | 1 |
 
 ## .pattern
 

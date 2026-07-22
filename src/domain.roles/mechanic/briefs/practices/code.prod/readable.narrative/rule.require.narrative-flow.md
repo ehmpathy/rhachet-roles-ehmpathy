@@ -39,7 +39,7 @@
 
     // attempt fallback resolution
     const resolved = tryToResolve(input);
-    if (!resolved) UnexpectedCodePathError.throw('resolution failed');
+    if (!resolved) MalfunctionError.throw('resolution failed');
     ```
 
 .examples:

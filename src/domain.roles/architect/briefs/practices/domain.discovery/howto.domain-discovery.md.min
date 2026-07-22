@@ -1,0 +1,52 @@
+# howto.domain-discovery
+
+## .what
+surface a domain's true objects, operations, and ubiqlang before/while you model them in code
+find what exists in the domain and what to call it, so code speaks the domain's own words
+
+## .why
+- code that speaks ubiqlang is legible to domain experts and robots
+- names found from the domain resist drift — no synonym sprawl, no overload
+- objects/operations discovered early compose later (the garden)
+- a term you did not discover is a term you invent badly under deadline
+
+## .the two things you discover
+| kind | what | shaped as |
+|------|------|-----------|
+| domain-objects (dobjs) | nouns the domain holds — Surfer, SurfLesson, WaveReport | [...noun][state]? |
+| domain-operations (dops) | verbs the domain performs — genSurfLesson, setSurferSkillLevel | [verb][...noun] |
+
+## .how — the moves
+loop expand→collect until converge (exhaust). moves:
+1. listen to how folks talk — capture exact words from BOTH the expert (precise canonical term = your dobj/dop) and the layfolk (intuitive common word; reveals where jargon obscures). agree=strong candidate; diverge=a synonym/overload to settle. do not translate either — adopt
+2. name from the motive — name from why it exists, not its mechanism
+3. ask the five whys — ask "why?" ~5x; each why strips a layer of mechanism; the answer that no longer shifts is the buried motive. "reservation row"→why→"hold a slot"→why→"surfer keeps their spot in a lesson" = dobj SurfLesson, dop holdSurferSlot, buried 2 whys beneath a storage detail
+4. decompose dimensionally — walk the product of orthogonal axes (howto.dimensional-decomposition); axes=attributes, cells=objects, forbidden=invariants
+5. demonstrate the experience as a narrative, then distill to a bdd timeline — tell one concrete end-to-end story (raw narrative surfaces the domain in motion: nouns=dobjs, events=dops, state changes=attributes); then distill to given/when/then (given=precondition state, when=dop, then=the state after). narrative discovers; bdd refines
+6. probe the lifecycle — states + the event that drives each move
+7. hunt the relationships — refs, back-refs, natural key
+8. vet the term — no synonym, no ambiguous overload; one word per concept
+
+## .premier tactics
+reach for these two first:
+- dimensional decomposition — walk the product to surface objects, attributes, forbidden invariants
+- narrative, then bdd timeline — demonstrate a concrete experience as a plain story, then distill to given/when/then; surfaces the domain in motion, catches dops a static object-list misses; bdd refines the dops + state transitions
+
+## .the test — discovered, not invented
+- domain expert recognizes it with no gloss
+- names what IS or why, never how
+- exactly one sense in the domain
+- composes: object nests, operation chains
+
+## .the caveat
+discover what the domain holds today; do not invent speculative objects (rule.prefer.wet-over-dry)
+a discovered gap is a note on record, not a mandate to build
+
+## .see also
+- def.domain-discovery — what discovery IS: exhume the domain's fundamental truth, grounded in the real world
+- ref.domain-discovery.fundamentals — the cited canon behind these moves (evans, korzybski, toyota, brandolini, north, zwicky)
+- howto.dimensional-decomposition.md — a premier discovery tactic
+- rule.require.domain-discovery-for-term-proposals — apply this when you propose a new dobj/dop to a distillate
+- rule.require.persist-domain-term-evidence — persist the discovery evidence long-term in domain.terms/
+- rule.require.ubiqlang — one canonical word per concept
+- philosophy.domain-as-a-garden — why discovered pieces compose over time

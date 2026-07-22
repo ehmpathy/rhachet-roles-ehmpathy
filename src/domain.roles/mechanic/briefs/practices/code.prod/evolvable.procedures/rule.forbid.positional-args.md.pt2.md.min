@@ -7,3 +7,13 @@ never allow ordered args
 reasons: key-value inputs for readability, observability, evolvability
 
 inputs: one key-value object + context object
+
+## .exemption = single-value transformers
+single-value transformer prefixes (as*, is*) may take their one value positionally
+- one input by definition (asFoo(x)/asFooFromBar(bar)/isBar(x)); named wrapper earns keep only on multi-arg
+- e.g. asDeclaredAwsIamPolicyStatement(statement), asZoneAddress(raw) = fine
+- still required for 2+ inputs or optional config — even a transformer once it grows a second arg
+
+enforcement:
+- as*/is* transformer with exactly one positional value = allowed
+- transformer with 2+ inputs passed positionally = blocker

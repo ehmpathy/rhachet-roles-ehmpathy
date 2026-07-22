@@ -2,6 +2,10 @@
 
 Use the declastruct pattern whenever we need to construct and control remote resources. Each remote resource is considered a structure that we declaratively control, via idempotent get+set semantics.
 
+> **note on `cast*`:** the code below is adapted from published external source (`ehmpathy/declastruct-stripe-sdk`), which used the now-**deprecated** `cast*` prefix. it has been updated here to the canonical `as*` prefix (e.g. `asDeclaredStripeCustomer`, or `as$Noun1From$Noun2` when the source matters). see `rule.require.get-set-gen-verbs`. the ref links point to the original commits, which still show the `cast*` names.
+
+> **note on error classes:** the code below uses `MalfunctionError` (server-must-fix, exit 1) and `ConstraintError` (caller-must-fix, exit 2), the canonical error classes. see `rule.require.failloud`.
+
 
 ### 1. first, declare the entities we wish to construct
 
@@ -84,20 +88,20 @@ additionally, this enables us to cast them into `domain-object` instances, which
 
 ref: https://github.com/ehmpathy/declastruct-stripe-sdk/blob/1f9e2ecefb46028f75348aed8a5f9e3528eb5c1e/src/logic/cast/castToDeclaredStripeCustomer.ts
 ```ts
-import { UnexpectedCodePathError } from 'helpful-errors';
+import { MalfunctionError } from 'helpful-errors';
 import Stripe from 'stripe';
 import { HasMetadata, omit } from 'type-fns';
 
 import { DeclaredStripeCustomer } from '../../domain/objects/DeclaredStripeCustomer';
 
-export const castToDeclaredStripeCustomer = (
+export const asDeclaredStripeCustomer = (
   input: Stripe.Customer,
 ): HasMetadata<DeclaredStripeCustomer> => {
   return new DeclaredStripeCustomer({
     id: input.id,
     email:
       input.email ??
-      UnexpectedCodePathError.throw(
+      MalfunctionError.throw(
         'no email found for customer. not a valid declared stripe customer',
         { input },
       ),
@@ -122,13 +126,13 @@ support get.by.unique, get.by.primary, and get.by.ref
 ref: https://github.com/ehmpathy/declastruct-stripe-sdk/blob/1f9e2ecefb46028f75348aed8a5f9e3528eb5c1e/src/logic/customer/getCustomer.ts
 ```ts
 import { Ref, RefByPrimary, RefByUnique, isUniqueKeyRef } from 'domain-objects';
-import { BadRequestError, UnexpectedCodePathError } from 'helpful-errors';
+import { ConstraintError, MalfunctionError } from 'helpful-errors';
 import { HasMetadata, PickOne } from 'type-fns';
 import { VisualogicContext } from 'visualogic';
 
 import { StripeApiContext } from '../../domain/constants';
 import { DeclaredStripeCustomer } from '../../domain/objects/DeclaredStripeCustomer';
-import { castToDeclaredStripeCustomer } from '../cast/castToDeclaredStripeCustomer';
+import { asDeclaredStripeCustomer } from '../cast/asDeclaredStripeCustomer';
 
 /**
  * .what = gets a customer from stripe
@@ -156,7 +160,7 @@ export const getCustomer = async (
         input.by.primary.id,
       );
       if (customer.deleted) return null;
-      return castToDeclaredStripeCustomer(customer);
+      return asDeclaredStripeCustomer(customer);
     } catch (error) {
       if (!(error instanceof Error)) throw error;
       if (error.message.includes('No such customer')) return null; // handle "null" responses without an error
@@ -172,16 +176,16 @@ export const getCustomer = async (
       email: input.by.unique.email,
     });
     if (otherCustomers.length)
-      throw new BadRequestError('more than one customer for this email', {
+      throw new ConstraintError('more than one customer for this email', {
         input,
         customers: [customer, ...otherCustomers],
       });
     if (!customer) return null;
-    return castToDeclaredStripeCustomer(customer);
+    return asDeclaredStripeCustomer(customer);
   }
 
   // otherwise, unexpected input
-  throw new UnexpectedCodePathError('invalid input', { input });
+  throw new MalfunctionError('invalid input', { input });
 };
 ```
 
@@ -253,7 +257,7 @@ ref: https://github.com/ehmpathy/declastruct-stripe-sdk/blob/1f9e2ecefb46028f753
 ```ts
 import { serialize } from 'domain-objects';
 import { toHashSha256Sync } from 'hash-fns';
-import { UnexpectedCodePathError } from 'helpful-errors';
+import { MalfunctionError } from 'helpful-errors';
 import { HasMetadata, PickOne } from 'type-fns';
 import {
   getResourceNameFromFileName,
@@ -263,7 +267,7 @@ import {
 
 import { StripeApiContext } from '../../domain/constants';
 import { DeclaredStripeCustomer } from '../../domain/objects/DeclaredStripeCustomer';
-import { castToDeclaredStripeCustomer } from '../cast/castToDeclaredStripeCustomer';
+import { asDeclaredStripeCustomer } from '../cast/asDeclaredStripeCustomer';
 import { getCustomer } from './getCustomer';
 
 export const setCustomer = withLogTrail(
@@ -282,7 +286,7 @@ export const setCustomer = withLogTrail(
             email:
               input.findsert?.email ??
               input.upsert?.email ??
-              UnexpectedCodePathError.throw('no email in input', { input }),
+              MalfunctionError.throw('no email in input', { input }),
           },
         },
       },
@@ -296,7 +300,7 @@ export const setCustomer = withLogTrail(
       stripeCustomerIdExpected &&
       stripeCustomerIdExpected !== customerFound.id
     )
-      throw new UnexpectedCodePathError(
+      throw new MalfunctionError(
         'asked to setCustomer with a .primary=id which does not match the .unique=email',
         {
           stripeCustomerIdExpected,
@@ -312,7 +316,7 @@ export const setCustomer = withLogTrail(
 
       // if asked to upsert, then we can update it now
       if (input.upsert)
-        return castToDeclaredStripeCustomer(
+        return asDeclaredStripeCustomer(
           await context.stripe.customers.update(customerFound.id, {
             name: input.upsert.name ?? undefined,
             description: input.upsert.description ?? undefined,
@@ -343,7 +347,7 @@ export const setCustomer = withLogTrail(
         ),
       },
     );
-    return castToDeclaredStripeCustomer(customerCreated);
+    return asDeclaredStripeCustomer(customerCreated);
   },
   { name: getResourceNameFromFileName(__filename) },
 );

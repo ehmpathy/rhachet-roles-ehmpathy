@@ -5,6 +5,7 @@ export const ROLE_ERGONOMIST: Role = Role.build({
   name: 'Ergonomist',
   purpose: 'humanize experiences',
   readme: { uri: `${__dirname}/readme.md` },
+  boot: { uri: `${__dirname}/boot.yml` },
   traits: [],
   skills: {
     dirs: [],

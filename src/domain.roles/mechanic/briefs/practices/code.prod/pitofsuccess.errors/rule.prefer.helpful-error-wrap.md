@@ -40,9 +40,9 @@ await HelpfulError.wrap(
 or
 
 ```ts
-import { UnexpectedCodePathError } from 'helpful-errors';
+import { MalfunctionError } from 'helpful-errors';
 
-await UnexpectedCodePathError.wrap(
+await MalfunctionError.wrap(
   async () => await doSomething({ userUuid }),
   {
     message: 'doSomething.error',

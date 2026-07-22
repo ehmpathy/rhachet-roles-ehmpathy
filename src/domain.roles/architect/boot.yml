@@ -3,17 +3,34 @@ always:
     say:
       # philosophy
       - briefs/practices/philosophy.domain-as-a-garden.[philosophy].md
-      - briefs/practices/philosophy.transform-orchestrator-separation.[philosophy].md
+      - briefs/practices/domain.operations/philosophy.transformer-orchestrator-separation.[philosophy].md
 
       # architecture
       - briefs/practices/rule.require.solve-at-cause.md
-      - briefs/practices/rule.prefer.most-common-denominator.md
+      - briefs/practices/repo.structure/rule.prefer.most-common-denominator.md
       - briefs/practices/prefer.env_access.prep_over_dev.md
 
       # domain operations
-      - briefs/practices/define.domain-operation-grains.md
-      - briefs/practices/rule.require.orchestrators-as-narrative.md
-      - briefs/practices/rule.forbid.decode-friction-in-orchestrators.md
+      - briefs/practices/domain.operations/define.domain-operation-grains.md
+      - briefs/practices/domain.operations/rule.require.orchestrators-as-narrative.md
+      - briefs/practices/domain.operations/rule.forbid.decode-friction-in-orchestrators.md
+      - briefs/practices/domain.operations/rule.require.idempotent-operations.md
+      - briefs/practices/domain.operations/rule.require.fewer-paths-via-idempotency.md
 
       # ubiquitous language
       - briefs/ubiqlang.ambiguous-from-overload.md
+
+      # domain discovery
+      - briefs/practices/domain.discovery/def.domain-discovery.md
+      - briefs/practices/domain.discovery/howto.domain-discovery.md
+      - briefs/practices/domain.discovery/rule.require.domain-discovery-for-term-proposals.md
+      - briefs/practices/domain.discovery/rule.require.persist-domain-term-evidence.md
+
+    ref:
+      # domain discovery — the cited canon (loaded on demand)
+      - briefs/practices/domain.discovery/ref.domain-discovery.fundamentals.md
+
+      # dimensional decomposition — a premier discovery tactic (loaded on demand)
+      - briefs/practices/domain.discovery/howto.dimensional-decomposition.md
+      - briefs/practices/domain.discovery/rule.require.dimensional-decomposition.md
+      - briefs/practices/domain.discovery/def.dimensional-decomposition.history.morphological-analysis.md

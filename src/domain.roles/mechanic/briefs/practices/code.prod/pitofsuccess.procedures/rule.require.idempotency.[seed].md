@@ -14,7 +14,7 @@ the main methods to do so are via
 - findsert = find or insert
   - const before = dao.findByRef()
   - if (before && nonDiff) return before
-  - if (before && hasDiff) BadRequestError.throw('can not findsert; entity already exists but with different attributes')
+  - if (before && hasDiff) ConstraintError.throw('can not findsert; entity already exists but with different attributes')
   - const after = dao.upsert()
   - return after
 

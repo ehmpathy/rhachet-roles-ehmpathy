@@ -1,0 +1,60 @@
+# def.dimensional-decomposition.history.morphological-analysis
+
+## .what
+dimensional decomposition = an application of morphological analysis (Zwicky box / morphological box)
+a structured method to explore every possible configuration of a multi-dimensional problem
+
+## .origin
+Fritz Zwicky (1898–1974), Swiss-American astrophysicist at Caltech, developed it across the 1940s–60s as a general method for problem-solution and invention; applied to astrophysics + jet/rocket propulsion
+sources:
+- https://en.wikipedia.org/wiki/Fritz_Zwicky
+- https://en.wikipedia.org/wiki/Morphological_analysis_(problem-solving)
+- Zwicky, F. (1969). Discovery, Invention, Research Through the Morphological Approach. Macmillan.
+
+## .core idea
+break a problem into independent parameters (dimensions), list the values each can take, examine every combination
+the "box" = the multi-dimensional matrix of all parameters and their options
+
+## .the method (Zwicky's steps)
+1. define the problem precisely
+2. identify the parameters (key independent characteristics)
+3. list possible values for each parameter
+4. form the matrix (each parameter an axis)
+5. generate configurations (one value per parameter = a candidate)
+6. evaluate and filter — discard impossible/contradictory combos (cross-consistency assessment), assess survivors
+
+## .worked example — Zwicky's "vehicle"
+| parameter | values |
+|-----------|--------|
+| medium | land, water, air |
+| power source | electric, combustion, human, solar |
+| support | wheels, tracks, hull, wings |
+| passengers | 1, 2–4, 5+ |
+air/solar/wings/1 → a solar-powered single-seat aircraft; 3×4×4×3 = 144 configurations
+
+## .why useful
+- completeness — the entire solution space, not just obvious ideas
+- less bias — counters the jump to familiar answers
+- novelty — unexpected combos point to new inventions
+
+## .combinatorial-explosion caveat
+combinations grow multiplicatively; the cross-consistency assessment (discard pairs that cannot coexist) prunes the box to a workable set
+this is the ancestor of our forbidden verdict — a cell marked impossible, with its reason
+
+## .later development
+Tom Ritchey + Swedish Morphological Society formalized computer-aided general morphological analysis (GMA) and cross-consistency assessment (CCA) for non-quantified problems
+- Ritchey, T. (1998). General Morphological Analysis. https://www.swemorph.com/ma.html
+
+## .maps to our practice
+| morphological analysis | our decomposition |
+|------------------------|-------------------|
+| parameter | axis |
+| value | axis value |
+| Zwicky box | the product matrix |
+| configuration | a cell |
+| cross-consistency assessment | the forbidden verdict |
+| survivor configuration | a filled or gap cell |
+
+## .see also
+- howto.dimensional-decomposition.md — how to apply it
+- rule.require.dimensional-decomposition.md — when it is required
