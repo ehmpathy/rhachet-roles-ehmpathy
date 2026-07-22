@@ -1,0 +1,65 @@
+# rule.forbid.any-time
+
+## .what
+do not represent a time/date/duration with an ANY-TIME shape — bare Date, number epoch, ad-hoc time string, moment/dayjs object, hand-rolled { hours; mins } bag — as the declared/stored/passed shape
+any-time = any representation OTHER THAN the canonical iso-time glossary. the loose, unconstrained twin of strict iso-time (rule.require.iso-time) — same sense `any` carries in typescript: could be any shape at all, compiler guarantees none
+
+## .why
+iso-time = adopted glossary for ergonomics + safety; an any-time shape forfeits both:
+- ambiguity — Date has implicit zone; '06/15/2024' reads june-or-6th per locale; a bare number hides its unit (s? ms?)
+- drift — an any-time duration invites hand-rolled ms math; an off-by-1000 hides for months. addDuration/getDuration cannot drift
+- sprawl — every any-time shape is a private map; 10 files grow 10 time shapes. the glossary is one territory
+
+## .the forbidden shapes
+- `bookedAt: Date` → IsoTimeStamp
+- `startsAt: string` → IsoDateStamp/IsoTimeFloat
+- `expiresAt: number` → IsoTimeStamp
+- `duration: number` → IsoDuration
+- `{ hrs, mins }` bag → IsoDurationShape
+- `moment()`/`dayjs()` object → iso-time cast
+- `Date.now() + 3600_000` → addDuration(now(), { hours: 1 })
+
+## .the one allowed use
+bare Date/number allowed ONLY as transient input to an as* cast at a boundary (clock/sdk); cast to an iso-time type at once, never stored/passed as any-time
+```ts
+const paddledOutAt = asIsoTimeStamp(sdkSession.startedAt); // Date -> IsoTimeStamp
+```
+
+## .reach for instead
+- `new Date(x)` to parse → asIsoTimeStamp/asIsoDateStamp
+- `Date.now()`/`new Date()` → now()/today()
+- `a.getTime() + ms` → addDuration(a, dur)
+- `a.getTime() - ms` → subDuration(a, dur)
+- `b.getTime() - a.getTime()` → getDuration({ of: { range: { since: a, until: b } } })
+- `ms1 + ms2` → sumDurations(dur1, dur2)
+- hand-rolled isValidDate → isIsoTimeStamp/isIsoDateStamp
+> read the full glossary: rhx git.repo.get lines --in ehmpathy/iso-time --paths 'readme.md'
+
+## .caveats
+- the boundary cast is the escape hatch, not a loophole — a Date may enter and be cast at once; it may not linger as a field/return/passed value
+- toMilliseconds(dur) is the sanctioned way to hand a duration to a raw-ms api; do not resort to Date.now() math in domain logic
+- stamp vs float — a bare '09:00:00' for a daily pattern → IsoTimeFloat, not a raw string (see rule.require.iso-time)
+
+## .examples
+👎 bad
+```ts
+interface WaveReport { observedAt: Date; windowMs: number; }
+const staleAfter = report.observedAt.getTime() + report.windowMs; // off-by-1000 waits
+```
+👍 good
+```ts
+import type { IsoTimeStamp, IsoDuration } from 'iso-time';
+import { addDuration } from 'iso-time';
+interface WaveReport { observedAt: IsoTimeStamp; window: IsoDuration; }
+const staleAfter = addDuration(report.observedAt, report.window);
+```
+
+## .enforcement
+- time/date/duration declared as Date/number/bare string in a domain object, contract, or stored value = blocker
+- moment/dayjs object as a stored/passed representation = blocker
+- hand-rolled ms arithmetic on an any-time value = blocker
+- any-time value is a false positive only as transient input to an as* cast at a boundary
+
+## .see also
+- rule.require.iso-time — the positive pair
+- rule.forbid.magic-values — the adjacent rule on hidden-unit primitives
