@@ -30,14 +30,14 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #         daemon that poisons the env-var fallback, so we omit it.
 
 # hardcoded rules for this rubric (multiple --rules for node glob)
-RULES_ARCH_1='.agent/repo=ehmpathy/role=architect/briefs/practices/rule.forbid.decode-friction-in-orchestrators.md'
-RULES_ARCH_2='.agent/repo=ehmpathy/role=architect/briefs/practices/rule.require.orchestrators-as-narrative.md'
+RULES_ARCH_1='.agent/repo=ehmpathy/role=architect/briefs/practices/domain.operations/rule.forbid.decode-friction-in-orchestrators.md'
+RULES_ARCH_2='.agent/repo=ehmpathy/role=architect/briefs/practices/domain.operations/rule.require.orchestrators-as-narrative.md'
 RULES_MECH_1='.agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/readable.narrative/rule.forbid.inline-decode-friction.md'
 RULES_MECH_2='.agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/readable.narrative/rule.require.named-transformers.md'
 
 # refs for context (multiple --refs for node glob)
-REFS_ARCH_1='.agent/repo=ehmpathy/role=architect/briefs/practices/define.domain-operation-grains.md'
-REFS_ARCH_2='.agent/repo=ehmpathy/role=architect/briefs/practices/philosophy.transformer-orchestrator-separation.[philosophy].md'
+REFS_ARCH_1='.agent/repo=ehmpathy/role=architect/briefs/practices/domain.operations/define.domain-operation-grains.md'
+REFS_ARCH_2='.agent/repo=ehmpathy/role=architect/briefs/practices/domain.operations/philosophy.transformer-orchestrator-separation.[philosophy].md'
 
 # filter out --skill and its value from args (rhachet injects these)
 # also extract --brain if provided

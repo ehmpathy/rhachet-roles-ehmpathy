@@ -30,7 +30,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 #         daemon that poisons the env-var fallback, so we omit it.
 
 # hardcoded rules for this rubric
-RULES='.agent/repo=ehmpathy/role=architect/briefs/practices/rule.prefer.most-common-denominator.md'
+RULES='.agent/repo=ehmpathy/role=architect/briefs/practices/repo.structure/rule.prefer.most-common-denominator.md'
 
 # refs for context (philosophies inform but are not rules)
 REFS='.agent/repo=ehmpathy/role=architect/briefs/practices/philosophy.domain-as-a-garden.[philosophy].md'

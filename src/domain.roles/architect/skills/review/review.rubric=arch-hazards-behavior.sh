@@ -31,13 +31,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # hardcoded rules for this rubric
 # orchestrators-as-narrative ensures behavior is clear
-RULES_NARRATIVE='.agent/repo=ehmpathy/role=architect/briefs/practices/rule.require.orchestrators-as-narrative.md'
+RULES_NARRATIVE='.agent/repo=ehmpathy/role=architect/briefs/practices/domain.operations/rule.require.orchestrators-as-narrative.md'
 
 # decode-friction detection for hidden complexity
-RULES_DECODE='.agent/repo=ehmpathy/role=architect/briefs/practices/rule.forbid.decode-friction-in-orchestrators.md'
+RULES_DECODE='.agent/repo=ehmpathy/role=architect/briefs/practices/domain.operations/rule.forbid.decode-friction-in-orchestrators.md'
 
 # transformer-orchestrator separation philosophy
-REFS='.agent/repo=ehmpathy/role=architect/briefs/practices/philosophy.transformer-orchestrator-separation.[philosophy].md'
+REFS='.agent/repo=ehmpathy/role=architect/briefs/practices/domain.operations/philosophy.transformer-orchestrator-separation.[philosophy].md'
 
 # extract --brain if provided, filter out --skill
 FILTERED_ARGS=()

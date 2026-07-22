@@ -11,7 +11,7 @@ rubrics:
   - slug: arch-opport-decomposition
     purpose: identify opportunities for decomposition and recomposition
     rules:
-      - .agent/repo=ehmpathy/role=architect/briefs/practices/rule.prefer.most-common-denominator.md
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/repo.structure/rule.prefer.most-common-denominator.md
     refs:
       - .agent/repo=ehmpathy/role=architect/briefs/practices/philosophy.domain-as-a-garden.[philosophy].md
 
@@ -25,11 +25,11 @@ rubrics:
     purpose: detect maintenance hazards from workarounds, decode-friction, and magic values
     rules:
       - .agent/repo=ehmpathy/role=architect/briefs/practices/rule.require.solve-at-cause.md
-      - .agent/repo=ehmpathy/role=architect/briefs/practices/rule.require.orchestrators-as-narrative.md
-      - .agent/repo=ehmpathy/role=architect/briefs/practices/rule.forbid.decode-friction-in-orchestrators.md
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/domain.operations/rule.require.orchestrators-as-narrative.md
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/domain.operations/rule.forbid.decode-friction-in-orchestrators.md
       - .agent/repo=ehmpathy/role=mechanic/briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.magic-values.md
     refs:
-      - .agent/repo=ehmpathy/role=architect/briefs/practices/philosophy.transformer-orchestrator-separation.[philosophy].md
+      - .agent/repo=ehmpathy/role=architect/briefs/practices/domain.operations/philosophy.transformer-orchestrator-separation.[philosophy].md
 
   - slug: arch-hazards-behavior
     purpose: detect behavior hazards from implicit nulls and hidden complexity

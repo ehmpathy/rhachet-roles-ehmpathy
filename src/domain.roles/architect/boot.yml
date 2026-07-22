@@ -21,11 +21,15 @@ always:
       - briefs/ubiqlang.ambiguous-from-overload.md
 
       # domain discovery
+      - briefs/practices/domain.discovery/def.domain-discovery.md
       - briefs/practices/domain.discovery/howto.domain-discovery.md
       - briefs/practices/domain.discovery/rule.require.domain-discovery-for-term-proposals.md
       - briefs/practices/domain.discovery/rule.require.persist-domain-term-evidence.md
 
     ref:
+      # domain discovery — the cited canon (loaded on demand)
+      - briefs/practices/domain.discovery/ref.domain-discovery.fundamentals.md
+
       # dimensional decomposition — a premier discovery tactic (loaded on demand)
       - briefs/practices/domain.discovery/howto.dimensional-decomposition.md
       - briefs/practices/domain.discovery/rule.require.dimensional-decomposition.md
