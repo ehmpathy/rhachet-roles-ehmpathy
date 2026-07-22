@@ -1,0 +1,71 @@
+# rule.require.iso-time
+
+## .what
+represent every time/date/duration value with the `iso-time` glossary types — the adopted ubiqlang glossary for time. cast raw inputs into the glossary at the boundary with as*; from there the value is an iso-time type
+
+## .why
+adopted for ergonomics + safety (the glossary-family reasons):
+- safety — strict iso 8601 is unambiguous ('2024-06-15' reads one way everywhere; a bare '06/15/2024' or a Date with implicit zone does not). draws the stamp-vs-float line the domain has (absolute instant vs detached pattern)
+- ergonomics — one obvious cast (asIsoTimeStamp), one obvious duration ('PT30M' | { minutes: 30 }), one obvious arithmetic (addDuration/getDuration). common case = one-liner
+raw number/Date = a map prior code drew; the iso-time type = the territory
+
+## .the glossary
+- IsoTimeStamp `2024-06-15T14:30:00Z`, IsoDateStamp `2024-06-15`, IsoMonthStamp `2024-06`
+- IsoTimeFloat `14:30:00`, IsoWeekdayFloat `1`
+- IsoDuration = IsoDurationWords `'PT30M'` | IsoDurationShape `{ minutes: 30 }`
+- ranges: IsoTimeStampRange, IsoDateStampRange `{ since, until }`
+
+## .the operations
+- cast: asIsoTimeStamp/asIsoDateStamp/asIsoMonthStamp (input → strict stamp); asIsoTimeFloat/asIsoHourFloat/asIsoWeekdayFloat (extract detached component); asIsoTimeStampRange/asIsoDateStampRange
+- guard: isIsoTimeStamp/isIsoDateStamp/... (validate/narrow format)
+- arithmetic: addDuration(stamp,dur), subDuration(stamp,dur), getDuration({ of: { range } }), sumDurations(...durs)
+- convert: toMilliseconds(dur) — dur → raw ms (boundary only)
+- observe: now(), today() — read the clock as a stamp; use these, not new Date()
+- sleep: sleep(dur)
+> read the full glossary: rhx git.repo.get lines --in ehmpathy/iso-time --paths 'readme.md'
+
+## .caveats
+- stamp vs float is the core split: stamp = absolute instant (IsoTimeStamp); float = detached pattern (IsoTimeFloat). "when it happened" = stamp, "when it repeats" = float
+- durations have two forms: IsoDurationWords ('PT30M') concise for input; IsoDurationShape ({ minutes: 30 }) easy to manipulate, returned by default. IsoDuration accepts either
+- read the clock via now()/today(), never new Date() in domain logic (keeps value in glossary + tests deterministic)
+- toMilliseconds is a boundary escape hatch (hand a duration to a raw ms api); do not route domain arithmetic through it
+
+## .scope
+applies to the REPRESENTATION: a field on a domain object/type, a contract/operation i/o shape, a persisted/passed value
+bare Date/number allowed ONLY as transient input to an as* cast at a boundary (sdk unix seconds, new Date() clock read). the declared/stored/passed shape is an iso-time type
+
+## .how
+- declare time fields as iso-time types, never Date/number/bare string
+- cast at the boundary — asIsoTimeStamp(sdkValue) the moment a raw time enters
+- read the clock via now()/today(), not new Date() in domain logic
+- durations as IsoDuration; arithmetic via addDuration/getDuration, never hand-rolled ms math
+
+## .examples
+👎 bad
+```ts
+interface SurfLesson { bookedAt: Date; startsAt: string; duration: number; }
+```
+👍 good
+```ts
+import type { IsoTimeStamp, IsoTimeFloat, IsoDuration } from 'iso-time';
+interface SurfLesson { bookedAt: IsoTimeStamp; startsAt: IsoTimeFloat; duration: IsoDuration; }
+```
+👍 cast at boundary, compute through glossary
+```ts
+import { asIsoTimeStamp, addDuration, now } from 'iso-time';
+const bookedAt = asIsoTimeStamp(sdkReservation.createdAt);
+const endsAt = addDuration(asIsoTimeStamp(now()), { minutes: 30 });
+```
+
+## .exceptions
+- transient cast input: a Date/number handed to an as* cast at a boundary
+- third-party contracts: an sdk/api type you do not own; cast to iso-time the moment it crosses in
+
+## .enforcement
+- time/date/duration declared as Date/number/bare string in a domain object, contract, or stored value = blocker
+- hand-rolled ms arithmetic where addDuration/getDuration applies = blocker
+
+## .see also
+- rule.forbid.any-time — the negative pair
+- rule.require.ubiqlang — one canonical representation per concept
+- rule.require.read-package-docs-before-use — read the iso-time readme first

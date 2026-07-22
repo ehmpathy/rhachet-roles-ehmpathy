@@ -1,0 +1,69 @@
+# rule.forbid.any-price
+
+## .what
+do not represent money/price with an ANY-PRICE shape — bare number (dollars or cents), display string '$50.37', or ad-hoc { amount, currency } bag — as the declared/stored/passed shape
+any-price = any representation OTHER THAN the canonical iso-price glossary. the loose, unconstrained twin of IsoPriceWords (rule.require.iso-price) — same sense `any` carries in typescript: could be any shape at all, compiler guards no currency/unit/precision
+above all: no money arithmetic on an any-price number. 0.1 + 0.2 = 0.30000000000000004, and that cent reaches a real invoice
+
+## .why
+iso-price = adopted glossary for ergonomics + safety; an any-price shape forfeits both:
+- float drift — ieee-754 cannot hold 0.30 exactly; every +,*,/ on money numbers accrues error. bigint arithmetic cannot
+- lost currency — a bare number drops the currency, so usd + eur sums to a meaningless total. IsoPriceWords carries the currency and refuses the mismatch
+- hidden unit — is 5037 dollars or cents? an any-price number never says; 'USD 50.37' does
+- sprawl — every ad-hoc { amount, currency } bag is a private map; the glossary is one validated territory
+
+## .the forbidden shapes
+- `pricePerDay: number` → IsoPriceWords
+- `total: number` (cents) → IsoPriceWords
+- `price: '$50.37'` display string → IsoPriceWords ('USD 50.37')
+- `{ amount: number; currency: string }` bag → IsoPriceWords/IsoPriceShape
+- `a + b`, `qty * price` on money numbers → priceSum, priceMultiply
+
+## .the one allowed use
+bare number/display string/{ amount, currency } allowed ONLY as transient input to asIsoPrice at a boundary (sdk/form); cast to IsoPriceWords at once, never stored/passed as any-price
+```ts
+const paid = asIsoPrice({ amount: sdkCharge.amount, currency: sdkCharge.currency });
+```
+
+## .reach for instead
+use the price* (noun-first) form so every price op groups under one autocomplete prefix:
+- `parseFloat('$50.37')` → asIsoPrice
+- `a + b` on money → priceSum(a, b)
+- `a - b` on money → priceSub(a, b)
+- `price * qty` → priceMultiply({ of: price, by: qty })
+- `total / n` → priceDivide({ of: total, by: n })
+- split a bill by hand → priceAllocate({ of, into, remainder })
+- `a === b` on money → isIsoPrice.equal(a, b); `a > b` → isIsoPrice.greater(a, b)
+- `n.toFixed(2)` for display → asIsoPriceHuman
+> read the full glossary: rhx git.repo.get lines --in ehmpathy/iso-price --paths 'readme.md'
+
+## .caveats
+- the boundary cast is the escape hatch, not a loophole — a raw number may enter and be cast at once; it may not linger as a field/return/passed value
+- never === two prices — 'USD 0.25' equals 'USD 0.250_000' in value, not as strings; compare with isIsoPrice.equal
+- display is not storage — asIsoPriceHuman ('$50.37') is a locale-bound lossy view; keep at the ui edge, never stored/passed
+- a scalar multiplier stays a number — priceMultiply({ of: price, by: 7 }); `by` is a plain quantity, not a price
+
+## .examples
+both demonstrate the same computation — a quote total, rate × hours — done wrong, then right
+👎 bad
+```ts
+interface SurfLessonQuote { hourlyRate: number; hours: number; }
+const total = quote.hourlyRate * quote.hours; // raw multiply — float drift + no currency guard
+```
+👍 good
+```ts
+import type { IsoPriceWords } from 'iso-price';
+import { priceMultiply } from 'iso-price';
+interface SurfLessonQuote { hourlyRate: IsoPriceWords; hours: number; }
+const total = priceMultiply({ of: quote.hourlyRate, by: quote.hours }); // 'USD 240.00'
+```
+
+## .enforcement
+- money/price/fee/total declared as number or display string in a domain object, contract, or stored value = blocker
+- ad-hoc { amount, currency } bag as the stored/passed representation = blocker
+- raw +/*/ arithmetic on money numbers = blocker
+- any-price value is a false positive only as transient input to asIsoPrice at a boundary
+
+## .see also
+- rule.require.iso-price — the positive pair
+- rule.forbid.io-as-domain-objects — the adjacent rule against ad-hoc contract bags

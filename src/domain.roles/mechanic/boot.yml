@@ -148,6 +148,12 @@ subject.code.prod:
       # artifacts
       - briefs/practices/code.prod/consistent.artifacts/rule.require.pinned-versions.md
 
+      # glossaries — the adopted ubiqlang glossaries for domain primitives
+      - briefs/practices/code.prod/consistent.glossaries/rule.require.iso-time.md
+      - briefs/practices/code.prod/consistent.glossaries/rule.forbid.any-time.md
+      - briefs/practices/code.prod/consistent.glossaries/rule.require.iso-price.md
+      - briefs/practices/code.prod/consistent.glossaries/rule.forbid.any-price.md
+
     ref:
       # procedure supplements
       - briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt2.md

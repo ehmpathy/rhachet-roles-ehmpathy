@@ -1,0 +1,76 @@
+# rule.require.iso-price
+
+## .what
+represent every money/price value with the `iso-price` glossary types — the adopted ubiqlang glossary for money. IsoPriceWords (a string like 'USD 50.37') is the canonical representation. cast raw inputs at the boundary with asIsoPrice; do arithmetic through priceSum/priceMultiply/priceDivide, never raw numbers
+
+## .why
+adopted for ergonomics + safety (the glossary-family reasons):
+- safety — money math on a raw number is wrong by construction (0.1 + 0.2 = 0.30000000000000004). iso-price does lossless bigint arithmetic, knows each currency's iso 4217 exponent, carries the currency in the value — so no lost precision, no drift, no cross-currency add
+- ergonomics — words in, words out: priceSum('USD 0.10','USD 0.20') = 'USD 0.30'. one cast (asIsoPrice), one display (asIsoPriceHuman), one structured read (asIsoPriceShape)
+a bare number = a map that dropped the currency + precision; IsoPriceWords = the territory
+
+## .the glossary
+- IsoPriceWords (default) `'USD 50.37'`
+- IsoPriceShape `{ amount: 5037n, currency: 'USD', exponent: 'centi.x10^-2' }`
+- IsoPriceHuman `'$50.37'`
+
+## .the operations
+use the price* (noun-first) form — groups every price op under one autocomplete prefix (rule.require.order.noun_adj). verb-first aliases (sumPrices, multiplyPrice, …) name the same op; prefer price*
+- cast: asIsoPrice (=asIsoPriceWords) any input → 'USD 50.37'; asIsoPriceShape → { amount, currency, exponent }; asIsoPriceHuman → '$50.37'
+- sort: asIsoPrice.sorted (.asc/.desc)
+- arithmetic: priceSum(...prices), priceSub(a,b), priceMultiply({ of, by }), priceDivide({ of, by }), priceAllocate({ of, into, remainder })
+- precision: setPricePrecision({ of, to }), roundPrice({ of })
+- statistics: calcPriceAvg(prices), calcPriceStdev(prices)
+- guard: isIsoPrice (+ .greater/.lesser/.equal)
+- asIsoPrice accepts any input ('$50.37', 'USD 50.37', { amount, currency }, bigint) → canonical words
+> read the full glossary: rhx git.repo.get lines --in ehmpathy/iso-price --paths 'readme.md'
+
+## .caveats
+- IsoPriceWords is the one you store/pass. IsoPriceHuman ('$50.37') is display-only (locale-bound, lossy) — keep at the ui edge; IsoPriceShape is for structured reads
+- precision follows iso 4217 by default: asIsoPrice('$7')='USD 7.00' (2dp), asIsoPrice('¥1000')='JPY 1000' (0dp). custom currencies default to 2dp. override with { exponent }, round with { round: 'half-up' }
+- precision preserved to the most granular input — priceSum('USD 50.00','USD 0.000_005') keeps micro precision (a feature, not drift)
+- compare with isIsoPrice.equal not === ('USD 0.25' equals 'USD 0.250_000' in value, not as strings)
+
+## .scope
+applies to the REPRESENTATION: a price/total/fee/balance field on a domain object/type, a contract/operation i/o shape, a persisted/passed value
+bare number / '$50.37' string / { amount, currency } bag allowed ONLY as transient input to asIsoPrice at a boundary. the declared/stored/passed shape is IsoPriceWords
+
+## .how
+- declare price fields as IsoPriceWords, never number
+- cast at the boundary — asIsoPrice(sdkCharge.amount) the moment a raw price enters
+- compute via priceSum/priceMultiply/priceDivide, never a + b on raw money numbers
+- compare via isIsoPrice.greater/.lesser/.equal (handle precision)
+- display via asIsoPriceHuman at the ui edge only
+
+## .examples
+👎 bad
+```ts
+interface BoardRental { pricePerDay: number; }
+const total = rental.pricePerDay * 0.1 + rental.pricePerDay * 0.2; // float drift
+```
+👍 good
+```ts
+import type { IsoPriceWords } from 'iso-price';
+import { priceSum, priceMultiply, priceDivide } from 'iso-price';
+interface BoardRental { pricePerDay: IsoPriceWords; }
+const weekend = priceSum(rental.pricePerDay, rental.pricePerDay);  // 'USD 90.00'
+const week = priceMultiply({ of: rental.pricePerDay, by: 7 });     // 'USD 315.00'
+const halfDay = priceDivide({ of: rental.pricePerDay, by: 2 });    // 'USD 22.50'
+```
+👍 cast at boundary
+```ts
+const charged = asIsoPrice({ amount: sdkCharge.amount, currency: sdkCharge.currency });
+```
+
+## .exceptions
+- transient cast input: a number/display string/{ amount, currency } handed to asIsoPrice at a boundary
+- third-party contracts: an sdk/api money type you do not own; cast to iso-price the moment it crosses in
+
+## .enforcement
+- money/price/fee/total declared as number in a domain object, contract, or stored value = blocker
+- raw +/*/ arithmetic on money numbers where priceSum/priceMultiply/priceDivide applies = blocker
+
+## .see also
+- rule.forbid.any-price — the negative pair
+- rule.require.ubiqlang — one canonical representation per concept
+- rule.require.read-package-docs-before-use — read the iso-price readme first
