@@ -18,6 +18,9 @@ always:
       - briefs/practices/lang.terms/rule.require.treestruct.md
 
     ref:
+      # filename enforcement via hooks — ref only (hooks already block violations)
+      - briefs/practices/lang.tones/rule.forbid.shouted-readme.md
+
       # term enforcement via hooks — ref only (hooks already block violations)
       - briefs/practices/lang.terms/rule.forbid.term-dryrun.md
       - briefs/practices/lang.terms/rule.forbid.term=dryrun.md

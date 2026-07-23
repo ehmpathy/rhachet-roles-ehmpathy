@@ -83,5 +83,6 @@ when acronyms appear in camelCase contexts, treat them as regular words:
 - `httpClient` not `HTTPClient`
 
 #### .see also
+- `rule.forbid.shouted-readme` — the enforced, hook-backed instance for `README.md`
 - `rule.prefer.lowercase` — broader lowercase guidance
 - `rule.require.ubiqlang` — consistent terminology
