@@ -1,0 +1,35 @@
+# .rule = forbid-shouted-readme
+
+.what: the repo readme is always `readme.md` (lowercase) — never the shouted `README.md`
+
+read `readme.md`. write `readme.md`. never create, read, or edit a `README.md`.
+
+targets the all-caps `README.md`. mixed-case (`Readme.md`, `ReadMe.md`) is not the shout
+this rule names; `readme.md` remains the one canonical form.
+
+.why:
+- clones reach for `README.md` out of habit, find no file, wrongly conclude "no readme
+  here" — or create a shouted duplicate that drifts from the real one
+- one canonical readme per directory prevents `README.md` vs `readme.md` drift
+- github renders readme case-insensitively — `readme.md` loses no front-page value
+- a specific instance of `rule.forbid.shouts` — shouted filenames shout
+
+.scope:
+- applies: every repo-local `README.md` — root, `docs/README.md`, `packages/*/README.md`, any depth
+- excludes: `node_modules/**` (third-party), `.git/**` and vendored dirs (not ours)
+
+.canonical form:
+
+| shouted | canonical |
+|---------|-----------|
+| `README.md` | `readme.md` |
+| `docs/README.md` | `docs/readme.md` |
+
+.enforcement: read/write/edit of a repo-local `README.md` = blocker
+
+.note: covers `README.md` only. other shouted docs (`LICENSE`, `CHANGELOG.md`, `TODO.md`)
+stay advisorily governed by `rule.forbid.shouts`
+
+.see also:
+- rule.forbid.shouts
+- rule.prefer.lowercase
