@@ -1651,4 +1651,132 @@ module.exports = {
       });
     });
   });
+
+  // ######################################################################
+  // plan mode compares to origin/main (the split), NOT stale local main
+  // ######################################################################
+  given('[case26] plan mode ignores commits local main is behind on', () => {
+    /**
+     * .what = verify --changedSince targets origin/main (the true fork point),
+     *         so a commit that merged to the trunk after this branch split —
+     *         one a stale local main has not yet caught up on — is NOT mistaken
+     *         for this branch own change
+     * .why = clamps the regression where --changedSince=main diffs against a
+     *        stale local main, whose earlier merge-base drags unrelated,
+     *        already-merged suites into scope (proven: 7 vs 3 files, 576s vs 151s)
+     */
+    when(
+      '[t0] local main is behind origin/main by an unrelated moduleB commit',
+      () => {
+        const result = useThen('skill is run in plan mode', () => {
+          // provision temp repo from fixture, committed on main (fork point C0)
+          const tempDir = genTempDir({
+            slug: 'changed-since-behind',
+            clone:
+              './src/domain.roles/mechanic/skills/git.repo.test/__test_assets__/changedSince',
+            git: true,
+          });
+
+          const gitInDir = (gitArgs: string[]) =>
+            spawnSync('git', gitArgs, {
+              cwd: tempDir,
+              encoding: 'utf-8' as const,
+            });
+          const revParse = (ref: string) =>
+            (gitInDir(['rev-parse', ref]).stdout ?? '').trim();
+
+          // ensure the base branch is named 'main'
+          gitInDir(['branch', '-M', 'main']);
+
+          // symlink node_modules (required for jest --listTests)
+          fs.symlinkSync(
+            path.join(repoRoot, 'node_modules'),
+            path.join(tempDir, 'node_modules'),
+          );
+
+          // C0: the fork point — all modules committed on main
+          gitInDir(['add', '.']);
+          gitInDir(['commit', '-m', 'C0 initial']);
+          const forkPoint = revParse('HEAD');
+
+          // C1: a trunk commit that changes moduleB, merged AFTER the fork point.
+          // stands in for work that landed on the trunk (e.g. a large feature
+          // merge) that a stale local main has not yet pulled.
+          fs.writeFileSync(
+            path.join(tempDir, 'src/moduleB.js'),
+            'module.exports = { b: 200 }; // trunk change, post-split',
+          );
+          gitInDir(['add', '.']);
+          gitInDir(['commit', '-m', 'C1 trunk changes moduleB']);
+          const trunkTip = revParse('HEAD');
+
+          // origin/main = C1 (the up-to-date trunk this branch split from)
+          gitInDir(['update-ref', 'refs/remotes/origin/main', trunkTip]);
+
+          // this branch splits from the up-to-date trunk (C1), changes only moduleA
+          gitInDir(['checkout', '-b', 'feature']);
+          fs.writeFileSync(
+            path.join(tempDir, 'src/moduleA.js'),
+            'module.exports = { a: 100 }; // this branch changes moduleA',
+          );
+          gitInDir(['add', '.']);
+          gitInDir(['commit', '-m', 'F1 feature changes moduleA']);
+
+          // simulate the drift: rewind local main to the fork point (C0), so it
+          // is BEHIND origin/main by the moduleB trunk commit. a
+          // --changedSince=main run would mis-diff against C0 and catch moduleB.
+          gitInDir(['branch', '-f', 'main', forkPoint]);
+
+          // run skill in plan mode (no --scope, no --thorough)
+          const skillResult = spawnSync(
+            'bash',
+            [scriptPath, '--what', 'unit', '--mode', 'plan'],
+            { cwd: tempDir, encoding: 'utf-8' as const },
+          );
+
+          const matchedLine = (skillResult.stdout ?? '')
+            .split('\n')
+            .find((l) => l.includes('matched:'));
+          const matchedCount = matchedLine
+            ? parseInt(matchedLine.match(/matched: (\d+)/)?.[1] ?? '0', 10)
+            : 0;
+
+          return {
+            exitCode: skillResult.status ?? 1,
+            matchedCount,
+            stdout: skillResult.stdout ?? '',
+            stderr: skillResult.stderr ?? '',
+          };
+        });
+
+        then('exit code is 0 (success)', () => {
+          expect(result.exitCode).toBe(0);
+        });
+
+        then('matched count is 1 — only this branch own change', () => {
+          expect(result.matchedCount).toBe(1);
+        });
+
+        then('output shows moduleA.test.js (this branch change)', () => {
+          expect(result.stdout).toContain('moduleA.test.js');
+        });
+
+        then('output does NOT show moduleB.test.js (the behind-commit)', () => {
+          // the regression clamp: a revert to --changedSince=main would diff
+          // against stale local main and pull moduleB.test.js back into scope
+          expect(result.stdout).not.toContain('moduleB.test.js');
+        });
+
+        then('stdout matches snapshot (temp paths + times masked)', () => {
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+
+        then('stderr matches snapshot (empty on this success path)', () => {
+          // pin stderr too, so a stray warn or debug line cannot slip in unseen
+          // (rule.require.contract-snapshot-exhaustiveness)
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      },
+    );
+  });
 });

@@ -29,7 +29,8 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, lo
    ├─ push: origin/turtle/feature
    ├─ pr
    │  ├─ title: feat: test commit
-   │  └─ action: findsert
+   │  ├─ action: findsert
+   │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
       └─ push: allowed
 

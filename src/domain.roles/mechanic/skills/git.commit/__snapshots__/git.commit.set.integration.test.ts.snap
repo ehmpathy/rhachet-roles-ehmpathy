@@ -123,7 +123,8 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] pl
    ├─ push: origin/feat/new-feature
    ├─ pr
    │  ├─ title: feat(test): new feature
-   │  └─ action: findsert draft
+   │  ├─ action: findsert draft
+   │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
       ├─ left: 2 → 1
       └─ push: allowed
@@ -151,7 +152,8 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] pl
    ├─ push: origin/feat/multi-commit
    ├─ pr
    │  ├─ title: feat: first commit on branch
-   │  └─ action: findsert draft
+   │  ├─ action: findsert draft
+   │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
       ├─ left: 5 → 4
       └─ push: allowed
@@ -192,55 +194,10 @@ exports[`git.commit.set.sh given: [case12] PR title on stacked branch (branch fr
    ├─ push: origin/turtle/branch-b
    ├─ pr
    │  ├─ title: feat: B1 first on branch-b
-   │  └─ action: findsert draft
+   │  ├─ action: findsert draft
+   │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
       ├─ left: 5 → 4
-      └─ push: allowed
-
-run with --mode apply to execute
-"
-`;
-
-exports[`git.commit.set.sh given: [case13] last use with push allowed shows push status when: [t0] uses go from 1 to 0 with push allowed then: meter shows push: allowed after commit 1`] = `
-"🐢 righteous!
-
-🐚 git.commit.set
-   ├─ commit
-   │  ├─ header: fix(api): last commit
-   │  ├─ body
-   │  │  └─ - test change
-   │  ├─ author
-   │  │  ├─ name: seaturtle[bot]
-   │  │  └─ email: seaturtle@ehmpath.com
-   │  └─ patron
-   │     ├─ name: Test Human
-   │     └─ email: human@test.com
-   ├─ push: skipped
-   └─ meter
-      ├─ left: 0
-      └─ push: allowed
-"
-`;
-
-exports[`git.commit.set.sh given: [case13] last use with push allowed shows push status when: [t0] uses go from 1 to 0 with push allowed then: plan mode also shows push: allowed 1`] = `
-"🐢 heres the wave...
-
-🐚 git.commit.set --mode plan
-   ├─ commit
-   │  ├─ header: fix(api): last commit plan
-   │  ├─ body
-   │  │  └─ - test change
-   │  ├─ author
-   │  │  ├─ name: seaturtle[bot]
-   │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
-   │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
-   │  └─ files
-   │     └─ fix.txt
-   ├─ push: skipped
-   └─ meter
-      ├─ left: 1 → 0
       └─ push: allowed
 
 run with --mode apply to execute
@@ -264,60 +221,6 @@ exports[`git.commit.set.sh given: [case14] bound level enforced — fix rejects 
 "
 `;
 
-exports[`git.commit.set.sh given: [case14] multiline message is required when: [t1] message is multiline (has body) then: body appears in plan tree output 1`] = `
-"🐢 heres the wave...
-
-🐚 git.commit.set --mode plan
-   ├─ commit
-   │  ├─ header: fix(test): with desc
-   │  ├─ body
-   │  │  ├─ - fixed the bug
-   │  │  └─ - added tests
-   │  ├─ author
-   │  │  ├─ name: seaturtle[bot]
-   │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
-   │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
-   │  └─ files
-   │     └─ fix.txt
-   ├─ push: skipped
-   └─ meter
-      ├─ left: 2 → 1
-      └─ push: blocked
-
-run with --mode apply to execute
-"
-`;
-
-exports[`git.commit.set.sh given: [case15] plan mode auto-revoke display with push when: [t0] uses go from 1 to 0 with push allowed then: plan shows push: allowed to blocked (revoked) 1`] = `
-"🐢 heres the wave...
-
-🐚 git.commit.set --mode plan
-   ├─ commit
-   │  ├─ header: fix(test): last use
-   │  ├─ body
-   │  │  └─ - last commit before revoke
-   │  ├─ author
-   │  │  ├─ name: seaturtle[bot]
-   │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
-   │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
-   │  └─ files
-   │     └─ fix.txt
-   ├─ push: origin/turtle/revoke-test
-   ├─ pr
-   │  ├─ title: fix(test): last use
-   │  └─ action: findsert draft
-   └─ meter
-      ├─ left: 1 → 0
-      └─ push: allowed → blocked (revoked)
-
-run with --mode apply to execute
-"
-`;
-
 exports[`git.commit.set.sh given: [case16] bound level enforced — feat rejects fix prefix when: [t0] level bound to feat, header starts with fix( then: exits with level mismatch error 1`] = `
 "🐢 bummer dude...
 
@@ -332,19 +235,6 @@ exports[`git.commit.set.sh given: [case16] bound level enforced — feat rejects
 
    the branch is bound to feat — use feat: even if you think its a fix.
    change your commit header to feat(...):
-"
-`;
-
-exports[`git.commit.set.sh given: [case17] adhoc Co-authored-by forbidden when: [t0] message contains Co-authored-by trailer then: exits with error about adhoc co-author 1`] = `
-"🐢 bummer dude...
-
-🐚 git.commit.set
-   └─ error: adhoc Co-authored-by forbidden
-
-   the commit message contains a Co-authored-by trailer.
-   this skill sets Co-authored-by automatically from your git config.
-
-   remove the Co-authored-by line from your message and retry.
 "
 `;
 
@@ -371,6 +261,107 @@ exports[`git.commit.set.sh given: [case20] continuation commit enforcement when:
    attempted: feat(api): add feature
 
    use \`cont:\` or \`cont(api):\` prefix
+"
+`;
+
+exports[`git.commit.set.sh given: [case21] last use with push allowed shows push status when: [t0] uses go from 1 to 0 with push allowed then: meter shows push: allowed after commit 1`] = `
+"🐢 righteous!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(api): last commit
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ patron
+   │     ├─ name: Test Human
+   │     └─ email: human@test.com
+   ├─ push: skipped
+   └─ meter
+      ├─ left: 0
+      └─ push: allowed
+"
+`;
+
+exports[`git.commit.set.sh given: [case21] last use with push allowed shows push status when: [t0] uses go from 1 to 0 with push allowed then: plan mode also shows push: allowed 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.set --mode plan
+   ├─ commit
+   │  ├─ header: fix(api): last commit plan
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  ├─ patron
+   │  │  ├─ name: Test Human
+   │  │  └─ email: human@test.com
+   │  └─ files
+   │     └─ fix.txt
+   ├─ push: skipped
+   └─ meter
+      ├─ left: 1 → 0
+      └─ push: allowed
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.set.sh given: [case22] multiline message is required when: [t1] message is multiline (has body) then: body appears in plan tree output 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.set --mode plan
+   ├─ commit
+   │  ├─ header: fix(test): with desc
+   │  ├─ body
+   │  │  ├─ - fixed the bug
+   │  │  └─ - added tests
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  ├─ patron
+   │  │  ├─ name: Test Human
+   │  │  └─ email: human@test.com
+   │  └─ files
+   │     └─ fix.txt
+   ├─ push: skipped
+   └─ meter
+      ├─ left: 2 → 1
+      └─ push: blocked
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.set.sh given: [case23] plan mode auto-revoke display with push when: [t0] uses go from 1 to 0 with push allowed then: plan shows push: allowed to blocked (revoked) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.set --mode plan
+   ├─ commit
+   │  ├─ header: fix(test): last use
+   │  ├─ body
+   │  │  └─ - last commit before revoke
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  ├─ patron
+   │  │  ├─ name: Test Human
+   │  │  └─ email: human@test.com
+   │  └─ files
+   │     └─ fix.txt
+   ├─ push: origin/turtle/revoke-test
+   ├─ pr
+   │  ├─ title: fix(test): last use
+   │  ├─ action: findsert draft
+   │  └─ opened: as-ehmpath (ehmpath keyrack)
+   └─ meter
+      ├─ left: 1 → 0
+      └─ push: allowed → blocked (revoked)
+
+run with --mode apply to execute
 "
 `;
 
@@ -439,5 +430,453 @@ exports[`git.commit.set.sh given: [case27] commit with unlimited quota when: [t1
       └─ push: allowed
 
 run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.set.sh given: [case29] --auth flag when: [t0] an invalid --auth value is given then: it fails fast (exit 2) with the valid values 1`] = `
+"error: --auth must be 'as-ehmpath' or 'as-human'
+usage: echo 'header\\n\\n- body' | git.commit.set -m @stdin [--auth as-ehmpath|as-human]
+"
+`;
+
+exports[`git.commit.set.sh given: [case29] --auth flag when: [t0] an invalid --auth value is given then: it fails fast (exit 2) with the valid values 2`] = `
+"error: --auth must be 'as-ehmpath' or 'as-human'
+usage: echo 'header\\n\\n- body' | git.commit.set -m @stdin [--auth as-ehmpath|as-human]
+"
+`;
+
+exports[`git.commit.set.sh given: [case29] --auth flag when: [t1] a valid --auth as-human is given in plan mode then: the plan is accepted (exit 0) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.set --mode plan
+   ├─ commit
+   │  ├─ header: fix(api): good auth
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  ├─ patron
+   │  │  ├─ name: Test Human
+   │  │  └─ email: human@test.com
+   │  └─ files
+   │     └─ fix.txt
+   ├─ push: skipped
+   └─ meter
+      ├─ left: 2 → 1
+      └─ push: allowed
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.set.sh given: [case29] --auth flag when: [t1] a valid --auth as-human is given in plan mode then: the plan is accepted (exit 0) 2`] = `""`;
+
+exports[`git.commit.set.sh given: [case29] --auth flag when: [t2] a valid --auth as-human is given in plan mode with --push then: the plan tree states opened: as-human (gh cli login) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.set --mode plan
+   ├─ commit
+   │  ├─ header: fix(api): plan push as human
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  ├─ patron
+   │  │  ├─ name: Test Human
+   │  │  └─ email: human@test.com
+   │  └─ files
+   │     └─ fix.txt
+   ├─ push: origin/fix/test-branch
+   ├─ pr
+   │  ├─ title: fix(api): plan push as human
+   │  ├─ action: findsert draft
+   │  └─ opened: as-human (gh cli login, fallback)
+   └─ meter
+      ├─ left: 2 → 1
+      └─ push: allowed
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.set.sh given: [case29] --auth flag when: [t2] a valid --auth as-human is given in plan mode with --push then: the plan tree states opened: as-human (gh cli login) 2`] = `""`;
+
+exports[`git.commit.set.sh given: [case30] apply + push, keyrack fails, guide surfaces through the set→push seam when: [t0] --mode apply --push --auth as-ehmpath but the keyrack token is unavailable then: the commit lands, the guide surfaces, and a non-zero exit propagates 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: ehmpath keyrack token not available
+
+🥥 your commit is pushed; to open its pr, either:
+   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
+   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   │
+   └─ 2. or open the pr with the human's github login:
+         $ rhx git.commit.push --mode apply --auth as-human
+
+🐢 righteous!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(api): compose auth guide
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ patron
+   │     ├─ name: seaturtle[bot]
+   │     └─ email: seaturtle@ehmpath.com
+   ├─ push: error: ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human (or unlock keyrack)
+   └─ meter
+      ├─ left: 1
+      └─ push: allowed
+"
+`;
+
+exports[`git.commit.set.sh given: [case30] apply + push, keyrack fails, guide surfaces through the set→push seam when: [t0] --mode apply --push --auth as-ehmpath but the keyrack token is unavailable then: the commit lands, the guide surfaces, and a non-zero exit propagates 2`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: ehmpath keyrack token not available
+
+🥥 your commit is pushed; to open its pr, either:
+   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
+   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   │
+   └─ 2. or open the pr with the human's github login:
+         $ rhx git.commit.push --mode apply --auth as-human
+
+🐢 righteous!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(api): compose auth guide
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ patron
+   │     ├─ name: seaturtle[bot]
+   │     └─ email: seaturtle@ehmpath.com
+   ├─ push: error: ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human (or unlock keyrack)
+   └─ meter
+      ├─ left: 1
+      └─ push: allowed
+"
+`;
+
+exports[`git.commit.set.sh given: [case31] apply + push --auth as-human surfaces who opened the pr when: [t0] the pr opens under the ambient gh login then: the success tree states opened: as-human (gh cli login) 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(api): human opens pr
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ patron
+   │     ├─ name: seaturtle[bot]
+   │     └─ email: seaturtle@ehmpath.com
+   ├─ push: origin/turtle/feature ✓
+   ├─ pr: pr #88 (created)
+   ├─ opened: as-human (gh cli login, fallback)
+   └─ meter
+      ├─ left: 1
+      └─ push: allowed
+
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;
+
+exports[`git.commit.set.sh given: [case31] apply + push --auth as-human surfaces who opened the pr when: [t0] the pr opens under the ambient gh login then: the success tree states opened: as-human (gh cli login) 2`] = `""`;
+
+exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, then the printed retry ships when: [t0] set --push --auth as-ehmpath fires the guide (keyrack down) then: the guide names the retry, then that retry opens the pr as-human 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: ehmpath keyrack token not available
+
+🥥 your commit is pushed; to open its pr, either:
+   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
+   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   │
+   └─ 2. or open the pr with the human's github login:
+         $ rhx git.commit.push --mode apply --auth as-human
+
+🐢 righteous!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(api): day in the life
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ patron
+   │     ├─ name: seaturtle[bot]
+   │     └─ email: seaturtle@ehmpath.com
+   ├─ push: error: ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human (or unlock keyrack)
+   └─ meter
+      ├─ left: 1
+      └─ push: allowed
+"
+`;
+
+exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, then the printed retry ships when: [t0] set --push --auth as-ehmpath fires the guide (keyrack down) then: the guide names the retry, then that retry opens the pr as-human 2`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: ehmpath keyrack token not available
+
+🥥 your commit is pushed; to open its pr, either:
+   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
+   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   │
+   └─ 2. or open the pr with the human's github login:
+         $ rhx git.commit.push --mode apply --auth as-human
+
+🐢 righteous!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(api): day in the life
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ patron
+   │     ├─ name: seaturtle[bot]
+   │     └─ email: seaturtle@ehmpath.com
+   ├─ push: error: ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human (or unlock keyrack)
+   └─ meter
+      ├─ left: 1
+      └─ push: allowed
+"
+`;
+
+exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, then the printed retry ships when: [t0] set --push --auth as-ehmpath fires the guide (keyrack down) then: the guide names the retry, then that retry opens the pr as-human 3`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/feature ✓
+   ├─ pr: pr #99 (created)
+   ├─ opened: as-human (gh cli login, fallback)
+   └─ meter
+      └─ push: allowed
+
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;
+
+exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, then the printed retry ships when: [t0] set --push --auth as-ehmpath fires the guide (keyrack down) then: the guide names the retry, then that retry opens the pr as-human 4`] = `""`;
+
+exports[`git.commit.set.sh given: [case33] adhoc Co-authored-by forbidden when: [t0] message contains Co-authored-by trailer then: exits with error about adhoc co-author 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: adhoc Co-authored-by forbidden
+
+   the commit message contains a Co-authored-by trailer.
+   this skill sets Co-authored-by automatically from your git config.
+
+   remove the Co-authored-by line from your message and retry.
+"
+`;
+
+exports[`git.commit.set.sh given: [case34] --help short-circuits before the identity fetch when: [t0] NODE_ENV=production would otherwise make the keyrack fetch reachable then: --help exits 0 with usage and emits no keyrack heads-up 1`] = `
+"usage: echo 'header\\n\\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push] [--auth as-ehmpath|as-human]
+
+options:
+  --message, -m @stdin   read multiline commit message from stdin (required)
+                         first line = header, after blank line = body
+  --mode plan|apply      plan shows preview, apply executes (default: plan)
+  --push                 push after commit (requires push permission)
+  --auth as-ehmpath|as-human
+                         who opens the pr (default: as-ehmpath)
+                         as-ehmpath = seaturtle bot via ehmpath keyrack token
+                         as-human   = the gh cli login (fallback on keyrack failure)
+                         note: --auth governs pr-open only; the commit is always
+                         authored as seaturtle[bot]. under as-human no keyrack
+                         token is fetched — the commit uses the default seaturtle
+                         identity, so the fallback escapes keyrack entirely
+  --unstaged ignore      proceed despite unstaged changes (commit staged only)
+  --unstaged include     stage all unstaged changes before commit
+  --help, -h             show this help
+"
+`;
+
+exports[`git.commit.set.sh given: [case34] --help short-circuits before the identity fetch when: [t0] NODE_ENV=production would otherwise make the keyrack fetch reachable then: --help exits 0 with usage and emits no keyrack heads-up 2`] = `""`;
+
+exports[`git.commit.set.sh given: [case35] a composed --push under as-ehmpath performs exactly ONE keyrack fetch when: [t0] set --push --auth as-ehmpath with a healthy (faked) keyrack then: set mints the token once, threads it to push, and the bot opens the pr 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(api): one fetch across the composed push
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ patron
+   │     ├─ name: seaturtle[bot]
+   │     └─ email: seaturtle@ehmpath.com
+   ├─ push: origin/turtle/feature ✓
+   ├─ pr: pr #77 (created)
+   ├─ opened: as-ehmpath (ehmpath keyrack)
+   └─ meter
+      ├─ left: 1
+      └─ push: allowed
+
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;
+
+exports[`git.commit.set.sh given: [case35] a composed --push under as-ehmpath performs exactly ONE keyrack fetch when: [t0] set --push --auth as-ehmpath with a healthy (faked) keyrack then: set mints the token once, threads it to push, and the bot opens the pr 2`] = `""`;
+
+exports[`git.commit.set.sh given: [case41] apply + push --auth as-human, gh not logged in, guide surfaces through the seam when: [t0] --mode apply --push --auth as-human but the ambient gh login is absent then: the commit lands, the two-fix guide surfaces, and a non-zero exit propagates 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: no usable gh credential to open the pr
+
+🥥 your commit is pushed; to open its pr, either:
+   ├─ 1. log in the human's github, so the as-human fallback works:
+   │     $ gh auth login
+   │
+   └─ 2. or unlock the ehmpath keyrack, so the seaturtle can open the pr instead:
+         $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+
+cause: gh: To use GitHub CLI, please run: gh auth login
+HTTP 401: Bad credentials
+
+🐢 righteous!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(api): compose human auth guide
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ patron
+   │     ├─ name: seaturtle[bot]
+   │     └─ email: seaturtle@ehmpath.com
+   ├─ push: error: pr-open credential unusable — unlock keyrack or run gh auth login
+   └─ meter
+      ├─ left: 1
+      └─ push: allowed
+"
+`;
+
+exports[`git.commit.set.sh given: [case41] apply + push --auth as-human, gh not logged in, guide surfaces through the seam when: [t0] --mode apply --push --auth as-human but the ambient gh login is absent then: the commit lands, the two-fix guide surfaces, and a non-zero exit propagates 2`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: no usable gh credential to open the pr
+
+🥥 your commit is pushed; to open its pr, either:
+   ├─ 1. log in the human's github, so the as-human fallback works:
+   │     $ gh auth login
+   │
+   └─ 2. or unlock the ehmpath keyrack, so the seaturtle can open the pr instead:
+         $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+
+cause: gh: To use GitHub CLI, please run: gh auth login
+HTTP 401: Bad credentials
+
+🐢 righteous!
+
+🐚 git.commit.set
+   ├─ commit
+   │  ├─ header: fix(api): compose human auth guide
+   │  ├─ body
+   │  │  └─ - test change
+   │  ├─ author
+   │  │  ├─ name: seaturtle[bot]
+   │  │  └─ email: seaturtle@ehmpath.com
+   │  └─ patron
+   │     ├─ name: seaturtle[bot]
+   │     └─ email: seaturtle@ehmpath.com
+   ├─ push: error: pr-open credential unusable — unlock keyrack or run gh auth login
+   └─ meter
+      ├─ left: 1
+      └─ push: allowed
+"
+`;
+
+exports[`git.commit.set.sh given: [case42] a composed as-ehmpath push runs the strong graphql identity assert when: [t0] the fetched ghs_ token maps to a DIFFERENT app bot id (NODE_ENV=production) then: the assert fails loud on BOTH streams (exit 2), before any commit or pr 1`] = `
+"error: github token identity out of sync with the expected app bot
+  expected: ehm-a-seaturtle[bot] (id 295111357)
+  actual:   impostor[bot] (id 999999)
+
+the commit-author email hardcodes the expected bot id; if the token
+maps to a different bot, the squash-merge would show a 3rd contributor.
+fix the token, or update the seaturtle identities in keyrack.operations.sh.
+"
+`;
+
+exports[`git.commit.set.sh given: [case42] a composed as-ehmpath push runs the strong graphql identity assert when: [t0] the fetched ghs_ token maps to a DIFFERENT app bot id (NODE_ENV=production) then: the assert fails loud on BOTH streams (exit 2), before any commit or pr 2`] = `
+"error: github token identity out of sync with the expected app bot
+  expected: ehm-a-seaturtle[bot] (id 295111357)
+  actual:   impostor[bot] (id 999999)
+
+the commit-author email hardcodes the expected bot id; if the token
+maps to a different bot, the squash-merge would show a 3rd contributor.
+fix the token, or update the seaturtle identities in keyrack.operations.sh.
+"
+`;
+
+exports[`git.commit.set.sh given: [case43] plan + push, the delegated push plan fails, the composed guide surfaces through the set→push seam when: [t0] --mode plan --push on a branch push.sh refuses (master), which set.sh does not pre-guard then: the composed push-plan guide surfaces on BOTH streams and exit 2 propagates 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: cannot push directly to master
+
+create a feature branch first:
+  $ git checkout -b turtle/your-branch-name
+"
+`;
+
+exports[`git.commit.set.sh given: [case43] plan + push, the delegated push plan fails, the composed guide surfaces through the set→push seam when: [t0] --mode plan --push on a branch push.sh refuses (master), which set.sh does not pre-guard then: the composed push-plan guide surfaces on BOTH streams and exit 2 propagates 2`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: cannot push directly to master
+
+create a feature branch first:
+  $ git checkout -b turtle/your-branch-name
+"
+`;
+
+exports[`git.commit.set.sh given: [case44] the git commit itself fails (e.g. a pre-commit hook that rejects) when: [t0] apply mode, the inner git commit exits non-zero then: the "git commit failed" error rides BOTH streams with the raw cause, exit 1 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: git commit failed
+
+cause: error: failed to commit — simulated pre-commit hook rejection
+"
+`;
+
+exports[`git.commit.set.sh given: [case44] the git commit itself fails (e.g. a pre-commit hook that rejects) when: [t0] apply mode, the inner git commit exits non-zero then: the "git commit failed" error rides BOTH streams with the raw cause, exit 1 2`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: git commit failed
+
+cause: error: failed to commit — simulated pre-commit hook rejection
 "
 `;
