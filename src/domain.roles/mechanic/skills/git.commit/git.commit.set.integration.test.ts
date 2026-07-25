@@ -79,6 +79,15 @@ describe('git.commit.set.sh', () => {
       configureTestGitUser({ cwd: tempDir });
     }
 
+    // force the base branch to `main` so base-branch detection is deterministic
+    // regardless of the runner's git init.defaultBranch (main on a dev box, master
+    // on some ci runners). without this, a repo whose default is already `master`
+    // collapses a `master` head branch (case43) onto the detected base — set.sh's
+    // ON_BASE guard then fires instead of push.sh's master guard, so the outcome
+    // diverges local↔ci (rule.require.hermetic-tests). -M is a force-rename, and a
+    // no-op when the branch is already main.
+    spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+
     // create .meter state (gitignored to match real repo setup)
     // must happen before test files so the gitignore commit doesn't include them
     if (args.meterState) {
