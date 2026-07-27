@@ -328,3 +328,19 @@ exports[`git.repo.test.sh given: [case24] URI format scope syntax (path://, name
    └─ run with \`--mode apply\` to execute
 "
 `;
+
+exports[`git.repo.test.sh given: [case26] plan mode ignores commits local main is behind on when: [t0] local main is behind origin/main by an unrelated moduleB commit then: stderr matches snapshot (empty on this success path) 1`] = `""`;
+
+exports[`git.repo.test.sh given: [case26] plan mode ignores commits local main is behind on when: [t0] local main is behind origin/main by an unrelated moduleB commit then: stdout matches snapshot (temp paths + times masked) 1`] = `
+"🐢 heres the wave...
+
+🐚 git.repo.test --what unit
+   ├─ scope: all
+   │  └─ matched: 1 files
+   └─ files
+      └─ src/moduleA.test.js
+
+🥥 did you know?
+   └─ run with \`--mode apply\` to execute
+"
+`;

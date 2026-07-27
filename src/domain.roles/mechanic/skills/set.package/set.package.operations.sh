@@ -78,9 +78,13 @@ _check_security() {
   body=$(jq -n --arg pkg "$package" --arg ver "$version" '{($pkg): [$ver]}')
 
   # post to bulk advisory endpoint
+  # --compressed: advertise gzip/br and auto-decode the reply. the registry
+  # may return a compressed body regardless; without this curl hands back raw
+  # compressed bytes, whose null bytes bash `$(...)` strips, so the json arrives
+  # truncated and jq rejects it as an invalid response (rule.require.solve-at-cause)
   local response
   local curl_status
-  response=$(curl -s -X POST \
+  response=$(curl -s --compressed -X POST \
     -H "Content-Type: application/json" \
     -d "$body" \
     "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk" 2>/dev/null) || curl_status=$?

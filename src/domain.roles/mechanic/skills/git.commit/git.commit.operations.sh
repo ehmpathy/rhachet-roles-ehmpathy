@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = shared domain operations for git.commit skills
+# .what = shared domain operations + vocabulary for git.commit skills
 #
-# .why  = single source of truth for behavioral commit detection
-#         avoids duplication between git.commit.set and git.commit.push
+# .why  = single source of truth for the pieces git.commit.set and
+#         git.commit.push both depend on — behavioral commit detection, the
+#         global/org meter paths, and the pr-open auth vocabulary (AUTH_DEFAULT,
+#         AUTH_VALID_VALUES, get_auth_who_label). one home keeps the two skills in
+#         sync on any of them.
 #
 # usage:
 #   source "$SCRIPT_DIR/git.commit.operations.sh"
@@ -19,6 +22,38 @@ ROLE_SLUG="mechanic"
 GLOBAL_METER_DIR="$HOME/.rhachet/storage/repo=$ROLE_REPO/role=$ROLE_SLUG/.meter"
 GLOBAL_METER_FILE="$GLOBAL_METER_DIR/git.commit.uses.jsonc"
 ORG_METER_FILE="$GLOBAL_METER_DIR/git.commit.uses.org.jsonc"
+
+######################################################################
+# pr-open auth vocabulary (single source, shared by push + set)
+# .what = the default mode + the valid-value list for the --auth flag
+# .why  = both git.commit.push and git.commit.set parse --auth; centralize the
+#         default and the allowed set here so a new mode or a changed default is
+#         a one-line edit, not a hunt across two files (matches how the identity
+#         + label vocab is already centralized in this file)
+######################################################################
+AUTH_DEFAULT="as-ehmpath"
+AUTH_VALID_VALUES=(as-ehmpath as-human)
+
+######################################################################
+# helper: map a pr-open auth mode to its human-readable label
+# .what = as-human|as-ehmpath → the label shown on the `opened:` tree line
+# .why  = both git.commit.push (which owns the pr-open) and git.commit.set
+#         (which composes it and must state who opened the pr, per the vision)
+#         render this label. one source keeps the two trees consistent.
+#         names the credential + its role, not the caller — a human or an
+#         ehmpath may run either mode; this states which credential opened the
+#         pr. as-ehmpath is the preferred default; as-human is the fallback
+#         path (the vision asks the tree to mark it "fallback" so a pr opened
+#         by the gh login never reads as a bug), so the label carries that role.
+######################################################################
+get_auth_who_label() {
+  # early-return the fallback label; the default label is the linear happy path
+  if [[ "$1" == "as-human" ]]; then
+    echo "as-human (gh cli login, fallback)"
+    return
+  fi
+  echo "as-ehmpath (ehmpath keyrack)"
+}
 
 ######################################################################
 # helper: check if global blocker is active
@@ -79,8 +114,11 @@ get_org_from_keyrack() {
   fi
 
   # parse org field (simple grep + sed, no yq dependency)
+  # note: `grep -m1` (not `grep | head -n1`) stops grep itself after the first
+  # match, so no downstream reader closes a pipe early and SIGPIPEs the writer
+  # under `set -o pipefail` + `set -e`
   local org_val
-  org_val=$(grep -E "^org:" "$keyrack_file" 2>/dev/null | head -n1 | sed 's/^org:[[:space:]]*//' | tr -d '[:space:]')
+  org_val=$(grep -m1 -E "^org:" "$keyrack_file" 2>/dev/null | sed 's/^org:[[:space:]]*//' | tr -d '[:space:]')
 
   if [[ -z "$org_val" ]]; then
     ORG_ERROR=".agent/keyrack.yml#org required"
@@ -278,8 +316,10 @@ get_first_behavioral_commit_hash() {
   fi
 
   # filter to behavioral commits and extract first hash
+  # note: `grep -m1 <<<` (not `echo | grep | head`) stops grep after the first
+  # match with no early pipe close, so no writer SIGPIPEs under pipefail
   local behavioral
-  behavioral=$(echo "$commits" | grep -E "^[a-f0-9]+ (fix|feat)(\([^)]+\))?:" | head -n1 || echo "")
+  behavioral=$(grep -m1 -E "^[a-f0-9]+ (fix|feat)(\([^)]+\))?:" <<< "$commits" || echo "")
   if [[ -z "$behavioral" ]]; then
     echo ""
     return 0

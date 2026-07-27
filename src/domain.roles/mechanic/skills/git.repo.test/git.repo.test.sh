@@ -244,6 +244,22 @@ get_jest_path_pattern_flag() {
 }
 
 ######################################################################
+# pick the ref to diff against for --changedSince
+# prefer origin/main (the fetched trunk tip) so a drifted local main
+# cannot widen scope: jest diffs against the merge-base (split point),
+# and a stale local main lands that split before unrelated merged work,
+# dragging its suites in. fall back to main when no remote-tracking ref
+# exists (fresh clone, local-only repo, shallow ci checkout).
+######################################################################
+get_changed_since_ref() {
+  if git rev-parse --verify --quiet origin/main > /dev/null 2>&1; then
+    echo "origin/main"
+    return
+  fi
+  echo "main"
+}
+
+######################################################################
 # scope check: count matched files for scope
 # returns count via stdout
 ######################################################################
@@ -285,10 +301,14 @@ get_scope_file_count() {
 
   # use jest --listTests to get matched files
   # --no-install prevents npx from stall on "install jest?" prompt
-  # respect THOROUGH flag: add --changedSince=main when not thorough
+  # respect THOROUGH flag: add --changedSince when not thorough.
+  # compare to the trunk tip (origin/main when present, else main): jest diffs
+  # against the merge-base (split point), so the trunk tip scopes to just this
+  # branch's own changes. a stale local main lands the split before unrelated
+  # merged work and drags its slow suites into scope.
   local changed_since=""
   if [[ "$THOROUGH" != "true" ]]; then
-    changed_since="--changedSince=main"
+    changed_since="--changedSince=$(get_changed_since_ref)"
   fi
 
   # get the correct flag based on jest version (singular for ≤29, plural for ≥30)
@@ -365,10 +385,14 @@ get_scope_files() {
   esac
 
   # use jest --listTests to get matched files
-  # respect THOROUGH flag: add --changedSince=main when not thorough
+  # respect THOROUGH flag: add --changedSince when not thorough.
+  # compare to the trunk tip (origin/main when present, else main): jest diffs
+  # against the merge-base (split point), so the trunk tip scopes to just this
+  # branch's own changes. a stale local main lands the split before unrelated
+  # merged work and drags its slow suites into scope.
   local changed_since=""
   if [[ "$THOROUGH" != "true" ]]; then
-    changed_since="--changedSince=main"
+    changed_since="--changedSince=$(get_changed_since_ref)"
   fi
 
   # only include --testPathPatterns when scope is not "." (the default)

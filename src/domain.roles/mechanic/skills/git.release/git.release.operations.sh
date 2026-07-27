@@ -603,7 +603,7 @@ get_latest_tag() {
   git tag --sort=-v:refname | head -1
 }
 
-# source shared keyrack operations (fetch_github_token, require_github_token)
+# source shared keyrack operations (fetch_github_token)
 source "$SKILL_DIR/../git.commit/keyrack.operations.sh"
 
 ######################################################################

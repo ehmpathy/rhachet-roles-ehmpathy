@@ -18,44 +18,86 @@
 # returns: token string or empty if not available
 # exits: 0 on success, 1 on failure (with error to stderr)
 ######################################################################
+# FETCH_TOKEN_TIMEOUT bounds every keyrack call so a stalled daemon or
+# unreachable network can never hang the caller. the vision requires that a
+# keyrack outage fail fast (so the fallback stays reachable), and a hang is
+# worse than a failure — `timeout` converts a stall into a bounded non-zero
+# exit that flows into the same empty-token path as any other failure.
+FETCH_TOKEN_TIMEOUT="${FETCH_TOKEN_TIMEOUT:-30}"
+
 fetch_github_token() {
   local token=""
-  local keyrack_output
-  local keyrack_exit
 
   # find repo root for rhachet path
   local repo_root
   repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || repo_root="."
 
-  # try keyrack get with --json for proper extraction
-  keyrack_exit=0
-  keyrack_output=$("$repo_root/node_modules/.bin/rhachet" keyrack get \
+  # capture stdout and stderr SEPARATELY across every rhachet call. stdout must
+  # stay pure json for jq; stderr (a warn line, deprecation notice, or error) is
+  # held apart so it can never bleed into the json stream. a merged `2>&1` would
+  # feed a non-json line into jq — even when rhachet exits 0 but emits a stray
+  # note on stderr — so jq fails, the token reads empty, and a HEALTHY keyrack is
+  # misreported as unavailable (or, under the caller's set -euo pipefail, the run
+  # aborts with a raw jq error instead of the guide). streams kept apart keep the
+  # json clean and preserve the guide path (rule.forbid.failhide,
+  # rule.forbid.maintenance-hazards). the captured stderr is forwarded onward as
+  # the guide cause when the fetch fails (see the surface note below the calls).
+  local stderr_file
+  stderr_file=$(mktemp)
+
+  # try keyrack get with --json for proper extraction (time-bounded)
+  local keyrack_exit=0
+  local keyrack_stdout
+  keyrack_stdout=$(timeout "$FETCH_TOKEN_TIMEOUT" "$repo_root/node_modules/.bin/rhachet" keyrack get \
     --key EHMPATHY_SEATURTLE_GITHUB_TOKEN \
     --env prep \
     --allow-dangerous \
-    --json 2>&1) || keyrack_exit=$?
+    --json 2>>"$stderr_file") || keyrack_exit=$?
 
+  # primary attempt: parse the token when the keyrack get succeeded
   if [[ $keyrack_exit -eq 0 ]]; then
-    token=$(echo "$keyrack_output" | jq -r '.grant.key.secret // empty')
-  else
-    # fallback: unlock ehmpath keyrack and retry
-    "$repo_root/node_modules/.bin/rhachet" keyrack unlock \
+    token=$(echo "$keyrack_stdout" | jq -r '.grant.key.secret // empty')
+  fi
+
+  # fallback (guarded on the SAME condition — no else, so the narrative stays
+  # linear per rule.forbid.else-branches): only when the primary get failed,
+  # unlock the ehmpath keyrack and retry, both calls time-bounded.
+  if [[ $keyrack_exit -ne 0 ]]; then
+    timeout "$FETCH_TOKEN_TIMEOUT" "$repo_root/node_modules/.bin/rhachet" keyrack unlock \
       --owner ehmpath --prikey "$HOME/.ssh/ehmpath" --env prep \
-      --key EHMPATHY_SEATURTLE_GITHUB_TOKEN >/dev/null 2>&1 || true
+      --key EHMPATHY_SEATURTLE_GITHUB_TOKEN >/dev/null 2>>"$stderr_file" || true
 
     local fallback_exit=0
-    local fallback_output
-    fallback_output=$("$repo_root/node_modules/.bin/rhachet" keyrack get \
+    local fallback_stdout
+    fallback_stdout=$(timeout "$FETCH_TOKEN_TIMEOUT" "$repo_root/node_modules/.bin/rhachet" keyrack get \
       --key EHMPATHY_SEATURTLE_GITHUB_TOKEN \
       --owner ehmpath \
       --env prep \
       --allow-dangerous \
-      --json 2>&1) || fallback_exit=$?
+      --json 2>>"$stderr_file") || fallback_exit=$?
 
+    # parse the retry token when the fallback get succeeded (guard-clause, no else)
     if [[ $fallback_exit -eq 0 ]]; then
-      token=$(echo "$fallback_output" | jq -r '.grant.key.secret // empty')
+      token=$(echo "$fallback_stdout" | jq -r '.grant.key.secret // empty')
     fi
   fi
+
+  # forward the captured stderr as the cause the caller surfaces in its guide,
+  # but ONLY when no token was reached (the recovery path stays quiet on the
+  # normal unlock-then-retry). the callers (git.commit.push/set) wrap this call
+  # with `2>"$TOKEN_FETCH_ERR_FILE"` specifically to diagnose a real keyrack
+  # failure — network timeout, locked keyrack, daemon down — so discarding it
+  # would hide the cause and collapse every failure into one generic guide
+  # (rule.forbid.failhide, rule.forbid.behavior-hazards). the stderr is first
+  # sanitized: sed drops ansi color sequences, tr drops the remaining control
+  # chars (keep \t \n \r for a readable multi-line cause) — so it reads clean in
+  # the guide tree AND stays valid once escape_json_string folds it into the
+  # {"error":"..."} json path (a raw control char would break that parse).
+  if [[ -z "$token" ]]; then
+    sed -e 's/\x1b\[[0-9;]*[a-zA-Z]//g' "$stderr_file" \
+      | tr -d '\000-\010\013\014\016-\037' >&2
+  fi
+  rm -f "$stderr_file"
 
   echo "$token"
 }
@@ -178,9 +220,20 @@ assert_token_identity_in_sync() {
   # if the probe returned an unparseable body, do not block on an unknowable id
   [[ -n "$actual_id" ]] || return 0
 
-  # fail loud on a proven mismatch — emit to stderr (this is a guard error)
+  # fail loud on a proven mismatch. this is a malfunction-class guard (a token
+  # that maps to the WRONG bot would silently add a 3rd squash contributor), so
+  # the diagnosis rides BOTH streams — stdout for a human at the terminal or a
+  # stdout-only consumer, stderr for log aggregation. the callers use this as a
+  # bare `|| exit 2` guard, so if it spoke only to stderr the failure would read
+  # as a silent-stdout dead end (rule.require.skill-output-streams: a failure
+  # rides both streams). we build the message once, then echo it to each stream
+  # (the portable dual-echo the codebase already uses in validate_enum_arg — `tee
+  # /dev/stderr` is not portable to every spawned shell). plain text (not the json
+  # guide shape) is intentional — a proven bot-id desync is a loud misconfiguration,
+  # and a fail-loud diagnosis outranks format purity on this rare path.
   if [[ "$actual_id" != "$SEATURTLE_APP_BOT_ID" || "$actual_login" != "$SEATURTLE_APP_BOT_NAME" ]]; then
-    {
+    local mismatch_msg
+    mismatch_msg=$(
       echo "error: github token identity out of sync with the expected app bot"
       echo "  expected: $SEATURTLE_APP_BOT_NAME (id $SEATURTLE_APP_BOT_ID)"
       echo "  actual:   ${actual_login:-<unknown>} (id ${actual_id:-<unknown>})"
@@ -188,34 +241,12 @@ assert_token_identity_in_sync() {
       echo "the commit-author email hardcodes the expected bot id; if the token"
       echo "maps to a different bot, the squash-merge would show a 3rd contributor."
       echo "fix the token, or update the seaturtle identities in keyrack.operations.sh."
-    } >&2
+    )
+    echo "$mismatch_msg"
+    echo "$mismatch_msg" >&2
     return 1
   fi
 
   return 0
 }
 
-######################################################################
-# require_github_token
-# fetch token and fail-fast with instructions if unavailable
-#
-# usage: TOKEN=$(require_github_token)
-# returns: token string
-# exits: 1 with instructions if token unavailable
-######################################################################
-require_github_token() {
-  local token
-  token=$(fetch_github_token)
-
-  if [[ -z "$token" ]]; then
-    echo "" >&2
-    echo "🐢 bummer dude..." >&2
-    echo "" >&2
-    echo "🔐 github token not found" >&2
-    echo "   ├─ run: rhx keyrack unlock --owner ehmpath --prikey ~/.ssh/ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN" >&2
-    echo "   └─ then retry this command" >&2
-    exit 1
-  fi
-
-  echo "$token"
-}

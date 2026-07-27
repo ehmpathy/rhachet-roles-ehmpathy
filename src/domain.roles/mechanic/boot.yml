@@ -248,6 +248,7 @@ subject.flow:
     say:
       - briefs/practices/work.flow/rule.require.trust-but-verify.md
       - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
+      - briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md
       - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
       - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
       - briefs/practices/work.flow/release/rule.require.commit-scopes.md

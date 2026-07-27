@@ -8,6 +8,22 @@ import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 /**
  * .what = integration tests for git.commit.set.sh
  * .why = verify metered commit with seaturtle[bot] attribution works correctly
+ *
+ * .mock = a subset of composed --push cases stub external command boundaries in the
+ *         hermetic temp repo: the `git` push subcommand, the `gh` cli (pr list/create/
+ *         whoami), and the `rhachet` keyrack communicator (the `fakeRhachet` fixture
+ *         param). the plain commit cases use NO fakes — they run the real skill against
+ *         a real local git repo.
+ * .why  = the --push cases delegate to git.commit.push.sh, whose transport + PR-open +
+ *         keyrack steps cannot be reached in a hermetic temp repo (no real remote, no
+ *         github auth, no way to force a keyrack outage). per rule.forbid.integration.mocks,
+ *         these fakes are the "clearly unavoidable" exception: they stub only the
+ *         unreachable boundaries so the set→push pass-through decision logic runs for
+ *         real. every NON-push git call execs the REAL /usr/bin/git, so the local
+ *         commit set.sh performs is unfaked.
+ * .real = the real push transport + gh PR-open + keyrack are exercised by
+ *         git.commit.push.sh in production; each fake stands in ONLY for the boundary a
+ *         hermetic harness cannot reach. individual fakes are marked `.mock` at their site.
  */
 describe('git.commit.set.sh', () => {
   const scriptPath = path.join(__dirname, 'git.commit.set.sh');
@@ -22,12 +38,35 @@ describe('git.commit.set.sh', () => {
     commitArgs: string[];
     stdin?: string;
     branch?: string | null; // null = stay on main, string = use that branch name, undefined = 'fix/test-branch'
-  }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
+    env?: Record<string, string>; // extra env for the subprocess (e.g. fake PATH, empty keyrack token)
+    fakeRhachet?: string; // shadow node_modules/.bin/rhachet (the keyrack communicator) with this bash body
+  }): {
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+    tempDir: string;
+    isolatedHome: string;
+  } => {
     const tempDir = genTempDir({
       slug: 'git-commit-set-test',
       git: true,
       symlink: [{ at: 'node_modules', to: 'node_modules' }],
     });
+
+    // optionally shadow node_modules/.bin/rhachet (the keyrack communicator) with
+    // a fake. the helper owns the node_modules symlink, so it owns its stand-in:
+    // drop the symlink to the real node_modules and stand up a minimal .bin/rhachet
+    // so a composed as-ehmpath run fetches its token from the fake (and any sentinel
+    // the fake drops) instead of the real keyrack — the push suite's case33 shadow,
+    // reused from the set side.
+    if (args.fakeRhachet) {
+      const nodeModulesLink = path.join(tempDir, 'node_modules');
+      fs.rmSync(nodeModulesLink, { recursive: true, force: true });
+      const fakeNodeBin = path.join(tempDir, 'node_modules', '.bin');
+      fs.mkdirSync(fakeNodeBin, { recursive: true });
+      fs.writeFileSync(path.join(fakeNodeBin, 'rhachet'), args.fakeRhachet);
+      fs.chmodSync(path.join(fakeNodeBin, 'rhachet'), '755');
+    }
 
     // configure git user (patron)
     if (args.gitUser) {
@@ -39,6 +78,15 @@ describe('git.commit.set.sh', () => {
     } else {
       configureTestGitUser({ cwd: tempDir });
     }
+
+    // force the base branch to `main` so base-branch detection is deterministic
+    // regardless of the runner's git init.defaultBranch (main on a dev box, master
+    // on some ci runners). without this, a repo whose default is already `master`
+    // collapses a `master` head branch (case43) onto the detected base — set.sh's
+    // ON_BASE guard then fires instead of push.sh's master guard, so the outcome
+    // diverges local↔ci (rule.require.hermetic-tests). -M is a force-rename, and a
+    // no-op when the branch is already main.
+    spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
 
     // create .meter state (gitignored to match real repo setup)
     // must happen before test files so the gitignore commit doesn't include them
@@ -154,7 +202,7 @@ describe('git.commit.set.sh', () => {
       encoding: 'utf-8' as BufferEncoding,
       input: args.stdin,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, HOME: isolatedHome },
+      env: { ...process.env, HOME: isolatedHome, ...args.env },
     });
 
     return {
@@ -162,6 +210,7 @@ describe('git.commit.set.sh', () => {
       stderr: result.stderr ?? '',
       exitCode: result.status ?? 1,
       tempDir,
+      isolatedHome,
     };
   };
 
@@ -240,6 +289,607 @@ describe('git.commit.set.sh', () => {
       });
     });
   });
+
+  given('[case29] --auth flag', () => {
+    when('[t0] an invalid --auth value is given', () => {
+      then('it fails fast (exit 2) with the valid values', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 2, push: 'allow' },
+          commitArgs: ['--message', 'fix(api): bad auth', '--auth', 'bogus'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(`${result.stdout}${result.stderr}`).toContain(
+          "--auth must be 'as-ehmpath' or 'as-human'",
+        );
+        // lock the invalid-auth error contract on both streams (skill-output-streams)
+        expect(result.stdout).toMatchSnapshot();
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] a valid --auth as-human is given in plan mode', () => {
+      then('the plan is accepted (exit 0)', () => {
+        const result = runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          meterState: { uses: 2, push: 'allow' },
+          commitArgs: [
+            '--message',
+            'fix(api): good auth',
+            '--auth',
+            'as-human',
+          ],
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('🐢 heres the wave...');
+        // lock the plan-mode tree contract under --auth as-human (both streams;
+        // stderr expected empty on this success path but pinned to catch drift)
+        expect(result.stdout).toMatchSnapshot();
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+
+    when(
+      '[t2] a valid --auth as-human is given in plan mode with --push',
+      () => {
+        then('the plan tree states opened: as-human (gh cli login)', () => {
+          const result = runInTempGitRepo({
+            files: { 'fix.txt': 'fixed content' },
+            meterState: { uses: 2, push: 'allow' },
+            commitArgs: [
+              '--message',
+              'fix(api): plan push as human',
+              '--push',
+              '--auth',
+              'as-human',
+            ],
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('🐢 heres the wave...');
+          // the vision requires opened: in BOTH plan (+push) and apply (+push)
+          // trees; this covers the plan+push+as-human branch the apply tests miss
+          expect(result.stdout).toContain(
+            'opened: as-human (gh cli login, fallback)',
+          );
+          // lock the plan-mode +push tree contract under --auth as-human
+          // (both streams; stderr pinned empty to catch a stray line)
+          expect(result.stdout).toMatchSnapshot();
+          expect(result.stderr).toMatchSnapshot();
+        });
+      },
+    );
+  });
+
+  given(
+    '[case30] apply + push, keyrack fails, guide surfaces through the set→push seam',
+    () => {
+      when(
+        '[t0] --mode apply --push --auth as-ehmpath but the keyrack token is unavailable',
+        () => {
+          then(
+            'the commit lands, the guide surfaces, and a non-zero exit propagates',
+            () => {
+              // .mock = fake git — `git push` succeeds so the delegated push.sh
+              // reaches the keyrack token step; the real git (via exec) still
+              // performs the local commit set.sh does directly
+              const fakeBinDir = genTempDir({ slug: 'git-set-fakebin' });
+              fs.writeFileSync(
+                path.join(fakeBinDir, 'git'),
+                `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+              );
+              fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+
+              const result = runInTempGitRepo({
+                files: { 'fix.txt': 'fixed content' },
+                meterState: { uses: 2, push: 'allow' },
+                branch: 'turtle/feature',
+                gitUser: {
+                  name: 'seaturtle[bot]',
+                  email: 'seaturtle@ehmpath.com',
+                },
+                commitArgs: [
+                  '--message',
+                  'fix(api): compose auth guide',
+                  '--mode',
+                  'apply',
+                  '--push',
+                  '--auth',
+                  'as-ehmpath',
+                ],
+                env: {
+                  PATH: `${fakeBinDir}:${process.env.PATH}`,
+                  // clear token so the keyrack fetch fails → guide fires
+                  EHMPATHY_SEATURTLE_GITHUB_TOKEN: '',
+                },
+              });
+
+              // the delegated push/pr-open failure propagates (was exit 0 before)
+              expect(result.exitCode).toBe(2);
+              // the guide surfaces through the seam (push.sh → set.sh stderr)
+              expect(result.stderr).toContain('keyrack token not available');
+              // the guide names the concrete idempotent retry command (the commit
+              // is already pushed, so a re-run of set would dead-end on empty stage)
+              expect(result.stderr).toContain(
+                'rhx git.commit.push --mode apply --auth as-human',
+              );
+              // the commit still landed locally, reflected in the tree
+              expect(result.stdout).toContain(
+                'header: fix(api): compose auth guide',
+              );
+              expect(result.stdout).toContain('push: error');
+              // lock the composed set→push failure contract on both streams: the
+              // commit tree (stdout) + the guide (stderr) is a distinct variant
+              // from push.sh's standalone guide, so snap it to catch drift
+              expect(result.stdout).toMatchSnapshot();
+              expect(result.stderr).toMatchSnapshot();
+            },
+          );
+        },
+      );
+    },
+  );
+
+  given(
+    '[case31] apply + push --auth as-human surfaces who opened the pr',
+    () => {
+      when('[t0] the pr opens under the ambient gh login', () => {
+        then('the success tree states opened: as-human (gh cli login)', () => {
+          // .mock = fake bins: git push succeeds (real git handles the local commit via
+          // exec), gh opens the pr and fails loud if a GH_TOKEN override leaks in
+          const fakeBinDir = genTempDir({ slug: 'git-set-fakebin-human' });
+          fs.writeFileSync(
+            path.join(fakeBinDir, 'git'),
+            `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+          fs.writeFileSync(
+            path.join(fakeBinDir, 'gh'),
+            `#!/bin/bash
+if [[ -n "$GH_TOKEN" ]]; then
+  echo "unexpected GH_TOKEN override under as-human" >&2
+  exit 3
+fi
+if [[ "$1" == "pr" && "$2" == "list" ]]; then
+  echo ""
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  echo "https://github.com/test/repo/pull/88"
+  exit 0
+fi
+exit 1
+`,
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+          const result = runInTempGitRepo({
+            files: { 'fix.txt': 'fixed content' },
+            meterState: { uses: 2, push: 'allow' },
+            branch: 'turtle/feature',
+            gitUser: {
+              name: 'seaturtle[bot]',
+              email: 'seaturtle@ehmpath.com',
+            },
+            commitArgs: [
+              '--message',
+              'fix(api): human opens pr',
+              '--mode',
+              'apply',
+              '--push',
+              '--auth',
+              'as-human',
+            ],
+            env: {
+              PATH: `${fakeBinDir}:${process.env.PATH}`,
+            },
+          });
+
+          // the push + pr-open succeeded end-to-end
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('🐢 cowabunga!');
+          // the vision's requirement: the tree states who opened the pr
+          expect(result.stdout).toContain(
+            'opened: as-human (gh cli login, fallback)',
+          );
+          // lock the composed apply+push success tree so drift in the opened:
+          // label is caught in review (twin of push.sh case23's snapshot);
+          // pin stderr too (expected empty) so a stray line cannot slip in
+          expect(result.stdout).toMatchSnapshot();
+          expect(result.stderr).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given(
+    '[case41] apply + push --auth as-human, gh not logged in, guide surfaces through the seam',
+    () => {
+      when(
+        '[t0] --mode apply --push --auth as-human but the ambient gh login is absent',
+        () => {
+          then(
+            'the commit lands, the two-fix guide surfaces, and a non-zero exit propagates',
+            () => {
+              // r10 named this the day-to-day front door: git.commit.set is the
+              // skill mechanics actually run, and as-human is the fallback half of
+              // the feature. case30 proves the composed guide for as-ehmpath
+              // (keyrack down); this proves it end-to-end for as-human (gh not
+              // logged in), so a future refactor of the set→push forward cannot
+              // silently break the exact scenario the wish was written for.
+              const fakeBinDir = genTempDir({
+                slug: 'git-set-fakebin-human-noauth',
+              });
+              fs.writeFileSync(
+                path.join(fakeBinDir, 'git'),
+                `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+              );
+              fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+
+              // .mock = fake gh: the ambient login is absent, so every pr op fails with the
+              // auth signature; also hard-fail if a GH_TOKEN override leaks (as-human
+              // must open the pr strictly under the human's own gh session)
+              fs.writeFileSync(
+                path.join(fakeBinDir, 'gh'),
+                `#!/bin/bash
+if [[ -n "$GH_TOKEN" ]]; then
+  echo "unexpected GH_TOKEN override under as-human" >&2
+  exit 3
+fi
+if [[ "$1" == "pr" ]]; then
+  echo "gh: To use GitHub CLI, please run: gh auth login" >&2
+  echo "HTTP 401: Bad credentials" >&2
+  exit 1
+fi
+exit 1
+`,
+              );
+              fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+              const result = runInTempGitRepo({
+                files: { 'fix.txt': 'fixed content' },
+                meterState: { uses: 2, push: 'allow' },
+                branch: 'turtle/feature',
+                gitUser: {
+                  name: 'seaturtle[bot]',
+                  email: 'seaturtle@ehmpath.com',
+                },
+                commitArgs: [
+                  '--message',
+                  'fix(api): compose human auth guide',
+                  '--mode',
+                  'apply',
+                  '--push',
+                  '--auth',
+                  'as-human',
+                ],
+                env: {
+                  PATH: `${fakeBinDir}:${process.env.PATH}`,
+                },
+              });
+
+              // the delegated pr-open failure propagates through the seam
+              expect(result.exitCode).toBe(2);
+              // the guide names BOTH fixes (unlock keyrack OR gh auth login)
+              expect(result.stderr).toContain('no usable gh credential');
+              expect(result.stderr).toContain('gh auth login');
+              // the commit still landed locally, reflected in the tree
+              expect(result.stdout).toContain(
+                'header: fix(api): compose human auth guide',
+              );
+              expect(result.stdout).toContain('push: error');
+              // lock the composed set→push as-human guide on both streams
+              expect(result.stdout).toMatchSnapshot();
+              expect(result.stderr).toMatchSnapshot();
+            },
+          );
+        },
+      );
+    },
+  );
+
+  given(
+    '[case42] a composed as-ehmpath push runs the strong graphql identity assert',
+    () => {
+      when(
+        '[t0] the fetched ghs_ token maps to a DIFFERENT app bot id (NODE_ENV=production)',
+        () => {
+          then(
+            'the assert fails loud on BOTH streams (exit 2), before any commit or pr',
+            () => {
+              // r11#1 twin for the composed path: set.sh:275 runs the same identity
+              // assert push case37 covers standalone. the assert is gated behind
+              // NODE_ENV != test (so tests stay hermetic), so this drives it with
+              // NODE_ENV=production (mirrors case34). the proven bot-id mismatch is
+              // a malfunction, so its diagnosis must ride BOTH streams, not just
+              // stderr (rule.require.skill-output-streams) — this is the coverage
+              // gap r11 flagged at set.sh:275.
+              const fakeBinDir = genTempDir({
+                slug: 'git-set-fakebin-identity',
+              });
+              fs.writeFileSync(
+                path.join(fakeBinDir, 'git'),
+                `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+              );
+              fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+
+              // .mock = fake gh: the graphql whoami returns a MISMATCHED bot id, so the
+              // assert must fail loud. any pr op means the assert wrongly passed.
+              fs.writeFileSync(
+                path.join(fakeBinDir, 'gh'),
+                `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "graphql" ]]; then
+  echo '{"data":{"viewer":{"login":"impostor[bot]","databaseId":999999}}}'
+  exit 0
+fi
+if [[ "$1" == "pr" ]]; then
+  echo "gh pr should not be reached — the identity assert should have exited" >&2
+  exit 99
+fi
+exit 1
+`,
+              );
+              fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+              const result = runInTempGitRepo({
+                files: { 'fix.txt': 'fixed content' },
+                meterState: { uses: 2, push: 'allow' },
+                branch: 'turtle/feature',
+                gitUser: {
+                  name: 'ehm-a-seaturtle[bot]',
+                  email:
+                    '295111357+ehm-a-seaturtle[bot]@users.noreply.github.com',
+                },
+                // shadow the keyrack communicator: a healthy keyrack hands back a
+                // ghs_ (app) token, so the fetch path reaches the identity assert
+                fakeRhachet: `#!/bin/bash
+echo '{"grant":{"key":{"secret":"ghs_appbotfake"}}}'
+exit 0
+`,
+                commitArgs: [
+                  '--message',
+                  'fix(api): composed identity assert',
+                  '--mode',
+                  'apply',
+                  '--push',
+                  '--auth',
+                  'as-ehmpath',
+                ],
+                env: {
+                  PATH: `${fakeBinDir}:${process.env.PATH}`,
+                  // production makes the as-ehmpath keyrack fetch + assert reachable
+                  NODE_ENV: 'production',
+                },
+              });
+
+              // the strong assert refused the token as a caller-must-fix constraint
+              expect(result.exitCode).toBe(2);
+              // the mismatch diagnosis rides BOTH streams (a malfunction is loud on
+              // stdout + stderr, never a silent-stdout dead end)
+              expect(result.stderr).toContain('out of sync');
+              expect(result.stderr).toContain('3rd contributor');
+              expect(result.stdout).toContain('out of sync');
+              expect(result.stdout).toContain('3rd contributor');
+              // no pr op leaked past the assert
+              expect(result.stdout).not.toContain('should not be reached');
+              expect(result.stderr).not.toContain('should not be reached');
+              expect(result.stdout).toMatchSnapshot();
+              expect(result.stderr).toMatchSnapshot();
+            },
+          );
+        },
+      );
+    },
+  );
+
+  given(
+    '[case43] plan + push, the delegated push plan fails, the composed guide surfaces through the set→push seam',
+    () => {
+      when(
+        '[t0] --mode plan --push on a branch push.sh refuses (master), which set.sh does not pre-guard',
+        () => {
+          then(
+            'the composed push-plan guide surfaces on BOTH streams and exit 2 propagates',
+            () => {
+              // the plan-mode twin of case30 (apply). in plan mode push.sh never
+              // fetches a token, so the preflight fails on a guard set.sh does NOT
+              // mirror: set.sh's ON_BASE blocks only the actual base (main), while
+              // push.sh refuses BOTH main and master (git.commit.push.sh:284). a
+              // branch named `master` clears set.sh's guards, reaches the plan
+              // delegation, and push.sh --mode plan refuses it — so set.sh
+              // re-invokes push.sh for the tree guide (which push.sh dual-streams,
+              // error + fix-hint, to BOTH stdout and stderr) and exits 2. this locks
+              // the set→push PLAN-mode failure seam: both streams carry the full,
+              // identical guide — no raw json tail, no fix-less stderr.
+              const result = runInTempGitRepo({
+                files: { 'fix.txt': 'fixed content' },
+                meterState: { uses: 2, push: 'allow' },
+                branch: 'master',
+                gitUser: {
+                  name: 'seaturtle[bot]',
+                  email: 'seaturtle@ehmpath.com',
+                },
+                commitArgs: [
+                  '--message',
+                  'fix(api): plan push preflight fails',
+                  '--mode',
+                  'plan',
+                  '--push',
+                  '--auth',
+                  'as-ehmpath',
+                ],
+              });
+
+              // the delegated push-plan failure propagates as a constraint
+              expect(result.exitCode).toBe(2);
+              // the guide surfaces on BOTH streams — the re-invoked push tree guide
+              // is dual-streamed by push.sh, so stdout and stderr each carry the
+              // error AND the fix-hint, never a fix-less stderr dead end
+              // (rule.require.skill-output-streams + rule.require.errors-name-the-fix)
+              expect(result.stdout).toContain('cannot push directly to master');
+              expect(result.stderr).toContain('cannot push directly to master');
+              // the stderr path must ALSO name the fix — r010 caught that stderr
+              // previously got the bare error with no remediation; clamp it now does
+              expect(result.stdout).toContain('create a feature branch first');
+              expect(result.stderr).toContain('create a feature branch first');
+              // lock the composed plan→push failure contract on both streams
+              expect(result.stdout).toMatchSnapshot();
+              expect(result.stderr).toMatchSnapshot();
+            },
+          );
+        },
+      );
+    },
+  );
+
+  given(
+    '[case32] the vision day-in-the-life: guide, then the printed retry ships',
+    () => {
+      // the exact narrative the vision opens with, proven end-to-end in ONE
+      // repo state (not two halves proven apart): a mechanic pushes with the
+      // default as-ehmpath, keyrack is down so the guide fires, then the mechanic
+      // runs the literal command the guide printed and the pr ships as-human.
+      const pushScriptPath = path.join(__dirname, 'git.commit.push.sh');
+
+      when(
+        '[t0] set --push --auth as-ehmpath fires the guide (keyrack down)',
+        () => {
+          then(
+            'the guide names the retry, then that retry opens the pr as-human',
+            () => {
+              // .mock = fake git — `git push` succeeds so the commit transports;
+              // all else execs real git (local commit, log, rev-parse)
+              const fakeBinDir = genTempDir({
+                slug: 'git-set-fakebin-dayinlife',
+              });
+              fs.writeFileSync(
+                path.join(fakeBinDir, 'git'),
+                `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+              );
+              fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+              // .mock = fake gh — opens the pr and hard-fails if a GH_TOKEN
+              // override leaks under as-human
+              fs.writeFileSync(
+                path.join(fakeBinDir, 'gh'),
+                `#!/bin/bash
+if [[ -n "$GH_TOKEN" ]]; then
+  echo "unexpected GH_TOKEN override under as-human" >&2
+  exit 3
+fi
+if [[ "$1" == "pr" && "$2" == "list" ]]; then
+  echo ""
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  echo "https://github.com/test/repo/pull/99"
+  exit 0
+fi
+exit 1
+`,
+              );
+              fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+              // attempt 1: the default as-ehmpath with no keyrack token → the guide
+              const first = runInTempGitRepo({
+                files: { 'fix.txt': 'fixed content' },
+                meterState: { uses: 2, push: 'allow' },
+                branch: 'turtle/feature',
+                gitUser: {
+                  name: 'seaturtle[bot]',
+                  email: 'seaturtle@ehmpath.com',
+                },
+                commitArgs: [
+                  '--message',
+                  'fix(api): day in the life',
+                  '--mode',
+                  'apply',
+                  '--push',
+                  '--auth',
+                  'as-ehmpath',
+                ],
+                env: {
+                  PATH: `${fakeBinDir}:${process.env.PATH}`,
+                  // no token → the keyrack fetch fails → the guide fires
+                  EHMPATHY_SEATURTLE_GITHUB_TOKEN: '',
+                },
+              });
+
+              // the guide fired and named the concrete idempotent retry command
+              expect(first.exitCode).toBe(2);
+              expect(first.stderr).toContain('keyrack token not available');
+              expect(first.stderr).toContain(
+                'rhx git.commit.push --mode apply --auth as-human',
+              );
+              // lock BOTH streams of attempt 1: the composed set tree (commit
+              // landed + push: error) on stdout, the guide on stderr — the first
+              // half of the day-in-the-life, previously unsnapped
+              expect(first.stdout).toMatchSnapshot();
+              expect(first.stderr).toMatchSnapshot();
+
+              // attempt 2: run the LITERAL command the guide printed, in the SAME
+              // repo state (commit already pushed) — git.commit.push, not set, so it
+              // does not dead-end on the now-empty stage
+              const retry = spawnSync(
+                'bash',
+                [pushScriptPath, '--mode', 'apply', '--auth', 'as-human'],
+                {
+                  cwd: first.tempDir,
+                  encoding: 'utf-8' as BufferEncoding,
+                  stdio: ['pipe', 'pipe', 'pipe'],
+                  env: {
+                    ...process.env,
+                    HOME: first.isolatedHome,
+                    PATH: `${fakeBinDir}:${process.env.PATH}`,
+                  },
+                },
+              );
+
+              // the retry ships: the pr opens under the human's gh login
+              expect(retry.status).toBe(0);
+              expect(retry.stdout).toContain(
+                'opened: as-human (gh cli login, fallback)',
+              );
+              // lock the retry success tree — the composed day-in-the-life
+              // second half, whose repo state (commit already pushed) differs
+              // from case23's clean-repo push; pin stderr too (expected empty)
+              expect(retry.stdout).toMatchSnapshot();
+              expect(retry.stderr).toMatchSnapshot();
+            },
+          );
+        },
+      );
+    },
+  );
 
   given('[case3] no uses left', () => {
     when('[t0] apply mode with 0 uses', () => {
@@ -638,7 +1288,7 @@ describe('git.commit.set.sh', () => {
         fs.writeFileSync(path.join(tempDir, 'feature.txt'), 'feature content');
         spawnSync('git', ['add', 'feature.txt'], { cwd: tempDir });
 
-        // mock keyrack config + gh cli for token validation
+        // .mock = fake keyrack config + gh cli for token validation
         const agentDir = path.join(tempDir, '.agent');
         fs.mkdirSync(agentDir, { recursive: true });
         fs.writeFileSync(
@@ -765,7 +1415,7 @@ exit 1`,
         fs.writeFileSync(path.join(tempDir, 'third.txt'), 'third');
         spawnSync('git', ['add', 'third.txt'], { cwd: tempDir });
 
-        // mock keyrack config + gh cli for token validation
+        // .mock = fake keyrack config + gh cli for token validation
         const agentDir = path.join(tempDir, '.agent');
         fs.mkdirSync(agentDir, { recursive: true });
         fs.writeFileSync(
@@ -918,7 +1568,7 @@ exit 1`,
         fs.writeFileSync(path.join(tempDir, 'b3.txt'), 'b3');
         spawnSync('git', ['add', 'b3.txt'], { cwd: tempDir });
 
-        // mock keyrack config + gh cli for token validation
+        // .mock = fake keyrack config + gh cli for token validation
         const agentDir = path.join(tempDir, '.agent');
         fs.mkdirSync(agentDir, { recursive: true });
         fs.writeFileSync(
@@ -1253,7 +1903,7 @@ exit 1`,
     });
   });
 
-  given('[case13] last use with push allowed shows push status', () => {
+  given('[case21] last use with push allowed shows push status', () => {
     when('[t0] uses go from 1 to 0 with push allowed', () => {
       then('meter shows push: allowed after commit', () => {
         const result = runInTempGitRepo({
@@ -1283,7 +1933,7 @@ exit 1`,
     });
   });
 
-  given('[case14] multiline message is required', () => {
+  given('[case22] multiline message is required', () => {
     when('[t0] message is single-line (no body)', () => {
       then('exits with error about multiline', () => {
         const tempDir = genTempDir({
@@ -1372,7 +2022,7 @@ exit 1`,
     });
   });
 
-  given('[case15] plan mode auto-revoke display with push', () => {
+  given('[case23] plan mode auto-revoke display with push', () => {
     when('[t0] uses go from 1 to 0 with push allowed', () => {
       then('plan shows push: allowed to blocked (revoked)', () => {
         const tempDir = genTempDir({
@@ -1405,7 +2055,7 @@ exit 1`,
         fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'content');
         spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
 
-        // mock keyrack config + gh cli for token validation
+        // .mock = fake keyrack config + gh cli for token validation
         const agentDir = path.join(tempDir, '.agent');
         fs.mkdirSync(agentDir, { recursive: true });
         fs.writeFileSync(
@@ -1629,7 +2279,7 @@ exit 1`,
     });
   });
 
-  given('[case17] adhoc Co-authored-by forbidden', () => {
+  given('[case33] adhoc Co-authored-by forbidden', () => {
     when('[t0] message contains Co-authored-by trailer', () => {
       then('exits with error about adhoc co-author', () => {
         const result = runInTempGitRepo({
@@ -3345,4 +3995,237 @@ exit 1`,
       });
     });
   });
+
+  given('[case34] --help short-circuits before the identity fetch', () => {
+    when(
+      '[t0] NODE_ENV=production would otherwise make the keyrack fetch reachable',
+      () => {
+        then('--help exits 0 with usage and emits no keyrack heads-up', () => {
+          // the identity fetch is gated on `as-ehmpath && NODE_ENV != test`, so
+          // in the jest env it is always skipped. run with NODE_ENV=production to
+          // make it reachable, then prove --help still exits before it runs. this
+          // clamps the most-repeated blocker (identity-fetch used to block --help)
+          // per rule.require.test-covered-repairs.
+          const result = runInTempGitRepo({
+            meterState: { uses: 3, push: 'allow' },
+            commitArgs: ['--help'],
+            env: { NODE_ENV: 'production' },
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('usage:');
+          expect(result.stdout).toContain('git.commit.set');
+          // the fetch, if reached, emits a keyrack heads-up on failure; --help
+          // must exit before it ever runs — so the note is absent on both streams
+          expect(result.stdout).not.toContain('keyrack token wasnt fetched');
+          expect(result.stderr).not.toContain('keyrack token wasnt fetched');
+          // lock the human-visible --help contract so a reworded or dropped flag
+          // cannot ship undetected (rule.require.contract-snapshot-exhaustiveness)
+          expect(result.stdout).toMatchSnapshot();
+          expect(result.stderr).toMatchSnapshot();
+        });
+      },
+    );
+  });
+
+  given(
+    '[case35] a composed --push under as-ehmpath performs exactly ONE keyrack fetch',
+    () => {
+      when(
+        '[t0] set --push --auth as-ehmpath with a healthy (faked) keyrack',
+        () => {
+          then(
+            'set mints the token once, threads it to push, and the bot opens the pr',
+            () => {
+              // the vision headline, proven end-to-end from the SET entry: a
+              // mechanic runs `git.commit.set … --mode apply --push` under the
+              // DEFAULT as-ehmpath with a healthy keyrack → the bot opens the pr.
+              // this proves set.sh PRODUCES the SEATURTLE_PR_TOKEN_* thread and
+              // that the composed run performs exactly ONE keyrack fetch: set.sh
+              // fetches once, push.sh reuses the thread and never fetches again.
+              // case33 in the push suite proves the reuse from push.sh's side with
+              // an injected thread; this proves set.sh is the one that mints it,
+              // which shuts the double-fetch / identity-divergence window
+              // end-to-end (rule.require.test-covered-repairs).
+
+              // a healthy keyrack: the fake rhachet returns the token as the json
+              // shape fetch_github_token parses (.grant.key.secret) AND appends a
+              // line to a sentinel on every call. exactly ONE call must land.
+              const sentinelDir = genTempDir({
+                slug: 'git-set-onefetch-sentinel',
+              });
+              const sentinel = path.join(sentinelDir, 'rhachet-was-called');
+              const fakeRhachet = `#!/bin/bash
+echo called >> "${sentinel}"
+echo '{"grant":{"key":{"secret":"ghp_composedfake"}}}'
+exit 0
+`;
+
+              // fake git: push succeeds so the transport completes; all else execs
+              // real git (local commit, log, rev-parse)
+              const fakeBinDir = genTempDir({
+                slug: 'git-set-onefetch-fakebin',
+              });
+              fs.writeFileSync(
+                path.join(fakeBinDir, 'git'),
+                `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+              );
+              fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+
+              // .mock = fake gh: opens pr #77 and hard-fails if GH_TOKEN is not the exact
+              // token set.sh threaded — proof the minted token reached the pr op
+              // under as-ehmpath (run_gh sets GH_TOKEN to the token)
+              fs.writeFileSync(
+                path.join(fakeBinDir, 'gh'),
+                `#!/bin/bash
+if [[ "$GH_TOKEN" != "ghp_composedfake" ]]; then
+  echo "expected the threaded token as GH_TOKEN, got: $GH_TOKEN" >&2
+  exit 3
+fi
+if [[ "$1" == "pr" && "$2" == "list" ]]; then
+  echo ""
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  echo "https://github.com/test/repo/pull/77"
+  exit 0
+fi
+exit 1
+`,
+              );
+              fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+              const result = runInTempGitRepo({
+                files: { 'fix.txt': 'fixed content' },
+                meterState: { uses: 2, push: 'allow' },
+                branch: 'turtle/feature',
+                gitUser: {
+                  name: 'seaturtle[bot]',
+                  email: 'seaturtle@ehmpath.com',
+                },
+                fakeRhachet,
+                commitArgs: [
+                  '--message',
+                  'fix(api): one fetch across the composed push',
+                  '--mode',
+                  'apply',
+                  '--push',
+                  '--auth',
+                  'as-ehmpath',
+                ],
+                env: {
+                  PATH: `${fakeBinDir}:${process.env.PATH}`,
+                  // NODE_ENV=production makes the as-ehmpath keyrack fetch
+                  // reachable (it is skipped under the jest test env), so the
+                  // .mock = fake keyrack actually runs and the thread gets minted
+                  NODE_ENV: 'production',
+                  // no ambient token → set.sh must fetch from the (faked)
+                  // keyrack, not read the value straight off the env
+                  EHMPATHY_SEATURTLE_GITHUB_TOKEN: '',
+                },
+              });
+
+              // the composed run shipped: commit landed + push + pr opened as bot
+              expect(result.exitCode).toBe(0);
+              expect(result.stdout).toContain('🐢 cowabunga!');
+              expect(result.stdout).toContain('pr #77 (created)');
+              expect(result.stdout).toContain(
+                'opened: as-ehmpath (ehmpath keyrack)',
+              );
+              // the decisive lock: EXACTLY ONE keyrack fetch across the whole
+              // composed run. set.sh fetched once and threaded the token; push.sh
+              // reused the thread and never fetched again. a second fetch would be
+              // a second sentinel line, and could return a divergent identity —
+              // the exact "3rd contributor on squash" window the thread shuts.
+              const calls = fs.existsSync(sentinel)
+                ? fs
+                    .readFileSync(sentinel, 'utf-8')
+                    .trim()
+                    .split('\n')
+                    .filter(Boolean)
+                : [];
+              expect(calls.length).toBe(1);
+              // lock the composed as-ehmpath success contract on both streams
+              expect(result.stdout).toMatchSnapshot();
+              expect(result.stderr).toMatchSnapshot();
+            },
+          );
+        },
+      );
+    },
+  );
+
+  given(
+    '[case44] the git commit itself fails (e.g. a pre-commit hook that rejects)',
+    () => {
+      when('[t0] apply mode, the inner git commit exits non-zero', () => {
+        then(
+          'the "git commit failed" error rides BOTH streams with the raw cause, exit 1',
+          () => {
+            // .mock = fake git whose `commit` fails like a hook that rejects; every
+            // other git subcommand execs the REAL binary so the staged-change +
+            // branch + message guards run for real. this drives set.sh's commit-
+            // failure branch (set.sh:754), which a hermetic repo cannot otherwise
+            // reach — a real git commit would just succeed. the fake's stderr is
+            // captured by set.sh and shown as the raw cause.
+            const fakeBinDir = genTempDir({
+              slug: 'git-set-commitfail-fakebin',
+            });
+            fs.writeFileSync(
+              path.join(fakeBinDir, 'git'),
+              `#!/bin/bash
+if [[ "$1" == "commit" ]]; then
+  echo "error: failed to commit — simulated pre-commit hook rejection" >&2
+  exit 1
+fi
+exec /usr/bin/git "$@"
+`,
+            );
+            fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+
+            const result = runInTempGitRepo({
+              files: { 'fix.txt': 'fixed content' },
+              meterState: { uses: 3, push: 'allow' },
+              branch: 'fix/test-branch',
+              gitUser: {
+                name: 'seaturtle[bot]',
+                email: 'seaturtle@ehmpath.com',
+              },
+              commitArgs: [
+                '--message',
+                'fix(api): commit-fail test',
+                '--mode',
+                'apply',
+              ],
+              env: {
+                PATH: `${fakeBinDir}:${process.env.PATH}`,
+              },
+            });
+
+            // a commit failure is a malfunction (exit 1)
+            expect(result.exitCode).toBe(1);
+            // the headline rides BOTH streams (never stdout-silent) per
+            // rule.require.skill-output-streams
+            expect(result.stdout).toContain('git commit failed');
+            expect(result.stderr).toContain('git commit failed');
+            // the raw git cause (captured commit stderr) follows on both streams
+            expect(result.stdout).toContain(
+              'simulated pre-commit hook rejection',
+            );
+            expect(result.stderr).toContain(
+              'simulated pre-commit hook rejection',
+            );
+            // lock both streams (rule.require.contract-snapshot-exhaustiveness)
+            expect(result.stdout).toMatchSnapshot();
+            expect(result.stderr).toMatchSnapshot();
+          },
+        );
+      });
+    },
+  );
 });
