@@ -341,6 +341,23 @@ describe('permissionrequest — composed control stack', () => {
       why: 'standard test call',
     },
 
+    // ── AUTO_APPROVE — sanctioned producer piped into a clean rhx sink ──
+    // the repo's own pre-approved list teaches this exact shape as the
+    // sanctioned workaround for suspicious-syntax false positives; proven here
+    // through the REAL forbid+decider stack, not just the decider in isolation.
+    {
+      command: "echo '{ foo(bar) }' | rhx sedreplace --old baz",
+      expect: 'AUTO_APPROVE',
+      danger: false,
+      why: 'sanctioned producer|sink shape, both halves independently clean',
+    },
+    {
+      command: 'cat notes.txt | rhx sedreplace --old @stdin',
+      expect: 'AUTO_APPROVE',
+      danger: false,
+      why: 'cat producer, clean rhx sink',
+    },
+
     // ── AUTO_DENY — unquoted chain (runs/backgrounds a second command) ──
     {
       command: 'rhx foo && rm -rf ~',

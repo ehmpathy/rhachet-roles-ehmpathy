@@ -28,6 +28,9 @@
 #
 #   - unquoted command-chain char (& ; newline)   -> DENY  (runs a 2nd command)
 #   - single clean rhx call, no unquoted metachar -> APPROVE (safe by design)
+#   - a sanctioned producer (echo/printf/cat) piped
+#     into a single clean rhx/npx sink              -> APPROVE (both halves
+#                                                            independently safe)
 #   - every other case (non-rhx, unbalanced quote,
 #     or rhx with a pipe/redirect/subshell/expansion
 #     residue)                                     -> LIFT  (a brain decides:
@@ -49,7 +52,8 @@
 #   lift:  (no stdout)
 #
 # guarantee:
-#   ✔ default-deny: approves only a provably clean single rhx call
+#   ✔ default-deny: approves only a provably clean single rhx call, or a
+#     sanctioned producer|rhx-sink pipe where both halves are independently clean
 #   ✔ quote-aware: single- and double-quoted metachars are inert data
 #   ✔ fail-safe: any doubt or error -> no decisive stdout -> human prompt
 ######################################################################
@@ -225,32 +229,127 @@ is_clean_rhx_call() {
   return 0
 }
 
+# .what = predicate: is this a single, CLEAN call to a sanctioned, side-effect-
+#         free EMIT command (echo / printf / cat)?
+# .why   = the producer half of a `<producer> | rhx <sink>` pipe must be provably
+#          inert: it only emits bytes to stdout, touches no file/network/process,
+#          and its residue holds no shell-active metachar the allowlist rejects.
+#          same bar as is_clean_rhx_call, applied to a narrower, closed lead set.
+# .inputs = $1 = the raw producer half (whitespace-trimmed), $2 = its own residue.
+is_clean_safe_producer_call() {
+  local trimmed="$1" residue="$2"
+  while [[ "$trimmed" == [[:space:]]* ]]; do trimmed="${trimmed#?}"; done
+  case "$trimmed" in
+    echo|echo\ *|printf\ *|cat|cat\ *) ;;
+    *) return 1 ;;
+  esac
+  case "$residue" in
+    *[![:alnum:]_./=:@,+[:blank:]-]*) return 1 ;;
+  esac
+  return 0
+}
+
+# .what = transformer: find the RAW-STRING byte positions of every TOP-LEVEL
+#         (unquoted) pipe `|` character in a command.
+# .why   = a `<producer> | rhx <sink>` shape must split at the REAL pipe, not one
+#          hidden inside a quoted arg (`--pattern 'a|b'`). this walks the SAME
+#          quote/backslash model as compute_active_residue, so a quoted pipe is
+#          never mistaken for the separator. only ever called AFTER
+#          is_command_chain found no ; & || newline/CR in the full residue, so
+#          every match here is a genuine single pipe — never part of a `||` or a
+#          `|&`, both of which would already have denied as a chain.
+# .outputs = sets global array PIPE_POSITIONS (0-based byte indices, low to high).
+compute_pipe_positions() {
+  local cmd="$1"
+  PIPE_POSITIONS=()
+  local in_single=false in_double=false escaped=false
+  local i=0 len=${#cmd} ch
+  while [[ "$i" -lt "$len" ]]; do
+    ch="${cmd:$i:1}"
+
+    if [[ "$escaped" == true ]]; then escaped=false; i=$((i+1)); continue; fi
+
+    if [[ "$in_single" == true ]]; then
+      [[ "$ch" == "'" ]] && in_single=false
+      i=$((i+1)); continue
+    fi
+
+    if [[ "$in_double" == true ]]; then
+      if [[ "$ch" == '"' ]]; then in_double=false
+      elif [[ "$ch" == '\' ]]; then escaped=true
+      fi
+      i=$((i+1)); continue
+    fi
+
+    if [[ "$ch" == '\' ]]; then escaped=true; i=$((i+1)); continue; fi
+    if [[ "$ch" == "'" ]]; then in_single=true; i=$((i+1)); continue; fi
+    if [[ "$ch" == '"' ]]; then in_double=true; i=$((i+1)); continue; fi
+    [[ "$ch" == '|' ]] && PIPE_POSITIONS+=("$i")
+    i=$((i+1))
+  done
+}
+
 # --- the decider, as narrative ---
 
-# compute the shell-active residue once (both-quote + backslash aware)
+# compute the shell-active residue once (both-quote + backslash aware), and
+# save it under DEDICATED names — the pipe-shape check below calls
+# compute_active_residue AGAIN (on each half of a pipe), which reuses and
+# CLOBBERS the RESIDUE/RESIDUE_BALANCED globals. step 3 still needs the
+# FULL-command residue afterward, so it must read the saved copy, not the
+# shared globals a later call may have overwritten.
 compute_active_residue "$CMD"
+FULL_RESIDUE="$RESIDUE"
+FULL_RESIDUE_BALANCED="$RESIDUE_BALANCED"
 
 # 1. an unquoted chain runs a second command -> DENY
-if is_command_chain "$RESIDUE"; then
+if is_command_chain "$FULL_RESIDUE"; then
   emit_deny "command chains or backgrounds a second command; banned — run each command as its own separate call"
   exit 0
 fi
 
-# 2. a single clean rhx call, with balanced quotes and no active metachar -> APPROVE.
+# 2. a sanctioned producer (echo/printf/cat) piped into a single clean rhx/npx
+#    sink -> APPROVE. only a SINGLE top-level pipe qualifies (a 2-stage pipe);
+#    both halves are validated INDEPENDENTLY against the same bar as step 3, so
+#    this can never approve a chain, an injection, or a non-sanctioned producer.
+#    closes the documented phase-1 gap: the repo's own pre-approved list already
+#    teaches `<producer> | rhx <sink>` as the sanctioned workaround for
+#    suspicious-syntax false positives, so the seam should recognize it too.
+compute_pipe_positions "$CMD"
+if [[ "${#PIPE_POSITIONS[@]}" -eq 1 ]]; then
+  pipe_idx="${PIPE_POSITIONS[0]}"
+  left_raw="${CMD:0:$pipe_idx}"
+  right_raw="${CMD:$((pipe_idx+1))}"
+  while [[ "$left_raw" == *[[:space:]] ]]; do left_raw="${left_raw%?}"; done
+  while [[ "$right_raw" == [[:space:]]* ]]; do right_raw="${right_raw#?}"; done
+
+  compute_active_residue "$left_raw"
+  left_residue="$RESIDUE"; left_balanced="$RESIDUE_BALANCED"
+  compute_active_residue "$right_raw"
+  right_residue="$RESIDUE"; right_balanced="$RESIDUE_BALANCED"
+
+  if [[ "$left_balanced" == true && "$right_balanced" == true ]] \
+    && is_clean_safe_producer_call "$left_raw" "$left_residue" \
+    && is_clean_rhx_call "$right_raw" "$right_residue"; then
+    emit_allow "sanctioned producer piped into a clean rhx sink, both halves safe by design"
+    exit 0
+  fi
+fi
+
+# 3. a single clean rhx call, with balanced quotes and no active metachar -> APPROVE.
 #    rhx is safe by design; the sensitive grants self-protect at EXECUTION inside
 #    their own skill scripts, so the seam does not try to enumerate dangerous rhx
 #    subcommands — an open-ended, glob-like namespace it cannot soundly denylist.
-if [[ "$RESIDUE_BALANCED" == true ]] && is_clean_rhx_call "$CMD" "$RESIDUE"; then
+if [[ "$FULL_RESIDUE_BALANCED" == true ]] && is_clean_rhx_call "$CMD" "$FULL_RESIDUE"; then
   emit_allow "single clean rhx call, safe by design"
   exit 0
 fi
 
-# 3. else -> LIFT: emit no stdout (claude falls back to a brain — human now).
+# 4. else -> LIFT: emit no stdout (claude falls back to a brain — human now).
 #    a one-line stderr breadcrumb records WHY it lifted, OFF the critical path:
 #    stdout stays empty, so the fail-safe fallback is unchanged, but a human is no
 #    longer left to guess why a command that looks safe was not auto-approved. the
 #    reason names the miss so "why did it lift" is legible, not tribal knowledge.
-if [[ "$RESIDUE_BALANCED" != true ]]; then
+if [[ "$FULL_RESIDUE_BALANCED" != true ]]; then
   printf 'permissionrequest.decide-permissions: lifted to human — unbalanced quotes in command\n' >&2
 else
   printf 'permissionrequest.decide-permissions: lifted to human — not a clean single rhx call (an extra shell-active metachar in the residue)\n' >&2

