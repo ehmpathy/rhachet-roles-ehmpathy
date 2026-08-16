@@ -59,8 +59,8 @@ describe('git.repo.test.sh scope', () => {
         'KeyrackError: no keyrack.yml found in repo',
       )
       .replace(
-        /^BadRequestError: no keyrack\.yml found in repo/m,
-        'KeyrackError: no keyrack.yml found in repo',
+        /\n{2,}BadRequestError: no keyrack\.yml found in repo/,
+        '\n\nKeyrackError: no keyrack.yml found in repo',
       )
       .replace(
         /\n {4}at __stack__(?:\n {4}at __stack__)*\n\nNode\.js vX\.X\.X\s*$/,
