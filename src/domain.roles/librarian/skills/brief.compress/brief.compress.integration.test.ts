@@ -127,7 +127,7 @@ describe.skip('brief.compress.sh', () => {
             '--from',
             'brief.md',
             '--via',
-            '@xai/grok/code-fast-1',
+            '@fireworks/deepseek/v4-flash',
           ],
         });
 
@@ -227,7 +227,7 @@ describe.skip('brief.compress.sh', () => {
     });
 
     when('[t1] --via bhrain/sitrep with default brain', () => {
-      then('defaults to xai/grok/code-fast-1', () => {
+      then('defaults to fireworks/deepseek/v4-flash', () => {
         const result = runInTempGitRepo({
           files: {
             'brief.md': BRIEF_INPUT_CONTEXT_PATTERN,
@@ -244,7 +244,7 @@ describe.skip('brief.compress.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain(
-          'via: bhrain/sitrep@xai/grok/code-fast-1',
+          'via: bhrain/sitrep@fireworks/deepseek/v4-flash',
         );
       });
     });

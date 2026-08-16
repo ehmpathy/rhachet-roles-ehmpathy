@@ -3,7 +3,7 @@ import { given, then, useThen, when } from 'test-fns';
 import { clusterKernels, mergeAndClusterKernels } from './clusterKernels';
 import type { ConceptKernel } from './extractKernels';
 
-const BRAIN_SLUG = 'xai/grok/4.1-fast-wout-reason';
+const BRAIN_SLUG = 'fireworks/deepseek/v4-flash';
 
 describe.skip('clusterKernels', () => {
   given('[case1] kernels that express the same concept', () => {

@@ -151,9 +151,18 @@ const _clusterKernels = async (input: {
     };
   }
 
-  // resolve brain
+  // build brain — creds wires context['brain.supplier.*'] internally, so the
+  // chosen brain package's genBrainAtom can fetch its api key at ask() time.
+  // env: 'test' under jest (keyrack auto-unlocks 'test' creds), 'prep' else —
+  // mirrors rhachet-roles-bhrain's genReviewBrainSupply.ts convention.
   const contextBrain = await genContextBrain({
     choice: { atom: input.brainSlug },
+    creds: {
+      keyrack: {
+        owner: 'ehmpath',
+        env: process.env.NODE_ENV === 'test' ? 'test' : 'prep',
+      },
+    },
   });
 
   // format kernels for prompt

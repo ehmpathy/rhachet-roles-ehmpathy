@@ -115,7 +115,7 @@ describe.skip('compress.via.bhrain.contract', () => {
 
       then('shows default brain in via', () => {
         expect(result.stdout).toContain(
-          'via: bhrain/sitrep@xai/grok/code-fast-1',
+          'via: bhrain/sitrep@fireworks/deepseek/v4-flash',
         );
       });
 
@@ -242,38 +242,41 @@ describe.skip('compress.via.bhrain.contract', () => {
         }),
       );
 
-      then('defaults to xai/grok/code-fast-1', () => {
+      then('defaults to fireworks/deepseek/v4-flash', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain(
-          'via: bhrain/sitrep@xai/grok/code-fast-1',
+          'via: bhrain/sitrep@fireworks/deepseek/v4-flash',
         );
       });
     });
 
-    when('[t1] --via bhrain/sitrep@xai/grok/code-fast-1 (explicit)', () => {
-      const result = useThen('compression completes', () =>
-        runInTempGitRepo({
-          files: {
-            'brief.md': BRIEF_INPUT_CONTEXT_PATTERN,
-          },
-          compressArgs: [
-            '--from',
-            'brief.md',
-            '--via',
-            'bhrain/sitrep@xai/grok/code-fast-1',
-            '--mode',
-            'plan',
-          ],
-        }),
-      );
-
-      then('uses specified brain', () => {
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain(
-          'via: bhrain/sitrep@xai/grok/code-fast-1',
+    when(
+      '[t1] --via bhrain/sitrep@fireworks/deepseek/v4-flash (explicit)',
+      () => {
+        const result = useThen('compression completes', () =>
+          runInTempGitRepo({
+            files: {
+              'brief.md': BRIEF_INPUT_CONTEXT_PATTERN,
+            },
+            compressArgs: [
+              '--from',
+              'brief.md',
+              '--via',
+              'bhrain/sitrep@fireworks/deepseek/v4-flash',
+              '--mode',
+              'plan',
+            ],
+          }),
         );
-      });
-    });
+
+        then('uses specified brain', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(
+            'via: bhrain/sitrep@fireworks/deepseek/v4-flash',
+          );
+        });
+      },
+    );
   });
 
   given('[case5] error paths', () => {
@@ -287,7 +290,7 @@ describe.skip('compress.via.bhrain.contract', () => {
             '--from',
             'brief.md',
             '--via',
-            '@xai/grok/code-fast-1',
+            '@fireworks/deepseek/v4-flash',
           ],
         });
 

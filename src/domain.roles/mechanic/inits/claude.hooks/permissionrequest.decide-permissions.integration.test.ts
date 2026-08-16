@@ -876,4 +876,86 @@ describe('permissionrequest.decide-permissions.sh', () => {
       });
     });
   });
+
+  /**
+   * .what = clamp the REAL registered hook command exactly as
+   *         `.claude/settings.json` invokes it — not the bare executable every
+   *         other case in this file runs directly — on TWO axes: (1) its
+   *         stdout is PURE, parseable JSON with no wrapper noise, and (2) it
+   *         renders its verdict within its own configured timeout budget.
+   * .why  = a live command this exact decider correctly auto-approved
+   *         (`rhx git.repo.get lines --in ehmpathy/rhachet-roles-bhrain ...`,
+   *         verdict allow per the G3 audit trail) still surfaced a human
+   *         prompt. traced cause: the hook USED TO be registered via
+   *         `rhachet run --init`, whose execRoleInits banner
+   *         (`💪 init role ...`) writes to STDOUT via console.log ahead of —
+   *         and line-prefixed around — the decider's own JSON, so claude-cli
+   *         could never parse a clean verdict. registration now invokes the
+   *         shipped executable directly (no CLI wrapper), which also removes
+   *         the Node+rhachet-CLI bootstrap latency that would otherwise risk
+   *         the undocumented race window (Q4, `.behavior/.../1.vision.yield.md`).
+   *         every other case in this file exercises the decider's LOGIC via
+   *         `spawnSync('bash', [scriptPath], ...)`, which happens to sidestep
+   *         both failure modes — so neither was ever caught here before. this
+   *         case reads the command straight from settings.json, so a future
+   *         re-wrap in a banner-printing wrapper fails this clamp immediately.
+   */
+  given(
+    '[case12] the real registered hook command (not the bare executable)',
+    () => {
+      const findRepoRoot = (): string => {
+        let dir = __dirname;
+        while (dir !== path.dirname(dir)) {
+          if (fs.existsSync(path.join(dir, '.claude/settings.json')))
+            return dir;
+          dir = path.dirname(dir);
+        }
+        throw new Error(
+          '.claude/settings.json not found upward from the hooks dir',
+        );
+      };
+      const repoRoot = findRepoRoot();
+      const settingsPath = path.join(repoRoot, '.claude/settings.json');
+      const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+      const hookEntry = settings?.hooks?.PermissionRequest?.[0]?.hooks?.[0];
+      const configuredTimeoutMs = (hookEntry?.timeout ?? 5) * 1000;
+
+      when('[t0] a clean single rhx call is decided end-to-end', () => {
+        then(
+          `stdout is pure JSON, verdict allow, within its configured timeout (${configuredTimeoutMs}ms)`,
+          () => {
+            const stdinJson = JSON.stringify({
+              tool_name: 'Bash',
+              hook_event_name: 'PermissionRequest',
+              tool_input: {
+                command: "rhx git.repo.get lines --words 'DomainEntity'",
+              },
+            });
+
+            const start = Date.now();
+            const result = spawnSync(hookEntry.command, {
+              shell: true,
+              cwd: repoRoot,
+              encoding: 'utf-8',
+              input: stdinJson,
+              stdio: ['pipe', 'pipe', 'pipe'],
+              timeout: configuredTimeoutMs + 5000, // give the assertion room to observe an overrun, rather than the OS killing it silently
+            });
+            const elapsed = Date.now() - start;
+
+            const stdout = (result.stdout ?? '').trim();
+            // .why = a single JSON.parse on the RAW stdout is the clamp itself —
+            // any wrapper noise (a banner line, a `│ ` prefix) before or around
+            // the decider's own emission throws here, exactly as it did live.
+            const parsed = JSON.parse(stdout);
+
+            expect(parsed?.hookSpecificOutput?.decision?.behavior).toBe(
+              'allow',
+            );
+            expect(elapsed).toBeLessThan(configuredTimeoutMs);
+          },
+        );
+      });
+    },
+  );
 });

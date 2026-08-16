@@ -133,9 +133,16 @@ const _extractKernels = async (input: {
     };
   }
 
-  // resolve brain
+  // build brain — creds wires context['brain.supplier.*'] internally, so the
+  // chosen brain package's genBrainAtom can fetch its api key at ask() time.
   const contextBrain = await genContextBrain({
     choice: { atom: input.brainSlug },
+    creds: {
+      keyrack: {
+        owner: 'ehmpath',
+        env: process.env.NODE_ENV === 'test' ? 'test' : 'prep',
+      },
+    },
   });
 
   // prompt for kernel extraction
@@ -408,9 +415,16 @@ export const checkKernelRetention = async (input: {
     };
   }
 
-  // resolve brain
+  // build brain — creds wires context['brain.supplier.*'] internally, so the
+  // chosen brain package's genBrainAtom can fetch its api key at ask() time.
   const contextBrain = await genContextBrain({
     choice: { atom: input.brainSlug },
+    creds: {
+      keyrack: {
+        owner: 'ehmpath',
+        env: process.env.NODE_ENV === 'test' ? 'test' : 'prep',
+      },
+    },
   });
 
   // schema for retention check
@@ -511,9 +525,16 @@ export const compareKernels = async (input: {
   retentionRatio: number;
   rationale: string;
 }> => {
-  // resolve brain
+  // build brain — creds wires context['brain.supplier.*'] internally, so the
+  // chosen brain package's genBrainAtom can fetch its api key at ask() time.
   const contextBrain = await genContextBrain({
     choice: { atom: input.brainSlug },
+    creds: {
+      keyrack: {
+        owner: 'ehmpath',
+        env: process.env.NODE_ENV === 'test' ? 'test' : 'prep',
+      },
+    },
   });
 
   // schema for comparison output

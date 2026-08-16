@@ -47,7 +47,8 @@ const parseArgs = (): {
     (args.find((_, i) => args[i - 1] === '--mode') as 'plan' | 'apply') ??
     'plan';
   const brainSlug =
-    args.find((_, i) => args[i - 1] === '--brain') ?? 'xai/grok/code-fast-1';
+    args.find((_, i) => args[i - 1] === '--brain') ??
+    'fireworks/deepseek/v4-flash';
 
   return { from, into, mode, brainSlug };
 };

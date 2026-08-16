@@ -3,7 +3,7 @@ import { given, then, useThen, when } from 'test-fns';
 import { clusterKernels } from '../../../../domain.operations/kernelize/clusterKernels';
 import type { ConceptKernel } from '../../../../domain.operations/kernelize/extractKernels';
 
-const BRAIN_SLUG = 'xai/grok/code-fast-1';
+const BRAIN_SLUG = 'fireworks/deepseek/v4-flash';
 
 describe.skip('clusterKernels', () => {
   given('[case1] kernels with semantically equivalent pairs', () => {

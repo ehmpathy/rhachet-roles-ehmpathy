@@ -230,7 +230,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/permissionrequest.decide-permissions",
+            "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/permissionrequest.decide-permissions.sh",
             "timeout": 5,
             "author": "repo=ehmpathy/role=mechanic"
           }

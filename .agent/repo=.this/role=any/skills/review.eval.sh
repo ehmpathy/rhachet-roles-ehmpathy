@@ -11,7 +11,7 @@
 # usage:
 #   rhx review.eval rubrics                                        # show rubrics
 #   rhx review.eval run --rubric mech-failhides --role mechanic    # run eval
-#   rhx review.eval compare --rubric mech-failhides --role mechanic --brains fireworks/deepseek/v4-flash,xai/grok/3-mini
+#   rhx review.eval compare --rubric mech-failhides --role mechanic --brains fireworks/deepseek/v4-flash,fireworks/deepseek/v4-pro
 #
 # guarantee:
 #   - emits results to .agent/.cache/review.eval/

@@ -569,7 +569,7 @@ const main = async (): Promise<void> => {
   );
   const brainSlug =
     args.find((a) => a.startsWith('--brain='))?.split('=')[1] ??
-    'xai/grok/code-fast-1';
+    'fireworks/deepseek/v4-flash';
 
   // load shared test briefs
   const testBriefs = getTestBriefs();
