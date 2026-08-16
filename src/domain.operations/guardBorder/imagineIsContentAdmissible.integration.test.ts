@@ -1,3 +1,4 @@
+import { genContextBrain } from 'rhachet';
 import { genBrainAtom } from 'rhachet-brains-fireworksai';
 import { given, then, useThen, when } from 'test-fns';
 
@@ -18,7 +19,21 @@ describe('imagineIsContentAdmissible (integration)', () => {
     : describe;
 
   skipIfNoApiKey('with fireworks API', () => {
-    const brain = genBrainAtom({ slug: 'fireworks/deepseek/v4-flash' });
+    // explicit mode (sync) binds creds onto the atom, so context.brain.ask()
+    // (called with no second arg by imagineIsContentAdmissible.ts) can fetch
+    // its api key at ask() time — mirrors genContextBrain's discovery-mode wire.
+    const brain = genContextBrain({
+      brains: {
+        atoms: [genBrainAtom({ slug: 'fireworks/deepseek/v4-flash' })],
+      },
+      choice: { atom: 'fireworks/deepseek/v4-flash' },
+      creds: {
+        keyrack: {
+          owner: 'ehmpath',
+          env: process.env.NODE_ENV === 'test' ? 'test' : 'prep',
+        },
+      },
+    }).brain.choice;
 
     given('[case1] safe documentation content', () => {
       when.repeatably(REPEATABLY_CONFIG_LLM)(

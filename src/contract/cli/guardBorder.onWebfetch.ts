@@ -1,6 +1,6 @@
 import * as path from 'path';
+import { genContextBrain } from 'rhachet';
 import { keyrack } from 'rhachet/keyrack';
-import { genBrainAtom } from 'rhachet-brains-fireworksai';
 
 import { decideIsContentAdmissibleOnWebfetch } from '@src/domain.operations/guardBorder/decideIsContentAdmissibleOnWebfetch';
 
@@ -66,8 +66,15 @@ export const guardBorderOnWebfetch = async (): Promise<void> => {
     session_id: string;
   };
 
-  // setup context with brain atom (fireworks/deepseek/v4-flash)
-  const brain = genBrainAtom({ slug: 'fireworks/deepseek/v4-flash' });
+  // build brain atom (fireworks/deepseek/v4-flash) bound with the api key
+  // already granted above — a getter avoids a second keyrack round-trip.
+  const contextBrain = await genContextBrain({
+    choice: { atom: 'fireworks/deepseek/v4-flash' },
+    creds: async () => ({
+      FIREWORKS_API_KEY: process.env.FIREWORKS_API_KEY!,
+    }),
+  });
+  const brain = contextBrain.brain.choice;
   const quarantineDir = path.join(process.cwd(), '.quarantine');
 
   // decide via webfetch adapter
