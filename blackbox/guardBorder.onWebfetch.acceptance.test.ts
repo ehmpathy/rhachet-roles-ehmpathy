@@ -263,12 +263,13 @@ This is a helpful library.
       const res = useThen('invoke hook on oversized content', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-oversized' });
 
-        // with grok-code-fast-1 (256K token context):
-        //   maxInspectableChars = (256000 - 1000) * 0.5 * 4 = 510000 chars
-        // so 520K chars should exceed the limit
+        // with fireworks/deepseek/v4-flash (1M token context, the brain this
+        // hook actually binds):
+        //   maxInspectableChars = (1_000_000 - 1000) * 0.5 * 4 = 1_998_000 chars
+        // so 2.01M chars should exceed the limit
         const stdin = genWebfetchStdin({
           url: 'https://example.com/large-file.txt',
-          response: 'x'.repeat(520_000),
+          response: 'x'.repeat(2_010_000),
         });
 
         const result = await invokePostToolUseHook({
