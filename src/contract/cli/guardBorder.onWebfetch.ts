@@ -1,6 +1,7 @@
 import * as path from 'path';
 import { genContextBrain } from 'rhachet';
 import { keyrack } from 'rhachet/keyrack';
+import { genBrainAtom } from 'rhachet-brains-fireworksai';
 
 import { decideIsContentAdmissibleOnWebfetch } from '@src/domain.operations/guardBorder/decideIsContentAdmissibleOnWebfetch';
 
@@ -68,13 +69,21 @@ export const guardBorderOnWebfetch = async (): Promise<void> => {
 
   // build brain atom (fireworks/deepseek/v4-flash) bound with the api key
   // already granted above — a getter avoids a second keyrack round-trip.
-  const contextBrain = await genContextBrain({
+  //
+  // explicit mode (sync, atom supplied directly) on purpose: discovery mode
+  // would scan `${process.cwd()}/package.json` for `rhachet-brains-*` deps,
+  // which is fragile when this hook runs from a cwd whose package.json does
+  // not declare rhachet-brains-fireworksai (e.g. a linked consumer repo) —
+  // it silently finds zero atoms and throws BrainChoiceNotFoundError.
+  const brain = genContextBrain({
+    brains: {
+      atoms: [genBrainAtom({ slug: 'fireworks/deepseek/v4-flash' })],
+    },
     choice: { atom: 'fireworks/deepseek/v4-flash' },
     creds: async () => ({
       FIREWORKS_API_KEY: process.env.FIREWORKS_API_KEY!,
     }),
-  });
-  const brain = contextBrain.brain.choice;
+  }).brain.choice;
   const quarantineDir = path.join(process.cwd(), '.quarantine');
 
   // decide via webfetch adapter
