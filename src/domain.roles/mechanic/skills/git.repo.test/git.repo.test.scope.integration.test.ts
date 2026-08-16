@@ -48,6 +48,25 @@ describe('git.repo.test.sh scope', () => {
       .replace(/^\s+throw /gm, '            throw ')
       // remove caret position indicators entirely (indentation varies by node version)
       .replace(/^\s+\^\s*$/gm, '')
+      // collapse error class across keyrack sdk versions to one canonical
+      // form — older sdks throw UnexpectedCodePathError with a pkg-path
+      // preamble + stack trace, newer sdks throw BadRequestError with a
+      // trailing [args] line. neither the class name, the preamble, the
+      // stack trace, nor the args line carry any test signal — only the
+      // message + note block do.
+      .replace(
+        /__pkg__\n\s+throw new helpful_errors_1\.UnexpectedCodePathError\('no keyrack\.yml found in repo', \{\n\nUnexpectedCodePathError: UnexpectedCodePathError: no keyrack\.yml found in repo/,
+        'KeyrackError: no keyrack.yml found in repo',
+      )
+      .replace(
+        /^BadRequestError: no keyrack\.yml found in repo/m,
+        'KeyrackError: no keyrack.yml found in repo',
+      )
+      .replace(
+        /\n {4}at __stack__(?:\n {4}at __stack__)*\n\nNode\.js vX\.X\.X\s*$/,
+        '',
+      )
+      .replace(/\n\n\[args\] [^\n]+\s*$/, '')
       .trim();
 
   /**
