@@ -160,7 +160,6 @@ exports[`git.repo.test.sh scope given: [case8] scope with --what integration (ke
 
 hint: check keyrack setup with 'rhx keyrack status --owner ehmpath'
 
-
 KeyrackError: no keyrack.yml found in repo
 
 {
@@ -176,7 +175,6 @@ exports[`git.repo.test.sh scope given: [case8] scope with --what integration (ke
    └─ error: keyrack unlock failed
 
 hint: check keyrack setup with 'rhx keyrack status --owner ehmpath'
-
 
 KeyrackError: no keyrack.yml found in repo
 

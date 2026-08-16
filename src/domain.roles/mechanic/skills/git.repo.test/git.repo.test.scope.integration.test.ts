@@ -55,8 +55,8 @@ describe('git.repo.test.sh scope', () => {
       // stack trace, nor the args line carry any test signal — only the
       // message + note block do.
       .replace(
-        /__pkg__\n\s+throw new helpful_errors_1\.UnexpectedCodePathError\('no keyrack\.yml found in repo', \{\n\nUnexpectedCodePathError: UnexpectedCodePathError: no keyrack\.yml found in repo/,
-        'KeyrackError: no keyrack.yml found in repo',
+        /\n{2,}__pkg__\n\s+throw new helpful_errors_1\.UnexpectedCodePathError\('no keyrack\.yml found in repo', \{\n\nUnexpectedCodePathError: UnexpectedCodePathError: no keyrack\.yml found in repo/,
+        '\n\nKeyrackError: no keyrack.yml found in repo',
       )
       .replace(
         /\n{2,}BadRequestError: no keyrack\.yml found in repo/,
