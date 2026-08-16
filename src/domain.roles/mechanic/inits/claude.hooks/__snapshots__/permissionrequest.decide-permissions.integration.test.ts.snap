@@ -1,0 +1,29 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`permissionrequest.decide-permissions.sh given: [case1] a clean single rhx call the classifier flagged when: [t0] the residue holds no shell-active metachar outside quotes then: the emitted allow json shape is snapshot-pinned (schema-drift early warning) 1`] = `
+{
+  "hookSpecificOutput": {
+    "decision": {
+      "behavior": "allow",
+    },
+    "hookEventName": "PermissionRequest",
+    "reasoning": "single clean rhx call, safe by design",
+  },
+}
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case2] an unquoted command-chain smuggles a second command when: [t0] the residue holds a chain/background operator then: the emitted deny json shape is snapshot-pinned (blocked-state drift alarm) 1`] = `
+{
+  "hookSpecificOutput": {
+    "decision": {
+      "behavior": "deny",
+    },
+    "hookEventName": "PermissionRequest",
+    "reasoning": "command chains or backgrounds a second command; banned — run each command as its own separate call",
+  },
+}
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case3] a command the decider cannot prove clean when: [t0] not a clean single rhx call then: the LIFT stdout is snapshot-pinned as exactly empty (no-decision contract) 1`] = `""`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case4] edge cases when: [t0] empty or absent command then: the malformed-stdin edge output is snapshot-pinned as exactly empty 1`] = `""`;

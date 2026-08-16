@@ -50,7 +50,7 @@ const parseArgs = (): {
   let mode: 'plan' | 'apply' = 'plan';
   let consensus: number | null = null;
   let threshold: number | null = null;
-  let brain = 'xai/grok/code-fast-1';
+  let brain = 'fireworks/deepseek/v4-flash';
 
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];

@@ -173,7 +173,7 @@ fi
 if [[ -z "$BRAIN" ]]; then
   case "$PRESS" in
     bhrain/sitrep)
-      BRAIN="xai/grok/code-fast-1"
+      BRAIN="fireworks/deepseek/v4-flash"
       ;;
     *)
       echo "error: no default brain for press '$PRESS'; specify via \$press@\$brain" >&2

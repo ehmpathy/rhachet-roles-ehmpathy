@@ -9,7 +9,7 @@ import { checkRetention } from './checkRetention';
 // extend timeout for external brain API calls
 jest.setTimeout(120_000);
 
-const BRAIN_SLUG = 'xai/grok/3-mini';
+const BRAIN_SLUG = 'fireworks/deepseek/v4-flash';
 
 // test fixtures
 const FIXTURES_DIR = path.join(__dirname, '../../.test/fixtures/briefs');

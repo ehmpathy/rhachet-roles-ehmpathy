@@ -37,7 +37,7 @@ source "$SKILL_DIR/output.sh"
 FROM=""
 INTO=""
 MODE="plan"
-BRAIN_SLUG="xai/grok/code-fast-1"
+BRAIN_SLUG="fireworks/deepseek/v4-flash"
 
 # parse args
 while [[ $# -gt 0 ]]; do

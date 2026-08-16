@@ -9,8 +9,7 @@ env.prod:
 
 env.prep:
   - EHMPATHY_SEATURTLE_GITHUB_TOKEN
-  - XAI_API_KEY
+  - FIREWORKS_API_KEY
 
 env.test:
-  # - AWS_PROFILE
-  # - OPENAI_API_KEY
+  - FIREWORKS_API_KEY

@@ -5,8 +5,8 @@
  * .why = semantic compression that preserves decision-critical content
  *
  * usage:
- *   compress.via.bhrain.ts --from path/to/brief.md --via xai/grok/code-fast-1 --json
- *   compress.via.bhrain.ts --from path/to/brief.md --via xai/grok/code-fast-1 --force
+ *   compress.via.bhrain.ts --from path/to/brief.md --via fireworks/deepseek/v4-flash --json
+ *   compress.via.bhrain.ts --from path/to/brief.md --via fireworks/deepseek/v4-flash --force
  *
  * note:
  *   - results are cached to .rhachet/bhrain/cache/compress/
@@ -337,9 +337,17 @@ const _compressViaBhrain = async (input: {
   // compose prompt with source content (include supplements and kernels if provided)
   const prompt = `${genCompressionPrompt(elements, { supplements: input.supplements, kernels: input.kernels })}\n\n${input.content}`;
 
-  // resolve brain via auto-discovery
+  // build brain via auto-discovery — creds wires context['brain.supplier.*']
+  // internally, so the chosen brain package's genBrainAtom can fetch its api
+  // key at ask() time.
   const contextBrain = await genContextBrain({
     choice: { atom: input.brainSlug },
+    creds: {
+      keyrack: {
+        owner: 'ehmpath',
+        env: process.env.NODE_ENV === 'test' ? 'test' : 'prep',
+      },
+    },
   });
 
   // ask brain to distill via specified mechanisms (passed via role.briefs)
@@ -452,7 +460,8 @@ const main = async (): Promise<void> => {
     console.error(
       JSON.stringify({
         error: 'absent brain',
-        message: '--via is required (brain slug, e.g., xai/grok/code-fast-1)',
+        message:
+          '--via is required (brain slug, e.g., fireworks/deepseek/v4-flash)',
       }),
     );
     process.exit(1);

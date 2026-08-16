@@ -2,7 +2,9 @@
 *.local.json
 *.log
 .agent/.cache/
+.agent/.actors/
 .cache/
+.claude/scheduled_tasks.lock
 bin/
 *.tsbuildinfo
 .artifact

@@ -1,6 +1,7 @@
 import * as path from 'path';
+import { genContextBrain } from 'rhachet';
 import { keyrack } from 'rhachet/keyrack';
-import { genBrainAtom } from 'rhachet-brains-xai';
+import { genBrainAtom } from 'rhachet-brains-fireworksai';
 
 import { decideIsContentAdmissibleOnWebfetch } from '@src/domain.operations/guardBorder/decideIsContentAdmissibleOnWebfetch';
 
@@ -26,14 +27,14 @@ const readStdin = async (): Promise<string> => {
  */
 export const guardBorderOnWebfetch = async (): Promise<void> => {
   // check env first (CI, direct env var), then keyrack (local dev)
-  if (!process.env.XAI_API_KEY) {
+  if (!process.env.FIREWORKS_API_KEY) {
     // use test env when NODE_ENV=test, otherwise prep
     const keyrackEnv = process.env.NODE_ENV === 'test' ? 'test' : 'prep';
 
-    // fetch XAI_API_KEY from keyrack
+    // fetch FIREWORKS_API_KEY from keyrack
     try {
       const keyGrant = await keyrack.get({
-        for: { key: 'XAI_API_KEY' },
+        for: { key: 'FIREWORKS_API_KEY' },
         owner: 'ehmpath',
         env: keyrackEnv,
       });
@@ -45,12 +46,12 @@ export const guardBorderOnWebfetch = async (): Promise<void> => {
       }
 
       // set env var for downstream
-      process.env.XAI_API_KEY = keyGrant.attempt.grant.key.secret;
+      process.env.FIREWORKS_API_KEY = keyGrant.attempt.grant.key.secret;
     } catch (error) {
       // keyrack SDK throws ConstraintError when keyrack.yml is absent
       // emit helpful unlock instructions and exit 2
       console.error(
-        `\n🔐 XAI_API_KEY locked\n\nrun: rhx keyrack unlock --owner ehmpath --env ${keyrackEnv}\n`,
+        `\n🔐 FIREWORKS_API_KEY locked\n\nrun: rhx keyrack unlock --owner ehmpath --env ${keyrackEnv}\n`,
       );
       process.exit(2);
     }
@@ -66,8 +67,23 @@ export const guardBorderOnWebfetch = async (): Promise<void> => {
     session_id: string;
   };
 
-  // setup context with brain atom (xai/grok/code-fast-1)
-  const brain = genBrainAtom({ slug: 'xai/grok/code-fast-1' });
+  // build brain atom (fireworks/deepseek/v4-flash) bound with the api key
+  // already granted above — a getter avoids a second keyrack round-trip.
+  //
+  // explicit mode (sync, atom supplied directly) on purpose: discovery mode
+  // would scan `${process.cwd()}/package.json` for `rhachet-brains-*` deps,
+  // which is fragile when this hook runs from a cwd whose package.json does
+  // not declare rhachet-brains-fireworksai (e.g. a linked consumer repo) —
+  // it silently finds zero atoms and throws BrainChoiceNotFoundError.
+  const brain = genContextBrain({
+    brains: {
+      atoms: [genBrainAtom({ slug: 'fireworks/deepseek/v4-flash' })],
+    },
+    choice: { atom: 'fireworks/deepseek/v4-flash' },
+    creds: async () => ({
+      FIREWORKS_API_KEY: process.env.FIREWORKS_API_KEY!,
+    }),
+  }).brain.choice;
   const quarantineDir = path.join(process.cwd(), '.quarantine');
 
   // decide via webfetch adapter

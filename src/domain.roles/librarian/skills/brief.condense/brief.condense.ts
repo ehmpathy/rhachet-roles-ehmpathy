@@ -45,7 +45,7 @@ const DEFAULT_PIPELINE: MechanismOrModifier[][] = [['telegraphic']];
  * .what = default brain for compression
  * .why = grok/3-mini is fast and cheap for iteration
  */
-const DEFAULT_BRAIN_SLUG = 'xai/grok/3-mini';
+const DEFAULT_BRAIN_SLUG = 'fireworks/deepseek/v4-flash';
 
 /**
  * .what = condense a single file

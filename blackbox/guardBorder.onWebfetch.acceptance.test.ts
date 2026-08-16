@@ -13,8 +13,8 @@ import {
  * .what = acceptance tests for guardBorder PostToolUse hook
  * .why = verify the full hook flow works correctly end-to-end
  *
- * .note = these tests invoke the real xAI API via rhachet-brains-xai
- *         XAI_API_KEY must be set in environment
+ * .note = these tests invoke the real fireworks API via rhachet-brains-fireworksai
+ *         FIREWORKS_API_KEY must be set in environment
  *
  * .pattern = blackbox tests that run against the linked command:
  *   1. clone fixture to temp dir via genTestDir
@@ -263,12 +263,13 @@ This is a helpful library.
       const res = useThen('invoke hook on oversized content', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-oversized' });
 
-        // with grok-code-fast-1 (256K token context):
-        //   maxInspectableChars = (256000 - 1000) * 0.5 * 4 = 510000 chars
-        // so 520K chars should exceed the limit
+        // with fireworks/deepseek/v4-flash (1M token context, the brain this
+        // hook actually binds):
+        //   maxInspectableChars = (1_000_000 - 1000) * 0.5 * 4 = 1_998_000 chars
+        // so 2.01M chars should exceed the limit
         const stdin = genWebfetchStdin({
           url: 'https://example.com/large-file.txt',
-          response: 'x'.repeat(520_000),
+          response: 'x'.repeat(2_010_000),
         });
 
         const result = await invokePostToolUseHook({
@@ -290,8 +291,8 @@ This is a helpful library.
     });
   });
 
-  given('[case7] XAI_API_KEY not configured', () => {
-    when('[t0] hook invoked without XAI_API_KEY env var', () => {
+  given('[case7] FIREWORKS_API_KEY not configured', () => {
+    when('[t0] hook invoked without FIREWORKS_API_KEY env var', () => {
       const res = useThen('invoke hook without api key', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-no-key' });
 
@@ -305,7 +306,7 @@ This is a helpful library.
           stdin,
           cwd: tempDir,
           // HOME must point to temp dir so hook cannot find ~/.config/rhachet/apikeys.env
-          env: { XAI_API_KEY: '', HOME: tempDir },
+          env: { FIREWORKS_API_KEY: '', HOME: tempDir },
         });
 
         return { result };
@@ -315,8 +316,8 @@ This is a helpful library.
         expect(res.result.code).toBe(2);
       });
 
-      then('stderr instructs agent how to unlock XAI_API_KEY', () => {
-        expect(res.result.stderr).toContain('XAI_API_KEY');
+      then('stderr instructs agent how to unlock FIREWORKS_API_KEY', () => {
+        expect(res.result.stderr).toContain('FIREWORKS_API_KEY');
         expect(res.result.stderr).toContain('keyrack unlock');
       });
     });

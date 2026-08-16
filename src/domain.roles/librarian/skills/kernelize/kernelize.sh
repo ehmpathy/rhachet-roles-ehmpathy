@@ -34,7 +34,7 @@ MODE="plan"
 CONSENSUS=""
 THRESHOLD=""
 SHOW_HELP=false
-BRAIN_SLUG="xai/grok/code-fast-1"
+BRAIN_SLUG="fireworks/deepseek/v4-flash"
 
 while [[ $# -gt 0 ]]; do
   case $1 in
@@ -87,7 +87,7 @@ if [[ "$SHOW_HELP" == "true" ]]; then
   echo "  --mode plan|apply   plan = preview, apply = emit (default: plan)"
   echo "  --consensus N       run N parallel extractions with majority vote"
   echo "  --threshold T       kernel must appear in >=T fraction of runs (default: 0.5)"
-  echo "  --brain SLUG        brain provider slug (default: xai/grok/code-fast-1)"
+  echo "  --brain SLUG        brain provider slug (default: fireworks/deepseek/v4-flash)"
   echo ""
   exit 0
 fi

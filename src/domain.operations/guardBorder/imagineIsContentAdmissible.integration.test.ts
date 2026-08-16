@@ -1,4 +1,5 @@
-import { genBrainAtom } from 'rhachet-brains-xai';
+import { genContextBrain } from 'rhachet';
+import { genBrainAtom } from 'rhachet-brains-fireworksai';
 import { given, then, useThen, when } from 'test-fns';
 
 import { REPEATABLY_CONFIG_LLM } from '@src/.test/constants';
@@ -6,17 +7,33 @@ import { REPEATABLY_CONFIG_LLM } from '@src/.test/constants';
 import { imagineIsContentAdmissible } from './imagineIsContentAdmissible';
 
 /**
- * .what = integration tests for imagineIsContentAdmissible with real xAI API
+ * .what = integration tests for imagineIsContentAdmissible with real fireworks API
  * .why = verify the brain.ask call works correctly with real LLM responses
  *
- * .note = requires XAI_API_KEY in environment
+ * .note = requires FIREWORKS_API_KEY in environment
  */
 describe('imagineIsContentAdmissible (integration)', () => {
-  // skip if XAI_API_KEY not set
-  const skipIfNoApiKey = !process.env.XAI_API_KEY ? describe.skip : describe;
+  // skip if FIREWORKS_API_KEY not set
+  const skipIfNoApiKey = !process.env.FIREWORKS_API_KEY
+    ? describe.skip
+    : describe;
 
-  skipIfNoApiKey('with xAI API', () => {
-    const brain = genBrainAtom({ slug: 'xai/grok/code-fast-1' });
+  skipIfNoApiKey('with fireworks API', () => {
+    // explicit mode (sync) binds creds onto the atom, so context.brain.ask()
+    // (called with no second arg by imagineIsContentAdmissible.ts) can fetch
+    // its api key at ask() time — mirrors genContextBrain's discovery-mode wire.
+    const brain = genContextBrain({
+      brains: {
+        atoms: [genBrainAtom({ slug: 'fireworks/deepseek/v4-flash' })],
+      },
+      choice: { atom: 'fireworks/deepseek/v4-flash' },
+      creds: {
+        keyrack: {
+          owner: 'ehmpath',
+          env: process.env.NODE_ENV === 'test' ? 'test' : 'prep',
+        },
+      },
+    }).brain.choice;
 
     given('[case1] safe documentation content', () => {
       when.repeatably(REPEATABLY_CONFIG_LLM)(

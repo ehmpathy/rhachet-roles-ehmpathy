@@ -8,7 +8,7 @@ import { condenseFile, parsePipelineSpec } from './brief.condense';
 // increase timeout to 3 minutes for the full pipeline tests
 jest.setTimeout(180_000);
 
-const BRAIN_SLUG = 'xai/grok/3-mini';
+const BRAIN_SLUG = 'fireworks/deepseek/v4-flash';
 const FIXTURES_DIR = path.join(__dirname, '.test/fixtures/briefs');
 
 // TODO: unskip once test-fns .repeatably with criteria:'SOME' properly marks test as passed

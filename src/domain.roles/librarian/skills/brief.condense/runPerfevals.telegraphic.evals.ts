@@ -109,7 +109,7 @@ const PIPELINES: Pipeline[] = [
   },
 ];
 
-const BRAIN_SLUGS = ['xai/grok/3-mini'] as const;
+const BRAIN_SLUGS = ['fireworks/deepseek/v4-flash'] as const;
 type BrainSlug = (typeof BRAIN_SLUGS)[number];
 
 const RUNS_PER_PAIR = 3;

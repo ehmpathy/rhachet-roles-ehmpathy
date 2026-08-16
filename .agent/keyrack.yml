@@ -6,7 +6,6 @@ env.prep:
   - EHMPATHY_SEATURTLE_GITHUB_TOKEN
 env.test:
   - FIREWORKS_API_KEY
-  - XAI_API_KEY
 extends:
   - .agent/repo=bhrain/role=reviewer/keyrack.yml
   - .agent/repo=bhuild/role=dispatcher/keyrack.yml
