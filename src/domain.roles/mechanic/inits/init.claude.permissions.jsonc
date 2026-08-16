@@ -26,14 +26,53 @@
       "Edit(*/**/.route/**)",
       "Write(*/**/.route/**)",
 
-      // git.commit.uses set — only humans can grant commit quota
-      // mechanic can `get` (read quota) but never `set` (grant itself more)
+      // git.commit.uses set/allow — only humans can grant commit quota
+      // mechanic can `get` (read quota) but never `set` or `allow` (grant itself
+      // more). `allow` is the skill's OWN documented shorthand for an unlimited
+      // quota grant (`allow`, `allow --global`, `allow --org`) — exactly as
+      // dangerous as `set --quant 999 --push allow`. `block`/`del`/`get` are the
+      // safe, de-escalation direction and stay allowed.
+      // deny BOTH invocation shapes: the `npx rhachet run --skill` form AND the
+      // bare `rhx` alias. the bare form is NOT suspicious-syntax (no parens/pipe),
+      // so it never reaches the PermissionRequest decider — settings.deny is its
+      // ONLY guard. without the bare-rhx entry it falls through to `Bash(rhx:*)`;
+      // without the deny at all it falls through to the broad git.commit.uses
+      // allow-wildcard below and runs with NO prompt.
       "Bash(npx rhachet run --skill git.commit.uses set:*)",
+      "Bash(npx rhachet run --skill git.commit.uses -- set:*)",
+      "Bash(rhx git.commit.uses set:*)",
+      "Bash(rhx git.commit.uses -- set:*)",
+      "Bash(npx rhachet run --skill git.commit.uses allow:*)",
+      "Bash(npx rhachet run --skill git.commit.uses -- allow:*)",
+      "Bash(rhx git.commit.uses allow:*)",
+      "Bash(rhx git.commit.uses -- allow:*)",
+      // order-tolerant: the CLI strips --global / --org <x> from anywhere before
+      // dispatch, so `git.commit.uses --org ehmpathy allow` is a valid self-grant
+      // with the flag BETWEEN skill and verb. the adjacency globs above miss it,
+      // so a non-suspicious form would fall through to the broad rhx allow with no
+      // prompt. these flag-first globs close the documented flag-before-verb forms.
+      // (the full elimination of this dual-source is the runtime-derive dream —
+      // the decider's token-set guard already covers the suspicious-flagged forms.)
+      "Bash(rhx git.commit.uses --global allow:*)",
+      "Bash(rhx git.commit.uses --org * allow:*)",
+      "Bash(npx rhachet run --skill git.commit.uses --global allow:*)",
+      "Bash(npx rhachet run --skill git.commit.uses --org * allow:*)",
+      // `git.commit.uses --org <x> del` REMOVES an org-specific block override and
+      // falls back to `@all` — if `@all` is permissive, this PERMITS commits for
+      // that org cross-repo. it is a self-escalation despite the `del` verb (which
+      // is safe only in the LOCAL scope). deny the org-scoped del in both shapes.
+      // (local `git.commit.uses del` stays allowed — it is an unconditional revoke.)
+      "Bash(rhx git.commit.uses --org * del:*)",
+      "Bash(npx rhachet run --skill git.commit.uses --org * del:*)",
 
       // git.commit.bind — only humans can set/del the commit level
       // mechanic can `get` (check bound level) but never `set` or `del`
+      // deny both the `npx rhachet run --skill` form AND the bare `rhx` alias
+      // (same bare-form gap as git.commit.uses above)
       "Bash(npx rhachet run --skill git.commit.bind set:*)",
       "Bash(npx rhachet run --skill git.commit.bind del:*)",
+      "Bash(rhx git.commit.bind set:*)",
+      "Bash(rhx git.commit.bind del:*)",
 
       // whatever it uses via bash is typically executable via its own name -> own permissions
       "Bash(bash:*)",
