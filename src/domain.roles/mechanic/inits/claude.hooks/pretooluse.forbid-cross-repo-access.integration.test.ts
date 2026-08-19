@@ -82,7 +82,15 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
       //         anyway reached the HUMAN'S ~/.gitconfig, which both mutated
       //         their machine and made two suites contend for one config lock
       //         when jest ran them in parallel (rule.require.hermetic-tests).
-      runGit(['init'], repoPath);
+      // .note = the branch is named EXPLICITLY, never left to `git init`'s
+      //         default. that default is host state: git falls back to
+      //         `master` unless `init.defaultBranch` says otherwise, and this
+      //         fixture nulls global config, so a dev box and a ci runner can
+      //         disagree. the hook derives its `--tree <branch>` hint from the
+      //         real branch, so an unpinned default made every assertion on
+      //         that hint pass locally on `main` and fail on ci's `master`
+      //         (rule.require.hermetic-tests).
+      runGit(['init', '-b', 'main'], repoPath);
       configureTestGitUser({ cwd: repoPath });
       runGit(['add', '.'], repoPath);
       runGit(['commit', '-m', 'initial'], repoPath);
