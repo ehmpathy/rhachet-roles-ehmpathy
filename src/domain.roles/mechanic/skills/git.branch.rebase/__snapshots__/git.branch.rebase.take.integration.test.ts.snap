@@ -185,7 +185,7 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
    │     ├─
    │     │
    │     │  🐢 hold up dude...
-   │     │  
+   │     │
    │     │  🐚 git.branch.rebase lock refresh
    │     │     └─ error: yarn not found, install yarn
    │     │

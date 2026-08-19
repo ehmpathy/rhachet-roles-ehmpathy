@@ -1,0 +1,33 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`guardBorder.onWebfetch (acceptance) given: [case2] content with prompt injection attempt when: [t0] hook receives content with embedded instructions then: stderr render matches snapshot 1`] = `
+"
+🚫 content blocked at border: <reason from brain>
+
+"
+`;
+
+exports[`guardBorder.onWebfetch (acceptance) given: [case6] oversized content when: [t0] hook receives content exceeds inspectable limit then: stderr render matches snapshot 1`] = `
+"
+🚫 content blocked at border: content too large for inspection
+
+"
+`;
+
+exports[`guardBorder.onWebfetch (acceptance) given: [case7] the chosen brain api key is not configured when: [t0] hook invoked without the chosen brain api key env var then: stderr render matches snapshot 1`] = `
+"
+🔐 <keyname> locked — run: rhx keyrack unlock --owner ehmpath --env prep --key <keyname>
+
+"
+`;
+
+exports[`guardBorder.onWebfetch (acceptance) given: [case12] GUARD_BORDER_BRAIN names a brain that does not exist when: [t0] hook invoked with an unknown brain slug then: stderr render matches snapshot 1`] = `
+"
+🧠 unknown brain "nosuch/brain/v0"
+
+set GUARD_BORDER_BRAIN to one of:
+  - fireworks/deepseek/v4-flash
+  - xai/grok/code-fast-1
+
+"
+`;

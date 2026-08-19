@@ -1,8 +1,9 @@
 *.bak.*
 *.local.json
 *.log
-.agent/.cache/
 .agent/.actors/
+.agent/.cache/
+scheduled_tasks.lock
 .cache/
 .claude/scheduled_tasks.lock
 bin/
@@ -12,6 +13,7 @@ bin/
 .review/
 .review-eval/
 .rhachet
+.scratch/
 .serverless
 .temp
 .slowtest/integration.report.json
