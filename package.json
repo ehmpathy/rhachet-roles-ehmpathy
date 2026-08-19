@@ -99,7 +99,7 @@
     "esbuild-register": "3.6.0",
     "husky": "8.0.3",
     "jest": "30.2.0",
-    "rhachet": "1.47.0",
+    "rhachet": "1.44.4",
     "rhachet-brains-anthropic": "0.4.3",
     "rhachet-brains-fireworksai": "0.1.6",
     "rhachet-brains-xai": "0.3.3",
