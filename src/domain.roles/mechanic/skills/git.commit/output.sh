@@ -30,6 +30,29 @@ escape_json_string() {
   printf '%s' "$raw"
 }
 
+# emit a block to BOTH stdout and stderr
+# usage: emit_both "$(print_turtle_header "bummer dude"; print_tree_start "x")"
+#
+# .why = failure output must land on both streams
+#        (rule.require.skill-output-streams), and the obvious form for that
+#        — `{ ... } | tee /dev/stderr` — is unreliable: under piped stdio,
+#        /dev/stderr is not always an openable device and tee errors "No
+#        such device". the usual patch is to append `|| true`, which then
+#        ALSO swallows a genuine tee failure — so the output a human was
+#        promised can vanish with no signal at all (rule.forbid.failhide).
+#
+# .why = two explicit echoes have neither problem: no device to open, no
+#        pipeline status to paper over. this lesson was first paid for in
+#        pretooluse.forbid-cross-repo-access.sh, which keeps its own local
+#        copy on purpose — it runs on a PT5S budget and declines to source
+#        a whole library for one function. every skill that already sources
+#        this file should use THIS one.
+emit_both() {
+  local block="$1"
+  echo "$block"
+  echo "$block" >&2
+}
+
 # print turtle emoji + phrase
 # usage: print_turtle_header "cowabunga!"
 print_turtle_header() {
@@ -43,6 +66,50 @@ print_turtle_header() {
 print_tree_start() {
   local command="$1"
   echo "🐚 $command"
+}
+
+# print a coconut hint block — the optional next move a human may take
+#
+# usage: print_coconut_hint "a worktree belongs to one repo, so name it with --in" \
+#                           "rhx git.repo.get lines --in <org>/<repo> --tree feat/x"
+#
+# usage: print_coconut_hint "they name two sources, so pick one" \
+#                           "rhx git.repo.get lines --ref origin/main  # committed" \
+#                           "rhx git.repo.get lines --tree feat/x      # inflight"
+#
+# .why = a fix stated as bare prose sits in the same visual register as the
+#        error above it, so a reader who scans for "what do i do now" must
+#        read the diagnosis to find the remedy. the 🥥 is a landmark: the eye
+#        lands on it and the command is what they read first
+#        (rule.require.coconut-hints).
+# .why = it takes the affordance and the commands as args rather than free
+#        text, because the shape is the point — one plain-words line for what
+#        you CAN do, then the copy-pasteable lines to do it with. a caller that
+#        hand-rolls the block drifts from that shape.
+# .why = variadic on the commands, because some fixes are a genuine choice
+#        between two paths (--ref vs --tree). to force those into one line
+#        would hide an option; to let the caller hand-roll a second block
+#        would fork the shape.
+print_coconut_hint() {
+  local affordance="$1"
+  shift
+
+  echo ""
+  echo "🥥 did you know?"
+  echo "   ├─ $affordance"
+
+  # every command but the last takes ├─; the last closes the block with └─
+  local total=$#
+  local index=0
+  local command
+  for command in "$@"; do
+    index=$((index + 1))
+    if [[ $index -eq $total ]]; then
+      echo "   └─ $command"
+    else
+      echo "   ├─ $command"
+    fi
+  done
 }
 
 # print tree branch (has children)

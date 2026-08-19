@@ -103,6 +103,25 @@ export const ROLE_MECHANIC: Role = Role.build({
           timeout: 'PT5S',
           filter: { what: 'Write|Edit|Read', when: 'before' },
         },
+        // .why = mechanic only, exactly like every other tool-use blocker
+        //        above it (forbid-tmp-writes, forbid-shouted-readme,
+        //        forbid-terms.*, check-permissions). a gate registered
+        //        differently from its whole family is a surprise to the next
+        //        reader and a second convention to maintain.
+        //
+        // .note = getRoleRegistry.test.ts asserts this BOTH ways — that the
+        //         mechanic carries it, and that no other role does. the second
+        //         half is what decays silently, since a copy onto another role
+        //         would otherwise pass every test in the repo.
+        {
+          command:
+            './node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-cross-repo-access',
+          timeout: 'PT5S',
+          filter: {
+            what: 'Write|Edit|Read|NotebookEdit|Grep|Glob|Bash',
+            when: 'before',
+          },
+        },
         {
           command:
             './node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-planmode',

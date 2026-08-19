@@ -117,6 +117,9 @@ importers:
       rhachet-brains-fireworksai:
         specifier: 0.1.6
         version: 0.1.6(rhachet@1.44.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(zod@4.3.4))
+      rhachet-brains-xai:
+        specifier: 0.3.3
+        version: 0.3.3(rhachet@1.44.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(zod@4.3.4))
       rhachet-roles-bhrain:
         specifier: 0.32.1
         version: 0.32.1(@types/node@22.15.21)(rhachet-brains-fireworksai@0.1.6(rhachet@1.44.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(zod@4.3.4)))(rhachet@1.44.4(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(zod@4.3.4))

@@ -107,6 +107,14 @@ exports[`getMechanicRole given: [case1] the mechanic role definition when: [t4] 
           "timeout": "PT5S",
         },
         {
+          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-cross-repo-access",
+          "filter": {
+            "what": "Write|Edit|Read|NotebookEdit|Grep|Glob|Bash",
+            "when": "before",
+          },
+          "timeout": "PT5S",
+        },
+        {
           "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-planmode",
           "filter": {
             "what": "EnterPlanMode",

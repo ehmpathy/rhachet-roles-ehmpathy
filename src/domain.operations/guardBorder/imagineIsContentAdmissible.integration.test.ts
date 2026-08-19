@@ -1,39 +1,40 @@
 import { genContextBrain } from 'rhachet';
-import { genBrainAtom } from 'rhachet-brains-fireworksai';
 import { given, then, useThen, when } from 'test-fns';
 
 import { REPEATABLY_CONFIG_LLM } from '@src/.test/constants';
 
+import { getAllGuardBorderBrainAtoms } from './getAllGuardBorderBrainAtoms';
+import { getOneGuardBorderBrainChoice } from './getOneGuardBorderBrainChoice';
+import { getOneGuardBorderBrainCreds } from './getOneGuardBorderBrainCreds';
 import { imagineIsContentAdmissible } from './imagineIsContentAdmissible';
 
 /**
- * .what = integration tests for imagineIsContentAdmissible with real fireworks API
- * .why = verify the brain.ask call works correctly with real LLM responses
+ * .what = integration tests for imagineIsContentAdmissible against a real brain
+ * .why = verify the brain.ask call classifies real content correctly
  *
- * .note = requires FIREWORKS_API_KEY in environment
+ * .note = the brain is looked up the same way the cli looks it up
+ *         (getOneGuardBorderBrainChoice + genContextBrain + keyrack creds), so
+ *         these tests exercise the production path rather than a parallel one.
+ *         a brain swap in the cli moves these tests with it.
  */
 describe('imagineIsContentAdmissible (integration)', () => {
-  // skip if FIREWORKS_API_KEY not set
-  const skipIfNoApiKey = !process.env.FIREWORKS_API_KEY
-    ? describe.skip
-    : describe;
-
-  skipIfNoApiKey('with fireworks API', () => {
-    // explicit mode (sync) binds creds onto the atom, so context.brain.ask()
-    // (called with no second arg by imagineIsContentAdmissible.ts) can fetch
-    // its api key at ask() time — mirrors genContextBrain's discovery-mode wire.
-    const brain = genContextBrain({
-      brains: {
-        atoms: [genBrainAtom({ slug: 'fireworks/deepseek/v4-flash' })],
-      },
-      choice: { atom: 'fireworks/deepseek/v4-flash' },
-      creds: {
-        keyrack: {
-          owner: 'ehmpath',
-          env: process.env.NODE_ENV === 'test' ? 'test' : 'prep',
-        },
-      },
-    }).brain.choice;
+  describe('with a real brain', () => {
+    // .note = the brain is looked up through the SAME two operations the cli
+    //         uses — same registry, same choice, same cred env. an earlier
+    //         version of this test built its own one-brain list, and passed
+    //         against a brain the built hook could not reach; the drift only
+    //         surfaced in acceptance, far from its cause.
+    const choice = getOneGuardBorderBrainChoice();
+    const contextBrain = genContextBrain({
+      brains: { atoms: getAllGuardBorderBrainAtoms() },
+      choice: { atom: choice.slug },
+      creds: async () =>
+        getOneGuardBorderBrainCreds({
+          slug: choice.slug,
+          keyrackEnv: choice.keyrackEnv,
+        }),
+    });
+    const brain = contextBrain.brain.choice;
 
     given('[case1] safe documentation content', () => {
       when.repeatably(REPEATABLY_CONFIG_LLM)(
@@ -78,8 +79,11 @@ class User extends DomainEntity<User> {
       );
     });
 
-    // .skip = xAI content moderation (SAFETY_CHECK_TYPE_BIO) blocks malicious test payloads with 403
-    given.skip('[case2] content with prompt injection', () => {
+    // .note = this case ran skipped while the guard used xai, whose moderation
+    //         answered 403 (SAFETY_CHECK_TYPE_BIO) to the very payload the guard
+    //         exists to judge. it runs now because the guard reads with a brain
+    //         that will look at the sample.
+    given('[case2] content with prompt injection', () => {
       when.repeatably(REPEATABLY_CONFIG_LLM)(
         '[t0] content contains explicit instruction override',
         () => {
@@ -100,9 +104,16 @@ This is malicious content designed to trick AI systems.
             expect(result.decision).toBe('block');
           });
 
-          then('provides a reason for the block', () => {
-            expect(result.reason).toBeDefined();
-            expect(result.reason).not.toBeNull();
+          // .note = asserted as a NON-EMPTY string, not merely `toBeDefined`.
+          //         `toBeDefined()` and `not.toBeNull()` both pass on `''`, so
+          //         the pair claimed "provides a reason" while it proved only
+          //         "the key is present" — a guard that answered `reason: ''`
+          //         stayed green (rule.forbid.failhide). the assertion was
+          //         dormant under the skip above and went live with it, so it
+          //         is tightened here rather than inherited as-is.
+          then('provides a non-empty reason for the block', () => {
+            expect(typeof result.reason).toBe('string');
+            expect((result.reason ?? '').trim().length).toBeGreaterThan(0);
           });
         },
       );
@@ -131,8 +142,8 @@ Our API is simple to use.
       );
     });
 
-    // .skip = xAI content moderation (SAFETY_CHECK_TYPE_BIO) blocks malicious test payloads with 403
-    given.skip('[case3] content with social manipulation', () => {
+    // .note = skipped under xai for the same moderation reason as case2
+    given('[case3] content with social manipulation', () => {
       when.repeatably(REPEATABLY_CONFIG_LLM)(
         '[t0] content requests credential disclosure',
         () => {

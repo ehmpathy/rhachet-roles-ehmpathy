@@ -1,0 +1,180 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case3] Grep and Glob into a peer repo when: [t0] Grep carries a cross-repo path then: blocks it 1`] = `
+"
+🛑 BLOCKED: adhoc cross-repo access — Grep
+
+   path: <gitroot>/testorg/peer-repo
+   repo: testorg/peer-repo (not your current repo)
+
+   why: that clone holds whatever is checked out there right now —
+        a stale branch or a dirty tree. a direct read is a trap.
+
+🥥 did you know?
+   ├─ --tree reads a local tree's inflight state — a worktree, or the repo's own clone
+   ├─ rhx git.repo.get lines --in testorg/peer-repo --words 'hello'   # latest (origin/main)
+   └─ rhx git.repo.get lines --in testorg/peer-repo --tree main --words 'hello'   # inflight (uncommitted included)
+
+"
+`;
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case3] Grep and Glob into a peer repo when: [t1] Glob carries a cross-repo path then: blocks it 1`] = `
+"
+🛑 BLOCKED: adhoc cross-repo access — Glob
+
+   path: <gitroot>/testorg/peer-repo
+   repo: testorg/peer-repo (not your current repo)
+
+   why: that clone holds whatever is checked out there right now —
+        a stale branch or a dirty tree. a direct read is a trap.
+
+🥥 did you know?
+   ├─ --tree reads a local tree's inflight state — a worktree, or the repo's own clone
+   ├─ rhx git.repo.get files --in testorg/peer-repo --paths '**/*.ts'   # latest (origin/main)
+   └─ rhx git.repo.get files --in testorg/peer-repo --tree main --paths '**/*.ts'   # inflight (uncommitted included)
+
+"
+`;
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case7] a WORKTREE of a peer repo when: [t0] the path is under <org>/_worktrees/<repo>.<slug> then: blocks it AND derives the true repo slug (not _worktrees) 1`] = `
+"
+🛑 BLOCKED: adhoc cross-repo access — Read
+
+   path: <gitroot>/testorg/_worktrees/peer-repo.vlad.feat-x/src/index.ts
+   repo: testorg/peer-repo (not your current repo)
+
+   why: that clone holds whatever is checked out there right now —
+        a stale branch or a dirty tree. a direct read is a trap.
+
+🥥 did you know?
+   ├─ --tree reads a local tree's inflight state — a worktree, or the repo's own clone
+   ├─ rhx git.repo.get lines --in testorg/peer-repo --paths 'src/index.ts'   # latest (origin/main)
+   └─ rhx git.repo.get lines --in testorg/peer-repo --tree feat/x --paths 'src/index.ts'   # inflight (uncommitted included)
+
+"
+`;
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case10] the caller sits in a WORKTREE of their own repo when: [t0] they reach into that same repo main clone then: blocks it — another tree can be stale or dirty too 1`] = `
+"
+🛑 BLOCKED: adhoc cross-tree access — Read
+
+   path: <gitroot>/testorg/self-repo/src/index.ts
+   repo: testorg/self-repo (your repo, but a different worktree)
+
+   why: that clone holds whatever is checked out there right now —
+        a stale branch or a dirty tree. a direct read is a trap.
+
+🥥 did you know?
+   ├─ --tree reads a local tree's inflight state — a worktree, or the repo's own clone
+   ├─ rhx git.repo.get lines --in testorg/self-repo --paths 'src/index.ts'   # latest (origin/main)
+   └─ rhx git.repo.get lines --in testorg/self-repo --tree main --paths 'src/index.ts'   # inflight (uncommitted included)
+
+"
+`;
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case11] the block message a human actually reads when: [t0] a Read into a peer repo is blocked then: the whole render matches the snapshot 1`] = `
+"
+🛑 BLOCKED: adhoc cross-repo access — Read
+
+   path: <gitroot>/testorg/peer-repo/src/index.ts
+   repo: testorg/peer-repo (not your current repo)
+
+   why: that clone holds whatever is checked out there right now —
+        a stale branch or a dirty tree. a direct read is a trap.
+
+🥥 did you know?
+   ├─ --tree reads a local tree's inflight state — a worktree, or the repo's own clone
+   ├─ rhx git.repo.get lines --in testorg/peer-repo --paths 'src/index.ts'   # latest (origin/main)
+   └─ rhx git.repo.get lines --in testorg/peer-repo --tree main --paths 'src/index.ts'   # inflight (uncommitted included)
+
+"
+`;
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case11] the block message a human actually reads when: [t1] a Bash command names a peer repo path then: the whole render matches the snapshot 1`] = `
+"
+🛑 BLOCKED: adhoc cross-repo access — Bash
+
+   path: <gitroot>/testorg/peer-repo/src/index.ts
+   repo: testorg/peer-repo (not your current repo)
+
+   why: that clone holds whatever is checked out there right now —
+        a stale branch or a dirty tree. a direct read is a trap.
+
+🥥 did you know?
+   ├─ --tree reads a local tree's inflight state — a worktree, or the repo's own clone
+   ├─ rhx git.repo.get lines --in testorg/peer-repo --paths 'src/index.ts'   # latest (origin/main)
+   └─ rhx git.repo.get lines --in testorg/peer-repo --tree main --paths 'src/index.ts'   # inflight (uncommitted included)
+
+"
+`;
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case15] the peer file is gitignored in its own repo when: [t0] a Read names that gitignored file then: blocks it, and does NOT name a fix that would fail 1`] = `
+"
+🛑 BLOCKED: adhoc cross-repo access — Read
+
+   path: <gitroot>/testorg/peer-repo/.env
+   repo: testorg/peer-repo (not your current repo)
+
+   why: that repo gitignores this file, so it is that repo's local
+        scratch — build output, a cache, or a secret. git.repo.get reads
+        git's tree, and this file is not in it, at any ref or worktree.
+
+   fix: there is no sanctioned read for this one:
+        ask the human. do not read another repo's scratch behind them.
+
+"
+`;
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case17] a symlink cycle in the target path when: [t1] realpath itself cannot answer then: blocks it — undecidable must deny, never allow 1`] = `
+"
+🛑 BLOCKED: unverifiable path — Read
+
+   path: ~/git/testorg/self-repo/src/index.ts
+
+   why: this path cannot be canonicalized, so the cross-repo gate cannot
+        tell which repo it lands in. it is denied rather than guessed at.
+        give a path realpath can expand — check for a symlink cycle, or a
+        length past the system limit.
+
+🥥 did you know?
+   ├─ a repo can be named by slug, so no path has to be expanded at all
+   └─ rhx git.repo.get lines --in <org>/<repo> --paths '<file>'
+
+"
+`;
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case21] a reach at a peer repo ROOT, naming no file when: [t0] a Bash command names the peer repo root then: the fix line is the whole-repo shape, with no dead filter 1`] = `
+"
+🛑 BLOCKED: adhoc cross-repo access — Bash
+
+   path: <gitroot>/testorg/peer-repo
+   repo: testorg/peer-repo (not your current repo)
+
+   why: that clone holds whatever is checked out there right now —
+        a stale branch or a dirty tree. a direct read is a trap.
+
+🥥 did you know?
+   ├─ --tree reads a local tree's inflight state — a worktree, or the repo's own clone
+   ├─ rhx git.repo.get files --in testorg/peer-repo   # latest (origin/main)
+   └─ rhx git.repo.get files --in testorg/peer-repo --tree main   # inflight (uncommitted included)
+
+"
+`;
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case25] a cross-repo read of a BINARY file when: [t0] the peer file holds NUL bytes then: blocks it exactly as a text file — the gate is content-blind 1`] = `
+"
+🛑 BLOCKED: adhoc cross-repo access — Read
+
+   path: <gitroot>/testorg/peer-repo/src/logo.png
+   repo: testorg/peer-repo (not your current repo)
+
+   why: that clone holds whatever is checked out there right now —
+        a stale branch or a dirty tree. a direct read is a trap.
+
+🥥 did you know?
+   ├─ --tree reads a local tree's inflight state — a worktree, or the repo's own clone
+   ├─ rhx git.repo.get lines --in testorg/peer-repo --paths 'src/logo.png'   # latest (origin/main)
+   └─ rhx git.repo.get lines --in testorg/peer-repo --tree main --paths 'src/logo.png'   # inflight (uncommitted included)
+
+"
+`;

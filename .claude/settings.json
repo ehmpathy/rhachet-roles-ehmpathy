@@ -209,6 +209,17 @@
             "author": "repo=ehmpathy/role=mechanic"
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit|Read|NotebookEdit|Grep|Glob|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-cross-repo-access",
+            "timeout": 5,
+            "author": "repo=ehmpathy/role=mechanic"
+          }
+        ]
       }
     ],
     "Stop": [
@@ -506,20 +517,20 @@
       "Bash(npx jest:*)",
       "Bash(npx rhachet run --skill git.commit.bind del:*)",
       "Bash(npx rhachet run --skill git.commit.bind set:*)",
+      "Bash(npx rhachet run --skill git.commit.uses -- allow:*)",
+      "Bash(npx rhachet run --skill git.commit.uses -- set:*)",
       "Bash(npx rhachet run --skill git.commit.uses --global allow:*)",
       "Bash(npx rhachet run --skill git.commit.uses --org * allow:*)",
       "Bash(npx rhachet run --skill git.commit.uses --org * del:*)",
-      "Bash(npx rhachet run --skill git.commit.uses -- allow:*)",
-      "Bash(npx rhachet run --skill git.commit.uses -- set:*)",
       "Bash(npx rhachet run --skill git.commit.uses allow:*)",
       "Bash(npx rhachet run --skill git.commit.uses set:*)",
       "Bash(rhx git.commit.bind del:*)",
       "Bash(rhx git.commit.bind set:*)",
+      "Bash(rhx git.commit.uses -- allow:*)",
+      "Bash(rhx git.commit.uses -- set:*)",
       "Bash(rhx git.commit.uses --global allow:*)",
       "Bash(rhx git.commit.uses --org * allow:*)",
       "Bash(rhx git.commit.uses --org * del:*)",
-      "Bash(rhx git.commit.uses -- allow:*)",
-      "Bash(rhx git.commit.uses -- set:*)",
       "Bash(rhx git.commit.uses allow:*)",
       "Bash(rhx git.commit.uses set:*)",
       "Bash(sed:*)",
