@@ -19,6 +19,59 @@ describe('permissionrequest.decide-permissions.sh', () => {
   type Verdict = 'AUTO_APPROVE' | 'AUTO_DENY' | 'LIFT';
 
   /**
+   * .what = seed a representative Bash allow + deny set into a temp .claude/settings.json,
+   *         a mirror of the real repo's curated patterns.
+   * .why = the seam reads the SAME allow + deny sets gate 2 reads. the ALLOW set judges a
+   *        segment's PRODUCER bar (clean-rhx OR allowlisted) and confirms a reader SINK's
+   *        lead is human-sanctioned. the DENY set is the human's explicit "never auto-run":
+   *        the seam honors it symmetrically, so a clean-rhx call the human denied (e.g.
+   *        `rhx git.commit.bind set`, which has NO execution self-guard) can never
+   *        auto-approve on shape alone. an EMPTY .claude would make every allowlisted
+   *        producer (echo/cat/npm run) and reader sink (jq/tail) fail AND would drop the
+   *        deny-honor, so a realistic test must provide BOTH lists the real seam sees.
+   * .note = the deny entries here MIRROR the real repo's permissions.deny (the
+   *         git.commit.bind/uses grants, plus bash/tee as representative code-exec/writer
+   *         denies) so the deny-honor is exercised under the same authority as production.
+   */
+  const seedClaudeSettings = (claudeDir: string): void => {
+    fs.writeFileSync(
+      path.join(claudeDir, 'settings.json'),
+      JSON.stringify({
+        permissions: {
+          allow: [
+            'Bash(rhx:*)',
+            'Bash(npx rhachet:*)',
+            'Bash(npx rhx:*)',
+            'Bash(echo:*)',
+            'Bash(printf:*)',
+            'Bash(cat:*)',
+            'Bash(tail:*)',
+            'Bash(head:*)',
+            'Bash(wc:*)',
+            'Bash(jq)',
+            'Bash(npm run:*)',
+            'Bash(npm run build:*)',
+            'Bash(git log:*)',
+          ],
+          // deny entries listed in ONE canonical form each (the `rhx …` form). the seam
+          // canonicalizes both command and pattern, so a single-form deny catches EVERY
+          // rhx-family lead-form (`npx rhx …`, `npx rhachet run --skill …`), irregular
+          // whitespace, and quoted skill tokens — proven by the i008 rows in case13.
+          deny: [
+            'Bash(rhx git.commit.bind set:*)',
+            'Bash(rhx git.commit.bind del:*)',
+            'Bash(rhx git.commit.uses set:*)',
+            'Bash(rhx git.commit.uses allow:*)',
+            'Bash(rhx git.commit.uses --org * del:*)',
+            'Bash(bash:*)',
+            'Bash(tee:*)',
+          ],
+        },
+      }),
+    );
+  };
+
+  /**
    * .what = run the hook with a command, return the decoded verdict
    * .why = the hook emits nested-schema json on allow/deny and no stdout on
    *        lift; this decodes that contract into a single verdict to assert on
@@ -37,7 +90,9 @@ describe('permissionrequest.decide-permissions.sh', () => {
     // real repo .claude/permission.decisions.local.log. keeps G3 a record of
     // real decisions (not test fixtures) and honors rule.require.hermetic-tests.
     const tempDir = genTempDir({ slug: 'decide-permissions' });
-    fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
+    const claudeDir = path.join(tempDir, '.claude');
+    fs.mkdirSync(claudeDir, { recursive: true });
+    seedClaudeSettings(claudeDir);
 
     const result = spawnSync('bash', [scriptPath], {
       encoding: 'utf-8',
@@ -187,12 +242,52 @@ describe('permissionrequest.decide-permissions.sh', () => {
             // the whole safety story leans on claude-cli's undocumented hook
             // contract; a snapshot makes a silent shape drift (a renamed or
             // moved key) break loudly and diff visibly in a pr.
+            // NOTE: this is a SINGLE rhx call, so its reason reads "single
+            // clean-rhx-or-allowlisted call; safe by design" — truthful to the shape
+            // (no pipe sinks). the COMPOUND reason is pinned by case1b below.
             const result = decide('rhx git.repo.get files --in ehmpathy/x');
             expect(JSON.parse(result.stdout)).toMatchSnapshot();
           },
         );
       },
     );
+  });
+
+  given('[case1b] a compound the classifier flagged', () => {
+    when('[t0] every segment is safe (producer | reader sink)', () => {
+      then(
+        'the emitted allow json for a COMPOUND pins the per-segment reason',
+        () => {
+          // a producer|reader pipe is a compound, so its reason names the
+          // per-segment basis ("every segment … each pipe sink a read-only
+          // reader"). pinning BOTH shapes (this + case1's single) proves the reason
+          // tracks the command's actual shape, not one shared over-claiming
+          // template (the r7 catch). this row lives under a COMPOUND-labeled given
+          // so the test title matches the shape it decides (the r2 i002 nitpick).
+          const result = decide(
+            'rhx git.repo.get files --in ehmpathy/x | tail -5',
+          );
+          expect(result.verdict).toBe('AUTO_APPROVE');
+          expect(JSON.parse(result.stdout)).toMatchSnapshot();
+        },
+      );
+    });
+
+    when('[t1] a pure chain (no pipe) has every segment safe', () => {
+      then(
+        'the reason DROPS the pipe-sink clause (a chain has no pipe sinks)',
+        () => {
+          // `rhx foo && rhx bar` is a compound (two atoms) but has NO `|`, so the reason
+          // must NOT claim "each pipe sink a read-only reader" — that would over-claim on a
+          // pipe-less chain (the r5 i002 nitpick, the chain-side twin of the r7 single-call
+          // over-claim). the seam emits the pipe-aware "safe by parts" reason without the
+          // sink clause. this snapshot proves the chain branch is truthful.
+          const result = decide('rhx foo && rhx bar');
+          expect(result.verdict).toBe('AUTO_APPROVE');
+          expect(JSON.parse(result.stdout)).toMatchSnapshot();
+        },
+      );
+    });
   });
 
   given('[case2] an unquoted command-chain smuggles a second command', () => {
@@ -224,12 +319,14 @@ describe('permissionrequest.decide-permissions.sh', () => {
       then(
         'a SOLITARY end newline auto-APPROVES — the & twin diverges here (by intent)',
         () => {
-          // contrast with the solitary `&` above: an end newline (or any end
-          // whitespace) is END whitespace, so the residue scan trims it before
-          // the chain check — the residue reduces to a clean single `rhx foo`.
-          // a solitary `&` is NOT whitespace, so it survives the trim and denies.
-          // this documents the DIVERGENCE as a DECISION: end whitespace is
-          // benign (a common shell artifact), a end `&` is a detach operator.
+          // contrast with the solitary `&` above: a TRAILING newline is stripped
+          // by `$(...)` command substitution as CMD is extracted (bash drops
+          // end newlines from command-substitution output), long before the
+          // chain check ever sees it — so the residue reduces to a clean single
+          // `rhx foo`. a solitary `&` is a real byte in CMD, so it survives to
+          // the chain check and denies. this documents the DIVERGENCE as a
+          // DECISION: an end newline is a benign shell artifact stripped upstream,
+          // a end `&` is a detach operator the scan must catch.
           const result = decide('rhx foo\n');
           expect(result.verdict).toBe('AUTO_APPROVE');
         },
@@ -239,6 +336,55 @@ describe('permissionrequest.decide-permissions.sh', () => {
         const result = decide('rhx foo ; rm -rf ~');
         expect(result.verdict).toBe('AUTO_DENY');
       });
+
+      then(
+        'a DEGENERATE tail semicolon LIFTS (no second command to smuggle)',
+        () => {
+          // `rhx foo;` splits into [`rhx foo`, ``] — the empty tail atom fails the
+          // producer bar, but it carries NO command, so it is a shape artifact, not a
+          // smuggle. is_failure_degenerate_only sees every NON-EMPTY atom (`rhx foo`)
+          // clears its bar, so step 3 does NOT deny — it LIFTS (defer to human), NOT a
+          // false "smuggle" DENY. the real-chain row above (`rhx foo ; rm -rf ~`) still
+          // DENYs — proof the guard is surgical (a non-empty un-vetted segment = DENY).
+          const result = decide('rhx foo;');
+          expect(result.verdict).toBe('LIFT');
+        },
+      );
+
+      then('a DEGENERATE tail && LIFTS (the && twin)', () => {
+        const result = decide('rhx foo &&');
+        expect(result.verdict).toBe('LIFT');
+      });
+
+      then('a DEGENERATE lead semicolon LIFTS (the lead twin)', () => {
+        // `; rhx foo` splits into [``, `rhx foo`] — the empty lead atom is a shape
+        // artifact; the non-empty `rhx foo` clears its bar -> LIFT, not a smuggle DENY.
+        const result = decide('; rhx foo');
+        expect(result.verdict).toBe('LIFT');
+      });
+
+      then(
+        'a DOUBLED interior separator LIFTS — both real segments are safe (the empty middle is a shape artifact, not a smuggle)',
+        () => {
+          // `rhx foo ;; rhx bar` splits into [`rhx foo`, ``, `rhx bar`] — the empty
+          // MIDDLE atom fails step 2, but both NON-EMPTY segments (`rhx foo`, `rhx bar`)
+          // clear the producer bar. `;;` is a bash syntax error anyway (never executes),
+          // so is_failure_degenerate_only sends it to LIFT, consistent with the tail/lead
+          // cases — NOT the false "smuggle" DENY it emitted before this guard landed.
+          const result = decide('rhx foo ;; rhx bar');
+          expect(result.verdict).toBe('LIFT');
+        },
+      );
+
+      then(
+        'a DOUBLED separator around a REAL un-vetted command still DENYs (guard stays surgical)',
+        () => {
+          // `rhx foo ;; rm -rf ~` — the non-empty `rm -rf ~` fails the producer bar, so
+          // the failure is NOT degenerate-only -> the chain-smuggle DENY still fires.
+          const result = decide('rhx foo ;; rm -rf ~');
+          expect(result.verdict).toBe('AUTO_DENY');
+        },
+      );
 
       then('a || chain auto-denies', () => {
         const result = decide('rhx foo || rm -rf ~');
@@ -272,7 +418,9 @@ describe('permissionrequest.decide-permissions.sh', () => {
         const parsed = JSON.parse(result.stdout);
         expect(parsed.hookSpecificOutput.decision.behavior).toBe('deny');
       });
+    });
 
+    when('[t1] a chain-smuggle (; && ||) deny is emitted', () => {
       then(
         'the emitted deny json shape is snapshot-pinned (blocked-state drift alarm)',
         () => {
@@ -280,6 +428,21 @@ describe('permissionrequest.decide-permissions.sh', () => {
           // drift on it must break loudly and diff visibly in a pr, exactly
           // as the allow path is pinned.
           const result = decide('rhx foo && rm -rf ~');
+          expect(JSON.parse(result.stdout)).toMatchSnapshot();
+        },
+      );
+    });
+
+    when('[t2] a background/newline detach deny is emitted', () => {
+      then(
+        'the background/newline deny json shape is snapshot-pinned (a SEPARATE blocked-state message)',
+        () => {
+          // the lone-`&` / newline detach (step 1) emits a DIFFERENT reason
+          // string than the ; && || chain (step 3). it is the most-seen
+          // blocked-state guidance ('run each command as its own separate
+          // call'), so pin its exact shape so a silent drop of that actionable
+          // guidance breaks loudly and diffs in a pr.
+          const result = decide('rhx foo &');
           expect(JSON.parse(result.stdout)).toMatchSnapshot();
         },
       );
@@ -429,6 +592,18 @@ describe('permissionrequest.decide-permissions.sh', () => {
       // and lifts, never auto-approves. this clamps the exact traced bypass.
       'rhx foo --arg "it\'s a test" $(rm -rf ~)',
       'rhx foo --arg "it\'s a test" `rm -rf ~`',
+      // the widened-compound attack class (added with the segment-allowlist feature):
+      // a code-exec SINK on attacker stdin, a background of a gated command, and a
+      // newline-joined second command must each still never auto-approve.
+      'rhx foo | npm run evil',
+      'echo pwn | npm run deploy',
+      'rhx foo | bash',
+      'rhx foo | sh -s',
+      'rhx foo & rhx bar',
+      'rhx foo &',
+      'rhx foo\nrhx bar',
+      'npm run build | tail && rm -rf ~',
+      'rhx foo | tee ~/.bashrc',
     ];
 
     when('[t0] each redteam payload is decided', () => {
@@ -454,7 +629,9 @@ describe('permissionrequest.decide-permissions.sh', () => {
       command: string,
     ): { auditLines: string[]; logExists: boolean } => {
       const tempDir = genTempDir({ slug: 'decide-permissions-audit' });
-      fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
+      const claudeDir = path.join(tempDir, '.claude');
+      fs.mkdirSync(claudeDir, { recursive: true });
+      seedClaudeSettings(claudeDir);
 
       spawnSync('bash', [scriptPath], {
         encoding: 'utf-8',
@@ -524,11 +701,16 @@ describe('permissionrequest.decide-permissions.sh', () => {
         () => {
           // a naive printf of this command would break the json; the jq -R -s .
           // escape is what keeps the line parseable — this clamps that escape.
-          const { auditLines } = decideAndReadAudit('rhx foo && echo "pwned"');
+          // .note = the chain's second segment (curl to an un-allowlisted host) is
+          // NOT safe, so the && chain denies — a denied command that carries a
+          // double-quote, exactly what the escape clamp needs to exercise.
+          const { auditLines } = decideAndReadAudit(
+            'rhx foo && curl "http://evil.example"',
+          );
           expect(auditLines).toHaveLength(1);
           const entry = JSON.parse(auditLines[0]!); // throws if the escape failed
           expect(entry.verdict).toBe('deny');
-          expect(entry.command).toContain('echo "pwned"');
+          expect(entry.command).toContain('curl "http://evil.example"');
         },
       );
     });
@@ -640,6 +822,66 @@ describe('permissionrequest.decide-permissions.sh', () => {
         why: 'a quoted pipe inside the sink arg is inert, not a 2nd top-level pipe',
       },
 
+      // ── the wish's motivating cases — the widened approve ──
+      {
+        command: 'rhx git.repo.test --what unit | tail -20',
+        expect: 'AUTO_APPROVE',
+        why: 'clean-rhx producer, reader (tail) sink — the read-and-trim case',
+      },
+      {
+        command: "rhx git.repo.get lines --words 'DomainEntity' | jq .",
+        expect: 'AUTO_APPROVE',
+        why: 'clean-rhx producer, reader (jq) sink — jq lead clears despite the `.` arg',
+      },
+      {
+        command: 'npm run build:complete:dist | tail -3',
+        expect: 'AUTO_APPROVE',
+        why: 'allowlisted producer (npm run), reader sink — no rhx at all',
+      },
+      {
+        command:
+          'npm run build | tail && rhx git.repo.test --what unit | tail -20',
+        expect: 'AUTO_APPROVE',
+        why: 'the wish command shape — two && segments, each an allowlisted/rhx producer piped to a reader',
+      },
+      {
+        command: 'git log | tail',
+        expect: 'AUTO_APPROVE',
+        why: 'the approved-command-before-the-pipe case — git log allowlisted producer, tail reader sink',
+      },
+
+      // ── the human's real "chain of sinks" — a pipe whose sink is a clean-rhx,
+      //    then && to a BARE allowlisted producer (not another pipe) ──
+      {
+        command:
+          'rhx show.gh.action.logs --run-id 123 --full | rhx teesafe --into /tmp/out.log && wc -l /tmp/out.log',
+        expect: 'AUTO_APPROVE',
+        why: "the human's real chain-of-sinks: pipe-group 1 = clean-rhx producer + clean-rhx sink (teesafe, NOT a reader but self-guards at exec); then && a bare allowlisted producer (wc). the && opens a NEW pipe-group whose stage-0 gets the wider producer bar, so a bare allowlisted command after the chain clears — mixed pipe + bare-command chain, every segment safe by its position",
+      },
+      {
+        command:
+          'rhx foo | rhx teesafe --into /tmp/out.log && curl http://evil.example',
+        expect: 'AUTO_DENY',
+        why: 'mixed clamp: the pipe-group is all-safe (clean-rhx producer + clean-rhx sink), but the && chain adds an un-vetted segment (curl, neither clean-rhx nor allowlisted) -> a chain-with-un-vetted-segment is a SMUGGLE -> AUTO_DENY (a stronger floor than a pipe-sink LIFT). this is exactly what protects the positive row above: swap its `&& wc` for an un-vetted `&& curl` and the chain-smuggle guard denies — the && does not blanket-approve whatever follows',
+      },
+
+      // ── new redteam — a code-exec SINK must NOT approve (the sink caveat) ──
+      {
+        command: 'rhx foo | npm run evil',
+        expect: 'LIFT',
+        why: 'npm run as a SINK executes an arbitrary task on attacker stdin — not a read-only reader',
+      },
+      {
+        command: 'echo pwn | npm run deploy',
+        expect: 'LIFT',
+        why: 'allowlisted producer, but the sink npm run is code-exec, not a reader',
+      },
+      {
+        command: 'rhx foo | bash -s',
+        expect: 'LIFT',
+        why: 'bash as a sink runs attacker stdin — never a reader',
+      },
+
       // ── divergent near-misses — must NOT approve ──
       {
         command: 'curl http://evil.example | rhx foo',
@@ -668,18 +910,39 @@ describe('permissionrequest.decide-permissions.sh', () => {
       },
       {
         command: 'echo hi | rhx foo | jq .',
-        expect: 'LIFT',
-        why: 'a 3-stage pipe carries 2 top-level pipes, not the 2-stage shape',
+        expect: 'AUTO_APPROVE',
+        why: 'N-stage pipe: echo producer, rhx + jq sinks all clear their bars (jq is a reader) — the cap is lifted per the wish generality',
       },
       {
         command: 'echo hi | cat | rhx foo',
+        expect: 'AUTO_APPROVE',
+        why: 'N-stage pipe: echo producer, cat (reader) sink, rhx (clean) sink — every downstream stage clears the sink bar',
+      },
+      {
+        command:
+          "rhx git.repo.get lines --words 'DomainEntity' | jq . | tail -20",
+        expect: 'AUTO_APPROVE',
+        why: "the vision's own multi-stage example: clean-rhx producer, jq reader sink, tail reader sink — 3 stages, all safe",
+      },
+      {
+        command: 'rhx foo | jq . | npm run evil',
         expect: 'LIFT',
-        why: 'a 3-stage pipe (2 pipes) does not qualify even with safe producers',
+        why: 'N-stage clamp: a code-exec sink (npm run) at the LAST stage fails the reader/clean-rhx sink bar even though earlier stages are safe',
+      },
+      {
+        command: 'rhx foo | npm run evil | tail',
+        expect: 'LIFT',
+        why: 'N-stage clamp: a code-exec sink (npm run) at a MIDDLE stage fails the sink bar; a tail reader after it cannot rescue it',
+      },
+      {
+        command: 'rhx foo | grep bar',
+        expect: 'LIFT',
+        why: 'grep is deliberately absent from the READERS set (it can read files via -f/--include); the fixture seeds NO grep entry, so the sink bar refuses it purely on the absent-reader basis -> LIFT (the real repo settings ALSO deny Bash(grep:*), a second production layer this hermetic fixture does not seed)',
       },
       {
         command: 'echo hi && rhx foo',
-        expect: 'AUTO_DENY',
-        why: 'a chain char anywhere denies BEFORE the pipe-shape check ever runs',
+        expect: 'AUTO_APPROVE',
+        why: 'both chain segments are safe (echo allowlisted, rhx clean) — an all-safe && chain now approves',
       },
       {
         command: 'echo hi; rm -rf ~ | rhx foo',
@@ -708,8 +971,43 @@ describe('permissionrequest.decide-permissions.sh', () => {
       },
       {
         command: 'rhx foo | rhx bar',
+        expect: 'AUTO_APPROVE',
+        why: 'both halves are clean-rhx (producer bar + sink bar both clear per the wish body: every segment {clean-rhx OR allowlisted}); each rhx self-protects at execution',
+      },
+      {
+        command: 'echo hi | sudo rhx git.commit.uses set --quant 999',
         expect: 'LIFT',
-        why: 'rhx is not a sanctioned PRODUCER (the feature is producer->rhx-sink, not rhx->rhx)',
+        why: 'a sudo-prefixed sink is NOT a clean rhx lead (sudo is a privilege-escalation token, invariant #5) — the reader/clean-rhx sink bar refuses it -> LIFT, never AUTO_APPROVE',
+      },
+      {
+        // .the clean-rhx-sink SECURITY decision, pinned EXPLICITLY. a clean-rhx sink is
+        //  NOT auto-safe on shape alone — it must ALSO clear the human's OWN deny-list.
+        //  `rhx git.commit.uses set …` is in permissions.deny (the human's explicit
+        //  "never auto-run this"), so command_is_denied refuses its sink segment and the
+        //  whole compound LIFTS to the human. this is TWO layers of defense:
+        //  (1) PRIMARY — the human's deny-list refuses it here (no per-skill audit
+        //      needed; holds for a skill with NO execution guard, like git.commit.bind);
+        //  (2) BACKSTOP — even were it not denied, git.commit.uses.local.sh self-guards
+        //      at execution (`[[ ! -t 0 ]] -> exit 2 "only humans"`; a PIPE removes the
+        //      TTY). this is define.why-permission-guards-allowlist-all-rhx's division of
+        //      responsibility: the seam mints no denylist of its own, but it HONORS the
+        //      one the human wrote (symmetric to the allow-list it already reads).
+        //  invariant #5's "privilege-escalation-token" (sudo/env, proven by the sudo row
+        //  above -> LIFT) and a human-denied rhx grant BOTH LIFT — neither auto-approves.
+        command: 'echo hi | rhx git.commit.uses set --quant 999 --push allow',
+        expect: 'LIFT',
+        why: 'a human-denied rhx grant as a sink: command_is_denied refuses it (permissions.deny), so the compound LIFTS — never AUTO_APPROVE on clean shape alone',
+      },
+      {
+        // .the git.commit.bind security hole this deny-honor closes. git.commit.bind.sh
+        //  writes .branch/.bind with NO execution TTY guard (unlike git.commit.uses) —
+        //  its ONLY protection is the deny-list text match. before the deny-honor, this
+        //  piped form AUTO_APPROVED as a clean-rhx sink, a silent defeat of the human's
+        //  deny (a mechanic that self-rewrites a human-set commit-level constraint). now
+        //  command_is_denied refuses it -> LIFT.
+        command: 'echo hi | rhx git.commit.bind set --level feat',
+        expect: 'LIFT',
+        why: 'a human-denied grant with NO execution self-guard — the deny-honor is its ONLY protection as a pipe sink; command_is_denied refuses it -> LIFT',
       },
       {
         command: 'echo hi | sudo rhx foo',
@@ -745,6 +1043,126 @@ describe('permissionrequest.decide-permissions.sh', () => {
       });
     });
   });
+
+  /**
+   * .what = the seam honors the human's OWN permissions.deny — a clean-rhx call the
+   *         human explicitly denied never auto-approves on shape alone, standalone OR
+   *         piped OR chained.
+   * .why = the security backstop. the "allowlist-all-rhx-by-shape" design rests on each
+   *        sensitive skill that self-guards at execution — but git.commit.bind.sh writes
+   *        .branch/.bind with NO TTY guard; its ONLY protection is its deny-list entry.
+   *        so the seam must refuse a denied segment (-> LIFT) rather than trust shape.
+   *        this is NOT a seam-minted denylist (it mints none of its own); it honors the
+   *        human's OWN deny set, symmetric to the allow set it already reads.
+   */
+  given(
+    '[case13] the human deny-list is honored (denied clean-rhx never auto-approves)',
+    () => {
+      when('[t0] a denied grant appears standalone, piped, or chained', () => {
+        const DENY_CASES: { command: string; expect: Verdict; why: string }[] =
+          [
+            {
+              command: 'rhx git.commit.bind set --level feat',
+              expect: 'LIFT',
+              why: 'standalone denied grant (NO execution self-guard) — deny-honor is its only protection',
+            },
+            {
+              command: 'rhx git.commit.uses set --quant 999 --push allow',
+              expect: 'LIFT',
+              why: 'standalone denied grant — LIFTS despite a clean rhx shape',
+            },
+            {
+              command: 'echo hi | rhx git.commit.bind set --level feat',
+              expect: 'LIFT',
+              why: 'denied grant as a pipe sink — the compound LIFTS',
+            },
+            {
+              command:
+                'rhx git.repo.test --what unit && rhx git.commit.bind set --level feat',
+              expect: 'AUTO_DENY',
+              why: 'a chain with a denied segment is an unvetted-chain smuggle -> DENY',
+            },
+            {
+              command: 'rhx git.commit.uses --org shadyorg del',
+              expect: 'LIFT',
+              why: 'the human deny glob `--org * del` catches any org (glob-aware deny match)',
+            },
+            {
+              command:
+                'npx rhachet run --skill git.commit.bind set --level fix',
+              expect: 'LIFT',
+              why: 'the `npx rhachet run --skill …` lead-form folds to canonical `rhx git.commit.bind set` — caught by the single `rhx …` deny entry, no separate npx deny needed',
+            },
+            // ── the loose-recognizer-vs-literal-veto bypass class (i008): every rhx-family
+            //    lead-form + irregular whitespace + a quoted skill token folds to one
+            //    canonical form, so the deny catches ALL of them. these rows are the
+            //    evasions the canonicalizer closes — none may AUTO_APPROVE. ──
+            {
+              command: 'echo hi | npx rhx git.commit.bind set --level feat',
+              expect: 'LIFT',
+              why: 'ALT-LEAD-FORM evasion: `npx rhx …` folds to canonical `rhx …`, so the deny (listed as `rhx …`) catches it despite no `npx rhx` deny entry',
+            },
+            {
+              command: 'echo hi | rhx  git.commit.bind set --level feat',
+              expect: 'LIFT',
+              why: 'WHITESPACE evasion: two spaces after `rhx` collapse in the canonical form, so the literal deny prefix still matches',
+            },
+            {
+              command: "echo hi | rhx 'git.commit.bind' set --level feat",
+              expect: 'LIFT',
+              why: 'QUOTED-TOKEN evasion: the quoted skill token strips to the bare form in the canonical, so the deny catches it (the skill has NO execution backstop)',
+            },
+            {
+              command: "rhx 'git.commit.uses' set --quant 9",
+              expect: 'LIFT',
+              why: 'quoted-token evasion, standalone — folds to `rhx git.commit.uses set …`, denied',
+            },
+            // ── the WORD-ORDER-permutation bypass class (i002 r8): an rhx arg-parser reads
+            //    its verb by NAME at any argv index, so flags moved AROUND the verb do not
+            //    change what runs. command_has_denied_skill_verb matches {skill, verb} as an
+            //    unordered set, so every reorder of a denied grant LIFTS. before this fix the
+            //    reordered form AUTO_APPROVED — a real hole, since git.commit.bind has NO
+            //    execution self-guard and the deny entry is its only backstop. ──
+            {
+              command: 'rhx git.commit.uses --push allow set --quant 9',
+              expect: 'LIFT',
+              why: 'VERB-ORDER evasion: flags moved before `set`; {git.commit.uses, set} matched as a set -> denied',
+            },
+            {
+              command: 'rhx git.commit.uses --quant 999 --push allow set',
+              expect: 'LIFT',
+              why: 'VERB-ORDER evasion: verb trails all flags; still matched as a set -> denied',
+            },
+            {
+              command: 'rhx git.commit.bind --level fix set',
+              expect: 'LIFT',
+              why: 'VERB-ORDER evasion against the self-guard-less skill; {git.commit.bind, set} matched as a set -> denied',
+            },
+            {
+              command: 'echo hi | rhx git.commit.bind --level fix set',
+              expect: 'LIFT',
+              why: 'reordered denied grant as a pipe sink — the compound LIFTS',
+            },
+            {
+              command: 'rhx git.repo.test --what unit',
+              expect: 'AUTO_APPROVE',
+              why: 'a NON-denied clean rhx call still auto-approves — the deny-honor only narrows, never widens',
+            },
+            {
+              command: 'rhx git.commit.uses get --note allow',
+              expect: 'LIFT',
+              why: 'OVER-MATCH fail-safe (documented, now pinned): a benign read whose bare data arg `allow` equals the denied verb token false-LIFTs — the {skill,verb} match is position-independent, so it only ever WIDENS a deny (never a bypass). this row makes the surprise a tested, visible decision (r4/r9 nitpick)',
+            },
+          ];
+        DENY_CASES.forEach((c) => {
+          then(`${c.expect} — ${c.command}  (${c.why})`, () => {
+            const result = decide(c.command);
+            expect(result.verdict).toBe(c.expect);
+          });
+        });
+      });
+    },
+  );
 
   /**
    * .what = the G3 audit trail degrades fail-safe — a broken audit never breaks
@@ -786,9 +1204,29 @@ describe('permissionrequest.decide-permissions.sh', () => {
         expect(parsed?.hookSpecificOutput?.decision?.behavior).toBe('allow');
         expect(result.exitCode).toBe(0);
       });
+
+      then('stderr warns per-set that no .claude dir was found', () => {
+        // when find_claude_dir fails, load_patterns emits a degrade WARNING per
+        // set (allow, then deny) so a human who runs the hook outside a .claude
+        // tree learns WHY allowlisted-only commands suddenly lift, not just that
+        // they did. this is a user-faced stderr variant, so pin it.
+        const tempDir = genTempDir({ slug: 'decide-warn-no-claude' });
+        const result = runIn({ cwd: tempDir, command: 'rhx foo --bar baz' });
+        expect(result.stderr).toContain('no .claude dir found');
+        expect(result.stderr).toContain('allow list empty');
+        expect(result.stderr).toContain('deny list empty');
+        // pin the message SHAPE — the WARNING carries the volatile absolute $PWD
+        // (a /tmp temp path here, a machine-specific path otherwise), so mask
+        // every absolute path before the snapshot to pin the deterministic
+        // phrase without a flaky, machine-specific path (mirrors the case10
+        // json-degrade <SETTINGS> pin: contract-snapshot-exhaustiveness +
+        // hermetic-tests).
+        const masked = result.stderr.replace(/from \/\S+;/g, 'from <PWD>;');
+        expect(masked).toMatchSnapshot();
+      });
     });
 
-    when('[t0] the audit write fails (log path is a directory)', () => {
+    when('[t1] the audit write fails (log path is a directory)', () => {
       then(
         'the allow still emits, exit 0, and a stderr note is written',
         () => {
@@ -802,6 +1240,25 @@ describe('permissionrequest.decide-permissions.sh', () => {
           expect(parsed?.hookSpecificOutput?.decision?.behavior).toBe('allow');
           expect(result.exitCode).toBe(0);
           expect(result.stderr).toContain('audit write failed');
+          // .clamp = the message must carry the REAL cause after the colon, not a bare
+          // "audit write failed:" with an empty tail. before the err-capture fix, the
+          // redirect lived INSIDE the `err="$(...)"` substitution, so `$err` was always
+          // empty and this regex (a non-empty cause) went red. the append targets a
+          // DIRECTORY, so the shell reports "Is a directory" — the concrete errno the
+          // .why promises the operator.
+          expect(result.stderr).toMatch(/audit write failed: \S+/);
+          expect(result.stderr).toContain('Is a directory');
+          // pin the message SHAPE — the audit-fail line is a user-faced stderr variant. the
+          // cause carries BOTH the volatile absolute hook path and the temp log path, so
+          // mask every absolute path (and the bash line number) before the snapshot to pin
+          // the deterministic wording ("audit write failed: … Is a directory") without a
+          // flaky, machine-specific path (contract-snapshot-exhaustiveness + determinism +
+          // hermetic-tests: a raw /home/... or /tmp/... path would break in CI).
+          const masked = result.stderr
+            .replace(/\/\S+\.sh/g, '<HOOK>')
+            .replace(/line \d+/g, 'line <N>')
+            .replace(/\/\S+permission\.decisions\.local\.log/g, '<LOGPATH>');
+          expect(masked).toMatchSnapshot();
         },
       );
     });
@@ -818,7 +1275,9 @@ describe('permissionrequest.decide-permissions.sh', () => {
   given('[case10] a LIFT records a diagnostic stderr breadcrumb', () => {
     const runIn = (command: string): { stdout: string; stderr: string } => {
       const tempDir = genTempDir({ slug: 'decide-lift-breadcrumb' });
-      fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
+      const claudeDir = path.join(tempDir, '.claude');
+      fs.mkdirSync(claudeDir, { recursive: true });
+      seedClaudeSettings(claudeDir);
       const result = spawnSync('bash', [scriptPath], {
         encoding: 'utf-8',
         cwd: tempDir,
@@ -836,19 +1295,139 @@ describe('permissionrequest.decide-permissions.sh', () => {
       '[t0] a pipe-to-tool command lifts (not a clean single rhx call)',
       () => {
         then('stdout stays empty AND stderr names the miss', () => {
-          const result = runIn('rhx foo | jq .');
+          // `rhx foo | jq .` — `jq` IS a reader, but the reader lead must be
+          // allowlisted; with `jq` seeded it would approve, so use a NON-reader
+          // sink to exercise the lift breadcrumb: `rhx foo | sort` (sort is not in
+          // the reader allowset) -> the pipe sink is not a read-only reader -> LIFT.
+          const result = runIn('rhx foo | sort');
           expect(result.stdout.trim()).toBe('');
-          expect(result.stderr).toContain('lifted to human');
-          expect(result.stderr).toContain('not a clean single rhx call');
+          expect(result.stderr).toContain('hold up, dude');
+          // the breadcrumb names the exact failed segment + which bar it failed,
+          // so the human is pointed at the cause (no manual bisect): `sort` is
+          // neither clean-rhx nor a read-only reader -> it fails the sink bar.
+          expect(result.stderr).toContain('segment failed the sink bar: sort');
+          // the sink-bar LIFT also NAMES THE FIX: wrap a custom sink as a stdin-hardened
+          // rhx skill (the only auto-approved active sink), or run it as its own Bash call.
+          expect(result.stderr).toContain('wrap it as an rhx skill');
+          // pin the FULL breadcrumb text — it is the human-read output of the most
+          // common verdict (LIFT), so a text regression must diff visibly in a PR.
+          // it is deterministic (no temp path / timestamp): only the bar + segment name.
+          expect(result.stderr).toMatchSnapshot();
         });
       },
     );
 
-    when('[t0] an unbalanced-quote command lifts', () => {
+    when(
+      '[t1] a bad PRODUCER (left of a pipe) lifts (fails the producer bar)',
+      () => {
+        then(
+          'stderr names the PRODUCER-bar miss (the other bar variant)',
+          () => {
+            // the SAME breadcrumb template fires with bar="producer" when the LEFT
+            // (producer) segment fails its bar: `curl reef.evil | rhx get.wave.report` ->
+            // `curl reef.evil` is neither clean-rhx nor allowlisted, so it fails the
+            // producer bar. only the sink-bar value of this template was pinned above; pin
+            // the producer-bar value too so the full witness set of the named-segment
+            // breadcrumb is covered (the r4 i002 nitpick). this row has its OWN when — the
+            // segment that fails is the PRODUCER, not a "pipe-to-tool" sink (r6 i003 label).
+            const result = runIn('curl reef.evil | rhx get.wave.report');
+            expect(result.stdout.trim()).toBe('');
+            expect(result.stderr).toContain('hold up, dude');
+            expect(result.stderr).toContain(
+              'segment failed the producer bar: curl reef.evil',
+            );
+            expect(result.stderr).toMatchSnapshot();
+          },
+        );
+      },
+    );
+
+    when(
+      '[t2] a human-denied segment lifts (deny-honor names the deny-list)',
+      () => {
+        then('stderr names the permissions.deny list as the cause', () => {
+          // the deny-honor LIFT is the security-critical case: `echo hi | rhx
+          // git.commit.bind set` is refused because the sink is on the human's OWN
+          // permissions.deny, NOT because it missed the allowlist. a generic "failed the
+          // sink bar" crumb reads like an allowlist miss and buries the actionable signal;
+          // the seam names the deny-list directly so log-triage points at the right cause
+          // (the r2 i003 nitpick). deterministic: only the segment text varies.
+          const result = runIn('echo hi | rhx git.commit.bind set --level fix');
+          expect(result.stdout.trim()).toBe('');
+          expect(result.stderr).toContain('hold up, dude');
+          expect(result.stderr).toContain(
+            'segment is on your permissions.deny list: rhx git.commit.bind set --level fix',
+          );
+          expect(result.stderr).toMatchSnapshot();
+        });
+      },
+    );
+
+    when('[t3] an unbalanced-quote command lifts', () => {
       then('stderr names the unbalanced-quote miss', () => {
         const result = runIn("rhx foo --arg 'unterminated");
         expect(result.stdout.trim()).toBe('');
         expect(result.stderr).toContain('unbalanced quotes');
+        // pin the FULL breadcrumb — it is a deterministic human-read output variant (no
+        // temp path / timestamp), so a text regression on the unbalanced-quote LIFT path
+        // must diff visibly in a PR (contract-snapshot-exhaustiveness).
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+
+    when(
+      '[t4] a degenerate stray-separator command lifts (generic breadcrumb)',
+      () => {
+        then('stderr names the generic all-safe-segments miss', () => {
+          // `rhx foo ;` is a degenerate tail separator: the empty tail atom fails its
+          // producer bar, so UNSAFE_ATOM is the empty string and the seam falls through to
+          // the GENERIC breadcrumb (not the named-segment one). this is the ONLY path that
+          // emits variant 3 (line 772), so it must be pinned like the others.
+          const result = runIn('rhx foo ;');
+          expect(result.stdout.trim()).toBe('');
+          expect(result.stderr).toContain('not an all-safe-segments compound');
+          expect(result.stderr).toMatchSnapshot();
+        });
+      },
+    );
+
+    when('[t5] the settings json is malformed (allow-list degrades)', () => {
+      then('stderr warns the list degraded, path-masked snapshot', () => {
+        // seed a MALFORMED settings.json so extract_bash_patterns' jq parse fails and the
+        // seam emits its degrade WARNING (line 304) — a user-faced stderr variant. the line
+        // carries the volatile temp settings path, so mask it before the snapshot to pin
+        // the deterministic message shape without a flaky path (determinism-declared).
+        const tempDir = genTempDir({ slug: 'decide-degrade-warn' });
+        const claudeDir = path.join(tempDir, '.claude');
+        fs.mkdirSync(claudeDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(claudeDir, 'settings.json'),
+          '{ this is not valid json',
+        );
+        const result = spawnSync('bash', [scriptPath], {
+          encoding: 'utf-8',
+          cwd: tempDir,
+          input: JSON.stringify({
+            tool_name: 'Bash',
+            hook_event_name: 'PermissionRequest',
+            tool_input: { command: 'rhx foo --bar baz' },
+          }),
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
+        const stderr = result.stderr ?? '';
+        expect(stderr).toContain('could not parse');
+        expect(stderr).toContain('list degraded');
+        // mask TWO volatiles so the snapshot pins only the deterministic, legible WARNING
+        // shape: (1) the absolute settings path (machine-specific /tmp/... — hermetic-tests)
+        // and (2) jq's raw scanner detail ("Invalid literal at line 1, column 7"), which is
+        // jq-version-dependent tool output, not our message — pinning it verbatim is both
+        // fragile and a debug-noise blemish in a human-faced contract snapshot (the r5 i002
+        // nitpick). the seam still emits the real jq cause to a live operator (fail-loud);
+        // the snapshot pins the clean lead + a stable <JQ_CAUSE> placeholder.
+        const masked = stderr
+          .replace(/\/\S+settings\.json/g, '<SETTINGS>')
+          .replace(/jq: parse error:.*/g, 'jq: parse error: <JQ_CAUSE>');
+        expect(masked).toMatchSnapshot();
       });
     });
   });
@@ -874,6 +1453,81 @@ describe('permissionrequest.decide-permissions.sh', () => {
         expect(deciderSrc).toContain('permission.decisions.local.log');
         expect(bannerSrc).toContain(logPath);
       });
+    });
+
+    when('[t1] the SessionStart banner renders its auto-decide section', () => {
+      then(
+        'the human-faced auto-decide explanation is snapshot-pinned (the seam promise the human reads)',
+        () => {
+          // the banner is a user-faced contract: it TELLS the human how the seam
+          // auto-decides (per-segment producer/sink bars, the reader set, the deny
+          // lift). that promise must not silently drift from the seam's real behavior.
+          // run the banner hermetically (a temp .claude with a minimal allow), then
+          // slice from the AUTO-DECIDED marker onward — the STATIC section, free of the
+          // volatile allow-list — so a reword of the promise diffs visibly in a PR.
+          const bannerPath = path.join(
+            __dirname,
+            'sessionstart.notify-permissions.sh',
+          );
+          const tempDir = genTempDir({ slug: 'banner-auto-decide' });
+          const claudeDir = path.join(tempDir, '.claude');
+          fs.mkdirSync(claudeDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(claudeDir, 'settings.json'),
+            JSON.stringify({ permissions: { allow: ['Bash(rhx:*)'] } }),
+          );
+          const result = spawnSync('bash', [bannerPath], {
+            encoding: 'utf-8',
+            cwd: tempDir,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          });
+          const stdout = result.stdout ?? '';
+          const marker = '🐚 auto-decided permission prompts';
+          const idx = stdout.indexOf(marker);
+          expect(idx).toBeGreaterThanOrEqual(0);
+          const autoDecideSection = stdout.slice(idx);
+          expect(autoDecideSection).toContain('read-only reader');
+          expect(autoDecideSection).toContain('clean-rhx-or-allowlisted');
+          expect(autoDecideSection).toMatchSnapshot();
+        },
+      );
+
+      then(
+        'the static preamble is snapshot-pinned too (mascot + section title + legend + footer)',
+        () => {
+          // the auto-decide slice above leaves the banner's config-INDEPENDENT preamble
+          // — the 🐢 mascot line, the 🐚 "pre-approved bash permissions" title, the
+          // [e]/[p] legend, and the "NOT on this list" footer — unpinned, so a silent
+          // reword of that guidance would slip past a PR diff. seed a MINIMAL allow
+          // (one `Bash(rhx:*)` -> a single deterministic `[p]: rhx` row) and pin the
+          // whole preamble UP TO the auto-decide marker: the one allow row is stable, so
+          // the slice is deterministic and the preamble text is now covered.
+          const bannerPath = path.join(
+            __dirname,
+            'sessionstart.notify-permissions.sh',
+          );
+          const tempDir = genTempDir({ slug: 'banner-preamble' });
+          const claudeDir = path.join(tempDir, '.claude');
+          fs.mkdirSync(claudeDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(claudeDir, 'settings.json'),
+            JSON.stringify({ permissions: { allow: ['Bash(rhx:*)'] } }),
+          );
+          const result = spawnSync('bash', [bannerPath], {
+            encoding: 'utf-8',
+            cwd: tempDir,
+            stdio: ['pipe', 'pipe', 'pipe'],
+          });
+          const stdout = result.stdout ?? '';
+          const marker = '🐚 auto-decided permission prompts';
+          const idx = stdout.indexOf(marker);
+          expect(idx).toBeGreaterThanOrEqual(0);
+          const preamble = stdout.slice(0, idx);
+          expect(preamble).toContain('pre-approved bash permissions');
+          expect(preamble).toContain('[p]: rhx');
+          expect(preamble).toMatchSnapshot();
+        },
+      );
     });
   });
 
@@ -920,30 +1574,61 @@ describe('permissionrequest.decide-permissions.sh', () => {
       const hookEntry = settings?.hooks?.PermissionRequest?.[0]?.hooks?.[0];
       const configuredTimeoutMs = (hookEntry?.timeout ?? 5) * 1000;
 
+      // run the REAL registered hook command, but HERMETICALLY: copy the real settings
+      // into a temp .claude so the allow/deny lists are the human's ACTUAL curated ones,
+      // yet the decider's G3 audit append lands in the temp dir — never the real
+      // .claude/permission.decisions.local.log (rule.require.hermetic-tests: a test must
+      // not write production state, and the real log must stay a record of real human
+      // actions, not test noise). the registered command's `.agent/…sh` path is relative
+      // to repoRoot, so absolutize it to be found from the temp cwd; the command SHAPE
+      // (`bash <executable>`) is preserved, so a future re-wrap into a banner-printing
+      // wrapper (the exact regression this case exists to catch) still fails the clamp.
+      const runRealHook = (
+        command: string,
+      ): { stdout: string; stderr: string; elapsedMs: number } => {
+        const auditDir = genTempDir({ slug: 'decide-real-hook' });
+        const tempClaude = path.join(auditDir, '.claude');
+        fs.mkdirSync(tempClaude, { recursive: true });
+        fs.copyFileSync(settingsPath, path.join(tempClaude, 'settings.json'));
+        const localPath = path.join(repoRoot, '.claude/settings.local.json');
+        if (fs.existsSync(localPath))
+          fs.copyFileSync(
+            localPath,
+            path.join(tempClaude, 'settings.local.json'),
+          );
+        const absCommand = hookEntry.command.replace(/(\S+\.sh)/, (m: string) =>
+          path.join(repoRoot, m),
+        );
+        const stdinJson = JSON.stringify({
+          tool_name: 'Bash',
+          hook_event_name: 'PermissionRequest',
+          tool_input: { command },
+        });
+        const start = Date.now();
+        const result = spawnSync(absCommand, {
+          shell: true,
+          cwd: auditDir,
+          encoding: 'utf-8',
+          input: stdinJson,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          timeout: configuredTimeoutMs + 5000, // room to observe an overrun, not an OS kill
+        });
+        return {
+          stdout: result.stdout ?? '',
+          stderr: result.stderr ?? '',
+          elapsedMs: Date.now() - start,
+        };
+      };
+
       when('[t0] a clean single rhx call is decided end-to-end', () => {
         then(
           `stdout is pure JSON, verdict allow, within its configured timeout (${configuredTimeoutMs}ms)`,
           () => {
-            const stdinJson = JSON.stringify({
-              tool_name: 'Bash',
-              hook_event_name: 'PermissionRequest',
-              tool_input: {
-                command: "rhx git.repo.get lines --words 'DomainEntity'",
-              },
-            });
+            const result = runRealHook(
+              "rhx git.repo.get lines --words 'DomainEntity'",
+            );
 
-            const start = Date.now();
-            const result = spawnSync(hookEntry.command, {
-              shell: true,
-              cwd: repoRoot,
-              encoding: 'utf-8',
-              input: stdinJson,
-              stdio: ['pipe', 'pipe', 'pipe'],
-              timeout: configuredTimeoutMs + 5000, // give the assertion room to observe an overrun, rather than the OS killing it silently
-            });
-            const elapsed = Date.now() - start;
-
-            const stdout = (result.stdout ?? '').trim();
+            const stdout = result.stdout.trim();
             // .why = a single JSON.parse on the RAW stdout is the clamp itself —
             // any wrapper noise (a banner line, a `│ ` prefix) before or around
             // the decider's own emission throws here, exactly as it did live.
@@ -952,10 +1637,259 @@ describe('permissionrequest.decide-permissions.sh', () => {
             expect(parsed?.hookSpecificOutput?.decision?.behavior).toBe(
               'allow',
             );
-            expect(elapsed).toBeLessThan(configuredTimeoutMs);
+            expect(result.elapsedMs).toBeLessThan(configuredTimeoutMs);
+          },
+        );
+      });
+
+      when(
+        '[t1] an allowlisted compound is decided end-to-end against real settings',
+        () => {
+          then(
+            'an allowlisted producer piped to a reader sink auto-approves via the REAL allow-list (not clean-rhx shape)',
+            () => {
+              // the wish's own headline case: `npm run build...` is an allowlisted
+              // producer (NOT rhx, so it clears via command_is_allowed against the
+              // merged allow-list, not via clean-rhx shape) and `tail` is a reader
+              // sink. every OTHER case runs a hand-seeded synthetic mirror in a temp
+              // dir; this one runs the REAL registered hook against the REAL
+              // .claude/settings.json, so it proves the allow-list path — the whole
+              // point of this wish — works against production config, not a fixture.
+              const result = runRealHook(
+                'npm run build:complete:dist | tail -3',
+              );
+              const parsed = JSON.parse(result.stdout.trim());
+              expect(parsed?.hookSpecificOutput?.decision?.behavior).toBe(
+                'allow',
+              );
+            },
+          );
+        },
+      );
+
+      when(
+        '[t2] a human-denied clean-rhx call is refused end-to-end against real settings',
+        () => {
+          then(
+            'a clean rhx call on the REAL permissions.deny does NOT auto-approve (the deny-honor security backstop, proven against production config)',
+            () => {
+              // the PR's security backstop is command_is_denied: a clean-rhx call the
+              // human explicitly denied (git.commit.bind set has NO execution self-guard)
+              // must never slip through on shape alone. every OTHER deny-honor row runs a
+              // hand-seeded mirror; this one runs the REAL registered hook against the REAL
+              // .claude/settings.json, so it proves the deny path holds against the human's
+              // ACTUAL curated list — the wish's "no adversarial command auto-approves"
+              // acceptance gate, closed against production config, not a fixture.
+              // `rhx git.commit.bind set --level fix` IS a clean-rhx shape (so step-1 would
+              // approve it), but `Bash(rhx git.commit.bind set:*)` sits in the real deny,
+              // so the seam refuses it: the verdict is NOT allow (LIFT to the human).
+              const result = runRealHook('rhx git.commit.bind set --level fix');
+              const stdout = result.stdout.trim();
+              // a denied clean-rhx call LIFTs (empty stdout -> human). the ONE thing the
+              // backstop forbids is an `allow`. assert the negative directly: whatever the
+              // seam emits, it is NOT an auto-approve.
+              const behavior =
+                stdout === ''
+                  ? 'lift'
+                  : JSON.parse(stdout)?.hookSpecificOutput?.decision?.behavior;
+              expect(behavior).not.toBe('allow');
+            },
+          );
+        },
+      );
+
+      when(
+        '[t3] a WORD-ORDER-reordered denied grant is refused end-to-end against real settings',
+        () => {
+          then(
+            'a denied skill+verb with flags moved before the verb does NOT auto-approve (word-order backstop, proven against production config)',
+            () => {
+              // the r8 word-order class, closed end-to-end: `rhx git.commit.bind --level
+              // fix set` runs the SAME denied `set` (git.commit.bind reads its verb by NAME
+              // at any argv index) but the flags sit BEFORE the verb, so the strict prefix
+              // veto would miss it. command_has_denied_skill_verb matches {git.commit.bind,
+              // set} as an unordered set against the REAL deny, so the seam still refuses it.
+              // git.commit.bind has NO execution self-guard, so this deny is its ONLY
+              // backstop — proving it against the human's ACTUAL curated deny, not a fixture.
+              const result = runRealHook('rhx git.commit.bind --level fix set');
+              const stdout = result.stdout.trim();
+              const behavior =
+                stdout === ''
+                  ? 'lift'
+                  : JSON.parse(stdout)?.hookSpecificOutput?.decision?.behavior;
+              expect(behavior).not.toBe('allow');
+            },
+          );
+        },
+      );
+    },
+  );
+
+  given(
+    '[case14] the settings.json + settings.local.json allow-sets are merged',
+    () => {
+      // seed BOTH files; the grant for `mytool` lives ONLY in settings.local.json,
+      // so an approve of `mytool foo` PROVES load_patterns unions the two files.
+      // (the real repo relies on this: `Bash(./node_modules/.bin/rhachet roles:*)`
+      // is granted only in the gitignored settings.local.json.)
+      const seedBoth = (
+        claudeDir: string,
+        opts: { withLocal: boolean },
+      ): void => {
+        fs.writeFileSync(
+          path.join(claudeDir, 'settings.json'),
+          JSON.stringify({
+            permissions: { allow: ['Bash(rhx:*)', 'Bash(tail:*)'], deny: [] },
+          }),
+        );
+        if (opts.withLocal)
+          fs.writeFileSync(
+            path.join(claudeDir, 'settings.local.json'),
+            JSON.stringify({
+              permissions: { allow: ['Bash(mytool:*)'], deny: [] },
+            }),
+          );
+      };
+      const runIn = (opts: { withLocal: boolean; command: string }): string => {
+        const tempDir = genTempDir({ slug: 'decide-two-file-union' });
+        const claudeDir = path.join(tempDir, '.claude');
+        fs.mkdirSync(claudeDir, { recursive: true });
+        seedBoth(claudeDir, { withLocal: opts.withLocal });
+        const result = spawnSync('bash', [scriptPath], {
+          encoding: 'utf-8',
+          cwd: tempDir,
+          input: JSON.stringify({
+            tool_name: 'Bash',
+            hook_event_name: 'PermissionRequest',
+            tool_input: { command: opts.command },
+          }),
+          stdio: ['pipe', 'pipe', 'pipe'],
+        });
+        return (result.stdout ?? '').trim();
+      };
+
+      when('[t0] a grant lives ONLY in settings.local.json', () => {
+        then('the local-only grant is honored -> AUTO_APPROVE', () => {
+          const stdout = runIn({ withLocal: true, command: 'mytool foo' });
+          const parsed = JSON.parse(stdout);
+          expect(parsed?.hookSpecificOutput?.decision?.behavior).toBe('allow');
+        });
+      });
+
+      when('[t1] the same command WITHOUT the local file', () => {
+        then(
+          'the grant is absent -> LIFT (so the t0 approve proves the merge)',
+          () => {
+            const stdout = runIn({ withLocal: false, command: 'mytool foo' });
+            expect(stdout).toBe('');
           },
         );
       });
     },
   );
+
+  given('[case15] a malformed settings.json degrades fail-safe to LIFT', () => {
+    when('[t0] settings.json is not valid json', () => {
+      then(
+        'an allowlisted-only compound LIFTs and a WARNING names the parse failure',
+        () => {
+          const tempDir = genTempDir({ slug: 'decide-malformed-settings' });
+          const claudeDir = path.join(tempDir, '.claude');
+          fs.mkdirSync(claudeDir, { recursive: true });
+          // a hand-edit that drops a comma -> jq cannot parse -> the allow set
+          // degrades to empty, so an allowlisted-only command (npm run, not rhx)
+          // has no grant and must LIFT (fail-safe), never silently approve.
+          fs.writeFileSync(
+            path.join(claudeDir, 'settings.json'),
+            '{ "permissions": { "allow": [ "Bash(npm run:*)" "Bash(tail:*)" ] } }',
+          );
+          const result = spawnSync('bash', [scriptPath], {
+            encoding: 'utf-8',
+            cwd: tempDir,
+            input: JSON.stringify({
+              tool_name: 'Bash',
+              hook_event_name: 'PermissionRequest',
+              tool_input: { command: 'npm run build | tail -3' },
+            }),
+            stdio: ['pipe', 'pipe', 'pipe'],
+          });
+          // fail-safe: no grant survives the parse failure -> the compound LIFTS
+          expect((result.stdout ?? '').trim()).toBe('');
+          // and the degrade is LOUD, not swallowed
+          expect(result.stderr).toContain('could not parse');
+          expect(result.stderr).toContain('as json');
+        },
+      );
+    });
+  });
+
+  given('[case16] a reader sink must ALSO be on the human allowlist', () => {
+    // is_reader_sink is an AND of two authorities: the lead token must be in the
+    // seam's hardcoded READERS set AND on the human's Bash allowlist. every other
+    // fixture allowlists all readers, so the allowlist half (line 629) is never the
+    // deciding factor. this given isolates it: jq is ALWAYS in READERS, so the ONLY
+    // variable is whether settings grants `Bash(jq)`. the pair proves the seam LIFTs
+    // when the grant is absent and approves when it is present — so a future edit that
+    // drops the `command_is_allowed` check would flip [t0] to a silent approve and go
+    // red here. without this clamp, that half of the sink bar could be deleted unseen.
+    const runWithReaderGranted = (input: {
+      grantJq: boolean;
+      command: string;
+    }): { stdout: string; stderr: string } => {
+      const tempDir = genTempDir({ slug: 'decide-reader-sink-allowlist' });
+      const claudeDir = path.join(tempDir, '.claude');
+      fs.mkdirSync(claudeDir, { recursive: true });
+      // rhx is always granted (so the producer clears its bar); jq is granted only
+      // when grantJq is true. jq stays in the seam's READERS set either way.
+      const allow = ['Bash(rhx:*)'];
+      if (input.grantJq) allow.push('Bash(jq)');
+      fs.writeFileSync(
+        path.join(claudeDir, 'settings.json'),
+        JSON.stringify({ permissions: { allow } }),
+      );
+      const result = spawnSync('bash', [scriptPath], {
+        encoding: 'utf-8',
+        cwd: tempDir,
+        input: JSON.stringify({
+          tool_name: 'Bash',
+          hook_event_name: 'PermissionRequest',
+          tool_input: { command: input.command },
+        }),
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+      return { stdout: result.stdout ?? '', stderr: result.stderr ?? '' };
+    };
+
+    when('[t0] the reader sink is NOT on the allowlist', () => {
+      then(
+        'the pipe LIFTs — reader nature alone does not clear the sink bar',
+        () => {
+          const result = runWithReaderGranted({
+            grantJq: false,
+            command: 'rhx foo | jq .',
+          });
+          // jq is in READERS but absent from settings -> is_reader_sink fails at the
+          // command_is_allowed check -> the sink bar is unmet -> LIFT (no stdout).
+          expect(result.stdout.trim()).toBe('');
+          // and the breadcrumb names the sink bar as the cause
+          expect(result.stderr).toContain('failed the sink bar');
+        },
+      );
+    });
+
+    when('[t1] the reader sink IS on the allowlist', () => {
+      then(
+        'the same pipe AUTO_APPROVES — the LIFT was the absent grant',
+        () => {
+          const result = runWithReaderGranted({
+            grantJq: true,
+            command: 'rhx foo | jq .',
+          });
+          // jq now clears BOTH authorities -> the sink bar is met -> AUTO_APPROVE.
+          const parsed = JSON.parse(result.stdout);
+          expect(parsed.hookSpecificOutput.decision.behavior).toBe('allow');
+        },
+      );
+    });
+  });
 });
