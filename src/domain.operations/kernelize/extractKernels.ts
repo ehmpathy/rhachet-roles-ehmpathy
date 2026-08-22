@@ -23,6 +23,7 @@ import { withSimpleCacheAsync } from 'with-simple-cache';
 import { withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
+import { getAllBrainAtoms } from '../brain/getAllBrainAtoms';
 import { clusterKernels } from './clusterKernels';
 
 /**
@@ -135,7 +136,10 @@ const _extractKernels = async (input: {
 
   // build brain — creds wires context['brain.supplier.*'] internally, so the
   // chosen brain package's genBrainAtom can fetch its api key at ask() time.
+  // atoms supplied explicitly (not discovered): jest reports `available brains
+  // (none)` in discovery mode, so choice fails before any api call.
   const contextBrain = await genContextBrain({
+    brains: { atoms: getAllBrainAtoms() },
     choice: { atom: input.brainSlug },
     creds: {
       keyrack: {
@@ -417,7 +421,10 @@ export const checkKernelRetention = async (input: {
 
   // build brain — creds wires context['brain.supplier.*'] internally, so the
   // chosen brain package's genBrainAtom can fetch its api key at ask() time.
+  // atoms supplied explicitly (not discovered): jest reports `available brains
+  // (none)` in discovery mode, so choice fails before any api call.
   const contextBrain = await genContextBrain({
+    brains: { atoms: getAllBrainAtoms() },
     choice: { atom: input.brainSlug },
     creds: {
       keyrack: {
@@ -527,7 +534,10 @@ export const compareKernels = async (input: {
 }> => {
   // build brain — creds wires context['brain.supplier.*'] internally, so the
   // chosen brain package's genBrainAtom can fetch its api key at ask() time.
+  // atoms supplied explicitly (not discovered): jest reports `available brains
+  // (none)` in discovery mode, so choice fails before any api call.
   const contextBrain = await genContextBrain({
+    brains: { atoms: getAllBrainAtoms() },
     choice: { atom: input.brainSlug },
     creds: {
       keyrack: {

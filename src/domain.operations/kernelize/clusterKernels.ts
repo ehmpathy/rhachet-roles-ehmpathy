@@ -23,6 +23,7 @@ import { withSimpleCacheAsync } from 'with-simple-cache';
 import { withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
+import { getAllBrainAtoms } from '../brain/getAllBrainAtoms';
 import type { ConceptKernel } from './extractKernels';
 
 /**
@@ -155,7 +156,10 @@ const _clusterKernels = async (input: {
   // chosen brain package's genBrainAtom can fetch its api key at ask() time.
   // env: 'test' under jest (keyrack auto-unlocks 'test' creds), 'prep' else —
   // mirrors rhachet-roles-bhrain's genReviewBrainSupply.ts convention.
+  // atoms supplied explicitly (not discovered): jest reports `available brains
+  // (none)` in discovery mode, so choice fails before any api call.
   const contextBrain = await genContextBrain({
+    brains: { atoms: getAllBrainAtoms() },
     choice: { atom: input.brainSlug },
     creds: {
       keyrack: {
