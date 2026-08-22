@@ -160,11 +160,9 @@ exports[`git.repo.test.sh scope given: [case8] scope with --what integration (ke
 
 hint: check keyrack setup with 'rhx keyrack status --owner ehmpath'
 
-KeyrackError: no keyrack.yml found in repo
 
-{
-  "note": "keyrack.yml declares which keys are required"
-}"
+🔐 keyrack unlock
+   └─ ✋ blocked: no keyrack.yml found in repo"
 `;
 
 exports[`git.repo.test.sh scope given: [case8] scope with --what integration (keyrack failure in temp repo) when: [t0] --scope myfeature --what integration is used then: stdout matches snapshot 1`] = `
@@ -176,11 +174,9 @@ exports[`git.repo.test.sh scope given: [case8] scope with --what integration (ke
 
 hint: check keyrack setup with 'rhx keyrack status --owner ehmpath'
 
-KeyrackError: no keyrack.yml found in repo
 
-{
-  "note": "keyrack.yml declares which keys are required"
-}"
+🔐 keyrack unlock
+   └─ ✋ blocked: no keyrack.yml found in repo"
 `;
 
 exports[`git.repo.test.sh scope given: [case9] scope with invalid:// prefix (unknown prefix) when: [t0] --scope invalid://foo is used then: stderr matches snapshot 1`] = `
