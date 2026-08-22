@@ -1574,28 +1574,29 @@ describe('permissionrequest.decide-permissions.sh', () => {
       const hookEntry = settings?.hooks?.PermissionRequest?.[0]?.hooks?.[0];
       const configuredTimeoutMs = (hookEntry?.timeout ?? 5) * 1000;
 
-      // run the REAL registered hook command, but HERMETICALLY: copy the real settings
-      // into a temp .claude so the allow/deny lists are the human's ACTUAL curated ones,
-      // yet the decider's G3 audit append lands in the temp dir — never the real
-      // .claude/permission.decisions.local.log (rule.require.hermetic-tests: a test must
-      // not write production state, and the real log must stay a record of real human
-      // actions, not test noise). the registered command's `.agent/…sh` path is relative
-      // to repoRoot, so absolutize it to be found from the temp cwd; the command SHAPE
-      // (`bash <executable>`) is preserved, so a future re-wrap into a banner-printing
-      // wrapper (the exact regression this case exists to catch) still fails the clamp.
+      // run the REAL registered hook command, but HERMETICALLY on every axis: the
+      // decider's G3 audit append lands in the temp dir — never the real
+      // .claude/permission.decisions.local.log — AND the allow/deny content it reads
+      // is the SAME PRESCRIBED fixture (seedClaudeSettings) every other case in this
+      // file uses, never the ambient repo's live .claude/settings(.local).json
+      // (rule.require.hermetic-tests: a test's outcome must not depend on the host —
+      // the human's curated grants drift over time, and settings.local.json is
+      // gitignored, so a CI checkout never carries it; this case read BOTH before and
+      // matched locally, then failed in CI once a grant existed only locally).
+      // only the hook's REGISTRATION shape (command string + timeout, read from the
+      // repo's own committed settings.json) stays real — that is the repo's own
+      // source under test, not host-specific state. the registered command's
+      // `.agent/…sh` path is relative to repoRoot, so absolutize it to be found from
+      // the temp cwd; the command SHAPE (`bash <executable>`) is preserved, so a
+      // future re-wrap into a wrapper that emits banner noise (the exact regression
+      // this case exists to catch) still fails the clamp.
       const runRealHook = (
         command: string,
       ): { stdout: string; stderr: string; elapsedMs: number } => {
         const auditDir = genTempDir({ slug: 'decide-real-hook' });
         const tempClaude = path.join(auditDir, '.claude');
         fs.mkdirSync(tempClaude, { recursive: true });
-        fs.copyFileSync(settingsPath, path.join(tempClaude, 'settings.json'));
-        const localPath = path.join(repoRoot, '.claude/settings.local.json');
-        if (fs.existsSync(localPath))
-          fs.copyFileSync(
-            localPath,
-            path.join(tempClaude, 'settings.local.json'),
-          );
+        seedClaudeSettings(tempClaude);
         const absCommand = hookEntry.command.replace(/(\S+\.sh)/, (m: string) =>
           path.join(repoRoot, m),
         );
@@ -1643,18 +1644,21 @@ describe('permissionrequest.decide-permissions.sh', () => {
       });
 
       when(
-        '[t1] an allowlisted compound is decided end-to-end against real settings',
+        '[t1] an allowlisted compound is decided end-to-end via the real executable',
         () => {
           then(
-            'an allowlisted producer piped to a reader sink auto-approves via the REAL allow-list (not clean-rhx shape)',
+            'an allowlisted producer piped to a reader sink auto-approves via the prescribed allow-list fixture (not clean-rhx shape)',
             () => {
               // the wish's own headline case: `npm run build...` is an allowlisted
               // producer (NOT rhx, so it clears via command_is_allowed against the
               // merged allow-list, not via clean-rhx shape) and `tail` is a reader
-              // sink. every OTHER case runs a hand-seeded synthetic mirror in a temp
-              // dir; this one runs the REAL registered hook against the REAL
-              // .claude/settings.json, so it proves the allow-list path — the whole
-              // point of this wish — works against production config, not a fixture.
+              // sink. this case runs the REAL registered hook COMMAND (its exact
+              // `bash <path>` invocation shape + timeout, from the repo's own
+              // committed settings.json) against the SAME prescribed
+              // seedClaudeSettings fixture every other case uses — so it proves the
+              // allow-list path against the real executable, hermetically
+              // (rule.require.hermetic-tests): the ambient repo's live
+              // .claude/settings(.local).json is never read for permissions content.
               const result = runRealHook(
                 'npm run build:complete:dist | tail -3',
               );
@@ -1668,21 +1672,21 @@ describe('permissionrequest.decide-permissions.sh', () => {
       );
 
       when(
-        '[t2] a human-denied clean-rhx call is refused end-to-end against real settings',
+        '[t2] a human-denied clean-rhx call is refused end-to-end via the real executable',
         () => {
           then(
-            'a clean rhx call on the REAL permissions.deny does NOT auto-approve (the deny-honor security backstop, proven against production config)',
+            'a clean rhx call on the prescribed permissions.deny fixture does NOT auto-approve (the deny-honor security backstop, proven against the real executable)',
             () => {
               // the PR's security backstop is command_is_denied: a clean-rhx call the
               // human explicitly denied (git.commit.bind set has NO execution self-guard)
-              // must never slip through on shape alone. every OTHER deny-honor row runs a
-              // hand-seeded mirror; this one runs the REAL registered hook against the REAL
-              // .claude/settings.json, so it proves the deny path holds against the human's
-              // ACTUAL curated list — the wish's "no adversarial command auto-approves"
-              // acceptance gate, closed against production config, not a fixture.
+              // must never slip through on shape alone. this case runs the REAL
+              // registered hook COMMAND against the SAME prescribed seedClaudeSettings
+              // fixture every other case uses (rule.require.hermetic-tests) — so it
+              // proves the deny path against the real executable, not the ambient
+              // repo's live, host-drift-prone deny list.
               // `rhx git.commit.bind set --level fix` IS a clean-rhx shape (so step-1 would
-              // approve it), but `Bash(rhx git.commit.bind set:*)` sits in the real deny,
-              // so the seam refuses it: the verdict is NOT allow (LIFT to the human).
+              // approve it), but `Bash(rhx git.commit.bind set:*)` sits in the fixture's
+              // deny, so the seam refuses it: the verdict is NOT allow (LIFT to the human).
               const result = runRealHook('rhx git.commit.bind set --level fix');
               const stdout = result.stdout.trim();
               // a denied clean-rhx call LIFTs (empty stdout -> human). the ONE thing the
@@ -1699,18 +1703,19 @@ describe('permissionrequest.decide-permissions.sh', () => {
       );
 
       when(
-        '[t3] a WORD-ORDER-reordered denied grant is refused end-to-end against real settings',
+        '[t3] a WORD-ORDER-reordered denied grant is refused end-to-end via the real executable',
         () => {
           then(
-            'a denied skill+verb with flags moved before the verb does NOT auto-approve (word-order backstop, proven against production config)',
+            'a denied skill+verb with flags moved before the verb does NOT auto-approve (word-order backstop, proven against the real executable)',
             () => {
               // the r8 word-order class, closed end-to-end: `rhx git.commit.bind --level
               // fix set` runs the SAME denied `set` (git.commit.bind reads its verb by NAME
               // at any argv index) but the flags sit BEFORE the verb, so the strict prefix
               // veto would miss it. command_has_denied_skill_verb matches {git.commit.bind,
-              // set} as an unordered set against the REAL deny, so the seam still refuses it.
-              // git.commit.bind has NO execution self-guard, so this deny is its ONLY
-              // backstop — proving it against the human's ACTUAL curated deny, not a fixture.
+              // set} as an unordered set against the fixture's deny, so the seam still
+              // refuses it. git.commit.bind has NO execution self-guard, so this deny is
+              // its ONLY backstop — proving it against the real executable + the same
+              // prescribed fixture every other case uses (rule.require.hermetic-tests).
               const result = runRealHook('rhx git.commit.bind --level fix set');
               const stdout = result.stdout.trim();
               const behavior =
