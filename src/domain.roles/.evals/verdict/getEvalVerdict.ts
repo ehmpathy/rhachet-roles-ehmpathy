@@ -1,6 +1,8 @@
 import { genContextBrain } from 'rhachet';
 import * as yaml from 'yaml';
 
+import { getAllBrainAtoms } from '@src/domain.operations/brain/getAllBrainAtoms';
+
 import type {
   CheckResult,
   EvalCase,
@@ -30,7 +32,10 @@ export const getEvalVerdict = async (input: {
   // .note = creds via keyrack supplier, same as bhrain review skill.
   //         in CI, keyrack reads the api key from env vars (passthrough);
   //         locally, an active keyrack session supplies it.
+  // atoms supplied explicitly (not discovered): jest reports `available brains
+  // (none)` in discovery mode, so choice fails before any api call.
   const contextBrain = await genContextBrain({
+    brains: { atoms: getAllBrainAtoms() },
     choice: { atom: evalCase.evaluator.brain },
     creds: { keyrack: { owner: 'ehmpath', env: 'prep' } },
   });

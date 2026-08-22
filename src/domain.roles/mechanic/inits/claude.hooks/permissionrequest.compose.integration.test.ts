@@ -76,7 +76,47 @@ describe('permissionrequest — composed control stack', () => {
     // owns its OWN .claude, so the decider's G3 audit append lands there and never
     // pollutes the real repo permission.decisions.local.log (rule.require.hermetic-tests).
     const auditCwd = genTempDir({ slug: 'compose-audit' });
-    fs.mkdirSync(path.join(auditCwd, '.claude'), { recursive: true });
+    const auditClaudeDir = path.join(auditCwd, '.claude');
+    fs.mkdirSync(auditClaudeDir, { recursive: true });
+    // seed the SAME allow + deny sets the real seam reads — the decider judges a compound
+    // segment's producer bar against the allow set (so an empty .claude would lift every
+    // allowlisted producer echo/cat and reader sink jq/tail) AND refuses any segment the
+    // human explicitly denied (so a denied grant like `rhx git.commit.bind set`, which has
+    // NO execution self-guard, cannot auto-approve on clean shape).
+    fs.writeFileSync(
+      path.join(auditClaudeDir, 'settings.json'),
+      JSON.stringify({
+        permissions: {
+          allow: [
+            'Bash(rhx:*)',
+            'Bash(npx rhachet:*)',
+            'Bash(npx rhx:*)',
+            'Bash(echo:*)',
+            'Bash(printf:*)',
+            'Bash(cat:*)',
+            'Bash(tail:*)',
+            'Bash(head:*)',
+            'Bash(wc:*)',
+            'Bash(jq)',
+            'Bash(npm run:*)',
+            'Bash(npm run build:*)',
+            'Bash(git log:*)',
+          ],
+          // deny listed in ONE canonical `rhx …` form each; the seam canonicalizes both
+          // sides, so this single form catches every rhx-family lead-form + whitespace +
+          // quoted-token variant. mirrors the decide-permissions seed exactly (no drift).
+          deny: [
+            'Bash(rhx git.commit.bind set:*)',
+            'Bash(rhx git.commit.bind del:*)',
+            'Bash(rhx git.commit.uses set:*)',
+            'Bash(rhx git.commit.uses allow:*)',
+            'Bash(rhx git.commit.uses --org * del:*)',
+            'Bash(bash:*)',
+            'Bash(tee:*)',
+          ],
+        },
+      }),
+    );
     const decider = spawnSync('bash', [DECIDER], {
       encoding: 'utf-8',
       cwd: auditCwd,
@@ -357,6 +397,12 @@ describe('permissionrequest — composed control stack', () => {
       danger: false,
       why: 'cat producer, clean rhx sink',
     },
+    {
+      command: 'rhx foo | jq .',
+      expect: 'AUTO_APPROVE',
+      danger: false,
+      why: 'clean-rhx producer piped to a read-only reader (jq) sink — the widened all-safe-segments approve',
+    },
 
     // ── AUTO_DENY — unquoted chain (runs/backgrounds a second command) ──
     {
@@ -384,44 +430,59 @@ describe('permissionrequest — composed control stack', () => {
       why: '& backgrounds a second command',
     },
 
-    // ── commit-grant family — a single clean rhx call; the seam APPROVES the
-    //    PROMPT (rhx is not denylistable) and the grant self-guards at EXECUTION
-    //    inside its own skill executable. danger:false — an approve here is safe. ──
+    // ── commit-grant family — grants the human put in permissions.deny. the seam mints
+    //    no denylist of its own (rhx is an open namespace) but it HONORS the human's OWN
+    //    deny set, so a denied grant LIFTS to the human (danger:false — a LIFT is safe;
+    //    the human decides). this closes the git.commit.bind hole: bind.sh has NO
+    //    execution self-guard, so a shape-only approve would let a mechanic self-set a
+    //    human-owned commit-level constraint. two layers back this: (1) the deny-honor
+    //    here, and (2) for git.commit.uses, an execution TTY self-guard as a backstop. ──
     {
       command: 'rhx git.commit.uses set --quant 999 --push allow',
-      expect: 'AUTO_APPROVE',
+      expect: 'LIFT',
       danger: false,
-      why: 'commit-quota grant; single clean rhx call, execution self-guards',
+      why: 'commit-quota grant in permissions.deny -> deny-honor LIFTS it (never shape-approve)',
     },
     {
       command: 'rhx git.commit.uses allow',
-      expect: 'AUTO_APPROVE',
+      expect: 'LIFT',
       danger: false,
-      why: 'unlimited-quota shorthand; execution self-guards',
+      why: 'unlimited-quota shorthand in permissions.deny -> LIFTS',
     },
     {
       command: 'rhx git.commit.bind set --level feat',
-      expect: 'AUTO_APPROVE',
+      expect: 'LIFT',
       danger: false,
-      why: 'commit-level bind; execution self-guards',
+      why: 'commit-level bind, NO execution self-guard — deny-honor is its only protection -> LIFTS',
     },
     {
       command: 'rhx git.commit.uses --org shadyorg del',
-      expect: 'AUTO_APPROVE',
+      expect: 'LIFT',
       danger: false,
-      why: 'org-del of a block override; execution self-guards',
+      why: 'org-del of a block override; the human deny glob `--org * del` catches it -> LIFTS',
     },
     {
+      // quoted-token evasion, now CLOSED by the canonical form: the quote delimiters
+      // strip in canonicalize_rhx_command, so `rhx 'git.commit.uses' set` folds to
+      // `rhx git.commit.uses set` and the deny catches it -> LIFT.
       command: "rhx 'git.commit.uses' set --quant 9",
-      expect: 'AUTO_APPROVE',
+      expect: 'LIFT',
       danger: false,
-      why: 'quoted skill token, residue clean; execution self-guards',
+      why: 'quoted skill token folds to the bare canonical form -> deny catches it -> LIFTS',
     },
     {
       command: 'npx rhachet run --skill git.commit.uses set',
-      expect: 'AUTO_APPROVE',
+      expect: 'LIFT',
       danger: false,
-      why: 'npx grant form; execution self-guards',
+      why: 'npx grant form folds to canonical `rhx git.commit.uses set` -> LIFTS',
+    },
+    {
+      // ALT-LEAD-FORM evasion, now CLOSED: `npx rhx …` folds to canonical `rhx …`, so
+      // the deny (listed only as `rhx …` + `npx rhachet run --skill …`) still catches it.
+      command: 'npx rhx git.commit.bind set --level feat',
+      expect: 'LIFT',
+      danger: false,
+      why: 'the npx-rhx lead-form folds to canonical `rhx git.commit.bind set` -> deny catches it -> LIFTS',
     },
 
     // ── LIFT — survives forbid, not a clean single call -> a human decides ──
@@ -430,12 +491,6 @@ describe('permissionrequest — composed control stack', () => {
       expect: 'LIFT',
       danger: true,
       why: 'pipe to a shell — lifted, never auto-approved',
-    },
-    {
-      command: 'rhx foo | jq .',
-      expect: 'LIFT',
-      danger: false,
-      why: 'benign pipe still lifts (not a clean single call)',
     },
     {
       command: 'rhx foo < /etc/passwd',
@@ -478,22 +533,27 @@ describe('permissionrequest — composed control stack', () => {
       why: 'glob bracket; residue holds [ ] -> not clean -> lifts',
     },
     {
+      // line-continuation of a DENIED grant, now CLOSED: canonicalize_rhx_command drops
+      // the \<newline>, so it reads as `rhx git.commit.uses set …` -> deny catches -> LIFT.
       command: 'rhx git.commit.uses \\\nset --quant 9',
-      expect: 'AUTO_APPROVE',
+      expect: 'LIFT',
       danger: false,
-      why: 'line-continuation drops to a clean grant; approves, execution self-guards',
+      why: 'line-continuation reads as `rhx git.commit.uses set` in the canonical -> denied -> LIFTS',
     },
     {
+      // quote-split VERB of a denied grant, now CLOSED: the quotes strip in the canonical,
+      // so "se"t reads as set -> `rhx git.commit.uses set` -> denied -> LIFT.
       command: 'rhx git.commit.uses "se"t --quant 9',
-      expect: 'AUTO_APPROVE',
+      expect: 'LIFT',
       danger: false,
-      why: 'quote-split verb, residue clean; approves, execution self-guards',
+      why: 'quote-split verb reads as `rhx git.commit.uses set` in the canonical -> denied -> LIFTS',
     },
     {
+      // quote-split SKILL of a denied grant, now CLOSED: git.commit'.'uses -> git.commit.uses.
       command: "rhx git.commit'.'uses set --quant 9",
-      expect: 'AUTO_APPROVE',
+      expect: 'LIFT',
       danger: false,
-      why: 'quote-split skill, residue clean; approves, execution self-guards',
+      why: 'quote-split skill reads as `rhx git.commit.uses set` in the canonical -> denied -> LIFTS',
     },
     {
       command: '(rhx git.commit.uses set --quant 9)',
@@ -508,16 +568,33 @@ describe('permissionrequest — composed control stack', () => {
       why: 'group command carries ; -> a chain the seam denies',
     },
     {
+      // verb-order permutation of a DENIED grant, now CLOSED: an rhx arg-parser reads its
+      // verb (set) by NAME at any argv index, so flags moved AROUND the verb do not change
+      // what runs. command_has_denied_skill_verb matches {git.commit.uses, set} as an
+      // unordered set -> denied -> the segment fails its bar -> LIFT. (before the fix this
+      // AUTO_APPROVED, a real hole: the reordered form of a human-denied grant slipped the
+      // strict prefix veto.)
       command: 'rhx git.commit.uses --push allow set --quant 9',
-      expect: 'AUTO_APPROVE',
-      danger: false,
-      why: 'verb-order permutation, residue clean; approves, execution self-guards',
+      expect: 'LIFT',
+      danger: true,
+      why: 'verb-order permutation of a denied grant; denied skill+verb as a set -> LIFTS',
     },
     {
+      // the SAME reorder against git.commit.bind — the skill with NO execution self-guard
+      // (no TTY check), so its deny entry is the ONLY backstop. proves the word-order
+      // closure protects the skill with no other safety net.
+      command: 'rhx git.commit.bind --level fix set',
+      expect: 'LIFT',
+      danger: true,
+      why: 'reordered denied bind grant (no self-guard); denied skill+verb as a set -> LIFTS',
+    },
+    {
+      // npx-rhx lead-form of a denied grant, now CLOSED: folds to canonical
+      // `rhx git.commit.uses set` -> deny catches it -> LIFT.
       command: 'npx rhx git.commit.uses set',
-      expect: 'AUTO_APPROVE',
+      expect: 'LIFT',
       danger: false,
-      why: 'npx rhx grant form; approves, execution self-guards',
+      why: 'npx-rhx lead-form reads as `rhx git.commit.uses set` in the canonical -> denied -> LIFTS',
     },
     {
       command: 'node ./bin/run --skill git.commit.uses set',

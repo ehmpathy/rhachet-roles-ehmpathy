@@ -7,19 +7,55 @@ exports[`permissionrequest.decide-permissions.sh given: [case1] a clean single r
       "behavior": "allow",
     },
     "hookEventName": "PermissionRequest",
-    "reasoning": "single clean rhx call, safe by design",
+    "reasoning": "single clean-rhx-or-allowlisted call; safe by design",
   },
 }
 `;
 
-exports[`permissionrequest.decide-permissions.sh given: [case2] an unquoted command-chain smuggles a second command when: [t0] the residue holds a chain/background operator then: the emitted deny json shape is snapshot-pinned (blocked-state drift alarm) 1`] = `
+exports[`permissionrequest.decide-permissions.sh given: [case1b] a compound the classifier flagged when: [t0] every segment is safe (producer | reader sink) then: the emitted allow json for a COMPOUND pins the per-segment reason 1`] = `
+{
+  "hookSpecificOutput": {
+    "decision": {
+      "behavior": "allow",
+    },
+    "hookEventName": "PermissionRequest",
+    "reasoning": "every segment clean-rhx-or-allowlisted; each pipe sink clean-rhx or a read-only reader; safe by parts",
+  },
+}
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case1b] a compound the classifier flagged when: [t1] a pure chain (no pipe) has every segment safe then: the reason DROPS the pipe-sink clause (a chain has no pipe sinks) 1`] = `
+{
+  "hookSpecificOutput": {
+    "decision": {
+      "behavior": "allow",
+    },
+    "hookEventName": "PermissionRequest",
+    "reasoning": "every segment clean-rhx-or-allowlisted; safe by parts",
+  },
+}
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case2] an unquoted command-chain smuggles a second command when: [t1] a chain-smuggle (; && ||) deny is emitted then: the emitted deny json shape is snapshot-pinned (blocked-state drift alarm) 1`] = `
 {
   "hookSpecificOutput": {
     "decision": {
       "behavior": "deny",
     },
     "hookEventName": "PermissionRequest",
-    "reasoning": "command chains or backgrounds a second command; banned — run each command as its own separate call",
+    "reasoning": "chains an un-vetted command via ; && or ||; banned — run each command as its own separate call",
+  },
+}
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case2] an unquoted command-chain smuggles a second command when: [t2] a background/newline detach deny is emitted then: the background/newline deny json shape is snapshot-pinned (a SEPARATE blocked-state message) 1`] = `
+{
+  "hookSpecificOutput": {
+    "decision": {
+      "behavior": "deny",
+    },
+    "hookEventName": "PermissionRequest",
+    "reasoning": "backgrounds (&) or newline-joins a second command; banned — run each command as its own separate call",
   },
 }
 `;
@@ -27,3 +63,124 @@ exports[`permissionrequest.decide-permissions.sh given: [case2] an unquoted comm
 exports[`permissionrequest.decide-permissions.sh given: [case3] a command the decider cannot prove clean when: [t0] not a clean single rhx call then: the LIFT stdout is snapshot-pinned as exactly empty (no-decision contract) 1`] = `""`;
 
 exports[`permissionrequest.decide-permissions.sh given: [case4] edge cases when: [t0] empty or absent command then: the malformed-stdin edge output is snapshot-pinned as exactly empty 1`] = `""`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case9] the audit trail degrades fail-safe when: [t0] no .claude ancestor exists (find_claude_dir fails) then: stderr warns per-set that no .claude dir was found 1`] = `
+"🐢 bummer dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ no .claude dir found from <PWD>; allow list empty
+
+🐢 bummer dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ no .claude dir found from <PWD>; deny list empty
+
+"
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case9] the audit trail degrades fail-safe when: [t1] the audit write fails (log path is a directory) then: the allow still emits, exit 0, and a stderr note is written 1`] = `
+"🐢 bummer dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ audit write failed: <LOGPATH>: Is a directory
+
+"
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case10] a LIFT records a diagnostic stderr breadcrumb when: [t0] a pipe-to-tool command lifts (not a clean single rhx call) then: stdout stays empty AND stderr names the miss 1`] = `
+"🐢 hold up, dude...
+
+🐚 permissionrequest.decide-permissions
+   ├─ segment failed the sink bar: sort
+   ├─ fix: make the sink a read-only reader (jq/tail/head/wc/cat) or a clean-rhx call
+   └─ or wrap it as an rhx skill hardened against a hostile stdin, or run it as its own Bash call
+"
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case10] a LIFT records a diagnostic stderr breadcrumb when: [t1] a bad PRODUCER (left of a pipe) lifts (fails the producer bar) then: stderr names the PRODUCER-bar miss (the other bar variant) 1`] = `
+"🐢 hold up, dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ segment failed the producer bar: curl reef.evil
+"
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case10] a LIFT records a diagnostic stderr breadcrumb when: [t2] a human-denied segment lifts (deny-honor names the deny-list) then: stderr names the permissions.deny list as the cause 1`] = `
+"🐢 hold up, dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ segment is on your permissions.deny list: rhx git.commit.bind set --level fix
+"
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case10] a LIFT records a diagnostic stderr breadcrumb when: [t3] an unbalanced-quote command lifts then: stderr names the unbalanced-quote miss 1`] = `
+"🐢 hold up, dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ unbalanced quotes in command
+"
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case10] a LIFT records a diagnostic stderr breadcrumb when: [t4] a degenerate stray-separator command lifts (generic breadcrumb) then: stderr names the generic all-safe-segments miss 1`] = `
+"🐢 hold up, dude...
+
+🐚 permissionrequest.decide-permissions
+   ├─ not an all-safe-segments compound:
+   ├─ a segment is neither a clean-rhx call nor allowlisted,
+   └─ or a pipe sink is not a read-only reader (jq/tail/head/wc/cat)
+"
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case10] a LIFT records a diagnostic stderr breadcrumb when: [t5] the settings json is malformed (allow-list degrades) then: stderr warns the list degraded, path-masked snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ could not parse <SETTINGS> as json; allow list degraded: jq: parse error: <JQ_CAUSE>
+
+🐢 bummer dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ could not parse <SETTINGS> as json; deny list degraded: jq: parse error: <JQ_CAUSE>
+
+"
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case11] the audit-log path is shared, not drifted when: [t1] the SessionStart banner renders its auto-decide section then: the human-faced auto-decide explanation is snapshot-pinned (the seam promise the human reads) 1`] = `
+"🐚 auto-decided permission prompts (PermissionRequest hook)
+   │
+   │  suspicious-classified prompts are auto-decided in-hook, per-segment:
+   │
+   ├─ a single clean-rhx-or-allowlisted call, not deny-listed -> auto-approved
+   ├─ an all-safe-segments compound (| && || ;), no segment
+   │  deny-listed: each producer is clean-rhx-or-allowlisted,
+   │  each pipe sink is clean-rhx or a read-only reader
+   │  (jq/tail/head/wc/cat)                                   -> auto-approved
+   ├─ a background (&) or newline-joined command              -> auto-denied
+   ├─ an unquoted chain with an un-vetted segment             -> auto-denied
+   ├─ a deny-listed segment (piped/standalone)                -> lifted
+   ├─ a deny-listed segment (chained)                         -> auto-denied
+   └─ an otherwise-unprovable segment                         -> lifted to the human
+
+🐚 every auto allow/deny is recorded to a G3 audit trail
+   └─ to review why a command was auto-decided (verdict + reason + command):
+         jq . .claude/permission.decisions.local.log
+
+"
+`;
+
+exports[`permissionrequest.decide-permissions.sh given: [case11] the audit-log path is shared, not drifted when: [t1] the SessionStart banner renders its auto-decide section then: the static preamble is snapshot-pinned too (mascot + section title + legend + footer) 1`] = `
+"
+🐢 shell yeah, your guardrails are set 🌊
+
+🐚 pre-approved bash permissions
+   │
+   │  these bash commands run without a permission prompt.
+   │  ([e] = exact match · [p] = prefix match — any command that starts with it)
+   │
+   ├─ [p]: rhx
+   │
+   └─ a bash command NOT on this list blocks and asks you to reconsider —
+      check this list first, to minimize interruptions.
+
+"
+`;

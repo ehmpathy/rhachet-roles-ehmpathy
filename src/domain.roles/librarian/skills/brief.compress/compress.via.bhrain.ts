@@ -27,6 +27,8 @@ import { withSimpleCacheAsync } from 'with-simple-cache';
 import { withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
+import { getAllBrainAtoms } from '@src/domain.operations/brain/getAllBrainAtoms';
+
 import { countTokens } from './compress.shared';
 
 /**
@@ -337,10 +339,12 @@ const _compressViaBhrain = async (input: {
   // compose prompt with source content (include supplements and kernels if provided)
   const prompt = `${genCompressionPrompt(elements, { supplements: input.supplements, kernels: input.kernels })}\n\n${input.content}`;
 
-  // build brain via auto-discovery — creds wires context['brain.supplier.*']
-  // internally, so the chosen brain package's genBrainAtom can fetch its api
-  // key at ask() time.
+  // build brain — creds wires context['brain.supplier.*'] internally, so the
+  // chosen brain package's genBrainAtom can fetch its api key at ask() time.
+  // atoms supplied explicitly (not discovered): jest reports `available brains
+  // (none)` in discovery mode, so choice fails before any api call.
   const contextBrain = await genContextBrain({
+    brains: { atoms: getAllBrainAtoms() },
     choice: { atom: input.brainSlug },
     creds: {
       keyrack: {
