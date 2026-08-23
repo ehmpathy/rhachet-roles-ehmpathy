@@ -777,6 +777,31 @@ describe('permissionrequest.decide-permissions.sh', () => {
         why: 'cat producer with a plain filename arg',
       },
       {
+        // the real-world shape that prompted this (the human's #468 commit): a
+        // printf whose single-quoted payload carries LITERAL embedded newlines
+        // — a multi-line commit body, blank lines and all — piped to a
+        // clean-rhx sink (git.commit.set, the allowlisted @stdin commit form).
+        // the newlines live INSIDE the single-quote span, so the quote-aware
+        // scan keeps them inert data: they are NOT top-level command
+        // separators, so is_background_or_newline_detach must NOT fire. distinct
+        // from case1's `\<newline>` line-continuation (dropped as a
+        // continuation) — here the raw newline stays kept-but-quoted, exactly
+        // the shape a naive newline scanner would mis-deny as a chain.
+        command:
+          "printf 'fix(x): summary\n\nbody paragraph\n\n- bullet a\n- bullet b' | rhx git.commit.set -m @stdin --mode apply --unstaged ignore",
+        expect: 'AUTO_APPROVE',
+        why: 'literal newlines inside the single-quoted producer arg stay inert (quoted), so a multi-line commit-body printf piped to git.commit.set auto-approves — the newline-detach deny fires only on UNQUOTED newlines',
+      },
+      {
+        // the pivotal negative twin: the SAME shape but with the newline
+        // UNQUOTED (the single-quote span closed before it) smuggles a second
+        // command. proves the quotes in the positive row above are what make
+        // it safe — strip them and the newline-detach guard denies.
+        command: "printf 'body' \nrm -rf ~ | rhx git.commit.set -m @stdin",
+        expect: 'AUTO_DENY',
+        why: 'an UNQUOTED newline chains a second command (rm -rf ~) — the newline-detach guard denies; the contrast with the quoted-newline positive row proves the quote is what matters',
+      },
+      {
         command: 'echo | rhx foo',
         expect: 'AUTO_APPROVE',
         why: 'bare echo (no args) is still a clean producer',
