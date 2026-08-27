@@ -20,6 +20,16 @@ always:
       # ubiquitous language
       - briefs/ubiqlang.ambiguous-from-overload.md
 
+      # prose overlay — simplified technical english (asd-ste100, telegraphic)
+      - briefs/practices/lang.prose/define.wick-dense.md
+      - briefs/practices/lang.prose/define.simplified-technical-english.md
+      - briefs/practices/lang.prose/rule.require.brevity.md
+      - briefs/practices/lang.prose/rule.forbid.rambles.md
+      - briefs/practices/lang.prose/rule.forbid.chronological-accretion.md
+      - briefs/practices/lang.prose/rule.prefer.short-sentences.md
+      - briefs/practices/lang.prose/rule.avoid.passive-voice.md
+      - briefs/practices/lang.prose/rule.prefer.wickup-touched-prose.md
+
       # domain discovery
       - briefs/practices/domain.discovery/def.domain-discovery.md
       - briefs/practices/domain.discovery/howto.domain-discovery.md

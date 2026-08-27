@@ -17,6 +17,19 @@ always:
       - briefs/practices/lang.terms/rule.require.ubiqlang.md
       - briefs/practices/lang.terms/rule.require.treestruct.md
 
+      # prose overlay — simplified technical english (asd-ste100, telegraphic)
+      - briefs/practices/lang.prose/define.wick-dense.md
+      - briefs/practices/lang.prose/define.simplified-technical-english.md
+      - briefs/practices/lang.prose/rule.require.brevity.md
+      - briefs/practices/lang.prose/rule.forbid.rambles.md
+      - briefs/practices/lang.prose/rule.forbid.chronological-accretion.md
+      - briefs/practices/lang.prose/rule.prefer.short-sentences.md
+      - briefs/practices/lang.prose/rule.avoid.passive-voice.md
+      - briefs/practices/lang.prose/rule.avoid.articles-copulas.md
+      - briefs/practices/lang.prose/rule.prefer.one-instruction-per-sentence.md
+      - briefs/practices/lang.prose/rule.prefer.active-simple-tense.md
+      - briefs/practices/lang.prose/rule.prefer.wickup-touched-prose.md
+
     ref:
       # filename enforcement via hooks — ref only (hooks already block violations)
       - briefs/practices/lang.tones/rule.forbid.shouted-readme.md
@@ -247,6 +260,7 @@ subject.flow:
   briefs:
     say:
       - briefs/practices/work.flow/rule.require.trust-but-verify.md
+      - briefs/practices/work.flow/rule.prefer.scouts-honor.md
       - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
       - briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md
       - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
