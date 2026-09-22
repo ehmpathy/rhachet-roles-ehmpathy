@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
+import { maskSpinnerTicks } from '../../../../.test/maskSpinnerTicks';
+
 /**
  * .what = journey tests for git.repo.test skill
  * .why  = verifies all test types, flags, and edge cases work correctly
@@ -226,7 +228,7 @@ exit 1
    */
   const sanitizeOutput = (output: string): string => {
     return (
-      output
+      maskSpinnerTicks(output)
         // sanitize timestamps: 2026-04-08T14-23-01Z -> TIMESTAMP
         .replace(/\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z/g, 'TIMESTAMP')
         // sanitize temp paths

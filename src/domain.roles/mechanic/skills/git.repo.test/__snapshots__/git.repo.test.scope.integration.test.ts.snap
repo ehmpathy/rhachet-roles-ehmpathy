@@ -95,6 +95,7 @@ exports[`git.repo.test.sh scope given: [case4] scope with --mode apply (executio
    │  └─ src/myfeature.test.js
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: N files
@@ -160,8 +161,6 @@ exports[`git.repo.test.sh scope given: [case8] scope with --what integration (ke
 
 hint: check keyrack setup with 'rhx keyrack status --owner ehmpath'
 
-
-
 🔐 keyrack unlock
    └─ ✋ blocked: no keyrack.yml found in repo"
 `;
@@ -174,8 +173,6 @@ exports[`git.repo.test.sh scope given: [case8] scope with --what integration (ke
    └─ error: keyrack unlock failed
 
 hint: check keyrack setup with 'rhx keyrack status --owner ehmpath'
-
-
 
 🔐 keyrack unlock
    └─ ✋ blocked: no keyrack.yml found in repo"
@@ -236,6 +233,7 @@ exports[`git.repo.test.sh scope given: [case11] scope with name:// that matches 
    │  └─ src/other.test.js
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    ├─ status: constraint
    └─ error: no tests matched scope 'name://nonexistent'
 
@@ -271,6 +269,7 @@ exports[`git.repo.test.sh scope given: [case13] scope with path:// matches multi
    │  └─ src/feature-b.test.js
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: N files
@@ -299,6 +298,7 @@ exports[`git.repo.test.sh scope given: [case14] scope with name:// prefix --mode
    │  └─ src/other.test.js
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    ├─ status: constraint
    └─ error: no tests matched scope 'name://passes'
 
@@ -318,6 +318,7 @@ exports[`git.repo.test.sh scope given: [case15] scope with name:// prefix --mode
    │  └─ src/other.test.js
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: N files
@@ -413,6 +414,7 @@ exports[`git.repo.test.sh scope given: [case19] stacked scopes: path + name in a
    │  └─ src/feature-a.test.js
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    ├─ stats
    │  ├─ suites: N files
@@ -440,6 +442,7 @@ exports[`git.repo.test.sh scope given: [case20] stacked scopes: path matches but
    │  └─ src/feature-a.test.js
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    ├─ status: constraint
    └─ error: no tests matched scope 'path://feature, name://nonexistent'
 
@@ -503,6 +506,7 @@ exports[`git.repo.test.sh scope given: [case23] stacked scopes: two name scopes 
    │  └─ src/other.test.js
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    ├─ status: constraint
    └─ error: no tests matched scope 'name://feature-a, name://passes'
 

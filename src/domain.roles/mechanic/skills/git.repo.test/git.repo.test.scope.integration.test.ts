@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
+import { maskSpinnerTicks } from '../../../../.test/maskSpinnerTicks';
+
 /**
  * .what = integration tests for git.repo.test.sh scope functionality
  * .why = verify scope filter works correctly and prevent regressions
@@ -19,7 +21,7 @@ describe('git.repo.test.sh scope', () => {
    * .what = sanitize stdout for snapshots (removes dynamic values)
    */
   const sanitizeOutput = (output: string): string =>
-    output
+    maskSpinnerTicks(output)
       .replace(/\(\d+m?s\)/g, '(Xs)') // time values
       .replace(/\d+m?s/g, 'Xs') // time without parens
       .replace(/suites: \d+ files/g, 'suites: N files') // suites count (varies by jest version/env)
@@ -28,46 +30,24 @@ describe('git.repo.test.sh scope', () => {
       .replace(/ {4}at [^\n]+\n/g, '    at __stack__\n') // stack traces (4 space indent)
       .replace(/Node\.js v[\d.]+/g, 'Node.js vX.X.X') // node version
       .replace(/\[keyrack-daemon\][^\n]*\n?/g, '') // keyrack daemon output
-      // keyrack error message normalization (handles format variations across versions)
-      .replace(/host manifest not found/g, 'no keyrack.yml found in repo')
-      .replace(
-        /no keyrack\.yml found in repo\. run: rhx keyrack init/g,
-        'no keyrack.yml found in repo',
-      )
-      .replace(
-        /\{\s*"owner":\s*"ehmpath"\s*\}/g,
-        '{\n  "note": "keyrack.yml declares which keys are required"\n}',
-      )
-      // mask keyrack error throw line format (metadata object varies by version)
-      // converts single-line `{ owner: input.owner });` to multiline `{` to match snapshot
-      .replace(
-        /UnexpectedCodePathError\('no keyrack\.yml found in repo', \{[^}]*\}\);/g,
-        "UnexpectedCodePathError('no keyrack.yml found in repo', {",
-      )
-      // standardize leading whitespace before 'throw' (varies by node/jest version)
-      .replace(/^\s+throw /gm, '            throw ')
-      // remove caret position indicators entirely (indentation varies by node version)
-      .replace(/^\s+\^\s*$/gm, '')
-      // collapse error class across keyrack sdk versions to one canonical
-      // form — older sdks throw UnexpectedCodePathError with a pkg-path
-      // preamble + stack trace, newer sdks throw BadRequestError with a
-      // trailing [args] line. neither the class name, the preamble, the
-      // stack trace, nor the args line carry any test signal — only the
-      // message + note block do.
-      .replace(
-        /\n{2,}__pkg__\n\s+throw new helpful_errors_1\.UnexpectedCodePathError\('no keyrack\.yml found in repo', \{\n\nUnexpectedCodePathError: UnexpectedCodePathError: no keyrack\.yml found in repo/,
-        '\n\nKeyrackError: no keyrack.yml found in repo',
-      )
-      .replace(
-        /\n{2,}BadRequestError: no keyrack\.yml found in repo/,
-        '\n\nKeyrackError: no keyrack.yml found in repo',
-      )
-      .replace(
-        /\n {4}at __stack__(?:\n {4}at __stack__)*\n\nNode\.js vX\.X\.X\s*$/,
-        '',
-      )
-      .replace(/\n\n\[args\] [^\n]+\s*$/, '')
       .trim();
+
+  // 🔴 .note = this sanitizer once carried a dozen more rules, all of them
+  //        shims over ONE keyrack error body: the class name, the metadata
+  //        object, the `throw` indent, the caret column, the stack tail, the
+  //        `[args]` line. each arrived on an sdk bump, and each held only
+  //        until the next.
+  //
+  //        ⇒ the chase ended when `[case8]` stopped to consult the host's
+  //        keyrack at all and stated its own refusal through a PATH-shadowed
+  //        stub (see `keyrack: 'absent'` below). the body is ours now, so it
+  //        cannot drift, and the shims went with it.
+  //
+  //   ⇒ the lesson, for whoever reaches for a thirteenth: a pile of
+  //     normalizers over a dependency's output that grows on every bump is
+  //     the tell that a test CONSULTS an input it ought to CONTROL
+  //     (`rule.require.hermetic-tests`). reach for the input, never another
+  //     regex.
 
   /**
    * .what = run git.repo.test.sh with arbitrary args (for --help, etc)
@@ -96,6 +76,7 @@ describe('git.repo.test.sh scope', () => {
     what?: 'unit' | 'integration';
     mode?: 'plan' | 'apply';
     thorough?: boolean;
+    keyrack?: 'absent';
   }): { stdout: string; stderr: string; exitCode: number } => {
     const tempDir = genTempDir({ slug: 'scope-test', git: true });
     const what = args.what ?? 'unit';
@@ -174,10 +155,49 @@ describe('git.repo.test.sh scope', () => {
     if (args.mode) skillArgs.push('--mode', args.mode);
     if (args.thorough) skillArgs.push('--thorough');
 
+    // 🔴 pin the keyrack outcome for the case that is ABOUT a keyrack refusal.
+    //
+    // .what = `unlock_keyrack` runs on every `--what integration` invocation,
+    //         whatever the mode, and it asks the HOST for credentials.
+    //
+    // .why  = a dev host that already holds an unlocked session answers yes;
+    //         a ci runner with none answers no. ⇒ one commit then goes green
+    //         here and red there, and the suite grades the runner rather than
+    //         the skill (`rule.require.hermetic-tests`).
+    //
+    // ⇒ so the refusal case SHADOWS `rhx` on PATH and states the refusal
+    //   itself. the input is controlled, so the outcome is — on any host.
+    //   it also retires a second hazard: the snapshot no longer pins
+    //   keyrack's own error render, which moved under us on an sdk bump.
+    const binDir = path.join(tempDir, '.bin');
+    if (args.keyrack === 'absent') {
+      fs.mkdirSync(binDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(binDir, 'rhx'),
+        [
+          '#!/usr/bin/env bash',
+          '# .what = a keyrack that refuses, for the refusal-path case',
+          'if [[ "$1" == "keyrack" ]]; then',
+          '  echo "🔐 keyrack unlock"',
+          '  echo "   └─ ✋ blocked: no keyrack.yml found in repo"',
+          '  exit 1',
+          'fi',
+          '# any other rhx call sits outside this stub contract — fail loud',
+          'echo "unexpected rhx call: $*" 1>&2',
+          'exit 64',
+        ].join('\n'),
+        { mode: 0o755 },
+      );
+    }
+
     const result = spawnSync('bash', [scriptPath, ...skillArgs], {
       cwd: tempDir,
       encoding: 'utf-8' as const, // node api requires this exact string
       stdio: ['pipe', 'pipe', 'pipe'],
+      env:
+        args.keyrack === 'absent'
+          ? { ...process.env, PATH: `${binDir}:${process.env.PATH ?? ''}` }
+          : process.env,
     });
 
     return {
@@ -438,6 +458,14 @@ describe('git.repo.test.sh scope', () => {
       // .note = this tests the ERROR PATH when keyrack unlock fails, NOT keyrack integration.
       // purpose: verify git.repo.test.sh surfaces keyrack errors correctly to the user.
       // keyrack integration tests belong in keyrack's own test suite.
+      //
+      // 🔴 .why `keyrack: 'absent'` = the refusal is STATED by a PATH-shadowed
+      //        stub, never inherited from the host. an earlier draft let the
+      //        real `rhx keyrack unlock` decide, and a temp repo alone does
+      //        not force a refusal — a host that already holds an unlocked
+      //        session answers yes. ⇒ the case went green on a dev host and
+      //        red in ci at one commit, which is the runner graded rather
+      //        than the skill (`rule.require.hermetic-tests`).
       when('[t0] --scope myfeature --what integration is used', () => {
         const result = useThen('skill executes', () =>
           runWithScope({
@@ -448,6 +476,7 @@ describe('git.repo.test.sh scope', () => {
             scope: 'myfeature',
             what: 'integration',
             thorough: true,
+            keyrack: 'absent',
           }),
         );
 

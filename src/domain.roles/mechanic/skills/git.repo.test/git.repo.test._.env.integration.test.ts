@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
+import { maskSpinnerTicks } from '../../../../.test/maskSpinnerTicks';
+
 /**
  * .what = integration tests for git.repo.test --env flag
  * .why = verify --env passes through to keyrack unlock with correct environment
@@ -122,7 +124,7 @@ module.exports = {
    * .what = sanitize stdout for snapshot stability
    */
   const sanitizeOutput = (stdout: string): string =>
-    stdout
+    maskSpinnerTicks(stdout)
       .replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR')
       .replace(/\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z/g, 'ISOTIME')
       .replace(/\((\d+)s\)/g, '(Xs)')

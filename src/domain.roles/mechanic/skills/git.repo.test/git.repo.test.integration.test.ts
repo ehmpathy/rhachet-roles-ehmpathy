@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
+import { maskSpinnerTicks } from '../../../../.test/maskSpinnerTicks';
+
 /**
  * .what = integration tests for git.repo.test.sh skill
  * .why = verify lint enforcement works correctly with proper exit codes and output
@@ -168,7 +170,7 @@ module.exports = {
    * .why = temp dir paths, timestamps, and elapsed times change between runs
    */
   const sanitizeOutput = (stdout: string): string =>
-    stdout
+    maskSpinnerTicks(stdout)
       .replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR')
       .replace(/\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z/g, 'ISOTIME')
       // mask elapsed times: (0s), (5s), (123s) -> (Xs)

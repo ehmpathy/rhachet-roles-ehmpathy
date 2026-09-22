@@ -6,6 +6,7 @@ exports[`git.repo.test.sh given: [case1] lint passes when: [t0] \`rhx git.repo.t
 🐚 git.repo.test --what lint
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
@@ -106,6 +107,7 @@ exports[`git.repo.test.sh given: [case11] types passes when: [t0] \`rhx git.repo
 🐚 git.repo.test --what types
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
@@ -131,6 +133,7 @@ exports[`git.repo.test.sh given: [case13] format passes when: [t0] \`rhx git.rep
 🐚 git.repo.test --what format
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
@@ -156,6 +159,7 @@ exports[`git.repo.test.sh given: [case17] comma-separated --what values when: [t
 🐚 git.repo.test --what types
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
@@ -164,6 +168,7 @@ exports[`git.repo.test.sh given: [case17] comma-separated --what values when: [t
 🐚 git.repo.test --what format
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
@@ -214,6 +219,7 @@ exports[`git.repo.test.sh given: [case22] --timeout flag when: [t0] \`rhx git.re
 🐚 git.repo.test --what lint
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ ⏱️ timeout (Xs)
    ├─ status: malfunction
    ├─ error: test exceeded 1s timeout
