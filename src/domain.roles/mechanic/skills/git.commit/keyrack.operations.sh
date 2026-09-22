@@ -18,12 +18,29 @@
 # returns: token string or empty if not available
 # exits: 0 on success, 1 on failure (with error to stderr)
 ######################################################################
-# FETCH_TOKEN_TIMEOUT bounds every keyrack call so a stalled daemon or
-# unreachable network can never hang the caller. the vision requires that a
-# keyrack outage fail fast (so the fallback stays reachable), and a hang is
-# worse than a failure — `timeout` converts a stall into a bounded non-zero
-# exit that flows into the same empty-token path as any other failure.
-FETCH_TOKEN_TIMEOUT="${FETCH_TOKEN_TIMEOUT:-30}"
+# EXTERNAL_CALL_TIMEOUT bounds every call that leaves this process, so a
+# stalled daemon or unreachable network can never hang the caller. the vision
+# requires that a keyrack outage fail fast (so the fallback stays reachable),
+# and a hang is worse than a failure — `timeout` converts a stall into a
+# bounded non-zero exit that flows into the same empty-token path as any
+# other failure.
+#
+# 🔴 .why the name is GENERIC = it was FETCH_TOKEN_TIMEOUT, which was exact
+#        while keyrack was its only caller. `git.commit.sponsor`'s
+#        `gh api user` lookup now takes the same bound against the same
+#        hazard — and that call fetches no token, so the old name read there
+#        as a copy-paste from a neighbour rather than a deliberate bound. a
+#        knob named for one of its two callers invites a retune for that
+#        caller alone (rule.forbid.ambiguous-labels, rule.require.ubiqlang).
+#
+# 🔴 .note = it stays DEFINED here, and was not lifted to
+#         git.commit.operations.sh, because this file is a LEAF — it sources
+#         no other, and keyrack.operations.integration.test.ts sources it
+#         standalone. a lift would make the leaf depend on the ancestor and
+#         break that contract, which is a worse trade than a generic name in
+#         a specific file. the sponsor skill already sources this file for
+#         the seaturtle identity backstop, so it reads the constant here.
+EXTERNAL_CALL_TIMEOUT="${EXTERNAL_CALL_TIMEOUT:-30}"
 
 fetch_github_token() {
   local token=""
@@ -48,7 +65,7 @@ fetch_github_token() {
   # try keyrack get with --json for proper extraction (time-bounded)
   local keyrack_exit=0
   local keyrack_stdout
-  keyrack_stdout=$(timeout "$FETCH_TOKEN_TIMEOUT" "$repo_root/node_modules/.bin/rhachet" keyrack get \
+  keyrack_stdout=$(timeout "$EXTERNAL_CALL_TIMEOUT" "$repo_root/node_modules/.bin/rhachet" keyrack get \
     --key EHMPATHY_SEATURTLE_GITHUB_TOKEN \
     --env prep \
     --allow-dangerous \
@@ -63,13 +80,13 @@ fetch_github_token() {
   # linear per rule.forbid.else-branches): only when the primary get failed,
   # unlock the ehmpath keyrack and retry, both calls time-bounded.
   if [[ $keyrack_exit -ne 0 ]]; then
-    timeout "$FETCH_TOKEN_TIMEOUT" "$repo_root/node_modules/.bin/rhachet" keyrack unlock \
+    timeout "$EXTERNAL_CALL_TIMEOUT" "$repo_root/node_modules/.bin/rhachet" keyrack unlock \
       --owner ehmpath --prikey "$HOME/.ssh/ehmpath" --env prep \
       --key EHMPATHY_SEATURTLE_GITHUB_TOKEN >/dev/null 2>>"$stderr_file" || true
 
     local fallback_exit=0
     local fallback_stdout
-    fallback_stdout=$(timeout "$FETCH_TOKEN_TIMEOUT" "$repo_root/node_modules/.bin/rhachet" keyrack get \
+    fallback_stdout=$(timeout "$EXTERNAL_CALL_TIMEOUT" "$repo_root/node_modules/.bin/rhachet" keyrack get \
       --key EHMPATHY_SEATURTLE_GITHUB_TOKEN \
       --owner ehmpath \
       --env prep \
@@ -127,6 +144,47 @@ SEATURTLE_APP_BOT_ID="295111357"
 SEATURTLE_APP_BOT_EMAIL="${SEATURTLE_APP_BOT_ID}+${SEATURTLE_APP_BOT_NAME}@users.noreply.github.com"
 
 ######################################################################
+# the clone's own GITHUB ACCOUNT — the ambient `gh auth login` session
+#
+# .what = the github user account a clone authenticates as on a cloud grove.
+#         a THIRD identity, and a different kind from the two above: those
+#         two are identities we COMMIT as, this is one we LOG IN as.
+#
+# .why  = `git.commit.sponsor set --who @me` reads the ambient session to
+#         name a human. on a cloud grove that session is THIS account, so
+#         with no declaration here the bind bears the clone's own name and
+#         the commit records zero humans — the very defect the sponsor gate
+#         exists to remove (#645, commit ahbode/svc-jobs@a1635ea).
+#
+# .why  = it is declared HERE, beside its siblings, so `git.commit.sponsor.sh`
+#         CITES the roster rather than invents one. an org that adds a clone
+#         account updates this block, and every guard follows.
+#
+# 🔴 .note = this is a SINGLE-entry roster today (fulcrum F12 ask 7). a
+#         second clone identity, once provisioned, is invisible to the
+#         `--who @me` backstop until a human adds it here — no lint or CI
+#         check enforces the update. see
+#         `dreams/v2026_09_15.fix.the-clone-identity-roster-has-no-growth-
+#         check.md` for the fuller shape of a repair.
+#
+# 🔴 .note = deliberately NOT added to `is_one_seaturtle_identity_name`. that
+#         predicate answers "may this author push?", and this account never
+#         authors a commit. to widen it would change the push guard, which
+#         this account has no business to touch.
+#
+#   verified first-party, 2026-09-10:
+#     $ gh api -X GET user --jq '{login, id, name, type}'
+#     {"id":259600029,"login":"ehm-seaturtle","name":"Seaturtle of'Ehmpathy","type":"User"}
+#
+#   ⚠️ note `type` reads "User", never "Bot" — the clone owns an ordinary,
+#      human-shaped account, which is why no ATTRIBUTE of the identity can
+#      separate it from a person and why this explicit declaration is owed.
+SEATURTLE_CLONE_LOGIN="ehm-seaturtle"
+SEATURTLE_CLONE_ID="259600029"
+SEATURTLE_CLONE_NAME="Seaturtle of'Ehmpathy"
+SEATURTLE_CLONE_EMAIL="${SEATURTLE_CLONE_ID}+${SEATURTLE_CLONE_LOGIN}@users.noreply.github.com"
+
+######################################################################
 # get_one_seaturtle_identity
 # derive the seaturtle commit-author identity from a github token's kind
 #
@@ -172,6 +230,57 @@ is_one_seaturtle_identity_name() {
   local name="${1:-}"
 
   [[ "$name" == "$SEATURTLE_STANDARD_NAME" || "$name" == "$SEATURTLE_APP_BOT_NAME" ]]
+}
+
+######################################################################
+# is_one_seaturtle_identity_email
+#
+# .what = predicate: is this address one of our seaturtle bots?
+# .why  = the EMAIL twin of the name predicate above, and it exists so the
+#         roster has ONE owner on both halves.
+#
+# 🔴 .why = `git.commit.sponsor`'s identity backstop ran the name half
+#        through the predicate above and compared the email half INLINE,
+#        against these constants directly. that asymmetry is a second
+#        decision point beside a declared source of truth: a third identity
+#        added HERE would be caught by name and MISSED by email, and the
+#        only symptom would be a clone that can sponsor itself under its own
+#        address — the exact defect the whole wish exists to close.
+#
+# usage: if is_one_seaturtle_identity_email "$email"; then ...
+# returns: exit 0 if the address matches a declared seaturtle identity
+######################################################################
+is_one_seaturtle_identity_email() {
+  local email="${1:-}"
+
+  [[ "$email" == "$SEATURTLE_STANDARD_EMAIL" || "$email" == "$SEATURTLE_APP_BOT_EMAIL" ]]
+}
+
+######################################################################
+# is_one_seaturtle_identity_clone
+#
+# .what = predicate: is this name or email the CLONE's own github account —
+#         the ambient `gh auth login` session `--who @me` resolves to on a
+#         cloud grove — rather than a bot identity?
+#
+# .why  = a THIRD roster entry beside the two above, and it names the one
+#         a maintainer is least likely to remember to edit in two places:
+#         `git.commit.sponsor.sh`'s clone check compared `$name`/`$email`
+#         against `SEATURTLE_CLONE_NAME`/`SEATURTLE_CLONE_EMAIL` inline,
+#         which put a second decision point beside the declared source of
+#         truth — a rename of the clone account, or a second clone, would be
+#         caught by one predicate and missed by a raw comparison the roster
+#         does not own. this restores the symmetry the two siblings above
+#         already hold.
+#
+# usage: if is_one_seaturtle_identity_clone "$name" "$email"; then ...
+# returns: exit 0 if either half matches the clone's own account
+######################################################################
+is_one_seaturtle_identity_clone() {
+  local name="${1:-}"
+  local email="${2:-}"
+
+  [[ "$name" == "$SEATURTLE_CLONE_NAME" || "$email" == "$SEATURTLE_CLONE_EMAIL" ]]
 }
 
 ######################################################################

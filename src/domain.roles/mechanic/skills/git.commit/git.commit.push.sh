@@ -254,10 +254,33 @@ EOF
 )
       echo "$KEYRACK_HINT"
       echo "$KEYRACK_HINT" >&2
+    elif [[ "$ORG_BLOCK_CORRUPT" == "true" ]]; then
+      # ⚠️ exclusive, as in `git.commit.set`: `allow --org` writes a key INTO
+      #    the file, which is no remedy for a file that cannot be parsed to
+      #    write into. this arm used to print that instruction anyway — the
+      #    same trap `set.sh` already guards against, on the same state
+      #    (rule.require.errors-name-the-fix).
+      #
+      # .why the shared body = the headline is now path-free, since the body
+      #    carries the path on every surface that renders this state. without
+      #    this call the push arm would name no path at all.
+      #
+      # .clamp = `[case29b]` in the integration suite. it was measured: with
+      #    this branch disabled, 3 of its 5 asserts go red (the path, the trap,
+      #    the snapshot) and the two generic ones stay green — so the clamp
+      #    grades the REPAIR rather than the refusal around it.
+      print_org_corrupt_note
     else
       print_instruction "ask your human to allow:" "  \$ git.commit.uses allow --org <org>"
     fi
   fi
+  # ⚠️ .note = `git.commit.set` exits 1 on this SAME state (a damaged file is a
+  #    malfunction, never the caller's input) and this arm exits 2. the two
+  #    disagree, and the divergence predates this change — it is left as-is
+  #    here rather than corrected mid-flight, because no test pins either
+  #    value and an exit-code change is a behavior change that belongs in its
+  #    own diff (rule.require.review-test-changes).
+  #    ⇒ caught as `.dream/2026_09_21.fix-push-and-set-disagree-on-the-corrupt-org-exit-code.dream.md`
   exit 2
 fi
 

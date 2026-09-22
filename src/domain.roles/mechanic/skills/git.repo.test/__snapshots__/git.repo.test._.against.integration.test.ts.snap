@@ -7,6 +7,7 @@ exports[`git.repo.test --against given: [case1] --against local with test:accept
    ├─ keyrack: unlocked ehmpath/test
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
@@ -21,6 +22,7 @@ exports[`git.repo.test --against given: [case1b] --against local --env prep when
    ├─ keyrack: unlocked ehmpath/prep
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
@@ -35,6 +37,7 @@ exports[`git.repo.test --against given: [case1c] --against local --env prod when
    ├─ keyrack: unlocked ehmpath/prod
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
@@ -49,6 +52,7 @@ exports[`git.repo.test --against given: [case2] --against cloud with test:accept
    ├─ keyrack: unlocked ehmpath/prep
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default
@@ -63,6 +67,7 @@ exports[`git.repo.test --against given: [case2b] --against cloud --env prod when
    ├─ keyrack: unlocked ehmpath/prod
    ├─ status
    │  ├─ 💤 inflight (Xs)
+   │  ├─ 💤 inflight __xN__
    │  └─ 🎉 passed (Xs)
    └─ log
       ├─ omitted on success by default

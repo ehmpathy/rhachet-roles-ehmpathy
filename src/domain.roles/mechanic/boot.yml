@@ -218,6 +218,9 @@ subject.code.test:
       - briefs/practices/code.test/pitofsuccess.errors/rule.require.failfast.md
       - briefs/practices/code.test/pitofsuccess.errors/rule.require.failloud.md
 
+      # privacy — a fixture is committed, so a real identity in one is published
+      - briefs/practices/code.test/pitofsuccess.privacy/rule.forbid.real-identities-in-fixtures.md
+
       - briefs/practices/code.test/frames.behavior/rule.require.given-when-then.md
       - briefs/practices/code.test/frames.behavior/rule.require.useThen-useWhen-for-shared-results.md
       - briefs/practices/code.test/frames.behavior/rule.forbid.redundant-expensive-operations.md

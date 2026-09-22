@@ -25,3 +25,6 @@ line 1 = header (required), line 2 = blank (required), lines 3+ = body (required
 ## prerequisite
 
 human must grant quota: `git.commit.uses set --quant N --push allow|block`
+
+human must bind a sponsor: `rhx git.commit.sponsor set --who <@stdin|@me|"Name <email>">`
+(a quota grant with no sponsor bound refuses at the first commit)
