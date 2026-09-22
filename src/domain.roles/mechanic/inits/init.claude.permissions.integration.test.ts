@@ -210,4 +210,82 @@ describe('init.claude.permissions.sh', () => {
       });
     });
   });
+
+  given('[case6] the REAL manifest guards the sponsor mutations', () => {
+    /**
+     * .what = read the shipped `init.claude.permissions.jsonc` and assert the
+     *         sponsor entries are present.
+     *
+     * .why = invariant 2 has two halves — the SKILL refuses a clone (clamped by
+     *        `git.commit.sponsor` `[case4]`) and the PERMISSION ENGINE refuses
+     *        the command before it ever runs. the second half rested on one
+     *        manual observation in one session, so a regen of the manifest that
+     *        dropped these lines would ship green and hand a clone back the
+     *        ability to sponsor its own commits.
+     *
+     * .note = every OTHER case in this file supplies its own fixture jsonc, so
+     *         they grade the ENGINE and are silent about what we ship. this one
+     *         reads the shipped file, deliberately.
+     */
+    const manifest = fs.readFileSync(
+      path.join(__dirname, 'init.claude.permissions.jsonc'),
+      'utf-8',
+    );
+
+    when('[t0] the deny list is read', () => {
+      then('it denies set and del, in BOTH the npx and rhx forms', () => {
+        // .why = the bare `rhx` alias is a separate surface from the
+        //        `npx rhachet run --skill` form, and a denial that covers
+        //        one leaves the other wide open — the decorative-denial
+        //        defect this repo already met once on git.commit.uses.
+        for (const rule of [
+          'Bash(npx rhachet run --skill git.commit.sponsor set:*)',
+          'Bash(npx rhachet run --skill git.commit.sponsor del:*)',
+          'Bash(rhx git.commit.sponsor set:*)',
+          'Bash(rhx git.commit.sponsor del:*)',
+        ])
+          expect(manifest).toContain(rule);
+      });
+
+      then('it denies the `--` passthrough form too', () => {
+        // `rhx git.commit.sponsor -- set` reaches the same subcommand by a
+        // route a prefix match on `sponsor set` never sees
+        for (const rule of [
+          'Bash(rhx git.commit.sponsor -- set:*)',
+          'Bash(rhx git.commit.sponsor -- del:*)',
+        ])
+          expect(manifest).toContain(rule);
+      });
+
+      then('🔴 git.commit.bind closes the SAME `--` route', () => {
+        // 🔴 .why = it matters MORE on bind than on the sponsor. the sponsor
+        //        has two guards — this manifest AND a tty check in the skill —
+        //        so a gap here still meets a second refusal. `git.commit.bind`
+        //        carries no actor guard at all (verified: no `-t` and no
+        //        `__I_AM_HUMAN` anywhere in git.commit.bind.sh), so this
+        //        manifest is its ONLY line of defense, and a route left open
+        //        here is simply open.
+        //
+        // .note = the gap was invisible until the sponsor's `--` entries were
+        //        written beside bind's — the half-applied shape this drive
+        //        already met once on the ROLE_REPO consolidation.
+        for (const rule of [
+          'Bash(npx rhachet run --skill git.commit.bind -- set:*)',
+          'Bash(npx rhachet run --skill git.commit.bind -- del:*)',
+          'Bash(rhx git.commit.bind -- set:*)',
+          'Bash(rhx git.commit.bind -- del:*)',
+        ])
+          expect(manifest).toContain(rule);
+      });
+    });
+
+    when('[t1] the allow list is read', () => {
+      then('it permits get — a read is not a mutation', () => {
+        // invariant 3: the clone must be able to explain its own state
+        expect(manifest).toContain(
+          'Bash(npx rhachet run --skill git.commit.sponsor get)',
+        );
+      });
+    });
+  });
 });

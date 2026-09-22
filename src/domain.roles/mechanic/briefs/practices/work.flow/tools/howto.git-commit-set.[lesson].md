@@ -66,4 +66,6 @@ printf 'fix(typo): readme\n\n- fixed typo' | npx rhachet run --skill git.commit.
 ## .prerequisites
 
 - human must grant quota: `git.commit.uses set --quant N --push allow|block`
+- human must bind a sponsor: `rhx git.commit.sponsor set --who <@stdin|@me|"Name <email>">`
+  (a quota grant with no sponsor bound refuses at the first commit)
 - for `--push`: requires `--push allow` in quota grant

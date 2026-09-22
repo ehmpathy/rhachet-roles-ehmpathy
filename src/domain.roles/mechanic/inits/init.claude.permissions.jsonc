@@ -69,10 +69,44 @@
       // mechanic can `get` (check bound level) but never `set` or `del`
       // deny both the `npx rhachet run --skill` form AND the bare `rhx` alias
       // (same bare-form gap as git.commit.uses above)
+      // 🔴 .why = the `--` passthrough forms are denied here TOO, and they
+      //        matter MORE here than for the sponsor below: `git.commit.bind`
+      //        carries no tty guard of its own, so this manifest is its ONLY
+      //        line of defense. the sponsor has two, and bind had one route
+      //        open on the only one it has.
+      // .note = the asymmetry was invisible until the sponsor's entries were
+      //        written beside it — the same half-applied shape the ROLE_REPO
+      //        consolidation wore. a tty guard INSIDE bind.sh is the other
+      //        half, and it changes an extant skill's behavior, so it rides
+      //        the dream rather than this diff.
       "Bash(npx rhachet run --skill git.commit.bind set:*)",
       "Bash(npx rhachet run --skill git.commit.bind del:*)",
+      "Bash(npx rhachet run --skill git.commit.bind -- set:*)",
+      "Bash(npx rhachet run --skill git.commit.bind -- del:*)",
       "Bash(rhx git.commit.bind set:*)",
       "Bash(rhx git.commit.bind del:*)",
+      "Bash(rhx git.commit.bind -- set:*)",
+      "Bash(rhx git.commit.bind -- del:*)",
+
+      // git.commit.sponsor — only humans can set/del the sponsor
+      // mechanic can `get` (read who is bound, to explain its own state) but
+      // never `set` or `del`. a permissive del is a permissive set plus one
+      // step, so BOTH mutations are denied — not set alone.
+      // .why = this is the SECOND of two guards, never the only one. the skill
+      //        also refuses a mutation with no tty, because a denylist is a
+      //        property of THIS role's config and a clone that never runs the
+      //        skill could still reach the state file. the tty guard travels
+      //        with the code; this entry stops the invocation.
+      // deny both the `npx rhachet run --skill` form AND the bare `rhx` alias
+      // (same bare-form gap as git.commit.uses above)
+      "Bash(npx rhachet run --skill git.commit.sponsor set:*)",
+      "Bash(npx rhachet run --skill git.commit.sponsor del:*)",
+      "Bash(npx rhachet run --skill git.commit.sponsor -- set:*)",
+      "Bash(npx rhachet run --skill git.commit.sponsor -- del:*)",
+      "Bash(rhx git.commit.sponsor set:*)",
+      "Bash(rhx git.commit.sponsor del:*)",
+      "Bash(rhx git.commit.sponsor -- set:*)",
+      "Bash(rhx git.commit.sponsor -- del:*)",
 
       // whatever it uses via bash is typically executable via its own name -> own permissions
       "Bash(bash:*)",
@@ -341,6 +375,12 @@
       // git.commit.bind - check bound level (get only; set/del are denied)
       "Bash(npx rhachet run --skill git.commit.bind:*)",
       "Bash(npx rhachet run --skill git.commit.bind get)",
+
+      // git.commit.sponsor - read the bound sponsor (get only; set/del denied)
+      // .why = a read is not a mutation, and the clone needs it to explain why
+      //        its own commit was refused (invariant 3).
+      "Bash(npx rhachet run --skill git.commit.sponsor:*)",
+      "Bash(npx rhachet run --skill git.commit.sponsor get)",
 
       // git.commit.set - create commit as robot with human co-author
       "Bash(npx rhachet run --skill git.commit.set:*)",

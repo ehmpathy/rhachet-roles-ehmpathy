@@ -2,7 +2,7 @@ import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import { MalfunctionError } from 'helpful-errors';
 import * as path from 'path';
-import { genTempDir, given, then, when } from 'test-fns';
+import { genTempDir, given, then, useThen, when } from 'test-fns';
 
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
@@ -33,6 +33,25 @@ describe('git.commit.push.sh', () => {
   // note: happy path tests pass EHMPATHY_SEATURTLE_GITHUB_TOKEN via env
   // keyrack returns env var value if already set, so no real keyrack fetch needed
   // sad path tests use fake HOME to force keyrack errors
+
+  /**
+   * .what = replace a real-keyrack `cause:` tail with one stable placeholder
+   * .why  = the guide ABOVE the cause is the contract and is deterministic; the
+   *         cause itself quotes absolute paths and a rhachet version, so it can
+   *         never be snapshot as-is.
+   *
+   * 🔴 .why a SHARED leaf, never a regex per call site = the three sites that
+   *         needed it had drifted — two masked and one did not, and the one
+   *         that did not snapshot a per-run temp path. one reader, one shape,
+   *         so a fourth caller cannot re-open the gap.
+   *
+   * ⚠️ .note = this masks the cause; it does NOT make the cause's PRESENCE
+   *         deterministic. that is the fixture's job — every caller pins HOME,
+   *         so an absent keyrack manifest is a fact of the test rather than of
+   *         the machine (rule.require.hermetic-tests).
+   */
+  const maskKeyrackCause = (stderr: string): string =>
+    stderr.replace(/cause:[\s\S]*/, 'cause: <keyrack error, masked>');
 
   /**
    * .what = helper to set up a temp git repo with optional meter, branch, and commit
@@ -144,6 +163,12 @@ env.prod:
     env?: Record<string, string>;
     tempHome?: string;
     skipOrgSetup?: boolean;
+    // .why = seeds the org meter with bytes that will NOT parse, so the
+    //        corrupt branch can be driven. the peer suites
+    //        (`git.commit.uses`, `git.commit.operations`) each carry the same
+    //        option under this name — one word per concept
+    //        (rule.require.ubiqlang).
+    orgStateRaw?: string;
   }): { stdout: string; stderr: string; exitCode: number } => {
     // always exclude token from process.env for deterministic tests
     const { EHMPATHY_SEATURTLE_GITHUB_TOKEN: _token, ...envWithoutToken } =
@@ -165,7 +190,8 @@ env.prod:
       fs.mkdirSync(orgMeterDir, { recursive: true });
       fs.writeFileSync(
         path.join(orgMeterDir, 'git.commit.uses.org.jsonc'),
-        JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
+        args.orgStateRaw ??
+          JSON.stringify({ orgs: { ehmpathy: 'allowed' } }, null, 2),
       );
     }
 
@@ -1457,10 +1483,22 @@ exec /usr/bin/git "$@"
             expect(result.stderr).toContain(
               'rhx git.commit.push --mode apply --auth as-human',
             );
-            // fake HOME → keyrack fetch captures no stderr → causeless, deterministic
-            // guide on both streams (case38 locks the cause path via a fake)
             expect(result.stdout).toMatchSnapshot();
-            expect(result.stderr).toMatchSnapshot();
+
+            // 🔴 .why the cause tail is MASKED = this line once read "fake HOME
+            //        → keyrack fetch captures no stderr → causeless", and the
+            //        premise was simply false. a real rhachet under a fake HOME
+            //        DOES emit `cause: ConstraintError: host manifest not
+            //        found`, and that text quotes the fake home's ABSOLUTE path
+            //        — a fresh temp dir per run, so an unmasked snapshot here
+            //        could never hold.
+            //
+            //        ⇒ it passed for as long as it did because the assertion
+            //        was graded against whatever the host happened to be
+            //        provisioned with, never against a fact the test controls.
+            //        that is an ambient read, and the mask plus the pinned HOME
+            //        are what retire it (rule.require.hermetic-tests).
+            expect(maskKeyrackCause(result.stderr)).toMatchSnapshot();
           },
         );
       });
@@ -1586,6 +1624,83 @@ exit 1`,
         expect(result.exitCode).toBe(2); // blocked by constraints
         expect(result.stdout).toContain('bummer dude');
         expect(result.stdout).toContain('global blocker file corrupt');
+      });
+    });
+  });
+
+  given('[case29b] the ORG meter file is corrupt, and push meets it', () => {
+    /**
+     * 🔴 .what = the clamp for the repair this diff shipped into
+     *        `git.commit.push.sh`'s org-blocker arm.
+     *
+     * 🔴 .why = before the repair, a corrupt org meter fell into the `else`
+     *        branch and printed `ask your human to allow: $ git.commit.uses
+     *        allow --org <org>` — which is a TRAP, and one the codebase had
+     *        already named: `allow --org` writes a key INTO the file, and the
+     *        file cannot be parsed to write into. `git.commit.set.sh:754-758`
+     *        guards the identical state and says so in a comment; the push arm
+     *        simply never learned it.
+     *
+     * ⇒ .why it was shipped with no test = it was not. this case IS that test,
+     *        added after a reviewer caught the absent coverage
+     *        (rule.require.test-covered-repairs). `[case51]` (set) and
+     *        `[case37]` (uses) prove the other two consumers of this one
+     *        state; this is the third, and it was the only one unproven.
+     *
+     * ⚠️ .note = this pins the CURRENT exit code (2), deliberately. `set`
+     *        exits 1 on the same state and the two disagree — a real finding,
+     *        separable from this render, and deferred to
+     *        `.dream/2026_09_21.fix-push-and-set-disagree-on-the-corrupt-org-exit-code.dream.md`
+     *        rather than prejudged here.
+     */
+    when('[t0] plan mode, with an org meter that will not parse', () => {
+      const result = useThen('the push refuses', () => {
+        const fakeHome = genTempDir({ slug: 'fake-home-corrupt-org' });
+        const tempDir = setupTempRepo({
+          meterState: { uses: 3, push: 'allow' },
+          branch: 'turtle/feature',
+          commits: ['feat: corrupt org test'],
+        });
+        return runPush({
+          tempDir,
+          pushArgs: ['--mode', 'plan'],
+          tempHome: fakeHome,
+          orgStateRaw: '{ this is not json',
+          env: {
+            HOME: fakeHome,
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
+          },
+        });
+      });
+
+      then('it refuses, and names the corrupt file', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('bummer dude');
+        expect(result.stdout).toContain('org meter file corrupt');
+      });
+
+      then('🔴 it names the PATH — the shared body, not the headline', () => {
+        // .why = the headline is now the shared `ORG_CORRUPT_HEADLINE` and
+        //        carries no path, so the body is the ONLY thing that can name
+        //        the file on this surface. before the repair the push arm
+        //        printed no body at all — restore that and this goes red.
+        expect(result.stdout).toContain(
+          '~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc',
+        );
+        expect(result.stdout).toContain('cat ');
+        expect(result.stdout).toContain('rm -r ');
+      });
+
+      then('🔴 the TRAP instruction is never offered', () => {
+        // the teeth. `allow --org` writes a key INTO a file that cannot be
+        // parsed to write into — a remedy that cannot work. restore the old
+        // `else` arm and this line goes red.
+        expect(result.stdout).not.toContain('allow --org');
+        expect(result.stdout).not.toContain('ask your human to allow');
+      });
+
+      then('the whole refusal renders as one pinned shape', () => {
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -1795,10 +1910,31 @@ exec /usr/bin/git "$@"
               fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
 
               // no EHMPATHY_SEATURTLE_GITHUB_TOKEN → keyrack fetch fails → guide
+              //
+              // 🔴 .why HOME is PINNED to a temp dir = without it this case read
+              //        how the real host is provisioned, so whether a `cause:`
+              //        rode stderr depended on whether `keyrack init` had run
+              //        for owner ehmpath on this machine. the assert below then
+              //        graded the HOST, never the skill.
+              //
+              //        ⇒ measured: it passed beside `[case20]` for months and
+              //        the two went red TOGETHER, in opposite directions —
+              //        case20 got a cause it declared impossible, this one lost
+              //        a cause it declared certain. one ambient input, two
+              //        contradictory expectations of it.
+              //
+              // .why a fake HOME rather than a fake rhachet = the real rhachet
+              //        is this case's whole point (case38 owns the faked path).
+              //        an absent manifest makes the REAL tool fail the same way
+              //        every time, which is hermetic without a stub.
+              const fakeHome = path.join(tempDir, '.fakehome');
+              fs.mkdirSync(fakeHome, { recursive: true });
+
               const result = runPush({
                 tempDir,
                 pushArgs: ['--mode', 'apply', '--auth', 'as-ehmpath'],
                 env: {
+                  HOME: fakeHome,
                   PATH: `${fakeBinDir}:${process.env.PATH}`,
                 },
               });
@@ -1808,21 +1944,16 @@ exec /usr/bin/git "$@"
               expect(result.stderr).toContain(
                 'rhx git.commit.push --mode apply --auth as-human',
               );
-              // real keyrack cause rides stderr (machine dependent → assert presence,
-              // not snapshot; case38 locks the exact cause line via a fake)
+              // the real keyrack cause rides stderr. with HOME pinned above, an
+              // absent manifest is now a FACT of the fixture rather than of the
+              // machine, so this assert grades the skill
               expect(result.stderr).toContain('cause:');
               // tree mode delivers the guide on stdout per skill-output-streams
               expect(result.stdout).toMatchSnapshot();
               // lock the stderr guide framing too (r008/r010: snapshot
-              // exhaustiveness on the user-facing stream) — the cause tail is
-              // machine-dependent (pid, abs paths, rhachet version), so mask it
-              // with a stable placeholder and snapshot the deterministic guide
-              // above it
-              const stderrMasked = result.stderr.replace(
-                /cause:[\s\S]*/,
-                'cause: <machine-dependent keyrack error, masked>',
-              );
-              expect(stderrMasked).toMatchSnapshot();
+              // exhaustiveness on the user-facing stream); the cause tail still
+              // quotes abs paths and a rhachet version, so it stays masked
+              expect(maskKeyrackCause(result.stderr)).toMatchSnapshot();
             },
           );
         },
@@ -1895,13 +2026,9 @@ exec /usr/bin/git "$@"
             // stdout json is deterministic (concise), so it stays snapshot-locked
             expect(result.stdout).toMatchSnapshot();
             // lock the stderr guide framing too (r008/r010: snapshot
-            // exhaustiveness) — mask the machine-dependent cause tail with a
-            // stable placeholder, snapshot the deterministic guide above it
-            const stderrMasked = result.stderr.replace(
-              /cause:[\s\S]*/,
-              'cause: <machine-dependent keyrack error, masked>',
-            );
-            expect(stderrMasked).toMatchSnapshot();
+            // exhaustiveness) — the cause tail is masked, the guide above it
+            // is snapshot-locked
+            expect(maskKeyrackCause(result.stderr)).toMatchSnapshot();
           },
         );
       });
@@ -2446,7 +2573,7 @@ exit 1
   });
 
   given(
-    '[case32] FETCH_TOKEN_TIMEOUT bounds a stalled keyrack so the guide still fires',
+    '[case32] EXTERNAL_CALL_TIMEOUT bounds a stalled keyrack so the guide still fires',
     () => {
       when('[t0] rhachet hangs, but the timeout is lowered to 1s', () => {
         then('the fetch is bounded and the as-human guide fires fast', () => {
@@ -2475,35 +2602,56 @@ exec /usr/bin/git "$@"
           );
           fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
 
-          // shadow node_modules/.bin/rhachet with a binary that HANGS (sleep 10).
-          // with FETCH_TOKEN_TIMEOUT=1 each of the up-to-3 keyrack calls is bound
-          // to ~1s, so the guide fires in ~3s. without the timeout the run would
-          // stall ~30s — the limit below proves the bound holds (so the
-          // FETCH_TOKEN_TIMEOUT constant cannot regress silently).
+          // shadow node_modules/.bin/rhachet with a binary that HANGS (sleep 10)
+          // and LOGS its own invocation first.
+          //
+          // 🔴 .why the CALL LOG is the clamp = the three asserts below are NOT
+          //        teeth on their own, and a prior comment here claimed they
+          //        were. the fake exits ZERO, so with the `timeout` wrapper
+          //        removed each call merely completes after ~10s, emits no
+          //        bytes, and the skill takes the SAME empty-token path —
+          //        exit 2, same guide, same text. the clamp passed with the
+          //        bound regressed, which is the test-side failhide
+          //        `rule.forbid.failhide` forbids.
+          //
+          // ⇒ 🎯 what DOES differ is the CALL COUNT, and it differs by the exit
+          //        code rather than by the clock:
+          //          bounded   → `timeout` kills it → keyrack_exit=124 → the
+          //                      unlock FALLBACK runs → 3 calls
+          //          unbounded → the fake exits 0    → keyrack_exit=0   → the
+          //                      fallback is SKIPPED → 1 call
+          //
+          // ⇒ so `3` is reachable only when the bound fires. the fake appends
+          //        BEFORE it sleeps, so every attempted call is recorded even
+          //        though each is killed mid-sleep. no clock is consulted.
+          //
+          // .note = this is the push-side equivalent of the sponsor stall
+          //         clamp's `exit 124` assert, which is only reachable when the
+          //         timeout kills the child. the two now bite the same way.
           // .mock = fake rhachet (keyrack communicator boundary) — hangs to prove the fetch timeout bound
           const nodeModulesLink = path.join(tempDir, 'node_modules');
           fs.rmSync(nodeModulesLink, { recursive: true, force: true });
           const fakeNodeBin = path.join(tempDir, 'node_modules', '.bin');
           fs.mkdirSync(fakeNodeBin, { recursive: true });
+          const keyrackCallLog = path.join(tempDir, 'keyrack.calls.log');
           fs.writeFileSync(
             path.join(fakeNodeBin, 'rhachet'),
             `#!/bin/bash
+echo "call" >> "${keyrackCallLog}"
 sleep 10
 exit 0
 `,
           );
           fs.chmodSync(path.join(fakeNodeBin, 'rhachet'), '755');
 
-          const start = Date.now();
           const result = runPush({
             tempDir,
             pushArgs: ['--mode', 'apply', '--auth', 'as-ehmpath'],
             env: {
               PATH: `${fakeBinDir}:${process.env.PATH}`,
-              FETCH_TOKEN_TIMEOUT: '1',
+              EXTERNAL_CALL_TIMEOUT: '1',
             },
           });
-          const elapsedMs = Date.now() - start;
 
           // the fetch stalled but was bounded → the same empty-token guide fires
           expect(result.exitCode).toBe(2);
@@ -2511,8 +2659,15 @@ exit 0
           expect(result.stderr).toContain(
             'rhx git.commit.push --mode apply --auth as-human',
           );
-          // bounded well under the ~30s unbounded hang (generous limit for ci)
-          expect(elapsedMs).toBeLessThan(20000);
+
+          // 🔴 the teeth: 3 attempted calls proves `timeout` killed the first
+          //    one (exit 124), which is the ONLY route to the unlock fallback.
+          //    an unbounded fetch reaches 1 call and stops.
+          const keyrackCalls = fs
+            .readFileSync(keyrackCallLog, 'utf-8')
+            .split('\n')
+            .filter((line) => line === 'call');
+          expect(keyrackCalls).toHaveLength(3);
           // lock the guide output under the timeout variant; the stalled fake
           // emits no fetch-error detail, so both streams are deterministic
           expect(result.stdout).toMatchSnapshot();

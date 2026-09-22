@@ -7,6 +7,12 @@ exports[`git.commit.uses.sh given: [case1] set --quant N --push block when: [t0]
    ├─ granted: 3
    ├─ push: blocked
    └─ stage: blocked
+
+🥥 did you know?
+   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   ├─ rhx git.commit.sponsor set --who "Name <email>"
+   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
 "
 `;
 
@@ -17,6 +23,12 @@ exports[`git.commit.uses.sh given: [case2] set --quant N --push allow when: [t0]
    ├─ granted: 1
    ├─ push: allowed
    └─ stage: blocked
+
+🥥 did you know?
+   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   ├─ rhx git.commit.sponsor set --who "Name <email>"
+   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
 "
 `;
 
@@ -95,8 +107,9 @@ exports[`git.commit.uses.sh given: [case7] get when no state file when: [t0] no 
    ├─ no quota set
    └─ global: blocked
 
-ask your human to grant:
-  $ git.commit.uses set --quant N --push allow|block
+🥥 did you know?
+   ├─ no quota is granted on this tree, so commits will refuse
+   └─ git.commit.uses set --quant N --push allow|block   # ask your human
 "
 `;
 
@@ -109,6 +122,34 @@ exports[`git.commit.uses.sh given: [case8] block --global when: [t0] no global b
 `;
 
 exports[`git.commit.uses.sh given: [case9] allow --global when: [t0] global blocker is active then: removes global blocker file 1`] = `
+"🐢 shell yeah, back in the water!
+
+🐚 git.commit.uses allow --global
+   └─ commits resumed globally
+
+🥥 did you know?
+   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   ├─ rhx git.commit.sponsor set --who "Name <email>"
+   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+"
+`;
+
+exports[`git.commit.uses.sh given: [case9] allow --global when: [t2] no sponsor is bound to the tree then: nudges to bind one 1`] = `
+"🐢 shell yeah, back in the water!
+
+🐚 git.commit.uses allow --global
+   └─ commits resumed globally
+
+🥥 did you know?
+   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   ├─ rhx git.commit.sponsor set --who "Name <email>"
+   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+"
+`;
+
+exports[`git.commit.uses.sh given: [case9] allow --global when: [t3] a sponsor is already bound to the tree then: stays quiet 1`] = `
 "🐢 shell yeah, back in the water!
 
 🐚 git.commit.uses allow --global
@@ -132,6 +173,21 @@ exports[`git.commit.uses.sh given: [case10] get --global when: [t1] no global bl
 "
 `;
 
+exports[`git.commit.uses.sh given: [case10] get --global when: [t2] the global blocker file is present and UNPARSEABLE then: the whole render is pinned 1`] = `
+"🐢 lets check the global meter...
+
+🐚 git.commit.uses get --global
+   └─ global: blocked (file corrupt)
+
+   the global blocker file cannot be read:
+     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+
+until it parses, every commit is blocked. a human may inspect or clear it:
+  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+"
+`;
+
 exports[`git.commit.uses.sh given: [case11] block (local) when: [t0] quota present then: sets quota to 0 (alias for del) 1`] = `
 "🐢 groovy, break time
 
@@ -147,6 +203,12 @@ exports[`git.commit.uses.sh given: [case12] allow (local) when: [t0] no quota pr
    ├─ granted: unlimited
    ├─ push: allowed
    └─ stage: allowed
+
+🥥 did you know?
+   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   ├─ rhx git.commit.sponsor set --who "Name <email>"
+   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
 "
 `;
 
@@ -157,6 +219,12 @@ exports[`git.commit.uses.sh given: [case14] set --stage allow when: [t0] stage p
    ├─ granted: 5
    ├─ push: allowed
    └─ stage: allowed
+
+🥥 did you know?
+   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   ├─ rhx git.commit.sponsor set --who "Name <email>"
+   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
 "
 `;
 
@@ -167,6 +235,12 @@ exports[`git.commit.uses.sh given: [case15] set --stage block when: [t0] stage p
    ├─ granted: 5
    ├─ push: allowed
    └─ stage: blocked
+
+🥥 did you know?
+   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   ├─ rhx git.commit.sponsor set --who "Name <email>"
+   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
 "
 `;
 
@@ -201,8 +275,48 @@ exports[`git.commit.uses.sh given: [case19] get shows local + global state when:
    ├─ no quota set
    └─ global: blocked
 
-ask your human to grant:
-  $ git.commit.uses set --quant N --push allow|block
+🥥 did you know?
+   ├─ no quota is granted on this tree, so commits will refuse
+   └─ git.commit.uses set --quant N --push allow|block   # ask your human
+"
+`;
+
+exports[`git.commit.uses.sh given: [case19] get shows local + global state when: [t3] the global blocker file is present and UNPARSEABLE then: the whole render is pinned 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   └─ meter
+      ├─ left: 3
+      ├─ push: allowed
+      ├─ stage: blocked
+      └─ global: blocked (file corrupt)
+
+   the global blocker file cannot be read:
+     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+
+until it parses, every commit is blocked. a human may inspect or clear it:
+  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+"
+`;
+
+exports[`git.commit.uses.sh given: [case19] get shows local + global state when: [t4] no local quota and the global blocker file is corrupt then: shows no quota set and the corrupt note, never a raw crash 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   ├─ no quota set
+   └─ global: blocked (file corrupt)
+
+   the global blocker file cannot be read:
+     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+
+until it parses, every commit is blocked. a human may inspect or clear it:
+  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+
+🥥 did you know?
+   ├─ no quota is granted on this tree, so commits will refuse
+   └─ git.commit.uses set --quant N --push allow|block   # ask your human
 "
 `;
 
@@ -227,6 +341,34 @@ exports[`git.commit.uses.sh given: [case22] allow --org ehmpathy when: [t0] no o
 
 🐚 git.commit.uses allow --org ehmpathy
    └─ ehmpathy: allowed
+
+🥥 did you know?
+   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   ├─ rhx git.commit.sponsor set --who "Name <email>"
+   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+"
+`;
+
+exports[`git.commit.uses.sh given: [case22] allow --org ehmpathy when: [t2] no sponsor is bound to the tree then: nudges to bind one 1`] = `
+"🐢 shell yeah, back in the water!
+
+🐚 git.commit.uses allow --org ehmpathy
+   └─ ehmpathy: allowed
+
+🥥 did you know?
+   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   ├─ rhx git.commit.sponsor set --who "Name <email>"
+   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+"
+`;
+
+exports[`git.commit.uses.sh given: [case22] allow --org ehmpathy when: [t3] a sponsor is already bound to the tree then: stays quiet 1`] = `
+"🐢 shell yeah, back in the water!
+
+🐚 git.commit.uses allow --org ehmpathy
+   └─ ehmpathy: allowed
 "
 `;
 
@@ -244,6 +386,12 @@ exports[`git.commit.uses.sh given: [case24] allow --org @all when: [t0] orgs had
 🐚 git.commit.uses allow --org @all
    ├─ reset: all orgs → allowed
    └─ @all: allowed
+
+🥥 did you know?
+   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   ├─ rhx git.commit.sponsor set --who "Name <email>"
+   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
 "
 `;
 
@@ -302,5 +450,134 @@ exports[`git.commit.uses.sh given: [case30] TTY guard for org mutations when: [t
 
 🐚 git.commit.uses allow --org ehmpathy
    └─ error: only humans can run this command
+"
+`;
+
+exports[`git.commit.uses.sh given: [case31] the SHARED actor guard, under a REAL pseudo-terminal when: [t0] a human at a terminal grants a quota, escape DISABLED then: 🔴 the guard ACCEPTS a real tty — exit 0, no escape hatch 1`] = `
+"🐢 gnarly! thanks human!
+
+🐚 git.commit.uses set
+   ├─ granted: 3
+   ├─ push: blocked
+   └─ stage: blocked
+
+🥥 did you know?
+   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   ├─ rhx git.commit.sponsor set --who "Name <email>"
+   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+"
+`;
+
+exports[`git.commit.uses.sh given: [case33] the global meter is damaged, and a human runs get when: [t5] a DIRECTORY at the path, and a human runs allow --global then: 🔴 it REFUSES — it never reports a clear it did not make 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses allow --global
+   └─ error: the global blocker path is not a file
+
+   commits stay blocked until this path is cleared by hand:
+     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   inspect it, then remove it:
+     $ ls -la ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+     $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+"
+`;
+
+exports[`git.commit.uses.sh given: [case37] the ORG meter is damaged, and a human MUTATES it when: [t0] allow --org against a file that will not parse then: 🔴 it REFUSES, and the prior bytes are untouched 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses allow --org ahbode
+   └─ error: org meter file corrupt
+
+   the org meter file cannot be read:
+     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+
+until it parses, every commit is blocked. a human may inspect or clear it:
+  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+"
+`;
+
+exports[`git.commit.uses.sh given: [case37] the ORG meter is damaged, and a human MUTATES it when: [t3] get --org against a file that will not parse then: 🔴 the READ arm refuses too — the guard is above the dispatch 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses get --org
+   └─ error: org meter file corrupt
+
+   the org meter file cannot be read:
+     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+
+until it parses, every commit is blocked. a human may inspect or clear it:
+  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+"
+`;
+
+exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tree when: [t0] no sponsor is bound then: nudges toward the bind, and still exits 0 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.commit.uses set
+   ├─ granted: 5
+   ├─ push: allowed
+   └─ stage: blocked
+
+🥥 did you know?
+   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   ├─ rhx git.commit.sponsor set --who "Name <email>"
+   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+"
+`;
+
+exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tree when: [t1] a sponsor is already bound then: stays quiet 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.commit.uses set
+   ├─ granted: 5
+   ├─ push: allowed
+   └─ stage: blocked
+"
+`;
+
+exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tree when: [t2] the quota is revoked then: stays quiet — a revoke needs no sponsor 1`] = `
+"🐢 groovy, break time
+
+🐚 git.commit.uses set
+   ├─ revoked
+   └─ [2mtip: 'rhx git.commit.uses del' does the same[0m
+"
+`;
+
+exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tree when: [t3] the sponsor state file is present and unusable then: a file that PARSES but names no sponsor nudges the same way 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.commit.uses set
+   ├─ granted: 5
+   ├─ push: allowed
+   └─ stage: blocked
+
+🥥 did you know?
+   ├─ the sponsor state file is corrupt, so commits will refuse
+   ├─ cat .meter/git.commit.sponsor.jsonc
+   ├─ rhx git.commit.sponsor del   # clear the damaged entry first
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tree when: [t3] the sponsor state file is present and unusable then: nudges toward the FILE, never toward a re-bind 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.commit.uses set
+   ├─ granted: 5
+   ├─ push: allowed
+   └─ stage: blocked
+
+🥥 did you know?
+   ├─ the sponsor state file is corrupt, so commits will refuse
+   ├─ cat .meter/git.commit.sponsor.jsonc
+   ├─ rhx git.commit.sponsor del   # clear the damaged entry first
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;

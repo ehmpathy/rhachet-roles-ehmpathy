@@ -1,0 +1,527 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.commit.sponsor.sh given: [case1] a fresh tree, the supervisor pipes the requester in when: [t0] set --who @stdin then: binds the sponsor 1`] = `
+"🐢 shell yeah, sponsor bound
+
+🐚 git.commit.sponsor set
+   ├─ name: Ada Lovelace
+   ├─ email: ada@example.com
+   └─ source: supplied
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case1] a fresh tree, the supervisor pipes the requester in when: [t1] set --who "Name <email>" — the literal then: binds the same sponsor 1`] = `
+"🐢 shell yeah, sponsor bound
+
+🐚 git.commit.sponsor set
+   ├─ name: Ada Lovelace
+   ├─ email: ada@example.com
+   └─ source: supplied
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case3] get — a read carries no actor guard when: [t0] a sponsor is bound then: reports the bound human 1`] = `
+"🐢 lets check the sponsor...
+
+🐚 git.commit.sponsor
+   ├─ name: Ada Lovelace
+   ├─ email: ada@example.com
+   └─ source: supplied
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case3] get — a read carries no actor guard when: [t1] no sponsor is bound then: reports (none) and names the fix 1`] = `
+"🐢 lets check the sponsor...
+
+🐚 git.commit.sponsor
+   └─ sponsor: (none)
+
+🥥 did you know?
+   ├─ a human binds this tree's sponsor
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case4] the ACTOR guard — a clone cannot bind or clear when: [t0] set with no tty on any stream then: refuses, and addresses the human 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: only humans can run this command
+
+   a sponsor answers for a change in the real world, so only a
+   human can bind or clear one.
+
+   this holds even for a real human's name. to name a human who
+   did not act is a fabrication, and it reads as authorized.
+
+ask your human to run, in this tree:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case4] the ACTOR guard — a clone cannot bind or clear when: [t1] del with no tty then: refuses too, and leaves the sponsor bound 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor del
+   └─ error: only humans can run this command
+
+   a sponsor answers for a change in the real world, so only a
+   human can bind or clear one.
+
+ask your human to run, in this tree:
+  $ rhx git.commit.sponsor del
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case5] the identity BACKSTOP refuses a party that cannot answer when: [t0] the value names a github app then: refuses as a robot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: that identity cannot answer for a change
+
+   you named:
+     rhelease[bot] <249629030+rhelease[bot]@users.noreply.github.com>
+   ...and it is a robot.
+
+   a sponsor answers for the change in the real world. a robot cannot
+   answer, so it cannot hold the slot.
+
+name the human instead:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case5] the identity BACKSTOP refuses a party that cannot answer when: [t1] the value names this repo own clone identity then: refuses as a robot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: that identity cannot answer for a change
+
+   you named:
+     seaturtle[bot] <seaturtle@ehmpath.com>
+   ...and it is a robot.
+
+   a sponsor answers for the change in the real world. a robot cannot
+   answer, so it cannot hold the slot.
+
+name the human instead:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case5] the identity BACKSTOP refuses a party that cannot answer when: [t2] the value names a placeholder then: refuses as a placeholder, on the SAME stem 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: that identity cannot answer for a change
+
+   you named:
+     Test User <test@example.com>
+   ...and it is a placeholder.
+
+   a sponsor answers for the change in the real world. a placeholder cannot
+   answer, so it cannot hold the slot.
+
+name the human instead:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case5] the identity BACKSTOP refuses a party that cannot answer when: [t3] the value names the clone's own github ACCOUNT then: refuses as a robot — the account is on the roster 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: that identity cannot answer for a change
+
+   you named:
+     Seaturtle of'Ehmpathy <259600029+ehm-seaturtle@users.noreply.github.com>
+   ...and it is a robot.
+
+   a sponsor answers for the change in the real world. a robot cannot
+   answer, so it cannot hold the slot.
+
+name the human instead:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case6] del clears the sponsor when: [t0] a sponsor was bound then: removes the state file 1`] = `
+"🐢 groovy, sponsor cleared
+
+🐚 git.commit.sponsor del
+   └─ cleared
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case6] del clears the sponsor when: [t1] no sponsor was bound then: succeeds as a no-op 1`] = `
+"🐢 groovy, already clear
+
+🐚 git.commit.sponsor del
+   └─ sponsor: (none)
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case6] del clears the sponsor when: [t2] a DIRECTORY sits at the state path then: 🔴 clears the damaged entry, never reports it clear 1`] = `
+"🐢 groovy, sponsor cleared
+
+🐚 git.commit.sponsor del
+   └─ cleared
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case6] del clears the sponsor when: [t3] a DIRECTORY sits at the state path, and \`set\` is run then: 🔴 refuses, never reports a bind that never landed 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: the sponsor state path is not a file
+
+   a non-file object sits where the sponsor is kept:
+     .meter/git.commit.sponsor.jsonc
+   no sponsor was bound.
+
+inspect it, clear it, then bind afresh:
+  $ ls -la .meter/git.commit.sponsor.jsonc
+  $ rm -r .meter/git.commit.sponsor.jsonc
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case7] malformed input when: [t0] --who is absent then: refuses and names the fix 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: --who is required
+
+name the human:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case7] malformed input when: [t0b] --who is given with NO value — the bare flag then: 🔴 it refuses like [t0], never crashes on a bad shift 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: --who is required
+
+name the human:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case7] malformed input when: [t1] the value is not a Name <email> then: refuses and shows what was given 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: that value is not a 'Name <email>'
+
+   you gave:
+     Ada Lovelace
+
+name the human as a name plus an address:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case7] malformed input when: [t2] the piped value is empty then: refuses rather than binds an empty sponsor 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: --who resolved to an empty value
+
+name the human:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case7] malformed input when: [t2b] the value holds a CONTROL character then: refuses an ESC-bearing value, and does NOT echo it back 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: that value holds a control character
+
+a sponsor is one line, so name the human in plain text:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case7] malformed input when: [t3] no subcommand then: refuses on BOTH streams, and names the valid commands 1`] = `
+"error: command must be 'set' or 'get' or 'del'
+usage: printf 'Name <email>' | git.commit.sponsor set --who @stdin
+       git.commit.sponsor set --who "Name <email>"
+       git.commit.sponsor set --who @me
+       git.commit.sponsor get
+       git.commit.sponsor del
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case7] malformed input when: [t4] an unknown option then: refuses on BOTH streams, and names the option 1`] = `
+"error: unknown option: --nope
+usage: printf 'Name <email>' | git.commit.sponsor set --who @stdin
+       git.commit.sponsor set --who "Name <email>"
+       git.commit.sponsor set --who @me
+       git.commit.sponsor get
+       git.commit.sponsor del
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case8] --help when: [t0] --help is asked for then: leads with a .what, then the three value forms 1`] = `
+"git.commit.sponsor — name the human who answers for this tree's commits
+
+usage: printf 'Name <email>' | git.commit.sponsor set --who @stdin
+       git.commit.sponsor set --who "Name <email>"
+       git.commit.sponsor set --who @me
+       git.commit.sponsor get
+       git.commit.sponsor del
+
+commands:
+  set    bind the sponsor for this worktree (human only)
+  get    read the bound sponsor
+  del    clear the bound sponsor (human only)
+
+options (set):
+  --who @stdin           read 'Name <email>' from the pipe
+  --who "Name <email>"   name the human as a literal
+  --who @me              your own github session
+                         (needs YOUR OWN 'gh auth login' on this
+                          host — a cloud grove carries the clone's)
+                         reserve for YOUR OWN requested work — a
+                         supervisor who acts for someone else
+                         should pipe THAT human via --who @stdin
+
+options:
+  --help, -h             show this help
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t0] the gh session lookup fails then: it offers the two grove-agnostic forms 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: --who @me asked gh for your identity, and gh failed (exit 1)
+
+gh said no more, so take the one that fits:
+  $ gh auth login
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t1] the gh session resolves to a clone then: the whole @me render is pinned 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: that identity cannot answer for a change
+
+   the github session on this host reads:
+     ehm-a-seaturtle[bot] <295111357+ehm-a-seaturtle[bot]@users.noreply.github.com>
+   ...and it is a robot.
+
+   a sponsor answers for the change in the real world. a robot cannot
+   answer, so it cannot hold the slot.
+
+   🌊 on a cloud grove that session is the clone's, never yours.
+
+name the human instead:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t1b] the gh session resolves to the clone's own ACCOUNT then: the whole @me render is pinned 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: that identity cannot answer for a change
+
+   the github session on this host reads:
+     Seaturtle of'Ehmpathy <259600029+ehm-seaturtle@users.noreply.github.com>
+   ...and it is a robot.
+
+   a sponsor answers for the change in the real world. a robot cannot
+   answer, so it cannot hold the slot.
+
+   🌊 on a cloud grove that session is the clone's, never yours.
+
+name the human instead:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t1c] gh FAILS for a cause that is not a logged-out session then: gh's own words reach the human, on BOTH streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: --who @me asked gh for your identity, and gh failed (exit 4)
+
+   gh said:
+     gh: API rate limit exceeded for user ID 1234567.
+
+read gh's words above, then take the one that fits:
+  $ gh auth login
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t1d] gh exits 0 with a reply that carries no identity then: the refusal is curated, and the exit code is semantic 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: --who @me got a reply from gh that carries no identity
+
+   gh exited 0, so the call went through — but the reply holds no
+   .login and .id, which is what an identity is built from.
+
+   the reply began:
+     <html>502 Bad Gateway</html>
+
+name the human instead:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t1e] gh FAILS with an ESC and a CR carried in its stderr then: gh's message reaches the human, with no control bytes 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: --who @me asked gh for your identity, and gh failed (exit 4)
+
+   gh said:
+     <STRIPPED ADVERSARY PAYLOAD — the ESC/CR remnant, see the asserts above>
+
+read gh's words above, then take the one that fits:
+  $ gh auth login
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t1f] gh exits 0 with an EMPTY body then: the refusal names the absent identity, never a bad shape 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: --who @me got a reply from gh that carries no identity
+
+   gh exited 0, so the call went through — but the reply holds no
+   .login and .id, which is what an identity is built from.
+
+   the reply began:
+     (empty)
+
+name the human instead:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t2] the REAL gh cli answers — no stub, no PATH shadow then: the refusal traces to a REAL gh call, never a fixture 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: that identity cannot answer for a change
+
+   the github session on this host reads:
+     <REAL IDENTITY, MASKED — see [t1b] for the pinned literal>
+   ...and it is a robot.
+
+   a sponsor answers for the change in the real world. a robot cannot
+   answer, so it cannot hold the slot.
+
+   🌊 on a cloud grove that session is the clone's, never yours.
+
+name the human instead:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t2] the gh session resolves to a human then: \`get\` renders the me-sourced value back 1`] = `
+"🐢 lets check the sponsor...
+
+🐚 git.commit.sponsor
+   ├─ name: Ada Lovelace
+   ├─ email: 1234567+ada-lovelace@users.noreply.github.com
+   └─ source: me
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t2] the gh session resolves to a human then: the whole SUCCESS render is pinned 1`] = `
+"🐢 shell yeah, sponsor bound
+
+🐚 git.commit.sponsor set
+   ├─ name: Ada Lovelace
+   ├─ email: 1234567+ada-lovelace@users.noreply.github.com
+   └─ source: me
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t3] the gh cli is absent from the host then: the whole refusal render is pinned 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: --who @me needs the gh cli, and it is absent
+
+name the human instead:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t4] gh STALLS, and the timeout is lowered to 1s then: it still offers the two grove-agnostic forms 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor set
+   └─ error: --who @me asked gh for your identity, and gh failed (exit 124)
+
+gh said no more, so take the one that fits:
+  $ gh auth login
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case10] the cwd is not a git repo when: [t0] any command is run outside a tree then: it names the cause, on BOTH streams 1`] = `
+"error: not in a git repository
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case11] the sponsor state file is present and unreadable when: [t0] get is run against it then: a corrupt file exits 1 — a malfunction, never an unbound tree 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.sponsor get
+   └─ error: sponsor state file corrupt
+
+   the file that names this tree's sponsor cannot be read:
+     .meter/git.commit.sponsor.jsonc
+
+inspect it, or clear the bind and set it afresh:
+  $ cat .meter/git.commit.sponsor.jsonc
+  $ rhx git.commit.sponsor del
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.sponsor.sh given: [case14] the ACTOR guard, under a REAL pseudo-terminal when: [t0] a human at a terminal binds, with the escape DISABLED then: 🔴 the guard ACCEPTS a real tty — exit 0, no escape hatch 1`] = `
+"🐢 shell yeah, sponsor bound
+
+🐚 git.commit.sponsor set
+   ├─ name: Ada Lovelace
+   ├─ email: ada@example.com
+   └─ source: supplied
+"
+`;

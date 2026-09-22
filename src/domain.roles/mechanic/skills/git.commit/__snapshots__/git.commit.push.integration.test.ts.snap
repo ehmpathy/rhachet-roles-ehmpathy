@@ -298,7 +298,7 @@ exports[`git.commit.push.sh given: [case24] --auth as-ehmpath guides to as-human
    └─ 2. or open the pr with the human's github login:
          $ rhx git.commit.push --mode apply --auth as-human
 
-cause: <machine-dependent keyrack error, masked>"
+cause: <keyrack error, masked>"
 `;
 
 exports[`git.commit.push.sh given: [case25] --auth as-ehmpath keyrack failure in json mode emits a json error on stdout when: [t0] json output, push succeeds, keyrack token unavailable then: stdout carries a machine-readable error, stderr carries the guide 1`] = `
@@ -319,7 +319,7 @@ exports[`git.commit.push.sh given: [case25] --auth as-ehmpath keyrack failure in
    └─ 2. or open the pr with the human's github login:
          $ rhx git.commit.push --mode apply --auth as-human
 
-cause: <machine-dependent keyrack error, masked>"
+cause: <keyrack error, masked>"
 `;
 
 exports[`git.commit.push.sh given: [case26] --auth as-human guides to the two fixes when gh is not logged in when: [t0] push succeeds but the ambient gh login is unavailable then: the commit is pushed, then a guide names unlock-keyrack + gh-auth-login 1`] = `
@@ -428,6 +428,21 @@ cause: HTTP 401: Bad credentials
 "
 `;
 
+exports[`git.commit.push.sh given: [case29b] the ORG meter file is corrupt, and push meets it when: [t0] plan mode, with an org meter that will not parse then: the whole refusal renders as one pinned shape 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ error: org meter file corrupt
+
+   the org meter file cannot be read:
+     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+
+until it parses, every commit is blocked. a human may inspect or clear it:
+  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+"
+`;
+
 exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-open source when: [t0] --auth as-human then: plan shows the pr opens via the gh cli login 1`] = `
 "🐢 heres the wave...
 
@@ -488,7 +503,7 @@ options:
 
 exports[`git.commit.push.sh given: [case31] --help short-circuits before any keyrack fetch when: [t0] a fake rhachet records if it is ever called then: --help exits 0 with usage and never touches keyrack 2`] = `""`;
 
-exports[`git.commit.push.sh given: [case32] FETCH_TOKEN_TIMEOUT bounds a stalled keyrack so the guide still fires when: [t0] rhachet hangs, but the timeout is lowered to 1s then: the fetch is bounded and the as-human guide fires fast 1`] = `
+exports[`git.commit.push.sh given: [case32] EXTERNAL_CALL_TIMEOUT bounds a stalled keyrack so the guide still fires when: [t0] rhachet hangs, but the timeout is lowered to 1s then: the fetch is bounded and the as-human guide fires fast 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.push
@@ -503,7 +518,7 @@ exports[`git.commit.push.sh given: [case32] FETCH_TOKEN_TIMEOUT bounds a stalled
 "
 `;
 
-exports[`git.commit.push.sh given: [case32] FETCH_TOKEN_TIMEOUT bounds a stalled keyrack so the guide still fires when: [t0] rhachet hangs, but the timeout is lowered to 1s then: the fetch is bounded and the as-human guide fires fast 2`] = `
+exports[`git.commit.push.sh given: [case32] EXTERNAL_CALL_TIMEOUT bounds a stalled keyrack so the guide still fires when: [t0] rhachet hangs, but the timeout is lowered to 1s then: the fetch is bounded and the as-human guide fires fast 2`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.push

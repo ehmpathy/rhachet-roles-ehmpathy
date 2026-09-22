@@ -11,9 +11,10 @@ exports[`git.commit.set.sh given: [case1] commit without push when: [t0] mechani
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  └─ patron
+   │  └─ sponsor
    │     ├─ name: Test Human
-   │     └─ email: human@test.com
+   │     ├─ email: human@test.com
+   │     └─ source: bound (this tree)
    ├─ push: skipped
    └─ meter
       ├─ left: 2
@@ -43,9 +44,10 @@ exports[`git.commit.set.sh given: [case3] no uses left when: [t1] plan mode with
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
+   │  ├─ sponsor
    │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
+   │  │  ├─ email: human@test.com
+   │  │  └─ source: bound (this tree)
    │  └─ files
    │     └─ fix.txt
    ├─ push: skipped
@@ -64,18 +66,24 @@ exports[`git.commit.set.sh given: [case4] push not allowed when: [t0] push is bl
    └─ error: push not allowed in current grant
 
 ask your human to grant with --push allow
-
 "
 `;
 
-exports[`git.commit.set.sh given: [case6] no git user configured when: [t0] git user.name is not set then: exits with error about patron 1`] = `
+exports[`git.commit.set.sh given: [case6] no sponsor bound to the tree when: [t0] a commit is attempted with no sponsor then: refuses, and addresses the human 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.set
-   └─ error: cannot determine patron
+   └─ error: no sponsor is bound to this tree
 
-human must configure git identity:
-  $ git config user.name "Your Name"\\n  $ git config user.email "your@email.com"
+   a commit must name the human who authorized it. this tree names
+   none, so there is nobody to answer for the change.
+
+   ⛔ you cannot fix this yourself. a sponsor is bound by a human,
+      at a tty.
+
+ask your human to run, in this tree:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -90,9 +98,10 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t0] pl
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
+   │  ├─ sponsor
    │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
+   │  │  ├─ email: human@test.com
+   │  │  └─ source: bound (this tree)
    │  └─ files
    │     └─ fix.txt
    ├─ push: skipped
@@ -115,9 +124,10 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] pl
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
+   │  ├─ sponsor
    │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
+   │  │  ├─ email: human@test.com
+   │  │  └─ source: bound (this tree)
    │  └─ files
    │     └─ feature.txt
    ├─ push: origin/feat/new-feature
@@ -144,9 +154,10 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] pl
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
+   │  ├─ sponsor
    │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
+   │  │  ├─ email: human@test.com
+   │  │  └─ source: bound (this tree)
    │  └─ files
    │     └─ third.txt
    ├─ push: origin/feat/multi-commit
@@ -186,9 +197,10 @@ exports[`git.commit.set.sh given: [case12] PR title on stacked branch (branch fr
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
+   │  ├─ sponsor
    │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
+   │  │  ├─ email: human@test.com
+   │  │  └─ source: bound (this tree)
    │  └─ files
    │     └─ b3.txt
    ├─ push: origin/turtle/branch-b
@@ -275,9 +287,10 @@ exports[`git.commit.set.sh given: [case21] last use with push allowed shows push
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  └─ patron
+   │  └─ sponsor
    │     ├─ name: Test Human
-   │     └─ email: human@test.com
+   │     ├─ email: human@test.com
+   │     └─ source: bound (this tree)
    ├─ push: skipped
    └─ meter
       ├─ left: 0
@@ -296,9 +309,10 @@ exports[`git.commit.set.sh given: [case21] last use with push allowed shows push
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
+   │  ├─ sponsor
    │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
+   │  │  ├─ email: human@test.com
+   │  │  └─ source: bound (this tree)
    │  └─ files
    │     └─ fix.txt
    ├─ push: skipped
@@ -322,9 +336,10 @@ exports[`git.commit.set.sh given: [case22] multiline message is required when: [
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
+   │  ├─ sponsor
    │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
+   │  │  ├─ email: human@test.com
+   │  │  └─ source: bound (this tree)
    │  └─ files
    │     └─ fix.txt
    ├─ push: skipped
@@ -347,9 +362,10 @@ exports[`git.commit.set.sh given: [case23] plan mode auto-revoke display with pu
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
+   │  ├─ sponsor
    │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
+   │  │  ├─ email: human@test.com
+   │  │  └─ source: bound (this tree)
    │  └─ files
    │     └─ fix.txt
    ├─ push: origin/turtle/revoke-test
@@ -382,8 +398,12 @@ exports[`git.commit.set.sh given: [case26] commit with corrupt global blocker fi
 🐚 git.commit.set
    └─ error: global blocker file corrupt
 
-ask your human to lift:
-  $ git.commit.uses allow --global
+   the global blocker file cannot be read:
+     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+
+until it parses, every commit is blocked. a human may inspect or clear it:
+  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
 "
 `;
 
@@ -398,9 +418,10 @@ exports[`git.commit.set.sh given: [case27] commit with unlimited quota when: [t0
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  └─ patron
+   │  └─ sponsor
    │     ├─ name: Test Human
-   │     └─ email: human@test.com
+   │     ├─ email: human@test.com
+   │     └─ source: bound (this tree)
    ├─ push: skipped
    └─ meter
       ├─ left: unlimited
@@ -419,9 +440,10 @@ exports[`git.commit.set.sh given: [case27] commit with unlimited quota when: [t1
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
+   │  ├─ sponsor
    │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
+   │  │  ├─ email: human@test.com
+   │  │  └─ source: bound (this tree)
    │  └─ files
    │     └─ test.txt
    ├─ push: skipped
@@ -456,9 +478,10 @@ exports[`git.commit.set.sh given: [case29] --auth flag when: [t1] a valid --auth
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
+   │  ├─ sponsor
    │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
+   │  │  ├─ email: human@test.com
+   │  │  └─ source: bound (this tree)
    │  └─ files
    │     └─ fix.txt
    ├─ push: skipped
@@ -483,9 +506,10 @@ exports[`git.commit.set.sh given: [case29] --auth flag when: [t2] a valid --auth
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  ├─ patron
+   │  ├─ sponsor
    │  │  ├─ name: Test Human
-   │  │  └─ email: human@test.com
+   │  │  ├─ email: human@test.com
+   │  │  └─ source: bound (this tree)
    │  └─ files
    │     └─ fix.txt
    ├─ push: origin/fix/test-branch
@@ -526,9 +550,10 @@ exports[`git.commit.set.sh given: [case30] apply + push, keyrack fails, guide su
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  └─ patron
-   │     ├─ name: seaturtle[bot]
-   │     └─ email: seaturtle@ehmpath.com
+   │  └─ sponsor
+   │     ├─ name: Test Human
+   │     ├─ email: human@test.com
+   │     └─ source: bound (this tree)
    ├─ push: error: ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human (or unlock keyrack)
    └─ meter
       ├─ left: 1
@@ -559,9 +584,10 @@ exports[`git.commit.set.sh given: [case30] apply + push, keyrack fails, guide su
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  └─ patron
-   │     ├─ name: seaturtle[bot]
-   │     └─ email: seaturtle@ehmpath.com
+   │  └─ sponsor
+   │     ├─ name: Test Human
+   │     ├─ email: human@test.com
+   │     └─ source: bound (this tree)
    ├─ push: error: ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human (or unlock keyrack)
    └─ meter
       ├─ left: 1
@@ -580,9 +606,10 @@ exports[`git.commit.set.sh given: [case31] apply + push --auth as-human surfaces
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  └─ patron
-   │     ├─ name: seaturtle[bot]
-   │     └─ email: seaturtle@ehmpath.com
+   │  └─ sponsor
+   │     ├─ name: Test Human
+   │     ├─ email: human@test.com
+   │     └─ source: bound (this tree)
    ├─ push: origin/turtle/feature ✓
    ├─ pr: pr #88 (created)
    ├─ opened: as-human (gh cli login, fallback)
@@ -620,9 +647,10 @@ exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, th
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  └─ patron
-   │     ├─ name: seaturtle[bot]
-   │     └─ email: seaturtle@ehmpath.com
+   │  └─ sponsor
+   │     ├─ name: Test Human
+   │     ├─ email: human@test.com
+   │     └─ source: bound (this tree)
    ├─ push: error: ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human (or unlock keyrack)
    └─ meter
       ├─ left: 1
@@ -653,9 +681,10 @@ exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, th
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  └─ patron
-   │     ├─ name: seaturtle[bot]
-   │     └─ email: seaturtle@ehmpath.com
+   │  └─ sponsor
+   │     ├─ name: Test Human
+   │     ├─ email: human@test.com
+   │     └─ source: bound (this tree)
    ├─ push: error: ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human (or unlock keyrack)
    └─ meter
       ├─ left: 1
@@ -687,7 +716,8 @@ exports[`git.commit.set.sh given: [case33] adhoc Co-authored-by forbidden when: 
    └─ error: adhoc Co-authored-by forbidden
 
    the commit message contains a Co-authored-by trailer.
-   this skill sets Co-authored-by automatically from your git config.
+   this skill sets Co-authored-by automatically, from the sponsor
+   bound to this tree.
 
    remove the Co-authored-by line from your message and retry.
 "
@@ -711,7 +741,18 @@ options:
                          identity, so the fallback escapes keyrack entirely
   --unstaged ignore      proceed despite unstaged changes (commit staged only)
   --unstaged include     stage all unstaged changes before commit
+  --promise is-netnew-behavior
+                         confirm a feat: commit is net-new behavior
+                         (answers the nudge on a no-level branch)
   --help, -h             show this help
+
+requires:
+  a sponsor bound to this tree — the human who answers for the
+  commit. every commit is refused without one, and only a human
+  can bind it:
+    $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+    $ rhx git.commit.sponsor set --who "Name <email>"
+    $ rhx git.commit.sponsor get     # read the bound sponsor
 "
 `;
 
@@ -728,9 +769,10 @@ exports[`git.commit.set.sh given: [case35] a composed --push under as-ehmpath pe
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  └─ patron
-   │     ├─ name: seaturtle[bot]
-   │     └─ email: seaturtle@ehmpath.com
+   │  └─ sponsor
+   │     ├─ name: Test Human
+   │     ├─ email: human@test.com
+   │     └─ source: bound (this tree)
    ├─ push: origin/turtle/feature ✓
    ├─ pr: pr #77 (created)
    ├─ opened: as-ehmpath (ehmpath keyrack)
@@ -771,9 +813,10 @@ HTTP 401: Bad credentials
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  └─ patron
-   │     ├─ name: seaturtle[bot]
-   │     └─ email: seaturtle@ehmpath.com
+   │  └─ sponsor
+   │     ├─ name: Test Human
+   │     ├─ email: human@test.com
+   │     └─ source: bound (this tree)
    ├─ push: error: pr-open credential unusable — unlock keyrack or run gh auth login
    └─ meter
       ├─ left: 1
@@ -807,9 +850,10 @@ HTTP 401: Bad credentials
    │  ├─ author
    │  │  ├─ name: seaturtle[bot]
    │  │  └─ email: seaturtle@ehmpath.com
-   │  └─ patron
-   │     ├─ name: seaturtle[bot]
-   │     └─ email: seaturtle@ehmpath.com
+   │  └─ sponsor
+   │     ├─ name: Test Human
+   │     ├─ email: human@test.com
+   │     └─ source: bound (this tree)
    ├─ push: error: pr-open credential unusable — unlock keyrack or run gh auth login
    └─ meter
       ├─ left: 1
@@ -878,5 +922,105 @@ exports[`git.commit.set.sh given: [case44] the git commit itself fails (e.g. a p
    └─ error: git commit failed
 
 cause: error: failed to commit — simulated pre-commit hook rejection
+"
+`;
+
+exports[`git.commit.set.sh given: [case45] the sponsor state file is present and unreadable when: [t0] a commit is attempted against it then: it names the CORRUPT FILE, never "no sponsor is bound" 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: sponsor state file corrupt
+
+   the file that names this tree's sponsor cannot be read:
+     .meter/git.commit.sponsor.jsonc
+
+inspect it, or clear the bind and set it afresh:
+  $ cat .meter/git.commit.sponsor.jsonc
+  $ rhx git.commit.sponsor del
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.set.sh given: [case46] the sponsor state file PARSES but carries no identity when: [t0] a commit is attempted against it then: a HALF-written identity is caught too 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: sponsor state file corrupt
+
+   the file that names this tree's sponsor cannot be read:
+     .meter/git.commit.sponsor.jsonc
+
+inspect it, or clear the bind and set it afresh:
+  $ cat .meter/git.commit.sponsor.jsonc
+  $ rhx git.commit.sponsor del
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.set.sh given: [case46] the sponsor state file PARSES but carries no identity when: [t0] a commit is attempted against it then: it names the CORRUPT FILE, never "no sponsor is bound" 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: sponsor state file corrupt
+
+   the file that names this tree's sponsor cannot be read:
+     .meter/git.commit.sponsor.jsonc
+
+inspect it, or clear the bind and set it afresh:
+  $ cat .meter/git.commit.sponsor.jsonc
+  $ rhx git.commit.sponsor del
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.set.sh given: [case48] the sponsor state file carries a CONTROL character when: [t0] the NAME holds a newline that forms a second trailer then: 🔴 the injected trailer NEVER renders 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: sponsor state file corrupt
+
+   the file that names this tree's sponsor cannot be read:
+     .meter/git.commit.sponsor.jsonc
+
+inspect it, or clear the bind and set it afresh:
+  $ cat .meter/git.commit.sponsor.jsonc
+  $ rhx git.commit.sponsor del
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.set.sh given: [case48] the sponsor state file carries a CONTROL character when: [t1] the EMAIL holds a carriage return then: 🔴 the payload NEVER reaches a render 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: sponsor state file corrupt
+
+   the file that names this tree's sponsor cannot be read:
+     .meter/git.commit.sponsor.jsonc
+
+inspect it, or clear the bind and set it afresh:
+  $ cat .meter/git.commit.sponsor.jsonc
+  $ rhx git.commit.sponsor del
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.set.sh given: [case51] the ORG meter is damaged, and a clone tries to commit when: [t0] the org meter will not parse then: 🔴 the commit is REFUSED, and the whole render is pinned 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ error: org meter file corrupt
+
+   the org meter file cannot be read:
+     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+
+until it parses, every commit is blocked. a human may inspect or clear it:
+  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
 "
 `;

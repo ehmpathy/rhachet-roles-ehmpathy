@@ -24,9 +24,14 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/output.sh"
 
+# .why = for `read_sponsor_state`. the sponsor nudge below must ask the SAME
+#        question `git.commit.set` asks before it refuses, and one shared
+#        reader is what keeps the two from a drift in the answer.
+source "$SCRIPT_DIR/git.commit.operations.sh"
+
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "error: not in a git repository"
+  emit_both "error: not in a git repository"
   exit 2
 fi
 
@@ -34,10 +39,11 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 METER_DIR="$REPO_ROOT/.meter"
 STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 
-# global blocker path (for get display)
-ROLE_REPO="ehmpathy"
-ROLE_SLUG="mechanic"
-GLOBAL_METER_FILE="$HOME/.rhachet/storage/repo=$ROLE_REPO/role=$ROLE_SLUG/.meter/git.commit.uses.jsonc"
+# .note = GLOBAL_METER_FILE (and ROLE_REPO / ROLE_SLUG) come from the sourced
+#         git.commit.operations.sh. this file declared them a SECOND time until
+#         the source above landed, which left two constructions of one path —
+#         and `F2` named this exact path fabrication-risk-sensitive, since it
+#         scopes to a unix ACCOUNT rather than a person.
 
 # parse command (set or get)
 COMMAND=""
@@ -59,16 +65,30 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --quant)
-      QUANT="$2"
-      shift 2
+      # 🔴 shift ONE, then take a value only if one is really there — a bare
+      #    `shift 2` crashes raw (bash's own `shift: shift count out of
+      #    range`, exit 1) when the flag is the last arg. a bare flag here
+      #    leaves QUANT empty, which the extant `-z "$QUANT"` checks below
+      #    already turn into a curated constraint.
+      shift
+      if [[ $# -gt 0 && "$1" != --* ]]; then
+        QUANT="$1"
+        shift
+      fi
       ;;
     --push)
-      PUSH="$2"
-      shift 2
+      shift
+      if [[ $# -gt 0 && "$1" != --* ]]; then
+        PUSH="$1"
+        shift
+      fi
       ;;
     --stage)
-      STAGE="$2"
-      shift 2
+      shift
+      if [[ $# -gt 0 && "$1" != --* ]]; then
+        STAGE="$1"
+        shift
+      fi
       ;;
     --help|-h)
       echo "usage: git.commit.uses set --quant N --push allow|block [--stage allow|block]"
@@ -93,22 +113,25 @@ while [[ $# -gt 0 ]]; do
       echo "  --help, -h            show this help"
       exit 0
       ;;
-    --repo|--role|--skill|--local|--global)
-      # rhachet passthrough args - ignore
+    --repo|--role|--skill)
+      # rhachet passthrough args, value-taking - ignore flag + its value
       shift
-      # if next arg exists and is not a flag, skip it too
       if [[ $# -gt 0 && "$1" != --* && "$1" != -* ]]; then
         shift
       fi
+      ;;
+    --local|--global)
+      # rhachet passthrough args, boolean - ignore flag only, no value to eat
+      shift
       ;;
     --)
       shift
       ;;
     --*)
-      echo "error: unknown option: $1"
-      echo "usage: git.commit.uses set --quant N --push allow|block"
-      echo "       git.commit.uses del"
-      echo "       git.commit.uses get"
+      emit_both "error: unknown option: $1
+usage: git.commit.uses set --quant N --push allow|block
+       git.commit.uses del
+       git.commit.uses get"
       exit 2
       ;;
     *)
@@ -119,10 +142,10 @@ done
 
 # validate command
 if [[ -z "$COMMAND" ]]; then
-  echo "error: command required (set, del, block, allow, or get)"
-  echo "usage: git.commit.uses set --quant N --push allow|block"
-  echo "       git.commit.uses del"
-  echo "       git.commit.uses get"
+  emit_both "error: command required (set, del, block, allow, or get)
+usage: git.commit.uses set --quant N --push allow|block
+       git.commit.uses del
+       git.commit.uses get"
   exit 2
 fi
 
@@ -132,12 +155,7 @@ fi
 ######################################################################
 case "$COMMAND" in
   set|del|block|allow)
-    if [[ ! -t 0 && "${__I_AM_HUMAN:-}" != "true" ]]; then
-      print_turtle_header "bummer dude..."
-      print_tree_start "git.commit.uses $COMMAND"
-      print_tree_error "only humans can run this command"
-      exit 2
-    fi
+    guard_actor_is_human_via_stdin "git.commit.uses $COMMAND"
     ;;
 esac
 
@@ -176,8 +194,8 @@ case "$COMMAND" in
   set)
     # validate --quant
     if [[ -z "$QUANT" ]]; then
-      echo "error: --quant N is required"
-      echo "usage: git.commit.uses set --quant N --push allow|block"
+      emit_both "error: --quant N is required
+usage: git.commit.uses set --quant N --push allow|block"
       exit 2
     fi
 
@@ -193,15 +211,15 @@ case "$COMMAND" in
 
     # validate --push required
     if [[ -z "$PUSH" ]]; then
-      echo "error: --push allow|block is required"
-      echo "usage: git.commit.uses set --quant N --push allow|block"
+      emit_both "error: --push allow|block is required
+usage: git.commit.uses set --quant N --push allow|block"
       exit 2
     fi
 
     # validate --push value
     if [[ "$PUSH" != "allow" && "$PUSH" != "block" ]]; then
-      echo "error: --push must be 'allow' or 'block'"
-      echo "usage: git.commit.uses set --quant N --push allow|block"
+      emit_both "error: --push must be 'allow' or 'block'
+usage: git.commit.uses set --quant N --push allow|block"
       exit 2
     fi
 
@@ -212,22 +230,19 @@ case "$COMMAND" in
 
     # validate --stage value
     if [[ "$STAGE" != "allow" && "$STAGE" != "block" ]]; then
-      echo "error: --stage must be 'allow' or 'block'"
-      echo "usage: git.commit.uses set --quant N --push allow|block [--stage allow|block]"
+      emit_both "error: --stage must be 'allow' or 'block'
+usage: git.commit.uses set --quant N --push allow|block [--stage allow|block]"
       exit 2
     fi
 
     # validate --quant is a number or "infinite"
     if [[ "$QUANT" != "infinite" ]] && ! [[ "$QUANT" =~ ^[0-9]+$ ]]; then
-      echo "error: --quant must be a non-negative integer or 'infinite'"
+      emit_both "error: --quant must be a non-negative integer or 'infinite'"
       exit 2
     fi
 
-    # findsert .meter dir and .gitignore
-    mkdir -p "$METER_DIR"
-    if [[ ! -f "$METER_DIR/.gitignore" ]]; then
-      echo "*" > "$METER_DIR/.gitignore"
-    fi
+    # findsert .meter dir and .gitignore, via the shared leaf
+    findsert_gitignored_dir "$METER_DIR"
 
     # write state file (uses is string for "infinite", number otherwise)
     if [[ "$QUANT" == "infinite" ]]; then
@@ -297,19 +312,72 @@ EOF
       echo "   ├─ push: blocked"
       echo "   └─ stage: $STAGE_DISPLAY"
     fi
+
+    ##################################################################
+    # nudge: a quota with no sponsor bound buys no commits
+    #
+    # .why = a commit needs BOTH a quota and a sponsor, and this is the
+    #        one act where a human is provably present. to leave the
+    #        second step undiscoverable here would send the human away
+    #        satisfied, and the clone would hit a wall the human is the
+    #        only party who can take down.
+    #
+    # .why = `QUANT != "0"` gates it here rather than in the shared reader —
+    #        a REVOKE (`--quant 0`) buys no commits either way, so a nudge
+    #        there would tell a human to bind a sponsor for a tree that just
+    #        lost its reason to commit at all.
+    #
+    # 🔴 .why the FUNCTION = this nudge and the two grant surfaces in
+    #        `--global allow` / `--org allow` ask the identical question, so a
+    #        shared reader is what keeps the three from a drift in the answer
+    #        (rule.require.get-set-gen-verbs, git.commit.operations.sh).
+    ##################################################################
+    if [[ "$QUANT" != "0" ]]; then
+      print_sponsor_bind_nudge_if_absent
+    fi
     ;;
 
   get)
-    # check global blocker state
+    # 🔴 the SHARED reader decides, and this render only asks it.
+    #
+    # 🔴 .why = this arm carried its own read — `jq -r '.blocked // false'`,
+    #        keyed on jq's EXIT STATUS alone. that read a 0-BYTE file as
+    #        healthy-and-permissive (jq exits 0 with an empty capture) and a
+    #        DIRECTORY at the path as absent (`-f` is a regular-file test).
+    #        ⇒ a human who runs `get` to learn whether commits are blocked was
+    #        told "not blocked" while the blocker file was damaged
+    #        (rule.forbid.failhide, rule.require.safe-by-default).
+    #
+    # ⇒ 🔴 .why it was DELETED rather than hardened = the gate
+    #        `check_global_blocker` was hardened one round earlier and this
+    #        surface was not, so the two began to disagree about one file. a
+    #        second hardened copy would fix today's disagreement and keep the
+    #        structure that produced it. **one reader, one decision point.**
+    #
+    # .note = the reader returns 0 = clear, 2 = blocked, and sets
+    #         GLOBAL_BLOCK_CORRUPT to tell "a human blocked it" from "the file
+    #         is damaged" — a FLAG, never a match on the reason prose
+    #         (rule.forbid.magic-values).
+    GLOBAL_BLOCK_STATUS=0
+    check_global_blocker || GLOBAL_BLOCK_STATUS=$?
+
     GLOBAL_BLOCKED=false
-    if [[ -f "$GLOBAL_METER_FILE" ]]; then
-      # check if file is valid json and has blocked: true
-      if BLOCKED_VAL=$(jq -r '.blocked // false' "$GLOBAL_METER_FILE" 2>/dev/null); then
-        if [[ "$BLOCKED_VAL" == "true" ]]; then
-          GLOBAL_BLOCKED=true
-        fi
+    GLOBAL_BLOCK_LABEL="blocked"
+    if [[ "$GLOBAL_BLOCK_STATUS" -eq 2 ]]; then
+      GLOBAL_BLOCKED=true
+      if [[ "$GLOBAL_BLOCK_CORRUPT" == "true" ]]; then
+        GLOBAL_BLOCK_LABEL="blocked (file corrupt)"
       fi
     fi
+
+    # .note = `print_global_corrupt_note` renders below, from
+    #         `git.commit.operations.sh`. it was defined HERE, nested inside
+    #         this `get)` arm — so it existed on no other command path, and a
+    #         reader who scanned the top of this file for shared render leaves
+    #         would not find it. ⇒ lifted to the file both surfaces already
+    #         source for the constant it prints, which is also what removed
+    #         `uses.global get`'s own copy of the same five lines
+    #         (rule.forbid.maintenance-hazards).
 
     # check state file exists
     if [[ ! -f "$STATE_FILE" ]]; then
@@ -317,13 +385,14 @@ EOF
       print_tree_start "git.commit.uses"
       if [[ "$GLOBAL_BLOCKED" == "true" ]]; then
         echo "   ├─ no quota set"
-        echo "   └─ global: blocked"
+        echo "   └─ global: $GLOBAL_BLOCK_LABEL"
       else
         echo "   └─ no quota set"
       fi
-      echo ""
-      echo "ask your human to grant:"
-      echo "  \$ git.commit.uses set --quant N --push allow|block"
+      print_global_corrupt_note
+      print_coconut_hint \
+        "no quota is granted on this tree, so commits will refuse" \
+        "git.commit.uses set --quant N --push allow|block   # ask your human"
       exit 0
     fi
 
@@ -360,16 +429,17 @@ EOF
     echo "      ├─ push: $PUSH_DISPLAY"
     if [[ "$GLOBAL_BLOCKED" == "true" ]]; then
       echo "      ├─ stage: $STAGE_DISPLAY"
-      echo "      └─ global: blocked"
+      echo "      └─ global: $GLOBAL_BLOCK_LABEL"
     else
       echo "      └─ stage: $STAGE_DISPLAY"
     fi
+    print_global_corrupt_note
     ;;
 
   *)
-    echo "error: unknown command: $COMMAND"
-    echo "usage: git.commit.uses set --quant N --push allow|block"
-    echo "       git.commit.uses get"
+    emit_both "error: unknown command: $COMMAND
+usage: git.commit.uses set --quant N --push allow|block
+       git.commit.uses get"
     exit 2
     ;;
 esac
