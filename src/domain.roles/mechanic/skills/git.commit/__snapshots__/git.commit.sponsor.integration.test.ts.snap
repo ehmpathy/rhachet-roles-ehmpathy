@@ -428,27 +428,6 @@ name the human instead:
 "
 `;
 
-exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t2] the REAL gh cli answers — no stub, no PATH shadow then: the refusal traces to a REAL gh call, never a fixture 1`] = `
-"🐢 bummer dude...
-
-🐚 git.commit.sponsor set
-   └─ error: that identity cannot answer for a change
-
-   the github session on this host reads:
-     <REAL IDENTITY, MASKED — see [t1b] for the pinned literal>
-   ...and it is a robot.
-
-   a sponsor answers for the change in the real world. a robot cannot
-   answer, so it cannot hold the slot.
-
-   🌊 on a cloud grove that session is the clone's, never yours.
-
-name the human instead:
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
-"
-`;
-
 exports[`git.commit.sponsor.sh given: [case9] --who @me when the host cannot answer when: [t2] the gh session resolves to a human then: \`get\` renders the me-sourced value back 1`] = `
 "🐢 lets check the sponsor...
 

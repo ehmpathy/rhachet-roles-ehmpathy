@@ -1977,6 +1977,10 @@ describe('git.commit.sponsor.sh', () => {
         //        return on infra we control. either is acceptable; a THIRD
         //        shape (a crash, an invented identity, a bare success) is not
         //        — and would fail this assert.
+        //
+        // 🔴 .note = "either is acceptable" is the whole contract of a live
+        //        boundary, and it is why this block pins no snapshot. see the
+        //        measured note below.
         const refusedAsRobot = result.stdout.includes(
           'error: that identity cannot answer for a change',
         );
@@ -1985,18 +1989,41 @@ describe('git.commit.sponsor.sh', () => {
         );
         expect(refusedAsRobot || ghCallFailed).toBe(true);
 
-        // .why = the partial-text check above proves ONE line; it does not
-        //        pin the deterministic shell around it (the tree structure,
-        //        the remedy list, the key order). a live identity line (a
-        //        real name + a derived noreply address) is the one volatile
-        //        byte this render can hold, so it is MASKED — never carved
-        //        out — before the snapshot, per
-        //        rule.require.contract-snapshot-exhaustiveness.
-        const masked = result.stdout.replace(
-          /^\s+.*<[^<>]*@[^<>]*>\s*$/gm,
-          '     <REAL IDENTITY, MASKED — see [t1b] for the pinned literal>',
+        // 🔴 .why NO snapshot here, though every peer in this file pins one
+        //        = a snapshot pins ONE render, and the assert above declares
+        //        TWO are legal. which one a live call produces is decided by
+        //        the host's ambient `gh auth` state — a value this test READS
+        //        and does not CONTROL. ⇒ to pin either makes the suite grade
+        //        the runner's login rather than the skill
+        //        (rule.require.hermetic-tests).
+        //
+        // ⚠️ .measured = an earlier draft snapshotted a masked render. it went
+        //        green on a dev host (gh logged in → the robot refusal) and
+        //        RED in ci (no session → the gh-failure refusal). the same
+        //        commit, two verdicts, one ambient input.
+        //
+        // ✅ .why no coverage is lost = both literal renders are ALREADY
+        //        pinned, by the scripted twins that can hold `gh` still:
+        //        `[t0]` (logged-out), `[t1]` (a clone session), `[t1c]` (a
+        //        non-auth gh failure). ⇒ exhaustiveness is satisfied there,
+        //        where the input is controlled; this `[t2]` exists to prove
+        //        the call is REAL, and that is what it asserts.
+        //
+        // ⇒ so the structural shell is asserted directly, on the parts BOTH
+        //   legal shapes share — a real claim, and one no host can flip.
+        expect(result.stdout).toContain('🐢 bummer dude...');
+        expect(result.stdout).toContain('🐚 git.commit.sponsor set');
+        expect(result.stdout).toContain('   └─ error: ');
+
+        // .why = the remedy carries the weight of any refusal, and both
+        //        shapes owe the two grove-agnostic forms — never `@me`, which
+        //        is what just failed (case=3's rule)
+        expect(result.stdout).toContain(
+          "$ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin",
         );
-        expect(masked).toMatchSnapshot();
+        expect(result.stdout).toContain(
+          '$ rhx git.commit.sponsor set --who "Name <email>"',
+        );
       });
 
       then('no state is written on a refused real bind', () => {
