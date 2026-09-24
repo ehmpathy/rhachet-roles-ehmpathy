@@ -1008,11 +1008,10 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
 
   // .why = the hook and the skill each spell the SAME default root
   //        (`${GIT_REPO_ROOT:-$HOME/git}`) in their own file, on purpose: the
-  //        hook runs on every tool call under a PT5S budget, so it must not
-  //        source a whole operations library to learn one path. the cost of
-  //        that choice is a drift hazard, and until now it was held by a
-  //        comment alone — "the two must stay in step" is a request, not a
-  //        guard. if one default moved, the gate would no longer watch the
+  //        hook runs on every tool call under a tight time budget, so it must
+  //        not source a whole operations library to learn one path. the cost
+  //        of that choice is a drift hazard, and a comment cannot hold it —
+  //        "the two must stay in step" is a request, not a guard. if one default moved, the gate would no longer watch the
   //        very root the sanctioned tool reads from, and the wish's guarantee
   //        would fail open with no test red anywhere.
   //

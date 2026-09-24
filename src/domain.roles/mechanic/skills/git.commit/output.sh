@@ -44,7 +44,7 @@ escape_json_string() {
 # .why = two explicit echoes have neither problem: no device to open, no
 #        pipeline status to paper over. this lesson was first paid for in
 #        pretooluse.forbid-cross-repo-access.sh, which keeps its own local
-#        copy on purpose — it runs on a PT5S budget and declines to source
+#        copy on purpose — it runs on a tight time budget and declines to source
 #        a whole library for one function. every skill that already sources
 #        this file should use THIS one.
 emit_both() {

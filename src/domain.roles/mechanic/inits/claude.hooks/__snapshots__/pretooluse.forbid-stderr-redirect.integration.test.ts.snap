@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse.forbid-stderr-redirect.sh given: [case2] the refusal message when: [t0] a command is refused then: the whole message matches its snapshot 1`] = `
+"
+🛑 BLOCKED: Command contains '2>&1' (stderr redirect to stdout).
+
+Redirecting stderr to stdout hides error messages and makes debugging harder.
+Claude should see stderr separately to understand when commands fail.
+
+Please remove '2>&1' from your command and try again.
+
+"
+`;

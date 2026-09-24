@@ -48,12 +48,12 @@ fi
 - rate limit exceeded
 - unexpected API response
 
-## .test-fns integration
+## .helpful-errors integration
 
-test-fns provides `ConstraintError` and `MalfunctionError` with exit codes built-in:
+helpful-errors provides `ConstraintError` and `MalfunctionError` with exit codes built-in:
 
 ```typescript
-import { ConstraintError, MalfunctionError } from 'test-fns';
+import { ConstraintError, MalfunctionError } from 'helpful-errors';
 
 // ConstraintError has error.code.exit = 2
 throw new ConstraintError('needs rebase');
@@ -64,7 +64,17 @@ throw new MalfunctionError('gh failed');
 
 no need to set exit code — they already have it.
 
+⚠️ **import from `helpful-errors`, never `test-fns`.** test-fns re-exports exactly one symbol
+from helpful-errors — `getError` — so `import { ConstraintError } from 'test-fns'` fails the
+type check with `TS2305: Module '"test-fns"' has no exported member 'ConstraintError'`.
+
 ## .enforcement
 
 - skill without semantic exit codes = nitpick
 - constraint error using exit 1 = nitpick
+
+## .see also
+
+- `rule.require.qualified-error-headers` — the `✋ ConstraintError:` / `💥 MalfunctionError:`
+  header these codes ride behind, and the PreToolUse case where the glyph and the code
+  deliberately disagree

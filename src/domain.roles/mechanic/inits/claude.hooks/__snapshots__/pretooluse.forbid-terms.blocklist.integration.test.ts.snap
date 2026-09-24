@@ -1,0 +1,213 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse.forbid-terms.blocklist.sh given: [case1] a Write that holds a blocklisted term when: [t0] it is the first attempt then: the WHOLE message is snapshotted — acceptance #4 1`] = `
+"
+✋ ConstraintError: forbidden term(s) detected in file write
+
+file: deploy.sh
+
+detected terms:
+  ⛔ script
+    why: overloaded and vague - conflates command, procedure, operation, and mechanism
+    alt: command, executable, procedure, operation, mechanism
+
+see rule.forbid.term-* briefs for rationale.
+
+if this is intentional and absolutely unavoidable, retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.blocklist.sh given: [case9] a Write that holds SEVERAL blocklisted terms when: [t0] the hook runs then: the WHOLE multi-term message is snapshotted — acceptance #4 1`] = `
+"
+✋ ConstraintError: forbidden term(s) detected in file write
+
+file: deploy.sh
+
+detected terms:
+  ⛔ script
+    why: overloaded and vague - conflates command, procedure, operation, and mechanism
+    alt: command, executable, procedure, operation, mechanism
+  ⛔ normalize
+    why: overloaded and vague - conflates format, canonical, sanitize, scale, case, encode, resolve, collapse, expand purposes
+    alt: asX pattern: asE164, asIso8601, asLowercase, asTrimmed, asComparable, asExplicit, asExpanded, as\${DomainObject}, as\${DomainObject}\${Variant} (e.g., asIsoPriceHuman)
+  ⛔ existing
+    why: needless gerund - vague and overused, prefer precise non-gerund alternatives
+    alt: extant, current, found, prior, present
+
+see rule.forbid.term-* briefs for rationale.
+
+if this is intentional and absolutely unavoidable, retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.blocklist.sh given: [case10] stdin is empty when: [t0] the hook runs then: the WHOLE message is snapshotted — a human contract 1`] = `
+"✋ ConstraintError: PreToolUse hook received no input via stdin
+  why: claude code pipes {tool_name, tool_input} as json on stdin
+  fix: pipe a payload, e.g.
+       echo '{"tool_name":"Write","tool_input":{"content":"…"}}' | <hook>
+"
+`;
+
+exports[`pretooluse.forbid-terms.blocklist.sh given: [case11] the blocklist holds a term that is not a valid regex when: [t0] a write trips no term at all then: the WHOLE message is snapshotted — a NEW human contract 1`] = `
+"
+💥 MalfunctionError: the blocklist holds a term that is not a valid regex
+
+file: notes.md
+
+the combined pattern failed to compile:
+  \\b(deploy|kook(swell)\\b
+
+what grep said:
+  grep: Unmatched ( or \\(
+
+fix: escape or remove the bad term in terms.blocklist.jsonc
+     a term is matched as a regex, so ( ) [ ] | * + ? . \\ must be escaped.
+
+this fails loud on purpose: a pattern that cannot compile would otherwise
+permit EVERY blocklisted term with no signal at all.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.blocklist.sh given: [case15] one term record is INCOMPLETE — no why, no alt when: [t1] a write trips the INCOMPLETE term then: the WHOLE message renders as a human meets it 1`] = `
+"
+✋ ConstraintError: forbidden term(s) detected in file write
+
+file: notes.md
+
+detected terms:
+  ⛔ kookwave
+    why: 
+    alt: 
+
+see rule.forbid.term-* briefs for rationale.
+
+if this is intentional and absolutely unavoidable, retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.blocklist.sh given: [case18] a term holds a double quote when: [t0] a write trips it then: the WHOLE message renders the quoted term as a human meets it 1`] = `
+"
+✋ ConstraintError: forbidden term(s) detected in file write
+
+file: notes.md
+
+detected terms:
+  ⛔ kook"wave
+    why: a quoted term
+    alt: clean wave
+
+see rule.forbid.term-* briefs for rationale.
+
+if this is intentional and absolutely unavoidable, retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.blocklist.sh given: [case21] the nudge STATE FILE is unparseable json when: [t0] a write trips a term then: the WHOLE stderr reads as a human would meet it 1`] = `
+"💥 MalfunctionError: HARDNUDGE record NOT saved — could not update the nudge file
+    file:   <nudge-file>
+    why:    it is unparseable json, or the write failed
+    effect: a deliberate retry will RE-BLOCK instead of pass
+    fix:    rm '<nudge-file>'  — it is a local cache and regenerates
+
+✋ ConstraintError: forbidden term(s) detected in file write
+
+file: deploy.sh
+
+detected terms:
+  ⛔ script
+    why: overloaded and vague - conflates command, procedure, operation, and mechanism
+    alt: command, executable, procedure, operation, mechanism
+
+see rule.forbid.term-* briefs for rationale.
+
+if this is intentional and absolutely unavoidable, retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.blocklist.sh given: [case23] a term that breaks ONLY the per-term grep, not the alternation when: [t1] a write trips the corrupted pattern, so the walk runs then: the WHOLE stderr reads as a maintainer would meet it 1`] = `
+"💥 MalfunctionError: blocklist term SKIPPED — it is not a valid regex: )swell(
+    why:    grep could not compile it, so this term guarded naught
+    effect: every other term still guards; only this one is blind
+    fix:    escape or remove it in terms.blocklist.jsonc
+
+✋ ConstraintError: forbidden term(s) detected in file write
+
+file: notes.md
+
+detected terms:
+  ⛔ deploy
+    why: vague
+    alt: ship
+
+see rule.forbid.term-* briefs for rationale.
+
+if this is intentional and absolutely unavoidable, retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.blocklist.sh given: [case25] a record whose \`alt\` is a string, not an array when: [t1] a write trips the wrong-typed term then: the WHOLE degraded-detail render is snapshotted 1`] = `
+"
+✋ ConstraintError: forbidden term(s) detected in file write
+
+file: notes.md
+
+detected terms:
+  ⛔ leverage
+    why: jargon
+    alt: 
+
+see rule.forbid.term-* briefs for rationale.
+
+if this is intentional and absolutely unavoidable, retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.blocklist.sh given: [case26] the nudge file is VALID but the write to it cannot land when: [t0] a first write trips a term and the record cannot be stamped then: the WHOLE warn+block render is snapshotted 1`] = `
+"mv: cannot move '<mv-temp-file> to '<nudge-file>': Permission denied
+💥 MalfunctionError: HARDNUDGE record NOT saved — could not update the nudge file
+    file:   <nudge-file>
+    why:    it is unparseable json, or the write failed
+    effect: a deliberate retry will RE-BLOCK instead of pass
+    fix:    rm '<nudge-file>'  — it is a local cache and regenerates
+
+✋ ConstraintError: forbidden term(s) detected in file write
+
+file: /tmp/surfboard.ts
+
+detected terms:
+  ⛔ normalize
+    why: overloaded and vague - conflates format, canonical, sanitize, scale, case, encode, resolve, collapse, expand purposes
+    alt: asX pattern: asE164, asIso8601, asLowercase, asTrimmed, asComparable, asExplicit, asExpanded, as\${DomainObject}, as\${DomainObject}\${Variant} (e.g., asIsoPriceHuman)
+
+see rule.forbid.term-* briefs for rationale.
+
+if this is intentional and absolutely unavoidable, retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.blocklist.sh given: [case28] a record whose \`term\` is an EMPTY STRING when: [t1] a write that trips the NEIGHBOUR term is attempted then: the WHOLE message renders as a human meets it 1`] = `
+"
+✋ ConstraintError: forbidden term(s) detected in file write
+
+file: notes.md
+
+detected terms:
+  ⛔ deploy
+    why: vague
+    alt: ship
+
+see rule.forbid.term-* briefs for rationale.
+
+if this is intentional and absolutely unavoidable, retry the same operation.
+
+"
+`;
