@@ -49,7 +49,7 @@ emit_both() {
 #         read the whole refusal to find the remedy. the 🥥 is a landmark
 #         (rule.require.coconut-hints).
 # .why  = this is a local copy of the helper in git.commit/output.sh, on the same
-#         grounds emit_both keeps one: this hook runs on a PT5S budget and
+#         grounds emit_both keeps one: this hook runs on a tight time budget and
 #         declines to source a whole library for two functions
 print_coconut_hint() {
   local affordance="$1"

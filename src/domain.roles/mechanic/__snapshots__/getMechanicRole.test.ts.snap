@@ -14,8 +14,8 @@ exports[`getMechanicRole given: [case1] the mechanic role definition when: [t4] 
     "onBrain": {
       "onBoot": [
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/sessionstart.notify-permissions",
-          "timeout": "PT5S",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/sessionstart.notify-permissions.sh",
+          "timeout": "PT10S",
         },
         {
           "command": "./node_modules/.bin/rhachet roles boot --repo .this --role any --if-present",
@@ -26,7 +26,7 @@ exports[`getMechanicRole given: [case1] the mechanic role definition when: [t4] 
           "timeout": "PT60S",
         },
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/postcompact.trust-but-verify",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/postcompact.trust-but-verify.sh",
           "filter": {
             "what": "PostCompact",
           },
@@ -35,95 +35,95 @@ exports[`getMechanicRole given: [case1] the mechanic role definition when: [t4] 
       ],
       "onTool": [
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-test-background",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-test-background.sh",
           "filter": {
             "what": "Bash",
             "when": "before",
           },
-          "timeout": "PT5S",
+          "timeout": "PT10S",
         },
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-sedreplace-special-chars",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-sedreplace-special-chars.sh",
           "filter": {
             "what": "Bash",
             "when": "before",
           },
-          "timeout": "PT5S",
+          "timeout": "PT10S",
         },
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-suspicious-shell-syntax",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-suspicious-shell-syntax.sh",
           "filter": {
             "what": "Bash",
             "when": "before",
           },
-          "timeout": "PT5S",
+          "timeout": "PT10S",
         },
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-stderr-redirect",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-stderr-redirect.sh",
           "filter": {
             "what": "Bash",
             "when": "before",
           },
-          "timeout": "PT5S",
+          "timeout": "PT10S",
         },
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-terms.gerunds",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-terms.gerunds.sh",
           "filter": {
             "what": "Write|Edit",
             "when": "before",
           },
-          "timeout": "PT5S",
+          "timeout": "PT10S",
         },
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-terms.blocklist",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-terms.blocklist.sh",
           "filter": {
             "what": "Write|Edit",
             "when": "before",
           },
-          "timeout": "PT5S",
+          "timeout": "PT10S",
         },
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.check-permissions",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.check-permissions.sh",
           "filter": {
             "what": "Bash",
             "when": "before",
           },
-          "timeout": "PT5S",
+          "timeout": "PT10S",
         },
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-tmp-writes",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-tmp-writes.sh",
           "filter": {
             "what": "Write|Edit|Read|Bash",
             "when": "before",
           },
-          "timeout": "PT5S",
+          "timeout": "PT10S",
         },
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-shouted-readme",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-shouted-readme.sh",
           "filter": {
             "what": "Write|Edit|Read",
             "when": "before",
           },
-          "timeout": "PT5S",
+          "timeout": "PT10S",
         },
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-cross-repo-access",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-cross-repo-access.sh",
           "filter": {
             "what": "Write|Edit|Read|NotebookEdit|Grep|Glob|Bash",
             "when": "before",
           },
-          "timeout": "PT5S",
+          "timeout": "PT10S",
         },
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/pretooluse.forbid-planmode",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/pretooluse.forbid-planmode.sh",
           "filter": {
             "what": "EnterPlanMode",
             "when": "before",
           },
-          "timeout": "PT5S",
+          "timeout": "PT10S",
         },
         {
-          "command": "./node_modules/.bin/rhachet run --repo ehmpathy --role mechanic --init claude.hooks/posttooluse.guardBorder.onWebfetch",
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/posttooluse.guardBorder.onWebfetch.sh",
           "filter": {
             "what": "WebFetch",
             "when": "after",

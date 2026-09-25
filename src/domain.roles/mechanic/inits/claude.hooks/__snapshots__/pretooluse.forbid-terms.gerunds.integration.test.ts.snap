@@ -1,0 +1,154 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse.forbid-terms.gerunds.sh given: [case1] a Write that holds an -ing word when: [t0] it is the first attempt then: the WHOLE message is snapshotted — acceptance #4 1`] = `
+"
+✋ ConstraintError: gerund(s) detected in file write
+
+file: test.ts
+
+detected gerunds:
+  ⛔ running → consider: run, active, runner
+
+gerunds degrade clarity. see rule.forbid.gerunds for alternatives.
+
+if this is intentional and absolutely unavoidable (e.g., library API requirement), retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.gerunds.sh given: [case9] a Write that holds several -ing words when: [t0] the hook runs then: the WHOLE multi-word message is snapshotted — acceptance #4 1`] = `
+"
+✋ ConstraintError: gerund(s) detected in file write
+
+file: test.ts
+
+detected gerunds:
+  ⛔ loading → consider: load, loaded, loader
+  ⛔ running → consider: run, active, runner
+
+gerunds degrade clarity. see rule.forbid.gerunds for alternatives.
+
+if this is intentional and absolutely unavoidable (e.g., library API requirement), retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.gerunds.sh given: [case10] stdin is empty when: [t0] the hook runs then: the WHOLE message is snapshotted — a human contract 1`] = `
+"✋ ConstraintError: PreToolUse hook received no input via stdin
+  why: claude code pipes {tool_name, tool_input} as json on stdin
+  fix: pipe a payload, e.g.
+       echo '{"tool_name":"Write","tool_input":{"content":"…"}}' | <hook>
+"
+`;
+
+exports[`pretooluse.forbid-terms.gerunds.sh given: [case12] the allowlist file is absent entirely when: [t0] a write holds the ONE word the real allowlist permits then: the WHOLE degraded refusal is snapshotted 1`] = `
+"
+✋ ConstraintError: gerund(s) detected in file write
+
+file: test.ts
+
+detected gerunds:
+  ⛔ string → consider: remove -ing suffix
+
+gerunds degrade clarity. see rule.forbid.gerunds for alternatives.
+
+if this is intentional and absolutely unavoidable (e.g., library API requirement), retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.gerunds.sh given: [case12] the allowlist file is absent entirely when: [t1] the allowlist is present but MALFORMED then: the WHOLE degraded refusal is snapshotted 1`] = `
+"
+✋ ConstraintError: gerund(s) detected in file write
+
+file: test.ts
+
+detected gerunds:
+  ⛔ string → consider: remove -ing suffix
+
+gerunds degrade clarity. see rule.forbid.gerunds for alternatives.
+
+if this is intentional and absolutely unavoidable (e.g., library API requirement), retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.gerunds.sh given: [case13] the per-word alternative arms when: [t0] a write trips a matched arm and the fallback together then: the WHOLE message is snapshotted 1`] = `
+"
+✋ ConstraintError: gerund(s) detected in file write
+
+file: surf.ts
+
+detected gerunds:
+  ⛔ loading → consider: load, loaded, loader
+  ⛔ parsing → consider: parse, parsed, parser
+  ⛔ sibling → consider: remove -ing suffix
+
+gerunds degrade clarity. see rule.forbid.gerunds for alternatives.
+
+if this is intentional and absolutely unavoidable (e.g., library API requirement), retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.gerunds.sh given: [case17] the nudge STATE FILE is unparseable json when: [t0] a write trips an -ing word then: the WHOLE stderr reads as a human would meet it 1`] = `
+"💥 MalfunctionError: HARDNUDGE record NOT saved — could not update the nudge file
+    file:   <nudge-file>
+    why:    it is unparseable json, or the write failed
+    effect: a deliberate retry will RE-BLOCK instead of pass
+    fix:    rm '<nudge-file>'  — it is a local cache and regenerates
+
+✋ ConstraintError: gerund(s) detected in file write
+
+file: test.ts
+
+detected gerunds:
+  ⛔ running → consider: run, active, runner
+
+gerunds degrade clarity. see rule.forbid.gerunds for alternatives.
+
+if this is intentional and absolutely unavoidable (e.g., library API requirement), retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.gerunds.sh given: [case19] the nudge file is VALID but the write to it cannot land when: [t0] a first write trips a gerund and the record cannot be stamped then: the WHOLE warn+block render is snapshotted 1`] = `
+"mv: cannot move '<mv-temp-file> to '<nudge-file>': Permission denied
+💥 MalfunctionError: HARDNUDGE record NOT saved — could not update the nudge file
+    file:   <nudge-file>
+    why:    it is unparseable json, or the write failed
+    effect: a deliberate retry will RE-BLOCK instead of pass
+    fix:    rm '<nudge-file>'  — it is a local cache and regenerates
+
+✋ ConstraintError: gerund(s) detected in file write
+
+file: /tmp/surfboard.ts
+
+detected gerunds:
+  ⛔ rising → consider: remove -ing suffix
+
+gerunds degrade clarity. see rule.forbid.gerunds for alternatives.
+
+if this is intentional and absolutely unavoidable (e.g., library API requirement), retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms.gerunds.sh given: [case20] arms a broader glob ABSORBS — the current text, pinned when: [t0] a write trips all four absorbed words at once then: the WHOLE message is snapshotted 1`] = `
+"
+✋ ConstraintError: gerund(s) detected in file write
+
+file: surf.ts
+
+detected gerunds:
+  ⛔ disconnecting → consider: connect, connected, connector
+  ⛔ rebinding → consider: bind, bound, binder
+  ⛔ unlocking → consider: lock, locked, locker
+  ⛔ unwrapping → consider: wrap, wrapped, wrapper
+
+gerunds degrade clarity. see rule.forbid.gerunds for alternatives.
+
+if this is intentional and absolutely unavoidable (e.g., library API requirement), retry the same operation.
+
+"
+`;

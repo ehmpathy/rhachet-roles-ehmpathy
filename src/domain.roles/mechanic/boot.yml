@@ -140,6 +140,7 @@ subject.code.prod:
       - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failloud.md
       - briefs/practices/code.prod/pitofsuccess.errors/rule.prefer.helpful-error-wrap.md
       - briefs/practices/code.prod/pitofsuccess.errors/rule.require.exit-code-semantics.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.qualified-error-headers.md
 
       # procedures (pit of success)
       - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md

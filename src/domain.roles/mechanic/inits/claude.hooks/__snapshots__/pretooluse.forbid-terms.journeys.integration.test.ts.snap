@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse.forbid-terms — the multi-call journeys given: [case4] a maintainer changes a word list between two edits when: [t1] the maintainer ADDS a term, then an editor writes it then: and the WHOLE refusal render is snapshotted 1`] = `
+"
+✋ ConstraintError: forbidden term(s) detected in file write
+
+file: surf-a.ts
+
+detected terms:
+  ⛔ kelpwrangle
+    why: kelpwrangle is a test term
+    alt: seaweed, kelp
+
+see rule.forbid.term-* briefs for rationale.
+
+if this is intentional and absolutely unavoidable, retry the same operation.
+
+"
+`;
+
+exports[`pretooluse.forbid-terms — the multi-call journeys given: [case8] one file, one session, both gates when: [t0] an editor trips the blocklist, overrides, then trips gerunds then: 🔴 the WHOLE four-step render is snapshotted — the centered demo 1`] = `
+{
+  "step1.blocklist.refusal": "
+✋ ConstraintError: forbidden term(s) detected in file write
+
+file: surf.ts
+
+detected terms:
+  ⛔ nothing
+    why: vague negation - prefer precise alternatives that convey what is absent or empty
+    alt: not one, none, no results, empty, absent, omitted
+
+see rule.forbid.term-* briefs for rationale.
+
+if this is intentional and absolutely unavoidable, retry the same operation.
+
+",
+  "step2.blocklist.retry.permitted": "",
+  "step3.gerunds.refusal": "
+✋ ConstraintError: gerund(s) detected in file write
+
+file: surf.ts
+
+detected gerunds:
+  ⛔ processing → consider: process, processed, processor
+
+gerunds degrade clarity. see rule.forbid.gerunds for alternatives.
+
+if this is intentional and absolutely unavoidable (e.g., library API requirement), retry the same operation.
+
+",
+  "step4.gerunds.retry.permitted": "",
+}
+`;

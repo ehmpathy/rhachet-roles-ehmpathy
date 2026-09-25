@@ -1,0 +1,72 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`forbid-terms hooks · fork budget given: [case1] a clean Write that trips no term — the hot path when: [t0] the gerunds hook runs under the shim then: the breakdown is snapshotted, so a shift shows in the diff 1`] = `
+{
+  "cat": 1,
+  "grep": 1,
+  "jq": 2,
+}
+`;
+
+exports[`forbid-terms hooks · fork budget given: [case1] a clean Write that trips no term — the hot path when: [t1] the blocklist hook runs under the shim then: the breakdown is snapshotted, so a shift shows in the diff 1`] = `
+{
+  "cat": 1,
+  "grep": 1,
+  "jq": 3,
+  "sed": 1,
+}
+`;
+
+exports[`forbid-terms hooks · fork budget given: [case2] a Write that DOES trip a term when: [t0] the blocklist hook runs under the shim then: the breakdown is snapshotted 1`] = `
+{
+  "cat": 1,
+  "cut": 1,
+  "date": 1,
+  "grep": 10,
+  "jq": 6,
+  "mktemp": 2,
+  "mv": 2,
+  "sed": 1,
+  "sha256sum": 1,
+}
+`;
+
+exports[`forbid-terms hooks · fork budget given: [case2] a Write that DOES trip a term when: [t1] the GERUNDS hook runs under the shim then: the breakdown is snapshotted 1`] = `
+{
+  "cat": 1,
+  "cut": 1,
+  "date": 1,
+  "grep": 3,
+  "jq": 6,
+  "mktemp": 2,
+  "mv": 2,
+  "sed": 2,
+  "sha256sum": 1,
+  "sort": 1,
+}
+`;
+
+exports[`forbid-terms hooks · fork budget given: [case5] a permitted RETRY, inside the nudge window when: [t0] the blocklist hook runs under the shim then: the breakdown is snapshotted 1`] = `
+{
+  "cat": 1,
+  "cut": 1,
+  "date": 1,
+  "grep": 10,
+  "jq": 4,
+  "sed": 1,
+  "sha256sum": 1,
+}
+`;
+
+exports[`forbid-terms hooks · fork budget given: [case5] a permitted RETRY, inside the nudge window when: [t1] the GERUNDS hook runs under the shim then: the breakdown is snapshotted 1`] = `
+{
+  "cat": 1,
+  "cut": 1,
+  "date": 1,
+  "grep": 3,
+  "jq": 4,
+  "sed": 2,
+  "sha256sum": 1,
+  "sort": 1,
+}
+`;

@@ -45,3 +45,9 @@ throw new MalfunctionError('database connection failed', {
 
 - error without proper class = blocker
 - error without context = blocker
+
+## .see also
+
+- `rule.require.qualified-error-headers` — the class must be NAMED in the header a human
+  reads, not merely thrown in code
+- `rule.require.exit-code-semantics` — the exit code each class carries
