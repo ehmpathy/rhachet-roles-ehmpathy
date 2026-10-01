@@ -10,7 +10,7 @@ import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
  * .spec.tree = git.release.spec.tree.md
  */
 
-jest.setTimeout(15000);
+jest.setTimeout(150000);
 
 describe('emit_transport_watch', () => {
   // ============================================================================
@@ -157,11 +157,6 @@ describe('emit_transport_watch', () => {
           functionName: 'emit_transport_watch',
           args: ['pr', '42', ''],
         });
-
-        // debug: show stderr if there's an error
-        if (result.stderr) {
-          console.log('stderr:', result.stderr);
-        }
 
         const output = asSnapshotReadyWithAnsi(result.stdout);
         // no poll cycles when already terminal

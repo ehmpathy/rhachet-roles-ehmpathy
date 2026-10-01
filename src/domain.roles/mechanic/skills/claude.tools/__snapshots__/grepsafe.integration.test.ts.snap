@@ -1,11 +1,212 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`grepsafe.sh given: [case5] --files-only mode when: [t0] files-only flag is set then: the files-only vibes frame matches snapshot 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: match
+   ├─ path: .
+   ├─ engine: rg
+   ├─ files: 1
+   └─ results
+      ├─
+      │
+      │  src/a.ts
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case6] --count mode when: [t0] count flag is set then: the count vibes frame matches snapshot 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: paddleOut
+   ├─ path: .
+   ├─ engine: rg
+   ├─ files: 1
+   └─ results
+      ├─
+      │
+      │  src/a.ts:3
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case7] case insensitive search when: [t0] -i flag is set then: case is ignored in matches 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: hello
+   ├─ path: .
+   ├─ engine: rg
+   ├─ lines: 3
+   └─ results
+      ├─
+      │
+      │  a.txt:1:Hello
+      │  a.txt:2:hello
+      │  a.txt:3:HELLO
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case8] --head limit names the cut it made when: [t0] the limit is BELOW the match count then: the tally names the total and the cut, and the body holds N 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: match
+   ├─ path: .
+   ├─ engine: rg
+   ├─ lines: 5 (first 2)
+   └─ results
+      ├─
+      │
+      │  a.txt:1:match1
+      │  a.txt:2:match2
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case8] --head limit names the cut it made when: [t1] the limit is ABOVE the match count (the control) then: the tally is plain — no cut was made, so none is named 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: match
+   ├─ path: .
+   ├─ engine: rg
+   ├─ lines: 5
+   └─ results
+      ├─
+      │
+      │  a.txt:1:match1
+      │  a.txt:2:match2
+      │  a.txt:3:match3
+      │  a.txt:4:match4
+      │  a.txt:5:match5
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case8] --head limit names the cut it made when: [t2] the cut is made under --files-only then: the tally names FILES, never lines, and still marks the cut 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .
+   ├─ engine: rg
+   ├─ files: 3 (first 1)
+   └─ results
+      ├─
+      │
+      │  a.txt
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case10] argument validation when: [t2] --help flag then: the --help notes block matches snapshot 1`] = `
+"usage: grepsafe.sh --pattern 'regex' [options]
+
+options:
+  --pattern REGEX    search pattern (required)
+  --path DIR         search directory (default: .); repeat to search
+                     several
+  --from @stdin      search piped text, not files (implied when
+                     text is piped in)
+  --glob GLOB        file filter glob (e.g., '*.ts')
+  --type TYPE        file type filter (e.g., ts, py, sh)
+  --context N        context lines around matches
+  --files-only       show file paths only; wins over --count
+  --count            show match counts per file
+  -i                 case insensitive
+  --head N           limit output to N rows; the tally then reads
+                     '<files|rows|lines>: <total> (first N)', so a cut
+                     is never silent. the label names what it counts:
+                     files (--files-only|--count), rows (--context),
+                     lines otherwise
+  --tail N           keep the last N rows; the tally then reads
+                     '<label>: <total> (last N)'. not with --head
+  --multiline        let a match span lines
+  --output MODE      vibes|pipeable (default: vibes)
+
+notes:
+  to name a path opts into every skip that would hide it.
+  --path, or a --glob whose leading segments are a real directory,
+  lifts --hidden and the ignore rules and follows a named symlink,
+  scoped to that root. a tree met deeper on the walk keeps its
+  default skips. a glob with no literal prefix ('**/*.md')
+  names no path.
+
+  a glob reads as .gitignore reads it, relative to --path: one
+  with a slash is anchored ('docs/*.md' skips 'docs/sub/'), one
+  with none matches at any depth. each brace alternative names
+  its own root: '{src/**,.behavior/**}' walks both.
+
+  a walk skips hidden paths. when a hidden file holds a match, the
+  output says so — beside a zero or beside results — and names the
+  --path that reaches it.
+
+  piped text is the subject when it is present. piped text beside
+  --path, --glob, or --type names two subjects, so it is refused.
+
+  rg (ripgrep) is required. with no rg, grepsafe refuses rather
+  than report a silent 0.
+
+  every search root must sit within the repo. a '..' or a leading
+  '/' in --glob is refused, same as a --path outside the repo.
+
+  --output pipeable renders an empty result as empty (exit 0), so
+  'no file matched the glob' and 'no line matched the pattern'
+  read alike. the vibes default names which zero it found.
+  --output 'direct' is renamed 'pipeable'; the old value is
+  refused (exit 2) with the new name.
+  --head and --tail take a positive integer of at most 18 digits;
+  any other value is refused (exit 2), never reinterpreted.
+  every --path is searched. a bare positional root stands alone:
+  beside another root it is refused (exit 2), since an unquoted
+  glob the shell expanded lands there too.
+
+example:
+  grepsafe.sh --pattern 'paddleOut|wipeout' --glob 'src/**/*.ts'
+"
+`;
+
+exports[`grepsafe.sh given: [case11] safety boundary - path outside repo when: [t0] search path is absolute outside repo then: exits with constraint error 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: search path must be within the git repository
+      ├─ repo root:   <repo>
+      ├─ search path: <outside>
+      └─ named by:    --path
+
+🥥 did you know?
+   ├─ name a path under the repo root: no '..' segments, and an absolute path must itself sit under that root
+   └─ grepsafe.sh --pattern 'content' --path <repo>
+"
+`;
+
+exports[`grepsafe.sh given: [case11] safety boundary - path outside repo when: [t2] the same boundary is crossed under --output pipeable then: stdout stays pipe-clean and stderr names the fix 1`] = `
+"grepsafe: search path must be within the git repository
+  repo root:   <repo>
+  search path: <outside>
+  named by:    --path
+fix: name a path under the repo root: no '..' segments, and an absolute path must itself sit under that root — grepsafe.sh --pattern 'content' --path <repo>
+"
+`;
+
 exports[`grepsafe.sh given: [case13] output format snapshots when: [t0] match found then: output matches snapshot 1`] = `
 "🐢 sweet
 
 🐚 grepsafe
    ├─ pattern: hello
    ├─ path: .
+   ├─ engine: rg
    ├─ lines: 1
    └─ results
       ├─
@@ -22,7 +223,8 @@ exports[`grepsafe.sh given: [case13] output format snapshots when: [t1] no match
 🐚 grepsafe
    ├─ pattern: nonexistent
    ├─ path: .
-   └─ matches: 0
+   ├─ engine: rg
+   └─ matches: 0 — no line matched the pattern
 "
 `;
 
@@ -30,22 +232,692 @@ exports[`grepsafe.sh given: [case13] output format snapshots when: [t2] regex wi
 "🐢 sweet
 
 🐚 grepsafe
-   ├─ pattern: foo|bar
+   ├─ pattern: paddleOut|wipeout
    ├─ path: .
    ├─ glob: *.ts
+   ├─ engine: rg
    ├─ lines: 2
    └─ results
       ├─
       │
-      │  src/a.ts:1:const foo = 1;
-      │  src/b.ts:1:const bar = 2;
+      │  src/a.ts:1:const paddleOut = 1;
+      │  src/b.ts:1:const wipeout = 2;
       │
       └─
 "
 `;
 
-exports[`grepsafe.sh given: [case14] --output direct mode when: [t2] direct output snapshot then: output matches snapshot 1`] = `
-"src/a.ts:1:const foo = 1;
-src/b.ts:1:const bar = 2;
+exports[`grepsafe.sh given: [case14] --output pipeable mode when: [t2] pipeable output snapshot then: output matches snapshot 1`] = `
+"src/a.ts:1:const paddleOut = 1;
+src/b.ts:1:const wipeout = 2;
+"
+`;
+
+exports[`grepsafe.sh given: [case24] failfast when rg is absent (acceptance 5) when: [t0.5] rg is on PATH but broken, and says why then: the broken-rg vibes frame reads as a caller reads it 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: ripgrep (rg) is on PATH but could not run
+      ├─ grepsafe searches with rg only; there is no fallback engine
+      └─ rg said: rg: symbol lookup error: undefined symbol pcre2_compile_8
+
+🥥 did you know?
+   ├─ repair or reinstall the rg on your PATH, then re-run
+   └─ https://github.com/BurntSushi/ripgrep#installation
+"
+`;
+
+exports[`grepsafe.sh given: [case24] failfast when rg is absent (acceptance 5) when: [t1] --output pipeable meets the same absent rg then: stdout stays pipe-clean; the failfast goes to stderr 1`] = `
+"grepsafe: ripgrep (rg) is required but was not found
+fix: install ripgrep, then re-run — https://github.com/BurntSushi/ripgrep#installation
+"
+`;
+
+exports[`grepsafe.sh given: [case24] failfast when rg is absent (acceptance 5) when: [t2] --output pipeable meets an rg that is broken, never absent then: the plain line names the real state too, never "was not found" 1`] = `
+"grepsafe: ripgrep (rg) is on PATH but could not run — rg said: rg: symbol lookup error: undefined symbol pcre2_compile_8
+fix: repair or reinstall the rg on your PATH, then re-run — https://github.com/BurntSushi/ripgrep#installation
+"
+`;
+
+exports[`grepsafe.sh given: [case28] a \`..\` glob prefix cannot escape the repo (forbidden invariant) when: [t0] a glob names a path above the repo root then: it refuses with a constraint error, and names --glob 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: search path must be within the git repository
+      ├─ repo root:   <repo>
+      ├─ search path: <repo-parent>
+      └─ named by:    --glob
+
+🥥 did you know?
+   ├─ name a path under the repo root: no '..' segments, and an absolute path must itself sit under that root
+   └─ grepsafe.sh --pattern 'paddleOut' --path <repo>
+"
+`;
+
+exports[`grepsafe.sh given: [case28] a \`..\` glob prefix cannot escape the repo (forbidden invariant) when: [t4] the boundary refusal runs under --output pipeable then: stdout is pipe-clean, and stderr carries the refusal 1`] = `
+"grepsafe: search path must be within the git repository
+  repo root:   <repo>
+  search path: <repo-parent>
+  named by:    --glob
+fix: name a path under the repo root: no '..' segments, and an absolute path must itself sit under that root — grepsafe.sh --pattern 'paddleOut' --path <repo>
+"
+`;
+
+exports[`grepsafe.sh given: [case28] a \`..\` glob prefix cannot escape the repo (forbidden invariant) when: [t5] a nonexistent --path runs under --output pipeable then: stdout is pipe-clean, and stderr names the fix 1`] = `
+"grepsafe: search path does not exist: no/such/dir
+  reason: realpath: no/such/dir: No such file or directory
+fix: check the path, then name a root that exists — grepsafe.sh --pattern 'paddleOut' --path .
+"
+`;
+
+exports[`grepsafe.sh given: [case28] a \`..\` glob prefix cannot escape the repo (forbidden invariant) when: [t6] a nonexistent --path under vibes mode then: both streams carry it, as every vibes refusal does 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: search path does not exist: no/such/dir
+      └─ reason: realpath: no/such/dir: No such file or directory
+
+🥥 did you know?
+   ├─ check the path, then name a root that exists
+   └─ grepsafe.sh --pattern 'paddleOut' --path .
+"
+`;
+
+exports[`grepsafe.sh given: [case29] the new output shapes are snapped, not only asserted when: [t0] a glob selects no file then: the glob-empty zero matches snapshot 1`] = `
+"🐢 crickets...
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .
+   ├─ glob: *.nomatch
+   ├─ engine: rg
+   └─ matches: 0 — no file matched the glob
+"
+`;
+
+exports[`grepsafe.sh given: [case29] the new output shapes are snapped, not only asserted when: [t1] rg is shadowed to look absent then: the failfast refusal matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: ripgrep (rg) is required but was not found
+      └─ grepsafe searches with rg only; there is no fallback engine
+
+🥥 did you know?
+   ├─ install ripgrep, then re-run
+   └─ https://github.com/BurntSushi/ripgrep#installation
+"
+`;
+
+exports[`grepsafe.sh given: [case29] the new output shapes are snapped, not only asserted when: [t2] a named slashed glob finds its matches then: the engine-named match frame matches snapshot 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .buried
+   ├─ glob: .buried/**/*.sh
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ files: 1
+   └─ results
+      ├─
+      │
+      │  .buried/deep/x.sh
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case31] an engine diagnostic is never counted as a match when: [t1] --output pipeable meets the same unreadable path then: stdout stays pipe-clean; the gap goes to stderr 1`] = `
+"grepsafe: some paths could not be searched
+denied: Permission denied (os error 13)
+fix: grant read access, or narrow the walk with --path or --glob so these paths fall outside it
+"
+`;
+
+exports[`grepsafe.sh given: [case31] an engine diagnostic is never counted as a match when: [t2] the unread frame is rendered then: the whole frame is snapped, and it names the fix 1`] = `
+"🐢 crickets...
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: denied
+   ├─ glob: denied/**/*.txt
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ matches: 0 — no readable file matched the glob
+   └─ unread — these paths could not be searched
+      ├─
+      │
+      │  denied: Permission denied (os error 13)
+      │  denied: Permission denied (os error 13)
+      │
+      │  fix: grant read access, or narrow the walk with --path or --glob so these paths fall outside it
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case32] --type carries its own zero-kind (acceptance 7) when: [t0] a --type selects no file then: the zero names the type, not the pattern 1`] = `
+"🐢 crickets...
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .
+   ├─ type: py
+   ├─ engine: rg
+   └─ matches: 0 — no file matched the type
+"
+`;
+
+exports[`grepsafe.sh given: [case32] --type carries its own zero-kind (acceptance 7) when: [t1] a --type and a --glob both select no file then: the zero names both filters 1`] = `
+"🐢 crickets...
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .
+   ├─ glob: *.nomatch
+   ├─ type: py
+   ├─ engine: rg
+   └─ matches: 0 — no file matched the glob and type
+"
+`;
+
+exports[`grepsafe.sh given: [case32] --type carries its own zero-kind (acceptance 7) when: [t4] a --type selects a file AND a line matches then: the header echoes the type, beside the glob 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .
+   ├─ type: sh
+   ├─ engine: rg
+   ├─ lines: 1
+   └─ results
+      ├─
+      │
+      │  a.sh:2:paddleOut on the reef break
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case33] --path and --glob compose (the anchor) when: [t2] a --path is given AND the glob prefix cannot join under it then: the zero is honest, and no unread block is invented 1`] = `
+"🐢 crickets...
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: src
+   ├─ glob: src/nested/**/*.sh
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   └─ matches: 0 — no file matched the glob
+"
+`;
+
+exports[`grepsafe.sh given: [case35] a fatal engine error is never reported as a zero when: [t0] the engine refuses the input outright then: it reports a refusal, not a count, and exits 2 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .
+   ├─ type: nosuchtype
+   ├─ engine: rg
+   └─ refused — the search never ran, so there is no count
+      ├─
+      │
+      │  unrecognized file type: nosuchtype
+      │
+      │  fix: correct the input named above — check --pattern, --glob, and --type
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case35] a fatal engine error is never reported as a zero when: [t2] --output pipeable meets the same refusal then: stdout stays pipe-clean; the refusal goes to stderr 1`] = `
+"grepsafe: the search never ran, so there is no count
+unrecognized file type: nosuchtype
+fix: correct the input named above — check --pattern, --glob, and --type
+"
+`;
+
+exports[`grepsafe.sh given: [case36] the result tally is labeled by its mode when: [t3] --context is given then: the tally counts ROWS and says so 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .
+   ├─ engine: rg
+   ├─ rows: 3
+   └─ results
+      ├─
+      │
+      │  src/a.ts-1-before
+      │  src/a.ts:2:paddleOut on the reef break
+      │  src/a.ts-3-after
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case37] every usage refusal honors the stream contract when: [t0] an unknown flag, under vibes then: both streams carry it 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: unknown option: --nosuchflag
+      └─ usage: grepsafe.sh --pattern 'regex' [--path dir] [--glob '*.ts']
+
+🥥 did you know?
+   ├─ see the full flag list
+   └─ grepsafe.sh --help
+"
+`;
+
+exports[`grepsafe.sh given: [case37] every usage refusal honors the stream contract when: [t1] an unknown flag, under --output pipeable then: stdout is pipe-clean and stderr names the fix 1`] = `
+"grepsafe: unknown option: --nosuchflag
+usage: grepsafe.sh --pattern 'regex' [--path dir] [--glob '*.ts']
+fix: see the full flag list — grepsafe.sh --help
+"
+`;
+
+exports[`grepsafe.sh given: [case37] every usage refusal honors the stream contract when: [t2] --pattern is absent, under --output pipeable then: stdout is pipe-clean and stderr carries the usage 1`] = `
+"grepsafe: --pattern is required
+usage: grepsafe.sh --pattern 'regex' [--path dir] [--glob '*.ts']
+fix: pass the regex to search for — grepsafe.sh --pattern 'paddleOut|wipeout'
+"
+`;
+
+exports[`grepsafe.sh given: [case37] every usage refusal honors the stream contract when: [t3] --pattern is absent, under vibes (the control) then: both streams carry it 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: --pattern is required
+      └─ usage: grepsafe.sh --pattern 'regex' [--path dir] [--glob '*.ts']
+
+🥥 did you know?
+   ├─ pass the regex to search for
+   └─ grepsafe.sh --pattern 'paddleOut|wipeout'
+"
+`;
+
+exports[`grepsafe.sh given: [case37] every usage refusal honors the stream contract when: [t4] the --output value itself is unrecognized then: both streams carry it, and it names the valid set 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: --output must be one of: vibes, pipeable
+      └─ got: drect
+
+🥥 did you know?
+   ├─ name one of the two modes, or omit --output for vibes
+   └─ grepsafe.sh --pattern 'paddleOut' --output pipeable
+"
+`;
+
+exports[`grepsafe.sh given: [case37] every usage refusal honors the stream contract when: [t5] there is no git repo, under --output pipeable then: stdout is pipe-clean and stderr names the fix 1`] = `
+"grepsafe: not in a git repository
+  grepsafe bounds every search to a repo root, so it needs one to bound against
+fix: cd into a git repository, or make this directory one — git init
+"
+`;
+
+exports[`grepsafe.sh given: [case37] every usage refusal honors the stream contract when: [t6] the unknown flag comes BEFORE --output pipeable then: stdout stays pipe-clean, exactly as in [t1] 1`] = `
+"grepsafe: unknown option: --nosuchflag
+usage: grepsafe.sh --pattern 'regex' [--path dir] [--glob '*.ts']
+fix: see the full flag list — grepsafe.sh --help
+"
+`;
+
+exports[`grepsafe.sh given: [case37] every usage refusal honors the stream contract when: [t7] every pipeable refusal, as a set then: each stderr headline carries the one grepsafe: prefix 1`] = `
+"── unknown flag ──
+grepsafe: unknown option: --nosuchflag
+usage: grepsafe.sh --pattern 'regex' [--path dir] [--glob '*.ts']
+fix: see the full flag list — grepsafe.sh --help
+
+── absent --pattern ──
+grepsafe: --pattern is required
+usage: grepsafe.sh --pattern 'regex' [--path dir] [--glob '*.ts']
+fix: pass the regex to search for — grepsafe.sh --pattern 'paddleOut|wipeout'
+
+── bad --head ──
+grepsafe: --head must be a positive integer of at most 18 digits
+  got: -5
+fix: pass a whole number above zero, or omit --head for no limit — grepsafe.sh --pattern 'paddleOut' --head 20
+
+── root named twice ──
+grepsafe: the search root was named twice
+  first: .
+  then:  alsohere
+fix: name each root with --path; a bare positional root stands alone — grepsafe.sh --pattern 'paddleOut' --path src --path test
+
+── path outside the repo ──
+grepsafe: search path must be within the git repository
+  repo root:   /tmp/TEMP_DIR
+  search path: /etc
+  named by:    --path
+fix: name a path under the repo root: no '..' segments, and an absolute path must itself sit under that root — grepsafe.sh --pattern 'paddleOut on the reef break' --path /tmp/TEMP_DIR
+"
+`;
+
+exports[`grepsafe.sh given: [case38] a root that will not expand states WHY when: [t0] a --glob prefix sits under an unreadable parent then: the zero names the reason, never a bare no-file-matched 1`] = `
+"🐢 crickets...
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .
+   ├─ glob: denied/sub/**/*.txt
+   ├─ engine: rg
+   ├─ matches: 0 — the path named by --glob could not be read
+   └─ unread — these paths could not be searched
+      ├─
+      │
+      │  denied: Permission denied (os error 13)
+      │  denied: Permission denied (os error 13)
+      │  realpath: ./denied/sub: Permission denied
+      │
+      │  fix: grant read access, or narrow the walk with --path or --glob so these paths fall outside it
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case38] a root that will not expand states WHY when: [t1] a --glob prefix is merely absent under a real parent then: the zero stays plain, with no reason attached 1`] = `
+"🐢 crickets...
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .
+   ├─ glob: src/nope/**/*.ts
+   ├─ engine: rg
+   └─ matches: 0 — no file matched the glob
+"
+`;
+
+exports[`grepsafe.sh given: [case38] a root that will not expand states WHY when: [t2] --path names a symlink loop then: the refusal says it could not be opened, and why 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: search path could not be opened: loop
+      └─ reason: realpath: loop: Too many levels of symbolic links
+
+🥥 did you know?
+   ├─ check that every parent is traversable, that no component is a file, and that no symlink loops
+   └─ ls -ld loop
+"
+`;
+
+exports[`grepsafe.sh given: [case39] a SKIP inside a reachable root is its own zero when: [t0] every file that matches sits under the unreadable subtree then: the zero names the unreadable skip, and the skip is surfaced 1`] = `
+"🐢 crickets...
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: reachable
+   ├─ glob: reachable/**/*.txt
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ matches: 0 — no readable file matched the glob
+   └─ unread — these paths could not be searched
+      ├─
+      │
+      │  reachable/denied: Permission denied (os error 13)
+      │  reachable/denied: Permission denied (os error 13)
+      │
+      │  fix: grant read access, or narrow the walk with --path or --glob so these paths fall outside it
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case39] a SKIP inside a reachable root is its own zero when: [t1] a readable file matches BESIDE the unreadable subtree then: the results and the unread caveat are rendered together 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: reachable
+   ├─ glob: reachable/**/*.txt
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ results
+   │  ├─
+   │  │
+   │  │  reachable/seen-match.txt:1:paddleOut on the reef break
+   │  │
+   │  └─
+   └─ unread — these paths could not be searched
+      ├─
+      │
+      │  reachable/denied: Permission denied (os error 13)
+      │
+      │  fix: grant read access, or narrow the walk with --path or --glob so these paths fall outside it
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case40] every refusal names a next move when: [t2] --head refuses bad input and accepts good then: --head 0 is refused, and the refusal is deliberate 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: --head must be a positive integer of at most 18 digits
+      └─ got: 0
+
+🥥 did you know?
+   ├─ pass a whole number above zero, or omit --head for no limit
+   └─ grepsafe.sh --pattern 'paddleOut' --head 20
+"
+`;
+
+exports[`grepsafe.sh given: [case40] every refusal names a next move when: [t2] --head refuses bad input and accepts good then: a negative --head refuses instead of silently truncating 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: --head must be a positive integer of at most 18 digits
+      └─ got: -5
+
+🥥 did you know?
+   ├─ pass a whole number above zero, or omit --head for no limit
+   └─ grepsafe.sh --pattern 'paddleOut' --head 20
+"
+`;
+
+exports[`grepsafe.sh given: [case40] every refusal names a next move when: [t2] --head refuses bad input and accepts good then: a non-numeric --head is a CONSTRAINT, not a malfunction 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: --head must be a positive integer of at most 18 digits
+      └─ got: abc
+
+🥥 did you know?
+   ├─ pass a whole number above zero, or omit --head for no limit
+   └─ grepsafe.sh --pattern 'paddleOut' --head 20
+"
+`;
+
+exports[`grepsafe.sh given: [case40] every refusal names a next move when: [t2] --head refuses bad input and accepts good then: an oversized --head is refused, never wrapped to a false zero 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: --head must be a positive integer of at most 18 digits
+      └─ got: 10000000000000000000
+
+🥥 did you know?
+   ├─ pass a whole number above zero, or omit --head for no limit
+   └─ grepsafe.sh --pattern 'paddleOut' --head 20
+"
+`;
+
+exports[`grepsafe.sh given: [case40] every refusal names a next move when: [t4] positional args beyond pattern and path then: --path AFTER a positional root is refused 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: the search root was named twice
+      ├─ first: sub
+      └─ then:  strayarg
+
+🥥 did you know?
+   ├─ name each root with --path; a bare positional root stands alone
+   └─ grepsafe.sh --pattern 'paddleOut' --path src --path test
+"
+`;
+
+exports[`grepsafe.sh given: [case40] every refusal names a next move when: [t4] positional args beyond pattern and path then: a THIRD positional is refused, and names BOTH roots 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: the search root was named twice
+      ├─ first: sub
+      └─ then:  strayarg
+
+🥥 did you know?
+   ├─ name each root with --path; a bare positional root stands alone
+   └─ grepsafe.sh --pattern 'paddleOut' --path src --path test
+"
+`;
+
+exports[`grepsafe.sh given: [case40] every refusal names a next move when: [t4] positional args beyond pattern and path then: the REVERSE order refuses identically 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: the search root was named twice
+      ├─ first: sub
+      └─ then:  strayarg
+
+🥥 did you know?
+   ├─ name each root with --path; a bare positional root stands alone
+   └─ grepsafe.sh --pattern 'paddleOut' --path src --path test
+"
+`;
+
+exports[`grepsafe.sh given: [case40] every refusal names a next move when: [t5] the retired --output value is passed then: the refusal names the rename AND the replacement 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: --output direct was renamed to pipeable
+      └─ got: direct
+
+🥥 did you know?
+   ├─ pass --output pipeable — same behavior, current name
+   └─ grepsafe.sh --pattern 'paddleOut' --output pipeable
+"
+`;
+
+exports[`grepsafe.sh given: [case40] every refusal names a next move when: [t5] the retired --output value is passed then: 🟢 CONTROL — a never-valid mode keeps the generic refusal 1`] = `
+"🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: --output must be one of: vibes, pipeable
+      └─ got: nosuchmode
+
+🥥 did you know?
+   ├─ name one of the two modes, or omit --output for vibes
+   └─ grepsafe.sh --pattern 'paddleOut' --output pipeable
+"
+`;
+
+exports[`grepsafe.sh given: [case41] every glob shape answers from the root it names when: [t2] a brace group that names more than one root then: the header names every root the legs walked 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ paths: docs, src
+   ├─ glob: {docs/*.md,src/*.ts}
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 2
+   └─ results
+      ├─
+      │
+      │  docs/a.md:1:paddleOut on the reef break top
+      │  src/d.ts:1:paddleOut on the reef break ts
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case41] every glob shape answers from the root it names when: [t4] the only match sits behind a dot dir the walk skipped then: the pruned zero is snapped 1`] = `
+"🐢 crickets...
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .
+   ├─ glob: *.md
+   ├─ engine: rg
+   └─ matches: 0 — none in the walked trees, but 1 hidden file(s) hold a match
+
+🥥 did you know?
+   ├─ a walk skips hidden paths; name them as --path to search them
+   └─ grepsafe.sh --pattern 'paddleOut on the reef break' --path .behavior --glob '*.md'
+"
+`;
+
+exports[`grepsafe.sh given: [case42] every root, the pipe, the tail, and the hidden skip when: [t0] --path is repeated then: the two-root answer is snapped 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ paths: a, b
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ files: 2
+   └─ results
+      ├─
+      │
+      │  a/one.md
+      │  b/two.md
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case42] every root, the pipe, the tail, and the hidden skip when: [t2] text is piped in then: the piped answer is snapped 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ input: stdin (piped text)
+   ├─ engine: rg
+   ├─ lines: 1
+   └─ results
+      ├─
+      │
+      │  2:paddleOut on the reef break piped
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case42] every root, the pipe, the tail, and the hidden skip when: [t7] --tail keeps the last rows then: the tail cut is snapped 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .
+   ├─ engine: rg
+   ├─ files: 3 (last 1)
+   └─ results
+      ├─
+      │
+      │  c/three.md
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case42] every root, the pipe, the tail, and the hidden skip when: [t9] results come back, and a hidden file also holds a match then: the partial answer is snapped 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: paddleOut on the reef break
+   ├─ path: .
+   ├─ engine: rg
+   ├─ files: 1
+   ├─ skipped: 2 hidden file(s) also hold a match
+   └─ results
+      ├─
+      │
+      │  a/one.md
+      │
+      └─
+
+🥥 did you know?
+   ├─ a walk skips hidden paths; name them as --path to search them
+   └─ grepsafe.sh --pattern 'paddleOut on the reef break' --path .behavior --path b/.env.example
 "
 `;

@@ -87,12 +87,20 @@ _watch_pr_transport() {
   local in_action
   local poll_interval
   local test_iterations=0
+  local now_seconds
 
   start_time=$(date +%s)
   ci_start_time="$start_time"
 
   while true; do
-    elapsed=$(( $(date +%s) - start_time ))
+    # in test mode, "now" is virtual (+5s per poll), so rendered durations
+    # never depend on host speed. same clock as _.and_then_await.sh
+    if [[ "${GIT_RELEASE_TEST_MODE:-}" == "true" ]]; then
+      now_seconds=$(( start_time + test_iterations * 5 ))
+    else
+      now_seconds=$(date +%s)
+    fi
+    elapsed=$(( now_seconds - start_time ))
 
     # test mode: safety limit
     if [[ "${GIT_RELEASE_TEST_MODE:-}" == "true" ]]; then
@@ -147,7 +155,7 @@ _watch_pr_transport() {
       local ci_end_time
       ci_end_time=$(get_latest_completed_at "$status_json")
       if [[ -z "$ci_end_time" || "$ci_end_time" -eq 0 ]]; then
-        ci_end_time=$(date +%s)
+        ci_end_time="$now_seconds"
       fi
       in_action=$(( ci_end_time - ci_start_time ))
       local in_action_str elapsed_str
@@ -175,7 +183,7 @@ _watch_pr_transport() {
       local ci_end_time
       ci_end_time=$(get_latest_completed_at "$status_json")
       if [[ -z "$ci_end_time" || "$ci_end_time" -eq 0 ]]; then
-        ci_end_time=$(date +%s)
+        ci_end_time="$now_seconds"
       fi
       in_action=$(( ci_end_time - ci_start_time ))
       local in_action_str elapsed_str
@@ -192,7 +200,7 @@ _watch_pr_transport() {
     fi
 
     # emit poll line
-    in_action=$(( $(date +%s) - ci_start_time ))
+    in_action=$(( now_seconds - ci_start_time ))
     local in_action_str elapsed_str
     in_action_str=$(format_duration "$in_action")
     elapsed_str=$(format_duration "$elapsed")
@@ -207,7 +215,7 @@ _watch_pr_transport() {
         local ci_end_time
         ci_end_time=$(get_latest_completed_at "$status_json")
         if [[ -z "$ci_end_time" || "$ci_end_time" -eq 0 ]]; then
-          ci_end_time=$(date +%s)
+          ci_end_time="$now_seconds"
         fi
         in_action=$(( ci_end_time - ci_start_time ))
         in_action_str=$(format_duration "$in_action")
@@ -246,6 +254,7 @@ _watch_tag_transport() {
   local in_action
   local poll_interval
   local test_iterations=0
+  local now_seconds
 
   # grace period: if runs don't appear after this many seconds, assume no workflows
   # in test mode, use poll count instead (3 polls)
@@ -255,7 +264,13 @@ _watch_tag_transport() {
   ci_start_time="$start_time"
 
   while true; do
-    elapsed=$(( $(date +%s) - start_time ))
+    # in test mode, "now" is virtual (+5s per poll); see _watch_pr_transport
+    if [[ "${GIT_RELEASE_TEST_MODE:-}" == "true" ]]; then
+      now_seconds=$(( start_time + test_iterations * 5 ))
+    else
+      now_seconds=$(date +%s)
+    fi
+    elapsed=$(( now_seconds - start_time ))
 
     # test mode: safety limit
     if [[ "${GIT_RELEASE_TEST_MODE:-}" == "true" ]]; then
@@ -295,7 +310,7 @@ _watch_tag_transport() {
         # runs existed before, now all finished
         # use last known completion time if available
         if [[ "$ci_end_time" -eq 0 ]]; then
-          ci_end_time=$(date +%s)
+          ci_end_time="$now_seconds"
         fi
         in_action=$(( ci_end_time - ci_start_time ))
         local in_action_str elapsed_str
@@ -324,7 +339,7 @@ _watch_tag_transport() {
 
         if [[ "$grace_exceeded" == "true" ]]; then
           # no workflows found after grace period - exit successfully
-          in_action=$(( $(date +%s) - ci_start_time ))
+          in_action=$(( now_seconds - ci_start_time ))
           local in_action_str elapsed_str
           in_action_str=$(format_duration "$in_action")
           elapsed_str=$(format_duration "$elapsed")
@@ -336,7 +351,7 @@ _watch_tag_transport() {
         fi
 
         # still within grace period - emit poll line and continue
-        in_action=$(( $(date +%s) - ci_start_time ))
+        in_action=$(( now_seconds - ci_start_time ))
         local in_action_str elapsed_str
         in_action_str=$(format_duration "$in_action")
         elapsed_str=$(format_duration "$elapsed")
@@ -393,7 +408,7 @@ _watch_tag_transport() {
       local ci_end_time
       ci_end_time=$(get_latest_tag_run_completed_at "$runs_json")
       if [[ -z "$ci_end_time" || "$ci_end_time" -eq 0 ]]; then
-        ci_end_time=$(date +%s)
+        ci_end_time="$now_seconds"
       fi
       in_action=$(( ci_end_time - ci_start_time ))
       local in_action_str elapsed_str
@@ -412,7 +427,7 @@ _watch_tag_transport() {
     fi
 
     # emit poll line
-    in_action=$(( $(date +%s) - ci_start_time ))
+    in_action=$(( now_seconds - ci_start_time ))
     local in_action_str elapsed_str
     in_action_str=$(format_duration "$in_action")
     elapsed_str=$(format_duration "$elapsed")

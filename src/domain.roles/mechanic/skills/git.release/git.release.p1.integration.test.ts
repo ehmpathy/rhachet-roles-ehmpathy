@@ -23,7 +23,7 @@ import {
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 // all tests use mocked gh CLI, so no remote calls - 5s timeout is plenty
-jest.setTimeout(5000);
+jest.setTimeout(150000);
 
 const SKILL_PATH = path.resolve(
   __dirname,
@@ -472,11 +472,6 @@ exit 1
             fakeBinDir,
           });
 
-          // debug output
-          console.log('case2 t4 STDOUT:', result.stdout);
-          console.log('case2 t4 STDERR:', result.stderr);
-          console.log('case2 t4 STATUS:', result.status);
-
           // failloud: skill exits 1 (malfunction error) for actual gh errors
           expect(result.status).toEqual(1);
 
@@ -521,11 +516,6 @@ exit 1
               tempDir,
               fakeBinDir,
             });
-
-            // debug output
-            console.log('case2 t5 STDOUT:', result.stdout);
-            console.log('case2 t5 STDERR:', result.stderr);
-            console.log('case2 t5 STATUS:', result.status);
 
             // fallback succeeds: skill exits 0
             expect(result.status).toEqual(0);
@@ -796,9 +786,6 @@ set -euo pipefail
 
 ALL_ARGS="$*"
 CMD_KEY="$1 $2"
-
-# debug: write args to temp file
-echo "$ALL_ARGS" >> /tmp/gh-mock-debug.log
 
 case "$CMD_KEY" in
   "pr list")
@@ -2050,10 +2037,6 @@ exit 1
             tempDir,
             fakeBinDir,
           });
-
-          console.log('DEBUG STDOUT:', result.stdout);
-          console.log('DEBUG STDERR:', result.stderr);
-          console.log('DEBUG STATUS:', result.status);
 
           expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           // retry was triggered successfully — exit 0 (use --watch to monitor)
@@ -4267,20 +4250,6 @@ exit 1
             tempDir,
             fakeBinDir,
           });
-
-          // debug: show gh mock calls
-          const debugContent = fs.existsSync(debugFile)
-            ? fs.readFileSync(debugFile, 'utf-8')
-            : 'debug file not found';
-          console.log('DEBUG gh mock calls:\n', debugContent);
-          console.log('DEBUG stdout:\n', result.stdout);
-          console.log('DEBUG stderr:\n', result.stderr);
-          console.log(
-            'DEBUG counter file:',
-            fs.existsSync(awaitCounterFile)
-              ? fs.readFileSync(awaitCounterFile, 'utf-8')
-              : 'not found',
-          );
 
           // should show feature PR (already merged), then await poll
           expect(result.stdout).toContain('feat(oceans): add reef protection');

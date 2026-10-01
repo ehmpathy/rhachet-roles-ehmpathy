@@ -66,13 +66,30 @@ export const asAnsiMarked = (input: string): string => {
 // ============================================================================
 
 /**
- * .what = collapse consecutive identical poll lines after the 3rd one
+ * .what = the scrubbed duration tokens a poll line can carry
+ * .why = format_duration renders "0s" under 60s and "1m 5s" above; the time
+ *        scrub turns them into "Xs" and "Xm Ys", one claim in two forms
+ */
+const POLL_DURATION = /Xm Ys|Xs/g;
+
+/**
+ * .what = a poll line with its durations masked
+ * .why = a duration is a CLOCK read; the rest of the line is the claim. group a
+ *        run on the claim alone, so a run collapses whether the clock rendered
+ *        "Xs" or "Xm Ys". see rule.require.hermetic-tests.
+ */
+const asPollShape = (line: string): string =>
+  line.replace(POLL_DURATION, 'Xt');
+
+/**
+ * .what = collapse a run of poll lines of one shape after the 3rd one
  * .why = poll count varies with time; show first 3, collapse rest
  */
 export const asPollCollapsed = (input: string): string => {
   const lines = input.split('\n');
   const collapsedLines: string[] = [];
   let lastPollLine: string | null = null;
+  let lastPollShape: string | null = null;
   let pollCount = 0;
 
   const flushPollLines = () => {
@@ -88,21 +105,25 @@ export const asPollCollapsed = (input: string): string => {
       collapsedLines.push(`${indent}├─ ... (Nx more)`);
     }
     lastPollLine = null;
+    lastPollShape = null;
     pollCount = 0;
   };
 
   for (const line of lines) {
-    // match poll lines: contain 💤 and time info (Xs pattern after time replacement)
-    const isPollLine = line.includes('💤') && line.includes('Xs');
+    // a poll line carries 💤 plus a scrubbed duration, "Xs" or "Xm Ys"
+    const isPollLine = line.includes('💤') && POLL_DURATION.test(line);
+    POLL_DURATION.lastIndex = 0; // the /g flag makes .test stateful
 
     if (isPollLine) {
-      if (line === lastPollLine) {
-        // consecutive duplicate poll line, just count it
+      const shape = asPollShape(line);
+      if (shape === lastPollShape) {
+        // same claim, a later clock — count it, do not start a new run
         pollCount++;
       } else {
         // new poll line pattern, flush previous if any
         flushPollLines();
         lastPollLine = line;
+        lastPollShape = shape;
         pollCount = 1;
       }
     } else {

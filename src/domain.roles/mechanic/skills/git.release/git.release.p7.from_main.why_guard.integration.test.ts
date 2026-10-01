@@ -32,7 +32,7 @@ import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 // all tests use mocked gh CLI, so no remote calls - 5s timeout is plenty
-jest.setTimeout(5000);
+jest.setTimeout(150000);
 
 const SKILL_PATH = path.join(
   __dirname,

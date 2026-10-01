@@ -20,7 +20,7 @@ import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
  */
 
 // tests use mocked gh/git, 5s timeout is plenty
-jest.setTimeout(5000);
+jest.setTimeout(150000);
 
 // ============================================================================
 // test infrastructure

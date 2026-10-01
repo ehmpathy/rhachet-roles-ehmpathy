@@ -1265,18 +1265,19 @@ if [[ "$CMD_KEY" == "pr view" ]] && [[ "$ALL_ARGS" == *"--json mergeCommit"* ]];
   exit 0
 fi
 
+# every key-selection branch below asks has(key), never -n on the value:
+# a key set to '' is a real response ("gh ran, found no rows"). see the lookup
+
 # distinguish "pr merge" subvariants: --auto vs direct merge
 if [[ "$CMD_KEY" == "pr merge" ]]; then
   if [[ "$ALL_ARGS" == *"--auto"* ]]; then
     # check for "pr merge auto" key first, fallback to "pr merge"
-    RESPONSE_AUTO=$(echo "$MOCK_RESPONSES" | jq -r '.["pr merge auto"] // empty')
-    if [[ -n "$RESPONSE_AUTO" ]]; then
+    if [[ "$(echo "$MOCK_RESPONSES" | jq -r 'has("pr merge auto")')" == "true" ]]; then
       CMD_KEY="pr merge auto"
     fi
   else
     # direct merge (no --auto): check for "pr merge direct" key first
-    RESPONSE_DIRECT=$(echo "$MOCK_RESPONSES" | jq -r '.["pr merge direct"] // empty')
-    if [[ -n "$RESPONSE_DIRECT" ]]; then
+    if [[ "$(echo "$MOCK_RESPONSES" | jq -r 'has("pr merge direct")')" == "true" ]]; then
       CMD_KEY="pr merge direct"
     fi
   fi
@@ -1297,29 +1298,32 @@ if [[ "$CMD_KEY" == "pr list" ]]; then
     exit 0
   elif [[ "$ALL_ARGS" == *".title"* ]]; then
     # check for "pr list title" key first, fallback to "pr list"
-    RESPONSE_TITLE=$(echo "$MOCK_RESPONSES" | jq -r '.["pr list title"] // empty')
-    if [[ -n "$RESPONSE_TITLE" ]]; then
+    if [[ "$(echo "$MOCK_RESPONSES" | jq -r 'has("pr list title")')" == "true" ]]; then
       CMD_KEY="pr list title"
     fi
   elif [[ "$ALL_ARGS" == *"--state open"* ]]; then
     # check for "pr list open" key first, fallback to "pr list"
-    RESPONSE_OPEN=$(echo "$MOCK_RESPONSES" | jq -r '.["pr list open"] // empty')
-    if [[ -n "$RESPONSE_OPEN" ]]; then
+    if [[ "$(echo "$MOCK_RESPONSES" | jq -r 'has("pr list open")')" == "true" ]]; then
       CMD_KEY="pr list open"
     fi
   elif [[ "$ALL_ARGS" == *"--state merged"* ]]; then
     # check for "pr list merged" key first, fallback to "pr list"
-    RESPONSE_MERGED=$(echo "$MOCK_RESPONSES" | jq -r '.["pr list merged"] // empty')
-    if [[ -n "$RESPONSE_MERGED" ]]; then
+    if [[ "$(echo "$MOCK_RESPONSES" | jq -r 'has("pr list merged")')" == "true" ]]; then
       CMD_KEY="pr list merged"
     fi
   fi
 fi
 
 # lookup response
+#
+# has(key) decides the branch, never the value's truthiness. a key set to ''
+# means "gh ran and found no rows"; an absent key means "the test never taught
+# the mock this command". the mock must tell "succeeded, found none" apart from
+# "failed", or it cannot catch a product that conflates them
+HAS_RESPONSE=$(echo "$MOCK_RESPONSES" | jq -r --arg key "$CMD_KEY" 'has($key)')
 RESPONSE=$(echo "$MOCK_RESPONSES" | jq -r --arg key "$CMD_KEY" '.[$key] // empty')
 
-if [[ -n "$RESPONSE" ]]; then
+if [[ "$HAS_RESPONSE" == "true" ]]; then
   # support error responses: prefix "ERROR:" means exit 1 with message to stderr
   if [[ "$RESPONSE" == ERROR:* ]]; then
     echo "\${RESPONSE#ERROR:}" >&2

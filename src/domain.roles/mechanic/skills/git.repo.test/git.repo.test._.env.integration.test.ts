@@ -128,7 +128,9 @@ module.exports = {
       .replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR')
       .replace(/\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z/g, 'ISOTIME')
       .replace(/\((\d+)s\)/g, '(Xs)')
-      .replace(/time: \d+s/g, 'time: Xs');
+      .replace(/time: \d+s/g, 'time: Xs')
+      // collapse a run of spinner ticks to one: the count tracks host speed
+      .replace(/(^[^\n]*💤 inflight \(Xs\)\n)+/gm, '$1');
 
   given('[case1] default env (no --env flag)', () => {
     when('[t0] --what integration is run without --env', () => {

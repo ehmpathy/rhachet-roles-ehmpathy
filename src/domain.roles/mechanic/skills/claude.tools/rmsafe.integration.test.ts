@@ -1639,6 +1639,10 @@ describe('rmsafe.sh', () => {
             'src/core/bar.bak': 'backup',
             'src/deep/nested/baz.bak': 'backup',
             'src/keep.ts': 'keep',
+            // the negative arm: a `.bak` at baz.bak's depth, outside the named
+            // root. it matches `**/*.bak`, never `src/**/*.bak`, so an
+            // over-widened `**` would delete it
+            'other/deep/nested/keep.bak': 'outside the named root',
           },
           symlinks: {},
           rmsafeArgs: ['--path', 'src/**/*.bak'],
@@ -1674,6 +1678,15 @@ describe('rmsafe.sh', () => {
             at: asFullPath({
               dir: result.tempDir,
               relativePath: 'src/keep.ts',
+            }),
+          }),
+        ).toBe(true);
+        // the negative arm: a .bak OUTSIDE the named root survives
+        expect(
+          pathExists({
+            at: asFullPath({
+              dir: result.tempDir,
+              relativePath: 'other/deep/nested/keep.bak',
             }),
           }),
         ).toBe(true);

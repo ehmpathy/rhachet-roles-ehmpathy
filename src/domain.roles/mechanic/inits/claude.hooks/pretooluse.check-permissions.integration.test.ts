@@ -1040,88 +1040,158 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
     });
   });
 
-  given('[case23] performance with 500 rules', () => {
-    when('[t0] hook completes within 3 seconds', () => {
-      then('allowed command matches in under 3s with 500 rules', () => {
-        const tempDir = genTempDir({
-          slug: 'permissions-hook-perf',
-          git: true,
-        });
-        const claudeDir = path.join(tempDir, '.claude');
-        fs.mkdirSync(claudeDir, { recursive: true });
+  given('[case23] cost as the ruleset grows to 500 rules', () => {
+    /**
+     * .what = run the hook against a ruleset of N rules, and report its wall time
+     * .why = the subject and its control must differ in ONE respect — the rule
+     *        count — so the ratio between them isolates the cost of scale
+     */
+    const runWithRuleCount = (input: {
+      ruleCount: number;
+      command: string;
+      extraRules: string[];
+    }): { status: number; stderr: string; elapsed: number } => {
+      const tempDir = genTempDir({ slug: 'permissions-hook-perf', git: true });
+      const claudeDir = path.join(tempDir, '.claude');
+      fs.mkdirSync(claudeDir, { recursive: true });
 
-        // generate 500 rules: mix of prefix and exact patterns
-        const rules: string[] = [];
-        for (let i = 0; i < 250; i++) {
-          rules.push(`Bash(prefix-cmd-${i}:*)`);
-          rules.push(`Bash(exact-cmd-${i})`);
-        }
-        // add a real pattern we'll match against
-        rules.push('Bash(git status:*)');
+      // generate rules: an even mix of prefix and exact patterns
+      const rules: string[] = [];
+      for (let i = 0; i < input.ruleCount / 2; i++) {
+        rules.push(`Bash(prefix-cmd-${i}:*)`);
+        rules.push(`Bash(exact-cmd-${i})`);
+      }
+      rules.push(...input.extraRules);
 
-        fs.writeFileSync(
-          path.join(claudeDir, 'settings.json'),
-          JSON.stringify({ permissions: { allow: rules, deny: [], ask: [] } }),
-        );
+      fs.writeFileSync(
+        path.join(claudeDir, 'settings.json'),
+        JSON.stringify({ permissions: { allow: rules, deny: [], ask: [] } }),
+      );
 
-        const stdinJson = JSON.stringify({
+      const start = Date.now();
+      const result = spawnSync('bash', [scriptPath], {
+        cwd: tempDir,
+        encoding: 'utf-8',
+        input: JSON.stringify({
           tool_name: 'Bash',
-          tool_input: { command: 'git status' },
-        });
-
-        const start = Date.now();
-        const result = spawnSync('bash', [scriptPath], {
-          cwd: tempDir,
-          encoding: 'utf-8',
-          input: stdinJson,
-          stdio: ['pipe', 'pipe', 'pipe'],
-          timeout: 5000,
-        });
-        const elapsed = Date.now() - start;
-
-        expect(result.status).toBe(0);
-        expect(elapsed).toBeLessThan(3000);
+          tool_input: { command: input.command },
+        }),
+        stdio: ['pipe', 'pipe', 'pipe'],
+        // a hang guard, never a speed assertion
+        timeout: 60000,
       });
 
-      then('disallowed command blocks in under 3s with 500 rules', () => {
-        const tempDir = genTempDir({
-          slug: 'permissions-hook-perf',
-          git: true,
-        });
-        const claudeDir = path.join(tempDir, '.claude');
-        fs.mkdirSync(claudeDir, { recursive: true });
+      return {
+        status: result.status ?? 1,
+        stderr: result.stderr ?? '',
+        elapsed: Date.now() - start,
+      };
+    };
 
-        // generate 500 rules
-        const rules: string[] = [];
-        for (let i = 0; i < 250; i++) {
-          rules.push(`Bash(prefix-cmd-${i}:*)`);
-          rules.push(`Bash(exact-cmd-${i})`);
-        }
+    /**
+     * .what = two claims, each blind to what the other catches
+     *   1. SCALE — 500 rules cost at most MAX_SCALE_FACTOR× what 2 rules cost.
+     *      catches a per-rule subprocess or a quadratic match, and divides out
+     *      the host load both arms pay
+     *   2. ABSOLUTE — the hook finishes in human time. catches a fixed-cost
+     *      regression, which a ratio cannot see
+     */
+    const MAX_SCALE_FACTOR = 10;
 
-        fs.writeFileSync(
-          path.join(claudeDir, 'settings.json'),
-          JSON.stringify({ permissions: { allow: rules, deny: [], ask: [] } }),
-        );
+    /**
+     * .what = the absolute bound
+     * .why  = a healthy run takes ~0.7s, ~3s under heavy load. 30s sits well
+     *         above that and well below the 60s hang guard, so a busy host
+     *         cannot trip it and a multi-second fixed cost does
+     */
+    const MAX_ABSOLUTE_MS = 30000;
 
-        const stdinJson = JSON.stringify({
-          tool_name: 'Bash',
-          tool_input: { command: 'curl http://example.com' },
-        });
+    /**
+     * .what = run both arms interleaved, repeated, and take each arm's median
+     * .why  = a contention spike then lands on both arms, and the median
+     *         drops the worst sample
+     */
+    const REPEATS = 3;
 
-        const start = Date.now();
-        const result = spawnSync('bash', [scriptPath], {
-          cwd: tempDir,
-          encoding: 'utf-8',
-          input: stdinJson,
-          stdio: ['pipe', 'pipe', 'pipe'],
-          timeout: 5000,
-        });
-        const elapsed = Date.now() - start;
+    const measurePair = (input: {
+      command: string;
+      extraRules: string[];
+    }): {
+      control: { status: number; stderr: string; elapsed: number };
+      subject: { status: number; stderr: string; elapsed: number };
+      controlMedian: number;
+      subjectMedian: number;
+    } => {
+      const controls: Array<{
+        status: number;
+        stderr: string;
+        elapsed: number;
+      }> = [];
+      const subjects: Array<{
+        status: number;
+        stderr: string;
+        elapsed: number;
+      }> = [];
 
-        expect(result.status).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
-        expect(elapsed).toBeLessThan(3000);
-      });
+      for (let i = 0; i < REPEATS; i++) {
+        controls.push(runWithRuleCount({ ruleCount: 2, ...input }));
+        subjects.push(runWithRuleCount({ ruleCount: 500, ...input }));
+      }
+
+      const median = (values: number[]): number =>
+        [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)] ?? 0;
+
+      return {
+        // any single run answers the STATUS claims — they are deterministic
+        control: controls[0]!,
+        subject: subjects[0]!,
+        controlMedian: median(controls.map((r) => r.elapsed)),
+        subjectMedian: median(subjects.map((r) => r.elapsed)),
+      };
+    };
+
+    when('[t0] the ruleset grows from 2 rules to 500', () => {
+      then(
+        'an allowed command still matches, and the cost does not explode',
+        () => {
+          const { control, subject, controlMedian, subjectMedian } =
+            measurePair({
+              command: 'git status',
+              extraRules: ['Bash(git status:*)'],
+            });
+
+          expect(control.status).toBe(0);
+          expect(subject.status).toBe(0);
+
+          // claim 1 — SCALE: the cost of 500 rules over the cost of 2
+          expect(subjectMedian).toBeLessThan(controlMedian * MAX_SCALE_FACTOR);
+
+          // claim 2 — ABSOLUTE: a fixed-cost regression the ratio cannot see
+          expect(subjectMedian).toBeLessThan(MAX_ABSOLUTE_MS);
+        },
+      );
+
+      then(
+        'a disallowed command still blocks, and the cost does not explode',
+        () => {
+          const { control, subject, controlMedian, subjectMedian } =
+            measurePair({
+              command: 'curl http://example.com',
+              extraRules: [],
+            });
+
+          expect(control.status).toBe(2);
+          expect(subject.status).toBe(2);
+          expect(control.stderr).toContain('BLOCKED');
+          expect(subject.stderr).toContain('BLOCKED');
+
+          // claim 1 — SCALE: the cost of 500 rules over the cost of 2
+          expect(subjectMedian).toBeLessThan(controlMedian * MAX_SCALE_FACTOR);
+
+          // claim 2 — ABSOLUTE: a fixed-cost regression the ratio cannot see
+          expect(subjectMedian).toBeLessThan(MAX_ABSOLUTE_MS);
+        },
+      );
     });
   });
 

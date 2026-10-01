@@ -18,7 +18,7 @@ exports[`git.branch.rebase.continue given: [case2] rebase in progress with unset
    └─ git.output
       ├─
       │
-      │  error: invalid onto: 'abc123def456'
+      │  <git diagnostic about abc123def456>
       │
       └─
 "
@@ -34,7 +34,7 @@ exports[`git.branch.rebase.continue given: [case3] rebase in progress with more 
    └─ git.output
       ├─
       │
-      │  error: invalid onto: 'abc123def456'
+      │  <git diagnostic about abc123def456>
       │
       └─
 "
@@ -50,7 +50,7 @@ exports[`git.branch.rebase.continue given: [case4] rebase in progress with final
    └─ git.output
       ├─
       │
-      │  error: invalid onto: 'abc123def456'
+      │  <git diagnostic about abc123def456>
       │
       └─
 "
@@ -66,7 +66,7 @@ exports[`git.branch.rebase.continue given: [case5] worktree with rebase in progr
    └─ git.output
       ├─
       │
-      │  error: invalid onto: 'abc123def456'
+      │  <git diagnostic about abc123def456>
       │
       └─
 "
@@ -96,8 +96,7 @@ exports[`git.branch.rebase.continue given: [case7] rebase in progress with unsta
    └─ git.output
       ├─
       │
-      │  You must edit all merge conflicts and then
-      │  mark them as resolved using git add
+      │  <git output>
       │
       └─
 "

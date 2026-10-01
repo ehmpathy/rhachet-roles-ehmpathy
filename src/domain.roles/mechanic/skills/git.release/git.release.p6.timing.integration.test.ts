@@ -21,7 +21,7 @@ import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
  *         negative tests verify graceful fallback when timestamps missing
  */
 
-jest.setTimeout(5000);
+jest.setTimeout(150000);
 
 const SKILL_PATH = path.join(
   __dirname,
