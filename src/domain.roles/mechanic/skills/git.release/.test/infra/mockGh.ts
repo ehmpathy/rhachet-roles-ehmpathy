@@ -8,6 +8,17 @@ import * as path from 'path';
  * .note = this is the SINGLE SOURCE OF TRUTH for gh mocks
  *         all test files should use this instead of inline mocks
  *
+ * .mock = the gh cli (with mockGit.ts: git; per suite: the rhachet cli), as
+ *         executables first on PATH, for every git.release.*.integration suite
+ * .why  = git.release drives a real github release: pr merge, ci runs, tags,
+ *         deploys. a real call would need a live repo, real prs and real ci
+ *         runs, would mutate them, and could not reach states like "ci failed
+ *         after a rebase" on demand. the rule's "clearly unavoidable" exception
+ * .real = the skill itself runs for real, in a real temp git repo; only the
+ *         remote boundary is faked. the real gh, the real keyrack, and the real
+ *         git remote are called in
+ *         `git.commit/external.contracts.integration.test.ts`
+ *
  * features:
  * - dynamic automerge state (mark when enabled, return with-automerge state)
  * - counter-based transitions (for watch with 3+ poll cycles)
@@ -373,7 +384,10 @@ export const genGhMockExecutable = (input: {
   // generate JSON for each state
   const featPrJson = options.featPr ? genPrViewJson({ state: options.featPr, title: prTitle, nowIso }) : '';
   const releasePrJson = options.releasePr ? genPrViewJson({ state: options.releasePr, title: releaseTitle, nowIso }) : '';
-  const tagJson = options.tagWorkflows ? genTagWorkflowJson({ state: options.tagWorkflows }) : '[]';
+  // .why startedAt: nowIso on every tag run = "in action" is the passed run's
+  //      updatedAt minus the oldest startedAt the watch saw. separate `new Date()`
+  //      stamps per run set straddle a second under load, and 60s reads as 59s
+  const tagJson = options.tagWorkflows ? genTagWorkflowJson({ state: options.tagWorkflows, startedAt: nowIso }) : '[]';
 
   // write watch sequence to state dir if provided
   if (options.watchSequence && options.watchSequence.length > 0) {
@@ -386,7 +400,7 @@ export const genGhMockExecutable = (input: {
         // tag sequence
         return {
           type: 'tag',
-          tagJson: genTagWorkflowJson({ state: state as TagState }),
+          tagJson: genTagWorkflowJson({ state: state as TagState, startedAt: nowIso }),
         };
       }
       // PR state - only generate tagJson if state is a valid tag state
@@ -394,7 +408,7 @@ export const genGhMockExecutable = (input: {
       return {
         type: 'pr',
         json: genPrViewJson({ state: state as PrState, title: prTitle, nowIso }),
-        ...(isValidTagState ? { tagJson: genTagWorkflowJson({ state: state as TagState }) } : {}),
+        ...(isValidTagState ? { tagJson: genTagWorkflowJson({ state: state as TagState, startedAt: nowIso }) } : {}),
       };
     });
     fs.writeFileSync(sequenceFile, JSON.stringify(sequenceData));
@@ -602,11 +616,15 @@ export const genSceneGhMock = (input: {
   const releasePrViewPassedWithAutomerge = genPrViewJson({ state: 'passed:with-automerge', title: releasePrTitle, nowIso });
   const releasePrViewInflight = genPrViewJson({ state: 'inflight', title: releasePrTitle, nowIso });
 
+  // .why one startedAt for every tag run set = the watch takes "in action" as the
+  //      passed set's updatedAt minus the oldest startedAt it saw across sets. a
+  //      `new Date()` per set straddled a second under load, so 60s read as 59s
+  //      and the snapshot's `Xm Ys` became `Xs`
   const tagRuns = scene.tagWorkflows
-    ? genTagWorkflowJson({ state: scene.tagWorkflows })
-    : genTagWorkflowJson({ state: 'unfound' });
-  const tagRunsPassed = genTagWorkflowJson({ state: 'passed' });
-  const tagRunsInflight = genTagWorkflowJson({ state: 'inflight' });
+    ? genTagWorkflowJson({ state: scene.tagWorkflows, startedAt: nowIso })
+    : genTagWorkflowJson({ state: 'unfound', startedAt: nowIso });
+  const tagRunsPassed = genTagWorkflowJson({ state: 'passed', startedAt: nowIso });
+  const tagRunsInflight = genTagWorkflowJson({ state: 'inflight', startedAt: nowIso });
 
   // check if initial states have automerge
   const featPrHasAutomerge = scene.featPr === 'passed:with-automerge' || scene.featPr === 'inflight:with-automerge';

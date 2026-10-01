@@ -31,7 +31,7 @@ source "$SCRIPT_DIR/git.commit.operations.sh"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  emit_both "error: not in a git repository"
+  emit_both "✋ ConstraintError: not in a git repository"
   exit 2
 fi
 
@@ -128,7 +128,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      emit_both "error: unknown option: $1
+      emit_both "✋ ConstraintError: unknown option: $1
 usage: git.commit.uses set --quant N --push allow|block
        git.commit.uses del
        git.commit.uses get"
@@ -142,7 +142,7 @@ done
 
 # validate command
 if [[ -z "$COMMAND" ]]; then
-  emit_both "error: command required (set, del, block, allow, or get)
+  emit_both "✋ ConstraintError: command required (set, del, block, allow, or get)
 usage: git.commit.uses set --quant N --push allow|block
        git.commit.uses del
        git.commit.uses get"
@@ -194,7 +194,7 @@ case "$COMMAND" in
   set)
     # validate --quant
     if [[ -z "$QUANT" ]]; then
-      emit_both "error: --quant N is required
+      emit_both "✋ ConstraintError: --quant N is required
 usage: git.commit.uses set --quant N --push allow|block"
       exit 2
     fi
@@ -211,14 +211,14 @@ usage: git.commit.uses set --quant N --push allow|block"
 
     # validate --push required
     if [[ -z "$PUSH" ]]; then
-      emit_both "error: --push allow|block is required
+      emit_both "✋ ConstraintError: --push allow|block is required
 usage: git.commit.uses set --quant N --push allow|block"
       exit 2
     fi
 
     # validate --push value
     if [[ "$PUSH" != "allow" && "$PUSH" != "block" ]]; then
-      emit_both "error: --push must be 'allow' or 'block'
+      emit_both "✋ ConstraintError: --push must be 'allow' or 'block'
 usage: git.commit.uses set --quant N --push allow|block"
       exit 2
     fi
@@ -230,14 +230,14 @@ usage: git.commit.uses set --quant N --push allow|block"
 
     # validate --stage value
     if [[ "$STAGE" != "allow" && "$STAGE" != "block" ]]; then
-      emit_both "error: --stage must be 'allow' or 'block'
+      emit_both "✋ ConstraintError: --stage must be 'allow' or 'block'
 usage: git.commit.uses set --quant N --push allow|block [--stage allow|block]"
       exit 2
     fi
 
     # validate --quant is a number or "infinite"
     if [[ "$QUANT" != "infinite" ]] && ! [[ "$QUANT" =~ ^[0-9]+$ ]]; then
-      emit_both "error: --quant must be a non-negative integer or 'infinite'"
+      emit_both "✋ ConstraintError: --quant must be a non-negative integer or 'infinite'"
       exit 2
     fi
 
@@ -396,6 +396,17 @@ EOF
       exit 0
     fi
 
+    # refuse a damaged quota file by name, before any raw read of it
+    if ! is_local_meter_readable file="$STATE_FILE"; then
+      emit_both "$(
+        print_turtle_header "bummer dude..."
+        print_tree_start "git.commit.uses"
+        print_tree_malfunction "commit quota file corrupt"
+        print_local_meter_damaged_fix file="${STATE_FILE#"$REPO_ROOT/"}"
+      )"
+      exit 1  # malfunction — the file is damaged, not the caller's input
+    fi
+
     # read state
     USES=$(jq -r '.uses' "$STATE_FILE")
     PUSH_STATE=$(jq -r '.push' "$STATE_FILE")
@@ -437,7 +448,7 @@ EOF
     ;;
 
   *)
-    emit_both "error: unknown command: $COMMAND
+    emit_both "✋ ConstraintError: unknown command: $COMMAND
 usage: git.commit.uses set --quant N --push allow|block
        git.commit.uses get"
     exit 2

@@ -123,3 +123,32 @@ exports[`init.claude.permissions.sh given: [case5] prior settings exist when: [t
 }
 "
 `;
+
+exports[`init.claude.permissions.sh given: [case5b] a prior settings.json from an older release when: [t0] its deny + ask carry stale Write(<path>) rules then: the manifest Edit deny lands 1`] = `
+"🔐 mechanic permissions configured successfully!
+   .claude/settings.json
+   .claude/settings.TIMESTAMP.bak.json
+
+✨ permissions applied:
+   • allow: replaced entirely
+   • deny: extended (no duplicates)
+   • ask: extended (no duplicates)
+
+---settings.json---
+{
+  "permissions": {
+    "allow": [
+      "Bash(pwd)"
+    ],
+    "deny": [
+      "Bash(old-deny)",
+      "Edit(.meter/*)",
+      "Write"
+    ],
+    "ask": [
+      "Bash(old-ask)"
+    ]
+  }
+}
+"
+`;

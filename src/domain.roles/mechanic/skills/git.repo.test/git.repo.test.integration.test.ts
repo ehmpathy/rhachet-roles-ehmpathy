@@ -1132,26 +1132,41 @@ module.exports = {
     );
 
     when(
-      '[t1] `rhx git.repo.test --what unit --scope another-nonexistent` is run',
+      '[t1] `rhx git.repo.test --what unit --scope another-nonexistent --mode apply` is run',
       () => {
-        then('completes quickly with 0 matches', () => {
-          // verify failfast is fast (< 5s) for 0 matches
-          const start = Date.now();
-          const result = runInTempGitRepo({
+        // .why = "fails fast" means the suite never starts on 0 matches. the
+        //        suite command drops a marker if it runs, so absence proves the
+        //        failfast held — a proof that holds on a busy machine, where a
+        //        wall-clock bound measured only jest's start-up
+        const result = useThen('command executes', () =>
+          runInTempGitRepo({
             jestConfigs: ['unit'],
-            testUnitScript: 'jest --config jest.unit.config.js',
+            testUnitScript:
+              'touch suite-ran.marker && jest --config jest.unit.config.js',
             symlinkNodeModules: true,
             gitRepoTestArgs: [
               '--what',
               'unit',
               '--scope',
               'another-nonexistent-xyz-12345',
+              '--mode',
+              'apply',
             ],
-          });
-          const elapsed = Date.now() - start;
+          }),
+        );
 
+        then('exit code is 2 (constraint)', () => {
           expect(result.exitCode).toBe(2);
-          expect(elapsed).toBeLessThan(5000);
+        });
+
+        then('the suite command never ran (failfast before the run)', () => {
+          expect(
+            fs.existsSync(path.join(result.tempDir, 'suite-ran.marker')),
+          ).toBe(false);
+        });
+
+        then('no inflight timer started', () => {
+          expect(result.stdout).not.toContain('inflight');
         });
       },
     );

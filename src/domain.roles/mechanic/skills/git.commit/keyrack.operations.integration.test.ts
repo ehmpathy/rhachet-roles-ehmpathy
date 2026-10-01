@@ -263,9 +263,9 @@ describe('keyrack.operations.sh :: fetch_github_token', () => {
    *         rule.forbid.integration.mocks this is the "clearly unavoidable" exception —
    *         the fake stubs ONLY the keyrack boundary; the real fetch_github_token bash
    *         logic under test runs unfaked, under the same set -euo pipefail as prod.
-   * .real = the real keyrack fetch is exercised by keyrack.operations.sh in production
-   *         (and by every other integration suite that unlocks the real ehmpath/test
-   *         keyrack); this fake stands in ONLY for the unreachable keyrack boundary.
+   * .real = the real keyrack's refusal shape (exit non-zero, no `.grant`) is checked
+   *         in `external.contracts.integration.test.ts` [case2]; this fake stands in
+   *         ONLY for the exact token/error outputs a real keyrack cannot give on demand.
    */
   const runFetch = (
     fakeRhachet: string,

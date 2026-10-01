@@ -25,21 +25,15 @@
 # bounded non-zero exit that flows into the same empty-token path as any
 # other failure.
 #
-# 🔴 .why the name is GENERIC = it was FETCH_TOKEN_TIMEOUT, which was exact
-#        while keyrack was its only caller. `git.commit.sponsor`'s
-#        `gh api user` lookup now takes the same bound against the same
-#        hazard — and that call fetches no token, so the old name read there
-#        as a copy-paste from a neighbour rather than a deliberate bound. a
-#        knob named for one of its two callers invites a retune for that
-#        caller alone (rule.forbid.ambiguous-labels, rule.require.ubiqlang).
+# .why the name is GENERIC = it names the hazard it bounds (any call that
+#        leaves this process), never one caller, so a second outbound call
+#        takes the same bound without a rename.
 #
 # 🔴 .note = it stays DEFINED here, and was not lifted to
 #         git.commit.operations.sh, because this file is a LEAF — it sources
 #         no other, and keyrack.operations.integration.test.ts sources it
 #         standalone. a lift would make the leaf depend on the ancestor and
-#         break that contract, which is a worse trade than a generic name in
-#         a specific file. the sponsor skill already sources this file for
-#         the seaturtle identity backstop, so it reads the constant here.
+#         break that contract.
 EXTERNAL_CALL_TIMEOUT="${EXTERNAL_CALL_TIMEOUT:-30}"
 
 fetch_github_token() {
@@ -120,6 +114,32 @@ fetch_github_token() {
 }
 
 ######################################################################
+# is_gh_auth_failure
+#
+# .what = judge whether a failed gh pr-op failed for lack of a usable credential
+# .why  = the two-fix guide must fire only on a pr-open auth failure, per the
+#         vision's "guide fires only where it helps" — an unrelated gh failure
+#         (protected branch, no commits, rate limit) must NOT misdirect the
+#         caller to re-auth. match only the signatures gh emits with no token.
+# .fragility = this gates the guide on gh's freeform stderr text, and gh is a
+#         third-party cli. if a gh release rewords an auth error, a real auth
+#         failure would slip past this match and the guide would go silent.
+#         `external.contracts.integration.test.ts` runs the REAL gh with no
+#         credential and asserts this match holds on its live output, so a
+#         reword goes red rather than silent. push `[case27]` locks the
+#         negative path (a NON-auth gh failure must NOT match).
+# .note = it lives in this LEAF, not in git.commit.push.sh, so a test can
+#         source it alone — push.sh runs top-level code on source.
+#
+# usage: is_gh_auth_failure "$GH_OUTPUT" && emit_gh_auth_guide ...
+######################################################################
+is_gh_auth_failure() {
+  # note: `grep -q <<<` (not `echo | grep -q`) avoids a SIGPIPE race under
+  # pipefail, where grep -q closes the pipe on first match and echo dies with 141
+  grep -qiE 'authentication|authenticate|unauthorized|http 401|bad credentials|gh auth login|not logged in|gh_token' <<< "$1"
+}
+
+######################################################################
 # seaturtle identities — single source of truth
 #
 # .what = the two commit-author identities a token can map to
@@ -144,25 +164,27 @@ SEATURTLE_APP_BOT_ID="295111357"
 SEATURTLE_APP_BOT_EMAIL="${SEATURTLE_APP_BOT_ID}+${SEATURTLE_APP_BOT_NAME}@users.noreply.github.com"
 
 ######################################################################
-# the clone's own GITHUB ACCOUNT — the ambient `gh auth login` session
+# the clone's own GITHUB ACCOUNT
 #
-# .what = the github user account a clone authenticates as on a cloud grove.
-#         a THIRD identity, and a different kind from the two above: those
-#         two are identities we COMMIT as, this is one we LOG IN as.
+# .what = the github user account a clone works as on its own machine. a
+#         THIRD identity, and a different kind from the two above: those two
+#         are identities we COMMIT as, this is the one the clone's machine
+#         may carry in its git config.
 #
-# .why  = `git.commit.sponsor set --who @me` reads the ambient session to
-#         name a human. on a cloud grove that session is THIS account, so
-#         with no declaration here the bind bears the clone's own name and
-#         the commit records zero humans — the very defect the sponsor gate
-#         exists to remove (#645, commit ahbode/svc-jobs@a1635ea).
+# .why  = a sponsor is read from the machine's git config where no bind
+#         exists. a git config that names THIS account marks the clone's
+#         machine, where no human is present to answer; with no declaration
+#         here, the clone would be named as its own sponsor and the commit
+#         would record zero humans — the very defect the sponsor gate exists
+#         to remove (#645, commit ahbode/svc-jobs@a1635ea).
 #
-# .why  = it is declared HERE, beside its siblings, so `git.commit.sponsor.sh`
-#         CITES the roster rather than invents one. an org that adds a clone
+# .why  = it is declared HERE, beside its siblings, so the identity checks
+#         CITE the roster rather than invent one. an org that adds a clone
 #         account updates this block, and every guard follows.
 #
 # 🔴 .note = this is a SINGLE-entry roster today (fulcrum F12 ask 7). a
 #         second clone identity, once provisioned, is invisible to the
-#         `--who @me` backstop until a human adds it here — no lint or CI
+#         clone's-machine check until a human adds it here — no lint or CI
 #         check enforces the update. see
 #         `dreams/v2026_09_15.fix.the-clone-identity-roster-has-no-growth-
 #         check.md` for the fuller shape of a repair.
@@ -260,8 +282,8 @@ is_one_seaturtle_identity_email() {
 # is_one_seaturtle_identity_clone
 #
 # .what = predicate: is this name or email the CLONE's own github account —
-#         the ambient `gh auth login` session `--who @me` resolves to on a
-#         cloud grove — rather than a bot identity?
+#         the identity the clone's machine may carry in its git config —
+#         rather than a bot identity?
 #
 # .why  = a THIRD roster entry beside the two above, and it names the one
 #         a maintainer is least likely to remember to edit in two places:
@@ -273,12 +295,17 @@ is_one_seaturtle_identity_email() {
 #         does not own. this restores the symmetry the two siblings above
 #         already hold.
 #
-# usage: if is_one_seaturtle_identity_clone "$name" "$email"; then ...
+# usage: if is_one_seaturtle_identity_clone name="$name" email="$email"; then ...
 # returns: exit 0 if either half matches the clone's own account
 ######################################################################
 is_one_seaturtle_identity_clone() {
-  local name="${1:-}"
-  local email="${2:-}"
+  local name="" email="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      name=*) name="${arg#name=}" ;;
+      email=*) email="${arg#email=}" ;;
+    esac
+  done
 
   [[ "$name" == "$SEATURTLE_CLONE_NAME" || "$email" == "$SEATURTLE_CLONE_EMAIL" ]]
 }
@@ -329,8 +356,9 @@ assert_token_identity_in_sync() {
   # if the probe returned an unparseable body, do not block on an unknowable id
   [[ -n "$actual_id" ]] || return 0
 
-  # fail loud on a proven mismatch. this is a malfunction-class guard (a token
-  # that maps to the WRONG bot would silently add a 3rd squash contributor), so
+  # fail loud on a proven mismatch. a token that maps to the WRONG bot would
+  # silently add a 3rd squash contributor. a human fixes it (the token or the
+  # roster), and the callers exit 2 — so it is a ✋ ConstraintError, and
   # the diagnosis rides BOTH streams — stdout for a human at the terminal or a
   # stdout-only consumer, stderr for log aggregation. the callers use this as a
   # bare `|| exit 2` guard, so if it spoke only to stderr the failure would read
@@ -343,7 +371,7 @@ assert_token_identity_in_sync() {
   if [[ "$actual_id" != "$SEATURTLE_APP_BOT_ID" || "$actual_login" != "$SEATURTLE_APP_BOT_NAME" ]]; then
     local mismatch_msg
     mismatch_msg=$(
-      echo "error: github token identity out of sync with the expected app bot"
+      echo "✋ ConstraintError: github token identity out of sync with the expected app bot"
       echo "  expected: $SEATURTLE_APP_BOT_NAME (id $SEATURTLE_APP_BOT_ID)"
       echo "  actual:   ${actual_login:-<unknown>} (id ${actual_id:-<unknown>})"
       echo ""

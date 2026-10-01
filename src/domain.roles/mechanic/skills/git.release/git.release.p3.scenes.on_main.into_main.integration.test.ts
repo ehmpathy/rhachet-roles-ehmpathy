@@ -11,6 +11,11 @@ import { genTempDir, given, then, when } from 'test-fns';
 
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
+import {
+  asSkillExitStatus,
+  SKILL_SPAWN_TIMEOUT_MS,
+} from './.test/infra/asSkillExitStatus';
+
 // ============================================================================
 // test infrastructure
 // ============================================================================
@@ -46,13 +51,13 @@ const runSkill = (
       GIT_RELEASE_TEST_MODE: 'true',
     },
     encoding: 'utf-8',
-    timeout: 10000,
+    timeout: SKILL_SPAWN_TIMEOUT_MS,
   });
 
   return {
     stdout: result.stdout || '',
     stderr: result.stderr || '',
-    status: result.status ?? 1,
+    status: asSkillExitStatus({ result, timeoutMs: SKILL_SPAWN_TIMEOUT_MS }),
   };
 };
 

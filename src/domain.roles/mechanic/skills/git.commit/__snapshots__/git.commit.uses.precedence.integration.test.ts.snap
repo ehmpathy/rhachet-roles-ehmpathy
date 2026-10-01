@@ -4,7 +4,7 @@ exports[`git.commit.uses precedence matrix given: [global=blocked, org=allowed, 
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ error: commits blocked globally
+   └─ ✋ ConstraintError: commits blocked globally
 
 ask your human to lift:
   $ git.commit.uses allow --global
@@ -15,7 +15,7 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=@all-blocke
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ error: commits blocked for org ehmpathy (from @all)
+   └─ ✋ ConstraintError: commits blocked for org ehmpathy (from @all)
 
 ask your human to allow:
   $ git.commit.uses allow --org <org>
@@ -42,7 +42,7 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, lo
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ error: push not allowed
+   └─ ✋ ConstraintError: push not allowed
 
 ask your human to grant with --push allow:
   $ git.commit.uses set --quant N --push allow
@@ -53,7 +53,7 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=blocked, lo
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ error: commits blocked for org ehmpathy
+   └─ ✋ ConstraintError: commits blocked for org ehmpathy
 
 ask your human to allow:
   $ git.commit.uses allow --org <org>
@@ -64,7 +64,7 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=unset, loca
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ error: no org config for ehmpathy (org permissions not configured)
+   └─ ✋ ConstraintError: no org config for ehmpathy (org permissions not configured)
 
 ask your human to allow:
   $ git.commit.uses allow --org <org>

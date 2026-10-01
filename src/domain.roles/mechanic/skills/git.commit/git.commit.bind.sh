@@ -23,7 +23,7 @@ source "$SCRIPT_DIR/output.sh"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "error: not in a git repository"
+  emit_both "✋ ConstraintError: not in a git repository"
   exit 2
 fi
 
@@ -31,37 +31,9 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 BIND_DIR="$REPO_ROOT/.branch/.bind"
 LEVEL_FILE="$BIND_DIR/git.commit.level"
 
-######################################################################
-# helper: infer level from branch name
-######################################################################
-infer_level_from_branch() {
-  local branch="$1"
-
-  # check for fix patterns: fix/*, */fix/*, */fix-*, hotfix/*, bugfix/*
-  local has_fix=false
-  if [[ "$branch" =~ ^fix/ ]] || [[ "$branch" =~ /fix/ ]] || [[ "$branch" =~ /fix- ]] || \
-     [[ "$branch" =~ ^hotfix/ ]] || [[ "$branch" =~ ^bugfix/ ]]; then
-    has_fix=true
-  fi
-
-  # check for feat patterns: feat/*, */feat/*, */feat-*, feature/*
-  local has_feat=false
-  if [[ "$branch" =~ ^feat/ ]] || [[ "$branch" =~ /feat/ ]] || [[ "$branch" =~ /feat- ]] || \
-     [[ "$branch" =~ ^feature/ ]]; then
-    has_feat=true
-  fi
-
-  # ambiguous = both signals present → none
-  if $has_fix && $has_feat; then
-    echo "none"
-  elif $has_fix; then
-    echo "fix"
-  elif $has_feat; then
-    echo "feat"
-  else
-    echo "none"
-  fi
-}
+# shared operations — `infer_level_from_branch` lives there, one definition
+# for `bind get` (which shows the level) and `git.commit.set` (which enforces it)
+source "$SCRIPT_DIR/git.commit.operations.sh"
 
 # parse subcommand
 SUBCOMMAND=""
@@ -74,8 +46,16 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --level)
-      LEVEL="$2"
-      shift 2
+      # 🔴 shift ONE, then take a value only if one is really there. a bare
+      #    `shift 2` (or `"$2"` under `set -u`) crashes raw at exit 1 when the
+      #    flag is the last arg; a bare flag leaves LEVEL empty, which the
+      #    `-z "$LEVEL"` check below turns into a curated constraint.
+      shift
+      LEVEL=""
+      if [[ $# -gt 0 && "$1" != --* ]]; then
+        LEVEL="$1"
+        shift
+      fi
       ;;
     --help|-h)
       echo "usage:"
@@ -86,14 +66,18 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     --repo|--role|--skill)
-      shift 2
+      # rhachet passthrough args - ignore. same shift-one guard as above
+      shift
+      if [[ $# -gt 0 && "$1" != --* ]]; then
+        shift
+      fi
       ;;
     --)
       shift
       ;;
     --*)
-      echo "error: unknown option: $1"
-      echo "usage: git.commit.bind get | set --level fix|feat | del"
+      emit_both "✋ ConstraintError: unknown option: $1
+usage: git.commit.bind get | set --level fix|feat | del"
       exit 2
       ;;
     *)
@@ -104,8 +88,8 @@ done
 
 # validate subcommand
 if [[ -z "$SUBCOMMAND" ]]; then
-  echo "error: subcommand is required (get, set, or del)"
-  echo "usage: git.commit.bind get | set --level fix|feat | del"
+  emit_both "✋ ConstraintError: subcommand is required (get, set, or del)
+usage: git.commit.bind get | set --level fix|feat | del"
   exit 2
 fi
 
@@ -113,13 +97,13 @@ case "$SUBCOMMAND" in
   set)
     # validate --level for set
     if [[ -z "$LEVEL" ]]; then
-      echo "error: --level is required for set"
-      echo "usage: git.commit.bind set --level fix|feat"
+      emit_both "✋ ConstraintError: --level is required for set
+usage: git.commit.bind set --level fix|feat"
       exit 2
     fi
     if [[ "$LEVEL" != "feat" && "$LEVEL" != "fix" ]]; then
-      echo "error: --level must be 'feat' or 'fix'"
-      echo "usage: git.commit.bind set --level fix|feat"
+      emit_both "✋ ConstraintError: --level must be 'feat' or 'fix'
+usage: git.commit.bind set --level fix|feat"
       exit 2
     fi
 

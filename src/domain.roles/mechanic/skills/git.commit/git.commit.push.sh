@@ -32,7 +32,7 @@ ROBOT_NAME="seaturtle[bot]"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "error: not in a git repository"
+  emit_both "✋ ConstraintError: not in a git repository"
   exit 2
 fi
 
@@ -47,23 +47,42 @@ PR_TITLE_FALLBACK=""
 DEBUG="false"
 AUTH="$AUTH_DEFAULT" # shared default from git.commit.operations.sh
 
+# 🔴 each value arm shifts ONE, then takes a value only if one is really there.
+#    a bare `shift 2` (or `"$2"` under `set -u`) crashes raw at exit 1 when the
+#    flag is the last arg. a bare flag leaves the value empty, and the
+#    validate_enum_arg calls below turn that into a curated constraint at exit 2.
 while [[ $# -gt 0 ]]; do
   case $1 in
     --mode)
-      MODE="$2"
-      shift 2
+      shift
+      MODE=""
+      if [[ $# -gt 0 && "$1" != --* ]]; then
+        MODE="$1"
+        shift
+      fi
       ;;
     --output)
-      OUTPUT="$2"
-      shift 2
+      shift
+      OUTPUT=""
+      if [[ $# -gt 0 && "$1" != --* ]]; then
+        OUTPUT="$1"
+        shift
+      fi
       ;;
     --auth)
-      AUTH="$2"
-      shift 2
+      shift
+      AUTH=""
+      if [[ $# -gt 0 && "$1" != --* ]]; then
+        AUTH="$1"
+        shift
+      fi
       ;;
     --pr-title-fallback)
-      PR_TITLE_FALLBACK="$2"
-      shift 2
+      shift
+      if [[ $# -gt 0 && "$1" != --* ]]; then
+        PR_TITLE_FALLBACK="$1"
+        shift
+      fi
       ;;
     --debug)
       DEBUG="true"
@@ -84,15 +103,18 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     --repo|--role|--skill)
-      # rhachet passthrough args - ignore
-      shift 2
+      # rhachet passthrough args - ignore. same shift-one guard as above
+      shift
+      if [[ $# -gt 0 && "$1" != --* ]]; then
+        shift
+      fi
       ;;
     --)
       shift
       ;;
     --*)
-      echo "error: unknown option: $1"
-      echo "usage: git.commit.push [--mode plan|apply] [--output tree|json]"
+      emit_both "✋ ConstraintError: unknown option: $1
+usage: git.commit.push [--mode plan|apply] [--output tree|json]"
       exit 2
       ;;
     *)
@@ -112,17 +134,34 @@ validate_enum_arg "$AUTH" "--auth" "" "${AUTH_VALID_VALUES[@]}"
 AUTH_WHO=$(get_auth_who_label "$AUTH")
 
 ######################################################################
-# helper: emit error in the chosen output format
+# emit_error: emit an error in the chosen output format
 # note: errors go to both stdout and stderr per skill output streams brief
+#
+# usage: emit_error class=constraint|malfunction message="..."
+#
+# .why the class = the tree header names who must act
+#        (rule.require.qualified-error-headers); it follows the exit code the
+#        caller uses next — constraint for 2, malfunction for 1.
 ######################################################################
 emit_error() {
-  local message="$1"
+  local class="" message="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      class=*) class="${arg#class=}" ;;
+      message=*) message="${arg#message=}" ;;
+    esac
+  done
   # default to the tree format; the json branch overrides it (no else — the
   # emit-to-both-streams tail is shared, so keep one linear path)
   local output
   output=$(print_turtle_header "bummer dude..."
     print_tree_start "git.commit.push"
-    print_tree_error "$message")
+    if [[ "$class" == "malfunction" ]]; then
+      print_tree_malfunction "$message"
+    fi
+    if [[ "$class" != "malfunction" ]]; then
+      print_tree_constraint "$message"
+    fi)
   if [[ "$OUTPUT" == "json" ]]; then
     output=$(printf '{"status":"error","error":"%s"}\n' "$(escape_json_string "$message")")
   fi
@@ -195,7 +234,7 @@ emit_pr_open_guide() {
   guide=$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.push"
-    print_tree_error "$error_line"
+    print_tree_constraint "$error_line"
     echo ""
     echo "🥥 your commit is pushed; to open its pr, either:"
     echo "   ├─ 1. ${prefer_label}:"
@@ -228,16 +267,34 @@ emit_pr_open_guide() {
 
 # guard: global blocker must not be active
 if ! check_global_blocker; then
-  emit_error "$GLOBAL_BLOCK_REASON"
-  if [[ "$OUTPUT" == "tree" ]]; then
+  # the class and the exit both follow `_CORRUPT`, as in git.commit.set: a
+  # damaged file is a malfunction (1), a human-set block a constraint (2)
+  GLOBAL_BLOCK_CLASS="constraint"
+  if [[ "$GLOBAL_BLOCK_CORRUPT" == "true" ]]; then
+    GLOBAL_BLOCK_CLASS="malfunction"
+  fi
+  emit_error class="$GLOBAL_BLOCK_CLASS" message="$GLOBAL_BLOCK_REASON"
+  if [[ "$OUTPUT" == "tree" && "$GLOBAL_BLOCK_CORRUPT" != "true" ]]; then
     print_instruction "ask your human to lift:" "  \$ git.commit.uses allow --global"
+  fi
+  if [[ "$OUTPUT" == "tree" && "$GLOBAL_BLOCK_CORRUPT" == "true" ]]; then
+    print_global_corrupt_note
+  fi
+  if [[ "$GLOBAL_BLOCK_CORRUPT" == "true" ]]; then
+    exit 1  # malfunction — the file is damaged, not the caller's input
   fi
   exit 2
 fi
 
 # guard: org blocker must not be active
 if ! check_org_blocker; then
-  emit_error "$ORG_BLOCK_REASON"
+  # the class and the exit (below) both follow `_CORRUPT`: a damaged file is
+  # a malfunction (1), a human-set block a constraint (2) — as in git.commit.set
+  ORG_BLOCK_CLASS="constraint"
+  if [[ "$ORG_BLOCK_CORRUPT" == "true" ]]; then
+    ORG_BLOCK_CLASS="malfunction"
+  fi
+  emit_error class="$ORG_BLOCK_CLASS" message="$ORG_BLOCK_REASON"
   if [[ "$OUTPUT" == "tree" ]]; then
     # different guidance based on error type
     if [[ "$ORG_BLOCK_REASON" == *"keyrack.yml not found"* ]]; then
@@ -274,14 +331,23 @@ EOF
       print_instruction "ask your human to allow:" "  \$ git.commit.uses allow --org <org>"
     fi
   fi
-  # ⚠️ .note = `git.commit.set` exits 1 on this SAME state (a damaged file is a
-  #    malfunction, never the caller's input) and this arm exits 2. the two
-  #    disagree, and the divergence predates this change — it is left as-is
-  #    here rather than corrected mid-flight, because no test pins either
-  #    value and an exit-code change is a behavior change that belongs in its
-  #    own diff (rule.require.review-test-changes).
-  #    ⇒ caught as `.dream/2026_09_21.fix-push-and-set-disagree-on-the-corrupt-org-exit-code.dream.md`
+  # .why the exit branches on `_CORRUPT` = `git.commit.set` exits 1 on this
+  #        SAME state; once the header names the class, an exit 2 beside
+  #        `💥 MalfunctionError` would contradict itself. both skills now read
+  #        a damaged org meter as a malfunction. clamp: push `[case29b]`.
+  if [[ "$ORG_BLOCK_CORRUPT" == "true" ]]; then
+    exit 1  # malfunction — the file is damaged, not the caller's input
+  fi
   exit 2
+fi
+
+# guard: a damaged quota file is refused by name, before any raw read of it
+if ! is_local_meter_readable file="$STATE_FILE"; then
+  emit_error class=malfunction message="commit quota file corrupt"
+  if [[ "$OUTPUT" == "tree" ]]; then
+    emit_both "$(print_local_meter_damaged_fix file="${STATE_FILE#"$REPO_ROOT/"}")"
+  fi
+  exit 1  # malfunction — the file is damaged, not the caller's input
 fi
 
 # guard: push must be allowed
@@ -292,7 +358,7 @@ if [[ -f "$STATE_FILE" ]]; then
   USES=$(jq -r '.uses' "$STATE_FILE")
 fi
 if [[ "$PUSH_ALLOWED" != "allow" ]]; then
-  emit_error "push not allowed"
+  emit_error class=constraint message="push not allowed"
   if [[ "$OUTPUT" == "tree" ]]; then
     print_instruction "ask your human to grant with --push allow:" "  \$ git.commit.uses set --quant N --push allow"
   fi
@@ -303,7 +369,7 @@ fi
 if [[ "$MODE" == "apply" ]]; then
   HEAD_AUTHOR=$(git log -1 --format='%an')
   if ! is_one_seaturtle_identity_name "$HEAD_AUTHOR"; then
-    emit_error "HEAD commit not authored by $ROBOT_NAME"
+    emit_error class=constraint message="HEAD commit not authored by $ROBOT_NAME"
     if [[ "$OUTPUT" == "tree" ]]; then
       # dual-stream the fix-hint so the stderr-only path also names the fix, to
       # match the dual-streamed error above (rule.require.errors-name-the-fix +
@@ -321,7 +387,7 @@ fi
 # guard: cannot push to main/master
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
-  emit_error "cannot push directly to $CURRENT_BRANCH"
+  emit_error class=constraint message="cannot push directly to $CURRENT_BRANCH"
   if [[ "$OUTPUT" == "tree" ]]; then
     # the fix-hint rides BOTH streams so a stderr-only consumer still sees the
     # remediation, not just the bare error — emit_error already dual-streams the
@@ -416,7 +482,7 @@ if [[ $PUSH_EXIT -ne 0 ]]; then
   # failure is never stdout-silent (rule.require.skill-output-streams). emit_error
   # carries the headline to both streams + the json object; the raw git output
   # follows on both streams in tree mode so the human sees WHY it failed.
-  emit_error "git push failed"
+  emit_error class=malfunction message="git push failed"
   if [[ "$OUTPUT" == "tree" ]]; then
     # label the raw git output `cause:` so it reads as the root error, not part of
     # the structured guide — consistent with the keyrack/gh failure guides that
@@ -507,7 +573,7 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
   if [[ "$MODE" == "apply" && -n "$GH_PR_TOKEN" ]]; then
     IFS=$'\t' read -r PR_OPENER_NAME _ < <(get_one_seaturtle_identity "$GH_PR_TOKEN")
     if [[ "$PR_OPENER_NAME" != "$HEAD_AUTHOR" ]]; then
-      emit_error "pr-open identity out of sync with the commit author"
+      emit_error class=constraint message="pr-open identity out of sync with the commit author"
       if [[ "$OUTPUT" == "tree" ]]; then
         echo ""
         echo "the commit was authored by: $HEAD_AUTHOR"
@@ -554,26 +620,6 @@ get_clean_pr_body() {
   # grep -v drops the trailer lines (exit 1 when none match → || true); the sed
   # collapses any blank lines the removal leaves at the tail
   echo "$body" | { grep -v '^Co-authored-by:' || true; } | sed -e :a -e '/^\n*$/{$d;N;ba;}'
-}
-
-# .what = judge whether a failed gh pr-op failed for lack of a usable credential
-# .why  = the two-fix guide must fire only on a pr-open auth failure, per the
-#         vision's "guide fires only where it helps" — an unrelated gh failure
-#         (protected branch, no commits, rate limit) must NOT misdirect the
-#         caller to re-auth. match only the signatures gh emits with no token.
-# .fragility = this gates the guide on gh's freeform stderr text, and gh is a
-#         third-party cli. if a future gh release rewords an auth error (e.g.
-#         'not logged in' → 'no active account', or drops 'gh_token'), a real
-#         auth failure would slip past this match and the guide would go silent —
-#         the dead-end the vision exists to prevent. there is no structural
-#         backstop, so on a gh upgrade re-verify these signatures against gh's
-#         current auth-error text. case27 locks the negative path (a NON-auth gh
-#         failure must NOT match) but cannot catch a reworded auth phrase, so
-#         this note is the guard against that drift.
-is_gh_auth_failure() {
-  # note: `grep -q <<<` (not `echo | grep -q`) avoids a SIGPIPE race under
-  # pipefail, where grep -q closes the pipe on first match and echo dies with 141
-  grep -qiE 'authentication|authenticate|unauthorized|http 401|bad credentials|gh auth login|not logged in|gh_token' <<< "$1"
 }
 
 # .what = guide the caller when the pr-open credential is unusable under both modes
@@ -669,14 +715,13 @@ if [[ -z "$PR_FOUND" ]]; then
 fi
 
 # auto-revoke push if uses depleted (skip for infinite)
+# .why = rewrite ONLY the push field. a whole-file rewrite dropped `stage`, and
+#        every reader defaults an absent stage to block — so a depletion via
+#        push erased the human's stage grant. temp + mv keeps the write atomic
 PUSH_REVOKED=false
 if [[ "$USES" != "infinite" && "$USES" -le 0 ]]; then
-  cat > "$STATE_FILE" << EOF
-{
-  "uses": $USES,
-  "push": "block"
-}
-EOF
+  jq '.push = "block"' "$STATE_FILE" > "$STATE_FILE.tmp"
+  mv "$STATE_FILE.tmp" "$STATE_FILE"
   PUSH_REVOKED=true
 fi
 

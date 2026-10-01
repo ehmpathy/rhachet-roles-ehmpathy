@@ -31,6 +31,9 @@ const config: Config = {
     '!**/*.acceptance.test.ts',
     '!**/*.integration.test.ts',
     '!**/.yalc/**',
+    // .agent/ holds no tracked tests; it does hold each actor's brain dir,
+    // whose plugin caches ship their own foreign test suites
+    '!**/.agent/**',
   ],
   setupFilesAfterEnv: ['./jest.unit.env.ts'],
 

@@ -109,7 +109,7 @@ blocker when the local sense is unambiguous.
 |---|---|---|
 | `name` | string | the human's display name |
 | `email` | string | the human's email; what git's trailer needs |
-| `source` | enum | `me` \| `supplied` — 🔴 **provenance is part of the value.** a reader must be able to tell a session-read bind from a piped one without a code read. ⛔ **`git-config` was struck** by the wisher, 2026-09-09 |
+| `source` | enum | `self` \| `supplied` — 🔴 **provenance is part of the value.** a reader must be able to tell a bind read from this machine's git config (`--who @self`) from a piped or typed one without a code read. a legacy `me` reads as `self` |
 
 ## .the invariants
 
@@ -135,14 +135,18 @@ discovered from the walked product (`.behavior/v2026_09_08.feat-require-commit-s
 7. 🔴 **the sponsor is the REQUESTER, never the supervisor.** ✅ **ruled by the wisher, 2026-09-09.**
    where a supervisor dispatches work a requester asked for, the sponsor is **the human who wanted
    the change**, not the one who authorized the spend.
-8. 🔴 **`git config` is never a source.** ✅ **ruled by the wisher, 2026-09-09.** the wish permitted
-   an explicit one-time seed on a local grove; the design declined it, so no path reads `git config`
-   for an identity. ⇒ the wish's *"⛔ no silent fallback"* bound is not merely honored, it is
-   **unreachable**.
-9. 🔴 **a bind that cannot establish a human REFUSES; it never substitutes.** ✅ **ruled, 2026-09-09
-   (`Q2′`).** `--who @me` on a cloud grove finds the clone's github session and exits 2 with the fix
-   — it does not fall back to what it found. ⇒ a fallback names the clone; a refusal names the fix,
-   and that difference is the whole term.
+8. 🔴 **precedence: a bind → else `git config`, where it names a human → else refuse.** ✅ **ruled
+   by the wisher, 2026-09-26** (*"they shouldnt need to even set a sponsor if its their machine"*;
+   *"explicit bind wins"*). on a human's own machine, git config already names the requester — it
+   is the identity git stamps on their own commits — so no bind is owed. a bind is how a human
+   credits **someone else**, so a bind always wins. a corrupt bind refuses; it never falls back.
+9. 🔴 **the clone's machine is DEFINED by its git config, and it refuses.** ✅ **ruled by the wisher,
+   2026-09-26** (*"clone machine vs human machine = is the git.config a clone or human"*). a git
+   config that names a roster identity marks the clone's machine: no fallback, and `--who @self`
+   refuses too. ⇒ a fallback there would name the clone; a refusal names the fix, and that
+   difference is the whole term.
+10. 🔴 **gh is never read for a sponsor**, in any form. ✅ **ruled by the wisher, 2026-09-26**
+   (*"never use gh auth here"*). the identity source is `git config` alone.
 
 ## 🔴 .the wisher's decision that invariant 7 records — and why it follows from the term
 
@@ -153,9 +157,10 @@ and the vision declined to decide which the sponsor is.
 the change. that is the requester's relation to it. the supervisor's relation is to the *budget* —
 which the quota meter already records, in a different mechanism, for a different question.
 
-⚠️ **so `--who @me` is NOT the paved form for a dispatch.** it is the paved form for a human who
-sponsors **their own** work. the moment a supervisor acts for someone else, a **supplied** form is
-correct and `@me` would name the wrong human — truthfully, which is what makes the error hard to see.
+⚠️ **so the git config default is NOT right for a dispatch.** it names the machine's owner, which
+is right for **their own** work. the moment a supervisor acts for someone else, a **supplied** bind
+is correct — and it wins over git config — or the commit would name the wrong human, truthfully,
+which is what makes the error hard to see.
 
 🔴 **and this decision is why the surface has ONE flag.** `Q8` ruled every form names the same
 party — the requester — so a second flag asserted a distinction the domain does not have. ⇒ two
@@ -178,35 +183,28 @@ requirement rather than a convenience** — it matches the extant `-m @stdin` pa
 
 ⇒ raised for `2.1.criteria`: `--who` must accept `@stdin`.
 
-## 🔴 .what the SECOND council added — invariants 8 and 9
-
-two more decisions landed the same day, and together they narrow where each flag may run:
+## 🔴 .invariants 8–10 — where the sponsor comes from
 
 | the wisher's words | the invariant |
 |---|---|
-| *"no — cloud has no human gh session"* (`Q2′`) | **9** — `@me` refuses where the session is not yours |
-| *"drop it — `--who @stdin` covers it"* | **8** — `git config` is never a source |
+| *"they shouldnt need to even set a sponsor if its their machine"* · *"explicit bind wins"* | **8** — bind → git config → refuse |
+| *"clone machine vs human machine = is the git.config a clone or human"* | **9** — the clone's machine refuses |
+| *"never use gh auth here"* | **10** — gh is never read |
 
-⇒ ✅ **the bind now has exactly two SUPPLY routes**, and the choice between them is a domain question
-rather than an ergonomic one:
-
-| the binder is | the value form | where it holds |
+| the case | the sponsor | the form |
 |---|---|---|
-| a human who sponsors **their own** work | `--who @me` | wherever **your own** gh session is |
-| anyone who names the **requester** | `--who @stdin` / `--who "…"` | everywhere |
+| a human's own work, on their own machine | git config — no step at all | — (or `--who @self` to pin a snapshot) |
+| anyone who names the **requester** | the bind | `--who @stdin` / `--who "…"` |
+| the clone's machine | a bind is required | `--who @stdin` / `--who "…"` |
 
-⇒ 🎯 **the supplied forms are the ones that work everywhere**, which is why every mandatory block in
-the design prints them. ⚠️ a refusal cannot know which grove reads it, so it must not print a command
-that is grove-conditional — a copy-paste fix that itself refuses is worse than an absent one.
+⇒ 🎯 **the supplied forms are the ones that work everywhere**, which is why every mandatory block
+prints them and never `@self` — `@self` reads this machine's git config, and on the clone's
+machine it refuses. a copy-paste fix that itself refuses is worse than an absent one.
 
-⚠️ **`@me` reads a value; the supplied forms hand one in.** that property — not the grove, and not
-the flag name — is what decides which forms a refusal may print. 🔴 the skill runs **no
-grove-detect**, so *"`@me` is local-only"* over-claims: a human who ssh'd in with their own
-`gh auth login` passes.
+⇒ `@me` is the pre-rename name of `@self`. it still works, and no render names it.
 
-⇒ 🔴 **one flag, three value forms** (`F10`). they are one enumerable set, listed together in
-`--help` and in every refusal — so no form is reachable only from documentation
-(`rule.require.discoverability`).
+⇒ 🔴 **one flag, three value forms** (`F10`): `@stdin`, a literal, and `@self`, listed together in
+`--help` so no form is reachable only from documentation (`rule.require.discoverability`).
 
 ## .the citations
 
@@ -215,7 +213,8 @@ grove-detect**, so *"`@me` is local-only"* over-claims: a human who ssh'd in wit
   `seaturtle[bot]`, co-author `Seaturtle of'Ehmpathy <259600029+ehm-seaturtle@users.noreply.github.com>`.
   both the clone, zero humans
 - `ehmpathy/rhachet-roles-ehmpathy#646` — the followup: `git config` on a cloud grove can be
-  available or truthful, never both. that is what forces a **bound** value over an inferred one
+  available or truthful, never both. answered by invariant 9: a git config that names the clone
+  marks the clone's machine, which refuses rather than infers
 - this repo's own `main` — `691a742`, `c9d7d63`: the intended shape, from a local grove,
   co-authored `Ulad Kasach <uladkasach@gmail.com>`
 

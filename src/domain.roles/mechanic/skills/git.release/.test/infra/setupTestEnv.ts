@@ -150,6 +150,7 @@ export const runSkill = (
     encoding: 'utf-8',
     env: {
       ...process.env,
+      // .mock = gh, git, rhachet — exception contract in .test/infra/mockGh.ts
       PATH: `${env.mockBinDir}:${process.env.PATH}`,
       GIT_RELEASE_TEST_MODE: 'true',
       HOME: env.tempDir,

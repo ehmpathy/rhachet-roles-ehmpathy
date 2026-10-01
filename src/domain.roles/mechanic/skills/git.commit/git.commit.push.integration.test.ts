@@ -22,9 +22,11 @@ import { configureTestGitUser } from '@src/.test/configureTestGitUser';
  *         boundaries so the skill's own decision logic runs for real. every NON-push
  *         git call execs the REAL /usr/bin/git, so the local commit/log/rev-parse
  *         the skill relies on are unfaked.
- * .real = the real transport + gh PR-open + keyrack are exercised by git.commit.push.sh
- *         in production; each fake stands in ONLY for the boundary that a hermetic
- *         harness cannot reach. individual fakes are marked `.mock` at their site.
+ * .real = the real gh (its no-credential refusal, run through is_gh_auth_failure),
+ *         the real keyrack (its absent-key refusal), and the real git remote are
+ *         called in `external.contracts.integration.test.ts`; each fake here stands
+ *         in ONLY for a state those services cannot be driven into on demand.
+ *         individual fakes are marked `.mock` at their site.
  */
 describe('git.commit.push.sh', () => {
   const pushScriptPath = path.join(__dirname, 'git.commit.push.sh');
@@ -58,7 +60,7 @@ describe('git.commit.push.sh', () => {
    * .why = reduces boilerplate across test cases
    */
   const setupTempRepo = (args: {
-    meterState?: { uses: number; push: string };
+    meterState?: { uses: number; push: string; stage?: string };
     branch?: string;
     commits?: string[];
     commitAuthor?: { name: string; email: string };
@@ -727,6 +729,169 @@ exit 1`,
     });
   });
 
+  given('[case14b] push-only auto-revoke in apply mode', () => {
+    // .note = a whole-file rewrite on revoke once dropped `stage`, and every
+    //         reader defaults an absent stage to block — so a depletion via push
+    //         erased the human's stage grant. the revoke must touch push alone
+    when('[t0] uses 0, push allowed, stage allowed; the push ships', () => {
+      const scene = useThen('the push runs in apply mode', () => {
+        const tempDir = setupTempRepo({
+          meterState: { uses: 0, push: 'allow', stage: 'allow' },
+          branch: 'turtle/push-revoke-stage',
+          commits: ['feat: revoke keeps stage'],
+          commitAuthor: {
+            name: 'seaturtle[bot]',
+            email: 'seaturtle@ehmpath.com',
+          },
+        });
+
+        // .mock = fake gh cli - token validation, pr list (empty), pr create
+        // .note = pr list prints NAUGHT, as the real `--jq '.[0].number'` does on
+        //         an empty list — a bare "[]" would read as a found pr #[]
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "list" ]]; then
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  echo "https://github.com/test/repo/pull/42"
+  exit 0
+fi
+exit 1
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        // .mock = fake git push - returns success; all else runs real git
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'git'),
+          `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+
+        const result = runPush({
+          tempDir,
+          pushArgs: ['--mode', 'apply'],
+          env: {
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
+          },
+        });
+        const meterAfter = JSON.parse(
+          fs.readFileSync(
+            path.join(tempDir, '.meter', 'git.commit.uses.jsonc'),
+            'utf-8',
+          ),
+        );
+        return { result, meterAfter };
+      });
+
+      then('it exits 0', () => {
+        expect(scene.result.exitCode).toBe(0);
+      });
+
+      then('the tree reports the revoke', () => {
+        expect(scene.result.stdout).toContain(
+          'push: allowed → blocked (revoked)',
+        );
+        expect(scene.result.stdout).toMatchSnapshot();
+      });
+
+      then('push is revoked', () => {
+        expect(scene.meterAfter.push).toEqual('block');
+      });
+
+      then('the stage grant survives the revoke', () => {
+        expect(scene.meterAfter.stage).toEqual('allow');
+      });
+
+      then('uses stay as they were', () => {
+        expect(scene.meterAfter.uses).toEqual(0);
+      });
+    });
+  });
+
+  given('[case14d] a value flag is the last arg, with no value', () => {
+    // .why = a bare `shift 2` (or `"$2"` under `set -u`) died at exit 1 on
+    //        bash's own message when the flag was the last arg
+    when('[t0] `--mode` is last', () => {
+      then('a curated constraint, never a raw shift crash', () => {
+        const tempDir = setupTempRepo({
+          meterState: { uses: 3, push: 'allow' },
+          branch: 'turtle/bare-flag',
+          commits: ['feat: bare flag'],
+        });
+        const result = runPush({ tempDir, pushArgs: ['--mode'] });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain(
+          "✋ ConstraintError: --mode must be 'plan' or 'apply'",
+        );
+        expect(result.stderr).not.toContain('shift count out of range');
+        expect(result.stderr).not.toContain('unbound variable');
+        expect(result.stdout).toMatchSnapshot('stdout');
+        expect(result.stderr).toMatchSnapshot('stderr');
+      });
+    });
+  });
+
+  given('[case14c] the LOCAL quota file is damaged', () => {
+    // .note = raw `jq -r` reads died on jq's own parse error under pipefail —
+    //         no class, no file, no fix. the push refuses by name first
+    when('[t0] the file is truncated mid-write', () => {
+      const result = useThen('the push is attempted', () => {
+        const tempDir = setupTempRepo({
+          meterState: { uses: 3, push: 'allow' },
+          branch: 'turtle/damaged-meter',
+          commits: ['feat: damaged meter'],
+          commitAuthor: {
+            name: 'seaturtle[bot]',
+            email: 'seaturtle@ehmpath.com',
+          },
+        });
+        fs.writeFileSync(
+          path.join(tempDir, '.meter', 'git.commit.uses.jsonc'),
+          '{ "uses": 3, "pu',
+        );
+        return runPush({
+          tempDir,
+          pushArgs: ['--mode', 'apply'],
+          env: { EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token' },
+        });
+      });
+
+      then('it exits 1 — a malfunction, not the caller', () => {
+        expect(result.exitCode).toBe(1);
+      });
+
+      then('it names the class, the file, and the fix, on both streams', () => {
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: commit quota file corrupt',
+        );
+        expect(result.stdout).toContain('git.commit.uses del');
+        expect(result.stderr).toContain('💥 MalfunctionError:');
+        expect(result.stderr).toContain('git.commit.uses del');
+        expect(result.stdout).toMatchSnapshot();
+        expect(result.stderr).toMatchSnapshot('stderr');
+      });
+
+      then("jq's raw parse error never reaches the human", () => {
+        expect(result.stderr).not.toContain('parse error');
+      });
+    });
+  });
+
   given(
     '[case15] as-ehmpath keyrack locked → guide to as-human (sad path)',
     () => {
@@ -1051,6 +1216,8 @@ Co-authored-by: Human <human@example.com>`;
         fs.mkdirSync(fakeBinDir, { recursive: true });
 
         // .mock = fake gh cli - returns success for token validation, pr list (empty), and pr create
+        // .note = pr list prints naught, as the real `--jq '.[0].number'` does on an
+        //         empty list — a bare "[]" read as a found pr #[]
         fs.writeFileSync(
           path.join(fakeBinDir, 'gh'),
           `#!/bin/bash
@@ -1058,7 +1225,6 @@ if [[ "$1" == "api" && "$2" == "/user" ]]; then
   echo '{"login":"ehm-seaturtle"}'
   exit 0
 elif [[ "$1" == "pr" && "$2" == "list" ]]; then
-  echo "[]"
   exit 0
 elif [[ "$1" == "pr" && "$2" == "create" ]]; then
   echo "https://github.com/test/repo/pull/42"
@@ -1621,9 +1787,12 @@ exit 1`,
           },
         });
 
-        expect(result.exitCode).toBe(2); // blocked by constraints
+        // a damaged file is a malfunction (exit 1), as on `git.commit.set`
+        expect(result.exitCode).toBe(1);
         expect(result.stdout).toContain('bummer dude');
-        expect(result.stdout).toContain('global blocker file corrupt');
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: global blocker file corrupt',
+        );
       });
     });
   });
@@ -1647,11 +1816,8 @@ exit 1`,
      *        `[case37]` (uses) prove the other two consumers of this one
      *        state; this is the third, and it was the only one unproven.
      *
-     * ⚠️ .note = this pins the CURRENT exit code (2), deliberately. `set`
-     *        exits 1 on the same state and the two disagree — a real finding,
-     *        separable from this render, and deferred to
-     *        `.dream/2026_09_21.fix-push-and-set-disagree-on-the-corrupt-org-exit-code.dream.md`
-     *        rather than prejudged here.
+     * .note = it pins exit 1 and `💥 MalfunctionError`, the same as `set` on
+     *        this state: a damaged file is a malfunction on every surface.
      */
     when('[t0] plan mode, with an org meter that will not parse', () => {
       const result = useThen('the push refuses', () => {
@@ -1673,10 +1839,14 @@ exit 1`,
         });
       });
 
-      then('it refuses, and names the corrupt file', () => {
-        expect(result.exitCode).toBe(2);
+      then('it refuses as a malfunction, and names the corrupt file', () => {
+        // .why exit 1 = a damaged file is a malfunction, as `git.commit.set`
+        //        already exits on this same state; the header names the class
+        expect(result.exitCode).toBe(1);
         expect(result.stdout).toContain('bummer dude');
-        expect(result.stdout).toContain('org meter file corrupt');
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: org meter file corrupt',
+        );
       });
 
       then('🔴 it names the PATH — the shared body, not the headline', () => {

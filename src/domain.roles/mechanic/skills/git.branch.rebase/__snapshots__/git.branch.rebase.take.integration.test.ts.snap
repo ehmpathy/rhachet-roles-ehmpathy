@@ -184,10 +184,15 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
    │  └─ failed ✗
    │     ├─
    │     │
-   │     │  🐢 hold up dude...
+   │     │  🐢 bummer dude...
    │     │
    │     │  🐚 git.branch.rebase lock refresh
-   │     │     └─ error: yarn not found, install yarn
+   │     │     ├─ detected: yarn
+   │     │     ├─ run: yarn install
+   │     │     └─ error: install failed
+   │     │
+   │     │  install output:
+   │     │  error Couldn't find a package.json file in "/tmp/TEMP_DIR"
    │     │
    │     └─
    └─ incomplete

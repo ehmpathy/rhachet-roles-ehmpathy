@@ -20,6 +20,7 @@
 #   ✔ replaces allow list entirely
 #   ✔ appends to deny list (no duplicates)
 #   ✔ appends to ask list (no duplicates)
+#   ✔ drops Write(<path>) rules from deny + ask (claude code never matches them)
 #   ✔ idempotent: safe to rerun
 #   ✔ fail-fast on errors
 ######################################################################
@@ -58,9 +59,18 @@ fi
 
 # apply permissions:
 # - replace allow entirely
-# - append to deny (unique)
-# - append to ask (unique)
+# - drop Write(<path>) entries from deny + ask, then append (unique)
+#
+# .why = claude code matches file paths only against Edit(<path>) rules; a
+#        Write(<path>) rule matches naught and prints a notice at every boot.
+#        allow is replaced whole, so its stale Write rules leave on reinit;
+#        deny + ask only append, so without this drop a Write rule an older
+#        release shipped would stay forever. the drop changes no enforcement —
+#        the rule it removes never matched. a bare `Write` tool rule stays.
 jq --argjson perms "$PERMISSIONS_CONFIG" '
+  # drop path-scoped Write rules, which claude code never matches
+  def without_write_path_rules: map(select(startswith("Write(") | not));
+
   # ensure .permissions exists
   .permissions //= {} |
 
@@ -68,10 +78,10 @@ jq --argjson perms "$PERMISSIONS_CONFIG" '
   .permissions.allow = $perms.permissions.allow |
 
   # append to deny (unique entries only)
-  .permissions.deny = ((.permissions.deny // []) + $perms.permissions.deny | unique) |
+  .permissions.deny = ((.permissions.deny // [] | without_write_path_rules) + $perms.permissions.deny | unique) |
 
   # append to ask (unique entries only)
-  .permissions.ask = ((.permissions.ask // []) + $perms.permissions.ask | unique)
+  .permissions.ask = ((.permissions.ask // [] | without_write_path_rules) + $perms.permissions.ask | unique)
 ' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp"
 
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H-%M-%SZ")

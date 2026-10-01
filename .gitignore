@@ -1,7 +1,7 @@
 *.bak.*
 *.local.json
 *.log
-.agent/.actors/
+.agent/.actors/*
 .agent/.cache/
 scheduled_tasks.lock
 .cache/
@@ -24,3 +24,4 @@ bin/
 coverage
 dist
 node_modules
+!.agent/.actors/actor.via.slug=.default/

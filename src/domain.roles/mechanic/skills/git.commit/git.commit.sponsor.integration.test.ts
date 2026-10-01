@@ -3,11 +3,12 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 import {
   SPONSOR_STATE_FILENAME,
   seedTestSponsor,
-} from '../../../../.test/seedTestSponsor';
-import { getPtyModulePath, spawnInPty } from '../../../../.test/spawnInPty';
+} from '@src/.test/seedTestSponsor';
+import { getPtyModulePath, spawnInPty } from '@src/.test/spawnInPty';
 
 /**
  * .what = integration tests for git.commit.sponsor.sh
@@ -28,6 +29,9 @@ describe('git.commit.sponsor.sh', () => {
     asHuman?: boolean;
     stdin?: string;
     seedSponsor?: { name: string; email: string };
+    gitConfig?: { name: string | null; email: string | null };
+    // extra env for the subprocess (e.g. a PATH with a gh trap first on it)
+    env?: Record<string, string>;
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
     const tempDir = genTempDir({ slug: 'git-commit-sponsor-test', git: true });
 
@@ -38,6 +42,14 @@ describe('git.commit.sponsor.sh', () => {
     if (args.seedSponsor)
       seedTestSponsor({ cwd: tempDir, ...args.seedSponsor });
 
+    // .why = `@self` and `get` read this repo's git config. genTempDir seeds
+    //        `test-fns <test-fns@test.local>`; a case that names its own
+    //        identity overrides it here, and `null` unsets that half. global
+    //        and system config are already `/dev/null` (jest.integration.env.ts),
+    //        so the repo's own config is the whole identity.
+    if (args.gitConfig)
+      configureTestGitUser({ cwd: tempDir, ...args.gitConfig });
+
     const result = spawnSync('bash', [scriptPath, ...args.sponsorArgs], {
       cwd: tempDir,
       encoding: 'utf-8', // note: library api requires this term
@@ -46,6 +58,7 @@ describe('git.commit.sponsor.sh', () => {
       env: {
         ...process.env,
         ...(args.asHuman === false ? {} : { __I_AM_HUMAN: 'true' }),
+        ...(args.env ?? {}),
       },
     });
 
@@ -62,45 +75,6 @@ describe('git.commit.sponsor.sh', () => {
       path.join(tempDir, '.meter', 'git.commit.sponsor.jsonc'),
       'utf-8',
     );
-
-  /**
-   * .what = run `set --who @me` against a `gh` whose behavior is supplied here.
-   *
-   * .why = the two boundary clamps below differ only in what gh does, so one
-   *        runner with a `ghScript` seam beats two near-identical helpers —
-   *        this is the third call shape of the same stub in this file.
-   */
-  const runAtMeWithGhStub = (args: {
-    slug: string;
-    ghScript: string;
-  }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
-    const tempDir = genTempDir({ slug: `sponsor-${args.slug}`, git: true });
-    const fakeBin = genTempDir({
-      slug: `sponsor-${args.slug}-bin`,
-      git: false,
-    });
-
-    fs.writeFileSync(path.join(fakeBin, 'gh'), args.ghScript);
-    fs.chmodSync(path.join(fakeBin, 'gh'), '755');
-
-    const result = spawnSync('bash', [scriptPath, 'set', '--who', '@me'], {
-      cwd: tempDir,
-      encoding: 'utf-8', // note: library api requires this term
-      stdio: ['pipe', 'pipe', 'pipe'],
-      env: {
-        ...process.env,
-        PATH: `${fakeBin}:${process.env.PATH}`,
-        __I_AM_HUMAN: 'true',
-      },
-    });
-
-    return {
-      stdout: result.stdout ?? '',
-      stderr: result.stderr ?? '',
-      exitCode: result.status ?? 1,
-      tempDir,
-    };
-  };
 
   given('[case1] a fresh tree, the supervisor pipes the requester in', () => {
     when('[t0] set --who @stdin', () => {
@@ -270,7 +244,7 @@ describe('git.commit.sponsor.sh', () => {
 
           // B must not see it — neither through the skill nor on disk
           const readB = runIn(treeB, ['get']);
-          expect(readB.stdout).toContain('sponsor: (none)');
+          expect(readB.stdout).toContain('sponsor: (none bound)');
           expect(readB.stdout).not.toContain('Ada Lovelace');
           expect(
             fs.existsSync(
@@ -301,35 +275,96 @@ describe('git.commit.sponsor.sh', () => {
       });
     });
 
-    when('[t1] no sponsor is bound', () => {
-      then('reports (none) and names the fix', () => {
-        const result = runInTempGitRepo({ sponsorArgs: ['get'] });
+    when('[t1a] no bind, and git config names a human', () => {
+      // .mock = the gh cli, as a trap first on PATH that marks a file if run
+      // .why  = the vision: gh is read on no sponsor path. an absence cannot be
+      //         observed on a real gh — only a trap that records a call proves
+      //         the call never happened
+      // .real = all else is real: a real temp repo, real git config, the real
+      //         skill. the sponsor path has no gh call left to exercise
+      const fakeBin = genTempDir({ slug: 'sponsor-get-gh-trap', git: false });
+      const ghMark = path.join(fakeBin, 'gh.was.called');
+      fs.writeFileSync(
+        path.join(fakeBin, 'gh'),
+        `#!/usr/bin/env bash\ntouch "${ghMark}"\nexit 1\n`,
+      );
+      fs.chmodSync(path.join(fakeBin, 'gh'), '755');
 
+      // one read, the trap on PATH, shared by both assertions below
+      const result = useThen('the read runs', () =>
+        runInTempGitRepo({
+          sponsorArgs: ['get'],
+          gitConfig: { name: 'Kai Nalu', email: 'kai@example.com' },
+          env: { PATH: `${fakeBin}:${process.env.PATH}` },
+        }),
+      );
+
+      then('🔴 no gh command ran', () => {
+        expect(fs.existsSync(ghMark)).toBe(false);
+      });
+
+      then('reports the git config default commits will name', () => {
+        // .why = with no bind, a commit takes the human from git config. a
+        //        `get` that said only "(none)" would imply commits refuse,
+        //        which is false on a human's machine (rule.forbid.surprises)
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('sponsor: (none)');
-        // .why = `get` carries no actor guard, so a HUMAN reads this line as
-        //        often as a clone does. "ask your human to…" commands a human
-        //        who is frequently the reader; this states who may bind, and
-        //        fits both. the imperative stays correct in `git.commit.set`,
-        //        which a clone runs and a human does not.
-        expect(result.stdout).toContain("a human binds this tree's sponsor");
-        expect(result.stdout).not.toContain('ask your human to bind one');
-
-        // 🔴 .why the 🥥 is ASSERTED, not merely snapshotted = it is the one
-        //        mark that separates this OPTIONAL next move from the
-        //        MANDATORY remedies the refusals carry, and the two render
-        //        near-identical command lists otherwise. a snapshot alone
-        //        would let the mark vanish under a resnap nobody re-reads
-        //        (rule.require.coconut-hints).
-        expect(result.stdout).toContain('🥥 did you know?');
-
-        // .why = the coconut opens with its own blank line, so an `echo ""`
-        //        ahead of it at the call site would render a double gap. this
-        //        pins the single-gap shape (forbid.snapshot-visual-blemishes).
-        expect(result.stdout).not.toContain('\n\n\n');
+        expect(result.stdout).toContain('sponsor: (none bound)');
+        expect(result.stdout).toContain('commits: use git config');
+        expect(result.stdout).toContain('name: Kai Nalu');
+        expect(result.stdout).toContain('email: kai@example.com');
+        expect(result.stdout).not.toContain('commits will refuse');
+        expect(result.stdout).not.toContain('@me');
         expect(result.stdout).toMatchSnapshot();
       });
     });
+
+    when(
+      "[t1] no bind, and git config names a clone — the clone's machine",
+      () => {
+        then(
+          'reports (none bound), says commits will refuse, and names the fix',
+          () => {
+            const result = runInTempGitRepo({
+              sponsorArgs: ['get'],
+              gitConfig: {
+                name: 'seaturtle[bot]',
+                email: 'seaturtle@ehmpath.com',
+              },
+            });
+
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toContain('sponsor: (none bound)');
+            expect(result.stdout).toContain(
+              "git config: names a clone — the clone's machine",
+            );
+            expect(result.stdout).toContain('commits: will refuse');
+            // .why = `get` carries no actor guard, so a HUMAN reads this line as
+            //        often as a clone does. "ask your human to…" commands a human
+            //        who is frequently the reader; this states who may bind, and
+            //        fits both. the imperative stays correct in `git.commit.set`,
+            //        which a clone runs and a human does not.
+            expect(result.stdout).toContain(
+              "a human binds this tree's sponsor",
+            );
+            expect(result.stdout).not.toContain('ask your human to bind one');
+
+            // 🔴 .why the 🥥 is ASSERTED, not merely snapshotted = it is the one
+            //        mark that separates this OPTIONAL next move from the
+            //        MANDATORY remedies the refusals carry, and the two render
+            //        near-identical command lists otherwise. a snapshot alone
+            //        would let the mark vanish under a resnap nobody re-reads
+            //        (rule.require.coconut-hints).
+            expect(result.stdout).toContain('🥥 did you know?');
+
+            // .why = the coconut opens with its own blank line, so an `echo ""`
+            //        ahead of it at the call site would render a double gap. this
+            //        pins the single-gap shape (forbid.snapshot-visual-blemishes).
+            expect(result.stdout).not.toContain('\n\n\n');
+            expect(result.stdout).toMatchSnapshot();
+          },
+        );
+      },
+    );
 
     when('[t2] the caller has NO tty — a clone', () => {
       then('the read is still permitted', () => {
@@ -360,11 +395,21 @@ describe('git.commit.sponsor.sh', () => {
         }),
       );
 
-      then('refuses, and addresses the human', () => {
+      then('refuses, and names the channel as the cause', () => {
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('only humans can run this command');
-        expect(result.stdout).toContain('ask your human to run');
+        expect(result.stdout).toContain('no terminal on this command');
+        expect(result.stdout).toContain('run it from your own terminal');
         expect(result.stdout).toMatchSnapshot();
+      });
+
+      then('🔴 it speaks to a human at a claude `!` prompt too', () => {
+        // 🔴 .why = a human's `!` command and a clone's tool call arrive with
+        //        no terminal and identical claude env markers (measured), so
+        //        they meet THIS render. the prior "only humans can run this
+        //        command" told a human they were not one. the render must name
+        //        the `!` channel, so that reader learns the fix.
+        expect(result.stdout).toContain('a claude `!` command');
+        expect(result.stdout).toContain('cannot be told apart');
       });
 
       then('writes no state', () => {
@@ -376,15 +421,17 @@ describe('git.commit.sponsor.sh', () => {
         ).toBe(false);
       });
 
-      then('the refusal never prints @me', () => {
-        // .why = @me reads the gh session on THIS host, which on a cloud grove
-        //        is the clone's. a mandatory block that printed it would hand
-        //        the reader a second refusal.
-        expect(result.stdout).not.toContain('--who @me');
+      then('the refusal never prints @self or @me', () => {
+        // .why = `@self` reads THIS machine's git config, which on the clone's
+        //        machine names the clone — a mandatory block that printed it
+        //        would hand the reader a second refusal. `@me` is a silent
+        //        alias, never named on any render.
+        expect(result.stdout).not.toContain('--who @self');
+        expect(result.stdout).not.toContain('@me');
       });
 
       then('the failure lands on BOTH streams', () => {
-        expect(result.stderr).toContain('only humans can run this command');
+        expect(result.stderr).toContain('no terminal on this command');
       });
 
       then('it shuts the "retry with a better name" loop', () => {
@@ -413,7 +460,7 @@ describe('git.commit.sponsor.sh', () => {
 
         // .why = a permissive del is a permissive set plus one step
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toContain('no terminal on this command');
         expect(JSON.parse(readState(result.tempDir)).sponsor.name).toBe(
           'Ada Lovelace',
         );
@@ -426,7 +473,7 @@ describe('git.commit.sponsor.sh', () => {
         //        human who asked to CLEAR a sponsor was handed the command to
         //        BIND one — a refusal whose fix does the opposite of the act it
         //        refused (rule.require.errors-name-the-fix). the shared phrase
-        //        `only humans can run this command` asserted above is true of
+        //        `no terminal on this command` asserted above is true of
         //        both renders, so it could never have caught it.
         expect(result.stdout).toMatchSnapshot();
         expect(result.stdout).toContain('rhx git.commit.sponsor del');
@@ -503,7 +550,7 @@ describe('git.commit.sponsor.sh', () => {
       then('it never took the refusal branch', () => {
         // .why = an accept that ALSO printed the refusal would mean the guard
         //        ran twice with two verdicts. one spawn, one verdict.
-        expect(scene.output).not.toContain('only humans can run this command');
+        expect(scene.output).not.toContain('no terminal on this command');
       });
     });
 
@@ -551,7 +598,8 @@ describe('git.commit.sponsor.sh', () => {
   given(
     '[case5] the identity BACKSTOP refuses a party that cannot answer',
     () => {
-      const stem = 'error: that identity cannot answer for a change';
+      const stem =
+        '✋ ConstraintError: that identity cannot answer for a change';
 
       when('[t0] the value names a github app', () => {
         then('refuses as a robot', () => {
@@ -635,16 +683,14 @@ describe('git.commit.sponsor.sh', () => {
           //
           // .why = it does. the guard names two clone identities declared in
           //        keyrack.operations.sh, and this is the third — the account
-          //        the clone holds a `gh auth login` session as. an identity
-          //        MATCH needs no attribute to work, which is the whole
-          //        reason it survives Q10's refutations.
+          //        the clone works as on its own machine. an identity MATCH
+          //        needs no attribute to work, which is the whole reason it
+          //        survives Q10's refutations.
           //
-          // .why = the vision requires this refusal (case=1 [t3], case=5):
-          //        a cloud grove carries no human session, so `--who @me`
-          //        there must refuse rather than name whoever it found. a
-          //        bind of this account would put the clone in its own
-          //        Co-authored-by trailer — the defect (#645) restored under
-          //        the paved flag.
+          // .why = a bind of this account would put the clone in its own
+          //        Co-authored-by trailer — the defect (#645). the same roster
+          //        is what marks the clone's machine when it sits in git
+          //        config ([case9][t5]).
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(stem);
           expect(result.stdout).toContain('...and it is a robot.');
@@ -727,7 +773,8 @@ describe('git.commit.sponsor.sh', () => {
         const result = runInTempGitRepo({ sponsorArgs: ['del'] });
 
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('sponsor: (none)');
+        // the same words `get` uses for the same state — no bind exists
+        expect(result.stdout).toContain('sponsor: (none bound)');
         // .why = a `toContain` pins ONE phrase; the render a human reads is a
         //        whole tree, and a dropped or reworded line around that phrase
         //        ships green. the snapshot is what a reviewer eyeballs in the
@@ -1093,948 +1140,458 @@ describe('git.commit.sponsor.sh', () => {
     });
   });
 
-  given('[case9] --who @me when the host cannot answer', () => {
-    when('[t0] the gh session lookup fails', () => {
+  given(
+    "[case9] --who @self reads this machine's git config, and only that",
+    () => {
       /**
-       * .why = this clamps a defect the green suite did not catch. the @me
-       *        resolver used to emit its refusal INSIDE a `$( )` command
-       *        substitution, so the stdout half was captured into the
-       *        variable rather than shown — the human saw the failure on
-       *        stderr only, a silent rule.require.skill-output-streams
-       *        breach. the exit code was 2 either way, so a coarse assert
-       *        would have passed.
+       * .what = run `set --who <form>` with a named git identity, and a `gh` on
+       *         PATH that leaves a mark if any caller runs it.
        *
-       * .mock = a `gh` stub that exits non-zero, shadowed onto PATH.
-       * .why  = the gh-failure branch cannot be reached in a hermetic
-       *         harness any other way — the runner's own gh IS logged in,
-       *         so the real call succeeds.
-       *
-       * .note = this stub fails SILENTLY: exit 1, no stderr. [t1c] is its
-       *         complement, where gh does say why. the pair is what proves
-       *         the refusal reports gh's words when there are words, and
-       *         invents none when there are not.
+       * .mock = the gh cli, as a trap first on PATH that marks a file if run
+       * 🔴 .why = the wish forbids gh on this path in any form. a stub that
+       *        fails would only prove the skill survives gh; a stub that MARKS
+       *        proves gh was never run. every case below asserts the mark is
+       *        absent.
+       * .real = all else is real: a real temp repo, real git config, the real
+       *         skill. the `@self` path has no gh call left to exercise
        */
-      const runWithBrokenGh = (): {
-        stdout: string;
-        stderr: string;
-        exitCode: number;
-      } => {
-        const tempDir = genTempDir({
-          slug: 'git-commit-sponsor-nogh',
-          git: true,
-        });
-        const fakeBin = genTempDir({ slug: 'sponsor-fake-bin', git: false });
-        fs.writeFileSync(
-          path.join(fakeBin, 'gh'),
-          '#!/usr/bin/env bash\nexit 1\n',
-        );
-        fs.chmodSync(path.join(fakeBin, 'gh'), '755');
-
-        const result = spawnSync('bash', [scriptPath, 'set', '--who', '@me'], {
-          cwd: tempDir,
-          encoding: 'utf-8', // note: library api requires this term
-          stdio: ['pipe', 'pipe', 'pipe'],
-          env: {
-            ...process.env,
-            PATH: `${fakeBin}:${process.env.PATH}`,
-            __I_AM_HUMAN: 'true',
-          },
-        });
-        return {
-          stdout: result.stdout ?? '',
-          stderr: result.stderr ?? '',
-          exitCode: result.status ?? 1,
-        };
-      };
-
-      const result = useThen('the bind refuses', () => runWithBrokenGh());
-
-      then('the refusal lands on BOTH streams', () => {
-        expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('gh failed (exit 1)');
-        expect(result.stderr).toContain('gh failed (exit 1)');
-      });
-
-      then('🔴 it names what it MEASURED, never a cause it assumed', () => {
-        // 🔴 .why = this assert used to read `found no github session on this
-        //        host`, and that is what it CLAMPED: a specific cause the
-        //        skill never measured, asserted for every nonzero gh exit.
-        //        ⇒ the test did not merely miss the defect — it pinned it,
-        //        so a repair would have had to break a green test to land.
-        //
-        // .why = this stub exits 1 and says NOTHING on stderr, which is the
-        //        sharp half: with no words from gh, the refusal must still
-        //        decline to invent a cause.
-        expect(result.stdout).not.toContain('found no github session');
-        expect(result.stderr).not.toContain('found no github session');
-      });
-
-      then('🔴 it never points at words gh did not say', () => {
-        // 🔴 .why = the lead read "read gh's words above" UNCONDITIONALLY,
-        //        while the body leaf is omitted when gh's stderr is empty.
-        //        this stub is exactly that case — exit 1, silent — so the
-        //        refusal rendered an instruction to read text that is not on
-        //        screen, and a human stops to hunt for it on an already-failing
-        //        path (rule.forbid.surprises).
-        //
-        // ⇒ the same output ALSO carries the correct remedy, so an assert on
-        //        the remedy passes in both worlds. the teeth have to be on the
-        //        claim about evidence, which is the only part that differs.
-        //
-        // .note = [t1c] is the complement: there gh DOES speak, and the lead
-        //        must point at its words. the pair pins both directions, so a
-        //        repair that hard-codes either lead breaks one of the two.
-        expect(result.stdout).not.toContain("read gh's words above");
-        expect(result.stderr).not.toContain("read gh's words above");
-        expect(result.stdout).toContain('gh said no more');
-      });
-
-      then('it offers the two grove-agnostic forms', () => {
-        expect(result.stdout).toContain('--who @stdin');
-        expect(result.stdout).toContain('--who "Name <email>"');
-        expect(result.stdout).toMatchSnapshot();
-      });
-    });
-
-    when('[t1] the gh session resolves to a clone', () => {
-      /**
-       * .why = the vision's `case=1 [t3]` — @me must REFUSE where the
-       *        session is not yours, never substitute. two adjacent tests
-       *        each cover half of it: [case5][t1] proves the backstop
-       *        refuses a clone identity SUPPLIED as a literal, and
-       *        [case9][t0] proves @me refuses when the lookup FAILS.
-       *        neither walks @me through to the backstop, so a junior who
-       *        wired @me to write state ahead of the guard would leave both
-       *        green — and ship the defect under the paved path's own flag.
-       *
-       * .why = it is also the only clamp on the VIA_AT_ME branch: the lead
-       *        swap and the grove note fire nowhere else, so every extant
-       *        test leaves those four lines dead.
-       *
-       * .mock = a `gh` stub that SUCCEEDS with the app-bot payload.
-       * .why  = the runner's own gh answers as whoever it is logged in as,
-       *         so a session that reads as a clone cannot be reached in a
-       *         hermetic harness any other way.
-       */
-      const runWithCloneGh = (): {
-        stdout: string;
-        stderr: string;
-        exitCode: number;
-      } => {
-        const tempDir = genTempDir({
-          slug: 'git-commit-sponsor-clonegh',
-          git: true,
-        });
-        const fakeBin = genTempDir({ slug: 'sponsor-clone-bin', git: false });
-        // .note = the stub matches the ONE signature the skill invokes, and
-        //         exits 64 on any other. a blanket stub would answer a future
-        //         second `gh` call with this payload, and the test would pass
-        //         for the wrong reason (howto.mock-cli-via-path, key point 4).
-        fs.writeFileSync(
-          path.join(fakeBin, 'gh'),
-          `#!/usr/bin/env bash\n[[ "$1" == "api" ]] || { echo "unexpected gh call: $*" >&2; exit 64; }\ncat << 'JSON'\n{"login":"ehm-a-seaturtle[bot]","name":"ehm-a-seaturtle[bot]","id":295111357,"email":null}\nJSON\n`,
-        );
-        fs.chmodSync(path.join(fakeBin, 'gh'), '755');
-
-        const result = spawnSync('bash', [scriptPath, 'set', '--who', '@me'], {
-          cwd: tempDir,
-          encoding: 'utf-8', // note: library api requires this term
-          stdio: ['pipe', 'pipe', 'pipe'],
-          env: {
-            ...process.env,
-            PATH: `${fakeBin}:${process.env.PATH}`,
-            __I_AM_HUMAN: 'true',
-          },
-        });
-        return {
-          stdout: result.stdout ?? '',
-          stderr: result.stderr ?? '',
-          exitCode: result.status ?? 1,
-        };
-      };
-
-      const result = useThen('the bind refuses', () => runWithCloneGh());
-
-      then('it refuses as a robot, never substitutes', () => {
-        expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain(
-          'error: that identity cannot answer for a change',
-        );
-        expect(result.stdout).toContain('...and it is a robot.');
-        expect(result.stderr).toContain('...and it is a robot.');
-      });
-
-      then('the lead names the SESSION, never "you named"', () => {
-        // .why = @me did not ask the human for a value, so a refusal that
-        //        said "you named:" would blame them for the host's answer.
-        expect(result.stdout).toContain(
-          'the github session on this host reads:',
-        );
-        expect(result.stdout).not.toContain('you named:');
-      });
-
-      then('it states the cloud-grove fact, and claims no grove', () => {
-        // .why = the skill runs no grove-detect, so the note reports what a
-        //        cloud grove IS, never what THIS host is.
-        expect(result.stdout).toContain(
-          "on a cloud grove that session is the clone's, never yours",
-        );
-      });
-
-      then('the whole @me render is pinned', () => {
-        // 🔴 .why = the @me refusal is TEXTUALLY DIFFERENT from the literal
-        //        one `[case5][t3]` snapshots: it swaps the lead to "the github
-        //        session on this host reads:" and adds the grove note. so the
-        //        snapshotted literal case does NOT protect these lines, and a
-        //        regression in the lead/note swap would ship green — the same
-        //        "four lines no test executed" class the ladder already caught
-        //        once this drive.
-        expect(result.stdout).toMatchSnapshot();
-      });
-    });
-
-    when("[t1b] the gh session resolves to the clone's own ACCOUNT", () => {
-      /**
-       * 🔴 .why = THE case the vision names, and the one [t1] does not reach.
-       *        [t1] stubs the APP BOT payload, whose name carries `[bot]` —
-       *        so it proves only that the `[bot]` marker survives the @me
-       *        path. the account a cloud grove is actually logged in as
-       *        carries NO marker: name `Seaturtle of'Ehmpathy`, type "User".
-       *
-       * .why = so this walks the exact measured payload of case=1 [t3]
-       *        through `--who @me` end to end. it is the clamp on the roster
-       *        entry: revert SEATURTLE_CLONE_* out of is_identity_robot and
-       *        this test binds the clone as its own sponsor, exit 0.
-       *
-       * .mock = a `gh` stub with the MEASURED cloud-grove payload.
-       * .why  = verified first-party 2026-09-10 —
-       *         `gh api -X GET user` → {"id":259600029,"login":"ehm-seaturtle",
-       *         "name":"Seaturtle of'Ehmpathy","type":"User"}. a stub is the
-       *         only way to pin it, since the runner's gh answers as whoever
-       *         it is logged in as.
-       */
-      const runWithCloneAccountGh = (): {
-        stdout: string;
-        stderr: string;
-        exitCode: number;
-        tempDir: string;
-      } => {
-        const tempDir = genTempDir({
-          slug: 'git-commit-sponsor-cloneacct',
-          git: true,
-        });
+      const runSelf = (args: {
+        slug: string;
+        who: '@self' | '@me';
+        gitConfig: { name: string | null; email: string | null };
+        // default true — false runs with no tty and no escape hatch, as a
+        // clone's tool call or a claude `!` command does
+        asHuman?: boolean;
+      }) => {
+        const tempDir = genTempDir({ slug: `sponsor-${args.slug}`, git: true });
         const fakeBin = genTempDir({
-          slug: 'sponsor-cloneacct-bin',
+          slug: `sponsor-${args.slug}-bin`,
           git: false,
         });
-        // .note = signature-matched, as above: exit 64 on any call but `api`
+        const ghMark = path.join(fakeBin, 'gh.was.called');
+        // .why = GIT_TRACE logs each git command the skill runs, so a case can
+        //        prove the identity was never read
+        const gitTrace = path.join(fakeBin, 'git.trace');
+
         fs.writeFileSync(
           path.join(fakeBin, 'gh'),
-          `#!/usr/bin/env bash\n[[ "$1" == "api" ]] || { echo "unexpected gh call: $*" >&2; exit 64; }\ncat << 'JSON'\n{"login":"ehm-seaturtle","name":"Seaturtle of'Ehmpathy","id":259600029,"email":null}\nJSON\n`,
+          `#!/usr/bin/env bash\ntouch "${ghMark}"\nexit 1\n`,
         );
         fs.chmodSync(path.join(fakeBin, 'gh'), '755');
+        configureTestGitUser({ cwd: tempDir, ...args.gitConfig });
 
-        const result = spawnSync('bash', [scriptPath, 'set', '--who', '@me'], {
-          cwd: tempDir,
-          encoding: 'utf-8', // note: library api requires this term
-          stdio: ['pipe', 'pipe', 'pipe'],
-          env: {
-            ...process.env,
-            PATH: `${fakeBin}:${process.env.PATH}`,
-            __I_AM_HUMAN: 'true',
+        const result = spawnSync(
+          'bash',
+          [scriptPath, 'set', '--who', args.who],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8', // note: library api requires this term
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: {
+              ...process.env,
+              PATH: `${fakeBin}:${process.env.PATH}`,
+              GIT_TRACE: gitTrace,
+              __I_AM_HUMAN: args.asHuman === false ? '' : 'true',
+            },
           },
-        });
+        );
+
         return {
           stdout: result.stdout ?? '',
           stderr: result.stderr ?? '',
           exitCode: result.status ?? 1,
           tempDir,
+          ghCalled: fs.existsSync(ghMark),
+          gitTraceLog: fs.existsSync(gitTrace)
+            ? fs.readFileSync(gitTrace, 'utf-8')
+            : '',
         };
       };
 
-      const cloneAcct = useThen('the bind refuses', () =>
-        runWithCloneAccountGh(),
-      );
+      const statePathOf = (tempDir: string) =>
+        path.join(tempDir, '.meter', 'git.commit.sponsor.jsonc');
 
-      then('it REFUSES — it never binds the clone as its own sponsor', () => {
-        expect(cloneAcct.exitCode).toBe(2);
-        expect(cloneAcct.stdout).toContain(
-          'error: that identity cannot answer for a change',
+      when('[t0] git config names a human', () => {
+        const result = useThen('the bind lands', () =>
+          runSelf({
+            slug: 'self-human',
+            who: '@self',
+            gitConfig: { name: 'Kai Nalu', email: 'kai@example.com' },
+          }),
         );
-        expect(cloneAcct.stdout).toContain('...and it is a robot.');
-        expect(cloneAcct.stderr).toContain('...and it is a robot.');
+
+        then('binds the git config identity, source: self', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('name: Kai Nalu');
+          expect(result.stdout).toContain('email: kai@example.com');
+          expect(result.stdout).toContain('source: self');
+          expect(result.stdout).toMatchSnapshot();
+        });
+
+        then('the state on disk records source: self', () => {
+          const state = JSON.parse(readState(result.tempDir));
+          expect(state.sponsor).toEqual({
+            name: 'Kai Nalu',
+            email: 'kai@example.com',
+            source: 'self',
+          });
+        });
+
+        then('🔴 gh was never run', () => {
+          expect(result.ghCalled).toBe(false);
+        });
       });
 
-      then(
-        'NO state is written — a refused bind leaves the tree unbound',
+      when('[t1] git config user.email is unset', () => {
+        const result = useThen('the bind refuses', () =>
+          runSelf({
+            slug: 'self-no-email',
+            who: '@self',
+            gitConfig: { name: 'Kai Nalu', email: null },
+          }),
+        );
+
+        then('refuses, names the absent half and its fix', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '--who @self found no git identity on this machine',
+          );
+          expect(result.stdout).toContain('git config user.email is unset.');
+          expect(result.stdout).toContain(
+            '$ git config --global user.email "you@example.com"',
+          );
+          expect(result.stdout).not.toContain('user.name is unset');
+          expect(result.stdout).toMatchSnapshot();
+        });
+
+        then('the failure lands on both streams', () => {
+          expect(result.stderr).toContain('git config user.email is unset.');
+        });
+
+        then('writes no state, and gh was never run', () => {
+          expect(fs.existsSync(statePathOf(result.tempDir))).toBe(false);
+          expect(result.ghCalled).toBe(false);
+        });
+      });
+
+      when('[t2] git config user.name is unset', () => {
+        then('refuses and names user.name — never guesses a name', () => {
+          const result = runSelf({
+            slug: 'self-no-name',
+            who: '@self',
+            gitConfig: { name: null, email: 'kai@example.com' },
+          });
+
+          // .why = the email's local part is never used as a name — a guessed
+          //        half is a fabricated identity
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('git config user.name is unset.');
+          expect(result.stdout).toContain(
+            '$ git config --global user.name "Your Name"',
+          );
+          expect(result.stdout).not.toContain('user.email is unset');
+          expect(fs.existsSync(statePathOf(result.tempDir))).toBe(false);
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t3] both halves are unset', () => {
+        then('refuses and names both, with one fix line per half', () => {
+          const result = runSelf({
+            slug: 'self-no-identity',
+            who: '@self',
+            gitConfig: { name: null, email: null },
+          });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('git config user.name is unset.');
+          expect(result.stdout).toContain('git config user.email is unset.');
+          expect(result.stdout).toContain('git config --global user.name');
+          expect(result.stdout).toContain('git config --global user.email');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when(
+        "[t4] git config names a seaturtle bot — the clone's machine",
         () => {
-          // .why = the sharpest half. a refusal that still wrote the file would
-          //        leave the clone bound as its own sponsor and every later
-          //        commit would name it — a refusal in the render only.
-          expect(
-            fs.existsSync(
-              path.join(
-                cloneAcct.tempDir,
-                '.meter',
-                'git.commit.sponsor.jsonc',
-              ),
-            ),
-          ).toBe(false);
+          const result = useThen('the bind refuses', () =>
+            runSelf({
+              slug: 'self-clone-bot',
+              who: '@self',
+              gitConfig: {
+                name: 'seaturtle[bot]',
+                email: 'seaturtle@ehmpath.com',
+              },
+            }),
+          );
+
+          then("refuses: this is the clone's machine", () => {
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain(
+              "--who @self read a clone's identity on this machine",
+            );
+            expect(result.stdout).toContain("this machine's git config reads:");
+            expect(result.stdout).toContain(
+              'seaturtle[bot] <seaturtle@ehmpath.com>',
+            );
+            expect(result.stdout).toMatchSnapshot();
+          });
+
+          then(
+            'the remedy names the portable forms, never @self or @me',
+            () => {
+              // .why = `@self` would read this same git config and refuse again.
+              //        the ERROR line names `--who @self` (the form the human typed);
+              //        the claim here is that no remedy COMMAND offers it.
+              expect(result.stdout).toContain('--who @stdin');
+              expect(result.stdout).toContain('--who "Name <email>"');
+              expect(result.stdout).not.toContain('sponsor set --who @self');
+              expect(result.stdout).not.toContain('@me');
+            },
+          );
+
+          then('writes no state, and gh was never run', () => {
+            expect(fs.existsSync(statePathOf(result.tempDir))).toBe(false);
+            expect(result.ghCalled).toBe(false);
+          });
         },
       );
 
-      then('the whole @me render is pinned', () => {
-        // 🔴 .why = THE linchpin cell of the vision, walked through the real
-        //        @me path. `[case5][t3]` snapshots the same refusal reached by
-        //        a LITERAL value, and that render omits the lead swap and the
-        //        grove note — so it protects none of the lines this path adds.
-        expect(cloneAcct.stdout).toMatchSnapshot();
-      });
-    });
+      when("[t5] git config names the clone's own github account", () => {
+        then(
+          "refuses: the account is on the roster, so it is the clone's machine",
+          () => {
+            // .why = the clone's account is human-shaped (no `[bot]`); only the
+            //        roster separates it. this is the roster's `clone` entry, live
+            //        through git config
+            const result = runSelf({
+              slug: 'self-clone-account',
+              who: '@self',
+              gitConfig: {
+                name: "Seaturtle of'Ehmpathy",
+                email: '259600029+ehm-seaturtle@users.noreply.github.com',
+              },
+            });
 
-    when('[t1c] gh FAILS for a cause that is not a logged-out session', () => {
-      /**
-       * 🔴 .why = the refusal used to assert one cause — "found no github
-       *        session on this host" — for EVERY nonzero gh exit, because
-       *        `2>/dev/null` had thrown away the only fact that names the
-       *        real one. a rate limit, a dropped network, and an expired
-       *        token all read identically, and a human whose session works
-       *        was sent to `gh auth login`.
-       *
-       * .why = the clamp asserts BOTH halves, and the second is the one that
-       *        bites: gh's own words must reach the human, AND the wrong
-       *        diagnosis must NOT be spoken. a test that only checked for the
-       *        remedy would pass under the defect too.
-       *
-       * .mock = a `gh` stub that exits 4 with a rate-limit message on stderr.
-       * ⚠️ .why = the user ID is FAKE. gh's real rate-limit text carries the
-       *        caller's own numeric id, so a message copied from a live
-       *        terminal would pin a real account into this snapshot
-       *        (`rule.forbid.real-identities-in-fixtures`). the assert grades
-       *        that gh's words are RELAYED, and a fake id relays identically.
-       */
-      const ghRateLimited = useThen('the bind refuses', () =>
-        runAtMeWithGhStub({
-          slug: 'ghfail',
-          ghScript: `#!/usr/bin/env bash\necho "gh: API rate limit exceeded for user ID 1234567." >&2\nexit 4\n`,
-        }),
-      );
-
-      then("gh's own words reach the human, on BOTH streams", () => {
-        expect(ghRateLimited.exitCode).toBe(2);
-        expect(ghRateLimited.stdout).toContain('gh said:');
-        expect(ghRateLimited.stdout).toContain('API rate limit exceeded');
-        expect(ghRateLimited.stderr).toContain('API rate limit exceeded');
-        // .why = the stub's message is fixed, so the whole render is
-        //        hermetic — no host, no path, no timestamp
-        expect(ghRateLimited.stdout).toMatchSnapshot();
-      });
-
-      then('the exit code gh reported is named, never swallowed', () => {
-        expect(ghRateLimited.stdout).toContain('gh failed (exit 4)');
-      });
-
-      then('🔴 the lead POINTS at the words, since there are words', () => {
-        // .why = the other half of the [t0] pair. gh spoke here, so the lead
-        //        must send the reader to what it said. together the two pin
-        //        that the lead TRACKS the body rather than a fixed string —
-        //        a repair that hard-codes either one breaks the other.
-        expect(ghRateLimited.stdout).toContain("read gh's words above");
-        expect(ghRateLimited.stdout).not.toContain('gh said no more');
-      });
-
-      then('🔴 the WRONG diagnosis is never spoken', () => {
-        // .why = the clamp's teeth. restore `2>/dev/null` plus the old text
-        //        and this line goes red — the refusal claims a logged-out
-        //        session that was never measured.
-        expect(ghRateLimited.stdout).not.toContain('found no github session');
-        expect(ghRateLimited.stderr).not.toContain('found no github session');
-      });
-
-      then('no state is written', () => {
-        expect(
-          fs.existsSync(
-            path.join(
-              ghRateLimited.tempDir,
-              '.meter',
-              'git.commit.sponsor.jsonc',
-            ),
-          ),
-        ).toBe(false);
-      });
-    });
-
-    when('[t1e] gh FAILS with an ESC and a CR carried in its stderr', () => {
-      /**
-       * 🔴 .what = the RENDER-side twin of `[t2b]` above. that clamp proves
-       *        the sponsored VALUE is guarded against a control character;
-       *        this one proves the TEXT BESIDE it — gh's own stderr, routed
-       *        through `as_gh_said_body` — is guarded too.
-       *
-       * .why BOTH bytes = an ESC (`\x1b`) is what lets an injected sequence
-       *        rewrite a terminal; a CR (`\r`) is what lets it happen with
-       *        no visible trace, by moving the cursor to column 0 and then
-       *        writing over the very line that names the fix. a clamp on
-       *        only one byte would miss the defect the other reintroduces.
-       *
-       * .mock = a `gh` stub whose stderr carries a real ESC clear-line
-       *         sequence, then a bare CR, around its message.
-       */
-      const ghHostile = useThen('the bind refuses', () =>
-        runAtMeWithGhStub({
-          slug: 'ghhostile',
-          ghScript:
-            '#!/usr/bin/env bash\nprintf "safe\\x1b[2Kmessage\\rhidden" >&2\nexit 4\n',
-        }),
-      );
-
-      then("gh's message reaches the human, with no control bytes", () => {
-        expect(ghHostile.exitCode).toBe(2);
-        expect(ghHostile.stdout).toContain('gh said:');
-        expect(ghHostile.stdout).toContain('safe');
-        expect(ghHostile.stdout).toContain('message');
-        expect(ghHostile.stdout).toContain('hidden');
-        // the teeth: neither control byte survives into the render. these run
-        // on the RAW stdout, so the mask below weakens no safety assert.
-        expect(ghHostile.stdout.includes('\x1b')).toBe(false);
-        expect(ghHostile.stdout.includes('\r')).toBe(false);
-
-        // .why the MASK = the stripped payload lands as `safe[2Kmessagehidden`
-        //        — an honest render of a hostile input, and still a visual
-        //        blemish in a committed snapshot, which
-        //        rule.forbid.snapshot-visual-blemishes grades a contract
-        //        defect regardless of how it was produced. the one volatile-
-        //        looking fragment is MASKED, never carved out, so the tree
-        //        around it (the `gh said:` lead, the remedy list, the key
-        //        order) stays pinned in full per
-        //        rule.require.contract-snapshot-exhaustiveness. the literal
-        //        bytes remain asserted above, where a reader meets them with
-        //        the explanation beside them rather than alone in a .snap.
-        const masked = ghHostile.stdout.replace(
-          'safe[2Kmessagehidden',
-          '<STRIPPED ADVERSARY PAYLOAD — the ESC/CR remnant, see the asserts above>',
-        );
-        expect(masked).not.toContain('safe[2Kmessagehidden');
-        expect(masked).toMatchSnapshot();
-      });
-    });
-
-    when('[t1d] gh exits 0 with a reply that carries no identity', () => {
-      /**
-       * 🔴 .why = a zero exit says the CALL completed, and makes no claim at
-       *        all about the body. the bare `jq -r` reads in the transformer
-       *        would then exit nonzero under `set -euo pipefail` and the
-       *        skill would die with jq's raw parse text — no command named,
-       *        no remedy, no semantic exit code.
-       *
-       * .why = the identical un-curated-crash class the shared state reader
-       *        was built to remove, one boundary out: there the file was the
-       *        untrusted input, here it is the api reply.
-       *
-       * .mock = a `gh` stub that exits 0 and emits a non-json body.
-       */
-      const ghJunkBody = useThen('the bind refuses', () =>
-        runAtMeWithGhStub({
-          slug: 'ghjunk',
-          ghScript: `#!/usr/bin/env bash\necho "<html>502 Bad Gateway</html>"\nexit 0\n`,
-        }),
-      );
-
-      then('the refusal is curated, and the exit code is semantic', () => {
-        expect(ghJunkBody.exitCode).toBe(2);
-        expect(ghJunkBody.stdout).toContain(
-          'error: --who @me got a reply from gh that carries no identity',
-        );
-        expect(ghJunkBody.stdout).toContain('502 Bad Gateway');
-        expect(ghJunkBody.stdout).toMatchSnapshot();
-      });
-
-      then("🔴 jq's raw parse text NEVER reaches the human", () => {
-        // .why = the clamp's teeth, and it asserts the ABSENCE rather than
-        //        the good message — a test that checked only for the curated
-        //        line would pass while the crash printed alongside it.
-        expect(ghJunkBody.stdout).not.toContain('parse error');
-        expect(ghJunkBody.stderr).not.toContain('parse error');
-        expect(ghJunkBody.stderr).not.toContain('jq: error');
-      });
-
-      then('no state is written', () => {
-        expect(
-          fs.existsSync(
-            path.join(ghJunkBody.tempDir, '.meter', 'git.commit.sponsor.jsonc'),
-          ),
-        ).toBe(false);
-      });
-    });
-
-    when('[t1f] gh exits 0 with an EMPTY body', () => {
-      /**
-       * 🔴 .why = MEASURED, and the shape gate USED TO PASS THIS. `jq -e`
-       *        reports on the last OUTPUT value, and empty input produces no
-       *        value at all — so the filter never runs and there is no
-       *        `false` to report:
-       *          $ printf '%s' ''   | jq -e '<filter>'   → exit 0   🔴
-       *          $ printf '%s' '{}' | jq -e '<filter>'   → exit 1   ✅
-       *        ⇒ the gate said "usable" about a body it never read, and the
-       *        transformer then minted `<+@users.noreply.github.com>` — an
-       *        address for a human who does not exist, bound as a sponsor.
-       *
-       * 🔴 .why = [t1d] is the twin and it does NOT cover this. an html body
-       *        fails to PARSE, which jq reports; an empty body produces no
-       *        value, which jq does not. two different jq behaviors behind
-       *        one gate, and only one of them was clamped.
-       *
-       * .why = a zero exit with zero bytes is real — a proxy that answers an
-       *        empty 200, or any wrapper that swallows the body. it is also
-       *        what a stalled `gh` yields once its stall is not bounded,
-       *        which is how this was found.
-       *
-       * .mock = a `gh` stub that exits 0 and emits no bytes at all.
-       */
-      const ghEmptyBody = useThen('the bind refuses', () =>
-        runAtMeWithGhStub({
-          slug: 'ghempty',
-          ghScript: `#!/usr/bin/env bash\nexit 0\n`,
-        }),
-      );
-
-      then('the refusal names the absent identity, never a bad shape', () => {
-        expect(ghEmptyBody.exitCode).toBe(2);
-        expect(ghEmptyBody.stdout).toContain(
-          'error: --who @me got a reply from gh that carries no identity',
-        );
-        expect(ghEmptyBody.stdout).toMatchSnapshot();
-      });
-
-      then('🔴 NO address is ever fabricated from the absent fields', () => {
-        // 🔴 the clamp's teeth. revert the gate to a bare `jq -e` and this
-        //    line goes red: the run reaches the far `Name <email>` guard and
-        //    shows the human `<+@users.noreply.github.com>` — a value they
-        //    never supplied, for a person who does not exist.
-        expect(ghEmptyBody.stdout).not.toContain('users.noreply.github.com');
-        expect(ghEmptyBody.stderr).not.toContain('users.noreply.github.com');
-        expect(ghEmptyBody.stdout).not.toContain("not a 'Name <email>'");
-      });
-
-      then('no state is written', () => {
-        expect(
-          fs.existsSync(
-            path.join(
-              ghEmptyBody.tempDir,
-              '.meter',
-              'git.commit.sponsor.jsonc',
-            ),
-          ),
-        ).toBe(false);
-      });
-    });
-
-    when('[t2] the gh session resolves to a human', () => {
-      /**
-       * .why = the OTHER half of the `source` enum. without it only
-       *        `supplied` is proven, so a hardcoded `"supplied"` would pass
-       *        every other test in this file. provenance is part of the
-       *        value (domain.terms/sponsor.md), and a value that always
-       *        reports one origin carries no provenance at all.
-       *
-       * .mock = a `gh` stub with a human payload, shadowed onto PATH.
-       * .why  = the runner's own gh answers as whoever it is logged in as,
-       *         so a deterministic human session needs a stub. it also
-       *         keeps the assert off the CI runner's identity.
-       *
-       * 🔴 .why = the payload is a PLAINLY FAKE human, and that is load-
-       *        bearing rather than taste. this case wants a human distinct
-       *        from the clone, and the path of least resistance is to reach
-       *        for a real one — the exact habit
-       *        `rule.forbid.real-identities-in-fixtures` names. a real
-       *        login+id here DERIVES a real noreply address and pins it into
-       *        a COMMITTED snapshot, which ships to every clone and fork and
-       *        cannot be un-shipped once it lands on a remote.
-       *        ⚠️ the suite does not care WHOSE name renders, only that a
-       *        name renders — so a real identity buys no coverage at all and
-       *        costs a leak.
-       */
-      const runWithHumanGh = (): {
-        stdout: string;
-        exitCode: number;
-        tempDir: string;
-      } => {
-        const tempDir = genTempDir({
-          slug: 'git-commit-sponsor-humangh',
-          git: true,
-        });
-        const fakeBin = genTempDir({ slug: 'sponsor-human-bin', git: false });
-        // .note = signature-matched, as above: exit 64 on any call but `api`
-        fs.writeFileSync(
-          path.join(fakeBin, 'gh'),
-          `#!/usr/bin/env bash\n[[ "$1" == "api" ]] || { echo "unexpected gh call: $*" >&2; exit 64; }\ncat << 'JSON'\n{"login":"ada-lovelace","name":"Ada Lovelace","id":1234567,"email":null}\nJSON\n`,
-        );
-        fs.chmodSync(path.join(fakeBin, 'gh'), '755');
-
-        const result = spawnSync('bash', [scriptPath, 'set', '--who', '@me'], {
-          cwd: tempDir,
-          encoding: 'utf-8', // note: library api requires this term
-          stdio: ['pipe', 'pipe', 'pipe'],
-          env: {
-            ...process.env,
-            PATH: `${fakeBin}:${process.env.PATH}`,
-            __I_AM_HUMAN: 'true',
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain(
+              "--who @self read a clone's identity on this machine",
+            );
+            expect(fs.existsSync(statePathOf(result.tempDir))).toBe(false);
+            expect(result.ghCalled).toBe(false);
+            expect(result.stdout).toMatchSnapshot();
           },
-        });
-        return {
-          stdout: result.stdout ?? '',
-          exitCode: result.status ?? 1,
-          tempDir,
-        };
-      };
-
-      const result = useThen('the bind succeeds', () => runWithHumanGh());
-
-      then('the source reads "me" — a session this host answered', () => {
-        expect(result.exitCode).toBe(0);
-        expect(JSON.parse(readState(result.tempDir)).sponsor.source).toBe('me');
-        expect(result.stdout).toContain('source: me');
-      });
-
-      then('the email derives from id+login when gh reports none', () => {
-        // .why = `gh api user` returns a null email for most accounts, so
-        //        the noreply address is derived. the shape is github's own,
-        //        and it is what the trailer will carry.
-        expect(JSON.parse(readState(result.tempDir)).sponsor.email).toBe(
-          '1234567+ada-lovelace@users.noreply.github.com',
         );
       });
 
-      then('the whole SUCCESS render is pinned', () => {
-        // 🔴 .why = this is `case=6`, the local-grove happy path, and it was
-        //        the ONE @me render asserted by fields alone while every
-        //        refusal path snapshots. a field assert proves each value is
-        //        present; only a snapshot proves the tree still reads right —
-        //        the order of its leaves, its header, and that no line was
-        //        wedged between them.
-        //
-        // ⚠️ .why = the asymmetry mattered in the direction a reader would
-        //        least expect: the SHARP paths were all pinned and the HAPPY
-        //        one was not, so a human who reads a diff could eyeball every
-        //        refusal and not the success they are all built to reach.
-        expect(result.stdout).toMatchSnapshot();
+      when('[t6] git config names a placeholder', () => {
+        then(
+          'refuses as a placeholder, and says where the value came from',
+          () => {
+            const result = runSelf({
+              slug: 'self-placeholder',
+              who: '@self',
+              gitConfig: { name: 'Test User', email: 'test@example.com' },
+            });
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain('...and it is a placeholder.');
+            expect(result.stdout).toContain("this machine's git config reads:");
+            expect(result.stdout).not.toContain('you named:');
+            // a real name fixes a placeholder — the fix leads the bind forms
+            expect(result.stdout).toContain(
+              '$ git config --global user.name "Your Name"',
+            );
+            expect(result.stdout).toMatchSnapshot();
+          },
+        );
       });
 
-      then('`get` renders the me-sourced value back', () => {
-        // 🔴 .why = `source` has exactly TWO legal values and every seed
-        //        writes `supplied`, so the `get` line `source: $SPONSOR_SOURCE`
-        //        was only ever exercised with one of them. the assert above
-        //        pins the SET render; this runs the bound tree through the
-        //        OTHER command that reads it.
-        //
-        // .why = a regression that rendered `me` as `supplied` in `get`, or
-        //        dropped the line on me-bound trees, would ship green — the
-        //        set render would still be right. two commands read this
-        //        state and both owe coverage of both values.
-        const read = spawnSync('bash', [scriptPath, 'get'], {
-          cwd: result.tempDir,
-          encoding: 'utf-8', // note: library api requires this term
-          stdio: ['pipe', 'pipe', 'pipe'],
+      when('[t7] git config email is not an address', () => {
+        then('refuses, and the lead names git config — not "you gave"', () => {
+          // .why = the human typed no value; a lead of "you gave:" would
+          //        describe an input they never supplied (rule.forbid.surprises)
+          const result = runSelf({
+            slug: 'self-malformed',
+            who: '@self',
+            gitConfig: { name: 'Kai Nalu', email: 'kai@localhost' },
+          });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '--who @self read a malformed git identity',
+          );
+          expect(result.stdout).toContain("this machine's git config reads:");
+          expect(result.stdout).toContain('Kai Nalu <kai@localhost>');
+          expect(result.stdout).not.toContain('you gave:');
+          expect(result.stdout).toContain('git config --global user.email');
+          expect(result.stdout).not.toContain('git config --global user.name');
+          expect(result.stdout).toMatchSnapshot();
         });
-        expect(read.status).toBe(0);
-        expect(read.stdout).toContain('source: me');
-        expect(read.stdout).toMatchSnapshot();
       });
-    });
 
-    when('[t3] the gh cli is absent from the host', () => {
-      /**
-       * .why = the FIRST branch of @me, and the only one no test reached.
-       *        both neighbours are covered — [t0] a failed lookup, [t1] a
-       *        clone session — so this guard shipped as an untested claim.
-       *
-       * .why = it is a MESSAGE guarantee, never a safety one: delete it and
-       *        the bare `gh` call still fails into [t0]'s refusal, at the
-       *        same exit 2. what the human loses is the sentence that names
-       *        the absent cli, and a refusal that misnames its cause sends
-       *        the reader to `gh auth login` for a cli they do not have.
-       *
-       * .why = PATH becomes a shim dir and no other entry, so `gh` is absent
-       *        wherever the host keeps it. a filter over the real PATH looked
-       *        cheaper and was wrong: `gh` shares /usr/bin with `dirname`,
-       *        which line 29 needs to find its own SCRIPT_DIR — so the drop
-       *        killed the run at exit 1 before any guard spoke.
-       *
-       * .why = the shim carries the exact deps this path uses, resolved from
-       *        the host by absolute route (rule.forbid.bare-host-deps: a test
-       *        provisions what it needs). a tool absent from the host is
-       *        skipped rather than fatal, so the list may be generous.
-       */
-      const result = useThen('the bind refuses', () => {
-        const shimBin = genTempDir({ slug: 'sponsor-no-gh-bin', git: false });
-        // .note = `bash` and `env` belong on this list. spawnSync resolves the
-        //         CHILD executable against the CHILD env's PATH, so a shim
-        //         without bash fails the spawn itself — status null, stdout
-        //         empty, exit 1. that reads exactly like a skill that crashed,
-        //         which is how it cost two runs to spot.
-        for (const tool of [
-          'bash',
-          'env',
-          'git',
-          'dirname',
-          'cat',
-          'tr',
-          'jq',
-          'rm',
-        ]) {
-          const resolved = spawnSync('bash', ['-c', `command -v ${tool}`], {
+      when('[t7b] git config name holds a control character', () => {
+        then('🔴 the fix names user.name, never the email that is fine', () => {
+          // 🔴 .why = the fix line must name the half at fault. a fixed
+          //        `user.email` line here would send the human to change the
+          //        one value that holds no defect (rule.require.errors-name-the-fix)
+          const result = runSelf({
+            slug: 'self-malformed-name',
+            who: '@self',
+            gitConfig: { name: 'Kai\u0007Nalu', email: 'kai@example.com' },
+          });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '--who @self read a malformed git identity',
+          );
+          expect(result.stdout).toContain('(holds a control character)');
+          expect(result.stdout).toContain('git config --global user.name');
+          expect(result.stdout).not.toContain('git config --global user.email');
+          expect(result.stdout).not.toContain('\u0007');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t8] --who @me — the silent alias', () => {
+        const result = useThen('the bind lands', () =>
+          runSelf({
+            slug: 'self-alias-me',
+            who: '@me',
+            gitConfig: { name: 'Kai Nalu', email: 'kai@example.com' },
+          }),
+        );
+
+        then('binds exactly as @self does — source: self', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('name: Kai Nalu');
+          expect(result.stdout).toContain('source: self');
+        });
+
+        then('🔴 the output never names @me', () => {
+          // .why = the alias must never teach itself (wisher: "we shouldnt
+          //        even mention that @me works anywhere")
+          expect(result.stdout).not.toContain('@me');
+          expect(result.stdout).not.toContain('source: me');
+          expect(result.stdout).toMatchSnapshot();
+        });
+
+        then('gh was never run', () => {
+          expect(result.ghCalled).toBe(false);
+        });
+      });
+
+      when('[t9] --who @me where git config cannot answer', () => {
+        then('the refusal names @self, never @me', () => {
+          const result = runSelf({
+            slug: 'self-alias-me-refused',
+            who: '@me',
+            gitConfig: { name: 'Kai Nalu', email: null },
+          });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('--who @self found no git identity');
+          expect(result.stdout).not.toContain('@me');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when("[t9b] --who @self with no terminal — a clone's tool call", () => {
+        const refused = useThen('the bind refuses', () =>
+          runSelf({
+            slug: 'self-no-tty',
+            who: '@self',
+            gitConfig: { name: 'Kai Nalu', email: 'kai@example.com' },
+            asHuman: false,
+          }),
+        );
+        const allowed = useThen('the control bind lands', () =>
+          runSelf({
+            slug: 'self-no-tty-control',
+            who: '@self',
+            gitConfig: { name: 'Kai Nalu', email: 'kai@example.com' },
+          }),
+        );
+
+        then('refuses on the channel, and writes no state', () => {
+          expect(refused.exitCode).toBe(2);
+          expect(refused.stdout).toContain('no terminal on this command');
+          expect(fs.existsSync(statePathOf(refused.tempDir))).toBe(false);
+        });
+
+        then('🔴 no git config identity read, and no gh call, was made', () => {
+          // 🔴 .why = vision case=2: the actor guard fires AHEAD of any
+          //        identity read. a guard moved below the read would still
+          //        refuse, and only this assert would go red.
+          expect(refused.gitTraceLog).not.toMatch(/user\\?\.\(?name/);
+          expect(refused.ghCalled).toBe(false);
+        });
+
+        then(
+          'the control proves the trace sees a read when one happens',
+          () => {
+            // .why = without it, an empty trace would pass the assert above
+            expect(allowed.exitCode).toBe(0);
+            expect(allowed.gitTraceLog).toMatch(/user\\?\.\(?name/);
+          },
+        );
+      });
+
+      when('[t10] a bind written before the rename carries source: me', () => {
+        then('get renders it as source: self', () => {
+          const result = runInTempGitRepo({ sponsorArgs: ['get'] });
+          seedTestSponsor({
+            cwd: result.tempDir,
+            name: 'Kai Nalu',
+            email: 'kai@example.com',
+            source: 'me',
+          });
+          const read = spawnSync('bash', [scriptPath, 'get'], {
+            cwd: result.tempDir,
             encoding: 'utf-8', // note: library api requires this term
-          }).stdout.trim();
-          if (resolved) fs.symlinkSync(resolved, path.join(shimBin, tool));
-        }
-        const pathNoGh = shimBin;
+            env: { ...process.env },
+          });
 
-        const tempDir = genTempDir({ slug: 'sponsor-no-gh', git: true });
-        const spawned = spawnSync('bash', [scriptPath, 'set', '--who', '@me'], {
-          cwd: tempDir,
-          encoding: 'utf-8', // note: library api requires this term
-          stdio: ['pipe', 'pipe', 'pipe'],
-          env: { ...process.env, PATH: pathNoGh, __I_AM_HUMAN: 'true' },
+          expect(read.status).toBe(0);
+          expect(read.stdout).toContain('source: self');
+          expect(read.stdout).not.toContain('source: me');
+          expect(read.stdout).toMatchSnapshot();
         });
-        return {
-          stdout: spawned.stdout ?? '',
-          stderr: spawned.stderr ?? '',
-          exitCode: spawned.status ?? 1,
-        };
       });
 
-      then('it names the absent cli, on BOTH streams', () => {
-        expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('needs the gh cli, and it is absent');
-        expect(result.stderr).toContain('needs the gh cli, and it is absent');
-      });
+      when('[t11] --who @self binds, then git config changes', () => {
+        then('🔴 the bind still names the human it pinned', () => {
+          // 🔴 .why = vision case=9 [t4]: `@self` binds a SNAPSHOT of git
+          //        config. a bind that stored a pointer, or a reader that
+          //        re-read live git config, would follow the edit — and only
+          //        this assert would go red.
+          const bound = runSelf({
+            slug: 'self-pinned',
+            who: '@self',
+            gitConfig: { name: 'Kai Nalu', email: 'kai@example.com' },
+          });
+          configureTestGitUser({
+            cwd: bound.tempDir,
+            name: 'Jo Rivera',
+            email: 'jo@example.com',
+          });
+          const read = spawnSync('bash', [scriptPath, 'get'], {
+            cwd: bound.tempDir,
+            encoding: 'utf-8', // note: library api requires this term
+            env: { ...process.env },
+          });
 
-      then('it never sends the reader to gh auth login', () => {
-        // .why = [t0]'s refusal offers `gh auth login`, which is the right
-        //        move for a failed session and the wrong one for an absent
-        //        cli. the two refusals must stay distinct.
-        expect(result.stdout).not.toContain('gh auth login');
-        expect(result.stdout).toContain('--who @stdin');
-        expect(result.stdout).toContain('--who "Name <email>"');
-      });
-
-      then('the whole refusal render is pinned', () => {
-        // 🔴 .why = this was the ONE `@me` refusal asserted by `toContain`
-        //        alone, while every twin — [t0], [t1], [t1b], [t1c], [t1d] —
-        //        and the success [t2] all snapshot. so a reviewer could
-        //        eyeball every other blocked state in a diff and not this one.
-        //
-        // 🔴 .why = and the guarantee this branch carries IS its text. the
-        //        `then` above proves `gh auth login` is absent TODAY; only a
-        //        snapshot catches the reverse drift, where a reworded refusal
-        //        sends a reader to authenticate a cli they do not have.
-        //        a `toContain` set proves each phrase is present; only a
-        //        snapshot proves no line was wedged between them.
-        expect(result.stdout).toMatchSnapshot();
-      });
-    });
-
-    when('[t4] gh STALLS, and the timeout is lowered to 1s', () => {
-      /**
-       * 🔴 .why = the skill's own comment calls a stall "the one outcome worse
-       *        than an error, because it reports naught at all", and says the
-       *        stall lands on the ONE act that unblocks a sponsorless tree.
-       *        that is the sharpest guarantee on this branch — and every
-       *        extant `@me` test drives a gh that RETURNS (fails fast, or
-       *        answers). so a regression that dropped the `timeout` wrapper
-       *        would leave the whole suite green and ship an unbounded
-       *        network call on the paved path (rule.require.clamp-edge-cases).
-       *
-       * .why = the precedent this mirrors IS clamped — the keyrack fetch's
-       *        own bound is proven at `git.commit.push.integration.test.ts`
-       *        [case32] with a stalled fake `rhachet` and the same lowered
-       *        constant. this branch cites that discipline in its `.note` and
-       *        had no equivalent of its own.
-       *
-       * .mock = a `gh` stub that SLEEPS. with EXTERNAL_CALL_TIMEOUT=1 the call
-       *         is bound to ~1s and `timeout` kills it with exit 124; without
-       *         the wrapper the stub runs to completion and exits 0 with an
-       *         EMPTY body, which routes to a different refusal entirely.
-       *         ⇒ that divergence is what separates the two, and it is a
-       *         difference in TEXT rather than in elapsed time — so the clamp
-       *         needs no clock (rule.forbid.time-assumptions).
-       */
-      const result = useThen('the bind refuses, fast', () => {
-        const tempDir = genTempDir({
-          slug: 'git-commit-sponsor-stallgh',
-          git: true,
+          expect(bound.exitCode).toBe(0);
+          expect(read.status).toBe(0);
+          expect(read.stdout).toContain('name: Kai Nalu');
+          expect(read.stdout).toContain('email: kai@example.com');
+          expect(read.stdout).toContain('source: self');
+          expect(read.stdout).not.toContain('Jo Rivera');
         });
-        const fakeBin = genTempDir({ slug: 'sponsor-stall-bin', git: false });
-        fs.writeFileSync(
-          path.join(fakeBin, 'gh'),
-          '#!/usr/bin/env bash\nsleep 10\nexit 0\n',
-        );
-        fs.chmodSync(path.join(fakeBin, 'gh'), '755');
-
-        const spawned = spawnSync('bash', [scriptPath, 'set', '--who', '@me'], {
-          cwd: tempDir,
-          encoding: 'utf-8', // note: library api requires this term
-          stdio: ['pipe', 'pipe', 'pipe'],
-          env: {
-            ...process.env,
-            PATH: `${fakeBin}:${process.env.PATH}`,
-            __I_AM_HUMAN: 'true',
-            EXTERNAL_CALL_TIMEOUT: '1',
-          },
-        });
-        return {
-          stdout: spawned.stdout ?? '',
-          stderr: spawned.stderr ?? '',
-          exitCode: spawned.status ?? 1,
-        };
       });
-
-      then('🔴 the stall becomes a bounded refusal, on BOTH streams', () => {
-        // 🔴 THIS is the assert that bites, and it bites without a clock.
-        //    `124` is what `timeout` exits when it KILLS the child, so the
-        //    status is evidence the bound fired — it cannot be reached any
-        //    other way. the refusal reports the MEASURED status and never
-        //    invents a cause.
-        //
-        // 🔴 .why = MEASURED, by removal of the `timeout` wrapper. this file
-        //    once carried a wall-clock assert beside this one, whose comment
-        //    claimed it was "the assert that bites" and that "every other
-        //    assert above still passes" without the wrapper. ⚠️ BOTH claims
-        //    were false. with the wrapper dropped, THREE asserts go red and
-        //    this is one of them:
-        //
-        //      ✕ the stall becomes a bounded refusal, on BOTH streams
-        //      ✕ the bound actually FIRES, well under the 10s stall
-        //      ✕ it still offers the two grove-agnostic forms
-        //
-        //    ⇒ the mechanism the old comment missed: an unwrapped `gh` exits
-        //    0 with an EMPTY body, so the run never reaches "gh failed" at
-        //    all — it reaches the no-identity refusal instead, and every
-        //    assert about the timeout text fails with it.
-        //
-        // ⇒ .why = so the wall-clock assert was REDUNDANT, and it was a time
-        //    assumption sensitive to spawn cost and CI load
-        //    (rule.forbid.time-assumptions). the deterministic asserts carry
-        //    the whole clamp, so the clock is gone and the teeth remain.
-        expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('gh failed (exit 124)');
-        expect(result.stderr).toContain('gh failed (exit 124)');
-      });
-
-      then('it still offers the two grove-agnostic forms', () => {
-        expect(result.stdout).toContain('--who @stdin');
-        expect(result.stdout).toContain('--who "Name <email>"');
-        // the killed child writes no stderr, so both streams are deterministic
-        expect(result.stdout).toMatchSnapshot();
-      });
-    });
-
-    when('[t2] the REAL gh cli answers — no stub, no PATH shadow', () => {
-      /**
-       * 🔴 .what = the one external contract this skill holds
-       *        (`gh api -X GET user`, the github REST API) walked end to end
-       *        against the REAL service, with the runner's real credentials.
-       *
-       * .why = every other `--who @me` test in [case9] shims `gh` onto PATH
-       *        — a needed clamp for the FAILURE shapes (a dead session, a
-       *        rate limit, a killed timeout), none of which the real service
-       *        will hand us on demand. but the SUCCESS path never needs a
-       *        shim: the runner's own `gh` answers with a real session on
-       *        every host this suite runs on (dev sandbox and CI alike — see
-       *        the `[t1]` comment above, "the runner's own gh IS logged in,
-       *        so the real call succeeds"). that fact, stated but never
-       *        exercised, is what left the whole external boundary covered
-       *        only by a fake — rule.require.external-contract-integration-tests.
-       *
-       * .why the assert is on the ROBOT refusal, never a bare success = the
-       *        real session on every runner this repo owns belongs to a
-       *        clone (a seaturtle bot or the seaturtle account itself), so a
-       *        live call HERE always resolves to the identity `[t1b]`
-       *        measured and pinned by hand. that is not a weaker test — it
-       *        is the one outcome a real call to this boundary can prove on
-       *        infrastructure we control, and it is the exact drift class
-       *        the rule guards against: a live `gh api user` shape change
-       *        (a renamed field, an added required scope) would surface
-       *        here as either a real refusal-shape mismatch or a real
-       *        gh-call failure, never silently, because nothing on this path
-       *        is scripted.
-       */
-      const result = useThen('the real gh call resolves', () =>
-        runInTempGitRepo({ sponsorArgs: ['set', '--who', '@me'] }),
-      );
-
-      then('gh answered for real, and the identity it named is refused', () => {
-        // exit 2 either way: a real session that answers is a robot here, and
-        // is refused (case=1 [t3] / [t1b] above); an absent real session
-        // would refuse via the gh-failure path proven in [t0]/[t1c]/[t1e] —
-        // both are legitimate outcomes of a REAL call, never a crash
-        expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('🐢 bummer dude...');
-      });
-
-      then('the refusal traces to a REAL gh call, never a fixture', () => {
-        // .why = the two real, mutually-exclusive shapes this boundary can
-        //        return on infra we control. either is acceptable; a THIRD
-        //        shape (a crash, an invented identity, a bare success) is not
-        //        — and would fail this assert.
-        //
-        // 🔴 .note = "either is acceptable" is the whole contract of a live
-        //        boundary, and it is why this block pins no snapshot. see the
-        //        measured note below.
-        const refusedAsRobot = result.stdout.includes(
-          'error: that identity cannot answer for a change',
-        );
-        const ghCallFailed = result.stdout.includes(
-          'error: --who @me asked gh for your identity, and gh failed',
-        );
-        expect(refusedAsRobot || ghCallFailed).toBe(true);
-
-        // 🔴 .why NO snapshot here, though every peer in this file pins one
-        //        = a snapshot pins ONE render, and the assert above declares
-        //        TWO are legal. which one a live call produces is decided by
-        //        the host's ambient `gh auth` state — a value this test READS
-        //        and does not CONTROL. ⇒ to pin either makes the suite grade
-        //        the runner's login rather than the skill
-        //        (rule.require.hermetic-tests).
-        //
-        // ⚠️ .measured = an earlier draft snapshotted a masked render. it went
-        //        green on a dev host (gh logged in → the robot refusal) and
-        //        RED in ci (no session → the gh-failure refusal). the same
-        //        commit, two verdicts, one ambient input.
-        //
-        // ✅ .why no coverage is lost = both literal renders are ALREADY
-        //        pinned, by the scripted twins that can hold `gh` still:
-        //        `[t0]` (logged-out), `[t1]` (a clone session), `[t1c]` (a
-        //        non-auth gh failure). ⇒ exhaustiveness is satisfied there,
-        //        where the input is controlled; this `[t2]` exists to prove
-        //        the call is REAL, and that is what it asserts.
-        //
-        // ⇒ so the structural shell is asserted directly, on the parts BOTH
-        //   legal shapes share — a real claim, and one no host can flip.
-        expect(result.stdout).toContain('🐢 bummer dude...');
-        expect(result.stdout).toContain('🐚 git.commit.sponsor set');
-        expect(result.stdout).toContain('   └─ error: ');
-
-        // .why = the remedy carries the weight of any refusal, and both
-        //        shapes owe the two grove-agnostic forms — never `@me`, which
-        //        is what just failed (case=3's rule)
-        expect(result.stdout).toContain(
-          "$ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin",
-        );
-        expect(result.stdout).toContain(
-          '$ rhx git.commit.sponsor set --who "Name <email>"',
-        );
-      });
-
-      then('no state is written on a refused real bind', () => {
-        expect(
-          fs.existsSync(
-            path.join(result.tempDir, '.meter', 'git.commit.sponsor.jsonc'),
-          ),
-        ).toBe(false);
-      });
-    });
-  });
+    },
+  );
 
   given('[case12] a name that `echo` would have mangled', () => {
     when('[t0] the name starts with what a shell reads as a FLAG', () => {
@@ -2087,8 +1644,14 @@ describe('git.commit.sponsor.sh', () => {
         //        could not discover it. help is its last surface — assert it
         //        by name rather than leave it to the snapshot alone.
         expect(result.stdout).toContain('--who "Name <email>"');
-        expect(result.stdout).toContain('--who @me');
-        expect(result.stdout).toContain("YOUR OWN 'gh auth login'");
+        expect(result.stdout).toContain('--who @self');
+        // .why = the help names the default: on a human's own machine no bind
+        //        is needed, and a bind wins over git config
+        expect(result.stdout).toContain('commits need no bind');
+        expect(result.stdout).toContain('a bind wins over git config');
+        // .why = `@me` is a silent alias, never named on any render
+        expect(result.stdout).not.toContain('@me');
+        expect(result.stdout).not.toContain('gh auth');
         expect(result.stdout).toMatchSnapshot();
       });
     });

@@ -9,10 +9,8 @@ exports[`git.commit.uses.sh given: [case1] set --quant N --push block when: [t0]
    └─ stage: blocked
 
 🥥 did you know?
-   ├─ no sponsor is bound to this tree, so commits will refuse
-   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-   ├─ rhx git.commit.sponsor set --who "Name <email>"
-   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+   ├─ commits will name test-fns <test-fns@test.local>, from git config
+   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
 "
 `;
 
@@ -25,10 +23,8 @@ exports[`git.commit.uses.sh given: [case2] set --quant N --push allow when: [t0]
    └─ stage: blocked
 
 🥥 did you know?
-   ├─ no sponsor is bound to this tree, so commits will refuse
-   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-   ├─ rhx git.commit.sponsor set --who "Name <email>"
-   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+   ├─ commits will name test-fns <test-fns@test.local>, from git config
+   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
 "
 `;
 
@@ -73,6 +69,18 @@ exports[`git.commit.uses.sh given: [case3d] del command (revoke shortcut) when: 
 
 🐚 git.commit.uses del
    └─ revoked
+"
+`;
+
+exports[`git.commit.uses.sh given: [case4] set without --push when: [t0] --push flag is missing then: exits with error: stderr 1`] = `
+"✋ ConstraintError: --push allow|block is required
+usage: git.commit.uses set --quant N --push allow|block
+"
+`;
+
+exports[`git.commit.uses.sh given: [case4] set without --push when: [t0] --push flag is missing then: exits with error: stdout 1`] = `
+"✋ ConstraintError: --push allow|block is required
+usage: git.commit.uses set --quant N --push allow|block
 "
 `;
 
@@ -128,24 +136,20 @@ exports[`git.commit.uses.sh given: [case9] allow --global when: [t0] global bloc
    └─ commits resumed globally
 
 🥥 did you know?
-   ├─ no sponsor is bound to this tree, so commits will refuse
-   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-   ├─ rhx git.commit.sponsor set --who "Name <email>"
-   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+   ├─ commits will name test-fns <test-fns@test.local>, from git config
+   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
 "
 `;
 
-exports[`git.commit.uses.sh given: [case9] allow --global when: [t2] no sponsor is bound to the tree then: nudges to bind one 1`] = `
+exports[`git.commit.uses.sh given: [case9] allow --global when: [t2] no sponsor is bound to the tree then: says who commits will name — git config, on a human machine 1`] = `
 "🐢 shell yeah, back in the water!
 
 🐚 git.commit.uses allow --global
    └─ commits resumed globally
 
 🥥 did you know?
-   ├─ no sponsor is bound to this tree, so commits will refuse
-   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-   ├─ rhx git.commit.sponsor set --who "Name <email>"
-   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+   ├─ commits will name test-fns <test-fns@test.local>, from git config
+   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
 "
 `;
 
@@ -205,10 +209,8 @@ exports[`git.commit.uses.sh given: [case12] allow (local) when: [t0] no quota pr
    └─ stage: allowed
 
 🥥 did you know?
-   ├─ no sponsor is bound to this tree, so commits will refuse
-   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-   ├─ rhx git.commit.sponsor set --who "Name <email>"
-   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+   ├─ commits will name test-fns <test-fns@test.local>, from git config
+   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
 "
 `;
 
@@ -221,10 +223,8 @@ exports[`git.commit.uses.sh given: [case14] set --stage allow when: [t0] stage p
    └─ stage: allowed
 
 🥥 did you know?
-   ├─ no sponsor is bound to this tree, so commits will refuse
-   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-   ├─ rhx git.commit.sponsor set --who "Name <email>"
-   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+   ├─ commits will name test-fns <test-fns@test.local>, from git config
+   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
 "
 `;
 
@@ -237,10 +237,8 @@ exports[`git.commit.uses.sh given: [case15] set --stage block when: [t0] stage p
    └─ stage: blocked
 
 🥥 did you know?
-   ├─ no sponsor is bound to this tree, so commits will refuse
-   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-   ├─ rhx git.commit.sponsor set --who "Name <email>"
-   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+   ├─ commits will name test-fns <test-fns@test.local>, from git config
+   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
 "
 `;
 
@@ -320,19 +318,33 @@ until it parses, every commit is blocked. a human may inspect or clear it:
 "
 `;
 
-exports[`git.commit.uses.sh given: [case20] TTY guard for local mutations when: [t0] set is called from non-TTY then: blocks with human-only error 1`] = `
+exports[`git.commit.uses.sh given: [case20] TTY guard for local mutations when: [t0] set is called from non-TTY then: blocks: no terminal on this command 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.uses set
-   └─ error: only humans can run this command
+   └─ ✋ ConstraintError: no terminal on this command
+
+   only a human at a real terminal may run this, and this command
+   has none. a clone's tool call has none, and neither does a claude
+   \`!\` command, so the two cannot be told apart here.
+
+run it from your own terminal, with the same args:
+  $ rhx git.commit.uses set ...
 "
 `;
 
-exports[`git.commit.uses.sh given: [case21] TTY guard for global mutations when: [t0] block --global is called from non-TTY then: blocks with human-only error 1`] = `
+exports[`git.commit.uses.sh given: [case21] TTY guard for global mutations when: [t0] block --global is called from non-TTY then: blocks: no terminal on this command 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.uses block --global
-   └─ error: only humans can run this command
+   └─ ✋ ConstraintError: no terminal on this command
+
+   only a human at a real terminal may run this, and this command
+   has none. a clone's tool call has none, and neither does a claude
+   \`!\` command, so the two cannot be told apart here.
+
+run it from your own terminal, with the same args:
+  $ rhx git.commit.uses block --global ...
 "
 `;
 
@@ -343,24 +355,20 @@ exports[`git.commit.uses.sh given: [case22] allow --org ehmpathy when: [t0] no o
    └─ ehmpathy: allowed
 
 🥥 did you know?
-   ├─ no sponsor is bound to this tree, so commits will refuse
-   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-   ├─ rhx git.commit.sponsor set --who "Name <email>"
-   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+   ├─ commits will name test-fns <test-fns@test.local>, from git config
+   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
 "
 `;
 
-exports[`git.commit.uses.sh given: [case22] allow --org ehmpathy when: [t2] no sponsor is bound to the tree then: nudges to bind one 1`] = `
+exports[`git.commit.uses.sh given: [case22] allow --org ehmpathy when: [t2] no sponsor is bound to the tree then: says who commits will name — git config, on a human machine 1`] = `
 "🐢 shell yeah, back in the water!
 
 🐚 git.commit.uses allow --org ehmpathy
    └─ ehmpathy: allowed
 
 🥥 did you know?
-   ├─ no sponsor is bound to this tree, so commits will refuse
-   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-   ├─ rhx git.commit.sponsor set --who "Name <email>"
-   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+   ├─ commits will name test-fns <test-fns@test.local>, from git config
+   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
 "
 `;
 
@@ -388,10 +396,8 @@ exports[`git.commit.uses.sh given: [case24] allow --org @all when: [t0] orgs had
    └─ @all: allowed
 
 🥥 did you know?
-   ├─ no sponsor is bound to this tree, so commits will refuse
-   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-   ├─ rhx git.commit.sponsor set --who "Name <email>"
-   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+   ├─ commits will name test-fns <test-fns@test.local>, from git config
+   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
 "
 `;
 
@@ -409,6 +415,16 @@ exports[`git.commit.uses.sh given: [case26] del --org ehmpathy when: [t0] org ha
 
 🐚 git.commit.uses del --org ehmpathy
    └─ ehmpathy: removed (inherits from @all)
+"
+`;
+
+exports[`git.commit.uses.sh given: [case26] del --org ehmpathy when: [t1] del --org @all then: errors - cannot delete @all: stderr 1`] = `
+"✋ ConstraintError: cannot delete @all, use allow or block instead
+"
+`;
+
+exports[`git.commit.uses.sh given: [case26] del --org ehmpathy when: [t1] del --org @all then: errors - cannot delete @all: stdout 1`] = `
+"✋ ConstraintError: cannot delete @all, use allow or block instead
 "
 `;
 
@@ -441,15 +457,22 @@ exports[`git.commit.uses.sh given: [case29] typo protection: all vs @all when: [
 "🐢 bummer dude...
 
 🐚 git.commit.uses block --org all
-   └─ error: did you mean @all?
+   └─ ✋ ConstraintError: did you mean @all?
 "
 `;
 
-exports[`git.commit.uses.sh given: [case30] TTY guard for org mutations when: [t0] allow --org is called from non-TTY then: blocks with human-only error 1`] = `
+exports[`git.commit.uses.sh given: [case30] TTY guard for org mutations when: [t0] allow --org is called from non-TTY then: blocks: no terminal on this command 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.uses allow --org ehmpathy
-   └─ error: only humans can run this command
+   └─ ✋ ConstraintError: no terminal on this command
+
+   only a human at a real terminal may run this, and this command
+   has none. a clone's tool call has none, and neither does a claude
+   \`!\` command, so the two cannot be told apart here.
+
+run it from your own terminal, with the same args:
+  $ rhx git.commit.uses allow --org ehmpathy ...
 "
 `;
 
@@ -462,10 +485,8 @@ exports[`git.commit.uses.sh given: [case31] the SHARED actor guard, under a REAL
    └─ stage: blocked
 
 🥥 did you know?
-   ├─ no sponsor is bound to this tree, so commits will refuse
-   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-   ├─ rhx git.commit.sponsor set --who "Name <email>"
-   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+   ├─ commits will name test-fns <test-fns@test.local>, from git config
+   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
 "
 `;
 
@@ -473,7 +494,7 @@ exports[`git.commit.uses.sh given: [case33] the global meter is damaged, and a h
 "🐢 bummer dude...
 
 🐚 git.commit.uses allow --global
-   └─ error: the global blocker path is not a file
+   └─ 💥 MalfunctionError: the global blocker path is not a file
 
    commits stay blocked until this path is cleared by hand:
      ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
@@ -487,7 +508,7 @@ exports[`git.commit.uses.sh given: [case37] the ORG meter is damaged, and a huma
 "🐢 bummer dude...
 
 🐚 git.commit.uses allow --org ahbode
-   └─ error: org meter file corrupt
+   └─ 💥 MalfunctionError: org meter file corrupt
 
    the org meter file cannot be read:
      ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
@@ -502,7 +523,7 @@ exports[`git.commit.uses.sh given: [case37] the ORG meter is damaged, and a huma
 "🐢 bummer dude...
 
 🐚 git.commit.uses get --org
-   └─ error: org meter file corrupt
+   └─ 💥 MalfunctionError: org meter file corrupt
 
    the org meter file cannot be read:
      ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
@@ -513,7 +534,37 @@ until it parses, every commit is blocked. a human may inspect or clear it:
 "
 `;
 
-exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tree when: [t0] no sponsor is bound then: nudges toward the bind, and still exits 0 1`] = `
+exports[`git.commit.uses.sh given: [caseLocalMeterDamaged] the LOCAL quota file is damaged when: [t0] \`get\` reads a truncated file then: it names the class, the file, and the fix, on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses
+   └─ 💥 MalfunctionError: commit quota file corrupt
+
+   the file that holds this tree's commit quota cannot be read:
+     .meter/git.commit.uses.jsonc
+
+ask your human to reset the quota, then grant again:
+  $ git.commit.uses del
+  $ git.commit.uses set --quant N --push allow|block
+"
+`;
+
+exports[`git.commit.uses.sh given: [caseLocalMeterDamaged] the LOCAL quota file is damaged when: [t0] \`get\` reads a truncated file then: it names the class, the file, and the fix, on both streams: stderr 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses
+   └─ 💥 MalfunctionError: commit quota file corrupt
+
+   the file that holds this tree's commit quota cannot be read:
+     .meter/git.commit.uses.jsonc
+
+ask your human to reset the quota, then grant again:
+  $ git.commit.uses del
+  $ git.commit.uses set --quant N --push allow|block
+"
+`;
+
+exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tree when: [t0] no bind, and git config names a human — the human's own machine then: says who commits will name, and still exits 0 1`] = `
 "🐢 radical! let's ride!
 
 🐚 git.commit.uses set
@@ -522,10 +573,71 @@ exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tr
    └─ stage: blocked
 
 🥥 did you know?
-   ├─ no sponsor is bound to this tree, so commits will refuse
+   ├─ commits will name Kai Nalu <kai@example.com>, from git config
+   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+"
+`;
+
+exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tree when: [t0b] no bind, and git config names a clone — the clone's machine then: warns that commits will refuse, and lists the bind forms 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.commit.uses set
+   ├─ granted: 5
+   ├─ push: allowed
+   └─ stage: blocked
+
+🥥 did you know?
+   ├─ commits will refuse: git config names a clone — the clone's machine
    ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-   ├─ rhx git.commit.sponsor set --who "Name <email>"
-   └─ rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work
+   └─ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tree when: [t0c] no bind, and git config holds no email then: warns that commits will refuse, and names the git config fix 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.commit.uses set
+   ├─ granted: 5
+   ├─ push: allowed
+   └─ stage: blocked
+
+🥥 did you know?
+   ├─ commits will refuse: git config holds no complete identity
+   ├─ git config --global user.email "you@example.com"
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tree when: [t0d] no bind, and git config email is not an address then: warns that commits will refuse, and names the email fix 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.commit.uses set
+   ├─ granted: 5
+   ├─ push: allowed
+   └─ stage: blocked
+
+🥥 did you know?
+   ├─ commits will refuse: git config holds a malformed email
+   ├─ git config --global user.email "you@example.com"
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tree when: [t0e] no bind, and git config names a placeholder then: warns that commits will refuse, and names the name fix 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.commit.uses set
+   ├─ granted: 5
+   ├─ push: allowed
+   └─ stage: blocked
+
+🥥 did you know?
+   ├─ commits will refuse: git config names a placeholder
+   ├─ git config --global user.name "Your Name"
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
