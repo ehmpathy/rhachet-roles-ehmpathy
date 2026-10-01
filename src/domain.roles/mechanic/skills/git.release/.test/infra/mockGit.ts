@@ -4,6 +4,9 @@ import * as path from 'path';
 /**
  * .what = mock git CLI with passthrough for git.release tests
  * .why = intercepts specific git commands while others pass to real git
+ * .mock = the remote half of git (fetch, push, remote refs); all else passes
+ *         through to the real git binary — see mockGh.ts for the full
+ *         .why/.real exception contract these suites share
  */
 
 // ============================================================================

@@ -30,7 +30,7 @@ source "$SCRIPT_DIR/git.commit.operations.sh"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  emit_both "error: not in a git repository"
+  emit_both "✋ ConstraintError: not in a git repository"
   exit 2
 fi
 
@@ -78,7 +78,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      emit_both "error: unknown option: $1
+      emit_both "✋ ConstraintError: unknown option: $1
 usage: git.commit.uses --global block|allow|get"
       exit 2
       ;;
@@ -90,7 +90,7 @@ done
 
 # validate command
 if [[ -z "$COMMAND" ]]; then
-  emit_both "error: command required (block, allow, or get)
+  emit_both "✋ ConstraintError: command required (block, allow, or get)
 usage: git.commit.uses --global block|allow|get"
   exit 2
 fi
@@ -166,7 +166,7 @@ EOF
       emit_both "$(
         print_turtle_header "bummer dude..."
         print_tree_start "git.commit.uses allow --global"
-        print_tree_error "the global blocker path is not a file"
+        print_tree_malfunction "the global blocker path is not a file"
         echo ""
         echo "   commits stay blocked until this path is cleared by hand:"
         echo "     $GLOBAL_METER_FILE_SHOWN"
@@ -251,7 +251,7 @@ EOF
     ;;
 
   *)
-    emit_both "error: unknown command: $COMMAND
+    emit_both "✋ ConstraintError: unknown command: $COMMAND
 usage: git.commit.uses --global block|allow|get"
     exit 2
     ;;

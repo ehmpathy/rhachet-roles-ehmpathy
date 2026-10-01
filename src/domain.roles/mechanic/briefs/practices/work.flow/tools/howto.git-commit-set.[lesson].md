@@ -66,6 +66,8 @@ printf 'fix(typo): readme\n\n- fixed typo' | npx rhachet run --skill git.commit.
 ## .prerequisites
 
 - human must grant quota: `git.commit.uses set --quant N --push allow|block`
-- human must bind a sponsor: `rhx git.commit.sponsor set --who <@stdin|@me|"Name <email>">`
-  (a quota grant with no sponsor bound refuses at the first commit)
+- a sponsor: on the human's own machine, `git config user.name` + `user.email`
+  name them and no bind is needed. a bind wins over git config; on the clone's
+  machine (git config names a seaturtle identity) a human must bind one, at a
+  real terminal: `rhx git.commit.sponsor set --who <@stdin|@self|"Name <email>">`
 - for `--push`: requires `--push allow` in quota grant

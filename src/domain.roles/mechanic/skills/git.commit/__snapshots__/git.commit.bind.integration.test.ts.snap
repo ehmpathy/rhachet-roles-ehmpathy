@@ -40,3 +40,51 @@ exports[`git.commit.bind.sh given: [case4] del when: [t0] level was bound then: 
    └─ level: (none)
 "
 `;
+
+exports[`git.commit.bind.sh given: [case5] set --level with invalid value when: [t0] level is chore then: exits with error: stderr 1`] = `
+"✋ ConstraintError: --level must be 'feat' or 'fix'
+usage: git.commit.bind set --level fix|feat
+"
+`;
+
+exports[`git.commit.bind.sh given: [case5] set --level with invalid value when: [t0] level is chore then: exits with error: stdout 1`] = `
+"✋ ConstraintError: --level must be 'feat' or 'fix'
+usage: git.commit.bind set --level fix|feat
+"
+`;
+
+exports[`git.commit.bind.sh given: [case6] no subcommand when: [t0] no subcommand provided then: exits with error: stderr 1`] = `
+"✋ ConstraintError: subcommand is required (get, set, or del)
+usage: git.commit.bind get | set --level fix|feat | del
+"
+`;
+
+exports[`git.commit.bind.sh given: [case6] no subcommand when: [t0] no subcommand provided then: exits with error: stdout 1`] = `
+"✋ ConstraintError: subcommand is required (get, set, or del)
+usage: git.commit.bind get | set --level fix|feat | del
+"
+`;
+
+exports[`git.commit.bind.sh given: [case7] set without --level when: [t0] set but no --level flag then: exits with error: stderr 1`] = `
+"✋ ConstraintError: --level is required for set
+usage: git.commit.bind set --level fix|feat
+"
+`;
+
+exports[`git.commit.bind.sh given: [case7] set without --level when: [t0] set but no --level flag then: exits with error: stdout 1`] = `
+"✋ ConstraintError: --level is required for set
+usage: git.commit.bind set --level fix|feat
+"
+`;
+
+exports[`git.commit.bind.sh given: [case7] set without --level when: [t1] --level is the last arg, with no value then: a curated constraint, never a raw shift crash: stderr 1`] = `
+"✋ ConstraintError: --level is required for set
+usage: git.commit.bind set --level fix|feat
+"
+`;
+
+exports[`git.commit.bind.sh given: [case7] set without --level when: [t1] --level is the last arg, with no value then: a curated constraint, never a raw shift crash: stdout 1`] = `
+"✋ ConstraintError: --level is required for set
+usage: git.commit.bind set --level fix|feat
+"
+`;

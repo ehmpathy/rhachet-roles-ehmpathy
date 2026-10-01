@@ -21,11 +21,12 @@
 #
 # guarantee:
 #   - author is seaturtle[bot] <seaturtle@ehmpath.com>
-#   - Co-authored-by trailer names the SPONSOR bound to this worktree
-#   - refuses with exit 2 where no sponsor is bound (never guesses one)
+#   - Co-authored-by trailer names the SPONSOR: the bind in this worktree
+#     if one exists, else this machine's git config where it names a human
+#   - refuses with exit 2 where neither answers (never guesses one; never
+#     reads gh)
 #   - forbids adhoc Co-authored-by in input message (skill sets it automatically)
 #   - requires quota from git.commit.uses
-#   - requires a sponsor from git.commit.sponsor
 #   - push only if allowed and requested
 #   - fails fast if unstaged changes exist (unless --unstaged ignore|include)
 #   - defaults to plan mode (preview only); use --mode apply to execute
@@ -38,7 +39,7 @@ source "$SCRIPT_DIR/keyrack.operations.sh"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  emit_both "error: not in a git repository"
+  emit_both "✋ ConstraintError: not in a git repository"
   exit 2
 fi
 
@@ -48,34 +49,9 @@ STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 
 # global blocker path (defined in git.commit.operations.sh)
 
-######################################################################
-# helper: infer level from branch name (same logic as git.commit.bind)
-######################################################################
-infer_level_from_branch() {
-  local branch="$1"
-
-  local has_fix=false
-  if [[ "$branch" =~ ^fix/ ]] || [[ "$branch" =~ /fix/ ]] || [[ "$branch" =~ /fix- ]] || \
-     [[ "$branch" =~ ^hotfix/ ]] || [[ "$branch" =~ ^bugfix/ ]]; then
-    has_fix=true
-  fi
-
-  local has_feat=false
-  if [[ "$branch" =~ ^feat/ ]] || [[ "$branch" =~ /feat/ ]] || [[ "$branch" =~ /feat- ]] || \
-     [[ "$branch" =~ ^feature/ ]]; then
-    has_feat=true
-  fi
-
-  if $has_fix && $has_feat; then
-    echo "none"
-  elif $has_fix; then
-    echo "fix"
-  elif $has_feat; then
-    echo "feat"
-  else
-    echo "none"
-  fi
-}
+# .note = `infer_level_from_branch` lives in git.commit.operations.sh, shared
+#         with git.commit.bind so the level `bind get` shows is the level
+#         `set` enforces
 
 ######################################################################
 # .what = a PURE transformer: the commit body → its tree-leaf lines
@@ -216,10 +192,18 @@ has_scope() {
 #        stands for "a push shipped" — the exact decode-friction
 #        rule.forbid.inline-decode-friction names. the name carries the
 #        sense; the clauses stay here, once.
+#
+# 🔴 .why it reads the RAW status, never the display string = it once
+#        matched `*error*` in the rendered push leaf — a bond to prose. when
+#        the leaf became `✋ ConstraintError: …` (capital E), a FAILED push
+#        passed the check and printed the release-wave reminder beneath its
+#        own failure line. push.sh's `.status` is `pushed` or not; no reword
+#        of a render can flip it. clamp: set `[case2]` and `[case30]` assert
+#        no wave reminder on a failed push.
 is_push_shipped() {
   local do_push="$1"
-  local push_status="$2"
-  [[ "$do_push" == true && "$push_status" != "skipped" && "$push_status" != *"error"* ]]
+  local push_result_status="$2"
+  [[ "$do_push" == true && "$push_result_status" == "pushed" ]]
 }
 
 ######################################################################
@@ -231,9 +215,9 @@ is_push_shipped() {
 # .why = the apply-mode summary re-derived `$DO_PUSH == true &&
 #        $PUSH_RESULT_STATUS != pushed` inline at two call sites (the
 #        stderr duplication and the non-zero exit propagation) — the same
-#        decode-friction is_push_shipped was extracted to remove, just on
-#        the raw status this file reads rather than the display string
-#        is_push_shipped classifies (rule.forbid.inline-decode-friction).
+#        decode-friction is_push_shipped was extracted to remove. both read
+#        push.sh's raw `.status`, so the pair can never disagree
+#        (rule.forbid.inline-decode-friction).
 is_push_failed() {
   local do_push="$1"
   local push_result_status="$2"
@@ -250,24 +234,20 @@ is_push_failed() {
 #
 # .why = the orchestrator below used to run its own four-line mktemp/call/
 #        cat/rm dance around `fetch_github_token` — the exact mixed-grain
-#        shape `rule.prefer.decomposable-architecture` names, and the same
-#        shape `git.commit.sponsor.sh`'s `get_gh_user_session` (an analogous
-#        boundary) was already pulled into a named leaf for. this is that
-#        leaf's twin: `ROBOT_TOKEN=$(fetch_github_token)` now reads as one
-#        decision, and the capture machinery lives once, here.
+#        shape `rule.prefer.decomposable-architecture` names. as a named leaf,
+#        `ROBOT_TOKEN=$(fetch_github_token)` reads as one decision, and the
+#        capture machinery lives once, here.
 #
 # .why globals set by a DIRECT call, never a `$( )` substitution = a
 #        command substitution forks a subshell, and a variable this
-#        function sets would die with it — the same reason
-#        `get_gh_user_session` is called plainly rather than assigned from.
+#        function sets would die with it.
 #
-# .why the mktemp+trap+rm pair = the same defense `get_gh_user_session`
-#        carries: the explicit `rm -f` covers the normal return, and the
-#        `${err_file:-}`-guarded EXIT trap covers a kill mid-call. a bare
-#        `$err_file` in the trap would read as unbound once this function
-#        returns (this file runs under `set -u`), which aborts the trap and
-#        overwrites the real exit code — see `get_gh_user_session`'s own
-#        note for the measured version of this failure.
+# .why the mktemp+trap+rm pair = the explicit `rm -f` covers the normal
+#        return, and the `${err_file:-}`-guarded EXIT trap covers a kill
+#        mid-call. a bare `$err_file` in the trap would read as unbound once
+#        this function returns (this file runs under `set -u`), which aborts
+#        the trap and overwrites the real exit code (measured: a refusal's
+#        `exit 2` came out as `1`).
 fetch_robot_token() {
   local err_file
   err_file=$(mktemp)
@@ -388,9 +368,10 @@ while [[ $# -gt 0 ]]; do
       #        the inputs a command needs, and a bound sponsor is one of them.
       echo ""
       echo "requires:"
-      echo "  a sponsor bound to this tree — the human who answers for the"
-      echo "  commit. every commit is refused without one, and only a human"
-      echo "  can bind it:"
+      echo "  a sponsor — the human who answers for the commit. on a human's"
+      echo "  own machine, git config names them and no bind is needed. a bind"
+      echo "  in this tree wins over git config; on the clone's machine a bind"
+      echo "  is required, and only a human can make one:"
       # 🔴 .why BOTH forms = this listed the piped form alone, while all six
       #        other renders in the two files listed both. ⇒ the literal was
       #        undiscoverable from `--help`, which is the FIRST surface a
@@ -400,7 +381,7 @@ while [[ $# -gt 0 ]]; do
       #        undiscoverable once already, from a render that named one route.
       echo "    \$ $SPONSOR_BIND_VIA_STDIN"
       echo "    \$ $SPONSOR_BIND_VIA_LITERAL"
-      echo "    \$ rhx git.commit.sponsor get     # read the bound sponsor"
+      echo "    \$ rhx git.commit.sponsor get     # read the sponsor commits will name"
       exit 0
       ;;
     --repo|--role|--skill)
@@ -416,7 +397,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      UNKNOWN_OPT_ERR="error: unknown option: $1
+      UNKNOWN_OPT_ERR="✋ ConstraintError: unknown option: $1
 usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push]"
       echo "$UNKNOWN_OPT_ERR"
       echo "$UNKNOWN_OPT_ERR" >&2
@@ -434,7 +415,7 @@ done
 # error is never stdout-only (rule.require.skill-output-streams). build once,
 # emit to each stream.
 if [[ -z "$MESSAGE" ]]; then
-  MESSAGE_ERR=$(echo "error: --message is required"
+  MESSAGE_ERR=$(echo "✋ ConstraintError: --message is required"
     echo "usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push]")
   echo "$MESSAGE_ERR"
   echo "$MESSAGE_ERR" >&2
@@ -450,7 +431,7 @@ BODY=$(tail -n +3 <<< "$MESSAGE")
 
 # validate message has body (header + blank line + body)
 if [[ -z "$BODY" ]]; then
-  BODY_ERR=$(echo "error: --message must be multiline (header + blank line + body)"
+  BODY_ERR=$(echo "✋ ConstraintError: --message must be multiline (header + blank line + body)"
     echo "usage: echo 'header\n\n- body line 1' | git.commit.set -m @stdin")
   echo "$BODY_ERR"
   echo "$BODY_ERR" >&2
@@ -468,7 +449,7 @@ fi
 if grep -qi "^Co-authored-by:" <<< "$MESSAGE"; then
   COAUTHOR_ERR=$(print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_error "adhoc Co-authored-by forbidden"
+    print_tree_constraint "adhoc Co-authored-by forbidden"
     echo ""
     echo "   the commit message contains a Co-authored-by trailer."
     echo "   this skill sets Co-authored-by automatically, from the sponsor"
@@ -535,7 +516,7 @@ case "$COMMIT_PREFIX" in
         emit_both "$(
           print_turtle_header "bummer dude..."
           print_tree_start "git.commit.set"
-          print_tree_error "commit prefix mismatch"
+          print_tree_constraint "commit prefix mismatch"
           echo ""
           echo "   header: $HEADER"
           echo "   level.bound = $EFFECTIVE_LEVEL ($LEVEL_SOURCE)"
@@ -554,7 +535,7 @@ case "$COMMIT_PREFIX" in
         emit_both "$(
           print_turtle_header "bummer dude..."
           print_tree_start "git.commit.set"
-          print_tree_error "commit prefix mismatch"
+          print_tree_constraint "commit prefix mismatch"
           echo ""
           echo "   header: $HEADER"
           echo "   level.bound = $EFFECTIVE_LEVEL ($LEVEL_SOURCE)"
@@ -605,7 +586,7 @@ if [[ "$BEHAVIORAL_COMMITS" == "NO_COMMITS" ]]; then
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_error "repo has no commits"
+    print_tree_constraint "repo has no commits"
     echo ""
     echo "   cannot commit to an empty repo"
     echo "   ensure the repo has at least one commit on the base branch"
@@ -618,7 +599,7 @@ if [[ "$BEHAVIORAL_COMMITS" == "NO_BASE" ]]; then
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_error "no base branch found (main/master/trunk)"
+    print_tree_constraint "no base branch found (main/master/trunk)"
     echo ""
     echo "   cannot determine branch context without a base branch"
     echo "   ensure the repo has a main, master, or trunk branch"
@@ -631,7 +612,7 @@ if [[ "$BEHAVIORAL_COMMITS" == "ON_BASE" ]]; then
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_error "cannot commit to base branch"
+    print_tree_constraint "cannot commit to base branch"
     echo ""
     echo "   you are on main - create a feature branch first"
     echo ""
@@ -654,7 +635,7 @@ if [[ -n "$BEHAVIORAL_COMMITS" ]]; then
     emit_both "$(
       print_turtle_header "bummer dude..."
       print_tree_start "git.commit.set"
-      print_tree_error "branch already has a behavioral commit"
+      print_tree_constraint "branch already has a behavioral commit"
       echo ""
       echo "   first behavioral commit: $FIRST_BEHAVIORAL"
       echo "   attempted: $HEADER"
@@ -674,7 +655,7 @@ else
     emit_both "$(
       print_turtle_header "bummer dude..."
       print_tree_start "git.commit.set"
-      print_tree_error "first commit must be fix(<scope>): or feat(<scope>):"
+      print_tree_constraint "first commit must be fix(<scope>): or feat(<scope>):"
       echo ""
       echo "   attempted: $COMMIT_PREFIX:"
       echo ""
@@ -691,7 +672,7 @@ else
     emit_both "$(
       print_turtle_header "bummer dude..."
       print_tree_start "git.commit.set"
-      print_tree_error "first commit requires a scope"
+      print_tree_constraint "first commit requires a scope"
       echo ""
       echo "   attempted: $HEADER"
       echo ""
@@ -729,7 +710,14 @@ if ! check_global_blocker; then
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_error "$GLOBAL_BLOCK_REASON"
+    # the class follows the exit below: a damaged file is a malfunction (1),
+    # a human-set block is a constraint (2)
+    if [[ "$GLOBAL_BLOCK_CORRUPT" == "true" ]]; then
+      print_tree_malfunction "$GLOBAL_BLOCK_REASON"
+    fi
+    if [[ "$GLOBAL_BLOCK_CORRUPT" != "true" ]]; then
+      print_tree_constraint "$GLOBAL_BLOCK_REASON"
+    fi
     # ⚠️ the two remedies are EXCLUSIVE, so exactly one prints. a lift is what
     #    clears a blocker a human set; it is not what clears a damaged file,
     #    and both at once reads as a menu where the reader must pick.
@@ -750,7 +738,13 @@ if ! check_org_blocker; then
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_error "$ORG_BLOCK_REASON"
+    # the class follows the exit below, as above
+    if [[ "$ORG_BLOCK_CORRUPT" == "true" ]]; then
+      print_tree_malfunction "$ORG_BLOCK_REASON"
+    fi
+    if [[ "$ORG_BLOCK_CORRUPT" != "true" ]]; then
+      print_tree_constraint "$ORG_BLOCK_REASON"
+    fi
     # ⚠️ exclusive, as above: `allow --org` writes a key into a file, which is
     #    no remedy for a file that cannot be parsed to write into.
     if [[ "$ORG_BLOCK_CORRUPT" != "true" ]]; then
@@ -769,10 +763,21 @@ if [[ ! -f "$STATE_FILE" ]]; then
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_error "no commit quota set"
+    print_tree_constraint "no commit quota set"
     print_instruction "ask your human to grant:" "  \$ git.commit.uses set --quant N --push allow|block"
   )"
   exit 2  # blocked by constraints
+fi
+
+# refuse a damaged quota file by name, before any raw read of it
+if ! is_local_meter_readable file="$STATE_FILE"; then
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.commit.set"
+    print_tree_malfunction "commit quota file corrupt"
+    print_local_meter_damaged_fix file="${STATE_FILE#"$REPO_ROOT/"}"
+  )"
+  exit 1  # malfunction — the file is damaged, not the caller's input
 fi
 
 # read state
@@ -785,7 +790,7 @@ if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" != "plan" ]]; then
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_error "no commit uses left"
+    print_tree_constraint "no commit uses left"
     print_instruction "ask your human to grant more:" "  \$ git.commit.uses set --quant N --push allow|block"
   )"
   exit 2  # blocked by constraints
@@ -796,22 +801,29 @@ if [[ "$DO_PUSH" == true && "$PUSH_ALLOWED" != "allow" ]]; then
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_error "push not allowed in current grant"
+    print_tree_constraint "push not allowed in current grant"
     print_instruction "ask your human to grant with --push allow" ""
   )"
   exit 2  # blocked by constraints
 fi
 
 ######################################################################
-# read the bound SPONSOR — the human who answers for this change
+# the SPONSOR — the human who answers for this change
 #
-# .why = `git config` is never read for an identity, on any grove. it
-#        names the human on a laptop and the CLONE on a cloud grove,
-#        with no signal in the code to tell which — so the trailer read
-#        "attributed" while it named zero humans. a sponsor is bound by
-#        a human act instead, and where none is bound we refuse.
+# .what = precedence: a bind in this worktree wins → else the machine's
+#         `git config`, where it names a human → else refuse.
 #
-# .why = the read happens HERE, per commit, and is never cached. a tree
+# .why git config = on a human's own machine, git config already names
+#        that human — it is the identity git stamps on their own commits and
+#        on this clone's commits as committer. so no bind is needed there.
+#
+# .why the refusal stays = on the clone's machine, git config names a
+#        seaturtle identity, and that machine is the clone's BY DEFINITION;
+#        a clone cannot answer for its own change. unset, malformed, or
+#        placeholder git config cannot answer either. each refuses and names
+#        its fix. gh is never read, in any form.
+#
+# .why the read happens HERE, per commit, and is never cached. a tree
 #        whose sponsor was cleared must be refused at its very NEXT
 #        commit; a value read once per session would let a cleared tree
 #        keep its commit, on an authorization no longer held — a stale
@@ -869,6 +881,45 @@ if [[ "$SPONSOR_READ_STATUS" -eq 1 ]]; then
   exit 1  # malfunction
 fi
 
+# .what = the cause lines of the no-sponsor refusal, one shape per git config
+#         kind. reads the GIT_IDENTITY_* globals.
+#
+# .why a named leaf = the refusal is one decision (no sponsor → refuse) with
+#        four ways to explain it; inline, the orchestrator would read as four
+#        renders rather than one refusal (rule.require.named-transformers).
+#
+# 🔴 .why the value is NOT echoed where it holds a control character = an
+#        ESC echoed into the tree would let the value rewrite the message.
+render_sponsor_absent_cause() {
+  local shown="$GIT_IDENTITY_NAME <$GIT_IDENTITY_EMAIL>"
+  is_identity_unprintable "$shown" && shown="(holds a control character)"
+
+  echo "   no sponsor is bound to this tree, and this machine's git config"
+
+  if [[ "$GIT_IDENTITY_KIND" == "unset" ]]; then
+    echo "   holds no complete identity:"
+    as_git_config_unset_lines "${GIT_IDENTITY_FAULTS[@]}"
+    echo ""
+    return 0
+  fi
+
+  if [[ "$GIT_IDENTITY_KIND" == "malformed" ]]; then
+    echo "   holds an identity that is not a 'Name <email>':"
+    echo "     $shown"
+    return 0
+  fi
+
+  if [[ "$GIT_IDENTITY_KIND" == "clone" ]]; then
+    echo "   names a clone:"
+    echo "     $shown"
+    echo "   ...so this is the clone's machine, and it cannot answer for the change."
+    return 0
+  fi
+
+  echo "   names a placeholder, which cannot answer for the change:"
+  echo "     $shown"
+}
+
 # 🔴 .why it branches on the STATUS, never on the parsed leaves = this read
 #        `[[ -z "$SPONSOR_NAME" || -z "$SPONSOR_EMAIL" ]]`, which re-derives
 #        from the fields a decision the reader already made. after the
@@ -882,40 +933,68 @@ fi
 #        reader's sense of bound and this caller keeps the old one, silently.
 #        one state file, one reader, one decision point.
 #
-# ⚠️ .why this renders INLINE while the corrupt case above routes through a
-#    shared leaf = the leaf was lifted on proven reuse, never on shape. every
-#    render that moved to `git.commit.operations.sh` has two or more call sites
-#    across two or more skills:
+# ⚠️ .why this refusal is a leaf in THIS file while the corrupt case above
+#    routes through a shared leaf = a leaf moves to `git.commit.operations.sh`
+#    on proven reuse across skills, never on shape:
 #
 #      print_global_corrupt_note     → 4 sites, 3 skills
 #      print_sponsor_corrupt_render  → 2 sites, 2 skills (it had already drifted)
 #
-#    this body has ONE site, here, and it is the only surface that refuses a
-#    commit for an unbound tree. to lift it would move a single-use render out
-#    of the file that owns it, on a reuse that has not happened
-#    (rule.prefer.most-common-denominator: lift is reactive, never speculative;
-#    rule.prefer.wet-over-dry: one usage stays inline).
+#    this refusal has ONE caller, below, and it is the only surface that
+#    refuses a commit for an absent sponsor
+#    (rule.prefer.most-common-denominator: lift is reactive, never speculative).
 #
-# ⇒ the asymmetry is the rule at work rather than an inconsistency in it. lift
-#   this the day a second caller needs it, and not before.
-if [[ "$SPONSOR_READ_STATUS" -eq 2 ]]; then
+# .why a named leaf at all = the orchestrator reads as its decision — no
+#        bind, git config cannot answer, refuse — and never as a render.
+#
+# .why the git config fix comes first where a half is at fault = it also fixes
+#        the human's own commits, and makes every later commit here need no
+#        bind. the two bind forms follow; `@self` is absent on purpose, since
+#        it reads this same git config and would refuse.
+#
+# .note = reads GIT_IDENTITY_FAULTS (and, via the cause leaf, _KIND / _NAME /
+#         _EMAIL), which `get_one_git_config_identity` sets just above it.
+refuse_commit_for_absent_sponsor() {
+  # the render below reads the reader's globals — fail named, never raw
+  assert_git_identity_read
+
+  local lead="ask your human to run, in this tree:"
+
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_error "no sponsor is bound to this tree"
+    print_tree_constraint "no sponsor for this commit"
     echo ""
-    echo "   a commit must name the human who authorized it. this tree names"
-    echo "   none, so there is nobody to answer for the change."
+    render_sponsor_absent_cause
     echo ""
     echo "   ⛔ you cannot fix this yourself. a sponsor is bound by a human,"
-    echo "      at a tty."
-    # the two forms that hold on EVERY grove. @me is absent on purpose: it
-    # reads the gh session on this host, which on a cloud grove is the
-    # clone's — so a mandatory block that printed it would hand the reader
-    # a second refusal.
-    print_instruction "ask your human to run, in this tree:" "$SPONSOR_BIND_REMEDY"
+    echo "      at a terminal."
+    if (( ${#GIT_IDENTITY_FAULTS[@]} > 0 )); then
+      print_instruction "ask your human to fix git config — then commits name them:" \
+        "$(as_git_config_fix_lines "${GIT_IDENTITY_FAULTS[@]}")"
+      lead="or to bind a sponsor, in this tree:"
+    fi
+    print_instruction "$lead" "$SPONSOR_BIND_REMEDY"
   )"
   exit 2  # blocked by constraints
+}
+
+# 🔴 .note = the corrupt branch ABOVE runs first, and never falls through to
+#        git config. a damaged bind means a human meant a sponsor other than
+#        git config; to substitute git config would invent the answer
+#        (rule.forbid.failhide). only a truly absent bind (status 2) reaches
+#        the fallback below.
+SPONSOR_PROVENANCE="$SPONSOR_PROVENANCE_BOUND"
+
+# no bind — the machine's git config names the sponsor, or the commit refuses
+if [[ "$SPONSOR_READ_STATUS" -eq 2 ]]; then
+  get_one_git_config_identity
+  guard_git_identity_readable skill="git.commit.set"
+  [[ "$GIT_IDENTITY_KIND" == "human" ]] || refuse_commit_for_absent_sponsor
+
+  SPONSOR_NAME="$GIT_IDENTITY_NAME"
+  SPONSOR_EMAIL="$GIT_IDENTITY_EMAIL"
+  SPONSOR_PROVENANCE="$SPONSOR_PROVENANCE_GIT_CONFIG"
 fi
 
 # robot identity — the commit is always authored as seaturtle[bot]; the token
@@ -989,7 +1068,7 @@ if [[ "$HAS_UNSTAGED_MODS" == true || "$HAS_UNTRACKED" == true ]]; then
     emit_both "$(
       print_turtle_header "bummer dude..."
       print_tree_start "git.commit.set"
-      print_tree_error "unstaged changes detected"
+      print_tree_constraint "unstaged changes detected"
       echo ""
       echo "unstaged files:"
       git diff --name-only | while read -r f; do echo "  $f"; done
@@ -1007,7 +1086,7 @@ fi
 # check staged changes (account for --unstaged include in plan mode)
 if [[ "$WILL_INCLUDE_UNSTAGED" == false ]]; then
   if git diff --cached --quiet; then
-    NO_STAGED_ERR="error: no changes to commit (no staged changes)"
+    NO_STAGED_ERR="✋ ConstraintError: no changes to commit (no staged changes)"
     echo "$NO_STAGED_ERR"
     echo "$NO_STAGED_ERR" >&2
     exit 2  # blocked by constraints
@@ -1015,7 +1094,7 @@ if [[ "$WILL_INCLUDE_UNSTAGED" == false ]]; then
 else
   # in plan mode with --unstaged include, check that there ARE changes to include
   if git diff --cached --quiet && git diff --quiet && [[ -z "$(git ls-files --others --exclude-standard)" ]]; then
-    NO_CHANGES_ERR="error: no changes to commit"
+    NO_CHANGES_ERR="✋ ConstraintError: no changes to commit"
     echo "$NO_CHANGES_ERR"
     echo "$NO_CHANGES_ERR" >&2
     exit 2  # blocked by constraints
@@ -1088,7 +1167,7 @@ if [[ "$MODE" == "plan" ]]; then
   echo "   │  ├─ sponsor"
   echo "   │  │  ├─ name: $SPONSOR_NAME"
   echo "   │  │  ├─ email: $SPONSOR_EMAIL"
-  echo "   │  │  └─ source: $SPONSOR_PROVENANCE"
+  echo "   │  │  └─ from: $SPONSOR_PROVENANCE"
   echo "   │  └─ files"
   render_files_as_tree_lines "$STAGED_FILES"
   if [[ "$DO_PUSH" == true ]]; then
@@ -1143,7 +1222,7 @@ if ! git commit \
   # spawned shells).
   COMMIT_ERR=$(print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_error "git commit failed"
+    print_tree_malfunction "git commit failed"
     echo ""
     # label the raw git output `cause:` so it reads as the root error, not part of
     # the structured guide — consistent with the keyrack/gh failure guides that
@@ -1205,7 +1284,6 @@ if [[ "$DO_PUSH" == true ]]; then
   # failure path: only when the push/pr-open did not succeed
   if [[ "$PUSH_RESULT_STATUS" != "pushed" ]]; then
     PUSH_ERR=$(echo "$PUSH_RESULT_JSON" | jq -r '.error // "push failed"')
-    PUSH_STATUS="error: $PUSH_ERR"
     # replay the delegated push guide (keyrack errors, fallback hint, etc.).
     # it is failure output, so it rides BOTH streams — a stdout-only consumer
     # (a ci log scan) must see the actionable guide, not just the short
@@ -1214,10 +1292,15 @@ if [[ "$DO_PUSH" == true ]]; then
     # captured only its stderr copy, so we fan it back out to both here. a blank
     # separator on each stream keeps the guide's last command line apart from the
     # set banner that follows.
-    if [[ -s "$PUSH_STDERR_FILE" ]]; then
-      cat "$PUSH_STDERR_FILE"
+    #
+    # .note = in json mode push.sh also echoes its json error object to stderr;
+    #         that object is machine output, already read above as PUSH_ERR, so
+    #         it is dropped from the human replay — only the guide replays
+    PUSH_GUIDE=$(grep -v '^{"status":' "$PUSH_STDERR_FILE" || true)
+    if [[ -n "$PUSH_GUIDE" ]]; then
+      echo "$PUSH_GUIDE"
       echo ""
-      cat "$PUSH_STDERR_FILE" >&2
+      echo "$PUSH_GUIDE" >&2
       echo "" >&2
     fi
     rm -f "$PUSH_STDERR_FILE"
@@ -1225,6 +1308,16 @@ if [[ "$DO_PUSH" == true ]]; then
     # event is exactly what the caller must see and act on. carry a non-zero
     # exit (default to constraint) so the composed command never reports success
     [[ $PUSH_EXIT -eq 0 ]] && PUSH_EXIT=2
+
+    # the push leaf names its class, and the class follows the exit just set.
+    # .note = it carries only the error's head clause — push's `— retry: …`
+    #         tail is already in the guide replayed above, and inline it ran
+    #         the leaf past 80 columns
+    PUSH_ERR_HEAD="${PUSH_ERR%% — *}"
+    PUSH_STATUS="✋ ConstraintError: $PUSH_ERR_HEAD"
+    if [[ $PUSH_EXIT -eq 1 ]]; then
+      PUSH_STATUS="💥 MalfunctionError: $PUSH_ERR_HEAD"
+    fi
   fi
 fi
 
@@ -1288,7 +1381,7 @@ SET_OUTPUT=$(
   echo "   │  └─ sponsor"
   echo "   │     ├─ name: $SPONSOR_NAME"
   echo "   │     ├─ email: $SPONSOR_EMAIL"
-  echo "   │     └─ source: $SPONSOR_PROVENANCE"
+  echo "   │     └─ from: $SPONSOR_PROVENANCE"
   echo "   ├─ push: $PUSH_STATUS"
   if [[ -n "$PR_STATUS" ]]; then
     echo "   ├─ pr: $PR_STATUS"
@@ -1306,7 +1399,7 @@ SET_OUTPUT=$(
   echo "      └─ push: $PUSH_DISPLAY"
 
   # remind to watch CI after push
-  if is_push_shipped "$DO_PUSH" "$PUSH_STATUS"; then
+  if is_push_shipped "$DO_PUSH" "$PUSH_RESULT_STATUS"; then
     echo ""
     echo "🌊 now lets ride the release wave and catch any wipeouts"
     echo "   └─ rhx git.release --watch || rhx show.gh.test.errors"

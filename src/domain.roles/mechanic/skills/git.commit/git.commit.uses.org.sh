@@ -44,7 +44,7 @@ source "$SCRIPT_DIR/git.commit.operations.sh"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  emit_both "error: not in a git repository"
+  emit_both "✋ ConstraintError: not in a git repository"
   exit 2
 fi
 
@@ -111,7 +111,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      emit_both "error: unknown option: $1"
+      emit_both "✋ ConstraintError: unknown option: $1"
       exit 2
       ;;
     *)
@@ -126,16 +126,18 @@ done
 
 # validate command
 if [[ -z "$COMMAND" ]]; then
-  emit_both "error: command required (allow, block, del, or get)
+  emit_both "✋ ConstraintError: command required (allow, block, del, or get)
 usage: git.commit.uses --org <org> allow|block|del|get"
   exit 2
 fi
 
 # typo protection: all/ALL → suggest @all
 if [[ "$ORG_NAME" == "all" || "$ORG_NAME" == "ALL" ]]; then
-  print_turtle_header "bummer dude..."
-  print_tree_start "git.commit.uses $COMMAND --org $ORG_NAME"
-  echo "   └─ error: did you mean @all?"
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.commit.uses $COMMAND --org $ORG_NAME"
+    print_tree_constraint "did you mean @all?"
+  )"
   exit 2
 fi
 
@@ -282,7 +284,7 @@ guard_org_meter_is_readable() {
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.uses $COMMAND --org${ORG_NAME:+ $ORG_NAME}"
-    print_tree_error "$ORG_CORRUPT_HEADLINE"
+    print_tree_malfunction "$ORG_CORRUPT_HEADLINE"
     print_org_corrupt_body
   )"
   exit 1  # malfunction
@@ -316,8 +318,8 @@ write_org_file() {
   file_temp="${ORG_METER_FILE}.tmp.$$"
   # .why the EXIT trap = a SIGINT/SIGTERM/kill between this write and the `mv`
   #        below leaves `$file_temp` behind in the state dir — the same window
-  #        `get_gh_user_session`/`set_sponsor_state` guard for the identical
-  #        reason. the `${...:-}` default holds for the same reason too: a
+  #        `set_sponsor_state` guards for the identical reason. the `${...:-}`
+  #        default holds for the same reason too: a
   #        late trap under `set -u` reads `file_temp` after this function
   #        already returned.
   trap 'rm -f "${file_temp:-}"' EXIT
@@ -505,7 +507,7 @@ get_org_state() {
 case "$COMMAND" in
   allow)
     if [[ -z "$ORG_NAME" ]]; then
-      emit_both "error: org name required for allow
+      emit_both "✋ ConstraintError: org name required for allow
 usage: git.commit.uses --org <org> allow"
       exit 2
     fi
@@ -535,7 +537,7 @@ usage: git.commit.uses --org <org> allow"
 
   block)
     if [[ -z "$ORG_NAME" ]]; then
-      emit_both "error: org name required for block
+      emit_both "✋ ConstraintError: org name required for block
 usage: git.commit.uses --org <org> block"
       exit 2
     fi
@@ -560,13 +562,13 @@ usage: git.commit.uses --org <org> block"
 
   del)
     if [[ -z "$ORG_NAME" ]]; then
-      emit_both "error: org name required for del
+      emit_both "✋ ConstraintError: org name required for del
 usage: git.commit.uses --org <org> del"
       exit 2
     fi
 
     if [[ "$ORG_NAME" == "@all" ]]; then
-      emit_both "error: cannot delete @all, use allow or block instead"
+      emit_both "✋ ConstraintError: cannot delete @all, use allow or block instead"
       exit 2
     fi
 
@@ -632,7 +634,7 @@ usage: git.commit.uses --org <org> del"
     ;;
 
   *)
-    emit_both "error: unknown command: $COMMAND
+    emit_both "✋ ConstraintError: unknown command: $COMMAND
 usage: git.commit.uses --org <org> allow|block|del|get"
     exit 2
     ;;

@@ -5,6 +5,10 @@ import { genTempDir, given, then, when } from 'test-fns';
 
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
+import {
+  asSkillExitStatus,
+  SKILL_SPAWN_TIMEOUT_MS,
+} from './.test/infra/asSkillExitStatus';
 import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
@@ -106,7 +110,7 @@ const runScript = (input: {
     env: {
       ...process.env,
       GIT_RELEASE_TEST_MODE: 'true',
-      PATH: `${input.fakeBinDir}:${process.env.PATH}`,
+      PATH: /* .mock = gh, git, rhachet — contract in .test/infra/mockGh.ts */ `${input.fakeBinDir}:${process.env.PATH}`,
       // exercises the --from main flow, not the --why guard; run as human
       __I_AM_HUMAN: 'true',
     },
@@ -114,7 +118,7 @@ const runScript = (input: {
   return {
     stdout: result.stdout ?? '',
     stderr: result.stderr ?? '',
-    status: result.status ?? 1,
+    status: asSkillExitStatus({ result, timeoutMs: SKILL_SPAWN_TIMEOUT_MS }),
   };
 };
 

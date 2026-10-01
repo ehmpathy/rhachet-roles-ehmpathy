@@ -1,7 +1,7 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
-import { genTempDir, given, then, when } from 'test-fns';
+import { genTempDir, given, then, useThen, when } from 'test-fns';
 
 /**
  * .what = integration tests for init.claude.permissions.sh
@@ -211,6 +211,63 @@ describe('init.claude.permissions.sh', () => {
     });
   });
 
+  given('[case5b] a prior settings.json from an older release', () => {
+    // .note = an older release shipped Write(<path>) rules, which claude code
+    //         never matches and flags at every boot. allow is replaced whole,
+    //         but deny + ask only append — so reinit must drop them itself
+    when('[t0] its deny + ask carry stale Write(<path>) rules', () => {
+      const result = useThen('init runs over the older settings', () =>
+        runInit({
+          permissionsJsonc: `{
+  "permissions": {
+    "allow": ["Bash(pwd)"],
+    "deny": ["Edit(.meter/*)"],
+    "ask": []
+  }
+}`,
+          settingsJson: JSON.stringify(
+            {
+              permissions: {
+                allow: ['Write(.route/**)'],
+                deny: [
+                  'Write(.meter/*)',
+                  'Write(.branch/.bind/*)',
+                  'Bash(old-deny)',
+                  'Write',
+                ],
+                ask: ['Write(**/.test/**)', 'Bash(old-ask)'],
+              },
+            },
+            null,
+            2,
+          ),
+        }),
+      );
+
+      then('it exits 0', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('no Write(<path>) rule survives in any list', () => {
+        expect(result.stdout).not.toContain('Write(');
+      });
+
+      then('the other prior deny + ask rules survive', () => {
+        expect(result.stdout).toContain('Bash(old-deny)');
+        expect(result.stdout).toContain('Bash(old-ask)');
+      });
+
+      then('a bare Write tool rule survives', () => {
+        expect(result.stdout).toContain('"Write"');
+      });
+
+      then('the manifest Edit deny lands', () => {
+        expect(result.stdout).toContain('Edit(.meter/*)');
+        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
   given('[case6] the REAL manifest guards the sponsor mutations', () => {
     /**
      * .what = read the shipped `init.claude.permissions.jsonc` and assert the
@@ -288,4 +345,75 @@ describe('init.claude.permissions.sh', () => {
       });
     });
   });
+
+  given(
+    '[case7] the REAL manifest declares file-path rules as Edit(...) only',
+    () => {
+      /**
+       * .what = the shipped manifest holds no `Write(...)` rule, and every path
+       *         the retired `Write(...)` rules named still sits under an
+       *         `Edit(...)` rule.
+       *
+       * .why = claude code ignores a `Write(path)` rule and prints a warn for
+       *        each one at every session boot; `Edit(path)` already covers every
+       *        file-edit tool, Write included. so a `Write(...)` rule is noise
+       *        that protects no path.
+       *
+       * 🔴 .why the second assert = the DENY half guards the quota meter and the
+       *        bind dir from the clone. a cleanup that dropped an `Edit` twin by
+       *        mistake would open the meter, and the first assert alone would
+       *        still pass.
+       *
+       * .note = the asserts match QUOTED rules, never bare text — the manifest's
+       *         own comments name `Write(path)` in prose.
+       */
+      const manifest = fs.readFileSync(
+        path.join(__dirname, 'init.claude.permissions.jsonc'),
+        'utf-8',
+      );
+
+      when('[t0] the rules are read', () => {
+        then('no rule opens with Write(', () => {
+          expect(manifest).not.toMatch(/"Write\(/);
+        });
+
+        // 🔴 .why each list is sliced = the DENY twins must stay DENY. a rule
+        //        moved from deny to allow is still "in the manifest", so a
+        //        whole-file assert would pass while it opened the meter.
+        const sectionDeny = manifest.slice(
+          manifest.indexOf('"deny": ['),
+          manifest.indexOf('"ask": ['),
+        );
+        const sectionAllow = manifest.slice(manifest.indexOf('"allow": ['));
+
+        then(
+          'each deny path the Write rules named is still an Edit deny',
+          () => {
+            expect(sectionDeny).toContain('"deny": [');
+            for (const rule of [
+              '"Edit(.meter/*)"',
+              '"Edit(.branch/.bind/*)"',
+              '"Edit(*/**/.route/**)"',
+            ]) {
+              expect(sectionDeny).toContain(rule);
+              expect(sectionAllow).not.toContain(rule);
+            }
+          },
+        );
+
+        then(
+          'each allow path the Write rules named is still an Edit allow',
+          () => {
+            expect(sectionAllow).toContain('"allow": [');
+            for (const rule of [
+              '"Edit(.agent/.notes/**)"',
+              '"Edit(.route/**)"',
+              '"Edit(**/.test/**)"',
+            ])
+              expect(sectionAllow).toContain(rule);
+          },
+        );
+      });
+    },
+  );
 });

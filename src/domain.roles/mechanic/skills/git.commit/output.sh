@@ -151,8 +151,36 @@ print_nested_leaf() {
   fi
 }
 
-# print error in tree format
-# usage: print_tree_error "no commit uses remaining"
+# print a CONSTRAINT error in tree format — the caller must fix it (exit 2)
+# usage: print_tree_constraint "no commit uses left"
+#
+# .why two leaves, never one with a class arg = the class is the whole point
+#        of the header (rule.require.qualified-error-headers): a reader must
+#        tell from the first line WHO must act. a leaf per class makes the
+#        call site name it; an unqualified leaf would let a site omit it.
+# .why the class follows the exit code beside the call = ✋ ConstraintError
+#        pairs with exit 2, 💥 MalfunctionError with exit 1
+#        (rule.require.exit-code-semantics). a site whose glyph and exit
+#        disagree is a defect.
+print_tree_constraint() {
+  local message="$1"
+  echo "   └─ ✋ ConstraintError: $message"
+}
+
+# print a MALFUNCTION error in tree format — the system must be fixed (exit 1)
+# usage: print_tree_malfunction "git commit failed"
+print_tree_malfunction() {
+  local message="$1"
+  echo "   └─ 💥 MalfunctionError: $message"
+}
+
+# print an UNQUALIFIED error in tree format
+#
+# ⚠️ .note = for skills OUTSIDE git.commit that source this file and are not
+#         yet migrated (`git.stage.add`, `git.repo.get`). no git.commit skill
+#         calls it — they name the class via the two leaves above. the
+#         migration of the rest is caught in
+#         `.dream/v2026_09_27.fix.qualified-error-headers-beyond-git-commit.md`.
 print_tree_error() {
   local message="$1"
   echo "   └─ error: $message"
@@ -227,7 +255,7 @@ validate_enum_arg() {
   fi
 
   # emit the error (and any usage line) to both streams, then fail fast
-  local err="error: $flag must be $(get_enum_choice_list "$@")"
+  local err="✋ ConstraintError: $flag must be $(get_enum_choice_list "$@")"
   [[ -n "$usage" ]] && err="$err
 $usage"
   echo "$err"

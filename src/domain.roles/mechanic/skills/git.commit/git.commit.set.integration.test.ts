@@ -22,9 +22,10 @@ import { seedTestSponsor } from '@src/.test/seedTestSponsor';
  *         unreachable boundaries so the set→push pass-through decision logic runs for
  *         real. every NON-push git call execs the REAL /usr/bin/git, so the local
  *         commit set.sh performs is unfaked.
- * .real = the real push transport + gh PR-open + keyrack are exercised by
- *         git.commit.push.sh in production; each fake stands in ONLY for the boundary a
- *         hermetic harness cannot reach. individual fakes are marked `.mock` at their site.
+ * .real = the real gh, the real keyrack, and the real git remote are called in
+ *         `external.contracts.integration.test.ts`; each fake here stands in ONLY for
+ *         a state those services cannot be driven into on demand. individual fakes
+ *         are marked `.mock` at their site.
  */
 describe('git.commit.set.sh', () => {
   const scriptPath = path.join(__dirname, 'git.commit.set.sh');
@@ -34,17 +35,22 @@ describe('git.commit.set.sh', () => {
     filesUnstaged?: Record<string, string>;
     staged?: boolean;
     meterState?: { uses: number | string; push: string; stage?: string };
+    // raw bytes for the quota file, written INSTEAD of meterState — the
+    // present-and-damaged case a valid shape cannot express
+    meterRaw?: string;
     bindLevel?: string;
-    gitUser?: { name: string; email: string };
-    // null = bind NO sponsor, so the commit guard refuses. undefined = the default
-    // sponsor, which is what nearly every case needs.
+    // the repo's git identity. default = the `Test Human` placeholder, which
+    // cannot answer for a change — so a case with no bind still refuses unless
+    // it names a human here. `null` unsets that half.
+    gitUser?: { name: string | null; email: string | null };
+    // null = bind NO sponsor, so the commit falls back to git config.
+    // undefined = the default sponsor, which is what nearly every case needs.
     sponsor?: {
       name: string;
       email: string;
-      // which grove bound it — a laptop's `--who @me` writes `me`, a cloud
-      // tree's `--who @stdin` writes `supplied`. `[case44]` is the one case
-      // that varies it (the byte-identical proof); every other case defaults.
-      source?: 'me' | 'supplied';
+      // how the bind's value arrived — `--who @self` writes `self`, a piped or
+      // literal value writes `supplied`. `[case44]` varies it.
+      source?: 'self' | 'supplied' | 'me';
     } | null;
     // raw bytes for the sponsor state file, written INSTEAD of a seeded sponsor.
     // .why = a corrupt file is not a sponsor, so seedTestSponsor cannot express
@@ -91,11 +97,9 @@ describe('git.commit.set.sh', () => {
       fs.chmodSync(path.join(fakeNodeBin, 'rhachet'), '755');
     }
 
-    // configure git user — git needs one to make a commit at all.
-    // .note = this is NO LONGER the identity the trailer names. the SPONSOR is,
-    //         and it is seeded below. the two were one value until the sponsor
-    //         landed, which is exactly the defect: git config names the human on
-    //         a laptop and the clone on a cloud grove.
+    // configure git user — git needs one to make a commit at all, and it is the
+    // sponsor where no bind exists. the default placeholder cannot answer, so
+    // it keeps the fallback out of every case that does not ask for it.
     if (args.gitUser) {
       configureTestGitUser({
         cwd: tempDir,
@@ -158,12 +162,12 @@ describe('git.commit.set.sh', () => {
 
     // create .meter state (gitignored to match real repo setup)
     // must happen before test files so the gitignore commit doesn't include them
-    if (args.meterState) {
+    if (args.meterState || args.meterRaw !== undefined) {
       const meterDir = path.join(tempDir, '.meter');
       fs.mkdirSync(meterDir, { recursive: true });
       fs.writeFileSync(
         path.join(meterDir, 'git.commit.uses.jsonc'),
-        JSON.stringify(args.meterState, null, 2),
+        args.meterRaw ?? JSON.stringify(args.meterState, null, 2),
       );
 
       // commit .gitignore for .meter/ and .agent/ so they don't trigger the unstaged guard
@@ -373,9 +377,18 @@ describe('git.commit.set.sh', () => {
 
           // ...and the failure is NAMED, rather than left for the reader to
           // infer from the exit code alone (rule.require.failloud)
-          expect(result.stdout).toContain('push: error: git push failed');
+          // the class follows the exit: 1 is a malfunction
+          expect(result.stdout).toContain(
+            'push: 💥 MalfunctionError: git push failed',
+          );
           // rule.require.skill-output-streams — a failure rides both streams
-          expect(result.stderr).toContain('push: error: git push failed');
+          expect(result.stderr).toContain(
+            'push: 💥 MalfunctionError: git push failed',
+          );
+
+          // 🔴 a push that did not ship never tells the caller to watch its
+          //    release — `is_push_shipped` reads the raw status, not the leaf
+          expect(result.stdout).not.toContain('ride the release wave');
 
           // the COMMIT still landed, and the header says so
           expect(result.stdout).toContain('🐢 righteous!');
@@ -384,6 +397,11 @@ describe('git.commit.set.sh', () => {
             encoding: 'utf-8',
           });
           expect(log.stdout.trim()).toBe('fix(api): handle edge case');
+
+          // pin the composed malfunction render on both streams, as the
+          // constraint twins ([case30], [case41]) pin theirs
+          expect(result.stdout).toMatchSnapshot('stdout');
+          expect(result.stderr).toMatchSnapshot('stderr');
         },
       );
 
@@ -538,7 +556,9 @@ exec /usr/bin/git "$@"
               expect(result.stdout).toContain(
                 'header: fix(api): compose auth guide',
               );
-              expect(result.stdout).toContain('push: error');
+              expect(result.stdout).toContain('push: ✋ ConstraintError');
+              // 🔴 the pr never opened — no release-wave reminder
+              expect(result.stdout).not.toContain('ride the release wave');
               // lock the composed set→push failure contract on both streams: the
               // commit tree (stdout) + the guide (stderr) is a distinct variant
               // from push.sh's standalone guide, so snap it to catch drift
@@ -709,7 +729,9 @@ exit 1
               expect(result.stdout).toContain(
                 'header: fix(api): compose human auth guide',
               );
-              expect(result.stdout).toContain('push: error');
+              expect(result.stdout).toContain('push: ✋ ConstraintError');
+              // 🔴 the pr never opened — no release-wave reminder
+              expect(result.stdout).not.toContain('ride the release wave');
               // lock the composed set→push as-human guide on both streams
               expect(result.stdout).toMatchSnapshot();
               expect(result.stderr).toMatchSnapshot();
@@ -964,7 +986,7 @@ exit 1
                 'rhx git.commit.push --mode apply --auth as-human',
               );
               // lock BOTH streams of attempt 1: the composed set tree (commit
-              // landed + push: error) on stdout, the guide on stderr — the first
+              // landed + push: ✋ ConstraintError) on stdout, the guide on stderr — the first
               // half of the day-in-the-life, previously unsnapped
               expect(first.stdout).toMatchSnapshot();
               expect(first.stderr).toMatchSnapshot();
@@ -1088,6 +1110,9 @@ exit 1
       then('exits with error', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('no changes to commit');
+        // pin the qualified class header on both streams
+        expect(result.stdout).toMatchSnapshot('stdout');
+        expect(result.stderr).toMatchSnapshot('stderr');
       });
 
       then('uses are not decremented', () => {
@@ -1102,8 +1127,8 @@ exit 1
     });
   });
 
-  given('[case6] no sponsor bound to the tree', () => {
-    when('[t0] a commit is attempted with no sponsor', () => {
+  given('[case6] no sponsor bound, and git config cannot answer', () => {
+    when('[t0] a commit is attempted — git config names a placeholder', () => {
       // .why = one spawn, four assertions. each `then` below reads a
       //        different facet of the SAME refusal, so a re-run per `then`
       //        would pay a subprocess plus a git init to observe a result
@@ -1117,22 +1142,31 @@ exit 1
         }),
       );
 
-      then('refuses, and addresses the human', () => {
+      then('refuses, names the cause, and addresses the human', () => {
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('no sponsor is bound to this tree');
+        expect(result.stdout).toContain('no sponsor for this commit');
+        expect(result.stdout).toContain('names a placeholder');
         expect(result.stdout).toContain('you cannot fix this yourself');
-        expect(result.stdout).toContain('ask your human to run');
+        // a real name fixes a placeholder, so that fix leads the bind forms
+        expect(result.stdout).toContain(
+          'ask your human to fix git config — then commits name them:',
+        );
+        expect(result.stdout).toContain('or to bind a sponsor, in this tree:');
         expect(result.stdout).toMatchSnapshot();
       });
 
-      then('the refusal names @stdin and the literal, never @me', () => {
-        // .why = @me reads the gh session on THIS host, which on a cloud grove
-        //        is the clone's. a mandatory block must print only the forms
-        //        that hold on every grove.
-        expect(result.stdout).toContain('--who @stdin');
-        expect(result.stdout).toContain('--who "Name <email>"');
-        expect(result.stdout).not.toContain('--who @me');
-      });
+      then(
+        'the refusal names @stdin and the literal, never @self or @me',
+        () => {
+          // .why = `@self` reads this same git config and would refuse too; `@me`
+          //        is a silent alias. a mandatory block prints only forms that
+          //        hold on every machine.
+          expect(result.stdout).toContain('--who @stdin');
+          expect(result.stdout).toContain('--who "Name <email>"');
+          expect(result.stdout).not.toContain('--who @self');
+          expect(result.stdout).not.toContain('@me');
+        },
+      );
 
       then('spends NO quota', () => {
         // .why = a refused commit that decremented the meter would let a tree
@@ -1149,7 +1183,7 @@ exit 1
       });
 
       then('the failure lands on BOTH streams', () => {
-        expect(result.stderr).toContain('no sponsor is bound to this tree');
+        expect(result.stderr).toContain('no sponsor for this commit');
       });
     });
 
@@ -2191,6 +2225,9 @@ exit 1`,
 
         expect(result.status).toBe(2);
         expect(result.stdout).toContain('must be multiline');
+        // pin the qualified class header on both streams
+        expect(result.stdout).toMatchSnapshot('stdout');
+        expect(result.stderr).toMatchSnapshot('stderr');
       });
     });
 
@@ -4028,20 +4065,14 @@ exit 1`,
     });
   });
 
-  given('[case28] git config is never read for an identity', () => {
+  given('[case28] a bind wins over git config', () => {
     /**
-     * .note = this case ASSERTED THE OPPOSITE until the sponsor landed. it
-     *         used to prove that a placeholder `git config user.name` blocked
-     *         a commit — a guard that only made sense while git config WAS
-     *         the identity source. that is the defect: git config names the
-     *         human on a laptop and the CLONE on a cloud grove.
-     * .note = the placeholder guard did not vanish; it MOVED to bind time,
-     *         where a human is present to fix the value, rather than commit
-     *         time where only a clone reads the complaint. it is proven at
-     *         git.commit.sponsor.integration.test.ts [case5] [t2].
-     * .why  = what this case clamps now is invariant 8 — no code path reads
-     *         `git config` for an identity, so the fallback is unreachable
-     *         rather than merely guarded.
+     * .what = with a bind present, git config decides naught — not even a
+     *         placeholder git config, which on its own would refuse.
+     *
+     * .why = the precedence is bind → git config (if a human's) → refuse. a
+     *        bind is how a human sponsors someone else's work, so a bind that
+     *        git config could override would credit the wrong human.
      */
     when(
       '[t0] the git config is a placeholder, a real sponsor is bound',
@@ -4063,6 +4094,8 @@ exit 1`,
         then('the commit succeeds — git config decides naught', () => {
           expect(result.exitCode).toBe(0);
           expect(result.stdout).toContain('righteous');
+          expect(result.stdout).toContain('from: bound (this tree)');
+          expect(result.stdout).toMatchSnapshot();
         });
 
         then('the trailer names the SPONSOR, never the git config', () => {
@@ -4103,7 +4136,7 @@ exit 1`,
     when('[t2] a plan is run with a placeholder git config', () => {
       then('the plan tree names the sponsor', () => {
         // .why = the OLD code exited 2 here with "cannot determine patron".
-        //        a placeholder git config is now irrelevant to attribution.
+        //        a bind makes git config irrelevant to attribution.
         const result = runInTempGitRepo({
           files: { 'test.txt': 'content' },
           staged: true,
@@ -4115,9 +4148,392 @@ exit 1`,
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('name: Ada Lovelace');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] git config names a human, and a bind names someone else', () => {
+      const result = useThen('the commit lands', () =>
+        runInTempGitRepo({
+          files: { 'test.txt': 'content' },
+          staged: true,
+          meterState: { uses: 3, push: 'block' },
+          gitUser: { name: 'Kai Nalu', email: 'kai@example.com' },
+          sponsor: { name: 'Jo Rivera', email: 'jo@example.com' },
+          commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+        }),
+      );
+
+      then('🔴 the trailer names the BIND, not the git config human', () => {
+        // .why = a human binds someone else to sponsor THEIR work. a bind
+        //        that git config could override would credit the machine's
+        //        owner for work they did not ask for.
+        const log = spawnSync('git', ['log', '-1', '--format=%B'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8', // note: library api requires this term
+        });
+        expect(result.exitCode).toBe(0);
+        expect(log.stdout).toContain(
+          'Co-authored-by: Jo Rivera <jo@example.com>',
+        );
+        expect(log.stdout).not.toContain('Kai Nalu');
+      });
+
+      then('the tree says the bind answered', () => {
+        expect(result.stdout).toContain('from: bound (this tree)');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
+
+  given('[case53] the LOCAL quota file is damaged', () => {
+    /**
+     * .what = the quota file every commit reads, present and unparseable.
+     *
+     * .why = raw `jq -r` reads under `set -euo pipefail` died on jq's own
+     *        parse error — no class header, no file named, no fix. the global
+     *        and org meters already refuse a damaged file by name; this is the
+     *        same refusal for the third meter.
+     */
+    when('[t0] the file is truncated mid-write', () => {
+      const result = useThen('the commit is attempted', () =>
+        runInTempGitRepo({
+          files: { 'test.txt': 'content' },
+          staged: true,
+          meterRaw: '{ "uses": 3, "pu',
+          commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+        }),
+      );
+
+      then('it exits 1 — a malfunction, not the caller', () => {
+        expect(result.exitCode).toBe(1);
+      });
+
+      then('it names the class and the file, on both streams', () => {
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: commit quota file corrupt',
+        );
+        expect(result.stderr).toContain('💥 MalfunctionError:');
+      });
+
+      then('it names the fix — reset, then grant again', () => {
+        expect(result.stdout).toContain('git.commit.uses del');
+        expect(result.stdout).toContain('git.commit.uses set --quant N');
+        expect(result.stdout).toMatchSnapshot();
+        expect(result.stderr).toMatchSnapshot('stderr');
+      });
+
+      then("jq's raw parse error never reaches the human", () => {
+        expect(result.stderr).not.toContain('parse error');
+      });
+    });
+
+    when('[t1] the file parses, but uses is not a count', () => {
+      then('it refuses by name all the same', () => {
+        const result = runInTempGitRepo({
+          files: { 'test.txt': 'content' },
+          staged: true,
+          meterRaw: '{ "uses": "lots", "push": "allow" }',
+          commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+        });
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('💥 MalfunctionError:');
+      });
+    });
+
+    when('[t2] the file is empty', () => {
+      then('it refuses by name all the same', () => {
+        const result = runInTempGitRepo({
+          files: { 'test.txt': 'content' },
+          staged: true,
+          meterRaw: '',
+          commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+        });
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('💥 MalfunctionError:');
+      });
+    });
+  });
+
+  given(
+    '[case52] no bind — the commit takes its sponsor from git config',
+    () => {
+      /**
+       * .what = on a human's own machine, git config names the human, and a
+       *         commit needs no bind. elsewhere — the clone's machine, or no
+       *         usable identity — the commit refuses and names the fix.
+       *
+       * .why = the wish: "they shouldnt need to even set a sponsor if its their
+       *        machine". the machine's owner is the identity git already stamps
+       *        on their own commits, and on this clone's commits as committer.
+       */
+      when("[t0] git config names a human — the human's own machine", () => {
+        // .mock = the gh cli, as a trap first on PATH that marks a file if run
+        // .why  = vision case=1 [t1]: no gh command runs on the sponsor path.
+        //         an absence cannot be observed on a real gh — only a trap that
+        //         records a call proves the call never happened
+        // .real = all else is real: a real temp repo, real git config, the
+        //         real skill. the sponsor path has no gh call left to exercise
+        const fakeBin = genTempDir({
+          slug: 'git-commit-set-gh-trap',
+          git: false,
+        });
+        const ghMark = path.join(fakeBin, 'gh.was.called');
+        fs.writeFileSync(
+          path.join(fakeBin, 'gh'),
+          `#!/usr/bin/env bash\ntouch "${ghMark}"\nexit 1\n`,
+        );
+        fs.chmodSync(path.join(fakeBin, 'gh'), '755');
+
+        const result = useThen('the commit lands', () =>
+          runInTempGitRepo({
+            files: { 'test.txt': 'content' },
+            staged: true,
+            meterState: { uses: 3, push: 'block' },
+            gitUser: { name: 'Kai Nalu', email: 'kai@example.com' },
+            sponsor: null,
+            commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+            env: { PATH: `${fakeBin}:${process.env.PATH}` },
+          }),
+        );
+
+        then('the commit lands with no bind', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('righteous');
+        });
+
+        then('🔴 no gh command ran', () => {
+          expect(fs.existsSync(ghMark)).toBe(false);
+        });
+
+        then('🔴 the trailer names the git config human', () => {
+          const log = spawnSync('git', ['log', '-1', '--format=%B'], {
+            cwd: result.tempDir,
+            encoding: 'utf-8', // note: library api requires this term
+          });
+          expect(log.stdout).toContain(
+            'Co-authored-by: Kai Nalu <kai@example.com>',
+          );
+        });
+
+        then('the tree says git config answered', () => {
+          expect(result.stdout).toContain('name: Kai Nalu');
+          expect(result.stdout).toContain('from: git config (this machine)');
+          expect(result.stdout).toMatchSnapshot();
+        });
+
+        then(
+          'no sponsor file was written — the next commit reads afresh',
+          () => {
+            expect(
+              fs.existsSync(
+                path.join(result.tempDir, '.meter', 'git.commit.sponsor.jsonc'),
+              ),
+            ).toBe(false);
+          },
+        );
+      });
+
+      when("[t1] git config names a clone — the clone's machine", () => {
+        const result = useThen('the commit refuses', () =>
+          runInTempGitRepo({
+            files: { 'test.txt': 'content' },
+            staged: true,
+            meterState: { uses: 3, push: 'block' },
+            gitUser: { name: 'seaturtle[bot]', email: 'seaturtle@ehmpath.com' },
+            sponsor: null,
+            commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+          }),
+        );
+
+        then('🔴 refuses: a clone cannot answer for its own change', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('no sponsor for this commit');
+          expect(result.stdout).toContain('names a clone');
+          expect(result.stdout).toContain("so this is the clone's machine");
+          expect(result.stdout).toContain('ask your human to run');
+          expect(result.stdout).toMatchSnapshot();
+        });
+
+        then('spends NO quota', () => {
+          const state = JSON.parse(
+            fs.readFileSync(
+              path.join(result.tempDir, '.meter', 'git.commit.uses.jsonc'),
+              'utf-8',
+            ),
+          );
+          expect(state.uses).toBe(3);
+        });
+      });
+
+      when('[t2] git config user.email is unset', () => {
+        then(
+          'refuses, and names the git config fix before the bind forms',
+          () => {
+            const result = runInTempGitRepo({
+              files: { 'test.txt': 'content' },
+              staged: true,
+              meterState: { uses: 3, push: 'block' },
+              gitUser: { name: 'Kai Nalu', email: null },
+              sponsor: null,
+              commitArgs: [
+                '-m',
+                'fix(api): test\n\n- change',
+                '--mode',
+                'apply',
+              ],
+            });
+
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain('git config user.email is unset.');
+            expect(result.stdout).toContain(
+              '$ git config --global user.email "you@example.com"',
+            );
+            expect(result.stdout).toContain('--who @stdin');
+            expect(result.stdout).toMatchSnapshot();
+          },
+        );
+      });
+
+      when('[t2b] git config user.name is unset', () => {
+        then('refuses, names user.name, and never guesses a name', () => {
+          // .why = vision case=4 [t1]: the email's local part is never used as
+          //        a name — a guessed half is a fabricated identity
+          const result = runInTempGitRepo({
+            files: { 'test.txt': 'content' },
+            staged: true,
+            meterState: { uses: 3, push: 'block' },
+            gitUser: { name: null, email: 'kai@example.com' },
+            sponsor: null,
+            commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+          });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('git config user.name is unset.');
+          expect(result.stdout).not.toContain('user.email is unset');
+          expect(result.stdout).toContain(
+            '$ git config --global user.name "Your Name"',
+          );
+          expect(result.stdout).not.toContain('git config --global user.email');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t2c] both git config halves are unset', () => {
+        then('refuses, names both, with one fix line per half', () => {
+          // .why = vision case=4 [t2]
+          const result = runInTempGitRepo({
+            files: { 'test.txt': 'content' },
+            staged: true,
+            meterState: { uses: 3, push: 'block' },
+            gitUser: { name: null, email: null },
+            sponsor: null,
+            commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+          });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('git config user.name is unset.');
+          expect(result.stdout).toContain('git config user.email is unset.');
+          expect(result.stdout).toContain('git config --global user.name');
+          expect(result.stdout).toContain('git config --global user.email');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t3] a corrupt bind, and git config names a human', () => {
+        then('🔴 refuses as corrupt — never falls back to git config', () => {
+          // 🔴 .why = a damaged bind means a human meant a sponsor OTHER than
+          //        git config. to substitute git config would invent the answer
+          //        (rule.forbid.failhide).
+          const result = runInTempGitRepo({
+            files: { 'test.txt': 'content' },
+            staged: true,
+            meterState: { uses: 3, push: 'block' },
+            gitUser: { name: 'Kai Nalu', email: 'kai@example.com' },
+            sponsorRaw: '{ not json',
+            commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+          });
+
+          expect(result.exitCode).toBe(1);
+          expect(result.stdout).toContain('sponsor state file corrupt');
+          expect(result.stdout).not.toContain('Kai Nalu');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t4] git config email is not an address', () => {
+        then('refuses, and shows what git config reads', () => {
+          // .why = a malformed address cannot reach a trailer; the refusal
+          //        names the value so the human can see what to fix
+          const result = runInTempGitRepo({
+            files: { 'test.txt': 'content' },
+            staged: true,
+            meterState: { uses: 3, push: 'block' },
+            gitUser: { name: 'Kai Nalu', email: 'kai@localhost' },
+            sponsor: null,
+            commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+          });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('no sponsor for this commit');
+          expect(result.stdout).toContain("that is not a 'Name <email>'");
+          expect(result.stdout).toContain('Kai Nalu <kai@localhost>');
+          // the fix names the half at fault — the email — never the name
+          expect(result.stdout).toContain('git config --global user.email');
+          expect(result.stdout).not.toContain('git config --global user.name');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when('[t5] git config names a placeholder', () => {
+        then('refuses, and never names the placeholder as sponsor', () => {
+          // .why = `Test Human` is a real-shaped `Name <email>` that answers
+          //        for no one; the fallback must not credit it
+          const result = runInTempGitRepo({
+            files: { 'test.txt': 'content' },
+            staged: true,
+            meterState: { uses: 3, push: 'block' },
+            gitUser: { name: 'Test Human', email: 'human@test.com' },
+            sponsor: null,
+            commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+          });
+
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('no sponsor for this commit');
+          expect(result.stdout).toContain('names a placeholder');
+          expect(result.stdout).not.toContain('from: git config');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+
+      when("[t6] the clone's machine, and a human has bound a sponsor", () => {
+        then('🔴 the commit lands under the bind', () => {
+          // 🔴 .why = the clone's machine refuses on git config alone, and a
+          //        bind is the paved way out (vision case=3 [t2]). a bind wins
+          //        over git config, whoever git config names.
+          const result = runInTempGitRepo({
+            files: { 'test.txt': 'content' },
+            staged: true,
+            meterState: { uses: 3, push: 'block' },
+            gitUser: { name: 'seaturtle[bot]', email: 'seaturtle@ehmpath.com' },
+            sponsor: { name: 'Kai Nalu', email: 'kai@example.com' },
+            commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
+          });
+          const log = spawnSync('git', ['log', '-1', '--format=%B'], {
+            cwd: result.tempDir,
+            encoding: 'utf-8', // note: library api requires this term
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('from: bound (this tree)');
+          expect(log.stdout).toContain(
+            'Co-authored-by: Kai Nalu <kai@example.com>',
+          );
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+    },
+  );
 
   given('[case34] --help short-circuits before the identity fetch', () => {
     when(
@@ -4951,6 +5367,87 @@ exec /usr/bin/git "$@"
         });
       },
     );
+
+    when(
+      '[t2] vision case=9: a bind wins → `del` → the credit returns to git config',
+      () => {
+        // .why = the vision's headline for case=9 is the SWITCH: the bind
+        //        credits Jo, and once it is removed the very next commit
+        //        credits Kai from git config. each half has its own case;
+        //        this walk proves the two compose in one tree
+        const walked = useThen('the whole walk runs', () => {
+          // step 1 — a bind names Jo, git config names Kai; the commit credits Jo
+          const first = runInTempGitRepo({
+            files: { 'test.txt': 'content' },
+            staged: true,
+            meterState: { uses: 3, push: 'block' },
+            gitUser: { name: 'Kai Nalu', email: 'kai@example.com' },
+            sponsor: { name: 'Jo Rivera', email: 'jo@example.com' },
+            commitArgs: ['-m', '@stdin', '--mode', 'apply'],
+            stdin: 'fix(x): first\n\n- z',
+          });
+          const trailerFirst = spawnSync('git', ['log', '-1', '--format=%B'], {
+            cwd: first.tempDir,
+            encoding: 'utf-8' as BufferEncoding, // note: library api requires this term
+          });
+
+          // step 2 — the human removes the bind
+          const cleared = spawnSync('bash', [sponsorPath, 'del'], {
+            cwd: first.tempDir,
+            encoding: 'utf-8' as BufferEncoding, // note: library api requires this term
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: envFor(first.isolatedHome),
+          });
+
+          // step 3 — a second change, a second commit, no other act
+          fs.writeFileSync(path.join(first.tempDir, 'second.txt'), 'more');
+          spawnSync('git', ['add', 'second.txt'], { cwd: first.tempDir });
+          const second = spawnSync(
+            'bash',
+            [scriptPath, '-m', '@stdin', '--mode', 'apply'],
+            {
+              cwd: first.tempDir,
+              encoding: 'utf-8' as BufferEncoding, // note: library api requires this term
+              stdio: ['pipe', 'pipe', 'pipe'],
+              input: 'cont(x): second\n\n- z', // one behavioral commit per branch
+
+              env: envFor(first.isolatedHome),
+            },
+          );
+          const trailerSecond = spawnSync('git', ['log', '-1', '--format=%B'], {
+            cwd: first.tempDir,
+            encoding: 'utf-8' as BufferEncoding, // note: library api requires this term
+          });
+
+          return { first, trailerFirst, cleared, second, trailerSecond };
+        });
+
+        then('the first commit credits the bind', () => {
+          expect(walked.first.exitCode).toBe(0);
+          expect(walked.trailerFirst.stdout).toContain(
+            'Co-authored-by: Jo Rivera <jo@example.com>',
+          );
+        });
+
+        then('`del` succeeds', () => {
+          expect(walked.cleared.status).toBe(0);
+        });
+
+        then('🔴 the next commit credits git config — the switch', () => {
+          expect(walked.second.status).toBe(0);
+          expect(walked.trailerSecond.stdout).toContain(
+            'Co-authored-by: Kai Nalu <kai@example.com>',
+          );
+          expect(walked.trailerSecond.stdout).not.toContain('Jo Rivera');
+        });
+
+        then('the second tree says git config answered', () => {
+          expect(walked.second.stdout).toContain(
+            'from: git config (this machine)',
+          );
+        });
+      },
+    );
   });
 
   given('[case50] the GLOBAL blocker file is damaged', () => {
@@ -5221,28 +5718,23 @@ exec /usr/bin/git "$@"
   );
 
   given(
-    '[case44] the grove axis is inert — the commit tree is byte-identical on a cloud tree and a laptop',
+    '[case44] how a bind arrived is inert — the commit tree is byte-identical for @self and @stdin binds',
     () => {
-      // 🎯 .why = this is `1.vision.experience.case=2 [t3]`, the wish's own
-      //        stated proof: *"the output is byte-identical — source: bound
-      //        (this tree), same human"* … *"the grove axis is inert. that
-      //        equality IS the fix"*.
+      // 🔴 .what the two binds differ on = HOW the value arrived. `--who
+      //        @self` records `self`; a piped or literal value records
+      //        `supplied`.
       //
-      // 🔴 .what the two groves actually differ on = HOW the bind happened.
-      //        a cloud tree has no github session to read, so a human pipes the
-      //        name in (`--who @stdin`) and the state records `supplied`. on a
-      //        laptop the human runs `--who @me` and it records `me`.
-      //
-      // ⇒ so `source` in the STATE file genuinely varies by grove. the claim
-      //        under test is that the commit TREE does not — it reports where
-      //        the value came from (`bound (this tree)`), never how it was
-      //        typed, so the two renders match byte for byte.
+      // ⇒ so `source` in the STATE file genuinely varies. the claim under
+      //        test is that the commit TREE does not — it reports WHERE the
+      //        sponsor came from (`bound (this tree)` vs `git config (this
+      //        machine)`), never how a bind was typed, so the two renders
+      //        match byte for byte.
       //
       // ⚠️ .why it is a real clamp = it goes red the moment the tree renders
-      //        `$SPONSOR_SOURCE` instead of the constant — which is exactly the
+      //        `$SPONSOR_SOURCE` instead of the provenance — which is exactly the
       //        change a reader of `git.commit.sponsor get` would reach for,
-      //        since that skill's own `source:` leaf DOES print `me`/`supplied`.
-      const renderOnGrove = (source: 'me' | 'supplied') =>
+      //        since that skill's own `source:` leaf DOES print `self`/`supplied`.
+      const renderOnGrove = (source: 'self' | 'supplied') =>
         runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
           meterState: { uses: 3, push: 'block' },
@@ -5250,17 +5742,17 @@ exec /usr/bin/git "$@"
           commitArgs: ['--message', 'fix(api): validate input\n\n- detail'],
         });
 
-      when('[t0] the same commit is planned on each grove', () => {
-        // .why = both `then`s below need the 'me' grove's render; a re-run per
+      when('[t0] the same commit is planned under each kind of bind', () => {
+        // .why = both `then`s below need the 'self' bind's render; a re-run per
         //        `then` would pay a full git-init + commit twice for the SAME
         //        output (rule.forbid.redundant-expensive-operations). the
-        //        'supplied' grove is read only once, so it stays inline.
+        //        'supplied' bind is read only once, so it stays inline.
         //
         // .note = `useThen` wraps the FULL result object here, never a bare
         //         string — a primitive return proxies into a character-indexed
         //         object rather than the string itself.
-        const laptop = useThen('the laptop grove renders', () =>
-          renderOnGrove('me'),
+        const laptop = useThen('the @self bind renders', () =>
+          renderOnGrove('self'),
         );
 
         then('the two trees are byte-identical', () => {
@@ -5275,11 +5767,11 @@ exec /usr/bin/git "$@"
           const onLaptop = laptop.stdout;
           expect(onLaptop).toContain('name: Test Human');
           expect(onLaptop).toContain('email: human@test.com');
-          expect(onLaptop).toContain('source: bound (this tree)');
+          expect(onLaptop).toContain('from: bound (this tree)');
 
-          // ⛔ and NEITHER grove-specific word may reach the commit tree —
+          // ⛔ and NEITHER bind-specific word may reach the commit tree —
           //    the moment one does, `[t0]` above is the test that goes red
-          expect(onLaptop).not.toContain('source: me');
+          expect(onLaptop).not.toContain('source: self');
           expect(onLaptop).not.toContain('source: supplied');
         });
       });

@@ -653,4 +653,462 @@ extends:
       });
     });
   });
+
+  given('[case36] get_one_git_config_identity reads git config', () => {
+    /**
+     * .what = the reader REPORTS an unreadable config as a kind and never
+     *         exits; `guard_git_identity_readable` is the fail-loud half.
+     *
+     * 🔴 .why = `git config` exits 1 for an absent key — the `unset` state —
+     *        and 128 for a file it cannot parse. a reader that absorbed every
+     *        non-zero exit would read a broken file as `unset`, and name a fix
+     *        that cannot help. a reader that EXITED would flip the exit code
+     *        of a grant that already landed (the nudge) or a `get` that must
+     *        always report. so the reader names the state; each caller decides.
+     *
+     * .note = `output.sh` is sourced for `emit_both`, as every skill that
+     *         calls the guard does.
+     */
+    const outputPath = path.join(__dirname, 'output.sh');
+
+    const genBrokenConfigRepo = (slug: string) => {
+      const tempDir = genTempDir({ slug, git: true });
+      const brokenConfig = path.join(tempDir, 'broken.gitconfig');
+      fs.writeFileSync(brokenConfig, '[user\n  name = Kai Nalu\n');
+      return { tempDir, brokenConfig };
+    };
+
+    when('[t0] a git config file is unparseable, and the reader runs', () => {
+      const result = useThen('the reader returns', () => {
+        const { tempDir, brokenConfig } = genBrokenConfigRepo(
+          'git-identity-broken-read',
+        );
+        return runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      GIT_CONFIG_GLOBAL="${brokenConfig}" get_one_git_config_identity
+      echo "kind=$GIT_IDENTITY_KIND"`,
+        });
+      });
+
+      then('it reports the kind unreadable, and does not exit', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('kind=unreadable');
+      });
+
+      then('it never classifies the broken file as unset', () => {
+        expect(result.stdout).not.toContain('kind=unset');
+      });
+    });
+
+    when('[t1] a git config file is unparseable, and the guard runs', () => {
+      const result = useThen('the guard refuses', () => {
+        const { tempDir, brokenConfig } = genBrokenConfigRepo(
+          'git-identity-broken-guard',
+        );
+        return runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      GIT_CONFIG_GLOBAL="${brokenConfig}" get_one_git_config_identity
+      guard_git_identity_readable
+      echo "after-guard"`,
+        });
+      });
+
+      then('it exits 1, as a malfunction, before any later line', () => {
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).not.toContain('after-guard');
+      });
+
+      then('it names the malfunction and the command to find the file', () => {
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: git config could not be read',
+        );
+        expect(result.stdout).toContain('git config --list --show-origin');
+        expect(result.stderr).toContain(
+          '💥 MalfunctionError: git config could not be read',
+        );
+        expect(result.stdout).toMatchSnapshot();
+
+        // git's own `fatal:` line names the temp config by its absolute path —
+        // the host's worktree root plus a per-run dir. mask the whole prefix,
+        // so the pin holds neither a host path nor a run id
+        expect(
+          result.stderr.replace(
+            /\S*\.temp\/genTempDir\.symlink\/[^/\s]+\//g,
+            '<TEMP_DIR>/',
+          ),
+        ).toMatchSnapshot('stderr');
+      });
+    });
+
+    when(
+      '[t1b] a git config file is unparseable, and the grant nudge runs',
+      () => {
+        then('🔴 it prints a soft line and returns — it never exits', () => {
+          // 🔴 .why = the nudge annotates a grant that already landed. an exit
+          //        here would report the landed grant as a failure to any caller
+          //        that chains on its exit code.
+          const { tempDir, brokenConfig } = genBrokenConfigRepo(
+            'git-identity-broken-nudge',
+          );
+          const result = runFunction({
+            tempDir,
+            functionCall: `source "${outputPath}"
+      GIT_CONFIG_GLOBAL="${brokenConfig}" print_sponsor_bind_nudge_if_absent
+      echo "after-nudge"`,
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(
+            'commits will refuse: git config could not be read',
+          );
+          // the marker proves the leaf returned rather than exited
+          expect(result.stdout).toContain('after-nudge');
+          expect(result.stdout).not.toContain('MalfunctionError');
+
+          // snapshot the render alone — the marker is harness, not contract
+          expect(result.stdout.replace('after-nudge\n', '')).toMatchSnapshot();
+        });
+      },
+    );
+
+    when('[t1c] a git config file is unparseable, and `get` renders', () => {
+      then('🔴 it reports the state and returns — it never exits', () => {
+        // 🔴 .why = `get` is how a clone reads its own tree; it must report a
+        //        state whatever git config holds. clamped here, not through the
+        //        skill: an unparseable config fails the skill's own
+        //        `git rev-parse` before this render is reached
+        const { tempDir, brokenConfig } = genBrokenConfigRepo(
+          'git-identity-broken-get',
+        );
+        const result = runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      GIT_CONFIG_GLOBAL="${brokenConfig}" print_sponsor_unbound_state
+      echo "after-get"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('sponsor: (none bound)');
+        expect(result.stdout).toContain('git config: could not be read');
+        expect(result.stdout).toContain('commits: will refuse');
+        // the marker proves the leaf returned rather than exited
+        expect(result.stdout).toContain('after-get');
+
+        // snapshot the render alone — the marker is harness, not contract
+        expect(result.stdout.replace('after-get\n', '')).toMatchSnapshot();
+      });
+    });
+
+    when('[t1d] git config holds no user.email, and `get` renders', () => {
+      then('it names the git config fix before the bind forms', () => {
+        const tempDir = genTempDir({
+          slug: 'git-identity-get-unset',
+          git: true,
+        });
+        spawnSync('git', ['config', '--local', 'user.name', 'Kai Nalu'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', '--local', '--unset-all', 'user.email'], {
+          cwd: tempDir,
+        });
+
+        const result = runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      print_sponsor_unbound_state`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          'git config: holds no complete identity',
+        );
+        expect(result.stdout).toContain('commits: will refuse');
+        expect(result.stdout).toContain(
+          'git config --global user.email "you@example.com"',
+        );
+        expect(result.stdout).not.toContain('git config --global user.name');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1e] git config names a clone, and `get` renders', () => {
+      then('it offers the bind forms alone — never a git config fix', () => {
+        // .why = a clone identity has no half to fix; a `git config` line
+        //        here would tell the reader to rename the clone
+        const tempDir = genTempDir({
+          slug: 'git-identity-get-clone',
+          git: true,
+        });
+        spawnSync('git', ['config', '--local', 'user.name', 'seaturtle[bot]'], {
+          cwd: tempDir,
+        });
+        spawnSync(
+          'git',
+          ['config', '--local', 'user.email', 'seaturtle@ehmpath.com'],
+          { cwd: tempDir },
+        );
+
+        const result = runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      print_sponsor_unbound_state`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        // 🔴 names the clone's machine, as the commit refusal does
+        expect(result.stdout).toContain(
+          "git config: names a clone — the clone's machine",
+        );
+        expect(result.stdout).toContain('commits: will refuse');
+        expect(result.stdout).not.toContain('git config --global');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] git config holds no user.email', () => {
+      then('the absent key is absorbed, and names the half at fault', () => {
+        const tempDir = genTempDir({ slug: 'git-identity-absent', git: true });
+        spawnSync('git', ['config', '--local', 'user.name', 'Kai Nalu'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['config', '--local', '--unset-all', 'user.email'], {
+          cwd: tempDir,
+        });
+
+        const result = runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      get_one_git_config_identity
+      guard_git_identity_readable
+      echo "kind=$GIT_IDENTITY_KIND faults=\${GIT_IDENTITY_FAULTS[*]}"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('kind=unset faults=user.email');
+      });
+    });
+
+    when('[t4] git config holds a VALUELESS name key', () => {
+      then('🔴 it reads as unset — never as a human named "true"', () => {
+        // 🔴 .why = git stores `[user]` + a bare `name` line as the boolean
+        //        `true`, and plain `--get-regexp` prints it as `user.name true`.
+        //        read that way, a commit would credit `true <email>` in a
+        //        public trailer. `-z` marks the key valueless; it is absent.
+        const tempDir = genTempDir({
+          slug: 'git-identity-bare-key',
+          git: true,
+        });
+        spawnSync('git', ['config', '--local', '--unset-all', 'user.name'], {
+          cwd: tempDir,
+        });
+        spawnSync(
+          'git',
+          ['config', '--local', 'user.email', 'kai@example.com'],
+          {
+            cwd: tempDir,
+          },
+        );
+        fs.appendFileSync(
+          path.join(tempDir, '.git', 'config'),
+          '[user]\n\tname\n',
+        );
+
+        const result = runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      get_one_git_config_identity
+      echo "kind=$GIT_IDENTITY_KIND name=[$GIT_IDENTITY_NAME] faults=\${GIT_IDENTITY_FAULTS[*]}"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('kind=unset name=[] faults=user.name');
+        expect(result.stdout).not.toContain('name=[true]');
+      });
+    });
+
+    when('[t3] git config holds two values for user.name', () => {
+      then('the last value wins, as git itself applies it', () => {
+        // .why = one `--get-regexp` capture lists every value in apply
+        //        order; the reader must take the one git would stamp
+        const tempDir = genTempDir({ slug: 'git-identity-multi', git: true });
+        spawnSync('git', ['config', '--local', 'user.name', 'Old Name'], {
+          cwd: tempDir,
+        });
+        spawnSync(
+          'git',
+          ['config', '--local', '--add', 'user.name', 'Kai Nalu'],
+          {
+            cwd: tempDir,
+          },
+        );
+        spawnSync(
+          'git',
+          ['config', '--local', 'user.email', 'kai@example.com'],
+          {
+            cwd: tempDir,
+          },
+        );
+
+        const result = runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      get_one_git_config_identity
+      echo "kind=$GIT_IDENTITY_KIND name=$GIT_IDENTITY_NAME"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('kind=human name=Kai Nalu');
+      });
+    });
+  });
+
+  given('[case37] every git.commit refusal names its error class', () => {
+    /**
+     * .what = no git.commit skill source prints an unqualified error.
+     *
+     * 🔴 .why = rule.require.qualified-error-headers: a reader must tell from
+     *        the first line WHO must act. the family renders its refusals via
+     *        `print_tree_constraint` / `print_tree_malfunction`, and spells the
+     *        class on its raw lines. the unqualified `print_tree_error` stays in
+     *        `output.sh` only for skills OUTSIDE git.commit that source it; a
+     *        git.commit call to it, or a bare `error: ` opener, would slip the
+     *        class back out with no test to catch it.
+     *
+     * .note = a static scan of the sources, never a render — the refusal
+     *         renders are pinned per case in each skill's own suite.
+     */
+    const sources = fs
+      .readdirSync(__dirname)
+      .filter((file) => file.endsWith('.sh'))
+      .map((file) => ({
+        file,
+        lines: fs.readFileSync(path.join(__dirname, file), 'utf-8').split('\n'),
+      }));
+
+    when('[t0] each skill source is scanned', () => {
+      then('the scan covers the skill family', () => {
+        // .why = a scan over zero files is the classic false green
+        expect(sources.map((source) => source.file)).toEqual(
+          expect.arrayContaining([
+            'git.commit.set.sh',
+            'git.commit.sponsor.sh',
+            'git.commit.push.sh',
+            'git.commit.operations.sh',
+            'output.sh',
+          ]),
+        );
+      });
+
+      then('no source calls the unqualified print_tree_error', () => {
+        const calls = sources.flatMap((source) =>
+          source.lines
+            .filter((line) => /^\s*print_tree_error\s/.test(line))
+            .map((line) => `${source.file}: ${line.trim()}`),
+        );
+        expect(calls).toEqual([]);
+      });
+
+      then('no source opens an error with a bare "error: "', () => {
+        const openers = sources.flatMap((source) =>
+          source.lines
+            .filter((line) => !/^\s*#/.test(line))
+            .filter((line) => /["']error: |└─ error: /.test(line))
+            .filter(
+              (line) =>
+                !/^print_tree_error\(\)|echo " {3}└─ error: \$message"/.test(
+                  line.trim(),
+                ),
+            )
+            .map((line) => `${source.file}: ${line.trim()}`),
+        );
+        expect(openers).toEqual([]);
+      });
+    });
+  });
+
+  given(
+    '[case38] infer_level_from_branch, one definition for bind and set',
+    () => {
+      /**
+       * .what = the branch → level inference that `git.commit.bind get` shows
+       *         and `git.commit.set` enforces.
+       *
+       * .why = it was two byte-identical copies; now it is one. these cases pin
+       *        its behavior at the one definition both skills call.
+       */
+      const cases = [
+        { branch: 'fix/typo', level: 'fix' },
+        { branch: 'vlad/fix-git-sponsor', level: 'fix' },
+        { branch: 'hotfix/prod', level: 'fix' },
+        { branch: 'bugfix/edge', level: 'fix' },
+        { branch: 'feat/sponsor', level: 'feat' },
+        { branch: 'kai/feat-wave-report', level: 'feat' },
+        { branch: 'feature/board-rental', level: 'feat' },
+        { branch: 'fix/feat/both', level: 'none' },
+        { branch: 'chore/deps', level: 'none' },
+      ];
+
+      cases.map((thisCase, index) =>
+        when(`[t${index}] branch ${thisCase.branch}`, () => {
+          then(`infers ${thisCase.level}`, () => {
+            const tempDir = genTempDir({ slug: 'infer-level', git: true });
+            const result = runFunction({
+              tempDir,
+              functionCall: `infer_level_from_branch "${thisCase.branch}"`,
+            });
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout.trim()).toBe(thisCase.level);
+          });
+        }),
+      );
+    },
+  );
+
+  given('[case39] assert_git_identity_read guards the reader contract', () => {
+    const outputPath = path.join(__dirname, 'output.sh');
+
+    when('[t0] a leaf reads the identity before the reader ran', () => {
+      then(
+        'it exits 1, as a named malfunction — never a raw unbound crash',
+        () => {
+          const tempDir = genTempDir({ slug: 'identity-sentinel', git: true });
+          const result = runFunction({
+            tempDir,
+            functionCall: `source "${outputPath}"
+      set -u
+      assert_git_identity_read
+      echo "after-assert"`,
+          });
+
+          expect(result.exitCode).toBe(1);
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: the git identity was read before get_one_git_config_identity ran',
+          );
+          expect(result.stdout).not.toContain('after-assert');
+          expect(result.stderr).not.toContain('unbound variable');
+          // pin the malfunction render on both streams, as [case36][t1] does
+          expect(result.stdout).toMatchSnapshot('stdout');
+          expect(result.stderr).toMatchSnapshot('stderr');
+        },
+      );
+    });
+
+    when('[t1] the reader ran first', () => {
+      then('it passes through', () => {
+        const tempDir = genTempDir({ slug: 'identity-sentinel-ok', git: true });
+        const result = runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      get_one_git_config_identity
+      assert_git_identity_read
+      echo "after-assert"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('after-assert');
+      });
+    });
+  });
 });

@@ -12,19 +12,20 @@
       // quarantine directory — blocked content must not be accessible to agent
       "Read(.quarantine/*)",
 
-      // meter directory — mechanic quota state must only be modified by humans
-      // prevents mechanic from granting itself unlimited commits or push access
+      // .note = file-path rules are Edit(...) only. claude code applies an
+      //         Edit(path) rule to every file-edit tool (Write included) and
+      //         ignores a Write(path) rule, with a boot-time warn per rule.
+
+      // meter directory — only a human may change mechanic quota state
+      // so the mechanic cannot grant itself unlimited commits or push access
       "Edit(.meter/*)",
-      "Write(.meter/*)",
 
       // bind directory — human-prescribed constraints, mechanic must not alter
       "Edit(.branch/.bind/*)",
-      "Write(.branch/.bind/*)",
 
       // nested .route directories — route state managed by driver, not mechanic
       // note: root .route/ is allowed (see allow list) for mechanic to write route artifacts
       "Edit(*/**/.route/**)",
-      "Write(*/**/.route/**)",
 
       // git.commit.uses set/allow — only humans can grant commit quota
       // mechanic can `get` (read quota) but never `set` or `allow` (grant itself
@@ -238,16 +239,13 @@
     // commands that are safe to auto-approve
     "allow": [
       // plan artifacts — agents write plans here instead of using plan mode
-      "Write(.agent/.notes/**)",
       "Edit(.agent/.notes/**)",
 
       // root .route directory — mechanic can write route artifacts here
       // note: nested .route dirs (e.g., src/.route/) are denied
-      "Write(.route/**)",
       "Edit(.route/**)",
 
       // test artifacts — temporary test directories
-      "Write(**/.test/**)",
       "Edit(**/.test/**)",
 
       // ide integrations

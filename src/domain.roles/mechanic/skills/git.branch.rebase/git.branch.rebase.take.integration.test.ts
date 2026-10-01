@@ -28,7 +28,8 @@ const sanitizeOutput = (output: string): string =>
     // collapse whitespace between ANSI codes (handles platform variations)
     .replace(/(\[\d+m)\s+/g, '$1 ')
     // mask temp dir paths: /tmp/git-rebase-take-test-ajvAgu -> /tmp/TEMP_DIR
-    .replace(/\/tmp\/git-rebase-take-test-[^\s/]+/g, '/tmp/TEMP_DIR')
+    // (the mask stops at a quote, so a quoted path keeps its end quote)
+    .replace(/\/tmp\/git-rebase-take-test-[^\s/"]+/g, '/tmp/TEMP_DIR')
     // mask npm debug log timestamps: 2026-04-17T12_32_29_632Z -> TIMESTAMP
     .replace(/\d{4}-\d{2}-\d{2}T\d{2}_\d{2}_\d{2}_\d{3}Z/g, 'TIMESTAMP')
     // mask username in npm log paths: /home/vlad/ or /home/runner/ -> /home/USER/
@@ -45,15 +46,6 @@ const sanitizeOutput = (output: string): string =>
       /🐢 (hold up|bummer) dude\.\.\.\s*\n\s*\n\s*🐚 git\.branch\.rebase lock refresh\n([\s\S]*?)(?=\s*│\s*└─|\s*└─ incomplete)/,
       '🐢 [lock refresh error - output varies by environment]\n\n🐚 git.branch.rebase lock refresh\n   └─ [error details masked]\n',
     );
-
-/**
- * .what = check if yarn is installed
- * .why = yarn test should skip when yarn is installed (behavior differs)
- */
-const isYarnInstalled = (() => {
-  const result = spawnSync('which', ['yarn'], { encoding: 'utf-8' });
-  return result.status === 0;
-})();
 
 /**
  * .what = setup a git repo with real rebase conflict
@@ -620,36 +612,56 @@ exit 1
       });
 
       when('[t2] take theirs yarn.lock without package.json', () => {
-        // .note = skip when yarn is installed: yarn install may succeed without package.json
-        then.skipIf(isYarnInstalled)(
-          'exit 2, shows failed with retry hint',
-          () => {
-            const tempDir = setupRebaseWithConflict({
-              conflictFiles: ['yarn.lock'],
-              mainContent: { 'yarn.lock': 'main yarn lock\n' },
-              featureContent: { 'yarn.lock': 'feature yarn lock\n' },
-            });
+        then('exit 2, shows failed with retry hint', () => {
+          const tempDir = setupRebaseWithConflict({
+            conflictFiles: ['yarn.lock'],
+            mainContent: { 'yarn.lock': 'main yarn lock\n' },
+            featureContent: { 'yarn.lock': 'feature yarn lock\n' },
+          });
 
-            try {
-              const result = runSkill(tempDir, [
-                '--whos',
-                'theirs',
-                'yarn.lock',
-              ]);
+          // .mock = the yarn cli, as a fake first on PATH (as [t0] does for pnpm)
+          // .why  = a host yarn may succeed with no package.json, so the real
+          //         binary makes this case's outcome depend on the machine; the
+          //         fake fails the way yarn does with no manifest, on every host
+          // .real = git.branch.rebase.lock.integration.test.ts [case3] runs the
+          //         real yarn refresh ("lock regenerated, staged, exit 0")
+          const fakeBinDir = path.join(tempDir, '.fakebin');
+          fs.mkdirSync(fakeBinDir);
+          fs.writeFileSync(
+            path.join(fakeBinDir, 'yarn'),
+            `#!/bin/bash
+echo "error Couldn't find a package.json file in \\"$(pwd)\\"" >&2
+exit 1
+`,
+          );
+          fs.chmodSync(path.join(fakeBinDir, 'yarn'), '755');
 
-              // exit 2 = constraint error (user must fix)
-              expect(result.status).toBe(2);
-              expect(result.stdout).toContain(
-                'lock file detected, auto-run lock refresh',
-              );
-              expect(result.stdout).toContain('failed');
-              expect(result.stdout).toContain('try:');
-              expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
-            } finally {
-              fs.rmSync(tempDir, { recursive: true, force: true });
-            }
-          },
-        );
+          try {
+            const result = spawnSync(
+              'bash',
+              [SKILL_PATH, '--whos', 'theirs', 'yarn.lock'],
+              {
+                cwd: tempDir,
+                encoding: 'utf-8',
+                env: {
+                  ...process.env,
+                  PATH: `${fakeBinDir}:${process.env.PATH}`,
+                },
+              },
+            );
+
+            // exit 2 = constraint error (user must fix)
+            expect(result.status).toBe(2);
+            expect(result.stdout).toContain(
+              'lock file detected, auto-run lock refresh',
+            );
+            expect(result.stdout).toContain('failed');
+            expect(result.stdout).toContain('try:');
+            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        });
       });
     },
   );

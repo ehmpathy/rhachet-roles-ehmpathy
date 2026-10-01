@@ -167,7 +167,11 @@ describe('git.commit.bind.sh', () => {
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain("--level must be 'feat' or 'fix'");
+        expect(result.stdout).toContain(
+          "✋ ConstraintError: --level must be 'feat' or 'fix'",
+        );
+        expect(result.stdout).toMatchSnapshot('stdout');
+        expect(result.stderr).toMatchSnapshot('stderr');
       });
     });
   });
@@ -181,6 +185,9 @@ describe('git.commit.bind.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('subcommand is required');
+        // pin the qualified class header on both streams
+        expect(result.stdout).toMatchSnapshot('stdout');
+        expect(result.stderr).toMatchSnapshot('stderr');
       });
     });
   });
@@ -193,7 +200,30 @@ describe('git.commit.bind.sh', () => {
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('--level is required for set');
+        expect(result.stdout).toContain(
+          '✋ ConstraintError: --level is required for set',
+        );
+        expect(result.stdout).toMatchSnapshot('stdout');
+        expect(result.stderr).toMatchSnapshot('stderr');
+      });
+    });
+
+    when('[t1] --level is the last arg, with no value', () => {
+      then('a curated constraint, never a raw shift crash', () => {
+        // .why = a bare `shift 2` (or `"$2"` under `set -u`) died at exit 1
+        //        on bash's own message when the flag was the last arg
+        const result = runInTempGitRepo({
+          bindArgs: ['set', '--level'],
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain(
+          '✋ ConstraintError: --level is required for set',
+        );
+        expect(result.stderr).not.toContain('shift count out of range');
+        expect(result.stderr).not.toContain('unbound variable');
+        expect(result.stdout).toMatchSnapshot('stdout');
+        expect(result.stderr).toMatchSnapshot('stderr');
       });
     });
   });

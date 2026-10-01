@@ -32,6 +32,10 @@ import { genTempDir, given, then, when } from 'test-fns';
 
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
+import {
+  asSkillExitStatus,
+  SKILL_SPAWN_TIMEOUT_MS,
+} from './.test/infra/asSkillExitStatus';
 import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
@@ -135,6 +139,7 @@ const runSkill = (
     cwd: env.tempDir,
     env: {
       ...process.env,
+      // .mock = gh, git, rhachet — exception contract in .test/infra/mockGh.ts
       PATH: env.fakeBinDir
         ? `${env.fakeBinDir}:${process.env.PATH}`
         : process.env.PATH,
@@ -148,13 +153,13 @@ const runSkill = (
       __I_AM_HUMAN: 'true',
     },
     encoding: 'utf-8',
-    timeout: 10000,
+    timeout: SKILL_SPAWN_TIMEOUT_MS,
   });
 
   return {
     stdout: result.stdout || '',
     stderr: result.stderr || '',
-    status: result.status ?? 1,
+    status: asSkillExitStatus({ result, timeoutMs: SKILL_SPAWN_TIMEOUT_MS }),
   };
 };
 

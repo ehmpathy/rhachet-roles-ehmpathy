@@ -2,17 +2,36 @@
 ######################################################################
 # .what = shared domain operations + vocabulary for git.commit skills
 #
-# .why  = single source of truth for the pieces git.commit.set and
-#         git.commit.push both depend on — behavioral commit detection, the
-#         global/org meter paths, and the pr-open auth vocabulary (AUTH_DEFAULT,
-#         AUTH_VALID_VALUES, get_auth_who_label). one home keeps the two skills in
-#         sync on any of them.
+# .why  = one home for what the git.commit skills share, so no two skills
+#         drift on it. it holds six concerns:
+#         - git config identity: read + classify (get_one_git_config_identity,
+#           guard_git_identity_readable, assert_git_identity_read)
+#         - sponsor state: read, write, render (read_sponsor_state,
+#           set_sponsor_state, print_sponsor_*, the grant nudge)
+#         - global + org meter gates (check_global_blocker, check_org_blocker)
+#         - pr-open auth vocabulary (AUTH_DEFAULT, get_auth_who_label)
+#         - the actor guard (guard_actor_is_human_via_stdin)
+#         - branch level + behavioral commits (infer_level_from_branch,
+#           get_behavioral_commits_on_branch)
+#
+# .note = every consumer sources the whole file. a split into one file per
+#         concern is tracked in
+#         .dream/v2026_09_27.fix.git-commit-operations-out-of-role-dir.md
 #
 # usage:
 #   source "$SCRIPT_DIR/git.commit.operations.sh"
 #   COMMITS=$(get_behavioral_commits_on_branch)
 #   FIRST_HASH=$(get_first_behavioral_commit_hash)
 ######################################################################
+
+# .why = the identity checks below (`is_identity_robot`, and so
+#        `get_one_git_config_identity`) read the seaturtle roster, which
+#        `keyrack.operations.sh` declares. that file is a leaf — it sources no
+#        other — so this file may depend on it without a cycle, and every
+#        caller of the checks gets the roster with no extra line of its own.
+#        a second source by a caller is harmless: it holds constants and
+#        functions only.
+source "$(dirname "${BASH_SOURCE[0]}")/keyrack.operations.sh"
 
 ######################################################################
 # global blocker constants (shared across git.commit skills)
@@ -314,10 +333,10 @@ SPONSOR_STATE_FILENAME="git.commit.sponsor.jsonc"
 #         its own) — so a shared prefix would change two renders. each site
 #         owns its prefix; only the command itself is shared.
 #
-# .note = @me is absent here by design. it reads the gh session on THIS
-#         host, which on a cloud grove is the clone's — so a MANDATORY block
-#         that named it would hand the reader a second refusal. it appears
-#         only in the optional coconut, where an optional route belongs.
+# .note = `@self` is absent here by design. it reads THIS machine's git
+#         config, which on the clone's machine names the clone — so a
+#         MANDATORY block that named it would hand the reader a second
+#         refusal. both forms here hold on every machine.
 ######################################################################
 SPONSOR_BIND_VIA_STDIN="printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin"
 SPONSOR_BIND_VIA_LITERAL="rhx git.commit.sponsor set --who \"Name <email>\""
@@ -385,8 +404,8 @@ SPONSOR_BIND_REMEDY="  \$ $SPONSOR_BIND_VIA_STDIN
 # .note = no `echo ""` before `print_instruction`; it opens with its own blank
 #         line, and a second renders as a gap (forbid.snapshot-visual-blemishes)
 #
-# .note = @me stays absent on purpose — it reads THIS host's gh session, which
-#         on a cloud grove is the clone's.
+# .note = `@self` stays absent on purpose — it reads THIS machine's git
+#         config, which on the clone's machine names the clone.
 #
 # usage: print_sponsor_corrupt_render "git.commit.set"
 ######################################################################
@@ -395,7 +414,7 @@ print_sponsor_corrupt_render() {
 
   print_turtle_header "bummer dude..."
   print_tree_start "$tree_start"
-  print_tree_error "sponsor state file corrupt"
+  print_tree_malfunction "sponsor state file corrupt"
   echo ""
   echo "   the file that names this tree's sponsor cannot be read:"
   echo "     .meter/$SPONSOR_STATE_FILENAME"
@@ -457,10 +476,13 @@ SPONSOR_EMAIL_PATTERN='[^ @]+@[^ @]+\.[^ @]+'
 ######################################################################
 # the `source` enum — WHO ANSWERED, never HOW the value arrived
 #
-# .what = `me` = read from this host's own github session · `supplied` =
-#         handed in, piped or literal. the two answer different questions:
-#         `me` says the binder sponsors their OWN work, `supplied` says
-#         someone named the requester.
+# .what = `self` = read from this machine's git config (`--who @self`) ·
+#         `supplied` = handed in, piped or literal. the two answer different
+#         questions: `self` says the binder sponsors their OWN work,
+#         `supplied` says someone named the requester.
+#
+# .note = a bind written before the rename carries `me`. the reader maps it
+#         to `self` (`read_sponsor_state`), so no render ever shows `me`.
 #
 # 🔴 .why hoisted = the same writer/reader pair that earned
 #        SPONSOR_STATE_FILENAME and SPONSOR_EMAIL_PATTERN their own
@@ -470,43 +492,33 @@ SPONSOR_EMAIL_PATTERN='[^ @]+@[^ @]+\.[^ @]+'
 #        other on a word nobody writes — and the failure is silent, because
 #        the fallback would simply start to fire on every file.
 #
-# .note = `git-config` is NOT a member. the wisher struck it, so no path
-#         can write it (invariant 8).
-#
 # ⚠️ .note = `src/.test/seedTestSponsor.ts` encodes `supplied` a THIRD time
 #         and cannot source this file — it is typescript. that copy is
 #         pinned by `[case13]`, which reads a real bind rather than a
 #         literal, so a rename here fails that test loudly.
 ######################################################################
-SPONSOR_SOURCE_ME="me"
+SPONSOR_SOURCE_SELF="self"
 SPONSOR_SOURCE_SUPPLIED="supplied"
 
+# .what = the pre-rename label for `self`, read only to map it forward
+SPONSOR_SOURCE_LEGACY_ME="me"
+
 ######################################################################
-# the commit tree's `source:` leaf — a CONSTANT, deliberately
+# the commit tree's `from:` leaf — WHERE this commit's sponsor came from
 #
-# .what = what `git.commit.set` prints under its sponsor block, so a
-#         reader can tell an authorization from a guess with no code read
-#         (`1.vision.experience.case=2`, the 🎯 primary critipath).
+# .what = what `git.commit.set` prints under its sponsor block, so a reader
+#         can tell a bind from a git config default with no code read.
 #
-# 🔴 .why it is NOT `$SPONSOR_SOURCE` = they answer two different
-#        questions, and only one of them may vary.
+# .why two values = a commit takes its sponsor by precedence: a bind in
+#        this worktree wins; else the machine's git config, where it names a
+#        human; else the commit refuses. the leaf names which of the two
+#        answered, so a human who meant to sponsor someone else can see at a
+#        glance whether their bind is the one in force.
 #
-#        | leaf | answers | varies by grove? |
-#        |---|---|---|
-#        | `git.commit.sponsor get` → `source:` | HOW the value was supplied — `me` \| `supplied` | ✅ yes |
-#        | 🔴 this one | WHERE this commit's sponsor came from | ⛔ **never** |
-#
-#        the vision's `[t3]` requires the commit tree be **byte-identical**
-#        on a local and a cloud grove, and calls that equality "the fix" —
-#        it is the whole proof that the grove axis went inert. a cloud
-#        grove binds via `@stdin` (`supplied`) and a laptop via `@me`
-#        (`me`), so to render `$SPONSOR_SOURCE` here would make the two
-#        trees differ on exactly the axis the line exists to prove inert.
-#
-#        ⇒ the leaf's claim is `bound`, never `me`. it says: this value
-#        was placed here by a human act, in this worktree — not inferred
-#        from a host config (invariant 8).
-SPONSOR_PROVENANCE="bound (this tree)"
+# .note = distinct from `$SPONSOR_SOURCE` (`self` | `supplied`), which says
+#         HOW a bind's value arrived. that one is only defined for a bind.
+SPONSOR_PROVENANCE_BOUND="bound (this tree)"
+SPONSOR_PROVENANCE_GIT_CONFIG="git config (this machine)"
 
 # .what = a PURE transformer: a raw identity value → that value with its outer
 #         whitespace and every embedded newline removed
@@ -553,6 +565,362 @@ as_identity_trimmed() {
   raw="${raw%"${raw##*[![:space:]]}"}"
 
   printf '%s' "$raw"
+}
+
+######################################################################
+# the identity checks — shared by the bind and the commit
+#
+# 🔴 .why they live HERE = two consumers, one rule. `git.commit.sponsor set`
+#        judges a value a human binds, and `git.commit.set` judges the
+#        machine's git config when no bind exists. if the two judged by
+#        separate copies, a git config the commit accepts could be one the
+#        bind would refuse — the writer/reader drift the shared email
+#        pattern above already exists to prevent.
+#
+# ⚠️ .note = `is_identity_robot` reads the roster predicates in
+#         `keyrack.operations.sh`. every caller of these checks must source
+#         that file too; bash resolves the names at call time.
+######################################################################
+
+# .what = a PURE transformer: a `Name <email>` value → its two parts, set on
+#         IDENTITY_NAME and IDENTITY_EMAIL. returns 1 where the value does not
+#         hold that shape.
+#
+# .why = the shape is what `git commit --trailer` expects, byte for byte.
+#        the NAME half allows any character but the ` <` that closes it — a
+#        human's name is not ours to restrict. the ADDRESS half comes from
+#        the shared pattern, so writer and reader agree on an address.
+#
+# .why two named globals = a caller that read `BASH_REMATCH[2]` would depend
+#        on the group order of a regex it cannot see.
+as_identity_parts() {
+  local raw="$1"
+
+  [[ "$raw" =~ ^(.+)\ \<($SPONSOR_EMAIL_PATTERN)\>$ ]] || return 1
+
+  IDENTITY_NAME="${BASH_REMATCH[1]}"
+  IDENTITY_EMAIL="${BASH_REMATCH[2]}"
+  return 0
+}
+
+# .what = true where the value holds a C0 control character
+#
+# .why = the sponsor lands verbatim in a `Co-authored-by:` trailer, which is
+#        LINE-structured. a control character there is a second line or an
+#        escape sequence, in a place that admits one claim about one person.
+#        `[[:cntrl:]]` covers all of C0, never a two-character deny-list.
+is_identity_unprintable() {
+  [[ "$1" =~ [[:cntrl:]] ]]
+}
+
+# .what = true where a name or email marks a party that cannot answer for a
+#         change — a github app, or one of this repo's own seaturtle
+#         identities (the roster in keyrack.operations.sh).
+#
+# .why = it establishes a CLASS rather than a list this file invents: the
+#        `[bot]` marker github itself mints, plus the roster this repo
+#        declares. on a machine's git config, a match is also what DEFINES the
+#        clone's machine.
+#
+# .why `[bot]` anywhere, never a suffix = github mints a bot's address as
+#        `<id>+<login>@users.noreply.github.com`, so the marker sits
+#        mid-string. a false positive costs a human one re-word; a false
+#        negative puts a party that cannot answer into a trailer.
+#
+# usage: is_identity_robot name="$name" email="$email"
+is_identity_robot() {
+  local name="" email="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      name=*) name="${arg#name=}" ;;
+      email=*) email="${arg#email=}" ;;
+    esac
+  done
+
+  [[ "$name" == *"[bot]"* ]] && return 0
+  [[ "$email" == *"[bot]"* ]] && return 0
+
+  # every roster entry goes through the roster's own predicates, never an
+  # inline compare — one decision point per declared identity
+  is_one_seaturtle_identity_name "$name" && return 0
+  is_one_seaturtle_identity_email "$email" && return 0
+  is_one_seaturtle_identity_clone name="$name" email="$email" && return 0
+
+  return 1
+}
+
+# .what = the two placeholder names the guard has always caught, and no more
+#
+# .why = a backstop that carries prior behavior across. it earns no new
+#        entries — a guess like "john doe" would be a roster this file
+#        invented, unasked and unexercised.
+is_identity_placeholder() {
+  local name_lower
+  name_lower=$(printf '%s' "$1" | tr '[:upper:]' '[:lower:]')
+
+  case "$name_lower" in
+    *"test user"*|*"test human"*) return 0 ;;
+  esac
+
+  return 1
+}
+
+######################################################################
+# get_one_git_config_identity — the machine's git identity, classified
+#
+# .what = reads the EFFECTIVE `git config user.name` + `user.email` (repo
+#         config over global, as git itself applies them) and sets:
+#           GIT_IDENTITY_NAME    trimmed name ("" where absent)
+#           GIT_IDENTITY_EMAIL   trimmed email ("" where absent)
+#           GIT_IDENTITY_FAULTS  array — the halves a human must fix:
+#                                the absent halves (kind unset), the halves
+#                                that fail the shape (kind malformed), or the
+#                                name (kind placeholder); empty for human,
+#                                clone, and unreadable — a clone's identity is
+#                                not a value to "fix" into a human's
+#           GIT_IDENTITY_READ_EXIT  the `git config` exit (0 or 1 = read)
+#           GIT_IDENTITY_KIND    one of:
+#             human        both set, the shape holds, not a robot, not a placeholder
+#             unset        one or both halves absent
+#             malformed    both set, but the pair fails the shape, or holds a control char
+#             clone        a robot identity — by definition, the clone's machine
+#             placeholder  `test user` / `test human`
+#             unreadable   git could not read its own config
+#
+# .why git config and ONLY git config = it is the identity git already
+#        stamps on the human's own commits, and on the clone's commits as
+#        committer. gh is never read for a sponsor, in any form.
+#
+# .why `git config`, never `git var GIT_COMMITTER_IDENT` = `git var` falls
+#        back to a name and address derived from the host and login when git
+#        config holds none. that is a GUESS, and a guessed identity in a
+#        trailer is a fabrication. an absent half stays absent.
+#
+# 🔴 .why ONE capture for both halves = two `git config --get` calls re-read
+#        the config twice, so a write between them pairs a name from one
+#        state with an email from another. each half passes on its own, and
+#        the pair lands in a public trailer as a person who does not exist —
+#        the torn read `read_sponsor_state` already refuses for the bind.
+#
+# 🔴 .why `unreadable` is a KIND, never an exit = the reader cannot know what
+#        its caller owes. a commit must fail loud (`guard_git_identity_readable`);
+#        the grant nudge and `get` annotate a command that already succeeded,
+#        and must not flip its exit code. so the reader reports, and each
+#        caller decides (rule.forbid.failhide holds at the caller).
+#
+# .why the order of checks = absence before shape before class, so each
+#        refusal names the most basic fix first: set the value, then fix its
+#        shape, and only then judge whose identity it is.
+#
+# usage: get_one_git_config_identity; case "$GIT_IDENTITY_KIND" in ...
+######################################################################
+get_one_git_config_identity() {
+  # 🔴 .why `-z` = in plain output a VALUELESS key (`[user]` + a bare `name`
+  #        line, which git reads as the boolean `true`) prints as
+  #        `user.name true` — the same bytes as a human literally named
+  #        "true". `-z` separates key from value with a newline and ends each
+  #        record with a NUL, so a valueless key is a record with no newline.
+  #        bash cannot hold a NUL, so `tr` maps NUL → \036 and newline →
+  #        \037; `pipefail` keeps git's own exit as the capture's status.
+  local capture="" status=0
+  capture=$(
+    set -o pipefail
+    git config -z --get-regexp '^user\.(name|email)$' | tr '\0\n' '\036\037'
+  ) || status=$?
+
+  GIT_IDENTITY_NAME=""
+  GIT_IDENTITY_EMAIL=""
+  GIT_IDENTITY_FAULTS=()
+  GIT_IDENTITY_READ_EXIT="$status"
+
+  # exit 1 = neither key is set, the `unset` state. any higher exit is a
+  # config git could not read — never an absence
+  if (( status > 1 )); then
+    GIT_IDENTITY_KIND="unreadable"
+    return 0
+  fi
+
+  GIT_IDENTITY_NAME=$(as_identity_trimmed "$(as_git_config_value capture="$capture" key=user.name)")
+  GIT_IDENTITY_EMAIL=$(as_identity_trimmed "$(as_git_config_value capture="$capture" key=user.email)")
+
+  # one or both halves absent — each absent half is a fault
+  [[ -z "$GIT_IDENTITY_NAME" ]] && GIT_IDENTITY_FAULTS+=("user.name")
+  [[ -z "$GIT_IDENTITY_EMAIL" ]] && GIT_IDENTITY_FAULTS+=("user.email")
+  if (( ${#GIT_IDENTITY_FAULTS[@]} > 0 )); then
+    GIT_IDENTITY_KIND="unset"
+    return 0
+  fi
+
+  # both set, but not a usable `Name <email>` — each half that fails is a
+  # fault. the name half admits any text, so only a control character can
+  # fault it. where the pair fails with neither half at fault alone, both are.
+  is_identity_unprintable "$GIT_IDENTITY_NAME" && GIT_IDENTITY_FAULTS+=("user.name")
+  is_git_config_email_malformed "$GIT_IDENTITY_EMAIL" && GIT_IDENTITY_FAULTS+=("user.email")
+  if (( ${#GIT_IDENTITY_FAULTS[@]} > 0 )) \
+    || ! as_identity_parts "$GIT_IDENTITY_NAME <$GIT_IDENTITY_EMAIL>"; then
+    (( ${#GIT_IDENTITY_FAULTS[@]} > 0 )) || GIT_IDENTITY_FAULTS=("user.name" "user.email")
+    GIT_IDENTITY_KIND="malformed"
+    return 0
+  fi
+
+  # a robot identity — the clone's machine
+  if is_identity_robot name="$GIT_IDENTITY_NAME" email="$GIT_IDENTITY_EMAIL"; then
+    GIT_IDENTITY_KIND="clone"
+    return 0
+  fi
+
+  # a placeholder name — the name half is at fault: a real name fixes it
+  if is_identity_placeholder "$GIT_IDENTITY_NAME"; then
+    GIT_IDENTITY_FAULTS=("user.name")
+    GIT_IDENTITY_KIND="placeholder"
+    return 0
+  fi
+
+  GIT_IDENTITY_KIND="human"
+}
+
+# .what = a PURE transformer: one `git config -z --get-regexp` capture, with
+#         NUL → \036 and newline → \037 (see the reader), + a key → that key's
+#         value ("" where absent or valueless)
+#
+# .why the LAST record wins = git applies the last value of a multi-valued
+#        key (system → global → local), and `--get-regexp` lists them in that
+#        order.
+#
+# 🔴 .why a record with no \037 reads as ABSENT = that is a valueless key
+#        (`[user]` + a bare `name`), which git reports as boolean `true`. a
+#        name of "true" would reach a public trailer as a person; an absent
+#        half refuses and names its fix.
+#
+# usage: as_git_config_value capture="$capture" key=user.name
+as_git_config_value() {
+  local capture="" key="" arg record value=""
+  for arg in "$@"; do
+    case "$arg" in
+      capture=*) capture="${arg#capture=}" ;;
+      key=*) key="${arg#key=}" ;;
+    esac
+  done
+
+  local records=()
+  IFS=$'\036' read -r -a records <<< "$capture"
+  for record in "${records[@]}"; do
+    [[ "$record" == "$key" ]] && value=""
+    [[ "$record" == "$key"$'\037'* ]] && value="${record#"$key"$'\037'}"
+  done
+
+  printf '%s' "$value"
+}
+
+# .what = true where a git config email fails the shared address shape, or
+#         holds a control character
+is_git_config_email_malformed() {
+  is_identity_unprintable "$1" && return 0
+  [[ ! "$1" =~ ^$SPONSOR_EMAIL_PATTERN$ ]]
+}
+
+# .what = exit 1 (malfunction), to both streams, where git could not read its
+#         own config — the fail-loud half of the `unreadable` kind
+#
+# .why a guard, never inside the reader = only a caller whose outcome rests
+#        on the identity (the commit, the `@self` bind) may fail on it. call
+#        it in the main flow, never in `$( )`, with `output.sh` sourced.
+#
+# .why `skill=` = the render is the family's turtle tree, rooted at the
+#        skill that called it, as every other git.commit malfunction is
+#
+# usage: guard_git_identity_readable skill="git.commit.set"
+guard_git_identity_readable() {
+  local skill="git.commit"
+  for arg in "$@"; do
+    case "$arg" in
+      skill=*) skill="${arg#skill=}" ;;
+    esac
+  done
+
+  [[ "$GIT_IDENTITY_KIND" == "unreadable" ]] || return 0
+
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "$skill"
+    print_tree_malfunction "git config could not be read (exit $GIT_IDENTITY_READ_EXIT)"
+    print_instruction "find the git config file at fault:" \
+      "  \$ git config --list --show-origin"
+  )"
+  exit 1
+}
+
+# .what = exit 1 (malfunction), to both streams, where a leaf reads the
+#         GIT_IDENTITY_* globals before `get_one_git_config_identity` ran
+#
+# .why = the globals are the reader's contract (fulcrum F10). a leaf that
+#        read them first would hit `set -u` and crash with bash's raw
+#        "unbound variable" — no class, no cause. this names the defect. it
+#        is a skill bug, never caller input, so the class is malfunction.
+#
+# .note = call it in the main flow, never in `$( )`, so its exit ends the
+#         skill.
+assert_git_identity_read() {
+  [[ -n "${GIT_IDENTITY_KIND:-}" ]] && return 0
+
+  emit_both "💥 MalfunctionError: the git identity was read before get_one_git_config_identity ran
+   this is a defect in the skill, never the caller's input — call the reader first"
+  exit 1
+}
+
+# .what = the two `git config` commands a render may print to set the identity
+#
+# .why = three renders print them — the commit refusal, the `@self` refusal,
+#        and the grant nudge. the bare command lives once, the way
+#        SPONSOR_BIND_VIA_* above does, and each site owns its own prefix.
+GIT_CONFIG_FIX_VIA_NAME="git config --global user.name \"Your Name\""
+GIT_CONFIG_FIX_VIA_EMAIL="git config --global user.email \"you@example.com\""
+
+# .what = a PURE transformer: fault halves → one bare `git config` fix command
+#         per half, one per line
+#
+# .why = the ONE decode of a fault list. the commit refusal, the `@self`
+#        refusal, and the grant nudge each consume its lines, and never probe
+#        the list themselves.
+#
+# usage: as_git_config_fix_commands "${GIT_IDENTITY_FAULTS[@]}"
+as_git_config_fix_commands() {
+  local half
+  for half in "$@"; do
+    case "$half" in
+      user.name) printf '%s\n' "$GIT_CONFIG_FIX_VIA_NAME" ;;
+      user.email) printf '%s\n' "$GIT_CONFIG_FIX_VIA_EMAIL" ;;
+    esac
+  done
+}
+
+# .what = a PURE transformer: fault halves → the fix commands as `  $ ` lines,
+#         the shape a `print_instruction` block takes
+#
+# usage: as_git_config_fix_lines "${GIT_IDENTITY_FAULTS[@]}"
+as_git_config_fix_lines() {
+  local command lines=""
+  while IFS= read -r command; do
+    [[ -n "$command" ]] || continue
+    lines="${lines:+$lines
+}  \$ $command"
+  done < <(as_git_config_fix_commands "$@")
+
+  printf '%s' "$lines"
+}
+
+# .what = a PURE transformer: absent halves → one "git config X is unset."
+#         line per half, 5-space indented under a lead line
+#
+# usage: as_git_config_unset_lines "${GIT_IDENTITY_FAULTS[@]}"
+as_git_config_unset_lines() {
+  local half lines=""
+  for half in "$@"; do
+    lines="${lines:+$lines
+}     git config $half is unset."
+  done
+
+  printf '%s' "$lines"
 }
 
 ######################################################################
@@ -665,10 +1033,20 @@ guard_actor_is_human_via_stdin() {
   #        with no file to reopen and no pipeline to fail
   #        (rule.forbid.bare-host-deps — `/dev/stderr` is a host-provided path,
   #        and its availability is not ours to assume).
+  # 🔴 .why the refusal names the CHANNEL, never the reader = a claude `!`
+  #        command has no terminal either, so "only humans can run this"
+  #        told a human at that prompt they were not one. the same words as
+  #        `git.commit.sponsor`'s actor refusal, so the family speaks once.
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "$1"
-    print_tree_error "only humans can run this command"
+    print_tree_constraint "no terminal on this command"
+    echo ""
+    echo "   only a human at a real terminal may run this, and this command"
+    echo "   has none. a clone's tool call has none, and neither does a claude"
+    echo "   \`!\` command, so the two cannot be told apart here."
+    print_instruction "run it from your own terminal, with the same args:" \
+      "  \$ rhx $1 ..."
   )"
   exit 2
 }
@@ -1026,9 +1404,8 @@ read_sponsor_state() {
   #        `.[0]` yields `null` — a real value the filter can reject. the gate
   #        then decides its own case.
   #
-  # .note = this is the SAME empty-input class `is_gh_user_json_usable`
-  #         measured and hardened with `-s`. the two gates read two different
-  #         boundaries and share one jq trap; they now share one answer.
+  # .note = this empty-input trap is a property of `jq -e`, not of this file:
+  #         any jq gate on input that may be empty needs the same `-s`.
   #
   # ⚠️ .note = MEASURED, and the honest bound on what this buys: gate 1 and
   #         gate 2 both `return 1`, so this repair moves NO outcome. the suite
@@ -1115,7 +1492,7 @@ read_sponsor_state() {
   # .why = the `// $sourceDefault` fallback covers a file bound before this
   #        field existed. a supplied value is the safe read: it claims only
   #        that a value was handed in, which is true of every bind. to guess
-  #        `me` would assert a session that may never have been consulted.
+  #        `self` would assert a git config read that may never have happened.
   #
   # 🔴 .note = the default is the SHARED constant, never a literal, because
   #        `git.commit.sponsor.sh` is the writer of this same word. the gate
@@ -1124,6 +1501,11 @@ read_sponsor_state() {
   SPONSOR_SOURCE=$(printf '%s' "$contents" \
     | jq -r --arg sourceDefault "$SPONSOR_SOURCE_SUPPLIED" \
         '.sponsor.source // $sourceDefault')
+
+  # map the pre-rename label forward, so no render ever shows `me`
+  if [[ "$SPONSOR_SOURCE" == "$SPONSOR_SOURCE_LEGACY_ME" ]]; then
+    SPONSOR_SOURCE="$SPONSOR_SOURCE_SELF"
+  fi
 
   # 🔴 gate 2 — does it carry an identity? a file that parses and holds no
   # name or email is UNUSABLE, and it is a malfunction rather than an
@@ -1190,7 +1572,7 @@ read_sponsor_state() {
 }
 
 ######################################################################
-# nudge: a quota grant with no sponsor bound buys no commits
+# nudge: what the next commit will name as sponsor, at the grant
 #
 # .why = a commit needs BOTH a quota and a sponsor, and every quota grant
 #        surface — local `set`, `--global allow`, `--org allow` — is a moment
@@ -1203,10 +1585,15 @@ read_sponsor_state() {
 #        grant a quota — so this carries no mandatory load and the grant
 #        stands on its own (rule.require.coconut-hints).
 #
-# .why = the `@me` line names ITS OWN caveat rather than a bare command. an
-#        `@me` bind on behalf of someone else's requested work names the
-#        wrong human, truthfully — the hard-to-see error this whole feature
-#        exists to prevent (domain.terms/sponsor.md, invariant 7).
+# .why the unbound arm reads git config = with no bind, a commit takes its
+#        sponsor from the machine's git config where that names a human. so
+#        on a human's machine the grant says who commits will name — never
+#        "commits will refuse", which would be false there. where git config
+#        cannot answer, the grant says so and lists the bind forms.
+#
+# .why `@self` is absent from the refuse arm = that arm fires only where git
+#        config is not a human's, and there `@self` reads that same git
+#        config and refuses. only forms that work are offered.
 #
 # 🔴 .why every inline `#` comment describes ONE line, and none of them end
 #        in a colon = `print_coconut_hint` renders a FLAT list of peers. it
@@ -1239,13 +1626,191 @@ print_sponsor_bind_nudge_if_absent() {
       "$SPONSOR_BIND_VIA_LITERAL"
   fi
 
-  if [[ "$sponsor_status" -eq 2 ]]; then
+  # a bind is present — it wins, and commits name it. naught to say.
+  [[ "$sponsor_status" -eq 2 ]] || return 0
+
+  # no bind — the machine's git config decides. this leaf runs the reader
+  # itself, then reads GIT_IDENTITY_KIND / _NAME / _EMAIL / _FAULTS (left set).
+  #
+  # 🔴 .why no `guard_git_identity_readable` here = this coconut annotates a
+  #        grant that already landed. an unreadable config gets a soft line,
+  #        never an exit that would report the landed grant as failed.
+  get_one_git_config_identity
+
+  # git could not read its own config — say so, and name how to find why
+  if [[ "$GIT_IDENTITY_KIND" == "unreadable" ]]; then
     print_coconut_hint \
-      "no sponsor is bound to this tree, so commits will refuse" \
-      "$SPONSOR_BIND_VIA_STDIN" \
-      "$SPONSOR_BIND_VIA_LITERAL" \
-      "rhx git.commit.sponsor set --who @me   # reserve for YOUR OWN work"
+      "commits will refuse: git config could not be read" \
+      "git config --list --show-origin"
+    return 0
   fi
+
+  # a human's machine: commits name the human from git config
+  if [[ "$GIT_IDENTITY_KIND" == "human" ]]; then
+    print_coconut_hint \
+      "commits will name $GIT_IDENTITY_NAME <$GIT_IDENTITY_EMAIL>, from git config" \
+      "$SPONSOR_BIND_VIA_STDIN"
+    return 0
+  fi
+
+  # git config cannot answer — commits will refuse until one of these: the
+  # fix for each half at fault first, then the bind forms
+  local title
+  title="commits will refuse: git config $(as_git_identity_refusal_phrase kind="$GIT_IDENTITY_KIND")"
+  local hints=()
+  mapfile -t hints < <(as_git_config_fix_commands "${GIT_IDENTITY_FAULTS[@]}")
+
+  print_coconut_hint "$title" \
+    "${hints[@]}" \
+    "$SPONSOR_BIND_VIA_STDIN" \
+    "$SPONSOR_BIND_VIA_LITERAL"
+}
+
+######################################################################
+# infer_level_from_branch — the commit level a branch name implies
+#
+# .what = a PURE transformer: branch name → `fix`, `feat`, or `none`
+#         (none where neither signal is present, or where both are)
+#
+# 🔴 .why ONE definition, shared by `git.commit.bind` and `git.commit.set` =
+#        `bind get` DISPLAYS the inferred level and `set` ENFORCES it. two
+#        copies that drifted would show a human one level and reject them
+#        against another — the writer/reader drift this file already lifts
+#        `SPONSOR_EMAIL_PATTERN` and `as_identity_trimmed` to prevent.
+#
+# usage: level=$(infer_level_from_branch "$branch")
+######################################################################
+infer_level_from_branch() {
+  local branch="$1"
+
+  # check for fix patterns: fix/*, */fix/*, */fix-*, hotfix/*, bugfix/*
+  local has_fix=false
+  if [[ "$branch" =~ ^fix/ ]] || [[ "$branch" =~ /fix/ ]] || [[ "$branch" =~ /fix- ]] || \
+     [[ "$branch" =~ ^hotfix/ ]] || [[ "$branch" =~ ^bugfix/ ]]; then
+    has_fix=true
+  fi
+
+  # check for feat patterns: feat/*, */feat/*, */feat-*, feature/*
+  local has_feat=false
+  if [[ "$branch" =~ ^feat/ ]] || [[ "$branch" =~ /feat/ ]] || [[ "$branch" =~ /feat- ]] || \
+     [[ "$branch" =~ ^feature/ ]]; then
+    has_feat=true
+  fi
+
+  # ambiguous = both signals present → none
+  if $has_fix && $has_feat; then
+    echo "none"
+    return 0
+  fi
+  if $has_fix; then
+    echo "fix"
+    return 0
+  fi
+  if $has_feat; then
+    echo "feat"
+    return 0
+  fi
+  echo "none"
+}
+
+######################################################################
+# as_git_identity_refusal_phrase — why git config cannot name a sponsor
+#
+# .what = a PURE transformer: an identity kind that refuses → the phrase that
+#         completes "this machine's git config ___"
+#
+# .why  = `sponsor get` and the grant nudge once collapsed malformed, clone,
+#         and placeholder into one "does not name a human" — while the commit
+#         refusal named each, above all the clone's machine. a human on the
+#         clone's machine learned why only once a commit refused. one phrase
+#         per kind keeps the three surfaces in one voice
+#
+# usage: phrase=$(as_git_identity_refusal_phrase kind="$GIT_IDENTITY_KIND")
+######################################################################
+as_git_identity_refusal_phrase() {
+  local kind=""
+  for arg in "$@"; do
+    case "$arg" in
+      kind=*) kind="${arg#kind=}" ;;
+    esac
+  done
+
+  # .note = each phrase stays short: its callers set it inside a tree line
+  #         that must hold under ~70 columns
+  [[ "$kind" == "unset" ]] && { echo "holds no complete identity"; return 0; }
+  [[ "$kind" == "malformed" ]] && { echo "holds a malformed email"; return 0; }
+  [[ "$kind" == "clone" ]] && { echo "names a clone — the clone's machine"; return 0; }
+  echo "names a placeholder"
+}
+
+######################################################################
+# print_sponsor_unbound_state — `git.commit.sponsor get` on an unbound tree
+#
+# .what = reads this machine's git config and renders what commits will do
+#         with no bind: name the human, or refuse — and why. never exits.
+#
+# .why a leaf HERE, not inline in `get` = every arm must be testable, and
+#        the unreadable arm cannot be reached through the skill (a config git
+#        cannot parse fails the skill's own `git rev-parse` first). a leaf
+#        in operations is callable directly — `[case36]` clamps each arm.
+#
+# .why a COCONUT, never a refusal = `get` reports a true state; the bind is
+#        an OPTIONAL next move. the affordance names WHO may bind, since `get`
+#        is read by a clone and a human alike.
+#
+# .note = the fix for each half at fault precedes the bind forms, as on the
+#         commit refusal and the grant nudge, so the three agree on one remedy.
+#
+# .note = it runs `get_one_git_config_identity` itself, then reads
+#         GIT_IDENTITY_KIND / _NAME / _EMAIL / _FAULTS — and leaves them set.
+#         a caller never needs to have read the identity first.
+######################################################################
+print_sponsor_unbound_state() {
+  get_one_git_config_identity
+
+  print_turtle_header "lets check the sponsor..."
+  print_tree_start "git.commit.sponsor"
+  echo "   ├─ sponsor: (none bound)"
+
+  # a human's machine: commits name the human from git config
+  if [[ "$GIT_IDENTITY_KIND" == "human" ]]; then
+    echo "   └─ commits: use git config"
+    echo "      ├─ name: $GIT_IDENTITY_NAME"
+    echo "      └─ email: $GIT_IDENTITY_EMAIL"
+    print_coconut_hint "a human can bind someone else to sponsor this tree" \
+      "$SPONSOR_BIND_VIA_STDIN"
+    return 0
+  fi
+
+  # git could not read its own config — a soft line: `get` reports a state
+  if [[ "$GIT_IDENTITY_KIND" == "unreadable" ]]; then
+    echo "   ├─ git config: could not be read"
+    echo "   └─ commits: will refuse"
+    print_coconut_hint "find the git config file at fault" \
+      "git config --list --show-origin"
+    return 0
+  fi
+
+  # git config cannot answer — commits refuse until the config is fixed or a
+  # human binds
+  local state
+  state=$(as_git_identity_refusal_phrase kind="$GIT_IDENTITY_KIND")
+  local hints=()
+  mapfile -t hints < <(as_git_config_fix_commands "${GIT_IDENTITY_FAULTS[@]}")
+
+  # .why the title turns on the faults = a clone identity has no half to fix;
+  #        "fix git config" there would say to rename the clone. a placeholder
+  #        or a malformed half does carry a fault (user.name / user.email), so
+  #        it gets the fix line and the "fixes git config" title
+  local title="a human binds this tree's sponsor"
+  (( ${#hints[@]} > 0 )) && title="a human fixes git config, or binds this tree's sponsor"
+
+  echo "   ├─ git config: $state"
+  echo "   └─ commits: will refuse"
+  print_coconut_hint "$title" \
+    "${hints[@]}" \
+    "$SPONSOR_BIND_VIA_STDIN" \
+    "$SPONSOR_BIND_VIA_LITERAL"
 }
 
 ######################################################################
@@ -1320,10 +1885,10 @@ set_sponsor_state() {
 
   file_temp="${file}.tmp.$$"
   # .why the EXIT trap = a SIGINT/SIGTERM/kill between this write and the `mv`
-  #        below leaves `$file_temp` behind in the state dir — the same window
-  #        `get_gh_user_session` guards for the identical reason. the `${...:-}`
-  #        default holds for the same reason too: a late trap under `set -u`
-  #        reads `file_temp` after the function already returned.
+  #        below leaves `$file_temp` behind in the state dir. the `${...:-}`
+  #        default is owed because a late trap under `set -u` reads
+  #        `file_temp` after the function already returned; an unbound read
+  #        there aborts the trap and overwrites the real exit code.
   trap 'rm -f "${file_temp:-}"' EXIT
   cat > "$file_temp" << EOF
 {
@@ -1408,9 +1973,8 @@ get_org_from_keyrack() {
 #          a 0-byte file → jq exits ZERO,     capture empty   ← the trap
 #
 #        ⇒ an exit check alone still reads a 0-byte permission file as allowed.
-#        this is the same empty-input class `is_gh_user_json_usable` measured on
-#        the PIPE side; it reaches the FILE side too, and for the same cause —
-#        empty input yields no value, so there is no result to report on.
+#        the cause is jq's own: empty input yields no value, so `-e` has no
+#        result to report on, and the same holds for a pipe as for a file.
 #
 # 🔴 .note = MEASURED, never reasoned. the second condition was dogfooded on its
 #         own, against `[case34]`'s two damaged shapes:
@@ -1801,4 +2365,69 @@ get_first_behavioral_commit_hash() {
   fi
 
   echo "$behavioral" | cut -d' ' -f1
+}
+
+######################################################################
+# .what = is the local quota file (.meter/git.commit.uses.jsonc) readable?
+#
+# .why  = every commit reads this file with raw `jq -r` calls. a truncated or
+#         damaged file (a crash mid-write, a full disk, a hand edit) made jq
+#         exit non-zero under `set -euo pipefail`, so the skill died on jq's
+#         own parse error: no class header, no file named, no fix. the global
+#         and org meters already refuse a damaged file by name; this is the
+#         same shape gate for the third meter, so a caller can refuse first
+#
+# .note = a pure check — each caller renders its own refusal, since push has
+#         a json output mode and the tree render does not fit it. an ABSENT
+#         file is each caller's own case (no quota granted), so it passes here
+#
+# usage:
+#   is_local_meter_readable file="$STATE_FILE" || { render refusal; exit 1; }
+######################################################################
+is_local_meter_readable() {
+  local file=""
+  for arg in "$@"; do
+    case "$arg" in
+      file=*) file="${arg#file=}" ;;
+    esac
+  done
+
+  # absence is not damage
+  [[ -e "$file" ]] || return 0
+
+  # the shape every reader relies on: an object, a numeric or "infinite"
+  # uses, and a string push. stage is optional (readers default it to block)
+  jq -e '
+    type == "object"
+    and ((.uses | type) == "number" or .uses == "infinite")
+    and ((.push | type) == "string")
+  ' "$file" >/dev/null 2>&1
+}
+
+######################################################################
+# .what = the fix lines for a damaged local quota file
+#
+# .why  = one voice for the three skills that refuse it. `uses del`
+#         overwrites the file without a read, so it works on a file no
+#         reader can parse; a fresh grant then follows
+######################################################################
+#
+# .note = the file path rides its own body line, as the corrupt sponsor
+#         render does, so the tree leaf above stays short
+#
+# usage: print_local_meter_damaged_fix file=".meter/git.commit.uses.jsonc"
+print_local_meter_damaged_fix() {
+  local file=""
+  for arg in "$@"; do
+    case "$arg" in
+      file=*) file="${arg#file=}" ;;
+    esac
+  done
+
+  echo ""
+  echo "   the file that holds this tree's commit quota cannot be read:"
+  echo "     $file"
+  print_instruction "ask your human to reset the quota, then grant again:" \
+    "  \$ git.commit.uses del
+  \$ git.commit.uses set --quant N --push allow|block"
 }

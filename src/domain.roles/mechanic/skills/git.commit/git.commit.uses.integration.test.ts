@@ -3,8 +3,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
-import { seedTestSponsor } from '../../../../.test/seedTestSponsor';
-import { spawnInPty } from '../../../../.test/spawnInPty';
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
+import { seedTestSponsor } from '@src/.test/seedTestSponsor';
+import { spawnInPty } from '@src/.test/spawnInPty';
 
 /**
  * .what = integration tests for git.commit.uses.sh
@@ -16,18 +17,29 @@ describe('git.commit.uses.sh', () => {
   const runInTempGitRepo = (args: {
     args: string[];
     meterState?: { uses: number | string; push: string; stage?: string };
+    // raw bytes for the quota file, written INSTEAD of meterState — the
+    // present-and-damaged case a valid shape cannot express
+    meterRaw?: string;
     // default false — a fresh tree has no sponsor, which is what the nudge is for
     sponsorBound?: boolean;
+    // the repo's git identity. default = genTempDir's `test-fns`, a human — so
+    // with no bind, the nudge says who commits will name. `null` unsets a half.
+    gitUser?: { name: string | null; email: string | null };
+    // extra env for the subprocess (e.g. a PATH with a gh trap first on it)
+    env?: Record<string, string>;
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
     const tempDir = genTempDir({ slug: 'git-commit-uses-test', git: true });
 
+    // name the machine's git identity, where a case needs a specific one
+    if (args.gitUser) configureTestGitUser({ cwd: tempDir, ...args.gitUser });
+
     // create .meter directory and state if provided
-    if (args.meterState) {
+    if (args.meterState || args.meterRaw !== undefined) {
       const meterDir = path.join(tempDir, '.meter');
       fs.mkdirSync(meterDir, { recursive: true });
       fs.writeFileSync(
         path.join(meterDir, 'git.commit.uses.jsonc'),
-        JSON.stringify(args.meterState, null, 2),
+        args.meterRaw ?? JSON.stringify(args.meterState, null, 2),
       );
     }
 
@@ -43,7 +55,7 @@ describe('git.commit.uses.sh', () => {
       cwd: tempDir,
       encoding: 'utf-8' as const,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: { ...process.env, __I_AM_HUMAN: 'true' },
+      env: { ...process.env, __I_AM_HUMAN: 'true', ...(args.env ?? {}) },
     });
 
     return {
@@ -355,6 +367,9 @@ describe('git.commit.uses.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('--push allow|block is required');
+        // pin the qualified class header on both streams
+        expect(result.stdout).toMatchSnapshot('stdout');
+        expect(result.stderr).toMatchSnapshot('stderr');
       });
     });
   });
@@ -490,16 +505,23 @@ describe('git.commit.uses.sh', () => {
        *        forewarning and hit the sponsor refusal cold on its first
        *        commit — untested, until now.
        */
-      then('nudges to bind one', () => {
-        const result = runWithGlobalStorage({
-          args: ['allow', '--global'],
-          sponsorBound: false,
-        });
+      then(
+        'says who commits will name — git config, on a human machine',
+        () => {
+          const result = runWithGlobalStorage({
+            args: ['allow', '--global'],
+            sponsorBound: false,
+          });
 
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('no sponsor is bound to this tree');
-        expect(result.stdout).toMatchSnapshot();
-      });
+          // .why = the tree's git identity is genTempDir's `test-fns`, a human,
+          //        so with no bind, commits take it — the nudge says so rather
+          //        than warn that commits will refuse
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('commits will name');
+          expect(result.stdout).toContain('from git config');
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
     });
 
     when('[t3] a sponsor is already bound to the tree', () => {
@@ -968,47 +990,47 @@ describe('git.commit.uses.sh', () => {
     };
 
     when('[t0] set is called from non-TTY', () => {
-      then('blocks with human-only error', () => {
+      then('blocks: no terminal on this command', () => {
         const result = runWithoutTtyBypass({
           args: ['set', '--quant', '3', '--push', 'block'],
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toContain('no terminal on this command');
         expect(result.stdout).toMatchSnapshot();
       });
     });
 
     when('[t1] del is called from non-TTY', () => {
-      then('blocks with human-only error', () => {
+      then('blocks: no terminal on this command', () => {
         const result = runWithoutTtyBypass({
           args: ['del'],
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toContain('no terminal on this command');
       });
     });
 
     when('[t2] block is called from non-TTY', () => {
-      then('blocks with human-only error', () => {
+      then('blocks: no terminal on this command', () => {
         const result = runWithoutTtyBypass({
           args: ['block'],
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toContain('no terminal on this command');
       });
     });
 
     when('[t3] allow is called from non-TTY', () => {
-      then('blocks with human-only error', () => {
+      then('blocks: no terminal on this command', () => {
         const result = runWithoutTtyBypass({
           args: ['allow'],
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toContain('no terminal on this command');
       });
     });
 
@@ -1117,7 +1139,7 @@ describe('git.commit.uses.sh', () => {
       then('🔴 the guard ACCEPTS a real tty — exit 0, no escape hatch', () => {
         expect(scene.timedOut).toBe(false);
         expect(scene.exitCode).toBe(0);
-        expect(scene.output).not.toContain('only humans can run this command');
+        expect(scene.output).not.toContain('no terminal on this command');
 
         // .why = the pty stream is its OWN caller-visible render — a merged
         //        stdout+stderr surface no piped test ever observes. a
@@ -1148,10 +1170,10 @@ describe('git.commit.uses.sh', () => {
       });
 
       then('the sponsor nudge still fires at a terminal', () => {
-        // .why = the nudge is what makes the bind discoverable at the one
-        //        moment a human is provably present. a human AT A TTY is
+        // .why = the nudge tells the human, at the one moment they are
+        //        provably present, who commits will name. a human AT A TTY is
         //        exactly that moment, and it had never been observed there.
-        expect(scene.output).toContain('no sponsor is bound');
+        expect(scene.output).toContain('commits will name');
       });
     });
   });
@@ -1194,16 +1216,20 @@ describe('git.commit.uses.sh', () => {
        * .what = `allow --org` is a quota grant too — the same nudge coverage
        *         gap as `--global` (i035 r010, finding 2).
        */
-      then('nudges to bind one', () => {
-        const result = runWithOrgStorage({
-          args: ['allow', '--org', 'ehmpathy'],
-          sponsorBound: false,
-        });
+      then(
+        'says who commits will name — git config, on a human machine',
+        () => {
+          const result = runWithOrgStorage({
+            args: ['allow', '--org', 'ehmpathy'],
+            sponsorBound: false,
+          });
 
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('no sponsor is bound to this tree');
-        expect(result.stdout).toMatchSnapshot();
-      });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('commits will name');
+          expect(result.stdout).toContain('from git config');
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
     });
 
     when('[t3] a sponsor is already bound to the tree', () => {
@@ -1310,6 +1336,9 @@ describe('git.commit.uses.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('cannot delete @all');
+        // pin the qualified class header on both streams
+        expect(result.stdout).toMatchSnapshot('stdout');
+        expect(result.stderr).toMatchSnapshot('stderr');
       });
     });
   });
@@ -1933,36 +1962,36 @@ describe('git.commit.uses.sh', () => {
     };
 
     when('[t0] allow --org is called from non-TTY', () => {
-      then('blocks with human-only error', () => {
+      then('blocks: no terminal on this command', () => {
         const result = runOrgWithoutTtyBypass({
           args: ['allow', '--org', 'ehmpathy'],
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toContain('no terminal on this command');
         expect(result.stdout).toMatchSnapshot();
       });
     });
 
     when('[t1] block --org is called from non-TTY', () => {
-      then('blocks with human-only error', () => {
+      then('blocks: no terminal on this command', () => {
         const result = runOrgWithoutTtyBypass({
           args: ['block', '--org', 'ehmpathy'],
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toContain('no terminal on this command');
       });
     });
 
     when('[t2] del --org is called from non-TTY', () => {
-      then('blocks with human-only error', () => {
+      then('blocks: no terminal on this command', () => {
         const result = runOrgWithoutTtyBypass({
           args: ['del', '--org', 'ehmpathy'],
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toContain('no terminal on this command');
       });
     });
 
@@ -2024,9 +2053,9 @@ describe('git.commit.uses.sh', () => {
         }),
       );
 
-      then('blocks with human-only error', () => {
+      then('blocks: no terminal on this command', () => {
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toContain('no terminal on this command');
         expect(result.stdout).toContain('--global');
         expect(result.stdout).toMatchSnapshot();
       });
@@ -2049,18 +2078,18 @@ describe('git.commit.uses.sh', () => {
         //        (`-t 0` alone, vs the three streams `git.commit.sponsor`
         //        reads) is a question about who may grant commit authority,
         //        and it stays with the council — F12 ask 4b.
-        expect(result.stderr).toContain('only humans can run this command');
+        expect(result.stderr).toContain('no terminal on this command');
       });
     });
 
     when('[t1] allow --global is called from non-TTY', () => {
-      then('blocks with human-only error', () => {
+      then('blocks: no terminal on this command', () => {
         const result = runGlobalWithoutTtyBypass({
           args: ['allow', '--global'],
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('only humans can run this command');
+        expect(result.stdout).toContain('no terminal on this command');
       });
     });
 
@@ -2077,34 +2106,153 @@ describe('git.commit.uses.sh', () => {
   });
 
   given('[caseSponsorNudge] a quota is granted on a tree', () => {
-    when('[t0] no sponsor is bound', () => {
-      // .why = both `then`s below observe the SAME grant call
-      //        (rule.forbid.redundant-expensive-operations).
-      const result = useThen('the quota is granted', () =>
-        runInTempGitRepo({
-          args: ['set', '--quant', '5', '--push', 'allow'],
-        }),
-      );
+    when(
+      "[t0] no bind, and git config names a human — the human's own machine",
+      () => {
+        // .why = every `then` below observes the SAME grant call
+        //        (rule.forbid.redundant-expensive-operations).
+        // .mock = the gh cli, as a trap first on PATH that marks a file if run
+        // .why  = the vision: gh is read on no sponsor path, and the tip reads
+        //         the sponsor. an absence cannot be observed on a real gh — only
+        //         a trap that records a call proves the call never happened
+        // .real = all else is real: a real temp repo, real git config, the real
+        //         skill. the tip's sponsor read has no gh call left to exercise
+        const fakeBin = genTempDir({ slug: 'uses-nudge-gh-trap', git: false });
+        const ghMark = path.join(fakeBin, 'gh.was.called');
+        fs.writeFileSync(
+          path.join(fakeBin, 'gh'),
+          `#!/usr/bin/env bash\ntouch "${ghMark}"\nexit 1\n`,
+        );
+        fs.chmodSync(path.join(fakeBin, 'gh'), '755');
 
-      then('nudges toward the bind, and still exits 0', () => {
-        // .why = a commit needs BOTH a quota and a sponsor, and this is the one
-        //        act where a human is provably present. but a sponsor is
-        //        required to COMMIT, never to GRANT — so the nudge carries no
-        //        mandatory load and the grant stands on its own.
+        const result = useThen('the quota is granted', () =>
+          runInTempGitRepo({
+            args: ['set', '--quant', '5', '--push', 'allow'],
+            gitUser: { name: 'Kai Nalu', email: 'kai@example.com' },
+            env: { PATH: `${fakeBin}:${process.env.PATH}` },
+          }),
+        );
+
+        then('🔴 no gh command ran', () => {
+          expect(fs.existsSync(ghMark)).toBe(false);
+        });
+
+        then('says who commits will name, and still exits 0', () => {
+          // .why = with no bind, commits take the human from git config. a
+          //        nudge that warned "commits will refuse" would be false here.
+          //        a sponsor is required to COMMIT, never to GRANT — so the note
+          //        carries no mandatory load and the grant stands on its own.
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('granted: 5');
+          expect(result.stdout).toContain('🥥 did you know?');
+          expect(result.stdout).toContain(
+            'commits will name Kai Nalu <kai@example.com>, from git config',
+          );
+          expect(result.stdout).not.toContain('commits will refuse');
+          expect(result.stdout).toMatchSnapshot();
+        });
+
+        then('it offers the bind for someone else, and never names @me', () => {
+          // .why = the bind form alone, no end-of-line note: the command
+          //        names the act, and a note pushed the line past 80 columns
+          expect(result.stdout).toContain(
+            "printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin\n",
+          );
+          expect(result.stdout).not.toContain('@me');
+        });
+      },
+    );
+
+    when(
+      "[t0b] no bind, and git config names a clone — the clone's machine",
+      () => {
+        const result = useThen('the quota is granted', () =>
+          runInTempGitRepo({
+            args: ['set', '--quant', '5', '--push', 'allow'],
+            gitUser: { name: 'seaturtle[bot]', email: 'seaturtle@ehmpath.com' },
+          }),
+        );
+
+        then('warns that commits will refuse, and lists the bind forms', () => {
+          expect(result.exitCode).toBe(0);
+          // 🔴 names the clone's machine, as the commit refusal does
+          expect(result.stdout).toContain(
+            "commits will refuse: git config names a clone — the clone's machine",
+          );
+          expect(result.stdout).toContain('--who @stdin');
+          expect(result.stdout).toContain('--who "Name <email>"');
+          expect(result.stdout).toMatchSnapshot();
+        });
+
+        then(
+          'it never offers @self or @me — both read this same git config',
+          () => {
+            expect(result.stdout).not.toContain('--who @self');
+            expect(result.stdout).not.toContain('@me');
+          },
+        );
+      },
+    );
+
+    when('[t0c] no bind, and git config holds no email', () => {
+      then(
+        'warns that commits will refuse, and names the git config fix',
+        () => {
+          const result = runInTempGitRepo({
+            args: ['set', '--quant', '5', '--push', 'allow'],
+            gitUser: { name: 'Kai Nalu', email: null },
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(
+            'commits will refuse: git config holds no complete identity',
+          );
+          expect(result.stdout).toContain(
+            'git config --global user.email "you@example.com"',
+          );
+          expect(result.stdout).not.toContain('user.name');
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
+    });
+
+    when('[t0d] no bind, and git config email is not an address', () => {
+      then('warns that commits will refuse, and names the email fix', () => {
+        const result = runInTempGitRepo({
+          args: ['set', '--quant', '5', '--push', 'allow'],
+          gitUser: { name: 'Kai Nalu', email: 'kai@localhost' },
+        });
+
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('granted: 5');
-        expect(result.stdout).toContain('🥥 did you know?');
-        expect(result.stdout).toContain('no sponsor is bound to this tree');
+        expect(result.stdout).toContain(
+          'commits will refuse: git config holds a malformed email',
+        );
+        expect(result.stdout).toContain(
+          'git config --global user.email "you@example.com"',
+        );
+        expect(result.stdout).not.toContain('git config --global user.name');
         expect(result.stdout).toMatchSnapshot();
       });
+    });
 
-      then('the nudge lists all three value forms', () => {
-        // .why = a coconut is an OPTIONAL next move, so unlike a mandatory
-        //        refusal it may name @me — the human reads it at a tty they
-        //        already hold, and can judge which form fits their grove.
-        expect(result.stdout).toContain('--who @stdin');
-        expect(result.stdout).toContain('--who "Name <email>"');
-        expect(result.stdout).toContain('--who @me');
+    when('[t0e] no bind, and git config names a placeholder', () => {
+      then('warns that commits will refuse, and names the name fix', () => {
+        // .why = a placeholder is a name that answers for no one; a real
+        //        `user.name` is its fix
+        const result = runInTempGitRepo({
+          args: ['set', '--quant', '5', '--push', 'allow'],
+          gitUser: { name: 'Test Human', email: 'human@test.com' },
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          'commits will refuse: git config names a placeholder',
+        );
+        expect(result.stdout).toContain(
+          'git config --global user.name "Your Name"',
+        );
+        expect(result.stdout).not.toContain('git config --global user.email');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
 
@@ -2275,6 +2423,43 @@ describe('git.commit.uses.sh', () => {
           expect(result.stdout).toMatchSnapshot();
         },
       );
+    });
+  });
+
+  given('[caseLocalMeterDamaged] the LOCAL quota file is damaged', () => {
+    // .note = raw `jq -r` reads died on jq's own parse error under pipefail —
+    //         no class, no file, no fix. `get` refuses by name first
+    when('[t0] `get` reads a truncated file', () => {
+      const result = useThen('get runs', () =>
+        runInTempGitRepo({
+          args: ['get'],
+          meterRaw: '{ "uses": 3, "pu',
+        }),
+      );
+
+      then('it exits 1 — a malfunction, not the caller', () => {
+        expect(result.exitCode).toBe(1);
+      });
+
+      then('it names the class, the file, and the fix, on both streams', () => {
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: commit quota file corrupt',
+        );
+        expect(result.stdout).toContain('git.commit.uses del');
+        expect(result.stderr).toContain('💥 MalfunctionError:');
+        expect(result.stdout).toMatchSnapshot();
+        expect(result.stderr).toMatchSnapshot('stderr');
+      });
+    });
+
+    when('[t1] `del` runs on the damaged file — the printed fix', () => {
+      then('🔴 it succeeds, so the remedy works', () => {
+        const result = runInTempGitRepo({
+          args: ['del'],
+          meterRaw: '{ "uses": 3, "pu',
+        });
+        expect(result.exitCode).toBe(0);
+      });
     });
   });
 });
