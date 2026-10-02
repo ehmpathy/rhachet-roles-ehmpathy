@@ -67,13 +67,26 @@ _gh_with_retry() {
 get_pr_for_branch() {
   local branch="$1"
   local result
+  local query_exit=0
 
-  # check open PRs first
-  result=$(_gh_with_retry gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty')
+  # a failed query must not read as "no pr found". an absent pr returns an
+  # empty string; a failed query (e.g. no gh credential) fails loud.
+  # .note = errors go to stderr only: stdout is this function's return value
+  result=$(_gh_with_retry gh pr list --head "$branch" --state open --json number --jq '.[0].number // empty') || query_exit=$?
+  if [[ $query_exit -ne 0 ]]; then
+    echo "error: could not query github for open prs on '$branch'" >&2
+    echo "   └─ the cause is above; this is NOT the same as 'no pr found'" >&2
+    return "$query_exit"
+  fi
 
   # fallback to merged PRs
   if [[ -z "$result" ]]; then
-    result=$(_gh_with_retry gh pr list --head "$branch" --state merged --json number --jq '.[0].number // empty')
+    result=$(_gh_with_retry gh pr list --head "$branch" --state merged --json number --jq '.[0].number // empty') || query_exit=$?
+    if [[ $query_exit -ne 0 ]]; then
+      echo "error: could not query github for merged prs on '$branch'" >&2
+      echo "   └─ the cause is above; this is NOT the same as 'no pr found'" >&2
+      return "$query_exit"
+    fi
   fi
 
   echo "$result"

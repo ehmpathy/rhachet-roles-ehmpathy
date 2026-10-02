@@ -14,6 +14,30 @@ import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 const SKILL_PATH = path.resolve(__dirname, 'git.branch.rebase.abort.sh');
 
 /**
+ * .what = the fake `onto` ref the fixture writes into .git/rebase-merge/onto
+ * .why  = it is OURS, not git's, so it is the one stable anchor on the line git
+ *         emits about it. the test asserts it apart from the snapshot.
+ */
+const ONTO_SHA = 'abc123def456';
+
+/**
+ * .what = replace git's own diagnostic about ONTO_SHA with a stable placeholder,
+ *         and keep the tree prefix around it
+ * .why  = its text varies by git version, so a verbatim snap would assert on the
+ *         host's git, not this skill (`rule.forbid.bare-host-deps`)
+ * .note = keyed on the sha, not the text; the skill's own frame stays in the snap
+ */
+const withHostGitTextScrubbed = (stdout: string): string =>
+  stdout
+    .split('\n')
+    .map((line) =>
+      line.includes(ONTO_SHA)
+        ? line.replace(/(^[\s│├└─]*).*/, `$1<git diagnostic about ${ONTO_SHA}>`)
+        : line,
+    )
+    .join('\n');
+
+/**
  * .what = setup a git repo with rebase in progress
  * .why = each test needs isolated repo in specific rebase state
  */
@@ -166,7 +190,9 @@ describe('git.branch.rebase.abort', () => {
           // note: simulated rebase state may not work perfectly with git
           // snapshot captures actual behavior for vibecheck
           expect(result.stdout).toContain('git.branch.rebase abort');
-          expect(result.stdout).toMatchSnapshot();
+          // git's own half — asserted by its stable anchor, apart from the snap
+          expect(result.stdout).toContain(ONTO_SHA);
+          expect(withHostGitTextScrubbed(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }

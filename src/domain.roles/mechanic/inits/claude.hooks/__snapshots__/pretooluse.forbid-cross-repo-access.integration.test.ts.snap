@@ -108,6 +108,33 @@ exports[`pretooluse.forbid-cross-repo-access.sh given: [case11] the block messag
 "
 `;
 
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case12] stdin the hook cannot parse when: [t0] stdin is not valid JSON then: fails OPEN, but loud on both streams — never silently 1`] = `
+{
+  "stderr": "WARN: PreToolUse hook could not parse stdin as JSON; allow tool call
+",
+  "stdout": "WARN: PreToolUse hook could not parse stdin as JSON; allow tool call
+",
+}
+`;
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case12] stdin the hook cannot parse when: [t1] stdin is empty then: fails CLOSED and loud on both streams 1`] = `
+{
+  "stderr": "ERROR: PreToolUse hook received no input via stdin
+",
+  "stdout": "ERROR: PreToolUse hook received no input via stdin
+",
+}
+`;
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case12] stdin the hook cannot parse when: [t2] jq parses, then malfunctions on the extract then: fails CLOSED with the jq exit code, loud on both streams 1`] = `
+{
+  "stderr": "ERROR: PreToolUse hook hit an unexpected jq failure (exit 7)
+",
+  "stdout": "ERROR: PreToolUse hook hit an unexpected jq failure (exit 7)
+",
+}
+`;
+
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case15] the peer file is gitignored in its own repo when: [t0] a Read names that gitignored file then: blocks it, and does NOT name a fix that would fail 1`] = `
 "
 🛑 BLOCKED: adhoc cross-repo access — Read

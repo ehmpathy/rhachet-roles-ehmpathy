@@ -179,7 +179,16 @@ module.exports = {
       .replace(/time: \d+s/g, 'time: Xs')
       // mask npm command line in dim text (appears in some envs, not others)
       // e.g., [2m$ echo "npm ERR!..."[22m
-      .replace(/\[2m\$ [^\n]*\[22m\n?/g, '');
+      .replace(/\[2m\$ [^\n]*\[22m\n?/g, '')
+      // collapse a run of spinner ticks to one: the count tracks host speed
+      .replace(/(^[^\n]*💤 inflight \(Xs\)\n)+/gm, '$1')
+      // collapse the keyrack refusal frame to one shape: the frame tracks
+      // ambient keyrack state; the message is the signal
+      // (rule.require.hermetic-tests)
+      .replace(
+        /✋ ConstraintError: ([^\n]*)\n\s+├─ owner: [^\n]*\n\s+└─ ran: [^\n]*/g,
+        '✋ blocked: $1',
+      );
 
   given('[case1] lint passes', () => {
     when('[t0] `rhx git.repo.test --what lint` is run', () => {

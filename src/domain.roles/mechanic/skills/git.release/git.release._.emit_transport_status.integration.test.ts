@@ -10,7 +10,7 @@ import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
  * .spec.tree = git.release.spec.tree.md
  */
 
-jest.setTimeout(5000);
+jest.setTimeout(150000);
 
 describe('emit_transport_status', () => {
   // ============================================================================

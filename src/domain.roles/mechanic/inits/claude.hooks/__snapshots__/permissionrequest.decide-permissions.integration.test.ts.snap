@@ -135,12 +135,12 @@ exports[`permissionrequest.decide-permissions.sh given: [case10] a LIFT records 
 "🐢 bummer dude...
 
 🐚 permissionrequest.decide-permissions
-   └─ could not parse <SETTINGS> as json; allow list degraded: jq: parse error: <JQ_CAUSE>
+   └─ could not parse <SETTINGS> as json; allow list degraded: <JQ_CAUSE>
 
 🐢 bummer dude...
 
 🐚 permissionrequest.decide-permissions
-   └─ could not parse <SETTINGS> as json; deny list degraded: jq: parse error: <JQ_CAUSE>
+   └─ could not parse <SETTINGS> as json; deny list degraded: <JQ_CAUSE>
 
 "
 `;

@@ -1,5 +1,32 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`pretooluse.forbid-shouted-readme.sh given: [case6] error and passthrough cases when: [t0] empty stdin then: empty stdin exits 2 with a loud diagnostic on both streams 1`] = `
+{
+  "stderr": "ERROR: PreToolUse hook received no input via stdin
+",
+  "stdout": "ERROR: PreToolUse hook received no input via stdin
+",
+}
+`;
+
+exports[`pretooluse.forbid-shouted-readme.sh given: [case6] error and passthrough cases when: [t2] malformed json (fail-open contract) then: the fail-open warn frame reads as a caller reads it 1`] = `
+{
+  "stderr": "WARN: PreToolUse hook could not parse stdin as JSON; allow tool call
+",
+  "stdout": "WARN: PreToolUse hook could not parse stdin as JSON; allow tool call
+",
+}
+`;
+
+exports[`pretooluse.forbid-shouted-readme.sh given: [case6] error and passthrough cases when: [t3] jq parses, then malfunctions on the extract then: the malfunction frame reads as a caller reads it 1`] = `
+{
+  "stderr": "ERROR: PreToolUse hook hit an unexpected jq failure (exit 7)
+",
+  "stdout": "ERROR: PreToolUse hook hit an unexpected jq failure (exit 7)
+",
+}
+`;
+
 exports[`pretooluse.forbid-shouted-readme.sh given: [case8] block message snapshot when: [t0] Write to root README.md then: Write block message matches snapshot 1`] = `
 "
 🛑 BLOCKED: Write to README.md

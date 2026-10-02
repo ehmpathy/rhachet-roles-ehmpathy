@@ -25,8 +25,11 @@ import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
  * total: 54 snapshots
  */
 
-// mock I/O takes real time (~200ms per poll), so longer tests need headroom
-jest.setTimeout(15000);
+// both timeouts below are hang guards, never speed assertions: the mock gh
+// spawns a bash subprocess per poll, so wall time tracks host load. the skill
+// self-bounds in test mode (test_iterations > 100), so these catch only a
+// wedge (rule.require.hermetic-tests)
+jest.setTimeout(150000);
 
 // ============================================================================
 // test infrastructure
@@ -223,23 +226,6 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               tempDir,
               fakeBinDir,
             });
-            // debug: dump state if test fails
-            if (result.status !== 0 || !result.stdout.includes('in progress')) {
-              const debugFile = '/tmp/git-release-row4-debug.txt';
-              let debug = '=== DEBUG row-4 ===\n';
-              debug += `stdout:\n${result.stdout}\n`;
-              debug += `stderr:\n${result.stderr}\n`;
-              const stateDir = path.join(tempDir, '.mock-state');
-              const debugLog = path.join(stateDir, 'gh-debug.log');
-              if (fs.existsSync(debugLog)) {
-                debug += `gh-debug.log:\n${fs.readFileSync(debugLog, 'utf-8')}\n`;
-              }
-              // also dump the gh mock executable
-              const ghMockPath = path.join(fakeBinDir, 'gh');
-              debug += `gh mock:\n${fs.readFileSync(ghMockPath, 'utf-8')}\n`;
-              debug += '=== END DEBUG ===\n';
-              fs.writeFileSync(debugFile, debug);
-            }
             expect(result.stdout).toContain('in progress');
             expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(0);

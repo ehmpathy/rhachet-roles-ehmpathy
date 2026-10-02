@@ -280,19 +280,20 @@ all_parts_allowed() {
   return 0
 }
 
-# Transform raw permission pattern to compact bracket notation for display
-format_pattern() {
+# Print one raw permission pattern as a bullet in compact bracket notation
+# .note = called directly, never via $(...): a subshell per rule made the
+#         block message cost one fork per allowed pattern
+print_pattern_bullet() {
   local pattern="$1"
 
-  # Check if pattern ends with :*
+  # prefix match: strip the :* suffix
   if [[ "$pattern" == *":*" ]]; then
-    # Remove :* suffix and format with [p]: label (prefix match)
-    local prefix="${pattern%:*}"
-    echo "[p]: $prefix"
-  else
-    # Exact match - format with [e]: label
-    echo "[e]: $pattern"
+    echo "  • [p]: ${pattern%:*}"
+    return
   fi
+
+  # exact match
+  echo "  • [e]: $pattern"
 }
 
 # Check if all parts of the command (including compound commands) are allowed
@@ -318,7 +319,7 @@ if [[ "$MODE" == "SOFTNUDGE" ]]; then
   echo "([e] = exact match, [p] = prefix match)"
   echo ""
   for pattern in "${ALLOWED_PATTERNS[@]}"; do
-    echo "  • $(format_pattern "$pattern")"
+    print_pattern_bullet "$pattern"
   done
   echo ""
   echo "([e] = exact match, [p] = prefix match)"
@@ -363,7 +364,7 @@ jq --arg cmd "$COMMAND" --argjson ts "$now" '. + {($cmd): $ts}' "$ATTEMPTED_FILE
   echo "([e] = exact match, [p] = prefix match)"
   echo ""
   for pattern in "${ALLOWED_PATTERNS[@]}"; do
-    echo "  • $(format_pattern "$pattern")"
+    print_pattern_bullet "$pattern"
   done
   echo ""
   echo "([e] = exact match, [p] = prefix match)"

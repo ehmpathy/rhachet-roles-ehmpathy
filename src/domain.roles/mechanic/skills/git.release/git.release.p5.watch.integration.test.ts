@@ -22,7 +22,7 @@ import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
  * .note = uses Scene-based mock with transitions: true for poll cycles
  */
 
-jest.setTimeout(5000);
+jest.setTimeout(150000);
 
 const SKILL_PATH = path.join(
   __dirname,

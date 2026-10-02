@@ -24,6 +24,20 @@ describe('git.repo.test.sh scope', () => {
     maskSpinnerTicks(output)
       .replace(/\(\d+m?s\)/g, '(Xs)') // time values
       .replace(/\d+m?s/g, 'Xs') // time without parens
+      // collapse the keyrack refusal frame to one shape. one command can
+      // render `✋ blocked: X` or `✋ ConstraintError: X` plus owner/ran rows,
+      // per ambient keyrack state; the message is the signal
+      // (rule.require.hermetic-tests)
+      // .note = the message is captured, not matched: the keyrack message
+      //         normalizations sit lower in this chain
+      .replace(
+        /✋ ConstraintError: ([^\n]*)\n\s+├─ owner: [^\n]*\n\s+└─ ran: [^\n]*/g,
+        '✋ blocked: $1',
+      )
+      // collapse a run of spinner ticks to one. the spinner emits a line per
+      // poll, so the count tracks host speed; one tick still pins that it
+      // rendered (rule.require.hermetic-tests)
+      .replace(/(^[^\n]*💤 inflight \(Xs\)\n)+/gm, '$1')
       .replace(/suites: \d+ files/g, 'suites: N files') // suites count (varies by jest version/env)
       .replace(/\/tmp\/[^\s\n]+/g, '/tmp/__sanitized__') // temp paths
       .replace(/\/home\/[^\s]+\/node_modules\/.pnpm\/[^\s]+/g, '__pkg__') // absolute pnpm paths
@@ -475,6 +489,8 @@ describe('git.repo.test.sh scope', () => {
             ],
             scope: 'myfeature',
             what: 'integration',
+            // apply mode reaches the keyrack unlock; plan mode never does
+            mode: 'apply',
             thorough: true,
             keyrack: 'absent',
           }),

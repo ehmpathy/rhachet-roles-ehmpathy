@@ -43,9 +43,58 @@ exports[`globsafe.sh given: [case11] output format snapshots when: [t2] long out
 "
 `;
 
-exports[`globsafe.sh given: [case12] --output direct mode when: [t2] direct output snapshot then: output matches snapshot 1`] = `
+exports[`globsafe.sh given: [case12] --output pipeable mode when: [t2] pipeable output snapshot then: output matches snapshot 1`] = `
 "src/a.ts
 src/b.ts
+"
+`;
+
+exports[`globsafe.sh given: [case12] --output pipeable mode when: [t4] a refusal under pipeable output then: it reaches stderr only, with a greppable fix: line 1`] = `
+"globsafe: --head must be a positive integer of at most 18 digits
+  got: abc
+fix: pass a whole number above zero, or omit --head for no limit — globsafe.sh --pattern 'src/**/*.ts' --head 20
+"
+`;
+
+exports[`globsafe.sh given: [case13] positional args when: [t1] a third positional would overwrite the root then: --path AFTER a positional root is refused 1`] = `
+"🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: the search root was named twice
+      ├─ first: sub
+      └─ then:  strayarg
+
+🥥 did you know?
+   ├─ name each root with --path; a bare positional root stands alone
+   └─ globsafe.sh --pattern '*.md' --path docs --path src
+"
+`;
+
+exports[`globsafe.sh given: [case13] positional args when: [t1] a third positional would overwrite the root then: a third positional is refused, and names BOTH roots 1`] = `
+"🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: the search root was named twice
+      ├─ first: sub
+      └─ then:  strayarg
+
+🥥 did you know?
+   ├─ name each root with --path; a bare positional root stands alone
+   └─ globsafe.sh --pattern '*.md' --path docs --path src
+"
+`;
+
+exports[`globsafe.sh given: [case13] positional args when: [t1] a third positional would overwrite the root then: the REVERSE order refuses identically 1`] = `
+"🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: the search root was named twice
+      ├─ first: sub
+      └─ then:  strayarg
+
+🥥 did you know?
+   ├─ name each root with --path; a bare positional root stands alone
+   └─ globsafe.sh --pattern '*.md' --path docs --path src
 "
 `;
 
@@ -121,5 +170,295 @@ exports[`globsafe.sh given: [case14] bracket characters with --literal flag when
       │  doc.r.md
       │
       └─
+"
+`;
+
+exports[`globsafe.sh given: [case15] --head rejects input it cannot use when: [t0] --head is not a number then: it is a CONSTRAINT, and no interpreter error leaks 1`] = `
+"🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: --head must be a positive integer of at most 18 digits
+      └─ got: abc
+
+🥥 did you know?
+   ├─ pass a whole number above zero, or omit --head for no limit
+   └─ globsafe.sh --pattern 'src/**/*.ts' --head 20
+"
+`;
+
+exports[`globsafe.sh given: [case15] --head rejects input it cannot use when: [t1] --head is negative then: it refuses rather than slice from the wrong end 1`] = `
+"🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: --head must be a positive integer of at most 18 digits
+      └─ got: -2
+
+🥥 did you know?
+   ├─ pass a whole number above zero, or omit --head for no limit
+   └─ globsafe.sh --pattern 'src/**/*.ts' --head 20
+"
+`;
+
+exports[`globsafe.sh given: [case15] --head rejects input it cannot use when: [t3] --head carries a zero in front then: CONTROL — it is accepted, as it was before the guard 1`] = `
+"🐢 sweet
+
+🐚 globsafe
+   ├─ pattern: *.md
+   ├─ path: .
+   ├─ files: 9 (first 8)
+   └─ found
+      ├─
+      │
+      │  f0.md
+      │  f1.md
+      │  f2.md
+      │  f3.md
+      │  f4.md
+      │  f5.md
+      │  f6.md
+      │  f7.md
+      │
+      └─
+"
+`;
+
+exports[`globsafe.sh given: [case15] --head rejects input it cannot use when: [t4] a caller reads --help before they meet a gate then: both new refusals are documented there 1`] = `
+"usage: globsafe.sh --pattern 'glob' [options]
+
+options:
+  --pattern GLOB     file pattern (required, e.g., 'src/**/*.ts');
+                     repeat to match several
+  --path DIR         base directory (default: .); repeat to search
+                     several
+  --hidden           let wildcards match dot paths (.git excluded)
+  --long             show detailed file info (size, mtime)
+  --head N           limit output to N files (positive integer)
+  --sort ORDER       name|time|size (default: name)
+  --output MODE      vibes|pipeable (default: vibes)
+  --literal          treat pattern as literal (no glob expansion)
+                     use when pattern contains [ or ] characters
+
+notes:
+  --head takes a positive integer of at most 18 digits; any other
+    value is refused (exit 2), never reinterpreted. a wider value
+    would wrap negative in bash and yield a false zero
+  every --pattern and --path is searched, and the union returned.
+    a bare positional root stands alone: beside another root it is
+    refused (exit 2), since an unquoted glob the shell expanded
+    lands there too
+  a wildcard skips dot paths. when a hidden file would match, the
+    output says so and names --hidden
+  --output 'direct' is renamed 'pipeable'; the old value is
+    refused (exit 2) with the new name
+
+examples:
+  globsafe.sh --pattern 'src/**/*.ts'                  # glob pattern
+  globsafe.sh --pattern '*.[ref].md' --literal         # literal brackets
+  globsafe.sh --pattern '*.\\[ref\\].md'                 # escaped brackets
+"
+`;
+
+exports[`globsafe.sh given: [case15] --head rejects input it cannot use when: [t5] --head is too wide for bash arithmetic then: it is refused, never wrapped past the gate 1`] = `
+"🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: --head must be a positive integer of at most 18 digits
+      └─ got: 10000000000000000000
+
+🥥 did you know?
+   ├─ pass a whole number above zero, or omit --head for no limit
+   └─ globsafe.sh --pattern 'src/**/*.ts' --head 20
+"
+`;
+
+exports[`globsafe.sh given: [case15] --head rejects input it cannot use when: [t6] --head 0 — a deliberate refusal, never an oversize then: --head 0 is refused, and the refusal is deliberate 1`] = `
+"🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: --head must be a positive integer of at most 18 digits
+      └─ got: 0
+
+🥥 did you know?
+   ├─ pass a whole number above zero, or omit --head for no limit
+   └─ globsafe.sh --pattern 'src/**/*.ts' --head 20
+"
+`;
+
+exports[`globsafe.sh given: [case16] --output names its own migration when: [t0] the retired value is passed then: the refusal names the rename AND the replacement 1`] = `
+"🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: --output direct was renamed to pipeable
+      └─ got: direct
+
+🥥 did you know?
+   ├─ pass --output pipeable — same behavior, current name
+   └─ globsafe.sh --pattern 'src/**/*.ts' --output pipeable
+"
+`;
+
+exports[`globsafe.sh given: [case16] --output names its own migration when: [t1] a never-valid mode is passed then: CONTROL — the generic refusal holds, and gained a remedy 1`] = `
+"🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: --output must be one of: vibes, pipeable
+      └─ got: nosuchmode
+
+🥥 did you know?
+   ├─ name one of the two modes, or omit --output for vibes
+   └─ globsafe.sh --pattern 'src/**/*.ts' --output pipeable
+"
+`;
+
+exports[`globsafe.sh given: [case17] every refusal names a next move when: [t0] each refusal renders then: every one wears the frame, and reaches both streams 1`] = `
+"── no --pattern at all ──
+🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: --pattern is required
+
+🥥 did you know?
+   ├─ name the glob to match, as --pattern or as the first positional
+   └─ globsafe.sh --pattern 'src/**/*.ts'
+
+── an unknown flag ──
+🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: unknown option: --nosuchflag
+
+🥥 did you know?
+   ├─ check the flag name, or see the full option list
+   └─ globsafe.sh --help
+
+── a --sort order that does not exist ──
+🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: --sort must be one of: name, time, size
+      └─ got: nosuchorder
+
+🥥 did you know?
+   ├─ name one of the three orders, or omit --sort for name
+   └─ globsafe.sh --pattern 'src/**/*.ts' --sort time
+
+── an --output mode that does not exist ──
+🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: --output must be one of: vibes, pipeable
+      └─ got: nosuchmode
+
+🥥 did you know?
+   ├─ name one of the two modes, or omit --output for vibes
+   └─ globsafe.sh --pattern 'src/**/*.ts' --output pipeable
+
+── the retired --output value ──
+🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: --output direct was renamed to pipeable
+      └─ got: direct
+
+🥥 did you know?
+   ├─ pass --output pipeable — same behavior, current name
+   └─ globsafe.sh --pattern 'src/**/*.ts' --output pipeable
+
+── a --head that is not a number ──
+🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: --head must be a positive integer of at most 18 digits
+      └─ got: abc
+
+🥥 did you know?
+   ├─ pass a whole number above zero, or omit --head for no limit
+   └─ globsafe.sh --pattern 'src/**/*.ts' --head 20
+
+── a search root named twice ──
+🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: the search root was named twice
+      ├─ first: .
+      └─ then:  sub
+
+🥥 did you know?
+   ├─ name each root with --path; a bare positional root stands alone
+   └─ globsafe.sh --pattern '*.md' --path docs --path src
+
+── a --path that does not exist ──
+🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: search path does not exist: nosuchdir_xyz
+
+🥥 did you know?
+   ├─ name a directory that exists, or omit --path to search from .
+   └─ globsafe.sh --pattern '*.ts' --path src
+
+── a --path outside the repo ──
+🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: search path must be within the git repository
+      ├─ repo root:   /tmp/TEMP_DIR
+      └─ search path: /tmp
+
+🥥 did you know?
+   ├─ name a path under the repo root above
+   └─ globsafe.sh --pattern '*.ts' --path src
+"
+`;
+
+exports[`globsafe.sh given: [case17] every refusal names a next move when: [t0] each refusal renders then: the not-a-repo refusal carries one too 1`] = `
+"🐢 bummer dude...
+
+🐚 globsafe
+   └─ error: not in a git repository
+      └─ cwd: /tmp/TEMP_DIR
+
+🥥 did you know?
+   ├─ cd into a git repo — globsafe bounds every search to one
+   └─ cd ~/git/myrepo && globsafe.sh --pattern 'src/**/*.ts'
+"
+`;
+
+exports[`globsafe.sh given: [case18] every pattern, every root, and the hidden skip when: [t1] --path is repeated then: the two-root answer is snapped 1`] = `
+"🐢 sweet
+
+🐚 globsafe
+   ├─ pattern: *.md
+   ├─ paths: a, b
+   ├─ files: 2
+   └─ found
+      ├─
+      │
+      │  a/one.md
+      │  b/two.md
+      │
+      └─
+"
+`;
+
+exports[`globsafe.sh given: [case18] every pattern, every root, and the hidden skip when: [t2] a wildcard skips a hidden path that would match then: the partial answer is snapped 1`] = `
+"🐢 sweet
+
+🐚 globsafe
+   ├─ pattern: **/*.md
+   ├─ path: .
+   ├─ files: 2
+   ├─ skipped: 1 hidden path(s) also match
+   └─ found
+      ├─
+      │
+      │  a/one.md
+      │  b/two.md
+      │
+      └─
+
+🥥 did you know?
+   ├─ a wildcard skips dot paths; --hidden lets it match them
+   └─ globsafe.sh --pattern '**/*.md' --hidden
 "
 `;

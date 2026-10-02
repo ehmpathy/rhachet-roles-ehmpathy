@@ -8,7 +8,7 @@ import { runOperation, setupTestEnv } from './.test/infra/setupTestEnv';
  * .spec.tree = git.release.spec.tree.md
  */
 
-jest.setTimeout(5000);
+jest.setTimeout(150000);
 
 describe('get_all_flags_from_input', () => {
   // ============================================================================

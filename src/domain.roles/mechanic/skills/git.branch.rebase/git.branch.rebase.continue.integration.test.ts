@@ -14,6 +14,44 @@ import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 const SKILL_PATH = path.resolve(__dirname, 'git.branch.rebase.continue.sh');
 
 /**
+ * .what = the fake `onto` ref the fixture writes into .git/rebase-merge/onto
+ * .why  = it is OURS, not git's, so it is the one stable anchor on the line git
+ *         emits about it. the test asserts it apart from the snapshot.
+ */
+const ONTO_SHA = 'abc123def456';
+
+/**
+ * .what = replace git's own diagnostic about ONTO_SHA with a stable placeholder,
+ *         and keep the tree prefix around it
+ * .why  = its text varies by git version, so a verbatim snap would assert on the
+ *         host's git, not this skill (`rule.forbid.bare-host-deps`)
+ * .note = keyed on the sha, not the text. a no-op on lines without the sha, so
+ *         every snap site applies it
+ */
+const withHostGitTextScrubbed = (stdout: string): string =>
+  stdout
+    .split('\n')
+    .map((line) =>
+      line.includes(ONTO_SHA)
+        ? line.replace(/(^[\s│├└─]*).*/, `$1<git diagnostic about ${ONTO_SHA}>`)
+        : line,
+    )
+    .join('\n');
+
+/**
+ * .what = replace the body of the `git.output` block with one placeholder,
+ *         and keep the skill's frame around it
+ * .why  = where no fixture value anchors git's prose, the whole relayed body
+ *         is host text (`rule.forbid.bare-host-deps`)
+ * .note = callers assert the body is non-empty, so the un-pin is no failhide
+ */
+const withGitOutputBodyScrubbed = (stdout: string): string =>
+  stdout.replace(
+    /(└─ git\.output\n {6}├─\n {6}│\n)(?: {6}│ {2}.*\n)+/,
+    '$1      │  <git output>\n',
+  );
+
+/**
  * .what = setup a git repo with rebase in progress
  * .why = each test needs isolated repo in specific rebase state
  */
@@ -267,7 +305,7 @@ describe('git.branch.rebase.continue', () => {
 
           expect(result.status).not.toBe(0);
           expect(result.stdout).toContain('no rebase');
-          expect(result.stdout).toMatchSnapshot();
+          expect(withHostGitTextScrubbed(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -295,7 +333,9 @@ describe('git.branch.rebase.continue', () => {
           // which will fail with "not a git rebase" or similar
           // see git.branch.rebase.journey.integration.test.ts for real conflict flow
           expect(result.stdout).toBeDefined();
-          expect(result.stdout).toMatchSnapshot();
+          // git's own half — asserted by its stable anchor, apart from the snap
+          expect(result.stdout).toContain(ONTO_SHA);
+          expect(withHostGitTextScrubbed(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -317,7 +357,9 @@ describe('git.branch.rebase.continue', () => {
 
           // note: actual git rebase --continue will fail in test env
           // since rebase state is simulated. check output format.
-          expect(result.stdout).toMatchSnapshot();
+          // git's own half — asserted by its stable anchor, apart from the snap
+          expect(result.stdout).toContain(ONTO_SHA);
+          expect(withHostGitTextScrubbed(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -339,7 +381,9 @@ describe('git.branch.rebase.continue', () => {
 
           // note: actual git rebase --continue will fail in test env
           // since rebase state is simulated. check output format.
-          expect(result.stdout).toMatchSnapshot();
+          // git's own half — asserted by its stable anchor, apart from the snap
+          expect(result.stdout).toContain(ONTO_SHA);
+          expect(withHostGitTextScrubbed(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -359,7 +403,9 @@ describe('git.branch.rebase.continue', () => {
           // actual git rebase --continue may fail since state is simulated
           // but the skill should NOT say "no rebase in progress"
           expect(result.stdout).not.toContain('no rebase in progress');
-          expect(result.stdout).toMatchSnapshot();
+          // git's own half — asserted by its stable anchor, apart from the snap
+          expect(result.stdout).toContain(ONTO_SHA);
+          expect(withHostGitTextScrubbed(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(mainDir, { recursive: true, force: true });
           fs.rmSync(worktreeDir, { recursive: true, force: true });
@@ -378,7 +424,7 @@ describe('git.branch.rebase.continue', () => {
 
           expect(result.status).not.toBe(0);
           expect(result.stdout).toContain('no rebase');
-          expect(result.stdout).toMatchSnapshot();
+          expect(withHostGitTextScrubbed(result.stdout)).toMatchSnapshot();
         } finally {
           fs.rmSync(mainDir, { recursive: true, force: true });
           fs.rmSync(worktreeDir, { recursive: true, force: true });
@@ -428,7 +474,13 @@ describe('git.branch.rebase.continue', () => {
             // and either:
             // a) show them clearly in output, or
             // b) surface the git error about changes that need to be staged
-            expect(result.stdout).toMatchSnapshot();
+            // git's half is relayed, whatever its text on this host
+            expect(result.stdout).toMatch(
+              /└─ git\.output\n {6}├─\n {6}│\n {6}│ {2}\S/,
+            );
+            expect(
+              withGitOutputBodyScrubbed(withHostGitTextScrubbed(result.stdout)),
+            ).toMatchSnapshot();
 
             // if the skill properly detects unstaged changes:
             // expect(result.stdout).toContain('unstaged');

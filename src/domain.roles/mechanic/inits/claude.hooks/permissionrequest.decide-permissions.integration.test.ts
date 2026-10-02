@@ -1449,9 +1449,15 @@ describe('permissionrequest.decide-permissions.sh', () => {
         // fragile and a debug-noise blemish in a human-faced contract snapshot (the r5 i002
         // nitpick). the seam still emits the real jq cause to a live operator (fail-loud);
         // the snapshot pins the clean lead + a stable <JQ_CAUSE> placeholder.
+        // the `jq: ` lead varies by jq build, so the mask keys on `parse error:`
+        // and folds the optional lead into one stable token
         const masked = stderr
           .replace(/\/\S+settings\.json/g, '<SETTINGS>')
-          .replace(/jq: parse error:.*/g, 'jq: parse error: <JQ_CAUSE>');
+          .replace(/(?:jq: )?parse error:.*/g, '<JQ_CAUSE>');
+        // the mask fired: an unfired mask still yields a self-consistent snap
+        expect(masked).toContain('<JQ_CAUSE>');
+        // and no second volatile remains
+        expect(masked).not.toMatch(/line \d+, column \d+/);
         expect(masked).toMatchSnapshot();
       });
     });

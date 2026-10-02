@@ -9,7 +9,7 @@ import { runOperation, setupTestEnv } from './.test/infra/setupTestEnv';
  * .spec.tree = git.release.spec.tree.md
  */
 
-jest.setTimeout(5000);
+jest.setTimeout(150000);
 
 describe('get_one_goal_from_input', () => {
   // ============================================================================

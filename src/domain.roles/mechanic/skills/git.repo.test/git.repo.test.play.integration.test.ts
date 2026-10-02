@@ -244,6 +244,10 @@ exit 1
         )
         // sanitize rhachet versions: rhachet@1.40.7 -> rhachet@X.X.X
         .replace(/rhachet@\d+\.\d+\.\d+/g, 'rhachet@X.X.X')
+        // collapse a run of spinner ticks to one. the spinner emits a line
+        // per poll, so the count tracks host speed; one tick still pins that
+        // it rendered (rule.require.hermetic-tests)
+        .replace(/(^[^\n]*💤 inflight \(Xs\)\n)+/gm, '$1')
     );
   };
 

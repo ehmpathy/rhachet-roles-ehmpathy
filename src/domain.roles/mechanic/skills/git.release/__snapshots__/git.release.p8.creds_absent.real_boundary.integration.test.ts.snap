@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release :: the real external boundary, with no credential given: [case1] the real gh binary on PATH, and no credential reachable anywhere when: [t0] --mode apply reaches the credential gate then: the frame reads as a caller reads it 1`] = `
+{
+  "stderr": "<gh diagnostic>
+error: could not query github for open prs on 'turtle/feature-x'
+   └─ the cause is above; this is NOT the same as 'no pr found'
+",
+  "stdout": "",
+}
+`;

@@ -210,15 +210,34 @@ as_relative_path() {
 }
 
 # expand glob pattern to array of files
-# .note = uses compgen -G for safe glob expansion (handles escape sequences, no eval)
+#
+# .note = two passes; neither bash construct alone covers both globstar and
+#         escaped brackets. no `eval`: on a caller pattern in a delete tool,
+#         `eval` is arbitrary command execution.
 # .note = sorts results for consistent output order
 expand_glob_to_files() {
   local pattern="$1"
   local -n result_array=$2
   local file
+
+  # pass 1 — bash pathname expansion, which honors `globstar` and so reaches
+  # nested files. `compgen -G` ignores globstar and reads `**` as `*`.
+  # .note = `nullglob` can yield zero words; the `${a[@]+...}` guard keeps `set -u` safe
+  local -a expanded=($pattern)
   while IFS= read -r file; do
     [[ -f "$file" || -L "$file" ]] && result_array+=("$file")
-  done < <(compgen -G "$pattern" 2>/dev/null | sort)
+  done < <(printf '%s\n' ${expanded[@]+"${expanded[@]}"} | sort)
+
+  # pass 2 — a fallback, only where pass 1 matched no file. never a union, so
+  # it can never widen a delete that pass 1 settled.
+  # .why = pass 1 yields `doc.\[ref\].md` verbatim, backslashes kept, which
+  #        matches no file. `compgen -G` strips them. it also keeps a path with
+  #        spaces whole, which pass 1's word-split breaks apart.
+  if [[ ${#result_array[@]} -eq 0 ]]; then
+    while IFS= read -r file; do
+      [[ -f "$file" || -L "$file" ]] && result_array+=("$file")
+    done < <(compgen -G "$pattern" 2>/dev/null | sort)
+  fi
 }
 
 # check if index is last in array

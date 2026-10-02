@@ -1,6 +1,7 @@
 import { spawnSync } from 'child_process';
+import * as fs from 'fs';
 import * as path from 'path';
-import { given, then, when } from 'test-fns';
+import { genTempDir, given, then, when } from 'test-fns';
 
 /**
  * .what = integration tests for pretooluse.forbid-shouted-readme.sh
@@ -350,6 +351,12 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
         // fail-loud: the diagnostic must reach both streams (skill-output-streams)
         expect(result.stderr).toContain('received no input');
         expect(result.stdout).toContain('received no input');
+
+        // snapped, as the cross-repo hook's [case12][t1] is
+        expect({
+          stdout: result.stdout,
+          stderr: result.stderr,
+        }).toMatchSnapshot();
       });
     });
 
@@ -369,16 +376,86 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
     });
 
     when('[t2] malformed json (fail-open contract)', () => {
+      const result = spawnSync('bash', [scriptPath], {
+        encoding: 'utf-8',
+        input: '{ not valid json',
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+
       then('malformed json exits 0 with a loud warn on both streams', () => {
-        const result = spawnSync('bash', [scriptPath], {
-          encoding: 'utf-8',
-          input: '{ not valid json',
-          stdio: ['pipe', 'pipe', 'pipe'],
-        });
         expect(result.status).toBe(0);
         // fail-open but loud: warn the caller on both streams, never silently swallow
         expect(result.stderr).toContain('could not parse stdin as JSON');
         expect(result.stdout).toContain('could not parse stdin as JSON');
+      });
+
+      // the asserts prove the words; the snap shows the frame a caller reads
+      then('the fail-open warn frame reads as a caller reads it', () => {
+        expect({
+          stdout: result.stdout,
+          stderr: result.stderr,
+        }).toMatchSnapshot();
+      });
+    });
+
+    // .what = jq parses the input, then malfunctions on the EXTRACT
+    // .why  = the hook's two jq arms take opposite exits: parse fails open
+    //         ([t2]), extract fails closed and names the code
+    //         (rule.forbid.failhide). a real jq cannot fail the extract, so a
+    //         shim reaches it
+    when('[t3] jq parses, then malfunctions on the extract', () => {
+      const shimDir = genTempDir({ slug: 'jq-extract-malfunction' });
+      const shimPath = path.join(shimDir, 'jq');
+
+      // a jq whose IDENTITY probe (`jq .`) succeeds, and whose every other
+      // program exits 7 — the shape of a killed / out-of-memory jq
+      fs.writeFileSync(
+        shimPath,
+        [
+          '#!/usr/bin/env bash',
+          'if [[ "$1" == "." ]]; then cat >/dev/null; exit 0; fi',
+          'cat >/dev/null',
+          'exit 7',
+        ].join('\n'),
+      );
+      fs.chmodSync(shimPath, 0o755);
+
+      const result = spawnSync('bash', [scriptPath], {
+        encoding: 'utf-8',
+        input: JSON.stringify({
+          tool_name: 'Write',
+          tool_input: { file_path: 'readme.md', content: 'x' },
+        }),
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: { ...process.env, PATH: `${shimDir}:${process.env.PATH ?? ''}` },
+      });
+
+      then('it fails CLOSED with jq exit code, and names the code', () => {
+        expect({
+          exitCode: result.status,
+          // fail-closed: a PreToolUse nonzero blocks the tool call. the parse
+          // arm's exit 0 must NOT be reached here
+          saysParseWarn: (result.stdout ?? '').includes(
+            'could not parse stdin as JSON',
+          ),
+          saysError: (result.stderr ?? '').includes('unexpected jq failure'),
+          namesTheCode: (result.stderr ?? '').includes('exit 7'),
+          // both streams carry it (rule.require.skill-output-streams)
+          onStdout: (result.stdout ?? '').includes('unexpected jq failure'),
+        }).toEqual({
+          exitCode: 7,
+          saysParseWarn: false,
+          saysError: true,
+          namesTheCode: true,
+          onStdout: true,
+        });
+      });
+
+      then('the malfunction frame reads as a caller reads it', () => {
+        expect({
+          stdout: result.stdout,
+          stderr: result.stderr,
+        }).toMatchSnapshot();
       });
     });
   });

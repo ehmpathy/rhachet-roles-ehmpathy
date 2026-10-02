@@ -89,17 +89,19 @@ if ! command -v jq >/dev/null; then
   exit 2
 fi
 
-# extract tool name. jq is confirmed present above and the jq program is a fixed literal
-# that always compiles — so the single expected failure is a malformed-JSON parse error.
-# jq reports an input/parse error as exit 2 (jq <=1.6) or 5 (jq >=1.7); allowlist both
-# and fail-open loud. any other nonzero is an unexpected jq failure — rethrow it (re-exit
-# with jq's own code) rather than hide it
-JQ_STATUS=0
-TOOL_NAME=$(echo "$STDIN_INPUT" | jq -r '.tool_name // empty') || JQ_STATUS=$?
-if [[ $JQ_STATUS -eq 2 || $JQ_STATUS -eq 5 ]]; then
+# .what = test parseability directly, never via jq's exit code
+# .why  = jq's parse-error code varies by build (2, 4, 5). a code table goes stale
+#         silently, and a PreToolUse hook that exits nonzero blocks the tool call,
+#         so a stale table turns this fail-open hook fail-closed.
+# .note = `jq .` always compiles, so its only failure is unparseable input
+if ! echo "$STDIN_INPUT" | jq . >/dev/null 2>&1; then
   emit_both "WARN: PreToolUse hook could not parse stdin as JSON; allow tool call"
   exit 0
 fi
+
+# extract tool name. input parsed above, so a nonzero here is a jq malfunction. surface it
+JQ_STATUS=0
+TOOL_NAME=$(echo "$STDIN_INPUT" | jq -r '.tool_name // empty') || JQ_STATUS=$?
 if [[ $JQ_STATUS -ne 0 ]]; then
   emit_both "ERROR: PreToolUse hook hit an unexpected jq failure (exit $JQ_STATUS)"
   exit "$JQ_STATUS"
