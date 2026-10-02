@@ -1090,13 +1090,13 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
 
     /**
      * .what = two claims, each blind to what the other catches
-     *   1. SCALE — 500 rules cost at most MAX_SCALE_FACTOR× what 2 rules cost.
-     *      catches a per-rule subprocess or a quadratic match, and divides out
-     *      the host load both arms pay
+     *   1. SCALE — 500 rules cost at most MAX_SCALE_FACTOR× what 250 rules
+     *      cost. linear work doubles; a quadratic match quadruples. the ratio
+     *      divides out the host load both arms pay
      *   2. ABSOLUTE — the hook finishes in human time. catches a fixed-cost
      *      regression, which a ratio cannot see
      */
-    const MAX_SCALE_FACTOR = 10;
+    const MAX_SCALE_FACTOR = 3;
 
     /**
      * .what = the absolute bound
@@ -1134,7 +1134,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
       }> = [];
 
       for (let i = 0; i < REPEATS; i++) {
-        controls.push(runWithRuleCount({ ruleCount: 2, ...input }));
+        controls.push(runWithRuleCount({ ruleCount: 250, ...input }));
         subjects.push(runWithRuleCount({ ruleCount: 500, ...input }));
       }
 
@@ -1163,7 +1163,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           expect(control.status).toBe(0);
           expect(subject.status).toBe(0);
 
-          // claim 1 — SCALE: the cost of 500 rules over the cost of 2
+          // claim 1 — SCALE: the cost of 500 rules over the cost of 250
           expect(subjectMedian).toBeLessThan(controlMedian * MAX_SCALE_FACTOR);
 
           // claim 2 — ABSOLUTE: a fixed-cost regression the ratio cannot see
@@ -1185,7 +1185,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           expect(control.stderr).toContain('BLOCKED');
           expect(subject.stderr).toContain('BLOCKED');
 
-          // claim 1 — SCALE: the cost of 500 rules over the cost of 2
+          // claim 1 — SCALE: the cost of 500 rules over the cost of 250
           expect(subjectMedian).toBeLessThan(controlMedian * MAX_SCALE_FACTOR);
 
           // claim 2 — ABSOLUTE: a fixed-cost regression the ratio cannot see

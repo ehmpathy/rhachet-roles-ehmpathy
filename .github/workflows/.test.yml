@@ -220,6 +220,11 @@ jobs:
       - name: install rsync (for act)
         run: command -v rsync || sudo apt-get update && sudo apt-get install -y rsync
 
+      # .why = grepsafe searches with rg only and refuses where rg is absent;
+      #        the ubuntu runner ships no rg, so provision it for the suites
+      - name: install ripgrep (for grepsafe)
+        run: command -v rg || (sudo apt-get update && sudo apt-get install -y ripgrep)
+
       - name: build
         run: npm run build
 
@@ -300,6 +305,11 @@ jobs:
 
       - name: install rsync (for act)
         run: command -v rsync || sudo apt-get update && sudo apt-get install -y rsync
+
+      # .why = grepsafe searches with rg only and refuses where rg is absent;
+      #        the ubuntu runner ships no rg, so provision it for the suites
+      - name: install ripgrep (for grepsafe)
+        run: command -v rg || (sudo apt-get update && sudo apt-get install -y ripgrep)
 
       - name: build
         run: npm run build

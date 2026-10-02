@@ -193,9 +193,12 @@ describe('git.release :: the real external boundary, with no credential', () => 
 
         then('the real gh auth failure reaches the caller', () => {
           // the real gh text reaches the caller (rule.require.failloud), which
-          // also shows no mock stood in
+          // also shows no mock stood in.
+          // .note = gh names its auth remedy per host: `gh auth login` on a
+          //         dev box, `GH_TOKEN` inside github actions. either one is
+          //         the real gh cause
           expect({
-            carriesTheRealGhCause: result.stderr.includes('gh auth login'),
+            carriesTheRealGhCause: /gh auth login|GH_TOKEN/.test(result.stderr),
             namesTheQueryThatFailed: result.stderr.includes(
               'could not query github',
             ),
