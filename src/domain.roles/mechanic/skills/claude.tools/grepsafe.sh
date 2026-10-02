@@ -961,6 +961,13 @@ print_grepsafe_header() {
   print_tree_branch "engine" "$RG_BIN"
 }
 
+# .what = the diagnostics rg wrote into one stderr capture file
+# .why  = some rg builds prefix each diagnostic with `rg: ` and some do not;
+#         strip it, so one frame renders on every build
+get_rg_diag() {
+  sed 's/^rg: //' "$1"
+}
+
 # run the search, one rg per leg. stdout and stderr are captured apart, so a
 # diagnostic never counts as a match.
 #
@@ -982,7 +989,7 @@ INPUT_REFUSED=false
 # can only be a bad input
 if [[ "$STDIN_MODE" == true ]]; then
   OUTPUT=$("${CMD_BASE[@]}" -e "$PATTERN" - <"$STDIN_FILE" 2>"$DIAG_FILE") && STDIN_STATUS=0 || STDIN_STATUS=$?
-  DIAGNOSTICS=$(cat "$DIAG_FILE")
+  DIAGNOSTICS=$(get_rg_diag "$DIAG_FILE")
   [[ "$STDIN_STATUS" -ge 2 ]] && INPUT_REFUSED=true
 fi
 
@@ -990,7 +997,7 @@ for LEG in "${!LEG_ROOTS[@]}"; do
   build_leg_cmd "$LEG" "${LEG_ROOTS[$LEG]}"
   # a failed `cd` exits 2, never 1: a 1 would read as a clean zero
   LEG_OUTPUT=$(cd "${LEG_CWDS[$LEG]}" || exit 2; "${LEG_CMD[@]}" 2>"$DIAG_FILE") && LEG_STATUS=0 || LEG_STATUS=$?
-  LEG_DIAG=$(cat "$DIAG_FILE")
+  LEG_DIAG=$(get_rg_diag "$DIAG_FILE")
 
   # the union: a separator between legs keeps --context blocks apart
   if [[ -n "$LEG_OUTPUT" ]]; then
@@ -1070,7 +1077,7 @@ if [[ "$INPUT_REFUSED" == true ]]; then
     # the refusal shows its evidence: where the main run's stderr is empty,
     # the probe's (sorted, same parallel walk) explains it
     if [[ -z "$DIAGNOSTICS_REL" ]]; then
-      DIAGNOSTICS_REL=$(as_repo_relative "$(LC_ALL=C sort "$PROBE_DIAG_FILE")")
+      DIAGNOSTICS_REL=$(as_repo_relative "$(get_rg_diag "$PROBE_DIAG_FILE" | LC_ALL=C sort)")
     fi
     REFUSAL_FIX="fix: correct the input named above — check --pattern, --glob, and --type"
     REFUSAL_VIBES=$({
@@ -1149,7 +1156,7 @@ diagnose_zero_kind() {
     file_hits="${file_hits}${leg_hits}"
     [[ "$leg_status" -gt "$files_status" ]] && files_status=$leg_status
     # sorted, like every rg stderr capture it joins
-    leg_diag=$(LC_ALL=C sort "$FILES_DIAG_FILE")
+    leg_diag=$(get_rg_diag "$FILES_DIAG_FILE" | LC_ALL=C sort)
     files_diag="${files_diag}${files_diag:+${leg_diag:+$'\n'}}${leg_diag}"
   done
 

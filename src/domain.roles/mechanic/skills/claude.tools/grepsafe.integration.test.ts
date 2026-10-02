@@ -2447,6 +2447,71 @@ describe('grepsafe.sh', () => {
       });
     });
 
+    // some rg builds (e.g. debian's 14.1.0) prefix each diagnostic with `rg: `
+    // and some do not. the rendered frame must not depend on which one is on
+    // PATH, or the snapshots above pass on one host and fail on the next
+    when('[t3] an rg build that prefixes its diagnostics with `rg: `', () => {
+      then('the refusal renders identically to an unprefixed rg', () => {
+        // a scratch bin whose 'rg' runs the real rg and prefixes its stderr
+        const realRg = spawnSync('bash', ['-c', 'command -v rg'], {
+          encoding: 'utf-8',
+        }).stdout.trim();
+        const shadowDir = genTempDirTracked({ slug: 'grepsafe-rg-prefixed' });
+        const wrapper = path.join(shadowDir, 'rg');
+        fs.writeFileSync(
+          wrapper,
+          [
+            '#!/usr/bin/env bash',
+            'errf=$(mktemp)',
+            `"${realRg}" "$@" 2>"$errf"`,
+            'status=$?',
+            "sed 's/^/rg: /' \"$errf\" >&2",
+            'rm -f "$errf"',
+            'exit $status',
+            '',
+          ].join('\n'),
+        );
+        fs.chmodSync(wrapper, 0o755);
+
+        const repoDir = genTempDirTracked({
+          slug: 'grepsafe-fatal-prefixed',
+          git: true,
+        });
+        fs.writeFileSync(path.join(repoDir, 'a.txt'), `${KNOWN}\n`);
+        const runWith = (env: NodeJS.ProcessEnv): string =>
+          (
+            spawnSync(
+              'bash',
+              [scriptPath, '--pattern', KNOWN, '--type', 'nosuchtype'],
+              {
+                cwd: repoDir,
+                encoding: 'utf-8', // node api param name
+                stdio: ['pipe', 'pipe', 'pipe'],
+                env,
+              },
+            ).stdout ?? ''
+          )
+            .split(repoDir)
+            .join('<repo>');
+
+        const outPrefixed = runWith({
+          ...process.env,
+          PATH: `${shadowDir}:${process.env.PATH ?? ''}`,
+        });
+        const outBare = runWith(process.env);
+
+        // the control: the wrapper really did prefix, or this proves naught
+        expect(
+          spawnSync(wrapper, ['--type', 'nosuchtype', 'x'], {
+            encoding: 'utf-8',
+          }).stderr,
+        ).toMatch(/^rg: /);
+
+        expect(outPrefixed).not.toContain('rg: unrecognized');
+        expect(outPrefixed).toEqual(outBare);
+      });
+    });
+
     when('[t1] the engine runs cleanly and matches naught', () => {
       // the control: a skill that exits 2 on every zero would pass [t0]
       then('a true zero still reports a count and exits 0', () => {
