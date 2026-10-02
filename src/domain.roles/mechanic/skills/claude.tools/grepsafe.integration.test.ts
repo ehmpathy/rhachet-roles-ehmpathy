@@ -2452,7 +2452,9 @@ describe('grepsafe.sh', () => {
     // PATH, or the snapshots above pass on one host and fail on the next
     when('[t3] an rg build that prefixes its diagnostics with `rg: `', () => {
       then('the refusal renders identically to an unprefixed rg', () => {
-        // a scratch bin whose 'rg' runs the real rg and prefixes its stderr
+        // a scratch bin whose 'rg' runs the real rg and prefixes its stderr.
+        // .note = only where absent: a host rg that already prefixes must not
+        //         gain a second `rg: `, which no real build emits
         const realRg = spawnSync('bash', ['-c', 'command -v rg'], {
           encoding: 'utf-8',
         }).stdout.trim();
@@ -2465,7 +2467,7 @@ describe('grepsafe.sh', () => {
             'errf=$(mktemp)',
             `"${realRg}" "$@" 2>"$errf"`,
             'status=$?',
-            'sed \'s/^/rg: /\' "$errf" >&2',
+            'sed \'/^rg: /!s/^/rg: /\' "$errf" >&2',
             'rm -f "$errf"',
             'exit $status',
             '',
