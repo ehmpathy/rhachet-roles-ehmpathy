@@ -2465,7 +2465,7 @@ describe('grepsafe.sh', () => {
             'errf=$(mktemp)',
             `"${realRg}" "$@" 2>"$errf"`,
             'status=$?',
-            "sed 's/^/rg: /' \"$errf\" >&2",
+            'sed \'s/^/rg: /\' "$errf" >&2',
             'rm -f "$errf"',
             'exit $status',
             '',
