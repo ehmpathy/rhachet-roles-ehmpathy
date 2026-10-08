@@ -3,7 +3,7 @@ import { given, then, useThen, when } from 'test-fns';
 import { clusterKernels, mergeAndClusterKernels } from './clusterKernels';
 import type { ConceptKernel } from './extractKernels';
 
-const BRAIN_SLUG = 'fireworks/deepseek/v4-flash';
+const BRAIN_SLUG = 'openrouter/deepseek/flash';
 
 describe.skip('clusterKernels', () => {
   given('[case1] kernels that express the same concept', () => {

@@ -6,7 +6,7 @@ import { given, then, useThen, when } from 'test-fns';
 import {
   genTestDir,
   genWebfetchStdin,
-  invokePostToolUseHook,
+  invokeHook,
   REPEATABLY_CONFIG_LLM,
 } from './.test/invokeHook';
 
@@ -40,7 +40,7 @@ describe('guardBorder.onWebfetch - injection FRONT (acceptance)', () => {
           response: injection + FIXTURE_WIKIPEDIA_SEATURTLES,
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
@@ -67,7 +67,7 @@ describe('guardBorder.onWebfetch - injection FRONT (acceptance)', () => {
           response: injection + FIXTURE_WIKIPEDIA_SEATURTLES,
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
@@ -93,7 +93,7 @@ describe('guardBorder.onWebfetch - injection FRONT (acceptance)', () => {
           response: injection + FIXTURE_WIKIPEDIA_SEATURTLES,
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,

@@ -1,0 +1,21 @@
+{
+  "key": "e1628744077a1e82",
+  "kind": "create",
+  "repo": {
+    "owner": "ehmpathy",
+    "name": "rhachet"
+  },
+  "exid": null,
+  "title": "feat(brain-hooks): add a PermissionRequest event so a role can declare a permission-prompt hook",
+  "description": "## what\n\nadd a `PermissionRequest` brain-hook event to the rhachet role contract — a peer of `onTool`, or\nan `onTool` filter value — so a role can declare a PermissionRequest hook and `roles boot`\ngenerates its `.claude/settings.json` entry.\n\n## why\n\n`ehmpathy/rhachet-roles-ehmpathy` ships `permissionrequest.decide-permissions.sh`, which\nauto-decides suspicious-classified permission prompts. the contract today holds only `onBoot`,\n`onTool` (PreToolUse), and `onStop`, so the hook is registered by a hand-written settings.json\nentry (#576). that entry has no role source: a stale settings.json can carry a broken path for\nit with no role-level check to catch it, and a hook that never runs retires its gate in silence.\n\n## shape\n\n1. add the event to the brain-hook contract and the claude-code adapter (`PermissionRequest`,\n   with a matcher such as `Bash`)\n2. the mechanic role then declares it via `asHookCommand('permissionrequest.decide-permissions')`\n   beside its other hooks\n3. the role repo retires the hand-written entry — verify byte-identical first, so consumer\n   repos see no churn\n\n## evidence\n\n`.agent/repo=.this/role=user/briefs/brains/howto.use.brain.hooks.md:10-16,96-103` lists the three\nevents the contract holds today.",
+  "status": null,
+  "via": "gh.issues",
+  "auth": null,
+  "idem": "findsert",
+  "heldAt": "2026-10-07T15:22:44Z",
+  "heldSeq": 3,
+  "recordStatus": "DELIVERED",
+  "reason": null,
+  "settledAt": "2026-10-08T07:53:37Z",
+  "deliveredExid": "586"
+}

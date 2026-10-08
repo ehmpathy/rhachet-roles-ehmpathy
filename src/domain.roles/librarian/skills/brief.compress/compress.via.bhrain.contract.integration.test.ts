@@ -115,7 +115,7 @@ describe.skip('compress.via.bhrain.contract', () => {
 
       then('shows default brain in via', () => {
         expect(result.stdout).toContain(
-          'via: bhrain/sitrep@fireworks/deepseek/v4-flash',
+          'via: bhrain/sitrep@openrouter/deepseek/flash',
         );
       });
 
@@ -242,16 +242,16 @@ describe.skip('compress.via.bhrain.contract', () => {
         }),
       );
 
-      then('defaults to fireworks/deepseek/v4-flash', () => {
+      then('defaults to openrouter/deepseek/flash', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain(
-          'via: bhrain/sitrep@fireworks/deepseek/v4-flash',
+          'via: bhrain/sitrep@openrouter/deepseek/flash',
         );
       });
     });
 
     when(
-      '[t1] --via bhrain/sitrep@fireworks/deepseek/v4-flash (explicit)',
+      '[t1] --via bhrain/sitrep@openrouter/deepseek/flash (explicit)',
       () => {
         const result = useThen('compression completes', () =>
           runInTempGitRepo({
@@ -262,7 +262,7 @@ describe.skip('compress.via.bhrain.contract', () => {
               '--from',
               'brief.md',
               '--via',
-              'bhrain/sitrep@fireworks/deepseek/v4-flash',
+              'bhrain/sitrep@openrouter/deepseek/flash',
               '--mode',
               'plan',
             ],
@@ -272,7 +272,7 @@ describe.skip('compress.via.bhrain.contract', () => {
         then('uses specified brain', () => {
           expect(result.exitCode).toBe(0);
           expect(result.stdout).toContain(
-            'via: bhrain/sitrep@fireworks/deepseek/v4-flash',
+            'via: bhrain/sitrep@openrouter/deepseek/flash',
           );
         });
       },
@@ -290,7 +290,7 @@ describe.skip('compress.via.bhrain.contract', () => {
             '--from',
             'brief.md',
             '--via',
-            '@fireworks/deepseek/v4-flash',
+            '@openrouter/deepseek/flash',
           ],
         });
 

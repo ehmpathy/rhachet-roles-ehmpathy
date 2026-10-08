@@ -2,7 +2,7 @@ import { execSync } from 'child_process';
 import fg from 'fast-glob';
 import { existsSync } from 'fs';
 import { resolve } from 'path';
-import { genTempDir } from 'test-fns';
+import { genTempDir, given, then, useThen, when } from 'test-fns';
 
 import { type BootYml, bootYmlTestKit } from '../.test/bootYml.testkit';
 
@@ -12,8 +12,9 @@ import { type BootYml, bootYmlTestKit } from '../.test/bootYml.testkit';
  *        and that boot.yml stays consistent with the briefs + skills on disk
  * .note = classified integration: the consistency block reads the filesystem
  *         (fast-glob, existsSync, boot.yml parse), a remote boundary forbidden in
- *         unit tests per rule.forbid.unit.remote-boundaries. the CLI block is
- *         skipped (requires .agent symlinks that CI doesn't create).
+ *         unit tests per rule.forbid.unit.remote-boundaries. the CLI block runs the real
+ *         `rhachet roles boot` against the built `.agent/` links, which the build creates
+ *         (the hooks-reachable suite reads the same links)
  */
 
 const roleDirRel = '.agent/repo=ehmpathy/role=mechanic';
@@ -45,124 +46,136 @@ const parseStats = (
   return { briefs: { say, ref }, total: say + ref, tokens };
 };
 
-describe.skip('boot.yml integration', () => {
-  it('should boot with --subject code.test and return always + test briefs', () => {
-    const output = execBoot({ args: '--subject code.test' });
-    const stats = parseStats(output);
+describe('boot.yml integration', () => {
+  given('[case1] the mechanic role, booted by subject', () => {
+    when('[t0] the boot asks for --subject code.test', () => {
+      const boot = useThen('the boot succeeds', () => ({
+        output: execBoot({ args: '--subject code.test' }),
+      }));
 
-    // always has 12 say + 9 ref = 21 briefs
-    // code.test has 10 say + 6 ref = 16 briefs
-    // total = 37 briefs
-    expect(stats.total).toBeGreaterThanOrEqual(30);
-    expect(stats.briefs.say).toBeGreaterThan(0);
-    expect(stats.briefs.ref).toBeGreaterThan(0);
+      then('it returns always + test briefs', () => {
+        const output = boot.output;
+        const stats = parseStats(output);
 
-    // should contain test-specific briefs
-    expect(output).toContain('code.test');
+        // always has 12 say + 9 ref = 21 briefs
+        // code.test has 10 say + 6 ref = 16 briefs
+        // total = 37 briefs
+        expect(stats.total).toBeGreaterThanOrEqual(30);
+        expect(stats.briefs.say).toBeGreaterThan(0);
+        expect(stats.briefs.ref).toBeGreaterThan(0);
 
-    console.log(
-      `  [code.test] ${stats.briefs.say} say + ${stats.briefs.ref} ref = ${stats.total} briefs, ~${stats.tokens} tokens`,
-    );
-  });
+        // should contain test-specific briefs
+        expect(output).toContain('code.test');
 
-  it('should boot with --subject code.prod and return always + prod briefs', () => {
-    const output = execBoot({ args: '--subject code.prod' });
-    const stats = parseStats(output);
+        console.log(
+          `  [code.test] ${stats.briefs.say} say + ${stats.briefs.ref} ref = ${stats.total} briefs, ~${stats.tokens} tokens`,
+        );
+      });
 
-    // always + code.prod should be significantly more than always alone
-    expect(stats.total).toBeGreaterThanOrEqual(60);
-    expect(stats.briefs.say).toBeGreaterThan(0);
-    expect(stats.briefs.ref).toBeGreaterThan(0);
+      then('say briefs are emitted with full content', () => {
+        // say briefs should appear as <brief.say> tags with content
+        expect(boot.output).toMatch(/<brief\.say\b/);
+      });
 
-    // should contain prod-specific briefs
-    expect(output).toContain('code.prod');
-
-    console.log(
-      `  [code.prod] ${stats.briefs.say} say + ${stats.briefs.ref} ref = ${stats.total} briefs, ~${stats.tokens} tokens`,
-    );
-  });
-
-  it('should emit say briefs with full content', () => {
-    const output = execBoot({ args: '--subject code.test' });
-
-    // say briefs should appear as <brief.say> tags with content
-    expect(output).toMatch(/<brief\.say\b/);
-  });
-
-  it('should emit ref briefs as path-only links', () => {
-    const output = execBoot({ args: '--subject code.test' });
-
-    // ref briefs should appear as <brief.ref> tags (path only, no content)
-    expect(output).toMatch(/<brief\.ref\b/);
-  });
-
-  it('should fail fast on unrecognized --subject', () => {
-    expect(() => execBoot({ args: '--subject nonexistent' })).toThrow();
-  });
-
-  it('should use fewer tokens with boot.yml than without', () => {
-    // set up a temp dir that mirrors the role dir structure
-    const tempDir = genTempDir({
-      slug: 'boot-yml-token-compare',
-      symlink: [
-        { at: 'node_modules', to: 'node_modules' },
-        {
-          at: '.agent/repo=ehmpathy/role=mechanic/briefs',
-          to: `${roleDirRel}/briefs`,
-        },
-        {
-          at: '.agent/repo=ehmpathy/role=mechanic/skills',
-          to: `${roleDirRel}/skills`,
-        },
-        {
-          at: '.agent/repo=ehmpathy/role=mechanic/readme.md',
-          to: `${roleDirRel}/readme.md`,
-        },
-      ],
+      then('ref briefs are emitted as path-only links', () => {
+        // ref briefs should appear as <brief.ref> tags (path only, no content)
+        expect(boot.output).toMatch(/<brief\.ref\b/);
+      });
     });
 
-    // sanity: the temp dir should NOT have a boot.yml
-    expect(
-      existsSync(
-        resolve(tempDir, '.agent/repo=ehmpathy/role=mechanic/boot.yml'),
-      ),
-    ).toBe(false);
+    when('[t1] the boot asks for --subject code.prod', () => {
+      then('it returns always + prod briefs', () => {
+        const output = execBoot({ args: '--subject code.prod' });
+        const stats = parseStats(output);
 
-    // boot WITHOUT boot.yml -> all briefs as say
-    const withoutBootYml = execBoot({ args: '', cwd: tempDir });
-    const statsWithout = parseStats(withoutBootYml);
+        // always + code.prod should be significantly more than always alone
+        expect(stats.total).toBeGreaterThanOrEqual(60);
+        expect(stats.briefs.say).toBeGreaterThan(0);
+        expect(stats.briefs.ref).toBeGreaterThan(0);
 
-    // now add boot.yml and boot WITH it
-    execSync(
-      [
-        'ln -s',
-        `${roleDir}/boot.yml`,
-        `${resolve(tempDir, '.agent/repo=ehmpathy/role=mechanic/boot.yml')}`,
-      ].join(' '),
-    );
+        // should contain prod-specific briefs
+        expect(output).toContain('code.prod');
 
-    // boot WITH boot.yml -> say/ref split applied
-    const withBootYml = execBoot({ args: '', cwd: tempDir });
-    const statsWith = parseStats(withBootYml);
+        console.log(
+          `  [code.prod] ${stats.briefs.say} say + ${stats.briefs.ref} ref = ${stats.total} briefs, ~${stats.tokens} tokens`,
+        );
+      });
+    });
 
-    const saved = statsWithout.tokens - statsWith.tokens;
-    const pct = Math.round((saved / statsWithout.tokens) * 100);
+    when('[t2] the boot asks for an unrecognized --subject', () => {
+      then('it fails fast', () => {
+        expect(() => execBoot({ args: '--subject nonexistent' })).toThrow();
+      });
+    });
+  });
 
-    console.log(
-      [
-        `  [token compare]`,
-        `    without boot.yml: ${statsWithout.briefs.say} say + ${statsWithout.briefs.ref} ref = ${statsWithout.total} briefs, ~${statsWithout.tokens} tokens`,
-        `    with    boot.yml: ${statsWith.briefs.say} say + ${statsWith.briefs.ref} ref = ${statsWith.total} briefs, ~${statsWith.tokens} tokens`,
-        `    saved: ~${saved} tokens (-${pct}%)`,
-      ].join('\n'),
-    );
+  given('[case2] a role dir with and without boot.yml', () => {
+    when('[t0] the role boots both ways', () => {
+      then('boot.yml uses fewer tokens than without', () => {
+        // set up a temp dir that mirrors the role dir structure
+        const tempDir = genTempDir({
+          slug: 'boot-yml-token-compare',
+          symlink: [
+            { at: 'node_modules', to: 'node_modules' },
+            {
+              at: '.agent/repo=ehmpathy/role=mechanic/briefs',
+              to: `${roleDirRel}/briefs`,
+            },
+            {
+              at: '.agent/repo=ehmpathy/role=mechanic/skills',
+              to: `${roleDirRel}/skills`,
+            },
+            {
+              at: '.agent/repo=ehmpathy/role=mechanic/readme.md',
+              to: `${roleDirRel}/readme.md`,
+            },
+          ],
+        });
 
-    // with boot.yml should use fewer tokens (ref briefs are path-only)
-    expect(statsWith.tokens).toBeLessThan(statsWithout.tokens);
+        // sanity: the temp dir should NOT have a boot.yml
+        expect(
+          existsSync(
+            resolve(tempDir, '.agent/repo=ehmpathy/role=mechanic/boot.yml'),
+          ),
+        ).toBe(false);
 
-    // with boot.yml should have some ref briefs (without has none)
-    expect(statsWith.briefs.ref).toBeGreaterThan(0);
-    expect(statsWithout.briefs.ref).toBe(0);
+        // boot WITHOUT boot.yml -> all briefs as say
+        const withoutBootYml = execBoot({ args: '', cwd: tempDir });
+        const statsWithout = parseStats(withoutBootYml);
+
+        // now add boot.yml and boot WITH it
+        execSync(
+          [
+            'ln -s',
+            `${roleDir}/boot.yml`,
+            `${resolve(tempDir, '.agent/repo=ehmpathy/role=mechanic/boot.yml')}`,
+          ].join(' '),
+        );
+
+        // boot WITH boot.yml -> say/ref split applied
+        const withBootYml = execBoot({ args: '', cwd: tempDir });
+        const statsWith = parseStats(withBootYml);
+
+        const saved = statsWithout.tokens - statsWith.tokens;
+        const pct = Math.round((saved / statsWithout.tokens) * 100);
+
+        console.log(
+          [
+            `  [token compare]`,
+            `    without boot.yml: ${statsWithout.briefs.say} say + ${statsWithout.briefs.ref} ref = ${statsWithout.total} briefs, ~${statsWithout.tokens} tokens`,
+            `    with    boot.yml: ${statsWith.briefs.say} say + ${statsWith.briefs.ref} ref = ${statsWith.total} briefs, ~${statsWith.tokens} tokens`,
+            `    saved: ~${saved} tokens (-${pct}%)`,
+          ].join('\n'),
+        );
+
+        // with boot.yml should use fewer tokens (ref briefs are path-only)
+        expect(statsWith.tokens).toBeLessThan(statsWithout.tokens);
+
+        // with boot.yml should have some ref briefs (without has none)
+        expect(statsWith.briefs.ref).toBeGreaterThan(0);
+        expect(statsWithout.briefs.ref).toBe(0);
+      });
+    });
   });
 });
 
@@ -233,126 +246,144 @@ const isEntryPoint = (skillPath: string): boolean => {
 };
 
 describe('boot.yml consistency', () => {
-  const bootYml = bootYmlTestKit.parse({ path: bootYmlPath });
+  given('[case1] the mechanic boot.yml on disk', () => {
+    when('[t0] it is parsed and checked against briefs/ and skills/', () => {
+      const bootYml = bootYmlTestKit.parse({ path: bootYmlPath });
 
-  it('should parse as valid yaml', () => {
-    expect(bootYml).toBeDefined();
-    expect(typeof bootYml).toBe('object');
-  });
+      then('parse as valid yaml', () => {
+        expect(bootYml).toBeDefined();
+        expect(typeof bootYml).toBe('object');
+      });
 
-  it('should declare the expected subjects', () => {
-    const subjects = Object.keys(bootYml);
-    expect(subjects).toContain('always');
-    expect(subjects).toContain('subject.code.prod');
-    expect(subjects).toContain('subject.code.test');
-    expect(subjects).toContain('subject.arch');
-    expect(subjects).toContain('subject.flow');
-  });
+      then('declare the expected subjects', () => {
+        const subjects = Object.keys(bootYml);
+        expect(subjects).toContain('always');
+        expect(subjects).toContain('subject.code.prod');
+        expect(subjects).toContain('subject.code.test');
+        expect(subjects).toContain('subject.arch');
+        expect(subjects).toContain('subject.flow');
+      });
 
-  it('should have every brief path point to a file on disk', () => {
-    const allPaths = bootYmlTestKit.collectAllBriefPaths({ bootYml });
-    const absent = allPaths.filter((briefPath) => {
-      const fullPath = resolve(__dirname, briefPath);
-      return !existsSync(fullPath);
+      then('have every brief path point to a file on disk', () => {
+        const allPaths = bootYmlTestKit.collectAllBriefPaths({ bootYml });
+        const absent = allPaths.filter((briefPath) => {
+          const fullPath = resolve(__dirname, briefPath);
+          return !existsSync(fullPath);
+        });
+        expect(absent).toEqual([]);
+      });
+
+      then('not have any brief appear twice within the same subject', () => {
+        const perSubject = bootYmlTestKit.collectBriefPathsPerSubject({
+          bootYml,
+        });
+        const duplicates = bootYmlTestKit.findDuplicateBriefPaths({
+          perSubject,
+        });
+        expect(duplicates).toEqual([]);
+      });
+
+      then(
+        'account for every brief file in briefs/ in at least one subject',
+        () => {
+          const briefFilesOnDisk = fg.sync('**/*.md', {
+            cwd: briefsDir,
+            onlyFiles: true,
+          });
+
+          const allBootPaths = new Set(
+            bootYmlTestKit
+              .collectAllBriefPaths({ bootYml })
+              .map((bootPath) =>
+                bootYmlTestKit.asOnDiskBriefPath({ bootPath }),
+              ),
+          );
+
+          const unaccounted = briefFilesOnDisk.filter(
+            (file) => !allBootPaths.has(file),
+          );
+
+          // readme files at directory roots are not expected in boot.yml
+          const unaccountedNonReadme = unaccounted.filter(
+            (file) => !bootYmlTestKit.isReadmeFile({ file }),
+          );
+
+          expect(unaccountedNonReadme).toEqual([]);
+        },
+      );
+
+      then(
+        'not have a brief in both say and ref within the same subject',
+        () => {
+          const conflicts = bootYmlTestKit.findSayRefConflicts({ bootYml });
+          expect(conflicts).toEqual([]);
+        },
+      );
+
+      then('force-load every lang.prose brief as say', () => {
+        // the lang.prose overlay declares blocker-severity rules. a blocker rule
+        // that boots only as a ref pointer has zero default effect — the wish's
+        // core verb ("entrain into the mechanic") goes unmet. this cluster
+        // regressed once already (8 unaccounted files), so every non-readme
+        // lang.prose brief on disk must appear in the always subject's say list.
+        const proseFilesOnDisk = fg
+          .sync('practices/lang.prose/**/*.md', {
+            cwd: briefsDir,
+            onlyFiles: true,
+          })
+          .filter((file) => !bootYmlTestKit.isReadmeFile({ file }));
+
+        // floor: a zero-match glob makes the containment check vacuously pass and
+        // masks a renamed/moved/absent cluster. fail loud when the cluster is gone.
+        expect(proseFilesOnDisk.length).toBeGreaterThan(0);
+
+        // on-disk files are relative to briefsDir (no prefix); boot.yml say paths
+        // carry a `briefs/` prefix. asOnDiskBriefPath aligns both to one path space.
+        const sayBootPaths = new Set(
+          bootYmlTestKit
+            .collectAlwaysSayBriefPaths({ bootYml })
+            .map((bootPath) => bootYmlTestKit.asOnDiskBriefPath({ bootPath })),
+        );
+
+        const unsaid = proseFilesOnDisk.filter(
+          (file) => !sayBootPaths.has(file),
+        );
+
+        expect(unsaid).toEqual([]);
+      });
+
+      then('have every skill path in boot.yml point to a file on disk', () => {
+        const allSkillPaths = collectAllSkillPaths(bootYml);
+        const absent = allSkillPaths.filter((skillPath) => {
+          const fullPath = resolve(__dirname, skillPath);
+          return !existsSync(fullPath);
+        });
+        expect(absent).toEqual([]);
+      });
+
+      then('account for every entry-point skill in skills/', () => {
+        const skillFilesOnDisk = fg.sync('**/*.sh', {
+          cwd: skillsDir,
+          onlyFiles: true,
+        });
+
+        // filter out internal/helper skills that are not entry points
+        const entryPointSkills = skillFilesOnDisk.filter(
+          (file) =>
+            !INTERNAL_SKILL_PATTERNS.some((pattern) => pattern.test(file)) &&
+            isEntryPoint(file),
+        );
+
+        const allBootPaths = new Set(
+          collectAllSkillPaths(bootYml).map((p) => p.replace(/^skills\//, '')),
+        );
+
+        const unaccounted = entryPointSkills.filter(
+          (file) => !allBootPaths.has(file),
+        );
+
+        expect(unaccounted).toEqual([]);
+      });
     });
-    expect(absent).toEqual([]);
-  });
-
-  it('should not have any brief appear twice within the same subject', () => {
-    const perSubject = bootYmlTestKit.collectBriefPathsPerSubject({ bootYml });
-    const duplicates = bootYmlTestKit.findDuplicateBriefPaths({ perSubject });
-    expect(duplicates).toEqual([]);
-  });
-
-  it('should account for every brief file in briefs/ in at least one subject', () => {
-    const briefFilesOnDisk = fg.sync('**/*.md', {
-      cwd: briefsDir,
-      onlyFiles: true,
-    });
-
-    const allBootPaths = new Set(
-      bootYmlTestKit
-        .collectAllBriefPaths({ bootYml })
-        .map((bootPath) => bootYmlTestKit.asOnDiskBriefPath({ bootPath })),
-    );
-
-    const unaccounted = briefFilesOnDisk.filter(
-      (file) => !allBootPaths.has(file),
-    );
-
-    // readme files at directory roots are not expected in boot.yml
-    const unaccountedNonReadme = unaccounted.filter(
-      (file) => !bootYmlTestKit.isReadmeFile({ file }),
-    );
-
-    expect(unaccountedNonReadme).toEqual([]);
-  });
-
-  it('should not have a brief in both say and ref within the same subject', () => {
-    const conflicts = bootYmlTestKit.findSayRefConflicts({ bootYml });
-    expect(conflicts).toEqual([]);
-  });
-
-  it('should force-load every lang.prose brief as say', () => {
-    // the lang.prose overlay declares blocker-severity rules. a blocker rule
-    // that boots only as a ref pointer has zero default effect — the wish's
-    // core verb ("entrain into the mechanic") goes unmet. this cluster
-    // regressed once already (8 unaccounted files), so every non-readme
-    // lang.prose brief on disk must appear in the always subject's say list.
-    const proseFilesOnDisk = fg
-      .sync('practices/lang.prose/**/*.md', {
-        cwd: briefsDir,
-        onlyFiles: true,
-      })
-      .filter((file) => !bootYmlTestKit.isReadmeFile({ file }));
-
-    // floor: a zero-match glob makes the containment check vacuously pass and
-    // masks a renamed/moved/absent cluster. fail loud when the cluster is gone.
-    expect(proseFilesOnDisk.length).toBeGreaterThan(0);
-
-    // on-disk files are relative to briefsDir (no prefix); boot.yml say paths
-    // carry a `briefs/` prefix. asOnDiskBriefPath aligns both to one path space.
-    const sayBootPaths = new Set(
-      bootYmlTestKit
-        .collectAlwaysSayBriefPaths({ bootYml })
-        .map((bootPath) => bootYmlTestKit.asOnDiskBriefPath({ bootPath })),
-    );
-
-    const unsaid = proseFilesOnDisk.filter((file) => !sayBootPaths.has(file));
-
-    expect(unsaid).toEqual([]);
-  });
-
-  it('should have every skill path in boot.yml point to a file on disk', () => {
-    const allSkillPaths = collectAllSkillPaths(bootYml);
-    const absent = allSkillPaths.filter((skillPath) => {
-      const fullPath = resolve(__dirname, skillPath);
-      return !existsSync(fullPath);
-    });
-    expect(absent).toEqual([]);
-  });
-
-  it('should account for every entry-point skill in skills/', () => {
-    const skillFilesOnDisk = fg.sync('**/*.sh', {
-      cwd: skillsDir,
-      onlyFiles: true,
-    });
-
-    // filter out internal/helper skills that are not entry points
-    const entryPointSkills = skillFilesOnDisk.filter(
-      (file) =>
-        !INTERNAL_SKILL_PATTERNS.some((pattern) => pattern.test(file)) &&
-        isEntryPoint(file),
-    );
-
-    const allBootPaths = new Set(
-      collectAllSkillPaths(bootYml).map((p) => p.replace(/^skills\//, '')),
-    );
-
-    const unaccounted = entryPointSkills.filter(
-      (file) => !allBootPaths.has(file),
-    );
-
-    expect(unaccounted).toEqual([]);
   });
 });

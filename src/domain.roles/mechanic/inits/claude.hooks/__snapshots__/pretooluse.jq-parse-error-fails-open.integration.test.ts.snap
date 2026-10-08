@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse gates · jq parse errors fail open, loud given: [case1] pretooluse.forbid-cross-repo-access.sh reads its stdin with a jq that fails when: [t0] jq exits 2 then: the whole render matches snapshot 1`] = `
+{
+  "stderr": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 2); the tool call is allowed
+",
+  "stdout": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 2); the tool call is allowed
+",
+}
+`;
+
+exports[`pretooluse gates · jq parse errors fail open, loud given: [case1] pretooluse.forbid-cross-repo-access.sh reads its stdin with a jq that fails when: [t0] jq exits 4 then: the whole render matches snapshot 1`] = `
+{
+  "stderr": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 4); the tool call is allowed
+",
+  "stdout": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 4); the tool call is allowed
+",
+}
+`;
+
+exports[`pretooluse gates · jq parse errors fail open, loud given: [case1] pretooluse.forbid-cross-repo-access.sh reads its stdin with a jq that fails when: [t0] jq exits 5 then: the whole render matches snapshot 1`] = `
+{
+  "stderr": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 5); the tool call is allowed
+",
+  "stdout": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 5); the tool call is allowed
+",
+}
+`;
+
+exports[`pretooluse gates · jq parse errors fail open, loud given: [case1] pretooluse.forbid-cross-repo-access.sh reads its stdin with a jq that fails when: [t0] jq exits 9 then: the whole render matches snapshot 1`] = `
+{
+  "stderr": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 9); the tool call is allowed
+",
+  "stdout": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 9); the tool call is allowed
+",
+}
+`;
+
+exports[`pretooluse gates · jq parse errors fail open, loud given: [case1] pretooluse.forbid-shouted-readme.sh reads its stdin with a jq that fails when: [t0] jq exits 2 then: the whole render matches snapshot 1`] = `
+{
+  "stderr": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 2); the tool call is allowed
+",
+  "stdout": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 2); the tool call is allowed
+",
+}
+`;
+
+exports[`pretooluse gates · jq parse errors fail open, loud given: [case1] pretooluse.forbid-shouted-readme.sh reads its stdin with a jq that fails when: [t0] jq exits 4 then: the whole render matches snapshot 1`] = `
+{
+  "stderr": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 4); the tool call is allowed
+",
+  "stdout": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 4); the tool call is allowed
+",
+}
+`;
+
+exports[`pretooluse gates · jq parse errors fail open, loud given: [case1] pretooluse.forbid-shouted-readme.sh reads its stdin with a jq that fails when: [t0] jq exits 5 then: the whole render matches snapshot 1`] = `
+{
+  "stderr": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 5); the tool call is allowed
+",
+  "stdout": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 5); the tool call is allowed
+",
+}
+`;
+
+exports[`pretooluse gates · jq parse errors fail open, loud given: [case1] pretooluse.forbid-shouted-readme.sh reads its stdin with a jq that fails when: [t0] jq exits 9 then: the whole render matches snapshot 1`] = `
+{
+  "stderr": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 9); the tool call is allowed
+",
+  "stdout": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit 9); the tool call is allowed
+",
+}
+`;

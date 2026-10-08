@@ -1,0 +1,73 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`permissions.get (acceptance) given: [case1] a linked repo with an allowlist when: [t0] the bot runs move 1: \`rhx permissions.get --for 'ls src'\` then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get --for 'ls src'
+   ├─ verdict: not pre-approved — it would block; each blocked part and its options follow
+   │
+   ├─ blocked: ls src
+   └─ paved alternatives for \`ls\`
+      ├─ tree -L 1 <dir>
+      └─ rhx globsafe --pattern '<glob>'
+
+"
+`;
+
+exports[`permissions.get (acceptance) given: [case1] a linked repo with an allowlist when: [t1] the bot runs the bare skill then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get
+   ├─ sources
+   │  └─ .claude/settings.json (4)
+   ├─ total: 4 pre-approved (dupes removed)
+   │
+   ├─ git (2)
+   │  ├─ [p] git diff
+   │  └─ [p] git status
+   │
+   ├─ rhx (1)
+   │  └─ [p] rhx
+   │
+   ├─ tree (1)
+   │  └─ [p] tree
+   │
+   └─ key: [e] = the whole part must match exactly · [p] = the part must start with it
+
+🥥 did you know?
+   ├─ narrow to one head: rhx permissions.get --head <head>
+   └─ check one exact command: rhx permissions.get --for '<command>'
+
+"
+`;
+
+exports[`permissions.get (acceptance) given: [case1] a linked repo with an allowlist when: [t2] the bot runs \`rhx permissions.get --head grep\` then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get --head grep
+   ├─ pre-approved for \`grep\`
+   │  └─ (none — \`grep\` is not on the allowlist)
+   └─ paved alternatives for \`grep\`
+      ├─ rhx grepsafe --pattern '<regex>' --path <dir>
+      └─ rhx git.repo.get lines --in <org/repo> --words '<text>'
+
+🥥 did you know?
+   └─ check one exact command: rhx permissions.get --for '<command>'
+
+"
+`;
+
+exports[`permissions.get (acceptance) given: [case1] a linked repo with an allowlist when: [t3] the bot asks about a pre-approved command: \`rhx permissions.get --for 'git status'\` then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get --for 'git status'
+   └─ verdict: pre-approved — every part matches the allowlist; it runs with no prompt
+
+"
+`;
+
+exports[`permissions.get (acceptance) given: [case2] a linked repo whose settings.json cannot be parsed when: [t0] the bot runs the bare skill then: the malfunction matches snapshot 1`] = `
+"💥 MalfunctionError: .claude/settings.json is not valid json (<jq error>) — the allowlist could not be read; repair the json in .claude/
+
+"
+`;

@@ -37,7 +37,7 @@ source "$SKILL_DIR/output.sh"
 FROM=""
 INTO=""
 MODE="plan"
-BRAIN_SLUG="fireworks/deepseek/v4-flash"
+BRAIN_SLUG="openrouter/deepseek/flash"
 
 # parse args
 while [[ $# -gt 0 ]]; do

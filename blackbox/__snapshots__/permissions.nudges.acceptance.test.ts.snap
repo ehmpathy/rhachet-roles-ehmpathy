@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`permissions.nudges (acceptance) given: [case1] a linked repo whose ledger holds nudges and a retry when: [t0] the sponsor runs \`rhx permissions.nudges\` then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.nudges
+   ├─ ledger: .agent/.cache/repo=ehmpathy/role=mechanic/skill=check-permissions/nudges.jsonl
+   ├─ nudged parts: 3
+   ├─ retried through to a human: 1 (33%)
+   ├─ by verdict
+   │  ├─ nudged (2)
+   │  └─ retried (1)
+   ├─ heads with no paved path (pave these)
+   │  └─ python3 (2)
+   └─ heads nudged most
+      ├─ python3 (2)
+      └─ ls (1)
+
+🥥 did you know?
+   ├─ a head with no paved path that recurs is a skill to pave: start in .agent/repo=.this/role=any/skills/
+   └─ a head every repo hits belongs upstream: rhx radio.task.push --via gh.issues --into ehmpathy/rhachet-roles-ehmpathy --title 'pave: <head>' --description @stdin
+"
+`;
+
+exports[`permissions.nudges (acceptance) given: [case2] a linked repo with no ledger yet when: [t0] the sponsor runs \`rhx permissions.nudges\` then: the render matches snapshot 1`] = `
+"🐢 crickets...
+
+🐚 permissions.nudges
+   ├─ ledger: .agent/.cache/repo=ehmpathy/role=mechanic/skill=check-permissions/nudges.jsonl
+   └─ no nudge recorded yet
+"
+`;

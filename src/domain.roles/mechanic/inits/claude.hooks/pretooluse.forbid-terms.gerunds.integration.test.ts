@@ -32,7 +32,7 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
 
   /**
    * .what = a hermetic cwd with its own .claude dir
-   * .why = find_claude_dir walks up from PWD; a temp cwd keeps each run's nudge
+   * .why = get_claude_dir walks up from PWD; a temp cwd keeps each run's nudge
    *        state isolated from the repo and from other tests
    *
    * .note = the root comes from test-fns `genTempDir`, never an adhoc `mkdtemp`
@@ -178,12 +178,11 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
   });
 
   given('[case4] a Write that holds an -ing word used as a noun', () => {
-    // 🔴 the hook flags every -ing WORD, never every gerund. its allowlist holds
-    //    one entry, so "building", "sibling", "ceiling", "during" all block.
-    //    that is POLICY under acceptance #2 ("no policy change either direction"),
-    //    so the false positives must be preserved exactly. a collapse that swapped
-    //    the -ing scan for a real-gerund dictionary would look like a cleanup and
-    //    would breach the wish. see Q10.
+    // 🔴 policy: zero accepted -ing words — there is always a better word. the
+    //    hook flags every -ing WORD not on its allowlist, and the allowlist holds
+    //    the language primitive `string` alone. a plain noun ("ceiling") and a
+    //    preposition ("during") block the same as a verb form. the wisher's
+    //    verdict, F44.
     when('[t0] the content holds "building"', () => {
       const result = useBeforeAll(async () =>
         runHook({
@@ -209,8 +208,42 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
         }),
       );
 
-      then('the hook exits 2 — the same policy, not a gerund at all', () => {
+      then('the hook exits 2 — a plain noun gets no exception', () => {
         expect(result.exitCode).toEqual(2);
+        expect(result.stderr).toContain('ceiling');
+      });
+    });
+
+    when('[t2] the content holds "during"', () => {
+      const result = useBeforeAll(async () =>
+        runHook({
+          json: asWriteJson({
+            filePath: 'test.ts',
+            content: '// wait during the set',
+          }),
+        }),
+      );
+
+      then('the hook exits 2 — a preposition gets no exception', () => {
+        expect(result.exitCode).toEqual(2);
+        expect(result.stderr).toContain('during');
+      });
+    });
+
+    when('[t3] the allowlist is read', () => {
+      // .why = the clamp on the policy itself: zero accepted -ing words. a group
+      //        added beside `primitives` goes red here
+      const allowlist = useBeforeAll(async () =>
+        JSON.parse(
+          readFileSync(
+            path.join(__dirname, 'terms.gerunds.allowlist.jsonc'),
+            'utf-8',
+          ).replace(/\/\/.*$/gm, ''),
+        ),
+      );
+
+      then('it holds the language primitives alone', () => {
+        expect(allowlist).toEqual({ primitives: ['string'] });
       });
     });
   });
@@ -472,26 +505,24 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
     });
   });
 
-  given('[case13] the per-word alternative arms', () => {
-    // 🔴 the block message picks its `→ consider:` text from a ~120-arm `case`,
-    //    and [case1] exercises exactly one arm of it (`running`).
+  given('[case13] the per-word alternative rows', () => {
+    // 🔴 the block message picks its `→ consider:` text from a ~120-row table,
+    //    and [case1] exercises exactly one row of it (`running`).
     //
-    //    each arm is a distinct prompt a human reads at the moment they are
-    //    refused, so a dropped or mistyped arm is a user-faced defect — and it
-    //    drifts green while no assertion reads any arm but one.
-    //
-    // 🟡 the proportionate clamp is NOT 120 cases. it is one arm that is matched
-    //    by a glob, plus the `*` FALLBACK — which is the arm most humans hit,
-    //    and the only one whose loss would silently degrade every unlisted word
-    //    to no suggestion at all.
-    when('[t0] a write trips a matched arm and the fallback together', () => {
+    //    each row is a distinct prompt a human reads at the moment they are
+    //    refused, so a dropped or mistyped row is a user-faced defect. [case20]
+    //    walks the shadow-prone rows; this case holds the exact row, the suffix
+    //    fallback, and the last-resort fallback.
+    when('[t0] a write trips a matched row and the fallback together', () => {
       const result = useBeforeAll(async () =>
         runHook({
           json: asWriteJson({
             filePath: 'surf.ts',
-            // `loading` and `parsing` each match their own glob arm;
-            // `sibling` matches no arm, so it lands on `*`.
-            content: 'const a = loading; const b = parsing; const c = sibling;',
+            // `loading` and `parsing` each match their own exact row;
+            // `preloading` has no row, so it takes the longest row it ends with;
+            // `shredding` ends with no row, so it lands on the last resort.
+            content:
+              'const a = loading; const b = parsing; const c = preloading; const d = shredding;',
           }),
         }),
       );
@@ -500,15 +531,19 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
         expect(result.exitCode).toEqual(2);
       });
 
-      then('a matched arm renders its OWN suggestion', () => {
+      then('a matched row renders its OWN suggestion', () => {
         expect(result.stderr).toContain('loading → consider: load, loaded');
         expect(result.stderr).toContain('parsing → consider: parse, parsed');
       });
 
+      then('a prefixed word takes the row it ends with', () => {
+        expect(result.stderr).toContain('preloading → consider: load, loaded');
+      });
+
       then('an unmatched word falls back, never to an empty suggestion', () => {
-        // 🔴 the arm that matters most. a `case` with a broken `*` emits the
+        // 🔴 the fallback that matters most. a broken last resort emits the
         //    word with NO advice, which reads as a refusal with no way out.
-        expect(result.stderr).toContain('sibling → consider: remove -ing');
+        expect(result.stderr).toContain('shredding → consider: remove -ing');
       });
 
       then('the WHOLE message is snapshotted', () => {
@@ -548,6 +583,11 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
       copyFileSync(
         hookPath,
         path.join(dir, 'pretooluse.forbid-terms.gerunds.sh'),
+      );
+      // the hook sources its HARDNUDGE lib from beside itself
+      copyFileSync(
+        path.join(__dirname, '_hardnudge.lib.sh'),
+        path.join(dir, '_hardnudge.lib.sh'),
       );
       return dir;
     };
@@ -604,13 +644,8 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
       //    comma in a human-edited file.
       //
       //    the two are distinct code paths: `-f` is true here, so the loader
-      //    RUNS and its `2>/dev/null … || true` swallows the parse error. the
-      //    verdict coincides with [t0], which is exactly why one test for both
-      //    would be a coincidence rather than a proof.
-      //
-      // ⚠️ deliberately NOT a repair, same as blocklist [case16]: A8/F5 ruled
-      //    the failhide out of scope. a later repair turns this red, which is
-      //    the point — the decision becomes visible instead of silent.
+      //    RUNS, its parse fails, and the hook names the bad config on stderr
+      //    before it blocks. the verdict coincides with [t0]; the warn does not.
       const result = useBeforeAll(async () => {
         const dir = genSandboxWithoutAllowlist();
         writeFileSync(
@@ -638,10 +673,9 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
       then(
         'the hook exits 2 — a malformed allowlist is a STRICTER gate',
         () => {
-          // fail-CLOSED, the mirror of the blocklist's malformed fail-OPEN
-          // ([case16] there). the two hooks must keep their opposite directions
-          // — vision constraint #2 — and that holds on the malformed path
-          // exactly as it does on the absent one.
+          // fail-CLOSED. both forbid-terms hooks now block on a malformed config
+          // (blocklist [case16]); only an ABSENT config splits them — the gerunds
+          // gate goes stricter, the blocklist gate goes inert ([t0], blocklist [case13]).
           expect(result.exitCode).toEqual(2);
         },
       );
@@ -650,12 +684,20 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
         expect(result.stderr).toContain('string');
       });
 
+      then('stderr names the malformed config as the cause', () => {
+        expect(result.stderr).toContain(
+          '💥 MalfunctionError: the gerunds allowlist could not be parsed',
+        );
+      });
+
       then('the WHOLE degraded refusal is snapshotted', () => {
         // the malformed path is a DIFFERENT code path from [t0] (`-f` is true,
-        // so the loader runs and swallows the parse error), so its render owes
-        // its own pin. two snapshots that happen to agree is a PROOF the two
-        // paths converge; one snapshot reused across both would be a guess.
-        expect(result.stderr).toMatchSnapshot();
+        // so the loader runs and names the parse error), so its render owes
+        // its own pin.
+        // .note = the config line names the sandbox's temp path, so it is masked
+        expect(
+          result.stderr.replace(/config: .*\n/, 'config: <sandbox>\n'),
+        ).toMatchSnapshot();
       });
     });
   });
@@ -960,17 +1002,15 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
   });
 
   given('[case18] the stdin PAYLOAD is present but unparseable json', () => {
-    // ⚠️ a CLAMP, never a repair — the twin of the blocklist's [case22].
+    // 🔴 a REPAIR of a failhide — the twin of the blocklist's [case22]. the
+    //    payload read once let an unparseable payload exit 0, a silent permit;
+    //    it now blocks, loud (fulcrum F35).
     //
-    //    the payload read ends `2>/dev/null || echo ""`, so an unparseable
-    //    payload yields an empty TOOL_NAME, the `!= Write/Edit` guard reads
-    //    true, and the hook exits 0 — a silent permit.
-    //
-    // 🔴 the asymmetry worth a note: on the CONFIG side these two hooks fail
-    //    in OPPOSITE directions (an absent blocklist is inert; an absent
-    //    allowlist is stricter). on the PAYLOAD side they agree — both
-    //    permit. so this clamp is a genuine twin, and the config clamps
-    //    deliberately are not.
+    // .note = the asymmetry worth a note: on the CONFIG side these two hooks
+    //         fail in OPPOSITE directions (an absent blocklist is inert; an
+    //         absent allowlist is stricter). on the PAYLOAD side they agree —
+    //         both block. so this case is a genuine twin, and the config cases
+    //         deliberately are not.
     when('[t0] the hook runs', () => {
       const result = useBeforeAll(async () => {
         const cwd = genTempCwd();
@@ -987,13 +1027,15 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
         };
       });
 
-      then('the hook exits 0 — the declared verdict is PERMIT', () => {
-        expect(result.exitCode).toEqual(0);
+      then('the hook exits 2 — a payload it cannot read blocks', () => {
+        expect(result.exitCode).toEqual(2);
       });
 
-      then('it emits no word on either stream', () => {
-        expect(result.stdout).toEqual('');
-        expect(result.stderr).toEqual('');
+      then('stderr names the class and the parse cause', () => {
+        expect(result.stderr).toContain(
+          '💥 MalfunctionError: PreToolUse payload is not valid json (jq: parse error',
+        );
+        expect(result.stderr).toContain('the write stays blocked');
       });
     });
   });
@@ -1089,96 +1131,83 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
     },
   );
 
-  given(
-    '[case20] arms a broader glob ABSORBS — the current text, pinned',
-    () => {
-      // 🔴 the `→ consider:` text comes from a ~120-arm `case`, walked
-      //    TOP-DOWN, so an arm whose glob is a SUBSTRING of a later arm's glob
-      //    absorbs that later arm outright.
-      //
-      //    three pairs are absorbed today, read from the live source:
-      //
-      //      :397 *connecting*  absorbs  :398 *disconnecting*
-      //      :428 *wrapping*    absorbs  :429 *unwrapping*
-      //      :430 *locking*     absorbs  :431 *unlocking*
-      //
-      //    plus a fourth class with no arm of its own: `rebinding` lands on
-      //    :405 *binding* and is handed back "bind, bound, binder".
-      //
-      //    ⇒ each of the four hands a human the INVERTED verb. told to
-      //      "consider: connect" for `disconnecting`, a human reads advice that
-      //      means the opposite of the word they wrote.
-      //
-      // ✅ verified FIRST-HAND, never modeled: the hook refused this very file on
-      //    its first write and handed back all four inversions in the block
-      //    message. the assertions below are transcribed from that refusal.
-      //
-      // 🔴 the repair is FORBIDDEN here, and that is precisely why this clamp is
-      //    owed. acceptance #4 binds "the same per-term alternatives", so a
-      //    reorder of the arms would change block-message text and breach the
-      //    wish outright. the defect is deferred to
-      //    `.dream/v2026_09_12.fix.gerund-suggestion-table-shadowed-case-arms.md`.
-      //
-      // ⚠️ so this case pins the CURRENT, WRONG output ON PURPOSE. it does not
-      //    assert the text is right. it asserts what "unchanged" MEANS for these
-      //    four words — so the later wish that does repair them meets a red test
-      //    to turn green, rather than a silent diff nobody reads.
-      //
-      // 🔴 the transferable part: r10 parted the DEFERRAL from the CLAMP, and the
-      //    two are independent. a correctly-deferred defect still owes a test of
-      //    what is deferred, or the deferral is indistinguishable from a miss.
-      when('[t0] a write trips all four absorbed words at once', () => {
-        const result = useBeforeAll(async () =>
-          runHook({
-            json: asWriteJson({
-              filePath: 'surf.ts',
-              content: 'disconnecting unwrapping unlocking rebinding the leash',
-            }),
+  given('[case20] a row that ends another row cannot shadow it', () => {
+    // 🔴 the `→ consider:` text once came from a ~120-arm glob `case`, walked
+    //    TOP-DOWN, so `*connecting*` absorbed `disconnecting`, `*wrapping*`
+    //    absorbed `unwrapping`, `*locking*` absorbed `unlocking`, and
+    //    `*binding*` absorbed `rebinding`. each handed a human the INVERTED
+    //    verb: "consider: connect" for `disconnecting`.
+    //
+    // ✅ the table is now matched EXACTLY on the word, so no row shadows
+    //    another; the suffix fallback runs only for a word with no row.
+    //    the dream it closes: gerund-suggestion-table-shadowed-case-arms.
+    when('[t0] a write trips all four once-absorbed words at once', () => {
+      const result = useBeforeAll(async () =>
+        runHook({
+          json: asWriteJson({
+            filePath: 'surf.ts',
+            content: 'disconnecting unwrapping unlocking rebinding the leash',
           }),
-        );
+        }),
+      );
 
-        then('the hook exits 2', () => {
-          expect(result.exitCode).toEqual(2);
-        });
-
-        then('an absorbed word is handed its ABSORBER\u2019s verb', () => {
-          // the inversion, stated as an assertion so it cannot drift in silence
-          expect(result.stderr).toContain(
-            'disconnecting → consider: connect, connected, connector',
-          );
-          expect(result.stderr).toContain(
-            'unwrapping → consider: wrap, wrapped, wrapper',
-          );
-          expect(result.stderr).toContain(
-            'unlocking → consider: lock, locked, locker',
-          );
-        });
-
-        then('a word with NO arm of its own takes the nearest glob', () => {
-          expect(result.stderr).toContain(
-            'rebinding → consider: bind, bound, binder',
-          );
-        });
-
-        then('none of the four reaches the `*` fallback', () => {
-          // 🟡 the control that keeps this case honest. were the four to fall
-          //    through to `*`, every assertion above would read as a pass of a
-          //    different mechanism — the absorption would be untested and this
-          //    case would vouch for it anyway.
-          expect(result.stderr).not.toContain(
-            'disconnecting → consider: remove',
-          );
-          expect(result.stderr).not.toContain('unwrapping → consider: remove');
-          expect(result.stderr).not.toContain('unlocking → consider: remove');
-          expect(result.stderr).not.toContain('rebinding → consider: remove');
-        });
-
-        then('the WHOLE message is snapshotted', () => {
-          expect(result.stderr).toMatchSnapshot();
-        });
+      then('the hook exits 2', () => {
+        expect(result.exitCode).toEqual(2);
       });
-    },
-  );
+
+      then('each word is handed its OWN verb, never its inverse', () => {
+        expect(result.stderr).toContain(
+          'disconnecting → consider: disconnect, disconnected',
+        );
+        expect(result.stderr).toContain(
+          'unwrapping → consider: unwrap, unwrapped',
+        );
+        expect(result.stderr).toContain(
+          'unlocking → consider: unlock, unlocked',
+        );
+        expect(result.stderr).toContain(
+          'rebinding → consider: rebind, rebound',
+        );
+      });
+
+      then('the WHOLE message is snapshotted', () => {
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] a write trips EVERY row of the table at once', () => {
+      // .why = the walk over the whole table, read from the live hook source,
+      //        so a row added later is walked too. every word must render its
+      //        own row — the one property a glob table could not hold.
+      const table = useBeforeAll(async () => {
+        const source = readFileSync(hookPath, 'utf-8');
+        const rows = [...source.matchAll(/^\s+\[([a-z]+)\]="([^"]+)"$/gm)].map(
+          (match) => ({ word: match[1] ?? '', alts: match[2] ?? '' }),
+        );
+        return { rows };
+      });
+      const result = useBeforeAll(async () =>
+        runHook({
+          json: asWriteJson({
+            filePath: 'surf.ts',
+            content: table.rows.map((row) => row.word).join(' '),
+          }),
+        }),
+      );
+
+      then('the table is read, not empty', () => {
+        expect(table.rows.length).toBeGreaterThan(100);
+      });
+
+      then('every word renders its own row', () => {
+        const misrendered = table.rows.filter(
+          (row) =>
+            !result.stderr.includes(`${row.word} → consider: ${row.alts}\n`),
+        );
+        expect(misrendered).toEqual([]);
+      });
+    });
+  });
 
   given('[case21] the nudge file CANNOT be created', () => {
     // 🔴 a REPAIR rather than a clamp of extant behavior. the bootstrap

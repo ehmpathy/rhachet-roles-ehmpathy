@@ -6,15 +6,14 @@
  *        cannot look at an attack cannot block it, so the default brain is one
  *        that will read the sample and answer.
  */
-export const GUARD_BORDER_BRAIN_DEFAULT = 'fireworks/deepseek/v4-flash';
+export const GUARD_BORDER_BRAIN_DEFAULT = 'openrouter/deepseek/flash';
 
 /**
  * .what = the keyrack env that holds usable brain api keys
  * .why = `prep` is where every other brain caller in this repo reads from
- *        (getEvalVerdict, and each review skill that runs on fireworks). the
- *        `test` env declares the same key names, but those values answer
- *        401 — so a NODE_ENV-driven choice of env silently picked a key that
- *        cannot authenticate whenever the caller ran under test.
+ *        (getEvalVerdict, and each review skill). one fixed env keeps the key
+ *        the guard reads independent of NODE_ENV, so a test run never picks a
+ *        key from an env that does not hold one.
  */
 export const GUARD_BORDER_KEYRACK_ENV = 'prep';
 

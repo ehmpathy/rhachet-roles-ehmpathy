@@ -113,13 +113,13 @@ describe('pretooluse.forbid-tmp-writes.sh', () => {
       then('Write to /tmp/foo.txt is blocked', () => {
         const result = runHookWrite('/tmp/foo.txt');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('Write to /tmp/claude-1000/task.out is blocked', () => {
         const result = runHookWrite('/tmp/claude-1000/task.out');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -146,7 +146,7 @@ describe('pretooluse.forbid-tmp-writes.sh', () => {
       then('Edit to /tmp/foo.txt is blocked', () => {
         const result = runHookEdit('/tmp/foo.txt');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -172,19 +172,19 @@ describe('pretooluse.forbid-tmp-writes.sh', () => {
       then('echo x > /tmp/foo is blocked', () => {
         const result = runHookBash('echo x > /tmp/foo');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('echo x >> /tmp/foo is blocked', () => {
         const result = runHookBash('echo x >> /tmp/foo');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('cat file > /tmp/foo is blocked', () => {
         const result = runHookBash('cat file > /tmp/foo');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -210,13 +210,13 @@ describe('pretooluse.forbid-tmp-writes.sh', () => {
       then('echo x | tee /tmp/foo is blocked', () => {
         const result = runHookBash('echo x | tee /tmp/foo');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('echo x | tee -a /tmp/foo is blocked', () => {
         const result = runHookBash('echo x | tee -a /tmp/foo');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -236,13 +236,13 @@ describe('pretooluse.forbid-tmp-writes.sh', () => {
       then('cp src/file /tmp/dest is blocked', () => {
         const result = runHookBash('cp src/file /tmp/dest');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('cp src/file /tmp/claude-1000/dest is blocked', () => {
         const result = runHookBash('cp src/file /tmp/claude-1000/dest');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -262,7 +262,7 @@ describe('pretooluse.forbid-tmp-writes.sh', () => {
       then('mv src/file /tmp/dest is blocked', () => {
         const result = runHookBash('mv src/file /tmp/dest');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -302,19 +302,19 @@ describe('pretooluse.forbid-tmp-writes.sh', () => {
       then('cat /tmp/other/file is blocked', () => {
         const result = runHookBash('cat /tmp/other/file');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('grep pattern /tmp/other/file is blocked', () => {
         const result = runHookBash('grep pattern /tmp/other/file');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('head /tmp/foo.txt is blocked', () => {
         const result = runHookBash('head /tmp/foo.txt');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
   });
@@ -340,19 +340,19 @@ describe('pretooluse.forbid-tmp-writes.sh', () => {
       then('echo x > /tmp is blocked (bare /tmp)', () => {
         const result = runHookBash('echo x > /tmp');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('echo x > /tmp/ is blocked (with slash)', () => {
         const result = runHookBash('echo x > /tmp/');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('cp /tmp/a /tmp/b is blocked (dest in /tmp)', () => {
         const result = runHookBash('cp /tmp/a /tmp/b');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
   });
@@ -364,13 +364,13 @@ describe('pretooluse.forbid-tmp-writes.sh', () => {
       then('Read from /tmp/foo.txt is blocked', () => {
         const result = runHookRead('/tmp/foo.txt');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('Read from /tmp/other/file is blocked', () => {
         const result = runHookRead('/tmp/other/file');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -439,8 +439,8 @@ describe('pretooluse.forbid-tmp-writes.sh', () => {
     when('[t0] Write to /tmp/foo.txt', () => {
       const result = runHookWrite('/tmp/foo.txt');
 
-      then('stderr contains BLOCKED', () => {
-        expect(result.stderr).toContain('BLOCKED');
+      then('stderr names the ConstraintError', () => {
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('stderr contains .temp/', () => {

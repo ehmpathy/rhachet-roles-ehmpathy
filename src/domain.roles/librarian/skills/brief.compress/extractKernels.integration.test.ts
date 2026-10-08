@@ -9,7 +9,7 @@ import {
  * .what = brain provider for kernel extraction
  * .why = consistent provider across all tests
  */
-const BRAIN_SLUG = 'fireworks/deepseek/v4-flash';
+const BRAIN_SLUG = 'openrouter/deepseek/flash';
 
 /**
  * .what = sample document with known concept kernels

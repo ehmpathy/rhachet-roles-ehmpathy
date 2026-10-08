@@ -1,0 +1,108 @@
+{
+  // paved alternatives for commands the allowlist blocks
+  //
+  // read by pretooluse.check-permissions.sh on the block path only.
+  // each entry maps one or more command heads (the first one or two words of a
+  // blocked part) to the paved commands a bot should reach for instead.
+  //
+  // rules:
+  // - every alternative must start with a paved (allowlisted) command, or the bot
+  //   is sent into a second block. the integration test asserts this.
+  // - `advice` is prose for heads with no command answer (e.g. cd).
+  // - comments are whole lines only. a double-slash inside a value is kept as is;
+  //   a comment after a value on the same line is a parse error (loud, never lossy).
+  "entries": [
+    {
+      "heads": ["grep", "rg", "egrep", "fgrep"],
+      "alternatives": [
+        "rhx grepsafe --pattern '<regex>' --path <dir>",
+        "rhx git.repo.get lines --in <org/repo> --words '<text>'"
+      ]
+    },
+    {
+      "heads": ["ls", "find"],
+      "alternatives": [
+        "tree -L 1 <dir>",
+        "rhx globsafe --pattern '<glob>'"
+      ]
+    },
+    {
+      "heads": ["cd", "pushd"],
+      "alternatives": [],
+      "advice": "run from the cwd; pass paths to the command instead"
+    },
+    {
+      // sed does two jobs: an edit (sedreplace) and a line-range read (head | tail)
+      "heads": ["sed"],
+      "alternatives": [
+        "rhx sedreplace --old '<old>' --new '<new>' --glob '<glob>'",
+        "head -n <last> <file> | tail -n <count>"
+      ]
+    },
+    {
+      // the allowlist paves a bare `jq` only (exact), so a filter has no paved form;
+      // a bare jq at the end of a pipe still pretty-prints the whole document
+      "heads": ["jq"],
+      "alternatives": ["cat <file> | jq"]
+    },
+    {
+      "heads": ["rm"],
+      "alternatives": ["rhx rmsafe <path>"]
+    },
+    {
+      "heads": ["mv"],
+      "alternatives": ["rhx mvsafe <from> <into>"]
+    },
+    {
+      "heads": ["cp"],
+      "alternatives": ["rhx cpsafe <from> <into>"]
+    },
+    {
+      "heads": ["mkdir"],
+      "alternatives": ["rhx mkdirsafe --path <dir>"]
+    },
+    {
+      "heads": ["ln"],
+      "alternatives": ["rhx symlink --at <link> --to <target> --mode relative"]
+    },
+    {
+      "heads": ["tee"],
+      "alternatives": ["cmd | rhx teesafe <file>"]
+    },
+    {
+      "heads": ["git add"],
+      "alternatives": ["rhx git.stage.add <paths>"]
+    },
+    {
+      "heads": ["git commit"],
+      "alternatives": ["printf '<message>' | rhx git.commit.set -m @stdin"]
+    },
+    {
+      "heads": ["git push"],
+      "alternatives": ["rhx git.commit.push"]
+    },
+    {
+      "heads": ["git rebase"],
+      "alternatives": ["rhx git.branch.rebase begin"]
+    },
+    {
+      "heads": ["npm test", "jest", "npx jest", "pnpm test"],
+      "alternatives": ["rhx git.repo.test --what unit --scope <scope>"]
+    },
+    {
+      "heads": ["npm install", "npm i", "pnpm add", "pnpm install"],
+      "alternatives": [
+        "npm ci",
+        "rhx set.package.install --package <name> --at <version> --for prod --reason '<why>'"
+      ]
+    },
+    {
+      "heads": ["gh pr merge"],
+      "alternatives": ["rhx git.release"]
+    },
+    {
+      "heads": ["./node_modules/.bin/rhachet", "node_modules/.bin/rhachet", "rhachet"],
+      "alternatives": ["npx rhachet <args>", "rhx <skill> <args>"]
+    }
+  ]
+}

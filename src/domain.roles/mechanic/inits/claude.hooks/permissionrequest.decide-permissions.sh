@@ -86,7 +86,9 @@ find_claude_dir() {
   local dir="$PWD"
   while [[ "$dir" != "/" ]]; do
     if [[ -d "$dir/.claude" ]]; then echo "$dir/.claude"; return 0; fi
-    dir="$(dirname "$dir")"
+    # .note = ${dir%/*} at zero forks; "" at the root, hence the -z guard
+    dir="${dir%/*}"
+    [[ -z "$dir" ]] && dir="/"
   done
   return 1
 }
@@ -422,10 +424,10 @@ command_is_allowed() {
   [[ -z "$cmd" ]] && return 1
   cmd="${cmd//$'\n'/ }"
   if [[ -n "${EXACT_PATTERNS[$cmd]+x}" ]]; then return 0; fi
-  # prefix match ONLY at a word boundary — the seam is stricter than gate 2 here: a
-  # bare `rhx` prefix must match `rhx foo` but NOT `rhxfoo` (a different binary). this
-  # can only NARROW the match set vs gate 2, never widen it, so it never approves a
-  # command gate 2 would reject.
+  # prefix match ONLY at a whitespace boundary — stricter than gate 2's match_prefix, which
+  # also lets a non-word char continue a token (`npm run test:unit`). a bare `rhx` prefix
+  # must match `rhx foo` but NOT `rhxfoo` (a different binary). this can only NARROW the
+  # match set vs gate 2, never widen it, so it never approves a command gate 2 would reject.
   local prefix
   for prefix in "${PREFIX_PATTERNS[@]}"; do
     [[ "$cmd" == "$prefix" ]] && return 0

@@ -2,7 +2,7 @@
 
 exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case12] block message snapshots when: [t0] each pattern type produces expected output then: <( block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Command contains unquoted '<(' (process substitution).
+✋ ConstraintError: Command contains unquoted '<(' (process substitution).
 
 Unpredictable in hooks and subshells; harness asks for permission, which interrupts the delegation.
 
@@ -17,7 +17,7 @@ Alternatives:
 
 exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case12] block message snapshots when: [t0] each pattern type produces expected output then: =( block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Command contains unquoted '=(' (zsh process substitution).
+✋ ConstraintError: Command contains unquoted '=(' (zsh process substitution).
 
 Triggers shell expansion; harness asks for permission, which interrupts the delegation.
 
@@ -32,7 +32,7 @@ Alternatives:
 
 exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case12] block message snapshots when: [t0] each pattern type produces expected output then: >( block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Command contains unquoted '>(' (process substitution).
+✋ ConstraintError: Command contains unquoted '>(' (process substitution).
 
 Unpredictable in hooks and subshells; harness asks for permission, which interrupts the delegation.
 
@@ -47,7 +47,7 @@ Alternatives:
 
 exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case12] block message snapshots when: [t0] each pattern type produces expected output then: consecutive quotes block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Command contains consecutive quotes at word start.
+✋ ConstraintError: Command contains consecutive quotes at word start.
 
 Confuses quote parser; harness asks for permission, which interrupts the delegation.
 
@@ -63,7 +63,7 @@ Alternatives:
 
 exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case18] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: $() block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Command contains $() command substitution.
+✋ ConstraintError: Command contains $() command substitution.
 
 Executes nested commands which may have side effects; harness asks for permission, which interrupts the delegation.
 
@@ -77,7 +77,7 @@ Alternatives:
 
 exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case18] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: ANSI-C block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Command contains ANSI-C $'...' syntax.
+✋ ConstraintError: Command contains ANSI-C $'...' syntax.
 
 Can embed escape sequences and non-printable characters; harness asks for permission, which interrupts the delegation.
 
@@ -91,7 +91,7 @@ Alternatives:
 
 exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case18] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: backtick block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Command contains backtick command substitution.
+✋ ConstraintError: Command contains backtick command substitution.
 
 Executes nested commands; harder to read than $(); harness asks for permission, which interrupts the delegation.
 
@@ -105,7 +105,7 @@ Alternatives:
 
 exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case18] block message snapshots for new patterns when: [t0] each new pattern type produces expected output then: output redirection block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Command contains output redirection (>).
+✋ ConstraintError: Command contains output redirection (>).
 
 Could write to arbitrary files or confuse fd redirection; harness asks for permission, which interrupts the delegation.
 
@@ -122,7 +122,7 @@ Alternatives:
 
 exports[`pretooluse.forbid-suspicious-shell-syntax.sh given: [case19] echo of a quoted dash-prefixed separator when: [t2] block message snapshot then: dash-prefixed echo block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Command contains an echo of a quoted string that starts with a dash.
+✋ ConstraintError: Command contains an echo of a quoted string that starts with a dash.
 
 The harness reads the dash at the start as a quoted flag name and reports 'quoted characters in flag names'; harness asks for permission, which interrupts the delegation.
 

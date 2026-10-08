@@ -1,0 +1,11 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`_hardnudge.lib.sh given: [case4] pretooluse.forbid-terms.blocklist.sh: the lib is absent beside the hook when: [t0] a hook copy runs with no lib beside it then: the whole refusal matches snapshot 1`] = `
+"💥 MalfunctionError: pretooluse.forbid-terms.blocklist.sh could not load <hook-dir>/_hardnudge.lib.sh; the write stays blocked — reinstall the mechanic role
+"
+`;
+
+exports[`_hardnudge.lib.sh given: [case4] pretooluse.forbid-terms.gerunds.sh: the lib is absent beside the hook when: [t0] a hook copy runs with no lib beside it then: the whole refusal matches snapshot 1`] = `
+"💥 MalfunctionError: pretooluse.forbid-terms.gerunds.sh could not load <hook-dir>/_hardnudge.lib.sh; the write stays blocked — reinstall the mechanic role
+"
+`;

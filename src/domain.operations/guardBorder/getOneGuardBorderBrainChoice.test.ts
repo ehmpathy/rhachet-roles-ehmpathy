@@ -19,8 +19,8 @@ describe('getOneGuardBorderBrainChoice', () => {
       //         so `toBe(GUARD_BORDER_BRAIN_DEFAULT)` is a tautology that stays
       //         green through any swap of brain — a test that cannot fail
       //         (rule.forbid.failhide). the literal is what makes this bite.
-      then('it defaults to the fireworks deepseek brain', () => {
-        expect(choice.slug).toBe('fireworks/deepseek/v4-flash');
+      then('it defaults to the openrouter deepseek brain', () => {
+        expect(choice.slug).toBe('openrouter/deepseek/flash');
       });
     });
   });
@@ -38,7 +38,7 @@ describe('getOneGuardBorderBrainChoice', () => {
     when('[t1] the override is an empty string', () => {
       then('it falls back to the default rather than an empty slug', () => {
         const choice = getOneGuardBorderBrainChoice({ brainSlug: '' });
-        expect(choice.slug).toBe('fireworks/deepseek/v4-flash');
+        expect(choice.slug).toBe('openrouter/deepseek/flash');
       });
     });
   });

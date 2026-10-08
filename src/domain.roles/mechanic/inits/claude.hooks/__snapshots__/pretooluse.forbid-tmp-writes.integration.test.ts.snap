@@ -2,7 +2,7 @@
 
 exports[`pretooluse.forbid-tmp-writes.sh given: [case12] block message snapshot when: [t0] Write to /tmp produces expected output then: Write block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Write to /tmp/foo.txt
+✋ ConstraintError: Write to /tmp/foo.txt
 
 use .temp/ instead:
 
@@ -16,7 +16,7 @@ use .temp/ instead:
 
 exports[`pretooluse.forbid-tmp-writes.sh given: [case12] block message snapshot when: [t1] Read from /tmp produces expected output then: Read block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Read to /tmp/foo.txt
+✋ ConstraintError: Read to /tmp/foo.txt
 
 use .temp/ instead:
 
@@ -30,7 +30,7 @@ use .temp/ instead:
 
 exports[`pretooluse.forbid-tmp-writes.sh given: [case12] block message snapshot when: [t2] Bash read from /tmp produces expected output then: Bash read block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Bash read from /tmp/other/file
+✋ ConstraintError: Bash read from /tmp/other/file
 
 only /tmp/claude* is allowed (agent temp directories).
 for scratch files, use .temp/ instead.

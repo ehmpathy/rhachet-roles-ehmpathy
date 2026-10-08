@@ -173,14 +173,15 @@ exports[`permissionrequest.decide-permissions.sh given: [case11] the audit-log p
 🐢 shell yeah, your guardrails are set 🌊
 
 🐚 pre-approved bash permissions
+   ├─ 1 command pre-approved, across 1 head — no permission prompt for any of them
+   ├─ heads
+   │  └─ rhx (1)
+   ├─ see them all, on demand
+   │  ├─ rhx permissions.get                     every pre-approved command, grouped by head
+   │  ├─ rhx permissions.get --head <head>       one head: pre-approved + paved alternatives
+   │  └─ rhx permissions.get --for '<command>'   one command: verdict + every candidate, ranked
    │
-   │  these bash commands run without a permission prompt.
-   │  ([e] = exact match · [p] = prefix match — any command that starts with it)
-   │
-   ├─ [p]: rhx
-   │
-   └─ a bash command NOT on this list blocks and asks you to reconsider —
-      check this list first, to minimize interruptions.
+   └─ a bash command NOT pre-approved blocks and asks you to reconsider — check first, to minimize interruptions
 
 "
 `;

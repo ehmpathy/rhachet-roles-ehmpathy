@@ -92,7 +92,7 @@ describe('pretooluse.forbid-test-background.sh', () => {
           },
         });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('foreground');
       });
 
@@ -105,7 +105,7 @@ describe('pretooluse.forbid-test-background.sh', () => {
           },
         });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('npx rhachet run --skill git.repo.test is blocked', () => {
@@ -117,7 +117,7 @@ describe('pretooluse.forbid-test-background.sh', () => {
           },
         });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('./node_modules/.bin/rhx git.repo.test is blocked', () => {
@@ -129,7 +129,7 @@ describe('pretooluse.forbid-test-background.sh', () => {
           },
         });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
   });
@@ -210,7 +210,7 @@ describe('pretooluse.forbid-test-background.sh', () => {
           stdio: ['pipe', 'pipe', 'pipe'],
         });
         expect(result.status).toBe(2);
-        expect(result.stderr).toContain('ERROR');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('empty command exits 0', () => {

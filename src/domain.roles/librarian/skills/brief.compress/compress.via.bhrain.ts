@@ -5,8 +5,8 @@
  * .why = semantic compression that preserves decision-critical content
  *
  * usage:
- *   compress.via.bhrain.ts --from path/to/brief.md --via fireworks/deepseek/v4-flash --json
- *   compress.via.bhrain.ts --from path/to/brief.md --via fireworks/deepseek/v4-flash --force
+ *   compress.via.bhrain.ts --from path/to/brief.md --via openrouter/deepseek/flash --json
+ *   compress.via.bhrain.ts --from path/to/brief.md --via openrouter/deepseek/flash --force
  *
  * note:
  *   - results are cached to .rhachet/bhrain/cache/compress/
@@ -465,7 +465,7 @@ const main = async (): Promise<void> => {
       JSON.stringify({
         error: 'absent brain',
         message:
-          '--via is required (brain slug, e.g., fireworks/deepseek/v4-flash)',
+          '--via is required (brain slug, e.g., openrouter/deepseek/flash)',
       }),
     );
     process.exit(1);

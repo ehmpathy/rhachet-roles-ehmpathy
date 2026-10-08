@@ -49,8 +49,6 @@ exports[`cicd.deflake detect given: [case4] real GitHub API integration when: [t
    ├─ signal: retried runs (run_attempt > 1)
    └─ into: .temp/$TEMP/evidence.json
 
-🥥 evidence gathered
-   └─ [2mruns_analyzed: $N, flakes: $N[0m
 "
 `;
 

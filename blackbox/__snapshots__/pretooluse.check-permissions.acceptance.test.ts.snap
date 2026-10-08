@@ -1,0 +1,600 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case1] a compound whose second part has a paved alternative when: [t0] the bot runs \`git diff --stat && grep -rln 'reef' src/\` then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: grep -rln 'reef' src/
+   ├─ paved alternatives for \`grep\`
+   │  ├─ rhx grepsafe --pattern '<regex>' --path <dir>
+   │  └─ rhx git.repo.get lines --in <org/repo> --words '<text>'
+   │
+   └─ tip: a compound runs only if every part is paved; the other parts are paved alone, so split the call
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git diff --stat && grep -rln '\\''reef'\\'' src/'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case1] a compound whose second part has a paved alternative when: [t1] the bot reruns the paved alternative then: the silent pass matches snapshot 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": "",
+}
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case1] a compound whose second part has a paved alternative when: [t2] a 3-part compound where every part has a paved alternative then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved (3 parts)
+   ├─ blocked: ls src
+   ├─ paved alternatives for \`ls\`
+   │  ├─ tree -L 1 <dir>
+   │  └─ rhx globsafe --pattern '<glob>'
+   │
+   ├─ blocked: grep -rn reef .
+   ├─ paved alternatives for \`grep\`
+   │  ├─ rhx grepsafe --pattern '<regex>' --path <dir>
+   │  └─ rhx git.repo.get lines --in <org/repo> --words '<text>'
+   │
+   ├─ blocked: sed -n 1,2p package.json
+   └─ paved alternatives for \`sed\`
+      ├─ rhx sedreplace --old '<old>' --new '<new>' --glob '<glob>'
+      └─ head -n <last> <file> | tail -n <count>
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'ls src && grep -rn reef . && sed -n 1,2p package.json'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case1] a compound whose second part has a paved alternative when: [t3] a 3-part compound that mixes an alternative, a novel part, and a paved part then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved (2 parts)
+   ├─ blocked: ls src
+   ├─ paved alternatives for \`ls\`
+   │  ├─ tree -L 1 <dir>
+   │  └─ rhx globsafe --pattern '<glob>'
+   │
+   ├─ blocked: python3 -c "print(1)"
+   ├─ no paved path fits this part
+   │
+   └─ tip: a compound runs only if every part is paved; the other parts are paved alone, so split the call
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'ls src && python3 -c "print(1)" && git status'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case2] a typo of a paved command when: [t0] the bot runs \`gti status\` then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: gti status
+   ├─ did you mean?
+   │  ├─ [p] git status
+   │  └─ [p] git diff
+   │
+   └─ key: [e] = the whole part must match exactly · [p] = the part must start with it
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'gti status'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case2] a typo of a paved command when: [t1] the bot runs \`grpsf wave\` (the letters of \`grepsafe\`, in order) then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: grpsf wave
+   ├─ did you mean?
+   │  └─ [p] rhx grepsafe
+   │
+   └─ key: [e] = the whole part must match exactly · [p] = the part must start with it
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'grpsf wave'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case3] a novel command with no paved path when: [t0] the bot runs \`python3 -c "print(1)"\` then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: python3 -c "print(1)"
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'python3 -c "print(1)"'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case4] the bot busts through with one unchanged retry when: [t0] the bot runs the same blocked command twice then: the ask payload matches snapshot 1`] = `
+"{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"🐢 retried after a nudge\\n  • grep: paved alternative offered — rhx grepsafe --pattern '<regex>' --path <dir>\\nthe ledger records this ask (retried)"}}
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case4] the bot busts through with one unchanged retry when: [t0] the bot runs the same blocked command twice then: the first block render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: grep -rn wave .
+   └─ paved alternatives for \`grep\`
+      ├─ rhx grepsafe --pattern '<regex>' --path <dir>
+      └─ rhx git.repo.get lines --in <org/repo> --words '<text>'
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'grep -rn wave .'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case4] the bot busts through with one unchanged retry when: [t1] the bot retries a novel command unchanged then: the ask payload matches snapshot 1`] = `
+"{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"🐢 retried after a nudge\\n  • du: no paved path fits\\nthe ledger records this ask (retried)"}}
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case4] the bot busts through with one unchanged retry when: [t2] the ledger cannot be written, and the bot retries then: the ask payload matches snapshot 1`] = `
+"{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"ask","permissionDecisionReason":"🐢 retried after a nudge\\n  • du: no paved path fits\\n💥 MalfunctionError: the ledger row could not be written (mkdir: <error>) — the ask still goes to the human; make the ledger dir writable so demand is recorded"}}
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case5] the human reads the ledger when: [t0] a novel command is blocked, then retried then: the ledger the human reads matches snapshot (the clock masked) 1`] = `
+[
+  {
+    "at": "<at>",
+    "head": "du",
+    "kind": "novel",
+    "part": "du -sh dist",
+    "verdict": "nudged",
+  },
+  {
+    "at": "<at>",
+    "head": "du",
+    "kind": "novel",
+    "part": "du -sh dist",
+    "verdict": "retried",
+  },
+]
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case6] a single part with a paved alternative when: [t0] the bot runs \`jq .scripts package.json\` then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: jq .scripts package.json
+   ├─ paved alternatives for \`jq\`
+   │  └─ cat <file> | jq
+   ├─ nearest paved patterns
+   │  └─ [e] jq
+   │
+   └─ key: [e] = the whole part must match exactly · [p] = the part must start with it
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'jq .scripts package.json'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case6] a single part with a paved alternative when: [t1] the bot reruns the paved pipe form then: the silent pass matches snapshot 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": "",
+}
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case7] a command whose only near words are weak fits when: [t0] the bot runs \`du -sh dist\` (\`diff\` shares letters, not sense) then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: du -sh dist
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'du -sh dist'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case8] a read whose head resolves to an edit tool (vision case=8, sed) when: [t0] the bot reads a line range with \`sed -n 5,7p package.json\` then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: sed -n 5,7p package.json
+   └─ paved alternatives for \`sed\`
+      ├─ rhx sedreplace --old '<old>' --new '<new>' --glob '<glob>'
+      └─ head -n <last> <file> | tail -n <count>
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'sed -n 5,7p package.json'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case8] a read whose head resolves to an edit tool (vision case=8, sed) when: [t1] the bot reruns the paved read then: the silent pass matches snapshot 1`] = `
+{
+  "code": 0,
+  "stderr": "",
+  "stdout": "",
+}
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case9] the hook registered as an advisory (--mode SOFTNUDGE) when: [t0] the bot runs \`grep -rn wave .\` then: the advisory matches snapshot 1`] = `
+"
+🐚 advisory: this command is not paved (SOFTNUDGE — the command still runs)
+   ├─ blocked: grep -rn wave .
+   ├─ paved alternatives for \`grep\`
+   │  ├─ rhx grepsafe --pattern '<regex>' --path <dir>
+   │  └─ rhx git.repo.get lines --in <org/repo> --words '<text>'
+   │
+   └─ advisory only: the command runs as-is, and no ledger row is recorded
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   └─ see all pre-approved commands: rhx permissions.get --for 'grep -rn wave .'
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case10] more near misses than the cap of 21 when: [t0] the bot runs \`gti swell\` (30 patterns share the near head \`git\`) then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: gti swell
+   ├─ did you mean?
+   │  ├─ [p] git wave0
+   │  ├─ [p] git wave1
+   │  ├─ [p] git wave10
+   │  ├─ [p] git wave11
+   │  ├─ [p] git wave12
+   │  ├─ [p] git wave13
+   │  ├─ [p] git wave14
+   │  ├─ [p] git wave15
+   │  ├─ [p] git wave16
+   │  ├─ [p] git wave17
+   │  ├─ [p] git wave18
+   │  ├─ [p] git wave19
+   │  ├─ [p] git wave2
+   │  ├─ [p] git wave20
+   │  ├─ [p] git wave21
+   │  ├─ [p] git wave22
+   │  ├─ [p] git wave23
+   │  ├─ [p] git wave24
+   │  ├─ [p] git wave25
+   │  ├─ [p] git wave26
+   │  └─ [p] git wave27
+   │
+   ├─ … and 9 more (see all: rhx permissions.get, below)
+   │
+   └─ key: [e] = the whole part must match exactly · [p] = the part must start with it
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'gti swell'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case11] the repo settings cannot be parsed when: [t0] the bot runs a command the broken file would have allowed then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ 💥 MalfunctionError: settings file unparseable: settings.json (jq: <error>) — the allowlist could not be read, so every command blocks and no candidate can be ranked; repair the json in .claude/
+   │
+   ├─ blocked: git status
+   └─ no paved path known — the allowlist could not be read (see above)
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git status'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case12] a \`cd\` part — a head with advice, never a command when: [t0] the bot runs \`cd src && git status\` then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: cd src
+   ├─ run from the cwd; pass paths to the command instead
+   │
+   └─ tip: a compound runs only if every part is paved; the other parts are paved alone, so split the call
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'cd src && git status'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case13] a shell loop — grammar parts, never commands when: [t0] the bot runs \`for f in a b; do ls "$f"; done\` then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved (3 parts)
+   ├─ blocked: for f in a b
+   ├─ shell grammar, not a command — a loop or branch cannot be paved; run each paved command alone
+   │
+   ├─ blocked: do ls "$f"
+   ├─ paved alternatives for \`ls\`
+   │  ├─ tree -L 1 <dir>
+   │  └─ rhx globsafe --pattern '<glob>'
+   │
+   ├─ blocked: done
+   └─ shell grammar, not a command — a loop or branch cannot be paved; run each paved command alone
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'for f in a b; do ls "$f"; done'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case14] a part whose words name a dotted skill (the dot-segment tier) when: [t0] the bot runs \`git release --watch\` then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git release --watch
+   ├─ did you mean?
+   │  └─ [p] rhx git.release
+   │
+   └─ key: [e] = the whole part must match exactly · [p] = the part must start with it
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git release --watch'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case16] a branch and a case — grammar parts, never commands when: [t0] the bot runs an if-branch, a while-loop, and a case then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved (8 parts)
+   ├─ blocked: if true
+   ├─ did you mean?
+   │  └─ [p] tree
+   │
+   ├─ blocked: then ls
+   ├─ paved alternatives for \`ls\`
+   │  ├─ tree -L 1 <dir>
+   │  └─ rhx globsafe --pattern '<glob>'
+   │
+   ├─ blocked: fi
+   ├─ shell grammar, not a command — a loop or branch cannot be paved; run each paved command alone
+   │
+   ├─ blocked: while false
+   ├─ no paved path fits this part
+   │
+   ├─ blocked: do ls
+   ├─ paved alternatives for \`ls\`
+   │  ├─ tree -L 1 <dir>
+   │  └─ rhx globsafe --pattern '<glob>'
+   │
+   ├─ blocked: done
+   ├─ shell grammar, not a command — a loop or branch cannot be paved; run each paved command alone
+   │
+   ├─ blocked: case wave in tide) ls
+   ├─ shell grammar, not a command — a loop or branch cannot be paved; run each paved command alone
+   │
+   ├─ blocked: esac
+   ├─ shell grammar, not a command — a loop or branch cannot be paved; run each paved command alone
+   │
+   └─ key: [e] = the whole part must match exactly · [p] = the part must start with it
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'if true; then ls; fi; while false; do ls; done; case wave in tide) ls ;; esac'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case17] a part that only assigns a variable when: [t0] the bot runs \`WAVE=big && git status\` then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: WAVE=big
+   ├─ no paved path fits this part
+   │
+   └─ tip: a compound runs only if every part is paved; the other parts are paved alone, so split the call
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'WAVE=big && git status'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case18] a rich part beside a light one, under the cap of 21 when: [t0] the bot runs \`gti swell && du -sh dist\` then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved (2 parts)
+   ├─ blocked: gti swell
+   ├─ did you mean?
+   │  ├─ [p] git wave0
+   │  ├─ [p] git wave1
+   │  ├─ [p] git wave10
+   │  ├─ [p] git wave11
+   │  ├─ [p] git wave12
+   │  ├─ [p] git wave13
+   │  ├─ [p] git wave14
+   │  ├─ [p] git wave15
+   │  ├─ [p] git wave16
+   │  ├─ [p] git wave17
+   │  ├─ [p] git wave18
+   │  ├─ [p] git wave19
+   │  ├─ [p] git wave2
+   │  ├─ [p] git wave20
+   │  ├─ [p] git wave21
+   │  ├─ [p] git wave22
+   │  ├─ [p] git wave23
+   │  ├─ [p] git wave24
+   │  ├─ [p] git wave25
+   │  ├─ [p] git wave26
+   │  └─ [p] git wave27
+   │
+   ├─ blocked: du -sh dist
+   ├─ no paved path fits this part
+   │
+   ├─ … and 9 more (see all: rhx permissions.get, below)
+   │
+   └─ key: [e] = the whole part must match exactly · [p] = the part must start with it
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'gti swell && du -sh dist'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh (acceptance) given: [case19] the built hook ships without its inventory beside it when: [t0] the bot runs an unpaved command then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ 💥 MalfunctionError: inventory file absent: commands.alternatives.jsonc — alternatives are omitted and the block still holds; repair the file beside the hook, then rebuild the role
+   │
+   ├─ blocked: du -sh dist
+   └─ no paved path known — the inventory could not be read (see above)
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'du -sh dist'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;

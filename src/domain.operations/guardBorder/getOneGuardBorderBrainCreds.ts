@@ -2,14 +2,14 @@ import { keyrack } from 'rhachet/keyrack';
 
 /**
  * .what = the api key name a brain slug authenticates with
- * .why = each supplier declares its own key name (FireworksCreds vs the xai
- *        getter), and the guard picks its brain at runtime — so the key name
- *        follows the slug rather than sitting as a constant.
+ * .why = each supplier declares its own key name (openrouter vs xai), and the
+ *        guard picks its brain at runtime — so the key name follows the slug,
+ *        never a constant.
  */
 export const getOneGuardBorderBrainKeyName = (input: {
   slug: string;
-}): 'FIREWORKS_API_KEY' | 'XAI_API_KEY' =>
-  input.slug.startsWith('fireworks/') ? 'FIREWORKS_API_KEY' : 'XAI_API_KEY';
+}): 'OPENROUTER_API_KEY' | 'XAI_API_KEY' =>
+  input.slug.startsWith('openrouter/') ? 'OPENROUTER_API_KEY' : 'XAI_API_KEY';
 
 /**
  * .what = supplies the chosen brain's api key, from the env or from keyrack

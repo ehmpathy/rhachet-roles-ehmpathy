@@ -29,7 +29,7 @@ exports[`pretooluse.forbid-shouted-readme.sh given: [case6] error and passthroug
 
 exports[`pretooluse.forbid-shouted-readme.sh given: [case8] block message snapshot when: [t0] Write to root README.md then: Write block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Write to README.md
+✋ ConstraintError: Write to README.md
 
 this repo uses readme.md (lowercase) — README.md does not belong here.
 
@@ -43,7 +43,7 @@ why: shouted filenames (README.md) violate rule.forbid.shouted-readme.
 
 exports[`pretooluse.forbid-shouted-readme.sh given: [case8] block message snapshot when: [t1] Read from nested README.md then: Read block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Read to docs/README.md
+✋ ConstraintError: Read to docs/README.md
 
 this repo uses readme.md (lowercase) — README.md does not belong here.
 
@@ -57,7 +57,7 @@ why: shouted filenames (README.md) violate rule.forbid.shouted-readme.
 
 exports[`pretooluse.forbid-shouted-readme.sh given: [case8] block message snapshot when: [t2] Read from root README.md then: Read block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Read to README.md
+✋ ConstraintError: Read to README.md
 
 this repo uses readme.md (lowercase) — README.md does not belong here.
 
@@ -71,7 +71,7 @@ why: shouted filenames (README.md) violate rule.forbid.shouted-readme.
 
 exports[`pretooluse.forbid-shouted-readme.sh given: [case8] block message snapshot when: [t3] Write to nested README.md then: Write block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Write to packages/x/README.md
+✋ ConstraintError: Write to packages/x/README.md
 
 this repo uses readme.md (lowercase) — README.md does not belong here.
 
@@ -85,7 +85,7 @@ why: shouted filenames (README.md) violate rule.forbid.shouted-readme.
 
 exports[`pretooluse.forbid-shouted-readme.sh given: [case8] block message snapshot when: [t4] Edit to nested README.md then: Edit block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Edit to docs/README.md
+✋ ConstraintError: Edit to docs/README.md
 
 this repo uses readme.md (lowercase) — README.md does not belong here.
 
@@ -99,7 +99,7 @@ why: shouted filenames (README.md) violate rule.forbid.shouted-readme.
 
 exports[`pretooluse.forbid-shouted-readme.sh given: [case8] block message snapshot when: [t5] Edit to root README.md then: Edit block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: Edit to README.md
+✋ ConstraintError: Edit to README.md
 
 this repo uses readme.md (lowercase) — README.md does not belong here.
 

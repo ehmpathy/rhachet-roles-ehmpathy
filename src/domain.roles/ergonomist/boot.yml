@@ -18,6 +18,10 @@ always:
       - briefs/fundamentals/rule.prefer.defaults-match-common-case.md
       - briefs/fundamentals/rule.prefer.prevent-over-correct.md
 
+      # treestruct shape — a header owns its trunk; a label owns its items
+      - briefs/cli/rule.forbid.treestruct-header-gap.md
+      - briefs/cli/rule.forbid.treestruct-indented-text-as-children.md
+
     ref:
       # role rationale + adjacent rules (loaded on demand)
       - briefs/define.why-ergonomist-not-designer.md

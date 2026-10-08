@@ -22,12 +22,18 @@
 
 set -euo pipefail
 
+# fail closed on a crash: claude code reads any PreToolUse exit but 2 as a permit, so an unbound
+# var or a failed command would otherwise open this gate in silence
+# .note = each write is guarded and SIGPIPE ignored, so a closed stream cannot stop the exit 2
+trap '' PIPE
+trap 'hook_exit=$?; if [[ $hook_exit -ne 0 && $hook_exit -ne 2 ]]; then hook_crash="💥 MalfunctionError: ${0##*/} crashed (exit $hook_exit); the tool call stays blocked — retry once; if it recurs, report the defect to the ehmpathy mechanic role repo"; printf "%s\n" "$hook_crash" || true; printf "%s\n" "$hook_crash" >&2 || true; exit 2; fi' EXIT
+
 # read JSON from stdin
 STDIN_INPUT=$(cat)
 
 # failfast: if no input, error
 if [[ -z "$STDIN_INPUT" ]]; then
-  echo "ERROR: PreToolUse hook received no input via stdin" >&2
+  echo "✋ ConstraintError: PreToolUse hook received no input via stdin" >&2
   exit 2
 fi
 
@@ -53,7 +59,7 @@ if [[ "$TOOL_NAME" == "Write" || "$TOOL_NAME" == "Edit" || "$TOOL_NAME" == "Read
     # block with guidance
     {
       echo ""
-      echo "🛑 BLOCKED: $TOOL_NAME to $FILE_PATH"
+      echo "✋ ConstraintError: $TOOL_NAME to $FILE_PATH"
       echo ""
       echo "use .temp/ instead:"
       echo ""
@@ -106,7 +112,7 @@ fi
 if [[ "$TMP_WRITE_DETECTED" == true ]]; then
   {
     echo ""
-    echo "🛑 BLOCKED: Bash write to /tmp"
+    echo "✋ ConstraintError: Bash write to /tmp"
     echo ""
     echo "use .temp/ instead:"
     echo ""
@@ -144,7 +150,7 @@ fi
 if [[ "$TMP_READ_DETECTED" == true ]]; then
   {
     echo ""
-    echo "🛑 BLOCKED: Bash read from $TMP_READ_PATH"
+    echo "✋ ConstraintError: Bash read from $TMP_READ_PATH"
     echo ""
     echo "only /tmp/claude* is allowed (agent temp directories)."
     echo "for scratch files, use .temp/ instead."

@@ -1166,6 +1166,7 @@ module.exports = {
 
         then('exit code is 2 (constraint)', () => {
           expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('matched: 0 files');
         });
 
         then('the suite command never ran (failfast before the run)', () => {

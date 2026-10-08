@@ -136,7 +136,7 @@ if [[ "$SHOW_HELP" == "true" ]]; then
   echo "  --onVerify <op>      verify operation: restore | null (default: null)"
   echo "  --attempts <N>       runs per input for variance measurement (default: 3)"
   echo "  --mode plan|apply    preview (plan) or emit (apply). default: apply"
-  echo "  --brain <slug>       brain provider (default: fireworks/deepseek/v4-flash)"
+  echo "  --brain <slug>       brain provider (default: openrouter/deepseek/flash)"
   echo "  --json               output as JSON"
   echo "  --force              bypass cache and recompress"
   echo "  --help               show this help"

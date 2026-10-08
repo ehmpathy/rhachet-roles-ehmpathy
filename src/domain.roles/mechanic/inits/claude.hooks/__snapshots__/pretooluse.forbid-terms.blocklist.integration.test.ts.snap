@@ -89,6 +89,22 @@ if this is intentional and absolutely unavoidable, retry the same operation.
 "
 `;
 
+exports[`pretooluse.forbid-terms.blocklist.sh given: [case16] the blocklist file is MALFORMED json when: [t0] a write that would trip every real term runs then: the WHOLE refusal is snapshotted 1`] = `
+"
+💥 MalfunctionError: the blocklist config could not be parsed (jq: parse error: Expected another key-value pair at line 1, column 39)
+
+config: <sandbox>
+file:   notes.md
+
+why: the config is not valid json (after whole-line // comments are stripped), or its
+     .terms is not a list. a config that cannot be read guards no term.
+
+fix: repair the json in terms.blocklist.jsonc — or delete the file to turn
+     this gate off on purpose.
+
+"
+`;
+
 exports[`pretooluse.forbid-terms.blocklist.sh given: [case18] a term holds a double quote when: [t0] a write trips it then: the WHOLE message renders the quoted term as a human meets it 1`] = `
 "
 ✋ ConstraintError: forbidden term(s) detected in file write
@@ -110,7 +126,7 @@ if this is intentional and absolutely unavoidable, retry the same operation.
 exports[`pretooluse.forbid-terms.blocklist.sh given: [case21] the nudge STATE FILE is unparseable json when: [t0] a write trips a term then: the WHOLE stderr reads as a human would meet it 1`] = `
 "💥 MalfunctionError: HARDNUDGE record NOT saved — could not update the nudge file
     file:   <nudge-file>
-    why:    it is unparseable json, or the write failed
+    why:    the nudge record is unreadable (jq: parse error: Unfinished JSON term at EOF at line 1, column 12)
     effect: a deliberate retry will RE-BLOCK instead of pass
     fix:    rm '<nudge-file>'  — it is a local cache and regenerates
 
@@ -171,12 +187,11 @@ if this is intentional and absolutely unavoidable, retry the same operation.
 `;
 
 exports[`pretooluse.forbid-terms.blocklist.sh given: [case26] the nudge file is VALID but the write to it cannot land when: [t0] a first write trips a term and the record cannot be stamped then: the WHOLE warn+block render is snapshotted 1`] = `
-"mv: cannot move '<mv-temp-file> to '<nudge-file>': Permission denied
-💥 MalfunctionError: HARDNUDGE record NOT saved — could not update the nudge file
+"💥 MalfunctionError: HARDNUDGE record NOT saved — could not update the nudge file
     file:   <nudge-file>
-    why:    it is unparseable json, or the write failed
+    why:    the lock could not be made (mkdir: cannot create directory ‘<nudge-file>.lock’: Permission denied)
     effect: a deliberate retry will RE-BLOCK instead of pass
-    fix:    rm '<nudge-file>'  — it is a local cache and regenerates
+    fix:    make the dir that holds '<nudge-file>.lock' writable
 
 ✋ ConstraintError: forbidden term(s) detected in file write
 

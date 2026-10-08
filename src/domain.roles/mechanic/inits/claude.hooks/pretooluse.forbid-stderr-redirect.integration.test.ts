@@ -89,7 +89,7 @@ describe('pretooluse.forbid-stderr-redirect.sh', () => {
         const result = runHook({
           stdin: genPayload({ command: 'npm test 2>&1' }),
         });
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('stderr redirect');
         expect(result.stderr).toContain('2>&1');
       });

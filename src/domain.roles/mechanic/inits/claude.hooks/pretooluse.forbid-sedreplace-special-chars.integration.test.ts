@@ -33,7 +33,7 @@ describe('pretooluse.forbid-sedreplace-special-chars.sh', () => {
           },
         });
         expect(result.status).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('@stdin');
       });
     });
@@ -47,7 +47,7 @@ describe('pretooluse.forbid-sedreplace-special-chars.sh', () => {
           },
         });
         expect(result.status).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('@stdin');
       });
     });
@@ -61,7 +61,7 @@ describe('pretooluse.forbid-sedreplace-special-chars.sh', () => {
           },
         });
         expect(result.status).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('@stdin');
       });
     });
@@ -77,9 +77,80 @@ describe('pretooluse.forbid-sedreplace-special-chars.sh', () => {
           },
         });
         expect(result.status).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('@stdin');
       });
+    });
+  });
+
+  given('[case7] the suggested command must run as printed', () => {
+    // .note = the guard once wrapped each pattern in single quotes with no escape, and joined
+    //         two patterns with `\n`; a pattern that held a `'` broke the suggestion mid-word
+    /**
+     * .what = the suggested command line, from the guard's stderr
+     */
+    const asSuggestion = (input: { stderr: string }): string =>
+      input.stderr
+        .split('\n')
+        .map((line) => line.trim())
+        .find((line) => line.includes('| rhx sedreplace')) ?? '';
+
+    /**
+     * .what = run the producer half of the suggestion (the part before `| rhx`), return its bytes
+     */
+    const runProducer = (input: { suggestion: string }): string =>
+      spawnSync(
+        'bash',
+        ['-c', input.suggestion.split(' | rhx sedreplace')[0] ?? ''],
+        {
+          encoding: 'utf-8',
+        },
+      ).stdout;
+
+    when('[t0] both patterns hold a single quote and a paren', () => {
+      const result = runHook({
+        tool_name: 'Bash',
+        tool_input: {
+          command: `rhx sedreplace --old "toContain('✋ ConstraintError:')" --new "toContain('ConstraintError')" --glob 'src/**/*.ts'`,
+        },
+      });
+      const suggestion = asSuggestion({ stderr: result.stderr });
+
+      then('it blocks, and the suggestion parses as bash', () => {
+        expect(result.status).toBe(2);
+        expect(suggestion).not.toBe('');
+        expect(spawnSync('bash', ['-n', '-c', suggestion]).status).toBe(0);
+      });
+
+      then('the producer emits both patterns, split by a NUL byte', () => {
+        expect(runProducer({ suggestion })).toBe(
+          "toContain('✋ ConstraintError:')\0toContain('ConstraintError')",
+        );
+      });
+
+      then('the glob the bot chose is carried over', () => {
+        expect(suggestion).toContain("--glob 'src/**/*.ts'");
+      });
+    });
+
+    when('[t1] only the old pattern holds a single quote and a paren', () => {
+      const result = runHook({
+        tool_name: 'Bash',
+        tool_input: {
+          command: `rhx sedreplace --old "wave('pipeline')" --new 'swell' --glob 'src/**/*.ts'`,
+        },
+      });
+      const suggestion = asSuggestion({ stderr: result.stderr });
+
+      then(
+        'the producer emits the old pattern exactly, with no trailed newline',
+        () => {
+          expect(result.status).toBe(2);
+          expect(spawnSync('bash', ['-n', '-c', suggestion]).status).toBe(0);
+          expect(runProducer({ suggestion })).toBe("wave('pipeline')");
+          expect(suggestion).toContain("--new 'swell'");
+        },
+      );
     });
   });
 
@@ -139,6 +210,22 @@ describe('pretooluse.forbid-sedreplace-special-chars.sh', () => {
         });
         expect(result.status).toBe(0);
         expect(result.stderr).toBe('');
+      });
+    });
+  });
+
+  given('[case8] a PreToolUse payload jq cannot parse', () => {
+    // 🔴 `|| echo ""` once read a parse failure as "not a Bash call" and permitted it
+    when('[t0] the payload is not json', () => {
+      then("the hook blocks, and names the class and jq's cause", () => {
+        const result = spawnSync('bash', [hookPath], {
+          input: `{ "tool_name": "Bash", "tool_input": { "command": "rhx sedreplace --old '{ x }'" `,
+          encoding: 'utf-8',
+        });
+        expect(result.status).toBe(2);
+        expect(result.stderr).toContain(
+          '💥 MalfunctionError: PreToolUse payload is not valid json (jq: ',
+        );
       });
     });
   });

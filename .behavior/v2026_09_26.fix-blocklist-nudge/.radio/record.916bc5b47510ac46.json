@@ -1,0 +1,21 @@
+{
+  "key": "916bc5b47510ac46",
+  "kind": "create",
+  "repo": {
+    "owner": "ehmpathy",
+    "name": "rhachet-roles-bhrain"
+  },
+  "exid": null,
+  "title": "fix(review): a peer-review clone must not inherit the driver's route Stop hook",
+  "description": "# 🌙 dream: a peer-review clone must not inherit the driver's route Stop hook\n\nkind · reseed · owner: ehmpathy/rhachet-roles-bhrain (route guard + `rhx enroll`) · caught 2026-10-06\n\n## .the cue that fired\n\nstone `5.1.execution.from_vision` of `.behavior/v2026_09_26.fix-blocklist-nudge`, rounds i011 and i012:\n\n- i011 `enroll-impl-arch-defects`: the clone ran `route.stone.set --as arrived`, was refused\n  (`clone enroll depth budget spent`), then asked its caller \"Which do you want?\". the tallier read\n  the lane names r10/r11 in that prose as 2 blockers (F28)\n- i012 `enroll-impl-behavior-intent`: the clone finished a clean review at T+6m\n  (`0 blockers, 2 nitpicks`), then `rhx route.drive --when hook.onStop` fired ~8 times. each reply\n  refused to drive. the LAST reply became the stdout the guard read: no count lines → `💥 malfunction`\n\n## .the gap, precisely\n\nan l3 peer lane runs `rhx enroll claude … -p '<review prompt>'` in the same worktree. the clone\nboots with the worktree's route bind, so the driver's `route.drive` Stop hook fires inside the\nreviewer. the guard reads the clone's final message, not its review.\n\nevidence: `rhx clone get @:13cebcf0 --tail 60` (the i012 lane), and the i011 r011 given.\n\n## .the shape of the fix\n\neither:\n\n1. `rhx enroll` (or the guard that spawns a peer lane) marks the clone as a reviewer, and\n   `route.drive --when hook.onStop` exits 0 in silence for a reviewer clone; or\n2. the guard captures the reviewer's first message that carries both count lines, not the last\n   message\n\noption 1 fixes the cause; option 2 only makes the symptom survivable.\n\n## .why it is not done in this round\n\nthe hook and the enroll live in rhachet-roles-bhrain / rhachet, not this repo. this route works\naround it in its own guard: each l3 prompt tells the reviewer to answer any Stop hook with its full\nlabeled list and the two count lines.",
+  "status": null,
+  "via": "gh.issues",
+  "auth": null,
+  "idem": "findsert",
+  "heldAt": "2026-10-06T23:58:41Z",
+  "heldSeq": 1,
+  "recordStatus": "DELIVERED",
+  "reason": null,
+  "settledAt": "2026-10-06T23:58:45Z",
+  "deliveredExid": "599"
+}

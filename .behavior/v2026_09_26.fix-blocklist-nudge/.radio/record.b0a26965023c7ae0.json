@@ -1,0 +1,21 @@
+{
+  "key": "b0a26965023c7ae0",
+  "kind": "create",
+  "repo": {
+    "owner": "ehmpathy",
+    "name": "rhachet-roles-bhuild"
+  },
+  "exid": null,
+  "title": "feat(radio): a command to deliver the held backlog, so a queued task needs no adhoc re-push",
+  "description": "## what\n\nadd a command that delivers the held radio backlog on its own — e.g. `rhx radio.task.push --held` or `rhx radio.task.held --deliver` — with no new task required.\n\n## why\n\ntoday a held task leaves only one way out: \"the next push that gets through delivers the backlog first\". so to deliver a task already queued, a clone must push it again by hand — rebuild its title and description from the held record, pipe them back in, and lean on `--idem findsert` to avoid a duplicate. that is adhoc, error-prone (a hand-copied title can drift from the record), and it reaches for a create when the intent is a flush.\n\n`radio.task.held` already shows what waits and who can lift the gate. the act that should follow it — \"the gate is open now, send what waits\" — has no command.\n\n## evidence\n\n`ehmpathy/rhachet-roles-ehmpathy`, 2026-10-08: a task held since 2026-10-07 (`radio.uses:blocked — global`) waited after the human lifted the global block. to deliver it, the clone read `record.<key>.json`, copied its description into a file, and re-ran `radio.task.push --title '<same title>' --description @stdin --idem findsert` (delivered as ehmpathy/rhachet#586).\n\n## shape\n\n1. a flush command: deliver every QUEUED record in `$route/.radio/` (or `.behavior/.radio/`), oldest first, under the same gate check a push runs; report delivered / still held per task, with the exid\n2. idempotent: a re-run after a full flush reports `backlog = 0` and creates naught\n3. one record that faults on its own input (not the network) is named and skipped, so the rest still flow (see ehmpathy/rhachet-roles-bhuild#450, where one bad title held the queue)\n4. `radio.task.held` names the command in its hint, in place of \"the next push delivers the backlog\"",
+  "status": null,
+  "via": "gh.issues",
+  "auth": null,
+  "idem": "findsert",
+  "heldAt": "2026-10-08T07:55:54Z",
+  "heldSeq": 8,
+  "recordStatus": "DELIVERED",
+  "reason": null,
+  "settledAt": "2026-10-08T07:55:58Z",
+  "deliveredExid": "451"
+}

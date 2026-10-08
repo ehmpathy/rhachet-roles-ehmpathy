@@ -1,0 +1,102 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`permission gates parity (check-permissions vs decide-permissions) given: [case1] plain single commands when: [t0] each command runs through both gates then: the verdict table matches snapshot 1`] = `
+[
+  {
+    "command": "npm run test",
+    "gate": true,
+    "seam": true,
+  },
+  {
+    "command": "npm run test -- --watch",
+    "gate": true,
+    "seam": true,
+  },
+  {
+    "command": "git status",
+    "gate": true,
+    "seam": true,
+  },
+  {
+    "command": "git status -s",
+    "gate": false,
+    "seam": false,
+  },
+  {
+    "command": "tree -L 1 src",
+    "gate": true,
+    "seam": true,
+  },
+  {
+    "command": "jq",
+    "gate": true,
+    "seam": true,
+  },
+  {
+    "command": "jq .scripts package.json",
+    "gate": false,
+    "seam": false,
+  },
+  {
+    "command": "cat package.json",
+    "gate": true,
+    "seam": true,
+  },
+  {
+    "command": "python3 -c "print(1)"",
+    "gate": false,
+    "seam": false,
+  },
+  {
+    "command": "du -sh dist",
+    "gate": false,
+    "seam": false,
+  },
+]
+`;
+
+exports[`permission gates parity (check-permissions vs decide-permissions) given: [case2] compounds, assignments, redirects, substitutions when: [t0] each command runs through both gates then: the verdict table matches snapshot 1`] = `
+[
+  {
+    "command": "npm run testx",
+    "gate": false,
+    "seam": false,
+  },
+  {
+    "command": "git status && tree src",
+    "gate": true,
+    "seam": true,
+  },
+  {
+    "command": "cat package.json | jq",
+    "gate": true,
+    "seam": true,
+  },
+  {
+    "command": "git status; du -sh dist",
+    "gate": false,
+    "seam": false,
+  },
+  {
+    "command": "WAVE=1 npm run test",
+    "gate": false,
+    "seam": false,
+  },
+  {
+    "command": "tree src > out.txt",
+    "gate": true,
+    "seam": false,
+  },
+  {
+    "command": "cat "$(echo package.json)"",
+    "gate": true,
+    "seam": false,
+  },
+  {
+    "command": "git status
+du -sh dist",
+    "gate": false,
+    "seam": false,
+  },
+]
+`;

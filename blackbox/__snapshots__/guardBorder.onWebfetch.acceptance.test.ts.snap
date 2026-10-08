@@ -26,7 +26,7 @@ exports[`guardBorder.onWebfetch (acceptance) given: [case12] GUARD_BORDER_BRAIN 
 🧠 unknown brain "nosuch/brain/v0"
 
 set GUARD_BORDER_BRAIN to one of:
-  - fireworks/deepseek/v4-flash
+  - openrouter/deepseek/flash
   - xai/grok/code-fast-1
 
 "

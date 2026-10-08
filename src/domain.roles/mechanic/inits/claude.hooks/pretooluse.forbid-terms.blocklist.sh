@@ -27,65 +27,13 @@
 
 set -euo pipefail
 
-# config
-HARDNUDGE_WINDOW_SECONDS=300  # 5 minutes
-STALE_THRESHOLD_SECONDS=3600  # 1 hour
+# fail closed on a crash: claude code reads any PreToolUse exit but 2 as a permit, so an unbound
+# var or a failed command would otherwise open this gate in silence
+# .note = each write is guarded and SIGPIPE ignored, so a closed stream cannot stop the exit 2
+trap '' PIPE
+trap 'hook_exit=$?; if [[ $hook_exit -ne 0 && $hook_exit -ne 2 ]]; then hook_crash="💥 MalfunctionError: ${0##*/} crashed (exit $hook_exit); the tool call stays blocked — retry once; if it recurs, report the defect to the ehmpathy mechanic role repo"; printf "%s\n" "$hook_crash" || true; printf "%s\n" "$hook_crash" >&2 || true; exit 2; fi' EXIT
 
-# read JSON from stdin
-STDIN_INPUT=$(cat)
-
-# failfast: if no input, error
-if [[ -z "$STDIN_INPUT" ]]; then
-  {
-    echo "✋ ConstraintError: PreToolUse hook received no input via stdin"
-    echo "  why: claude code pipes {tool_name, tool_input} as json on stdin"
-    echo "  fix: pipe a payload, e.g."
-    echo "       echo '{\"tool_name\":\"Write\",\"tool_input\":{\"content\":\"…\"}}' | ${BASH_SOURCE[0]}"
-  } >&2
-  exit 2
-fi
-
-# extract tool name and file path in ONE jq pass
-# .why = three jq execs over one payload cost three forks; one emits both fields.
-#        -j drops the final newline, so a tab-split yields exact values. a tab cannot
-#        appear in a tool_name, and jq's @tsv escapes one in a path.
-# .note = read returns 1 at EOF even when it set both vars, and -j guarantees EOF with
-#         no newline. the `|| true` keeps set -e from reading that as a failure.
-IFS=$'\t' read -r TOOL_NAME FILE_PATH < <(
-  echo "$STDIN_INPUT" | jq -rj '[(.tool_name // ""), (.tool_input.file_path // "")] | @tsv' 2>/dev/null || echo ""
-) || true
-
-# 🟡 .note = a malformed (non-empty) payload is a SILENT PERMIT, by ruling rather than
-#            by oversight. `2>/dev/null || echo ""` leaves TOOL_NAME empty, so the guard
-#            below reads true and the hook exits 0 with no signal — the same fail-open
-#            class as the timeout above and the config-list read below.
-#
-#            acceptance #2's "no policy change, either direction" covers DEGRADED mode,
-#            so a repair here is as forbidden as a relaxation. the verdict is PINNED
-#            rather than fixed: `[case22]` asserts exit 0 with empty streams, so any
-#            future repair is a visible test change.
-
-# skip if not Write or Edit
-if [[ "$TOOL_NAME" != "Write" && "$TOOL_NAME" != "Edit" ]]; then
-  exit 0
-fi
-
-# extract content to scan based on tool type
-# .why = content holds tabs and newlines, so it cannot ride the tsv above
-# .note = an Edit is scanned on new_string only, so a term REMOVED never blocks.
-#         the gate above admits only Write or Edit, so these two cases are total.
-CONTENT_FIELD='.tool_input.content'
-if [[ "$TOOL_NAME" == "Edit" ]]; then
-  CONTENT_FIELD='.tool_input.new_string'
-fi
-CONTENT=$(echo "$STDIN_INPUT" | jq -r "$CONTENT_FIELD // empty" 2>/dev/null || echo "")
-
-# skip if no content
-if [[ -z "$CONTENT" ]]; then
-  exit 0
-fi
-
-# find hook directory for blocklist config
+# find hook directory, for the shared lib and the blocklist config
 # .note = ${x%/*} is a bash expansion at zero forks, where dirname costs one. it strips
 #         no segment when the path holds no slash, so a bare "hook.sh" invocation falls
 #         back to "." — the same answer dirname would have given.
@@ -93,7 +41,18 @@ HOOK_DIR="${BASH_SOURCE[0]%/*}"
 [[ "$HOOK_DIR" == "${BASH_SOURCE[0]}" ]] && HOOK_DIR="."
 BLOCKLIST_FILE="$HOOK_DIR/terms.blocklist.jsonc"
 
+# load the shared HARDNUDGE mechanism; an absent lib blocks, loud
+# shellcheck source=_hardnudge.lib.sh
+source "$HOOK_DIR/_hardnudge.lib.sh" 2>/dev/null || {
+  echo "💥 MalfunctionError: ${0##*/} could not load $HOOK_DIR/_hardnudge.lib.sh; the write stays blocked — reinstall the mechanic role" >&2
+  exit 2
+}
+
+# read the payload: sets TOOL_NAME FILE_PATH CONTENT; exits 0 for a non-Write/Edit or empty content
+set_hardnudge_payload
+
 # skip if no blocklist config
+# .note = an ABSENT config is the documented way to disable this gate
 if [[ ! -f "$BLOCKLIST_FILE" ]]; then
   exit 0
 fi
@@ -102,8 +61,9 @@ fi
 # .why = one exec emits the alternation on line 1 and term<TAB>why<TAB>alt on each line
 #        after. a per-term read costs 3 jq × 9 terms = 27 execs for detail the common
 #        clean write discards unread.
-# .note = an ABSENT or MALFORMED blocklist yields an empty result => the gate opens with no
-#         signal. that is the extant failhide, kept deliberately (acceptance #2; A8 ruled).
+# 🔴 .note = a MALFORMED blocklist fails LOUD and blocks. a parse error once yielded an
+#            empty result, and the gate opened for every term with no signal. an ABSENT
+#            file (the check above) is the one quiet off switch.
 #
 # 🔴 .note = every guard in this jq is LOAD-BEARING, never defensive noise. one stream
 #            means ANY jq error kills the SINGLE exec => every line is lost =>
@@ -138,15 +98,43 @@ fi
 #            it stays as-is. a `select(.term != "")` drops the empty record from the
 #            alternation, which is what already happens in effect — no verdict changes,
 #            and it costs a policy edit acceptance #2 bars "either direction".
-BLOCKLIST_LINES=$(
-  sed 's|//.*||' "$BLOCKLIST_FILE" \
-    | jq -r '(.terms // []) as $t
-             | [([$t[] | .term | strings] | join("|")),
-                ($t[] | [((.term | strings) // ""),
-                         ((.why | strings) // ""),
-                         (try ((.alt // []) | join(", ")) catch "")] | @tsv)]
-             | .[]' 2>/dev/null || echo ""
-)
+# .note = sets BLOCKLIST_LINES, or BLOCKLIST_CAUSE and returns 1. jq writes naught to
+#         stderr on success, so `2>&1` leaves the lines clean; on failure the last line
+#         captured is jq's own complaint, so the cause costs no extra fork
+set_blocklist_lines() {
+  local file="${1#file=}"
+  BLOCKLIST_LINES=$(
+    sed 's|^[[:space:]]*//.*$||' "$file" \
+      | jq -r '(.terms // []) as $t
+               | [([$t[] | .term | strings] | join("|")),
+                  ($t[] | [((.term | strings) // ""),
+                           ((.why | strings) // ""),
+                           (try ((.alt // []) | join(", ")) catch "")] | @tsv)]
+               | .[]' 2>&1
+  ) && return 0
+  BLOCKLIST_CAUSE="${BLOCKLIST_LINES##*$'\n'}"
+  return 1
+}
+
+# .note = the read sits in an `if` condition, so `set -e` cannot abort on it and the
+#         failure branch always renders the message and the block
+if ! set_blocklist_lines file="$BLOCKLIST_FILE"; then
+  {
+    echo ""
+    echo "💥 MalfunctionError: the blocklist config could not be parsed ($BLOCKLIST_CAUSE)"
+    echo ""
+    echo "config: $BLOCKLIST_FILE"
+    echo "file:   $FILE_PATH"
+    echo ""
+    echo "why: the config is not valid json (after whole-line // comments are stripped), or its"
+    echo "     .terms is not a list. a config that cannot be read guards no term."
+    echo ""
+    echo "fix: repair the json in terms.blocklist.jsonc — or delete the file to turn"
+    echo "     this gate off on purpose."
+    echo ""
+  } >&2
+  exit 2
+fi
 
 # skip if no terms
 TERM_ALTERNATION="${BLOCKLIST_LINES%%$'\n'*}"
@@ -222,16 +210,33 @@ fi
 # ⚠️ .note = the skip stays; the SILENCE does not. a bad pattern here is reported on
 #            stderr with the verdict untouched — the same split the nudge-record write
 #            makes (loud diagnostic, unchanged verdict).
-DETECTED_TERMS=()
-DETECTED_INFO=""
-while IFS=$'\t' read -r TERM WHY ALT; do
-  [[ -z "$TERM" ]] && continue
-  if grep -iqE "\\b${TERM}\\b" <<< "$CONTENT" 2>/dev/null; then
-    DETECTED_TERMS+=("$TERM")
-    DETECTED_INFO="${DETECTED_INFO}  ⛔ ${TERM}\n    why: ${WHY}\n    alt: ${ALT}\n"
-  elif [[ $? -gt 1 ]]; then
+# the terms the content holds, each with its why and alt, from the `term<TAB>why<TAB>alt` rows
+# .note = named args `content=` `rows=`; sets the global array DETECTED_TERMS and the global
+#         DETECTED_INFO (the render lines). a term grep cannot compile is skipped and warned
+set_detected_terms() {
+  local content="" rows=""
+  local "$@"
+  DETECTED_TERMS=()
+  DETECTED_INFO=""
+  local term why alt grep_status
+  while IFS=$'\t' read -r term why alt; do
+    [[ -z "$term" ]] && continue
+
+    # grep exit 0 = present, 1 = absent, >1 = a term that is not a valid regex
+    grep_status=0
+    grep -iqE "\\b${term}\\b" <<< "$content" 2>/dev/null || grep_status=$?
+    [[ $grep_status -eq 1 ]] && continue
+
+    # present: record it with its why and alt
+    if [[ $grep_status -eq 0 ]]; then
+      DETECTED_TERMS+=("$term")
+      DETECTED_INFO="${DETECTED_INFO}  ⛔ ${term}\n    why: ${why}\n    alt: ${alt}\n"
+      continue
+    fi
+
+    # not a valid regex: skip it, loud; the verdict is untouched
     {
-      echo "💥 MalfunctionError: blocklist term SKIPPED — it is not a valid regex: ${TERM}"
+      echo "💥 MalfunctionError: blocklist term SKIPPED — it is not a valid regex: ${term}"
       echo "    why:    grep could not compile it, so this term guarded naught"
       echo "    effect: every other term still guards; only this one is blind"
       echo "    fix:    escape or remove it in terms.blocklist.jsonc"
@@ -240,10 +245,12 @@ while IFS=$'\t' read -r TERM WHY ALT; do
     # .what = this warn already closed with a blank line
     # .why  = the block message below opens with its own `echo ""`. both are
     #         right alone and stack into a DOUBLE blank when both fire. the
-    #         flag lets the header drop its leading blank, and only then.
+    #         flag lets the header drop its first blank, and only then.
     WARNED=1
-  fi
-done <<< "${BLOCKLIST_LINES#*$'\n'}"
+  done <<< "$rows"
+  return 0
+}
+set_detected_terms content="$CONTENT" rows="${BLOCKLIST_LINES#*$'\n'}"
 
 # if no terms detected, allow
 # .note = reachable when the alternation matches but no single term does — the alternation
@@ -252,155 +259,9 @@ if [[ ${#DETECTED_TERMS[@]} -eq 0 ]]; then
   exit 0
 fi
 
-# find .claude directory
-# .note = ${dir%/*} strips the last path segment in-shell. dirname cost one exec PER
-#         PARENT DIR, so a deep worktree paid ~7 forks here on every invocation.
-# .note = the walk stops at "/" exactly as the dirname form did, so "/.claude" is never
-#         consulted. ${dir%/*} yields "" where dirname yields "/", hence the -z guard.
-find_claude_dir() {
-  local dir="$PWD"
-  while [[ "$dir" != "/" ]]; do
-    if [[ -d "$dir/.claude" ]]; then
-      echo "$dir/.claude"
-      return 0
-    fi
-    dir="${dir%/*}"
-    [[ -z "$dir" ]] && dir="/"
-  done
-  return 1
-}
-
-CLAUDE_DIR=$(find_claude_dir) || {
-  mkdir -p "$PWD/.claude"
-  CLAUDE_DIR="$PWD/.claude"
-}
-
-NUDGE_FILE="$CLAUDE_DIR/terms.blocklist.nudges.local.json"
-
-# ensure nudge file exists
-#
-# 🔴 .note = the `|| true` is LOAD-BEARING. a bare simple command under `set -euo
-#            pipefail` exits the shell on failure, so an unwritable `.claude` (read-only
-#            mount, full disk) aborts at status 1 — BEFORE the block message and BEFORE
-#            `exit 2`. claude code reads a non-2 exit as NOT BLOCKED ⇒ the forbidden term
-#            lands, silently. the same fail-open family as the hook timeout, the `rm -f`
-#            sweep, and the `mv` that `[case26]` clamps.
-#
-# .note = guarded, an absent file fails CLOSED: the read below is `|| echo "0"`, so
-#         LAST_ATTEMPT is 0, `elapsed` is enormous, the window check falls through, and
-#         the hook blocks. ⇒ an unwritable state dir costs the RETRY, never the gate.
-#
-# .note = no VERDICT changes on any healthy path — this branch runs only when the file is
-#         absent AND unwritable, so healthy output stays byte-identical (acceptance #4).
-#         clamp: `[case29]`.
-if [[ ! -f "$NUDGE_FILE" ]]; then
-  echo '{}' > "$NUDGE_FILE" || true
-fi
-
-NOW=$(date +%s)
-
-# build nudge key as hash of file_path
-NUDGE_KEY=$(echo -n "${FILE_PATH}" | sha256sum | cut -d' ' -f1)
-
-# check last attempt time (nudge format: { hash: { time, path, terms } })
-LAST_ATTEMPT=$(jq -r --arg key "$NUDGE_KEY" '.[$key].time // 0' "$NUDGE_FILE" 2>/dev/null || echo "0")
-elapsed=$((NOW - LAST_ATTEMPT))
-
-# ⚠️ .note = this window reads the WALL CLOCK, never a monotonic counter. a backwards
-#            clock jump (ntp correction, `date -s`, container snapshot restore) holds the
-#            gate OPEN for this path until the clock catches up: `elapsed` goes negative,
-#            `-lt` stays true, every retry permits. the stale sweep reads the same clock,
-#            so the record is not pruned either.
-# .why  = the fix is a monotonic source, which changes WHEN the gate re-blocks — and
-#         acceptance #3 freezes the HARDNUDGE contract ("first attempt blocks, a retry
-#         within the window passes"). a correctness repair here is a policy change.
-#         ⇒ .dream/v2026_09_12.fix.hardnudge-window-keyed-to-a-wall-clock.md
-# .note = the exposure is bounded by construction: the window is 300s and the key is a
-#         hash of ONE file path, so a jump of N seconds opens that one path for at most
-#         N seconds. it is not a global gate release.
-if [[ $elapsed -lt $HARDNUDGE_WINDOW_SECONDS ]]; then
-  # within retry window, allow
-  exit 0
-fi
-
-# cleanup stale entries (older than 1 hour)
-# nudge format: { hash: { time, path, terms } }
-# .why = the sweep runs on the BLOCK branch ONLY. ahead of detection it costs every clean
-#        write 3 execs to prune a file it never reads; ahead of the window check it costs
-#        every permitted RETRY the same 3 execs.
-#
-# .note = this placement is verdict-neutral, and the proof is an inequality rather than a
-#         trace: STALE_THRESHOLD_SECONDS (3600) > HARDNUDGE_WINDOW_SECONDS (300), so any
-#         record old enough to sweep was ALREADY outside the window. swept or not, elapsed
-#         exceeds the window and the hook blocks. ⇒ fresh, mid, and stale all render the
-#         same verdict.
-#
-# 🔴 .note = the `|| true` below is LOAD-BEARING, never defensive clutter. `set -e` exits
-#            on a failed simple command unless it sits in an `if` CONDITION or is a
-#            NON-LAST element of an `&&`/`||` list. as the LAST element, a failed `rm -f`
-#            aborts the hook — and on the BLOCK branch that abort returns a non-2 status,
-#            which claude code reads as NOT BLOCKED.
-#            ⇒ a failed cleanup of a temp file would PERMIT a forbidden term.
-#            the same fail-open family as the hook timeout and the `mv` that `[case26]`
-#            clamps. it is negligible in LIKELIHOOD (`rm -f` needs an unwritable TMPDIR)
-#            and not in KIND, and the cost to close it is one token.
-TMP_FILE=$(mktemp)
-jq --argjson now "$NOW" --argjson threshold "$STALE_THRESHOLD_SECONDS" \
-  'to_entries | map(select(.value.time > ($now - $threshold))) | from_entries' \
-  "$NUDGE_FILE" > "$TMP_FILE" 2>/dev/null && mv "$TMP_FILE" "$NUDGE_FILE" || rm -f "$TMP_FILE" || true
-
-# first attempt - record and block
-#
-# 🔴 .why loud = a lost stamp is STATE LOST, and its harm outlives this invocation. the
-#                block still exits 2, so the refusal reads as ordinary — and the deliberate
-#                retry then RE-BLOCKS forever, on every future write to this file, because
-#                the clock it reads was never started. a silent `|| rm -f` makes that
-#                permanent condition indistinguishable from a normal first block
-#                (rule.forbid.failhide).
-#
-# .note = the warn changes no VERDICT in any state: the decision is already rendered, and
-#         the message below is emitted either way. it adds a diagnostic on a path that
-#         never runs while the state file is valid ⇒ healthy output stays byte-identical
-#         (acceptance #4).
-#
-# ⚠️ .note = the stale sweep above stays QUIET, and the asymmetry is the design. a failed
-#            sweep loses NO state — it defers a prune, and a deferred prune is invisible.
-#            any cause that breaks the sweep (unparseable nudge file, full disk) breaks
-#            THIS write one line later, where it goes loud. ⇒ one report of one root
-#            cause, never two reports of one symptom.
-#
-# 🔴 .note = the `mv` sits INSIDE the `if` condition, joined by `&&`, and that placement
-#            carries the whole guard under `set -euo pipefail`. a failed STANDALONE command
-#            in a `then` branch exits the shell with its own status, so `if jq …; then mv …;
-#            else <warn> fi` dies at status 1 the moment `mv` fails (read-only dir, full
-#            disk, transient rename error) — BEFORE the block message and BEFORE `exit 2`.
-#            claude code reads non-2 as NOT BLOCKED ⇒ the forbidden term lands silently, on
-#            exactly the "or the write failed" branch the message below advertises.
-#            a command in an `if` CONDITION is exempt from `set -e`, so this form always
-#            reaches the warn and always reaches `exit 2`. clamp: `[case26]`.
-#
-# .note = `2>/dev/null` on the `mv` keeps its own diagnostic off stderr. the warn below is
-#         the one report a human reads, and a raw `mv: cannot move …` beside it would put
-#         a temp path into the block output (acceptance #4).
-TMP_FILE=$(mktemp)
-if ! { jq --arg key "$NUDGE_KEY" --argjson time "$NOW" --arg path "$FILE_PATH" \
-  '. + {($key): {time: $time, path: $path, terms: $ARGS.positional}}' \
-  "$NUDGE_FILE" --args "${DETECTED_TERMS[@]}" > "$TMP_FILE" 2>/dev/null \
-  && mv "$TMP_FILE" "$NUDGE_FILE" 2>/dev/null; }; then
-  # 🔴 .note = `|| true` again, and THIS site is the sharper of the two: an `if`
-  #            CONDITION is `set -e`-exempt, an `if` BODY is NOT. an unguarded `rm -f`
-  #            here aborts the very path that exists to reach the warn and `exit 2`.
-  rm -f "$TMP_FILE" || true
-  {
-    echo "💥 MalfunctionError: HARDNUDGE record NOT saved — could not update the nudge file"
-    echo "    file:   $NUDGE_FILE"
-    echo "    why:    it is unparseable json, or the write failed"
-    echo "    effect: a deliberate retry will RE-BLOCK instead of pass"
-    echo "    fix:    rm '$NUDGE_FILE'  — it is a local cache and regenerates"
-    echo ""
-  } >&2
-  WARNED=1
-fi
+# HARDNUDGE: a retry within the window exits 0 here; a first attempt is stamped and falls
+# through to the block. the window, the lock, and the stamp live in _hardnudge.lib.sh.
+run_hardnudge_gate nudge_name=terms.blocklist -- "${DETECTED_TERMS[@]}"
 
 # build block message
 # 🟡 .note = stderr ONLY is deliberate, and it is a declared exception to

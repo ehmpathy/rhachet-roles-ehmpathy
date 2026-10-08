@@ -37,6 +37,23 @@ cli skill output must use turtle vibes treestruct format for consistent, scannab
          └─
 ```
 
+### two shape rules
+
+- **a header owns its trunk** — the first branch sits on the line right below the header. a blank
+  line separates two trees (the 🐢 vibe line from the 🐚 root above), never a header from its own
+  branches → `rule.forbid.treestruct-header-gap`
+- **peers share one depth; a label owns its items** — lines side by side in sense sit side by side
+  in the tree; only a list nests, as child branches under its label. depth steps the glyph right,
+  never the words → `rule.forbid.treestruct-indented-text-as-children`
+
+```
+✋ ConstraintError: this command is not paved
+   ├─ blocked: grep -rln 'reef' src/
+   └─ paved alternatives for `grep`
+      ├─ rhx grepsafe --pattern '<regex>' --path <dir>
+      └─ rhx git.repo.get lines --in <org/repo> --words '<text>'
+```
+
 ### elements
 
 | element | purpose |
@@ -134,3 +151,5 @@ use a bounded glob instead:
 ## .see also
 
 - git.commit/output.sh - reference implementation
+- `rule.forbid.treestruct-header-gap` — no blank line between a header and its trunk
+- `rule.forbid.treestruct-indented-text-as-children` — a list nests under its label
