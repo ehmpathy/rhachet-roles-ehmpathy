@@ -110,27 +110,27 @@ exports[`pretooluse.forbid-cross-repo-access.sh given: [case11] the block messag
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case12] stdin the hook cannot parse when: [t0] stdin is not valid JSON then: fails OPEN, but loud on both streams — never silently 1`] = `
 {
-  "stderr": "WARN: PreToolUse hook could not parse stdin as JSON; allow tool call
+  "stderr": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit <N>); the tool call is allowed
 ",
-  "stdout": "WARN: PreToolUse hook could not parse stdin as JSON; allow tool call
+  "stdout": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit <N>); the tool call is allowed
 ",
 }
 `;
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case12] stdin the hook cannot parse when: [t1] stdin is empty then: fails CLOSED and loud on both streams 1`] = `
 {
-  "stderr": "ERROR: PreToolUse hook received no input via stdin
+  "stderr": "✋ ConstraintError: PreToolUse hook received no input via stdin
 ",
-  "stdout": "ERROR: PreToolUse hook received no input via stdin
+  "stdout": "✋ ConstraintError: PreToolUse hook received no input via stdin
 ",
 }
 `;
 
-exports[`pretooluse.forbid-cross-repo-access.sh given: [case12] stdin the hook cannot parse when: [t2] jq parses, then malfunctions on the extract then: fails CLOSED with the jq exit code, loud on both streams 1`] = `
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case12] stdin the hook cannot parse when: [t2] jq parses, then malfunctions on the extract then: fails CLOSED (exit 2), names the jq code, loud on both streams 1`] = `
 {
-  "stderr": "ERROR: PreToolUse hook hit an unexpected jq failure (exit 7)
+  "stderr": "💥 MalfunctionError: PreToolUse hook hit an unexpected jq failure (exit 7); the tool call stays blocked
 ",
-  "stdout": "ERROR: PreToolUse hook hit an unexpected jq failure (exit 7)
+  "stdout": "💥 MalfunctionError: PreToolUse hook hit an unexpected jq failure (exit 7); the tool call stays blocked
 ",
 }
 `;

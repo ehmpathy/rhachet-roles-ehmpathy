@@ -1646,9 +1646,13 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           expect(result.stdout).toContain('could not parse stdin as JSON');
 
           // the asserts prove the words; the snap shows the frame
+          // .note = jq's parse-error code varies by build (2, 4, 5), so the snap masks it
+          const asMasked = (text: string): string =>
+            text.replace(/jq exit \d+/g, 'jq exit <N>');
+          expect(result.stdout).toMatch(/jq exit \d+/);
           expect({
-            stdout: result.stdout,
-            stderr: result.stderr,
+            stdout: asMasked(result.stdout),
+            stderr: asMasked(result.stderr),
           }).toMatchSnapshot();
         } finally {
           cleanup();
@@ -1689,66 +1693,72 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
     //         cannot fail the extract, so a shim reaches it. the peer hook
     //         forbid-shouted-readme carries the same clamp
     when('[t2] jq parses, then malfunctions on the extract', () => {
-      then('fails CLOSED with the jq exit code, loud on both streams', () => {
-        const { gitRoot, homeDir, repoSelf, cleanup } = genTempRoot();
-        const shimDir = genTempDir({ slug: 'cross-repo-jq-malfunction' });
-        try {
-          // a jq whose IDENTITY probe (`jq .`) succeeds, and whose every
-          // other program exits 7 — the shape of a killed jq
-          const shimPath = path.join(shimDir, 'jq');
-          fs.writeFileSync(
-            shimPath,
-            [
-              '#!/usr/bin/env bash',
-              'if [[ "$1" == "." ]]; then cat >/dev/null; exit 0; fi',
-              'cat >/dev/null',
-              'exit 7',
-            ].join('\n'),
-          );
-          fs.chmodSync(shimPath, 0o755);
+      then(
+        'fails CLOSED (exit 2), names the jq code, loud on both streams',
+        () => {
+          const { gitRoot, homeDir, repoSelf, cleanup } = genTempRoot();
+          const shimDir = genTempDir({ slug: 'cross-repo-jq-malfunction' });
+          try {
+            // a jq whose IDENTITY probe (`jq .`) succeeds, and whose every
+            // other program exits 7 — the shape of a killed jq
+            const shimPath = path.join(shimDir, 'jq');
+            fs.writeFileSync(
+              shimPath,
+              [
+                '#!/usr/bin/env bash',
+                'if [[ "$1" == "." ]]; then cat >/dev/null; exit 0; fi',
+                'cat >/dev/null',
+                'exit 7',
+              ].join('\n'),
+            );
+            fs.chmodSync(shimPath, 0o755);
 
-          const result = spawnSync('bash', [scriptPath], {
-            cwd: repoSelf,
-            encoding: 'utf-8',
-            input: JSON.stringify({
-              tool_name: 'Read',
-              tool_input: { file_path: path.join(repoSelf, 'src/index.ts') },
-            }),
-            stdio: ['pipe', 'pipe', 'pipe'],
-            env: {
-              ...process.env,
-              HOME: homeDir,
-              GIT_REPO_ROOT: gitRoot,
-              PATH: `${shimDir}:${process.env.PATH ?? ''}`,
-            },
-          });
+            const result = spawnSync('bash', [scriptPath], {
+              cwd: repoSelf,
+              encoding: 'utf-8',
+              input: JSON.stringify({
+                tool_name: 'Read',
+                tool_input: { file_path: path.join(repoSelf, 'src/index.ts') },
+              }),
+              stdio: ['pipe', 'pipe', 'pipe'],
+              env: {
+                ...process.env,
+                HOME: homeDir,
+                GIT_REPO_ROOT: gitRoot,
+                PATH: `${shimDir}:${process.env.PATH ?? ''}`,
+              },
+            });
 
-          expect({
-            exitCode: result.status,
-            // the PARSE arm's fail-OPEN exit 0 must NOT be reached here
-            saysParseWarn: (result.stdout ?? '').includes(
-              'could not parse stdin as JSON',
-            ),
-            saysError: (result.stderr ?? '').includes('unexpected jq failure'),
-            namesTheCode: (result.stderr ?? '').includes('exit 7'),
-            // both streams carry it (rule.require.skill-output-streams)
-            onStdout: (result.stdout ?? '').includes('unexpected jq failure'),
-          }).toEqual({
-            exitCode: 7,
-            saysParseWarn: false,
-            saysError: true,
-            namesTheCode: true,
-            onStdout: true,
-          });
+            expect({
+              exitCode: result.status,
+              // the PARSE arm's fail-OPEN exit 0 must NOT be reached here
+              saysParseWarn: (result.stdout ?? '').includes(
+                'could not parse stdin as JSON',
+              ),
+              saysError: (result.stderr ?? '').includes(
+                'unexpected jq failure',
+              ),
+              namesTheCode: (result.stderr ?? '').includes('exit 7'),
+              // both streams carry it (rule.require.skill-output-streams)
+              onStdout: (result.stdout ?? '').includes('unexpected jq failure'),
+            }).toEqual({
+              // claude code blocks on exit 2 alone; jq's own 7 would permit the call
+              exitCode: 2,
+              saysParseWarn: false,
+              saysError: true,
+              namesTheCode: true,
+              onStdout: true,
+            });
 
-          expect({
-            stdout: result.stdout,
-            stderr: result.stderr,
-          }).toMatchSnapshot();
-        } finally {
-          cleanup();
-        }
-      });
+            expect({
+              stdout: result.stdout,
+              stderr: result.stderr,
+            }).toMatchSnapshot();
+          } finally {
+            cleanup();
+          }
+        },
+      );
     });
   });
 

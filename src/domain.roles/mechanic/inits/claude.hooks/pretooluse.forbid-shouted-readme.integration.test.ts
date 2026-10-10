@@ -390,10 +390,14 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
       });
 
       // the asserts prove the words; the snap shows the frame a caller reads
+      // .note = jq's parse-error code varies by build (2, 4, 5), so the snap masks it
       then('the fail-open warn frame reads as a caller reads it', () => {
+        const asMasked = (text: string): string =>
+          text.replace(/jq exit \d+/g, 'jq exit <N>');
+        expect(result.stdout).toMatch(/jq exit \d+/);
         expect({
-          stdout: result.stdout,
-          stderr: result.stderr,
+          stdout: asMasked(result.stdout),
+          stderr: asMasked(result.stderr),
         }).toMatchSnapshot();
       });
     });
@@ -430,11 +434,12 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
         env: { ...process.env, PATH: `${shimDir}:${process.env.PATH ?? ''}` },
       });
 
-      then('it fails CLOSED with jq exit code, and names the code', () => {
+      then('it fails CLOSED (exit 2), and names the jq code', () => {
         expect({
+          // fail-closed: claude code blocks on exit 2 alone — any other code
+          // permits, so jq's own 7 would open the gate. the parse arm's exit 0
+          // must NOT be reached here
           exitCode: result.status,
-          // fail-closed: a PreToolUse nonzero blocks the tool call. the parse
-          // arm's exit 0 must NOT be reached here
           saysParseWarn: (result.stdout ?? '').includes(
             'could not parse stdin as JSON',
           ),
@@ -443,7 +448,7 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
           // both streams carry it (rule.require.skill-output-streams)
           onStdout: (result.stdout ?? '').includes('unexpected jq failure'),
         }).toEqual({
-          exitCode: 7,
+          exitCode: 2,
           saysParseWarn: false,
           saysError: true,
           namesTheCode: true,

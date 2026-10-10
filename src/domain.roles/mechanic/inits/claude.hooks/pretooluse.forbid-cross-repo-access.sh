@@ -95,15 +95,25 @@ if ! command -v jq >/dev/null; then
   exit 2
 fi
 
-# extract tool name. jq is confirmed present above and the jq program is a fixed literal
-# that always compiles — so the single expected failure is a malformed-JSON parse error.
-# ⇒ ANY nonzero jq status reads as a parse error and fails open, loud. jq's parse-error code
-#   has moved across releases (2, 4, 5), so an allowlist of codes drifts into a false block.
+# .what = test parseability directly, never via a table of jq exit codes
+# .why  = jq's parse-error code varies by build (2, 4, 5). a code table goes stale
+#         silently, and turns this fail-open gate fail-closed on the next jq release.
+# .note = `jq .` always compiles, so any nonzero status here is unparseable input
+JQ_PARSE_STATUS=0
+echo "$STDIN_INPUT" | jq . >/dev/null 2>&1 || JQ_PARSE_STATUS=$?
+if [[ $JQ_PARSE_STATUS -ne 0 ]]; then
+  emit_both "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit $JQ_PARSE_STATUS); the tool call is allowed"
+  exit 0
+fi
+
+# extract tool name. the input parsed above, so a nonzero here is a jq malfunction
+# .note = exit 2, never jq's own code: claude code reads any PreToolUse exit but 2 as a
+#         permit, so a relayed code would open the gate (rule.require.qualified-error-headers)
 JQ_STATUS=0
 TOOL_NAME=$(echo "$STDIN_INPUT" | jq -r '.tool_name // empty') || JQ_STATUS=$?
 if [[ $JQ_STATUS -ne 0 ]]; then
-  emit_both "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit $JQ_STATUS); the tool call is allowed"
-  exit 0
+  emit_both "💥 MalfunctionError: PreToolUse hook hit an unexpected jq failure (exit $JQ_STATUS); the tool call stays blocked"
+  exit 2
 fi
 
 # .note = NotebookEdit is gated alongside Edit/Write: it is a distinct,

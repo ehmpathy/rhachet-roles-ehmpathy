@@ -2,27 +2,27 @@
 
 exports[`pretooluse.forbid-shouted-readme.sh given: [case6] error and passthrough cases when: [t0] empty stdin then: empty stdin exits 2 with a loud diagnostic on both streams 1`] = `
 {
-  "stderr": "ERROR: PreToolUse hook received no input via stdin
+  "stderr": "✋ ConstraintError: PreToolUse hook received no input via stdin
 ",
-  "stdout": "ERROR: PreToolUse hook received no input via stdin
+  "stdout": "✋ ConstraintError: PreToolUse hook received no input via stdin
 ",
 }
 `;
 
 exports[`pretooluse.forbid-shouted-readme.sh given: [case6] error and passthrough cases when: [t2] malformed json (fail-open contract) then: the fail-open warn frame reads as a caller reads it 1`] = `
 {
-  "stderr": "WARN: PreToolUse hook could not parse stdin as JSON; allow tool call
+  "stderr": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit <N>); the tool call is allowed
 ",
-  "stdout": "WARN: PreToolUse hook could not parse stdin as JSON; allow tool call
+  "stdout": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit <N>); the tool call is allowed
 ",
 }
 `;
 
 exports[`pretooluse.forbid-shouted-readme.sh given: [case6] error and passthrough cases when: [t3] jq parses, then malfunctions on the extract then: the malfunction frame reads as a caller reads it 1`] = `
 {
-  "stderr": "ERROR: PreToolUse hook hit an unexpected jq failure (exit 7)
+  "stderr": "💥 MalfunctionError: PreToolUse hook hit an unexpected jq failure (exit 7); the tool call stays blocked
 ",
-  "stdout": "ERROR: PreToolUse hook hit an unexpected jq failure (exit 7)
+  "stdout": "💥 MalfunctionError: PreToolUse hook hit an unexpected jq failure (exit 7); the tool call stays blocked
 ",
 }
 `;
