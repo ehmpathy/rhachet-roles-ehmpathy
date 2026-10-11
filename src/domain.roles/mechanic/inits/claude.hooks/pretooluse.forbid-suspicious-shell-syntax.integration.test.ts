@@ -1,6 +1,7 @@
 import { spawnSync } from 'child_process';
+import { copyFileSync, writeFileSync } from 'fs';
 import * as path from 'path';
-import { given, then, when } from 'test-fns';
+import { genTempDir, given, then, when } from 'test-fns';
 
 /**
  * .what = integration tests for pretooluse.forbid-suspicious-shell-syntax.sh
@@ -42,37 +43,77 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
     };
   };
 
+  given(
+    '[case0] the redteam: a quote of one kind inside the other kind',
+    () => {
+      // 🔴 the `$(` / backtick scan once tracked single quotes alone, so an apostrophe inside a
+      //    double-quoted span read as an open single quote and hid every substitution after it.
+      //    each row is one bypass shape (must block) or one over-block guard (must permit).
+      const ROWS: { command: string; verdict: 'block' | 'permit' }[] = [
+        // the bypass class: an apostrophe inside double quotes, then a live substitution
+        {
+          command: `rhx foo --arg "it's a test" $(rm -rf ~)`,
+          verdict: 'block',
+        },
+        {
+          command: 'rhx foo --arg "surfer\'s wave" `rm -rf ~`',
+          verdict: 'block',
+        },
+        { command: `echo "kai's" "board's" $(whoami)`, verdict: 'block' },
+        // a double quote inside single quotes, then a live substitution
+        { command: `rhx foo --arg 'say "aloha"' $(whoami)`, verdict: 'block' },
+        // a substitution inside double quotes still runs
+        { command: `rhx foo --arg "$(whoami)"`, verdict: 'block' },
+        // the over-block guards: a substitution inside single quotes is inert
+        { command: `rhx foo --arg 'it is $(literal)'`, verdict: 'permit' },
+        {
+          command: `rhx foo --arg "it's calm" --to 'tide $(x)'`,
+          verdict: 'permit',
+        },
+      ];
+
+      ROWS.forEach((row) => {
+        when(`[t0] ${row.command}`, () => {
+          then(`it ${row.verdict}s`, () => {
+            const result = runHook(row.command);
+            expect(result.exitCode).toBe(row.verdict === 'block' ? 2 : 0);
+          });
+        });
+      });
+    },
+  );
+
   given('[case1] unquoted =( (zsh process substitution)', () => {
     when('[t0] command contains unquoted =(', () => {
       then('diff =(curl a) =(curl b) is blocked', () => {
         const result = runHook('diff =(curl http://a) =(curl http://b)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('zsh process substitution');
       });
 
       then('cat =(echo hello) is blocked', () => {
         const result = runHook('cat =(echo hello)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('vim =(git diff) is blocked', () => {
         const result = runHook('vim =(git diff)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('=( in middle of command is blocked', () => {
         const result = runHook('cmd =(other) more');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('=( after && is blocked', () => {
         const result = runHook('echo test && cat =(foo)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
   });
@@ -133,26 +174,26 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('diff <(ls dir1) <(ls dir2) is blocked', () => {
         const result = runHook('diff <(ls dir1) <(ls dir2)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('process substitution');
       });
 
       then('cat <(echo hello) is blocked', () => {
         const result = runHook('cat <(echo hello)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('redirect from <() is blocked', () => {
         const result = runHook('while read line; do echo $line; done < <(cmd)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('paste with two <() is blocked', () => {
         const result = runHook('paste <(cut -f1 a) <(cut -f1 b)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
   });
@@ -184,19 +225,19 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('tee >(other) is blocked', () => {
         const result = runHook('cmd | tee >(other)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('redirect to >() is blocked', () => {
         const result = runHook('echo test > >(cat)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('ls > >(grep) is blocked', () => {
         const result = runHook('ls > >(grep foo)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
   });
@@ -246,7 +287,7 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('stdout redirect is blocked', () => {
         const result = runHook('cat file.txt > output.txt');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('output redirection');
       });
 
@@ -277,14 +318,14 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('command substitution $() is blocked', () => {
         const result = runHook('echo $(date)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('command substitution');
       });
 
       then('variable assignment with $() is blocked', () => {
         const result = runHook('VAR=$(cmd)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       /**
@@ -298,7 +339,7 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
         () => {
           const result = runHook('arr=(1 2 3)');
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
         },
       );
 
@@ -352,13 +393,13 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('=() after quoted string is blocked', () => {
         const result = runHook('echo "hello" =(cmd)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('=() after single-quoted string is blocked', () => {
         const result = runHook("echo 'hello' =(cmd)");
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -371,7 +412,7 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('=() in nested double quotes is blocked (known limitation)', () => {
         const result = runHook('bash -c "echo \\"=(test)\\""');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
   });
@@ -381,20 +422,20 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('single-then-double quote at word start is blocked', () => {
         const result = runHook('grep \'"test:unit"\' file');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('consecutive quotes');
       });
 
       then('double-then-single at word start is blocked', () => {
         const result = runHook('grep "\'"\'"\'"test"\'"\'"\'" file');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('consecutive quotes in echo is blocked', () => {
         const result = runHook('echo \'"hello"\'');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       /**
@@ -406,7 +447,7 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
           "npx rhachet run --skill sedreplace --old '\"$CI\"' --new '\"${CI:-}\"' --glob 'package.json'",
         );
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       /**
@@ -419,7 +460,7 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
           'grep -E \'"test:(unit|integration|acceptance)"\' package.json',
         );
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       /**
@@ -432,7 +473,7 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
           `npx rhachet run --skill sedreplace --old "'git.release --to" --new "'git.release --into" --glob 'src/**/*.ts' --mode apply`,
         );
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('consecutive quotes');
       });
     });
@@ -571,14 +612,14 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then("$'...' is blocked", () => {
         const result = runHook("echo $'hello\\nworld'");
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('ANSI-C');
       });
 
       then("$'...' with escape sequences is blocked", () => {
         const result = runHook("printf $'\\x1b[31mred\\x1b[0m'");
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -602,20 +643,20 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('backtick substitution is blocked', () => {
         const result = runHook('echo `date`');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('backtick');
       });
 
       then('nested backticks is blocked', () => {
         const result = runHook('echo `echo \\`date\\``');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('assignment with backtick is blocked', () => {
         const result = runHook('VAR=`cmd`');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -623,7 +664,7 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('backtick in double quotes is blocked (still executes)', () => {
         const result = runHook('echo "`date`"');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('backtick in single quotes is allowed (literal)', () => {
@@ -639,14 +680,14 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('echo $(date) is blocked', () => {
         const result = runHook('echo $(date)');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('command substitution');
       });
 
       then('nested $() is blocked', () => {
         const result = runHook('echo $(echo $(date))');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -660,7 +701,7 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('$() in double quotes is blocked (still executes)', () => {
         const result = runHook('echo "$(date)"');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
   });
@@ -670,50 +711,50 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('simple > redirect is blocked', () => {
         const result = runHook('cat file.txt > output.txt');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('output redirection');
       });
 
       then('append >> redirect is blocked', () => {
         const result = runHook('echo "line" >> log.txt');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('stderr 2> redirect is blocked', () => {
         const result = runHook('cmd 2> errors.txt');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('fd duplication 2>&1 is blocked', () => {
         const result = runHook('cmd 2>&1');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('fd duplication >&2 is blocked', () => {
         const result = runHook('echo error >&2');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('combined redirect &> is blocked', () => {
         const result = runHook('cmd &> /dev/null');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('2>&2 (noop stderr) is blocked', () => {
         const result = runHook('npm run test 2>&2 | tail -50');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('redirect after pipe is blocked', () => {
         const result = runHook('cmd1 | cmd2 > output.txt');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -773,26 +814,26 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then("echo '---abc' is blocked", () => {
         const result = runHook("echo '---abc'");
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('starts with a dash');
       });
 
       then('echo "---abc" is blocked', () => {
         const result = runHook('echo "---abc"');
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then("echo '-- is blocked", () => {
         const result = runHook("echo '--");
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then("echo '- is blocked", () => {
         const result = runHook("echo '-");
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('chained separator between safe commands is blocked', () => {
@@ -800,7 +841,7 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
           'gh pr list --state open --limit 5; echo "---all open---"; gh pr list --limit 10',
         );
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -834,6 +875,123 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
       then('dash-prefixed echo block message matches snapshot', () => {
         const result = runHook('echo "---all open---"');
         expect(result.stderr).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case20] the config the hook reads', () => {
+    // 🔴 a config jq could not parse once read as "no patterns", and the hook exited 0 —
+    //    the whole gate off, with no word. an ABSENT config is the one quiet off switch;
+    //    a malformed one blocks, loud, and names jq's own complaint.
+
+    /**
+     * .what = run a copy of the hook beside a crafted config (null = no config at all)
+     * .why = the hook reads its config from beside itself, so a crafted config needs a
+     *        copy of the hook in a sandbox — the real config is never touched
+     */
+    const runHookBesideConfig = (input: {
+      config: string | null;
+      command: string;
+    }): { stderr: string; exitCode: number } => {
+      const dir = genTempDir({ slug: 'suspicious-syntax-config' });
+      const hookCopy = path.join(
+        dir,
+        'pretooluse.forbid-suspicious-shell-syntax.sh',
+      );
+      copyFileSync(scriptPath, hookCopy);
+      if (input.config !== null)
+        writeFileSync(path.join(dir, 'syntax.suspicious.jsonc'), input.config);
+      const result = spawnSync('bash', [hookCopy], {
+        encoding: 'utf-8',
+        input: JSON.stringify({
+          tool_name: 'Bash',
+          tool_input: { command: input.command },
+        }),
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+      return { stderr: result.stderr ?? '', exitCode: result.status ?? 1 };
+    };
+
+    when('[t0] the config is malformed json', () => {
+      then('the hook blocks, and names the class and the cause', () => {
+        const result = runHookBesideConfig({
+          config: '{ "patterns": [ { "match": "x", } ] }', // a stray comma
+          command: 'echo hello',
+        });
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain(
+          '💥 MalfunctionError: the suspicious-syntax config could not be parsed (jq: parse error',
+        );
+      });
+    });
+
+    when('[t1] the config parses, but `.patterns` is not a list', () => {
+      then('the hook blocks, as a bad parse does', () => {
+        const result = runHookBesideConfig({
+          config: '{ "patterns": "x" }',
+          command: 'echo hello',
+        });
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('.patterns is not a list');
+      });
+    });
+
+    when('[t2] the config is absent', () => {
+      then('the hook permits, quietly — the off switch', () => {
+        const result = runHookBesideConfig({
+          config: null,
+          command: 'echo hello',
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stderr).toBe('');
+      });
+    });
+  });
+
+  given('[case21] a PreToolUse payload jq cannot parse', () => {
+    // 🔴 `|| echo ""` once read a parse failure as "not a Bash call" and permitted it — the
+    //    gate off for the one input class a caller can craft. the peer forbid-terms gates
+    //    block the same input (F35)
+    const runRaw = (input: {
+      stdin: string;
+    }): { stdout: string; stderr: string; exitCode: number } => {
+      const result = spawnSync('bash', [scriptPath], {
+        encoding: 'utf-8',
+        input: input.stdin,
+        stdio: ['pipe', 'pipe', 'pipe'],
+      });
+      return {
+        stdout: result.stdout ?? '',
+        stderr: result.stderr ?? '',
+        exitCode: result.status ?? 1,
+      };
+    };
+
+    when('[t0] the payload is not json', () => {
+      then(
+        "the hook blocks, and names the class and jq's cause on both streams",
+        () => {
+          const result = runRaw({
+            stdin: '{ "tool_input": { "command": "echo $(rm -rf ~)" ',
+          });
+          expect(result.exitCode).toBe(2);
+          expect(result.stderr).toContain(
+            '💥 MalfunctionError: PreToolUse payload is not valid json (jq: ',
+          );
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: PreToolUse payload is not valid json',
+          );
+        },
+      );
+    });
+
+    when('[t1] the payload is valid json with no command', () => {
+      then('the hook permits, quietly — not a Bash call', () => {
+        const result = runRaw({
+          stdin: JSON.stringify({ tool_name: 'Read', tool_input: {} }),
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stderr).toBe('');
       });
     });
   });

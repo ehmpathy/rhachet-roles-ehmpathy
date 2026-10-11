@@ -2,7 +2,7 @@
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case3] Grep and Glob into a peer repo when: [t0] Grep carries a cross-repo path then: blocks it 1`] = `
 "
-🛑 BLOCKED: adhoc cross-repo access — Grep
+✋ ConstraintError: adhoc cross-repo access — Grep
 
    path: <gitroot>/testorg/peer-repo
    repo: testorg/peer-repo (not your current repo)
@@ -20,7 +20,7 @@ exports[`pretooluse.forbid-cross-repo-access.sh given: [case3] Grep and Glob int
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case3] Grep and Glob into a peer repo when: [t1] Glob carries a cross-repo path then: blocks it 1`] = `
 "
-🛑 BLOCKED: adhoc cross-repo access — Glob
+✋ ConstraintError: adhoc cross-repo access — Glob
 
    path: <gitroot>/testorg/peer-repo
    repo: testorg/peer-repo (not your current repo)
@@ -38,7 +38,7 @@ exports[`pretooluse.forbid-cross-repo-access.sh given: [case3] Grep and Glob int
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case7] a WORKTREE of a peer repo when: [t0] the path is under <org>/_worktrees/<repo>.<slug> then: blocks it AND derives the true repo slug (not _worktrees) 1`] = `
 "
-🛑 BLOCKED: adhoc cross-repo access — Read
+✋ ConstraintError: adhoc cross-repo access — Read
 
    path: <gitroot>/testorg/_worktrees/peer-repo.vlad.feat-x/src/index.ts
    repo: testorg/peer-repo (not your current repo)
@@ -56,7 +56,7 @@ exports[`pretooluse.forbid-cross-repo-access.sh given: [case7] a WORKTREE of a p
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case10] the caller sits in a WORKTREE of their own repo when: [t0] they reach into that same repo main clone then: blocks it — another tree can be stale or dirty too 1`] = `
 "
-🛑 BLOCKED: adhoc cross-tree access — Read
+✋ ConstraintError: adhoc cross-tree access — Read
 
    path: <gitroot>/testorg/self-repo/src/index.ts
    repo: testorg/self-repo (your repo, but a different worktree)
@@ -74,7 +74,7 @@ exports[`pretooluse.forbid-cross-repo-access.sh given: [case10] the caller sits 
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case11] the block message a human actually reads when: [t0] a Read into a peer repo is blocked then: the whole render matches the snapshot 1`] = `
 "
-🛑 BLOCKED: adhoc cross-repo access — Read
+✋ ConstraintError: adhoc cross-repo access — Read
 
    path: <gitroot>/testorg/peer-repo/src/index.ts
    repo: testorg/peer-repo (not your current repo)
@@ -92,7 +92,7 @@ exports[`pretooluse.forbid-cross-repo-access.sh given: [case11] the block messag
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case11] the block message a human actually reads when: [t1] a Bash command names a peer repo path then: the whole render matches the snapshot 1`] = `
 "
-🛑 BLOCKED: adhoc cross-repo access — Bash
+✋ ConstraintError: adhoc cross-repo access — Bash
 
    path: <gitroot>/testorg/peer-repo/src/index.ts
    repo: testorg/peer-repo (not your current repo)
@@ -110,34 +110,34 @@ exports[`pretooluse.forbid-cross-repo-access.sh given: [case11] the block messag
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case12] stdin the hook cannot parse when: [t0] stdin is not valid JSON then: fails OPEN, but loud on both streams — never silently 1`] = `
 {
-  "stderr": "WARN: PreToolUse hook could not parse stdin as JSON; allow tool call
+  "stderr": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit <N>); the tool call is allowed
 ",
-  "stdout": "WARN: PreToolUse hook could not parse stdin as JSON; allow tool call
+  "stdout": "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit <N>); the tool call is allowed
 ",
 }
 `;
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case12] stdin the hook cannot parse when: [t1] stdin is empty then: fails CLOSED and loud on both streams 1`] = `
 {
-  "stderr": "ERROR: PreToolUse hook received no input via stdin
+  "stderr": "✋ ConstraintError: PreToolUse hook received no input via stdin
 ",
-  "stdout": "ERROR: PreToolUse hook received no input via stdin
+  "stdout": "✋ ConstraintError: PreToolUse hook received no input via stdin
 ",
 }
 `;
 
-exports[`pretooluse.forbid-cross-repo-access.sh given: [case12] stdin the hook cannot parse when: [t2] jq parses, then malfunctions on the extract then: fails CLOSED with the jq exit code, loud on both streams 1`] = `
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case12] stdin the hook cannot parse when: [t2] jq parses, then malfunctions on the extract then: fails CLOSED (exit 2), names the jq code, loud on both streams 1`] = `
 {
-  "stderr": "ERROR: PreToolUse hook hit an unexpected jq failure (exit 7)
+  "stderr": "💥 MalfunctionError: PreToolUse hook hit an unexpected jq failure (exit 7); the tool call stays blocked
 ",
-  "stdout": "ERROR: PreToolUse hook hit an unexpected jq failure (exit 7)
+  "stdout": "💥 MalfunctionError: PreToolUse hook hit an unexpected jq failure (exit 7); the tool call stays blocked
 ",
 }
 `;
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case15] the peer file is gitignored in its own repo when: [t0] a Read names that gitignored file then: blocks it, and does NOT name a fix that would fail 1`] = `
 "
-🛑 BLOCKED: adhoc cross-repo access — Read
+✋ ConstraintError: adhoc cross-repo access — Read
 
    path: <gitroot>/testorg/peer-repo/.env
    repo: testorg/peer-repo (not your current repo)
@@ -154,7 +154,7 @@ exports[`pretooluse.forbid-cross-repo-access.sh given: [case15] the peer file is
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case17] a symlink cycle in the target path when: [t1] realpath itself cannot answer then: blocks it — undecidable must deny, never allow 1`] = `
 "
-🛑 BLOCKED: unverifiable path — Read
+✋ ConstraintError: unverifiable path — Read
 
    path: ~/git/testorg/self-repo/src/index.ts
 
@@ -172,7 +172,7 @@ exports[`pretooluse.forbid-cross-repo-access.sh given: [case17] a symlink cycle 
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case21] a reach at a peer repo ROOT, naming no file when: [t0] a Bash command names the peer repo root then: the fix line is the whole-repo shape, with no dead filter 1`] = `
 "
-🛑 BLOCKED: adhoc cross-repo access — Bash
+✋ ConstraintError: adhoc cross-repo access — Bash
 
    path: <gitroot>/testorg/peer-repo
    repo: testorg/peer-repo (not your current repo)
@@ -190,7 +190,7 @@ exports[`pretooluse.forbid-cross-repo-access.sh given: [case21] a reach at a pee
 
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case25] a cross-repo read of a BINARY file when: [t0] the peer file holds NUL bytes then: blocks it exactly as a text file — the gate is content-blind 1`] = `
 "
-🛑 BLOCKED: adhoc cross-repo access — Read
+✋ ConstraintError: adhoc cross-repo access — Read
 
    path: <gitroot>/testorg/peer-repo/src/logo.png
    repo: testorg/peer-repo (not your current repo)

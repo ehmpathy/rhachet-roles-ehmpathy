@@ -2,7 +2,7 @@
 
 exports[`pretooluse.forbid-test-background.sh given: [case6] block message content when: [t0] block message is actionable then: block message matches snapshot 1`] = `
 "
-🛑 BLOCKED: git.repo.test must run in foreground
+✋ ConstraintError: git.repo.test must run in foreground
 
 background + poll wastes tokens (2500+ vs 50 from curated output).
 the skill is designed to minimize token consumption - foreground is required.

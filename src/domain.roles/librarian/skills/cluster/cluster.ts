@@ -48,7 +48,7 @@ const parseArgs = (): {
     'plan';
   const brainSlug =
     args.find((_, i) => args[i - 1] === '--brain') ??
-    'fireworks/deepseek/v4-flash';
+    'openrouter/deepseek/flash';
 
   return { from, into, mode, brainSlug };
 };

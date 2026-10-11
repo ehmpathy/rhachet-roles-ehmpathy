@@ -20,7 +20,7 @@ import * as path from 'path';
 import { genContextBrain } from 'rhachet';
 import { createCache } from 'simple-on-disk-cache';
 import { withSimpleCacheAsync } from 'with-simple-cache';
-import { withTimeout } from 'wrapper-fns';
+import { withRetry, withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
 import { getAllBrainAtoms } from '../brain/getAllBrainAtoms';
@@ -163,15 +163,17 @@ document:
 
 ${input.content}`;
 
-  // ask brain to extract kernels
-  const { output } = await withTimeout(
-    async () =>
-      contextBrain.brain.choice.ask({
-        role: { briefs: [] },
-        prompt,
-        schema: { output: kernelSchema },
-      }),
-    { threshold: { seconds: 60 } },
+  // ask brain to extract kernels; a hung host times out, and one retry routes to another
+  const { output } = await withRetry(
+    withTimeout(
+      async () =>
+        contextBrain.brain.choice.ask({
+          role: { briefs: [] },
+          prompt,
+          schema: { output: kernelSchema },
+        }),
+      { threshold: { seconds: 60 } },
+    ),
   )();
 
   // defensive: ensure kernels array exists
@@ -479,14 +481,16 @@ ${kernelList}
 COMPRESSED DOCUMENT:
 ${input.compressed}`;
 
-  const { output } = await withTimeout(
-    async () =>
-      contextBrain.brain.choice.ask({
-        role: { briefs: [] },
-        prompt,
-        schema: { output: retentionSchema },
-      }),
-    { threshold: { seconds: 60 } },
+  const { output } = await withRetry(
+    withTimeout(
+      async () =>
+        contextBrain.brain.choice.ask({
+          role: { briefs: [] },
+          prompt,
+          schema: { output: retentionSchema },
+        }),
+      { threshold: { seconds: 60 } },
+    ),
   )();
 
   // map results back to kernels
@@ -593,14 +597,16 @@ COMPRESSED DOCUMENT:
 
 ${input.contentCompressed}`;
 
-  const { output } = await withTimeout(
-    async () =>
-      contextBrain.brain.choice.ask({
-        role: { briefs: [] },
-        prompt,
-        schema: { output: comparisonSchema },
-      }),
-    { threshold: { seconds: 90 } },
+  const { output } = await withRetry(
+    withTimeout(
+      async () =>
+        contextBrain.brain.choice.ask({
+          role: { briefs: [] },
+          prompt,
+          schema: { output: comparisonSchema },
+        }),
+      { threshold: { seconds: 90 } },
+    ),
   )();
 
   // compute retention metrics

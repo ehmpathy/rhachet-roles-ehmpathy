@@ -1449,11 +1449,12 @@ describe('permissionrequest.decide-permissions.sh', () => {
         // fragile and a debug-noise blemish in a human-faced contract snapshot (the r5 i002
         // nitpick). the seam still emits the real jq cause to a live operator (fail-loud);
         // the snapshot pins the clean lead + a stable <JQ_CAUSE> placeholder.
-        // the `jq: ` lead varies by jq build, so the mask keys on `parse error:`
-        // and folds the optional lead into one stable token
+        // .note = the mask anchors on OUR prefix (`list degraded:`), never on jq's prose.
+        //         jq 1.6 prints `jq: parse error: …` and later builds drop the `jq: ` — a mask
+        //         keyed to the vendor's words silently stops to mask when the words move.
         const masked = stderr
           .replace(/\/\S+settings\.json/g, '<SETTINGS>')
-          .replace(/(?:jq: )?parse error:.*/g, '<JQ_CAUSE>');
+          .replace(/(list degraded:) .*/g, '$1 <JQ_CAUSE>');
         // the mask fired: an unfired mask still yields a self-consistent snap
         expect(masked).toContain('<JQ_CAUSE>');
         // and no second volatile remains
@@ -1555,7 +1556,10 @@ describe('permissionrequest.decide-permissions.sh', () => {
           expect(idx).toBeGreaterThanOrEqual(0);
           const preamble = stdout.slice(0, idx);
           expect(preamble).toContain('pre-approved bash permissions');
-          expect(preamble).toContain('[p]: rhx');
+          // the boot banner shows heads with counts, and points to the on-demand lookup
+          // (wisher verdict 2026-10-04: shrink to the grouped view + a pointer)
+          expect(preamble).toContain('│  └─ rhx (1)');
+          expect(preamble).toContain('rhx permissions.get --for');
           expect(preamble).toMatchSnapshot();
         },
       );

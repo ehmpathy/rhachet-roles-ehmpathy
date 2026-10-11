@@ -1,0 +1,21 @@
+{
+  "key": "e1bb1f3eba639b9b",
+  "kind": "create",
+  "repo": {
+    "owner": "ehmpathy",
+    "name": "rhachet-roles-bhuild"
+  },
+  "exid": null,
+  "title": "fix(radio.task.push): pass the title to gh as argv, not a shell string; a backtick in a title runs as a command",
+  "description": "## what\n\n`radio.task.push --via gh.issues` interpolates `--title` into a shell command string, inside double quotes. a backtick or `$(` in the title runs as command substitution on the dispatcher's host.\n\n## evidence\n\npushed from `ehmpathy/rhachet-roles-ehmpathy` on 2026-10-08:\n\n```\n--title 'fix(route.cli): ignore EPIPE when stdout closes early, so `| head` cannot crash a recorded act'\n```\n\nthe push held as `upstream:fault`:\n\n```\n💥 MalfunctionError: Command failed: gh issue create --repo ehmpathy/rhachet-roles-bhrain --title \"🎙️ task - fix(route.cli): ignore EPIPE when stdout closes early, so `| head` cannot crash a recorded act\" --body-file \"/tmp/radio-task-….md\"\n/bin/sh: 1: Syntax error: \"|\" unexpected\n```\n\nhere the substitution failed to parse, so it only held the task. a title like `` `rm -rf ~` `` or `$(curl …)` would run. titles often carry backticks, since markdown code spans are the house style for names.\n\ntwo more harms:\n\n- the held task sits first in the backlog, so every later push retries it and holds again; one bad title blocks the whole queue\n- the hint says \"the next push delivers the backlog first\", but the next push cannot, so the hint misleads\n\n## shape\n\n1. pass argv to `gh`, never a shell string — `execFile('gh', ['issue', 'create', '--repo', repo, '--title', title, '--body-file', file])` (or `spawnSync` with an args array)\n2. clamp: push a title that holds `` ` ``, `$(…)`, `\"` and `|`; assert the issue title round-trips byte for byte and no command ran\n3. when one held task faults on its own input (not on the network), name it and let the rest of the backlog through",
+  "status": null,
+  "via": "gh.issues",
+  "auth": null,
+  "idem": "findsert",
+  "heldAt": "2026-10-08T07:55:26Z",
+  "heldSeq": 7,
+  "recordStatus": "DELIVERED",
+  "reason": null,
+  "settledAt": "2026-10-08T07:55:40Z",
+  "deliveredExid": "450"
+}

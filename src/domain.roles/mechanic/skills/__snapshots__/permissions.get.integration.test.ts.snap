@@ -1,0 +1,252 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`permissions.get.sh given: [case1] a repo with an allowlist in both settings files when: [t0] the bot runs the bare skill then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get
+   ├─ sources
+   │  ├─ .claude/settings.json (10)
+   │  └─ .claude/settings.local.json (2)
+   ├─ total: 11 pre-approved (dupes removed)
+   │
+   ├─ cat (1)
+   │  └─ [p] cat
+   │
+   ├─ git (6)
+   │  ├─ [p] git blame
+   │  ├─ [p] git diff
+   │  ├─ [p] git log
+   │  ├─ [p] git ls-files
+   │  ├─ [p] git show
+   │  └─ … 1 more: rhx permissions.get --head git
+   │
+   ├─ jq (1)
+   │  └─ [e] jq
+   │
+   ├─ npm (1)
+   │  └─ [p] npm run build
+   │
+   ├─ rhx (1)
+   │  └─ [p] rhx
+   │
+   ├─ tree (1)
+   │  └─ [p] tree
+   │
+   └─ key: [e] = the whole part must match exactly · [p] = the part must start with it
+
+🥥 did you know?
+   ├─ narrow to one head: rhx permissions.get --head <head>
+   └─ check one exact command: rhx permissions.get --for '<command>'
+
+"
+`;
+
+exports[`permissions.get.sh given: [case1] a repo with an allowlist in both settings files when: [t1] the bot asks for one head then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get --head git
+   ├─ pre-approved for \`git\`
+   │  ├─ [p] git blame
+   │  ├─ [p] git diff
+   │  ├─ [p] git log
+   │  ├─ [p] git ls-files
+   │  ├─ [p] git show
+   │  └─ [p] git status
+   ├─ paved alternatives for \`git\`
+   │  └─ (none in the inventory)
+   │
+   └─ key: [e] = the whole part must match exactly · [p] = the part must start with it
+
+🥥 did you know?
+   └─ check one exact command: rhx permissions.get --for '<command>'
+
+"
+`;
+
+exports[`permissions.get.sh given: [case1] a repo with an allowlist in both settings files when: [t2] the bot asks for a head the inventory paves then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get --head grep
+   ├─ pre-approved for \`grep\`
+   │  └─ (none — \`grep\` is not on the allowlist)
+   └─ paved alternatives for \`grep\`
+      ├─ rhx grepsafe --pattern '<regex>' --path <dir>
+      └─ rhx git.repo.get lines --in <org/repo> --words '<text>'
+
+🥥 did you know?
+   └─ check one exact command: rhx permissions.get --for '<command>'
+
+"
+`;
+
+exports[`permissions.get.sh given: [case1] a repo with an allowlist in both settings files when: [t3] the bot asks for a head with advice only then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get --head cd
+   ├─ pre-approved for \`cd\`
+   │  └─ (none — \`cd\` is not on the allowlist)
+   ├─ paved alternatives for \`cd\`
+   │  └─ (none in the inventory)
+   └─ advice: run from the cwd; pass paths to the command instead
+
+🥥 did you know?
+   └─ check one exact command: rhx permissions.get --for '<command>'
+
+"
+`;
+
+exports[`permissions.get.sh given: [case2] the bot asks about one exact command when: [t0] the command is blocked then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get --for 'grep -rn reef src/'
+   ├─ verdict: not pre-approved — it would block; each blocked part and its options follow
+   │
+   ├─ blocked: grep -rn reef src/
+   └─ paved alternatives for \`grep\`
+      ├─ rhx grepsafe --pattern '<regex>' --path <dir>
+      └─ rhx git.repo.get lines --in <org/repo> --words '<text>'
+
+"
+`;
+
+exports[`permissions.get.sh given: [case2] the bot asks about one exact command when: [t1] the command is pre-approved then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get --for 'git status --short'
+   └─ verdict: pre-approved — every part matches the allowlist; it runs with no prompt
+
+"
+`;
+
+exports[`permissions.get.sh given: [case2] the bot asks about one exact command when: [t2] the command ranks more than 21 candidates then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get --for 'git stash'
+   ├─ verdict: not pre-approved — it would block; each blocked part and its options follow
+   │
+   ├─ blocked: git stash
+   ├─ did you mean?
+   │  ├─ [p] git stash0
+   │  ├─ [p] git stash10
+   │  ├─ [p] git stash11
+   │  ├─ [p] git stash12
+   │  ├─ [p] git stash13
+   │  ├─ [p] git stash14
+   │  ├─ [p] git stash15
+   │  ├─ [p] git stash16
+   │  ├─ [p] git stash17
+   │  ├─ [p] git stash18
+   │  ├─ [p] git stash19
+   │  ├─ [p] git stash1
+   │  ├─ [p] git stash20
+   │  ├─ [p] git stash21
+   │  ├─ [p] git stash22
+   │  ├─ [p] git stash23
+   │  ├─ [p] git stash24
+   │  ├─ [p] git stash25
+   │  ├─ [p] git stash26
+   │  ├─ [p] git stash27
+   │  ├─ [p] git stash28
+   │  ├─ [p] git stash29
+   │  ├─ [p] git stash2
+   │  ├─ [p] git stash3
+   │  ├─ [p] git stash4
+   │  ├─ [p] git stash5
+   │  ├─ [p] git stash6
+   │  ├─ [p] git stash7
+   │  ├─ [p] git stash8
+   │  └─ [p] git stash9
+   │
+   └─ key: [e] = the whole part must match exactly · [p] = the part must start with it
+
+"
+`;
+
+exports[`permissions.get.sh given: [case3] edges when: [t0] the repo has no .claude/ dir then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get
+   └─ no .claude/ dir found from <repo> upward — no allowlist applies here
+
+"
+`;
+
+exports[`permissions.get.sh given: [case3] edges when: [t1] settings.json is not valid json then: the render matches snapshot 1`] = `
+"
+💥 MalfunctionError: .claude/settings.json is not valid json (<jq error>) — the allowlist could not be read; repair the json in .claude/
+
+"
+`;
+
+exports[`permissions.get.sh given: [case3] edges when: [t2] the bot passes an unknown flag then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: unknown argument: --surf
+
+🐚 permissions.get — show the pre-approved commands, on demand
+   ├─ usage
+   │  ├─ rhx permissions.get                     every pre-approved command, grouped by head
+   │  ├─ rhx permissions.get --head <head>       one head: pre-approved + paved alternatives
+   │  └─ rhx permissions.get --for '<command>'   one command: verdict + every candidate, ranked
+   └─ example
+      └─ rhx permissions.get --for 'grep -rn reef src/'
+
+"
+`;
+
+exports[`permissions.get.sh given: [case3] edges when: [t3] the bot asks for --help then: the usage names every mode, exit 0 1`] = `
+"
+🐚 permissions.get — show the pre-approved commands, on demand
+   ├─ usage
+   │  ├─ rhx permissions.get                     every pre-approved command, grouped by head
+   │  ├─ rhx permissions.get --head <head>       one head: pre-approved + paved alternatives
+   │  └─ rhx permissions.get --for '<command>'   one command: verdict + every candidate, ranked
+   └─ example
+      └─ rhx permissions.get --for 'grep -rn reef src/'
+
+"
+`;
+
+exports[`permissions.get.sh given: [case3] edges when: [t4] the inventory beside the hook is unparseable then: the render matches snapshot 1`] = `
+"
+💥 MalfunctionError: inventory file unparseable: commands.alternatives.jsonc (<jq error>) — paved alternatives cannot be listed; repair the file beside the hook, then rebuild the role
+
+"
+`;
+
+exports[`permissions.get.sh given: [case3] edges when: [t5] the inventory beside the hook is absent then: the render matches snapshot 1`] = `
+"
+💥 MalfunctionError: inventory file absent: commands.alternatives.jsonc (beside the check-permissions hook) — paved alternatives cannot be listed; rebuild the role
+
+"
+`;
+
+exports[`permissions.get.sh given: [case3] edges when: [t6] the hook is absent beside the skill, and the bot asks --for then: the render matches snapshot 1`] = `
+"
+💥 MalfunctionError: check-permissions hook absent beside the skill (../inits/claude.hooks/pretooluse.check-permissions.sh) — the lookup cannot run; rebuild and relink the role
+
+"
+`;
+
+exports[`permissions.get.sh given: [case3] edges when: [t7] the bot passes an empty --head then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: --head needs a command head, e.g. --head git
+
+🐚 permissions.get — show the pre-approved commands, on demand
+   ├─ usage
+   │  ├─ rhx permissions.get                     every pre-approved command, grouped by head
+   │  ├─ rhx permissions.get --head <head>       one head: pre-approved + paved alternatives
+   │  └─ rhx permissions.get --for '<command>'   one command: verdict + every candidate, ranked
+   └─ example
+      └─ rhx permissions.get --for 'grep -rn reef src/'
+
+"
+`;
+
+exports[`permissions.get.sh given: [case3] edges when: [t9] the repo has no .claude/ dir, and the bot asks --for then: the render matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.get --for 'grep -rn reef src/'
+   └─ verdict: no .claude/ dir found from <repo> upward — no allowlist applies here
+
+"
+`;

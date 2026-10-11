@@ -173,10 +173,15 @@ exit 0
           expect(result.status).toEqual(0);
           expect(result.stderr).toMatchSnapshot();
 
-          // snapshot stdout with dynamic content redacted
-          expect(
-            asMaskedOutput({ stdout: result.stdout, tempDir }),
-          ).toMatchSnapshot();
+          // snapshot the stable header only; the outcome line depends on what the live week
+          // held (retried runs or none), so it is asserted as one of the two known shapes.
+          // each shape is snapped deterministically with a stubbed gh in [case8] and [case12]
+          const [header, outcome] = asMaskedOutput({
+            stdout: result.stdout,
+            tempDir,
+          }).split('🥥');
+          expect(header).toMatchSnapshot();
+          expect(outcome).toMatch(/^ (evidence gathered|no flakes found)\n/);
 
           expect(fs.existsSync(inventoryPath)).toBe(true);
 
@@ -549,6 +554,9 @@ exit 1
         const inventory = JSON.parse(fs.readFileSync(inventoryPath, 'utf-8'));
         expect(inventory.flakes).toEqual([]);
         expect(inventory.metadata.runs_analyzed).toBeGreaterThan(0);
+        // the metadata keeps its full shape on the no-retry exit: case4 reads
+        // `retried_runs_found` from a live week that may hold no retried run
+        expect(inventory.metadata.retried_runs_found).toEqual(0);
       });
     });
   });

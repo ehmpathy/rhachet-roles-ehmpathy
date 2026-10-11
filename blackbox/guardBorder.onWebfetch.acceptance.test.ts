@@ -13,7 +13,7 @@ import { getOneGuardBorderBrainKeyName } from '@src/domain.operations/guardBorde
 import {
   genTestDir,
   genWebfetchStdin,
-  invokePostToolUseHook,
+  invokeHook,
 } from './.test/invokeHook';
 
 /**
@@ -79,7 +79,7 @@ class User extends DomainEntity<User> {
 `,
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
@@ -127,7 +127,7 @@ This is a helpful library.
           `.trim(),
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
@@ -197,7 +197,7 @@ This is a helpful library.
           response: 'secret_api_key=abc123',
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
@@ -226,7 +226,7 @@ This is a helpful library.
           response: 'router config page',
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
@@ -249,7 +249,7 @@ This is a helpful library.
           response: 'internal service response',
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
@@ -272,7 +272,7 @@ This is a helpful library.
           response: 'internal network resource',
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
@@ -297,7 +297,7 @@ This is a helpful library.
           response: '\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00',
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
@@ -331,7 +331,7 @@ This is a helpful library.
           response: 'x'.repeat(getOneOversizedCharCount()),
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
@@ -395,7 +395,7 @@ This is a helpful library.
           response: 'any content',
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
@@ -472,7 +472,7 @@ This is a helpful library.
           response: 'any content',
         });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,
@@ -530,7 +530,7 @@ This is a helpful library.
       const res = useThen('invoke hook with junk stdin', async () => {
         const tempDir = await genTestDir({ slug: 'border-guard-malfunction' });
 
-        const result = await invokePostToolUseHook({
+        const result = await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin: 'this is not json',
           cwd: tempDir,
@@ -580,7 +580,7 @@ This is a helpful library.
           response: 'secret data',
         });
 
-        await invokePostToolUseHook({
+        await invokeHook({
           hookName: 'posttooluse.guardBorder.onWebfetch.sh',
           stdin,
           cwd: tempDir,

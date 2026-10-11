@@ -172,7 +172,7 @@ RUNS_JSON=$(gh api --method GET "repos/$REPO/actions/runs" \
 
 if [[ "$RUNS_JSON" == "[]" || "$RUNS_JSON" == "null" ]]; then
   # write empty inventory
-  echo '{"flakes":[],"metadata":{"days":'$DAYS',"scanned_at":"'$(date -Iseconds)'","runs_analyzed":0}}' > "$INTO"
+  echo '{"flakes":[],"metadata":{"days":'$DAYS',"scanned_at":"'$(date -Iseconds)'","runs_analyzed":0,"retried_runs_found":0}}' > "$INTO"
   print_coconut "no flakes found" "runs_analyzed: 0"
   exit 0
 fi
@@ -197,7 +197,7 @@ RETRIED_COUNT=$(echo "$RETRIED_RUNS_JSON" | jq 'length')
 
 if [[ "$RETRIED_COUNT" == "0" ]]; then
   # write empty inventory
-  echo '{"flakes":[],"metadata":{"days":'$DAYS',"scanned_at":"'$(date -Iseconds)'","runs_analyzed":'$RUNS_ANALYZED'}}' > "$INTO"
+  echo '{"flakes":[],"metadata":{"days":'$DAYS',"scanned_at":"'$(date -Iseconds)'","runs_analyzed":'$RUNS_ANALYZED',"retried_runs_found":0}}' > "$INTO"
   print_coconut "no flakes found" "runs_analyzed: $RUNS_ANALYZED"
   exit 0
 fi

@@ -1,0 +1,21 @@
+{
+  "key": "f065e54381404895",
+  "kind": "create",
+  "repo": {
+    "owner": "ehmpathy",
+    "name": "rhachet-roles-bhrain"
+  },
+  "exid": null,
+  "title": "fix(route.cli): ignore EPIPE when stdout closes early, so a pipe into head cannot crash a recorded act",
+  "description": "## what\n\nthe route cli (`rhx route.*`) crashes with a node stack when its stdout closes early, e.g. `rhx route.stone.set … | head -n 1`.\n\n## why\n\n`head -n 1` closes the pipe after one line; the next `console.log` in `rhachet-roles-bhrain/dist/contract/cli/route.js:1076` hits `write EPIPE`, an unhandled `'error'` event on the stdout socket, so node exits nonzero with `💥 failed with an error`.\n\nthe caller cannot tell a recorded act from a lost one. a re-run with `| tail -2` printed `🦉 absorbed:` for each slug, so the act is idempotent and was recorded — but the crash output does not say so.\n\n## evidence\n\nseen seven times in a row in `ehmpathy/rhachet-roles-ehmpathy`, route `v2026_09_26.fix-blocklist-nudge`, stone 5.1, on `rhx route.stone.set --stone <s> --as absorbed --that <slug> | head -n 1`.\n\n## shape\n\nin the cli entry, ignore EPIPE on stdout and stderr — the node equivalent of the `trap '' PIPE` the ehmpathy hooks use:\n\n```ts\nprocess.stdout.on('error', (e) => { if (e.code === 'EPIPE') process.exit(0); throw e; });\n```\n\nclamp: spawn the cli piped into a reader that closes after one line; assert exit 0 and that the act recorded.",
+  "status": null,
+  "via": "gh.issues",
+  "auth": null,
+  "idem": "findsert",
+  "heldAt": "2026-10-08T07:54:44Z",
+  "heldSeq": 5,
+  "recordStatus": "DELIVERED",
+  "reason": null,
+  "settledAt": "2026-10-08T07:55:30Z",
+  "deliveredExid": "608"
+}

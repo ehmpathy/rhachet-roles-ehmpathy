@@ -3,7 +3,7 @@ import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 import type { ConceptKernel } from '../../../../../../domain.operations/kernelize/extractKernels';
 import { restoreKernels } from './restoreKernels';
 
-const BRAIN_SLUG = 'fireworks/deepseek/v4-flash';
+const BRAIN_SLUG = 'openrouter/deepseek/flash';
 
 // skip: xAI grok-3-mini hits SAFETY_CHECK_TYPE_BIO false positive on benign typescript docs
 // cases 1,3,4 all call the API and fail; case2 passes (no API call)

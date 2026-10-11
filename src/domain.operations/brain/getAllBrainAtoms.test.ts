@@ -24,9 +24,9 @@ describe('getAllBrainAtoms', () => {
         expect(atoms.length).toBeGreaterThan(0);
       });
 
-      then('it includes the fireworks + xai brains the callers choose', () => {
+      then('it includes the openrouter + xai brains the callers choose', () => {
         const slugs = getAllBrainAtoms().map((atom) => atom.slug);
-        expect(slugs).toContain('fireworks/deepseek/v4-flash');
+        expect(slugs).toContain('openrouter/deepseek/flash');
         expect(slugs).toContain('xai/grok/code-fast-1');
       });
     });
@@ -37,7 +37,7 @@ describe('getAllBrainAtoms', () => {
         // never runs without an ask(), so this stays hermetic (no key/network).
         const contextBrain = genContextBrain({
           brains: { atoms: getAllBrainAtoms() },
-          choice: { atom: 'fireworks/deepseek/v4-flash' },
+          choice: { atom: 'openrouter/deepseek/flash' },
           creds: async () => ({}),
         });
         expect(contextBrain.brain.choice).toBeDefined();

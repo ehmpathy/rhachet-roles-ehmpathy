@@ -27,7 +27,7 @@ describe.skip('compareBrains', () => {
         compareBrains({
           rubric: 'mech-failhides',
           role: 'mechanic',
-          brains: ['fireworks/deepseek/v4-flash'],
+          brains: ['openrouter/deepseek/flash'],
           domainRolesDir,
           evalsDir,
         }),
@@ -41,12 +41,12 @@ describe.skip('compareBrains', () => {
       then('one brain result returned', () => {
         expect(comparison.brains).toHaveLength(1);
         const brainResult = comparison.brains[0]!;
-        expect(brainResult.brain).toBe('fireworks/deepseek/v4-flash');
+        expect(brainResult.brain).toBe('openrouter/deepseek/flash');
       });
 
       then('summary has brain field set', () => {
         const brainResult = comparison.brains[0]!;
-        expect(brainResult.summary.brain).toBe('fireworks/deepseek/v4-flash');
+        expect(brainResult.summary.brain).toBe('openrouter/deepseek/flash');
       });
 
       then('summary has metrics', () => {
@@ -60,7 +60,7 @@ describe.skip('compareBrains', () => {
       then('table format works', () => {
         const table = formatBrainComparisonTable({ comparison });
         expect(table).toContain('brain comparison: mech-failhides');
-        expect(table).toContain('fireworks/deepseek/v4-flash');
+        expect(table).toContain('openrouter/deepseek/flash');
         expect(table).toContain('| brain |');
       });
 
@@ -73,7 +73,7 @@ describe.skip('compareBrains', () => {
           .find(
             (line) =>
               line.startsWith('|') &&
-              line.includes('fireworks/deepseek/v4-flash'),
+              line.includes('openrouter/deepseek/flash'),
           );
         expect(dataRow).toBeDefined();
       });
@@ -87,7 +87,7 @@ describe.skip('compareBrains', () => {
   //       compareBrains({
   //         rubric: 'mech-failhides',
   //         role: 'mechanic',
-  //         brains: ['fireworks/deepseek/v4-flash', 'fireworks/deepseek/v4-flash'],
+  //         brains: ['openrouter/deepseek/flash', 'openrouter/deepseek/flash'],
   //         domainRolesDir,
   //         evalsDir,
   //       }),

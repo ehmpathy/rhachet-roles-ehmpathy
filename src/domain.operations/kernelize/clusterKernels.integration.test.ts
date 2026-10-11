@@ -3,7 +3,11 @@ import { given, then, useThen, when } from 'test-fns';
 import { clusterKernels, mergeAndClusterKernels } from './clusterKernels';
 import type { ConceptKernel } from './extractKernels';
 
-const BRAIN_SLUG = 'fireworks/deepseek/v4-flash';
+const BRAIN_SLUG = 'openrouter/deepseek/flash';
+
+// a hang guard for real brain calls: each ask may time out at 60s on a slow openrouter host and
+// retry once, so the test bounds two attempts plus margin. it never asserts speed
+jest.setTimeout(180_000);
 
 describe.skip('clusterKernels', () => {
   given('[case1] kernels that express the same concept', () => {

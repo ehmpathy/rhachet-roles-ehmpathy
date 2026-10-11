@@ -5,8 +5,8 @@
  * .why = semantic compression that preserves decision-critical content
  *
  * usage:
- *   compress.via.bhrain.ts --from path/to/brief.md --via fireworks/deepseek/v4-flash --json
- *   compress.via.bhrain.ts --from path/to/brief.md --via fireworks/deepseek/v4-flash --force
+ *   compress.via.bhrain.ts --from path/to/brief.md --via openrouter/deepseek/flash --json
+ *   compress.via.bhrain.ts --from path/to/brief.md --via openrouter/deepseek/flash --force
  *
  * note:
  *   - results are cached to .rhachet/bhrain/cache/compress/
@@ -24,7 +24,7 @@ import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { createCache } from 'simple-on-disk-cache';
 import { parseArgs } from 'util';
 import { withSimpleCacheAsync } from 'with-simple-cache';
-import { withTimeout } from 'wrapper-fns';
+import { withRetry, withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
 import { getAllBrainAtoms } from '@src/domain.operations/brain/getAllBrainAtoms';
@@ -356,36 +356,40 @@ const _compressViaBhrain = async (input: {
 
   // ask brain to distill via specified mechanisms (passed via role.briefs)
   // note: lang tone briefs doubled for emphasis (brain sometimes ignores them)
-  const { output } = await withTimeout(
-    async () =>
-      contextBrain.brain.choice.ask({
-        role: {
-          briefs: [
-            ...methodologyBriefArtifacts,
-            lowercaseBrief,
-            turtleBrief,
-            lowercaseBrief,
-            turtleBrief,
-          ],
-        },
-        prompt,
-        schema: {
-          output: z.object({
-            forethought: z
-              .string()
-              .describe(
-                'what is this brief about? what is its purpose? who is the audience?',
-              ),
-            rationale: z
-              .string()
-              .describe(
-                'what content is decision-critical and must be kept? what can be cut? which examples to keep vs discard?',
-              ),
-            sitrep: z.string().describe('the compressed brief as raw markdown'),
-          }),
-        },
-      }),
-    { threshold: { seconds: 60 } },
+  const { output } = await withRetry(
+    withTimeout(
+      async () =>
+        contextBrain.brain.choice.ask({
+          role: {
+            briefs: [
+              ...methodologyBriefArtifacts,
+              lowercaseBrief,
+              turtleBrief,
+              lowercaseBrief,
+              turtleBrief,
+            ],
+          },
+          prompt,
+          schema: {
+            output: z.object({
+              forethought: z
+                .string()
+                .describe(
+                  'what is this brief about? what is its purpose? who is the audience?',
+                ),
+              rationale: z
+                .string()
+                .describe(
+                  'what content is decision-critical and must be kept? what can be cut? which examples to keep vs discard?',
+                ),
+              sitrep: z
+                .string()
+                .describe('the compressed brief as raw markdown'),
+            }),
+          },
+        }),
+      { threshold: { seconds: 60 } },
+    ),
   )();
 
   const compressed = output.sitrep;
@@ -465,7 +469,7 @@ const main = async (): Promise<void> => {
       JSON.stringify({
         error: 'absent brain',
         message:
-          '--via is required (brain slug, e.g., fireworks/deepseek/v4-flash)',
+          '--via is required (brain slug, e.g., openrouter/deepseek/flash)',
       }),
     );
     process.exit(1);

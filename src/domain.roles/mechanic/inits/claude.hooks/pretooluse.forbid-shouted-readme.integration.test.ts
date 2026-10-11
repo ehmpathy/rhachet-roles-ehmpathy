@@ -99,21 +99,21 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
       then('Write to README.md (root) is blocked', () => {
         const result = runHookWrite({ filePath: 'README.md' });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('readme.md');
       });
 
       then('Write to docs/README.md (nested) is blocked', () => {
         const result = runHookWrite({ filePath: 'docs/README.md' });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('docs/readme.md');
       });
 
       then('Write to absolute /repo/README.md is blocked', () => {
         const result = runHookWrite({ filePath: '/home/user/repo/README.md' });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -146,7 +146,7 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
       then('Edit to README.md is blocked', () => {
         const result = runHookEdit({ filePath: 'README.md' });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -172,14 +172,14 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
       then('Read from README.md is blocked', () => {
         const result = runHookRead({ filePath: 'README.md' });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('readme.md');
       });
 
       then('Read from packages/x/README.md is blocked', () => {
         const result = runHookRead({ filePath: 'packages/x/README.md' });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
     });
 
@@ -390,10 +390,14 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
       });
 
       // the asserts prove the words; the snap shows the frame a caller reads
+      // .note = jq's parse-error code varies by build (2, 4, 5), so the snap masks it
       then('the fail-open warn frame reads as a caller reads it', () => {
+        const asMasked = (text: string): string =>
+          text.replace(/jq exit \d+/g, 'jq exit <N>');
+        expect(result.stdout).toMatch(/jq exit \d+/);
         expect({
-          stdout: result.stdout,
-          stderr: result.stderr,
+          stdout: asMasked(result.stdout),
+          stderr: asMasked(result.stderr),
         }).toMatchSnapshot();
       });
     });
@@ -430,11 +434,12 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
         env: { ...process.env, PATH: `${shimDir}:${process.env.PATH ?? ''}` },
       });
 
-      then('it fails CLOSED with jq exit code, and names the code', () => {
+      then('it fails CLOSED (exit 2), and names the jq code', () => {
         expect({
+          // fail-closed: claude code blocks on exit 2 alone — any other code
+          // permits, so jq's own 7 would open the gate. the parse arm's exit 0
+          // must NOT be reached here
           exitCode: result.status,
-          // fail-closed: a PreToolUse nonzero blocks the tool call. the parse
-          // arm's exit 0 must NOT be reached here
           saysParseWarn: (result.stdout ?? '').includes(
             'could not parse stdin as JSON',
           ),
@@ -443,7 +448,7 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
           // both streams carry it (rule.require.skill-output-streams)
           onStdout: (result.stdout ?? '').includes('unexpected jq failure'),
         }).toEqual({
-          exitCode: 7,
+          exitCode: 2,
           saysParseWarn: false,
           saysError: true,
           namesTheCode: true,
@@ -466,8 +471,8 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
     when('[t0] Write to README.md', () => {
       const result = runHookWrite({ filePath: 'README.md' });
 
-      then('stderr contains BLOCKED', () => {
-        expect(result.stderr).toContain('BLOCKED');
+      then('stderr names the ConstraintError', () => {
+        expect(result.stderr).toContain('✋ ConstraintError:');
       });
 
       then('stderr contains the readme.md redirect', () => {
@@ -479,7 +484,7 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
       });
 
       then('stdout also carries the block message (both streams)', () => {
-        expect(result.stdout).toContain('BLOCKED');
+        expect(result.stdout).toContain('✋ ConstraintError:');
       });
     });
   });
@@ -491,7 +496,7 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
       then('Write block message matches snapshot', () => {
         const result = runHookWrite({ filePath: 'README.md' });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('use: readme.md');
         expect(result.stderr).toMatchSnapshot();
       });
@@ -501,7 +506,7 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
       then('Read block message matches snapshot', () => {
         const result = runHookRead({ filePath: 'docs/README.md' });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('use: docs/readme.md');
         expect(result.stderr).toMatchSnapshot();
       });
@@ -511,7 +516,7 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
       then('Read block message matches snapshot', () => {
         const result = runHookRead({ filePath: 'README.md' });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('use: readme.md');
         expect(result.stderr).toMatchSnapshot();
       });
@@ -521,7 +526,7 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
       then('Write block message matches snapshot', () => {
         const result = runHookWrite({ filePath: 'packages/x/README.md' });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('use: packages/x/readme.md');
         expect(result.stderr).toMatchSnapshot();
       });
@@ -531,7 +536,7 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
       then('Edit block message matches snapshot', () => {
         const result = runHookEdit({ filePath: 'docs/README.md' });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('use: docs/readme.md');
         expect(result.stderr).toMatchSnapshot();
       });
@@ -541,7 +546,7 @@ describe('pretooluse.forbid-shouted-readme.sh', () => {
       then('Edit block message matches snapshot', () => {
         const result = runHookEdit({ filePath: 'README.md' });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain('BLOCKED');
+        expect(result.stderr).toContain('✋ ConstraintError:');
         expect(result.stderr).toContain('use: readme.md');
         expect(result.stderr).toMatchSnapshot();
       });

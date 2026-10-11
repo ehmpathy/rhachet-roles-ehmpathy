@@ -93,6 +93,7 @@ describe('forbid-terms hooks · fork budget', () => {
     'sort',
     'tr',
     'mkdir',
+    'rmdir',
     'sha1sum',
     'awk',
     'basename',
@@ -100,7 +101,7 @@ describe('forbid-terms hooks · fork budget', () => {
 
   /**
    * .what = a hermetic cwd that already holds its own .claude dir, no nudge file
-   * .why = find_claude_dir walks UP from PWD. absent a local .claude the walk
+   * .why = get_claude_dir walks UP from PWD. absent a local .claude the walk
    *        continues — and genTempDir's physical store can sit under the repo,
    *        so the walk could reach the repo's real .claude and write a nudge
    *        entry into it (rule.require.hermetic-tests).
@@ -583,6 +584,7 @@ describe('forbid-terms hooks · fork budget', () => {
           'sort',
           'tr',
           'mkdir',
+          'rmdir',
           'awk',
           'basename',
           'sha1sum',
@@ -601,7 +603,8 @@ describe('forbid-terms hooks · fork budget', () => {
           'realpath',
           'md5sum',
           'env',
-          'printf',
+          // .note = no `printf` and no `echo`: both are bash builtins, so a hook that calls
+          //         them forks naught. listed, they would read every builtin print as an exec
           'expr',
           'seq',
           'tee',
@@ -624,9 +627,11 @@ describe('forbid-terms hooks · fork budget', () => {
         //         `.filter` — the scan here is two synchronous file reads, so the
         //         deferral buys naught and costs the array's own interface.
         const asReachedTools = (): string[] => {
+          // .note = the lib both hooks source runs in their process, so its execs are theirs
           const sources = [
             'pretooluse.forbid-terms.blocklist.sh',
             'pretooluse.forbid-terms.gerunds.sh',
+            '_hardnudge.lib.sh',
           ]
             .map((name) => readFileSync(path.join(hooksDir, name), 'utf-8'))
             .join('\n');
@@ -645,9 +650,14 @@ describe('forbid-terms hooks · fork budget', () => {
           //            ⇒ a new tool added in that same bare `$(tool)` idiom
           //            would escape the closure entirely, which is the exact
           //            regression this case exists to catch.
+          //
+          // 🔴 .note = the lib runs its lock and file ops through one runner,
+          //            `try_hardnudge_op <tool> …`, so the tool sits right after the
+          //            runner's name rather than at a command position. the runner
+          //            is a command position too, or `rmdir` escapes the closure
           return CATALOG.filter((tool) =>
             new RegExp(
-              String.raw`(^|[|;(]|&&|\|\||\$\()\s*` +
+              String.raw`(^|[|;(]|&&|\|\||\$\(|try_hardnudge_op)\s*` +
                 tool +
                 String.raw`(\s|\)|;|\||&|$)`,
               'm',
@@ -692,7 +702,7 @@ describe('forbid-terms hooks · fork budget', () => {
             //    never merely prove the scan returns a non-empty set. one sample
             //    per idiom, or the control inherits the blind spot it guards.
             expect(asReachedTools()).toContain('cat'); // bare, `$(cat)`
-            expect(asReachedTools()).toContain('mktemp'); // bare, `$(mktemp)`
+            expect(asReachedTools()).toContain('rmdir'); // via the runner, `try_hardnudge_op rmdir`
           },
         );
       });
@@ -721,7 +731,7 @@ describe('forbid-terms hooks · fork budget', () => {
   given('[case7] the hook source, read statically', () => {
     // 🔴 every clamp above this line counts EXECS under a PATH shim, and a shim
     //    structurally cannot see a `$( )` that runs only builtins or a shell
-    //    function — `$(find_claude_dir)` is exactly that shape, and it forks.
+    //    function — `$(get_claude_dir)` is exactly that shape, and it forks.
     //
     //    ⇒ so an edit that adds a bare `$( )` raises the real process count
     //      toward acceptance #1's bar of 10 while every exec assertion stays
@@ -734,11 +744,18 @@ describe('forbid-terms hooks · fork budget', () => {
     //         raise one is a fine decision and exactly the decision this case
     //         exists to force into the diff — what it forbids is a raise that
     //         nobody noticed.
-    const SUBSHELL_SITES = { gerunds: 8, blocklist: 10 };
+    // .note = counted over hook + _hardnudge.lib.sh; the lib merged the sweep and the
+    //         stamp into one jq pass, so one `$(mktemp)` site left the blocklist path
+    const SUBSHELL_SITES = { gerunds: 8, blocklist: 9 };
 
+    // .note = a hook's residue is its own sites PLUS the lib it sources, since the lib's
+    //         functions run in the hook's process. count the hook alone and a site moved
+    //         into the lib would vanish from the held number.
     const asSiteCount = (hook: string): number =>
       asSubshellSites({
-        source: readFileSync(path.join(hooksDir, hook), 'utf-8'),
+        source: [hook, '_hardnudge.lib.sh']
+          .map((name) => readFileSync(path.join(hooksDir, name), 'utf-8'))
+          .join('\n'),
       }).length;
 
     when('[t0] the gerunds hook is read', () => {

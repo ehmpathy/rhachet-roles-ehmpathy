@@ -4,7 +4,7 @@ import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
 import { pressViaPipeline } from './pressViaPipeline';
 
-const BRAIN_SLUG = 'fireworks/deepseek/v4-flash';
+const BRAIN_SLUG = 'openrouter/deepseek/flash';
 
 // test fixtures
 const FIXTURES_DIR = path.join(__dirname, '../../.test/fixtures/briefs');

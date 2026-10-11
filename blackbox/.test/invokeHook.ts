@@ -36,18 +36,19 @@ export const genTestDir = async (input: {
 };
 
 /**
- * .what = invokes a PostToolUse hook via its shell entrypoint
+ * .what = invokes a hook (PreToolUse or PostToolUse) via its shell entrypoint
  * .why = enables blackbox acceptance test against hooks as invoked by rhachet
  *
  * .note = invokes the shell entrypoint from the linked .agent/ directory
  *         after `npx rhachet roles link` sets up the symlinks.
  *         this tests the same code path that Claude Code uses.
  */
-export const invokePostToolUseHook = async (input: {
+export const invokeHook = async (input: {
   hookName: string;
   stdin: string;
   cwd: string;
   env?: Record<string, string | undefined>;
+  args?: string[];
 }): Promise<{ stdout: string; stderr: string; code: number }> => {
   // invoke the hook shell entrypoint from the cwd's .agent/ directory
   const hookPath = path.join(
@@ -55,8 +56,9 @@ export const invokePostToolUseHook = async (input: {
     `.agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/${input.hookName}`,
   );
 
-  return new Promise((resolve) => {
-    const proc = spawn('bash', [hookPath], {
+  return new Promise((resolve, reject) => {
+    // the args are the flags the hook registration passes (e.g. `--mode SOFTNUDGE`)
+    const proc = spawn('bash', [hookPath, ...(input.args ?? [])], {
       cwd: input.cwd,
       env: {
         ...process.env,
@@ -79,6 +81,9 @@ export const invokePostToolUseHook = async (input: {
     // write stdin and close
     proc.stdin.write(input.stdin);
     proc.stdin.end();
+
+    // a spawn failure never fires 'close'; reject so it is named, never a silent hang
+    proc.on('error', (error) => reject(error));
 
     proc.on('close', (code) => {
       resolve({

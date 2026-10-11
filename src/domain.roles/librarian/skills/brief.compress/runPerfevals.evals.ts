@@ -251,7 +251,7 @@ const PIPELINES: Pipeline[] = [
   ]),
 ];
 
-const BRAIN_SLUGS = ['fireworks/deepseek/v4-flash'] as const;
+const BRAIN_SLUGS = ['openrouter/deepseek/flash'] as const;
 type BrainSlug = (typeof BRAIN_SLUGS)[number];
 
 const RUNS_PER_PAIR = 3;

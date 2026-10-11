@@ -62,9 +62,9 @@ done
 
 # default brain if not specified
 # .note = enables eval harness to pass --brain for brain comparison
-# .note = fireworks brain may have different credential handling than xai
+# .note = the openrouter brain reads a different credential than xai
 if [[ -z "$BRAIN" ]]; then
-  BRAIN='fireworks/deepseek/v4-flash'
+  BRAIN='openrouter/deepseek/flash'
 fi
 
 # forward filtered args to bhrain review with rules

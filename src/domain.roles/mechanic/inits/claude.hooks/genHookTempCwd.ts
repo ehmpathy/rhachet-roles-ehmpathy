@@ -4,7 +4,7 @@ import { genTempDir } from 'test-fns';
 
 /**
  * .what = a hermetic cwd that already holds its own .claude dir and nudge file
- * .why = find_claude_dir walks UP from PWD. absent a local .claude the walk
+ * .why = get_claude_dir walks UP from PWD. absent a local .claude the walk
  *        continues — and genTempDir's physical store can sit under the repo, so
  *        the walk could reach the REPO's real .claude and write a nudge there.
  *        a seeded local .claude stops the walk at the first rung.

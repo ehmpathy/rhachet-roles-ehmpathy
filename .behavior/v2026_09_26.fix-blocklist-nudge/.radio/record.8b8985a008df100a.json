@@ -1,0 +1,21 @@
+{
+  "key": "8b8985a008df100a",
+  "kind": "create",
+  "repo": {
+    "owner": "ehmpathy",
+    "name": "rhachet"
+  },
+  "exid": null,
+  "title": "fix(enroll): forward the clone answer on stdout under --await, not only its exit code",
+  "description": "## what\n\n`rhx enroll <brain> -p '<prompt>'` (default `--await`) forwards the clone's exit code but not its answer, so a caller that reads stdout sees no reply.\n\n## why\n\n`--await` is documented as \"hold until the clone answers its prompt and exits, then forward its exit code\". every route guard lane that enrolls a reviewer reads stdout for the verdict. with the answer absent, the guard sees only the enroll banner and permission notices.\n\n## evidence\n\n`ehmpathy/rhachet-roles-ehmpathy`, route `v2026_09_26.fix-blocklist-nudge`, stone 5.1 (peer rounds i004, i005):\n\n- twice, the guard graded an enroll lane `💥 malfunction: reviewer output lacks a numeric blocker/nitpick count`\n- yet `rhx clone get @:e691813d --format raw` showed the clone had finished a full review that ended `2 blockers, 4 nitpicks.`\n- a second clone spawned in the same cwd in the same instant (i004) made it worse: `clone get` reported \"history is empty because this clone shared a cwd with another at spawn\", and that clone stayed LIVE over an hour\n\n## shape\n\nforward the clone's final reply on stdout under `--await` (the tree output's last block, or the raw reply under `--output json`).\n\nclamp: enroll with `-p 'reply exactly: 0 blockers / 0 nitpicks'` and assert stdout holds both lines.\n\nthe consumer works around it today: each enroll lane has its clone write the final list to `.temp/route.review/<slug>.md` and print that file.",
+  "status": null,
+  "via": "gh.issues",
+  "auth": null,
+  "idem": "findsert",
+  "heldAt": "2026-10-08T07:54:50Z",
+  "heldSeq": 6,
+  "recordStatus": "DELIVERED",
+  "reason": null,
+  "settledAt": "2026-10-08T07:55:35Z",
+  "deliveredExid": "588"
+}

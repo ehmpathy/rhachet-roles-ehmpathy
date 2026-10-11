@@ -1,5 +1,5 @@
 import type { BrainAtom } from 'rhachet';
-import { genBrainAtom as genBrainAtomFireworks } from 'rhachet-brains-fireworksai';
+import { genBrainAtom as genBrainAtomOpenRouter } from 'rhachet-brains-openrouter';
 import { genBrainAtom as genBrainAtomXai } from 'rhachet-brains-xai';
 
 /**
@@ -18,6 +18,6 @@ import { genBrainAtom as genBrainAtomXai } from 'rhachet-brains-xai';
  *        via genContextBrain's `choice`.
  */
 export const getAllBrainAtoms = (): BrainAtom<any>[] => [
-  genBrainAtomFireworks({ slug: 'fireworks/deepseek/v4-flash' }),
+  genBrainAtomOpenRouter({ slug: 'openrouter/deepseek/flash' }),
   genBrainAtomXai({ slug: 'xai/grok/code-fast-1' }),
 ];

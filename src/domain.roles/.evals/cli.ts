@@ -55,7 +55,7 @@ usage:
 options:
   --rubric    rubric slug (e.g., mech-failhides)
   --role      role name (e.g., mechanic, architect, ergonomist)
-  --brains    comma-separated brain list (e.g., fireworks/deepseek/v4-flash,fireworks/deepseek/v4-pro)
+  --brains    comma-separated brain list (e.g., openrouter/deepseek/flash,fireworks/deepseek/v4-pro)
   --output    output directory (default: stdout)
 `;
 

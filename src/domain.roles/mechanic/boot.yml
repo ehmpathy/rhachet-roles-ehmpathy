@@ -92,6 +92,10 @@ always:
       # cicd
       - skills/cicd.deflake.sh
 
+      # permissions: the pre-approved commands, on demand; what the nudge has recorded
+      - skills/permissions.get.sh
+      - skills/permissions.nudges.sh
+
 subject.code.prod:
   briefs:
     say:

@@ -654,7 +654,7 @@ const RUNS_PER_PAIR = 3;
  *         e.g., add 'anthropic/claude/sonnet-2' to the array below
  */
 const BRAIN_SLUGS = [
-  'fireworks/deepseek/v4-flash',
+  'openrouter/deepseek/flash',
   // 'anthropic/claude/sonnet-2', // uncomment when rhachet-brains-anthropic is configured
 ] as const;
 

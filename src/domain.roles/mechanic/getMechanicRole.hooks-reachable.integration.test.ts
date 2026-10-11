@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'fs';
+import { existsSync, readdirSync, readFileSync } from 'fs';
 import * as path from 'path';
 import { given, then, useBeforeAll, when } from 'test-fns';
 
@@ -309,6 +309,77 @@ describe('getMechanicRole · every registered hook is reachable', () => {
 
         expect(drifted).toEqual([]);
       });
+
+      then('every lib a hook sources ships byte-identical beside it', () => {
+        // 🔴 a hook that sources a lib (`source "$HOOK_DIR/_hardnudge.lib.sh"`) depends on
+        //    a file no settings.json command names, so the reach and drift checks above
+        //    never look at it. a build that dropped the lib would ship every hook intact
+        //    and each one would block every write on a load failure.
+        const sourced = asBashInvokedPaths({
+          commands: asMechanicHooks({ hooks: registry.hooks }).map(
+            (entry) => entry.command,
+          ),
+        }).flatMap((shipped) => {
+          const src = asSrcHookPath({ shipped });
+          if (!src || !existsSync(path.join(repoRoot, src))) return [];
+          const source = readFileSync(path.join(repoRoot, src), 'utf-8');
+          return [...source.matchAll(/^source "\$HOOK_DIR\/([^"]+)"/gm)].map(
+            (match) => ({
+              src: path.join(path.dirname(src), match[1] ?? ''),
+              shipped: path.join(path.dirname(shipped), match[1] ?? ''),
+            }),
+          );
+        });
+
+        // positive control: the forbid-terms hooks source the hardnudge lib
+        expect(sourced.map((lib) => path.basename(lib.src))).toContain(
+          '_hardnudge.lib.sh',
+        );
+
+        const unshipped = sourced.filter(
+          (lib) =>
+            !existsSync(path.join(repoRoot, lib.shipped)) ||
+            readFileSync(path.join(repoRoot, lib.src), 'utf-8') !==
+              readFileSync(path.join(repoRoot, lib.shipped), 'utf-8'),
+        );
+        expect(unshipped).toEqual([]);
+      });
+
+      then(
+        'every hook companion .jsonc ships byte-identical beside its hook',
+        () => {
+          // 🔴 a hook that reads a `.jsonc` beside itself (commands.alternatives,
+          //    terms.blocklist, …) depends on a file no settings.json command names,
+          //    so the reach and drift checks above never look at it. a build include
+          //    that dropped `*.jsonc` would ship every hook intact and every companion
+          //    absent — check-permissions would then name a malfunction on every
+          //    block, and no assertion here would go red.
+          const hooksDirSrc = path.join(
+            repoRoot,
+            'src/domain.roles/mechanic/inits/claude.hooks',
+          );
+          const hooksDirShipped = path.join(
+            repoRoot,
+            '.agent/repo=ehmpathy/role=mechanic/inits/claude.hooks',
+          );
+          const companions = readdirSync(hooksDirSrc).filter((name) =>
+            name.endsWith('.jsonc'),
+          );
+
+          // positive control: the set this assertion walks is not empty
+          expect(companions).toContain('commands.alternatives.jsonc');
+
+          const unshipped = companions.filter((name) => {
+            const shippedPath = path.join(hooksDirShipped, name);
+            if (!existsSync(shippedPath)) return true;
+            return (
+              readFileSync(path.join(hooksDirSrc, name), 'utf-8') !==
+              readFileSync(shippedPath, 'utf-8')
+            );
+          });
+          expect(unshipped).toEqual([]);
+        },
+      );
     });
   });
 

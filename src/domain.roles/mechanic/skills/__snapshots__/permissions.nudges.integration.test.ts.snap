@@ -1,0 +1,103 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`permissions.nudges.sh given: [case1] a ledger with nudges and retries when: [t0] the summary is asked for then: the whole report is snapshotted 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.nudges
+   ├─ ledger: .agent/.cache/repo=ehmpathy/role=mechanic/skill=check-permissions/nudges.jsonl
+   ├─ nudged parts: 8
+   ├─ retried through to a human: 2 (25%)
+   ├─ by verdict
+   │  ├─ nudged (6)
+   │  └─ retried (2)
+   ├─ heads with no paved path (pave these)
+   │  ├─ sort (3)
+   │  └─ tide (1)
+   └─ heads nudged most
+      ├─ grep (4)
+      ├─ sort (3)
+      └─ tide (1)
+
+🥥 did you know?
+   ├─ a head with no paved path that recurs is a skill to pave: start in .agent/repo=.this/role=any/skills/
+   └─ a head every repo hits belongs upstream: rhx radio.task.push --via gh.issues --into ehmpathy/rhachet-roles-ehmpathy --title 'pave: <head>' --description @stdin
+"
+`;
+
+exports[`permissions.nudges.sh given: [case2] a ledger with an unreadable row when: [t0] the summary is asked for then: the bad row is named and counted out, never fatal 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.nudges
+   ├─ ledger: .agent/.cache/repo=ehmpathy/role=mechanic/skill=check-permissions/nudges.jsonl
+   ├─ nudged parts: 8
+   ├─ retried through to a human: 2 (25%)
+   ├─ 💥 unreadable rows: 1 (counted out of every list below)
+   ├─ by verdict
+   │  ├─ nudged (6)
+   │  └─ retried (2)
+   ├─ heads with no paved path (pave these)
+   │  ├─ sort (3)
+   │  └─ tide (1)
+   └─ heads nudged most
+      ├─ grep (4)
+      ├─ sort (3)
+      └─ tide (1)
+
+🥥 did you know?
+   ├─ a head with no paved path that recurs is a skill to pave: start in .agent/repo=.this/role=any/skills/
+   └─ a head every repo hits belongs upstream: rhx radio.task.push --via gh.issues --into ehmpathy/rhachet-roles-ehmpathy --title 'pave: <head>' --description @stdin
+"
+`;
+
+exports[`permissions.nudges.sh given: [case3] no ledger yet when: [t0] the summary is asked for then: it says none are recorded, and exits 0 1`] = `
+"🐢 crickets...
+
+🐚 permissions.nudges
+   ├─ ledger: .agent/.cache/repo=ehmpathy/role=mechanic/skill=check-permissions/nudges.jsonl
+   └─ no nudge recorded yet
+"
+`;
+
+exports[`permissions.nudges.sh given: [case4] a bad --top when: [t0] --top is not a positive whole number then: it names the fix on both streams, and exits 2 1`] = `
+"
+✋ ConstraintError: --top needs a positive whole number, e.g. --top 15
+
+🐚 permissions.nudges — what the permission nudge has recorded
+   ├─ usage
+   │  ├─ rhx permissions.nudges              the summary, top 7 heads per list
+   │  └─ rhx permissions.nudges --top <n>    more (or fewer) heads per list
+   └─ example
+      └─ rhx permissions.nudges --top 15
+
+"
+`;
+
+exports[`permissions.nudges.sh given: [case5] a row whose verdict the hook never writes when: [t0] the summary is asked for then: it lists the verdict, and counts only \`retried\` as passed through 1`] = `
+"🐢 heres the wave...
+
+🐚 permissions.nudges
+   ├─ ledger: .agent/.cache/repo=ehmpathy/role=mechanic/skill=check-permissions/nudges.jsonl
+   ├─ nudged parts: 9
+   ├─ retried through to a human: 2 (22%)
+   ├─ by verdict
+   │  ├─ nudged (6)
+   │  ├─ retried (2)
+   │  └─ bustthrough (1)
+   ├─ heads with no paved path (pave these)
+   │  ├─ sort (3)
+   │  └─ tide (1)
+   └─ heads nudged most
+      ├─ grep (5)
+      ├─ sort (3)
+      └─ tide (1)
+
+🥥 did you know?
+   ├─ a head with no paved path that recurs is a skill to pave: start in .agent/repo=.this/role=any/skills/
+   └─ a head every repo hits belongs upstream: rhx radio.task.push --via gh.issues --into ehmpathy/rhachet-roles-ehmpathy --title 'pave: <head>' --description @stdin
+"
+`;
+
+exports[`permissions.nudges.sh given: [case6] the render lib is absent beside the skill when: [t0] a copy of the skill runs alone then: it names the class and the lib on both streams, and exits 1 1`] = `
+"💥 MalfunctionError: permissions.nudges could not load <skill-dir>/../inits/claude.hooks/_permissions.render.lib.sh — reinstall the mechanic role
+"
+`;

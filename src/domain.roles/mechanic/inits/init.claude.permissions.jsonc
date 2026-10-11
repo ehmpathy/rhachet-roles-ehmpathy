@@ -470,6 +470,12 @@
       "Bash(npx rhachet run --skill get.package.docs readme --of iso-price)",
       "Bash(npx rhachet run --skill get.package.docs filetree --of iso-price)",
 
+      // permissions.get - show the pre-approved commands on demand (all, one head, or one command)
+      "Bash(npx rhachet run --skill permissions.get:*)",
+      "Bash(rhx permissions.get:*)",
+      "Bash(rhx permissions.get --head git)",
+      "Bash(rhx permissions.get --for 'ls src')",
+
       // condense - compress briefs with self-grade quality metrics
       "Bash(npx rhachet run --skill condense:*)",
       "Bash(npx rhachet run --skill condense --from briefs/rule.md)",

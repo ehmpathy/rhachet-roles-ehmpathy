@@ -20,12 +20,12 @@ exports[`forbid-terms hooks · fork budget given: [case1] a clean Write that tri
 exports[`forbid-terms hooks · fork budget given: [case2] a Write that DOES trip a term when: [t0] the blocklist hook runs under the shim then: the breakdown is snapshotted 1`] = `
 {
   "cat": 1,
-  "cut": 1,
-  "date": 1,
   "grep": 10,
-  "jq": 6,
-  "mktemp": 2,
-  "mv": 2,
+  "jq": 5,
+  "mkdir": 1,
+  "mv": 1,
+  "rm": 1,
+  "rmdir": 1,
   "sed": 1,
   "sha256sum": 1,
 }
@@ -34,12 +34,12 @@ exports[`forbid-terms hooks · fork budget given: [case2] a Write that DOES trip
 exports[`forbid-terms hooks · fork budget given: [case2] a Write that DOES trip a term when: [t1] the GERUNDS hook runs under the shim then: the breakdown is snapshotted 1`] = `
 {
   "cat": 1,
-  "cut": 1,
-  "date": 1,
-  "grep": 3,
-  "jq": 6,
-  "mktemp": 2,
-  "mv": 2,
+  "grep": 2,
+  "jq": 5,
+  "mkdir": 1,
+  "mv": 1,
+  "rm": 1,
+  "rmdir": 1,
   "sed": 2,
   "sha256sum": 1,
   "sort": 1,
@@ -49,8 +49,6 @@ exports[`forbid-terms hooks · fork budget given: [case2] a Write that DOES trip
 exports[`forbid-terms hooks · fork budget given: [case5] a permitted RETRY, inside the nudge window when: [t0] the blocklist hook runs under the shim then: the breakdown is snapshotted 1`] = `
 {
   "cat": 1,
-  "cut": 1,
-  "date": 1,
   "grep": 10,
   "jq": 4,
   "sed": 1,
@@ -61,9 +59,7 @@ exports[`forbid-terms hooks · fork budget given: [case5] a permitted RETRY, ins
 exports[`forbid-terms hooks · fork budget given: [case5] a permitted RETRY, inside the nudge window when: [t1] the GERUNDS hook runs under the shim then: the breakdown is snapshotted 1`] = `
 {
   "cat": 1,
-  "cut": 1,
-  "date": 1,
-  "grep": 3,
+  "grep": 2,
   "jq": 4,
   "sed": 2,
   "sha256sum": 1,

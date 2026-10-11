@@ -34,6 +34,12 @@
 
 set -uo pipefail
 
+# fail closed on a crash: claude code reads any PreToolUse exit but 2 as a permit, so an unbound
+# var or an odd exit would otherwise open this gate in silence
+# .note = each write is guarded and SIGPIPE ignored, so a closed stream cannot stop the exit 2
+trap '' PIPE
+trap 'hook_exit=$?; if [[ $hook_exit -ne 0 && $hook_exit -ne 2 ]]; then hook_crash="💥 MalfunctionError: ${0##*/} crashed (exit $hook_exit); the tool call stays blocked — retry once; if it recurs, report the defect to the ehmpathy mechanic role repo"; printf "%s\n" "$hook_crash" || true; printf "%s\n" "$hook_crash" >&2 || true; exit 2; fi' EXIT
+
 # .what = write a line to both stdout and stderr
 # .why  = failure output must land on both streams (rule.require.skill-output-streams).
 #         tee /dev/stderr is unreliable under piped stdio (how hooks are invoked — it
@@ -78,33 +84,36 @@ STDIN_INPUT=$(cat)
 
 # failfast: if no input, error (loud on both streams per skill-output-streams)
 if [[ -z "$STDIN_INPUT" ]]; then
-  emit_both "ERROR: PreToolUse hook received no input via stdin"
+  emit_both "✋ ConstraintError: PreToolUse hook received no input via stdin"
   exit 2
 fi
 
 # failfast: jq is required. an absent jq is an unexpected environment error — surface
 # it loud rather than swallow it and fail-open blind (rule.forbid.failhide)
 if ! command -v jq >/dev/null; then
-  emit_both "ERROR: PreToolUse hook requires jq, which was not found on PATH"
+  emit_both "💥 MalfunctionError: PreToolUse hook requires jq, which was not found on PATH"
   exit 2
 fi
 
-# .what = test parseability directly, never via jq's exit code
+# .what = test parseability directly, never via a table of jq exit codes
 # .why  = jq's parse-error code varies by build (2, 4, 5). a code table goes stale
-#         silently, and a PreToolUse hook that exits nonzero blocks the tool call,
-#         so a stale table turns this fail-open hook fail-closed.
-# .note = `jq .` always compiles, so its only failure is unparseable input
-if ! echo "$STDIN_INPUT" | jq . >/dev/null 2>&1; then
-  emit_both "WARN: PreToolUse hook could not parse stdin as JSON; allow tool call"
+#         silently, and turns this fail-open gate fail-closed on the next jq release.
+# .note = `jq .` always compiles, so any nonzero status here is unparseable input
+JQ_PARSE_STATUS=0
+echo "$STDIN_INPUT" | jq . >/dev/null 2>&1 || JQ_PARSE_STATUS=$?
+if [[ $JQ_PARSE_STATUS -ne 0 ]]; then
+  emit_both "💥 MalfunctionError: PreToolUse hook could not parse stdin as JSON (jq exit $JQ_PARSE_STATUS); the tool call is allowed"
   exit 0
 fi
 
-# extract tool name. input parsed above, so a nonzero here is a jq malfunction. surface it
+# extract tool name. the input parsed above, so a nonzero here is a jq malfunction
+# .note = exit 2, never jq's own code: claude code reads any PreToolUse exit but 2 as a
+#         permit, so a relayed code would open the gate (rule.require.qualified-error-headers)
 JQ_STATUS=0
 TOOL_NAME=$(echo "$STDIN_INPUT" | jq -r '.tool_name // empty') || JQ_STATUS=$?
 if [[ $JQ_STATUS -ne 0 ]]; then
-  emit_both "ERROR: PreToolUse hook hit an unexpected jq failure (exit $JQ_STATUS)"
-  exit "$JQ_STATUS"
+  emit_both "💥 MalfunctionError: PreToolUse hook hit an unexpected jq failure (exit $JQ_STATUS); the tool call stays blocked"
+  exit 2
 fi
 
 # .note = NotebookEdit is gated alongside Edit/Write: it is a distinct,
@@ -424,7 +433,7 @@ block() {
   body="$(get_block_body "$abs" "$slug" "$relpath")"
 
   emit_both "
-🛑 BLOCKED: $headline — $TOOL_NAME
+✋ ConstraintError: $headline — $TOOL_NAME
 
    path: ${abs/#$HOME/\~}
    repo: $slug ($whose)
@@ -645,7 +654,7 @@ block_unverifiable() {
 
   local message
   message="
-🛑 BLOCKED: unverifiable path — $TOOL_NAME
+✋ ConstraintError: unverifiable path — $TOOL_NAME
 
    path: ${raw/#$HOME/\~}
 
@@ -787,7 +796,7 @@ if [[ "$TOOL_NAME" == "Bash" ]]; then
     )" || EXTRACT_STATUS=$?
 
     if [[ $EXTRACT_STATUS -gt 1 ]]; then
-      emit_both "⚠️  cross-repo gate: could not scan this Bash command (exit $EXTRACT_STATUS); the Bash heuristic did not run"
+      emit_both "💥 MalfunctionError: cross-repo gate could not scan this Bash command (exit $EXTRACT_STATUS); the Bash heuristic did not run"
     fi
 
     while IFS= read -r p; do

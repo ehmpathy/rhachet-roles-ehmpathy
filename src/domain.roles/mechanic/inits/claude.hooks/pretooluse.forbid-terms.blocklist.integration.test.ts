@@ -37,7 +37,7 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
 
   /**
    * .what = a hermetic cwd with its own .claude dir
-   * .why = find_claude_dir walks up from PWD; a temp cwd keeps each run's
+   * .why = get_claude_dir walks up from PWD; a temp cwd keeps each run's
    *        nudge state isolated from the repo and from other tests
    *
    * .note = the root comes from test-fns `genTempDir`, never an adhoc `mkdtemp`
@@ -108,6 +108,11 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
     copyFileSync(
       hookPath,
       path.join(dir, 'pretooluse.forbid-terms.blocklist.sh'),
+    );
+    // the hook sources its HARDNUDGE lib from beside itself
+    copyFileSync(
+      path.join(__dirname, '_hardnudge.lib.sh'),
+      path.join(dir, '_hardnudge.lib.sh'),
     );
     // .note = `raw` writes the list file byte-for-byte, so a MALFORMED list can be
     //         exercised. `terms` cannot express one, since JSON.stringify always
@@ -1397,14 +1402,11 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
   });
 
   given('[case16] the blocklist file is MALFORMED json', () => {
-    // 🔴 a malformed blocklist OPENS the gate, and that is INHERITED behavior.
-    //    the repair is out of scope — A8/F5 ruled the failhide so, and
-    //    acceptance #2 forbids a policy change in either direction. the clamp
-    //    is owed regardless: the verdict is real and reachable.
-    //
-    // ⚠️ this is deliberately NOT a repair. it asserts the gate OPENS, so the
-    //    day someone repairs it the test goes red and the repair becomes a
-    //    visible, reviewed decision rather than a silent one.
+    // 🔴 a malformed blocklist once OPENED the gate in silence: the parse error
+    //    yielded an empty list, and an empty list permits every term. a config
+    //    that cannot be read now fails LOUD and blocks; only an ABSENT file
+    //    ([case13]) turns the gate off. the dream it closes:
+    //    blocklist-malformed-config-fails-open.
     when('[t0] a write that would trip every real term runs', () => {
       const result = useBeforeAll(async () =>
         runIn({
@@ -1416,15 +1418,95 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
         }),
       );
 
-      then('the hook exits 0 — the malformed list opens the gate', () => {
-        expect(result.exitCode).toEqual(0);
+      then('the hook exits 2 — the malformed list blocks', () => {
+        expect(result.exitCode).toEqual(2);
       });
 
-      then('it emits no output — the failhide is silent, as ruled', () => {
+      then('stderr names the class, the config, and the off switch', () => {
         expect(result.stdout).toEqual('');
+        expect(result.stderr).toContain(
+          '💥 MalfunctionError: the blocklist config could not be parsed',
+        );
+        expect(result.stderr).toContain('terms.blocklist.jsonc');
+        expect(result.stderr).toContain('delete the file');
+      });
+
+      then('the WHOLE refusal is snapshotted', () => {
+        expect(
+          result.stderr.replace(/config: .*\n/, 'config: <sandbox>\n'),
+        ).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] the list parses but `.terms` is not a list', () => {
+      const result = useBeforeAll(async () =>
+        runIn({
+          dir: genSandbox({ terms: null, raw: '{ "terms": "deploy" }' }),
+          content: 'run the deploy script here',
+        }),
+      );
+
+      then(
+        'the hook exits 2 — a wrong shape blocks as a bad parse does',
+        () => {
+          expect(result.exitCode).toEqual(2);
+          expect(result.stderr).toContain('💥 MalfunctionError');
+        },
+      );
+    });
+
+    when('[t2] the list is valid and empty', () => {
+      // .why = the control: an empty list is a valid config, so it guards naught
+      //        and permits, quietly — the loud path is for a config that cannot
+      //        be read, never for one that names no term
+      const result = useBeforeAll(async () =>
+        runIn({
+          dir: genSandbox({ terms: null, raw: '{ "terms": [] }' }),
+          content: 'run the deploy script here',
+        }),
+      );
+
+      then('the hook exits 0 with no output', () => {
+        expect(result.exitCode).toEqual(0);
         expect(result.stderr).toEqual('');
       });
     });
+
+    when(
+      '[t3] the list holds a whole-line comment and a `//` inside a string',
+      () => {
+        // 🔴 the comment strip once cut every line at its first `//`. a `why` that cites a
+        //    url (`https://…`) lost its tail and closed quote, so a VALID list read as
+        //    malformed — and a malformed list blocks every write. only whole-line comments
+        //    are stripped now; a `//` inside a string survives.
+        const result = useBeforeAll(async () =>
+          runIn({
+            dir: genSandbox({
+              terms: null,
+              raw: [
+                '{',
+                '  // a whole-line comment',
+                '  "terms": [',
+                '    { "term": "gnarlyswell", "why": "see https://example.com/swell", "alt": ["wave"] }',
+                '  ]',
+                '}',
+              ].join('\n'),
+            }),
+            content: 'a gnarlyswell rolls in',
+          }),
+        );
+
+        then(
+          'the list parses: the term blocks as a term, not as a broken config',
+          () => {
+            expect(result.exitCode).toEqual(2);
+            expect(result.stderr).toContain('✋ ConstraintError');
+            expect(result.stderr).toContain('https://example.com/swell');
+            expect(result.stderr).not.toContain('MalfunctionError');
+          },
+        );
+      },
+    );
   });
 
   given('[case13] the blocklist file is absent entirely', () => {
@@ -1591,7 +1673,7 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
     //           `tool_name` leaves every assertion above green while it breaks
     //           the behavior a human actually walks.
     //
-    // ⚠️ .the cue = found by a live walk during 5.3 verification, never by a read.
+    // ⚠️ .the cue = found by a live walk in 5.3 verification, never by a read.
     //              a Write of a file was refused, and a later EDIT of that same
     //              file carrying the same term LANDED. that is correct — the key
     //              is `sha256(file_path)` and no other input — and no test said so.
@@ -1783,20 +1865,17 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
   });
 
   given('[case22] the stdin PAYLOAD is present but unparseable json', () => {
-    // ⚠️ this case CLAMPS a failhide. it does not repair one.
+    // 🔴 a REPAIR of a failhide. the payload read once ended `2>/dev/null ||
+    //    echo ""`, so an unparseable payload left TOOL_NAME empty, the
+    //    `!= Write/Edit` guard read true, and the hook exited 0 — a silent
+    //    permit on input it never read.
     //
-    //    the payload read ends `2>/dev/null || echo ""`. an unparseable
-    //    payload therefore yields an empty TOOL_NAME, the `!= Write/Edit`
-    //    guard reads true, and the hook exits 0 — a silent permit.
+    //    a prior route pinned that permit (its acceptance #2: no policy move in
+    //    either direction, for a behavior-neutral refactor). this route moves
+    //    the policy on purpose, as check-permissions already blocks a bad
+    //    payload (its case45). the reversal is fulcrum F35.
     //
-    //    a REPAIR (exit 2 on a payload that is non-empty yet unparseable)
-    //    would change what the gate admits, which acceptance #2 forbids
-    //    in BOTH directions. so the extant verdict stands, and this case
-    //    turns it from an accident into a declared contract.
-    //
-    // 🔴 the distinction that makes this cheap: an EMPTY payload already
-    //    exits 2 ([case10]). only a NON-empty unparseable one reaches here,
-    //    and claude code is the sole realistic caller of either.
+    // .note = an EMPTY payload exits 2 too ([case10]); both are loud now.
     when('[t0] the hook runs', () => {
       const result = useBeforeAll(async () => {
         const cwd = genTempCwd();
@@ -1813,17 +1892,15 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
         };
       });
 
-      then('the hook exits 0 — the declared verdict is PERMIT', () => {
-        // 🔴 the assertion that bites. make the payload read loud and this
-        //    reads 2, which is precisely the policy move acceptance #2 bars.
-        expect(result.exitCode).toEqual(0);
+      then('the hook exits 2 — a payload it cannot read blocks', () => {
+        expect(result.exitCode).toEqual(2);
       });
 
-      then('it emits no word on either stream', () => {
-        // a silent permit is silent on BOTH channels. a future change that
-        // starts to warn here is a change a reviewer must see in this diff.
-        expect(result.stdout).toEqual('');
-        expect(result.stderr).toEqual('');
+      then('stderr names the class and the parse cause', () => {
+        expect(result.stderr).toContain(
+          '💥 MalfunctionError: PreToolUse payload is not valid json (jq: parse error',
+        );
+        expect(result.stderr).toContain('the write stays blocked');
       });
     });
   });

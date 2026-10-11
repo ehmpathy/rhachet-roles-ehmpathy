@@ -181,7 +181,9 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED: adhoc cross-repo access');
+          expect(result.stderr).toContain(
+            'ConstraintError: adhoc cross-repo access',
+          );
           // names the right repo, derived from the remote
           expect(result.stderr).toContain('testorg/peer-repo');
           // names the exact fix, with the file path within that repo
@@ -238,7 +240,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
           expect(result.stderr).toContain('testorg/peer-repo');
 
           // the caller SEARCHED, so the fix line must be a search that
@@ -287,7 +289,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
           // a Glob pattern names a path shape, not words to search for,
           // so it must NOT be piped into --words
           expect(result.stderr).not.toContain("--words '**/*.ts'");
@@ -374,7 +376,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
         } finally {
           cleanup();
         }
@@ -419,7 +421,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
         } finally {
           cleanup();
         }
@@ -442,7 +444,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
           expect(result.stderr).toContain('testorg/peer-repo');
         } finally {
           cleanup();
@@ -490,7 +492,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
           expect(result.stderr).toContain('testorg/peer-repo');
         } finally {
           cleanup();
@@ -542,7 +544,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
 
           // no file was named, so the redirect asks for the repo's files —
           // it must not invent a path the caller never typed
@@ -634,7 +636,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
           // the slug comes from git metadata, never from path segments.
           // (the raw worktree path still shows on the `path:` line, which is
           // correct — it is the path that was actually blocked.)
@@ -707,7 +709,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
             });
 
             expect(result.exitCode).toBe(2);
-            expect(result.stderr).toContain('BLOCKED');
+            expect(result.stderr).toContain('✋ ConstraintError:');
             expect(result.stderr).toContain('testorg/peer-repo');
             // the redirect names the file the caller asked for, binary or not
             expect(result.stderr).toContain("--paths 'src/logo.png'");
@@ -804,7 +806,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
               });
 
               expect(result.exitCode).toBe(2);
-              expect(result.stderr).toContain('BLOCKED');
+              expect(result.stderr).toContain('✋ ConstraintError:');
             } finally {
               cleanup();
             }
@@ -836,7 +838,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
           // and the redirect still names the true repo, plus the --tree escape
           expect(result.stderr).toContain('repo: testorg/self-repo');
           expect(result.stderr).toContain(
@@ -1078,7 +1080,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
               path.join(rootPerSkill, 'testorg/peer-repo'),
             );
             expect(blocked.status).toBe(2);
-            expect(blocked.stderr).toContain('BLOCKED');
+            expect(blocked.stderr).toContain('✋ ConstraintError:');
           } finally {
             cleanup();
           }
@@ -1106,7 +1108,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
           expect(result.stderr).toContain('testorg/peer-repo');
         } finally {
           cleanup();
@@ -1129,7 +1131,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
         } finally {
           cleanup();
         }
@@ -1193,7 +1195,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
         } finally {
           cleanup();
         }
@@ -1223,7 +1225,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
 
           // an error that names a fix which cannot work is worse than one
           // that names none (rule.require.errors-name-the-fix)
@@ -1280,7 +1282,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
           expect(result.stderr).toContain('testorg/peer-repo');
 
           // .why = a block is only half the contract. the fix line must be
@@ -1356,7 +1358,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           });
 
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain('BLOCKED');
+          expect(result.stderr).toContain('✋ ConstraintError:');
           expect(result.stderr).toContain('testorg/peer-repo');
         } finally {
           cleanup();
@@ -1644,9 +1646,13 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           expect(result.stdout).toContain('could not parse stdin as JSON');
 
           // the asserts prove the words; the snap shows the frame
+          // .note = jq's parse-error code varies by build (2, 4, 5), so the snap masks it
+          const asMasked = (text: string): string =>
+            text.replace(/jq exit \d+/g, 'jq exit <N>');
+          expect(result.stdout).toMatch(/jq exit \d+/);
           expect({
-            stdout: result.stdout,
-            stderr: result.stderr,
+            stdout: asMasked(result.stdout),
+            stderr: asMasked(result.stderr),
           }).toMatchSnapshot();
         } finally {
           cleanup();
@@ -1687,66 +1693,72 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
     //         cannot fail the extract, so a shim reaches it. the peer hook
     //         forbid-shouted-readme carries the same clamp
     when('[t2] jq parses, then malfunctions on the extract', () => {
-      then('fails CLOSED with the jq exit code, loud on both streams', () => {
-        const { gitRoot, homeDir, repoSelf, cleanup } = genTempRoot();
-        const shimDir = genTempDir({ slug: 'cross-repo-jq-malfunction' });
-        try {
-          // a jq whose IDENTITY probe (`jq .`) succeeds, and whose every
-          // other program exits 7 — the shape of a killed jq
-          const shimPath = path.join(shimDir, 'jq');
-          fs.writeFileSync(
-            shimPath,
-            [
-              '#!/usr/bin/env bash',
-              'if [[ "$1" == "." ]]; then cat >/dev/null; exit 0; fi',
-              'cat >/dev/null',
-              'exit 7',
-            ].join('\n'),
-          );
-          fs.chmodSync(shimPath, 0o755);
+      then(
+        'fails CLOSED (exit 2), names the jq code, loud on both streams',
+        () => {
+          const { gitRoot, homeDir, repoSelf, cleanup } = genTempRoot();
+          const shimDir = genTempDir({ slug: 'cross-repo-jq-malfunction' });
+          try {
+            // a jq whose IDENTITY probe (`jq .`) succeeds, and whose every
+            // other program exits 7 — the shape of a killed jq
+            const shimPath = path.join(shimDir, 'jq');
+            fs.writeFileSync(
+              shimPath,
+              [
+                '#!/usr/bin/env bash',
+                'if [[ "$1" == "." ]]; then cat >/dev/null; exit 0; fi',
+                'cat >/dev/null',
+                'exit 7',
+              ].join('\n'),
+            );
+            fs.chmodSync(shimPath, 0o755);
 
-          const result = spawnSync('bash', [scriptPath], {
-            cwd: repoSelf,
-            encoding: 'utf-8',
-            input: JSON.stringify({
-              tool_name: 'Read',
-              tool_input: { file_path: path.join(repoSelf, 'src/index.ts') },
-            }),
-            stdio: ['pipe', 'pipe', 'pipe'],
-            env: {
-              ...process.env,
-              HOME: homeDir,
-              GIT_REPO_ROOT: gitRoot,
-              PATH: `${shimDir}:${process.env.PATH ?? ''}`,
-            },
-          });
+            const result = spawnSync('bash', [scriptPath], {
+              cwd: repoSelf,
+              encoding: 'utf-8',
+              input: JSON.stringify({
+                tool_name: 'Read',
+                tool_input: { file_path: path.join(repoSelf, 'src/index.ts') },
+              }),
+              stdio: ['pipe', 'pipe', 'pipe'],
+              env: {
+                ...process.env,
+                HOME: homeDir,
+                GIT_REPO_ROOT: gitRoot,
+                PATH: `${shimDir}:${process.env.PATH ?? ''}`,
+              },
+            });
 
-          expect({
-            exitCode: result.status,
-            // the PARSE arm's fail-OPEN exit 0 must NOT be reached here
-            saysParseWarn: (result.stdout ?? '').includes(
-              'could not parse stdin as JSON',
-            ),
-            saysError: (result.stderr ?? '').includes('unexpected jq failure'),
-            namesTheCode: (result.stderr ?? '').includes('exit 7'),
-            // both streams carry it (rule.require.skill-output-streams)
-            onStdout: (result.stdout ?? '').includes('unexpected jq failure'),
-          }).toEqual({
-            exitCode: 7,
-            saysParseWarn: false,
-            saysError: true,
-            namesTheCode: true,
-            onStdout: true,
-          });
+            expect({
+              exitCode: result.status,
+              // the PARSE arm's fail-OPEN exit 0 must NOT be reached here
+              saysParseWarn: (result.stdout ?? '').includes(
+                'could not parse stdin as JSON',
+              ),
+              saysError: (result.stderr ?? '').includes(
+                'unexpected jq failure',
+              ),
+              namesTheCode: (result.stderr ?? '').includes('exit 7'),
+              // both streams carry it (rule.require.skill-output-streams)
+              onStdout: (result.stdout ?? '').includes('unexpected jq failure'),
+            }).toEqual({
+              // claude code blocks on exit 2 alone; jq's own 7 would permit the call
+              exitCode: 2,
+              saysParseWarn: false,
+              saysError: true,
+              namesTheCode: true,
+              onStdout: true,
+            });
 
-          expect({
-            stdout: result.stdout,
-            stderr: result.stderr,
-          }).toMatchSnapshot();
-        } finally {
-          cleanup();
-        }
-      });
+            expect({
+              stdout: result.stdout,
+              stderr: result.stderr,
+            }).toMatchSnapshot();
+          } finally {
+            cleanup();
+          }
+        },
+      );
     });
   });
 

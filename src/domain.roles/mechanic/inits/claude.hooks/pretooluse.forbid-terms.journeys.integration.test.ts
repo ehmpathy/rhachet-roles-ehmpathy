@@ -76,6 +76,11 @@ describe('pretooluse.forbid-terms — the multi-call journeys', () => {
         hookBlocklist,
         path.join(dir, 'pretooluse.forbid-terms.blocklist.sh'),
       );
+      // the hook sources its HARDNUDGE lib from beside itself
+      copyFileSync(
+        path.join(path.dirname(hookBlocklist), '_hardnudge.lib.sh'),
+        path.join(dir, '_hardnudge.lib.sh'),
+      );
       return dir;
     };
 
