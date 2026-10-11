@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { existsSync, readFileSync } from 'fs';
 import * as path from 'path';
 import { given, then, useBeforeAll, when } from 'test-fns';
 
@@ -65,11 +65,28 @@ describe('getMechanicRole · declared permissions reach the engine', () => {
             'utf-8',
           ),
         ).permissions;
+        // the driver role (rhachet-roles-bhrain) owns `.route/` and heals its denies out of
+        // settings — route protection lives in its `route.mutate.guard` hook instead. a deny it
+        // declares it strips is an owned override, never a silent loss, so it is read from the
+        // installed driver's own file: the exemption tracks upstream exactly, and an
+        // uninstalled driver exempts naught
+        const driverStripPath = path.join(
+          repoRoot,
+          'node_modules/rhachet-roles-bhrain/dist/domain.roles/driver/inits/init.claude.permissions.route.jsonc',
+        );
+        const driverStrips: string[] = existsSync(driverStripPath)
+          ? JSON.parse(
+              asJsonFromJsonc({
+                jsonc: readFileSync(driverStripPath, 'utf-8'),
+              }),
+            ).permissions.deny
+          : [];
         return {
           sourceDeny: source.deny as string[],
           sourceAllow: source.allow as string[],
           settingsDeny: new Set(settings.deny as string[]),
           settingsAllow: new Set(settings.allow as string[]),
+          driverStrips: new Set(driverStrips),
         };
       });
 
@@ -84,11 +101,24 @@ describe('getMechanicRole · declared permissions reach the engine', () => {
         expect(lists.sourceAllow.length).toBeGreaterThan(0);
       });
 
-      then('every declared deny is enforced', () => {
-        expect(
-          lists.sourceDeny.filter((rule) => !lists.settingsDeny.has(rule)),
-        ).toEqual([]);
-      });
+      then(
+        'every declared deny is enforced, save those the driver heals',
+        () => {
+          expect(
+            lists.sourceDeny.filter(
+              (rule) =>
+                !lists.settingsDeny.has(rule) && !lists.driverStrips.has(rule),
+            ),
+          ).toEqual([]);
+        },
+      );
+
+      then(
+        'the driver heal list is read, so the exemption is not vacuous',
+        () => {
+          expect(lists.driverStrips.has('Edit(*/**/.route/**)')).toBe(true);
+        },
+      );
 
       then('every declared allow is enforced', () => {
         expect(
