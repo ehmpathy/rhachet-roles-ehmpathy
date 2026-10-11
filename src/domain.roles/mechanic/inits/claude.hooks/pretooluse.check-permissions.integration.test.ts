@@ -50,6 +50,7 @@ describe('pretooluse.check-permissions.sh', () => {
     settingsLocal?: { allow?: string[]; deny?: string[]; ask?: string[] };
     flags?: string;
     clearNudges?: boolean;
+    locale?: string;
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
     const tempDir = genTempDir({ slug: 'permissions-hook', git: true });
     const claudeDir = path.join(tempDir, '.claude');
@@ -104,6 +105,7 @@ describe('pretooluse.check-permissions.sh', () => {
       encoding: 'utf-8',
       input: stdinJson,
       stdio: ['pipe', 'pipe', 'pipe'],
+      env: args.locale ? { ...process.env, LC_ALL: args.locale } : process.env,
     });
 
     return {
@@ -4312,5 +4314,38 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         });
       },
     );
+  });
+
+  given('[case64] tied candidates rank the same under any host locale', () => {
+    // a tie keeps the allowlist union's order. a locale collation once decided that order:
+    // en_US skips the `:`, so `git stash1:*` ranked before `git stash10:*` on one host and after
+    // `git stash19:*` on ci (C). the union now sorts in byte order (LC_ALL=C), so one allowlist
+    // renders one way everywhere
+    // .note = a host without en_US.UTF-8 falls back to C, so this case bites only where the
+    //         locale is installed (dev hosts); the snapshots pin the byte order everywhere
+    const settings = {
+      allow: Array.from({ length: 30 }, (_, i) => `Bash(git stash${i}:*)`),
+    };
+
+    when('[t0] one tied ranking runs under en_US.UTF-8 and under C', () => {
+      const renders = useBeforeAll(async () => ({
+        enUs: runHook({
+          command: 'git stash',
+          settings,
+          locale: 'en_US.UTF-8',
+        }),
+        c: runHook({ command: 'git stash', settings, locale: 'C' }),
+      }));
+
+      then('both block with ranked candidates', () => {
+        expect(renders.enUs.exitCode).toBe(2);
+        expect(renders.c.exitCode).toBe(2);
+        expect(renders.c.stderr).toContain('[p] git stash0');
+      });
+
+      then('the two renders are identical', () => {
+        expect(renders.enUs.stderr).toEqual(renders.c.stderr);
+      });
+    });
   });
 });

@@ -295,11 +295,14 @@ get_bash_patterns() {
 
 # union allowlists from settings.json and settings.local.json
 # .why = adhoc human-granted allows land in settings.local.json
+# .note = LC_ALL=C pins byte order. the union's order breaks rank ties, and a locale collation
+#         (en_US skips punctuation, so `stash1:*` sorts before `stash10:*`) would rank the same
+#         allowlist differently on two hosts
 mapfile -t ALLOWED_PATTERNS < <(
   {
     get_bash_patterns "$CLAUDE_DIR/settings.json"
     get_bash_patterns "$CLAUDE_DIR/settings.local.json"
-  } | sort -u
+  } | LC_ALL=C sort -u
 )
 
 # .note = the named-arg convention: a procedure declares its keys (`local key=""`), then

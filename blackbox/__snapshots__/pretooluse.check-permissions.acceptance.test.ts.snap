@@ -325,7 +325,6 @@ exports[`pretooluse.check-permissions.sh (acceptance) given: [case10] more near 
    ├─ blocked: gti swell
    ├─ did you mean?
    │  ├─ [p] git wave0
-   │  ├─ [p] git wave1
    │  ├─ [p] git wave10
    │  ├─ [p] git wave11
    │  ├─ [p] git wave12
@@ -336,7 +335,7 @@ exports[`pretooluse.check-permissions.sh (acceptance) given: [case10] more near 
    │  ├─ [p] git wave17
    │  ├─ [p] git wave18
    │  ├─ [p] git wave19
-   │  ├─ [p] git wave2
+   │  ├─ [p] git wave1
    │  ├─ [p] git wave20
    │  ├─ [p] git wave21
    │  ├─ [p] git wave22
@@ -344,7 +343,8 @@ exports[`pretooluse.check-permissions.sh (acceptance) given: [case10] more near 
    │  ├─ [p] git wave24
    │  ├─ [p] git wave25
    │  ├─ [p] git wave26
-   │  └─ [p] git wave27
+   │  ├─ [p] git wave27
+   │  └─ [p] git wave28
    │
    ├─ … and 9 more (see all: rhx permissions.get, below)
    │
@@ -535,7 +535,6 @@ exports[`pretooluse.check-permissions.sh (acceptance) given: [case18] a rich par
    ├─ blocked: gti swell
    ├─ did you mean?
    │  ├─ [p] git wave0
-   │  ├─ [p] git wave1
    │  ├─ [p] git wave10
    │  ├─ [p] git wave11
    │  ├─ [p] git wave12
@@ -546,7 +545,7 @@ exports[`pretooluse.check-permissions.sh (acceptance) given: [case18] a rich par
    │  ├─ [p] git wave17
    │  ├─ [p] git wave18
    │  ├─ [p] git wave19
-   │  ├─ [p] git wave2
+   │  ├─ [p] git wave1
    │  ├─ [p] git wave20
    │  ├─ [p] git wave21
    │  ├─ [p] git wave22
@@ -554,7 +553,8 @@ exports[`pretooluse.check-permissions.sh (acceptance) given: [case18] a rich par
    │  ├─ [p] git wave24
    │  ├─ [p] git wave25
    │  ├─ [p] git wave26
-   │  └─ [p] git wave27
+   │  ├─ [p] git wave27
+   │  └─ [p] git wave28
    │
    ├─ blocked: du -sh dist
    ├─ no paved path fits this part

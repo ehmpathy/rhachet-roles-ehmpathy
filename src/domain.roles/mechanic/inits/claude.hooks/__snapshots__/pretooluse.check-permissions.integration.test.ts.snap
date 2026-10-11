@@ -341,7 +341,6 @@ exports[`pretooluse.check-permissions.sh given: [case40] every caller-faced rend
    ├─ blocked: git stash
    ├─ did you mean?
    │  ├─ [p] git stash0
-   │  ├─ [p] git stash1
    │  ├─ [p] git stash10
    │  ├─ [p] git stash11
    │  ├─ [p] git stash12
@@ -352,7 +351,7 @@ exports[`pretooluse.check-permissions.sh given: [case40] every caller-faced rend
    │  ├─ [p] git stash17
    │  ├─ [p] git stash18
    │  ├─ [p] git stash19
-   │  ├─ [p] git stash2
+   │  ├─ [p] git stash1
    │  ├─ [p] git stash20
    │  ├─ [p] git stash21
    │  ├─ [p] git stash22
@@ -360,7 +359,8 @@ exports[`pretooluse.check-permissions.sh given: [case40] every caller-faced rend
    │  ├─ [p] git stash24
    │  ├─ [p] git stash25
    │  ├─ [p] git stash26
-   │  └─ [p] git stash27
+   │  ├─ [p] git stash27
+   │  └─ [p] git stash28
    │
    ├─ … and 19 more (see all: rhx permissions.get, below)
    │
@@ -651,7 +651,6 @@ exports[`pretooluse.check-permissions.sh given: [case49] the record lock fails c
    ├─ blocked: git stash
    ├─ did you mean?
    │  ├─ [p] git stash0
-   │  ├─ [p] git stash1
    │  ├─ [p] git stash10
    │  ├─ [p] git stash11
    │  ├─ [p] git stash12
@@ -660,7 +659,8 @@ exports[`pretooluse.check-permissions.sh given: [case49] the record lock fails c
    │  ├─ [p] git stash15
    │  ├─ [p] git stash16
    │  ├─ [p] git stash17
-   │  └─ [p] git stash18
+   │  ├─ [p] git stash18
+   │  └─ [p] git stash19
    │
    ├─ blocked: git stasj
    ├─ did you mean?

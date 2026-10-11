@@ -175,7 +175,8 @@ get_line_count() {
 set_pattern_union() {
   local patterns_raw=""
   local "$@"
-  mapfile -t PATTERNS < <(printf '%s' "$patterns_raw" | sed '/^$/d' | sort -u)
+  # LC_ALL=C pins byte order, so the list reads the same on every host's locale (as the hook's union)
+  mapfile -t PATTERNS < <(printf '%s' "$patterns_raw" | sed '/^$/d' | LC_ALL=C sort -u)
   return 0
 }
 
