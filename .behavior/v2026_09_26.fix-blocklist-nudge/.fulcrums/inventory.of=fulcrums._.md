@@ -49,3 +49,4 @@
 | F45 | the mock-exception docs for 14 gh-fake suites (git.release, deflake, sponsor) wait for their own change, dreamed | dirty | open | 80% |
 | F46 | four 5.3 i002 points misread the files they cite (r7 `it()`, r3 jq case, r6 help frame, r6 jq mask) — held with the file as evidence | clean | open | 90% |
 | F47 | bhrain's driver heals the mechanic's `Edit(*/**/.route/**)` deny; the propagate test exempts what the driver declares it strips, the deny stays for consumers with no driver | clean | open | 75% |
+| F48 | a hung openrouter ask times out at 60s and retries once (six kernelize/compress call sites); suites bound two attempts at 180s | clean | open | 70% |

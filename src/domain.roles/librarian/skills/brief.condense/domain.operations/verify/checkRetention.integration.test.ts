@@ -6,8 +6,9 @@ import type { ConceptKernel } from '../../../../../../domain.operations/kerneliz
 import { compressViaBhrain } from '../../../brief.compress/compress.via.bhrain';
 import { checkRetention } from './checkRetention';
 
-// extend timeout for external brain API calls
-jest.setTimeout(120_000);
+// a hang guard for real brain calls: each ask may time out at 60s on a slow openrouter host and
+// retry once, so the test bounds two attempts plus margin. it never asserts speed
+jest.setTimeout(180_000);
 
 const BRAIN_SLUG = 'openrouter/deepseek/flash';
 

@@ -20,7 +20,7 @@ import * as path from 'path';
 import { genContextBrain } from 'rhachet';
 import { createCache } from 'simple-on-disk-cache';
 import { withSimpleCacheAsync } from 'with-simple-cache';
-import { withTimeout } from 'wrapper-fns';
+import { withRetry, withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
 import { getAllBrainAtoms } from '../brain/getAllBrainAtoms';
@@ -188,15 +188,17 @@ rules:
 kernels:
 ${kernelList}`;
 
-  // ask brain to cluster
-  const { output } = await withTimeout(
-    async () =>
-      contextBrain.brain.choice.ask({
-        role: { briefs: [] },
-        prompt,
-        schema: { output: clusterSchema },
-      }),
-    { threshold: { seconds: 60 } },
+  // ask brain to cluster; a hung host times out, and one retry routes to another
+  const { output } = await withRetry(
+    withTimeout(
+      async () =>
+        contextBrain.brain.choice.ask({
+          role: { briefs: [] },
+          prompt,
+          schema: { output: clusterSchema },
+        }),
+      { threshold: { seconds: 60 } },
+    ),
   )();
 
   // build kernel map for lookup (exact id and suffix fallback)
