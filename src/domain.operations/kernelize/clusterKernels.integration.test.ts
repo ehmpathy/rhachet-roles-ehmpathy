@@ -5,6 +5,10 @@ import type { ConceptKernel } from './extractKernels';
 
 const BRAIN_SLUG = 'openrouter/deepseek/flash';
 
+// a hang guard for real brain calls, as checkRetention and extractKernels set: the openrouter
+// floor walk can land on a slow host, and one merge-and-cluster ask ran past 60s on ci twice
+jest.setTimeout(120_000);
+
 describe.skip('clusterKernels', () => {
   given('[case1] kernels that express the same concept', () => {
     const kernels: ConceptKernel[] = [
