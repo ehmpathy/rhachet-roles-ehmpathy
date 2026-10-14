@@ -367,8 +367,16 @@ describe('permissionrequest.decide-permissions.sh layers', () => {
           expect(result.stderr.split(needle).length - 1).toBe(2);
         });
         then('stderr matches snapshot: the corrupt-layer warn', () => {
+          // .note = jq 1.6/1.7 lead the cause with `jq: `, later builds drop it, and the
+          //         position text varies by build; the snapshot pins the shape, not the host's jq
           expect(
-            result.stderr.split(result.tempDir).join('<tmp>'),
+            result.stderr
+              .split(result.tempDir)
+              .join('<tmp>')
+              .replace(
+                /(?:jq: )?parse error: .*$/gm,
+                'jq: parse error: <cause>',
+              ),
           ).toMatchSnapshot();
         });
       },

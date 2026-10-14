@@ -22,12 +22,12 @@ exports[`permissionrequest.decide-permissions.sh layers given: [case11] the deci
 "🐢 bummer dude...
 
 🐚 permissionrequest.decide-permissions
-   └─ could not parse <tmp>/home/.claude/settings.json as json; allow list degraded: parse error: Unfinished JSON term at EOF at line 1, column 17
+   └─ could not parse <tmp>/home/.claude/settings.json as json; allow list degraded: jq: parse error: <cause>
 
 🐢 bummer dude...
 
 🐚 permissionrequest.decide-permissions
-   └─ could not parse <tmp>/home/.claude/settings.json as json; deny list degraded: parse error: Unfinished JSON term at EOF at line 1, column 17
+   └─ could not parse <tmp>/home/.claude/settings.json as json; deny list degraded: jq: parse error: <cause>
 
 "
 `;

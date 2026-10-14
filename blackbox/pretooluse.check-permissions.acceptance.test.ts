@@ -63,12 +63,16 @@ const genHookRepo = async (input: {
 /**
  * .what = pipe one Bash payload into the linked hook
  * .why = the shape claude code sends on PreToolUse
+ * .note = the hook reads the user layer ($HOME/.claude) and the config dir
+ *         ($CLAUDE_CONFIG_DIR); both are pinned so the runner's own settings never leak in
+ *         (rule.require.hermetic-tests)
  */
 const invokeBash = (input: { repo: string; command: string; args?: string[] }) =>
   invokeHook({
     hookName: HOOK,
     cwd: input.repo,
     args: input.args,
+    env: { CLAUDE_CONFIG_DIR: undefined, HOME: '/nonexistent-home' },
     stdin: JSON.stringify({
       tool_name: 'Bash',
       tool_input: { command: input.command },
@@ -682,13 +686,18 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
 
       then('the gate holds, and the render leads with the named malfunction', () => {
         expect(res.code).toBe(2);
-        expect(res.stderr).toContain('💥 MalfunctionError: settings file unparseable: settings.json');
-        expect(res.stderr).toContain('repair the json in .claude/');
+        expect(res.stderr).toContain('💥 MalfunctionError: settings file unparseable: .claude/settings.json');
+        expect(res.stderr).toContain('repair the json in that file');
       });
 
       then('the render matches snapshot', () => {
-        // the jq parse text varies by jq version; it is the one volatile piece
-        expect(res.stderr.replace(/\(jq: [^)]*\)/g, '(jq: <error>)')).toMatchSnapshot();
+        // the jq parse text varies by jq version (1.6/1.7 lead with `jq: `, later builds drop
+        // it), and the temp repo path varies by run; mask both, by shape
+        expect(
+          res.stderr
+            .replace(/(?:jq: |(?=parse error)|(?=error \(at ))[^)]*\)/g, 'jq: <error>)')
+            .replace(/\/\S*\.cp-settings-broken\.[0-9a-f]+/g, '<repo>'),
+        ).toMatchSnapshot();
       });
     });
 
@@ -703,8 +712,8 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
 
       then('the command still runs, and the malfunction reaches stderr too', () => {
         expect(res.code).toBe(0);
-        expect(res.stdout).toContain('💥 MalfunctionError: settings file unparseable: settings.json');
-        expect(res.stderr).toContain('💥 MalfunctionError: settings file unparseable: settings.json');
+        expect(res.stdout).toContain('💥 MalfunctionError: settings file unparseable: .claude/settings.json');
+        expect(res.stderr).toContain('💥 MalfunctionError: settings file unparseable: .claude/settings.json');
       });
     });
   });
@@ -787,7 +796,7 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
 
   given('[case19] the built hook ships without its inventory beside it', () => {
     /**
-     * .mock = the hook's location: the BUILT hook and every `*.lib.sh` beside it, copied byte
+     * .mock = the hook's location: the BUILT hook and every `*.lib.sh` and `*.operations.sh` beside it, copied byte
      *         for byte out of the linked role into a dir that lacks the inventory. no file is
      *         rewritten; only the inventory is left behind
      * .why = the linked role is a symlink into this repo's `dist/`, shared by every suite and
@@ -804,7 +813,12 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
       const copyDir = path.join(repo.dir, '.hook-without-inventory');
       fs.mkdirSync(copyDir);
       fs.readdirSync(builtDir)
-        .filter((name) => name === HOOK || (name.startsWith('_') && name.endsWith('.lib.sh')))
+        .filter(
+          (name) =>
+            name === HOOK ||
+            (name.startsWith('_') && name.endsWith('.lib.sh')) ||
+            name.endsWith('.operations.sh'),
+        )
         .forEach((name) =>
           fs.copyFileSync(path.join(builtDir, name), path.join(copyDir, name)),
         );
@@ -813,9 +827,12 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
 
     when('[t0] the bot runs an unpaved command', () => {
       const res = useThen('the hook runs', async () => {
+        // pin the user layer and drop the config dir, so the runner's own settings never leak in
+        const { CLAUDE_CONFIG_DIR: _configDirOfRunner, ...envOfRunner } = process.env;
         const result = spawnSync('bash', [scene.hook], {
           cwd: scene.repo,
           encoding: 'utf-8',
+          env: { ...envOfRunner, HOME: '/nonexistent-home' },
           input: JSON.stringify({
             tool_name: 'Bash',
             tool_input: { command: 'du -sh dist' },

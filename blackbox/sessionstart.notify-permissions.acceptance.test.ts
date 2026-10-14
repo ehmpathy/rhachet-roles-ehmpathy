@@ -16,6 +16,14 @@ import { genTestDir, invokeHook } from './.test/invokeHook';
 const HOOK = 'sessionstart.notify-permissions.sh';
 
 /**
+ * .what = the env the notice runs under
+ * .why = the notice reads the user layer ($HOME/.claude) and the config dir
+ *        ($CLAUDE_CONFIG_DIR); both are pinned so the runner's own settings never leak in
+ *        (rule.require.hermetic-tests)
+ */
+const HERMETIC_ENV = { CLAUDE_CONFIG_DIR: undefined, HOME: '/nonexistent-home' };
+
+/**
  * .what = the pre-approved section of the notice, up to the auto-decide section
  * .why = the auto-decide sections are pinned by the decide-permissions suite
  */
@@ -43,7 +51,7 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
 
     when('[t0] a session starts', () => {
       const res = useThen('the notice runs', async () =>
-        invokeHook({ hookName: HOOK, cwd: repo.dir, stdin: '{}' }),
+        invokeHook({ hookName: HOOK, cwd: repo.dir, stdin: '{}', env: HERMETIC_ENV }),
       );
 
       then('the notice succeeds, silent on stderr', () => {
@@ -80,7 +88,7 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
 
     when('[t0] a session starts', () => {
       const res = useThen('the notice runs', async () =>
-        invokeHook({ hookName: HOOK, cwd: repo.dir, stdin: '{}' }),
+        invokeHook({ hookName: HOOK, cwd: repo.dir, stdin: '{}', env: HERMETIC_ENV }),
       );
 
       then('the notice is silent on both streams, exit 0', () => {
@@ -104,7 +112,7 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
 
     when('[t0] a session starts', () => {
       const res = useThen('the notice runs', async () =>
-        invokeHook({ hookName: HOOK, cwd: repo.dir, stdin: '{}' }),
+        invokeHook({ hookName: HOOK, cwd: repo.dir, stdin: '{}', env: HERMETIC_ENV }),
       );
 
       then('the built notice names both files, exit 0', () => {
@@ -114,12 +122,11 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
       });
 
       then('the pre-approved section matches snapshot', () => {
-        // the jq parse text varies by jq version; it is the one volatile piece
+        // the jq parse text varies by jq version, and the temp dir by run; both are masked
         expect(
-          asPreapprovedSection({ stdout: res.stdout }).replace(
-            /\(jq: [^)]*\)|\((?:parse error|jq)[^)]*\)/g,
-            '(<jq error>)',
-          ),
+          asPreapprovedSection({ stdout: res.stdout })
+            .replace(/\(jq: [^)]*\)|\((?:parse error|jq)[^)]*\)/g, '(<jq error>)')
+            .replace(/\/\S*\.sn-both-broken\.[0-9a-f]+/g, '<repo>'),
         ).toMatchSnapshot();
       });
     });
@@ -140,7 +147,7 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
 
     when('[t0] a session starts', () => {
       const res = useThen('the notice runs', async () =>
-        invokeHook({ hookName: HOOK, cwd: repo.dir, stdin: '{}' }),
+        invokeHook({ hookName: HOOK, cwd: repo.dir, stdin: '{}', env: HERMETIC_ENV }),
       );
 
       then('the built notice names the broken file on both streams, exit 0', () => {

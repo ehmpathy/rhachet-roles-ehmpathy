@@ -367,7 +367,8 @@ exports[`pretooluse.check-permissions.sh (acceptance) given: [case10] more near 
 exports[`pretooluse.check-permissions.sh (acceptance) given: [case11] the repo settings cannot be parsed when: [t0] the bot runs a command the broken file would have allowed then: the render matches snapshot 1`] = `
 "
 ✋ ConstraintError: this command is not paved
-   ├─ 💥 MalfunctionError: settings file unparseable: settings.json (jq: <error>) — the allowlist could not be read, so every command blocks and no candidate can be ranked; repair the json in .claude/
+   ├─ 💥 MalfunctionError: settings file unparseable: .claude/settings.json (jq: <error>) — its allows do not count, so the commands it paves block and no candidate from it can be ranked; repair the json in that file
+   ├─ 💥 MalfunctionError: no pre-approved bash permissions were found; looked in: <repo>/.claude/settings.of.repo.json: absent; <repo>/.claude/settings.local.json: absent; /nonexistent-home/.claude/settings.json: absent; <repo>/.claude/settings.json: unreadable — fix: to write the repo's allowlist, ask your human to run rhx init at the repo root, in their own shell
    │
    ├─ blocked: git status
    └─ no paved path known — the allowlist could not be read (see above)
