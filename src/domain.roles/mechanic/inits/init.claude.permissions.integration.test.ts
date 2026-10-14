@@ -53,11 +53,13 @@ describe('init.claude.permissions.sh', () => {
     fs.copyFileSync(initPath, tempInit);
     fs.chmodSync(tempInit, '755');
 
-    // run the init
+    // run the init, with the runner's config dir scrubbed so only the fixture counts
+    const { CLAUDE_CONFIG_DIR: _runnerConfigDir, ...envHermetic } = process.env;
     const result = spawnSync('bash', [tempInit], {
       encoding: 'utf-8',
       cwd: tempDir,
       stdio: ['pipe', 'pipe', 'pipe'],
+      env: envHermetic,
     });
 
     // read the result settings file

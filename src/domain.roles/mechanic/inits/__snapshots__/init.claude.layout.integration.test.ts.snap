@@ -1,0 +1,132 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`init.claude.sh layout given: [case13] split layout: settings.json links to the home defaults when: [t0] settings.of.repo.json holds stale permissions then: stdout matches snapshot 1`] = `
+"🔧 init claude config for mechanic role...
+
+🔐 mechanic permissions configured successfully!
+   .claude/settings.of.repo.json
+   .claude/settings.of.repo.TIMESTAMP.bak.json
+
+✨ permissions applied:
+   • allow: replaced entirely
+   • deny: extended (no duplicates)
+   • ask: extended (no duplicates)
+
+👌 claude config ready
+"
+`;
+
+exports[`init.claude.sh layout given: [case13] split layout: settings.json links to the home defaults when: [t1] settings.of.repo.json is absent; settings.json is a link then: stdout matches snapshot: no backup line 1`] = `
+"🔧 init claude config for mechanic role...
+
+🔐 mechanic permissions configured successfully!
+   .claude/settings.of.repo.json
+
+✨ permissions applied:
+   • allow: replaced entirely
+   • deny: extended (no duplicates)
+   • ask: extended (no duplicates)
+
+👌 claude config ready
+"
+`;
+
+exports[`init.claude.sh layout given: [case13] split layout: settings.json links to the home defaults when: [t2] the settings.json link has no target then: stdout matches snapshot 1`] = `
+"🔧 init claude config for mechanic role...
+
+🔐 mechanic permissions configured successfully!
+   .claude/settings.of.repo.json
+
+✨ permissions applied:
+   • allow: replaced entirely
+   • deny: extended (no duplicates)
+   • ask: extended (no duplicates)
+
+👌 claude config ready
+"
+`;
+
+exports[`init.claude.sh layout given: [case13] split layout: settings.json links to the home defaults when: [t3] settings.of.repo.json is itself a link with no target then: stderr matches snapshot 1`] = `
+"✋ ConstraintError: .claude/settings.of.repo.json is a link; this init writes only a real file
+
+fix: replace the link with a real file (or remove it), then rerun the init.
+❌ init.claude.sh failed at line <N>
+"
+`;
+
+exports[`init.claude.sh layout given: [case13] split layout: settings.json links to the home defaults when: [t3] settings.of.repo.json is itself a link with no target then: stdout matches snapshot 1`] = `
+"🔧 init claude config for mechanic role...
+
+✋ ConstraintError: .claude/settings.of.repo.json is a link; this init writes only a real file
+
+fix: replace the link with a real file (or remove it), then rerun the init.
+"
+`;
+
+exports[`init.claude.sh layout given: [case14] old layout, and the backup count when: [t0] settings.json is a real file with stale permissions then: stdout matches snapshot 1`] = `
+"🔧 init claude config for mechanic role...
+
+🔐 mechanic permissions configured successfully!
+   .claude/settings.json
+   .claude/settings.TIMESTAMP.bak.json
+
+✨ permissions applied:
+   • allow: replaced entirely
+   • deny: extended (no duplicates)
+   • ask: extended (no duplicates)
+
+👌 claude config ready
+"
+`;
+
+exports[`init.claude.sh layout given: [case14] old layout, and the backup count when: [t1] no settings file exists then: stdout matches snapshot: no backup line 1`] = `
+"🔧 init claude config for mechanic role...
+
+🔐 mechanic permissions configured successfully!
+   .claude/settings.json
+
+✨ permissions applied:
+   • allow: replaced entirely
+   • deny: extended (no duplicates)
+   • ask: extended (no duplicates)
+
+👌 claude config ready
+"
+`;
+
+exports[`init.claude.sh layout given: [case14] old layout, and the backup count when: [t2] permissions already match, old layout then: stdout matches snapshot 1`] = `
+"🔧 init claude config for mechanic role...
+
+👌 mechanic permissions already configured
+   .claude/settings.json
+
+👌 claude config ready
+"
+`;
+
+exports[`init.claude.sh layout given: [case14] old layout, and the backup count when: [t3] permissions already match, split layout then: stdout matches snapshot 1`] = `
+"🔧 init claude config for mechanic role...
+
+👌 mechanic permissions already configured
+   .claude/settings.of.repo.json
+
+👌 claude config ready
+"
+`;
+
+exports[`init.claude.sh layout given: [case15] the init configures the repo, not the caller actor (F15) when: [t0] CLAUDE_CONFIG_DIR names a hash actor dir then: stdout names the clone config dir the init did not write 1`] = `
+"🔧 init claude config for mechanic role...
+
+🔐 mechanic permissions configured successfully!
+   .claude/settings.of.repo.json
+   .claude/settings.of.repo.TIMESTAMP.bak.json
+   note: this clone's config dir is <tmp>/actor/.claude; its settings.of.repo.json is derived from this file. every actor picks up new allows at the next rhx init --hooks, rhx upgrade, or its own next rhx enroll. a delta actor also picks them up in the same rhx init --roles, when that init changed its roles
+
+✨ permissions applied:
+   • allow: replaced entirely
+   • deny: extended (no duplicates)
+   • ask: extended (no duplicates)
+
+👌 claude config ready
+"
+`;

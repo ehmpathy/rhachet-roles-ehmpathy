@@ -2,16 +2,16 @@
 ######################################################################
 # .what = SessionStart hook to notify Claude of allowed permissions
 #
-# .why  = proactively informing Claude of pre-approved Bash commands
-#         at session start reduces interruptions from permission
-#         prompts by guiding it to use allowed patterns upfront.
+# .why  = to name the pre-approved Bash commands at session start cuts
+#         permission prompts: claude reaches for allowed patterns first.
 #
-#         this complements the PreToolUse hook which blocks/nudges
-#         when Claude attempts unapproved commands, by providing
-#         the information before any attempts are made.
+#         this complements the PreToolUse hook, which blocks/nudges when
+#         claude attempts an unapproved command; this hook names the paved
+#         set before any attempt.
 #
-# .how  = reads .claude/settings.json + settings.local.json (unioned, as
-#         the check-permissions hook does), and outputs the heads that are
+# .how  = reads the union of Bash allows across every layer claude
+#         loads (permissions.layers.operations.sh) — the same set the
+#         PreToolUse hook checks — and outputs the heads that are
 #         pre-approved with a count each, plus where to see every command
 #         on demand (`rhx permissions.get`) — the full list scrolls out of
 #         context, the lookup does not.
@@ -20,15 +20,16 @@
 #   configure in .claude/settings.json under hooks.SessionStart
 #
 # guarantee:
-#   ✔ non-blocking: always exits 0
+#   ✔ never halts the session: always exits 0
 #   ✔ informational only: no side effects
-#   ✔ graceful fallback: exits silently if no settings found
+#   ✔ graceful fallback: exits silently if no config dir is found
+#   ✔ an empty allowlist is named, with each file sought, never silent
 ######################################################################
 
 set -euo pipefail
 
-# load the permission surfaces' shared ops: the `.claude` walk and the allowlist filter, so the
-# notice counts exactly what the gate allows
+# load the permission surfaces' shared ops: the render helpers (pattern heads) and the layer
+# rule (which settings files claude loads), so the notice counts exactly what the gate allows
 # .note = a notice never fails the session: an absent lib is named on both streams, exit 0
 HOOK_DIR="${BASH_SOURCE[0]%/*}"
 [[ "$HOOK_DIR" == "${BASH_SOURCE[0]}" ]] && HOOK_DIR="."
@@ -39,49 +40,77 @@ source "$HOOK_DIR/_permissions.render.lib.sh" 2>/dev/null || {
   printf '%s\n' "$render_lib_crash" >&2 || true
   exit 0
 }
-
-CLAUDE_DIR=$(get_claude_dir) || {
-  # no .claude dir, exit silently
+# shellcheck source=permissions.layers.operations.sh
+source "$HOOK_DIR/permissions.layers.operations.sh" 2>/dev/null || {
+  layers_lib_crash="💥 MalfunctionError: ${0##*/} could not load $HOOK_DIR/permissions.layers.operations.sh; the permission notice is skipped — ask your human to run rhx init at the repo root, in their own shell, then restart the session"
+  printf '%s\n' "$layers_lib_crash" || true
+  printf '%s\n' "$layers_lib_crash" >&2 || true
   exit 0
 }
 
-# the Bash patterns of settings.json + settings.local.json, as the check-permissions hook
-# reads them: "Bash(npm run test:*)" -> "npm run test:*"
-# .note = named arg `dir=` (the .claude dir); sets the globals ALL_PATTERNS (newline-joined,
-#         both files) and SETTINGS_MALFUNCTION. a file jq cannot parse is named, never dropped
-#         in silence: the gate blocks every command it would have allowed, and the bot must
-#         know why. each broken file is appended, so a second never erases the first
-set_settings_patterns() {
-  local dir=""
-  local "$@"
+# union the Bash allows across every layer
+# patterns look like: "Bash(npm run test:*)" -> "npm run test:*"
+set_permissions_layers allow
+
+# the dirs, as the layer read found them; with neither a config dir nor a walk-up dir, exit silently
+WALKUP_DIR="$PERMISSIONS_WALKUP_DIR"
+CONFIG_DIR="$PERMISSIONS_CONFIG_DIR"
+[[ -z "$CONFIG_DIR" ]] && exit 0
+
+# the allowlist union as the gate reads it: deduped, in byte order (the layer read sorts it)
+ALLOWED_PATTERNS=("${PERMISSIONS_LAYER_PATTERNS[@]}")
+
+# each layer file jq could not parse, named with its cause, never dropped in silence: the gate
+# blocks every command it would have allowed, and the bot must know why
+# .note = sets the global SETTINGS_MALFUNCTION (empty when every layer parses)
+set_settings_malfunction() {
   SETTINGS_MALFUNCTION=""
-  ALL_PATTERNS=""
-  local name patterns
-  for name in settings.json settings.local.json; do
-    [[ -f "$dir/$name" ]] || continue
-    if ! patterns=$(jq -r "$BASH_PATTERNS_FILTER" "$dir/$name" 2>&1); then
-      SETTINGS_MALFUNCTION+="${SETTINGS_MALFUNCTION:+; }.claude/$name is not valid json (${patterns%%$'\n'*})"
-      continue
-    fi
-    [[ -n "$patterns" ]] && ALL_PATTERNS+="$patterns"$'\n'
+  local i
+  for i in "${!PERMISSIONS_LAYER_FAULT_FILES[@]}"; do
+    as_permissions_display_path "${PERMISSIONS_LAYER_FAULT_FILES[i]}"
+    SETTINGS_MALFUNCTION+="${SETTINGS_MALFUNCTION:+; }$PERMISSIONS_DISPLAY_PATH is not valid json (${PERMISSIONS_LAYER_FAULT_CAUSES[i]%%$'\n'*})"
   done
   return 0
 }
+set_settings_malfunction
 
-# the allowlist union as the hook reads it: blank lines dropped, deduped, sorted
-# .note = named arg `patterns_raw=` (newline-joined); sets the global array ALLOWED_PATTERNS
-set_pattern_union() {
-  local patterns_raw=""
-  local "$@"
-  mapfile -t ALLOWED_PATTERNS < <(printf '%s' "$patterns_raw" | sed '/^$/d' | sort -u)
-  return 0
+# on the split layout, an absent actor file leaves only the other layers' allows
+ACTOR_FILE_ABSENT="$PERMISSIONS_ACTOR_FILE_ABSENT"
+
+######################################################################
+# .what = print each line as a nested tree leaf; the last leaf closes with └─
+# .why  = the sought-file list reads as one branch under "the hook looked in:"
+# .args = $@ = each line to render as a leaf, in order
+######################################################################
+emit_nested_leaves() {
+  local count=$#
+  local index=0
+  local line
+  for line in "$@"; do
+    index=$((index + 1))
+    local glyph="├─"
+    [[ $index -eq $count ]] && glyph="└─"
+    echo "   │  $glyph $line"
+  done
 }
 
-set_settings_patterns dir="$CLAUDE_DIR"
-set_pattern_union patterns_raw="$ALL_PATTERNS"
-
-# no Bash permissions found and none lost to a broken file, exit silently
-if [[ ${#ALLOWED_PATTERNS[@]} -eq 0 && -z "$SETTINGS_MALFUNCTION" ]]; then
+# no allows anywhere: say so, and name each file sought, so the clone can tell
+# "no list" from "no hook"
+if [[ ${#ALLOWED_PATTERNS[@]} -eq 0 ]]; then
+  echo ""
+  echo "🐢 bummer dude, no guardrails found 🌊"
+  echo ""
+  echo "🐚 no pre-approved bash permissions were found"
+  echo "   │"
+  [[ -n "$SETTINGS_MALFUNCTION" ]] && echo "   ├─ 💥 MalfunctionError: $SETTINGS_MALFUNCTION — repair the json in each file named"
+  echo "   ├─ the hook looked in:"
+  emit_nested_leaves "${PERMISSIONS_LAYER_STATES[@]}"
+  echo "   │"
+  echo "   ├─ if this clone should have pre-approved permissions,"
+  echo "   │  check that these files exist and hold valid json."
+  echo "   └─ fix: $PERMISSIONS_FIX_HINT, then restart the session."
+  echo ""
+  [[ -n "$SETTINGS_MALFUNCTION" ]] && echo "💥 MalfunctionError: $SETTINGS_MALFUNCTION — repair the json in each file named" >&2
   exit 0
 fi
 
@@ -139,14 +168,24 @@ set_head_counts
 as_preapproved_summary
 
 # the pre-approved summary: counts, heads, then where to see the rest
+# .note = a corrupt layer or an absent actor file means the list is partial, so no cheer
+LIST_PARTIAL=false
+[[ -n "$SETTINGS_MALFUNCTION" || "$ACTOR_FILE_ABSENT" == true ]] && LIST_PARTIAL=true
 echo ""
-echo "🐢 shell yeah, your guardrails are set 🌊"
+[[ "$LIST_PARTIAL" == true ]] && echo "🐢 heads up dude, your guardrails are set, but only in part 🌊"
+[[ "$LIST_PARTIAL" == false ]] && echo "🐢 shell yeah, your guardrails are set 🌊"
 echo ""
+if [[ "$ACTOR_FILE_ABSENT" == true ]]; then
+  echo "🐚 note: $CONFIG_DIR/settings.of.repo.json is absent"
+  echo "   ├─ though this repo's layout keeps its allows there, so this list lacks them"
+  echo "   └─ fix: $PERMISSIONS_FIX_HINT, then restart the session."
+  echo ""
+fi
 echo "🐚 pre-approved bash permissions"
 # a malfunction reaches stderr too (rule.require.skill-output-streams), apart from the tree
 if [[ -n "$SETTINGS_MALFUNCTION" ]]; then
-  echo "   ├─ 💥 MalfunctionError: $SETTINGS_MALFUNCTION — its commands are not pre-approved until it is repaired; repair the json in .claude/"
-  echo "💥 MalfunctionError: $SETTINGS_MALFUNCTION — its commands are not pre-approved until it is repaired; repair the json in .claude/" >&2
+  echo "   ├─ 💥 MalfunctionError: $SETTINGS_MALFUNCTION — its commands are not pre-approved until it is repaired; repair the json in each file named"
+  echo "💥 MalfunctionError: $SETTINGS_MALFUNCTION — its commands are not pre-approved until it is repaired; repair the json in each file named" >&2
 fi
 echo "   ├─ $SUMMARY_LINE"
 print_head_list
@@ -174,7 +213,10 @@ echo "   └─ an otherwise-unprovable segment                         -> lifte
 echo ""
 echo "🐚 every auto allow/deny is recorded to a G3 audit trail"
 echo "   └─ to review why a command was auto-decided (verdict + reason + command):"
-echo "         jq . .claude/permission.decisions.local.log"
+# the audit log lives in the config dir; name it in full when it is not the walk-up dir
+AUDIT_LOG_PATH=".claude/permission.decisions.local.log"
+[[ "$CONFIG_DIR" != "$WALKUP_DIR" ]] && AUDIT_LOG_PATH="$CONFIG_DIR/permission.decisions.local.log"
+echo "         jq . $AUDIT_LOG_PATH"
 echo ""
 
 exit 0

@@ -82,6 +82,16 @@ exports[`permissionrequest.decide-permissions.sh given: [case9] the audit trail 
 "🐢 bummer dude...
 
 🐚 permissionrequest.decide-permissions
+   └─ 💥 MalfunctionError: no pre-approved bash permissions were found; looked in:
+      ├─ <SETTINGS>: absent
+      ├─ <SETTINGS>: absent
+      ├─ <SETTINGS>: absent
+      ├─ <SETTINGS>: absent
+      └─ fix: to write the repo's allowlist, ask your human to run rhx init at the repo root, in their own shell
+
+🐢 bummer dude...
+
+🐚 permissionrequest.decide-permissions
    └─ audit write failed: <LOGPATH>: Is a directory
 
 "
@@ -136,6 +146,16 @@ exports[`permissionrequest.decide-permissions.sh given: [case10] a LIFT records 
 
 🐚 permissionrequest.decide-permissions
    └─ could not parse <SETTINGS> as json; allow list degraded: <JQ_CAUSE>
+
+🐢 bummer dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ 💥 MalfunctionError: no pre-approved bash permissions were found; looked in:
+      ├─ <SETTINGS>: absent
+      ├─ <SETTINGS>: absent
+      ├─ <SETTINGS>: absent
+      ├─ <SETTINGS>: unreadable
+      └─ fix: to write the repo's allowlist, ask your human to run rhx init at the repo root, in their own shell
 
 🐢 bummer dude...
 

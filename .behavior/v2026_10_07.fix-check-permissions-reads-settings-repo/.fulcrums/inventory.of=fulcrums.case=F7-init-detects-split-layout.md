@@ -1,0 +1,8 @@
+# F7 — init detects the split layout by settings.repo.json, guarded by a settings.json link
+
+- **fork**: (a) split ⇔ `settings.repo.json` exists, with a `settings.json` link also routed to `settings.repo.json` as a guard · (b) `settings.repo.json` alone, as rhachet's reply asks ("drop signal 1") · (c) also treat a linked `.claude` dir as split · (d) always write `settings.repo.json`
+- **taken**: (a). the hooks detect by `settings.repo.json` alone, as rhachet asks. the init keeps the link test as a guard, not a signal: a write to a linked `settings.json` would replace rhachet's link with a real file, which rhachet then drops along with the allows. on the old layout `settings.json` is real, so the guard never fires there. (c) is wrong: rhachet 1.48 links `.claude` on the old layout too, so it would write a file claude never loads — clamped by `init.claude.layout` `[case17]`, proven red under (c). (d) strands an old-layout repo
+- **rework**: clean — one predicate in one init
+- **confidence**: 85%. the rhachet clone confirms (2026-10-12) the guard is dead in normal flow: one layout pass writes the links and seeds `settings.repo.json` together, before any role init; no released rhachet writes the link; only a hand delete of `settings.repo.json` reaches that state, and the next layout pass reseeds it. they leave it to us: "drop it, unless you want a cheap defense against a hand edit". kept as that defense — it is one predicate, and it backs the init's guarantee never to replace a `settings.json` link. drop it if the council prefers fewer paths
+- **where**: `init.claude.permissions.sh` layout predicate; `init.claude.layout.integration.test.ts` cases 13, 14, 17
+- **verdict**: —

@@ -1,8 +1,49 @@
-import { spawn, spawnSync } from 'child_process';
+import {
+  type SpawnOptionsWithStdioTuple,
+  type SpawnSyncOptionsWithStringEncoding,
+  type StdioNull,
+  type StdioPipe,
+  spawn as spawnRaw,
+  spawnSync as spawnSyncRaw,
+} from 'child_process';
 import * as fs from 'fs';
 import { ConstraintError } from 'helpful-errors';
 import * as path from 'path';
 import { genTempDir, given, then, useBeforeAll, when } from 'test-fns';
+
+/**
+ * .what = the env a hook child inherits by default: the runner's, minus $CLAUDE_CONFIG_DIR,
+ *         with $HOME pinned to a dir that does not exist
+ * .why = the hook reads its allowlist from $CLAUDE_CONFIG_DIR and $HOME/.claude; a runner
+ *        inside a claude actor carries the first, and every runner has its own home. either
+ *        would leak the runner's real allowlist (and its path) into a render. a pinned $HOME
+ *        reads the same on every host, so a snapshot that names it stays stable
+ */
+const asRunnerEnvWithoutConfigDir = (): NodeJS.ProcessEnv => {
+  const { CLAUDE_CONFIG_DIR: _runnerConfigDir, ...envRest } = process.env;
+  return { ...envRest, HOME: '/nonexistent-home' };
+};
+
+/**
+ * .what = spawnSync / spawn, with the child env defaulted to asRunnerEnvWithoutConfigDir
+ * .why = jest sandboxes process.env, so a spawn with no `env` inherits the runner's REAL env;
+ *        an explicit `env` on a call still wins
+ */
+const spawnSync = (
+  command: string,
+  args: readonly string[],
+  options: SpawnSyncOptionsWithStringEncoding,
+) =>
+  spawnSyncRaw(command, args, {
+    env: asRunnerEnvWithoutConfigDir(),
+    ...options,
+  });
+const spawn = (
+  command: string,
+  args: readonly string[],
+  options: SpawnOptionsWithStdioTuple<StdioPipe, StdioNull, StdioPipe>,
+) =>
+  spawnRaw(command, args, { env: asRunnerEnvWithoutConfigDir(), ...options });
 
 /**
  * .what = integration tests for pretooluse.check-permissions.sh hook
@@ -27,17 +68,31 @@ describe('pretooluse.check-permissions.sh', () => {
   /**
    * .what = a temp dir that holds the libs the hook sources from beside itself
    * .why = a case that runs a COPY of the hook (a crash probe, a broken inventory) needs the
-   *        hook's `_*.lib.sh` files beside the copy, or the copy blocks on a load failure
-   *        and the case grades the wrong path
+   *        hook's `_*.lib.sh` files and the layer lib beside the copy, or the copy blocks on
+   *        a load failure and the case grades the wrong path
    */
   const genHookDir = (input: { slug: string }): string => {
     const dir = genTempDir({ slug: input.slug });
     fs.readdirSync(__dirname)
-      .filter((name) => name.startsWith('_') && name.endsWith('.lib.sh'))
+      .filter(
+        (name) =>
+          (name.startsWith('_') && name.endsWith('.lib.sh')) ||
+          name === 'permissions.layers.operations.sh',
+      )
       .forEach((lib) =>
         fs.copyFileSync(path.join(__dirname, lib), path.join(dir, lib)),
       );
     return dir;
+  };
+
+  /**
+   * .what = a hermetic env for one hook run
+   * .why = the hook reads $CLAUDE_CONFIG_DIR and $HOME/.claude; inherited from the
+   *        runner, they would leak the runner's real allowlist into every assertion
+   */
+  const genHookEnv = (input: { tempDir: string }): NodeJS.ProcessEnv => {
+    const { CLAUDE_CONFIG_DIR: _runnerConfigDir, ...envRest } = process.env;
+    return { ...envRest, HOME: path.join(input.tempDir, 'home') };
   };
 
   /**
@@ -105,7 +160,10 @@ describe('pretooluse.check-permissions.sh', () => {
       encoding: 'utf-8',
       input: stdinJson,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: args.locale ? { ...process.env, LC_ALL: args.locale } : process.env,
+      env: {
+        ...genHookEnv({ tempDir }),
+        ...(args.locale ? { LC_ALL: args.locale } : {}),
+      },
     });
 
     return {
@@ -155,6 +213,7 @@ describe('pretooluse.check-permissions.sh', () => {
     // first attempt
     const first = spawnSync('bash', [scriptPath, ...flagsArray], {
       cwd: tempDir,
+      env: genHookEnv({ tempDir }),
       encoding: 'utf-8',
       input: stdinJson,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -163,6 +222,7 @@ describe('pretooluse.check-permissions.sh', () => {
     // second attempt (immediate retry)
     const second = spawnSync('bash', [scriptPath, ...flagsArray], {
       cwd: tempDir,
+      env: genHookEnv({ tempDir }),
       encoding: 'utf-8',
       input: stdinJson,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -695,7 +755,9 @@ line 2" | cat`,
         fs.mkdirSync(claudeDir, { recursive: true });
         fs.writeFileSync(
           path.join(claudeDir, 'settings.json'),
-          JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+          JSON.stringify({
+            permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+          }),
         );
 
         const stdinJson = JSON.stringify({
@@ -705,6 +767,7 @@ line 2" | cat`,
 
         spawnSync('bash', [scriptPath], {
           cwd: tempDir,
+          env: genHookEnv({ tempDir }),
           encoding: 'utf-8',
           input: stdinJson,
           stdio: ['pipe', 'pipe', 'pipe'],
@@ -721,7 +784,9 @@ line 2" | cat`,
         fs.mkdirSync(claudeDir, { recursive: true });
         fs.writeFileSync(
           path.join(claudeDir, 'settings.json'),
-          JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+          JSON.stringify({
+            permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+          }),
         );
 
         const stdinJson = JSON.stringify({
@@ -731,6 +796,7 @@ line 2" | cat`,
 
         spawnSync('bash', [scriptPath], {
           cwd: tempDir,
+          env: genHookEnv({ tempDir }),
           encoding: 'utf-8',
           input: stdinJson,
           stdio: ['pipe', 'pipe', 'pipe'],
@@ -784,7 +850,9 @@ line 2" | cat`,
         fs.mkdirSync(claudeDir, { recursive: true });
         fs.writeFileSync(
           path.join(claudeDir, 'settings.json'),
-          JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+          JSON.stringify({
+            permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+          }),
         );
 
         const stdinJson = JSON.stringify({
@@ -795,6 +863,7 @@ line 2" | cat`,
         // first attempt
         spawnSync('bash', [scriptPath, '--window', '0'], {
           cwd: tempDir,
+          env: genHookEnv({ tempDir }),
           encoding: 'utf-8',
           input: stdinJson,
           stdio: ['pipe', 'pipe', 'pipe'],
@@ -803,6 +872,7 @@ line 2" | cat`,
         // second attempt with --window 0
         const second = spawnSync('bash', [scriptPath, '--window', '0'], {
           cwd: tempDir,
+          env: genHookEnv({ tempDir }),
           encoding: 'utf-8',
           input: stdinJson,
           stdio: ['pipe', 'pipe', 'pipe'],
@@ -862,7 +932,9 @@ line 2" | cat`,
         fs.mkdirSync(claudeDir, { recursive: true });
         fs.writeFileSync(
           path.join(claudeDir, 'settings.json'),
-          JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+          JSON.stringify({
+            permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+          }),
         );
 
         const stdinJson = JSON.stringify({
@@ -872,6 +944,7 @@ line 2" | cat`,
 
         spawnSync('bash', [scriptPath, '--mode', 'SOFTNUDGE'], {
           cwd: tempDir,
+          env: genHookEnv({ tempDir }),
           encoding: 'utf-8',
           input: stdinJson,
           stdio: ['pipe', 'pipe', 'pipe'],
@@ -1219,7 +1292,10 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           tool_name: 'Bash',
           tool_input: { command: input.command },
         }),
-        env: { ...process.env, PATH: `${shimDir}:${process.env.PATH ?? ''}` },
+        env: {
+          ...genHookEnv({ tempDir }),
+          PATH: `${shimDir}:${process.env.PATH ?? ''}`,
+        },
         stdio: ['pipe', 'pipe', 'pipe'],
       });
       return {
@@ -1284,7 +1360,9 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         fs.mkdirSync(claudeDir, { recursive: true });
         fs.writeFileSync(
           path.join(claudeDir, 'settings.json'),
-          JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+          JSON.stringify({
+            permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+          }),
         );
 
         const stdinJson = JSON.stringify({
@@ -1294,6 +1372,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
 
         const result = spawnSync('bash', [scriptPath], {
           cwd: tempDir,
+          env: genHookEnv({ tempDir }),
           encoding: 'utf-8',
           input: stdinJson,
           stdio: ['pipe', 'pipe', 'pipe'],
@@ -1311,7 +1390,9 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         fs.mkdirSync(claudeDir, { recursive: true });
         fs.writeFileSync(
           path.join(claudeDir, 'settings.json'),
-          JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+          JSON.stringify({
+            permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+          }),
         );
 
         const stdinJson = JSON.stringify({
@@ -1321,6 +1402,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
 
         const result = spawnSync('bash', [scriptPath], {
           cwd: tempDir,
+          env: genHookEnv({ tempDir }),
           encoding: 'utf-8',
           input: stdinJson,
           stdio: ['pipe', 'pipe', 'pipe'],
@@ -1338,11 +1420,14 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         fs.mkdirSync(claudeDir, { recursive: true });
         fs.writeFileSync(
           path.join(claudeDir, 'settings.json'),
-          JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+          JSON.stringify({
+            permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+          }),
         );
 
         const result = spawnSync('bash', [scriptPath], {
           cwd: tempDir,
+          env: genHookEnv({ tempDir }),
           encoding: 'utf-8',
           input: '',
           stdio: ['pipe', 'pipe', 'pipe'],
@@ -1738,14 +1823,16 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
         fs.writeFileSync(
           path.join(tempDir, '.claude', 'settings.json'),
-          JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+          JSON.stringify({
+            permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+          }),
         );
         // the stamp has whole-second precision, so the lower bound drops the millis
         const msBefore = Math.floor(Date.now() / 1000) * 1000;
         spawnSync('bash', [scriptPath], {
           cwd: tempDir,
           encoding: 'utf-8',
-          env: { ...process.env, TZ: 'Asia/Kolkata' },
+          env: { ...asRunnerEnvWithoutConfigDir(), TZ: 'Asia/Kolkata' },
           input: JSON.stringify({
             tool_name: 'Bash',
             tool_input: { command: 'python3 -c "print(1)"' },
@@ -1992,7 +2079,9 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
         fs.writeFileSync(
           path.join(tempDir, '.claude', 'settings.json'),
-          JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+          JSON.stringify({
+            permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+          }),
         );
         const result = spawnSync('bash', [hookCopy], {
           cwd: tempDir,
@@ -2007,7 +2096,9 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         expect(result.stderr).toContain(
           "rhx grepsafe --pattern 'https://surf.example//waves'",
         );
-        expect(result.stderr).not.toContain('MalfunctionError');
+        // the inventory loaded clean; the empty-allowlist line this fixture also earns is
+        // not an inventory fault
+        expect(result.stderr).not.toContain('MalfunctionError: inventory');
       });
     });
 
@@ -2024,7 +2115,9 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
         fs.writeFileSync(
           path.join(tempDir, '.claude', 'settings.json'),
-          JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+          JSON.stringify({
+            permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+          }),
         );
         const result = spawnSync('bash', [hookCopy], {
           cwd: tempDir,
@@ -2040,8 +2133,9 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           '💥 MalfunctionError: inventory file unparseable',
         );
         // the cause is named, not swallowed: jq's parse error rides the line
+        // .note = jq 1.6/1.7 lead with `jq: `; later builds drop it, so the lead is optional
         expect(result.stderr).toMatch(
-          /unparseable: commands\.alternatives\.jsonc \(jq: /,
+          /unparseable: commands\.alternatives\.jsonc \((jq: )?parse error/,
         );
         expect(
           asSnapshotSafe({ text: result.stderr, tempDir }),
@@ -2058,7 +2152,9 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
         fs.writeFileSync(
           path.join(tempDir, '.claude', 'settings.json'),
-          JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+          JSON.stringify({
+            permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+          }),
         );
         const result = spawnSync('bash', [hookCopy], {
           cwd: tempDir,
@@ -2101,7 +2197,9 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
           fs.writeFileSync(
             path.join(tempDir, '.claude', 'settings.json'),
-            JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+            JSON.stringify({
+              permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+            }),
           );
           const result = spawnSync('bash', [hookCopy], {
             cwd: tempDir,
@@ -2142,7 +2240,9 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
           fs.writeFileSync(
             path.join(tempDir, '.claude', 'settings.json'),
-            JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+            JSON.stringify({
+              permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+            }),
           );
           const result = spawnSync(
             'bash',
@@ -2283,7 +2383,11 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
       .replace(/\/\S*\.permissions-hook(?:-copy)?\.[0-9a-f]+/g, '<repo>')
       // a bash error names the hook's line, which moves with every edit to the hook
       .replace(/: line \d+:/g, ': line <n>:')
-      .replace(/jq: [^)]*\)/g, 'jq: <error>)')
+      // jq 1.6/1.7 lead with `jq: `; later builds drop it (`parse error: …`), so both forms mask alike
+      .replace(
+        /(?:jq: |(?=parse error)|(?=error \(at ))[^)]*\)/g,
+        'jq: <error>)',
+      )
       .replace(/mkdir: [^)]*\)/g, 'mkdir: <error>)');
 
     // a host path that slipped every mask fails loud, never lands in a snapshot
@@ -2326,7 +2430,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           const result = runHookCopy({
             hookSource: hookSourceLive,
             command: null,
-            allow: [],
+            allow: ['Bash(surfwax:*)'],
             flags: ['--help'],
             withInventory: true,
             prepare: null,
@@ -2390,7 +2494,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
             const result = runHookCopy({
               hookSource: hookSourceLive,
               command,
-              allow: [],
+              allow: ['Bash(surfwax:*)'],
               flags: [],
               withInventory: true,
               prepare: ({ tempDir }) =>
@@ -2415,7 +2519,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           const result = runHookCopy({
             hookSource: hookSourceLive,
             command: 'F=src/surfer.ts && python3 "$F"',
-            allow: [],
+            allow: ['Bash(surfwax:*)'],
             flags: [],
             withInventory: true,
             prepare: null,
@@ -2542,7 +2646,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
       {
         slug: 'malfunction: empty stdin',
         command: null,
-        allow: [],
+        allow: ['Bash(surfwax:*)'],
         flags: [],
         hookSource: hookSourceLive,
         withInventory: true,
@@ -2552,7 +2656,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
       {
         slug: 'malfunction: inventory absent',
         command: 'grep -rn x .',
-        allow: [],
+        allow: ['Bash(surfwax:*)'],
         flags: [],
         hookSource: hookSourceLive,
         withInventory: false,
@@ -2575,7 +2679,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
       {
         slug: 'malfunction: crash on the block path',
         command: 'python3 -c "print(1)"',
-        allow: [],
+        allow: ['Bash(surfwax:*)'],
         flags: [],
         hookSource: hookSourceLive.replace(
           "# the hook's own dir, for the inventory file",
@@ -2611,7 +2715,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
       {
         slug: 'malfunction: settings file unparseable',
         command: 'git status',
-        allow: [],
+        allow: ['Bash(surfwax:*)'],
         flags: [],
         hookSource: hookSourceLive,
         withInventory: true,
@@ -2774,7 +2878,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
             });
             expect(result.status).toBe(2);
             expect(result.stderr).toMatch(
-              /💥 MalfunctionError: settings file unparseable: settings\.json \(jq: /,
+              /💥 MalfunctionError: settings file unparseable: \.claude\/settings\.json \((jq: )?parse error/,
             );
             expect(result.stderr).toContain('the allowlist could not be read');
             // clamp (5.3 peer review): an unreadable allowlist is not evidence that no paved
@@ -2818,7 +2922,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
             });
             expect(result.status).toBe(2);
             expect(result.stderr).toMatch(
-              /💥 MalfunctionError: settings file unparseable: settings\.local\.json \(jq: /,
+              /💥 MalfunctionError: settings file unparseable: \.claude\/settings\.local\.json \((jq: )?error/,
             );
             expect(result.stderr).toContain(
               'no paved path known — the allowlist could not be read',
@@ -2936,7 +3040,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           const result = runHookCopy({
             hookSource: hookSourceLive,
             command: 'python3 -c "print(1)"',
-            allow: [],
+            allow: ['Bash(surfwax:*)'],
             flags: [],
             withInventory: true,
             prepare: ({ tempDir }) =>
@@ -2947,7 +3051,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           });
           expect(result.exitCode).toBe(2);
           expect(result.stderr).toMatch(
-            /💥 MalfunctionError: the nudge record could not be read \(.*permission\.nudges\.local\.json: jq: /,
+            /💥 MalfunctionError: the nudge record could not be read \(.*permission\.nudges\.local\.json: (jq: )?parse error/,
           );
           expect(result.stderr).toContain(
             'delete the file and the hook recreates it',
@@ -2967,7 +3071,9 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
         fs.writeFileSync(
           path.join(tempDir, '.claude', 'settings.json'),
-          JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+          JSON.stringify({
+            permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+          }),
         );
         const result = spawnSync('bash', [scriptPath], {
           cwd: tempDir,
@@ -3100,7 +3206,11 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
               fs.writeFileSync(
                 path.join(tempDir, '.claude', 'settings.json'),
                 JSON.stringify({
-                  permissions: { allow: [], deny: [], ask: [] },
+                  permissions: {
+                    allow: ['Bash(surfwax:*)'],
+                    deny: [],
+                    ask: [],
+                  },
                 }),
               );
               const commands = Array.from(
@@ -3169,7 +3279,9 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           fs.mkdirSync(path.join(tempDir, '.claude'), { recursive: true });
           fs.writeFileSync(
             path.join(tempDir, '.claude', 'settings.json'),
-            JSON.stringify({ permissions: { allow: [], deny: [], ask: [] } }),
+            JSON.stringify({
+              permissions: { allow: ['Bash(surfwax:*)'], deny: [], ask: [] },
+            }),
           );
           // a lock whose holder pid no longer runs (4194305 exceeds linux's pid_max limit)
           const lockDir = path.join(
@@ -3261,7 +3373,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           const result = runHookCopy({
             hookSource: hookSourceLive,
             command,
-            allow: [],
+            allow: ['Bash(surfwax:*)'],
             flags: [],
             withInventory: true,
             prepare: ({ tempDir }) => {
@@ -3295,7 +3407,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
                 'ATTEMPT_LOCK_LIVE_TRIES=10',
               ),
               command,
-              allow: [],
+              allow: ['Bash(surfwax:*)'],
               flags: [],
               withInventory: true,
               prepare: ({ tempDir }) => {
@@ -3326,7 +3438,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
             const result = runHookCopy({
               hookSource: hookSourceLive,
               command,
-              allow: [],
+              allow: ['Bash(surfwax:*)'],
               flags: [],
               withInventory: true,
               prepare: ({ tempDir }) => {
@@ -3361,7 +3473,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
                   'if [[ $nopid -ge 5 ]]; then',
                 ),
                 command,
-                allow: [],
+                allow: ['Bash(surfwax:*)'],
                 flags: [],
                 withInventory: true,
                 prepare: ({ tempDir }) => {
@@ -3396,7 +3508,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
                   'if [[ $nopid -ge 5 ]]; then',
                 ),
                 command,
-                allow: [],
+                allow: ['Bash(surfwax:*)'],
                 flags: [],
                 withInventory: true,
                 prepare: ({ tempDir }) => {
@@ -3467,7 +3579,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
             const result = runHookCopy({
               hookSource: hookSourceLive,
               command: 'python3 -c "print(1)"',
-              allow: [],
+              allow: ['Bash(surfwax:*)'],
               flags: [],
               withInventory: true,
               prepare: ({ tempDir }) => {
@@ -3493,7 +3605,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         runHookCopy({
           hookSource: hookSourceLive,
           command: 'grep -rn wave .',
-          allow: [],
+          allow: ['Bash(surfwax:*)'],
           flags: ['--mode', 'SOFTNUDGE'],
           withInventory: false,
           prepare: null,
@@ -4255,7 +4367,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
               const result = runHookCopy({
                 hookSource: hookSourceAged({ seconds: 9 }),
                 command: 'du -sh dist',
-                allow: [],
+                allow: ['Bash(surfwax:*)'],
                 flags: [],
                 withInventory: true,
                 prepare: ({ tempDir }) => {

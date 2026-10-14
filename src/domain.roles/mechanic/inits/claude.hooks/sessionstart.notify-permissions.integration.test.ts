@@ -35,14 +35,27 @@ describe('sessionstart.notify-permissions.sh', () => {
         path.join(dir, '.claude', 'settings.local.json'),
         input.settingsLocal,
       );
+    // .why = the notice reads its allowlist from $CLAUDE_CONFIG_DIR when set, and its user layer
+    //        from $HOME/.claude; a runner inside a claude actor carries the one and a real home
+    //        the other, so drop the first and pin the second, or the notice reads the host's lists
+    const { CLAUDE_CONFIG_DIR: _runnerConfigDir, ...envRunner } = process.env;
     const result = spawnSync('bash', [scriptPath], {
       cwd: dir,
+      env: { ...envRunner, HOME: '/nonexistent-home' },
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
     });
+
+    // the temp repo path changes per run, and the hook may print it resolved past the temp
+    // symlink; mask it by its slug shape so a snapshot pins only the structure
+    const asTempDirMasked = (text: string): string =>
+      text
+        .split(dir)
+        .join('<repo>')
+        .replace(/\/\S*\.sessionstart-notice\.[0-9a-f]+/g, '<repo>');
     return {
-      stdout: result.stdout ?? '',
-      stderr: result.stderr ?? '',
+      stdout: asTempDirMasked(result.stdout ?? ''),
+      stderr: asTempDirMasked(result.stderr ?? ''),
       exitCode: result.status ?? 1,
     };
   };

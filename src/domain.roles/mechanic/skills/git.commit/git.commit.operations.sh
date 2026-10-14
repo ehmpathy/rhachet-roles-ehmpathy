@@ -2395,6 +2395,11 @@ is_local_meter_readable() {
   # absence is not damage
   [[ -e "$file" ]] || return 0
 
+  # an empty file is damage. checked here, not left to jq: `jq -e` on empty
+  # input yields no result, and some jq versions still exit 0 for that, so the
+  # empty file would pass and later read as zero uses (a false constraint)
+  [[ -s "$file" ]] || return 1
+
   # the shape every reader relies on: an object, a numeric or "infinite"
   # uses, and a string push. stage is optional (readers default it to block)
   jq -e '

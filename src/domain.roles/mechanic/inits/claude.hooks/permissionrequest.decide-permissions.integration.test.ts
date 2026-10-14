@@ -19,6 +19,17 @@ describe('permissionrequest.decide-permissions.sh', () => {
   type Verdict = 'AUTO_APPROVE' | 'AUTO_DENY' | 'LIFT';
 
   /**
+   * .what = a hermetic env for every hook run in this suite
+   * .why = the hook reads $CLAUDE_CONFIG_DIR and $HOME/.claude; inherited from the
+   *        runner, they would leak the runner's real allow + deny sets into every verdict
+   */
+  const { CLAUDE_CONFIG_DIR: _runnerConfigDir, ...envRunnerRest } = process.env;
+  const HOOK_ENV: NodeJS.ProcessEnv = {
+    ...envRunnerRest,
+    HOME: genTempDir({ slug: 'decide-permissions-home' }),
+  };
+
+  /**
    * .what = seed a representative Bash allow + deny set into a temp .claude/settings.json,
    *         a mirror of the real repo's curated patterns.
    * .why = the seam reads the SAME allow + deny sets gate 2 reads. the ALLOW set judges a
@@ -99,6 +110,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
       cwd: tempDir,
       input: stdinJson,
       stdio: ['pipe', 'pipe', 'pipe'],
+      env: HOOK_ENV,
     });
 
     const stdout = result.stdout ?? '';
@@ -517,6 +529,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
           encoding: 'utf-8',
           input: stdinJson,
           stdio: ['pipe', 'pipe', 'pipe'],
+          env: HOOK_ENV,
         });
         expect(result.stdout?.trim() ?? '').toBe('');
         expect(result.status).toBe(0);
@@ -533,6 +546,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
             encoding: 'utf-8',
             input: 'this is not json {{{ &&& rhx foo',
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: HOOK_ENV,
           });
           expect(result.stdout?.trim() ?? '').toBe('');
           expect(result.status).toBe(0);
@@ -551,6 +565,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
             encoding: 'utf-8',
             input: 'this is not json {{{ &&& rhx foo',
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: HOOK_ENV,
           });
           expect(result.stdout ?? '').toMatchSnapshot();
         },
@@ -642,6 +657,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
           tool_input: { command },
         }),
         stdio: ['pipe', 'pipe', 'pipe'],
+        env: HOOK_ENV,
       });
 
       const logPath = path.join(
@@ -1212,6 +1228,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
           tool_input: { command: input.command },
         }),
         stdio: ['pipe', 'pipe', 'pipe'],
+        env: HOOK_ENV,
       });
       return {
         stdout: result.stdout ?? '',
@@ -1279,7 +1296,10 @@ describe('permissionrequest.decide-permissions.sh', () => {
           // the deterministic wording ("audit write failed: … Is a directory") without a
           // flaky, machine-specific path (contract-snapshot-exhaustiveness + determinism +
           // hermetic-tests: a raw /home/... or /tmp/... path would break in CI).
+          // the seed holds no allow, so the "no allowlist found" warn names each settings
+          // path sought; mask those too (any settings*.json, every layer)
           const masked = result.stderr
+            .replace(/\/\S+\/settings(?:\.\w+)*\.json/g, '<SETTINGS>')
             .replace(/\/\S+\.sh/g, '<HOOK>')
             .replace(/line \d+/g, 'line <N>')
             .replace(/\/\S+permission\.decisions\.local\.log/g, '<LOGPATH>');
@@ -1312,6 +1332,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
           tool_input: { command },
         }),
         stdio: ['pipe', 'pipe', 'pipe'],
+        env: HOOK_ENV,
       });
       return { stdout: result.stdout ?? '', stderr: result.stderr ?? '' };
     };
@@ -1418,8 +1439,8 @@ describe('permissionrequest.decide-permissions.sh', () => {
 
     when('[t5] the settings json is malformed (allow-list degrades)', () => {
       then('stderr warns the list degraded, path-masked snapshot', () => {
-        // seed a MALFORMED settings.json so extract_bash_patterns' jq parse fails and the
-        // seam emits its degrade WARNING (line 304) — a user-faced stderr variant. the line
+        // seed a MALFORMED settings.json so the layer read (permissions.layers.operations.sh)
+        // records a jq fault and the seam emits its degrade WARNING — a user-faced stderr variant. the line
         // carries the volatile temp settings path, so mask it before the snapshot to pin
         // the deterministic message shape without a flaky path (determinism-declared).
         const tempDir = genTempDir({ slug: 'decide-degrade-warn' });
@@ -1438,6 +1459,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
             tool_input: { command: 'rhx foo --bar baz' },
           }),
           stdio: ['pipe', 'pipe', 'pipe'],
+          env: HOOK_ENV,
         });
         const stderr = result.stderr ?? '';
         expect(stderr).toContain('could not parse');
@@ -1452,8 +1474,10 @@ describe('permissionrequest.decide-permissions.sh', () => {
         // .note = the mask anchors on OUR prefix (`list degraded:`), never on jq's prose.
         //         jq 1.6 prints `jq: parse error: …` and later builds drop the `jq: ` — a mask
         //         keyed to the vendor's words silently stops to mask when the words move.
+        // .note = the path mask covers every settings file of every layer (the "no allowlist
+        //         found" warn names them all: settings.json, settings.local.json, settings.of.repo.json)
         const masked = stderr
-          .replace(/\/\S+settings\.json/g, '<SETTINGS>')
+          .replace(/\/\S+\/settings(?:\.\w+)*\.json/g, '<SETTINGS>')
           .replace(/(list degraded:) .*/g, '$1 <JQ_CAUSE>');
         // the mask fired: an unfired mask still yields a self-consistent snap
         expect(masked).toContain('<JQ_CAUSE>');
@@ -1512,6 +1536,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
             encoding: 'utf-8',
             cwd: tempDir,
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: HOOK_ENV,
           });
           const stdout = result.stdout ?? '';
           const marker = '🐚 auto-decided permission prompts';
@@ -1549,6 +1574,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
             encoding: 'utf-8',
             cwd: tempDir,
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: HOOK_ENV,
           });
           const stdout = result.stdout ?? '';
           const marker = '🐚 auto-decided permission prompts';
@@ -1647,6 +1673,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
           encoding: 'utf-8',
           input: stdinJson,
           stdio: ['pipe', 'pipe', 'pipe'],
+          env: HOOK_ENV,
           timeout: configuredTimeoutMs + 5000, // room to observe an overrun, not an OS kill
         });
         return {
@@ -1768,25 +1795,25 @@ describe('permissionrequest.decide-permissions.sh', () => {
   given(
     '[case14] the settings.json + settings.local.json allow-sets are merged',
     () => {
-      // seed BOTH files; the grant for `mytool` lives ONLY in settings.local.json,
-      // so an approve of `mytool foo` PROVES load_patterns unions the two files.
+      // seed BOTH files; the grant for `wavetool` lives ONLY in settings.local.json,
+      // so an approve of `wavetool foo` PROVES load_patterns unions the two files.
       // (the real repo relies on this: `Bash(./node_modules/.bin/rhachet roles:*)`
       // is granted only in the gitignored settings.local.json.)
-      const seedBoth = (
-        claudeDir: string,
-        opts: { withLocal: boolean },
-      ): void => {
+      const seedBoth = (input: {
+        claudeDir: string;
+        withLocal: boolean;
+      }): void => {
         fs.writeFileSync(
-          path.join(claudeDir, 'settings.json'),
+          path.join(input.claudeDir, 'settings.json'),
           JSON.stringify({
             permissions: { allow: ['Bash(rhx:*)', 'Bash(tail:*)'], deny: [] },
           }),
         );
-        if (opts.withLocal)
+        if (input.withLocal)
           fs.writeFileSync(
-            path.join(claudeDir, 'settings.local.json'),
+            path.join(input.claudeDir, 'settings.local.json'),
             JSON.stringify({
-              permissions: { allow: ['Bash(mytool:*)'], deny: [] },
+              permissions: { allow: ['Bash(wavetool:*)'], deny: [] },
             }),
           );
       };
@@ -1794,7 +1821,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
         const tempDir = genTempDir({ slug: 'decide-two-file-union' });
         const claudeDir = path.join(tempDir, '.claude');
         fs.mkdirSync(claudeDir, { recursive: true });
-        seedBoth(claudeDir, { withLocal: opts.withLocal });
+        seedBoth({ claudeDir, withLocal: opts.withLocal });
         const result = spawnSync('bash', [scriptPath], {
           encoding: 'utf-8',
           cwd: tempDir,
@@ -1804,13 +1831,14 @@ describe('permissionrequest.decide-permissions.sh', () => {
             tool_input: { command: opts.command },
           }),
           stdio: ['pipe', 'pipe', 'pipe'],
+          env: HOOK_ENV,
         });
         return (result.stdout ?? '').trim();
       };
 
       when('[t0] a grant lives ONLY in settings.local.json', () => {
         then('the local-only grant is honored -> AUTO_APPROVE', () => {
-          const stdout = runIn({ withLocal: true, command: 'mytool foo' });
+          const stdout = runIn({ withLocal: true, command: 'wavetool foo' });
           const parsed = JSON.parse(stdout);
           expect(parsed?.hookSpecificOutput?.decision?.behavior).toBe('allow');
         });
@@ -1820,7 +1848,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
         then(
           'the grant is absent -> LIFT (so the t0 approve proves the merge)',
           () => {
-            const stdout = runIn({ withLocal: false, command: 'mytool foo' });
+            const stdout = runIn({ withLocal: false, command: 'wavetool foo' });
             expect(stdout).toBe('');
           },
         );
@@ -1852,6 +1880,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
               tool_input: { command: 'npm run build | tail -3' },
             }),
             stdio: ['pipe', 'pipe', 'pipe'],
+            env: HOOK_ENV,
           });
           // fail-safe: no grant survives the parse failure -> the compound LIFTS
           expect((result.stdout ?? '').trim()).toBe('');
@@ -1896,6 +1925,7 @@ describe('permissionrequest.decide-permissions.sh', () => {
           tool_input: { command: input.command },
         }),
         stdio: ['pipe', 'pipe', 'pipe'],
+        env: HOOK_ENV,
       });
       return { stdout: result.stdout ?? '', stderr: result.stderr ?? '' };
     };

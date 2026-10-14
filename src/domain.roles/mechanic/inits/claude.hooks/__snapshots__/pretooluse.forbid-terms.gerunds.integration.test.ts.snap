@@ -60,7 +60,7 @@ if this is intentional and absolutely unavoidable (e.g., library API requirement
 exports[`pretooluse.forbid-terms.gerunds.sh given: [case12] the allowlist file is absent entirely when: [t1] the allowlist is present but MALFORMED then: the WHOLE degraded refusal is snapshotted 1`] = `
 "💥 MalfunctionError: the gerunds allowlist could not be parsed; no word is allowed
     config: <sandbox>
-    why:    jq: parse error: Expected another array element at line 1, column 26
+    why:    jq: parse error: <cause>
     effect: every -ing word blocks, the allowlisted ones too
     fix:    repair the json in terms.gerunds.allowlist.jsonc
 
@@ -100,7 +100,7 @@ if this is intentional and absolutely unavoidable (e.g., library API requirement
 exports[`pretooluse.forbid-terms.gerunds.sh given: [case17] the nudge STATE FILE is unparseable json when: [t0] a write trips an -ing word then: the WHOLE stderr reads as a human would meet it 1`] = `
 "💥 MalfunctionError: HARDNUDGE record NOT saved — could not update the nudge file
     file:   <nudge-file>
-    why:    the nudge record is unreadable (jq: parse error: Unfinished JSON term at EOF at line 1, column 12)
+    why:    the nudge record is unreadable (jq: parse error: <cause>)
     effect: a deliberate retry will RE-BLOCK instead of pass
     fix:    rm '<nudge-file>'  — it is a local cache and regenerates
 

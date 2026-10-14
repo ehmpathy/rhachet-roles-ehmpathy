@@ -56,6 +56,17 @@ describe('permissions.get.sh', () => {
   };
 
   /**
+   * .what = the runner's env without $CLAUDE_CONFIG_DIR, with $HOME pinned to an absent dir
+   * .why = the skill and the hook it calls read the allowlist of $CLAUDE_CONFIG_DIR when set,
+   *        and the user layer of $HOME/.claude; a runner inside a claude actor carries the one
+   *        and a real home the other, so each case would judge against the host's lists
+   */
+  const asEnvHermetic = (): NodeJS.ProcessEnv => {
+    const { CLAUDE_CONFIG_DIR: _runnerConfigDir, ...envRest } = process.env;
+    return { ...envRest, HOME: '/nonexistent-home' };
+  };
+
+  /**
    * .what = run the skill in a repo
    */
   const runSkill = (input: {
@@ -64,6 +75,7 @@ describe('permissions.get.sh', () => {
   }): { stdout: string; stderr: string; exitCode: number } => {
     const result = spawnSync('bash', [scriptPath, ...input.args], {
       cwd: input.dir,
+      env: asEnvHermetic(),
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
     });
@@ -426,6 +438,7 @@ describe('permissions.get.sh', () => {
         );
       const result = spawnSync('bash', [skillCopy, ...input.args], {
         cwd: input.repoDir,
+        env: asEnvHermetic(),
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'pipe'],
       });
@@ -632,7 +645,11 @@ describe('permissions.get.sh', () => {
         const result = spawnSync(
           'bash',
           ['-c', `exec bash "${scriptPath}" --surf 1>&- 2>&-`],
-          { cwd: repo.dir, stdio: ['pipe', 'pipe', 'pipe'] },
+          {
+            cwd: repo.dir,
+            env: asEnvHermetic(),
+            stdio: ['pipe', 'pipe', 'pipe'],
+          },
         );
         expect(result.status).toBe(2);
       });

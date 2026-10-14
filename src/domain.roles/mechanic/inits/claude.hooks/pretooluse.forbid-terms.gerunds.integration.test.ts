@@ -27,6 +27,15 @@ import { runHookIn } from './runHookIn';
  * .note = the fixtures below are the words the hook must flag, so this file
  *         necessarily holds terms both hooks forbid. that is test data, not prose.
  */
+
+/**
+ * .what = mask jq's parse cause to one form
+ * .why = jq 1.6/1.7 lead the cause with `jq: `, later builds drop it, and the
+ *        position text varies by build; a snapshot must not pin the host's jq
+ */
+const asJqCauseMasked = (text: string): string =>
+  text.replace(/(?:jq: )?parse error: [^)\n]*/g, 'jq: parse error: <cause>');
+
 describe('pretooluse.forbid-terms.gerunds.sh', () => {
   const hookPath = path.join(__dirname, 'pretooluse.forbid-terms.gerunds.sh');
 
@@ -696,7 +705,9 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
         // its own pin.
         // .note = the config line names the sandbox's temp path, so it is masked
         expect(
-          result.stderr.replace(/config: .*\n/, 'config: <sandbox>\n'),
+          asJqCauseMasked(
+            result.stderr.replace(/config: .*\n/, 'config: <sandbox>\n'),
+          ),
         ).toMatchSnapshot();
       });
     });
@@ -992,9 +1003,11 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
         //            and the hook derives NUDGE_FILE from an already-resolved
         //            `$PWD`, so the two never match. see the blocklist twin.
         expect(
-          outcome.stderr.replace(
-            /\/\S*terms\.gerunds\.nudges\.local\.json/g,
-            '<nudge-file>',
+          asJqCauseMasked(
+            outcome.stderr.replace(
+              /\/\S*terms\.gerunds\.nudges\.local\.json/g,
+              '<nudge-file>',
+            ),
           ),
         ).toMatchSnapshot();
       });
@@ -1032,8 +1045,9 @@ describe('pretooluse.forbid-terms.gerunds.sh', () => {
       });
 
       then('stderr names the class and the parse cause', () => {
-        expect(result.stderr).toContain(
-          '💥 MalfunctionError: PreToolUse payload is not valid json (jq: parse error',
+        // jq 1.6/1.7 lead the cause with `jq: `; later builds drop it
+        expect(result.stderr).toMatch(
+          /💥 MalfunctionError: PreToolUse payload is not valid json \((jq: )?parse error/,
         );
         expect(result.stderr).toContain('the write stays blocked');
       });
