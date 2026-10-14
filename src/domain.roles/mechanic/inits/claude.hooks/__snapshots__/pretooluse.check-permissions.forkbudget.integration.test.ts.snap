@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse.check-permissions.sh · fork budget given: [case1] a hash actor on the split layout, both layers extant when: [t0] the clone runs an allowlisted command then: the exec tally by tool matches snapshot 1`] = `
+{
+  "cat": 1,
+  "jq": 3,
+  "sort": 1,
+}
+`;
+
+exports[`pretooluse.check-permissions.sh · fork budget given: [case2] a hash actor on the old layout, its four other layers extant when: [t0] the clone runs an allowlisted command then: the exec tally by tool matches snapshot 1`] = `
+{
+  "cat": 1,
+  "jq": 5,
+  "sort": 1,
+}
+`;

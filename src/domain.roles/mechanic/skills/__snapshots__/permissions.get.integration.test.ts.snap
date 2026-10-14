@@ -246,7 +246,7 @@ exports[`permissions.get.sh given: [case3] edges when: [t9] the repo has no .cla
 "🐢 heres the wave...
 
 🐚 permissions.get --for 'grep -rn reef src/'
-   └─ verdict: no .claude/ dir found from <repo> upward — no allowlist applies here
+   └─ verdict: no .claude/ dir found from <repo> upward, and $CLAUDE_CONFIG_DIR is unset — no allowlist applies here
 
 "
 `;

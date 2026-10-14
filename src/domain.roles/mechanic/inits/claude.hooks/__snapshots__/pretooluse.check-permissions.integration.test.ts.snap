@@ -475,7 +475,8 @@ exports[`pretooluse.check-permissions.sh given: [case40] every caller-faced rend
 exports[`pretooluse.check-permissions.sh given: [case40] every caller-faced render, snapped when: [t15] malfunction: settings file unparseable then: the render matches snapshot 1`] = `
 "
 ✋ ConstraintError: this command is not paved
-   ├─ 💥 MalfunctionError: settings file unparseable: settings.json (jq: <error>) — the allowlist could not be read, so every command blocks and no candidate can be ranked; repair the json in .claude/
+   ├─ 💥 MalfunctionError: settings file unparseable: .claude/settings.json (jq: <error>) — its allows do not count, so the commands it paves block and no candidate from it can be ranked; repair the json in that file
+   ├─ 💥 MalfunctionError: no pre-approved bash permissions were found; looked in: <repo>/.claude/settings.of.repo.json: absent; <repo>/.claude/settings.local.json: absent; /nonexistent-home/.claude/settings.json: absent; <repo>/.claude/settings.json: unreadable — fix: to write the repo's allowlist, ask your human to run rhx init at the repo root, in their own shell
    │
    ├─ blocked: git status
    └─ no paved path known — the allowlist could not be read (see above)
@@ -589,7 +590,7 @@ exports[`pretooluse.check-permissions.sh given: [case45] a nudge record or paylo
    ├─ 2. a need that recurs deserves a paved rhx skill — pave it
    └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
 
-💥 MalfunctionError: the nudge record could not be read (<repo>/.claude/permission.nudges.local.json: jq: <error>) — the block still holds, but a retry will block again rather than reach the human; delete the file and the hook recreates it
+💥 MalfunctionError: the nudge record could not be read (<repo>/.claude/permission.nudges.local.json: jq: <error>) — the block still holds, but a retry will block again rather than reach the human; make <repo>/.claude a writable dir, or delete the file and the hook recreates it
 
 "
 `;
@@ -618,7 +619,7 @@ exports[`pretooluse.check-permissions.sh given: [case49] the record lock fails c
    ├─ 2. a need that recurs deserves a paved rhx skill — pave it
    └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
 
-💥 MalfunctionError: the nudge record lock could not be made (<repo>/.claude/permission.nudges.local.json.lock: mkdir: <error>) — the block still holds, but a retry will block again rather than reach the human; delete the file and the hook recreates it
+💥 MalfunctionError: the nudge record lock could not be made (<repo>/.claude/permission.nudges.local.json.lock: mkdir: <error>) — the block still holds, but a retry will block again rather than reach the human; make <repo>/.claude a writable dir, or delete the file and the hook recreates it
 
 "
 `;
@@ -640,7 +641,7 @@ exports[`pretooluse.check-permissions.sh given: [case49] the record lock fails c
    ├─ 2. a need that recurs deserves a paved rhx skill — pave it
    └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
 
-💥 MalfunctionError: the nudge record lock stayed held past the wait by a live process (<repo>/.claude/permission.nudges.local.json.lock) — the block still holds, but a retry will block again rather than reach the human; delete the file and the hook recreates it
+💥 MalfunctionError: the nudge record lock stayed held past the wait by a live process (<repo>/.claude/permission.nudges.local.json.lock) — the block still holds, but a retry will block again rather than reach the human; make <repo>/.claude a writable dir, or delete the file and the hook recreates it
 
 "
 `;
@@ -710,7 +711,7 @@ exports[`pretooluse.check-permissions.sh given: [case49] the record lock fails c
    ├─ 2. a need that recurs deserves a paved rhx skill — pave it
    └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
 
-💥 MalfunctionError: the nudge record lock could not be taken over (<repo>/.claude/permission.nudges.local.json.lock: rmdir: failed to remove '<repo>/.claude/permission.nudges.local.json.lock': Directory not empty) — the block still holds, but a retry will block again rather than reach the human; delete the file and the hook recreates it
+💥 MalfunctionError: the nudge record lock could not be taken over (<repo>/.claude/permission.nudges.local.json.lock: rmdir: failed to remove '<repo>/.claude/permission.nudges.local.json.lock': Directory not empty) — the block still holds, but a retry will block again rather than reach the human; make <repo>/.claude a writable dir, or delete the file and the hook recreates it
 
 "
 `;
@@ -732,7 +733,7 @@ exports[`pretooluse.check-permissions.sh given: [case50] failures the record cre
    ├─ 2. a need that recurs deserves a paved rhx skill — pave it
    └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
 
-💥 MalfunctionError: the nudge record could not be created (<repo>/.claude/permission.nudges.local.json: <repo>/pretooluse.check-permissions.sh: line <n>: <repo>/.claude/permission.nudges.local.json: Permission denied) — the block still holds, but a retry will block again rather than reach the human; delete the file and the hook recreates it
+💥 MalfunctionError: the nudge record could not be created (<repo>/.claude/permission.nudges.local.json: <repo>/pretooluse.check-permissions.sh: line <n>: <repo>/.claude/permission.nudges.local.json: Permission denied) — the block still holds, but a retry will block again rather than reach the human; make <repo>/.claude a writable dir, or delete the file and the hook recreates it
 
 "
 `;

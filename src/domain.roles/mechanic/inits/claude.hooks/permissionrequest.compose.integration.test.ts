@@ -117,9 +117,15 @@ describe('permissionrequest — composed control stack', () => {
         },
       }),
     );
+    // scrub $CLAUDE_CONFIG_DIR and point $HOME at the throwaway dir: the decider reads its
+    // layers from both and writes its audit line to the config dir, so an inherited value
+    // would read the runner's real allowlist and append to the runner's real audit log
+    const { CLAUDE_CONFIG_DIR: _runnerConfigDir, ...envRunnerRest } =
+      process.env;
     const decider = spawnSync('bash', [DECIDER], {
       encoding: 'utf-8',
       cwd: auditCwd,
+      env: { ...envRunnerRest, HOME: auditCwd },
       input: JSON.stringify({
         tool_name: 'Bash',
         hook_event_name: 'PermissionRequest',

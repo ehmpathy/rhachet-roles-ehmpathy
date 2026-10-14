@@ -91,7 +91,7 @@ if this is intentional and absolutely unavoidable, retry the same operation.
 
 exports[`pretooluse.forbid-terms.blocklist.sh given: [case16] the blocklist file is MALFORMED json when: [t0] a write that would trip every real term runs then: the WHOLE refusal is snapshotted 1`] = `
 "
-💥 MalfunctionError: the blocklist config could not be parsed (jq: parse error: Expected another key-value pair at line 1, column 39)
+💥 MalfunctionError: the blocklist config could not be parsed (jq: parse error: <cause>)
 
 config: <sandbox>
 file:   notes.md
@@ -126,7 +126,7 @@ if this is intentional and absolutely unavoidable, retry the same operation.
 exports[`pretooluse.forbid-terms.blocklist.sh given: [case21] the nudge STATE FILE is unparseable json when: [t0] a write trips a term then: the WHOLE stderr reads as a human would meet it 1`] = `
 "💥 MalfunctionError: HARDNUDGE record NOT saved — could not update the nudge file
     file:   <nudge-file>
-    why:    the nudge record is unreadable (jq: parse error: Unfinished JSON term at EOF at line 1, column 12)
+    why:    the nudge record is unreadable (jq: parse error: <cause>)
     effect: a deliberate retry will RE-BLOCK instead of pass
     fix:    rm '<nudge-file>'  — it is a local cache and regenerates
 

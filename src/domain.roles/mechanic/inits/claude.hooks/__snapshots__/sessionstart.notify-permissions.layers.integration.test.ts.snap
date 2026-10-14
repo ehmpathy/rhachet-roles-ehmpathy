@@ -1,0 +1,194 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`sessionstart.notify-permissions.sh layers given: [case12] the boot list reads the layered allow set when: [t0] split, walk; settings.of.repo.json allows rhx git.repo.test, home allows ls then: stdout matches snapshot 1`] = `
+"
+🐢 shell yeah, your guardrails are set 🌊
+
+🐚 pre-approved bash permissions
+   ├─ 2 commands pre-approved, across 2 heads — no permission prompt for any of them
+   ├─ heads
+   │  ├─ ls (1)
+   │  └─ rhx (1)
+   ├─ see them all, on demand
+   │  ├─ rhx permissions.get                     every pre-approved command, grouped by head
+   │  ├─ rhx permissions.get --head <head>       one head: pre-approved + paved alternatives
+   │  └─ rhx permissions.get --for '<command>'   one command: verdict + every candidate, ranked
+   │
+   └─ a bash command NOT pre-approved blocks and asks you to reconsider — check first, to minimize interruptions
+
+🐚 auto-decided permission prompts (PermissionRequest hook)
+   │
+   │  suspicious-classified prompts are auto-decided in-hook, per-segment:
+   │
+   ├─ a single clean-rhx-or-allowlisted call, not deny-listed -> auto-approved
+   ├─ an all-safe-segments compound (| && || ;), no segment
+   │  deny-listed: each producer is clean-rhx-or-allowlisted,
+   │  each pipe sink is clean-rhx or a read-only reader
+   │  (jq/tail/head/wc/cat)                                   -> auto-approved
+   ├─ a background (&) or newline-joined command              -> auto-denied
+   ├─ an unquoted chain with an un-vetted segment             -> auto-denied
+   ├─ a deny-listed segment (piped/standalone)                -> lifted
+   ├─ a deny-listed segment (chained)                         -> auto-denied
+   └─ an otherwise-unprovable segment                         -> lifted to the human
+
+🐚 every auto allow/deny is recorded to a G3 audit trail
+   └─ to review why a command was auto-decided (verdict + reason + command):
+         jq . .claude/permission.decisions.local.log
+
+"
+`;
+
+exports[`sessionstart.notify-permissions.sh layers given: [case12] the boot list reads the layered allow set when: [t1] ccd, split; the actor allows wavetool; the walk-up settings.of.repo.json allows foreigntide then: stdout matches snapshot: the config dir variant 1`] = `
+"
+🐢 shell yeah, your guardrails are set 🌊
+
+🐚 pre-approved bash permissions
+   ├─ 1 command pre-approved, across 1 head — no permission prompt for any of them
+   ├─ heads
+   │  └─ wavetool (1)
+   ├─ see them all, on demand
+   │  ├─ rhx permissions.get                     every pre-approved command, grouped by head
+   │  ├─ rhx permissions.get --head <head>       one head: pre-approved + paved alternatives
+   │  └─ rhx permissions.get --for '<command>'   one command: verdict + every candidate, ranked
+   │
+   └─ a bash command NOT pre-approved blocks and asks you to reconsider — check first, to minimize interruptions
+
+🐚 auto-decided permission prompts (PermissionRequest hook)
+   │
+   │  suspicious-classified prompts are auto-decided in-hook, per-segment:
+   │
+   ├─ a single clean-rhx-or-allowlisted call, not deny-listed -> auto-approved
+   ├─ an all-safe-segments compound (| && || ;), no segment
+   │  deny-listed: each producer is clean-rhx-or-allowlisted,
+   │  each pipe sink is clean-rhx or a read-only reader
+   │  (jq/tail/head/wc/cat)                                   -> auto-approved
+   ├─ a background (&) or newline-joined command              -> auto-denied
+   ├─ an unquoted chain with an un-vetted segment             -> auto-denied
+   ├─ a deny-listed segment (piped/standalone)                -> lifted
+   ├─ a deny-listed segment (chained)                         -> auto-denied
+   └─ an otherwise-unprovable segment                         -> lifted to the human
+
+🐚 every auto allow/deny is recorded to a G3 audit trail
+   └─ to review why a command was auto-decided (verdict + reason + command):
+         jq . <tmp>/actor/.claude/permission.decisions.local.log
+
+"
+`;
+
+exports[`sessionstart.notify-permissions.sh layers given: [case12] the boot list reads the layered allow set when: [t2] no layer holds a Bash allow then: stdout matches snapshot 1`] = `
+"
+🐢 bummer dude, no guardrails found 🌊
+
+🐚 no pre-approved bash permissions were found
+   │
+   ├─ the hook looked in:
+   │  ├─ <tmp>/.claude/settings.of.repo.json: absent
+   │  ├─ <tmp>/.claude/settings.local.json: absent
+   │  ├─ <tmp>/home/.claude/settings.json: absent
+   │  └─ <tmp>/.claude/settings.json: absent
+   │
+   ├─ if this clone should have pre-approved permissions,
+   │  check that these files exist and hold valid json.
+   └─ fix: to write the repo's allowlist, ask your human to run rhx init at the repo root, in their own shell, then restart the session.
+
+"
+`;
+
+exports[`sessionstart.notify-permissions.sh layers given: [case12] the boot list reads the layered allow set when: [t3] $CLAUDE_CONFIG_DIR unset; no .claude anywhere above $PWD then: stdout matches snapshot: the silent variant 1`] = `""`;
+
+exports[`sessionstart.notify-permissions.sh layers given: [case12] the boot list reads the layered allow set when: [t4] the user settings.json is invalid json; settings.of.repo.json allows ls then: stdout matches snapshot: the corrupt layer variant 1`] = `
+"
+🐢 heads up dude, your guardrails are set, but only in part 🌊
+
+🐚 pre-approved bash permissions
+   ├─ 💥 MalfunctionError: home/.claude/settings.json is not valid json (<jq error>) — its commands are not pre-approved until it is repaired; repair the json in each file named
+   ├─ 1 command pre-approved, across 1 head — no permission prompt for any of them
+   ├─ heads
+   │  └─ ls (1)
+   ├─ see them all, on demand
+   │  ├─ rhx permissions.get                     every pre-approved command, grouped by head
+   │  ├─ rhx permissions.get --head <head>       one head: pre-approved + paved alternatives
+   │  └─ rhx permissions.get --for '<command>'   one command: verdict + every candidate, ranked
+   │
+   └─ a bash command NOT pre-approved blocks and asks you to reconsider — check first, to minimize interruptions
+
+🐚 auto-decided permission prompts (PermissionRequest hook)
+   │
+   │  suspicious-classified prompts are auto-decided in-hook, per-segment:
+   │
+   ├─ a single clean-rhx-or-allowlisted call, not deny-listed -> auto-approved
+   ├─ an all-safe-segments compound (| && || ;), no segment
+   │  deny-listed: each producer is clean-rhx-or-allowlisted,
+   │  each pipe sink is clean-rhx or a read-only reader
+   │  (jq/tail/head/wc/cat)                                   -> auto-approved
+   ├─ a background (&) or newline-joined command              -> auto-denied
+   ├─ an unquoted chain with an un-vetted segment             -> auto-denied
+   ├─ a deny-listed segment (piped/standalone)                -> lifted
+   ├─ a deny-listed segment (chained)                         -> auto-denied
+   └─ an otherwise-unprovable segment                         -> lifted to the human
+
+🐚 every auto allow/deny is recorded to a G3 audit trail
+   └─ to review why a command was auto-decided (verdict + reason + command):
+         jq . .claude/permission.decisions.local.log
+
+"
+`;
+
+exports[`sessionstart.notify-permissions.sh layers given: [case12] the boot list reads the layered allow set when: [t5] settings.of.repo.json is invalid json and the only source then: stdout matches snapshot: the corrupt-only variant 1`] = `
+"
+🐢 bummer dude, no guardrails found 🌊
+
+🐚 no pre-approved bash permissions were found
+   │
+   ├─ 💥 MalfunctionError: .claude/settings.of.repo.json is not valid json (<jq error>) — repair the json in each file named
+   ├─ the hook looked in:
+   │  ├─ <tmp>/.claude/settings.of.repo.json: unreadable
+   │  └─ <tmp>/home/.claude/settings.json: absent
+   │
+   ├─ if this clone should have pre-approved permissions,
+   │  check that these files exist and hold valid json.
+   └─ fix: to write the repo's allowlist, ask your human to run rhx init at the repo root, in their own shell, then restart the session.
+
+"
+`;
+
+exports[`sessionstart.notify-permissions.sh layers given: [case12] the boot list reads the layered allow set when: [t6] ccd, split; the actor dir holds no settings.of.repo.json; its user settings.json allows ls then: stdout matches snapshot: the absent actor file variant 1`] = `
+"
+🐢 heads up dude, your guardrails are set, but only in part 🌊
+
+🐚 note: <tmp>/actor/.claude/settings.of.repo.json is absent
+   ├─ though this repo's layout keeps its allows there, so this list lacks them
+   └─ fix: this clone reads its actor allowlist from <tmp>/actor/.claude/settings.of.repo.json, which rhx enroll derives; re-enroll this clone (rhx enroll <brain> --roles <roles>), or ask your human to run rhx init at the repo root, then restart the session.
+
+🐚 pre-approved bash permissions
+   ├─ 1 command pre-approved, across 1 head — no permission prompt for any of them
+   ├─ heads
+   │  └─ ls (1)
+   ├─ see them all, on demand
+   │  ├─ rhx permissions.get                     every pre-approved command, grouped by head
+   │  ├─ rhx permissions.get --head <head>       one head: pre-approved + paved alternatives
+   │  └─ rhx permissions.get --for '<command>'   one command: verdict + every candidate, ranked
+   │
+   └─ a bash command NOT pre-approved blocks and asks you to reconsider — check first, to minimize interruptions
+
+🐚 auto-decided permission prompts (PermissionRequest hook)
+   │
+   │  suspicious-classified prompts are auto-decided in-hook, per-segment:
+   │
+   ├─ a single clean-rhx-or-allowlisted call, not deny-listed -> auto-approved
+   ├─ an all-safe-segments compound (| && || ;), no segment
+   │  deny-listed: each producer is clean-rhx-or-allowlisted,
+   │  each pipe sink is clean-rhx or a read-only reader
+   │  (jq/tail/head/wc/cat)                                   -> auto-approved
+   ├─ a background (&) or newline-joined command              -> auto-denied
+   ├─ an unquoted chain with an un-vetted segment             -> auto-denied
+   ├─ a deny-listed segment (piped/standalone)                -> lifted
+   ├─ a deny-listed segment (chained)                         -> auto-denied
+   └─ an otherwise-unprovable segment                         -> lifted to the human
+
+🐚 every auto allow/deny is recorded to a G3 audit trail
+   └─ to review why a command was auto-decided (verdict + reason + command):
+         jq . <tmp>/actor/.claude/permission.decisions.local.log
+
+"
+`;

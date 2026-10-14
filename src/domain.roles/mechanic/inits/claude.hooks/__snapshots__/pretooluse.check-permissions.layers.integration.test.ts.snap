@@ -1,0 +1,384 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`pretooluse.check-permissions.sh layers given: [case4] CLAUDE_CONFIG_DIR names a dir with no settings file; allows in the project settings.json when: [t2] CLAUDE_CONFIG_DIR names a dir that does not exist; an unlisted command then: stderr matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ judged by the allowlist of config dir <tmp>/absent/.claude
+   │
+   ├─ blocked: wavetool --unlisted
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'wavetool --unlisted'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+💥 MalfunctionError: the nudge record could not be created (<tmp>/absent/.claude/permission.nudges.local.json: <os error>) — the block still holds, but a retry will block again rather than reach the human; make <tmp>/absent/.claude a writable dir, or delete the file and the hook recreates it
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case5] a hash actor, and a command listed only in the repo actor settings.of.repo.json when: [t0] the clone runs that command then: stderr matches snapshot: the config dir variant 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ judged by the allowlist of config dir <tmp>/actor/.claude
+   │
+   ├─ blocked: npm run build
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'npm run build'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case6] an unlisted command still blocks when: [t0] split layout, repo actor then: stderr matches snapshot: the walk-up variant 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: wavetool --go
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'wavetool --go'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case6] an unlisted command still blocks when: [t1] a hash actor then: stderr matches snapshot: the config dir variant 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ judged by the allowlist of config dir <tmp>/actor/.claude
+   │
+   ├─ blocked: wavetool --go
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'wavetool --go'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case7] no allowlist found in any layer when: [t0] CLAUDE_CONFIG_DIR unset, an empty <tmp>/.claude then: stderr matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ 💥 MalfunctionError: no pre-approved bash permissions were found; looked in: <tmp>/.claude/settings.of.repo.json: absent; <tmp>/.claude/settings.local.json: absent; <tmp>/home/.claude/settings.json: absent; <tmp>/.claude/settings.json: absent — fix: to write the repo's allowlist, ask your human to run rhx init at the repo root, in their own shell
+   │
+   ├─ blocked: pwd
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'pwd'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case7] no allowlist found in any layer when: [t1] CLAUDE_CONFIG_DIR set; neither the config dir nor the walk-up dir holds an allow then: stderr matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ judged by the allowlist of config dir <tmp>/actor/.claude
+   ├─ 💥 MalfunctionError: no pre-approved bash permissions were found; looked in: <tmp>/actor/.claude/settings.of.repo.json: 0 Bash allow rules; <tmp>/actor/.claude/settings.json: absent — fix: this clone reads its actor allowlist from <tmp>/actor/.claude/settings.of.repo.json, which rhx enroll derives; re-enroll this clone (rhx enroll <brain> --roles <roles>), or ask your human to run rhx init at the repo root
+   │
+   ├─ blocked: pwd
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'pwd'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case9] old layout, an unlisted command when: [t0] CLAUDE_CONFIG_DIR unset then: stderr matches snapshot: the old layout variant 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: wavetool
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'wavetool'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case9] old layout, an unlisted command when: [t1] CLAUDE_CONFIG_DIR set to an extant hash actor dir then: stderr matches snapshot: the old layout, config dir variant 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ judged by the allowlist of config dir <tmp>/actor/.claude
+   │
+   ├─ blocked: wavetool
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'wavetool'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case10] local grants pass; a corrupt layer reads as absent when: [t4] settings.local.json is invalid json and held the only allow for wavetool then: stderr matches snapshot: the corrupt layer variant 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ 💥 MalfunctionError: settings file unparseable: .claude/settings.local.json (<jq error>) — its allows do not count, so the commands it paves block and no candidate from it can be ranked; repair the json in that file
+   │
+   ├─ blocked: wavetool
+   └─ no paved path known — the allowlist could not be read (see above)
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'wavetool'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case10] local grants pass; a corrupt layer reads as absent when: [t5] settings.of.repo.json is invalid json and is the only allow source then: stderr matches snapshot: the corrupt-only variant 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ 💥 MalfunctionError: settings file unparseable: .claude/settings.of.repo.json (<jq error>) — its allows do not count, so the commands it paves block and no candidate from it can be ranked; repair the json in that file
+   ├─ 💥 MalfunctionError: no pre-approved bash permissions were found; looked in: <tmp>/.claude/settings.of.repo.json: unreadable; <tmp>/home/.claude/settings.json: absent — fix: to write the repo's allowlist, ask your human to run rhx init at the repo root, in their own shell
+   │
+   ├─ blocked: wavetool
+   └─ no paved path known — the allowlist could not be read (see above)
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'wavetool'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case15] no config dir and no walk-up dir when: [t1] negative control: the same command with a walk-up .claude then: stderr matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: wavetool --unlisted
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'wavetool --unlisted'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case15] no config dir and no walk-up dir when: [t2] $CLAUDE_CONFIG_DIR names an actor dir; no .claude above $PWD then: stderr matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ judged by the allowlist of config dir <tmp>/actor/.claude
+   │
+   ├─ blocked: wavetool --unlisted
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'wavetool --unlisted'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case16] the config dir cannot hold a nudge record when: [t0] CLAUDE_CONFIG_DIR names a path under a regular file, so mkdir fails then: stderr matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ judged by the allowlist of config dir <tmp>/reef/.claude
+   │
+   ├─ blocked: wavetool --go
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'wavetool --go'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+💥 MalfunctionError: the nudge record could not be created (<tmp>/reef/.claude/permission.nudges.local.json: <os error>) — the block still holds, but a retry will block again rather than reach the human; make <tmp>/reef/.claude a writable dir, or delete the file and the hook recreates it
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case17] the nudge record exists but cannot be updated when: [t0] the config dir is read-only, so the atomic rename into it fails then: stderr matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ judged by the allowlist of config dir <tmp>/actor/.claude
+   │
+   ├─ blocked: wavetool --go
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'wavetool --go'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+💥 MalfunctionError: the nudge record lock could not be made (<tmp>/actor/.claude/permission.nudges.local.json.lock: <os error>) — the block still holds, but a retry will block again rather than reach the human; make <tmp>/actor/.claude a writable dir, or delete the file and the hook recreates it
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case18] SOFTNUDGE shows the same diagnostics, without a block when: [t0] a hash actor; its settings.json is invalid json; an unlisted command then: stdout matches snapshot 1`] = `
+"
+🐚 advisory: this command is not paved (SOFTNUDGE — the command still runs)
+   ├─ judged by the allowlist of config dir <tmp>/actor/.claude
+   ├─ 💥 MalfunctionError: settings file unparseable: actor/.claude/settings.json (<jq error>) — its allows do not count, so the commands it paves block and no candidate from it can be ranked; repair the json in that file
+   │
+   ├─ blocked: wavetool --unlisted
+   ├─ no paved path known — the allowlist could not be read (see above)
+   │
+   └─ advisory only: the command runs as-is, and no ledger row is recorded
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   └─ see all pre-approved commands: rhx permissions.get --for 'wavetool --unlisted'
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case18] SOFTNUDGE shows the same diagnostics, without a block when: [t1] no layer holds an allow; an unlisted command then: stdout matches snapshot: the empty variant 1`] = `
+"
+🐚 advisory: this command is not paved (SOFTNUDGE — the command still runs)
+   ├─ 💥 MalfunctionError: no pre-approved bash permissions were found; looked in: <tmp>/.claude/settings.of.repo.json: 0 Bash allow rules; <tmp>/home/.claude/settings.json: absent — fix: to write the repo's allowlist, ask your human to run rhx init at the repo root, in their own shell
+   │
+   ├─ blocked: wavetool --unlisted
+   ├─ no paved path fits this part
+   │
+   └─ advisory only: the command runs as-is, and no ledger row is recorded
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   └─ see all pre-approved commands: rhx permissions.get --for 'wavetool --unlisted'
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case19] the layer lib is absent beside the hook when: [t0] the hook is copied with its render lib only, then run then: stderr matches snapshot 1`] = `
+"💥 MalfunctionError: check-permissions could not load <tmp>/permissions.layers.operations.sh; the command stays blocked — ask your human to run rhx init at the repo root, in their own shell, then retry
+"
+`;
+
+exports[`pretooluse.check-permissions.sh layers given: [case22] split layout, the actor allowlist file is absent when: [t0] an absolute actor: actor.json names its brain and roles; no settings.of.repo.json then: stderr matches snapshot: the absent actor file variant 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ judged by the allowlist of config dir <tmp>/actor/brain/.claude
+   ├─ 💥 MalfunctionError: <tmp>/actor/brain/.claude/settings.of.repo.json is absent, though this repo's layout keeps its allows there, so this allowlist lacks them — fix: this clone reads its actor allowlist from <tmp>/actor/brain/.claude/settings.of.repo.json, which rhx enroll derives; re-enroll this clone (rhx enroll claude --roles mechanic,driver), or ask your human to run rhx init at the repo root
+   │
+   ├─ blocked: wavetool
+   └─ no paved path fits this part
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'wavetool'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;

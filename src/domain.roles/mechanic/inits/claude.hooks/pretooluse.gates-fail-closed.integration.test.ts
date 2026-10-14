@@ -49,7 +49,11 @@ describe('pretooluse gates fail closed on a crash', () => {
     fs.writeFileSync(copyPath, crashed.join('\n'));
     // a gate sources its libs from beside itself, so the copy carries them along
     fs.readdirSync(hooksDir)
-      .filter((name) => name.startsWith('_') && name.endsWith('.lib.sh'))
+      .filter(
+        (name) =>
+          (name.startsWith('_') && name.endsWith('.lib.sh')) ||
+          name.endsWith('.operations.sh'),
+      )
       .forEach((lib) =>
         fs.copyFileSync(path.join(hooksDir, lib), path.join(dir, lib)),
       );

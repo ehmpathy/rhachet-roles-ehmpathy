@@ -223,8 +223,9 @@ describe('pretooluse.forbid-sedreplace-special-chars.sh', () => {
           encoding: 'utf-8',
         });
         expect(result.status).toBe(2);
-        expect(result.stderr).toContain(
-          '💥 MalfunctionError: PreToolUse payload is not valid json (jq: ',
+        // jq 1.6/1.7 lead the cause with `jq: `; later builds drop it
+        expect(result.stderr).toMatch(
+          /💥 MalfunctionError: PreToolUse payload is not valid json \((jq: )?(parse )?error/,
         );
       });
     });

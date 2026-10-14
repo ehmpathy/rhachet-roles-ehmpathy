@@ -25,6 +25,15 @@ import { runHookIn } from './runHookIn';
  * .note = each run gets its own temp cwd, so the nudge file it writes never
  *         touches the repo's own .claude dir (rule.require.hermetic-tests)
  */
+
+/**
+ * .what = mask jq's parse cause to one form
+ * .why = jq 1.6/1.7 lead the cause with `jq: `, later builds drop it, and the
+ *        position text varies by build; a snapshot must not pin the host's jq
+ */
+const asJqCauseMasked = (text: string): string =>
+  text.replace(/(?:jq: )?parse error: [^)\n]*/g, 'jq: parse error: <cause>');
+
 describe('pretooluse.forbid-terms.blocklist.sh', () => {
   const hookPath = path.join(__dirname, 'pretooluse.forbid-terms.blocklist.sh');
 
@@ -1433,7 +1442,9 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
 
       then('the WHOLE refusal is snapshotted', () => {
         expect(
-          result.stderr.replace(/config: .*\n/, 'config: <sandbox>\n'),
+          asJqCauseMasked(
+            result.stderr.replace(/config: .*\n/, 'config: <sandbox>\n'),
+          ),
         ).toMatchSnapshot();
       });
     });
@@ -1855,9 +1866,11 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
         //            ⇒ a mask keyed to a value the SUT re-derives is a guess.
         //            key it to the shape of the output instead.
         expect(
-          outcome.stderr.replace(
-            /\/\S*terms\.blocklist\.nudges\.local\.json/g,
-            '<nudge-file>',
+          asJqCauseMasked(
+            outcome.stderr.replace(
+              /\/\S*terms\.blocklist\.nudges\.local\.json/g,
+              '<nudge-file>',
+            ),
           ),
         ).toMatchSnapshot();
       });
@@ -1897,8 +1910,9 @@ describe('pretooluse.forbid-terms.blocklist.sh', () => {
       });
 
       then('stderr names the class and the parse cause', () => {
-        expect(result.stderr).toContain(
-          '💥 MalfunctionError: PreToolUse payload is not valid json (jq: parse error',
+        // jq 1.6/1.7 lead the cause with `jq: `; later builds drop it
+        expect(result.stderr).toMatch(
+          /💥 MalfunctionError: PreToolUse payload is not valid json \((jq: )?parse error/,
         );
         expect(result.stderr).toContain('the write stays blocked');
       });

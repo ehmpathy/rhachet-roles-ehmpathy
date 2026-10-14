@@ -919,8 +919,9 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
           command: 'echo hello',
         });
         expect(result.exitCode).toBe(2);
-        expect(result.stderr).toContain(
-          '💥 MalfunctionError: the suspicious-syntax config could not be parsed (jq: parse error',
+        // jq 1.6/1.7 lead the cause with `jq: `; later builds drop it
+        expect(result.stderr).toMatch(
+          /💥 MalfunctionError: the suspicious-syntax config could not be parsed \((jq: )?parse error/,
         );
       });
     });
@@ -975,8 +976,9 @@ describe('pretooluse.forbid-suspicious-shell-syntax.sh', () => {
             stdin: '{ "tool_input": { "command": "echo $(rm -rf ~)" ',
           });
           expect(result.exitCode).toBe(2);
-          expect(result.stderr).toContain(
-            '💥 MalfunctionError: PreToolUse payload is not valid json (jq: ',
+          // jq 1.6/1.7 lead the cause with `jq: `; later builds drop it
+          expect(result.stderr).toMatch(
+            /💥 MalfunctionError: PreToolUse payload is not valid json \((jq: )?(parse )?error/,
           );
           expect(result.stdout).toContain(
             '💥 MalfunctionError: PreToolUse payload is not valid json',

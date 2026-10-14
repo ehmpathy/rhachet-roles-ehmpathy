@@ -153,6 +153,26 @@ describe('getMechanicRole · every registered hook is reachable', () => {
       );
     });
 
+  /**
+   * .what = of the given commands' shipped hooks, each lib a hook sources from its own dir, by
+   *         its `# shellcheck source=<file>` directive, as `<hook path> -> <lib path>` rows
+   * .why = a hook that sources a lib beside it needs that lib shipped there too. the check hook
+   *        fails closed without it, which blocks every Bash call, `rhx init` included; the
+   *        hook files alone can be reachable while the lib they need is not
+   */
+  const asSourcedLibPaths = (input: {
+    commands: string[];
+  }): { hook: string; lib: string }[] =>
+    asBashInvokedPaths({ commands: input.commands }).flatMap((shipped) => {
+      const shippedPath = path.join(repoRoot, shipped);
+      if (!existsSync(shippedPath)) return []; // asAbsentHookPaths reports this
+      const text = readFileSync(shippedPath, 'utf-8');
+      return [...text.matchAll(/# shellcheck source=(\S+)/g)].map((match) => ({
+        hook: shipped,
+        lib: path.join(path.dirname(shipped), match[1] ?? ''),
+      }));
+    });
+
   given('[case1] the generated .claude/settings.json', () => {
     when('[t0] every registered hook command is read, at EVERY event', () => {
       // 🔴 this walks EVERY event key, never `PreToolUse` alone. two mechanic
@@ -380,6 +400,26 @@ describe('getMechanicRole · every registered hook is reachable', () => {
           expect(unshipped).toEqual([]);
         },
       );
+
+      then('the sourced-lib walk finds a NON-EMPTY set', () => {
+        // positive control: the assertion below is `toEqual([])` over a derived
+        // list, so a renamed directive would turn it green while it checks naught
+        const sourced = asSourcedLibPaths({
+          commands: asMechanicHooks({ hooks: registry.hooks }).map(
+            (entry) => entry.command,
+          ),
+        });
+        expect(sourced.length).toBeGreaterThan(0);
+      });
+
+      then('every lib a shipped hook sources is shipped beside it', () => {
+        const absent = asSourcedLibPaths({
+          commands: asMechanicHooks({ hooks: registry.hooks }).map(
+            (entry) => entry.command,
+          ),
+        }).filter((row) => !existsSync(path.join(repoRoot, row.lib)));
+        expect(absent).toEqual([]);
+      });
     });
   });
 

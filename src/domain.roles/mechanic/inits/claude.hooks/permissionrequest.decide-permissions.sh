@@ -81,23 +81,16 @@ if [[ -z "$CMD" ]]; then
   exit 0
 fi
 
-# find the nearest .claude dir upward (as the peer hooks do), for the audit log
-find_claude_dir() {
-  local dir="$PWD"
-  while [[ "$dir" != "/" ]]; do
-    if [[ -d "$dir/.claude" ]]; then echo "$dir/.claude"; return 0; fi
-    # .note = ${dir%/*} at zero forks; "" at the root, hence the -z guard
-    dir="${dir%/*}"
-    [[ -z "$dir" ]] && dir="/"
-  done
-  return 1
-}
+# load the one layer rule shared with the peer permission hooks: which dirs and
+# settings files hold the allow + deny sets, and where this clone's config dir is
+# shellcheck source=permissions.layers.operations.sh
+source "$(dirname "${BASH_SOURCE[0]}")/permissions.layers.operations.sh"
 
 # .what = append one auto-decision to a durable, reviewable audit trail.
 # .why  = G3 (auditable gate) — "why did the clone run that command?" must have
 #         a recorded answer, not a shrug. only allow/deny are logged (a lift
 #         makes no decision — the human's own choice is claude-cli's record).
-# .note = jsonl in .claude/permission.decisions.local.log — matches the peer
+# .note = jsonl in <config dir>/permission.decisions.local.log — matches the peer
 #         `.local` convention and is gitignored (*.log). a write fault degrades
 #         to a one-line stderr note, never a hook failure (fail-safe): the
 #         decision on stdout is the product; the audit line is a side record.
@@ -108,7 +101,10 @@ find_claude_dir() {
 #         per decision. the shape is {verdict, reason, command}.
 audit_decision() {
   local verdict="$1" reason="$2" claude_dir err
-  claude_dir="$(find_claude_dir)" || return 0
+  # the audit log lives in the clone's own config dir, beside its own allowlist
+  set_permissions_dirs
+  claude_dir="$PERMISSIONS_CONFIG_DIR"
+  [[ -n "$claude_dir" ]] || return 0
   # append the audit line; on a write fault, surface the REAL cause (disk full,
   # permission denied, the log path is a directory) so the operator can fix the root
   # cause without a debug session — a named error, never a swallow. still best-effort:
@@ -336,31 +332,12 @@ is_clean_rhx_call() {
   return 0
 }
 
-# .what = read the human-curated Bash patterns of one permissions set (allow OR deny)
-#         from a settings file.
-# .why  = the seam judges each compound SEGMENT by the SAME authority gate 2
-#         (pretooluse.check-permissions) uses — the `Bash(...)` patterns in
-#         .claude/settings.json + settings.local.json. it honors BOTH the human's allow
-#         set (what a segment may be) AND the human's deny set (what a segment must never
-#         auto-run). it invents no denylist and hardcodes no tool set — the deny set read
-#         here is the human's OWN, not one the seam mints.
-# .inputs = $1 = the settings file, $2 = the permissions key ("allow" or "deny").
-extract_bash_patterns() {
-  local file="$1" key="$2"
-  # an absent file is EXPECTED (settings.local.json is optional) -> silent, no error
-  [[ -f "$file" ]] || return 0
-  # capture jq's OWN stderr alongside stdout, then branch on its exit code: a parse
-  # failure (a hand-edit that drops a comma, an unreadable file) is surfaced LOUDLY,
-  # never swallowed to /dev/null. the seam still degrades fail-safe (this file yields
-  # no patterns -> allowlisted-only commands LIFT), but the operator now sees WHY.
-  local out
-  if out="$(jq -r --arg key "$key" '.permissions[$key] // [] | .[] | select(startswith("Bash(")) | sub("^Bash\\("; "") | sub("\\)$"; "")' "$file" 2>&1)"; then
-    [[ -n "$out" ]] && printf '%s\n' "$out"
-    return 0
-  fi
-  emit_warn "could not parse $file as json; $key list degraded: $out"
-  return 0
-}
+# .note = the seam judges each compound SEGMENT by the SAME authority gate 2
+#         (pretooluse.check-permissions) uses — the `Bash(...)` patterns of every layer
+#         claude merges (permissions.layers.operations.sh). it honors BOTH the human's
+#         allow set (what a segment may be) AND the human's deny set (what a segment must
+#         never auto-run). it invents no denylist and hardcodes no tool set — the deny set
+#         read here is the human's OWN, not one the seam mints.
 
 # .what = the allow set (what a segment MAY be) and the deny set (what a segment must
 #         NEVER auto-run), each split into an exact-match hash + a prefix-match array.
@@ -382,15 +359,43 @@ declare -a PREFIX_DENY_PATTERNS=()
 load_patterns() {
   local key="$1"
   local -n exact_ref="$2" prefix_ref="$3"
-  local claude_dir
-  # an absent .claude on the load path is a real degrade (the seam runs AS a .claude
+  # an absent config dir on the load path is a real degrade (the seam runs AS a .claude
   # hook, so it should always find one) -> surface it LOUDLY, then degrade fail-safe
   # (empty set), never a silent flip. an empty ALLOW set lifts allowlisted-only commands;
   # an empty DENY set cannot loosen safety (it only ever REMOVES an auto-approve).
-  if ! claude_dir="$(find_claude_dir)"; then
+  set_permissions_dirs
+  if [[ -z "$PERMISSIONS_CONFIG_DIR" ]]; then
     emit_warn "no .claude dir found from $PWD; $key list empty"
     return 0
   fi
+
+  # read the layers (permissions.layers.operations.sh). an allow here skips a human's
+  # prompt, so the allow set reads only the files claude loads (purpose approve); the deny
+  # set reads every layer, since a wider deny can only remove an auto-approve
+  local purpose=nudge
+  [[ "$key" == allow ]] && purpose=approve
+  set_permissions_layers "$key" "$purpose"
+
+  # a parse failure (a hand-edit that drops a comma, an unreadable file) is surfaced
+  # LOUDLY, never swallowed. the seam still degrades fail-safe (that file yields no
+  # patterns -> allowlisted-only commands LIFT), but the operator sees WHY.
+  local i
+  for i in "${!PERMISSIONS_LAYER_FAULT_FILES[@]}"; do
+    emit_warn "could not parse ${PERMISSIONS_LAYER_FAULT_FILES[$i]} as json; $key list degraded: ${PERMISSIONS_LAYER_FAULT_CAUSES[$i]}"
+  done
+
+  # no allows in any layer: name each file sought, so the absent list reads as a config fault
+  if [[ "$key" == allow && ${#PERMISSIONS_LAYER_PATTERNS[@]} -eq 0 ]]; then
+    emit_hook_header "bummer dude..."
+    printf '   └─ %s\n' "💥 MalfunctionError: no pre-approved bash permissions were found; looked in:" >&2
+    local state
+    for state in "${PERMISSIONS_LAYER_STATES[@]}"; do
+      printf '      ├─ %s\n' "$state" >&2
+    done
+    printf '      └─ %s\n' "fix: $PERMISSIONS_FIX_HINT" >&2
+    printf '\n' >&2
+  fi
+
   local pattern bare
   while IFS= read -r pattern; do
     [[ -z "$pattern" ]] && continue
@@ -407,12 +412,7 @@ load_patterns() {
       [[ "$key" == deny ]] && { canonicalize_rhx_command "$bare"; bare="$CANON"; }
       exact_ref["$bare"]=1
     fi
-  done < <(
-    {
-      extract_bash_patterns "$claude_dir/settings.json" "$key"
-      extract_bash_patterns "$claude_dir/settings.local.json" "$key"
-    } | sort -u
-  )
+  done < <(printf '%s\n' "${PERMISSIONS_LAYER_PATTERNS[@]}")
 }
 
 # .what = predicate: is a SINGLE command (already known metachar-clean) on the allowlist?

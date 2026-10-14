@@ -22,10 +22,10 @@ exports[`sessionstart.notify-permissions.sh given: [case1] both settings files h
 
 exports[`sessionstart.notify-permissions.sh given: [case2] settings.json is not valid json when: [t0] a session starts then: the pre-approved section matches snapshot 1`] = `
 "
-🐢 shell yeah, your guardrails are set 🌊
+🐢 heads up dude, your guardrails are set, but only in part 🌊
 
 🐚 pre-approved bash permissions
-   ├─ 💥 MalfunctionError: .claude/settings.json is not valid json (<jq error>) — its commands are not pre-approved until it is repaired; repair the json in .claude/
+   ├─ 💥 MalfunctionError: .claude/settings.json is not valid json (<jq error>) — its commands are not pre-approved until it is repaired; repair the json in each file named
    ├─ 1 command pre-approved, across 1 head — no permission prompt for any of them
    ├─ heads
    │  └─ tree (1)
@@ -49,17 +49,20 @@ exports[`sessionstart.notify-permissions.sh given: [case3] no .claude dir when: 
 
 exports[`sessionstart.notify-permissions.sh given: [case4] both settings files are not valid json when: [t0] a session starts then: the pre-approved section matches snapshot 1`] = `
 "
-🐢 shell yeah, your guardrails are set 🌊
+🐢 bummer dude, no guardrails found 🌊
 
-🐚 pre-approved bash permissions
-   ├─ 💥 MalfunctionError: .claude/settings.json is not valid json (<jq error>); .claude/settings.local.json is not valid json (<jq error>) — its commands are not pre-approved until it is repaired; repair the json in .claude/
-   ├─ 0 commands pre-approved, across 0 heads — no permission prompt for any of them
-   ├─ see them all, on demand
-   │  ├─ rhx permissions.get                     every pre-approved command, grouped by head
-   │  ├─ rhx permissions.get --head <head>       one head: pre-approved + paved alternatives
-   │  └─ rhx permissions.get --for '<command>'   one command: verdict + every candidate, ranked
+🐚 no pre-approved bash permissions were found
    │
-   └─ a bash command NOT pre-approved blocks and asks you to reconsider — check first, to minimize interruptions
+   ├─ 💥 MalfunctionError: .claude/settings.local.json is not valid json (<jq error>); .claude/settings.json is not valid json (<jq error>) — repair the json in each file named
+   ├─ the hook looked in:
+   │  ├─ <repo>/.claude/settings.of.repo.json: absent
+   │  ├─ <repo>/.claude/settings.local.json: unreadable
+   │  ├─ /nonexistent-home/.claude/settings.json: absent
+   │  └─ <repo>/.claude/settings.json: unreadable
+   │
+   ├─ if this clone should have pre-approved permissions,
+   │  check that these files exist and hold valid json.
+   └─ fix: to write the repo's allowlist, ask your human to run rhx init at the repo root, in their own shell, then restart the session.
 
 "
 `;

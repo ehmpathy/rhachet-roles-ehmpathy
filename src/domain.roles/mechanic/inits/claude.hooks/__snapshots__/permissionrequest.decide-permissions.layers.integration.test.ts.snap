@@ -1,0 +1,51 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`permissionrequest.decide-permissions.sh layers given: [case11] the decider reads the layered allow and deny sets when: [t3] walk; no settings file in any layer then: stderr matches snapshot: the no allowlist warn 1`] = `
+"🐢 bummer dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ 💥 MalfunctionError: no pre-approved bash permissions were found; looked in:
+      ├─ <tmp>/.claude/settings.of.repo.json: absent
+      ├─ <tmp>/.claude/settings.local.json: absent
+      ├─ <tmp>/home/.claude/settings.json: absent
+      ├─ <tmp>/.claude/settings.json: absent
+      └─ fix: to write the repo's allowlist, ask your human to run rhx init at the repo root, in their own shell
+
+🐢 hold up, dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ segment failed the producer bar: npm run build
+"
+`;
+
+exports[`permissionrequest.decide-permissions.sh layers given: [case11] the decider reads the layered allow and deny sets when: [t7] walk; settings.of.repo.json allows the compound; home settings.json is not json then: stderr matches snapshot: the corrupt-layer warn 1`] = `
+"🐢 bummer dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ could not parse <tmp>/home/.claude/settings.json as json; allow list degraded: jq: parse error: <cause>
+
+🐢 bummer dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ could not parse <tmp>/home/.claude/settings.json as json; deny list degraded: jq: parse error: <cause>
+
+"
+`;
+
+exports[`permissionrequest.decide-permissions.sh layers given: [case11] the decider reads the layered allow and deny sets when: [t9] ccd; no layer holds an allow then: stderr matches snapshot: the ccd no allowlist warn 1`] = `
+"🐢 bummer dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ 💥 MalfunctionError: no pre-approved bash permissions were found; looked in:
+      ├─ <tmp>/actor/.claude/settings.of.repo.json: absent
+      ├─ <tmp>/actor/.claude/settings.json: absent
+      ├─ <tmp>/.claude/settings.json: absent
+      ├─ <tmp>/.claude/settings.local.json: absent
+      └─ fix: this clone reads its actor allowlist from <tmp>/actor/.claude/settings.of.repo.json, which rhx enroll derives; re-enroll this clone (rhx enroll <brain> --roles <roles>), or ask your human to run rhx init at the repo root
+
+🐢 hold up, dude...
+
+🐚 permissionrequest.decide-permissions
+   └─ segment failed the producer bar: npm run build
+"
+`;

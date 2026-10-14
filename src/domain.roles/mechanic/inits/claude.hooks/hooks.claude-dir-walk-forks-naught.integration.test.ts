@@ -14,12 +14,13 @@ describe('hooks · the .claude walk forks naught', () => {
   const hooksDir = __dirname;
 
   /**
-   * .what = the body of each `*_claude_dir()` function in a source
+   * .what = the body of each walk function in a source — `*_claude_dir()`, and the layers
+   *         lib's `set_permissions_dirs()`
    */
   const asClaudeDirWalks = (input: { source: string }): string[] =>
     [
       ...input.source.matchAll(
-        /^(?:find|get)_claude_dir\(\) \{\n([\s\S]*?)^\}/gm,
+        /^(?:(?:find|get)_claude_dir|set_permissions_dirs)\(\) \{\n([\s\S]*?)^\}/gm,
       ),
     ].map((match) => match[1] ?? '');
 
@@ -38,13 +39,14 @@ describe('hooks · the .claude walk forks naught', () => {
     when('[t0] the set of walks is collected', () => {
       then('the set is not vacuous', () => {
         const names = HOOKS.map((hook) => hook.name);
-        // check-permissions, notify-permissions, and the permissions.* skills walk via the shared
-        // render lib; the forbid-terms gates via the hardnudge lib
+        // the permission hooks walk via the shared layers lib, the permissions.* skills via the
+        // render lib, the forbid-terms gates via the hardnudge lib
+        expect(names).toContain('permissions.layers.operations.sh');
         expect(names).toContain('_permissions.render.lib.sh');
-        expect(names).toContain('permissionrequest.decide-permissions.sh');
         expect(names).toContain('_hardnudge.lib.sh');
-        // the notice holds no walk of its own: a copy there would drift from the lib's
+        // the permission hooks hold no walk of their own: a copy there would drift from the lib's
         expect(names).not.toContain('sessionstart.notify-permissions.sh');
+        expect(names).not.toContain('permissionrequest.decide-permissions.sh');
       });
 
       then('the matcher reads a dirname walk when one is there', () => {

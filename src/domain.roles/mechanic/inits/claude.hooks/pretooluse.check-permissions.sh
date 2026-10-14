@@ -13,8 +13,11 @@
 #         so demand for paved paths accrues instead of evaporates.
 #
 # .how  = reads json from stdin (per Claude Code docs), extracts
-#         tool_input.command, checks every part of it against the allow
-#         patterns of settings.json + settings.local.json (unioned).
+#         tool_input.command, checks every part of it against the union
+#         of Bash allows across every layer claude loads (see
+#         permissions.layers.operations.sh): on the split layout, the
+#         actor's settings.of.repo.json + the user's settings.json; on the
+#         old layout, also the local files and the project's settings.json.
 #         the allow path is unchanged and fast; all rank work runs only
 #         on the block path.
 #
@@ -24,7 +27,8 @@
 # flags:
 #   --mode HARDNUDGE  (default) blocks the first attempt (exit 2); a retry
 #                     of the exact command within the window is handed to
-#                     the human via permissionDecision "ask", with a reason
+#                     the human via permissionDecision "ask", with a reason.
+#                     attempts live in <config dir>/permission.nudges.local.json
 #   --mode SOFTNUDGE  prints the same nudge to stdout, exit 0, no block
 #   --mode LOOKUP     read-only lookup for `rhx permissions.get --for`: prints the
 #                     verdict and every candidate (no cap), exit 0, never records
@@ -64,6 +68,17 @@ source "$RENDER_LIB" 2>/dev/null || {
   render_lib_crash="💥 MalfunctionError: check-permissions could not load $RENDER_LIB; the command stays blocked — reinstall the mechanic role"
   printf '%s\n' "$render_lib_crash" || true
   printf '%s\n' "$render_lib_crash" >&2 || true
+  exit 2
+}
+
+# load the one layer rule shared with the other permission hooks (which settings files claude
+# loads, from which config dir). an absent lib blocks, as an absent render lib does
+LAYERS_LIB="${RENDER_LIB%/*}/permissions.layers.operations.sh"
+# shellcheck source=permissions.layers.operations.sh
+source "$LAYERS_LIB" 2>/dev/null || {
+  layers_lib_crash="💥 MalfunctionError: check-permissions could not load $LAYERS_LIB; the command stays blocked — ask your human to run rhx init at the repo root, in their own shell, then retry"
+  printf '%s\n' "$layers_lib_crash" || true
+  printf '%s\n' "$layers_lib_crash" >&2 || true
   exit 2
 }
 
@@ -243,9 +258,6 @@ if [[ -z "$COMMAND" ]]; then
   exit 0
 fi
 
-# .note = get_claude_dir (the upward walk for .claude, at zero forks) comes from
-#         _permissions.render.lib.sh
-
 # the header a LOOKUP render opens with: the lookup the caller ran
 # .note = named arg `command=`; sets the global LOOKUP_HEADER
 get_lookup_header() {
@@ -266,44 +278,34 @@ as_shell_quoted() {
   return 0
 }
 
-# no .claude directory => no allowlist to enforce
+# union the Bash allows across every layer claude loads (permissions.layers.operations.sh)
+# patterns look like: "Bash(npm run test:*)" -> "npm run test:*"
+# .note = quiet on purpose: this runs on every Bash call, and a file it cannot read fails
+#         closed (its commands block). get_settings_malfunction names such a file on the block path
+set_permissions_layers allow
+
+# the dirs, as the layer read found them
+# - CONFIG_DIR = the clone's config dir: its allowlist judged the command; its nudge record lives there
+# - CLAUDE_DIR = the repo's .claude (the walk-up dir), whose root holds the ledger; the config dir
+#                when no .claude sits above $PWD
+CONFIG_DIR="$PERMISSIONS_CONFIG_DIR"
+CLAUDE_DIR="${PERMISSIONS_WALKUP_DIR:-$PERMISSIONS_CONFIG_DIR}"
+
+# no config dir and no .claude above => no allowlist to enforce
 # .note = a LOOKUP says so, since the caller asked a question
-CLAUDE_DIR=$(get_claude_dir) || {
+if [[ -z "$CONFIG_DIR" ]]; then
   if [[ "$MODE" == "LOOKUP" ]]; then
     get_lookup_header command="$COMMAND"
-    print_framed "$LOOKUP_HEADER" "   └─ verdict: no .claude/ dir found from $PWD upward — no allowlist applies here"
+    print_framed "$LOOKUP_HEADER" "   └─ verdict: no .claude/ dir found from $PWD upward, and \$CLAUDE_CONFIG_DIR is unset — no allowlist applies here"
   fi
   exit 0
-}
+fi
 
-# the jq program that reads a settings file's Bash patterns is BASH_PATTERNS_FILTER, from
-# _permissions.render.lib.sh — patterns look like: "Bash(npm run test:*)" -> "npm run test:*"
-# .note = one program for the allow path and the malfunction probe, so any file the allow
-#         path cannot read (bad syntax OR a bad shape, like `"allow": "Bash(ls)"`) is also
-#         one the probe names — and the same program the permissions.get skill reads with
-
-# extract Bash permissions from a settings file
-# .note = quiet on purpose: this runs on every Bash call, and a file it cannot read fails
-#         closed (its commands block). get_settings_malfunction runs the same program on the
-#         block path and names the file there
-get_bash_patterns() {
-  local file="$1"
-  if [[ -f "$file" ]]; then
-    jq -r "$BASH_PATTERNS_FILTER" "$file" 2>/dev/null
-  fi
-}
-
-# union allowlists from settings.json and settings.local.json
-# .why = adhoc human-granted allows land in settings.local.json
-# .note = LC_ALL=C pins byte order. the union's order breaks rank ties, and a locale collation
+# the union, deduped, in byte order (the layer read sorts it once)
+# .note = byte order matters: the union's order breaks rank ties, and a locale collation
 #         (en_US skips punctuation, so `stash1:*` sorts before `stash10:*`) would rank the same
 #         allowlist differently on two hosts
-mapfile -t ALLOWED_PATTERNS < <(
-  {
-    get_bash_patterns "$CLAUDE_DIR/settings.json"
-    get_bash_patterns "$CLAUDE_DIR/settings.local.json"
-  } | LC_ALL=C sort -u
-)
+ALLOWED_PATTERNS=("${PERMISSIONS_LAYER_PATTERNS[@]}")
 
 # .note = the named-arg convention: a procedure declares its keys (`local key=""`), then
 #         `local "$@"` binds the call's `key=value` pairs. a mistyped key at a call site
@@ -593,11 +595,10 @@ as_repo_root() {
 as_parent_dir "${BASH_SOURCE[0]}"
 INVENTORY_FILE="$PARENT_DIR/commands.alternatives.jsonc"
 
-# the ledger lives in the repo's gitignored cache, beside .claude/
-# .note = the ledger sits beside the .claude/ whose allowlist judged the command, so a row and
-#         its verdict always share one root. the role registers this hook in the repo's own
-#         .claude/settings.json, so the walk lands on the repo; a .claude above it (~/.claude)
-#         is reached only by a user-level registration, whose ledger then lives under that root
+# the ledger lives in the repo's gitignored cache, beside the walk-up .claude/
+# .note = CLAUDE_DIR is the nearest .claude/ from $PWD upward (or the config dir when none is
+#         found), so the ledger lands at the repo root the clone works in, never inside an
+#         actor's config dir
 as_repo_root "$CLAUDE_DIR"
 LEDGER_DIR="$REPO_ROOT/.agent/.cache/repo=ehmpathy/role=mechanic/skill=check-permissions"
 LEDGER_FILE="$LEDGER_DIR/nudges.jsonl"
@@ -651,26 +652,27 @@ set_inventory_lookups file="$INVENTORY_FILE"
 # .why = without this, a malformed settings.json reads as "no paved path fits" and pushes
 #        the bot to pave a skill, when the true cause is a broken allowlist
 # .note = checked here, on the block path only, so the allow path gains no fork
-# .note = named arg `claude_dir=`; sets SETTINGS_MALFUNCTION (empty when all parse)
+# .note = reads PERMISSIONS_LAYER_FILES (each layer file the allow read considered, in rank
+#         order); sets SETTINGS_MALFUNCTION (empty when all parse). a repo file reads relative
+#         to the repo root; any other keeps its full path, since two layers can share a base
+#         name (an actor's and the user's settings.json)
 SETTINGS_MALFUNCTION=""
 get_settings_malfunction() {
-  local claude_dir=""
-  local "$@"
   local settings_file settings_err
-  for settings_file in "$claude_dir/settings.json" "$claude_dir/settings.local.json"; do
+  for settings_file in "${PERMISSIONS_LAYER_FILES[@]}"; do
     [[ -f "$settings_file" ]] || continue
-    # the allow path's own program, never a syntax-only check: a valid-json file of the
+    # the shape-aware program, never a syntax-only check: a valid-json file of the
     # wrong shape must be named too
     settings_err=$(jq -r "$BASH_PATTERNS_FILTER" "$settings_file" 2>&1 >/dev/null) && continue
 
     # name the file and the first line of jq's complaint, then append them to the list
-    local settings_name="${settings_file##*/}"
     local settings_err_first="${settings_err%%$'\n'*}"
-    SETTINGS_MALFUNCTION+="${SETTINGS_MALFUNCTION:+; }$settings_name ($settings_err_first)"
+    as_permissions_display_path "$settings_file"
+    SETTINGS_MALFUNCTION+="${SETTINGS_MALFUNCTION:+; }$PERMISSIONS_DISPLAY_PATH ($settings_err_first)"
   done
   return 0
 }
-get_settings_malfunction claude_dir="$CLAUDE_DIR"
+get_settings_malfunction
 
 # split a part into words, with any lead VAR=value assignments and shell keywords dropped
 # .why = `WAVE=1 npm test` must key on `npm test`, not on `WAVE=1`; and the `;` split hands a
@@ -1297,6 +1299,11 @@ get_nudge_lines() {
   # a LOOKUP states its verdict first, as its pre-approved answer does
   [[ "$MODE" == "LOOKUP" ]] && ENTRIES+=("verdict: not pre-approved — it would block; each blocked part and its options follow")
 
+  # name the allowlist that judged, when it is not the repo's own .claude
+  # .why = a clone of a hash actor is judged by its own config dir's allowlist, never the repo's;
+  #        the reader must know which list to grow
+  [[ "$CONFIG_DIR" != "${PERMISSIONS_WALKUP_DIR:-}" ]] && ENTRIES+=("judged by the allowlist of config dir $CONFIG_DIR")
+
   local infra_malfunctions
   infra_malfunctions=$(print_malfunction_lines)
   if [[ -n "$infra_malfunctions" ]]; then
@@ -1432,10 +1439,24 @@ get_nudge_lines() {
 
 # .note = render_tree_entries (the tree drawn onto OUT) comes from _permissions.render.lib.sh
 
-# the malfunction lines (settings, inventory), rendered under the nudge when present
+# the malfunction lines (settings, allowlist, inventory), rendered under the nudge when present
 print_malfunction_lines() {
   if [[ -n "$SETTINGS_MALFUNCTION" ]]; then
-    echo "💥 MalfunctionError: settings file unparseable: $SETTINGS_MALFUNCTION — the allowlist could not be read, so every command blocks and no candidate can be ranked; repair the json in .claude/"
+    echo "💥 MalfunctionError: settings file unparseable: $SETTINGS_MALFUNCTION — its allows do not count, so the commands it paves block and no candidate from it can be ranked; repair the json in that file"
+  fi
+
+  # no allows in any layer: an empty list is a config fault, never an empty toolkit; name each
+  # file sought and its state, then the fix
+  if [[ ${#ALLOWED_PATTERNS[@]} -eq 0 ]]; then
+    local states="" state
+    for state in "${PERMISSIONS_LAYER_STATES[@]}"; do states+="${states:+; }$state"; done
+    echo "💥 MalfunctionError: no pre-approved bash permissions were found; looked in: $states — fix: $PERMISSIONS_FIX_HINT"
+  fi
+
+  # on the split layout, an absent actor file still leaves the other layers' allows; say so, since
+  # a non-empty list would else hide that the allowlist this layout expects was never written
+  if [[ ${#ALLOWED_PATTERNS[@]} -gt 0 && "$PERMISSIONS_ACTOR_FILE_ABSENT" == true ]]; then
+    echo "💥 MalfunctionError: $CONFIG_DIR/settings.of.repo.json is absent, though this repo's layout keeps its allows there, so this allowlist lacks them — fix: $PERMISSIONS_FIX_HINT"
   fi
   if [[ -n "$INVENTORY_MALFUNCTION" ]]; then
     echo "💥 MalfunctionError: $INVENTORY_MALFUNCTION — alternatives are omitted and the block still holds; repair the file beside the hook, then rebuild the role"
@@ -1507,7 +1528,9 @@ if [[ "$MODE" == "SOFTNUDGE" ]]; then
 fi
 
 # HARDNUDGE (default): block on first attempt, hand a retry to the human
-ATTEMPTED_FILE="$CLAUDE_DIR/permission.nudges.local.json"
+# .note = the nudge record lives in the clone's own config dir, so two actors' clones never share
+#         one record; a record that cannot be made there is named, and the block still holds
+ATTEMPTED_FILE="$CONFIG_DIR/permission.nudges.local.json"
 
 # a nudge record that cannot be read or written is named in the render, never swallowed
 # .note = the cause is the first line of jq's / mv's error; the block still holds
@@ -1712,7 +1735,7 @@ get_block_text() {
   local "$@"
   local -a malfunctions=()
   [[ -n "$ledger_malfunction" ]] && malfunctions+=("$ledger_malfunction")
-  [[ -n "$record_malfunction" ]] && malfunctions+=("💥 MalfunctionError: $record_malfunction — the block still holds, but a retry will block again rather than reach the human; delete the file and the hook recreates it")
+  [[ -n "$record_malfunction" ]] && malfunctions+=("💥 MalfunctionError: $record_malfunction — the block still holds, but a retry will block again rather than reach the human; make $CONFIG_DIR a writable dir, or delete the file and the hook recreates it")
   BLOCK_TEXT=$(printf '%s\n' "${OUT[@]}")
   [[ ${#malfunctions[@]} -gt 0 ]] && BLOCK_TEXT+=$'\n\n'$(printf '%s\n' "${malfunctions[@]}")
   return 0
