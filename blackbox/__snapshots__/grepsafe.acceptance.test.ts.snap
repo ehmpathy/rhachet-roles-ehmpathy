@@ -1,0 +1,151 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`grepsafe (acceptance) given: [case1] a linked repo whose box/ holds a link out, a link in, and a loop when: [t0] the caller searches box then: the render matches snapshot 1`] = `
+"🪨 run solid skill repo=ehmpathy/role=mechanic/skill=grepsafe
+
+🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reef break at dawn
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 2
+   ├─ links: 3 not followed (1 leads outside the path)
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reef break at dawn near
+      │  box/sub/deep.md:1:reef break at dawn deep
+      │
+      └─
+
+🥥 did you know?
+   ├─ a walk follows no link; name one as --path to search behind it
+   └─ grepsafe.sh --pattern 'reef break at dawn' --path box/portal
+"
+`;
+
+exports[`grepsafe (acceptance) given: [case1] a linked repo whose box/ holds a link out, a link in, and a loop when: [t1] the caller follows the fix: names the link as --path then: the render matches snapshot 1`] = `
+"🪨 run solid skill repo=ehmpathy/role=mechanic/skill=grepsafe
+
+🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reef break at dawn
+   ├─ path: lagoon
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   └─ results
+      ├─
+      │
+      │  lagoon/far.md:1:reef break at dawn far
+      │
+      └─
+"
+`;
+
+exports[`grepsafe (acceptance) given: [case1] a linked repo whose box/ holds a link out, a link in, and a loop when: [t2] the search finds no line, beside the link out then: the render matches snapshot 1`] = `
+"🪨 run solid skill repo=ehmpathy/role=mechanic/skill=grepsafe
+
+🐢 crickets...
+
+🐚 grepsafe
+   ├─ pattern: reef break at dawn at noon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ links: 3 not followed (1 leads outside the path)
+   └─ matches: 0 — no line matched the pattern
+
+🥥 did you know?
+   ├─ a walk follows no link; name one as --path to search behind it
+   └─ grepsafe.sh --pattern 'reef break at dawn at noon' --path box/portal
+"
+`;
+
+exports[`grepsafe (acceptance) given: [case1] a linked repo whose box/ holds a link out, a link in, and a loop when: [t3] the caller pipes the result then: the rows and the stderr match snapshot 1`] = `
+{
+  "rows": [
+    "box/near.md:1:reef break at dawn near",
+    "box/sub/deep.md:1:reef break at dawn deep",
+  ],
+  "stderr": "",
+}
+`;
+
+exports[`grepsafe (acceptance) given: [case1] a linked repo whose box/ holds a link out, a link in, and a loop when: [t5] the caller names a --path outside the repo then: the refusal matches snapshot, on each stream 1`] = `
+{
+  "stderr": "🪨 run solid skill repo=ehmpathy/role=mechanic/skill=grepsafe
+   └─ ✋ blocked by constraints
+
+🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: search path must be within the git repository
+      ├─ repo root:   <REPO>
+      ├─ search path: <REPO_PARENT>
+      └─ named by:    --path
+
+🥥 did you know?
+   ├─ name a path under the repo root: no '..' segments, and an absolute path must itself sit under that root
+   └─ grepsafe.sh --pattern 'reef break at dawn' --path <REPO>
+",
+  "stdout": "🪨 run solid skill repo=ehmpathy/role=mechanic/skill=grepsafe
+
+🐢 bummer dude...
+
+🐚 grepsafe
+   └─ error: search path must be within the git repository
+      ├─ repo root:   <REPO>
+      ├─ search path: <REPO_PARENT>
+      └─ named by:    --path
+
+🥥 did you know?
+   ├─ name a path under the repo root: no '..' segments, and an absolute path must itself sit under that root
+   └─ grepsafe.sh --pattern 'reef break at dawn' --path <REPO>
+",
+}
+`;
+
+exports[`grepsafe (acceptance) given: [case1] a linked repo whose box/ holds a link out, a link in, and a loop when: [t6] the caller names no path at all then: the render matches snapshot 1`] = `
+"🪨 run solid skill repo=ehmpathy/role=mechanic/skill=grepsafe
+
+🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reef break at dawn
+   ├─ path: .
+   ├─ engine: rg
+   ├─ lines: 3
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reef break at dawn near
+      │  box/sub/deep.md:1:reef break at dawn deep
+      │  lagoon/far.md:1:reef break at dawn far
+      │
+      └─
+"
+`;
+
+exports[`grepsafe (acceptance) given: [case2] a linked repo whose matched line holds the repo path in its own text when: [t0] the caller searches log then: the render matches snapshot, repo path masked 1`] = `
+"🪨 run solid skill repo=ehmpathy/role=mechanic/skill=grepsafe
+
+🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reef break at dawn
+   ├─ path: log
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   └─ results
+      ├─
+      │
+      │  log/tide.jsonl:1:{"m":"reef break at dawn <REPO>/log/tide.jsonl <REPO>/log/tide.jsonl <REPO>/log/tide.jsonl <REPO>/log/tide.jsonl "}
+      │
+      └─
+"
+`;

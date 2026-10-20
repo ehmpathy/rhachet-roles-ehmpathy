@@ -43,6 +43,9 @@ describe('grepsafe.sh', () => {
    */
   const runInTempGitRepo = (args: {
     files?: Record<string, string>;
+    // files whose content needs the repo's real path, which only exists once
+    // the temp repo does (e.g. text dense with the repo root)
+    filesFor?: (repoRealPath: string) => Record<string, string>;
     symlinks?: Record<string, string>; // linkRelPath -> target (relative to link dir)
     env?: NodeJS.ProcessEnv;
     // a hang guard, never a speed assertion: a hang is infinite, so any
@@ -55,6 +58,8 @@ describe('grepsafe.sh', () => {
     // how `input` reaches the skill: node hands a child a socket, so a shell
     // pipe (a FIFO) and a `<` redirect (a regular file) each need a shell
     stdinVia?: 'fifo' | 'file';
+    // a dir inside the repo to run from; absent = the repo root
+    cwdSub?: string;
     grepsafeArgs: string[];
   }): {
     stdout: string;
@@ -67,9 +72,17 @@ describe('grepsafe.sh', () => {
   } => {
     const tempDir = genTempDirTracked({ slug: 'grepsafe-test', git: true });
 
-    // create files
-    if (args.files) {
-      for (const [filePath, content] of Object.entries(args.files)) {
+    // create files; a path named by both maps is refused, never silently won
+    const filesFixed = args.files ?? {};
+    const filesBuilt = args.filesFor?.(fs.realpathSync(tempDir)) ?? {};
+    const filesClash = Object.keys(filesBuilt).filter((p) => p in filesFixed);
+    if (filesClash.length > 0)
+      throw new Error(
+        `runInTempGitRepo: files and filesFor both name ${filesClash.join(', ')}; name each path in one map`,
+      );
+    const filesAll = { ...filesFixed, ...filesBuilt };
+    if (Object.keys(filesAll).length > 0) {
+      for (const [filePath, content] of Object.entries(filesAll)) {
         const fullPath = path.join(tempDir, filePath);
         fs.mkdirSync(path.dirname(fullPath), { recursive: true });
         fs.writeFileSync(fullPath, content);
@@ -102,11 +115,14 @@ describe('grepsafe.sh', () => {
 
     // run grepsafe.sh
     const result = spawnSync('bash', spawnArgs, {
-      cwd: tempDir,
+      cwd: path.join(tempDir, args.cwdSub ?? ''),
       encoding: 'utf-8', // node api param name
       stdio: [args.stdin ?? 'pipe', 'pipe', 'pipe'],
       env: { ...(args.env ?? process.env), GREPSAFE_INPUT: inputFile },
       timeout: args.timeoutMs, // node api param name; undefined = no bound
+      // node's 1 MB default kills a large result with SIGPIPE, which would
+      // read as a hang; the render clamps emit several MB
+      maxBuffer: 64 * 1024 * 1024, // node api param name
       input: args.stdinVia ? undefined : args.input, // node api param name
     });
 
@@ -610,11 +626,12 @@ describe('grepsafe.sh', () => {
     });
 
     when('[t2] --help flag', () => {
-      then('shows usage info and exits 0', () => {
-        const result = runInTempGitRepo({
-          grepsafeArgs: ['--help'],
-        });
+      // one --help run, read by each then below
+      const result = useThen('grepsafe runs', () =>
+        runInTempGitRepo({ grepsafeArgs: ['--help'] }),
+      );
 
+      then('shows usage info and exits 0', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('usage:');
         expect(result.stdout).toContain('--pattern');
@@ -623,9 +640,6 @@ describe('grepsafe.sh', () => {
       // --help makes claims about behavior: the snapshot shows any edit in a
       // pr diff, and the explicit claims below hold its two key promises
       then('the --help notes block matches snapshot', () => {
-        const result = runInTempGitRepo({
-          grepsafeArgs: ['--help'],
-        });
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('notes:');
         expect(result.stdout).toContain('to name a path opts into');
@@ -636,9 +650,6 @@ describe('grepsafe.sh', () => {
       // and the two claims the branches actually enforce, asserted
       // explicitly — so a snapshot update cannot silently drop them
       then('it states the negative case a prefix-less glob meets', () => {
-        const result = runInTempGitRepo({
-          grepsafeArgs: ['--help'],
-        });
         expect(result.stdout).toContain('names no path');
         expect(result.stdout).toContain('rg (ripgrep) is required');
         expect(result.stdout).toContain('within the repo');
@@ -649,9 +660,6 @@ describe('grepsafe.sh', () => {
       then(
         'it warns that --output pipeable renders two zero-kinds alike',
         () => {
-          const result = runInTempGitRepo({
-            grepsafeArgs: ['--help'],
-          });
           const out = result.stdout;
           expect({
             namesTheMode: out.includes('--output pipeable renders an empty'),
@@ -1295,6 +1303,15 @@ describe('grepsafe.sh', () => {
     });
   });
 
+  /**
+   * .mock = the rg binary, via a stub `rg` prepended to PATH (here, and in [case29][t1])
+   * .why  = the case under test is rg ABSENT or BROKEN. a host that runs this
+   *         suite has a real, healthy rg, and a test must not uninstall or break
+   *         it; a shadow on PATH is the one way to stage either state. the stub
+   *         stands in for the host's state, never for rg's search behavior
+   * .real = every other case in this file runs the real rg; [case35][t3] wraps
+   *         and delegates to the real binary (`command -v rg`)
+   */
   given('[case24] failfast when rg is absent (acceptance 5)', () => {
     // a stub rg that fails --version reads as absent; grepsafe must failfast
     // with a fix, never report 0
@@ -1302,7 +1319,7 @@ describe('grepsafe.sh', () => {
       const setupShadow = (): NodeJS.ProcessEnv => {
         // a scratch bin, prepended to PATH, whose 'rg' always exits 1
         const shadowDir = genTempDirTracked({ slug: 'grepsafe-rg-shadow' });
-        const stub = path.join(shadowDir, 'rg');
+        const stub = path.join(shadowDir, 'rg'); // .mock: see the [case24] header
         fs.writeFileSync(stub, '#!/usr/bin/env bash\nexit 1\n');
         fs.chmodSync(stub, 0o755);
         return {
@@ -1337,7 +1354,7 @@ describe('grepsafe.sh', () => {
     when('[t0.5] rg is on PATH but broken, and says why', () => {
       const setupBroken = (): NodeJS.ProcessEnv => {
         const shadowDir = genTempDirTracked({ slug: 'grepsafe-rg-broken' });
-        const stub = path.join(shadowDir, 'rg');
+        const stub = path.join(shadowDir, 'rg'); // .mock: see the [case24] header
         fs.writeFileSync(
           stub,
           '#!/usr/bin/env bash\necho "rg: symbol lookup error: undefined symbol pcre2_compile_8" >&2\nexit 127\n',
@@ -1400,7 +1417,7 @@ describe('grepsafe.sh', () => {
         const shadowDir = genTempDirTracked({
           slug: 'grepsafe-rg-shadow-pipeable',
         });
-        const stub = path.join(shadowDir, 'rg');
+        const stub = path.join(shadowDir, 'rg'); // .mock: see the [case24] header
         fs.writeFileSync(stub, '#!/usr/bin/env bash\nexit 1\n');
         fs.chmodSync(stub, 0o755);
 
@@ -1438,7 +1455,7 @@ describe('grepsafe.sh', () => {
             const shadowDir = genTempDirTracked({
               slug: 'grepsafe-rg-broken-pipeable',
             });
-            const stub = path.join(shadowDir, 'rg');
+            const stub = path.join(shadowDir, 'rg'); // .mock: see the [case24] header
             fs.writeFileSync(
               stub,
               '#!/usr/bin/env bash\necho "rg: symbol lookup error: undefined symbol pcre2_compile_8" >&2\nexit 127\n',
@@ -1820,7 +1837,7 @@ describe('grepsafe.sh', () => {
         const shadowDir = genTempDirTracked({
           slug: 'grepsafe-rg-shadow-snap',
         });
-        const stub = path.join(shadowDir, 'rg');
+        const stub = path.join(shadowDir, 'rg'); // .mock: see the [case24] header
         fs.writeFileSync(stub, '#!/usr/bin/env bash\nexit 1\n');
         fs.chmodSync(stub, 0o755);
 
@@ -1841,8 +1858,9 @@ describe('grepsafe.sh', () => {
     });
 
     when('[t2] a named slashed glob finds its matches', () => {
-      then('the engine-named match frame matches snapshot', () => {
-        const result = runInTempGitRepo({
+      // one search, read by each then below
+      const result = useThen('grepsafe runs', () =>
+        runInTempGitRepo({
           files: { '.buried/deep/x.sh': `#!/bin/sh\n${KNOWN}\n` },
           grepsafeArgs: [
             '--pattern',
@@ -1851,7 +1869,10 @@ describe('grepsafe.sh', () => {
             '.buried/**/*.sh',
             '--files-only',
           ],
-        });
+        }),
+      );
+
+      then('the engine-named match frame matches snapshot', () => {
         expect(result.exitCode).toBe(0);
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
       });
@@ -1859,16 +1880,6 @@ describe('grepsafe.sh', () => {
       // the header fields that say what the search did; asserted so a
       // resnap cannot drop them
       then('the header names the DERIVED root, not the raw --path', () => {
-        const result = runInTempGitRepo({
-          files: { '.buried/deep/x.sh': `#!/bin/sh\n${KNOWN}\n` },
-          grepsafeArgs: [
-            '--pattern',
-            KNOWN,
-            '--glob',
-            '.buried/**/*.sh',
-            '--files-only',
-          ],
-        });
         // the glob prefix moved the root to `.buried`; `path:` said `.`
         expect(result.stdout).toContain('├─ path: .buried');
         expect(result.stdout).not.toContain('├─ path: .\n');
@@ -1877,16 +1888,6 @@ describe('grepsafe.sh', () => {
       // a lift of .gitignore must be visible, else a caller may paste
       // ignored content somewhere shared
       then('the header says the hidden + ignore lifts fired', () => {
-        const result = runInTempGitRepo({
-          files: { '.buried/deep/x.sh': `#!/bin/sh\n${KNOWN}\n` },
-          grepsafeArgs: [
-            '--pattern',
-            KNOWN,
-            '--glob',
-            '.buried/**/*.sh',
-            '--files-only',
-          ],
-        });
         expect(result.stdout).toContain(
           '├─ scope: hidden + ignored included (a named path)',
         );
@@ -4249,5 +4250,930 @@ describe('grepsafe.sh', () => {
         });
       });
     });
+  });
+
+  given(
+    '[case43] --path bounds the walk, and names the links it left shut',
+    () => {
+      // a link met under a named root is never followed. the output counts each
+      // such link, and how many lead outside the path, so a short answer is
+      // never silent. a hang guard bounds every run: a loop or a far walk would
+      // be infinite or slow, and any finite bound tells either from a slow box
+      const MARK = 'reefmarker in the lagoon';
+      const BIG: Record<string, string> = {};
+      for (let i = 0; i < 200; i++) BIG[`big/deep/f${i}.md`] = `${MARK} ${i}\n`;
+      const BOX = { 'box/near.md': `${MARK} near\n`, ...BIG };
+      // each run here ends in well under a second; 60 s is ~100x that, so only
+      // a hang (a followed loop, an unbound walk) reaches it on a loaded box
+      const GUARD_MS = 60_000;
+
+      when(
+        '[t0] box/ holds a link to a large dir outside box (wish caseA)',
+        () => {
+          const result = useThen('grepsafe runs', () =>
+            runInTempGitRepo({
+              files: BOX,
+              symlinks: { 'box/portal': '../big' },
+              timeoutMs: GUARD_MS,
+              grepsafeArgs: ['--pattern', MARK, '--path', 'box'],
+            }),
+          );
+
+          then('the run ends inside the hang guard', () => {
+            expect(result.signal).toBe(null);
+            expect(result.exitCode).toBe(0);
+          });
+
+          then('the dir behind the link is not walked', () => {
+            expect(result.stdout).toContain('box/near.md:1:');
+            expect(result.stdout).not.toContain('big/');
+            expect(result.stdout).not.toContain('portal/');
+          });
+
+          then('the tree names the link it left shut', () => {
+            expect(result.stdout).toContain(
+              '├─ links: 1 not followed (1 leads outside the path)',
+            );
+            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          });
+
+          then('the 🥥 names the --path that reaches behind the link', () => {
+            expect(result.stdout).toContain(
+              `└─ grepsafe.sh --pattern '${MARK}' --path box/portal`,
+            );
+          });
+        },
+      );
+
+      when('[t1] the same, with --output pipeable', () => {
+        const result = useThen('grepsafe runs', () =>
+          runInTempGitRepo({
+            files: BOX,
+            symlinks: { 'box/portal': '../big' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: [
+              '--pattern',
+              MARK,
+              '--path',
+              'box',
+              '--output',
+              'pipeable',
+            ],
+          }),
+        );
+
+        then('stdout holds the result rows only', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toEqual(`box/near.md:1:${MARK} near\n`);
+        });
+
+        then('stderr names the skip, and the fix', () => {
+          expect(result.stderr).toEqual(
+            'grepsafe: 1 link(s) not followed (1 leads outside the path)\n' +
+              `fix: name a link as --path to search behind it — grepsafe.sh --pattern '${MARK}' --path box/portal\n`,
+          );
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      });
+
+      when('[t2] the link itself is named as --path', () => {
+        then('a named link is followed, by name', () => {
+          const result = runInTempGitRepo({
+            files: BOX,
+            symlinks: { 'box/portal': '../big' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: ['--pattern', `${MARK} 7$`, '--path', 'box/portal'],
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('big/deep/f7.md:1:');
+          // the followed link is not itself counted as one left shut
+          expect(result.stdout).not.toContain('links:');
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t3] a link whose target sits inside box (wish caseB)', () => {
+        const result = useThen('grepsafe runs', () =>
+          runInTempGitRepo({
+            files: { 'box/near.md': `${MARK} near\n` },
+            symlinks: { 'box/inner': 'near.md' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: ['--pattern', MARK, '--path', 'box'],
+          }),
+        );
+
+        then('the target is still searched, once, by its real path', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout.match(/box\/near\.md:1:/g)?.length).toBe(1);
+          expect(result.stdout).not.toContain('box/inner');
+        });
+
+        then('the link counts, but leads nowhere outside', () => {
+          expect(result.stdout).toContain(
+            '├─ links: 1 not followed (0 lead outside the path)',
+          );
+          // an inside target lost no match, so no fix is owed
+          expect(result.stdout).not.toContain('did you know?');
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t22] a link to a dir inside box (wish caseB, dir form)', () => {
+        then('the dir is searched once, under its real name', () => {
+          const result = runInTempGitRepo({
+            files: { 'box/sub/deep.md': `${MARK} deep\n` },
+            symlinks: { 'box/alias': 'sub' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: ['--pattern', MARK, '--path', 'box'],
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout.match(/box\/sub\/deep\.md:1:/g)?.length).toBe(1);
+          expect(result.stdout).not.toContain('box/alias/');
+          expect(result.stdout).toContain(
+            '├─ links: 1 not followed (0 lead outside the path)',
+          );
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t4] a symlink loop under box (wish caseC)', () => {
+        const result = useThen('grepsafe runs', () =>
+          runInTempGitRepo({
+            files: { 'box/near.md': `${MARK} near\n` },
+            symlinks: { 'box/loop': '.' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: ['--pattern', MARK, '--path', 'box'],
+          }),
+        );
+
+        then('the run ends inside the hang guard', () => {
+          expect(result.signal).toBe(null);
+          expect(result.exitCode).toBe(0);
+        });
+
+        then('the file is found once, never through the loop', () => {
+          expect(result.stdout.match(/box\/near\.md:1:/g)?.length).toBe(1);
+          expect(result.stdout).not.toContain('box/loop/');
+        });
+
+        then('the loop counts as a link not followed', () => {
+          expect(result.stdout).toContain(
+            '├─ links: 1 not followed (0 lead outside the path)',
+          );
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t5] box holds a link to an absent target and a self-loop', () => {
+        then('both count as broken', () => {
+          const result = runInTempGitRepo({
+            files: { 'box/near.md': `${MARK} near\n` },
+            symlinks: { 'box/gone': 'nope', 'box/self': 'self' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: ['--pattern', MARK, '--path', 'box'],
+          });
+          expect(result.signal).toBe(null);
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(
+            '├─ links: 2 not followed (0 lead outside the path, 2 broken)',
+          );
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t6] a zero result beside a link out', () => {
+        then('the zero still names the shut door', () => {
+          const result = runInTempGitRepo({
+            files: BOX,
+            symlinks: { 'box/portal': '../big' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: ['--pattern', `${MARK} 7$`, '--path', 'box'],
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('matches: 0');
+          expect(result.stdout).toContain(
+            '├─ links: 1 not followed (1 leads outside the path)',
+          );
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t7] 🟢 CONTROL — no link under the root', () => {
+        then('no links line renders', () => {
+          const result = runInTempGitRepo({
+            files: { 'box/near.md': `${MARK} near\n` },
+            grepsafeArgs: ['--pattern', MARK, '--path', 'box'],
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).not.toContain('links:');
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t9] a --glob prefix names box, and box holds a link out', () => {
+        then('the glob root counts its links as --path does', () => {
+          const result = runInTempGitRepo({
+            files: BOX,
+            symlinks: { 'box/portal': '../big' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: ['--pattern', MARK, '--glob', 'box/**/*.md'],
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('box/near.md:1:');
+          expect(result.stdout).not.toContain('big/');
+          expect(result.stdout).toContain(
+            '├─ links: 1 not followed (1 leads outside the path)',
+          );
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t10] box holds a link out beside a dir it cannot read', () => {
+        then('the count says it is partial, never complete', () => {
+          const repoDir = genTempDirTracked({
+            slug: 'grepsafe-links-partial',
+            git: true,
+          });
+          fs.mkdirSync(path.join(repoDir, 'box', 'denied'), {
+            recursive: true,
+          });
+          fs.mkdirSync(path.join(repoDir, 'big'), { recursive: true });
+          fs.writeFileSync(
+            path.join(repoDir, 'box', 'near.md'),
+            `${MARK} near\n`,
+          );
+          fs.writeFileSync(path.join(repoDir, 'big', 'f.md'), `${MARK} far\n`);
+          fs.symlinkSync('../big', path.join(repoDir, 'box', 'portal'));
+          fs.chmodSync(path.join(repoDir, 'box', 'denied'), 0o000);
+
+          try {
+            const result = spawnSync(
+              'bash',
+              [scriptPath, '--pattern', MARK, '--path', 'box'],
+              {
+                cwd: repoDir,
+                encoding: 'utf-8', // node api param name
+                stdio: ['pipe', 'pipe', 'pipe'],
+                timeout: GUARD_MS,
+              },
+            );
+            expect(result.signal).toBe(null);
+            expect(result.stdout).toContain(
+              '├─ links: 1 not followed (1 leads outside the path, count partial: some dirs unreadable)',
+            );
+            // the unread block also rides stderr, for a caller who reads it alone
+            expect(result.stderr).toContain(
+              'grepsafe: some paths could not be searched\n',
+            );
+            // sorted: rg emits unreadable paths in parallel-walk order
+            expect(
+              sortBlockBodyLines(sanitizeOutput(result.stdout)),
+            ).toMatchSnapshot();
+          } finally {
+            // restore, so the temp dir stays removable
+            fs.chmodSync(path.join(repoDir, 'box', 'denied'), 0o755);
+          }
+        });
+      });
+
+      when('[t11] the same, broken link too, with --output pipeable', () => {
+        then('stderr names broken and partial, stdout stays rows', () => {
+          const repoDir = genTempDirTracked({
+            slug: 'grepsafe-links-partial-pipe',
+            git: true,
+          });
+          fs.mkdirSync(path.join(repoDir, 'box', 'denied'), {
+            recursive: true,
+          });
+          fs.mkdirSync(path.join(repoDir, 'big'), { recursive: true });
+          fs.writeFileSync(
+            path.join(repoDir, 'box', 'near.md'),
+            `${MARK} near\n`,
+          );
+          fs.writeFileSync(path.join(repoDir, 'big', 'f.md'), `${MARK} far\n`);
+          fs.symlinkSync('../big', path.join(repoDir, 'box', 'portal'));
+          fs.symlinkSync('nope', path.join(repoDir, 'box', 'gone'));
+          fs.chmodSync(path.join(repoDir, 'box', 'denied'), 0o000);
+
+          try {
+            const result = spawnSync(
+              'bash',
+              [
+                scriptPath,
+                '--pattern',
+                MARK,
+                '--path',
+                'box',
+                '--output',
+                'pipeable',
+              ],
+              {
+                cwd: repoDir,
+                encoding: 'utf-8', // node api param name
+                stdio: ['pipe', 'pipe', 'pipe'],
+                timeout: GUARD_MS,
+              },
+            );
+            expect(result.signal).toBe(null);
+            expect(result.stdout).toEqual(`box/near.md:1:${MARK} near\n`);
+            expect(result.stderr).toContain(
+              'grepsafe: 2 link(s) not followed (1 leads outside the path, 1 broken, count partial: some dirs unreadable)\n',
+            );
+            expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+          } finally {
+            // restore, so the temp dir stays removable
+            fs.chmodSync(path.join(repoDir, 'box', 'denied'), 0o755);
+          }
+        });
+      });
+
+      when('[t13] box holds two links out', () => {
+        const result = useThen('grepsafe runs', () =>
+          runInTempGitRepo({
+            files: { ...BOX, 'far/f.md': `${MARK} far\n` },
+            symlinks: { 'box/portal': '../big', 'box/gate': '../far' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: ['--pattern', MARK, '--path', 'box'],
+          }),
+        );
+
+        then(
+          'the plural arm renders, and the hint names the first by name',
+          () => {
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toContain(
+              '├─ links: 2 not followed (2 lead outside the path)',
+            );
+            expect(result.stdout).toContain(
+              `└─ grepsafe.sh --pattern '${MARK}' --path box/gate`,
+            );
+            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          },
+        );
+      });
+
+      when('[t14] a link inside box, with --output pipeable', () => {
+        const result = useThen('grepsafe runs', () =>
+          runInTempGitRepo({
+            files: { 'box/near.md': `${MARK} near\n` },
+            symlinks: { 'box/inner': 'near.md' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: [
+              '--pattern',
+              MARK,
+              '--path',
+              'box',
+              '--output',
+              'pipeable',
+            ],
+          }),
+        );
+
+        then('stderr names the link, and owes no fix', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toEqual(`box/near.md:1:${MARK} near\n`);
+          expect(result.stderr).toEqual(
+            'grepsafe: 1 link(s) not followed (0 lead outside the path)\n',
+          );
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      });
+
+      when('[t15] a zero beside a link out, with --output pipeable', () => {
+        const result = useThen('grepsafe runs', () =>
+          runInTempGitRepo({
+            files: BOX,
+            symlinks: { 'box/portal': '../big' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: [
+              '--pattern',
+              `${MARK} 7$`,
+              '--path',
+              'box',
+              '--output',
+              'pipeable',
+            ],
+          }),
+        );
+
+        then('stdout is empty, and stderr still names the shut door', () => {
+          expect(result.stdout).toEqual('');
+          expect(result.stderr).toEqual(
+            'grepsafe: 1 link(s) not followed (1 leads outside the path)\n' +
+              `fix: name a link as --path to search behind it — grepsafe.sh --pattern '${MARK} 7$' --path box/portal\n`,
+          );
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      });
+
+      when('[t16] two nested named roots, in either flag order', () => {
+        // box/inner/up -> .. lands in box: outside box/inner, inside box
+        const runWith = (paths: string[]) =>
+          runInTempGitRepo({
+            files: { 'box/near.md': `${MARK} near\n`, 'box/inner/x.md': 'x\n' },
+            symlinks: { 'box/inner/up': '..' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: [
+              '--pattern',
+              MARK,
+              ...paths.flatMap((p) => ['--path', p]),
+            ],
+          });
+
+        then(
+          'the outside count is the same, since box holds the target',
+          () => {
+            const wide = runWith(['box', 'box/inner']);
+            const narrow = runWith(['box/inner', 'box']);
+            const line = '├─ links: 1 not followed (0 lead outside the path)';
+            expect(wide.stdout).toContain(line);
+            expect(narrow.stdout).toContain(line);
+            // the frame names both roots, in the order given
+            expect(sanitizeOutput(wide.stdout)).toMatchSnapshot();
+            expect(sanitizeOutput(narrow.stdout)).toMatchSnapshot();
+          },
+        );
+      });
+
+      when('[t17] a link that leads out of the repo itself', () => {
+        then(
+          'it counts outside, and no hint names a path the gate refuses',
+          () => {
+            const result = runInTempGitRepo({
+              files: { 'box/near.md': `${MARK} near\n` },
+              symlinks: { 'box/rootdir': '/' },
+              timeoutMs: GUARD_MS,
+              grepsafeArgs: ['--pattern', MARK, '--path', 'box'],
+            });
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toContain(
+              '├─ links: 1 not followed (1 leads outside the path)',
+            );
+            expect(result.stdout).not.toContain('--path box/rootdir');
+            expect(result.stdout).not.toContain('did you know?');
+            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          },
+        );
+      });
+
+      when('[t18] the host ripgrep config asks rg to follow links', () => {
+        // a RIPGREP_CONFIG_PATH that holds --follow must not lift the bound
+        const result = useThen('grepsafe runs', () => {
+          const configDir = genTempDirTracked({ slug: 'grepsafe-rg-config' });
+          const configPath = path.join(configDir, 'ripgreprc');
+          fs.writeFileSync(configPath, '--follow\n');
+          return runInTempGitRepo({
+            files: BOX,
+            symlinks: { 'box/portal': '../big' },
+            env: { ...process.env, RIPGREP_CONFIG_PATH: configPath },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: ['--pattern', MARK, '--path', 'box'],
+          });
+        });
+
+        then('the dir behind the link is still not walked', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('box/near.md:1:');
+          expect(result.stdout).not.toContain('portal/');
+          expect(result.stdout).toContain(
+            '├─ links: 1 not followed (1 leads outside the path)',
+          );
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t19] a named link whose target holds a link out', () => {
+        then('the walk behind the named link counts the link it met', () => {
+          const result = runInTempGitRepo({
+            files: { ...BOX, 'far/x.md': `${MARK} far\n` },
+            symlinks: { 'box/portal': '../big', 'big/deep/away': '../../far' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: ['--pattern', `${MARK} 7$`, '--path', 'box/portal'],
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('big/deep/f7.md:1:');
+          expect(result.stdout).not.toContain('far/x.md');
+          expect(result.stdout).toContain(
+            '├─ links: 1 not followed (1 leads outside the path)',
+          );
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t20] the pattern holds a single quote', () => {
+        then('the fix line stays pasteable', () => {
+          const result = runInTempGitRepo({
+            files: { 'box/near.md': "don't drift\n", 'big/x.md': 'x\n' },
+            symlinks: { 'box/portal': '../big' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: [
+              '--pattern',
+              "don't",
+              '--path',
+              'box',
+              '--output',
+              'pipeable',
+            ],
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stderr).toContain(
+            `fix: name a link as --path to search behind it — grepsafe.sh --pattern 'don'\\''t' --path box/portal\n`,
+          );
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      });
+
+      when('[t21] the caller runs from a subdir', () => {
+        then('the fix line names the link as that cwd would type it', () => {
+          const result = runInTempGitRepo({
+            files: { ...BOX, 'src/x.md': 'x\n' },
+            symlinks: { 'box/portal': '../big' },
+            cwdSub: 'src',
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: [
+              '--pattern',
+              MARK,
+              '--path',
+              '../box',
+              '--output',
+              'pipeable',
+            ],
+          });
+          expect(result.exitCode).toBe(0);
+          expect(result.stderr).toContain(
+            `grepsafe.sh --pattern '${MARK}' --path ../box/portal\n`,
+          );
+          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        });
+      });
+
+      when(
+        '[t23] one run holds a named leg with a link out, and an unnamed leg that skips a hidden match',
+        () => {
+          // the brace glob makes two legs: box/ (named) and the repo root (unnamed)
+          const result = useThen('grepsafe runs', () =>
+            runInTempGitRepo({
+              files: {
+                'box/near.md': `${MARK} near\n`,
+                'lagoon/far.md': `${MARK} far\n`,
+                '.notes/a.md': `${MARK} hidden\n`,
+              },
+              symlinks: { 'box/portal': '../lagoon' },
+              timeoutMs: GUARD_MS,
+              grepsafeArgs: ['--pattern', MARK, '--glob', '{box/**/*.md,*.md}'],
+            }),
+          );
+
+          then(
+            'both fixes ride in one 🥥 block, each command after its lead',
+            () => {
+              expect(result.exitCode).toBe(0);
+              expect(result.stdout.split('🥥 did you know?').length - 1).toBe(
+                1,
+              );
+              expect(result.stdout).toContain(
+                '   ├─ a walk skips hidden paths; name them as --path to search them\n' +
+                  `   ├─ grepsafe.sh --pattern '${MARK}' --path .notes\n` +
+                  '   ├─ a walk follows no link; name one as --path to search behind it\n' +
+                  `   └─ grepsafe.sh --pattern '${MARK}' --path box/portal\n`,
+              );
+            },
+          );
+
+          then('the render matches snapshot', () => {
+            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          });
+        },
+      );
+
+      when('[t24] --files-only beside a link out', () => {
+        const result = useThen('grepsafe runs', () =>
+          runInTempGitRepo({
+            files: BOX,
+            symlinks: { 'box/portal': '../big' },
+            timeoutMs: GUARD_MS,
+            grepsafeArgs: ['--pattern', MARK, '--path', 'box', '--files-only'],
+          }),
+        );
+
+        then('the files tally and the links line both render', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('├─ files: ');
+          expect(result.stdout).toContain(
+            '├─ links: 1 not followed (1 leads outside the path)\n',
+          );
+          expect(result.stdout).not.toContain('big/');
+        });
+
+        then('the render matches snapshot', () => {
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t12] box holds no link, beside a dir it cannot read', () => {
+        then(
+          'the unread block names the dir; no zero-link line repeats it',
+          () => {
+            const repoDir = genTempDirTracked({
+              slug: 'grepsafe-links-partial-zero',
+              git: true,
+            });
+            fs.mkdirSync(path.join(repoDir, 'box', 'denied'), {
+              recursive: true,
+            });
+            fs.writeFileSync(
+              path.join(repoDir, 'box', 'near.md'),
+              `${MARK} near\n`,
+            );
+            fs.chmodSync(path.join(repoDir, 'box', 'denied'), 0o000);
+
+            try {
+              const result = spawnSync(
+                'bash',
+                [scriptPath, '--pattern', MARK, '--path', 'box'],
+                {
+                  cwd: repoDir,
+                  encoding: 'utf-8', // node api param name
+                  stdio: ['pipe', 'pipe', 'pipe'],
+                  timeout: GUARD_MS,
+                },
+              );
+              expect(result.signal).toBe(null);
+              // the walk's gap is named once, where it belongs
+              expect(result.stdout).toContain(
+                'unread — these paths could not be searched',
+              );
+              expect(result.stdout).toContain('box/denied: Permission denied');
+              // and no word about links that do not exist
+              expect(result.stdout).not.toContain('links:');
+              expect(result.stdout).not.toContain('did you know?');
+              // the unread block also rides stderr, for a caller who reads it alone
+              expect(result.stderr).toContain(
+                'grepsafe: some paths could not be searched\n',
+              );
+              // sorted: rg emits unreadable paths in parallel-walk order
+              expect(
+                sortBlockBodyLines(sanitizeOutput(result.stdout)),
+              ).toMatchSnapshot();
+            } finally {
+              // restore, so the temp dir stays removable
+              fs.chmodSync(path.join(repoDir, 'box', 'denied'), 0o755);
+            }
+          },
+        );
+      });
+
+      when('[t8] an unnamed root meets a link (no count, by design)', () => {
+        then(
+          'no links line renders: a count there would walk ignored trees',
+          () => {
+            const result = runInTempGitRepo({
+              files: BOX,
+              symlinks: { 'box/portal': '../big' },
+              grepsafeArgs: ['--pattern', `${MARK} near`],
+            });
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toContain('box/near.md:1:');
+            expect(result.stdout).not.toContain('links:');
+            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          },
+        );
+      });
+    },
+  );
+
+  given('[case44] the render keeps match text intact, in linear time', () => {
+    // the render once stripped the repo path from the WHOLE output, match
+    // text included. that rewrote what the file holds, and on rows dense with
+    // the repo path (session transcripts) it stalled for hours
+    const MARK = 'tide window';
+    // measured on the 1 MB dense fixture: the linear render ends in ~0.4 s, the
+    // whole-text render it replaced in 7–9 s. 4 s leaves ~9x headroom for a slow
+    // box and still kills the old render, so the guard itself carries teeth
+    const RENDER_GUARD_MS = 4_000;
+
+    /**
+     * .what = the frame of a render: each non-row line, with the rows masked as one `<ROWS>`
+     * .why  = a 1 MB snap would bury the frame a reviewer reads; the repo path
+     *         and the row count vary by host, so both are masked. the thens
+     *         assert each row's prefix and its intact repo path, so the snap holds no cut of a row
+     */
+    const asRenderFrame = (input: {
+      text: string;
+      repo: string;
+      isRow: (line: string) => boolean;
+    }): string => {
+      const lines = input.text
+        .split(input.repo)
+        .join('<REPO>')
+        .replace(/├─ lines: \d+/, '├─ lines: <N>')
+        .split('\n');
+      const rowFirstAt = lines.findIndex(input.isRow);
+      const frame = lines.filter((line) => !input.isRow(line));
+      if (rowFirstAt < 0) return frame.join('\n');
+      const rowIndent = lines[rowFirstAt]?.match(/^[\s│]*/)?.[0] ?? '';
+      return [
+        ...frame.slice(0, rowFirstAt),
+        `${rowIndent}<ROWS>`,
+        ...frame.slice(rowFirstAt),
+      ].join('\n');
+    };
+
+    when('[t0] a matched line names the repo path in its own text', () => {
+      const result = useThen('grepsafe runs', () =>
+        runInTempGitRepo({
+          filesFor: (repo) => ({
+            'docs/note.md': `${MARK} see ${repo}/docs/other.md\n`,
+          }),
+          grepsafeArgs: ['--pattern', MARK, '--path', 'docs'],
+        }),
+      );
+
+      then('the row path is repo-relative', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('docs/note.md:1:');
+        expect(result.stdout).not.toContain(`${result.tempDir}/docs/note.md`);
+      });
+
+      then(
+        'the match text still holds the absolute path, byte for byte',
+        () => {
+          const repo = fs.realpathSync(result.tempDir);
+          expect(result.stdout).toContain(`${MARK} see ${repo}/docs/other.md`);
+        },
+      );
+
+      then('the render matches snapshot, repo path masked', () => {
+        const repo = fs.realpathSync(result.tempDir);
+        expect(result.stdout.split(repo).join('<REPO>')).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] 1 MB of matched rows, dense with the repo path', () => {
+      // ~60 KB per row, 1000 repo paths per row. the fixture stays at 1 MB,
+      // so a regression costs a shared ci box seconds, never minutes. the
+      // guard clamps the time; the text check clamps the rewrite
+      const result = useThen('grepsafe runs', () =>
+        runInTempGitRepo({
+          filesFor: (repo) => {
+            const row = `{"m":"${MARK} ${`${repo}/src/a.ts `.repeat(1000)}"}\n`;
+            const rows = Math.floor(1_000_000 / row.length);
+            return {
+              '.agent/.actors/a/t.jsonl': row.repeat(rows),
+              'deps/role/brief.md': `${MARK} behind the role link\n`,
+            };
+          },
+          // the grove's shape: a role link out of .agent, beside the transcript
+          symlinks: { '.agent/repo=x/role=y': '../../deps/role' },
+          timeoutMs: RENDER_GUARD_MS,
+          grepsafeArgs: [
+            '--pattern',
+            MARK,
+            '--path',
+            '.agent',
+            '--output',
+            'pipeable',
+          ],
+        }),
+      );
+
+      then('the run ends inside the hang guard', () => {
+        expect(result.signal).toBe(null);
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('every row opens repo-relative, its text intact', () => {
+        const repo = fs.realpathSync(result.tempDir);
+        const rows = result.stdout.trimEnd().split('\n');
+        expect(rows.length).toBeGreaterThan(5);
+        expect(
+          rows.every((r) => r.startsWith('.agent/.actors/a/t.jsonl:')),
+        ).toBe(true);
+        expect(rows[0]).toContain(`${repo}/src/a.ts`);
+      });
+
+      then('the role link stays shut, and stderr names it', () => {
+        expect(result.stdout).not.toContain('behind the role link');
+        expect(result.stderr).toEqual(
+          'grepsafe: 1 link(s) not followed (1 leads outside the path)\n' +
+            `fix: name a link as --path to search behind it — grepsafe.sh --pattern '${MARK}' --path .agent/repo=x/role=y\n`,
+        );
+      });
+
+      then(
+        'the frame matches snapshot: rows on stdout, the note on stderr',
+        () => {
+          const repo = fs.realpathSync(result.tempDir);
+          const isRow = (line: string) => line.startsWith('.agent/.actors/');
+          expect({
+            stdout: asRenderFrame({ text: result.stdout, repo, isRow }),
+            stderr: result.stderr,
+          }).toMatchSnapshot();
+        },
+      );
+    });
+
+    when('[t2] the same 1 MB, in the default vibes tree', () => {
+      // the headline experience: the tree render (print_tree_block) at scale
+      const result = useThen('grepsafe runs', () =>
+        runInTempGitRepo({
+          filesFor: (repo) => {
+            const row = `{"m":"${MARK} ${`${repo}/src/a.ts `.repeat(1000)}"}\n`;
+            const rows = Math.floor(1_000_000 / row.length);
+            return {
+              '.agent/.actors/a/t.jsonl': row.repeat(rows),
+              'deps/role/brief.md': `${MARK} behind the role link\n`,
+            };
+          },
+          // the same live role link out of .agent as [t1]
+          symlinks: { '.agent/repo=x/role=y': '../../deps/role' },
+          timeoutMs: RENDER_GUARD_MS,
+          grepsafeArgs: ['--pattern', MARK, '--path', '.agent'],
+        }),
+      );
+
+      then('the run ends inside the hang guard', () => {
+        expect(result.signal).toBe(null);
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('each tree row opens repo-relative, its text intact', () => {
+        const repo = fs.realpathSync(result.tempDir);
+        const rows = result.stdout
+          .split('\n')
+          .filter((r) => r.includes('t.jsonl:'));
+        expect(rows.length).toBeGreaterThan(5);
+        expect(
+          rows.every((r) => r.startsWith('      │  .agent/.actors/a/t.jsonl:')),
+        ).toBe(true);
+        expect(rows[0]).toContain(`${repo}/src/a.ts`);
+        expect(result.stdout).not.toContain('behind the role link');
+        expect(result.stdout).toContain(
+          '├─ links: 1 not followed (1 leads outside the path)\n',
+        );
+      });
+
+      then('the tree frame matches snapshot', () => {
+        const repo = fs.realpathSync(result.tempDir);
+        const isRow = (line: string) =>
+          line.includes('.agent/.actors/a/t.jsonl:');
+        expect(
+          asRenderFrame({ text: result.stdout, repo, isRow }),
+        ).toMatchSnapshot();
+      });
+    });
+
+    when(
+      '[t3] a transcript row holds escapes, a tab, and non-ascii text',
+      () => {
+        // the real transcript shape: json escapes (\n, \\, \"), a raw tab, an emoji.
+        // the row render runs through awk now, so pin that it reaches the caller as is
+        const ROW = `{"m":"${MARK} see\\n\\\\ \\"reef\\"\tdrift 🐢 ${'<REPO>'}/x"}`;
+        const result = useThen('grepsafe runs', () =>
+          runInTempGitRepo({
+            filesFor: (repo) => ({
+              'log/t.jsonl': `${ROW.replace('<REPO>', repo)}\n`,
+            }),
+            grepsafeArgs: [
+              '--pattern',
+              MARK,
+              '--path',
+              'log',
+              '--output',
+              'pipeable',
+            ],
+          }),
+        );
+
+        then(
+          'the row reaches stdout byte for byte, its path repo-relative',
+          () => {
+            const repo = fs.realpathSync(result.tempDir);
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toEqual(
+              `log/t.jsonl:1:${ROW.replace('<REPO>', repo)}\n`,
+            );
+          },
+        );
+
+        // the vibes tree indents each row through its own awk pass
+        const vibes = useThen('grepsafe runs, vibes tree', () =>
+          runInTempGitRepo({
+            filesFor: (repo) => ({
+              'log/t.jsonl': `${ROW.replace('<REPO>', repo)}\n`,
+            }),
+            grepsafeArgs: ['--pattern', MARK, '--path', 'log'],
+          }),
+        );
+
+        then('the tree row holds the same bytes, after its indent', () => {
+          const repo = fs.realpathSync(vibes.tempDir);
+          expect(vibes.exitCode).toBe(0);
+          expect(vibes.stdout).toContain(
+            `      │  log/t.jsonl:1:${ROW.replace('<REPO>', repo)}\n`,
+          );
+        });
+      },
+    );
   });
 });
