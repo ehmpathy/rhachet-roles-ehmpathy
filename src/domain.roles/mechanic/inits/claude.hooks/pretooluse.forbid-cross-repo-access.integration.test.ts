@@ -1809,4 +1809,360 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
       });
     });
   });
+
+  /**
+   * .what = a directive tree: a worktree of self-repo whose role dirs link into the main checkout
+   * .why = the convention makes `<tree>/.agent/repo=.this/role=*` the tree's own path, though
+   *        realpath follows it into the main checkout. each case gets a fresh fixture
+   */
+  const genDirectiveTree = () => {
+    const root = genTempRoot();
+
+    // the main checkout holds the real role dir
+    const mainRoleDir = path.join(root.repoSelf, '.agent/repo=.this/role=any');
+    fs.mkdirSync(path.join(mainRoleDir, 'briefs'), { recursive: true });
+    fs.writeFileSync(path.join(mainRoleDir, 'briefs/surf.md'), '# surf\n');
+
+    // the directive tree links its role dir into the main checkout
+    const treePath = path.join(
+      root.gitRoot,
+      'testorg',
+      '_worktrees',
+      'self-repo.beav.feat-wave',
+    );
+    runGit(['worktree', 'add', '-b', 'feat/wave', treePath], root.repoSelf);
+    fs.mkdirSync(path.join(treePath, '.agent/repo=.this'), { recursive: true });
+    fs.symlinkSync(
+      mainRoleDir,
+      path.join(treePath, '.agent/repo=.this/role=any'),
+    );
+
+    return {
+      ...root,
+      treePath,
+      linkedBrief: path.join(
+        treePath,
+        '.agent/repo=.this/role=any/briefs/surf.md',
+      ),
+    };
+  };
+
+  given(
+    '[case26] a directive tree links its role dirs into the main checkout',
+    () => {
+      when('[t0] a Read reaches a brief via the linked role dir', () => {
+        then("allows it — the linked role dir is the tree's own", () => {
+          const tree = genDirectiveTree();
+          try {
+            const result = runHook({
+              toolName: 'Read',
+              toolInput: { file_path: tree.linkedBrief },
+              cwd: tree.treePath,
+              homeDir: tree.homeDir,
+              gitRoot: tree.gitRoot,
+            });
+            expect(result.exitCode).toBe(0);
+            expect(result.stderr).toBe('');
+          } finally {
+            tree.cleanup();
+          }
+        });
+      });
+
+      when('[t1] a Write lands a new brief via the linked role dir', () => {
+        then('allows it', () => {
+          const tree = genDirectiveTree();
+          try {
+            const result = runHook({
+              toolName: 'Write',
+              toolInput: {
+                file_path: path.join(
+                  tree.treePath,
+                  '.agent/repo=.this/role=any/briefs/tide.md',
+                ),
+                content: '# tide\n',
+              },
+              cwd: tree.treePath,
+              homeDir: tree.homeDir,
+              gitRoot: tree.gitRoot,
+            });
+            expect(result.exitCode).toBe(0);
+            expect(result.stderr).toBe('');
+          } finally {
+            tree.cleanup();
+          }
+        });
+      });
+
+      // .note = a guard, not a clamp: the Bash extractor stops at the `=` of
+      //         `repo=.this`, so it sees only `<tree>/.agent/repo` and allowed this
+      //         before the linked-role exemption too. kept so a wider extractor
+      //         cannot refuse the tree's own role dirs
+      when('[t2] a Bash call names the linked path', () => {
+        then('allows it', () => {
+          const tree = genDirectiveTree();
+          try {
+            const result = runHook({
+              toolName: 'Bash',
+              toolInput: { command: `cat ${tree.linkedBrief}` },
+              cwd: tree.treePath,
+              homeDir: tree.homeDir,
+              gitRoot: tree.gitRoot,
+            });
+            expect(result.exitCode).toBe(0);
+            expect(result.stderr).toBe('');
+          } finally {
+            tree.cleanup();
+          }
+        });
+      });
+
+      when(
+        '[t3] a Read names the main checkout role dir directly, not via the link',
+        () => {
+          then("blocks it — only the tree's own link is exempt", () => {
+            const tree = genDirectiveTree();
+            try {
+              const result = runHook({
+                toolName: 'Read',
+                toolInput: {
+                  file_path: path.join(
+                    tree.repoSelf,
+                    '.agent/repo=.this/role=any/briefs/surf.md',
+                  ),
+                },
+                cwd: tree.treePath,
+                homeDir: tree.homeDir,
+                gitRoot: tree.gitRoot,
+              });
+              expect(result.exitCode).toBe(2);
+              expect(result.stderr).toContain('adhoc cross-tree access');
+            } finally {
+              tree.cleanup();
+            }
+          });
+        },
+      );
+
+      when('[t4] a role=* link points into a PEER repo', () => {
+        then(
+          'blocks it — the link must land in this repo main checkout',
+          () => {
+            const tree = genDirectiveTree();
+            try {
+              const peerRoleDir = path.join(
+                tree.repoPeer,
+                '.agent/repo=.this/role=any',
+              );
+              fs.mkdirSync(peerRoleDir, { recursive: true });
+              fs.writeFileSync(path.join(peerRoleDir, 'reef.md'), '# reef\n');
+              fs.symlinkSync(
+                peerRoleDir,
+                path.join(tree.treePath, '.agent/repo=.this/role=reef'),
+              );
+
+              const result = runHook({
+                toolName: 'Read',
+                toolInput: {
+                  file_path: path.join(
+                    tree.treePath,
+                    '.agent/repo=.this/role=reef/reef.md',
+                  ),
+                },
+                cwd: tree.treePath,
+                homeDir: tree.homeDir,
+                gitRoot: tree.gitRoot,
+              });
+              expect(result.exitCode).toBe(2);
+              expect(result.stderr).toContain('adhoc cross-repo access');
+            } finally {
+              tree.cleanup();
+            }
+          },
+        );
+      });
+
+      when(
+        '[t5] a role=* link points into the main checkout, but not at a role dir',
+        () => {
+          then(
+            'blocks it — only a role dir of the .this repo dir qualifies',
+            () => {
+              const tree = genDirectiveTree();
+              try {
+                fs.symlinkSync(
+                  path.join(tree.repoSelf, 'src'),
+                  path.join(tree.treePath, '.agent/repo=.this/role=src'),
+                );
+
+                const result = runHook({
+                  toolName: 'Read',
+                  toolInput: {
+                    file_path: path.join(
+                      tree.treePath,
+                      '.agent/repo=.this/role=src/index.ts',
+                    ),
+                  },
+                  cwd: tree.treePath,
+                  homeDir: tree.homeDir,
+                  gitRoot: tree.gitRoot,
+                });
+                expect(result.exitCode).toBe(2);
+              } finally {
+                tree.cleanup();
+              }
+            },
+          );
+        },
+      );
+
+      when(
+        '[t6] a second link inside the linked role dir points into a peer repo',
+        () => {
+          then(
+            'blocks it — the target must stay inside the linked role dir',
+            () => {
+              const tree = genDirectiveTree();
+              try {
+                fs.symlinkSync(
+                  path.join(tree.repoPeer, 'src'),
+                  path.join(
+                    tree.repoSelf,
+                    '.agent/repo=.this/role=any/peer-src',
+                  ),
+                );
+
+                const result = runHook({
+                  toolName: 'Read',
+                  toolInput: {
+                    file_path: path.join(
+                      tree.treePath,
+                      '.agent/repo=.this/role=any/peer-src/index.ts',
+                    ),
+                  },
+                  cwd: tree.treePath,
+                  homeDir: tree.homeDir,
+                  gitRoot: tree.gitRoot,
+                });
+                expect(result.exitCode).toBe(2);
+                expect(result.stderr).toContain('adhoc cross-repo access');
+              } finally {
+                tree.cleanup();
+              }
+            },
+          );
+        },
+      );
+    },
+  );
+
+  given('[case27] a payload names a path it never opens', () => {
+    const cases: { label: string; command: string }[] = [
+      {
+        label: '[t0] printf pipes a radio task body into an @stdin sink',
+        command:
+          "printf 'see ~/git/testorg/peer-repo/src/index.ts' | rhx radio.task.push --via os.fileops --into @this --title wave --description @stdin",
+      },
+      {
+        label: '[t1] a heredoc body pipes into git.commit.set',
+        command: [
+          "cat <<'EOF' | rhx git.commit.set -m @stdin",
+          'fix(surf): align with ~/git/testorg/peer-repo/src/index.ts',
+          'EOF',
+        ].join('\n'),
+      },
+      {
+        label: '[t2] a --description value names the path',
+        command:
+          'rhx radio.task.push --via os.fileops --into @this --title wave --description "read $HOME/git/testorg/peer-repo/src/index.ts"',
+      },
+      {
+        label: '[t3] a git commit -m value names the path',
+        command: "git commit -m 'note ~/git/testorg/peer-repo/src/index.ts'",
+      },
+    ];
+    for (const item of cases) {
+      when(item.label, () => {
+        then('allows it — a payload is not a reach', () => {
+          const { gitRoot, homeDir, repoSelf, cleanup } = genTempRoot();
+          try {
+            const result = runHook({
+              toolName: 'Bash',
+              toolInput: { command: item.command },
+              cwd: repoSelf,
+              homeDir,
+              gitRoot,
+            });
+            expect(result.exitCode).toBe(0);
+            expect(result.stderr).toBe('');
+          } finally {
+            cleanup();
+          }
+        });
+      });
+    }
+  });
+
+  given(
+    '[case28] a payload that would execute, or a real reach beside a payload',
+    () => {
+      const cases: { label: string; command: string }[] = [
+        {
+          label: '[t0] a heredoc fed to bash',
+          command: [
+            'bash <<EOF',
+            'cat ~/git/testorg/peer-repo/src/index.ts',
+            'EOF',
+          ].join('\n'),
+        },
+        {
+          label: '[t1] an unquoted-delimiter heredoc line that expands a read',
+          command: [
+            'cat <<EOF | rhx git.commit.set -m @stdin',
+            'fix: $(cat ~/git/testorg/peer-repo/src/index.ts)',
+            'EOF',
+          ].join('\n'),
+        },
+        {
+          label: '[t2] a double-quoted printf arg that expands a read',
+          command:
+            'printf "$(cat ~/git/testorg/peer-repo/src/index.ts)" | rhx radio.task.push --description @stdin',
+        },
+        {
+          label: '[t3] a cat of the peer file piped into an @stdin sink',
+          command:
+            'cat ~/git/testorg/peer-repo/src/index.ts | rhx radio.task.push --description @stdin',
+        },
+        {
+          label: '[t4] a peer read chained after a payload send',
+          command:
+            "git commit -m 'wave' && cat ~/git/testorg/peer-repo/src/index.ts",
+        },
+        {
+          label: '[t5] realpath -m, a bare flag, not a message',
+          command: 'realpath -m "$HOME/git/testorg/peer-repo/src/index.ts"',
+        },
+      ];
+      for (const item of cases) {
+        when(item.label, () => {
+          then('blocks it — the path is still scanned', () => {
+            const { gitRoot, homeDir, repoSelf, cleanup } = genTempRoot();
+            try {
+              const result = runHook({
+                toolName: 'Bash',
+                toolInput: { command: item.command },
+                cwd: repoSelf,
+                homeDir,
+                gitRoot,
+              });
+              expect(result.exitCode).toBe(2);
+              expect(result.stderr).toContain('testorg/peer-repo');
+            } finally {
+              cleanup();
+            }
+          });
+        });
+      }
+    },
+  );
 });
