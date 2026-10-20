@@ -27,8 +27,11 @@
 #
 # guarantee:
 #   - allows any path inside the current repo (incl. its worktree)
+#   - allows a path via this tree's `.agent/repo=.this/role=*` link into
+#     the main checkout of the same repo (the tree's own role dirs)
 #   - blocks Read/Edit/Write/Grep/Glob into another repo under the root
-#   - blocks Bash commands that name another repo's path
+#   - blocks Bash commands that name another repo's path, outside a
+#     payload (a heredoc body, a message value, text piped to @stdin)
 #   - every block names the exact git.repo.get command to run instead
 ######################################################################
 
@@ -249,7 +252,73 @@ is_cross_repo() {
     [[ "$owner" == "$CURRENT_REPO" ]] && return 1
   fi
 
+  # a role dir this tree links into its own main checkout is this tree's own
+  is_linked_role_dir_of_this_repo "$abs" "$lex" && return 1
+
   return 0
+}
+
+######################################################################
+# is_linked_role_dir_of_this_repo — is this path one of this tree's own
+#                                   linked role dirs?
+# args: absolute path (symlinks followed), absolute path as written
+# returns: 0 when it is (allow), 1 otherwise
+#
+# .why = a directive tree links its role dirs: `.agent/repo=.this/role=*`
+#        is a symlink into the main checkout of the SAME repo. the
+#        convention makes that path the tree's own, so its briefs and
+#        skills are read and written through it. realpath follows the link
+#        out of the tree, so without this check every read of the tree's
+#        own role files reads as a reach into another worktree.
+#
+# .how = judged on the path as written, like the node_modules allowance:
+#        - the caller named `<owner>/.agent/repo=.this/role=<x>`, and
+#          `<owner>` is the current tree
+#        - that `role=<x>` entry is itself a symlink
+#        - it resolves to `<main>/.agent/repo=.this/role=<x'>`, where
+#          `<main>` is the main checkout of this same repo (the dir that
+#          holds its common .git dir)
+#        - the final target stays inside that resolved role dir, so a
+#          second link inside it cannot carry the read anywhere else
+#        any miss returns 1, and the path is judged as before.
+#
+# .note = runs only on the block path (after every cheaper allowance), so
+#         its git fork is paid once per would-be refusal, never per call
+######################################################################
+is_linked_role_dir_of_this_repo() {
+  local abs="$1"
+  local lex="$2"
+
+  # the caller named a role dir under some .this repo dir
+  [[ -n "$CURRENT_REPO" && "$lex" == */.agent/repo=.this/role=* ]] || return 1
+
+  # the role entry as named, and the dir that owns its .agent
+  local owner="${lex%%/.agent/repo=.this/role=*}"
+  local rest="${lex#"$owner"/.agent/repo=.this/}"
+  local link="$owner/.agent/repo=.this/${rest%%/*}"
+
+  # the entry must be a link, held by the current tree
+  [[ -L "$link" ]] || return 1
+  owner="$(realpath -m "$owner" 2>/dev/null)" || return 1
+  [[ "$owner" == "$CURRENT_REPO" ]] || return 1
+
+  # the main checkout of this repo = the dir that holds its common .git dir
+  # (a bare repo has no main checkout, so it never qualifies)
+  local common main
+  common="$(git -C "$CURRENT_REPO" rev-parse --git-common-dir 2>/dev/null)" || return 1
+  [[ "$common" == /* ]] || common="$CURRENT_REPO/$common"
+  common="$(realpath -m "$common" 2>/dev/null)" || return 1
+  [[ "$common" == */.git ]] || return 1
+  main="${common%/.git}"
+
+  # the link lands on one role dir of that main checkout's .this repo dir
+  local target
+  target="$(realpath -m "$link" 2>/dev/null)" || return 1
+  [[ "$target" == "$main/.agent/repo=.this/"role=* ]] || return 1
+  [[ "${target#"$main/.agent/repo=.this/"}" != */* ]] || return 1
+
+  # and the full path stays inside it
+  [[ "$abs" == "$target" || "$abs" == "$target/"* ]]
 }
 
 ######################################################################
@@ -672,6 +741,131 @@ $(print_coconut_hint \
 }
 
 ######################################################################
+# set_command_sans_payloads — the Bash text minus its message payloads
+# args: the command text
+# outputs: global COMMAND_SANS_PAYLOADS
+#
+# .why = a payload is text a command carries, never a path it opens: a
+#        heredoc body, a message flag's value, the text piped into an
+#        `@stdin` sink. a commit body or a radio task that MENTIONS a peer
+#        path reaches no repo, yet the path scan read it as a reach and
+#        refused the send. so payloads are cut before the scan.
+#
+# .why = a payload that would EXECUTE stays scanned, since it can reach:
+#        - a heredoc fed to a shell (bash, sh, zsh, source, eval, xargs, …)
+#        - an unquoted-delimiter heredoc line, or a double-quoted value,
+#          that holds `$(` or a backtick (bash expands it before the send)
+#
+# .note = pure bash (mapfile, [[ =~ ]], parameter expansion): no fork, since
+#         this runs on every Bash call
+######################################################################
+set_command_sans_payloads() {
+  local text="$1"
+  set_command_sans_heredoc_bodies "$text"
+  set_command_sans_message_values "$COMMAND_SANS_PAYLOADS"
+  set_command_sans_stdin_payloads "$COMMAND_SANS_PAYLOADS"
+}
+
+# .what = cut each heredoc body, unless its consumer is a shell or a line expands
+set_command_sans_heredoc_bodies() {
+  local -a lines=() kept=()
+  local line probe head delim="" strip_tabs=false quoted=false keep_body=false
+  mapfile -t lines <<< "$1"
+
+  for line in "${lines[@]}"; do
+    # inside a body: keep its end line; keep a body line only where it can run
+    if [[ -n "$delim" ]]; then
+      probe="$line"
+      [[ "$strip_tabs" == true ]] && probe="${probe#"${probe%%[!$'\t']*}"}"
+      if [[ "$probe" == "$delim" ]]; then
+        delim=""
+        kept+=("$line")
+        continue
+      fi
+      if [[ "$keep_body" == true ]]; then
+        kept+=("$line")
+        continue
+      fi
+      [[ "$quoted" == false && ( "$line" == *'$('* || "$line" == *'`'* ) ]] && kept+=("$line")
+      continue
+    fi
+
+    # outside a body: keep the line, and note a heredoc it opens
+    # .note = `(^|[^<])` refuses `<<<`, whose text sits on this same line
+    kept+=("$line")
+    [[ "$line" =~ (^|[^<])\<\<(-?)[[:space:]]*([\'\"]?)([A-Za-z_][A-Za-z0-9_]*) ]] || continue
+    delim="${BASH_REMATCH[4]}"
+    strip_tabs=false
+    [[ "${BASH_REMATCH[2]}" == "-" ]] && strip_tabs=true
+    quoted=false
+    [[ -n "${BASH_REMATCH[3]}" ]] && quoted=true
+
+    # a body fed to a shell is code, not a payload
+    head="${line#"${line%%[![:space:]]*}"}"
+    head="${head%%[[:space:]]*}"
+    head="${head##*/}"
+    keep_body=false
+    case "$head" in
+      bash | sh | zsh | dash | ksh | fish | source | . | eval | exec | xargs | env | sudo | nohup | timeout) keep_body=true ;;
+    esac
+  done
+
+  printf -v COMMAND_SANS_PAYLOADS '%s\n' "${kept[@]}"
+}
+
+# .what = cut each quoted message-flag value, unless it expands
+# .note = `-m` counts only within a git commit/tag/merge/stash or git.commit
+#         segment: elsewhere (`realpath -m`) it is a bare flag, not a message
+set_command_sans_message_values() {
+  local rest="$1" out="" matched value pattern
+  local quoted_value="('[^']*'|\"([^\"\\\\]|\\\\.)*\")"
+  local pattern_flag="(^|[[:space:]])(--description|--title|--body|--message)(=|[[:space:]]+)${quoted_value}"
+  local pattern_dash_m="(git[[:space:]]+(commit|tag|merge|stash)|git\\.commit\\.set)[^|;&]*[[:space:]]-m(=|[[:space:]]+)${quoted_value}"
+
+  for pattern in "$pattern_flag" "$pattern_dash_m"; do
+    out=""
+    while [[ "$rest" =~ $pattern ]]; do
+      matched="${BASH_REMATCH[0]}"
+      value="${BASH_REMATCH[4]}"
+      out+="${rest%%"$matched"*}"
+      rest="${rest#*"$matched"}"
+
+      # a double-quoted value that expands can reach, so it stays
+      if [[ "$value" == \"* && ( "$value" == *'$('* || "$value" == *'`'* ) ]]; then
+        out+="$matched"
+        continue
+      fi
+      out+="${matched%"$value"}''"
+    done
+    rest="$out$rest"
+  done
+
+  COMMAND_SANS_PAYLOADS="$rest"
+}
+
+# .what = cut the quoted text that printf or echo pipes into an `@stdin` sink
+set_command_sans_stdin_payloads() {
+  local rest="$1" out="" matched args
+  local pattern="(^|[;&|({[:space:]])(printf|echo)(([[:space:]]+(-[A-Za-z]+|'[^']*'|\"([^\"\\\\]|\\\\.)*\"))+)[[:space:]]*\\|[^|;&]*@stdin"
+
+  while [[ "$rest" =~ $pattern ]]; do
+    matched="${BASH_REMATCH[0]}"
+    args="${BASH_REMATCH[3]}"
+    out+="${rest%%"$matched"*}"
+    rest="${rest#*"$matched"}"
+
+    # an arg that expands can reach, so the whole send stays
+    if [[ "$args" == *'$('* || "$args" == *'`'* ]]; then
+      out+="$matched"
+      continue
+    fi
+    out+="${matched/"$args"/ ''}"
+  done
+
+  COMMAND_SANS_PAYLOADS="$out$rest"
+}
+
+######################################################################
 # gather candidate paths, per tool
 ######################################################################
 CANDIDATES=()
@@ -782,6 +976,10 @@ if [[ "$TOOL_NAME" == "Bash" ]]; then
     #        (rule.forbid.failhide).
     COMMAND_FOLDED="${COMMAND//\$\{HOME\}/\$HOME}"
     COMMAND_FOLDED="${COMMAND_FOLDED//\$\{GIT_REPO_ROOT\}/\$GIT_REPO_ROOT}"
+
+    # a payload names paths it never opens, so it is cut before the scan
+    set_command_sans_payloads "$COMMAND_FOLDED"
+    COMMAND_FOLDED="$COMMAND_SANS_PAYLOADS"
 
     # .note = `$GIT_REPO_ROOT` maps back to the root AS WRITTEN, not the
     #         canonical one, because that is what bash itself would expand it

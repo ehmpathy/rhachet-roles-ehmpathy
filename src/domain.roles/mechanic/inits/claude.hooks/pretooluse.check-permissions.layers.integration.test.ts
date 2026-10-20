@@ -4,10 +4,14 @@ import {
   copyFileSync,
   existsSync,
   mkdirSync,
+  realpathSync,
+  symlinkSync,
   writeFileSync,
 } from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
+
+import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
 import {
   genPermissionLayersFixture,
@@ -1477,4 +1481,127 @@ describe('pretooluse.check-permissions.sh layers', () => {
       },
     );
   });
+
+  /**
+   * .what = a git repo on rhachet 1.49's split layout, plus a worktree of it
+   * .why = the layout as rhachet writes it, not a hand-drawn approximation:
+   *        `<repo>/.claude` links to the repo actor's brain dir, which holds
+   *        `settings.of.repo.json` (the repo's allows) and `settings.json` →
+   *        `settings.of.grove.json` → the home file. no `settings.local.json`
+   *        exists anywhere. the clone runs in the worktree
+   */
+  const genSplitLayoutWorktree = () => {
+    const tempDir = realpathSync(
+      genTempDir({ slug: 'check-permissions-split-worktree' }),
+    );
+    const repoDir = path.join(tempDir, 'repo');
+    const treeDir = path.join(tempDir, 'repo.beav.feat-wave');
+    const homeDir = path.join(tempDir, 'home');
+    const brainRel = '.agent/.actors/actor.via.repo=ambient/brain/.claude';
+
+    // the home file holds no repo allow
+    mkdirSync(path.join(homeDir, '.claude'), { recursive: true });
+    writeFileSync(
+      path.join(homeDir, '.claude/settings.json'),
+      JSON.stringify({ permissions: { allow: ['Bash(tree:*)'] } }),
+    );
+
+    // the repo actor's brain dir, as rhachet lays it out
+    const brainDir = path.join(repoDir, brainRel);
+    mkdirSync(brainDir, { recursive: true });
+    writeFileSync(
+      path.join(brainDir, 'settings.of.repo.json'),
+      JSON.stringify({ permissions: { allow: ['Bash(rhx git.repo.test:*)'] } }),
+    );
+    symlinkSync(
+      path.join(homeDir, '.claude/settings.json'),
+      path.join(brainDir, 'settings.of.grove.json'),
+    );
+    symlinkSync('settings.of.grove.json', path.join(brainDir, 'settings.json'));
+    symlinkSync(brainRel, path.join(repoDir, '.claude'));
+
+    // commit it, then cut a worktree that carries the same layout
+    const git = (args: string[], cwd: string) => {
+      const out = spawnSync('git', args, { cwd, encoding: 'utf-8' });
+      if (out.status !== 0)
+        throw new Error(`fixture: git ${args.join(' ')} failed: ${out.stderr}`);
+    };
+    git(['init', '-b', 'main'], repoDir);
+    configureTestGitUser({ cwd: repoDir });
+    git(['add', '.'], repoDir);
+    git(['commit', '-m', 'split layout'], repoDir);
+    git(['worktree', 'add', '-b', 'feat/wave', treeDir], repoDir);
+
+    return { treeDir, homeDir, brainRel };
+  };
+
+  /**
+   * .what = run the check hook in the worktree of a split-layout repo
+   */
+  const runCheckInSplitWorktree = (input: {
+    command: string;
+    enrolled: boolean;
+  }) => {
+    const fixture = genSplitLayoutWorktree();
+    const { CLAUDE_CONFIG_DIR: _runnerConfigDir, ...envRest } = process.env;
+    const spawned = spawnSync('bash', [scriptPath], {
+      cwd: fixture.treeDir,
+      encoding: 'utf-8',
+      input: JSON.stringify({
+        tool_name: 'Bash',
+        tool_input: { command: input.command },
+      }),
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: {
+        ...envRest,
+        HOME: fixture.homeDir,
+        // an enrolled clone runs with its actor's brain dir as the config dir
+        ...(input.enrolled
+          ? {
+              CLAUDE_CONFIG_DIR: path.join(fixture.treeDir, fixture.brainRel),
+            }
+          : {}),
+      },
+    });
+    return {
+      exitCode: spawned.status ?? 1,
+      stderr: spawned.stderr ?? '',
+    };
+  };
+
+  given(
+    '[case23] rhachet 1.49 split layout, in a worktree, no settings.local.json',
+    () => {
+      for (const enrolled of [true, false]) {
+        const how = enrolled
+          ? 'an enrolled clone ($CLAUDE_CONFIG_DIR = the repo actor brain dir)'
+          : 'a plain session ($CLAUDE_CONFIG_DIR unset)';
+        when(`[t${enrolled ? 0 : 1}] ${how} runs an approved command`, () => {
+          const result = useThen('the hook runs', async () =>
+            runCheckInSplitWorktree({
+              command: 'rhx git.repo.test --what types',
+              enrolled,
+            }),
+          );
+          then('exit 0: the repo layer allows count', () => {
+            expect(result.exitCode).toBe(0);
+          });
+          then('stderr is empty', () => {
+            expect(result.stderr).toBe('');
+          });
+        });
+      }
+      when('[t2] the same clone runs an unlisted command', () => {
+        const result = useThen('the hook runs', async () =>
+          runCheckInSplitWorktree({
+            command: 'wavetool --unlisted',
+            enrolled: true,
+          }),
+        );
+        then('exit 2: the allowlist was read, not bypassed', () => {
+          expect(result.exitCode).toBe(2);
+        });
+      });
+    },
+  );
 });
