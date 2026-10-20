@@ -142,6 +142,14 @@ notes:
   default skips. a glob with no literal prefix ('**/*.md')
   names no path.
 
+  a symlink met on the walk is never followed, so a search stays
+  inside --path. under a named path the output counts those links:
+  'links: N not followed (M lead outside the path)'. to search
+  behind one, name it: --path <the link>.
+
+  rg reads no host config (--no-config): a RIPGREP_CONFIG_PATH file,
+  with its --follow, --smart-case, or --max-columns, does not apply.
+
   a glob reads as .gitignore reads it, relative to --path: one
   with a slash is anchored ('docs/*.md' skips 'docs/sub/'), one
   with none matches at any depth. each brace alternative names
@@ -919,5 +927,521 @@ exports[`grepsafe.sh given: [case42] every root, the pipe, the tail, and the hid
 🥥 did you know?
    ├─ a walk skips hidden paths; name them as --path to search them
    └─ grepsafe.sh --pattern 'paddleOut on the reef break' --path .behavior --path b/.env.example
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t0] box/ holds a link to a large dir outside box (wish caseA) then: the tree names the link it left shut 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 1 not followed (1 leads outside the path)
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │
+      └─
+
+🥥 did you know?
+   ├─ a walk follows no link; name one as --path to search behind it
+   └─ grepsafe.sh --pattern 'reefmarker in the lagoon' --path box/portal
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t1] the same, with --output pipeable then: stderr names the skip, and the fix 1`] = `
+"grepsafe: 1 link(s) not followed (1 leads outside the path)
+fix: name a link as --path to search behind it — grepsafe.sh --pattern 'reefmarker in the lagoon' --path box/portal
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t2] the link itself is named as --path then: a named link is followed, by name 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon 7$
+   ├─ path: big
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   └─ results
+      ├─
+      │
+      │  big/deep/f7.md:1:reefmarker in the lagoon 7
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t3] a link whose target sits inside box (wish caseB) then: the link counts, but leads nowhere outside 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 1 not followed (0 lead outside the path)
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t4] a symlink loop under box (wish caseC) then: the loop counts as a link not followed 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 1 not followed (0 lead outside the path)
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t5] box holds a link to an absent target and a self-loop then: both count as broken 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 2 not followed (0 lead outside the path, 2 broken)
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t6] a zero result beside a link out then: the zero still names the shut door 1`] = `
+"🐢 crickets...
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon 7$
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ links: 1 not followed (1 leads outside the path)
+   └─ matches: 0 — no line matched the pattern
+
+🥥 did you know?
+   ├─ a walk follows no link; name one as --path to search behind it
+   └─ grepsafe.sh --pattern 'reefmarker in the lagoon 7$' --path box/portal
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t7] 🟢 CONTROL — no link under the root then: no links line renders 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t8] an unnamed root meets a link (no count, by design) then: no links line renders: a count there would walk ignored trees 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon near
+   ├─ path: .
+   ├─ engine: rg
+   ├─ lines: 1
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t9] a --glob prefix names box, and box holds a link out then: the glob root counts its links as --path does 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ glob: box/**/*.md
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 1 not followed (1 leads outside the path)
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │
+      └─
+
+🥥 did you know?
+   ├─ a walk follows no link; name one as --path to search behind it
+   └─ grepsafe.sh --pattern 'reefmarker in the lagoon' --path box/portal
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t10] box holds a link out beside a dir it cannot read then: the count says it is partial, never complete 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 1 not followed (1 leads outside the path, count partial: some dirs unreadable)
+   ├─ results
+   │  ├─
+   │  │
+   │  │  box/near.md:1:reefmarker in the lagoon near
+   │  │
+   │  └─
+   └─ unread — these paths could not be searched
+      ├─
+      │
+      │  box/denied: Permission denied (os error 13)
+      │
+      │  fix: grant read access, or narrow the walk with --path or --glob so these paths fall outside it
+      │
+      └─
+
+🥥 did you know?
+   ├─ a walk follows no link; name one as --path to search behind it
+   └─ grepsafe.sh --pattern 'reefmarker in the lagoon' --path box/portal
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t11] the same, broken link too, with --output pipeable then: stderr names broken and partial, stdout stays rows 1`] = `
+"grepsafe: 2 link(s) not followed (1 leads outside the path, 1 broken, count partial: some dirs unreadable)
+fix: name a link as --path to search behind it — grepsafe.sh --pattern 'reefmarker in the lagoon' --path box/portal
+grepsafe: some paths could not be searched
+box/denied: Permission denied (os error 13)
+fix: grant read access, or narrow the walk with --path or --glob so these paths fall outside it
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t12] box holds no link, beside a dir it cannot read then: the unread block names the dir; no zero-link line repeats it 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ results
+   │  ├─
+   │  │
+   │  │  box/near.md:1:reefmarker in the lagoon near
+   │  │
+   │  └─
+   └─ unread — these paths could not be searched
+      ├─
+      │
+      │  box/denied: Permission denied (os error 13)
+      │
+      │  fix: grant read access, or narrow the walk with --path or --glob so these paths fall outside it
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t13] box holds two links out then: the plural arm renders, and the hint names the first by name 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 2 not followed (2 lead outside the path)
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │
+      └─
+
+🥥 did you know?
+   ├─ a walk follows no link; name one as --path to search behind it
+   └─ grepsafe.sh --pattern 'reefmarker in the lagoon' --path box/gate
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t14] a link inside box, with --output pipeable then: stderr names the link, and owes no fix 1`] = `
+"grepsafe: 1 link(s) not followed (0 lead outside the path)
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t15] a zero beside a link out, with --output pipeable then: stdout is empty, and stderr still names the shut door 1`] = `
+"grepsafe: 1 link(s) not followed (1 leads outside the path)
+fix: name a link as --path to search behind it — grepsafe.sh --pattern 'reefmarker in the lagoon 7$' --path box/portal
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t16] two nested named roots, in either flag order then: the outside count is the same, since box holds the target 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ paths: box, box/inner
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 1 not followed (0 lead outside the path)
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t16] two nested named roots, in either flag order then: the outside count is the same, since box holds the target 2`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ paths: box/inner, box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 1 not followed (0 lead outside the path)
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t17] a link that leads out of the repo itself then: it counts outside, and no hint names a path the gate refuses 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 1 not followed (1 leads outside the path)
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t18] the host ripgrep config asks rg to follow links then: the dir behind the link is still not walked 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 1 not followed (1 leads outside the path)
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │
+      └─
+
+🥥 did you know?
+   ├─ a walk follows no link; name one as --path to search behind it
+   └─ grepsafe.sh --pattern 'reefmarker in the lagoon' --path box/portal
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t19] a named link whose target holds a link out then: the walk behind the named link counts the link it met 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon 7$
+   ├─ path: big
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 1 not followed (1 leads outside the path)
+   └─ results
+      ├─
+      │
+      │  big/deep/f7.md:1:reefmarker in the lagoon 7
+      │
+      └─
+
+🥥 did you know?
+   ├─ a walk follows no link; name one as --path to search behind it
+   └─ grepsafe.sh --pattern 'reefmarker in the lagoon 7$' --path big/deep/away
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t20] the pattern holds a single quote then: the fix line stays pasteable 1`] = `
+"grepsafe: 1 link(s) not followed (1 leads outside the path)
+fix: name a link as --path to search behind it — grepsafe.sh --pattern 'don'\\''t' --path box/portal
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t21] the caller runs from a subdir then: the fix line names the link as that cwd would type it 1`] = `
+"grepsafe: 1 link(s) not followed (1 leads outside the path)
+fix: name a link as --path to search behind it — grepsafe.sh --pattern 'reefmarker in the lagoon' --path ../box/portal
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t22] a link to a dir inside box (wish caseB, dir form) then: the dir is searched once, under its real name 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   ├─ links: 1 not followed (0 lead outside the path)
+   └─ results
+      ├─
+      │
+      │  box/sub/deep.md:1:reefmarker in the lagoon deep
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t23] one run holds a named leg with a link out, and an unnamed leg that skips a hidden match then: the render matches snapshot 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ paths: box, .
+   ├─ glob: {box/**/*.md,*.md}
+   ├─ scope: hidden + ignored included under box only
+   ├─ engine: rg
+   ├─ lines: 2
+   ├─ skipped: 1 hidden file(s) also hold a match
+   ├─ links: 1 not followed (1 leads outside the path)
+   └─ results
+      ├─
+      │
+      │  box/near.md:1:reefmarker in the lagoon near
+      │  lagoon/far.md:1:reefmarker in the lagoon far
+      │
+      └─
+
+🥥 did you know?
+   ├─ a walk skips hidden paths; name them as --path to search them
+   ├─ grepsafe.sh --pattern 'reefmarker in the lagoon' --path .notes
+   ├─ a walk follows no link; name one as --path to search behind it
+   └─ grepsafe.sh --pattern 'reefmarker in the lagoon' --path box/portal
+"
+`;
+
+exports[`grepsafe.sh given: [case43] --path bounds the walk, and names the links it left shut when: [t24] --files-only beside a link out then: the render matches snapshot 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: reefmarker in the lagoon
+   ├─ path: box
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ files: 1
+   ├─ links: 1 not followed (1 leads outside the path)
+   └─ results
+      ├─
+      │
+      │  box/near.md
+      │
+      └─
+
+🥥 did you know?
+   ├─ a walk follows no link; name one as --path to search behind it
+   └─ grepsafe.sh --pattern 'reefmarker in the lagoon' --path box/portal
+"
+`;
+
+exports[`grepsafe.sh given: [case44] the render keeps match text intact, in linear time when: [t0] a matched line names the repo path in its own text then: the render matches snapshot, repo path masked 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: tide window
+   ├─ path: docs
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: 1
+   └─ results
+      ├─
+      │
+      │  docs/note.md:1:tide window see <REPO>/docs/other.md
+      │
+      └─
+"
+`;
+
+exports[`grepsafe.sh given: [case44] the render keeps match text intact, in linear time when: [t1] 1 MB of matched rows, dense with the repo path then: the frame matches snapshot: rows on stdout, the note on stderr 1`] = `
+{
+  "stderr": "grepsafe: 1 link(s) not followed (1 leads outside the path)
+fix: name a link as --path to search behind it — grepsafe.sh --pattern 'tide window' --path .agent/repo=x/role=y
+",
+  "stdout": "<ROWS>
+",
+}
+`;
+
+exports[`grepsafe.sh given: [case44] the render keeps match text intact, in linear time when: [t2] the same 1 MB, in the default vibes tree then: the tree frame matches snapshot 1`] = `
+"🐢 sweet
+
+🐚 grepsafe
+   ├─ pattern: tide window
+   ├─ path: .agent
+   ├─ scope: hidden + ignored included (a named path)
+   ├─ engine: rg
+   ├─ lines: <N>
+   ├─ links: 1 not followed (1 leads outside the path)
+   └─ results
+      ├─
+      │
+      │  <ROWS>
+      │
+      └─
+
+🥥 did you know?
+   ├─ a walk follows no link; name one as --path to search behind it
+   └─ grepsafe.sh --pattern 'tide window' --path .agent/repo=x/role=y
 "
 `;

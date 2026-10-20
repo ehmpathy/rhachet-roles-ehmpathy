@@ -33,10 +33,19 @@
 #   - searches with rg (ripgrep) only — one engine, no fallback
 #   - failfast when rg is absent; never a silent 0
 #   - a NAMED path (--path, or a --glob whose literal prefix is a real dir)
-#     lifts --hidden, the ignore rules, and symlink skips, scoped to that
-#     root. a glob with no literal prefix ('**/*.md') names no path
+#     lifts --hidden and the ignore rules, scoped to that root, and expands
+#     the root itself to its real path if it is a link. a glob with no literal prefix
+#     ('**/*.md') names no path
 #   - a tree merely met on the walk keeps its default skips; vibes output
 #     names the hidden files it skipped that hold a match
+#   - a symlink met on the walk is never followed, so --path bounds the walk
+#     and a loop cannot spin it. under a named root the output counts those
+#     links and how many lead outside the path (vibes: a `links:` branch;
+#     pipeable: one stderr line)
+#   - rg reads no host config (--no-config), so no RIPGREP_CONFIG_PATH can
+#     lift the bound or change the result
+#   - the render relativizes only the path at the head of each row, in one
+#     linear pass; match text reaches the caller as the file holds it
 #   - every --path is searched. a bare positional root stands alone
 #   - piped text is searched as the subject; beside a named file set it is
 #     refused, never silently dropped
@@ -132,11 +141,13 @@ print_tree_block() {
 
   echo "${indent}├─"
   echo "${indent}│"
-  # an empty body renders no row: a blank row reads as a truncated reason
+  # an empty body renders no row: a blank row reads as a truncated reason.
+  # one awk pass, never a bash `read` loop: bash reads a pipe one byte per
+  # syscall, so a body of long rows (a session transcript) took seconds per MB
+  # .note = ENVIRON, not -v: awk -v reads backslash escapes in the value
   if [[ -n "$body" ]]; then
-    echo "$body" | while IFS= read -r line; do
-      echo "${indent}│  $line"
-    done
+    GREPSAFE_ROW_PREFIX="${indent}│  " awk \
+      'BEGIN { p = ENVIRON["GREPSAFE_ROW_PREFIX"] } { print p $0 }' <<< "$body"
   fi
   if [[ -n "$footer" ]]; then
     echo "${indent}│"
@@ -239,6 +250,14 @@ while [[ $# -gt 0 ]]; do
       echo "  scoped to that root. a tree met deeper on the walk keeps its"
       echo "  default skips. a glob with no literal prefix ('**/*.md')"
       echo "  names no path."
+      echo ""
+      echo "  a symlink met on the walk is never followed, so a search stays"
+      echo "  inside --path. under a named path the output counts those links:"
+      echo "  'links: N not followed (M lead outside the path)'. to search"
+      echo "  behind one, name it: --path <the link>."
+      echo ""
+      echo "  rg reads no host config (--no-config): a RIPGREP_CONFIG_PATH file,"
+      echo "  with its --follow, --smart-case, or --max-columns, does not apply."
       echo ""
       echo "  a glob reads as .gitignore reads it, relative to --path: one"
       echo "  with a slash is anchored ('docs/*.md' skips 'docs/sub/'), one"
@@ -421,13 +440,14 @@ PROBE_DIAG_FILE=$(mktemp)    # the fatal-vs-partial probe's stderr
 EXPAND_DIAG_FILE=$(mktemp)   # realpath's stderr, at each root expansion
 RG_PROBE_DIAG_FILE=$(mktemp) # rg --version's stderr, at the engine probe
 PRUNED_DIAG_FILE=$(mktemp)   # the dot-dir probe's stderr, on a clean zero
+LINKS_DIAG_FILE=$(mktemp)    # the link walk's stderr (find, realpath)
 PROBE_DIR=$(mktemp -d)       # an empty readable dir, for the input probe
 STDIN_FILE=$(mktemp)         # the piped text, when stdin is the subject
 
 # clean up the temps on exit, ctrl-c, and kill; EXIT alone misses signals.
 # .note = one trap statement: bash traps replace, never add. put new cleanup here
 # .note = SIGKILL cannot be trapped, so `kill -9` leaks the temps
-trap 'rm -f "$DIAG_FILE" "$FILES_DIAG_FILE" "$PROBE_DIAG_FILE" "$EXPAND_DIAG_FILE" "$RG_PROBE_DIAG_FILE" "$PRUNED_DIAG_FILE" "$STDIN_FILE"; rm -rf "$PROBE_DIR"' EXIT INT TERM
+trap 'rm -f "$DIAG_FILE" "$FILES_DIAG_FILE" "$PROBE_DIAG_FILE" "$EXPAND_DIAG_FILE" "$RG_PROBE_DIAG_FILE" "$PRUNED_DIAG_FILE" "$LINKS_DIAG_FILE" "$STDIN_FILE"; rm -rf "$PROBE_DIR"' EXIT INT TERM
 
 ######################################################################
 # the subject — piped text, or files
@@ -503,8 +523,9 @@ validate_root_within_repo_or_fail() {
 ######################################################################
 
 # the rule: to NAME a path — via --glob's leading dir, or via --path —
-# is to opt into --hidden, the ignore rules, and symlink following,
-# scoped to what was named. a tree merely MET on the walk stays skipped.
+# is to opt into --hidden and the ignore rules, scoped to what was named,
+# and to expand the named root to its real path if it is a link. a tree
+# merely MET on the walk stays skipped; a link met on the walk is never followed.
 
 # .what = strip the repo root from every absolute path in a block of text
 # .why  = a caller reads paths relative to the repo
@@ -513,6 +534,21 @@ validate_root_within_repo_or_fail() {
 as_repo_relative() {
   local text="$1"
   echo "${text//"$REPO_ROOT/"/}"
+}
+
+# .what = strip the repo root from the head of each result row only
+# .why  = a row opens with its path; the text after it is the file's own bytes
+#         and must reach the caller unchanged. a whole-text substitution both
+#         rewrites that text and grows faster than the output on rows dense
+#         with the repo path (session transcripts), which stalled for hours
+# .note = one awk pass, linear in the output. ENVIRON, not -v: awk -v reads
+#         backslash escapes in the value
+as_repo_relative_rows() {
+  GREPSAFE_ROOT_PREFIX="$REPO_ROOT/" awk '
+    BEGIN { p = ENVIRON["GREPSAFE_ROOT_PREFIX"]; n = length(p) }
+    substr($0, 1, n) == p { print substr($0, n + 1); next }
+    { print }
+  ' <<< "$1"
 }
 
 # .what = split a glob into its literal directory prefix and its filter tail
@@ -860,7 +896,10 @@ has_unnamed_leg() {
 # build command
 ######################################################################
 
-CMD_BASE=("$RG_BIN")
+# every rg call reads no host config: a RIPGREP_CONFIG_PATH that holds --follow
+# would walk each link the bound promises to leave shut
+RG_CMD=("$RG_BIN" --no-config)
+CMD_BASE=("${RG_CMD[@]}")
 
 # output mode — the default first, then each mode overrides it
 OUTPUT_MODE_FLAG=--line-number
@@ -1118,9 +1157,9 @@ if [[ -n "$CUT_LIMIT" && -n "$OUTPUT" ]]; then
   [[ "$MATCH_COUNT_FULL" -gt "$CUT_LIMIT" ]] && TRUNCATED=true
 fi
 
-# make paths relative to repo root
+# make paths relative to repo root — the row head only, never the match text
 if [[ -n "$OUTPUT" ]]; then
-  OUTPUT=$(as_repo_relative "$OUTPUT")
+  OUTPUT=$(as_repo_relative_rows "$OUTPUT")
 fi
 
 # .what = name WHICH honest zero this is, on an empty result
@@ -1149,7 +1188,7 @@ diagnose_zero_kind() {
   local file_hits="" files_status=0 files_diag="" leg leg_hits leg_status leg_diag
   for leg in "${!LEG_ROOTS[@]}"; do
     build_leg_scope_flags "$leg"
-    local files_probe=("$RG_BIN" --files)
+    local files_probe=("${RG_CMD[@]}" --files)
     [[ ${#LEG_SCOPE_FLAGS[@]} -gt 0 ]] && files_probe+=("${LEG_SCOPE_FLAGS[@]}")
     files_probe+=("${LEG_ROOTS[$leg]}")
     leg_hits=$(cd "${LEG_CWDS[$leg]}" || exit 2; "${files_probe[@]}" 2>"$FILES_DIAG_FILE") && leg_status=0 || leg_status=$?
@@ -1223,7 +1262,7 @@ diagnose_hidden_skips() {
   for leg in "${!LEG_ROOTS[@]}"; do
     [[ "${LEG_NAMED[$leg]}" == true ]] && continue
     build_leg_scope_flags "$leg"
-    local probe=("$RG_BIN" --files-with-matches)
+    local probe=("${RG_CMD[@]}" --files-with-matches)
     if [[ ${#MATCH_FLAGS[@]} -gt 0 ]]; then
       probe+=("${MATCH_FLAGS[@]}")
     fi
@@ -1264,8 +1303,9 @@ is_file_under_named_leg() {
 # .what = the 🥥 that names the --path to each skipped hidden path
 # .why  = the caller must be able to reach the skipped match in one command.
 #         at most five roots ride in it, so the command stays copy-pasteable
+# .note = `--more` leaves the block open, so a next fix rides in the same 🥥
 print_hidden_skips_hint() {
-  local lead="$1" cmd="grepsafe.sh --pattern '$PATTERN'" total shown=0 path
+  local lead="$1" more="${2:-}" cmd="grepsafe.sh --pattern '$PATTERN'" total shown=0 path
   total=$(count_lines "$HIDDEN_PATHS")
   while IFS= read -r path; do
     [[ "$shown" -ge 5 ]] && break
@@ -1280,14 +1320,276 @@ print_hidden_skips_hint() {
   printf '\n🥥 did you know?\n'
   printf '   ├─ %s\n' "$lead"
   [[ "$total" -gt 5 ]] && printf '   ├─ %s hidden paths in all; the first 5 ride below\n' "$total"
-  printf '   └─ %s\n' "$cmd"
+  local glyph='└─'
+  [[ "$more" == "--more" ]] && glyph='├─'
+  printf '   %s %s\n' "$glyph" "$cmd"
 }
+
+# .what = count the links under each named root that the walk did not follow
+# .why  = rg follows no link it meets, so a link out of the root hides what
+#         lies behind it. a short answer must say so, never stay silent
+# .sets = LINKS_COUNT (links met), LINKS_OUTSIDE (target outside its root),
+#         LINKS_BROKEN (target absent, or a self-loop), LINKS_PARTIAL (true
+#         when the walk could not read all of a root), LINKS_OUTSIDE_FIRST
+#         (the first link out by name, as the caller's cwd would type it, for the hint)
+# .note = named roots only: an unnamed walk honors .gitignore, so a count there
+#         would walk node_modules — the very cost the walk avoids
+# .note = `find -P` never follows a link, so a loop cannot spin it
+# .note = find and realpath append their stderr to one sink. the text is not
+#         shown (rg's unread block names the dirs it could not read), but a
+#         non-empty sink marks the count partial, so an undercount never reads
+#         as complete
+# .note = a declared toctou window: this walk runs after rg's. a link made,
+#         removed, or re-pointed between the two shifts the count, never the
+#         results. the count is advisory and never changes the exit code
+# .note = an orchestrator: it composes the communicators below (the walk, the
+#         realpath boundary) with the named checks is_link_live and
+#         is_path_within_repo_root, and only tallies what they answer. no
+#         subshell per link, so a root with many links stays cheap
+diagnose_link_skips() {
+  LINKS_COUNT=0
+  LINKS_OUTSIDE=0
+  LINKS_BROKEN=0
+  LINKS_PARTIAL=false
+  LINKS_OUTSIDE_FIRST=""
+  local leg root link i link_out_first=""
+  local -A seen=()
+  local -a links=() reals=() named_roots=() links_out_named=()
+
+  # every link under every named dir root, each once; a dead one counts broken
+  for leg in "${!LEG_ROOTS[@]}"; do
+    [[ "${LEG_NAMED[$leg]}" == true ]] || continue
+    root="${LEG_ROOTS[$leg]}"
+    [[ -d "$root" ]] || continue
+    named_roots+=("$root")
+    while IFS= read -r -d '' link; do
+      [[ -n "${seen[$link]+set}" ]] && continue
+      seen[$link]=1
+      LINKS_COUNT=$((LINKS_COUNT + 1))
+      is_link_live --link "$link" || { LINKS_BROKEN=$((LINKS_BROKEN + 1)); continue; }
+      links+=("$link")
+    done < <(get_all_links_under_root --root "$root")
+  done
+  [[ ${#links[@]} -eq 0 ]] && { get_link_walk_partial; return 0; }
+
+  # expand each live link to its real path; "the path" is every named root at
+  # once, so a target under any of them is walked, whatever the flag order
+  get_all_link_real_paths --from links --into reals
+  for i in "${!links[@]}"; do
+    # an empty real path: realpath refused it (a denied parent, a race)
+    [[ -z "${reals[$i]}" ]] && { LINKS_BROKEN=$((LINKS_BROKEN + 1)); continue; }
+    is_path_within_any_root --path "${reals[$i]}" --roots named_roots && continue
+    LINKS_OUTSIDE=$((LINKS_OUTSIDE + 1))
+    # the hint may name only a link the repo gate admits
+    is_path_within_repo_root --path "${reals[$i]}" --root "$REPO_ROOT" || continue
+    links_out_named+=("${links[$i]}")
+  done
+
+  # the hint names the least of them, as the caller's cwd would type it
+  [[ ${#links_out_named[@]} -eq 0 ]] && { get_link_walk_partial; return 0; }
+  link_out_first=$(get_one_least_path --from links_out_named)
+  LINKS_OUTSIDE_FIRST=$(as_cwd_relative_path --path "$link_out_first")
+  get_link_walk_partial
+  return 0
+}
+
+# .what = the least path in a caller array, by byte order
+# .why  = the 🥥 must name the same link on every host, so the pick ignores
+#         readdir order and the host locale alike
+# .note = LC_ALL=C: under a utf-8 locale `[[ < ]]` collates with punctuation
+#         set aside, so `repo.this` and `repo=x` would swap by host. one call
+#         per run, never one per link
+get_one_least_path() {
+  local from_name="" path least=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --from) from_name="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  local -n from_ref="$from_name"
+  local LC_ALL=C
+  for path in "${from_ref[@]}"; do
+    [[ -z "$least" || "$path" < "$least" ]] && least="$path"
+  done
+  echo "$least"
+}
+
+# .what = a path as the caller's cwd would type it
+# .why  = `--path` is read against the cwd, so a hint must be too; a
+#         repo-relative path fails when pasted from a subdir
+# .note = -s: the path is a link, and the hint must name the link, not its
+#         target. the cwd is taken physical (pwd -P), as the link paths are
+as_cwd_relative_path() {
+  local path=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --path) path="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  realpath -m -s --relative-to="$(pwd -P)" -- "$path"
+}
+
+# .what = does a real path sit under any root in a caller array?
+# .why  = a link counts as out of the path only when no named root holds its
+#         target; one root alone would make the count hang on flag order
+is_path_within_any_root() {
+  local path="" roots_name="" root
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --path) path="$2"; shift 2 ;;
+      --roots) roots_name="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  local -n roots_ref="$roots_name"
+  for root in "${roots_ref[@]}"; do
+    is_path_within_repo_root --path "$path" --root "$root" && return 0
+  done
+  return 1
+}
+
+# .what = emit every link under one root, NUL-separated, never followed
+# .why  = the communicator for the disk walk: one `find -P` per root
+# .note = `find -P` never follows a link, so a loop cannot spin it. .git is
+#         pruned: its internals are never a search target
+# .note = stderr appends to LINKS_DIAG_FILE; get_link_walk_partial reads it
+get_all_links_under_root() {
+  local root=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --root) root="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  find -P "$root" -name .git -prune -o -type l -print0 2>>"$LINKS_DIAG_FILE"
+}
+
+# .what = does this link reach a target that exists?
+# .why  = a dead link (target absent, or a loop on itself) is counted broken
+#         before realpath runs; GNU realpath accepts an absent last component,
+#         so it alone would read a dead link as one that leads somewhere
+# .note = `-e` follows the link to its end
+is_link_live() {
+  local link=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --link) link="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  [[ -e "$link" ]]
+}
+
+# .what = fill a caller array with the real path of each link; empty if none
+# .why  = the communicator for the realpath boundary: one batched call in the
+#         common case, so a root with many links costs one process
+# .note = a count mismatch (a name with a newline, a denied parent) falls
+#         back per link, so every slot lines up with its link
+# .note = stderr appends to LINKS_DIAG_FILE; get_link_walk_partial reads it
+get_all_link_real_paths() {
+  local from_name="" into_name="" out link real
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --from) from_name="$2"; shift 2 ;;
+      --into) into_name="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  local -n from_ref="$from_name" into_ref="$into_name"
+  into_ref=()
+
+  # one batch for every link
+  out=$(printf '%s\0' "${from_ref[@]}" | xargs -0 realpath 2>>"$LINKS_DIAG_FILE") || out=""
+  [[ -n "$out" ]] && mapfile -t into_ref <<< "$out"
+  [[ ${#into_ref[@]} -eq ${#from_ref[@]} ]] && return 0
+
+  # a mismatch: one call per link, so each slot keeps its own answer
+  into_ref=()
+  for link in "${from_ref[@]}"; do
+    real=$(realpath "$link" 2>>"$LINKS_DIAG_FILE") || real=""
+    into_ref+=("$real")
+  done
+}
+
+# .what = mark the link count partial when the walk or realpath met a reason
+# .why  = a non-empty sink means some dir went unread, so the count may be low
+get_link_walk_partial() {
+  [[ -s "$LINKS_DIAG_FILE" ]] && LINKS_PARTIAL=true
+  return 0
+}
+
+# .what = the clause that follows a link count: `not followed (M lead outside …)`
+# .why  = one producer for the vibes branch and the pipeable stderr note, so
+#         the two never drift; each mode prefixes the count in its own words
+# .note = echoes naught when no link was met, even on a partial walk: there the
+#         unread block already names each dir the walk could not read, and a
+#         `0 not followed` line would only repeat it as a word about no links
+get_link_skips_clause() {
+  local count=0 outside=0 broken_count=0 partial_flag=false
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --count) count="$2"; shift 2 ;;
+      --outside) outside="$2"; shift 2 ;;
+      --broken) broken_count="$2"; shift 2 ;;
+      --partial) partial_flag="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  [[ "$count" -gt 0 ]] || return 0
+  local verb=lead
+  [[ "$outside" -eq 1 ]] && verb=leads
+  local broken=""
+  [[ "$broken_count" -gt 0 ]] && broken=", $broken_count broken"
+  local partial=""
+  [[ "$partial_flag" == true ]] && partial=", count partial: some dirs unreadable"
+  echo "not followed ($outside $verb outside the path$broken$partial)"
+}
+
+# .what = the command that reaches behind a link the walk left shut
+# .why  = a skip notice must carry its own way out, as the hidden-skip hint does
+# .note = echoes naught without a link to name: an inside target is walked, and
+#         a link out of the repo would meet the repo gate
+# .note = %q keeps a path with a space pasteable; a plain path prints as is.
+#         the pattern stays in single quotes, each inner quote closed as '\''
+get_link_skips_fix() {
+  local first="" pattern=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --first) first="$2"; shift 2 ;;
+      --pattern) pattern="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  [[ -n "$first" ]] || return 0
+  local first_quoted pattern_quoted
+  printf -v first_quoted '%q' "$first"
+  pattern_quoted=${pattern//\'/\'\\\'\'}
+  echo "grepsafe.sh --pattern '$pattern_quoted' --path $first_quoted"
+}
+
+# links met under a named root, counted once for both output modes. stdin
+# mode holds no search leg, so there the count is a no-op that reads zero
+diagnose_link_skips
+LINKS_CLAUSE=$(get_link_skips_clause --count "$LINKS_COUNT" --outside "$LINKS_OUTSIDE" \
+  --broken "$LINKS_BROKEN" --partial "$LINKS_PARTIAL")
+LINKS_FIX=$(get_link_skips_fix --first "$LINKS_OUTSIDE_FIRST" --pattern "$PATTERN")
 
 # output
 if [[ "$OUTPUT_MODE" == "pipeable" ]]; then
   # pipeable mode: just the results, no vibes
   if [[ -n "$OUTPUT" ]]; then
     echo "$OUTPUT"
+  fi
+  # the link note rides stderr, so stdout stays results only.
+  # `link(s)`, as the hidden-skip line reads `file(s)`
+  # .note = the declared machine-mode exception of
+  #         `rule.require.skill-output-streams` (and output.sh's
+  #         print_refusal_frame): under --output pipeable, stdout is data
+  if [[ -n "$LINKS_CLAUSE" ]]; then
+    echo "grepsafe: $LINKS_COUNT link(s) $LINKS_CLAUSE" >&2
+    [[ -n "$LINKS_FIX" ]] && echo "fix: name a link as --path to search behind it — $LINKS_FIX" >&2
   fi
 else
   # vibes mode: turtle treestruct output
@@ -1308,6 +1610,8 @@ else
     fi
 
     print_grepsafe_header "crickets..."
+    # a zero beside a shut door must name the door
+    [[ -n "$LINKS_CLAUSE" ]] && print_tree_branch "links" "$LINKS_COUNT $LINKS_CLAUSE"
     print_tree_node "matches: 0 — $ZERO_KIND" "$(is_tree_node_last)"
   else
     # count matches for header
@@ -1328,6 +1632,8 @@ else
     if [[ "$HIDDEN_COUNT" -gt 0 ]]; then
       print_tree_branch "skipped" "$HIDDEN_COUNT hidden file(s) also hold a match"
     fi
+    # the links the walk left shut, beside the count they may have shortened
+    [[ -n "$LINKS_CLAUSE" ]] && print_tree_branch "links" "$LINKS_COUNT $LINKS_CLAUSE"
     print_tree_node "results" "$(is_tree_node_last)"
 
     # print results in sub.bucket, no footer, same last-ness as its header
@@ -1340,9 +1646,20 @@ else
     print_tree_block "${DIAGNOSTICS_REL}" "${UNREAD_FIX}"
   fi
 
+  # one 🥥 block holds every fix; each command follows its lead
+  HINT_MORE=""
+  [[ -n "$LINKS_FIX" ]] && HINT_MORE="--more"
+
   # name the --path that reaches each skipped hidden match
   if [[ "$HIDDEN_COUNT" -gt 0 ]]; then
-    print_hidden_skips_hint "a walk skips hidden paths; name them as --path to search them"
+    print_hidden_skips_hint "a walk skips hidden paths; name them as --path to search them" "$HINT_MORE"
+  fi
+
+  # name the --path that reaches behind a link the walk left shut
+  if [[ -n "$LINKS_FIX" ]]; then
+    [[ "$HIDDEN_COUNT" -gt 0 ]] || printf '\n🥥 did you know?\n'
+    printf '   ├─ a walk follows no link; name one as --path to search behind it\n'
+    printf '   └─ %s\n' "$LINKS_FIX"
   fi
 fi
 
