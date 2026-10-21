@@ -97,6 +97,13 @@
       ]
     },
     {
+      "heads": ["pnpm patch", "pnpm patch-commit"],
+      "alternatives": [
+        "rhx git.package.patch begin --package <name> --mode apply",
+        "rhx git.package.patch commit --package <name> --why '<why>' --upstream <issue-url> --mode apply"
+      ]
+    },
+    {
       "heads": ["gh pr merge"],
       "alternatives": ["rhx git.release"]
     },

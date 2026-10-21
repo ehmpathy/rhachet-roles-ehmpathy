@@ -1687,6 +1687,30 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         expect(result.stderr).toContain('rhx git.repo.test');
       });
     });
+
+    when('[t6] a raw pnpm patch or pnpm patch-commit', () => {
+      then('the block offers the paved git.package.patch verb', () => {
+        const opened = runHook({
+          command: 'pnpm patch is-number@7.0.0',
+          settings: { allow: ['Bash(rhx:*)'] },
+          clearNudges: true,
+        });
+        expect(opened.exitCode).toBe(2);
+        expect(opened.stderr).toContain('paved alternatives for `pnpm patch`');
+        expect(opened.stderr).toContain('rhx git.package.patch begin');
+        expect(opened.stderr).toMatchSnapshot();
+
+        const sealed = runHook({
+          command:
+            'pnpm patch-commit node_modules/.pnpm_patches/is-number@7.0.0',
+          settings: { allow: ['Bash(rhx:*)'] },
+          clearNudges: true,
+        });
+        expect(sealed.exitCode).toBe(2);
+        expect(sealed.stderr).toContain('rhx git.package.patch commit');
+        expect(sealed.stderr).toMatchSnapshot();
+      });
+    });
   });
 
   given('[case31] a typo of a paved command', () => {
