@@ -37,45 +37,55 @@ describe('rhachet-roles-bhrain review scope: polluter verdict on a stage bind', 
     .map((leaf) => `${route}/1.vision.experience.${leaf}.md`)
     .concat(`${route}/1.vision.yield.md`);
 
-  given('[case1] the repaired 1.vision guard bind (two --paths-with globs)', () => {
-    when('[t0] the scope filter judges the 13 joined targets', () => {
-      const verdict = getAllTargetsByPolluterVerdict({
-        targets,
-        globs: [`${route}/1.vision.*.md`, `${route}/1.vision.experience.*.md`],
-        mode: 'drop',
-      });
+  given(
+    '[case1] the repaired 1.vision guard bind (two --paths-with globs)',
+    () => {
+      when('[t0] the scope filter judges the 13 joined targets', () => {
+        const verdict = getAllTargetsByPolluterVerdict({
+          targets,
+          globs: [
+            `${route}/1.vision.*.md`,
+            `${route}/1.vision.experience.*.md`,
+          ],
+          mode: 'drop',
+        });
 
-      then('all 13 are kept', () => {
-        expect(verdict.kept).toHaveLength(13);
-        expect([...verdict.kept].sort()).toEqual([...targets].sort());
-      });
+        then('all 13 are kept', () => {
+          expect(verdict.kept).toHaveLength(13);
+          expect([...verdict.kept].sort()).toEqual([...targets].sort());
+        });
 
-      then('none are dropped', () => {
-        expect(verdict.dropped).toEqual([]);
+        then('none are dropped', () => {
+          expect(verdict.dropped).toEqual([]);
+        });
       });
-    });
-  });
+    },
+  );
 
   // clamp for patches/rhachet-roles-bhrain@0.42.1.patch (getAllTargetsAskedForByName):
   // a glob whose matches all lie inside the route is exempt, even when one is the yield
-  given('[case2] the stage bind as the template ships it (one --paths-with glob)', () => {
-    when('[t0] the scope filter judges the 13 joined targets', () => {
-      const verdict = getAllTargetsByPolluterVerdict({
-        targets,
-        globs: [`${route}/1.vision.*.md`],
-        mode: 'drop',
-      });
+  given(
+    '[case2] the stage bind as the template ships it (one --paths-with glob)',
+    () => {
+      when('[t0] the scope filter judges the 13 joined targets', () => {
+        const verdict = getAllTargetsByPolluterVerdict({
+          targets,
+          globs: [`${route}/1.vision.*.md`],
+          mode: 'drop',
+        });
 
-      then('all 13 are kept, the yield beside the 12 demos', () => {
-        expect(verdict.kept).toHaveLength(13);
-        expect(verdict.dropped).toEqual([]);
+        then('all 13 are kept, the yield beside the 12 demos', () => {
+          expect(verdict.kept).toHaveLength(13);
+          expect(verdict.dropped).toEqual([]);
+        });
       });
-    });
-  });
+    },
+  );
 
   given('[case3] a catch-all glob over source and route paperwork', () => {
     when('[t0] the scope filter judges source plus the route files', () => {
-      const source = 'src/domain.roles/mechanic/skills/git.stage/git.stage.add.sh';
+      const source =
+        'src/domain.roles/mechanic/skills/git.stage/git.stage.add.sh';
       const verdict = getAllTargetsByPolluterVerdict({
         targets: [source, ...targets],
         globs: ['**/*'],
