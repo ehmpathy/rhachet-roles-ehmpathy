@@ -105,6 +105,7 @@ always:
 
       # package management — rare, deliberate acts
       - skills/declapract.upgrade.sh
+      - skills/git.package.patch/git.package.patch.sh
       - skills/set.package/set.package.install.sh
       - skills/set.package/set.package.upgrade.sh
 
