@@ -1,0 +1,38 @@
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-grounded-in-reality"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-grounded-in-reality"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-experience-coverage"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-experience-coverage"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-requirements"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-questioned-requirements"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-assumptions"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-questioned-assumptions"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-questions"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-questions"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-questioned-questions"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"poured","level":1}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.1","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.feat-split-release-uses/.behavior/v2026_10_18.feat-split-release-uses/.reviews/peer/1.vision._.review.i001.ad1e648a7861b9d0f6.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.1 (better)"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: dimensional-decomposition"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.1","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.feat-split-release-uses/.behavior/v2026_10_18.feat-split-release-uses/.reviews/peer/1.vision._.review.i003.160f578d013e8cce09.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.1 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"experience-coverage","about":"nitpick.1","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.feat-split-release-uses/.behavior/v2026_10_18.feat-split-release-uses/.reviews/peer/1.vision._.review.i003.160f578d013e8cce09.r002._.given.by_peer.experience-coverage.md","severity":"better","reason":"conceded review.peer: experience-coverage nitpick.1 (better)"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: dimensional-decomposition"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: experience-coverage"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}

@@ -1,0 +1,147 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import { genTempDir, given, then, when } from 'test-fns';
+
+/**
+ * .what = clamp for patches/rhachet-roles-bhrain@0.42.1.patch (getOneScopeDropMalfunctionReason)
+ * .why  = a guard round whose scope dropped files its own globs matched reviewed less than
+ *         its lane binds. on route v2026_10_18.feat-split-release-uses three such rounds read
+ *         1 of 13 files, were graded approved, spent the whole budget, and were served cached.
+ *         such a round must grade a malfunction, spend no budget, and never be cached
+ */
+describe('rhachet-roles-bhrain patch: scope-drop round is a malfunction', () => {
+  // load the installed (patched) dist; deep paths sit outside the package exports
+  const dist = path.join(
+    process.cwd(),
+    'node_modules/rhachet-roles-bhrain/dist/domain.operations/route/guard/review',
+  );
+  const { getOneScopeDropMalfunctionReason } = require(
+    path.join(dist, 'getOneScopeDropMalfunctionReason.js'),
+  );
+  const { isReviewRoundCompleted } = require(
+    path.join(dist, 'isReviewRoundCompleted.js'),
+  );
+  const { getAllCachedPassedReviews } = require(
+    path.join(dist, 'getAllCachedPassedReviews.js'),
+  );
+
+  // the 13 files the vision lanes matched, from the i003 scope trace
+  const route = '.behavior/v2026_10_18.feat-split-release-uses';
+  const demos = [
+    'case=1.grant-each-alone',
+    'case=10.rebase-conflict-mark-done',
+    'case=2.release-on-its-own-meter',
+    'case=3.rebase-zero-ahead',
+    'case=4.rebase-then-push',
+    'case=5.revoke-one-leaves-two',
+    'case=6.kill-switch-and-damage',
+    'case=7.robot-cannot-grant',
+    'case=8.upgraded-tree',
+    'case=9.crew-day-dense-journey',
+    'case=_',
+    'dimensions',
+  ].map((leaf) => `${route}/1.vision.experience.${leaf}.md`);
+  const yieldFile = `${route}/1.vision.yield.md`;
+  const matched = [...demos, yieldFile];
+
+  // write one scope trace into a temp repo root; return the stdout a review prints
+  const genRunWithTrace = (input: {
+    repoRoot: string;
+    resolution: Record<string, unknown>;
+  }): string => {
+    const logDir = '.log/bhrain/review/2026-10-19T00-38-58-540Z.pid1.test';
+    fs.mkdirSync(path.join(input.repoRoot, logDir), { recursive: true });
+    fs.writeFileSync(
+      path.join(input.repoRoot, logDir, 'input.scope.debug.json'),
+      JSON.stringify({ resolution: input.resolution }),
+    );
+    return [
+      '🔍 review',
+      `   ├─ logs: ${logDir}`,
+      '   └─ summary',
+      '      ├─ 0 blockers',
+      '      └─ 1 nitpick',
+    ].join('\n');
+  };
+
+  given('[case1] a round whose trace dropped 12 of the 13 files its globs matched', () => {
+    const repoRoot = genTempDir({ slug: 'bhrain-scope-drop' });
+    const stdout = genRunWithTrace({
+      repoRoot,
+      resolution: {
+        targetFilesFromPaths: matched,
+        targetFilesDropped: demos,
+        targetFiles: [yieldFile],
+      },
+    });
+
+    when('[t0] the guard checks the round', () => {
+      then('it is graded a malfunction that names all 12 dropped files', async () => {
+        const reason = await getOneScopeDropMalfunctionReason({ stdout, repoRoot });
+        expect(reason).toContain('💥 MalfunctionError: the review scope dropped 12 file(s)');
+        for (const demo of demos) expect(reason).toContain(`dropped: ${demo}`);
+      });
+    });
+  });
+
+  given('[case2] a round whose trace kept all 13 matched files', () => {
+    const repoRoot = genTempDir({ slug: 'bhrain-scope-kept' });
+    const stdout = genRunWithTrace({
+      repoRoot,
+      resolution: {
+        targetFilesFromPaths: matched,
+        targetFilesDropped: [],
+        targetFiles: matched,
+      },
+    });
+
+    when('[t0] the guard checks the round', () => {
+      then('it is no malfunction', async () => {
+        expect(await getOneScopeDropMalfunctionReason({ stdout, repoRoot })).toBeNull();
+      });
+    });
+  });
+
+  given('[case3] a round that dropped only files the --diffs range brought in', () => {
+    const repoRoot = genTempDir({ slug: 'bhrain-scope-diffs-drop' });
+    const stdout = genRunWithTrace({
+      repoRoot,
+      resolution: {
+        targetFilesFromPaths: matched,
+        targetFilesDropped: ['.dream/v2026_10_19.fix.role-self-boot-hooks.md', 'pnpm-lock.yaml'],
+        targetFiles: matched,
+      },
+    });
+
+    when('[t0] the guard checks the round', () => {
+      then('it is no malfunction: that is the polluter filter at work', async () => {
+        expect(await getOneScopeDropMalfunctionReason({ stdout, repoRoot })).toBeNull();
+      });
+    });
+  });
+
+  given('[case4] a malfunction-graded round, in the extant budget and cache links', () => {
+    when('[t0] the meter and the cache read it', () => {
+      then('it spends no budget', () => {
+        expect(isReviewRoundCompleted({ review: { exitClass: 'malfunction', blockers: 0 } })).toBe(false);
+      });
+
+      then('it is never served as a cached verdict', () => {
+        const cached = getAllCachedPassedReviews({
+          reviews: [{ exitClass: 'malfunction', blockers: 0 }],
+        });
+        expect(cached).toEqual([]);
+      });
+    });
+  });
+
+  given('[case5] the guard lane runner', () => {
+    when('[t0] its source is read', () => {
+      then('it grades each round through the scope-drop check', () => {
+        const source = fs.readFileSync(path.join(dist, 'runOneStoneGuardReview.js'), 'utf-8');
+        expect(source).toContain('getOneScopeDropMalfunctionReason)({ stdout, repoRoot })');
+        expect(source).toContain('const exitCode = scopeDropReason ? 1 : exitCodeOfRun;');
+      });
+    });
+  });
+});
