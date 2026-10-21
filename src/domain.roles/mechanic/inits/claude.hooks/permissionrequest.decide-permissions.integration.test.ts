@@ -3,6 +3,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
+import { getOneRepoSettingsPath } from '../../../../.test/getOneRepoSettingsPath';
+
 /**
  * .what = integration tests for permissionrequest.decide-permissions.sh
  * .why = verify the default-deny, quote-aware decider auto-approves ONLY a
@@ -1618,21 +1620,22 @@ describe('permissionrequest.decide-permissions.sh', () => {
   given(
     '[case12] the real registered hook command (not the bare executable)',
     () => {
-      // the repo-owned settings rhachet generates hold the hook registration;
-      // `settings.json` links to the human's own grove settings, absent on a ci runner
-      const findRepoRoot = (): string => {
+      // the split layout (rhachet >= 1.49.2) keeps the repo's hooks in settings.of.repo.json
+      const findSettingsPath = (): string => {
         let dir = __dirname;
         while (dir !== path.dirname(dir)) {
-          if (fs.existsSync(path.join(dir, '.claude/settings.of.repo.json')))
-            return dir;
+          const candidate = getOneRepoSettingsPath({
+            claudeDir: path.join(dir, '.claude'),
+          });
+          if (fs.existsSync(candidate)) return candidate;
           dir = path.dirname(dir);
         }
         throw new Error(
-          '.claude/settings.of.repo.json not found upward from the hooks dir',
+          '.claude settings (settings.of.repo.json or settings.json) not found upward from the hooks dir',
         );
       };
-      const repoRoot = findRepoRoot();
-      const settingsPath = path.join(repoRoot, '.claude/settings.of.repo.json');
+      const settingsPath = findSettingsPath();
+      const repoRoot = path.dirname(path.dirname(settingsPath));
       const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
       const hookEntry = settings?.hooks?.PermissionRequest?.[0]?.hooks?.[0];
       const configuredTimeoutMs = (hookEntry?.timeout ?? 5) * 1000;

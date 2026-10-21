@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync } from 'fs';
 import * as path from 'path';
 import { given, then, useBeforeAll, when } from 'test-fns';
 
+import { getOneRepoSettingsPath } from '../../.test/getOneRepoSettingsPath';
 import { asBashInvokedPaths } from '../../domain.operations/hooks/asBashInvokedPaths';
 import { asHookEvents } from '../../domain.operations/hooks/asHookEvents';
 import { asWrappedCommands } from '../../domain.operations/hooks/asWrappedCommands';
@@ -28,7 +29,9 @@ describe('getMechanicRole · every registered hook is reachable', () => {
   const repoRoot = path.join(__dirname, '..', '..', '..');
   // .note = the repo-owned settings rhachet generates; `settings.json` links to the
   //         human's own grove settings, which carry no role hooks
-  const settingsPath = path.join(repoRoot, '.claude', 'settings.of.repo.json');
+  const settingsPath = getOneRepoSettingsPath({
+    claudeDir: path.join(repoRoot, '.claude'),
+  });
 
   /**
    * .what = the shape of a `.claude/settings.json` hook tree, as this case reads it
