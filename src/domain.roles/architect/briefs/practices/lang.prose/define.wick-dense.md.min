@@ -1,0 +1,11 @@
+# define.wick-dense
+
+wick-dense = terse ideal for technical prose (john wick: few words, each loaded). state current truth in fewest words, then stop. the voice of the ste overlay
+aliases (one sense): wicked-up, wicked, wick-up, wick-down. verb: "wick this up". adj: "that brief reads wicked"
+
+tenets: few words (require.brevity) · point first, no wind-up (forbid.rambles) · no time-ordered log (forbid.chronological-accretion)
+test: read it aloud as wick. would he cut a word? cut it. recount his path? no — he states what is
+scope: briefs, plans, domain docs, decision records. exempt: verbatim quotes, code blocks
+
+👎 the bounded context, after several iterations of debate, is now essentially a way to draw a line around concepts that mostly belong together.
+👍 a bounded context draws a line around concepts that belong together.

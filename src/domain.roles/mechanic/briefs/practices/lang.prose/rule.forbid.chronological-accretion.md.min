@@ -1,0 +1,7 @@
+# rule.forbid.chronological-accretion
+
+prose states current truth, not the time-order of how it got there. revise in place; git holds the how
+smells: iteration log ("i002 fixed X. i003 fixed Y") · attempt trail ("tried A, then B, landed on C") · step-time narration ("now the function also…") · append-over-revise (new section stacked below a stale one)
+test: strip "now", "then", "we tried", "iN", "recently". sense collapses → rewrite to stand on the state alone
+exempt: a changelog or incident timeline whose purpose IS the chronology
+enforcement: time-ordered log where current truth would serve = blocker; section appended below a stale one instead of in-place revision = blocker

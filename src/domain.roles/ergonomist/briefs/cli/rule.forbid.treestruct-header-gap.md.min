@@ -1,0 +1,10 @@
+# rule.forbid.treestruct-header-gap
+
+no blank line between a treestruct header and its trunk: the first branch sits on the very next line. a blank line ends a tree — it belongs between two trees (a 🐢 vibe line and a 🐚 root, a block and its 🥥 hint), never inside one
+test: a `├─` or `└─` right below a blank line? a header lost its trunk — close the gap
+```
+✋ ConstraintError: this command is not paved
+   ├─ blocked: grep -rln 'reef' src/
+   └─ paved alternatives for `grep`
+```
+enforcement: blank line between a header and its first branch = blocker; blank line between branches of one trunk = blocker (use a `│` spacer line)

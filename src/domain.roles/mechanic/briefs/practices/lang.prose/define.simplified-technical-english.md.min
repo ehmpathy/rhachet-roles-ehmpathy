@@ -1,0 +1,10 @@
+# define.simplified-technical-english
+
+ste = our telegraphic overlay of asd-ste100 (aerospace write-rules, 2025 ed.), entrained onto all technical prose: one word per concept, short active sentences, brevity. we adopt the write-rules, not the ~900-word dictionary
+
+divergence: we drop articles and copulas (`remove filter from case.`). all else ste stays
+
+scope: comments, jsdoc, plans, briefs, docs, readmes, commit messages, pr descriptions, error strings, log lines
+exempt: verbatim quotes, code blocks, human-chat tone (lang.tones lane), declared ubiqlang terms
+
+rules: require.brevity · forbid.rambles · forbid.chronological-accretion (blockers); avoid.articles-copulas · prefer.one-instruction-per-sentence · prefer.short-sentences · avoid.passive-voice · prefer.active-simple-tense · prefer.wickup-touched-prose (nitpicks). persona: define.wick-dense

@@ -1618,19 +1618,21 @@ describe('permissionrequest.decide-permissions.sh', () => {
   given(
     '[case12] the real registered hook command (not the bare executable)',
     () => {
+      // the repo-owned settings rhachet generates hold the hook registration;
+      // `settings.json` links to the human's own grove settings, absent on a ci runner
       const findRepoRoot = (): string => {
         let dir = __dirname;
         while (dir !== path.dirname(dir)) {
-          if (fs.existsSync(path.join(dir, '.claude/settings.json')))
+          if (fs.existsSync(path.join(dir, '.claude/settings.of.repo.json')))
             return dir;
           dir = path.dirname(dir);
         }
         throw new Error(
-          '.claude/settings.json not found upward from the hooks dir',
+          '.claude/settings.of.repo.json not found upward from the hooks dir',
         );
       };
       const repoRoot = findRepoRoot();
-      const settingsPath = path.join(repoRoot, '.claude/settings.json');
+      const settingsPath = path.join(repoRoot, '.claude/settings.of.repo.json');
       const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
       const hookEntry = settings?.hooks?.PermissionRequest?.[0]?.hooks?.[0];
       const configuredTimeoutMs = (hookEntry?.timeout ?? 5) * 1000;

@@ -9,10 +9,10 @@ import { ROLE_MECHANIC } from './getMechanicRole';
 describe('getMechanicRole', () => {
   given('[case1] the mechanic role definition', () => {
     when('[t0] hooks property is accessed', () => {
-      then('onBrain.onBoot contains at least 3 hooks', () => {
+      then('onBrain.onBoot contains at least 2 hooks', () => {
         expect(
           ROLE_MECHANIC.hooks?.onBrain?.onBoot?.length,
-        ).toBeGreaterThanOrEqual(3);
+        ).toBeGreaterThanOrEqual(2);
       });
 
       then('onBrain.onTool contains at least 7 hooks', () => {
@@ -36,16 +36,14 @@ describe('getMechanicRole', () => {
         expect(hook?.timeout).toEqual('PT10S');
       });
 
-      then('boot.this hook is present', () => {
-        const hook = findHook('boot --repo .this');
-        expect(hook).toBeDefined();
-        expect(hook?.timeout).toEqual('PT60S');
-      });
-
-      then('boot.mechanic hook is present', () => {
-        const hook = findHook('boot --repo ehmpathy --role mechanic');
-        expect(hook).toBeDefined();
-        expect(hook?.timeout).toEqual('PT60S');
+      then('no hook boots a role via `roles boot --role`', () => {
+        // 🔴 rhachet's `repo introspect` refuses any such hook, so `pnpm install`
+        //    dies in this repo and the build dies before publish. boot.md already
+        //    renders every booted role, so the hook is dead weight at best.
+        const selfBoots = hooks
+          .map((hook) => hook.command)
+          .filter((command) => /roles boot\b.*--role\b/.test(command));
+        expect(selfBoots).toEqual([]);
       });
     });
 

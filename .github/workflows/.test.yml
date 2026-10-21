@@ -68,7 +68,12 @@ jobs:
         run: command -v rsync || sudo apt-get update && sudo apt-get install -y rsync
 
       - name: build
-        run: npm run build # build before test:types, to ensure .dist/ artifacts are importable for blackbox tests
+        run: npm run build:clean && npm run build:compile && npm run build:complete:dist # build before test:types, to ensure .dist/ artifacts are importable for blackbox tests
+
+      # .why = `repo introspect` is where rhachet gates the role registry (self-boot hooks,
+      #        boot.yml budgets). its own step, so a red gate reads as a red gate, not a red build
+      - name: repo introspect
+        run: npm run build:complete:repo
 
       - name: test:types
         run: npm run test:types

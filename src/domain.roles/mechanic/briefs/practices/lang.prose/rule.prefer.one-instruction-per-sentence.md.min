@@ -1,0 +1,4 @@
+# rule.prefer.one-instruction-per-sentence
+
+one sentence = one instruction or claim. split chains of `and` / `then` / commas: `validate record. absent record returns error. persist record. notify caller.` a split surfaces order and exposes a missed step
+enforcement: two or more instructions chained in one sentence = nitpick

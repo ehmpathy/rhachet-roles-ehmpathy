@@ -1,0 +1,8 @@
+# rule.forbid.chronological-accretion
+
+prose states current truth, not the time-order of how it got there. revise in place; git holds the how
+smells: iteration log ("v1 did X. v2 did Y") · attempt trail ("tried A, then B, landed on C") · step-time narration ("now the context also owns…") · append-over-revise
+test: strip "now", "then", "we tried", "recently". sense collapses → rewrite on the state alone
+👍 the invoice is an aggregate. it owns its line items and computes its total from them.
+exempt: a decision record or changelog whose purpose IS the chronology
+enforcement: time-ordered log where current truth would serve = blocker; section appended below a stale one instead of in-place revision = blocker

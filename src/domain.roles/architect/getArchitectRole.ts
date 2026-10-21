@@ -18,15 +18,6 @@ export const ROLE_ARCHITECT: Role = Role.build({
   briefs: {
     dirs: [{ uri: __dirname + '/briefs' }],
   },
-  hooks: {
-    onBrain: {
-      onBoot: [
-        {
-          command:
-            './node_modules/.bin/rhachet roles boot --repo ehmpathy --role architect',
-          timeout: 'PT60S',
-        },
-      ],
-    },
-  },
+  // .note = no self-boot hook. briefs reach a session via the brain dir boot.md render,
+  //         and rhachet's `repo introspect` refuses a role that boots itself from a hook
 });

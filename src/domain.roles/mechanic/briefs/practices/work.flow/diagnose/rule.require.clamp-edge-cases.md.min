@@ -1,0 +1,24 @@
+# rule.require.clamp-edge-cases
+
+## .what
+every defect fix clamps its edge case: a regression test that fails before the fix and passes after, committed with the fix
+- treat the defect as an edge-case class (boundary, stale ref, empty input, race), not a point event
+- the repro that proves the fix IS the clamp — keep it
+- prove the clamp bites
+
+## .prove it bites
+1. fix lands, clamp green
+2. revert only the fix, rebuild, run → MUST go red
+3. restore, rebuild, run → MUST go green
+step 2 stays green → the clamp does not exercise the defect; rewrite it
+
+## .grain
+un-observable in a unit (race, drift, flake)? clamp at the grain that observes it (integration, hermetic temp repo)
+
+## .example
+stale-ref scope defect (diff vs local `main`, which lags): fix = compare `origin/main`; clamp = temp repo with local `main` one commit behind; assert only this branch's change matches. revert → red, restore → green
+
+## .enforcement
+- defect fix with no regression clamp = blocker (rule.require.test-covered-repairs)
+- clamp that passes under the un-fixed defect = blocker
+- boundary defect clamped at one value, not the class = nitpick

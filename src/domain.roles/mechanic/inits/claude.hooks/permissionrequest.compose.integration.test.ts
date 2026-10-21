@@ -32,19 +32,21 @@ describe('permissionrequest — composed control stack', () => {
     HOOKS_DIR,
     'permissionrequest.decide-permissions.sh',
   );
-  // locate .claude/settings.json by an upward search from the hooks dir — the
-  // same move the shell hooks' find_claude_dir makes — so a future directory
+  // locate .claude/settings.of.repo.json by an upward search from the hooks dir —
+  // the same move the shell hooks' find_claude_dir makes — so a future directory
   // rename or re-nest cannot silently break the manifest lookup (a hardcoded
-  // ../../../ climb would, with no compiler or lint signal).
+  // ../../../ climb would, with no compiler or lint signal). the repo-owned
+  // settings rhachet generates hold the hook registration; `settings.json` links
+  // to the human's own grove settings, absent on a ci runner.
   const findSettingsPath = (): string => {
     let dir = HOOKS_DIR;
     while (dir !== path.dirname(dir)) {
-      const candidate = path.join(dir, '.claude', 'settings.json');
+      const candidate = path.join(dir, '.claude', 'settings.of.repo.json');
       if (fs.existsSync(candidate)) return candidate;
       dir = path.dirname(dir);
     }
     throw new Error(
-      '.claude/settings.json not found upward from the hooks dir',
+      '.claude/settings.of.repo.json not found upward from the hooks dir',
     );
   };
   const SETTINGS = findSettingsPath();

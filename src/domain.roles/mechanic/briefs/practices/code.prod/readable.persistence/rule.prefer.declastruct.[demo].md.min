@@ -1,0 +1,12 @@
+# rule.prefer.declastruct
+
+control every remote resource (stripe customer, aws vpc, a db row in a foreign system) as a declared structure via idempotent get + set — the declastruct pattern. four pieces, one file each:
+
+1. declare the entity — a domain-object with `primary` (artificial key for refs, e.g. `id`) and `unique` (natural key that drives idempotency, e.g. `email`):
+   `class DeclaredStripeCustomer extends DomainEntity<…> { static primary = ['id'] as const; static unique = ['email'] as const; }`
+2. cast sdk → declared — `asDeclaredStripeCustomer(sdkCustomer)`: our clean shape, never the api's; `MalfunctionError.throw` on an invalid response
+3. get — `getCustomer({ by: PickOne<{ primary; unique; ref }> }, context)` → declared | null. not-found returns null (catch only the "no such" error, rethrow the rest); >1 match on unique = ConstraintError
+4. set — `setCustomer(PickOne<{ findsert; upsert }>, context)`: get by unique → findsert returns extant · upsert updates extant → else create, with an idempotency key (hash of the desired shape). primary/unique mismatch = MalfunctionError. wrap with `withLogTrail`
+
+test get + set as integration tests against the real api (findsert keeps extant attrs; upsert overwrites)
+full demo with code: `rule.prefer.declastruct.[demo].md`; reference impl: `rhx git.repo.get files --in ehmpathy/declastruct-stripe-sdk`

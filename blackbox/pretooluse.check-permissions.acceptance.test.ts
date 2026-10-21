@@ -5,7 +5,7 @@ import * as path from 'path';
 import { ConstraintError } from 'helpful-errors';
 import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
-import { genTestDir, invokeHook } from './.test/invokeHook';
+import { genTestDir, invokeHook, setTestRepoSettings } from './.test/invokeHook';
 
 /**
  * .what = acceptance tests for the check-permissions PreToolUse hook, one per vision journey
@@ -20,7 +20,7 @@ import { genTestDir, invokeHook } from './.test/invokeHook';
  *
  * .pattern = blackbox against the linked role:
  *   1. clone the fixture repo and link the mechanic role (genTestDir)
- *   2. write the repo's .claude/settings.json allowlist
+ *   2. write the repo's .claude/settings.of.repo.json allowlist
  *   3. pipe a PreToolUse payload into the linked hook; read exit code + both streams
  */
 
@@ -50,13 +50,10 @@ const genHookRepo = async (input: {
   allow?: string[];
 }): Promise<{ dir: string }> => {
   const dir = await genTestDir({ slug: input.slug });
-  fs.mkdirSync(path.join(dir, '.claude'), { recursive: true });
-  fs.writeFileSync(
-    path.join(dir, '.claude', 'settings.json'),
-    JSON.stringify({
-      permissions: { allow: input.allow ?? ALLOW, deny: [], ask: [] },
-    }),
-  );
+  setTestRepoSettings({
+    dir,
+    settings: { permissions: { allow: input.allow ?? ALLOW, deny: [], ask: [] } },
+  });
   return { dir };
 };
 
@@ -675,7 +672,7 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
   given('[case11] the repo settings cannot be parsed', () => {
     const repo = useBeforeAll(async () => {
       const fresh = await genHookRepo({ slug: 'cp-settings-broken' });
-      fs.writeFileSync(path.join(fresh.dir, '.claude', 'settings.json'), '{ broken');
+      setTestRepoSettings({ dir: fresh.dir, settings: { raw: '{ broken' } });
       return fresh;
     });
 
@@ -686,7 +683,7 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
 
       then('the gate holds, and the render leads with the named malfunction', () => {
         expect(res.code).toBe(2);
-        expect(res.stderr).toContain('💥 MalfunctionError: settings file unparseable: .claude/settings.json');
+        expect(res.stderr).toContain('💥 MalfunctionError: settings file unparseable: .claude/settings.of.repo.json');
         expect(res.stderr).toContain('repair the json in that file');
       });
 
@@ -712,8 +709,8 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
 
       then('the command still runs, and the malfunction reaches stderr too', () => {
         expect(res.code).toBe(0);
-        expect(res.stdout).toContain('💥 MalfunctionError: settings file unparseable: .claude/settings.json');
-        expect(res.stderr).toContain('💥 MalfunctionError: settings file unparseable: .claude/settings.json');
+        expect(res.stdout).toContain('💥 MalfunctionError: settings file unparseable: .claude/settings.of.repo.json');
+        expect(res.stderr).toContain('💥 MalfunctionError: settings file unparseable: .claude/settings.of.repo.json');
       });
     });
   });

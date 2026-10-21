@@ -1,0 +1,28 @@
+# rule.forbid.unit.remote-boundaries
+
+## .what
+unit tests (`.test.ts`) must not cross remote boundaries. touches fs, db, or network → it is an integration test (`.integration.test.ts`)
+
+## .why
+unit = atomic logic, fast, deterministic, parallel. remote boundaries add flake + latency. mocks hide the boundary and lie
+
+## .remote boundaries
+- filesystem: fs.readFile/writeFile, real paths
+- database: queries, dao calls
+- network: fetch, http clients, sdk calls
+
+## .instead of mocks
+- fakes injected via context (dependency injection): `sendInvoice({ invoice }, { svcEmail: { send: async () => ({ success: true }) } })`
+- real dependency → move to `.integration.test.ts`
+
+## .classification
+- pure logic, no i/o, injected deps → unit `.test.ts`
+- touches db, fs, network → integration `.integration.test.ts`
+- blackbox via built contract → acceptance `.acceptance.test.ts`
+
+## .enforcement
+- unit test that crosses a remote boundary = blocker
+- mock usage in unit tests = blocker
+
+## .see also
+rule.forbid.integration.mocks · rule.forbid.acceptance.mocks · rule.require.test-coverage-by-grain

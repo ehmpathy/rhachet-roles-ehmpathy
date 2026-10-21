@@ -1,0 +1,11 @@
+# rule.prefer.scouts-honor
+
+leave it better than you found it, when able. in a file you touch, make the small fix within reach: a cleaner name, a tighter comment, a wicked-up ramble, a dead line removed, an absent .what/.why header added
+
+bound — "when able":
+- in scope: rides the change you came to make
+- safe: risks no behavior you are not here to touch (rule.require.review-test-changes)
+- cheap: rename, comment, cut, delete — not a re-architecture
+- large? note it or open a follow-up; never smuggle a refactor in
+
+enforcement: cheap, safe, in-scope improvement left unmade in a file you edited = nitpick; large or out-of-scope cleanup smuggled into an unrelated change = blocker

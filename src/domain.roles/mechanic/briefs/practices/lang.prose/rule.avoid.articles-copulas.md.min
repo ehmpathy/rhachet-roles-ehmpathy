@@ -1,0 +1,4 @@
+# rule.avoid.articles-copulas
+
+drop articles (the, a, an) and bare copulas (is, are, was, were) in technical prose — telegraphic register: `queue empty.`, not `the queue is empty.` keep a copula that carries tense or voice you need (`was retried`); keep any word whose drop would misread — clarity outranks the cut
+enforcement: article or bare copula a cut would not miss = nitpick

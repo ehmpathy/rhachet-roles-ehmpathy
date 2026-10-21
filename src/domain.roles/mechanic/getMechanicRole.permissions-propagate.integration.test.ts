@@ -61,7 +61,9 @@ describe('getMechanicRole · declared permissions reach the engine', () => {
         ).permissions;
         const settings = JSON.parse(
           readFileSync(
-            path.join(repoRoot, '.claude', 'settings.json'),
+            // the repo-owned settings rhachet generates; `settings.json` links to the
+            // human's own grove settings, which carry no role permissions
+            path.join(repoRoot, '.claude', 'settings.of.repo.json'),
             'utf-8',
           ),
         ).permissions;

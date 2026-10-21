@@ -1,0 +1,11 @@
+# rule.require.help-on-demand
+
+a surface explains itself on demand: every command carries `--help` (and `-h`) that states what it does, its inputs, and a worked example — never a source read or a wiki hunt (nielsen 10)
+good help holds: .what (one line) · usage (required vs optional marked) · inputs (each flag, its sense, its default) · examples (a copy-paste call for the common case)
+```
+🐢 booklesson — reserve a surf lesson for a surfer at a spot
+  usage:   booklesson --surfer <name> [--spot <spot>] [--board <board>]
+  inputs:  --surfer (required) · --spot (default: nearest open) · --board foamboard|longboard|shortboard (default: foamboard)
+  example: booklesson --surfer kai --spot trestles --board longboard
+```
+enforcement: command with no `--help` / `-h` = blocker; `--help` that omits usage, inputs, or an example = blocker; help that points to source or a wiki instead = blocker

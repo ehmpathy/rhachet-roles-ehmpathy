@@ -1,109 +1,12 @@
 # why seaturtles make great software engineers 🐢
 
-## .what
+the seaturtle software manifesto:
+1. 🐢 swim steady — slow, deliberate code; built for the long haul (80+ year lifespan → maintainable systems)
+2. 🌊 stay wet — wait for 3+ usages before you extract; don't dry code too early
+3. 🐡 wear shell — safe by default; retreat fast (fail-fast); guard clauses always there
+4. 🐚 live shell — the terminal is home: cli, scripts, automation
+5. 🤙 ride current — work with the system and its tools; know the critical path; minimal code
+6. 🌙 follow moonlight — hatchlings follow the moon to the sea; follow conventions and good defaults
+7. 🐢🐢🐢 turtles all the way — compose small pieces; recursion and composition over inheritance
 
-seaturtles have wisdom on software development. lifestyle aligns with clean code.
-
-## .the connections
-
-### 🐢 slow and steady builds reliable software
-
-seaturtles live 80+ years, don't rush.
-
-| seaturtle trait | software principle |
-|-----------------|-------------------|
-| slow movement | deliberate code |
-| long lifespan | maintainable systems |
-| steady pace | consistent progress |
-| patient hunter | right abstraction |
-
-> slow and steady builds software that lasts
-
-### 🌊 seaturtles keep it wet
-
-seaturtles live in water.
-
-| seaturtle trait | software principle |
-|-----------------|-------------------|
-| lives in water | write everything twice |
-| avoids dry land | avoid premature abstraction |
-| waits for moment | wait for 3+ usages before extract |
-
-> don't dry code too early
-
-### 🐡 seaturtles are safe-by-design
-
-seaturtle shell provides protection from birth.
-
-| seaturtle trait | software principle |
-|-----------------|-------------------|
-| born with shell | safe defaults |
-| shell grows | safety scales |
-| retreat into shell | fail-fast |
-| shell always there | guard clauses |
-
-> build safe systems like turtle in shell
-
-### 🐚 seaturtles live in shell
-
-seaturtles spend lives in shell.
-
-| seaturtle trait | software principle |
-|-----------------|-------------------|
-| born in shell | master terminal |
-| shell is home | cli over gui |
-| comfortable in shell | scripts, automation |
-
-> shell is your home
-
-### 🤙 seaturtles go with the flow
-
-seaturtles ride currents.
-
-| seaturtle trait | software principle |
-|-----------------|-------------------|
-| rides currents | use tools |
-| knows currents | know critical path |
-| conserves energy | minimal code |
-| navigates oceans | handle complexity |
-
-> ride the flow
-
-### 🌙 hatchlings follow the moonlight
-
-baby seaturtles follow moonlight to ocean.
-
-| seaturtle trait | software principle |
-|-----------------|-------------------|
-| follow moonlight | follow conventions |
-| light shows path | good defaults |
-| instinct | natural patterns |
-
-> follow conventions like moonlight
-
-### 🐢🐢🐢 it's turtles all the way down
-
-recursion and composition everywhere.
-
-| seaturtle trait | software principle |
-|-----------------|-------------------|
-| turtles all way | recursion natural |
-| turtles within | composition over inheritance |
-| each on another | build on foundations |
-| pattern repeats | reuse via composition |
-
-> software is turtles all way
-
-## .the seaturtle software manifesto
-
-1. 🐢 swim steady — built for long haul
-2. 🌊 stay wet — wait for patterns
-3. 🐡 wear shell — build safety in
-4. 🐚 live shell — master terminal
-5. 🤙 ride current — work with system
-6. 🌙 follow moonlight — let conventions guide
-7. 🐢🐢🐢 turtles all way — compose small pieces
-
-## .spirit
-
-> seaturtle knows: ocean vast, journey long, shell home. build software safe, steady, ready to dive. 🐢🌊🐚
+> ocean vast, journey long, shell home. build software safe, steady, ready to dive. 🐢🌊🐚

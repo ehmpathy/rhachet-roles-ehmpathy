@@ -1,0 +1,21 @@
+# rule.forbid.treestruct-indented-text-as-children
+
+depth in a treestruct means ownership, and only ownership:
+- peers share one depth — a blocked part, its paved alternatives, its nearest patterns sit side by side
+- a label owns its items — a list nests under its label as child branches, one level down; a label ends with no colon
+- text never steps right on its own — depth shows in the glyphs (`├─` / `└─`), never in spaces before the words
+
+test: a line reads `├─   text` (spaces between glyph and words)? step the glyph right, under the label. a line nests under one it does not belong to? lift it to its peer's depth
+
+```
+✋ ConstraintError: this command is not paved (2 parts)
+   ├─ blocked: grep -rln 'reef' src/
+   ├─ paved alternatives for `grep`
+   │  ├─ rhx grepsafe --pattern '<regex>' --path <dir>
+   │  └─ rhx git.repo.get lines --in <org/repo> --words '<text>'
+   │
+   └─ tip: a compound runs only if every part is paved
+```
+a `│` spacer line sets one section of peers apart from the next
+
+enforcement: list items drawn as indented text beside their label = blocker; a peer nested under a line it does not belong to = blocker; a label that ends in a colon over child branches = nitpick

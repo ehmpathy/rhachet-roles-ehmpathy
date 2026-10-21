@@ -1,0 +1,28 @@
+# rule.forbid.integration.mocks
+
+## .what
+integration (`.integration.test.ts`) and acceptance (`.acceptance.test.ts`) tests must not mock. a mocked integration verifies only the mock
+
+## .why
+mocks drift from real behavior → false confidence → prod fails while tests pass
+
+## .exception
+mock only where clearly unavoidable (severe rate limit, prohibitive cost, no sandbox), documented inline at the mock:
+```ts
+/**
+ * .mock = github api
+ * .why = rate limit would exhaust quota in ci
+ * .real = github.real.integration.test.ts, run before release
+ */
+jest.mock('@/access/sdks/sdkGithub');
+```
+
+## .credentials
+absent credential → fail fast with ConstraintError + hint (`rhx keyrack unlock --owner ehmpath --env test`). never skip silently, never fake it
+
+## .enforcement
+- undocumented mock (`jest.mock()` with no inline .mock/.why/.real) = blocker
+- silent credential bypass = blocker
+
+## .see also
+rule.forbid.acceptance.mocks (same rule, acceptance scope) · rule.require.acceptance.blackbox · rule.forbid.unit.remote-boundaries

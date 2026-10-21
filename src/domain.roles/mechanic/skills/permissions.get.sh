@@ -14,7 +14,9 @@
 #
 # guarantee:
 #   - reads the same allowlist union the check-permissions hook enforces
-#     (.claude/settings.json + .claude/settings.local.json)
+#     (the layer rule, permissions.layers.operations.sh: settings.of.repo.json
+#     + the user layer on the split layout; the old layout adds the local and
+#     project files)
 #   - --for asks the hook itself (--mode LOOKUP), so the two never disagree
 #   - read-only: never writes the nudge record or the ledger
 #   - exit 0 = answered, 1 = malfunction, 2 = bad input
@@ -51,6 +53,15 @@ source "$RENDER_LIB" 2>/dev/null || {
   render_lib_crash="💥 MalfunctionError: permissions.get could not load $RENDER_LIB — reinstall the mechanic role"
   printf '%s\n' "$render_lib_crash" || true
   printf '%s\n' "$render_lib_crash" >&2 || true
+  exit 1
+}
+
+# load the layer rule the three permission hooks share, so the lookup reads the files they read
+# .note = an absent lib is a malfunction: named on both streams, exit 1
+LAYERS_LIB="$SKILL_DIR/../inits/claude.hooks/permissions.layers.operations.sh"
+# shellcheck source=../inits/claude.hooks/permissions.layers.operations.sh
+source "$LAYERS_LIB" 2>/dev/null || {
+  print_to_both "💥 MalfunctionError: permissions.get could not load $LAYERS_LIB — reinstall the mechanic role"
   exit 1
 }
 
@@ -181,25 +192,29 @@ set_pattern_union() {
 }
 
 # each settings source: its patterns, and a `name (count)` line for the render
-# .note = named arg `dir=` (the .claude dir); sets the globals SOURCE_LINES, ALL_PATTERNS
-#         (newline-joined), and SETTINGS_MALFUNCTION. a broken file returns 1, never read as
-#         "no permissions"
+# .note = named arg `dir=` (the .claude dir); reads the files of the layer rule
+#         (set_permissions_layer_files), the same files the hook reads, so the two never disagree
+#         on either layout. a file in the repo's .claude dir reads as `.claude/<name>`, any other
+#         by its full path. sets the globals SOURCE_LINES, ALL_PATTERNS (newline-joined), and
+#         SETTINGS_MALFUNCTION. a broken file returns 1, never read as "no permissions"
 set_settings_sources() {
   local dir=""
   local "$@"
   SOURCE_LINES=()
   ALL_PATTERNS=""
   SETTINGS_MALFUNCTION=""
-  local name file patterns
-  for name in settings.json settings.local.json; do
-    file="$dir/$name"
+  set_permissions_layer_files
+  local file label patterns
+  for file in "${PERMISSIONS_LAYER_FILES[@]}"; do
     [[ -f "$file" ]] || continue
+    label="$file"
+    [[ "$file" == "$dir/"* ]] && label=".claude/${file#"$dir/"}"
     if ! patterns=$(get_bash_patterns file="$file" 2>&1); then
-      SETTINGS_MALFUNCTION=".claude/$name is not valid json (${patterns%%$'\n'*})"
+      SETTINGS_MALFUNCTION="$label is not valid json (${patterns%%$'\n'*})"
       return 1
     fi
     get_line_count text="$patterns"
-    SOURCE_LINES+=(".claude/$name ($((LINE_COUNT)))")
+    SOURCE_LINES+=("$label ($((LINE_COUNT)))")
     [[ -n "$patterns" ]] && ALL_PATTERNS+="$patterns"$'\n'
   done
   return 0

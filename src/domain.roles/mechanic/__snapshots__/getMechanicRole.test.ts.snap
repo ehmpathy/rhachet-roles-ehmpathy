@@ -18,14 +18,6 @@ exports[`getMechanicRole given: [case1] the mechanic role definition when: [t4] 
           "timeout": "PT10S",
         },
         {
-          "command": "./node_modules/.bin/rhachet roles boot --repo .this --role any --if-present",
-          "timeout": "PT60S",
-        },
-        {
-          "command": "./node_modules/.bin/rhachet roles boot --repo ehmpathy --role mechanic",
-          "timeout": "PT60S",
-        },
-        {
           "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/postcompact.trust-but-verify.sh",
           "filter": {
             "what": "PostCompact",

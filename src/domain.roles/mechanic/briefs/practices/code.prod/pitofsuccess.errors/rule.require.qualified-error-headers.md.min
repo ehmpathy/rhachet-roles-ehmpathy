@@ -1,0 +1,26 @@
+# rule.require.qualified-error-headers
+
+## .what
+every human-read error opens with its class, qualified exactly, behind its glyph:
+```
+✋ ConstraintError: <what went wrong>     # caller fixes · exit 2
+💥 MalfunctionError: <what went wrong>    # system fixes · exit 1
+```
+no other opener: not `ERROR:`, `🛑 BLOCKED:`, `⚠️`, or a bare message
+
+## .why
+glyph = scanned; class = read. the class names who fixes it. one vocabulary across ts (helpful-errors) and bash
+
+## .how
+- ts: `throw new ConstraintError('customer lacks phone', { customerId })` — import from `helpful-errors`, never `test-fns`
+- bash: `echo "✋ ConstraintError: no --spot supplied" >&2; exit 2`
+- after the header: what, why, fix (rule.require.errors-name-the-fix)
+
+## 🔴 .the PreToolUse exception
+claude code reads exit 2 = blocked, any other = permitted. a malfunction in a PreToolUse hook prints `💥 MalfunctionError:` and STILL exits 2 — exit 1 fails the gate open. the one place glyph and exit code disagree, on purpose
+
+## .enforcement
+- header with no `ConstraintError:` / `MalfunctionError:` qualifier = blocker
+- qualifier misspelled, abbreviated, or paraphrased = blocker
+- wrong glyph for the class = blocker
+- PreToolUse hook that exits 1 on a malfunction = blocker

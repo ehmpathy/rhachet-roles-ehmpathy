@@ -78,8 +78,9 @@ describe('boot.yml integration', () => {
       });
 
       then('ref briefs are emitted as path-only links', () => {
-        // ref briefs should appear as <brief.ref> tags (path only, no content)
-        expect(boot.output).toMatch(/<brief\.ref\b/);
+        // ref briefs appear as one <briefs.ref base="…"> roster (path only, no content);
+        // rhachet hoists the shared prefix into the block header
+        expect(boot.output).toMatch(/<briefs\.ref base="/);
       });
     });
 

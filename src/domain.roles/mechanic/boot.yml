@@ -1,3 +1,10 @@
+# .what = cap on this role's boot, in o200k_base tokens
+# .why  = a lean boot leaves context for the work; growth past the cap fails loud
+#         (`repo introspect` halts the build; boot.budget.integration.test.ts fails)
+# .note = measure via `npx rhachet roles cost --all`; to add a say brief, condense or demote
+#         another first — raise this cap only as a deliberate, reviewed call
+budget:
+  tokens: 30_000
 always:
   briefs:
     say:
@@ -52,25 +59,15 @@ always:
 
   skills:
     say:
-      # claude tools
-      - skills/claude.tools/cpsafe.sh
-      - skills/claude.tools/mvsafe.sh
-      - skills/claude.tools/rmsafe.sh
+      # claude tools — the bulk edit tool; the hooks name the other safe tools when they block
       - skills/claude.tools/sedreplace.sh
-      - skills/claude.tools/symlink.sh
-      - skills/claude.tools/teesafe.sh
 
-      # package management
-      - skills/declapract.upgrade.sh
+      # package docs
       - skills/get.package.docs.sh
-      - skills/set.package/set.package.install.sh
-      - skills/set.package/set.package.upgrade.sh
 
       # git commit
-      - skills/git.commit/git.commit.bind.sh
       - skills/git.commit/git.commit.push.sh
       - skills/git.commit/git.commit.set.sh
-      - skills/git.commit/git.commit.uses.sh
 
       # git branch
       - skills/git.branch.rebase/git.branch.rebase.sh
@@ -86,14 +83,35 @@ always:
       - skills/git.stage/git.stage.add.sh
 
       # github actions
-      - skills/show.gh.action.logs.sh
       - skills/show.gh.test.errors.sh
 
-      # cicd
+      # permissions: the pre-approved commands, on demand
+      - skills/permissions.get.sh
+
+    ref:
+      # claude tools — each hook that blocks a raw command names its safe twin
+      - skills/claude.tools/cpsafe.sh
+      - skills/claude.tools/mvsafe.sh
+      - skills/claude.tools/rmsafe.sh
+      - skills/claude.tools/symlink.sh
+      - skills/claude.tools/teesafe.sh
+
+      # package management — rare, deliberate acts
+      - skills/declapract.upgrade.sh
+      - skills/set.package/set.package.install.sh
+      - skills/set.package/set.package.upgrade.sh
+
+      # git commit — human-run grants (bind, quota)
+      - skills/git.commit/git.commit.bind.sh
+      - skills/git.commit/git.commit.uses.sh
+
+      # github actions — show.gh.test.errors covers the common case
+      - skills/show.gh.action.logs.sh
+
+      # cicd — a route, run on purpose
       - skills/cicd.deflake.sh
 
-      # permissions: the pre-approved commands, on demand; what the nudge has recorded
-      - skills/permissions.get.sh
+      # permissions: what the nudge has recorded
       - skills/permissions.nudges.sh
 
 subject.code.prod:
@@ -101,15 +119,12 @@ subject.code.prod:
     say:
       # procedures
       - briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt1.md
-      - briefs/practices/code.prod/evolvable.procedures/rule.require.input-options-pattern.md
       - briefs/practices/code.prod/evolvable.procedures/rule.require.arrow-only.md
       - briefs/practices/code.prod/evolvable.procedures/rule.require.clear-contracts.md
       - briefs/practices/code.prod/evolvable.procedures/rule.require.dependency-injection.md.pt1.md
-      - briefs/practices/code.prod/evolvable.procedures/rule.require.hook-wrapper-pattern.md
       - briefs/practices/code.prod/evolvable.procedures/rule.require.named-args.md
       - briefs/practices/code.prod/evolvable.procedures/rule.require.single-responsibility.md
       - briefs/practices/code.prod/evolvable.procedures/rule.forbid.io-as-domain-objects.md
-      - briefs/practices/code.prod/evolvable.procedures/rule.forbid.io-as-interfaces.md
       - briefs/practices/code.prod/evolvable.procedures/rule.forbid.positional-args.md.pt1.md
 
       # domain objects
@@ -120,23 +135,10 @@ subject.code.prod:
       # domain operations
       - briefs/practices/code.prod/evolvable.domain.operations/rule.require.sync-filename-opname.md
       - briefs/practices/code.prod/evolvable.domain.operations/rule.require.get-set-gen-verbs.md
-      - briefs/practices/code.prod/evolvable.domain.operations/define.domain-operation-core-variants.md
-
-      # architecture
-      - briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md
-      - briefs/practices/code.prod/evolvable.architecture/rule.require.bounded-contexts.md
-      - briefs/practices/code.prod/evolvable.architecture/rule.require.domain-driven-design.md
-
-      # domain objects (reference)
-      - briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md
-
-      # persistence
-      - briefs/practices/code.prod/readable.persistence/rule.prefer.declastruct.[demo].md
 
       # repo structure
       - briefs/practices/code.prod/evolvable.repo.structure/rule.forbid.barrel-exports.md
       - briefs/practices/code.prod/evolvable.repo.structure/rule.forbid.index-ts.md
-      - briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md
 
       # errors — the most important rules
       - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt1.md
@@ -155,7 +157,6 @@ subject.code.prod:
       # typedefs
       - briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md
       - briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.shapefit.md
-      - briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.assure-via-type-checks.md
 
       # readability
       - briefs/practices/code.prod/readable.comments/rule.require.what-why-headers.md
@@ -163,19 +164,40 @@ subject.code.prod:
       - briefs/practices/code.prod/readable.narrative/rule.require.narrative-flow.md
       - briefs/practices/code.prod/readable.narrative/rule.avoid.unnecessary-ifs.md
       - briefs/practices/code.prod/readable.narrative/rule.forbid.else-branches.md
-      - briefs/practices/code.prod/readable.narrative/rule.require.named-transformers.md
       - briefs/practices/code.prod/readable.narrative/rule.forbid.inline-decode-friction.md
 
       # artifacts
       - briefs/practices/code.prod/consistent.artifacts/rule.require.pinned-versions.md
 
-      # glossaries — the adopted ubiqlang glossaries for domain primitives
-      - briefs/practices/code.prod/consistent.glossaries/rule.require.iso-time.md
+      # glossaries — the forbid pole of each pair; each names the iso types + ops to reach for
       - briefs/practices/code.prod/consistent.glossaries/rule.forbid.any-time.md
-      - briefs/practices/code.prod/consistent.glossaries/rule.require.iso-price.md
       - briefs/practices/code.prod/consistent.glossaries/rule.forbid.any-price.md
 
+      # remote resources + domain objects — the shapes a mechanic builds on
+      - briefs/practices/code.prod/readable.persistence/rule.prefer.declastruct.[demo].md
+      - briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md
+
     ref:
+      # procedure peers — the say rules above carry the core of each
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.input-options-pattern.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.require.hook-wrapper-pattern.md
+      - briefs/practices/code.prod/evolvable.procedures/rule.forbid.io-as-interfaces.md
+      - briefs/practices/code.prod/evolvable.domain.operations/define.domain-operation-core-variants.md
+
+      # architecture — the architect role says these; mechanic reads them on demand
+      - briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md
+      - briefs/practices/code.prod/evolvable.architecture/rule.require.bounded-contexts.md
+      - briefs/practices/code.prod/evolvable.architecture/rule.require.domain-driven-design.md
+      - briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md
+
+      # require twins — the forbid peer stays say (it names the violation; it carries the cure)
+      - briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.assure-via-type-checks.md
+      - briefs/practices/code.prod/readable.narrative/rule.require.named-transformers.md
+
+      # glossaries — the require pole, full detail; the forbid pole above is say
+      - briefs/practices/code.prod/consistent.glossaries/rule.require.iso-time.md
+      - briefs/practices/code.prod/consistent.glossaries/rule.require.iso-price.md
+
       # procedure supplements
       - briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt2.md
       - briefs/practices/code.prod/evolvable.procedures/rule.require.dependency-injection.md.pt2.md
@@ -227,21 +249,24 @@ subject.code.test:
       - briefs/practices/code.test/pitofsuccess.privacy/rule.forbid.real-identities-in-fixtures.md
 
       - briefs/practices/code.test/frames.behavior/rule.require.given-when-then.md
-      - briefs/practices/code.test/frames.behavior/rule.require.useThen-useWhen-for-shared-results.md
       - briefs/practices/code.test/frames.behavior/rule.forbid.redundant-expensive-operations.md
-      - briefs/practices/code.test/frames.behavior/howto.write-bdd.[lesson].md
       - briefs/practices/code.test/frames.caselist/rule.prefer.data-driven.md
       - briefs/practices/code.test/lessons.howto/howto.write.[lesson].md.pt1.md
       - briefs/practices/code.test/lessons.howto/howto.write.[lesson].md.pt2.md
       - briefs/practices/code.test/lessons.howto/howto.write.[lesson].md.pt3.md
       - briefs/practices/code.test/lessons.howto/rule.require.snapshots.[lesson].md
-      - briefs/practices/code.test/scope.acceptance/rule.require.acceptance.blackbox.md
-      - briefs/practices/code.test/scope.acceptance/rule.forbid.acceptance.mocks.md
       - briefs/practices/code.test/scope.integration/rule.forbid.integration.mocks.md
       - briefs/practices/code.test/scope.unit/rule.forbid.unit.remote-boundaries.md
-      - briefs/practices/code.test/scope.coverage/rule.require.test-coverage-by-grain.md
 
     ref:
+      # peers of the say rules — the forbid twin stays say (redundant-expensive-operations carries
+      # the useThen cure; integration.mocks carries the acceptance ban)
+      - briefs/practices/code.test/frames.behavior/rule.require.useThen-useWhen-for-shared-results.md
+      - briefs/practices/code.test/frames.behavior/howto.write-bdd.[lesson].md
+      - briefs/practices/code.test/scope.acceptance/rule.require.acceptance.blackbox.md
+      - briefs/practices/code.test/scope.acceptance/rule.forbid.acceptance.mocks.md
+      - briefs/practices/code.test/scope.coverage/rule.require.test-coverage-by-grain.md
+
       - briefs/practices/code.test/consistent.contracts/ref.package.test-fns.[ref].md
       - briefs/practices/code.test/frames.behavior/howto.write-bdd.[lesson].pt2.md
       - briefs/practices/code.test/lessons.howto/howto.diagnose.[lesson].md
@@ -257,11 +282,13 @@ subject.code.test:
 subject.arch:
   briefs:
     say:
-      # all say in both arch and code.prod — overlap is intentional
-      - briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md
+      # overlap with code.prod is intentional
       - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.nullable-without-reason.md
       - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.undefined-attributes.md
       - briefs/practices/code.prod/evolvable.domain.objects/rule.require.immutable-refs.md
+
+    ref:
+      - briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md
       - briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md
 
 subject.flow:
@@ -269,9 +296,7 @@ subject.flow:
     say:
       - briefs/practices/work.flow/rule.require.trust-but-verify.md
       - briefs/practices/work.flow/rule.prefer.scouts-honor.md
-      - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
       - briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md
-      - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
       - briefs/practices/work.flow/refactor/rule.require.review-test-changes.md
       - briefs/practices/work.flow/release/rule.require.commit-scopes.md
       - briefs/practices/work.flow/release/rule.require.watch-release-after-push.md
@@ -283,6 +308,10 @@ subject.flow:
       - briefs/practices/work.flow/tools/howto.keyrack.[lesson].md
 
     ref:
+      # peers — clamp-edge-cases carries test-covered-repairs; the sedreplace skill carries its rule
+      - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
+      - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
+
       - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
       - briefs/practices/work.flow/diagnose/howto.logservation.[lesson].md
       - briefs/practices/work.flow/release/howto.git-release.[lesson].md
