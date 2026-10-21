@@ -18,6 +18,7 @@
 import { createHash } from 'crypto';
 import { existsSync } from 'fs';
 import * as fs from 'fs/promises';
+import { MalfunctionError } from 'helpful-errors';
 import * as path from 'path';
 import { BrainChoiceNotFoundError, genContextBrain } from 'rhachet';
 import { genArtifactGitFile } from 'rhachet-artifact-git';
@@ -30,6 +31,7 @@ import { z } from 'zod';
 import { getAllBrainAtoms } from '@src/domain.operations/brain/getAllBrainAtoms';
 
 import { countTokens } from './compress.shared';
+import { isSitrepPlaceholder } from './isSitrepPlaceholder';
 
 /**
  * .what = find git repo root directory (sync)
@@ -298,6 +300,22 @@ export interface CompressionResult {
 }
 
 /**
+ * .what = refuse a brain response whose sitrep is a placeholder
+ * .why = a '...' sitrep carries no kernel; returned as a compressed brief it
+ *        silently loses every concept, so it fails loud and the ask retries
+ */
+const assureSitrepNotPlaceholder = <T extends { output: { sitrep: string } }>(
+  response: T,
+): T => {
+  if (isSitrepPlaceholder({ sitrep: response.output.sitrep }))
+    throw new MalfunctionError('brain returned a placeholder sitrep', {
+      sitrep: response.output.sitrep,
+      hint: 'the ask retries once; a repeat means the brain cannot compress this brief',
+    });
+  return response;
+};
+
+/**
  * .what = core compression logic (internal, wrapped with cache)
  * .why = leverage llm to produce semantically coherent compressed output
  */
@@ -356,38 +374,41 @@ const _compressViaBhrain = async (input: {
 
   // ask brain to distill via specified mechanisms (passed via role.briefs)
   // note: lang tone briefs doubled for emphasis (brain sometimes ignores them)
+  // note: a placeholder sitrep ('...') throws inside the retry, so the ask runs again
   const { output } = await withRetry(
     withTimeout(
       async () =>
-        contextBrain.brain.choice.ask({
-          role: {
-            briefs: [
-              ...methodologyBriefArtifacts,
-              lowercaseBrief,
-              turtleBrief,
-              lowercaseBrief,
-              turtleBrief,
-            ],
-          },
-          prompt,
-          schema: {
-            output: z.object({
-              forethought: z
-                .string()
-                .describe(
-                  'what is this brief about? what is its purpose? who is the audience?',
-                ),
-              rationale: z
-                .string()
-                .describe(
-                  'what content is decision-critical and must be kept? what can be cut? which examples to keep vs discard?',
-                ),
-              sitrep: z
-                .string()
-                .describe('the compressed brief as raw markdown'),
-            }),
-          },
-        }),
+        assureSitrepNotPlaceholder(
+          await contextBrain.brain.choice.ask({
+            role: {
+              briefs: [
+                ...methodologyBriefArtifacts,
+                lowercaseBrief,
+                turtleBrief,
+                lowercaseBrief,
+                turtleBrief,
+              ],
+            },
+            prompt,
+            schema: {
+              output: z.object({
+                forethought: z
+                  .string()
+                  .describe(
+                    'what is this brief about? what is its purpose? who is the audience?',
+                  ),
+                rationale: z
+                  .string()
+                  .describe(
+                    'what content is decision-critical and must be kept? what can be cut? which examples to keep vs discard?',
+                  ),
+                sitrep: z
+                  .string()
+                  .describe('the compressed brief as raw markdown'),
+              }),
+            },
+          }),
+        ),
       { threshold: { seconds: 60 } },
     ),
   )();
