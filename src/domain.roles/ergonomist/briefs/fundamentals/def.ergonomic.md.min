@@ -1,0 +1,15 @@
+# def.ergonomic
+
+an ergonomic input/output contract fits the human, not the machine — expected, intuitive, unambiguous, convenient, safe. the rubric a reviewer scores captured i/o against; each line is backed by a rule (canon: ref.ergonomics.fundamentals)
+
+ergonomic when the captured i/o shows ALL of:
+- zero surprises — every name, default, result behaves as a human expects → rule.forbid.surprises
+- intuitive — a human infers the next move without docs; the obvious guess works → rule.require.discoverability
+- unambiguous — each arg, flag, field, output reads one way only → rule.forbid.ambiguous-labels
+- names in plain domain words, no jargon or cryptic abbreviations → rule.forbid.ambiguous-labels
+- defaults match the common case; the bare invocation does the work → rule.prefer.defaults-match-common-case
+- output is scannable at a glance → rule.require.treestruct-output
+- status is visible; no silent wait → rule.require.status-feedback
+- errors name the fix → rule.require.errors-name-the-fix
+- convenient — no boilerplate, repeated flags, or ceremony the contract could infer
+- safe — the easy path is the correct path; slips caught loud; destructive acts hard to trigger → rule.require.safe-by-default, rule.prefer.prevent-over-correct

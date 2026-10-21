@@ -1,0 +1,8 @@
+# rule.require.brevity
+
+say it in the fewest words that keep the full sense. brevity proves grasp (feynman): cannot say it briefly → you do not yet grasp it
+how: point first; cut "in order to", "the fact that", "it is important to note that"; cut hedges ("should probably", "in most cases"); say it once
+test: cut each word; sense survived → drop it
+👎 `// in order to accomplish the goal of a record check, we first need to look at whether it is actually present…`
+👍 `// validate record. absent record returns error.`
+enforcement: surplus words a cut would not miss = blocker; hedge or restatement that dilutes a checkable claim = blocker

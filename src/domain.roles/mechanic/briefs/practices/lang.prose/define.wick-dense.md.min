@@ -1,0 +1,22 @@
+# define.wick-dense
+
+## .what
+wick-dense = terse ideal for technical prose (john wick: few words, each loaded). state current truth in fewest words, then stop
+aliases (one sense): wicked-up, wicked, wick-up, wick-down. verb: "wick this up". adj: "all wicked up?"
+voices the ste overlay (define.simplified-technical-english): telegraphic, active, short, one word per concept
+
+## .the three tenets
+- few words → rule.require.brevity (blocker)
+- point first, no wind-up → rule.forbid.rambles (blocker)
+- no time-ordered log; state what IS → rule.forbid.chronological-accretion (blocker)
+plus nitpicks: rule.prefer.short-sentences (≤~20 words), rule.prefer.one-instruction-per-sentence, rule.avoid.passive-voice, rule.avoid.articles-copulas, rule.prefer.active-simple-tense, rule.prefer.wickup-touched-prose (wick-up prose you touch, in scope)
+
+## .scope
+comments, briefs, plans, docs, commit bodies, error strings. exempt: verbatim quotes, code blocks, human-chat tone
+
+## .the test
+read it aloud as wick. would he cut a word? cut it. wind-up? none. recount his path? no — he states what is
+
+## .example
+👎 `// this function, after we tried a few approaches, now basically handles the reshape of the record before we persist it`
+👍 `// reshape record. persist record.`

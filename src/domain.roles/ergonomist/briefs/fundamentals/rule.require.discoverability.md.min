@@ -1,0 +1,13 @@
+# rule.require.discoverability
+
+every action a human needs is discoverable from the surface itself — prompted, listed, or shown — never held only in memory or an unlinked manual. recognition over recall (norman; nielsen 6)
+test: could a first-time human find the next move without a question or a source read?
+how: list the options (`--help`, a usage line, an error that names valid choices) · prompt the required next step · let the label reveal what the control does · link deeper docs inline
+```
+$ booklesson --board
+🐢 which board? one of:
+  ├─ foamboard   (beginner)
+  ├─ longboard   (cruiser)
+  └─ shortboard  (advanced)
+```
+enforcement: a required step reachable only from memory or source = blocker; an error that rejects input with no note of the valid options = blocker

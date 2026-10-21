@@ -26,7 +26,9 @@ describe('getMechanicRole · every registered hook is reachable', () => {
   // .note = derived from __dirname, never from process.cwd(), so the assertion
   //         holds wherever jest is invoked from
   const repoRoot = path.join(__dirname, '..', '..', '..');
-  const settingsPath = path.join(repoRoot, '.claude', 'settings.json');
+  // .note = the repo-owned settings rhachet generates; `settings.json` links to the
+  //         human's own grove settings, which carry no role hooks
+  const settingsPath = path.join(repoRoot, '.claude', 'settings.of.repo.json');
 
   /**
    * .what = the shape of a `.claude/settings.json` hook tree, as this case reads it

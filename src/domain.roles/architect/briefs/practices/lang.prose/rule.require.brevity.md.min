@@ -1,0 +1,7 @@
+# rule.require.brevity
+
+say it in the fewest words that keep the full sense. brevity proves grasp (feynman); length hides a half-grasped idea
+how: point first; cut "in order to", "it is important to note that"; cut hedges ("should probably", "in most cases"); say it once
+👎 this section, which is quite central to the overall design, essentially describes how operations tend to compose together into larger flows.
+👍 operations compose into larger flows.
+enforcement: surplus words a cut would not miss = blocker; hedge or restatement that dilutes a checkable claim = blocker

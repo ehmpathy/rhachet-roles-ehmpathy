@@ -1,0 +1,4 @@
+# rule.avoid.passive-voice
+
+name the actor, then the act: `the aggregate enforces the invariant.`, not `the invariant is enforced by the aggregate.` passive hides who holds a responsibility and adds words. no known actor → imperative
+enforcement: passive where active would serve = nitpick; an actor hidden or trailed behind "by" = nitpick

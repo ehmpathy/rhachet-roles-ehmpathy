@@ -1,0 +1,4 @@
+# rule.prefer.active-simple-tense
+
+use simple present (what code does), simple past (what happened), or imperative (instruction). drop future (`will generate`), perfect (`has generated`), and continuous (be-verb + an -ing participle) → `generates` / `generated`. bare copulas belong to rule.avoid.articles-copulas
+enforcement: future, perfect, or continuous where simple serves = nitpick

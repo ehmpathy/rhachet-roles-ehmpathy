@@ -1,0 +1,6 @@
+# rule.forbid.rambles
+
+no rambles: prose that runs past its point. a ramble hides a foggy idea and taxes every reader
+smells → fix: throat-clear ("it is worth a mention that X") → "X" · wind-up ("in order to be able to X") → "to X" · restatement → once · hedge-stack → claim + bound · run-on → split
+test: delete a clause; no sense lost → it rambled
+enforcement: run-on, restatement, hedge-stack, or throat-clear = blocker; a point stretched across sentences one would hold = blocker

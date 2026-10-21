@@ -1,173 +1,38 @@
-## .rule require-get-set-gen-verbs
+# rule.require.get-set-gen-verbs
 
-#### .what
-all domain operations use one sanctioned prefix:
-- core verbs: get, set, gen, del
-- transformer prefixes: as*, is* (pure single-value shape work)
+## .what
+every domain operation and dao method uses one sanctioned prefix:
+- core verbs: get · set · gen · del
+- transformer prefixes: as* (cast/parse) · is* (boolean) — pure single-value shape work
+exempt: contract/cli entry points, imperative commands (dispatchTask, enqueueTask), `with*` HOF wrappers
 
-domain-specific verbs for imperative commands only if not matched to pattern
-transformer prefixes formalized in rule.require.named-transformers; an as* transformer must NOT be forced to getOne*
+## .the core verbs
+| verb | semantics | creates? | idempotent | analogy |
+|---|---|---|---|---|
+| get | retrieve, lookup, derive | never | yes | select |
+| set | write/overwrite | yes | yes | upsert |
+| gen | find-or-create | only if absent | yes | findsert |
+| del | remove; no-op if absent | never | yes | delete |
+- get: always getOne* or getAll*; never mutates. subtypes: lookup, compute (deterministic derivation), enumerate, assemble
+- set: always overwrites; pair with a gen wrapper for data entities
+- gen: checks extant first, sets if absent; use for caller-faced ops
+- gen ↔ del mirror (ensure-present ↔ ensure-absent): can you gen it? can you del it?
 
-#### .scope
-applies to:
-- all operations in domain.operations/
-- all dao methods
+## .transformers
+- as$Noun (target names the cast: asStripeCustomer) or as$Noun1From$Noun2 (source matters)
+- is$Noun for booleans
+- cast* is DEPRECATED — migrate to as*
 
-exempt:
-- contract/cli entry points (e.g., invokeAct)
-- imperative action commands (e.g., dispatchTask, enqueueTask)
-- HOF wrappers with `with*` prefix (e.g., withLogTrail, withRetry, withSimpleCache)
+## .decision tree
+modifies state? no → shape work? as*/is* · else get. yes → removes? del · preserve extant? gen · overwrite? set
 
-#### .why
-symmetry makes mutations explicit
+## .synonyms → sanctioned
+find/fetch/lookup/load/list → getOne*/getAll* · ensure/findOrCreate/create → gen · insert/create (write) → set · parse → as* · compute*/derive → getOne* · remove/delete/destroy/drop → del
 
-closed system = a quad: get reads; set/gen/del = the mutation triad (1 read axis, 3 mutation axes)
-1. get guarantees no side effects (the one pure axis)
-2. gen ↔ del mirror: ensure-present (findsert) ↔ ensure-absent (idempotent delete); both idempotent, both converge to a declared existence state (declastruct primitives; same pressure as rule.require.idempotent-operations). mirror prompts: if you can gen it, can you del it?
-3. where set exists, consider gen for findsert/upsert
-4. set/gen/del name mutation targets explicitly
-5. custom verbs hide targets
-
-additional:
-- eliminate verb ambiguity
-- prevent synonym drift (e.g., find/fetch become get)
-- clarify operation intent from name
-
-#### .the core verbs
-
-| verb | semantics          | creates? | idempotent? | analogy    |
-|------|---------------------|----------|-------------|-----------|
-| get  | retrieve/lookup     | never    | yes         | select    |
-| set  | mutate/upsert       | yes      | yes         | upsert    |
-| gen  | find-or-create      | only if absent | yes      | findsert  |
-| del  | remove, no-op if absent | never | yes         | delete    |
-
-set and gen differ: set always overwrites, gen preserves extant
-del = idempotent delete (findsert-inverse); canonical across declastruct (delVpc, delEc2Instance); do NOT rename del* to set*
-del maps to `delete` in rule.forbid.nonidempotent-mutations
-
-#### .get retrieve extant
-
-get retrieves/looks up/derives; never creates/mutates; always use getOne* or getAll*
-pure shape work (parse, cast, bool) uses transformer prefix (as*/is*), not get
-
-| subtype   | description               | example                     |
-|-----------|---------------------------|-----------------------------|
-| lookup   | find by key               | getOneSiteBySlug({ orchestrator, slug }) |
-| compute  | deterministic derivation  | getOneCloneSlug({ role, index }) |
-| enumerate| list resources            | getAllClonesForZone({ zone }) |
-| assemble | compose from sources      | getOneContextCli({ cwd })   |
-
-forbidden: use getOne or getAll instead of find, fetch, lookup, load, list
-these are shape transformers, not get: parse→as*, cast→as* (or as$Noun1From$Noun2 for direction)
-deterministic derivation stays a get compute-subtype: derive/infer→getOne*
-
-#### .set mutate state (upsert)
-
-set always writes/overwrites state
-
-| subtype   | description               | example                     |
-|-----------|---------------------------|-----------------------------|
-| persist  | write to dao/filesystem   | setZone({ site, branch, path }) |
-| register | add to registry           | setSite({ orchestrator, site }) |
-| spawn    | start process             | setZoneDaemon({ zone })     |
-| overwrite| replace                   | setTaskPriority({ task, clone }) |
-
-for data entities, pair with gen wrapper; forbidden: use set instead of create, insert
-
-#### .gen find-or-create (findsert)
-
-gen checks extant first, uses set if absent
-
-| subtype   | description               | example                     |
-|-----------|---------------------------|-----------------------------|
-| findsert entity | find or enroll            | genClone({ zone, address, config }) |
-| findsert process | find or spawn             | genZoneDaemon({ zone })     |
-| findsert registry | find or load/register     | genSite({ path, orchestrator }) |
-| scaffold | generate from defaults    | genSiteManifest({ path })   |
-| construct| build with generated id   | genTask({ mode, prompt, clone, zone }) |
-
-use gen for caller-faced operations; forbidden: use gen instead of ensure, findOrCreate
-
-#### .del delete (idempotent)
-
-del removes if extant, no-op if absent
-
-| subtype   | description               | example                     |
-|-----------|---------------------------|-----------------------------|
-| remove entity | delete persisted resource | delVpc({ vpc })          |
-| remove registry | drop from registry      | delSite({ orchestrator, site }) |
-| remove alias | remove named handle      | delUnixSshAlias({ alias })  |
-
-forbidden: use del instead of delete, remove, destroy, drop, teardown
-
-#### .the transformer prefixes
-
-pure single-value shape work; NOT get; first-class here — no getOne* rename demand
-
-| prefix | semantics | example |
-|--------|-----------|---------|
-| as*  | cast/parse one shape to another | asKeyrackKeyOrg({ slug }), asStripeCustomer(customer) |
-| is*  | boolean check | isEligibleForPremiumFeatures({ user }) |
-
-as* is the single canonical cast prefix, two forms:
-- as$Noun — target shape names the cast: asStripeCustomer, asZoneAddress
-- as$Noun1From$Noun2 — spell the source when it matters: asStripeCustomerFromDeclaredCustomer
-
-cast* (castFrom*/castInto*) is DEPRECATED — migrate to as*; do NOT introduce new cast*
-deterministic derivation (a calculated value, not a shape conversion) stays a get compute-subtype (getOneCloneSlug), not a transformer prefix
-
-#### .decision tree
-does it modify state?
-├── no
-│   ├── transforms shape? (parse, cast, bool) → transformer prefix (as*/is*)
-│   └── retrieves or derives extant? → get (getOne* or getAll*)
-└── yes (set, gen, del all idempotent)
-    ├── removes state? → del
-    ├── preserve extant? → gen
-    └── overwrite extant? → set
-
-#### .examples
-##### positive
-```ts
-// get: pure retrieval
-getOneCloneSlug({ role: 'mechanic', index: 1 })
-getAllClonesForZone({ zone })
-getOneSiteBySlug({ orchestrator, slug })
-
-// set / gen / del
-setClone({ zone, role, brain, index })
-genClone({ zone, address, config })
-delVpc({ vpc })
-
-// transformers
-asZoneAddress({ raw: '@feat/auth' })
-asDeclaredAwsIamRole(sdk)
-asStripeCustomerFromDeclaredCustomer(customer)
-isEligibleForPremiumFeatures({ user })
-```
-
-##### negative
-```ts
-findClone({ zone, role }) // use getOneClone
-loadSite({ path }) // use getOneSite
-ensureClone({ zone, address }) // use genClone
-createTask({ mode, prompt }) // use genTask
-parseZoneAddress({ raw }) // use asZoneAddress
-computeNextIndex({ zone, role }) // use getOneCloneNextIndex (derivation is a get)
-removeVpc({ vpc }) // use delVpc
-listTasks({ zone }) // use getAllTasksForZone
-```
-
-#### .enforcement
-- operation without sanctioned prefix (get/set/gen/del or as*/is*) = **BLOCKER**
-- get without One/All cardinality = **BLOCKER**
-- set on data entity without gen wrapper = **BLOCKER** (unless explicit upsert)
-- synonym verb instead of sanctioned prefix = **BLOCKER**
-- as* transformer forced to getOne* = **false positive**
-- del* delete forced to set* = **false positive**
-- new cast* operation = **BLOCKER** (deprecated — use as*)
-
-#### .see also
-- rule.require.named-transformers — transformer prefixes in full
-- rule.forbid.nonidempotent-mutations — findsert/upsert/delete model del maps onto
+## .enforcement
+- operation without a sanctioned prefix = blocker
+- get without One/All = blocker
+- set on a data entity with no gen wrapper (unless explicit upsert) = blocker
+- synonym verb in place of a sanctioned prefix = blocker
+- new cast* operation = blocker
+- as* forced to getOne*, or del* forced to set* = false positive

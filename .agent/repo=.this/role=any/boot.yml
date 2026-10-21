@@ -1,3 +1,5 @@
+budget:
+  tokens: 5_000
 always:
   briefs:
     say:
@@ -7,6 +9,7 @@ always:
       # critical rules for this repo
       - briefs/rule.require.jest-tests-for-skills.[rule].md
       - briefs/rule.require.skill-output-streams.[rule].md
+      - briefs/rule.require.forbid-pole-on-boot-choice.[rule].md
 
     ref:
       # howtos — fetch when needed

@@ -1,0 +1,10 @@
+# rule.require.trust-but-verify
+
+verify inherited claims before you act on them: claim → verify → act, never claim → act
+inherited = compaction summaries, prior sessions, your own memory. diagnoses, assumptions, objectives, observations, conclusions all drift from current state
+
+the lesson: a summary said "ci fails from orphan processes"; 20+ commits chased it; the real cause was one obsolete snapshot file, fixed by one deletion
+
+> trust but verify; trust none blindly, especially not yourself
+
+enforcement: action on an unverified inherited claim = blocker; inherited diagnosis acted on without verification = blocker

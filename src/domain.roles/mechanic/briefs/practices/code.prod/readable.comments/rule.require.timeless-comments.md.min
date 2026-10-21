@@ -1,0 +1,15 @@
+# rule.require.timeless-comments
+
+## .what
+comments make full sense to a reader with zero knowledge of the session that produced them. state what IS and its durable why; never react to a conversation
+
+## .the test
+strip every temporal or reactive word ("yet", "now", "still", "recently", "we decided", "we deliberately", "as discussed"). does it still stand? no → rewrite to the durable principle
+
+## .example
+👎 `// no purpose vocabulary — yet. we deliberately do not declare a purpose enum here`
+👍 `// purpose is derived, never stamped: each motion already fixes what happened, so a purpose label is a read, not a fact to store`
+
+## .enforcement
+- comment that reacts to a conversation or decision-in-progress = nitpick
+- comment that will mislead once the conversation is gone = blocker

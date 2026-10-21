@@ -1,55 +1,15 @@
-# domain-objects
+# domain-objects (package)
 
-badges: test, publish
-
-represent domain objects, leverage knowledge, add validation. ddd guided.
-
-# purpose
-- promote ddd code and speech
-- enable runtime type checking
-- use domain knowledge in comparisons and validation
-
-# install
-```sh
-npm install --save domain-objects
-```
-
-# usage examples
-### literal
+model domain concepts as runtime-checked classes (ddd)
+- `DomainLiteral<T>` — immutable value; identity = all properties (Address)
+- `DomainEntity<T>` — mutable lifecycle; identity = `static unique = [...]` (+ `static primary`)
+- `DomainEvent<T>` — signals
 ```ts
-import { DomainLiteral } from 'domain-objects';
-
-interface Address { street: string; suite: string | null; city: string; state: string; postal: string; }
-class Address extends DomainLiteral<Address> implements Address {}
-
-const austin = new Address({ street: '123 South Congress', suite: null, city: 'Austin', state: 'Texas', postal: '78704' });
+interface RocketShip { uuid?: string; serialNumber: string; fuelQuantity: number; homeAddress: Address }
+class RocketShip extends DomainEntity<RocketShip> implements RocketShip {
+  public static unique = ['serialNumber'] as const;
+  public static nested = { homeAddress: Address };
+}
 ```
-### entity
-```ts
-import { DomainEntity } from 'domain-objects';
-
-interface RocketShip { uuid?: string; serialNumber: string; fuelQuantity: number; passengers: number; homeAddress: Address; }
-class RocketShip extends DomainEntity<RocketShip> implements RocketShip { public static unique = ['serialNumber']; }
-
-const ship = new RocketShip({ serialNumber: 'SN5', fuelQuantity: 9001, passengers: 21, homeAddress: new Address({ ... }) });
-```
-
-# features
-## declaration
-- domainliteral: immutable, identity by all properties
-- domainentity: mutable, identity by unique properties
-
-## references
-- refbypimary, refbyunique, ref for type-safe keys
-
-## run time validation
-use zod, yup, or joi schemas for checks
-
-## nested hydration
-define nested objects for automatic instantiation
-
-## functions
-- getuniqueidentifier: returns unique props
-- serialize: stringifies objects
-- domainobject.build: adds getters, immutability
-- withimmute: wraps for immutable operations
+features: `RefByPrimary` / `RefByUnique` / `Ref` (type-safe keys) · `static nested` (hydration) · schema validation (zod/yup/joi) · `.clone()`, `.build()`, `withImmute` · `getUniqueIdentifier`, `serialize`
+docs: `rhx get.package.docs readme --of domain-objects`

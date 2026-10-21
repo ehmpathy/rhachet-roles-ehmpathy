@@ -72,13 +72,8 @@ const errorHandler = createHandler();       // agent noun
 // load the data now                        // imperative verb
 ```
 
-#### .note: participles vs gerunds
-- **gerund** = -ing word used as a noun ("the running of tests")
-- **present participle** = -ing word used as adjective/verb ("tests are running")
-- participles in verb phrases are acceptable: `isRunning`, `wasProcessed`
-- but prefer explicit state: `status === 'active'` over `isRunning`
-
-#### .note: compound verbs
-- some -ing words are part of compound verbs and acceptable in that form
-- e.g., `context.brain.repl.imagine` — "imagine" ends in -ine, not -ing
-- but `startProcessing()` should be `startProcess()` or `process()`
+#### .note: zero exceptions
+- no -ing form is acceptable — not as a noun, not in a verb phrase, not in a compound name
+- `isRunning` → `status === 'active'` (explicit state)
+- `startProcessing()` → `startProcess()` or `process()`
+- a word that merely ends near -ing is not one: `context.brain.repl.imagine` ends in -ine

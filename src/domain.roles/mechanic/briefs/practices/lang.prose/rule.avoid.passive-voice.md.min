@@ -1,0 +1,4 @@
+# rule.avoid.passive-voice
+
+name the actor, then the act: `guard handles errors.`, not `errors are handled by the guard.` passive hides the actor and adds words. find be-verb + past participle; put the actor first; no known actor → imperative (`handle Y.`)
+enforcement: passive where active would serve = nitpick

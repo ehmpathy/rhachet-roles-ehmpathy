@@ -1,0 +1,20 @@
+# rule.require.named-transformers
+
+## .what
+extract decode-friction into named transformers. the test: "do i have to decode this to understand what it produces?" yes → extract; no → inline
+decode-friction = logic that needs mental simulation: positional access `slug.split('.')[0]!`, reduce, filter/map/sort pipelines, compound booleans, regex extracts, date math
+not decode-friction: property access, named calls, simple conditionals, `arr.length`
+
+## .heuristic
+not named by us or an ehmpathy package? wrap it in a domain-named operation
+
+## .examples
+- `slug.split('.')[0]!` → `asKeyrackKeyOrg({ slug })`
+- `items.reduce((s, i) => s + i.amount, 0)` → `computeTotal({ items })`
+- `a && b || c && !d` → `isEligibleForDiscount({ order })`
+- `await stripe.customers.create(...)` → `sdkStripe.setCustomer(...)`
+
+names follow rule.require.get-set-gen-verbs (as*, is*, get*, compute*)
+
+## .enforcement
+decode-friction inline in an orchestrator = blocker (rule.forbid.inline-decode-friction)

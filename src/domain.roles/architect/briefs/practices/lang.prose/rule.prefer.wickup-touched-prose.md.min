@@ -1,0 +1,4 @@
+# rule.prefer.wickup-touched-prose
+
+wick-up the prose you touch: a ramble in a brief, plan, domain doc, or decision record your change reaches gets condensed on the way through. fix forward, on contact, in scope; a large ramble → flag or follow-up
+enforcement: ramble left padded in prose your change touched = nitpick; corpus-wide rewrite smuggled into an unrelated change = blocker

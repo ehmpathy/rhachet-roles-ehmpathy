@@ -1,3 +1,10 @@
+# .what = cap on this role's boot, in o200k_base tokens
+# .why  = a lean boot leaves context for the work; growth past the cap fails loud
+#         (`repo introspect` halts the build; boot.budget.integration.test.ts fails)
+# .note = measure via `npx rhachet roles cost --all`; to add a say brief, condense or demote
+#         another first — raise this cap only as a deliberate, reviewed call
+budget:
+  tokens: 15_000
 always:
   briefs:
     say:

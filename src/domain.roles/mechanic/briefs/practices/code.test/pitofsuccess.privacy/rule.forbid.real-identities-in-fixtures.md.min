@@ -1,0 +1,16 @@
+# rule.forbid.real-identities-in-fixtures
+
+## .what
+test code, fixtures, snapshots never carry a real person's name, email, or identity — the author's own included. use an obvious fake
+
+## .why
+fixtures + snapshots are committed and pushed; a real email ships to every clone forever. zero test value
+
+## .how
+- reuse the suite's extant placeholder (e.g. `Test Human` / `human@test.com`)
+- a second identity → another obvious fake (`Jamie Rivera`, `jamie@example.com`)
+- new emails use `@example.com` (rfc 2606)
+
+## .enforcement
+- real name or email in test code, fixture, or snapshot = blocker
+- new fixture identity on a personal domain instead of `@example.com` = nitpick

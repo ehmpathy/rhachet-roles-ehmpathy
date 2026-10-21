@@ -1,0 +1,21 @@
+# rule.forbid.inline-decode-friction
+
+## .what
+no decode-friction inline in orchestrators. logic that needs mental simulation goes into a named transformer
+the test: "do i have to decode this to understand what it produces?" yes → extract; no → inline
+decode-friction: positional access `slug.split('.')[0]!`, reduce, filter/map/sort pipelines, compound booleans, regex extracts, date math
+not decode-friction: property access, named calls, simple conditionals, `arr.length`, `str.trim()`
+heuristic: not named by us or an ehmpathy package? wrap it in a domain-named operation
+
+## .the extract
+- `slug.split('.')[0]!` → `asKeyrackKeyOrg({ slug })`
+- `items.reduce((s, i) => s + i.amount, 0)` → `computeTotal({ items })`
+- `a && b || c && !d` → `isEligibleForDiscount({ order })`
+- `await stripe.customers.create(...)` → `sdkStripe.setCustomer(...)`
+names follow rule.require.get-set-gen-verbs (as*, is*, get*, compute*)
+
+## .enforcement
+decode-friction inline in an orchestrator = blocker
+
+## .see also
+rule.require.named-transformers (the require twin) · rule.require.narrative-flow

@@ -24,7 +24,7 @@ bin/
 coverage
 dist
 node_modules
-!.agent/.actors/actor.via.slug=.default/
 
 # local radio queue state (held tasks + locks); never shipped
 .radio/
+!.agent/.actors/actor.via.repo=ambient/

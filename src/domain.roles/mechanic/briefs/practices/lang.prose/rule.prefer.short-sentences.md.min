@@ -1,0 +1,4 @@
+# rule.prefer.short-sentences
+
+keep sentences ≤~20 words. a long sentence hides a fused thought; split at `and` / `but` / `which` / the second comma. long-form briefs too: depth lives in many short composed sentences, not long clauses. a guide, not a gate — justify long
+enforcement: sentence over ~20 words a split would clarify = nitpick

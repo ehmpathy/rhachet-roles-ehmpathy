@@ -1,9 +1,13 @@
+# .what = cap on this role's boot, in o200k_base tokens
+# .why  = a lean boot leaves context for the work; growth past the cap fails loud
+#         (`repo introspect` halts the build; boot.budget.integration.test.ts fails)
+# .note = measure via `npx rhachet roles cost --all`; to add a say brief, condense or demote
+#         another first — raise this cap only as a deliberate, reviewed call
+budget:
+  tokens: 7_000
 always:
   briefs:
     say:
-      # ergonomics fundamentals — the cited canon
-      - briefs/fundamentals/ref.ergonomics.fundamentals.md
-
       # the scorable definitions
       - briefs/fundamentals/def.ergonomic.md
       - briefs/fundamentals/def.frictionless.md
@@ -23,6 +27,9 @@ always:
       - briefs/cli/rule.forbid.treestruct-indented-text-as-children.md
 
     ref:
+      # ergonomics fundamentals — the cited canon each rule above traces to (loaded on demand)
+      - briefs/fundamentals/ref.ergonomics.fundamentals.md
+
       # role rationale + adjacent rules (loaded on demand)
       - briefs/define.why-ergonomist-not-designer.md
       - briefs/rule.forbid.surprises.md

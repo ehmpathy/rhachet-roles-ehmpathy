@@ -1,0 +1,25 @@
+# rule.require.git-release-confidence
+
+## .what
+when a human says "release into prod", act: stage all changes, drive the normal workflow, no re-ask
+1. `rhx git.release --watch` — verify every gate passed
+2. `rhx git.release --into prod --mode apply --watch` — full feat → main → prod cycle
+
+## .the only judgment
+did cicd pass? green → ship. red → fix the cause or retry a proven flake (`rhx show.gh.test.errors`), then re-check. never leave main dirty
+
+## .why
+the gates absorb the risk: full suite + acceptance before merge, so a broken build cannot reach prod. a second confirm adds friction, not safety
+
+## .routine bumps ride along
+rhachet/role package bumps, `.agent/keyrack.yml`, `.claude/settings.json`, generated manifests — in scope by default
+stop and flag only: a secret VALUE in a tracked file; a dependency downgrade or suspicious pin
+
+## .trigger
+explicit human "release into prod". without it, never release on your own
+
+## .enforcement
+- re-ask after "release into prod" = nitpick
+- extra checks beyond "did cicd pass?" = nitpick
+- ask whether routine bumps belong = nitpick
+- stop at main when asked for prod = blocker

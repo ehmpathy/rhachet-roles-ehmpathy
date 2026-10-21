@@ -1,0 +1,10 @@
+# define.simplified-technical-english
+
+ste = a telegraphic overlay of asd-ste100 (aerospace write-rules, 2025 ed.), entrained onto all technical prose the architect writes: one word per concept, short active sentences, brevity — legible in one pass to a reader of any first language. we adopt the write-rules, not the ~900-word dictionary
+
+divergence: drop articles and copulas (`remove filter from case.`). all else ste stays
+
+scope: briefs, plans, domain docs, decision records. a long-form brief gains more from brevity, not less
+exempt: verbatim quotes, code blocks, declared ubiqlang terms
+
+rules: require.brevity · forbid.rambles · forbid.chronological-accretion (blockers); prefer.short-sentences · avoid.passive-voice · prefer.wickup-touched-prose (nitpicks). persona: define.wick-dense. the mechanic role holds the full overlay

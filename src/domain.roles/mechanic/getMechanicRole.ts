@@ -70,16 +70,9 @@ export const ROLE_MECHANIC: Role = Role.build({
           command: asHookCommand('sessionstart.notify-permissions'),
           timeout: 'PT10S',
         },
-        {
-          command:
-            './node_modules/.bin/rhachet roles boot --repo .this --role any --if-present',
-          timeout: 'PT60S',
-        },
-        {
-          command:
-            './node_modules/.bin/rhachet roles boot --repo ehmpathy --role mechanic',
-          timeout: 'PT60S',
-        },
+        // .note = no `roles boot --role` hook here. briefs reach a session via the
+        //         brain dir boot.md render, and rhachet's `repo introspect` refuses
+        //         a role that boots itself (or any role) from a hook
         {
           command: asHookCommand('postcompact.trust-but-verify'),
           timeout: 'PT30S',

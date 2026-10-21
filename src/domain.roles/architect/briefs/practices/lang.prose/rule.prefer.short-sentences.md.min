@@ -1,0 +1,4 @@
+# rule.prefer.short-sentences
+
+keep sentences ≤~20 words; one sentence, one idea. split at `and` / `but` / `which` / the second comma. long form does not need long sentences: depth lives in many short composed sentences
+enforcement: sentence over ~20 words a split would clarify = nitpick; a long-form brief that treats itself as exempt = nitpick

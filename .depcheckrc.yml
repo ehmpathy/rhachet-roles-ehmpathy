@@ -1,3 +1,8 @@
+# .why = `.claude` links to the actor's brain dir, which holds local plugin installs;
+#        their files are not this package's source, so depcheck must not grade them
+ignore-patterns:
+  - .claude
+  - .agent
 ignores:
   - depcheck
   - declapract

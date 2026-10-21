@@ -1,0 +1,12 @@
+# rule.require.exit-code-semantics
+
+skills use semantic exit codes:
+- 0 = success
+- 1 = malfunction — external error (gh failed, network, unexpected state); a retry may help
+- 2 = constraint — the caller must fix aught first (needs rebase, no pr, bad input)
+
+helpful-errors carries them: `ConstraintError` → exit 2, `MalfunctionError` → exit 1. import from `helpful-errors`, never `test-fns` (test-fns re-exports only `getError`)
+
+enforcement: skill without semantic exit codes = nitpick; constraint error on exit 1 = nitpick
+
+see also: rule.require.qualified-error-headers (the glyph + class the codes ride behind; the PreToolUse exit-2 exception)
