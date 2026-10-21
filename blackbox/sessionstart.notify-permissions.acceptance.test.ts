@@ -3,12 +3,9 @@ import * as path from 'path';
 
 import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
-import {
-  genTestDir,
-  invokeHook,
-  setTestRepoLayoutOld,
-  setTestRepoSettings,
-} from './.test/invokeHook';
+import { genTestDir, invokeHook } from './.test/invokeHook';
+import { setFixtureLayoutOld } from './.test/setFixtureLayoutOld';
+import { writeFixtureFile } from './.test/writeFixtureFile';
 
 /**
  * .what = acceptance tests for the sessionstart.notify-permissions hook
@@ -40,15 +37,17 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
     // returns an object: useBeforeAll proxies its value
     const repo = useBeforeAll(async () => {
       const dir = await genTestDir({ slug: 'sn-notice' });
-      setTestRepoSettings({
+      setFixtureLayoutOld({ dir });
+      writeFixtureFile({
         dir,
-        settings: {
+        relPath: '.claude/settings.json',
+        content: JSON.stringify({
           permissions: {
             allow: ['Bash(git status:*)', 'Bash(git diff:*)', 'Bash(rhx:*)', 'Bash(tree:*)'],
             deny: [],
             ask: [],
           },
-        },
+        }),
       });
       return { dir };
     });
@@ -108,9 +107,9 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
     // would drop the first file in silence
     const repo = useBeforeAll(async () => {
       const dir = await genTestDir({ slug: 'sn-both-broken' });
-      setTestRepoLayoutOld({ dir });
-      fs.writeFileSync(path.join(dir, '.claude', 'settings.json'), '{ broken');
-      fs.writeFileSync(path.join(dir, '.claude', 'settings.local.json'), '{ also broken');
+      setFixtureLayoutOld({ dir });
+      writeFixtureFile({ dir, relPath: '.claude/settings.json', content: '{ broken' });
+      writeFixtureFile({ dir, relPath: '.claude/settings.local.json', content: '{ also broken' });
       return { dir };
     });
 
@@ -141,12 +140,13 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
     // returns an object: useBeforeAll proxies its value
     const repo = useBeforeAll(async () => {
       const dir = await genTestDir({ slug: 'sn-broken' });
-      setTestRepoLayoutOld({ dir });
-      fs.writeFileSync(path.join(dir, '.claude', 'settings.json'), '{ broken');
-      fs.writeFileSync(
-        path.join(dir, '.claude', 'settings.local.json'),
-        JSON.stringify({ permissions: { allow: ['Bash(tree:*)'] } }),
-      );
+      setFixtureLayoutOld({ dir });
+      writeFixtureFile({ dir, relPath: '.claude/settings.json', content: '{ broken' });
+      writeFixtureFile({
+        dir,
+        relPath: '.claude/settings.local.json',
+        content: JSON.stringify({ permissions: { allow: ['Bash(tree:*)'] } }),
+      });
       return { dir };
     });
 
