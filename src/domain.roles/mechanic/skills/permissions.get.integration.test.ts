@@ -400,22 +400,16 @@ describe('permissions.get.sh', () => {
       });
       const skillCopy = path.join(roleDir, 'skills', 'permissions.get.sh');
       fs.copyFileSync(scriptPath, skillCopy);
-      // the skill sources the render lib from the hooks dir, so the copy carries it along
-      fs.copyFileSync(
-        path.join(
-          __dirname,
-          '..',
-          'inits',
-          'claude.hooks',
-          '_permissions.render.lib.sh',
-        ),
-        path.join(
-          roleDir,
-          'inits',
-          'claude.hooks',
-          '_permissions.render.lib.sh',
-        ),
-      );
+      // the skill sources the render lib and the layer rule from the hooks dir, so the copy
+      // carries both along
+      for (const lib of [
+        '_permissions.render.lib.sh',
+        'permissions.layers.operations.sh',
+      ])
+        fs.copyFileSync(
+          path.join(__dirname, '..', 'inits', 'claude.hooks', lib),
+          path.join(roleDir, 'inits', 'claude.hooks', lib),
+        );
       if (input.inventory !== null)
         fs.writeFileSync(
           path.join(

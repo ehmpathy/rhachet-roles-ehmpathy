@@ -1,4 +1,6 @@
 import { exec, spawn } from 'child_process';
+import * as fs from 'fs';
+import { MalfunctionError } from 'helpful-errors';
 import * as path from 'path';
 import { promisify } from 'util';
 
@@ -32,7 +34,58 @@ export const genTestDir = async (input: {
   // link the mechanic role via rhachet
   await execAsync('npx rhachet roles link --role mechanic', { cwd: tempDir });
 
+  // cut the grove links: link points .claude/settings.json -> settings.of.grove.json ->
+  // $HOME/.claude/settings.json, so a test that reads or writes it would touch the runner's
+  // own user settings (rule.require.hermetic-tests)
+  for (const name of ['settings.json', 'settings.of.grove.json'])
+    fs.rmSync(path.join(tempDir, '.claude', name), { force: true });
+
   return tempDir;
+};
+
+/**
+ * .what = put a linked test repo on the old (unmigrated) settings layout
+ * .why = a journey that pins the old layout's multi-file reads (settings.json + settings.local.json)
+ *        needs no settings.of.repo.json, since that file alone marks the split layout
+ *        (permissions.layers.operations.sh); genTestDir already cut the settings.json link, so
+ *        a write there lands in a real file of the temp repo
+ */
+export const setTestRepoLayoutOld = (input: { dir: string }): void => {
+  fs.rmSync(path.join(input.dir, '.claude', 'settings.of.repo.json'), { force: true });
+};
+
+/**
+ * .what = write a linked test repo's own allowlist, .claude/settings.of.repo.json
+ * .why = the hooks read settings.of.repo.json, so the allowlist must land there; an object
+ *        merges over the extant file so the hooks block that link wrote survives, and raw
+ *        text replaces it whole (for the unparseable-settings cases)
+ */
+export const setTestRepoSettings = (input: {
+  dir: string;
+  settings: Record<string, unknown> | { raw: string };
+}): void => {
+  // refuse to write through a link: a linked target sits outside the temp repo
+  const settingsPath = path.join(input.dir, '.claude', 'settings.of.repo.json');
+  fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+  const isLink =
+    fs.existsSync(settingsPath) && fs.lstatSync(settingsPath).isSymbolicLink();
+  if (isLink)
+    throw new MalfunctionError('settings.of.repo.json is a link; refuse to write through it', {
+      settingsPath,
+    });
+
+  // replace whole on raw text
+  if ('raw' in input.settings && typeof input.settings.raw === 'string')
+    return fs.writeFileSync(settingsPath, input.settings.raw);
+
+  // merge over the extant file, so link's hooks block survives
+  const extant: Record<string, unknown> = fs.existsSync(settingsPath)
+    ? JSON.parse(fs.readFileSync(settingsPath, 'utf-8'))
+    : {};
+  fs.writeFileSync(
+    settingsPath,
+    JSON.stringify({ ...extant, ...input.settings }, null, 2),
+  );
 };
 
 /**

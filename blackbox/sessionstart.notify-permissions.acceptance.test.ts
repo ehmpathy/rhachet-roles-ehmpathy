@@ -3,7 +3,12 @@ import * as path from 'path';
 
 import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
-import { genTestDir, invokeHook } from './.test/invokeHook';
+import {
+  genTestDir,
+  invokeHook,
+  setTestRepoLayoutOld,
+  setTestRepoSettings,
+} from './.test/invokeHook';
 
 /**
  * .what = acceptance tests for the sessionstart.notify-permissions hook
@@ -35,17 +40,16 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
     // returns an object: useBeforeAll proxies its value
     const repo = useBeforeAll(async () => {
       const dir = await genTestDir({ slug: 'sn-notice' });
-      fs.mkdirSync(path.join(dir, '.claude'), { recursive: true });
-      fs.writeFileSync(
-        path.join(dir, '.claude', 'settings.json'),
-        JSON.stringify({
+      setTestRepoSettings({
+        dir,
+        settings: {
           permissions: {
             allow: ['Bash(git status:*)', 'Bash(git diff:*)', 'Bash(rhx:*)', 'Bash(tree:*)'],
             deny: [],
             ask: [],
           },
-        }),
-      );
+        },
+      });
       return { dir };
     });
 
@@ -104,7 +108,7 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
     // would drop the first file in silence
     const repo = useBeforeAll(async () => {
       const dir = await genTestDir({ slug: 'sn-both-broken' });
-      fs.mkdirSync(path.join(dir, '.claude'), { recursive: true });
+      setTestRepoLayoutOld({ dir });
       fs.writeFileSync(path.join(dir, '.claude', 'settings.json'), '{ broken');
       fs.writeFileSync(path.join(dir, '.claude', 'settings.local.json'), '{ also broken');
       return { dir };
@@ -133,10 +137,11 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
   });
 
   given('[case2] a linked repo whose settings.json is not valid json', () => {
+    // the old layout: settings.local.json still counts beside the broken settings.json
     // returns an object: useBeforeAll proxies its value
     const repo = useBeforeAll(async () => {
       const dir = await genTestDir({ slug: 'sn-broken' });
-      fs.mkdirSync(path.join(dir, '.claude'), { recursive: true });
+      setTestRepoLayoutOld({ dir });
       fs.writeFileSync(path.join(dir, '.claude', 'settings.json'), '{ broken');
       fs.writeFileSync(
         path.join(dir, '.claude', 'settings.local.json'),

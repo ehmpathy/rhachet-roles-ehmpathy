@@ -19,7 +19,7 @@ exports[`permissions.get (acceptance) given: [case1] a linked repo with an allow
 
 🐚 permissions.get
    ├─ sources
-   │  └─ .claude/settings.json (4)
+   │  └─ .claude/settings.of.repo.json (4)
    ├─ total: 4 pre-approved (dupes removed)
    │
    ├─ git (2)
@@ -66,8 +66,8 @@ exports[`permissions.get (acceptance) given: [case1] a linked repo with an allow
 "
 `;
 
-exports[`permissions.get (acceptance) given: [case2] a linked repo whose settings.json cannot be parsed when: [t0] the bot runs the bare skill then: the malfunction matches snapshot 1`] = `
-"💥 MalfunctionError: .claude/settings.json is not valid json (<jq error>) — the allowlist could not be read; repair the json in .claude/
+exports[`permissions.get (acceptance) given: [case2] a linked repo whose settings.of.repo.json cannot be parsed when: [t0] the bot runs the bare skill then: the malfunction matches snapshot 1`] = `
+"💥 MalfunctionError: .claude/settings.of.repo.json is not valid json (<jq error>) — the allowlist could not be read; repair the json in .claude/
 
 "
 `;

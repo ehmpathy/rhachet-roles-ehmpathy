@@ -5,8 +5,8 @@ exports[`permissions.get.sh given: [case1] a repo with an allowlist in both sett
 
 🐚 permissions.get
    ├─ sources
-   │  ├─ .claude/settings.json (10)
-   │  └─ .claude/settings.local.json (2)
+   │  ├─ .claude/settings.local.json (2)
+   │  └─ .claude/settings.json (10)
    ├─ total: 11 pre-approved (dupes removed)
    │
    ├─ cat (1)

@@ -1,10 +1,11 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 
 import { given, then, useBeforeAll, when } from 'test-fns';
 
-import { genTestDir } from './.test/invokeHook';
+import { genTestDir, setTestRepoSettings } from './.test/invokeHook';
 
 /**
  * .what = acceptance tests for `rhx permissions.get`, run via rhachet against the linked role
@@ -18,22 +19,24 @@ import { genTestDir } from './.test/invokeHook';
  */
 const genSkillRepo = async (input: { slug: string }): Promise<{ dir: string }> => {
   const dir = await genTestDir({ slug: input.slug });
-  fs.mkdirSync(path.join(dir, '.claude'), { recursive: true });
-  fs.writeFileSync(
-    path.join(dir, '.claude', 'settings.json'),
-    JSON.stringify({
+  setTestRepoSettings({
+    dir,
+    settings: {
       permissions: {
         allow: ['Bash(rhx:*)', 'Bash(tree:*)', 'Bash(git status:*)', 'Bash(git diff:*)'],
         deny: [],
         ask: [],
       },
-    }),
-  );
+    },
+  });
   return { dir };
 };
 
 /**
  * .what = run the skill the way the nudge tells the bot to: through rhachet
+ * .note = the skill reads the user layer ($HOME/.claude) and the config dir ($CLAUDE_CONFIG_DIR);
+ *         both are pinned so the runner's own settings never leak in (rule.require.hermetic-tests).
+ *         HOME points at an empty dir in the repo, and npm keeps the runner's cache, so npx still runs
  */
 const runViaRhachet = (input: {
   dir: string;
@@ -42,7 +45,18 @@ const runViaRhachet = (input: {
   const result = spawnSync(
     'npx',
     ['rhachet', 'run', '--skill', 'permissions.get', ...input.args],
-    { cwd: input.dir, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] },
+    {
+      cwd: input.dir,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: {
+        ...process.env,
+        CLAUDE_CONFIG_DIR: undefined,
+        HOME: path.join(input.dir, '.home-hermetic'),
+        npm_config_cache:
+          process.env.npm_config_cache ?? path.join(os.homedir(), '.npm'),
+      },
+    },
   );
   return {
     stdout: result.stdout ?? '',
@@ -194,16 +208,16 @@ describe('permissions.get (acceptance)', () => {
     // the lookup's promise: every candidate ranked, no cap — the inverse of the block's 21
     const repo = useBeforeAll(async () => {
       const fresh = await genSkillRepo({ slug: 'pg-nocap' });
-      fs.writeFileSync(
-        path.join(fresh.dir, '.claude', 'settings.json'),
-        JSON.stringify({
+      setTestRepoSettings({
+        dir: fresh.dir,
+        settings: {
           permissions: {
             allow: Array.from({ length: 30 }, (_, index) => `Bash(git wave${index}:*)`),
             deny: [],
             ask: [],
           },
-        }),
-      );
+        },
+      });
       return fresh;
     });
 
@@ -252,10 +266,10 @@ describe('permissions.get (acceptance)', () => {
     });
   });
 
-  given('[case2] a linked repo whose settings.json cannot be parsed', () => {
+  given('[case2] a linked repo whose settings.of.repo.json cannot be parsed', () => {
     const repo = useBeforeAll(async () => {
       const fresh = await genSkillRepo({ slug: 'pg-broken' });
-      fs.writeFileSync(path.join(fresh.dir, '.claude', 'settings.json'), '{ broken');
+      setTestRepoSettings({ dir: fresh.dir, settings: { raw: '{ broken' } });
       return fresh;
     });
 
@@ -266,7 +280,7 @@ describe('permissions.get (acceptance)', () => {
 
       then('the lookup names the broken file on both streams', () => {
         expect(res.stdout).toContain('💥 MalfunctionError: ');
-        expect(res.stdout).toContain('settings.json');
+        expect(res.stdout).toContain('settings.of.repo.json');
         expect(res.stderr).toContain('💥 MalfunctionError: ');
       });
 
