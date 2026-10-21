@@ -63,6 +63,7 @@ always:
       # package management
       - skills/declapract.upgrade.sh
       - skills/get.package.docs.sh
+      - skills/git.package.patch/git.package.patch.sh
       - skills/set.package/set.package.install.sh
       - skills/set.package/set.package.upgrade.sh
 
