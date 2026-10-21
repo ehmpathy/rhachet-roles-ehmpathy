@@ -1,5 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import { MalfunctionError } from 'helpful-errors';
 import * as os from 'os';
 import * as path from 'path';
 import { genTempDir, given, then, useBeforeAll, when } from 'test-fns';
@@ -17,6 +18,40 @@ describe('git.package.patch.sh', () => {
     'reef fix: treat a numeric string with whitespace as not a number';
 
   /**
+   * .what = install this repo's pinned pnpm into a temp tools dir
+   * .why = the verb runs real pnpm, and a ci test job has node but no pnpm on
+   *        PATH; the suite provisions its own (rule.forbid.bare-host-deps),
+   *        via the npm that ships beside this node binary
+   */
+  const genPnpmToolsBinDir = (): string => {
+    const repoPackageJson = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, '../../../../../package.json'),
+        'utf-8',
+      ),
+    ) as { packageManager: string };
+    const pnpmSpec = repoPackageJson.packageManager.split('+')[0]!;
+    const toolsDir = genTempDir({ slug: 'git-package-patch-pnpm-tools' });
+    const npmPath = path.join(path.dirname(process.execPath), 'npm');
+    const install = spawnSync(
+      npmPath,
+      ['install', '--prefix', toolsDir, pnpmSpec, '--no-audit', '--no-fund'],
+      { cwd: toolsDir, encoding: 'utf-8', timeout: 180_000 },
+    );
+    if (install.status !== 0)
+      throw new MalfunctionError('could not provision pnpm for the suite', {
+        pnpmSpec,
+        npmPath,
+        error: install.error?.message ?? null,
+        stdout: install.stdout ?? null,
+        stderr: install.stderr ?? null,
+        hint: 'check that the npm registry is reachable from this host',
+      });
+    return path.join(toolsDir, 'node_modules', '.bin');
+  };
+  const tools = useBeforeAll(async () => ({ binDir: genPnpmToolsBinDir() }));
+
+  /**
    * .what = run the skill in a dir, with an optional env override
    */
   const runSkill = (input: {
@@ -27,7 +62,11 @@ describe('git.package.patch.sh', () => {
     const result = spawnSync('bash', [scriptPath, ...input.args], {
       cwd: input.cwd,
       encoding: 'utf-8',
-      env: { ...process.env, ...input.env },
+      env: {
+        ...process.env,
+        PATH: `${tools.binDir}${path.delimiter}${process.env.PATH ?? ''}`,
+        ...input.env,
+      },
       timeout: 180_000,
     });
     return {
@@ -87,14 +126,18 @@ describe('git.package.patch.sh', () => {
       ),
     );
     const install = spawnSync(
-      'pnpm',
+      path.join(tools.binDir, 'pnpm'),
       ['install', '--config.confirmModulesPurge=false'],
       { cwd: tempDir, encoding: 'utf-8', timeout: 180_000 },
     );
     if (install.status !== 0)
-      throw new Error(
-        `fixture pnpm install failed: ${install.stdout}\n${install.stderr}`,
-      );
+      throw new MalfunctionError('fixture pnpm install failed', {
+        slug: input.slug,
+        error: install.error?.message ?? null,
+        stdout: install.stdout ?? null,
+        stderr: install.stderr ?? null,
+        hint: 'check that the npm registry is reachable from this host',
+      });
     return tempDir;
   };
 
