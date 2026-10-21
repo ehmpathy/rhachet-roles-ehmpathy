@@ -5,4 +5,4 @@
 - **rework** — clean. a rename via sedreplace before code lands
 - **confidence** — 80%. the skill that pushes is `git.commit.push`, so `git.commit.push.uses` is a defensible rival
 - **where** — every case file
-- **verdict** — open
+- **verdict** — dissolved by F15 (commander, 2026-10-20): no push meter exists; push rides `git.commit.uses`
