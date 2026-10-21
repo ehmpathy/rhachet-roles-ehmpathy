@@ -5,4 +5,4 @@
 - **rework** — clean. a quota field can be added later with `allow` = unlimited
 - **confidence** — 75%
 - **where** — `case=1` [t3] · `case=4` [t2]
-- **verdict** — open
+- **verdict** — dissolved by F15 and F16: push rides the commit grant; no push quota or allow/block of its own
