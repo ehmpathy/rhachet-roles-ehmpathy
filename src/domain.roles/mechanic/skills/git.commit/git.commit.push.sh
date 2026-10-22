@@ -13,7 +13,8 @@
 #
 # guarantee:
 #   - only pushes if HEAD commit was authored by seaturtle[bot]
-#   - only pushes if push permission granted in .meter/git.commit.uses.jsonc
+#   - only pushes if the commit grant in .meter/git.commit.uses.jsonc is held
+#     (even at 0 left); a push never ships — a release needs git.release.uses
 #   - never pushes to main/master
 #   - opens the pr under --auth: as-ehmpath (default) needs the ehmpath keyrack
 #     token; as-human uses the ambient gh cli login (no keyrack token needed)
@@ -25,6 +26,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/output.sh"
 source "$SCRIPT_DIR/git.commit.operations.sh"
+set_meter_scope commit
 source "$SCRIPT_DIR/keyrack.operations.sh"
 
 # robot identity (label for messages; guard accepts any seaturtle identity)
@@ -341,8 +343,10 @@ EOF
   exit 2
 fi
 
-# guard: a damaged quota file is refused by name, before any raw read of it
-if ! is_local_meter_readable file="$STATE_FILE"; then
+# guard: a damaged quota file is refused by name, before any read of it
+LOCAL_GRANT_STATUS=0
+get_one_commit_local_grant file="$STATE_FILE" || LOCAL_GRANT_STATUS=$?
+if [[ "$LOCAL_GRANT_STATUS" -eq 1 ]]; then
   emit_error class=malfunction message="commit quota file corrupt"
   if [[ "$OUTPUT" == "tree" ]]; then
     emit_both "$(print_local_meter_damaged_fix file="${STATE_FILE#"$REPO_ROOT/"}")"
@@ -350,17 +354,13 @@ if ! is_local_meter_readable file="$STATE_FILE"; then
   exit 1  # malfunction — the file is damaged, not the caller's input
 fi
 
-# guard: push must be allowed
-PUSH_ALLOWED=""
-USES=0
-if [[ -f "$STATE_FILE" ]]; then
-  PUSH_ALLOWED=$(jq -r '.push' "$STATE_FILE")
-  USES=$(jq -r '.uses' "$STATE_FILE")
-fi
-if [[ "$PUSH_ALLOWED" != "allow" ]]; then
-  emit_error class=constraint message="push not allowed"
+# guard: a push needs a HELD commit grant — granted, even at 0 left. a push
+# spends no use; only a human's block / del revokes it (F16)
+if [[ "$COMMIT_HELD" != "true" ]]; then
+  emit_error class=constraint message="no commit grant held"
   if [[ "$OUTPUT" == "tree" ]]; then
-    print_instruction "ask your human to grant with --push allow:" "  \$ git.commit.uses set --quant N --push allow"
+    emit_both "$(print_coconut_hint "a push rides the commit grant; ask your human to grant one" \
+      "git.commit.uses set --quant N")"
   fi
   exit 2  # blocked by constraints
 fi
@@ -451,11 +451,7 @@ if [[ "$MODE" == "plan" ]]; then
     echo "   │  ├─ action: findsert"
     echo "   │  └─ opened: $AUTH_WHO"
     echo "   └─ meter"
-    if [[ "$USES" != "infinite" && "$USES" -le 0 ]]; then
-      echo "      └─ push: allowed → blocked (revoked)"
-    else
-      echo "      └─ push: allowed"
-    fi
+    echo "      └─ push: held"
     echo ""
     echo "run with --mode apply to execute"
   fi
@@ -714,17 +710,6 @@ if [[ -z "$PR_FOUND" ]]; then
   fi
 fi
 
-# auto-revoke push if uses depleted (skip for infinite)
-# .why = rewrite ONLY the push field. a whole-file rewrite dropped `stage`, and
-#        every reader defaults an absent stage to block — so a depletion via
-#        push erased the human's stage grant. temp + mv keeps the write atomic
-PUSH_REVOKED=false
-if [[ "$USES" != "infinite" && "$USES" -le 0 ]]; then
-  jq '.push = "block"' "$STATE_FILE" > "$STATE_FILE.tmp"
-  mv "$STATE_FILE.tmp" "$STATE_FILE"
-  PUSH_REVOKED=true
-fi
-
 # the pr field decomposes the pr-open outcome (ok|error) from the push status,
 # so a caller can tell a failed pr-open apart from a successful one even though
 # the git push itself succeeded in both
@@ -738,8 +723,8 @@ PR_RESULT="ok"
 # did not open, so downstream automation must not read this as full success.
 if [[ "$OUTPUT" == "json" ]]; then
   PR_STATUS_ESCAPED=$(escape_json_string "$PR_STATUS")
-  PR_JSON=$(printf '{"status":"pushed","push_target":"%s","pr":"%s","pr_status":"%s","auth":"%s","push_revoked":%s}' \
-    "$PUSH_TARGET" "$PR_RESULT" "$PR_STATUS_ESCAPED" "$AUTH" "$PUSH_REVOKED")
+  PR_JSON=$(printf '{"status":"pushed","push_target":"%s","pr":"%s","pr_status":"%s","auth":"%s"}' \
+    "$PUSH_TARGET" "$PR_RESULT" "$PR_STATUS_ESCAPED" "$AUTH")
   echo "$PR_JSON"
   # on a failed pr-open, duplicate the error line to stderr so a stderr-only
   # consumer (ci log scan, hook) sees the failure signal too — the tree path
@@ -756,8 +741,7 @@ fi
 # sensible default (no else), then build the tree once and route it by outcome
 PR_HEADER="bummer dude, pushed but the pr didnt open"
 [[ "$PR_OK" == true ]] && PR_HEADER="cowabunga!"
-METER_LINE="      └─ push: allowed"
-[[ "$PUSH_REVOKED" == true ]] && METER_LINE="      └─ push: allowed → blocked (revoked)"
+METER_LINE="      └─ push: held"
 
 TREE_OUTPUT=$(
   print_turtle_header "$PR_HEADER"
@@ -774,6 +758,8 @@ TREE_OUTPUT=$(
     echo "🌊 now lets ride the release wave and catch any wipeouts"
     echo "   └─ rhx git.release --watch || rhx show.gh.test.errors"
   fi
+  # a legacy grant changed sense under the split: say so on the push it rode
+  print_commit_legacy_note
 )
 # always to stdout; on a pr-open failure also to stderr, so a stderr-only
 # consumer (a ci log scan) still sees why exit 2 happened — parity with every

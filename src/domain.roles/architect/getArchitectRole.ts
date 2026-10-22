@@ -2,7 +2,8 @@ import { Role } from 'rhachet';
 
 /**
  * .what = the architect role definition
- * .why = defines briefs and hooks for the architect
+ * .why = defines briefs for the architect; it declares no hooks, since
+ *        rhachet repo introspect refuses a role that boots its own role
  */
 export const ROLE_ARCHITECT: Role = Role.build({
   slug: 'architect',

@@ -98,7 +98,7 @@ const setupRebaseInProgress = (options: {
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
     path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ quant: 5, push: 'allow' }, null, 2),
+    JSON.stringify({ uses: 5, held: true }, null, 2),
   );
 
   // simulate rebase in progress
@@ -178,7 +178,7 @@ const setupWorktreeRebaseInProgress = (): {
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
     path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ quant: 5, push: 'allow' }, null, 2),
+    JSON.stringify({ uses: 5, held: true }, null, 2),
   );
 
   // find the worktree git dir from .git file
@@ -235,7 +235,7 @@ const setupWorktreeNoRebase = (): { mainDir: string; worktreeDir: string } => {
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
     path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ quant: 5, push: 'allow' }, null, 2),
+    JSON.stringify({ uses: 5, held: true }, null, 2),
   );
 
   return { mainDir, worktreeDir };
@@ -264,7 +264,7 @@ const setupNoRebase = (): string => {
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
     path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ quant: 5, push: 'allow' }, null, 2),
+    JSON.stringify({ uses: 5, held: true }, null, 2),
   );
 
   return tempDir;
@@ -345,49 +345,61 @@ describe('git.branch.rebase.continue', () => {
 
   given('[case3] rebase in progress with more commits left', () => {
     when('[t0] conflicts settled, continue', () => {
-      then('shows progress with commits left', () => {
-        const tempDir = setupRebaseInProgress({
-          conflictsSettled: true,
-          commitsLeft: 2,
-          totalCommits: 3,
-        });
+      then(
+        'a failed git continue refuses as a malfunction, never as progress',
+        () => {
+          const tempDir = setupRebaseInProgress({
+            conflictsSettled: true,
+            commitsLeft: 2,
+            totalCommits: 3,
+          });
 
-        try {
-          const result = runSkill(tempDir);
+          try {
+            const result = runSkill(tempDir);
 
-          // note: actual git rebase --continue will fail in test env
-          // since rebase state is simulated. check output format.
-          // git's own half — asserted by its stable anchor, apart from the snap
-          expect(result.stdout).toContain(ONTO_SHA);
-          expect(withHostGitTextScrubbed(result.stdout)).toMatchSnapshot();
-        } finally {
-          fs.rmSync(tempDir, { recursive: true, force: true });
-        }
-      });
+            // the simulated state makes `git rebase --continue` fail with no
+            // conflict and no unstaged file: the skill must not render progress
+            expect(result.status).toBe(1);
+            expect(result.stdout).toContain('MalfunctionError');
+            expect(result.stderr).toContain('MalfunctionError');
+            expect(result.stdout).not.toContain('status: in progress');
+            // git's own half — asserted by its stable anchor, apart from the snap
+            expect(result.stdout).toContain(ONTO_SHA);
+            expect(withHostGitTextScrubbed(result.stdout)).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        },
+      );
     });
   });
 
   given('[case4] rebase in progress with final commit', () => {
     when('[t0] conflicts settled, continue to completion', () => {
-      then('shows complete with ready to push', () => {
-        const tempDir = setupRebaseInProgress({
-          conflictsSettled: true,
-          commitsLeft: 1,
-          totalCommits: 3,
-        });
+      then(
+        'a failed git continue on the last commit refuses as a malfunction',
+        () => {
+          const tempDir = setupRebaseInProgress({
+            conflictsSettled: true,
+            commitsLeft: 1,
+            totalCommits: 3,
+          });
 
-        try {
-          const result = runSkill(tempDir);
+          try {
+            const result = runSkill(tempDir);
 
-          // note: actual git rebase --continue will fail in test env
-          // since rebase state is simulated. check output format.
-          // git's own half — asserted by its stable anchor, apart from the snap
-          expect(result.stdout).toContain(ONTO_SHA);
-          expect(withHostGitTextScrubbed(result.stdout)).toMatchSnapshot();
-        } finally {
-          fs.rmSync(tempDir, { recursive: true, force: true });
-        }
-      });
+            // the simulated state makes `git rebase --continue` fail; the
+            // journey test covers a real completion
+            expect(result.status).toBe(1);
+            expect(result.stdout).toContain('MalfunctionError');
+            // git's own half — asserted by its stable anchor, apart from the snap
+            expect(result.stdout).toContain(ONTO_SHA);
+            expect(withHostGitTextScrubbed(result.stdout)).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        },
+      );
     });
   });
 

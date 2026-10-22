@@ -29,7 +29,8 @@
 #   - plan mode is default (safe preview)
 #   - --watch watches without automerge
 #   - apply mode enables automerge and watches
-#   - apply mode requires git.commit.uses permission (locally or globally)
+#   - apply mode requires a git.release.uses stamp (global ∧ org ∧ local),
+#     spends one use per apply; a commit grant never ships
 #   - watches CI until complete or timeout (15 min)
 #   - surfaces errors with links and retry hints
 #   - --into prod is the default, safe path; --from main is special-circumstance only
@@ -127,6 +128,11 @@ while [[ $# -gt 0 ]]; do
       echo ""
       echo "  special circumstances only (footgun — prefer --into prod):"
       echo "  --from main   skip the feature branch, release whatever is on main"
+      echo ""
+      echo "  the release stamp (git.release.uses):"
+      echo "  apply needs the human's stamp — git.release.uses set --quant 1 — and spends"
+      echo "  one use at the arm of the merge; --into prod arms both prs on that one use."
+      echo "  a commit grant never ships. see the stamp: rhx git.release.uses get"
       exit 0
       ;;
     *)
@@ -247,58 +253,6 @@ if [[ "$MODE" == "apply" && "$DIRTY" == "block" ]]; then
     echo "   └─ options:"
     echo "      ├─ commit or stash your changes first"
     echo "      └─ use --dirty allow to release anyway"
-    exit 2
-  fi
-fi
-
-# check git.commit.uses permission for apply mode
-if [[ "$MODE" == "apply" ]]; then
-  # repo root for state files
-  REPO_ROOT=$(git rev-parse --show-toplevel)
-  METER_DIR="$REPO_ROOT/.meter"
-  LOCAL_STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
-
-  # global state file
-  GLOBAL_DIR="$HOME/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter"
-  GLOBAL_STATE_FILE="$GLOBAL_DIR/git.commit.uses.global.jsonc"
-
-  # check global blocker first
-  if [[ -f "$GLOBAL_STATE_FILE" ]]; then
-    BLOCKED=$(jq -r '.blocked // false' "$GLOBAL_STATE_FILE" 2>/dev/null || echo "false")
-    if [[ "$BLOCKED" == "true" ]]; then
-      print_turtle_header "bummer dude..."
-      echo "🐚 git.release --mode apply"
-      echo ""
-      echo "✋ blocked: commits blocked globally"
-      echo ""
-      echo "   ask your human to lift:"
-      echo "   $ git.commit.uses allow --global"
-      exit 2
-    fi
-  fi
-
-  # check local permission
-  if [[ ! -f "$LOCAL_STATE_FILE" ]]; then
-    print_turtle_header "bummer dude..."
-    echo "🐚 git.release --mode apply"
-    echo ""
-    echo "✋ blocked: no commit quota set"
-    echo ""
-    echo "   ask your human to grant:"
-    echo "   $ git.commit.uses set --quant N --push allow"
-    exit 2
-  fi
-
-  # check uses > 0 or "infinite"
-  USES=$(jq -r '.uses' "$LOCAL_STATE_FILE")
-  if [[ "$USES" != "infinite" && "$USES" -le 0 ]]; then
-    print_turtle_header "bummer dude..."
-    echo "🐚 git.release --mode apply"
-    echo ""
-    echo "✋ blocked: no commit uses left"
-    echo ""
-    echo "   ask your human to grant more:"
-    echo "   $ git.commit.uses set --quant N --push allow"
     exit 2
   fi
 fi
@@ -639,6 +593,101 @@ elif [[ -n "$FROM" && "$FROM" != "feat" ]]; then
   RELEASE_BRANCH="$FROM"
 fi
 
+# the release stamp: apply checks it first (global ∧ org ∧ local, read only),
+# so a stampless crew meets the stamp refusal before any other. --watch and
+# --retry read no meter
+if [[ "$MODE" == "apply" ]]; then
+  bash "$SKILL_DIR/git.release._.guard_release_meter.sh" --mode check || exit $?
+fi
+
+# a bare plan previews the same check, read only: it never refuses, it names
+# what apply would meet, so a stampless crew learns before its first apply
+RELEASE_PLAN_PREVIEW_STATUS=0
+RELEASE_PLAN_PREVIEW_REASON=""
+if [[ "$MODE" == "plan" && "$WATCH" != "true" && "$RETRY" != "true" ]]; then
+  RELEASE_PLAN_PREVIEW_REASON=$(bash "$SKILL_DIR/git.release._.guard_release_meter.sh" --mode preview 2>/dev/null) \
+    || RELEASE_PLAN_PREVIEW_STATUS=$?
+fi
+
+# .note = the spend lives in arm_release_merge (git.release.operations.sh):
+#         the arm is the act that ships, so a refusal before it (no pr,
+#         unpushed, behind, dirty, red checks) spends naught, an --into prod
+#         apply that arms two prs spends once, and a failed arm refunds
+
+######################################################################
+# .what = announce the spent use once the release render is done
+# .why  = the stamp is gone even when ci goes red or the watch times out,
+#         so the human must see it on every exit path after the arm
+######################################################################
+print_release_spend_footer() {
+  if [[ "$RELEASE_USE_SPENT" != "true" || "$RELEASE_USES_LEFT" == "infinite" ]]; then
+    return 0
+  fi
+  echo ""
+  echo "🐚 git.release.uses"
+  echo "   ├─ release stamp spent: $RELEASE_USES_LEFT left (a red ci or a timeout does not refund it)"
+  echo "   └─ --watch and --retry spend none; a red hop needs no new grant to rerun"
+}
+
+######################################################################
+# .what = after a plan, name what apply would meet at the release gate
+# .why  = plan shows "use --apply" either way; a crew with no stamp would
+#         learn of it only on the apply. the preview names it one step early
+######################################################################
+print_release_plan_preview() {
+  if [[ "$RELEASE_PLAN_PREVIEW_STATUS" -eq 0 ]]; then
+    return 0
+  fi
+  # the gate names each blocked level; damage renders its own refusal, so
+  # the preview says only that a meter file is damaged
+  local reason="$RELEASE_PLAN_PREVIEW_REASON"
+  [[ "$RELEASE_PLAN_PREVIEW_STATUS" -ne 2 ]] && reason="a release meter file is damaged"
+  echo ""
+  echo "🐚 git.release.uses"
+  echo "   └─ apply would refuse: $reason"
+  echo ""
+  echo "🥥 did you know?"
+  echo "   ├─ see each level, and what blocks"
+  echo "   └─ rhx git.release.uses get"
+}
+
+print_release_footers() {
+  print_release_spend_footer
+  print_release_plan_preview
+}
+trap 'print_release_footers' EXIT
+
+# refuse a ship with no branch pr: there is naught to merge, so the refusal
+# lands before the arm and spends no release use
+PR_NUMBER_PREFLIGHT=""
+if is_apply_from_feature mode="$MODE" from="$GOAL_FROM"; then
+  PR_NUMBER_PREFLIGHT=$(get_pr_for_branch "$RELEASE_BRANCH")
+  if [[ -z "$PR_NUMBER_PREFLIGHT" ]]; then
+    emit_no_pr_refusal "$RELEASE_BRANCH" "$(get_unpushed_count || true)"
+    exit 2
+  fi
+fi
+
+# refuse a ship that would leave local commits behind: the pr holds only what
+# was pushed, so an apply now would release the branch without them (F14).
+# checked before the gate, so a refusal spends no release use
+if is_apply_of_own_branch mode="$MODE" from="$GOAL_FROM" release="$RELEASE_BRANCH" current="$CURRENT_BRANCH"; then
+  # a count it cannot read must never pass as zero: refuse as a malfunction,
+  # save where origin answers that the branch is gone (a merged pr, pruned)
+  UNPUSHED_COUNT=0
+  if ! UNPUSHED_COUNT=$(get_unpushed_count); then
+    if ! is_remote_branch_deleted branch="$RELEASE_BRANCH"; then
+      emit_unpushed_unreadable_refusal branch="$RELEASE_BRANCH"
+      exit 1
+    fi
+    UNPUSHED_COUNT=0
+  fi
+  if [[ "$UNPUSHED_COUNT" -gt 0 ]]; then
+    emit_unpushed_refusal branch="$RELEASE_BRANCH" count="$UNPUSHED_COUNT"
+    exit 2
+  fi
+fi
+
 # track if we print turtle header (only print once)
 TURTLE_PRINTED="false"
 
@@ -647,13 +696,15 @@ TURTLE_PRINTED="false"
 # note: runs if GOAL_FROM is not "main" (i.e., "feat" or explicit branch)
 ######################################################################
 if [[ "$GOAL_FROM" != "main" ]]; then
-  # find pr for branch
-  pr_number=$(get_pr_for_branch "$RELEASE_BRANCH")
+  # find pr for branch (apply already found it before the gate)
+  pr_number="$PR_NUMBER_PREFLIGHT"
+  if [[ -z "$pr_number" ]]; then
+    pr_number=$(get_pr_for_branch "$RELEASE_BRANCH")
+  fi
 
   if [[ -z "$pr_number" ]]; then
     # no pr found - constraint error
-    print_turtle_header "crickets..."
-    print_no_pr_status "$RELEASE_BRANCH" "$(get_unpushed_count)"
+    emit_no_pr_refusal "$RELEASE_BRANCH" "$(get_unpushed_count || true)"
     exit 2
   fi
 
@@ -739,6 +790,10 @@ if [[ "$GOAL_FROM" != "main" ]]; then
     if [[ "$MODE" == "apply" ]]; then
       echo ""
       echo -e "\033[2m🐚 continue?: rhx git.release --into prod --mode apply\033[0m"
+      # a counted stamp: the next apply spends another use, so say so
+      if [[ "$RELEASE_USE_SPENT" == "true" && "$RELEASE_USES_LEFT" != "infinite" ]]; then
+        echo -e "\033[2m   └─ it spends another release use; $RELEASE_USES_LEFT left\033[0m"
+      fi
     fi
     exit 0
   fi

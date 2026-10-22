@@ -185,6 +185,8 @@ print_rebase_status() {
 ######################################################################
 # print no PR status
 # usage: print_no_pr_status "branch" [unpushed_count]
+# .note = an empty count means unknown (no origin ref to count against);
+#         the line is omitted then, since this render only guides a push
 ######################################################################
 print_no_pr_status() {
   local branch="$1"
@@ -196,6 +198,23 @@ print_no_pr_status() {
     echo "   ├─ $unpushed unpushed commit(s)"
   fi
   echo -e "   └─ \033[2mhint: use git.commit.push to push and findsert pr\033[0m"
+}
+
+######################################################################
+# emit no PR refusal
+# .what = the crickets render for a branch with no pr, on both streams
+# .why  = it is a constraint (exit 2), and a refusal must reach stderr too
+#
+# usage: emit_no_pr_refusal "branch" [unpushed_count]
+######################################################################
+emit_no_pr_refusal() {
+  local refusal
+  refusal=$(
+    print_turtle_header "crickets..."
+    print_no_pr_status "$@"
+  )
+  echo "$refusal"
+  echo "$refusal" >&2
 }
 
 ######################################################################

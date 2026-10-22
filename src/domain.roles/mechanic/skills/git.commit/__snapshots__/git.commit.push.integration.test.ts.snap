@@ -10,7 +10,7 @@ exports[`git.commit.push.sh given: [case1] plan mode on feature branch when: [t0
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -27,25 +27,27 @@ use git.commit.set to create a proper commit first.
 "
 `;
 
-exports[`git.commit.push.sh given: [case5] push not allowed when: [t0] no meter state file then: exits with push not allowed 1`] = `
+exports[`git.commit.push.sh given: [case5] no commit grant held when: [t0] no meter state file then: exits with no commit grant held 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ ✋ ConstraintError: push not allowed
+   └─ ✋ ConstraintError: no commit grant held
 
-ask your human to grant with --push allow:
-  $ git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ a push rides the commit grant; ask your human to grant one
+   └─ git.commit.uses set --quant N
 "
 `;
 
-exports[`git.commit.push.sh given: [case5] push not allowed when: [t1] meter has push: block then: exits with push not allowed 1`] = `
+exports[`git.commit.push.sh given: [case5] no commit grant held when: [t1] the commit grant was revoked then: exits with no commit grant held 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ ✋ ConstraintError: push not allowed
+   └─ ✋ ConstraintError: no commit grant held
 
-ask your human to grant with --push allow:
-  $ git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ a push rides the commit grant; ask your human to grant one
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -59,7 +61,7 @@ exports[`git.commit.push.sh given: [case9] stacked branch pr title when: [t0] br
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -95,7 +97,7 @@ exports[`git.commit.push.sh given: [case12] keyrack not configured (sad path) wh
 "
 `;
 
-exports[`git.commit.push.sh given: [case14] push-only auto-revoke plan display when: [t0] uses 0 with push allowed (push-only mode) then: plan shows push: allowed to blocked (revoked) 1`] = `
+exports[`git.commit.push.sh given: [case14] a depleted grant stays held for push (plan) when: [t0] uses 0, grant held then: plan proceeds and shows push: held 1`] = `
 "🐢 heres the wave...
 
 🐚 git.commit.push --mode plan
@@ -105,13 +107,13 @@ exports[`git.commit.push.sh given: [case14] push-only auto-revoke plan display w
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed → blocked (revoked)
+      └─ push: held
 
 run with --mode apply to execute
 "
 `;
 
-exports[`git.commit.push.sh given: [case14b] push-only auto-revoke in apply mode when: [t0] uses 0, push allowed, stage allowed; the push ships then: the tree reports the revoke 1`] = `
+exports[`git.commit.push.sh given: [case14b] a depleted grant stays held for push (apply) when: [t0] uses 0, grant held; the push ships then: the tree reports the grant held, no revoke 1`] = `
 "🐢 cowabunga!
 
 🐚 git.commit.push
@@ -119,7 +121,7 @@ exports[`git.commit.push.sh given: [case14b] push-only auto-revoke in apply mode
    ├─ pr: pr #42 (created)
    ├─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed → blocked (revoked)
+      └─ push: held
 
 🌊 now lets ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
@@ -135,9 +137,10 @@ exports[`git.commit.push.sh given: [case14c] the LOCAL quota file is damaged whe
    the file that holds this tree's commit quota cannot be read:
      .meter/git.commit.uses.jsonc
 
-ask your human to reset the quota, then grant again:
-  $ git.commit.uses del
-  $ git.commit.uses set --quant N --push allow|block
+🥥 did you know?
+   ├─ ask your human to reset the quota, then grant again
+   ├─ git.commit.uses del
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -150,9 +153,10 @@ exports[`git.commit.push.sh given: [case14c] the LOCAL quota file is damaged whe
    the file that holds this tree's commit quota cannot be read:
      .meter/git.commit.uses.jsonc
 
-ask your human to reset the quota, then grant again:
-  $ git.commit.uses del
-  $ git.commit.uses set --quant N --push allow|block
+🥥 did you know?
+   ├─ ask your human to reset the quota, then grant again
+   ├─ git.commit.uses del
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -163,6 +167,25 @@ exports[`git.commit.push.sh given: [case14d] a value flag is the last arg, with 
 
 exports[`git.commit.push.sh given: [case14d] a value flag is the last arg, with no value when: [t0] \`--mode\` is last then: a curated constraint, never a raw shift crash: stdout 1`] = `
 "✋ ConstraintError: --mode must be 'plan' or 'apply'
+"
+`;
+
+exports[`git.commit.push.sh given: [case14e] a legacy push block grant (F6, F20) when: [t0] uses 5, push block; the push ships then: the tree names the retired fields and the release stamp 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/push-legacy-grant ✓
+   ├─ pr: pr #42 (created)
+   ├─ opened: as-ehmpath (ehmpath keyrack)
+   └─ meter
+      └─ push: held
+
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -234,7 +257,7 @@ exports[`git.commit.push.sh given: [case18] CI watch reminder after successful p
    ├─ pr: pr #42 (created)
    ├─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 🌊 now lets ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
@@ -251,7 +274,7 @@ exports[`git.commit.push.sh given: [case19] local main behind origin/main (PR #2
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -316,7 +339,7 @@ exports[`git.commit.push.sh given: [case23] --auth as-human apply opens the pr v
    ├─ pr: pr #77 (created)
    ├─ opened: as-human (gh cli login, fallback)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 🌊 now lets ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
@@ -418,7 +441,7 @@ exports[`git.commit.push.sh given: [case27] a non-auth gh failure does NOT fire 
    ├─ pr: pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)
    ├─ opened: as-human (gh cli login, fallback)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
@@ -430,7 +453,7 @@ exports[`git.commit.push.sh given: [case27] a non-auth gh failure does NOT fire 
    ├─ pr: pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)
    ├─ opened: as-human (gh cli login, fallback)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
@@ -442,7 +465,7 @@ exports[`git.commit.push.sh given: [case28] --auth as-human, the pr already exis
    ├─ pr: pr #55 (found)
    ├─ opened: as-human (gh cli login, fallback)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 🌊 now lets ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
@@ -508,7 +531,7 @@ exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-ope
    │  ├─ action: findsert
    │  └─ opened: as-human (gh cli login, fallback)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -526,7 +549,7 @@ exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-ope
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -596,7 +619,7 @@ exports[`git.commit.push.sh given: [case33] a threaded (prefetched) token is reu
    ├─ pr: pr #42 (created)
    ├─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 🌊 now lets ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
@@ -629,12 +652,12 @@ exports[`git.commit.push.sh given: [case35] identity-sync guard fires when the t
 `;
 
 exports[`git.commit.push.sh given: [case36] a non-auth pr-open failure in json mode duplicates the error to stderr when: [t0] pr create fails for a non-auth reason under --output json then: stdout carries the json error AND stderr carries the same line 1`] = `
-"{"status":"pushed","push_target":"origin/turtle/feature","pr":"error","pr_status":"pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)","auth":"as-human","push_revoked":false}
+"{"status":"pushed","push_target":"origin/turtle/feature","pr":"error","pr_status":"pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)","auth":"as-human"}
 "
 `;
 
 exports[`git.commit.push.sh given: [case36] a non-auth pr-open failure in json mode duplicates the error to stderr when: [t0] pr create fails for a non-auth reason under --output json then: stdout carries the json error AND stderr carries the same line 2`] = `
-"{"status":"pushed","push_target":"origin/turtle/feature","pr":"error","pr_status":"pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)","auth":"as-human","push_revoked":false}
+"{"status":"pushed","push_target":"origin/turtle/feature","pr":"error","pr_status":"pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)","auth":"as-human"}
 "
 `;
 

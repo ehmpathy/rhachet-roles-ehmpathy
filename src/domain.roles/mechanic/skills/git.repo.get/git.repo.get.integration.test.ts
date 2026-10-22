@@ -1166,9 +1166,14 @@ describe('git.repo.get.sh', () => {
           // names the fix: shows what IS available
           expect(result.stdout).toContain('worktrees found:');
           expect(result.stdout).toContain('feat/inflight');
-          expect(result.stdout).toContain('worktree list');
-          // the worktree list and the `git -C <path>` hint both carry the temp
-          // root, so the render is redacted rather than left unreviewable
+          // the hint names a paved rerun, never a raw `git -C <path> worktree
+          // list` — the mechanic's check-permissions hook blocks that raw call
+          expect(result.stdout).toContain(
+            'rhx git.repo.get files --in testorg/short --tree <name>',
+          );
+          expect(result.stdout).not.toContain('worktree list');
+          // the worktree list carries the temp root, so the render is redacted
+          // rather than left unreviewable
           expect(redactTempRoot(result.stdout, homeDir)).toMatchSnapshot();
         } finally {
           cleanup();
