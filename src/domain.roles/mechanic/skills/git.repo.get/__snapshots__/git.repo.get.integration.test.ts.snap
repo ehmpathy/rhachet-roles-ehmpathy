@@ -525,8 +525,8 @@ exports[`git.repo.get.sh given: [case28] --tree that matched no worktree when: [
      - feat/inflight  →  <gitroot>/testorg/_worktrees/short.vlad.feat-inflight
 
 🥥 did you know?
-   ├─ you can list the worktrees yourself
-   └─ git -C <gitroot>/testorg/short worktree list
+   ├─ rerun with a name from the list above
+   └─ rhx git.repo.get files --in testorg/short --tree <name>
 "
 `;
 

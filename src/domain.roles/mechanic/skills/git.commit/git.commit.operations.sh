@@ -83,6 +83,75 @@ GLOBAL_METER_FILE_SHOWN="~${GLOBAL_METER_FILE#"$HOME"}"
 # the ORG meter's display path — the same `~`-rooted treatment, same reasons
 ORG_METER_FILE_SHOWN="~${ORG_METER_FILE#"$HOME"}"
 
+# the meter the gates and renders below speak for, and its words.
+# METER_KIND starts empty: a reader refuses until a skill names its meter via
+# set_meter_scope, so a caller that forgets the scope fails closed, never reads
+# the commit meter by default (assure_meter_scope)
+METER_KIND=""
+METER_SKILL="git.commit.uses"
+METER_NOUN="commit"
+METER_NOUN_PLURAL="commits"
+
+######################################################################
+# .what = point the global + org gates and their renders at one meter
+#
+# .why  = two meters share one shape: `git.commit.uses` (commit, stage,
+#         rebase, push) and `git.release.uses` (a release). the global and
+#         org readers below carry a long trail of fail-closed repairs; a
+#         second copy per meter would drift from the first. ⇒ one reader,
+#         scoped to a meter by this leaf, so both meters fail closed by
+#         construction
+#
+# .note = a process gates one meter: a commit reads only the commit meter
+#         and a release reads only the release meter (1.vision X1-X3). so a
+#         scope set once at the top of a skill never needs a reset
+#
+# usage: set_meter_scope commit|release
+######################################################################
+set_meter_scope() {
+  local kind="$1"
+  case "$kind" in
+    commit)
+      METER_SKILL="git.commit.uses"
+      METER_NOUN="commit"
+      METER_NOUN_PLURAL="commits"
+      ;;
+    release)
+      METER_SKILL="git.release.uses"
+      METER_NOUN="release"
+      METER_NOUN_PLURAL="releases"
+      ;;
+    *)
+      # both streams: a malfunction must show in the terminal and the error log
+      echo "💥 MalfunctionError: set_meter_scope: unknown meter '$kind' (expected commit|release)"
+      echo "💥 MalfunctionError: set_meter_scope: unknown meter '$kind' (expected commit|release)" >&2
+      exit 1
+      ;;
+  esac
+  METER_KIND="$kind"
+  GLOBAL_METER_FILE="$GLOBAL_METER_DIR/$METER_SKILL.jsonc"
+  ORG_METER_FILE="$GLOBAL_METER_DIR/$METER_SKILL.org.jsonc"
+  GLOBAL_METER_FILE_SHOWN="~${GLOBAL_METER_FILE#"$HOME"}"
+  ORG_METER_FILE_SHOWN="~${ORG_METER_FILE#"$HOME"}"
+}
+
+######################################################################
+# .what = refuse a meter read until a skill has named its meter
+#
+# .why  = the global + org readers serve two meters. a default scope would let
+#         a release path that omits set_meter_scope read the commit meter, the
+#         inversion the split forbids. ⇒ no default: an unscoped read is a
+#         malfunction, exit 1, on both streams
+######################################################################
+assure_meter_scope() {
+  if [[ -n "$METER_KIND" ]]; then
+    return 0
+  fi
+  echo "💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release first"
+  echo "💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release first" >&2
+  exit 1
+}
+
 ######################################################################
 # render: name the damaged global meter, below the tree that reported it
 #
@@ -152,7 +221,7 @@ print_global_corrupt_note() {
   #    alone, which is exactly how the test harness uses it (it exits 127).
   #    ⇒ the shape is matched by hand; the coupling is not created.
   echo ""
-  echo "until it parses, every commit is blocked. a human may inspect or clear it:"
+  echo "until it parses, every $METER_NOUN is blocked. a human may inspect or clear it:"
   echo "  \$ cat $GLOBAL_METER_FILE_SHOWN"
   echo "  \$ rm -r $GLOBAL_METER_FILE_SHOWN"
 }
@@ -230,7 +299,7 @@ print_org_corrupt_body() {
   #      the reasons, and why it is matched rather than called, are on
   #      `print_global_corrupt_note`.
   echo ""
-  echo "until it parses, every commit is blocked. a human may inspect or clear it:"
+  echo "until it parses, every $METER_NOUN is blocked. a human may inspect or clear it:"
   echo "  \$ cat $ORG_METER_FILE_SHOWN"
   echo "  \$ rm -r $ORG_METER_FILE_SHOWN"
 }
@@ -1059,6 +1128,7 @@ guard_actor_is_human_via_stdin() {
 #   - sets GLOBAL_BLOCK_REASON if blocked
 ######################################################################
 check_global_blocker() {
+  assure_meter_scope
   GLOBAL_BLOCK_REASON=""
 
   # 🔴 .why a second NAMED output = the two `get` surfaces need to tell
@@ -1195,7 +1265,7 @@ check_global_blocker() {
   blocked_val=$(printf '%s' "$contents" | jq -s -r '.[0].blocked // false')
 
   if [[ "$blocked_val" == "true" ]]; then
-    GLOBAL_BLOCK_REASON="commits blocked globally"
+    GLOBAL_BLOCK_REASON="$METER_NOUN_PLURAL blocked globally"
     return 2
   fi
 
@@ -2068,6 +2138,7 @@ is_org_state_known() {
 }
 
 check_org_blocker() {
+  assure_meter_scope
   ORG_BLOCK_REASON=""
   # 🔴 .why a second NAMED output = the callers must tell "this org is blocked
   #        by a human" from "this file is damaged", because the two take
@@ -2187,7 +2258,7 @@ check_org_blocker() {
   # if org-specific state exists, use it
   if [[ "$org_state" != "unset" ]]; then
     if [[ "$org_state" == "blocked" ]]; then
-      ORG_BLOCK_REASON="commits blocked for org $org"
+      ORG_BLOCK_REASON="$METER_NOUN_PLURAL blocked for org $org"
       return 2
     fi
     return 0  # org is allowed
@@ -2215,7 +2286,7 @@ check_org_blocker() {
   fi
 
   if [[ "$all_state" == "blocked" ]]; then
-    ORG_BLOCK_REASON="commits blocked for org $org (from @all)"
+    ORG_BLOCK_REASON="$METER_NOUN_PLURAL blocked for org $org (from @all)"
     return 2
   fi
 
@@ -2368,45 +2439,241 @@ get_first_behavioral_commit_hash() {
 }
 
 ######################################################################
-# .what = is the local quota file (.meter/git.commit.uses.jsonc) readable?
+# .what = read a local meter file's bytes, or say why it has none
 #
-# .why  = every commit reads this file with raw `jq -r` calls. a truncated or
-#         damaged file (a crash mid-write, a full disk, a hand edit) made jq
-#         exit non-zero under `set -euo pipefail`, so the skill died on jq's
-#         own parse error: no class header, no file named, no fix. the global
-#         and org meters already refuse a damaged file by name; this is the
-#         same shape gate for the third meter, so a caller can refuse first
+# .why  = the commit and release local readers differ only in their shape
+#         gate. the absence, damage, and race rules live here once, so a
+#         repair to them lands in both gates at once and the two never
+#         disagree about one damaged file
 #
-# .note = a pure check — each caller renders its own refusal, since push has
-#         a json output mode and the tree render does not fit it. an ABSENT
-#         file is each caller's own case (no quota granted), so it passes here
+# returns:
+#   - 0 = METER_LOCAL_CONTENTS holds the file's bytes (one capture)
+#   - 1 = a present entry that is no readable regular file, or a symlink
+#   - 2 = no file (or it vanished between two syscalls)
 #
-# usage:
-#   is_local_meter_readable file="$STATE_FILE" || { render refusal; exit 1; }
+# usage: read_one_meter_local_file file="$REPO_ROOT/.meter/<meter>.jsonc"
 ######################################################################
-is_local_meter_readable() {
+read_one_meter_local_file() {
+  local file="${1#file=}"
+  METER_LOCAL_CONTENTS=""
+
+  # absence is unset
+  [[ -e "$file" || -L "$file" ]] || return 2
+
+  # a present entry that is no readable regular file is damage. a symlink is
+  # damage too: a link lets a file the grant never wrote speak as the grant
+  [[ -f "$file" && -r "$file" && ! -L "$file" ]] || return 1
+
+  # one capture: the shape gate and the reads run on the same bytes
+  METER_LOCAL_CONTENTS=$(cat "$file" 2>/dev/null) || return 1
+
+  # a vanished entry between the two syscalls reads as unset, never damage
+  if [[ -z "$METER_LOCAL_CONTENTS" && ! -e "$file" ]]; then
+    return 2
+  fi
+  return 0
+}
+
+######################################################################
+# .what = read this tree's commit grant: its uses, and whether it is held
+#
+# .why  = one reader decides for every act the commit meter governs, so
+#         commit, push, rebase, stage, and `get` never disagree about one
+#         file. two words carry the states:
+#         - live = held, with uses left (or "infinite") — commit, stage
+#         - held = granted, even at 0 left — push, rebase. only block / del
+#           revoke; a depletion lowers uses and leaves the grant held (F9, F16)
+#
+# shape (current): { "uses": N | "infinite", "held": true | false }
+# shape (legacy):  { "uses": N | "infinite", "push": "allow"|"block", "stage"?: ... }
+#         the legacy `push` / `stage` fields are retired (F6). a legacy file
+#         reads as held unless it is `uses 0, push block` — exactly what the
+#         old revoke and the old depletion auto-revoke wrote (F20)
+#
+# returns:
+#   - 0 = a grant file is set; COMMIT_USES, COMMIT_HELD, COMMIT_LIVE, COMMIT_LEGACY hold it
+#   - 1 = the file is present and UNUSABLE (damage) — a malfunction
+#   - 2 = no file; unset reads as neither live nor held
+#
+# usage: get_one_commit_local_grant file="$REPO_ROOT/.meter/git.commit.uses.jsonc"
+######################################################################
+get_one_commit_local_grant() {
   local file=""
   for arg in "$@"; do
     case "$arg" in
       file=*) file="${arg#file=}" ;;
     esac
   done
+  COMMIT_USES=""
+  COMMIT_HELD="false"
+  COMMIT_LIVE="false"
+  COMMIT_LEGACY="false"
 
-  # absence is not damage
-  [[ -e "$file" ]] || return 0
+  # absence, damage, and the one capture: the shared reader decides
+  local read_status=0
+  read_one_meter_local_file file="$file" || read_status=$?
+  [[ "$read_status" -eq 0 ]] || return "$read_status"
+  local contents="$METER_LOCAL_CONTENTS"
 
-  # an empty file is damage. checked here, not left to jq: `jq -e` on empty
-  # input yields no result, and some jq versions still exit 0 for that, so the
-  # empty file would pass and later read as zero uses (a false constraint)
-  [[ -s "$file" ]] || return 1
+  # shape gate: an object; uses a non-negative integer or "infinite"; then
+  # either the current boolean `held`, or the legacy string `push`.
+  # `-s` turns a 0-byte file into `[]`, whose `.[0]` is null — damage
+  printf '%s' "$contents" | jq -s -e '
+    .[0] | type == "object"
+    and (
+      ((.uses | type) == "number" and .uses >= 0 and (.uses | floor) == .uses)
+      or .uses == "infinite"
+    )
+    and (
+      ((.held | type) == "boolean")
+      or ((has("held") | not) and ((.push | type) == "string"))
+    )
+  ' >/dev/null 2>&1 || return 1
 
-  # the shape every reader relies on: an object, a numeric or "infinite"
-  # uses, and a string push. stage is optional (readers default it to block)
-  jq -e '
-    type == "object"
-    and ((.uses | type) == "number" or .uses == "infinite")
-    and ((.push | type) == "string")
-  ' "$file" >/dev/null 2>&1
+  # read all four facts in one pass
+  local facts
+  facts=$(printf '%s' "$contents" | jq -s -r '
+    .[0]
+    | (if has("held") then .held else ((.uses == 0 and .push == "block") | not) end) as $held
+    | [
+        (.uses | tostring),
+        ($held | tostring),
+        (($held and (.uses == "infinite" or (.uses | type) == "number" and .uses > 0)) | tostring),
+        ((has("push") or has("stage")) | tostring)
+      ]
+    | join(" ")
+  ')
+  read -r COMMIT_USES COMMIT_HELD COMMIT_LIVE COMMIT_LEGACY <<< "$facts"
+  return 0
+}
+
+######################################################################
+# .what = the note a legacy grant owes, once per render that reads it
+#
+# .why  = a legacy `{ uses, push, stage? }` grant changes sense under the
+#         split: push rides the commit grant, and a release needs its own
+#         stamp. get, set, and push each read such a file; one leaf keeps
+#         the three notes word for word alike, so no gain or loss is silent
+#
+# usage: print_commit_legacy_note   # after get_one_commit_local_grant
+######################################################################
+print_commit_legacy_note() {
+  [[ "${COMMIT_LEGACY:-false}" == "true" ]] || return 0
+  print_coconut_hint \
+    "this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own" \
+    "git.release.uses set --quant 1   # ask your human, to ship"
+}
+
+######################################################################
+# .what = read the release meter's local quota for a tree
+#
+# .why  = the release meter's local level holds one leaf, `uses`: a count
+#         or "infinite". it carries no push or stage field — those ride the
+#         commit meter. one reader decides for both the gate
+#         (`git.release --mode apply`) and the render (`git.release.uses
+#         get`), so the two never disagree about one file
+#
+# returns:
+#   - 0 = a grant is set; RELEASE_USES holds a count or "infinite"
+#   - 1 = the file is present and UNUSABLE (damage) — a malfunction
+#   - 2 = no file; unset reads as blocked
+#
+# .note = one capture, then the shape gate and the value read run on the
+#         same bytes, as `check_global_blocker` does: a write between two
+#         opens cannot compose a verdict from two versions of the file
+#
+# usage: get_one_release_local_uses file="$REPO_ROOT/.meter/git.release.uses.jsonc"
+######################################################################
+RELEASE_LOCAL_METER_FILENAME="git.release.uses.jsonc"
+
+get_one_release_local_uses() {
+  local file=""
+  for arg in "$@"; do
+    case "$arg" in
+      file=*) file="${arg#file=}" ;;
+    esac
+  done
+  RELEASE_USES=""
+
+  # absence (which blocks), damage, and the one capture: the shared reader decides
+  local read_status=0
+  read_one_meter_local_file file="$file" || read_status=$?
+  [[ "$read_status" -eq 0 ]] || return "$read_status"
+  local contents="$METER_LOCAL_CONTENTS"
+
+  # shape gate: an object whose `uses` is a non-negative integer or "infinite".
+  # `-s` turns a 0-byte file into `[]`, whose `.[0]` is null — damage
+  printf '%s' "$contents" | jq -s -e '
+    .[0] | type == "object"
+    and (
+      ((.uses | type) == "number" and .uses >= 0 and (.uses | floor) == .uses)
+      or .uses == "infinite"
+    )
+  ' >/dev/null 2>&1 || return 1
+
+  RELEASE_USES=$(printf '%s' "$contents" | jq -s -r '.[0].uses')
+  return 0
+}
+
+######################################################################
+# .what = write the release meter's local quota for a tree
+#
+# .why  = two writers own this file: the gate's spend and `git.release.uses`.
+#         one writer holds the directory guard and the temp-then-`mv`, so the
+#         two never drift on the shape or on the guard
+#
+# returns:
+#   - 0 = written; a reader sees the prior or the new file, never half
+#   - 1 = a directory sits at the path; no write (the caller renders damage)
+#   - 2 = the write or the rename failed (full disk, permission); the prior
+#         file stays, the temp is removed (the caller renders a malfunction)
+#
+# .note = callers run it under `if !` / `||`, which turns errexit off inside;
+#         so each step checks its own exit, never leans on `set -e`
+#
+# .note = no lock spans a read and this write; the meter family's lock is
+#         owed in `.dream/v2026_09_12.fix.org-state-mutations-are-an-unlocked-read-modify-write.md`
+#
+# .note = `spent=<nonce>` marks the write as the gate's spend. the apply that
+#         spent holds the nonce, and refunds only while the file still bears
+#         it; any human write (set, allow, block, del) drops it, so a revoke
+#         made mid-apply is never undone by a refund
+#
+# usage: set_one_release_local_uses file="$REPO_ROOT/.meter/git.release.uses.jsonc" uses=3
+#        set_one_release_local_uses file="..." uses=0 spent="$SPEND_NONCE"
+######################################################################
+set_one_release_local_uses() {
+  local file="" uses="" spent=""
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      file=*) file="${arg#file=}" ;;
+      uses=*) uses="${arg#uses=}" ;;
+      spent=*) spent="${arg#spent=}" ;;
+    esac
+  done
+  local body
+  body=$(printf '{\n  "uses": %s\n}\n' "$uses")
+  if [[ -n "$spent" ]]; then
+    body=$(printf '{\n  "uses": %s,\n  "spent": "%s"\n}\n' "$uses" "$spent")
+  fi
+
+  # a directory at the path would swallow the `mv` and report a false write
+  if [[ -e "$file" && ! -f "$file" ]]; then
+    return 1
+  fi
+
+  # a library leaf sets no trap: a trap here would replace the caller's own.
+  # each failure path removes the temp itself
+  local file_temp="${file}.tmp.$$"
+  if ! printf '%s\n' "$body" > "$file_temp"; then
+    rm -f "$file_temp"
+    return 2
+  fi
+  if ! mv -f "$file_temp" "$file"; then
+    rm -f "$file_temp"
+    return 2
+  fi
 }
 
 ######################################################################
@@ -2430,9 +2697,132 @@ print_local_meter_damaged_fix() {
   done
 
   echo ""
-  echo "   the file that holds this tree's commit quota cannot be read:"
+  echo "   the file that holds this tree's $METER_NOUN quota cannot be read:"
   echo "     $file"
-  print_instruction "ask your human to reset the quota, then grant again:" \
-    "  \$ git.commit.uses del
-  \$ git.commit.uses set --quant N --push allow|block"
+
+  # a directory at the path: `del` writes there too and would refuse again,
+  # so the fix is a removal by hand
+  local repo_root
+  repo_root="$(git rev-parse --show-toplevel 2>/dev/null || echo .)"
+  if [[ -d "$repo_root/$file" ]]; then
+    print_coconut_hint "the path is a directory; inspect it, remove it, then grant again" \
+      "ls -la $file" \
+      "rm -r $file"
+    return 0
+  fi
+
+  print_coconut_hint "ask your human to reset the quota, then grant again" \
+    "$METER_SKILL del" \
+    "$METER_SKILL set --quant N"
+}
+
+######################################################################
+# .what = a meter's uses value as its json literal
+# .why  = a count is a bare number, `infinite` a quoted string; both
+#         meter writers emit the same field, so one leaf owns the quote
+# usage: as_meter_uses_json quant=3|infinite
+######################################################################
+as_meter_uses_json() {
+  local quant="${1#quant=}"
+  if [[ "$quant" == "infinite" ]]; then
+    echo '"infinite"'
+    return 0
+  fi
+  echo "$quant"
+}
+
+######################################################################
+# .what = a meter's uses value as a human reads it
+# .why  = `infinite` is the file's word; a human reads `unlimited`
+# usage: as_meter_uses_display uses=3|infinite
+######################################################################
+as_meter_uses_display() {
+  local uses="${1#uses=}"
+  if [[ "$uses" == "infinite" ]]; then
+    echo "unlimited"
+    return 0
+  fi
+  echo "$uses"
+}
+
+######################################################################
+# .what = whether a human's grant command holds the grant or revokes it
+# .why  = only block / del revoke (F16). `set --quant 0` holds at 0 left,
+#         so a crew can push what it has and commit no more
+# usage: as_commit_held command=set|allow|del|block
+######################################################################
+as_commit_held() {
+  local command="${1#command=}"
+  if [[ "$command" == "del" || "$command" == "block" ]]; then
+    echo "false"
+    return 0
+  fi
+  echo "true"
+}
+
+######################################################################
+# .what = a commit grant's push state as a human reads it
+# .why  = a held grant lets a push ride it; a revoked one does not
+# usage: as_commit_push_display held=true|false
+######################################################################
+as_commit_push_display() {
+  local held="${1#held=}"
+  if [[ "$held" == "true" ]]; then
+    echo "held"
+    return 0
+  fi
+  echo "revoked"
+}
+
+######################################################################
+# .what = whether a blocker reader found its file damaged
+# .why  = a gate asks "is the blocker damaged?" before "is it set?", so the
+#         malfunction refusal reads as one decision, not a two-fact boolean
+# usage: is_blocker_corrupt status=0|2 corrupt=true|false   # exit 0 = damaged
+######################################################################
+is_blocker_corrupt() {
+  local status="" corrupt=""
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      status=*) status="${arg#status=}" ;;
+      corrupt=*) corrupt="${arg#corrupt=}" ;;
+    esac
+  done
+  [[ "$status" -eq 2 && "$corrupt" == "true" ]]
+}
+
+######################################################################
+# .what = whether a blocker reader found the blocker set
+# .why  = the constraint twin of is_blocker_corrupt; checked after it
+# usage: is_blocker_set status=0|2   # exit 0 = set
+######################################################################
+is_blocker_set() {
+  local status="${1#status=}"
+  [[ "$status" -eq 2 ]]
+}
+
+######################################################################
+# .what = the global blocker state as a `get` reads it
+# .why  = one leaf owns the three labels: clear, blocked, and damaged
+# usage: as_global_block_display status=0|2 corrupt=true|false
+######################################################################
+as_global_block_display() {
+  local status="" corrupt=""
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      status=*) status="${arg#status=}" ;;
+      corrupt=*) corrupt="${arg#corrupt=}" ;;
+    esac
+  done
+  if [[ "$status" -ne 2 ]]; then
+    echo "not blocked"
+    return 0
+  fi
+  if [[ "$corrupt" == "true" ]]; then
+    echo "blocked (file corrupt)"
+    return 0
+  fi
+  echo "blocked"
 }

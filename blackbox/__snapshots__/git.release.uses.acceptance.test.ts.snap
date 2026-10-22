@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release.uses (acceptance) given: [case1] a linked repo that names its org when: [t0] any actor runs \`rhx git.release.uses get\` then: the shipped skill reads all three levels as blocked 1`] = `
+"🐢 lets check the release meter...
+
+🐚 git.release.uses
+   ├─ left: unset (blocked)
+   ├─ org: blocked — no org config for ehmpathy (org permissions not configured)
+   ├─ global: not blocked
+   └─ verdict: blocked by local + org
+"
+`;

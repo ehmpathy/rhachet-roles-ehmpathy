@@ -20,7 +20,8 @@ const SKILL_PATH = path.resolve(__dirname, 'git.branch.rebase.begin.sh');
 const setupRebaseScenario = (options: {
   commitsAhead?: number;
   commitsBehind?: number;
-  pushAllowed?: boolean;
+  grantHeld?: boolean;
+  usesLeft?: number;
   onMainBranch?: boolean;
   dirtyWorkTree?: boolean;
   rebaseInProgress?: boolean;
@@ -88,8 +89,8 @@ const setupRebaseScenario = (options: {
   fs.mkdirSync(meterDir, { recursive: true });
 
   const meterState = {
-    uses: options.pushAllowed !== false ? 5 : 0,
-    push: options.pushAllowed !== false ? 'allow' : 'block',
+    uses: options.grantHeld !== false ? (options.usesLeft ?? 5) : 0,
+    held: options.grantHeld !== false,
   };
   fs.writeFileSync(
     path.join(meterDir, 'git.commit.uses.jsonc'),
@@ -128,15 +129,36 @@ const setupRebaseScenario = (options: {
 const runSkill = (
   tempDir: string,
   args: string[] = [],
+  options: { globalBlocker?: boolean } = {},
 ): { stdout: string; stderr: string; status: number | null } => {
+  // isolate HOME: begin reads the host-wide commit blocker under HOME, so a
+  // blocker on the host must never leak into a case
+  const tempHome = fs.mkdtempSync(path.join(os.tmpdir(), 'git-rebase-home-'));
+  if (options.globalBlocker) {
+    const globalMeterDir = path.join(
+      tempHome,
+      '.rhachet',
+      'storage',
+      'repo=ehmpathy',
+      'role=mechanic',
+      '.meter',
+    );
+    fs.mkdirSync(globalMeterDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(globalMeterDir, 'git.commit.uses.jsonc'),
+      JSON.stringify({ blocked: true }),
+    );
+  }
   const result = spawnSync('bash', [SKILL_PATH, ...args], {
     cwd: tempDir,
     encoding: 'utf-8',
     env: {
       ...process.env,
       PATH: process.env.PATH,
+      HOME: tempHome,
     },
   });
+  fs.rmSync(tempHome, { recursive: true, force: true });
 
   return {
     stdout: result.stdout || '',
@@ -152,7 +174,7 @@ describe('git.branch.rebase.begin', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 3,
           commitsBehind: 2,
-          pushAllowed: true,
+          grantHeld: true,
         });
 
         try {
@@ -175,7 +197,7 @@ describe('git.branch.rebase.begin', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
           commitsBehind: 0,
-          pushAllowed: true,
+          grantHeld: true,
         });
 
         try {
@@ -200,7 +222,7 @@ describe('git.branch.rebase.begin', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
           commitsBehind: 2,
-          pushAllowed: true,
+          grantHeld: true,
         });
 
         // create conflicting content on both branches
@@ -242,21 +264,98 @@ describe('git.branch.rebase.begin', () => {
     });
   });
 
-  given('[case4] no push permission granted', () => {
-    when('[t0] attempt rebase', () => {
-      then('shows error: push permission required', () => {
+  given('[case4b] the global commit kill switch is on', () => {
+    when('[t0] apply on a live grant', () => {
+      then('exit 2: a human-set global block halts the rebase too', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
-          pushAllowed: false,
+          commitsBehind: 1,
+        });
+
+        try {
+          const result = runSkill(tempDir, ['--mode', 'apply'], {
+            globalBlocker: true,
+          });
+
+          expect(result.status).toBe(2);
+          expect(result.stdout).toContain('ConstraintError: globally blocked');
+          expect(result.stderr).toContain('globally blocked');
+          expect(result.stdout).toContain('git.commit.uses allow --global');
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+  });
+
+  given('[case4] no commit grant held', () => {
+    when('[t0] attempt rebase after a revoke', () => {
+      then('shows error: no commit grant on this tree', () => {
+        const tempDir = setupRebaseScenario({
+          commitsAhead: 2,
+          grantHeld: false,
         });
 
         try {
           const result = runSkill(tempDir);
 
-          expect(result.status).not.toBe(0);
+          expect(result.status).toBe(2);
           expect(result.stdout).toContain('hold up dude');
-          expect(result.stdout).toContain('push permission');
+          expect(result.stdout).toContain('no commit grant on this tree');
+          expect(result.stderr).toContain('no commit grant on this tree');
+          expect(result.stdout).toContain('git.commit.uses set --quant N');
           expect(result.stdout).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t1] apply on a held grant with zero uses left', () => {
+      then(
+        'the grant check passes: a rebase rides the held grant, spends no use (F9)',
+        () => {
+          const tempDir = setupRebaseScenario({
+            commitsAhead: 2,
+            grantHeld: true,
+            usesLeft: 0,
+          });
+
+          try {
+            const result = runSkill(tempDir, ['--mode', 'apply']);
+
+            // the grant gate passes; the fetch then fails here (no real remote)
+            expect(result.stdout).not.toContain('no commit uses left');
+            expect(result.stdout).not.toContain('no commit grant');
+            expect(result.stdout).not.toContain('ConstraintError');
+            expect(
+              JSON.parse(
+                fs.readFileSync(
+                  path.join(tempDir, '.meter', 'git.commit.uses.jsonc'),
+                  'utf-8',
+                ),
+              ).uses,
+            ).toBe(0);
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        },
+      );
+    });
+
+    when('[t2] plan on a held grant with zero uses left', () => {
+      then('the grant check passes (plan is free)', () => {
+        const tempDir = setupRebaseScenario({
+          commitsAhead: 2,
+          grantHeld: true,
+          usesLeft: 0,
+        });
+
+        try {
+          const result = runSkill(tempDir);
+
+          expect(result.stdout).not.toContain('no commit grant');
+          expect(result.stdout).not.toContain('no commit uses left');
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -269,7 +368,7 @@ describe('git.branch.rebase.begin', () => {
       then('shows error: cannot rebase main', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
-          pushAllowed: true,
+          grantHeld: true,
           onMainBranch: true,
         });
 
@@ -292,7 +391,7 @@ describe('git.branch.rebase.begin', () => {
       then('shows error: unstaged changes', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
-          pushAllowed: true,
+          grantHeld: true,
           dirtyWorkTree: true,
         });
 
@@ -316,7 +415,7 @@ describe('git.branch.rebase.begin', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 0,
           commitsBehind: 0,
-          pushAllowed: true,
+          grantHeld: true,
         });
 
         try {
@@ -338,7 +437,7 @@ describe('git.branch.rebase.begin', () => {
       then('shows in progress error with guidance', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
-          pushAllowed: true,
+          grantHeld: true,
           rebaseInProgress: true,
         });
 
@@ -361,7 +460,7 @@ describe('git.branch.rebase.begin', () => {
       then('does not fail on integer comparison (handles infinite)', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
-          pushAllowed: true,
+          grantHeld: true,
         });
 
         // override meter state with "infinite" uses
@@ -396,7 +495,7 @@ describe('git.branch.rebase.begin', () => {
       then('shows preview (plan mode is always free)', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
-          pushAllowed: true,
+          grantHeld: true,
         });
 
         // override meter state with "infinite" uses

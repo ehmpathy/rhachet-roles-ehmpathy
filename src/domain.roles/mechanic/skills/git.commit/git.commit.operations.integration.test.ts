@@ -21,9 +21,12 @@ describe('git.commit.operations.sh', () => {
     keyrackContent?: string;
     orgState?: Record<string, string>;
     orgStateRaw?: string;
+    /** the meter scope to set; null = none, to prove an unscoped read fails closed */
+    scope?: 'commit' | 'release' | null;
   }): { stdout: string; stderr: string; exitCode: number } => {
     const bashCode = `
       source "${operationsPath}"
+      ${args.scope === null ? '' : `set_meter_scope ${args.scope ?? 'commit'}`}
       ${args.functionCall}
     `;
 
@@ -142,6 +145,58 @@ extends:
         });
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('.agent/keyrack.yml#org required');
+      });
+    });
+  });
+
+  given('[case33] a meter read with no scope', () => {
+    when('[t0] check_global_blocker runs before set_meter_scope', () => {
+      then('it refuses as a malfunction, exit 1, and reads no meter', () => {
+        const tempDir = genTempDir({
+          slug: 'meter-unscoped-global',
+          git: true,
+        });
+        const tempHome = genTempDir({
+          slug: 'meter-unscoped-global-home',
+          git: false,
+        });
+        const result = runFunction({
+          functionCall: `
+            check_global_blocker
+            echo "read the meter"
+          `,
+          tempDir,
+          tempHome,
+          scope: null,
+        });
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('MalfunctionError');
+        expect(result.stderr).toContain('meter read with no scope');
+        expect(result.stdout).not.toContain('read the meter');
+      });
+    });
+
+    when('[t1] check_org_blocker runs before set_meter_scope', () => {
+      then('it refuses as a malfunction, exit 1, and reads no meter', () => {
+        const tempDir = genTempDir({ slug: 'meter-unscoped-org', git: true });
+        const tempHome = genTempDir({
+          slug: 'meter-unscoped-org-home',
+          git: false,
+        });
+        const result = runFunction({
+          functionCall: `
+            check_org_blocker
+            echo "read the meter"
+          `,
+          tempDir,
+          tempHome,
+          keyrackContent: 'org: ehmpathy\n',
+          orgState: { ehmpathy: 'allowed' },
+          scope: null,
+        });
+        expect(result.exitCode).toBe(1);
+        expect(result.stderr).toContain('meter read with no scope');
+        expect(result.stdout).not.toContain('read the meter');
       });
     });
   });

@@ -1409,17 +1409,47 @@ exit 1
 };
 
 /**
- * .what = setup git.commit.uses permission for apply mode tests
- * .why = apply mode requires push permission
+ * .what = grant the release meter at every level, for apply mode tests
+ * .why = `git.release --mode apply` reads only git.release.uses, as
+ *        global ∧ org ∧ local; unset at the org or local level blocks
+ * .note = the suites run with HOME = tempDir, so the org file lands in the
+ *         temp tree, never the runner's own home
  */
-export const writeGitCommitUsesPermission = (input: {
+export const setGitReleaseUsesPermission = (input: {
   tempDir: string;
 }): void => {
   const { tempDir } = input;
+
+  // org: the tree names its org, and that org allows releases
+  setGitReleaseUsesOrgAllowed({ tempDir });
+
+  // local: unlimited releases on this tree
   const meterDir = path.join(tempDir, '.meter');
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
-    path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+    path.join(meterDir, 'git.release.uses.jsonc'),
+    JSON.stringify({ uses: 'infinite' }),
+  );
+};
+
+/**
+ * .what = allow releases at the org level, for a tree whose HOME is tempDir
+ * .why = the release gate reads global ∧ org ∧ local; a scene that tests the
+ *        local level needs the org level out of the way
+ */
+export const setGitReleaseUsesOrgAllowed = (input: {
+  tempDir: string;
+}): void => {
+  const { tempDir } = input;
+  fs.mkdirSync(path.join(tempDir, '.agent'), { recursive: true });
+  fs.writeFileSync(path.join(tempDir, '.agent', 'keyrack.yml'), 'org: ehmpathy\n');
+  const globalMeterDir = path.join(
+    tempDir,
+    '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+  );
+  fs.mkdirSync(globalMeterDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(globalMeterDir, 'git.release.uses.org.jsonc'),
+    JSON.stringify({ orgs: { ehmpathy: 'allowed' } }),
   );
 };

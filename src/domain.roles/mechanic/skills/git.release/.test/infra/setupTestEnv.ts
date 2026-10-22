@@ -5,6 +5,8 @@ import { genTempDir } from 'test-fns';
 
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
+import { setGitBranchPushed } from './setGitBranchPushed';
+
 /**
  * .what = test environment setup utilities for git.release tests
  * .why = provides reusable test infrastructure across operation and journey tests
@@ -116,6 +118,7 @@ export const setupTestEnv = (input?: {
   const { branch, remoteUrl } = input ?? {};
 
   const { tempDir, cleanup } = genTempGitRepo({ branch, remoteUrl });
+  setGitBranchPushed({ tempDir });
   const mockBinDir = genMockBinDir({ tempDir });
   const stateDir = genStateDir({ tempDir });
 
@@ -200,6 +203,9 @@ SCRIPT_DIR="${skillDir}"
 source "${outputPath}"
 source "${operationsPath}"
 ${decomposedOps.map((op) => `source "${op}"`).join('\n')}
+# this unit isolates the transport render; the spend in arm_release_merge is clamped by the p2/p3
+# suites, and the one-arm-site rule by emit_transport_status [case-arm-site]
+spend_release_use_before_arm() { :; }
 ${input.functionName} ${input.args.map((a) => `"${a}"`).join(' ')}
 `;
 

@@ -17,7 +17,7 @@ const SKILL_PATH = path.join(__dirname, 'git.branch.rebase.sh');
  * .what = setup minimal git repo for dispatcher tests
  * .why = dispatcher needs .meter state for subskill permission checks
  */
-const setupMinimalRepo = (options?: { pushAllowed?: boolean }): string => {
+const setupMinimalRepo = (options?: { grantHeld?: boolean }): string => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'git-rebase-disp-'));
 
   // init git repo
@@ -44,8 +44,8 @@ const setupMinimalRepo = (options?: { pushAllowed?: boolean }): string => {
   fs.writeFileSync(
     path.join(meterDir, 'git.commit.uses.jsonc'),
     JSON.stringify({
-      quant: options?.pushAllowed !== false ? 5 : 0,
-      push: options?.pushAllowed !== false ? 'allow' : 'block',
+      uses: options?.grantHeld !== false ? 5 : 0,
+      held: options?.grantHeld !== false,
     }),
   );
 
@@ -119,7 +119,7 @@ describe('git.branch.rebase.sh', () => {
   given('[case5] dispatch to begin', () => {
     when('[t0] invoked with begin --mode plan', () => {
       then('dispatches to git.branch.rebase.begin.sh', () => {
-        const tempDir = setupMinimalRepo({ pushAllowed: false });
+        const tempDir = setupMinimalRepo({ grantHeld: false });
         try {
           const result = spawnSync(
             'bash',
@@ -127,11 +127,13 @@ describe('git.branch.rebase.sh', () => {
             {
               cwd: tempDir,
               encoding: 'utf-8',
+              // isolate HOME: begin reads the host-wide commit blocker
+              env: { ...process.env, HOME: tempDir },
             },
           );
-          // exits 1 because push not allowed, but proves dispatch worked
-          expect(result.status).toEqual(1);
-          expect(result.stdout).toContain('rebase requires push permission');
+          // exits 2 because no commit grant is held, but proves dispatch worked
+          expect(result.status).toEqual(2);
+          expect(result.stdout).toContain('no commit grant on this tree');
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -205,7 +207,7 @@ describe('git.branch.rebase.sh', () => {
   given('[case9] arg passthrough to subskill', () => {
     when('[t0] args after subcommand are passed through', () => {
       then('subskill receives the args', () => {
-        const tempDir = setupMinimalRepo({ pushAllowed: false });
+        const tempDir = setupMinimalRepo({ grantHeld: false });
         try {
           // pass --mode plan to begin - it should receive it
           const result = spawnSync(
@@ -214,10 +216,12 @@ describe('git.branch.rebase.sh', () => {
             {
               cwd: tempDir,
               encoding: 'utf-8',
+              // isolate HOME: begin reads the host-wide commit blocker
+              env: { ...process.env, HOME: tempDir },
             },
           );
-          // the error message proves begin was called (checking push permission)
-          expect(result.stdout).toContain('rebase requires push permission');
+          // the error message proves begin was called (its grant check)
+          expect(result.stdout).toContain('no commit grant on this tree');
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }

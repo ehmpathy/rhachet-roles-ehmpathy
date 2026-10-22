@@ -31,6 +31,10 @@
 ######################################################################
 set -euo pipefail
 
+# load the shared refusal leaves (the human-grant guard)
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SKILL_DIR/output.sh"
+
 # parse named arguments
 AT=""
 TO=""
@@ -150,6 +154,9 @@ if [[ "$AT_ABS" != "$REPO_ROOT" && "$AT_ABS" != "$REPO_ROOT/"* ]]; then
   echo "  --at:      $AT_ABS" >&2
   exit 2
 fi
+
+# refuse a link placed into a human-held grant (.meter/, .branch/.bind/)
+refuse_if_human_grant --skill symlink --path "$AT_ABS" --root "$(realpath "$REPO_ROOT")"
 
 # resolve --to to absolute path (for comparison and absolute mode)
 TO_ABS=$(realpath -m "$TO")

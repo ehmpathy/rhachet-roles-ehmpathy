@@ -16,7 +16,13 @@ describe('git.commit.uses.sh', () => {
 
   const runInTempGitRepo = (args: {
     args: string[];
-    meterState?: { uses: number | string; push: string; stage?: string };
+    // current shape `{ uses, held }`, or the legacy `{ uses, push, stage? }`
+    meterState?: {
+      uses: number | string;
+      held?: boolean;
+      push?: string;
+      stage?: string;
+    };
     // raw bytes for the quota file, written INSTEAD of meterState — the
     // present-and-damaged case a valid shape cannot express
     meterRaw?: string;
@@ -72,7 +78,13 @@ describe('git.commit.uses.sh', () => {
    */
   const runWithGlobalStorage = (args: {
     args: string[];
-    meterState?: { uses: number | string; push: string; stage?: string };
+    // current shape `{ uses, held }`, or the legacy `{ uses, push, stage? }`
+    meterState?: {
+      uses: number | string;
+      held?: boolean;
+      push?: string;
+      stage?: string;
+    };
     globalBlocker?: boolean;
     globalBlockerRaw?: string;
     // default false — a fresh tree has no sponsor, which is what the nudge is for
@@ -145,141 +157,138 @@ describe('git.commit.uses.sh', () => {
     };
   };
 
-  given('[case1] set --quant N --push block', () => {
-    when('[t0] setting 3 uses with push blocked', () => {
+  given('[case1] set --quant N', () => {
+    when('[t0] a grant of 3 uses', () => {
       // .why = one spawn, two assertions. both `then` blocks read a different
       //        facet of the SAME grant, so a re-run per `then` would pay a
       //        subprocess plus a git init to observe a result already in hand
       //        (rule.forbid.redundant-expensive-operations).
       const result = useThen('the grant lands', () =>
         runInTempGitRepo({
-          args: ['set', '--quant', '3', '--push', 'block'],
+          args: ['set', '--quant', '3'],
         }),
       );
 
-      then('outputs gnarly with granted count', () => {
+      then('outputs radical with the granted count and what it covers', () => {
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('🐢 gnarly! thanks human!');
+        expect(result.stdout).toContain('🐢 radical!');
         expect(result.stdout).toContain('granted: 3');
-        expect(result.stdout).toContain('push: blocked');
+        expect(result.stdout).toContain('covers: commit, stage, rebase, push');
         expect(result.stdout).toMatchSnapshot();
       });
 
-      then('state file is created', () => {
+      then('state file holds the current shape: uses + held', () => {
         const stateFile = path.join(
           result.tempDir,
           '.meter',
           'git.commit.uses.jsonc',
         );
-        expect(fs.existsSync(stateFile)).toBe(true);
-
-        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-        expect(state.uses).toBe(3);
-        expect(state.push).toBe('block');
+        expect(JSON.parse(fs.readFileSync(stateFile, 'utf-8'))).toEqual({
+          uses: 3,
+          held: true,
+        });
       });
     });
   });
 
-  given('[case2] set --quant N --push allow', () => {
-    when('[t0] setting 1 use with push allowed', () => {
-      then('outputs radical', () => {
+  given('[case2] a retired field is typed (F8)', () => {
+    ['--push', '--stage'].forEach((flag) => {
+      when(`[t0] set --quant 1 ${flag} allow`, () => {
+        const result = useThen('the set runs', () =>
+          runInTempGitRepo({
+            args: ['set', '--quant', '1', flag, 'allow'],
+          }),
+        );
+
+        then(
+          'it refuses on both streams, names the split, writes naught',
+          () => {
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain(`${flag} is retired`);
+            expect(result.stdout).toContain('git.commit.uses set --quant N');
+            expect(result.stdout).toContain('git.release.uses set --quant 1');
+            expect(result.stderr).toContain(`${flag} is retired`);
+            expect(
+              fs.existsSync(
+                path.join(result.tempDir, '.meter', 'git.commit.uses.jsonc'),
+              ),
+            ).toBe(false);
+          },
+        );
+      });
+    });
+
+    when('[t1] the render for --push', () => {
+      then('matches snapshot', () => {
         const result = runInTempGitRepo({
           args: ['set', '--quant', '1', '--push', 'allow'],
         });
-
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('🐢 radical!');
-        expect(result.stdout).toContain('granted: 1');
-        expect(result.stdout).toContain('push: allowed');
         expect(result.stdout).toMatchSnapshot();
       });
     });
   });
 
-  given('[case3] set --quant 0 (revoke)', () => {
-    when('[t0] revoking all uses', () => {
-      // .why = one spawn, two assertions. both `then` blocks read a different
-      //        facet of the SAME revoke, so a re-run per `then` would pay a
-      //        subprocess plus a git init to observe a result already in hand
-      //        (rule.forbid.redundant-expensive-operations).
-      const result = useThen('the revoke lands', () =>
-        runInTempGitRepo({
-          args: ['set', '--quant', '0', '--push', 'block'],
-        }),
+  given('[case2b] any actor asks for help', () => {
+    when('[t0] --help', () => {
+      const result = useThen('help runs', () =>
+        runInTempGitRepo({ args: ['--help'] }),
       );
 
-      then('outputs groovy break time with tip', () => {
+      then('it names the levels and the examples, never --push', () => {
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('🐢 groovy, break time');
-        expect(result.stdout).toContain('git.commit.uses set');
-        expect(result.stdout).toContain('├─ revoked');
-        expect(result.stdout).toContain('tip:');
-        expect(result.stdout).toContain(
-          "'rhx git.commit.uses del' does the same",
-        );
+        expect(result.stdout).toContain('--global');
+        expect(result.stdout).toContain('--org <org>');
+        expect(result.stdout).toContain('examples:');
+        expect(result.stdout).not.toContain('--push');
         expect(result.stdout).toMatchSnapshot();
       });
+    });
 
-      then('state file shows 0 uses', () => {
-        const stateFile = path.join(
-          result.tempDir,
-          '.meter',
-          'git.commit.uses.jsonc',
-        );
-        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-        expect(state.uses).toBe(0);
+    when('[t2] the render for --stage', () => {
+      then('matches snapshot', () => {
+        const result = runInTempGitRepo({
+          args: ['set', '--quant', '1', '--stage', 'allow'],
+        });
+        expect(result.stdout).toContain('--stage is retired');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
 
-  given('[case3b] set --quant 0 --push allow (push-only mode)', () => {
-    when('[t0] push-only access granted', () => {
+  given('[case3] set --quant 0 (push what you have, commit no more)', () => {
+    when('[t0] a grant of zero commits', () => {
       // .why = one spawn, two assertions. both `then` blocks read a different
       //        facet of the SAME grant, so a re-run per `then` would pay a
       //        subprocess plus a git init to observe a result already in hand
       //        (rule.forbid.redundant-expensive-operations).
-      const result = useThen('the push-only grant lands', () =>
+      const result = useThen('the grant lands', () =>
         runInTempGitRepo({
-          args: ['set', '--quant', '0', '--push', 'allow'],
+          args: ['set', '--quant', '0'],
+          meterState: { uses: 3, held: true },
         }),
       );
 
-      then('outputs push only mode without tip', () => {
+      then('it renders push held, and names del as the full revoke', () => {
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('let it ride');
-        expect(result.stdout).toContain('commits: 0');
-        expect(result.stdout).toContain('push: allowed');
-        expect(result.stdout).not.toContain('tip:');
+        expect(result.stdout).toContain('🐢 groovy, break time');
+        expect(result.stdout).toContain('git.commit.uses set');
+        expect(result.stdout).toContain('granted: 0 commits');
+        expect(result.stdout).toContain('push: held');
+        expect(result.stdout).not.toContain('revoked');
+        expect(result.stdout).toContain('git.commit.uses del');
         expect(result.stdout).toMatchSnapshot();
       });
 
-      then('state file shows 0 uses and push allow', () => {
+      then('state file shows 0 uses, still held (F16)', () => {
         const stateFile = path.join(
           result.tempDir,
           '.meter',
           'git.commit.uses.jsonc',
         );
-        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-        expect(state.uses).toBe(0);
-        expect(state.push).toBe('allow');
-      });
-    });
-  });
-
-  given('[case3c] set --quant 0 without --push (defaults to block)', () => {
-    when('[t0] revoke without explicit push flag', () => {
-      then('defaults to block and shows revoked with tip', () => {
-        const result = runInTempGitRepo({
-          args: ['set', '--quant', '0'],
+        expect(JSON.parse(fs.readFileSync(stateFile, 'utf-8'))).toEqual({
+          uses: 0,
+          held: true,
         });
-
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('revoked');
-        expect(result.stdout).toContain('tip:');
-        expect(result.stdout).toContain(
-          "'rhx git.commit.uses del' does the same",
-        );
-        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -293,7 +302,7 @@ describe('git.commit.uses.sh', () => {
       const result = useThen('the del lands', () =>
         runInTempGitRepo({
           args: ['del'],
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
         }),
       );
 
@@ -306,15 +315,16 @@ describe('git.commit.uses.sh', () => {
         expect(result.stdout).toMatchSnapshot();
       });
 
-      then('state file shows 0 uses and push block', () => {
+      then('state file shows 0 uses, no longer held', () => {
         const stateFile = path.join(
           result.tempDir,
           '.meter',
           'git.commit.uses.jsonc',
         );
-        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-        expect(state.uses).toBe(0);
-        expect(state.push).toBe('block');
+        expect(JSON.parse(fs.readFileSync(stateFile, 'utf-8'))).toEqual({
+          uses: 0,
+          held: false,
+        });
       });
     });
 
@@ -348,7 +358,7 @@ describe('git.commit.uses.sh', () => {
             'mechanic',
             'del',
           ],
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
         });
 
         expect(result.exitCode).toBe(0);
@@ -358,15 +368,15 @@ describe('git.commit.uses.sh', () => {
     });
   });
 
-  given('[case4] set without --push', () => {
-    when('[t0] --push flag is missing', () => {
-      then('exits with error', () => {
+  given('[case4] set without --quant', () => {
+    when('[t0] --quant is absent', () => {
+      then('exits with a constraint on both streams', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--quant', '3'],
+          args: ['set'],
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('--push allow|block is required');
+        expect(result.stdout).toContain('--quant N is required');
         // pin the qualified class header on both streams
         expect(result.stdout).toMatchSnapshot('stdout');
         expect(result.stderr).toMatchSnapshot('stderr');
@@ -379,31 +389,123 @@ describe('git.commit.uses.sh', () => {
       then('outputs lets check the meter with remaining', () => {
         const result = runWithGlobalStorage({
           args: ['get'],
-          meterState: { uses: 2, push: 'allow' },
+          meterState: { uses: 2, held: true },
           globalBlocker: true,
         });
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('🐢 lets check the meter...');
         expect(result.stdout).toContain('left: 2');
-        expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).toContain('push: held');
+        expect(result.stdout).not.toContain('retired');
         expect(result.stdout).toMatchSnapshot();
       });
     });
   });
 
-  given('[case6] get with 0 uses and push allow (push-only mode)', () => {
-    when('[t0] state exists with 0 uses and push allow', () => {
-      then('shows push allowed for push-only use case', () => {
+  given('[case6] get at 0 left: depleted vs revoked (F16)', () => {
+    when('[t0] the grant was depleted — 0 left, still held', () => {
+      then(
+        'shows push held, so the last commit can still ship to the branch',
+        () => {
+          const result = runWithGlobalStorage({
+            args: ['get'],
+            meterState: { uses: 0, held: true },
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('left: 0');
+          expect(result.stdout).toContain('push: held');
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
+    });
+
+    when('[t1] the grant was revoked — 0 left, not held', () => {
+      then('shows push revoked', () => {
         const result = runWithGlobalStorage({
           args: ['get'],
-          meterState: { uses: 0, push: 'allow' },
-          globalBlocker: true,
+          meterState: { uses: 0, held: false },
         });
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('left: 0');
-        expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).toContain('push: revoked');
+      });
+    });
+  });
+
+  given('[case6b] get on a legacy grant (F6, F20)', () => {
+    const legacyCases: {
+      slug: string;
+      state: { uses: number | string; push: string; stage?: string };
+      push: string;
+    }[] = [
+      {
+        slug: 'uses 2, push allow',
+        state: { uses: 2, push: 'allow' },
+        push: 'held',
+      },
+      {
+        slug: 'uses 2, push block',
+        state: { uses: 2, push: 'block' },
+        push: 'held',
+      },
+      {
+        slug: 'uses 0, push allow',
+        state: { uses: 0, push: 'allow' },
+        push: 'held',
+      },
+      {
+        slug: 'uses 0, push block (the old revoke)',
+        state: { uses: 0, push: 'block' },
+        push: 'revoked',
+      },
+      {
+        slug: 'unlimited, push + stage allow',
+        state: { uses: 'infinite', push: 'allow', stage: 'allow' },
+        push: 'held',
+      },
+    ];
+
+    legacyCases.forEach((legacy) => {
+      when(`[t0] a legacy file: ${legacy.slug}`, () => {
+        then(`reads push ${legacy.push}, and names the split once`, () => {
+          const result = runWithGlobalStorage({
+            args: ['get'],
+            meterState: legacy.state,
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(`push: ${legacy.push}`);
+          expect(result.stdout).toContain('retired push / stage fields');
+          expect(result.stdout).toContain('git.release.uses set --quant 1');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+    });
+  });
+
+  given('[case6c] a directory sits at the local quota path', () => {
+    when('[t0] a human runs set --quant 1', () => {
+      then('it refuses as a malfunction, never a false grant', () => {
+        const tempDir = genTempDir({ slug: 'git-commit-uses-dir', git: true });
+        const statePath = path.join(tempDir, '.meter', 'git.commit.uses.jsonc');
+        fs.mkdirSync(statePath, { recursive: true });
+
+        const result = spawnSync('bash', [scriptPath, 'set', '--quant', '1'], {
+          cwd: tempDir,
+          encoding: 'utf-8' as const,
+          stdio: ['pipe', 'pipe', 'pipe'],
+          env: { ...process.env, __I_AM_HUMAN: 'true' },
+        });
+
+        expect(result.status).toBe(1);
+        expect(result.stdout).toContain('commit quota file corrupt');
+        expect(result.stdout).toContain('rm -r .meter/git.commit.uses.jsonc');
+        expect(result.stdout).not.toContain('git.commit.uses del');
+        expect(result.stderr).toContain('commit quota file corrupt');
+        expect(fs.statSync(statePath).isDirectory()).toBe(true);
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -420,9 +522,7 @@ describe('git.commit.uses.sh', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('🐢 lets check the meter...');
         expect(result.stdout).toContain('no quota set');
-        expect(result.stdout).toContain(
-          'git.commit.uses set --quant N --push allow|block',
-        );
+        expect(result.stdout).toContain('git.commit.uses set --quant N');
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -627,7 +727,7 @@ describe('git.commit.uses.sh', () => {
         //        future re-inline of either copy goes red rather than green.
         const twin = runWithGlobalStorage({
           args: ['get'],
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           globalBlockerRaw: '{ this is not json',
         });
         const noteOf = (out: string): string =>
@@ -651,22 +751,23 @@ describe('git.commit.uses.sh', () => {
       then('sets quota to 0 (alias for del)', () => {
         const result = runWithGlobalStorage({
           args: ['block'],
-          meterState: { uses: 5, push: 'allow' },
+          meterState: { uses: 5, held: true },
         });
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('🐢 groovy, break time');
-        expect(result.stdout).toContain('git.commit.uses del');
-        expect(result.stdout).toContain('revoked');
+        expect(result.stdout).toContain('git.commit.uses block');
+        expect(result.stdout).toContain('revoked (commit + push)');
 
         const stateFile = path.join(
           result.tempDir,
           '.meter',
           'git.commit.uses.jsonc',
         );
-        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-        expect(state.uses).toBe(0);
-        expect(state.push).toBe('block');
+        expect(JSON.parse(fs.readFileSync(stateFile, 'utf-8'))).toEqual({
+          uses: 0,
+          held: false,
+        });
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -674,7 +775,7 @@ describe('git.commit.uses.sh', () => {
 
   given('[case12] allow (local)', () => {
     when('[t0] no quota present', () => {
-      then('grants unlimited quota with push allowed', () => {
+      then('grants unlimited, held, in the current shape', () => {
         const result = runWithGlobalStorage({
           args: ['allow'],
         });
@@ -682,152 +783,80 @@ describe('git.commit.uses.sh', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain("🐢 radical! let's ride!");
         expect(result.stdout).toContain('granted: unlimited');
-        expect(result.stdout).toContain('push: allowed');
 
         const stateFile = path.join(
           result.tempDir,
           '.meter',
           'git.commit.uses.jsonc',
         );
-        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-        expect(state.uses).toBe('infinite');
-        expect(state.push).toBe('allow');
-        expect(state.stage).toBe('allow');
+        expect(JSON.parse(fs.readFileSync(stateFile, 'utf-8'))).toEqual({
+          uses: 'infinite',
+          held: true,
+        });
         expect(result.stdout).toMatchSnapshot();
       });
     });
   });
 
-  // ========================================
-  // --stage option tests
-  // ========================================
+  // .note = the `--stage` cases retired with the field: stage rides the live
+  //         commit grant (git.stage.add), and `set --stage` refuses ([case2])
 
-  given('[case14] set --stage allow', () => {
-    when('[t0] stage permission granted explicitly', () => {
-      then('state shows stage: allow', () => {
-        const result = runInTempGitRepo({
-          args: ['set', '--quant', '5', '--push', 'allow', '--stage', 'allow'],
-        });
+  given('[case17] del over a legacy grant', () => {
+    when('[t0] del after a legacy push + stage grant', () => {
+      then(
+        'the revoke lands in the current shape; retired fields fall away',
+        () => {
+          const result = runInTempGitRepo({
+            args: ['del'],
+            meterState: { uses: 5, push: 'allow', stage: 'allow' },
+          });
 
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('stage: allowed');
+          expect(result.exitCode).toBe(0);
 
-        const stateFile = path.join(
-          result.tempDir,
-          '.meter',
-          'git.commit.uses.jsonc',
-        );
-        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-        expect(state.stage).toBe('allow');
-        expect(result.stdout).toMatchSnapshot();
-      });
+          const stateFile = path.join(
+            result.tempDir,
+            '.meter',
+            'git.commit.uses.jsonc',
+          );
+          expect(JSON.parse(fs.readFileSync(stateFile, 'utf-8'))).toEqual({
+            uses: 0,
+            held: false,
+          });
+        },
+      );
     });
   });
 
-  given('[case15] set --stage block', () => {
-    when('[t0] stage permission blocked explicitly', () => {
-      then('state shows stage: block', () => {
+  given('[case17b] set over a legacy grant', () => {
+    when('[t0] set --quant 3 after a legacy push block grant', () => {
+      then(
+        'the grant names the retired fields and the release stamp, once',
+        () => {
+          const result = runInTempGitRepo({
+            args: ['set', '--quant', '3'],
+            meterState: { uses: 5, push: 'block' },
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('retired push / stage fields');
+          expect(result.stdout).toContain('git.release.uses set --quant 1');
+          expect(
+            result.stdout.split('retired push / stage fields').length - 1,
+          ).toBe(1);
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
+    });
+
+    when('[t1] set --quant 3 over a current-shape grant', () => {
+      then('no legacy note', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--quant', '5', '--push', 'allow', '--stage', 'block'],
+          args: ['set', '--quant', '3'],
+          meterState: { uses: 5, held: true },
         });
 
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('stage: blocked');
-
-        const stateFile = path.join(
-          result.tempDir,
-          '.meter',
-          'git.commit.uses.jsonc',
-        );
-        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-        expect(state.stage).toBe('block');
-        expect(result.stdout).toMatchSnapshot();
-      });
-    });
-  });
-
-  given('[case16] set without --stage (default)', () => {
-    when('[t0] stage not specified', () => {
-      then('state shows stage: block (default)', () => {
-        const result = runInTempGitRepo({
-          args: ['set', '--quant', '5', '--push', 'allow'],
-        });
-
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('stage: blocked');
-
-        const stateFile = path.join(
-          result.tempDir,
-          '.meter',
-          'git.commit.uses.jsonc',
-        );
-        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-        expect(state.stage).toBe('block');
-      });
-    });
-  });
-
-  given('[case17] del resets stage', () => {
-    when('[t0] del after stage was allowed', () => {
-      then('state shows stage: block (via revoked state)', () => {
-        const result = runInTempGitRepo({
-          args: ['del'],
-          meterState: { uses: 5, push: 'allow', stage: 'allow' },
-        });
-
-        expect(result.exitCode).toBe(0);
-
-        const stateFile = path.join(
-          result.tempDir,
-          '.meter',
-          'git.commit.uses.jsonc',
-        );
-        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-        expect(state.uses).toBe(0);
-        expect(state.push).toBe('block');
-        expect(state.stage).toBe('block');
-      });
-    });
-  });
-
-  given('[case18] get with stage permission', () => {
-    when('[t0] state has stage: allow', () => {
-      then('get displays stage: allowed', () => {
-        const result = runWithGlobalStorage({
-          args: ['get'],
-          meterState: { uses: 3, push: 'allow', stage: 'allow' },
-          globalBlocker: true,
-        });
-
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('stage: allowed');
-        expect(result.stdout).toMatchSnapshot();
-      });
-    });
-
-    when('[t1] state has stage: block', () => {
-      then('get displays stage: blocked', () => {
-        const result = runWithGlobalStorage({
-          args: ['get'],
-          meterState: { uses: 3, push: 'allow', stage: 'block' },
-          globalBlocker: true,
-        });
-
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('stage: blocked');
-      });
-    });
-
-    when('[t2] state has no stage field (legacy)', () => {
-      then('get displays stage: blocked (default)', () => {
-        const result = runWithGlobalStorage({
-          args: ['get'],
-          meterState: { uses: 3, push: 'allow' },
-          globalBlocker: true,
-        });
-
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('stage: blocked');
+        expect(result.stdout).not.toContain('retired push / stage fields');
       });
     });
   });
@@ -841,13 +870,13 @@ describe('git.commit.uses.sh', () => {
       then('shows local meter and global blocked', () => {
         const result = runWithGlobalStorage({
           args: ['get'],
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           globalBlocker: true,
         });
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('left: 3');
-        expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).toContain('push: held');
         expect(result.stdout).toContain('global: blocked');
         expect(result.stdout).toMatchSnapshot();
       });
@@ -857,12 +886,12 @@ describe('git.commit.uses.sh', () => {
       then('shows local meter without global line', () => {
         const result = runWithGlobalStorage({
           args: ['get'],
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
         });
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('left: 3');
-        expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).toContain('push: held');
         expect(result.stdout).not.toContain('global:');
       });
     });
@@ -885,7 +914,7 @@ describe('git.commit.uses.sh', () => {
       const result = useThen('get still exits 0', () =>
         runWithGlobalStorage({
           args: ['get'],
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           globalBlockerRaw: '{ this is not json',
         }),
       );
@@ -992,7 +1021,7 @@ describe('git.commit.uses.sh', () => {
     when('[t0] set is called from non-TTY', () => {
       then('blocks: no terminal on this command', () => {
         const result = runWithoutTtyBypass({
-          args: ['set', '--quant', '3', '--push', 'block'],
+          args: ['set', '--quant', '3'],
         });
 
         expect(result.exitCode).toBe(2);
@@ -1129,7 +1158,7 @@ describe('git.commit.uses.sh', () => {
         const tempDir = genTempDir({ slug: 'uses-pty-accept', git: true });
         const result = await spawnInPty({
           command: 'bash',
-          args: [scriptPath, 'set', '--quant', '3', '--push', 'block'],
+          args: [scriptPath, 'set', '--quant', '3'],
           cwd: tempDir,
           env: { __I_AM_HUMAN: '' },
         });
@@ -1596,7 +1625,7 @@ describe('git.commit.uses.sh', () => {
       then('it reads as BLOCKED, never as permissive', () => {
         const result = runWithGlobalStorage({
           args: ['get'],
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           globalBlockerRaw: '',
         });
 
@@ -1648,7 +1677,7 @@ describe('git.commit.uses.sh', () => {
 
           const local = runWithGlobalStorage({
             args: ['get'],
-            meterState: { uses: 3, push: 'allow' },
+            meterState: { uses: 3, held: true },
             globalBlockerRaw: '{"blocked": false}',
           });
           expect(local.exitCode).toBe(0);
@@ -1749,7 +1778,7 @@ describe('git.commit.uses.sh', () => {
         // the local surface reads the same leaf through the same gate
         const local = runWithGlobalStorage({
           args: ['get'],
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           globalBlockerRaw: '{"blocked": "not really"}',
         });
         expect(local.exitCode).toBe(0);
@@ -1801,7 +1830,7 @@ describe('git.commit.uses.sh', () => {
     }): { stdout: string; stderr: string; exitCode: number; after: string } => {
       const scene = runWithGlobalStorage({
         args: ['get', '--org'],
-        meterState: { uses: 3, push: 'allow' },
+        meterState: { uses: 3, held: true },
       });
 
       const meterFile = orgMeterPath(scene.tempHome);
@@ -2127,7 +2156,7 @@ describe('git.commit.uses.sh', () => {
 
         const result = useThen('the quota is granted', () =>
           runInTempGitRepo({
-            args: ['set', '--quant', '5', '--push', 'allow'],
+            args: ['set', '--quant', '5'],
             gitUser: { name: 'Kai Nalu', email: 'kai@example.com' },
             env: { PATH: `${fakeBin}:${process.env.PATH}` },
           }),
@@ -2168,7 +2197,7 @@ describe('git.commit.uses.sh', () => {
       () => {
         const result = useThen('the quota is granted', () =>
           runInTempGitRepo({
-            args: ['set', '--quant', '5', '--push', 'allow'],
+            args: ['set', '--quant', '5'],
             gitUser: { name: 'seaturtle[bot]', email: 'seaturtle@ehmpath.com' },
           }),
         );
@@ -2199,7 +2228,7 @@ describe('git.commit.uses.sh', () => {
         'warns that commits will refuse, and names the git config fix',
         () => {
           const result = runInTempGitRepo({
-            args: ['set', '--quant', '5', '--push', 'allow'],
+            args: ['set', '--quant', '5'],
             gitUser: { name: 'Kai Nalu', email: null },
           });
 
@@ -2219,7 +2248,7 @@ describe('git.commit.uses.sh', () => {
     when('[t0d] no bind, and git config email is not an address', () => {
       then('warns that commits will refuse, and names the email fix', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--quant', '5', '--push', 'allow'],
+          args: ['set', '--quant', '5'],
           gitUser: { name: 'Kai Nalu', email: 'kai@localhost' },
         });
 
@@ -2240,7 +2269,7 @@ describe('git.commit.uses.sh', () => {
         // .why = a placeholder is a name that answers for no one; a real
         //        `user.name` is its fix
         const result = runInTempGitRepo({
-          args: ['set', '--quant', '5', '--push', 'allow'],
+          args: ['set', '--quant', '5'],
           gitUser: { name: 'Test Human', email: 'human@test.com' },
         });
 
@@ -2259,7 +2288,7 @@ describe('git.commit.uses.sh', () => {
     when('[t1] a sponsor is already bound', () => {
       then('stays quiet', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--quant', '5', '--push', 'allow'],
+          args: ['set', '--quant', '5'],
           sponsorBound: true,
         });
 
@@ -2277,7 +2306,7 @@ describe('git.commit.uses.sh', () => {
     when('[t2] the quota is revoked', () => {
       then('stays quiet — a revoke needs no sponsor', () => {
         const result = runInTempGitRepo({
-          args: ['set', '--quant', '0', '--push', 'block'],
+          args: ['del'],
         });
 
         expect(result.exitCode).toBe(0);
@@ -2308,16 +2337,12 @@ describe('git.commit.uses.sh', () => {
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(path.join(meterDir, 'git.commit.sponsor.jsonc'), raw);
 
-        const result = spawnSync(
-          'bash',
-          [scriptPath, 'set', '--quant', '5', '--push', 'allow'],
-          {
-            cwd: tempDir,
-            encoding: 'utf-8' as const, // note: library api requires this term
-            stdio: ['pipe', 'pipe', 'pipe'],
-            env: { ...process.env, __I_AM_HUMAN: 'true' },
-          },
-        );
+        const result = spawnSync('bash', [scriptPath, 'set', '--quant', '5'], {
+          cwd: tempDir,
+          encoding: 'utf-8' as const, // note: library api requires this term
+          stdio: ['pipe', 'pipe', 'pipe'],
+          env: { ...process.env, __I_AM_HUMAN: 'true' },
+        });
         return {
           stdout: result.stdout ?? '',
           exitCode: result.status ?? 1,

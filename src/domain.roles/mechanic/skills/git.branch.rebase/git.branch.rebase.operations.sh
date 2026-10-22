@@ -124,11 +124,12 @@ get_commits_to_rebase() {
 
 ######################################################################
 # get count of commits behind target
-# returns: number
+# returns: number on stdout, exit 0; exit 1 with no stdout if the count
+#          cannot be read (a failed count must never pass as "up to date")
 ######################################################################
 get_behind_count() {
   local target="${1:-origin/main}"
-  git rev-list --count "HEAD..${target}" 2>/dev/null || echo "0"
+  git rev-list --count "HEAD..${target}" 2>/dev/null || return 1
 }
 
 ######################################################################
@@ -138,6 +139,36 @@ get_behind_count() {
 get_commits_behind() {
   local target="${1:-origin/main}"
   git log --oneline "HEAD..${target}" 2>/dev/null
+}
+
+######################################################################
+# get count of commits the branch's own remote holds that HEAD lacks
+# .why  = a 0-ahead fast-forward onto main, then a push, would orphan
+#         them (F7)
+# .note = it fetches origin/<branch> first: a stale origin ref would
+#         undercount. an absent remote branch is the one legitimate 0;
+#         any other failure to read the remote returns 1, so the caller
+#         fails closed rather than read "unknown" as "none"
+# returns: number on stdout, exit 0; exit 1 if the remote cannot be read
+######################################################################
+get_remote_branch_ahead_count_after_fetch() {
+  local branch
+  branch=$(get_current_branch)
+
+  # ls-remote exits 2 when the branch is absent on origin; 0 when present
+  local probe_status=0
+  git ls-remote --exit-code --heads origin "refs/heads/${branch}" >/dev/null || probe_status=$?
+  if [[ "$probe_status" -eq 2 ]]; then
+    echo "0"
+    return 0
+  fi
+  if [[ "$probe_status" -ne 0 ]]; then
+    return 1
+  fi
+
+  # the branch is on origin: refresh its origin ref, then count
+  git fetch --quiet origin "+refs/heads/${branch}:refs/remotes/origin/${branch}" || return 1
+  git rev-list --count "HEAD..origin/${branch}" || return 1
 }
 
 ######################################################################
@@ -180,24 +211,6 @@ is_worktree_dirty() {
 ######################################################################
 get_unstaged_files() {
   git diff --name-only 2>/dev/null
-}
-
-######################################################################
-# check if push is allowed in meter
-# returns: 0 if allowed, 1 if blocked
-######################################################################
-is_push_allowed() {
-  local meter_file=".meter/git.commit.uses.jsonc"
-  if [[ ! -f "$meter_file" ]]; then
-    return 1  # no meter = no permission
-  fi
-
-  local push_status
-  push_status=$(jq -r '.push // "block"' "$meter_file" 2>/dev/null)
-  if [[ "$push_status" == "allow" ]]; then
-    return 0
-  fi
-  return 1
 }
 
 ######################################################################

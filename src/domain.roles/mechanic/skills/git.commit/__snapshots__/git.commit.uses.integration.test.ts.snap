@@ -1,26 +1,11 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`git.commit.uses.sh given: [case1] set --quant N --push block when: [t0] setting 3 uses with push blocked then: outputs gnarly with granted count 1`] = `
-"🐢 gnarly! thanks human!
-
-🐚 git.commit.uses set
-   ├─ granted: 3
-   ├─ push: blocked
-   └─ stage: blocked
-
-🥥 did you know?
-   ├─ commits will name test-fns <test-fns@test.local>, from git config
-   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-"
-`;
-
-exports[`git.commit.uses.sh given: [case2] set --quant N --push allow when: [t0] setting 1 use with push allowed then: outputs radical 1`] = `
+exports[`git.commit.uses.sh given: [case1] set --quant N when: [t0] a grant of 3 uses then: outputs radical with the granted count and what it covers 1`] = `
 "🐢 radical! let's ride!
 
 🐚 git.commit.uses set
-   ├─ granted: 1
-   ├─ push: allowed
-   └─ stage: blocked
+   ├─ granted: 3
+   └─ covers: commit, stage, rebase, push
 
 🥥 did you know?
    ├─ commits will name test-fns <test-fns@test.local>, from git config
@@ -28,31 +13,73 @@ exports[`git.commit.uses.sh given: [case2] set --quant N --push allow when: [t0]
 "
 `;
 
-exports[`git.commit.uses.sh given: [case3] set --quant 0 (revoke) when: [t0] revoking all uses then: outputs groovy break time with tip 1`] = `
-"🐢 groovy, break time
+exports[`git.commit.uses.sh given: [case2] a retired field is typed (F8) when: [t1] the render for --push then: matches snapshot 1`] = `
+"🐢 bummer dude...
 
-🐚 git.commit.uses set
-   ├─ revoked
-   └─ [2mtip: 'rhx git.commit.uses del' does the same[0m
+🐚 git.commit.uses
+   └─ ✋ ConstraintError: --push is retired
+
+🥥 did you know?
+   ├─ the commit grant covers commit, stage, rebase, and push; a release rides its own meter
+   ├─ git.commit.uses set --quant N     # commit + push
+   └─ git.release.uses set --quant 1    # ship
 "
 `;
 
-exports[`git.commit.uses.sh given: [case3b] set --quant 0 --push allow (push-only mode) when: [t0] push-only access granted then: outputs push only mode without tip 1`] = `
-"🐢 sweet, let it ride
+exports[`git.commit.uses.sh given: [case2b] any actor asks for help when: [t0] --help then: it names the levels and the examples, never --push 1`] = `
+"usage: git.commit.uses set --quant N
+       git.commit.uses allow | block | del | get
 
-🐚 git.commit.uses set
-   ├─ commits: 0
-   ├─ push: allowed
-   └─ stage: blocked
+commands:
+  set    grant N commits (human only)
+  del    revoke the grant; push stops too
+  block  alias for del
+  allow  grant unlimited commits
+  get    check the grant
+
+options (set):
+  --quant N             number of commits to allow (or 'infinite')
+
+options:
+  --global              the host-wide commit blocker
+  --org <org>           the per-org commit permission
+  --help, -h            show this help
+
+examples:
+  git.commit.uses set --quant 3                          # three commits; push rides them
+  git.commit.uses allow && git.release.uses block        # push all day; never ship
+  git.commit.uses set --quant 0                          # commit no more; push stays
+  git.commit.uses block                                  # revoke; push stops too
+
+the grant covers commit, stage, rebase, and push to this tree's branch.
+a push spends no use, and works at 0 left until a human revokes.
+no commit grant can ship: a release needs git.release.uses.
 "
 `;
 
-exports[`git.commit.uses.sh given: [case3c] set --quant 0 without --push (defaults to block) when: [t0] revoke without explicit push flag then: defaults to block and shows revoked with tip 1`] = `
+exports[`git.commit.uses.sh given: [case2b] any actor asks for help when: [t2] the render for --stage then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses
+   └─ ✋ ConstraintError: --stage is retired
+
+🥥 did you know?
+   ├─ the commit grant covers commit, stage, rebase, and push; a release rides its own meter
+   ├─ git.commit.uses set --quant N     # commit + push
+   └─ git.release.uses set --quant 1    # ship
+"
+`;
+
+exports[`git.commit.uses.sh given: [case3] set --quant 0 (push what you have, commit no more) when: [t0] a grant of zero commits then: it renders push held, and names del as the full revoke 1`] = `
 "🐢 groovy, break time
 
 🐚 git.commit.uses set
-   ├─ revoked
-   └─ [2mtip: 'rhx git.commit.uses del' does the same[0m
+   ├─ granted: 0 commits
+   └─ push: held (push what you have, commit no more)
+
+🥥 did you know?
+   ├─ to stop push too, revoke the grant
+   └─ git.commit.uses del
 "
 `;
 
@@ -60,7 +87,7 @@ exports[`git.commit.uses.sh given: [case3d] del command (revoke shortcut) when: 
 "🐢 groovy, break time
 
 🐚 git.commit.uses del
-   └─ revoked
+   └─ revoked (commit + push)
 "
 `;
 
@@ -68,19 +95,21 @@ exports[`git.commit.uses.sh given: [case3d] del command (revoke shortcut) when: 
 "🐢 groovy, break time
 
 🐚 git.commit.uses del
-   └─ revoked
+   └─ revoked (commit + push)
 "
 `;
 
-exports[`git.commit.uses.sh given: [case4] set without --push when: [t0] --push flag is missing then: exits with error: stderr 1`] = `
-"✋ ConstraintError: --push allow|block is required
-usage: git.commit.uses set --quant N --push allow|block
+exports[`git.commit.uses.sh given: [case4] set without --quant when: [t0] --quant is absent then: exits with a constraint on both streams: stderr 1`] = `
+"✋ ConstraintError: --quant N is required
+usage: git.commit.uses set --quant N
+       git.commit.uses allow | block | del | get
 "
 `;
 
-exports[`git.commit.uses.sh given: [case4] set without --push when: [t0] --push flag is missing then: exits with error: stdout 1`] = `
-"✋ ConstraintError: --push allow|block is required
-usage: git.commit.uses set --quant N --push allow|block
+exports[`git.commit.uses.sh given: [case4] set without --quant when: [t0] --quant is absent then: exits with a constraint on both streams: stdout 1`] = `
+"✋ ConstraintError: --quant N is required
+usage: git.commit.uses set --quant N
+       git.commit.uses allow | block | del | get
 "
 `;
 
@@ -90,21 +119,104 @@ exports[`git.commit.uses.sh given: [case5] get shows remaining when: [t0] state 
 🐚 git.commit.uses
    └─ meter
       ├─ left: 2
-      ├─ push: allowed
-      ├─ stage: blocked
+      ├─ push: held
       └─ global: blocked
 "
 `;
 
-exports[`git.commit.uses.sh given: [case6] get with 0 uses and push allow (push-only mode) when: [t0] state exists with 0 uses and push allow then: shows push allowed for push-only use case 1`] = `
+exports[`git.commit.uses.sh given: [case6] get at 0 left: depleted vs revoked (F16) when: [t0] the grant was depleted — 0 left, still held then: shows push held, so the last commit can still ship to the branch 1`] = `
 "🐢 lets check the meter...
 
 🐚 git.commit.uses
    └─ meter
       ├─ left: 0
-      ├─ push: allowed
-      ├─ stage: blocked
-      └─ global: blocked
+      └─ push: held
+"
+`;
+
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: unlimited, push + stage allow then: reads push held, and names the split once 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   └─ meter
+      ├─ left: unlimited
+      └─ push: held
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
+"
+`;
+
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: uses 0, push allow then: reads push held, and names the split once 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   └─ meter
+      ├─ left: 0
+      └─ push: held
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
+"
+`;
+
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: uses 0, push block (the old revoke) then: reads push revoked, and names the split once 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   └─ meter
+      ├─ left: 0
+      └─ push: revoked
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
+"
+`;
+
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: uses 2, push allow then: reads push held, and names the split once 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   └─ meter
+      ├─ left: 2
+      └─ push: held
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
+"
+`;
+
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: uses 2, push block then: reads push held, and names the split once 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.commit.uses
+   └─ meter
+      ├─ left: 2
+      └─ push: held
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
+"
+`;
+
+exports[`git.commit.uses.sh given: [case6c] a directory sits at the local quota path when: [t0] a human runs set --quant 1 then: it refuses as a malfunction, never a false grant 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses set
+   └─ 💥 MalfunctionError: commit quota file corrupt
+
+   the file that holds this tree's commit quota cannot be read:
+     .meter/git.commit.uses.jsonc
+
+🥥 did you know?
+   ├─ the path is a directory; inspect it, remove it, then grant again
+   ├─ ls -la .meter/git.commit.uses.jsonc
+   └─ rm -r .meter/git.commit.uses.jsonc
 "
 `;
 
@@ -117,7 +229,7 @@ exports[`git.commit.uses.sh given: [case7] get when no state file when: [t0] no 
 
 🥥 did you know?
    ├─ no quota is granted on this tree, so commits will refuse
-   └─ git.commit.uses set --quant N --push allow|block   # ask your human
+   └─ git.commit.uses set --quant N   # ask your human
 "
 `;
 
@@ -126,6 +238,10 @@ exports[`git.commit.uses.sh given: [case8] block --global when: [t0] no global b
 
 🐚 git.commit.uses block --global
    └─ commits blocked globally
+
+🥥 did you know?
+   ├─ releases ride their own switch; this one leaves them live. to halt releases too
+   └─ git.release.uses block --global
 "
 `;
 
@@ -195,18 +311,17 @@ until it parses, every commit is blocked. a human may inspect or clear it:
 exports[`git.commit.uses.sh given: [case11] block (local) when: [t0] quota present then: sets quota to 0 (alias for del) 1`] = `
 "🐢 groovy, break time
 
-🐚 git.commit.uses del
-   └─ revoked
+🐚 git.commit.uses block
+   └─ revoked (commit + push)
 "
 `;
 
-exports[`git.commit.uses.sh given: [case12] allow (local) when: [t0] no quota present then: grants unlimited quota with push allowed 1`] = `
+exports[`git.commit.uses.sh given: [case12] allow (local) when: [t0] no quota present then: grants unlimited, held, in the current shape 1`] = `
 "🐢 radical! let's ride!
 
-🐚 git.commit.uses set
+🐚 git.commit.uses allow
    ├─ granted: unlimited
-   ├─ push: allowed
-   └─ stage: allowed
+   └─ covers: commit, stage, rebase, push
 
 🥥 did you know?
    ├─ commits will name test-fns <test-fns@test.local>, from git config
@@ -214,43 +329,20 @@ exports[`git.commit.uses.sh given: [case12] allow (local) when: [t0] no quota pr
 "
 `;
 
-exports[`git.commit.uses.sh given: [case14] set --stage allow when: [t0] stage permission granted explicitly then: state shows stage: allow 1`] = `
+exports[`git.commit.uses.sh given: [case17b] set over a legacy grant when: [t0] set --quant 3 after a legacy push block grant then: the grant names the retired fields and the release stamp, once 1`] = `
 "🐢 radical! let's ride!
 
 🐚 git.commit.uses set
-   ├─ granted: 5
-   ├─ push: allowed
-   └─ stage: allowed
+   ├─ granted: 3
+   └─ covers: commit, stage, rebase, push
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
 
 🥥 did you know?
    ├─ commits will name test-fns <test-fns@test.local>, from git config
    └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-"
-`;
-
-exports[`git.commit.uses.sh given: [case15] set --stage block when: [t0] stage permission blocked explicitly then: state shows stage: block 1`] = `
-"🐢 radical! let's ride!
-
-🐚 git.commit.uses set
-   ├─ granted: 5
-   ├─ push: allowed
-   └─ stage: blocked
-
-🥥 did you know?
-   ├─ commits will name test-fns <test-fns@test.local>, from git config
-   └─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-"
-`;
-
-exports[`git.commit.uses.sh given: [case18] get with stage permission when: [t0] state has stage: allow then: get displays stage: allowed 1`] = `
-"🐢 lets check the meter...
-
-🐚 git.commit.uses
-   └─ meter
-      ├─ left: 3
-      ├─ push: allowed
-      ├─ stage: allowed
-      └─ global: blocked
 "
 `;
 
@@ -260,8 +352,7 @@ exports[`git.commit.uses.sh given: [case19] get shows local + global state when:
 🐚 git.commit.uses
    └─ meter
       ├─ left: 3
-      ├─ push: allowed
-      ├─ stage: blocked
+      ├─ push: held
       └─ global: blocked
 "
 `;
@@ -275,7 +366,7 @@ exports[`git.commit.uses.sh given: [case19] get shows local + global state when:
 
 🥥 did you know?
    ├─ no quota is granted on this tree, so commits will refuse
-   └─ git.commit.uses set --quant N --push allow|block   # ask your human
+   └─ git.commit.uses set --quant N   # ask your human
 "
 `;
 
@@ -285,8 +376,7 @@ exports[`git.commit.uses.sh given: [case19] get shows local + global state when:
 🐚 git.commit.uses
    └─ meter
       ├─ left: 3
-      ├─ push: allowed
-      ├─ stage: blocked
+      ├─ push: held
       └─ global: blocked (file corrupt)
 
    the global blocker file cannot be read:
@@ -314,7 +404,7 @@ until it parses, every commit is blocked. a human may inspect or clear it:
 
 🥥 did you know?
    ├─ no quota is granted on this tree, so commits will refuse
-   └─ git.commit.uses set --quant N --push allow|block   # ask your human
+   └─ git.commit.uses set --quant N   # ask your human
 "
 `;
 
@@ -477,12 +567,11 @@ run it from your own terminal, with the same args:
 `;
 
 exports[`git.commit.uses.sh given: [case31] the SHARED actor guard, under a REAL pseudo-terminal when: [t0] a human at a terminal grants a quota, escape DISABLED then: 🔴 the guard ACCEPTS a real tty — exit 0, no escape hatch 1`] = `
-"🐢 gnarly! thanks human!
+"🐢 radical! let's ride!
 
 🐚 git.commit.uses set
    ├─ granted: 3
-   ├─ push: blocked
-   └─ stage: blocked
+   └─ covers: commit, stage, rebase, push
 
 🥥 did you know?
    ├─ commits will name test-fns <test-fns@test.local>, from git config
@@ -498,9 +587,11 @@ exports[`git.commit.uses.sh given: [case33] the global meter is damaged, and a h
 
    commits stay blocked until this path is cleared by hand:
      ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-   inspect it, then remove it:
-     $ ls -la ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-     $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+
+🥥 did you know?
+   ├─ inspect the path, then remove it
+   ├─ ls -la ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
 "
 `;
 
@@ -543,9 +634,10 @@ exports[`git.commit.uses.sh given: [caseLocalMeterDamaged] the LOCAL quota file 
    the file that holds this tree's commit quota cannot be read:
      .meter/git.commit.uses.jsonc
 
-ask your human to reset the quota, then grant again:
-  $ git.commit.uses del
-  $ git.commit.uses set --quant N --push allow|block
+🥥 did you know?
+   ├─ ask your human to reset the quota, then grant again
+   ├─ git.commit.uses del
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -558,9 +650,10 @@ exports[`git.commit.uses.sh given: [caseLocalMeterDamaged] the LOCAL quota file 
    the file that holds this tree's commit quota cannot be read:
      .meter/git.commit.uses.jsonc
 
-ask your human to reset the quota, then grant again:
-  $ git.commit.uses del
-  $ git.commit.uses set --quant N --push allow|block
+🥥 did you know?
+   ├─ ask your human to reset the quota, then grant again
+   ├─ git.commit.uses del
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -569,8 +662,7 @@ exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tr
 
 🐚 git.commit.uses set
    ├─ granted: 5
-   ├─ push: allowed
-   └─ stage: blocked
+   └─ covers: commit, stage, rebase, push
 
 🥥 did you know?
    ├─ commits will name Kai Nalu <kai@example.com>, from git config
@@ -583,8 +675,7 @@ exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tr
 
 🐚 git.commit.uses set
    ├─ granted: 5
-   ├─ push: allowed
-   └─ stage: blocked
+   └─ covers: commit, stage, rebase, push
 
 🥥 did you know?
    ├─ commits will refuse: git config names a clone — the clone's machine
@@ -598,8 +689,7 @@ exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tr
 
 🐚 git.commit.uses set
    ├─ granted: 5
-   ├─ push: allowed
-   └─ stage: blocked
+   └─ covers: commit, stage, rebase, push
 
 🥥 did you know?
    ├─ commits will refuse: git config holds no complete identity
@@ -614,8 +704,7 @@ exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tr
 
 🐚 git.commit.uses set
    ├─ granted: 5
-   ├─ push: allowed
-   └─ stage: blocked
+   └─ covers: commit, stage, rebase, push
 
 🥥 did you know?
    ├─ commits will refuse: git config holds a malformed email
@@ -630,8 +719,7 @@ exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tr
 
 🐚 git.commit.uses set
    ├─ granted: 5
-   ├─ push: allowed
-   └─ stage: blocked
+   └─ covers: commit, stage, rebase, push
 
 🥥 did you know?
    ├─ commits will refuse: git config names a placeholder
@@ -646,17 +734,15 @@ exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tr
 
 🐚 git.commit.uses set
    ├─ granted: 5
-   ├─ push: allowed
-   └─ stage: blocked
+   └─ covers: commit, stage, rebase, push
 "
 `;
 
 exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tree when: [t2] the quota is revoked then: stays quiet — a revoke needs no sponsor 1`] = `
 "🐢 groovy, break time
 
-🐚 git.commit.uses set
-   ├─ revoked
-   └─ [2mtip: 'rhx git.commit.uses del' does the same[0m
+🐚 git.commit.uses del
+   └─ revoked (commit + push)
 "
 `;
 
@@ -665,8 +751,7 @@ exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tr
 
 🐚 git.commit.uses set
    ├─ granted: 5
-   ├─ push: allowed
-   └─ stage: blocked
+   └─ covers: commit, stage, rebase, push
 
 🥥 did you know?
    ├─ the sponsor state file is corrupt, so commits will refuse
@@ -682,8 +767,7 @@ exports[`git.commit.uses.sh given: [caseSponsorNudge] a quota is granted on a tr
 
 🐚 git.commit.uses set
    ├─ granted: 5
-   ├─ push: allowed
-   └─ stage: blocked
+   └─ covers: commit, stage, rebase, push
 
 🥥 did you know?
    ├─ the sponsor state file is corrupt, so commits will refuse

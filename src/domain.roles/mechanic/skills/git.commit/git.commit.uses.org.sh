@@ -1,25 +1,26 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = manage org-level git commit permissions for mechanics
+# .what = manage org-level permissions for one meter: commit or release
 #
-# .why  = humans can allow/block commits per org:
+# .why  = humans can allow/block a meter per org:
 #         - specific org overrides @all default
 #         - @all resets all orgs and sets default
-#         - org config is overridden by local repo config
+#         - the org level composes with global and local by AND
 #
 # usage:
-#   git.commit.uses --org ehmpathy allow   # allow commits for ehmpathy
-#   git.commit.uses --org ahbode block     # block commits for ahbode
-#   git.commit.uses --org @all allow       # allow all orgs (reset + default)
-#   git.commit.uses --org @all block       # block all orgs (reset + default)
-#   git.commit.uses --org ehmpathy del     # remove ehmpathy config, defer to @all
-#   git.commit.uses --org get              # show all org configs
-#   git.commit.uses --org ehmpathy get     # show config for specific org
+#   git.commit.uses --org ehmpathy allow    # allow commits for ehmpathy
+#   git.commit.uses --org ahbode block      # block commits for ahbode
+#   git.commit.uses --org @all allow        # allow all orgs (reset + default)
+#   git.release.uses --org ehmpathy allow   # allow releases for ehmpathy
+#   git.release.uses --org @all block       # block releases for all orgs
+#   git.commit.uses --org ehmpathy del      # remove ehmpathy config, defer to @all
+#   git.commit.uses --org get               # show all org configs
 #
 # guarantee:
+#   - the dispatcher names the meter via `--meter commit|release`, first arg
 #   - state stored at ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/
+#     (git.commit.uses.org.jsonc · git.release.uses.org.jsonc)
 #   - specific org config overrides @all
-#   - org config is overridden by local repo config
 ######################################################################
 set -euo pipefail
 
@@ -41,6 +42,15 @@ source "$SCRIPT_DIR/output.sh"
 # .note = operations.sh is pure at source time (constants + functions, no
 #         top-level command), so this source adds names and no behavior.
 source "$SCRIPT_DIR/git.commit.operations.sh"
+
+# scope the shared org reader + renders to the meter the dispatcher named;
+# no default: a call with no --meter fails closed in set_meter_scope
+METER_ARG=""
+if [[ "${1:-}" == "--meter" ]]; then
+  METER_ARG="${2:-}"
+  shift 2 || shift $#
+fi
+set_meter_scope "$METER_ARG"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
@@ -74,14 +84,14 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help|-h)
-      echo "usage: git.commit.uses --org <org> allow|block|del"
-      echo "       git.commit.uses --org @all allow|block"
-      echo "       git.commit.uses --org get"
-      echo "       git.commit.uses --org <org> get"
+      echo "usage: $METER_SKILL --org <org> allow|block|del"
+      echo "       $METER_SKILL --org @all allow|block"
+      echo "       $METER_SKILL --org get"
+      echo "       $METER_SKILL --org <org> get"
       echo ""
       echo "commands:"
-      echo "  allow        allow commits for this org"
-      echo "  block        block commits for this org"
+      echo "  allow        allow $METER_NOUN_PLURAL for this org"
+      echo "  block        block $METER_NOUN_PLURAL for this org"
       echo "  del          remove org config, defer to @all"
       echo "  get          show org config(s)"
       echo ""
@@ -127,7 +137,7 @@ done
 # validate command
 if [[ -z "$COMMAND" ]]; then
   emit_both "✋ ConstraintError: command required (allow, block, del, or get)
-usage: git.commit.uses --org <org> allow|block|del|get"
+usage: $METER_SKILL --org <org> allow|block|del|get"
   exit 2
 fi
 
@@ -135,7 +145,7 @@ fi
 if [[ "$ORG_NAME" == "all" || "$ORG_NAME" == "ALL" ]]; then
   emit_both "$(
     print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.uses $COMMAND --org $ORG_NAME"
+    print_tree_start "$METER_SKILL $COMMAND --org $ORG_NAME"
     print_tree_constraint "did you mean @all?"
   )"
   exit 2
@@ -147,7 +157,7 @@ fi
 ######################################################################
 case "$COMMAND" in
   allow|block|del)
-    guard_actor_is_human_via_stdin "git.commit.uses $COMMAND --org $ORG_NAME"
+    guard_actor_is_human_via_stdin "$METER_SKILL $COMMAND --org $ORG_NAME"
     ;;
 esac
 
@@ -283,7 +293,7 @@ guard_org_meter_is_readable() {
   #        because they describe the state rather than the command.
   emit_both "$(
     print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.uses $COMMAND --org${ORG_NAME:+ $ORG_NAME}"
+    print_tree_start "$METER_SKILL $COMMAND --org${ORG_NAME:+ $ORG_NAME}"
     print_tree_malfunction "$ORG_CORRUPT_HEADLINE"
     print_org_corrupt_body
   )"
@@ -508,7 +518,7 @@ case "$COMMAND" in
   allow)
     if [[ -z "$ORG_NAME" ]]; then
       emit_both "✋ ConstraintError: org name required for allow
-usage: git.commit.uses --org <org> allow"
+usage: $METER_SKILL --org <org> allow"
       exit 2
     fi
 
@@ -517,7 +527,7 @@ usage: git.commit.uses --org <org> allow"
       write_org_file '{ "orgs": { "@all": "allowed" } }'
 
       print_turtle_header "shell yeah, back in the water!"
-      print_tree_start "git.commit.uses allow --org @all"
+      print_tree_start "$METER_SKILL allow --org @all"
       echo "   ├─ reset: all orgs → allowed"
       echo "   └─ @all: allowed"
     else
@@ -525,20 +535,24 @@ usage: git.commit.uses --org <org> allow"
       set_org_state "$ORG_NAME" "allowed"
 
       print_turtle_header "shell yeah, back in the water!"
-      print_tree_start "git.commit.uses allow --org $ORG_NAME"
+      print_tree_start "$METER_SKILL allow --org $ORG_NAME"
       echo "   └─ $ORG_NAME: allowed"
     fi
 
     # nudge: this lifts an org-level permission, so it is a quota-grant
     # moment for THIS tree same as a local `set` — shared reader, see
     # `print_sponsor_bind_nudge_if_absent` (git.commit.operations.sh).
-    print_sponsor_bind_nudge_if_absent
+    # .note = a release ships the commits a sponsor already signed; only
+    #         the commit meter buys commits, so only it earns the nudge
+    if [[ "$METER_KIND" == "commit" ]]; then
+      print_sponsor_bind_nudge_if_absent
+    fi
     ;;
 
   block)
     if [[ -z "$ORG_NAME" ]]; then
       emit_both "✋ ConstraintError: org name required for block
-usage: git.commit.uses --org <org> block"
+usage: $METER_SKILL --org <org> block"
       exit 2
     fi
 
@@ -547,7 +561,7 @@ usage: git.commit.uses --org <org> block"
       write_org_file '{ "orgs": { "@all": "blocked" } }'
 
       print_turtle_header "groovy, bond fire time"
-      print_tree_start "git.commit.uses block --org @all"
+      print_tree_start "$METER_SKILL block --org @all"
       echo "   ├─ reset: all orgs → blocked"
       echo "   └─ @all: blocked"
     else
@@ -555,7 +569,7 @@ usage: git.commit.uses --org <org> block"
       set_org_state "$ORG_NAME" "blocked"
 
       print_turtle_header "groovy, bond fire time"
-      print_tree_start "git.commit.uses block --org $ORG_NAME"
+      print_tree_start "$METER_SKILL block --org $ORG_NAME"
       echo "   └─ $ORG_NAME: blocked"
     fi
     ;;
@@ -563,7 +577,7 @@ usage: git.commit.uses --org <org> block"
   del)
     if [[ -z "$ORG_NAME" ]]; then
       emit_both "✋ ConstraintError: org name required for del
-usage: git.commit.uses --org <org> del"
+usage: $METER_SKILL --org <org> del"
       exit 2
     fi
 
@@ -575,13 +589,13 @@ usage: git.commit.uses --org <org> del"
     del_org_state "$ORG_NAME"
 
     print_turtle_header "righteous!"
-    print_tree_start "git.commit.uses del --org $ORG_NAME"
+    print_tree_start "$METER_SKILL del --org $ORG_NAME"
     echo "   └─ $ORG_NAME: removed (inherits from @all)"
     ;;
 
   get)
     print_turtle_header "lets check the meter..."
-    print_tree_start "git.commit.uses get --org${ORG_NAME:+ $ORG_NAME}"
+    print_tree_start "$METER_SKILL get --org${ORG_NAME:+ $ORG_NAME}"
 
     # ⇒ the SHAPE was gated once, above the dispatch, so every read below is
     #   safe to make. this arm carried its own copy of that gate while the
@@ -635,7 +649,7 @@ usage: git.commit.uses --org <org> del"
 
   *)
     emit_both "✋ ConstraintError: unknown command: $COMMAND
-usage: git.commit.uses --org <org> allow|block|del|get"
+usage: $METER_SKILL --org <org> allow|block|del|get"
     exit 2
     ;;
 esac

@@ -105,6 +105,66 @@ is_path_within_repo_root() {
   [[ "$path" == "$root" || "$path" == "$root/"* ]]
 }
 
+# .what = is an absolute path a human-held grant: a meter or a bind?
+# .why  = `.meter/` holds the grants a human stamps (git.commit.uses,
+#         git.release.uses) and `.branch/.bind/` holds a human's binds. a
+#         pre-approved file tool that writes there forges a grant the tty
+#         guard keeps human-only — a forged release stamp ships to prod
+# .note = the path resolves through symlinks first, so a link that points
+#         into `.meter/` is caught as the place it writes, never as its name
+# usage: is_path_a_human_grant --path "$abs" --root "$REPO_ROOT"
+is_path_a_human_grant() {
+  local path="" root=""
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --path) path="$2"; shift 2 ;;
+      --root) root="$2"; shift 2 ;;
+      *) echo "is_path_a_human_grant: unknown arg: $1" >&2; return 1 ;;
+    esac
+  done
+  local resolved rel
+  resolved=$(realpath -m "$path")
+  rel="${resolved#"$root"/}"
+  case "/$rel" in
+    */.meter|*/.meter/*|*/.branch/.bind|*/.branch/.bind/*) return 0 ;;
+  esac
+  return 1
+}
+
+# .what = refuse a write into a human-held grant, on both streams, exit 2
+# .why  = one refusal for every file tool, so tee, cp, mv, sed, and symlink
+#         cannot drift apart on the one path that forges a grant
+# usage: refuse_if_human_grant --skill teesafe --path "$abs" --root "$REPO_ROOT"
+refuse_if_human_grant() {
+  local skill="" path="" root=""
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --skill) skill="$2"; shift 2 ;;
+      --path) path="$2"; shift 2 ;;
+      --root) root="$2"; shift 2 ;;
+      *) echo "refuse_if_human_grant: unknown arg: $1" >&2; return 1 ;;
+    esac
+  done
+  if ! is_path_a_human_grant --path "$path" --root "$root"; then
+    return 0
+  fi
+  local rel frame
+  rel=$(realpath -m "$path")
+  rel="${rel#"$root"/}"
+  frame=$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "$skill"
+    echo "   └─ ✋ ConstraintError: $rel holds a human's grant; no file tool may write it"
+    echo ""
+    echo "🥥 did you know?"
+    echo "   ├─ only a human grants a meter, at a terminal; read it instead"
+    echo "   └─ rhx git.commit.uses get    rhx git.release.uses get"
+  )
+  echo "$frame"
+  echo "$frame" >&2
+  exit 2
+}
+
 # .what = render a refusal on the streams its output mode permits
 # .why  = one place makes the choice, so no refusal path can miss it
 # .note = a declared deviation from `rule.require.skill-output-streams`:

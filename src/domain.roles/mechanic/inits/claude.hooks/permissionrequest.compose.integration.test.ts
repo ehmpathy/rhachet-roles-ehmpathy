@@ -116,6 +116,8 @@ describe('permissionrequest — composed control stack', () => {
             'Bash(rhx git.commit.uses set:*)',
             'Bash(rhx git.commit.uses allow:*)',
             'Bash(rhx git.commit.uses --org * del:*)',
+            'Bash(rhx git.release.uses set:*)',
+            'Bash(rhx git.release.uses allow:*)',
             'Bash(bash:*)',
             'Bash(tee:*)',
           ],
@@ -458,6 +460,24 @@ describe('permissionrequest — composed control stack', () => {
       expect: 'LIFT',
       danger: false,
       why: 'unlimited-quota shorthand in permissions.deny -> LIFTS',
+    },
+    {
+      command: 'rhx git.release.uses set --quant 1',
+      expect: 'LIFT',
+      danger: false,
+      why: 'release stamp in permissions.deny -> deny-honor LIFTS it; a clone never stamps its own ship',
+    },
+    {
+      command: 'rhx git.release.uses allow',
+      expect: 'LIFT',
+      danger: false,
+      why: 'unlimited release stamp in permissions.deny -> LIFTS',
+    },
+    {
+      command: 'echo y | rhx git.release.uses set --quant 1',
+      expect: 'LIFT',
+      danger: false,
+      why: 'release stamp as a pipe sink -> the denied sink LIFTS the whole compound',
     },
     {
       command: 'rhx git.commit.bind set --level feat',

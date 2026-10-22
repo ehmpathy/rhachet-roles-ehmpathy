@@ -26,14 +26,15 @@ exports[`git.stage.add.sh given: [case2] stage all with dot when: [t0] stage wit
 "
 `;
 
-exports[`git.stage.add.sh given: [case3] stage without permission when: [t0] stage is blocked then: error: stage not allowed 1`] = `
+exports[`git.stage.add.sh given: [case3] stage without a live commit grant when: [t0] the commit grant was revoked then: ConstraintError: no live commit grant 1`] = `
 "🐢 hold up dude...
 
 🐚 git.stage.add
-   └─ error: stage not allowed
+   └─ ✋ ConstraintError: no live commit grant
 
-ask your human to grant stage permission:
-  $ git.commit.uses set --quant N --push allow|block --stage allow
+🥥 did you know?
+   ├─ stage rides the commit grant; ask your human to grant one
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -66,14 +67,29 @@ usage: git.stage.add path1 path2 ...
 "
 `;
 
-exports[`git.stage.add.sh given: [case8] global blocker when: [t0] global blocker is active then: error: globally blocked 1`] = `
+exports[`git.stage.add.sh given: [case8] global blocker when: [t0] global blocker is active then: ConstraintError: globally blocked 1`] = `
 "🐢 bummer dude...
 
 🐚 git.stage.add
-   └─ error: globally blocked
+   └─ ✋ ConstraintError: globally blocked
 
-a human has blocked all mechanic operations
-ask your human to lift the blocker:
-  $ git.commit.uses allow --global
+🥥 did you know?
+   ├─ a human has blocked all mechanic operations; ask them to lift it
+   └─ git.commit.uses allow --global
+"
+`;
+
+exports[`git.stage.add.sh given: [case8] global blocker when: [t1] the global blocker file is damaged (0 bytes) then: malfunction: fails closed, exit 1, stages naught 1`] = `
+"🐢 bummer dude...
+
+🐚 git.stage.add
+   └─ 💥 MalfunctionError: global blocker file corrupt
+
+   the global blocker file cannot be read:
+     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+
+until it parses, every commit is blocked. a human may inspect or clear it:
+  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
 "
 `;

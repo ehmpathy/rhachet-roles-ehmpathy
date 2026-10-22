@@ -348,6 +348,58 @@ describe('init.claude.permissions.sh', () => {
     });
   });
 
+  given('[case6b] the REAL manifest guards the release-meter grants', () => {
+    /**
+     * .what = read the shipped `init.claude.permissions.jsonc` and assert a
+     *         robot cannot grant itself a release.
+     *
+     * .why = a release ships, so `git.release.uses` is the costlier of the two
+     *        meters. the skill refuses a write with no tty; this manifest stops
+     *        the invocation first. a regen that dropped these lines would ship
+     *        green and leave only the tty guard between a clone and a release.
+     */
+    const manifest = fs.readFileSync(
+      path.join(__dirname, 'init.claude.permissions.jsonc'),
+      'utf-8',
+    );
+
+    when('[t0] the deny list is read', () => {
+      then('it denies set and allow, in every invocation shape', () => {
+        for (const rule of [
+          'Bash(npx rhachet run --skill git.release.uses set:*)',
+          'Bash(npx rhachet run --skill git.release.uses -- set:*)',
+          'Bash(rhx git.release.uses set:*)',
+          'Bash(rhx git.release.uses -- set:*)',
+          'Bash(npx rhachet run --skill git.release.uses allow:*)',
+          'Bash(npx rhachet run --skill git.release.uses -- allow:*)',
+          'Bash(rhx git.release.uses allow:*)',
+          'Bash(rhx git.release.uses -- allow:*)',
+        ])
+          expect(manifest).toContain(rule);
+      });
+
+      then('it denies the flag-before-verb grants and the org del', () => {
+        for (const rule of [
+          'Bash(rhx git.release.uses --global allow:*)',
+          'Bash(rhx git.release.uses --org * allow:*)',
+          'Bash(npx rhachet run --skill git.release.uses --global allow:*)',
+          'Bash(npx rhachet run --skill git.release.uses --org * allow:*)',
+          'Bash(rhx git.release.uses --org * del:*)',
+          'Bash(npx rhachet run --skill git.release.uses --org * del:*)',
+        ])
+          expect(manifest).toContain(rule);
+      });
+    });
+
+    when('[t1] the allow list is read', () => {
+      then('it permits get — a read is not a mutation', () => {
+        expect(manifest).toContain(
+          'Bash(npx rhachet run --skill git.release.uses get)',
+        );
+      });
+    });
+  });
+
   given(
     '[case7] the REAL manifest declares file-path rules as Edit(...) only',
     () => {
