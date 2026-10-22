@@ -213,41 +213,8 @@ get_unstaged_files() {
   git diff --name-only 2>/dev/null
 }
 
-######################################################################
-# print git output as sub.bucket with proper format
-# opens with ├─, content with │, closes with └─
-# args: git_output (raw output from git command)
-######################################################################
-print_git_output_tree() {
-  local git_output="$1"
-
-  # clean and split on both newlines and carriage returns
-  # remove ANSI escape sequences and control chars
-  local cleaned
-  cleaned=$(echo "$git_output" | \
-    sed 's/\x1b\[[0-9;]*[A-Za-z]//g' | \
-    tr '\r' '\n' | \
-    sed 's/[[:cntrl:]]//g')
-
-  # collect non-empty lines
-  local lines=()
-  while IFS= read -r line; do
-    if [[ -n "$line" ]]; then
-      lines+=("$line")
-    fi
-  done <<< "$cleaned"
-
-  # print sub.bucket format: open, blank, content, blank, close
-  if [[ ${#lines[@]} -gt 0 ]]; then
-    echo "      ├─"
-    echo "      │"
-    for line in "${lines[@]}"; do
-      echo "      │  $line"
-    done
-    echo "      │"
-    echo "      └─"
-  fi
-}
+# .note = print_git_output_tree lives in git.commit/output.sh: the commit
+#         family relays raw git output through the same sub.bucket render
 
 ######################################################################
 # print files in tree format with proper termination

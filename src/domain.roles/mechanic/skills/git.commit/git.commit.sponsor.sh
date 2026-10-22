@@ -145,8 +145,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      emit_both "✋ ConstraintError: unknown option: $1
-$USAGE"
+      emit_usage_refusal --skill git.commit.sponsor --message "unknown option: $1"
       exit 2
       ;;
     *)
@@ -168,6 +167,24 @@ validate_enum_arg "$COMMAND" "command" "$USAGE" set get del
 #        the design paves.
 is_actor_human_via_all_streams() {
   [[ -t 2 || -t 1 || -t 0 || "${__I_AM_HUMAN:-}" == "true" ]]
+}
+
+# .what = render a `  $ cmd` remedy block as a 🥥 hint, one command per line
+# usage: print_remedy_coconut "run it from your own terminal, in this tree" "$remedy"
+#
+# .why = the remedy constants (`SPONSOR_BIND_REMEDY`, the git config fix
+#        lines) keep their `  $ ` shape for --help; every refusal renders them
+#        through the family's one fix landmark (rule.require.coconut-hints)
+print_remedy_coconut() {
+  local affordance="$1"
+  local remedy="$2"
+  local commands=() line
+  while IFS= read -r line; do
+    line="${line#"${line%%[![:space:]]*}"}"
+    line="${line#\$ }"
+    [[ -n "$line" ]] && commands+=("$line")
+  done <<< "$remedy"
+  print_coconut_hint "$affordance" "${commands[@]}"
 }
 
 # .what = the actor guard's refusal render, then exit 2
@@ -209,7 +226,7 @@ refuse_actor() {
       echo "   name a human who did not act is a fabrication, and it reads as"
       echo "   authorized. hand this to your human."
     fi
-    print_instruction "run it from your own terminal, in this tree:" "$remedy"
+    print_remedy_coconut "run it from your own terminal, in this tree" "$remedy"
   )"
   exit 2
 }
@@ -280,7 +297,7 @@ $remedy"
       echo ""
       printf '%s\n' "$body"
     fi
-    print_instruction "$lead" "$remedy"
+    print_remedy_coconut "${lead%:}" "$remedy"
   )"
   exit 2
 }
@@ -321,10 +338,10 @@ $remedy"
     echo "   a sponsor answers for the change in the real world. a $kind cannot"
     echo "   answer, so it cannot hold the slot."
     if [[ -n "$remedy_head" ]]; then
-      print_instruction "fix it — then commits name you with no bind — or name yourself:" "$remedy"
+      print_remedy_coconut "fix git config, then commits name you with no bind; or name yourself" "$remedy"
     fi
     if [[ -z "$remedy_head" ]]; then
-      print_instruction "name the human instead:" "$remedy"
+      print_remedy_coconut "name the human instead" "$remedy"
     fi
   )"
   exit 2
@@ -344,7 +361,7 @@ refuse_set_state_damaged() {
     echo "   a non-file object sits where the sponsor is kept:"
     echo "     .meter/$SPONSOR_STATE_FILENAME"
     echo "   no sponsor was bound."
-    print_instruction "inspect it, clear it, then bind afresh:" \
+    print_remedy_coconut "inspect it, clear it, then bind afresh" \
       "  \$ ls -la .meter/$SPONSOR_STATE_FILENAME
   \$ rm -r .meter/$SPONSOR_STATE_FILENAME
 $SPONSOR_BIND_REMEDY"
@@ -537,7 +554,7 @@ case "$COMMAND" in
       exit 0
     fi
 
-    print_turtle_header "lets check the sponsor..."
+    print_turtle_header "let's check the sponsor..."
     print_tree_start "git.commit.sponsor"
     echo "   ├─ name: $SPONSOR_NAME"
     echo "   ├─ email: $SPONSOR_EMAIL"
@@ -565,7 +582,8 @@ case "$COMMAND" in
     #        can reach only this skill's own state file is CHECKED, never
     #        promised (rule.require.failfast).
     if [[ "$STATE_FILE" != *"/$SPONSOR_STATE_FILENAME" ]]; then
-      emit_both "💥 MalfunctionError: refused to clear an unexpected path: $STATE_FILE"
+      emit_skill_defect --skill "git.commit.sponsor del" \
+        --message "refused to clear an unexpected path: $STATE_FILE"
       exit 1
     fi
     rm -rf "$STATE_FILE"

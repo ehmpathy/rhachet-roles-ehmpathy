@@ -1,37 +1,46 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`git.release.uses.sh given: [case1] a fresh tree with no release grant at any level when: [t0] any actor runs get then: the render matches snapshot 1`] = `
-"🐢 lets check the release meter...
+"🐢 let's check the release meter...
 
-🐚 git.release.uses
-   ├─ left: unset (blocked)
-   ├─ org: blocked — no org config for ehmpathy (org permissions not configured)
+🐚 git.release.uses get
+   ├─ local: unset (blocked)
+   ├─ org: blocked — no org config for ehmpathy
    ├─ global: not blocked
    └─ verdict: blocked by local + org
+
+🥥 did you know?
+   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ rhx git.release.uses set --quant 1
+   └─ rhx git.release.uses allow --org ehmpathy
 "
 `;
 
 exports[`git.release.uses.sh given: [case2] a human grants releases on the tree when: [t0] set --quant 1 then: the render matches snapshot 1`] = `
 "🐢 righteous, the stamp is set
 
-🐚 git.release.uses set
-   ├─ releases: 1
+🐚 git.release.uses set --quant 1
+   ├─ local: 1 left
    └─ still blocked: org
 
 🥥 did you know?
    ├─ a release needs every level to allow it; see all three
-   └─ git.release.uses get
+   └─ rhx git.release.uses get
 "
 `;
 
 exports[`git.release.uses.sh given: [case2] a human grants releases on the tree when: [t1] get after the grant then: it shows one release left 1`] = `
-"🐢 lets check the release meter...
+"🐢 let's check the release meter...
 
-🐚 git.release.uses
-   ├─ left: 1
-   ├─ org: blocked — no org config for ehmpathy (org permissions not configured)
+🐚 git.release.uses get
+   ├─ local: 1 left
+   ├─ org: blocked — no org config for ehmpathy
    ├─ global: not blocked
    └─ verdict: blocked by org
+
+🥥 did you know?
+   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   └─ rhx git.release.uses allow --org ehmpathy
 "
 `;
 
@@ -39,12 +48,16 @@ exports[`git.release.uses.sh given: [case2] a human grants releases on the tree 
 "🐢 righteous, the stamp is set
 
 🐚 git.release.uses allow
-   ├─ releases: unlimited
+   ├─ local: unlimited
    └─ still blocked: org
 
 🥥 did you know?
    ├─ a release needs every level to allow it; see all three
-   └─ git.release.uses get
+   └─ rhx git.release.uses get
+
+🥥 did you know?
+   ├─ once the other levels allow, every release from this tree goes unmetered, until a human takes it back
+   └─ rhx git.release.uses block
 "
 `;
 
@@ -52,7 +65,7 @@ exports[`git.release.uses.sh given: [case2] a human grants releases on the tree 
 "🐢 groovy, no ships today
 
 🐚 git.release.uses block
-   └─ releases: revoked
+   └─ local: revoked
 "
 `;
 
@@ -60,22 +73,22 @@ exports[`git.release.uses.sh given: [case2] a human grants releases on the tree 
 "🐢 groovy, no ships today
 
 🐚 git.release.uses del
-   └─ releases: revoked
+   └─ local: revoked
 "
 `;
 
 exports[`git.release.uses.sh given: [case2] a human grants releases on the tree when: [t5] set --quant 0 then: it revokes, and the render matches snapshot 1`] = `
 "🐢 groovy, no ships today
 
-🐚 git.release.uses set
-   └─ releases: revoked
+🐚 git.release.uses set --quant 0
+   └─ local: revoked
 "
 `;
 
 exports[`git.release.uses.sh given: [case2b] a directory sits at the local release meter path when: [t0] a human runs set --quant 1 then: it refuses as a malfunction, never a false grant 1`] = `
 "🐢 bummer dude...
 
-🐚 git.release.uses set
+🐚 git.release.uses set --quant 1
    └─ 💥 MalfunctionError: release quota file corrupt
 
    the file that holds this tree's release quota cannot be read:
@@ -88,130 +101,122 @@ exports[`git.release.uses.sh given: [case2b] a directory sits at the local relea
 "
 `;
 
-exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t0] allow --global with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
-"🐢 bummer dude...
-
-🐚 git.release.uses allow --global
-   └─ ✋ ConstraintError: no terminal on this command
-
-   only a human at a real terminal may run this, and this command
-   has none. a clone's tool call has none, and neither does a claude
-   \`!\` command, so the two cannot be told apart here.
-
-run it from your own terminal, with the same args:
-  $ rhx git.release.uses allow --global ...
-"
-`;
-
-exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t0] allow --org ehmpathy with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
-"🐢 bummer dude...
-
-🐚 git.release.uses allow --org ehmpathy
-   └─ ✋ ConstraintError: no terminal on this command
-
-   only a human at a real terminal may run this, and this command
-   has none. a clone's tool call has none, and neither does a claude
-   \`!\` command, so the two cannot be told apart here.
-
-run it from your own terminal, with the same args:
-  $ rhx git.release.uses allow --org ehmpathy ...
-"
-`;
-
-exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t0] allow with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
-"🐢 bummer dude...
-
-🐚 git.release.uses allow
-   └─ ✋ ConstraintError: no terminal on this command
-
-   only a human at a real terminal may run this, and this command
-   has none. a clone's tool call has none, and neither does a claude
-   \`!\` command, so the two cannot be told apart here.
-
-run it from your own terminal, with the same args:
-  $ rhx git.release.uses allow ...
-"
-`;
-
-exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t0] block --global with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
-"🐢 bummer dude...
-
-🐚 git.release.uses block --global
-   └─ ✋ ConstraintError: no terminal on this command
-
-   only a human at a real terminal may run this, and this command
-   has none. a clone's tool call has none, and neither does a claude
-   \`!\` command, so the two cannot be told apart here.
-
-run it from your own terminal, with the same args:
-  $ rhx git.release.uses block --global ...
-"
-`;
-
-exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t0] block --org @all with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
-"🐢 bummer dude...
-
-🐚 git.release.uses block --org @all
-   └─ ✋ ConstraintError: no terminal on this command
-
-   only a human at a real terminal may run this, and this command
-   has none. a clone's tool call has none, and neither does a claude
-   \`!\` command, so the two cannot be told apart here.
-
-run it from your own terminal, with the same args:
-  $ rhx git.release.uses block --org @all ...
-"
-`;
-
-exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t0] block with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
-"🐢 bummer dude...
-
-🐚 git.release.uses block
-   └─ ✋ ConstraintError: no terminal on this command
-
-   only a human at a real terminal may run this, and this command
-   has none. a clone's tool call has none, and neither does a claude
-   \`!\` command, so the two cannot be told apart here.
-
-run it from your own terminal, with the same args:
-  $ rhx git.release.uses block ...
-"
-`;
-
-exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t0] del with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
-"🐢 bummer dude...
-
-🐚 git.release.uses del
-   └─ ✋ ConstraintError: no terminal on this command
-
-   only a human at a real terminal may run this, and this command
-   has none. a clone's tool call has none, and neither does a claude
-   \`!\` command, so the two cannot be told apart here.
-
-run it from your own terminal, with the same args:
-  $ rhx git.release.uses del ...
-"
-`;
-
 exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t0] set --quant 1 with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
 "🐢 bummer dude...
 
-🐚 git.release.uses set
-   └─ ✋ ConstraintError: no terminal on this command
+🐚 git.release.uses set --quant 1
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
 
-   only a human at a real terminal may run this, and this command
-   has none. a clone's tool call has none, and neither does a claude
-   \`!\` command, so the two cannot be told apart here.
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.release.uses set --quant 1
+"
+`;
 
-run it from your own terminal, with the same args:
-  $ rhx git.release.uses set ...
+exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t1] allow with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release.uses allow
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.release.uses allow
+"
+`;
+
+exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t2] block with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release.uses block
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.release.uses block
+"
+`;
+
+exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t3] del with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release.uses del
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.release.uses del
+"
+`;
+
+exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t4] allow --global with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release.uses allow --global
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.release.uses allow --global
+"
+`;
+
+exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t5] block --global with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release.uses block --global
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.release.uses block --global
+"
+`;
+
+exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t6] allow --org ehmpathy with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release.uses allow --org ehmpathy
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.release.uses allow --org ehmpathy
+"
+`;
+
+exports[`git.release.uses.sh given: [case3] a robot tries each write form when: [t7] block --org @all with no tty then: it refuses, exit 2, and writes no meter file 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release.uses block --org @all
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.release.uses block --org @all
 "
 `;
 
 exports[`git.release.uses.sh given: [case4] a damaged local release quota when: [t0] get on a 0-byte file then: it refuses as a malfunction, on both streams, and names the file 1`] = `
 "🐢 bummer dude...
 
-🐚 git.release.uses
+🐚 git.release.uses get
    └─ 💥 MalfunctionError: release quota file corrupt
 
    the file that holds this tree's release quota cannot be read:
@@ -224,10 +229,10 @@ exports[`git.release.uses.sh given: [case4] a damaged local release quota when: 
 "
 `;
 
-exports[`git.release.uses.sh given: [case4] a damaged local release quota when: [t0] get on a negative uses file then: it refuses as a malfunction, on both streams, and names the file 1`] = `
+exports[`git.release.uses.sh given: [case4] a damaged local release quota when: [t1] get on a unparseable file then: it refuses as a malfunction, on both streams, and names the file 1`] = `
 "🐢 bummer dude...
 
-🐚 git.release.uses
+🐚 git.release.uses get
    └─ 💥 MalfunctionError: release quota file corrupt
 
    the file that holds this tree's release quota cannot be read:
@@ -240,10 +245,10 @@ exports[`git.release.uses.sh given: [case4] a damaged local release quota when: 
 "
 `;
 
-exports[`git.release.uses.sh given: [case4] a damaged local release quota when: [t0] get on a string uses file then: it refuses as a malfunction, on both streams, and names the file 1`] = `
+exports[`git.release.uses.sh given: [case4] a damaged local release quota when: [t2] get on a string uses file then: it refuses as a malfunction, on both streams, and names the file 1`] = `
 "🐢 bummer dude...
 
-🐚 git.release.uses
+🐚 git.release.uses get
    └─ 💥 MalfunctionError: release quota file corrupt
 
    the file that holds this tree's release quota cannot be read:
@@ -256,10 +261,10 @@ exports[`git.release.uses.sh given: [case4] a damaged local release quota when: 
 "
 `;
 
-exports[`git.release.uses.sh given: [case4] a damaged local release quota when: [t0] get on a unparseable file then: it refuses as a malfunction, on both streams, and names the file 1`] = `
+exports[`git.release.uses.sh given: [case4] a damaged local release quota when: [t3] get on a negative uses file then: it refuses as a malfunction, on both streams, and names the file 1`] = `
 "🐢 bummer dude...
 
-🐚 git.release.uses
+🐚 git.release.uses get
    └─ 💥 MalfunctionError: release quota file corrupt
 
    the file that holds this tree's release quota cannot be read:
@@ -273,26 +278,36 @@ exports[`git.release.uses.sh given: [case4] a damaged local release quota when: 
 `;
 
 exports[`git.release.uses.sh given: [case5] the global release blocker when: [t0] a human blocks releases globally then: the render matches snapshot 1`] = `
-"🐢 groovy, bond fire time
+"🐢 groovy, bonfire time
 
 🐚 git.release.uses block --global
    └─ releases blocked globally
+
+🥥 did you know?
+   ├─ this halts releases from every tree on this host, until a human lifts it
+   └─ rhx git.release.uses allow --global
 "
 `;
 
 exports[`git.release.uses.sh given: [case5] the global release blocker when: [t1] get reads it then: the render matches snapshot 1`] = `
-"🐢 lets check the release meter...
+"🐢 let's check the release meter...
 
-🐚 git.release.uses
-   ├─ left: unset (blocked)
-   ├─ org: blocked — no org config for ehmpathy (org permissions not configured)
+🐚 git.release.uses get
+   ├─ local: unset (blocked)
+   ├─ org: blocked — no org config for ehmpathy
    ├─ global: blocked
    └─ verdict: blocked by local + org + global
+
+🥥 did you know?
+   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ rhx git.release.uses set --quant 1
+   ├─ rhx git.release.uses allow --org ehmpathy
+   └─ rhx git.release.uses allow --global
 "
 `;
 
 exports[`git.release.uses.sh given: [case5] the global release blocker when: [t1b] get --global reads the global level alone then: it renders the release tree, blocked, never the commit one 1`] = `
-"🐢 lets check the global meter...
+"🐢 let's check the global meter...
 
 🐚 git.release.uses get --global
    └─ global: blocked
@@ -304,39 +319,52 @@ exports[`git.release.uses.sh given: [case5] the global release blocker when: [t2
 
 🐚 git.release.uses allow --global
    └─ releases resumed globally
+
+🥥 did you know?
+   ├─ this lifts the global level alone; org and local still decide whether a tree can ship
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`git.release.uses.sh given: [case5b] the org allows releases, and the global blocker is up when: [t0] a human stamps the tree then: the render names global as the one level that still blocks 1`] = `
+"🐢 righteous, the stamp is set
+
+🐚 git.release.uses set --quant 1
+   ├─ local: 1 left
+   └─ still blocked: global
+
+🥥 did you know?
+   ├─ a release needs every level to allow it; see all three
+   └─ rhx git.release.uses get
 "
 `;
 
 exports[`git.release.uses.sh given: [case6] a damaged global release blocker when: [t0] get reads it then: it fails closed and names the release file 1`] = `
-"🐢 lets check the release meter...
+"🐢 let's check the release meter...
 
-🐚 git.release.uses
-   ├─ left: 1
-   ├─ org: blocked — no org config for ehmpathy (org permissions not configured)
+🐚 git.release.uses get
+   ├─ local: 1 left
+   ├─ org: blocked — no org config for ehmpathy
    ├─ global: blocked (file corrupt)
    └─ verdict: blocked by org + global
 
-   the global blocker file cannot be read:
-     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
-
-until it parses, every release is blocked. a human may inspect or clear it:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
-  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
+🥥 did you know?
+   ├─ the global blocker file cannot be read, so every release is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
 "
 `;
 
 exports[`git.release.uses.sh given: [case6] a damaged global release blocker when: [t1] get --global reads it then: it fails closed and names the release file 1`] = `
-"🐢 lets check the global meter...
+"🐢 let's check the global meter...
 
 🐚 git.release.uses get --global
    └─ global: blocked (file corrupt)
 
-   the global blocker file cannot be read:
-     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
-
-until it parses, every release is blocked. a human may inspect or clear it:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
-  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
+🥥 did you know?
+   ├─ the global blocker file cannot be read, so every release is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
 "
 `;
 
@@ -361,22 +389,64 @@ exports[`git.release.uses.sh given: [case7] the org release permission when: [t0
 
 🐚 git.release.uses allow --org ehmpathy
    └─ ehmpathy: allowed
+
+🥥 did you know?
+   ├─ this lifts the org level alone; global and local still decide whether a tree can ship
+   └─ rhx git.release.uses get
 "
 `;
 
 exports[`git.release.uses.sh given: [case7] the org release permission when: [t1] get reads it then: org reads allowed 1`] = `
-"🐢 lets check the release meter...
+"🐢 let's check the release meter...
 
-🐚 git.release.uses
-   ├─ left: unset (blocked)
+🐚 git.release.uses get
+   ├─ local: unset (blocked)
    ├─ org: allowed
    ├─ global: not blocked
    └─ verdict: blocked by local
+
+🥥 did you know?
+   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   └─ rhx git.release.uses set --quant 1
+"
+`;
+
+exports[`git.release.uses.sh given: [case7] the org release permission when: [t1b] a human stamps the tree, then get reads it then: every level allows, so the verdict reads can ship now 1`] = `
+"🐢 let's check the release meter...
+
+🐚 git.release.uses get
+   ├─ local: 1 left
+   ├─ org: allowed
+   ├─ global: not blocked
+   └─ verdict: can ship now
+"
+`;
+
+exports[`git.release.uses.sh given: [case7] the org release permission when: [t1b] a human stamps the tree, then get reads it then: the set render says ship it, since every level allows 1`] = `
+"🐢 radical! ship it when ready
+
+🐚 git.release.uses set --quant 1
+   └─ local: 1 left
+
+🥥 did you know?
+   ├─ the clone spends one use per apply; to reach prod on one use, it ships feat → main → prod in one apply
+   └─ rhx git.release --into prod --mode apply
+"
+`;
+
+exports[`git.release.uses.sh given: [case7] the org release permission when: [t1c] a human allows the tree, then get reads it then: the local level reads unlimited and the verdict can ship 1`] = `
+"🐢 let's check the release meter...
+
+🐚 git.release.uses get
+   ├─ local: unlimited
+   ├─ org: allowed
+   ├─ global: not blocked
+   └─ verdict: can ship now
 "
 `;
 
 exports[`git.release.uses.sh given: [case7] the org release permission when: [t2] get --org reads the org level alone then: it names the org grant, and the render matches snapshot 1`] = `
-"🐢 lets check the meter...
+"🐢 let's check the meter...
 
 🐚 git.release.uses get --org
    └─ ehmpathy: allowed
@@ -384,7 +454,7 @@ exports[`git.release.uses.sh given: [case7] the org release permission when: [t2
 `;
 
 exports[`git.release.uses.sh given: [case7] the org release permission when: [t3] a human blocks releases for the org then: the block lands in the release org file, never the commit one 1`] = `
-"🐢 groovy, bond fire time
+"🐢 groovy, bonfire time
 
 🐚 git.release.uses block --org ehmpathy
    └─ ehmpathy: blocked
@@ -392,13 +462,18 @@ exports[`git.release.uses.sh given: [case7] the org release permission when: [t3
 `;
 
 exports[`git.release.uses.sh given: [case7] the org release permission when: [t4] get reads the block then: org reads blocked 1`] = `
-"🐢 lets check the release meter...
+"🐢 let's check the release meter...
 
-🐚 git.release.uses
-   ├─ left: unset (blocked)
+🐚 git.release.uses get
+   ├─ local: unset (blocked)
    ├─ org: blocked — releases blocked for org ehmpathy
    ├─ global: not blocked
    └─ verdict: blocked by local + org
+
+🥥 did you know?
+   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ rhx git.release.uses set --quant 1
+   └─ rhx git.release.uses allow --org ehmpathy
 "
 `;
 
@@ -411,7 +486,14 @@ exports[`git.release.uses.sh given: [case7] the org release permission when: [t5
 `;
 
 exports[`git.release.uses.sh given: [case7] the org release permission when: [t6] a human tries to remove @all then: it refuses as a constraint on both streams 1`] = `
-"✋ ConstraintError: cannot delete @all, use allow or block instead
+"🐢 bummer dude...
+
+🐚 git.release.uses
+   └─ ✋ ConstraintError: cannot delete @all, use allow or block instead
+
+🥥 did you know?
+   ├─ see every form git.release.uses takes, with examples
+   └─ rhx git.release.uses --help
 "
 `;
 
@@ -421,11 +503,15 @@ exports[`git.release.uses.sh given: [case7] the org release permission when: [t7
 🐚 git.release.uses allow --org @all
    ├─ reset: all orgs → allowed
    └─ @all: allowed
+
+🥥 did you know?
+   ├─ this lifts the org level alone; global and local still decide whether a tree can ship
+   └─ rhx git.release.uses get
 "
 `;
 
 exports[`git.release.uses.sh given: [case7] the org release permission when: [t8] a human blocks releases for @all then: @all reads blocked in the release org file 1`] = `
-"🐢 groovy, bond fire time
+"🐢 groovy, bonfire time
 
 🐚 git.release.uses block --org @all
    ├─ reset: all orgs → blocked
@@ -434,20 +520,18 @@ exports[`git.release.uses.sh given: [case7] the org release permission when: [t8
 `;
 
 exports[`git.release.uses.sh given: [case7b] a damaged release org file when: [t0] get reads it then: org fails closed and names the release org file 1`] = `
-"🐢 lets check the release meter...
+"🐢 let's check the release meter...
 
-🐚 git.release.uses
-   ├─ left: 1
+🐚 git.release.uses get
+   ├─ local: 1 left
    ├─ org: blocked — org meter file corrupt
    ├─ global: not blocked
    └─ verdict: blocked by org
 
-   the org meter file cannot be read:
-     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.org.jsonc
-
-until it parses, every release is blocked. a human may inspect or clear it:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.org.jsonc
-  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.org.jsonc
+🥥 did you know?
+   ├─ the org meter file cannot be read, so every release is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.org.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.org.jsonc
 "
 `;
 
@@ -476,53 +560,73 @@ exports[`git.release.uses.sh given: [case8] a human types a commit-meter field w
 `;
 
 exports[`git.release.uses.sh given: [case8b] a human types a malformed command when: [t0] an unknown option then: the render matches snapshot 1`] = `
-"✋ ConstraintError: unknown option: --reef
-usage: git.release.uses set --quant N
-       git.release.uses allow | block | del | get
-       git.release.uses allow|block|get --global
-       git.release.uses allow|block|del|get --org <org>
+"🐢 bummer dude...
+
+🐚 git.release.uses
+   └─ ✋ ConstraintError: unknown option: --reef
+
+🥥 did you know?
+   ├─ see every form git.release.uses takes, with examples
+   └─ rhx git.release.uses --help
 "
 `;
 
 exports[`git.release.uses.sh given: [case8b] a human types a malformed command when: [t1] no command then: the render matches snapshot 1`] = `
-"✋ ConstraintError: command required (set, allow, block, del, or get)
-usage: git.release.uses set --quant N
-       git.release.uses allow | block | del | get
-       git.release.uses allow|block|get --global
-       git.release.uses allow|block|del|get --org <org>
+"🐢 bummer dude...
+
+🐚 git.release.uses
+   └─ ✋ ConstraintError: command required (set, allow, block, del, or get)
+
+🥥 did you know?
+   ├─ see every form git.release.uses takes, with examples
+   └─ rhx git.release.uses --help
 "
 `;
 
 exports[`git.release.uses.sh given: [case8b] a human types a malformed command when: [t2] set with no --quant then: the render matches snapshot 1`] = `
-"✋ ConstraintError: --quant N is required
-usage: git.release.uses set --quant N
-       git.release.uses allow | block | del | get
-       git.release.uses allow|block|get --global
-       git.release.uses allow|block|del|get --org <org>
+"🐢 bummer dude...
+
+🐚 git.release.uses
+   └─ ✋ ConstraintError: --quant N is required
+
+🥥 did you know?
+   ├─ see every form git.release.uses takes, with examples
+   └─ rhx git.release.uses --help
 "
 `;
 
 exports[`git.release.uses.sh given: [case8b] a human types a malformed command when: [t3] set with a bogus --quant then: the render matches snapshot 1`] = `
-"✋ ConstraintError: --quant must be a non-negative integer or 'infinite'
+"🐢 bummer dude...
+
+🐚 git.release.uses
+   └─ ✋ ConstraintError: --quant must be a non-negative integer or 'infinite'
+
+🥥 did you know?
+   ├─ see every form git.release.uses takes, with examples
+   └─ rhx git.release.uses --help
 "
 `;
 
 exports[`git.release.uses.sh given: [case8c] a tree with no keyrack.yml to name its org when: [t0] get reads the org level then: the render matches snapshot 1`] = `
-"🐢 lets check the release meter...
+"🐢 let's check the release meter...
 
-🐚 git.release.uses
-   ├─ left: 1
+🐚 git.release.uses get
+   ├─ local: 1 left
    ├─ org: blocked — .agent/keyrack.yml not found
    ├─ global: not blocked
    └─ verdict: blocked by org
+
+🥥 did you know?
+   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   └─ rhx git.release.uses allow --org <org>
 "
 `;
 
 exports[`git.release.uses.sh given: [case9] any actor asks for help when: [t0] --help then: the render matches snapshot 1`] = `
 "usage: git.release.uses set --quant N
        git.release.uses allow | block | del | get
-       git.release.uses allow|block|get --global
-       git.release.uses allow|block|del|get --org <org>
+       git.release.uses allow | block | get --global
+       git.release.uses allow | block | del | get --org <org>
 
 commands:
   set    grant N releases on this tree (human only)

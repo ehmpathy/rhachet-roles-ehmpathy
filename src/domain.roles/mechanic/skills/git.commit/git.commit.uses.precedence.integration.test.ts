@@ -369,7 +369,12 @@ describe('git.commit.uses precedence matrix', () => {
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('org permissions not configured');
+        expect(result.stdout).toContain(
+          '✋ ConstraintError: no org config for ehmpathy',
+        );
+        expect(result.stdout).toContain(
+          '└─ git.commit.uses allow --org ehmpathy',
+        );
         expect(result.stdout).toMatchSnapshot();
       });
     });

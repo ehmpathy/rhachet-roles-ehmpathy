@@ -1335,7 +1335,7 @@ exec /usr/bin/git "$@"
         expect(result.stdout).toContain('cowabunga');
         expect(result.stdout).toContain('push:');
         expect(result.stdout).toContain('pr:');
-        expect(result.stdout).toContain('🌊 now lets ride the release wave');
+        expect(result.stdout).toContain("🌊 now let's ride the release wave");
         expect(result.stdout).toContain('wipeouts');
         expect(result.stdout).toContain('rhx git.release --watch');
         expect(result.stdout).toMatchSnapshot();
@@ -2586,11 +2586,11 @@ exec /usr/bin/git "$@"
               // the generic failure path is taken, verbatim from gh
               expect(result.stdout).toContain('pr creation failed');
               // the header no longer celebrates — the pr did not open
-              expect(result.stdout).toContain('pushed but the pr didnt open');
+              expect(result.stdout).toContain("pushed but the pr didn't open");
               // stream parity: the failure tree also rides stderr, so a
               // stderr-only consumer sees why exit 2 happened, not just the code
               // (rule.require.skill-output-streams)
-              expect(result.stderr).toContain('pushed but the pr didnt open');
+              expect(result.stderr).toContain("pushed but the pr didn't open");
               // the two-fix auth guide must stay silent on both streams
               expect(result.stdout).not.toContain('no usable gh credential');
               expect(result.stderr).not.toContain('no usable gh credential');
@@ -3371,6 +3371,110 @@ exec /usr/bin/git "$@"
             expect(result.stdout).not.toContain('opened:');
             expect(result.stderr).not.toContain('opened:');
             // lock both streams (rule.require.contract-snapshot-exhaustiveness)
+            expect(result.stdout).toMatchSnapshot();
+            expect(result.stderr).toMatchSnapshot();
+          },
+        );
+      });
+    },
+  );
+
+  given(
+    '[case41] a published branch, rewritten by a rebase, against a real bare origin',
+    () => {
+      when('[t0] apply mode pushes the rewritten history', () => {
+        then(
+          'the lease-guarded force push lands the rewrite on origin, exit 0',
+          () => {
+            // a real bare origin: the transport under test is the real git push
+            const remoteDir = genTempDir({ slug: 'git-commit-push-rewrite' });
+            spawnSync('git', ['init', '--bare'], { cwd: remoteDir });
+
+            const tempDir = setupTempRepo({
+              meterState: { uses: 3, held: true },
+              branch: 'turtle/feature',
+              commits: ['feat: rewrite test'],
+              commitAuthor: {
+                name: 'seaturtle[bot]',
+                email: 'seaturtle@ehmpath.com',
+              },
+            });
+            spawnSync('git', ['remote', 'add', 'origin', remoteDir], {
+              cwd: tempDir,
+            });
+
+            // publish main and the feature branch, as a prior push would
+            spawnSync('git', ['push', 'origin', 'main'], { cwd: tempDir });
+            spawnSync('git', ['push', '-u', 'origin', 'turtle/feature'], {
+              cwd: tempDir,
+            });
+            const shaPublished = spawnSync(
+              'git',
+              ['rev-parse', 'origin/turtle/feature'],
+              { cwd: tempDir, encoding: 'utf-8' },
+            ).stdout.trim();
+
+            // main moves on, and the feature branch rebases onto it
+            spawnSync('git', ['checkout', 'main'], { cwd: tempDir });
+            fs.writeFileSync(path.join(tempDir, 'main-next.txt'), 'next');
+            spawnSync('git', ['add', 'main-next.txt'], { cwd: tempDir });
+            spawnSync('git', ['commit', '-m', 'chore: main moves on'], {
+              cwd: tempDir,
+            });
+            spawnSync('git', ['push', 'origin', 'main'], { cwd: tempDir });
+            spawnSync('git', ['checkout', 'turtle/feature'], { cwd: tempDir });
+            spawnSync('git', ['rebase', 'main'], { cwd: tempDir });
+            const shaRewritten = spawnSync('git', ['rev-parse', 'HEAD'], {
+              cwd: tempDir,
+              encoding: 'utf-8',
+            }).stdout.trim();
+
+            // the rewrite does not fast-forward from what origin holds, so a
+            // plain push would refuse it
+            expect(shaRewritten).not.toEqual(shaPublished);
+            const fastForward = spawnSync(
+              'git',
+              ['merge-base', '--is-ancestor', shaPublished, shaRewritten],
+              { cwd: tempDir },
+            );
+            expect(fastForward.status).toBe(1);
+
+            // .mock = fake gh for the pr-open alone; github is unreachable here.
+            //         the push itself runs against the real bare origin
+            const fakeBinDir = path.join(tempDir, '.fakebin');
+            fs.mkdirSync(fakeBinDir, { recursive: true });
+            fs.writeFileSync(
+              path.join(fakeBinDir, 'gh'),
+              `#!/bin/bash
+if [[ "$1" == "pr" && "$2" == "list" ]]; then
+  echo ""
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  echo "https://github.com/test/repo/pull/78"
+  exit 0
+fi
+exit 1
+`,
+            );
+            fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+            const result = runPush({
+              tempDir,
+              pushArgs: ['--mode', 'apply', '--auth', 'as-human'],
+              env: {
+                PATH: `${fakeBinDir}:${process.env.PATH}`,
+              },
+            });
+
+            // the rewrite lands: origin now holds the rebased commit
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toContain('cowabunga');
+            const shaOnOrigin = spawnSync(
+              'git',
+              ['rev-parse', 'refs/heads/turtle/feature'],
+              { cwd: remoteDir, encoding: 'utf-8' },
+            ).stdout.trim();
+            expect(shaOnOrigin).toEqual(shaRewritten);
             expect(result.stdout).toMatchSnapshot();
             expect(result.stderr).toMatchSnapshot();
           },

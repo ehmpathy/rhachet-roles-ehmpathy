@@ -15,6 +15,7 @@ import {
   writeSceneGhMock,
 } from './.test/infra/mockGh';
 import { setGitBranchPushed } from './.test/infra/setGitBranchPushed';
+import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
  * .what = p6 timing accuracy tests
@@ -113,6 +114,7 @@ const runScript = (input: {
   const result = spawnSync('bash', [SKILL_PATH, ...input.args], {
     cwd: input.cwd,
     encoding: 'utf-8',
+    timeout: SKILL_SPAWN_TIMEOUT_MS, // hang guard only — see asSkillExitStatus
     env: {
       ...process.env,
       GIT_RELEASE_TEST_MODE: 'true',
@@ -157,6 +159,8 @@ describe('git.release.p6.timing', () => {
               // if it showed now - startedAt, it would be ~0s (since test runs fast)
               expect(result.stdout).toContain('done!');
               expect(result.stdout).toMatch(/1m.*in action/);
+              // the duration is masked; the snapshot pins the shape around it
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             } finally {
               cleanup();
             }
@@ -193,6 +197,7 @@ describe('git.release.p6.timing', () => {
             // verify it's the mock duration, not wall-clock time
             // by check the output contains "1m" (60s from mock)
             expect(result.stdout).toMatch(/1m.*in action/);
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -223,6 +228,7 @@ describe('git.release.p6.timing', () => {
             expect(result.stdout).toContain('done!');
             // should show ~1m in action from mock timestamps
             expect(result.stdout).toMatch(/1m.*in action/);
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -254,6 +260,7 @@ describe('git.release.p6.timing', () => {
             // should not crash and report already merged
             expect(result.status).toBe(0);
             expect(result.stdout).toContain('already merged');
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           } finally {
             cleanup();
           }
@@ -290,6 +297,9 @@ describe('git.release.p6.timing', () => {
                 // should complete successfully even with transitions
                 expect(result.status).toBe(0);
                 expect(result.stdout).toContain('done!');
+                expect(
+                  asSnapshotReadyWithAnsi(result.stdout),
+                ).toMatchSnapshot();
               } finally {
                 cleanup();
               }

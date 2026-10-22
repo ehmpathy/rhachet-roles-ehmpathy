@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`check.timestamps.sh given: [case1] a staged snapshot that embeds a raw timestamp when: [t0] the hook runs then: it names the file and line, and ends on a coconut command 1`] = `
+"✋ ConstraintError: timestamps are forbidden in staged files
+   └─ __snapshots__/reef.test.ts.snap:1:wave report observed at 2026-08-08<time>
+
+🥥 did you know?
+   ├─ a timestamp permadrifts; mask it in the test (e.g. asTimeReplaced), then resnap
+   └─ rhx git.repo.test --what unit --mode apply --resnap
+"
+`;
+
+exports[`check.timestamps.sh given: [case4] a staged file whose blob git cannot read when: [t0] the hook runs then: it halts as a malfunction on both streams, exit 1 1`] = `
+"💥 MalfunctionError: could not read staged content for notes/reef.md
+   └─ fatal: bad object :notes/reef.md
+"
+`;

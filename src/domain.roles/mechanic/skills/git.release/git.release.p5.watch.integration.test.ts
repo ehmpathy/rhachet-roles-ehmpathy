@@ -114,6 +114,7 @@ const runScript = (input: {
   const result = spawnSync('bash', [SKILL_PATH, ...input.args], {
     cwd: input.cwd,
     encoding: 'utf-8',
+    timeout: SKILL_SPAWN_TIMEOUT_MS, // hang guard only — see asSkillExitStatus
     env: {
       ...process.env,
       GIT_RELEASE_TEST_MODE: 'true',

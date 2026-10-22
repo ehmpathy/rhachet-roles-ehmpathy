@@ -54,7 +54,7 @@ set_meter_scope "$METER_ARG"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  emit_both "✋ ConstraintError: not in a git repository"
+  emit_usage_refusal --skill "$METER_SKILL" --message "not in a git repository"
   exit 2
 fi
 
@@ -121,7 +121,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      emit_both "✋ ConstraintError: unknown option: $1"
+      emit_usage_refusal --skill "$METER_SKILL" --message "unknown option: $1"
       exit 2
       ;;
     *)
@@ -136,8 +136,7 @@ done
 
 # validate command
 if [[ -z "$COMMAND" ]]; then
-  emit_both "✋ ConstraintError: command required (allow, block, del, or get)
-usage: $METER_SKILL --org <org> allow|block|del|get"
+  emit_usage_refusal --skill "$METER_SKILL" --message "command required (allow, block, del, or get)"
   exit 2
 fi
 
@@ -517,8 +516,7 @@ get_org_state() {
 case "$COMMAND" in
   allow)
     if [[ -z "$ORG_NAME" ]]; then
-      emit_both "✋ ConstraintError: org name required for allow
-usage: $METER_SKILL --org <org> allow"
+      emit_usage_refusal --skill "$METER_SKILL" --message "org name required for allow"
       exit 2
     fi
 
@@ -547,12 +545,17 @@ usage: $METER_SKILL --org <org> allow"
     if [[ "$METER_KIND" == "commit" ]]; then
       print_sponsor_bind_nudge_if_absent
     fi
+
+    # an org lift alone never promises a release; point at the full verdict
+    if [[ "$METER_KIND" == "release" ]]; then
+      print_coconut_hint "this lifts the org level alone; global and local still decide whether a tree can ship" \
+        "rhx git.release.uses get"
+    fi
     ;;
 
   block)
     if [[ -z "$ORG_NAME" ]]; then
-      emit_both "✋ ConstraintError: org name required for block
-usage: $METER_SKILL --org <org> block"
+      emit_usage_refusal --skill "$METER_SKILL" --message "org name required for block"
       exit 2
     fi
 
@@ -560,7 +563,7 @@ usage: $METER_SKILL --org <org> block"
       # @all: reset all orgs to blocked + set @all default
       write_org_file '{ "orgs": { "@all": "blocked" } }'
 
-      print_turtle_header "groovy, bond fire time"
+      print_turtle_header "groovy, bonfire time"
       print_tree_start "$METER_SKILL block --org @all"
       echo "   ├─ reset: all orgs → blocked"
       echo "   └─ @all: blocked"
@@ -568,7 +571,7 @@ usage: $METER_SKILL --org <org> block"
       # specific org: set to blocked
       set_org_state "$ORG_NAME" "blocked"
 
-      print_turtle_header "groovy, bond fire time"
+      print_turtle_header "groovy, bonfire time"
       print_tree_start "$METER_SKILL block --org $ORG_NAME"
       echo "   └─ $ORG_NAME: blocked"
     fi
@@ -576,13 +579,12 @@ usage: $METER_SKILL --org <org> block"
 
   del)
     if [[ -z "$ORG_NAME" ]]; then
-      emit_both "✋ ConstraintError: org name required for del
-usage: $METER_SKILL --org <org> del"
+      emit_usage_refusal --skill "$METER_SKILL" --message "org name required for del"
       exit 2
     fi
 
     if [[ "$ORG_NAME" == "@all" ]]; then
-      emit_both "✋ ConstraintError: cannot delete @all, use allow or block instead"
+      emit_usage_refusal --skill "$METER_SKILL" --message "cannot delete @all, use allow or block instead"
       exit 2
     fi
 
@@ -594,7 +596,7 @@ usage: $METER_SKILL --org <org> del"
     ;;
 
   get)
-    print_turtle_header "lets check the meter..."
+    print_turtle_header "let's check the meter..."
     print_tree_start "$METER_SKILL get --org${ORG_NAME:+ $ORG_NAME}"
 
     # ⇒ the SHAPE was gated once, above the dispatch, so every read below is
@@ -648,8 +650,7 @@ usage: $METER_SKILL --org <org> del"
     ;;
 
   *)
-    emit_both "✋ ConstraintError: unknown command: $COMMAND
-usage: $METER_SKILL --org <org> allow|block|del|get"
+    emit_usage_refusal --skill "$METER_SKILL" --message "unknown command: $COMMAND"
     exit 2
     ;;
 esac

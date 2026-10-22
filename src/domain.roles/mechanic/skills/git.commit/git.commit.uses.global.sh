@@ -42,7 +42,7 @@ set_meter_scope "$METER_ARG"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  emit_both "✋ ConstraintError: not in a git repository"
+  emit_usage_refusal --skill "$METER_SKILL" --message "not in a git repository"
   exit 2
 fi
 
@@ -90,8 +90,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      emit_both "✋ ConstraintError: unknown option: $1
-usage: $METER_SKILL --global block|allow|get"
+      emit_usage_refusal --skill "$METER_SKILL" --message "unknown option: $1"
       exit 2
       ;;
     *)
@@ -102,8 +101,7 @@ done
 
 # validate command
 if [[ -z "$COMMAND" ]]; then
-  emit_both "✋ ConstraintError: command required (block, allow, or get)
-usage: $METER_SKILL --global block|allow|get"
+  emit_usage_refusal --skill "$METER_SKILL" --message "command required (block, allow, or get)"
   exit 2
 fi
 
@@ -156,7 +154,7 @@ case "$COMMAND" in
 EOF
     mv -f "$GLOBAL_METER_FILE_TEMP" "$GLOBAL_METER_FILE"
 
-    print_turtle_header "groovy, bond fire time"
+    print_turtle_header "groovy, bonfire time"
     print_tree_start "$METER_SKILL block --global"
     echo "   └─ $METER_NOUN_PLURAL blocked globally"
 
@@ -164,7 +162,14 @@ EOF
     # live, so a human mid-incident learns the second switch from this render
     if [[ "$METER_KIND" == "commit" ]]; then
       print_coconut_hint "releases ride their own switch; this one leaves them live. to halt releases too" \
-        "git.release.uses block --global"
+        "rhx git.release.uses block --global"
+    fi
+
+    # the release kill switch halts every tree on this host; name its width
+    # and the one move that lifts it
+    if [[ "$METER_KIND" == "release" ]]; then
+      print_coconut_hint "this halts releases from every tree on this host, until a human lifts it" \
+        "rhx git.release.uses allow --global"
     fi
     ;;
 
@@ -215,10 +220,17 @@ EOF
     if [[ "$METER_KIND" == "commit" ]]; then
       print_sponsor_bind_nudge_if_absent
     fi
+
+    # a release ships only where org and local allow it too, so the lift of the
+    # global level alone never promises a release; point at the full verdict
+    if [[ "$METER_KIND" == "release" ]]; then
+      print_coconut_hint "this lifts the global level alone; org and local still decide whether a tree can ship" \
+        "rhx git.release.uses get"
+    fi
     ;;
 
   get)
-    print_turtle_header "lets check the global meter..."
+    print_turtle_header "let's check the global meter..."
     print_tree_start "$METER_SKILL get --global"
 
     # 🔴 the SHARED reader decides, and this render only asks it.
@@ -263,8 +275,7 @@ EOF
     ;;
 
   *)
-    emit_both "✋ ConstraintError: unknown command: $COMMAND
-usage: $METER_SKILL --global block|allow|get"
+    emit_usage_refusal --skill "$METER_SKILL" --message "unknown command: $COMMAND"
     exit 2
     ;;
 esac

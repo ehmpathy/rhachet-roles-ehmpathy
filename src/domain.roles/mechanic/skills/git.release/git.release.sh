@@ -624,7 +624,7 @@ print_release_spend_footer() {
     return 0
   fi
   echo ""
-  echo "🐚 git.release.uses"
+  echo "🐚 release stamp"
   echo "   ├─ release stamp spent: $RELEASE_USES_LEFT left (a red ci or a timeout does not refund it)"
   echo "   └─ --watch and --retry spend none; a red hop needs no new grant to rerun"
 }
@@ -643,7 +643,7 @@ print_release_plan_preview() {
   local reason="$RELEASE_PLAN_PREVIEW_REASON"
   [[ "$RELEASE_PLAN_PREVIEW_STATUS" -ne 2 ]] && reason="a release meter file is damaged"
   echo ""
-  echo "🐚 git.release.uses"
+  echo "🐚 release stamp"
   echo "   └─ apply would refuse: $reason"
   echo ""
   echo "🥥 did you know?"

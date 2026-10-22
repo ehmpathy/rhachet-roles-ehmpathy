@@ -167,7 +167,7 @@ SCAFFOLD
     fi
 
     # output
-    print_turtle_header "lets check the bind..."
+    print_turtle_header "let's check the bind..."
     print_tree_start "git.commit.bind"
     if [[ -n "$EFFECTIVE_LEVEL" ]]; then
       echo "   ├─ level: $EFFECTIVE_LEVEL"

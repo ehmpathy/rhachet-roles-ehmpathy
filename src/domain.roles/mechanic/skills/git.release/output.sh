@@ -193,11 +193,15 @@ print_no_pr_status() {
   local unpushed="${2:-0}"
 
   echo "🫧 no open branch pr"
-  echo "   ├─ $branch"
   if [[ "$unpushed" -gt 0 ]]; then
-    echo "   ├─ $unpushed unpushed commit(s)"
+    echo "   ├─ $branch"
+    echo "   └─ $unpushed unpushed commit(s)"
+  else
+    echo "   └─ $branch"
   fi
-  echo -e "   └─ \033[2mhint: use git.commit.push to push and findsert pr\033[0m"
+  # the next move is a coconut, apart from the diagnosis (rule.require.coconut-hints)
+  print_coconut_hint "push the branch; the push findserts its pr" \
+    "rhx git.commit.push --mode apply"
 }
 
 ######################################################################

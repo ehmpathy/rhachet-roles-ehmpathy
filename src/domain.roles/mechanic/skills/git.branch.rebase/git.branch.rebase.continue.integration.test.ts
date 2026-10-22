@@ -271,6 +271,43 @@ const setupNoRebase = (): string => {
 };
 
 /**
+ * .what = setup a real interactive rebase, stopped to edit each of N commits
+ * .why = exercise continue against git's true rebase state, not a simulation
+ */
+const setupRealEditRebase = (input: { commits: number }): string => {
+  const tempDir = setupNoRebase();
+
+  // N commits on a feature branch atop main
+  spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+  spawnSync('git', ['checkout', '-b', 'feature/test-branch'], {
+    cwd: tempDir,
+  });
+  Array.from({ length: input.commits }, (_, index) => index).forEach(
+    (index) => {
+      fs.writeFileSync(
+        path.join(tempDir, `feature-${index}.txt`),
+        `feature content ${index}\n`,
+      );
+      spawnSync('git', ['add', `feature-${index}.txt`], { cwd: tempDir });
+      spawnSync('git', ['commit', '-m', `fix(api): feature ${index}`], {
+        cwd: tempDir,
+      });
+    },
+  );
+
+  // a real interactive rebase that stops to edit each commit
+  spawnSync('git', ['rebase', '-i', 'main'], {
+    cwd: tempDir,
+    env: {
+      ...process.env,
+      GIT_SEQUENCE_EDITOR: "sed -i -e 's/^pick /edit /'",
+    },
+  });
+
+  return tempDir;
+};
+
+/**
  * .what = run git.branch.rebase.continue skill
  * .why = execute skill and capture output
  */
@@ -504,4 +541,78 @@ describe('git.branch.rebase.continue', () => {
       });
     },
   );
+
+  given(
+    '[case8] a real rebase that stops at each commit, with no conflict',
+    () => {
+      when('[t0] continue moves past one stop to the next', () => {
+        then('exit 0: renders the rebase as still in progress', () => {
+          const tempDir = setupRealEditRebase({ commits: 3 });
+
+          try {
+            const result = runSkill(tempDir);
+
+            expect(result.status).toBe(0);
+            expect(result.stdout).toContain('status: in progress');
+            expect(result.stdout).toContain('left: 1 commits');
+            expect(result.stderr).toEqual('');
+            expect(
+              withGitOutputBodyScrubbed(withHostGitTextScrubbed(result.stdout)),
+            ).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        });
+      });
+    },
+  );
+
+  given(
+    '[case9] a real rebase that stops at its one commit, with no conflict',
+    () => {
+      when('[t0] continue moves past the last stop', () => {
+        then('exit 0: renders the rebase complete, ready to push', () => {
+          const tempDir = setupRealEditRebase({ commits: 1 });
+
+          try {
+            const result = runSkill(tempDir);
+
+            expect(result.status).toBe(0);
+            expect(result.stdout).toContain('status: complete');
+            expect(result.stdout).toContain('🌊 ready to push');
+            expect(result.stdout).toContain('└─ rhx git.commit.push');
+            expect(result.stderr).toEqual('');
+            expect(
+              withGitOutputBodyScrubbed(withHostGitTextScrubbed(result.stdout)),
+            ).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        });
+      });
+    },
+  );
+
+  given('[case10] an argument the skill does not know', () => {
+    when('[t0] continue is called with --bogus', () => {
+      then('exit 2, the refusal rides both streams', () => {
+        const tempDir = setupNoRebase();
+
+        try {
+          const result = runSkill(tempDir, ['--bogus']);
+
+          expect(result.status).toBe(2);
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: unknown argument: --bogus',
+          );
+          expect(result.stderr).toContain(
+            '✋ ConstraintError: unknown argument: --bogus',
+          );
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+  });
 });
