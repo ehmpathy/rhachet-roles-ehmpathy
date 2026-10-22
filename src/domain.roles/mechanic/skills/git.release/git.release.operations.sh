@@ -461,12 +461,15 @@ refund_release_use() {
     return 0
   fi
 
-  # read the stamp; a read that fails is a malfunction, never a human's change
-  local stamp_read
-  if ! stamp_read=$(jq -c --arg nonce "$RELEASE_SPEND_NONCE" \
-    '{ ours: ((.spent // "") == $nonce and $nonce != ""), uses: .uses }' "$stamp_file"); then
-    echo "💥 MalfunctionError: could not refund the release use; .meter/$stamp_name could not be read"
-    echo "💥 MalfunctionError: could not refund the release use; .meter/$stamp_name could not be read" >&2
+  # read the stamp; a read that fails is a malfunction, never a human's change.
+  # jq's own cause rides inside the tree line, never as a raw line beside it
+  local stamp_read jq_cause
+  if ! jq_cause=$(jq empty "$stamp_file" 2>&1 >/dev/null) \
+    || ! stamp_read=$(jq -c --arg nonce "$RELEASE_SPEND_NONCE" \
+      '{ ours: ((.spent // "") == $nonce and $nonce != ""), uses: .uses }' "$stamp_file" 2>/dev/null); then
+    local read_failure="could not refund the release use; .meter/$stamp_name could not be read${jq_cause:+ (jq: ${jq_cause//$'\n'/ })}"
+    echo "   ├─ 💥 MalfunctionError: $read_failure"
+    echo "   ├─ 💥 MalfunctionError: $read_failure" >&2
     return 1
   fi
 
@@ -483,8 +486,8 @@ refund_release_use() {
   local file_temp="${stamp_file}.tmp.$$"
   if ! printf '{\n  "uses": %s\n}\n' "$uses_back" > "$file_temp" || ! mv -f "$file_temp" "$stamp_file"; then
     rm -f "$file_temp"
-    echo "💥 MalfunctionError: could not refund the release use; .meter/$stamp_name was not written"
-    echo "💥 MalfunctionError: could not refund the release use; .meter/$stamp_name was not written" >&2
+    echo "   ├─ 💥 MalfunctionError: could not refund the release use; .meter/$stamp_name was not written"
+    echo "   ├─ 💥 MalfunctionError: could not refund the release use; .meter/$stamp_name was not written" >&2
     return 1
   fi
   RELEASE_USE_SPENT="false"
@@ -516,6 +519,12 @@ arm_release_merge() {
   if [[ "$spent_here" == "true" ]]; then
     refund_release_use || true
   fi
+
+  # close the transport tree on the failure, on both streams: the arm shipped
+  # naught, and a render that ends on an open branch reads as a hang
+  local arm_failure="   └─ 💥 MalfunctionError: could not arm the merge of pr #$pr_number; gh printed the cause on stderr"
+  echo "$arm_failure"
+  echo "$arm_failure" >&2
   return 1
 }
 
@@ -838,9 +847,8 @@ emit_unpushed_refusal() {
     echo ""
     echo "🥥 did you know?"
     echo "   ├─ the pr holds only what was pushed; push first, then release"
-    echo "   ├─ rhx git.commit.push --mode apply"
-    echo "   └─ a push rides the commit grant, not the release stamp; if push refuses, ask your human"
-    echo "      └─ git.commit.uses set --quant N"
+    echo "   ├─ a push rides the commit grant, not the release stamp; if push refuses, ask your human for git.commit.uses set --quant N"
+    echo "   └─ rhx git.commit.push --mode apply"
   )
   echo "$refusal"
   echo "$refusal" >&2

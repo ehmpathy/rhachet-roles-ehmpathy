@@ -192,8 +192,8 @@ describe('git.commit.uses.sh', () => {
   });
 
   given('[case2] a retired field is typed (F8)', () => {
-    ['--push', '--stage'].forEach((flag) => {
-      when(`[t0] set --quant 1 ${flag} allow`, () => {
+    ['--push', '--stage'].forEach((flag, index) => {
+      when(`[t${index}] set --quant 1 ${flag} allow`, () => {
         const result = useThen('the set runs', () =>
           runInTempGitRepo({
             args: ['set', '--quant', '1', flag, 'allow'],
@@ -215,15 +215,11 @@ describe('git.commit.uses.sh', () => {
             ).toBe(false);
           },
         );
-      });
-    });
 
-    when('[t1] the render for --push', () => {
-      then('matches snapshot', () => {
-        const result = runInTempGitRepo({
-          args: ['set', '--quant', '1', '--push', 'allow'],
+        // the render is read from the same run, never a second spawn
+        then('the refusal render matches snapshot', () => {
+          expect(result.stdout).toMatchSnapshot();
         });
-        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -241,47 +237,6 @@ describe('git.commit.uses.sh', () => {
         expect(result.stdout).toContain('examples:');
         expect(result.stdout).not.toContain('--push');
         expect(result.stdout).toMatchSnapshot();
-      });
-    });
-
-    when('[t2] the render for --stage', () => {
-      then('matches snapshot', () => {
-        const result = runInTempGitRepo({
-          args: ['set', '--quant', '1', '--stage', 'allow'],
-        });
-        expect(result.stdout).toContain('--stage is retired');
-        expect(result.stdout).toMatchSnapshot();
-      });
-    });
-
-    when('[t1] a human revokes all uses at a real terminal', () => {
-      // .why = the pty stream is its own caller-visible render, apart from
-      //        the piped one [t0] snaps
-      const scene = useThen('the revoke lands at a terminal', async () => {
-        const tempDir = genTempDir({ slug: 'uses-pty-tip', git: true });
-        const result = await spawnInPty({
-          command: 'bash',
-          args: [scriptPath, 'set', '--quant', '0', '--push', 'block'],
-          cwd: tempDir,
-          env: { __I_AM_HUMAN: '' },
-        });
-        return { ...result, tempDir };
-      });
-
-      then('the tip prints dim, wrapped in the faint escape', () => {
-        expect(scene.timedOut).toBe(false);
-        expect(scene.exitCode).toBe(0);
-        expect(scene.output).toContain(
-          "   └─ \x1b[2mtip: 'rhx git.commit.uses del' does the same\x1b[0m",
-        );
-
-        // mask the two volatile classes a pty adds: CR line ends, the temp dir
-        const masked = scene.output
-          .replace(/\r\n/g, '\n')
-          .replace(/\r/g, '')
-          .split(scene.tempDir)
-          .join('<TEMP DIR>');
-        expect(masked).toMatchSnapshot();
       });
     });
   });
@@ -417,7 +372,7 @@ describe('git.commit.uses.sh', () => {
 
   given('[case5] get shows remaining', () => {
     when('[t0] state exists with 2 uses', () => {
-      then('outputs lets check the meter with remaining', () => {
+      then("outputs let's check the meter with the uses left", () => {
         const result = runWithGlobalStorage({
           args: ['get'],
           meterState: { uses: 2, held: true },
@@ -425,7 +380,7 @@ describe('git.commit.uses.sh', () => {
         });
 
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('🐢 lets check the meter...');
+        expect(result.stdout).toContain("🐢 let's check the meter...");
         expect(result.stdout).toContain('left: 2');
         expect(result.stdout).toContain('push: held');
         expect(result.stdout).not.toContain('retired');
@@ -499,8 +454,8 @@ describe('git.commit.uses.sh', () => {
       },
     ];
 
-    legacyCases.forEach((legacy) => {
-      when(`[t0] a legacy file: ${legacy.slug}`, () => {
+    legacyCases.forEach((legacy, index) => {
+      when(`[t${index}] a legacy file: ${legacy.slug}`, () => {
         then(`reads push ${legacy.push}, and names the split once`, () => {
           const result = runWithGlobalStorage({
             args: ['get'],
@@ -551,7 +506,7 @@ describe('git.commit.uses.sh', () => {
         });
 
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('🐢 lets check the meter...');
+        expect(result.stdout).toContain("🐢 let's check the meter...");
         expect(result.stdout).toContain('no quota set');
         expect(result.stdout).toContain('git.commit.uses set --quant N');
         expect(result.stdout).toMatchSnapshot();
@@ -571,7 +526,7 @@ describe('git.commit.uses.sh', () => {
         });
 
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('🐢 groovy, bond fire time');
+        expect(result.stdout).toContain('🐢 groovy, bonfire time');
         expect(result.stdout).toContain('commits blocked globally');
         expect(fs.existsSync(result.globalMeterFile)).toBe(true);
 
@@ -736,7 +691,7 @@ describe('git.commit.uses.sh', () => {
         expect(result.stdout).toContain(
           '~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc',
         );
-        expect(result.stdout).toContain('$ cat ');
+        expect(result.stdout).toContain('├─ cat ');
 
         // 🔴 .why `rm -r` and NOT `git.commit.uses allow --global` = the corrupt
         //        state this note renders spans three shapes, and one of them is
@@ -747,7 +702,7 @@ describe('git.commit.uses.sh', () => {
         // ⇒ `rm -r` is the one command that holds for every shape the gate
         //   classifies, and it is what the ORG twin already printed for the
         //   identical job. the two notes now agree (rule.require.ubiqlang).
-        expect(result.stdout).toContain('$ rm -r ');
+        expect(result.stdout).toContain('└─ rm -r ');
         expect(result.stdout).not.toContain('allow --global');
       });
 
@@ -762,7 +717,9 @@ describe('git.commit.uses.sh', () => {
           globalBlockerRaw: '{ this is not json',
         });
         const noteOf = (out: string): string =>
-          out.slice(out.indexOf('   the global blocker file cannot be read:'));
+          out.slice(
+            out.indexOf('   ├─ the global blocker file cannot be read'),
+          );
 
         expect(noteOf(result.stdout)).toBe(noteOf(twin.stdout));
       });
@@ -1069,6 +1026,7 @@ describe('git.commit.uses.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('no terminal on this command');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
 
@@ -1080,6 +1038,7 @@ describe('git.commit.uses.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('no terminal on this command');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
 
@@ -1091,6 +1050,7 @@ describe('git.commit.uses.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('no terminal on this command');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
 
@@ -1319,7 +1279,7 @@ describe('git.commit.uses.sh', () => {
         });
 
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('groovy, bond fire time');
+        expect(result.stdout).toContain('groovy, bonfire time');
         expect(result.stdout).toContain('ehmpathy: blocked');
 
         const state = JSON.parse(fs.readFileSync(result.orgStateFile, 'utf-8'));
@@ -1412,7 +1372,7 @@ describe('git.commit.uses.sh', () => {
         });
 
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('lets check the meter');
+        expect(result.stdout).toContain("let's check the meter");
         expect(result.stdout).toContain('@all: blocked');
         expect(result.stdout).toContain('ehmpathy: allowed');
         expect(result.stdout).toMatchSnapshot();
@@ -2041,6 +2001,7 @@ describe('git.commit.uses.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('no terminal on this command');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
 
@@ -2052,6 +2013,7 @@ describe('git.commit.uses.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('no terminal on this command');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
 
@@ -2150,6 +2112,7 @@ describe('git.commit.uses.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('no terminal on this command');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
 

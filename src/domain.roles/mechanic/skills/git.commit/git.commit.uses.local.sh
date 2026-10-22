@@ -33,7 +33,7 @@ set_meter_scope commit
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  emit_both "✋ ConstraintError: not in a git repository"
+  emit_usage_refusal --skill git.commit.uses --message "not in a git repository"
   exit 2
 fi
 
@@ -42,7 +42,9 @@ METER_DIR="$REPO_ROOT/.meter"
 STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 
 USAGE="usage: git.commit.uses set --quant N
-       git.commit.uses allow | block | del | get"
+       git.commit.uses allow | block | del | get
+       git.commit.uses allow | block | get --global
+       git.commit.uses allow | block | del | get --org <org>"
 
 # parse command (set or get)
 COMMAND=""
@@ -127,8 +129,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      emit_both "✋ ConstraintError: unknown option: $1
-$USAGE"
+      emit_usage_refusal --skill git.commit.uses --message "unknown option: $1"
       exit 2
       ;;
     *)
@@ -139,8 +140,7 @@ done
 
 # validate command
 if [[ -z "$COMMAND" ]]; then
-  emit_both "✋ ConstraintError: command required (set, del, block, allow, or get)
-$USAGE"
+  emit_usage_refusal --skill git.commit.uses --message "command required (set, del, block, allow, or get)"
   exit 2
 fi
 
@@ -150,7 +150,7 @@ fi
 ######################################################################
 case "$COMMAND" in
   set|del|block|allow)
-    guard_actor_is_human_via_stdin "git.commit.uses $COMMAND"
+    guard_actor_is_human_via_stdin "git.commit.uses $COMMAND${QUANT:+ --quant $QUANT}"
     ;;
 esac
 
@@ -169,12 +169,11 @@ case "$COMMAND" in
   set|del|block|allow)
     # validate --quant
     if [[ -z "$QUANT" ]]; then
-      emit_both "✋ ConstraintError: --quant N is required
-$USAGE"
+      emit_usage_refusal --skill git.commit.uses --message "--quant N is required"
       exit 2
     fi
     if [[ "$QUANT" != "infinite" ]] && ! [[ "$QUANT" =~ ^[0-9]+$ ]]; then
-      emit_both "✋ ConstraintError: --quant must be a non-negative integer or 'infinite'"
+      emit_usage_refusal --skill git.commit.uses --message "--quant must be a non-negative integer or 'infinite'"
       exit 2
     fi
 
@@ -262,7 +261,7 @@ $USAGE"
     if [[ "$LOCAL_STATUS" -eq 1 ]]; then
       emit_both "$(
         print_turtle_header "bummer dude..."
-        print_tree_start "git.commit.uses"
+        print_tree_start "git.commit.uses get"
         print_tree_malfunction "commit quota file corrupt"
         print_local_meter_damaged_fix file="${STATE_FILE#"$REPO_ROOT/"}"
       )"
@@ -271,8 +270,8 @@ $USAGE"
 
     # no grant on this tree
     if [[ "$LOCAL_STATUS" -eq 2 ]]; then
-      print_turtle_header "lets check the meter..."
-      print_tree_start "git.commit.uses"
+      print_turtle_header "let's check the meter..."
+      print_tree_start "git.commit.uses get"
       if [[ "$GLOBAL_BLOCKED" == "true" ]]; then
         echo "   ├─ no quota set"
         echo "   └─ global: $GLOBAL_BLOCK_LABEL"
@@ -290,8 +289,8 @@ $USAGE"
     USES_DISPLAY="$(as_meter_uses_display uses="$COMMIT_USES")"
     PUSH_DISPLAY="$(as_commit_push_display held="$COMMIT_HELD")"
 
-    print_turtle_header "lets check the meter..."
-    print_tree_start "git.commit.uses"
+    print_turtle_header "let's check the meter..."
+    print_tree_start "git.commit.uses get"
     echo "   └─ meter"
     echo "      ├─ left: $USES_DISPLAY"
     if [[ "$GLOBAL_BLOCKED" == "true" ]]; then
@@ -307,8 +306,7 @@ $USAGE"
     ;;
 
   *)
-    emit_both "✋ ConstraintError: unknown command: $COMMAND
-$USAGE"
+    emit_usage_refusal --skill git.commit.uses --message "unknown command: $COMMAND"
     exit 2
     ;;
 esac

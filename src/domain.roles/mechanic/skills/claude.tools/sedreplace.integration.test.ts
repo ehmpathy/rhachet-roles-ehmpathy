@@ -179,6 +179,7 @@ describe('sedreplace.sh', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('unbound glob');
         expect(result.stderr).toContain("--glob 'src/**/*.ts'");
+        expect(result.stdout).toMatchSnapshot();
       });
     });
 
@@ -363,6 +364,8 @@ describe('sedreplace.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('--old pattern is required');
+        // a refusal rides both streams (rule.require.skill-output-streams)
+        expect(result.stdout).toContain('--old pattern is required');
         expect(result.stderr.trim()).toMatchSnapshot();
       });
     });
@@ -1880,6 +1883,9 @@ describe('sedreplace.sh', () => {
         expect(result.status).toBe(2);
         expect(result.stderr).toContain('cannot apply without plan');
         expect(result.stderr).toContain('--mode plan');
+        // a refusal rides both streams (rule.require.skill-output-streams)
+        expect(result.stdout).toContain('cannot apply without plan');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
 

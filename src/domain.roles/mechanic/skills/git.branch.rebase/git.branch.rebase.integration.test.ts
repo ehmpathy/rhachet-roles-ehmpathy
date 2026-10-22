@@ -182,9 +182,12 @@ describe('git.branch.rebase.sh', () => {
             cwd: tempDir,
             encoding: 'utf-8',
           });
-          // exits 2 (a constraint: no rebase in progress), which proves dispatch worked
+          // exits 2 (a caller-must-fix constraint: no rebase in progress), and the
+          // continue skill's own refusal proves the dispatch reached it
           expect(result.status).toEqual(2);
-          expect(result.stdout).toContain('no rebase in progress');
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: no rebase in progress',
+          );
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }

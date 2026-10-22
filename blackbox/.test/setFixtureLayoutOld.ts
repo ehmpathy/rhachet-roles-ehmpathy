@@ -4,6 +4,16 @@ import * as path from 'path';
 import { ConstraintError } from 'helpful-errors';
 
 /**
+ * .what = whether a link's real target sits within a dir
+ * .why = a link that stays inside the fixture is safe to write through
+ */
+const isLinkWithinDir = (input: { link: string; dir: string }): boolean => {
+  const dirReal = fs.realpathSync(input.dir);
+  const targetReal = fs.realpathSync(input.link);
+  return targetReal === dirReal || targetReal.startsWith(dirReal + path.sep);
+};
+
+/**
  * .what = pin a linked fixture repo to the old (pre-1.49.2) settings layout
  * .why = `rhachet roles link` seeds the split layout: `.claude/settings.of.repo.json` ({}) and a
  *        `.claude/settings.json` link to the home defaults. a suite whose subject is the old layout
@@ -14,14 +24,15 @@ import { ConstraintError } from 'helpful-errors';
 export const setFixtureLayoutOld = (input: { dir: string }): void => {
   const claudeDir = path.join(input.dir, '.claude');
 
-  // refuse a linked .claude: a removal below would follow it and delete a
-  // file outside the fixture repo
+  // refuse a .claude link that escapes the fixture: a removal below would
+  // follow it and delete a file outside the fixture repo. a link into the
+  // fixture's own actor dir (rhachet >= 1.49 seeds one) stays inside it
   const claudeStat = fs.lstatSync(claudeDir, { throwIfNoEntry: false });
-  if (claudeStat?.isSymbolicLink())
-    throw new ConstraintError('fixture layout refused: .claude is a link', {
+  if (claudeStat?.isSymbolicLink() && !isLinkWithinDir({ link: claudeDir, dir: input.dir }))
+    throw new ConstraintError('fixture layout refused: .claude links outside the fixture', {
       claudeDir,
       linkTo: fs.readlinkSync(claudeDir),
-      hint: 'the fixture repo must own a real .claude dir',
+      hint: 'the fixture repo must own its .claude dir',
     });
   fs.mkdirSync(claudeDir, { recursive: true });
 

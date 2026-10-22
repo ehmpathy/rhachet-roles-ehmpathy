@@ -24,7 +24,8 @@ their asserts span three suites, so C is safe but not clean.
 | no commit uses left | 2 | ✋ ConstraintError |
 | the local quota file is damaged | 1 | 💥 MalfunctionError |
 | origin/<branch> cannot be read (F7 probe) | 1 | 💥 MalfunctionError |
-| on main · dirty tree · rebase in progress · fetch of main failed | 1 | `error:` (untouched; the dream) |
+| on main · dirty tree · rebase in progress | 2 | ✋ ConstraintError (begin `[case5]` `[case6]` `[case8]` pin exit 2) |
+| fetch of main failed · origin holds no main · a count cannot be read | 1 | 💥 MalfunctionError (begin `[case12]`) |
 
 ## .rework
 
@@ -41,4 +42,5 @@ dream: `.dream/2026_10_21.rebase-begin-exit-code-semantics.dream.md` (linked fro
 
 ## .verdict
 
-open.
+overtaken — C landed: the 5.3 i003 refusal-frame repair (r6 blocker.1) framed every begin
+refusal, so each arm now follows the rule, as the table shows. the dream is moot.

@@ -259,6 +259,9 @@ describe('git.release :: the real external boundary, with no credential', () => 
                 stillCrickets: true,
                 didNotClaimAQueryFailure: true,
               });
+
+              // pin the crickets frame itself, so its words and glyphs cannot drift
+              expect(asSnapshotReady(result.stdout)).toMatchSnapshot();
             },
           );
         },

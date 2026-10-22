@@ -314,6 +314,8 @@ describe('git.release.p7.from_main.why_guard', () => {
             fakeBinDir,
             human: false,
           });
+          // the plan reads the released scene, exit 0 — a parse refusal would exit 2
+          expect(result.status).toEqual(0);
           // guard must NOT fire — there is no --from main
           expect(result.stdout).not.toContain('--from main needs a --why');
           // --why must be a recognized arg, never an unknown-argument error
