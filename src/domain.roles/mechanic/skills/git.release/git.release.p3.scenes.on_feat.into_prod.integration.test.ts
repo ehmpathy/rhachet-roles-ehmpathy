@@ -9,7 +9,12 @@ import {
   asSkillExitStatus,
   SKILL_SPAWN_TIMEOUT_MS,
 } from './.test/infra/asSkillExitStatus';
-import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
+import {
+  type Scene,
+  setGitReleaseUsesOrgAllowed,
+  writeSceneGhMock,
+} from './.test/infra/mockGh';
+import { setGitBranchPushed } from './.test/infra/setGitBranchPushed';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
@@ -92,12 +97,14 @@ exit 1
 
   // setup feat branch
   spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], { cwd: tempDir });
+  setGitBranchPushed({ tempDir });
 
   const meterDir = path.join(tempDir, '.meter');
+  setGitReleaseUsesOrgAllowed({ tempDir });
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
-    path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+    path.join(meterDir, 'git.release.uses.jsonc'),
+    JSON.stringify({ uses: 'infinite' }),
   );
 
   return {
@@ -1582,6 +1589,56 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
         });
       });
     });
+
+    // ------------------------------------------------------------------------
+    // one finite stamp carries feat → main → prod (vision case=2, case=9)
+    // ------------------------------------------------------------------------
+    given(
+      '[row-49s] one release stamp, two arms: feat pr then release pr',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'passed:wout-automerge',
+          releasePr: 'passed:wout-automerge',
+          tagWorkflows: 'passed',
+        };
+
+        when('[apply] --into prod --apply, with a release stamp of 1', () => {
+          then('both arms ride the one use: it spends once, 1 → 0', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'p3-s2-one-stamp-two-arms',
+            });
+            fs.writeFileSync(
+              path.join(tempDir, '.meter', 'git.release.uses.jsonc'),
+              JSON.stringify({ uses: 1 }),
+            );
+            try {
+              const result = runSkill(['--into', 'prod', '--apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.status).toEqual(0);
+              // .note = a ship leaves the spend's nonce beside uses; only a failed arm reads it
+              expect(
+                JSON.parse(
+                  fs.readFileSync(
+                    path.join(tempDir, '.meter', 'git.release.uses.jsonc'),
+                    'utf-8',
+                  ),
+                ).uses,
+              ).toEqual(0);
+              expect(result.stdout).toContain('release stamp spent: 0 left');
+              expect(
+                result.stdout.split('release stamp spent').length - 1,
+              ).toBe(1);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+      },
+    );
 
     // ------------------------------------------------------------------------
     // rows 52-54: release PR merged, tags failed

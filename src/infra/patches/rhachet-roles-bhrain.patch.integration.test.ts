@@ -71,6 +71,10 @@ describe('rhachet-roles-bhrain patch: promised emit', () => {
         );
         expect(output).not.toContain('next =');
       });
+
+      then('the emit matches snapshot', () => {
+        expect(output).toMatchSnapshot();
+      });
     });
   });
 });

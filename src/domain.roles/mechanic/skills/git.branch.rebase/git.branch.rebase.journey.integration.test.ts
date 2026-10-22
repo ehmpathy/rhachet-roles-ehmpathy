@@ -2,7 +2,7 @@ import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { given, then, when } from 'test-fns';
+import { given, then, useThen, when } from 'test-fns';
 
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
@@ -43,15 +43,15 @@ const setupJourneyRepo = (): { workDir: string; bareDir: string } => {
 };
 
 /**
- * .what = grant push permission for rebase
- * .why = rebase requires push permission in meter state
+ * .what = grant a commit grant for rebase
+ * .why = rebase rides the held commit grant in meter state
  */
-const grantPushPermission = (workDir: string): void => {
+const grantCommitUses = (workDir: string, uses = 5): void => {
   const meterDir = path.join(workDir, '.meter');
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
     path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
+    JSON.stringify({ uses, held: true }, null, 2),
   );
 };
 
@@ -92,11 +92,17 @@ const runRebase = (
   args: string[] = [],
 ): { stdout: string; stderr: string; status: number | null } => {
   const dispatcherPath = path.join(SKILL_DIR, 'git.branch.rebase.sh');
+
+  // isolate HOME beside the work dir: begin reads the host-wide commit
+  // blocker under HOME, so a blocker on the host must never leak in
+  const isolatedHome = path.join(path.dirname(workDir), '.home');
+  fs.mkdirSync(isolatedHome, { recursive: true });
   const result = spawnSync('bash', [dispatcherPath, ...args], {
     cwd: workDir,
     encoding: 'utf-8' as BufferEncoding,
     env: {
       ...process.env,
+      HOME: isolatedHome,
       PATH: process.env.PATH,
       GIT_AUTHOR_NAME: 'Test User',
       GIT_AUTHOR_EMAIL: 'test@test.com',
@@ -177,7 +183,7 @@ describe('git.branch.rebase journey', () => {
         cwd: workDir,
       });
 
-      grantPushPermission(workDir);
+      grantCommitUses(workDir);
     });
 
     afterAll(() => {
@@ -312,7 +318,7 @@ describe('git.branch.rebase journey', () => {
           cwd: workDir,
         });
 
-        grantPushPermission(workDir);
+        grantCommitUses(workDir);
       });
 
       afterAll(() => {
@@ -438,7 +444,7 @@ describe('git.branch.rebase journey', () => {
         cwd: workDir,
       });
 
-      grantPushPermission(workDir);
+      grantCommitUses(workDir);
     });
 
     afterAll(() => {
@@ -533,7 +539,7 @@ describe('git.branch.rebase journey', () => {
           cwd: workDir,
         });
 
-        grantPushPermission(workDir);
+        grantCommitUses(workDir);
       });
 
       afterAll(() => {
@@ -584,6 +590,207 @@ describe('git.branch.rebase journey', () => {
           expect(result.status).toBe(0);
           expect(result.stdout).not.toContain('must edit all merge conflicts');
           expect(result.stdout).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given(
+    '[journey5] zero-commit branch behind main, on a one-use commit grant',
+    () => {
+      // .note = the measured case behind the split: a branch with zero commits
+      //         of its own sat behind main, and the rebase refused for want of
+      //         push. it now moves on the commit grant alone, and spends no use
+      let workDir: string;
+      let baseDir: string;
+
+      beforeAll(() => {
+        const setup = setupJourneyRepo();
+        workDir = setup.workDir;
+        baseDir = path.dirname(workDir);
+
+        // branch off main with zero commits of its own
+        spawnSync('git', ['checkout', '-b', 'feature/zero-commits'], {
+          cwd: workDir,
+        });
+
+        // main moves forward by 2 commits on origin
+        spawnSync('git', ['checkout', 'main'], { cwd: workDir });
+        fs.writeFileSync(path.join(workDir, 'main-a.txt'), 'main a\n');
+        spawnSync('git', ['add', 'main-a.txt'], { cwd: workDir });
+        spawnSync('git', ['commit', '-m', 'chore: main a'], { cwd: workDir });
+        fs.writeFileSync(path.join(workDir, 'main-b.txt'), 'main b\n');
+        spawnSync('git', ['add', 'main-b.txt'], { cwd: workDir });
+        spawnSync('git', ['commit', '-m', 'chore: main b'], { cwd: workDir });
+        spawnSync('git', ['push', 'origin', 'main'], { cwd: workDir });
+        spawnSync('git', ['checkout', 'feature/zero-commits'], {
+          cwd: workDir,
+        });
+
+        grantCommitUses(workDir, 1);
+      });
+
+      afterAll(() => {
+        fs.rmSync(baseDir, { recursive: true, force: true });
+      });
+
+      when('[t0] git.branch.rebase begin --mode apply', () => {
+        then('the branch fast-forwards onto main', () => {
+          const result = runRebase(workDir, ['begin', '--mode', 'apply']);
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain('righteous');
+          // one count on one line; grep -c once printed a second 0 here
+          expect(result.stdout).toContain('commits: 0 ✓');
+          // a fast-forward with no commits of its own leaves naught to push
+          expect(result.stdout).toContain('naught to push');
+          expect(result.stdout).not.toContain('ready to push');
+          const behind = spawnSync(
+            'git',
+            ['rev-list', '--count', 'HEAD..origin/main'],
+            { cwd: workDir, encoding: 'utf-8' as BufferEncoding },
+          );
+          expect(behind.stdout.trim()).toBe('0');
+          expect(result.stdout).toMatchSnapshot();
+        });
+
+        then('the rebase spends no use', () => {
+          const state = JSON.parse(
+            fs.readFileSync(
+              path.join(workDir, '.meter', 'git.commit.uses.jsonc'),
+              'utf-8',
+            ),
+          );
+          expect(state).toEqual({ uses: 1, held: true });
+        });
+      });
+    },
+  );
+
+  given('[journey7] plan on a held grant with zero uses left', () => {
+    // .note = plan is free, so it runs at 0 left; its meter line must not
+    //         claim commits are allowed when apply would refuse
+    let workDir: string;
+    let baseDir: string;
+
+    beforeAll(() => {
+      const setup = setupJourneyRepo();
+      workDir = setup.workDir;
+      baseDir = path.dirname(workDir);
+
+      // a feature commit, then main moves forward by 1 commit on origin
+      spawnSync('git', ['checkout', '-b', 'feature/zero-left'], {
+        cwd: workDir,
+      });
+      fs.writeFileSync(path.join(workDir, 'feat.txt'), 'feat\n');
+      spawnSync('git', ['add', 'feat.txt'], { cwd: workDir });
+      spawnSync('git', ['commit', '-m', 'feat: one'], { cwd: workDir });
+      spawnSync('git', ['checkout', 'main'], { cwd: workDir });
+      fs.writeFileSync(path.join(workDir, 'main-a.txt'), 'main a\n');
+      spawnSync('git', ['add', 'main-a.txt'], { cwd: workDir });
+      spawnSync('git', ['commit', '-m', 'chore: main a'], { cwd: workDir });
+      spawnSync('git', ['push', 'origin', 'main'], { cwd: workDir });
+      spawnSync('git', ['checkout', 'feature/zero-left'], { cwd: workDir });
+
+      grantCommitUses(workDir, 0);
+    });
+
+    afterAll(() => {
+      fs.rmSync(baseDir, { recursive: true, force: true });
+    });
+
+    when('[t0] git.branch.rebase begin (plan)', () => {
+      const result = useThen('the plan runs', () =>
+        runRebase(workDir, ['begin']),
+      );
+
+      then(
+        'the preview says the held grant suffices, never asks for one',
+        () => {
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain(
+            'rebase: spends no use; the held grant suffices',
+          );
+          expect(result.stdout).not.toContain('apply needs a grant');
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
+    });
+  });
+
+  given(
+    '[journey6] zero-commit branch whose remote holds a commit this tree lacks',
+    () => {
+      // .note = a fast-forward onto main, then a push, would orphan the
+      //         remote's commit; begin refuses and names the pull (F7)
+      let workDir: string;
+      let baseDir: string;
+      let headBefore: string;
+
+      beforeAll(() => {
+        const setup = setupJourneyRepo();
+        workDir = setup.workDir;
+        baseDir = path.dirname(workDir);
+
+        // the branch's remote holds one commit; the local tree resets past it
+        spawnSync('git', ['checkout', '-b', 'feature/remote-ahead'], {
+          cwd: workDir,
+        });
+        fs.writeFileSync(path.join(workDir, 'remote-only.txt'), 'remote\n');
+        spawnSync('git', ['add', 'remote-only.txt'], { cwd: workDir });
+        spawnSync('git', ['commit', '-m', 'feat: remote only'], {
+          cwd: workDir,
+        });
+        spawnSync('git', ['push', '-u', 'origin', 'feature/remote-ahead'], {
+          cwd: workDir,
+        });
+        spawnSync('git', ['reset', '--hard', 'main'], { cwd: workDir });
+
+        // main moves forward by 1 commit on origin
+        spawnSync('git', ['checkout', 'main'], { cwd: workDir });
+        fs.writeFileSync(path.join(workDir, 'main-a.txt'), 'main a\n');
+        spawnSync('git', ['add', 'main-a.txt'], { cwd: workDir });
+        spawnSync('git', ['commit', '-m', 'chore: main a'], { cwd: workDir });
+        spawnSync('git', ['push', 'origin', 'main'], { cwd: workDir });
+        spawnSync('git', ['checkout', 'feature/remote-ahead'], {
+          cwd: workDir,
+        });
+
+        grantCommitUses(workDir, 1);
+        headBefore = spawnSync('git', ['rev-parse', 'HEAD'], {
+          cwd: workDir,
+          encoding: 'utf-8' as BufferEncoding,
+        }).stdout.trim();
+      });
+
+      afterAll(() => {
+        fs.rmSync(baseDir, { recursive: true, force: true });
+      });
+
+      when('[t0] git.branch.rebase begin --mode apply', () => {
+        const result = useThen('the begin runs', () =>
+          runRebase(workDir, ['begin', '--mode', 'apply']),
+        );
+
+        then('it refuses as a constraint and names the pull', () => {
+          expect(result.status).toBe(2);
+          expect(result.stdout).toContain('✋ ConstraintError');
+          expect(result.stderr).toContain('holds commits this tree lacks');
+          expect(result.stdout).toContain(
+            'origin/feature/remote-ahead holds commits this tree lacks: 1',
+          );
+          expect(result.stdout).toContain(
+            'git pull --ff-only origin feature/remote-ahead',
+          );
+          expect(result.stdout).toMatchSnapshot();
+        });
+
+        then('the tree does not move', () => {
+          const headAfter = spawnSync('git', ['rev-parse', 'HEAD'], {
+            cwd: workDir,
+            encoding: 'utf-8' as BufferEncoding,
+          }).stdout.trim();
+          expect(headAfter).toBe(headBefore);
         });
       });
     },

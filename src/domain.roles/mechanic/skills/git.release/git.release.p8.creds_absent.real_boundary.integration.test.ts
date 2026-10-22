@@ -22,6 +22,7 @@ import { genTempDir, given, then, useThen, when } from 'test-fns';
 
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
+import { setGitReleaseUsesOrgAllowed } from './.test/infra/mockGh';
 import { asSnapshotReady } from './.test/infra/snapshotOps';
 
 // the credential gate fails fast (an absent file, not a network wait), but the
@@ -43,6 +44,7 @@ const SKILL_PATH = path.join(
 const BUILT_PAIRS: { name: string; src: string; dist: string }[] = [
   'git.release.sh',
   'git.release.operations.sh',
+  'git.release._.guard_release_meter.sh',
 ].map((name) => ({
   name,
   src: path.join(__dirname, name),
@@ -77,10 +79,11 @@ const setupRealBoundaryRepo = (input: {
   spawnSync('git', ['checkout', '-b', 'turtle/feature-x'], { cwd: tempDir });
 
   const meterDir = path.join(tempDir, '.meter');
+  setGitReleaseUsesOrgAllowed({ tempDir });
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
-    path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+    path.join(meterDir, 'git.release.uses.jsonc'),
+    JSON.stringify({ uses: 'infinite' }),
   );
 
   // `${tempDir}/node_modules/.bin/rhachet` is never created: fetch_github_token

@@ -125,6 +125,9 @@ if [[ "$INTO_ABS" != "$REPO_ROOT" && "$INTO_ABS" != "$REPO_ROOT/"* ]]; then
   exit 2
 fi
 
+# refuse a write into a human-held grant (.meter/, .branch/.bind/)
+refuse_if_human_grant --skill teesafe --path "$INTO_ABS" --root "$REPO_ROOT"
+
 # create parent directories if needed
 INTO_ABS_DIR=$(dirname "$INTO_ABS")
 if [[ ! -d "$INTO_ABS_DIR" ]]; then

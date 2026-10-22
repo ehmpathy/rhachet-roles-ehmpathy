@@ -9,7 +9,7 @@ import { ConstraintError } from 'helpful-errors';
  *        links to `$HOME/.claude/settings.json`. a plain writeFileSync follows both links and
  *        overwrites the runner's own home settings (rule.require.hermetic-tests)
  */
-export const writeFixtureFile = (input: {
+export const setFixtureFile = (input: {
   dir: string;
   relPath: string;
   content: string;
@@ -29,7 +29,9 @@ export const writeFixtureFile = (input: {
   fs.mkdirSync(path.dirname(target), { recursive: true });
   const repoReal = fs.realpathSync(input.dir);
   const parentReal = fs.realpathSync(path.dirname(target));
-  if (parentReal !== repoReal && !parentReal.startsWith(`${repoReal}${path.sep}`))
+  const isParentWithinRepo =
+    parentReal === repoReal || parentReal.startsWith(`${repoReal}${path.sep}`);
+  if (!isParentWithinRepo)
     throw new ConstraintError('fixture write refused: target resolves outside the repo', {
       target,
       parentReal,

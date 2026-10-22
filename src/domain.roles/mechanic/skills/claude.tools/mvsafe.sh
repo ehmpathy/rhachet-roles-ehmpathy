@@ -186,6 +186,11 @@ if [[ "$IS_DIR_MOVE" == "true" ]]; then
     exit 2
   fi
 
+  # refuse a move out of a human-held grant; the source's own dir is read
+  # unresolved, so a link inside a grant is caught too
+  refuse_if_human_grant --skill mvsafe --path "$FROM_ABS" --root "$REPO_ROOT"
+  refuse_if_human_grant --skill mvsafe --path "$(dirname "$(realpath -ms "$FROM")")" --root "$REPO_ROOT"
+
   # determine dest path
   INTO_DIR=$(dirname "$INTO")
   INTO_BASE=$(basename "$INTO")
@@ -202,6 +207,9 @@ if [[ "$IS_DIR_MOVE" == "true" ]]; then
     echo "  dest:      $INTO_ABS"
     exit 2
   fi
+
+  # refuse a write into a human-held grant (.meter/, .branch/.bind/)
+  refuse_if_human_grant --skill mvsafe --path "$INTO_ABS" --root "$REPO_ROOT"
 
   # create parent directories if needed
   INTO_ABS_DIR=$(dirname "$INTO_ABS")
@@ -289,6 +297,11 @@ for i in "${!FILES[@]}"; do
     exit 2
   fi
 
+  # refuse a move out of a human-held grant; the source's own dir is read
+  # unresolved, so a link inside a grant is caught too
+  refuse_if_human_grant --skill mvsafe --path "$FROM_ABS" --root "$REPO_ROOT"
+  refuse_if_human_grant --skill mvsafe --path "$(dirname "$(realpath -ms "$FILE")")" --root "$REPO_ROOT"
+
   # determine destination path
   if [[ $FILE_COUNT -gt 1 ]] || [[ -d "$INTO" ]]; then
     # multiple files or dest is directory: move into directory
@@ -311,6 +324,9 @@ for i in "${!FILES[@]}"; do
     echo "  dest:      $INTO_ABS"
     exit 2
   fi
+
+  # refuse a write into a human-held grant (.meter/, .branch/.bind/)
+  refuse_if_human_grant --skill mvsafe --path "$INTO_ABS" --root "$REPO_ROOT"
 
   # create parent directories if needed
   INTO_ABS_DIR=$(dirname "$INTO_ABS")

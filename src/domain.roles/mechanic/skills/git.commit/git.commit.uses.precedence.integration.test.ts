@@ -32,7 +32,7 @@ describe('git.commit.uses precedence matrix', () => {
       | { org: string; state: 'blocked' | 'allowed' }
       | '@all-blocked'
       | '@all-allowed';
-    localState?: { uses: number; push: 'allow' | 'block' };
+    localState?: { uses: number; held: boolean };
     keyrackOrg: string;
   }): {
     stdout: string;
@@ -171,7 +171,7 @@ describe('git.commit.uses precedence matrix', () => {
         const result = runPushWithPrecedence({
           globalState: 'blocked',
           orgState: { org: 'ehmpathy', state: 'allowed' },
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: 'ehmpathy',
         });
 
@@ -188,7 +188,7 @@ describe('git.commit.uses precedence matrix', () => {
         const result = runPushWithPrecedence({
           globalState: 'blocked',
           orgState: { org: 'ehmpathy', state: 'allowed' },
-          localState: { uses: 3, push: 'block' },
+          localState: { uses: 0, held: false },
           keyrackOrg: 'ehmpathy',
         });
 
@@ -220,7 +220,7 @@ describe('git.commit.uses precedence matrix', () => {
         const result = runPushWithPrecedence({
           globalState: 'blocked',
           orgState: { org: 'ehmpathy', state: 'blocked' },
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: 'ehmpathy',
         });
 
@@ -236,7 +236,7 @@ describe('git.commit.uses precedence matrix', () => {
         const result = runPushWithPrecedence({
           globalState: 'blocked',
           orgState: undefined,
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: 'ehmpathy',
         });
 
@@ -256,7 +256,7 @@ describe('git.commit.uses precedence matrix', () => {
         const result = runPushWithPrecedence({
           globalState: undefined,
           orgState: { org: 'ehmpathy', state: 'blocked' },
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: 'ehmpathy',
         });
 
@@ -273,7 +273,7 @@ describe('git.commit.uses precedence matrix', () => {
         const result = runPushWithPrecedence({
           globalState: undefined,
           orgState: '@all-blocked',
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: 'ehmpathy',
         });
 
@@ -294,7 +294,7 @@ describe('git.commit.uses precedence matrix', () => {
         const result = runPushWithPrecedence({
           globalState: undefined,
           orgState: { org: 'ehmpathy', state: 'allowed' },
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: 'ehmpathy',
         });
 
@@ -307,16 +307,16 @@ describe('git.commit.uses precedence matrix', () => {
 
   given('[global=unset, org=allowed, local=blocked]', () => {
     when('[t0] push is attempted', () => {
-      then('blocked by local push config', () => {
+      then('blocked by the revoked local grant', () => {
         const result = runPushWithPrecedence({
           globalState: undefined,
           orgState: { org: 'ehmpathy', state: 'allowed' },
-          localState: { uses: 3, push: 'block' },
+          localState: { uses: 0, held: false },
           keyrackOrg: 'ehmpathy',
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('push not allowed');
+        expect(result.stdout).toContain('no commit grant held');
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -333,7 +333,7 @@ describe('git.commit.uses precedence matrix', () => {
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('push not allowed');
+        expect(result.stdout).toContain('no commit grant held');
       });
     });
   });
@@ -344,7 +344,7 @@ describe('git.commit.uses precedence matrix', () => {
         const result = runPushWithPrecedence({
           globalState: undefined,
           orgState: '@all-allowed',
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: 'ehmpathy',
         });
 
@@ -364,7 +364,7 @@ describe('git.commit.uses precedence matrix', () => {
         const result = runPushWithPrecedence({
           globalState: undefined,
           orgState: undefined,
-          localState: { uses: 3, push: 'allow' },
+          localState: { uses: 3, held: true },
           keyrackOrg: 'ehmpathy',
         });
 
@@ -388,7 +388,7 @@ describe('git.commit.uses precedence matrix', () => {
   // | unset   | blocked  | allowed  | blocked | org blocks                  |
   // | unset   | @all-blk | allowed  | blocked | @all default blocks         |
   // | unset   | allowed  | allowed  | allowed | all levels allow            |
-  // | unset   | allowed  | blocked  | blocked | local push blocked          |
+  // | unset   | allowed  | blocked  | blocked | local grant revoked         |
   // | unset   | allowed  | unset    | blocked | no local quota              |
   // | unset   | @all-alw | allowed  | allowed | @all default + local allow  |
   // | unset   | unset    | allowed  | blocked | no org config               |

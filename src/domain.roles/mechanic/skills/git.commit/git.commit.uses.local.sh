@@ -2,32 +2,34 @@
 ######################################################################
 # .what = manage local git commit quota for mechanics
 #
-# .why  = humans control how many commits a mechanic can make
-#         and whether push is allowed in this repo
+# .why  = humans control how many commits a mechanic can make in this
+#         repo. the grant covers commit, stage, rebase, and push to the
+#         tree's own feature branch. it never ships — a release rides
+#         git.release.uses alone
 #
 # usage:
-#   git.commit.uses.local set --quant 3 --push block --stage block
-#   git.commit.uses.local set --quant 1 --push allow --stage allow
-#   git.commit.uses.local set --quant 0               # revoke (--push/--stage default to block)
-#   git.commit.uses.local del                         # same as set --quant 0
+#   git.commit.uses.local set --quant 3               # grant three commits
+#   git.commit.uses.local set --quant 0               # commit no more; push stays held
+#   git.commit.uses.local del                         # revoke (commit + push)
 #   git.commit.uses.local block                       # alias for del
-#   git.commit.uses.local allow                       # shorthand for unlimited with push+stage allowed
+#   git.commit.uses.local allow                       # unlimited
 #   git.commit.uses.local get
 #
 # guarantee:
-#   - --push is required on set (except --quant 0 which defaults to block)
-#   - --stage defaults to block if not specified
-#   - state stored in .meter/git.commit.uses.jsonc
+#   - state stored in .meter/git.commit.uses.jsonc as { "uses": N|"infinite", "held": bool }
+#   - a depletion lowers uses and keeps the grant held, so a crew can push
+#     the commit that spent its last use; only block / del revoke (F16)
+#   - --push and --stage are retired; each refuses and names the split
 ######################################################################
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/output.sh"
 
-# .why = for `read_sponsor_state`. the sponsor nudge below must ask the SAME
-#        question `git.commit.set` asks before it refuses, and one shared
-#        reader is what keeps the two from a drift in the answer.
+# .why = for `read_sponsor_state` and `get_one_commit_local_grant`. one shared
+#        reader per fact keeps every surface from a drift in the answer
 source "$SCRIPT_DIR/git.commit.operations.sh"
+set_meter_scope commit
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
@@ -39,17 +41,12 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 METER_DIR="$REPO_ROOT/.meter"
 STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 
-# .note = GLOBAL_METER_FILE (and ROLE_REPO / ROLE_SLUG) come from the sourced
-#         git.commit.operations.sh. this file declared them a SECOND time until
-#         the source above landed, which left two constructions of one path —
-#         and `F2` named this exact path fabrication-risk-sensitive, since it
-#         scopes to a unix ACCOUNT rather than a person.
+USAGE="usage: git.commit.uses set --quant N
+       git.commit.uses allow | block | del | get"
 
 # parse command (set or get)
 COMMAND=""
 QUANT=""
-PUSH=""
-STAGE=""
 VIA_DEL=""
 
 # first positional arg is command
@@ -65,56 +62,58 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --quant)
-      # 🔴 shift ONE, then take a value only if one is really there — a bare
-      #    `shift 2` crashes raw (bash's own `shift: shift count out of
-      #    range`, exit 1) when the flag is the last arg. a bare flag here
-      #    leaves QUANT empty, which the extant `-z "$QUANT"` checks below
-      #    already turn into a curated constraint.
+      # shift ONE, then take a value only if one is really there; a bare flag
+      # leaves QUANT empty, which the `-z "$QUANT"` check turns into a constraint
       shift
       if [[ $# -gt 0 && "$1" != --* ]]; then
         QUANT="$1"
         shift
       fi
       ;;
-    --push)
-      shift
-      if [[ $# -gt 0 && "$1" != --* ]]; then
-        PUSH="$1"
-        shift
-      fi
-      ;;
-    --stage)
-      shift
-      if [[ $# -gt 0 && "$1" != --* ]]; then
-        STAGE="$1"
-        shift
-      fi
+    --push|--stage)
+      # the retired fields refuse loudly: a habit that typed them must learn
+      # the split, never meet a silent no-op (F8)
+      emit_both "$(
+        print_turtle_header "bummer dude..."
+        print_tree_start "git.commit.uses"
+        print_tree_constraint "$1 is retired"
+        print_coconut_hint "the commit grant covers commit, stage, rebase, and push; a release rides its own meter" \
+          "git.commit.uses set --quant N     # commit + push" \
+          "git.release.uses set --quant 1    # ship"
+      )"
+      exit 2
       ;;
     --help|-h)
-      echo "usage: git.commit.uses set --quant N --push allow|block [--stage allow|block]"
-      echo "       git.commit.uses del"
-      echo "       git.commit.uses block         (alias for del)"
-      echo "       git.commit.uses allow         (shorthand for unlimited)"
-      echo "       git.commit.uses get"
+      echo "$USAGE"
       echo ""
       echo "commands:"
-      echo "  set    grant commit quota (human only)"
-      echo "  del    revoke quota (shortcut for set --quant 0 --push block --stage block)"
+      echo "  set    grant N commits (human only)"
+      echo "  del    revoke the grant; push stops too"
       echo "  block  alias for del"
-      echo "  allow  grant unlimited quota with push and stage allowed"
-      echo "  get    check quota left"
+      echo "  allow  grant unlimited commits"
+      echo "  get    check the grant"
       echo ""
       echo "options (set):"
       echo "  --quant N             number of commits to allow (or 'infinite')"
-      echo "  --push allow|block    whether push is permitted (required)"
-      echo "  --stage allow|block   whether stage is permitted (default: block)"
       echo ""
       echo "options:"
+      echo "  --global              the host-wide commit blocker"
+      echo "  --org <org>           the per-org commit permission"
       echo "  --help, -h            show this help"
+      echo ""
+      echo "examples:"
+      echo "  git.commit.uses set --quant 3                          # three commits; push rides them"
+      echo "  git.commit.uses allow && git.release.uses block        # push all day; never ship"
+      echo "  git.commit.uses set --quant 0                          # commit no more; push stays"
+      echo "  git.commit.uses block                                  # revoke; push stops too"
+      echo ""
+      echo "the grant covers commit, stage, rebase, and push to this tree's branch."
+      echo "a push spends no use, and works at 0 left until a human revokes."
+      echo "no commit grant can ship: a release needs git.release.uses."
       exit 0
       ;;
     --repo|--role|--skill)
-      # rhachet passthrough args, value-taking - ignore flag + its value
+      # rhachet passthrough args with a value - ignore flag + its value
       shift
       if [[ $# -gt 0 && "$1" != --* && "$1" != -* ]]; then
         shift
@@ -129,9 +128,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --*)
       emit_both "✋ ConstraintError: unknown option: $1
-usage: git.commit.uses set --quant N --push allow|block
-       git.commit.uses del
-       git.commit.uses get"
+$USAGE"
       exit 2
       ;;
     *)
@@ -143,9 +140,7 @@ done
 # validate command
 if [[ -z "$COMMAND" ]]; then
   emit_both "✋ ConstraintError: command required (set, del, block, allow, or get)
-usage: git.commit.uses set --quant N --push allow|block
-       git.commit.uses del
-       git.commit.uses get"
+$USAGE"
   exit 2
 fi
 
@@ -159,228 +154,123 @@ case "$COMMAND" in
     ;;
 esac
 
+# the revoke + unlimited shorthands fix the quota
 case "$COMMAND" in
-  block)
-    # block = alias for del (quant=0, push=block, stage=block)
+  block|del)
     QUANT=0
-    PUSH="block"
-    STAGE="block"
     VIA_DEL=true
-    ;& # fall through to set logic
-
-  del)
-    # del = revoke shortcut (quant=0, push=block, stage=block)
-    if [[ -z "$QUANT" ]]; then
-      QUANT=0
-    fi
-    if [[ -z "$PUSH" ]]; then
-      PUSH="block"
-    fi
-    if [[ -z "$STAGE" ]]; then
-      STAGE="block"
-    fi
-    VIA_DEL=true
-    ;& # fall through to set logic
-
+    ;;
   allow)
-    # allow = unlimited quota with push and stage allowed
-    if [[ "$COMMAND" == "allow" ]]; then
-      QUANT="infinite"
-      PUSH="allow"
-      STAGE="allow"
-    fi
-    ;& # fall through to set logic
+    QUANT="infinite"
+    ;;
+esac
 
-  set)
+case "$COMMAND" in
+  set|del|block|allow)
     # validate --quant
     if [[ -z "$QUANT" ]]; then
       emit_both "✋ ConstraintError: --quant N is required
-usage: git.commit.uses set --quant N --push allow|block"
+$USAGE"
       exit 2
     fi
-
-    # default --push to block when quant is 0 (revoke implies no push)
-    if [[ -z "$PUSH" && "$QUANT" == "0" ]]; then
-      PUSH="block"
-    fi
-
-    # default --stage to block when quant is 0 (revoke implies no stage)
-    if [[ -z "$STAGE" && "$QUANT" == "0" ]]; then
-      STAGE="block"
-    fi
-
-    # validate --push required
-    if [[ -z "$PUSH" ]]; then
-      emit_both "✋ ConstraintError: --push allow|block is required
-usage: git.commit.uses set --quant N --push allow|block"
-      exit 2
-    fi
-
-    # validate --push value
-    if [[ "$PUSH" != "allow" && "$PUSH" != "block" ]]; then
-      emit_both "✋ ConstraintError: --push must be 'allow' or 'block'
-usage: git.commit.uses set --quant N --push allow|block"
-      exit 2
-    fi
-
-    # default --stage to block if not specified
-    if [[ -z "$STAGE" ]]; then
-      STAGE="block"
-    fi
-
-    # validate --stage value
-    if [[ "$STAGE" != "allow" && "$STAGE" != "block" ]]; then
-      emit_both "✋ ConstraintError: --stage must be 'allow' or 'block'
-usage: git.commit.uses set --quant N --push allow|block [--stage allow|block]"
-      exit 2
-    fi
-
-    # validate --quant is a number or "infinite"
     if [[ "$QUANT" != "infinite" ]] && ! [[ "$QUANT" =~ ^[0-9]+$ ]]; then
       emit_both "✋ ConstraintError: --quant must be a non-negative integer or 'infinite'"
       exit 2
     fi
 
-    # findsert .meter dir and .gitignore, via the shared leaf
+    # a directory at the meter path would swallow the `mv` and report a false
+    # grant: refuse it as damage before any write
     findsert_gitignored_dir "$METER_DIR"
-
-    # write state file (uses is string for "infinite", number otherwise)
-    if [[ "$QUANT" == "infinite" ]]; then
-      cat > "$STATE_FILE" << EOF
-{
-  "uses": "infinite",
-  "push": "$PUSH",
-  "stage": "$STAGE"
-}
-EOF
-    else
-      cat > "$STATE_FILE" << EOF
-{
-  "uses": $QUANT,
-  "push": "$PUSH",
-  "stage": "$STAGE"
-}
-EOF
+    if [[ -e "$STATE_FILE" && ! -f "$STATE_FILE" ]]; then
+      emit_both "$(
+        print_turtle_header "bummer dude..."
+        print_tree_start "git.commit.uses $COMMAND"
+        print_tree_malfunction "commit quota file corrupt"
+        print_local_meter_damaged_fix file="${STATE_FILE#"$REPO_ROOT/"}"
+      )"
+      exit 1
     fi
 
-    # format stage display
-    if [[ "$STAGE" == "allow" ]]; then
-      STAGE_DISPLAY="allowed"
-    else
-      STAGE_DISPLAY="blocked"
-    fi
+    # note a legacy prior grant before the write erases its retired fields;
+    # a damaged or absent prior reads as not legacy, and the write replaces it
+    get_one_commit_local_grant file="$STATE_FILE" || COMMIT_LEGACY="false"
 
-    # output with turtle vibes
-    if [[ "$QUANT" == "0" && "$PUSH" == "block" ]]; then
+    # write the grant atomically: a reader sees the prior or the new file, never half.
+    # only del / block revoke; `set --quant 0` holds at 0 left, so push stays (F16)
+    STATE_FILE_TEMP="${STATE_FILE}.tmp.$$"
+    trap 'rm -f "${STATE_FILE_TEMP:-}"' EXIT
+    printf '{\n  "uses": %s,\n  "held": %s\n}\n' \
+      "$(as_meter_uses_json quant="$QUANT")" "$(as_commit_held command="$COMMAND")" > "$STATE_FILE_TEMP"
+    mv -f "$STATE_FILE_TEMP" "$STATE_FILE"
+
+    # render a revoke
+    if [[ -n "$VIA_DEL" ]]; then
       print_turtle_header "groovy, break time"
-      if [[ -n "$VIA_DEL" ]]; then
-        print_tree_start "git.commit.uses del"
-        echo "   └─ revoked"
-      else
-        print_tree_start "git.commit.uses set"
-        echo "   ├─ revoked"
-        print_tip "'rhx git.commit.uses del' does the same"
-      fi
-    elif [[ "$QUANT" == "0" && "$PUSH" == "allow" ]]; then
-      print_turtle_header "sweet, let it ride"
-      print_tree_start "git.commit.uses set"
-      echo "   ├─ commits: 0"
-      echo "   ├─ push: allowed"
-      echo "   └─ stage: $STAGE_DISPLAY"
-    elif [[ "$QUANT" == "infinite" && "$PUSH" == "allow" && "$STAGE" == "allow" ]]; then
-      print_turtle_header "radical! let's ride!"
-      print_tree_start "git.commit.uses set"
-      echo "   ├─ granted: unlimited"
-      echo "   ├─ push: allowed"
-      echo "   └─ stage: allowed"
-    elif [[ "$QUANT" == "infinite" ]]; then
-      print_turtle_header "radical! let's ride!"
-      print_tree_start "git.commit.uses set"
-      echo "   ├─ granted: unlimited"
-      echo "   ├─ push: $( [[ "$PUSH" == "allow" ]] && echo "allowed" || echo "blocked" )"
-      echo "   └─ stage: $STAGE_DISPLAY"
-    elif [[ "$PUSH" == "allow" ]]; then
-      print_turtle_header "radical! let's ride!"
-      print_tree_start "git.commit.uses set"
-      echo "   ├─ granted: $QUANT"
-      echo "   ├─ push: allowed"
-      echo "   └─ stage: $STAGE_DISPLAY"
-    else
-      print_turtle_header "gnarly! thanks human!"
-      print_tree_start "git.commit.uses set"
-      echo "   ├─ granted: $QUANT"
-      echo "   ├─ push: blocked"
-      echo "   └─ stage: $STAGE_DISPLAY"
+      print_tree_start "git.commit.uses $COMMAND"
+      echo "   └─ revoked (commit + push)"
+      exit 0
     fi
+
+    # render a push-only grant: commit no more, push what you have
+    if [[ "$QUANT" == "0" ]]; then
+      print_turtle_header "groovy, break time"
+      print_tree_start "git.commit.uses set"
+      echo "   ├─ granted: 0 commits"
+      echo "   └─ push: held (push what you have, commit no more)"
+      print_coconut_hint "to stop push too, revoke the grant" \
+        "git.commit.uses del"
+      print_commit_legacy_note
+      exit 0
+    fi
+
+    # render a grant
+    print_turtle_header "radical! let's ride!"
+    print_tree_start "git.commit.uses $COMMAND"
+    echo "   ├─ granted: $(as_meter_uses_display uses="$QUANT")"
+    echo "   └─ covers: commit, stage, rebase, push"
+    print_commit_legacy_note
 
     ##################################################################
     # nudge: a quota with no sponsor bound buys no commits
     #
     # .why = a commit needs BOTH a quota and a sponsor, and this is the
-    #        one act where a human is provably present. to leave the
-    #        second step undiscoverable here would send the human away
-    #        satisfied, and the clone would hit a wall the human is the
-    #        only party who can take down.
-    #
-    # .why = `QUANT != "0"` gates it here rather than in the shared reader —
-    #        a REVOKE (`--quant 0`) buys no commits either way, so a nudge
-    #        there would tell a human to bind a sponsor for a tree that just
-    #        lost its reason to commit at all.
-    #
-    # 🔴 .why the FUNCTION = this nudge and the two grant surfaces in
-    #        `--global allow` / `--org allow` ask the identical question, so a
-    #        shared reader is what keeps the three from a drift in the answer
-    #        (rule.require.get-set-gen-verbs, git.commit.operations.sh).
+    #        one act where a human is provably present. the nudge and the
+    #        `--global allow` / `--org allow` surfaces share one reader, so
+    #        the three never drift in the answer
     ##################################################################
-    if [[ "$QUANT" != "0" ]]; then
-      print_sponsor_bind_nudge_if_absent
-    fi
+    print_sponsor_bind_nudge_if_absent
     ;;
 
   get)
-    # 🔴 the SHARED reader decides, and this render only asks it.
-    #
-    # 🔴 .why = this arm carried its own read — `jq -r '.blocked // false'`,
-    #        keyed on jq's EXIT STATUS alone. that read a 0-BYTE file as
-    #        healthy-and-permissive (jq exits 0 with an empty capture) and a
-    #        DIRECTORY at the path as absent (`-f` is a regular-file test).
-    #        ⇒ a human who runs `get` to learn whether commits are blocked was
-    #        told "not blocked" while the blocker file was damaged
-    #        (rule.forbid.failhide, rule.require.safe-by-default).
-    #
-    # ⇒ 🔴 .why it was DELETED rather than hardened = the gate
-    #        `check_global_blocker` was hardened one round earlier and this
-    #        surface was not, so the two began to disagree about one file. a
-    #        second hardened copy would fix today's disagreement and keep the
-    #        structure that produced it. **one reader, one decision point.**
-    #
-    # .note = the reader returns 0 = clear, 2 = blocked, and sets
-    #         GLOBAL_BLOCK_CORRUPT to tell "a human blocked it" from "the file
-    #         is damaged" — a FLAG, never a match on the reason prose
-    #         (rule.forbid.magic-values).
+    # the SHARED reader decides; this render only asks it. it returns
+    # 0 = clear, 2 = blocked, and sets GLOBAL_BLOCK_CORRUPT to tell "a human
+    # blocked it" from "the file is damaged"
     GLOBAL_BLOCK_STATUS=0
     check_global_blocker || GLOBAL_BLOCK_STATUS=$?
 
     GLOBAL_BLOCKED=false
-    GLOBAL_BLOCK_LABEL="blocked"
-    if [[ "$GLOBAL_BLOCK_STATUS" -eq 2 ]]; then
+    if is_blocker_set status="$GLOBAL_BLOCK_STATUS"; then
       GLOBAL_BLOCKED=true
-      if [[ "$GLOBAL_BLOCK_CORRUPT" == "true" ]]; then
-        GLOBAL_BLOCK_LABEL="blocked (file corrupt)"
-      fi
+    fi
+    GLOBAL_BLOCK_LABEL="$(as_global_block_display status="$GLOBAL_BLOCK_STATUS" corrupt="$GLOBAL_BLOCK_CORRUPT")"
+
+    # read the local grant via the shared reader
+    LOCAL_STATUS=0
+    get_one_commit_local_grant file="$STATE_FILE" || LOCAL_STATUS=$?
+
+    # refuse a damaged quota file by name, before any render
+    if [[ "$LOCAL_STATUS" -eq 1 ]]; then
+      emit_both "$(
+        print_turtle_header "bummer dude..."
+        print_tree_start "git.commit.uses"
+        print_tree_malfunction "commit quota file corrupt"
+        print_local_meter_damaged_fix file="${STATE_FILE#"$REPO_ROOT/"}"
+      )"
+      exit 1  # malfunction — the file is damaged, not the caller's input
     fi
 
-    # .note = `print_global_corrupt_note` renders below, from
-    #         `git.commit.operations.sh`. it was defined HERE, nested inside
-    #         this `get)` arm — so it existed on no other command path, and a
-    #         reader who scanned the top of this file for shared render leaves
-    #         would not find it. ⇒ lifted to the file both surfaces already
-    #         source for the constant it prints, which is also what removed
-    #         `uses.global get`'s own copy of the same five lines
-    #         (rule.forbid.maintenance-hazards).
-
-    # check state file exists
-    if [[ ! -f "$STATE_FILE" ]]; then
+    # no grant on this tree
+    if [[ "$LOCAL_STATUS" -eq 2 ]]; then
       print_turtle_header "lets check the meter..."
       print_tree_start "git.commit.uses"
       if [[ "$GLOBAL_BLOCKED" == "true" ]]; then
@@ -392,65 +282,33 @@ EOF
       print_global_corrupt_note
       print_coconut_hint \
         "no quota is granted on this tree, so commits will refuse" \
-        "git.commit.uses set --quant N --push allow|block   # ask your human"
+        "git.commit.uses set --quant N   # ask your human"
       exit 0
     fi
 
-    # refuse a damaged quota file by name, before any raw read of it
-    if ! is_local_meter_readable file="$STATE_FILE"; then
-      emit_both "$(
-        print_turtle_header "bummer dude..."
-        print_tree_start "git.commit.uses"
-        print_tree_malfunction "commit quota file corrupt"
-        print_local_meter_damaged_fix file="${STATE_FILE#"$REPO_ROOT/"}"
-      )"
-      exit 1  # malfunction — the file is damaged, not the caller's input
-    fi
-
-    # read state
-    USES=$(jq -r '.uses' "$STATE_FILE")
-    PUSH_STATE=$(jq -r '.push' "$STATE_FILE")
-    STAGE_STATE=$(jq -r '.stage // "block"' "$STATE_FILE")
-
-    # format uses display
-    if [[ "$USES" == "infinite" || "$USES" == "999999" ]]; then
-      USES_DISPLAY="unlimited"
-    else
-      USES_DISPLAY="$USES"
-    fi
-
-    # format push state
-    if [[ "$PUSH_STATE" == "allow" ]]; then
-      PUSH_DISPLAY="allowed"
-    else
-      PUSH_DISPLAY="blocked"
-    fi
-
-    # format stage state
-    if [[ "$STAGE_STATE" == "allow" ]]; then
-      STAGE_DISPLAY="allowed"
-    else
-      STAGE_DISPLAY="blocked"
-    fi
+    # format the grant
+    USES_DISPLAY="$(as_meter_uses_display uses="$COMMIT_USES")"
+    PUSH_DISPLAY="$(as_commit_push_display held="$COMMIT_HELD")"
 
     print_turtle_header "lets check the meter..."
     print_tree_start "git.commit.uses"
     echo "   └─ meter"
     echo "      ├─ left: $USES_DISPLAY"
-    echo "      ├─ push: $PUSH_DISPLAY"
     if [[ "$GLOBAL_BLOCKED" == "true" ]]; then
-      echo "      ├─ stage: $STAGE_DISPLAY"
+      echo "      ├─ push: $PUSH_DISPLAY"
       echo "      └─ global: $GLOBAL_BLOCK_LABEL"
     else
-      echo "      └─ stage: $STAGE_DISPLAY"
+      echo "      └─ push: $PUSH_DISPLAY"
     fi
     print_global_corrupt_note
+
+    # a legacy grant carries retired fields: say so once, with the split
+    print_commit_legacy_note
     ;;
 
   *)
     emit_both "✋ ConstraintError: unknown command: $COMMAND
-usage: git.commit.uses set --quant N --push allow|block
-       git.commit.uses get"
+$USAGE"
     exit 2
     ;;
 esac

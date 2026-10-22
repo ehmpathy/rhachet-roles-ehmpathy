@@ -4,7 +4,7 @@ import * as path from 'path';
 import { getError, genTempDir, given, then, when } from 'test-fns';
 
 import { setFixtureLayoutOld } from './.test/setFixtureLayoutOld';
-import { writeFixtureFile } from './.test/writeFixtureFile';
+import { setFixtureFile } from './.test/setFixtureFile';
 
 /**
  * .what = clamp: a fixture write never follows a link out of the fixture repo
@@ -28,7 +28,7 @@ describe('fixture writes stay inside the fixture repo', () => {
     when('[t0] a suite writes the link path directly', () => {
       then('the write is refused, and the outside file is untouched', async () => {
         const error = await getError(async () =>
-          writeFixtureFile({ dir: scene.repo, relPath: '.claude/settings.json', content: '{ broken' }),
+          setFixtureFile({ dir: scene.repo, relPath: '.claude/settings.json', content: '{ broken' }),
         );
         expect(error.message).toContain('target is a link');
         expect(fs.readFileSync(scene.homeFile, 'utf-8')).toBe('{"sentinel":true}');
@@ -38,7 +38,7 @@ describe('fixture writes stay inside the fixture repo', () => {
     when('[t1] the suite pins the old layout first, then writes', () => {
       then('the link is replaced by a real file, and the outside file is untouched', () => {
         setFixtureLayoutOld({ dir: scene.repo });
-        writeFixtureFile({ dir: scene.repo, relPath: '.claude/settings.json', content: '{ broken' });
+        setFixtureFile({ dir: scene.repo, relPath: '.claude/settings.json', content: '{ broken' });
         const target = path.join(scene.repo, '.claude', 'settings.json');
         expect(fs.lstatSync(target).isSymbolicLink()).toBe(false);
         expect(fs.readFileSync(target, 'utf-8')).toBe('{ broken');
@@ -59,7 +59,7 @@ describe('fixture writes stay inside the fixture repo', () => {
     when('[t0] a suite writes into it', () => {
       then('the write is refused, and naught lands outside', async () => {
         const error = await getError(async () =>
-          writeFixtureFile({ dir: scene.repo, relPath: '.claude/settings.json', content: '{}' }),
+          setFixtureFile({ dir: scene.repo, relPath: '.claude/settings.json', content: '{}' }),
         );
         expect(error.message).toContain('resolves outside the repo');
         expect(fs.existsSync(path.join(scene.outside, 'settings.json'))).toBe(false);

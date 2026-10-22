@@ -7,7 +7,7 @@ import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
 import { genTestDir, invokeHook } from './.test/invokeHook';
 import { setFixtureLayoutOld } from './.test/setFixtureLayoutOld';
-import { writeFixtureFile } from './.test/writeFixtureFile';
+import { setFixtureFile } from './.test/setFixtureFile';
 
 /**
  * .what = acceptance tests for the check-permissions PreToolUse hook, one per vision journey
@@ -54,7 +54,7 @@ const genHookRepo = async (input: {
 }): Promise<{ dir: string }> => {
   const dir = await genTestDir({ slug: input.slug });
   setFixtureLayoutOld({ dir });
-  writeFixtureFile({
+  setFixtureFile({
     dir,
     relPath: '.claude/settings.json',
     content: JSON.stringify({
@@ -679,7 +679,7 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
   given('[case11] the repo settings cannot be parsed', () => {
     const repo = useBeforeAll(async () => {
       const fresh = await genHookRepo({ slug: 'cp-settings-broken' });
-      writeFixtureFile({ dir: fresh.dir, relPath: '.claude/settings.json', content: '{ broken' });
+      setFixtureFile({ dir: fresh.dir, relPath: '.claude/settings.json', content: '{ broken' });
       return fresh;
     });
 
@@ -725,7 +725,7 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
   given('[case15] the nudge record holds no valid json', () => {
     const repo = useBeforeAll(async () => {
       const fresh = await genHookRepo({ slug: 'cp-record-broken' });
-      writeFixtureFile({
+      setFixtureFile({
         dir: fresh.dir,
         relPath: '.claude/permission.nudges.local.json',
         content: '{ broken',
@@ -915,11 +915,11 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
     });
   });
 
-  given('[case19] a linked repo on the split layout rhachet >= 1.49.2 seeds', () => {
+  given('[case21] a linked repo on the split layout rhachet >= 1.49.2 seeds', () => {
     // the layout `rhachet roles link` leaves: the repo allowlist lives in settings.of.repo.json
     const repo = useBeforeAll(async () => {
       const dir = await genTestDir({ slug: 'cp-split' });
-      writeFixtureFile({
+      setFixtureFile({
         dir,
         relPath: '.claude/settings.of.repo.json',
         content: JSON.stringify({ permissions: { allow: ALLOW, deny: [], ask: [] } }),

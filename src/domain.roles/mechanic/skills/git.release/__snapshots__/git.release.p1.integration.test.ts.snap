@@ -194,6 +194,13 @@ exports[`git.release given: [case3b] release to prod from feat (plan mode) when:
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
+
+🐚 git.release.uses
+   └─ apply would refuse: .agent/keyrack.yml not found; no release grant on this tree
+
+🥥 did you know?
+   ├─ see each level, and what blocks
+   └─ rhx git.release.uses get
 "
 `;
 
@@ -216,6 +223,13 @@ exports[`git.release given: [case3b] release to prod from feat (plan mode) when:
 
 🌊 release: v1.33.0
    └─ 👌 all checks passed
+
+🐚 git.release.uses
+   └─ apply would refuse: .agent/keyrack.yml not found; no release grant on this tree
+
+🥥 did you know?
+   ├─ see each level, and what blocks
+   └─ rhx git.release.uses get
 "
 `;
 
@@ -599,6 +613,11 @@ exports[`git.release given: [case7] argument validation when: [t4] --help flag t
 
   special circumstances only (footgun — prefer --into prod):
   --from main   skip the feature branch, release whatever is on main
+
+  the release stamp (git.release.uses):
+  apply needs the human's stamp — git.release.uses set --quant 1 — and spends
+  one use at the arm of the merge; --into prod arms both prs on that one use.
+  a commit grant never ships. see the stamp: rhx git.release.uses get
 "
 `;
 
