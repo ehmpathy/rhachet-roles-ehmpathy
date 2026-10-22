@@ -336,7 +336,7 @@ exports[`git.branch.rebase journey given: [journey7] plan on a held grant with z
    │  ├─ target: origin/main
    │  ├─ shape: replay
    │  ├─ ahead: 1 commits
-   │  │  ├─ HASH123 feat: one
+   │  │  └─ HASH123 feat: one
    │  └─ behind: 1 commits
    │     └─ HASH123 chore: main a
    └─ meter

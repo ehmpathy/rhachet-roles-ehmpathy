@@ -7,7 +7,149 @@ exports[`claude.tools refuse a human grant given: [case1] a spent release stamp 
    └─ ✋ ConstraintError: .meter/git.release.uses.jsonc holds a human's grant; no file tool may write it
 
 🥥 did you know?
-   ├─ only a human grants a meter, at a terminal; read it instead
-   └─ rhx git.commit.uses get    rhx git.release.uses get
+   ├─ only a human grants it, at a terminal; read it instead
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case1] a spent release stamp at .meter/git.release.uses.jsonc when: [t1] cpsafe copies a forged file over the stamp then: exit 2, stamp unchanged 1`] = `
+"🐢 bummer dude...
+
+🐚 cpsafe
+   └─ ✋ ConstraintError: .meter/git.release.uses.jsonc holds a human's grant; no file tool may write it
+
+🥥 did you know?
+   ├─ only a human grants it, at a terminal; read it instead
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case1] a spent release stamp at .meter/git.release.uses.jsonc when: [t2] mvsafe moves a forged file over the stamp then: exit 2, stamp unchanged 1`] = `
+"🐢 bummer dude...
+
+🐚 mvsafe
+   └─ ✋ ConstraintError: .meter/git.release.uses.jsonc holds a human's grant; no file tool may write it
+
+🥥 did you know?
+   ├─ only a human grants it, at a terminal; read it instead
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case1] a spent release stamp at .meter/git.release.uses.jsonc when: [t3] symlink points the stamp at a forged file then: exit 2, stamp unchanged 1`] = `
+"🐢 bummer dude...
+
+🐚 symlink
+   └─ ✋ ConstraintError: .meter/git.release.uses.jsonc holds a human's grant; no file tool may write it
+
+🥥 did you know?
+   ├─ only a human grants it, at a terminal; read it instead
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case1] a spent release stamp at .meter/git.release.uses.jsonc when: [t4] symlink places a bridge whose target is the stamp then: exit 2, no bridge is created 1`] = `
+"🐢 bummer dude...
+
+🐚 symlink
+   └─ ✋ ConstraintError: .meter/git.release.uses.jsonc holds a human's grant; no file tool may write it
+
+🥥 did you know?
+   ├─ only a human grants it, at a terminal; read it instead
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case1] a spent release stamp at .meter/git.release.uses.jsonc when: [t5] sedreplace plans a rewrite whose match holds the stamp then: exit 2, loud: the stamp is named, and no plan is recorded 1`] = `
+"🐢 bummer dude...
+
+🐚 sedreplace
+   └─ ✋ ConstraintError: .meter/git.release.uses.jsonc holds a human's grant; no file tool may write it
+
+🥥 did you know?
+   ├─ only a human grants it, at a terminal; read it instead
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case1] a spent release stamp at .meter/git.release.uses.jsonc when: [t6] sedreplace plans a rewrite through a link that bridges into .meter/ then: exit 2: the guard checks where the link writes, not its name 1`] = `
+"🐢 bummer dude...
+
+🐚 sedreplace
+   └─ ✋ ConstraintError: .meter/git.release.uses.jsonc holds a human's grant; no file tool may write it
+
+🥥 did you know?
+   ├─ only a human grants it, at a terminal; read it instead
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case1] a spent release stamp at .meter/git.release.uses.jsonc when: [t7] mvsafe moves a directory into .meter/ then: exit 2, naught lands in .meter 1`] = `
+"🐢 bummer dude...
+
+🐚 mvsafe
+   └─ ✋ ConstraintError: .meter/forged-dir holds a human's grant; no file tool may write it
+
+🥥 did you know?
+   ├─ only a human grants it, at a terminal; read it instead
+   └─ rhx git.commit.uses get
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case1] a spent release stamp at .meter/git.release.uses.jsonc when: [t8] mvsafe moves the stamp out of .meter/ then: exit 2, the stamp stays in place 1`] = `
+"🐢 bummer dude...
+
+🐚 mvsafe
+   └─ ✋ ConstraintError: .meter/git.release.uses.jsonc holds a human's grant; no file tool may write it
+
+🥥 did you know?
+   ├─ only a human grants it, at a terminal; read it instead
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case1] a spent release stamp at .meter/git.release.uses.jsonc when: [t9] mvsafe moves a link that sits inside .meter/ then: exit 2, the link stays in place 1`] = `
+"🐢 bummer dude...
+
+🐚 mvsafe
+   └─ ✋ ConstraintError: .meter holds a human's grant; no file tool may write it
+
+🥥 did you know?
+   ├─ only a human grants it, at a terminal; read it instead
+   └─ rhx git.commit.uses get
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case1] a spent release stamp at .meter/git.release.uses.jsonc when: [t10] cpsafe copies a glob of files into .meter/ then: exit 2, not one file lands: every dest is checked first 1`] = `
+"🐢 bummer dude...
+
+🐚 cpsafe
+   └─ ✋ ConstraintError: .meter/a.jsonc holds a human's grant; no file tool may write it
+
+🥥 did you know?
+   ├─ only a human grants it, at a terminal; read it instead
+   └─ rhx git.commit.uses get
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case1] a spent release stamp at .meter/git.release.uses.jsonc when: [t11] teesafe writes into .branch/.bind/ then: exit 2, no bind written 1`] = `
+"🐢 bummer dude...
+
+🐚 teesafe
+   └─ ✋ ConstraintError: .branch/.bind/git.commit.level holds a human's grant; no file tool may write it
+
+🥥 did you know?
+   ├─ only a human grants it, at a terminal; read it instead
+   └─ rhx git.commit.bind get
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case3] the guard is called with an arg it does not know when: [t0] refuse_if_human_grant gets --bogus then: exit 1, MalfunctionError on both streams, write halted 1`] = `
+"💥 MalfunctionError: refuse_if_human_grant: unknown arg: --bogus
+"
+`;
+
+exports[`claude.tools refuse a human grant given: [case3] the guard is called with an arg it does not know when: [t1] refuse_if_human_grant gets no --path then: exit 1, MalfunctionError on both streams, write halted 1`] = `
+"💥 MalfunctionError: is_path_a_human_grant: --path and --root are required
 "
 `;

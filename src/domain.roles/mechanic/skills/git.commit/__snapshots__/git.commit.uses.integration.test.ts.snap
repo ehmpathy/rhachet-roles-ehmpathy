@@ -13,7 +13,7 @@ exports[`git.commit.uses.sh given: [case1] set --quant N when: [t0] a grant of 3
 "
 `;
 
-exports[`git.commit.uses.sh given: [case2] a retired field is typed (F8) when: [t1] the render for --push then: matches snapshot 1`] = `
+exports[`git.commit.uses.sh given: [case2] a retired field is typed (F8) when: [t0] set --quant 1 --push allow then: the refusal render matches snapshot 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.uses
@@ -26,9 +26,24 @@ exports[`git.commit.uses.sh given: [case2] a retired field is typed (F8) when: [
 "
 `;
 
+exports[`git.commit.uses.sh given: [case2] a retired field is typed (F8) when: [t1] set --quant 1 --stage allow then: the refusal render matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses
+   └─ ✋ ConstraintError: --stage is retired
+
+🥥 did you know?
+   ├─ the commit grant covers commit, stage, rebase, and push; a release rides its own meter
+   ├─ git.commit.uses set --quant N     # commit + push
+   └─ git.release.uses set --quant 1    # ship
+"
+`;
+
 exports[`git.commit.uses.sh given: [case2b] any actor asks for help when: [t0] --help then: it names the levels and the examples, never --push 1`] = `
 "usage: git.commit.uses set --quant N
        git.commit.uses allow | block | del | get
+       git.commit.uses allow | block | get --global
+       git.commit.uses allow | block | del | get --org <org>
 
 commands:
   set    grant N commits (human only)
@@ -54,19 +69,6 @@ examples:
 the grant covers commit, stage, rebase, and push to this tree's branch.
 a push spends no use, and works at 0 left until a human revokes.
 no commit grant can ship: a release needs git.release.uses.
-"
-`;
-
-exports[`git.commit.uses.sh given: [case2b] any actor asks for help when: [t2] the render for --stage then: matches snapshot 1`] = `
-"🐢 bummer dude...
-
-🐚 git.commit.uses
-   └─ ✋ ConstraintError: --stage is retired
-
-🥥 did you know?
-   ├─ the commit grant covers commit, stage, rebase, and push; a release rides its own meter
-   ├─ git.commit.uses set --quant N     # commit + push
-   └─ git.release.uses set --quant 1    # ship
 "
 `;
 
@@ -100,23 +102,33 @@ exports[`git.commit.uses.sh given: [case3d] del command (revoke shortcut) when: 
 `;
 
 exports[`git.commit.uses.sh given: [case4] set without --quant when: [t0] --quant is absent then: exits with a constraint on both streams: stderr 1`] = `
-"✋ ConstraintError: --quant N is required
-usage: git.commit.uses set --quant N
-       git.commit.uses allow | block | del | get
+"🐢 bummer dude...
+
+🐚 git.commit.uses
+   └─ ✋ ConstraintError: --quant N is required
+
+🥥 did you know?
+   ├─ see every form git.commit.uses takes, with examples
+   └─ rhx git.commit.uses --help
 "
 `;
 
 exports[`git.commit.uses.sh given: [case4] set without --quant when: [t0] --quant is absent then: exits with a constraint on both streams: stdout 1`] = `
-"✋ ConstraintError: --quant N is required
-usage: git.commit.uses set --quant N
-       git.commit.uses allow | block | del | get
+"🐢 bummer dude...
+
+🐚 git.commit.uses
+   └─ ✋ ConstraintError: --quant N is required
+
+🥥 did you know?
+   ├─ see every form git.commit.uses takes, with examples
+   └─ rhx git.commit.uses --help
 "
 `;
 
-exports[`git.commit.uses.sh given: [case5] get shows remaining when: [t0] state exists with 2 uses then: outputs lets check the meter with remaining 1`] = `
-"🐢 lets check the meter...
+exports[`git.commit.uses.sh given: [case5] get shows remaining when: [t0] state exists with 2 uses then: outputs let's check the meter with the uses left 1`] = `
+"🐢 let's check the meter...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
    └─ meter
       ├─ left: 2
       ├─ push: held
@@ -125,21 +137,21 @@ exports[`git.commit.uses.sh given: [case5] get shows remaining when: [t0] state 
 `;
 
 exports[`git.commit.uses.sh given: [case6] get at 0 left: depleted vs revoked (F16) when: [t0] the grant was depleted — 0 left, still held then: shows push held, so the last commit can still ship to the branch 1`] = `
-"🐢 lets check the meter...
+"🐢 let's check the meter...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
    └─ meter
       ├─ left: 0
       └─ push: held
 "
 `;
 
-exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: unlimited, push + stage allow then: reads push held, and names the split once 1`] = `
-"🐢 lets check the meter...
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: uses 2, push allow then: reads push held, and names the split once 1`] = `
+"🐢 let's check the meter...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
    └─ meter
-      ├─ left: unlimited
+      ├─ left: 2
       └─ push: held
 
 🥥 did you know?
@@ -148,10 +160,24 @@ exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when
 "
 `;
 
-exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: uses 0, push allow then: reads push held, and names the split once 1`] = `
-"🐢 lets check the meter...
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t1] a legacy file: uses 2, push block then: reads push held, and names the split once 1`] = `
+"🐢 let's check the meter...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
+   └─ meter
+      ├─ left: 2
+      └─ push: held
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
+"
+`;
+
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t2] a legacy file: uses 0, push allow then: reads push held, and names the split once 1`] = `
+"🐢 let's check the meter...
+
+🐚 git.commit.uses get
    └─ meter
       ├─ left: 0
       └─ push: held
@@ -162,10 +188,10 @@ exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when
 "
 `;
 
-exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: uses 0, push block (the old revoke) then: reads push revoked, and names the split once 1`] = `
-"🐢 lets check the meter...
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t3] a legacy file: uses 0, push block (the old revoke) then: reads push revoked, and names the split once 1`] = `
+"🐢 let's check the meter...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
    └─ meter
       ├─ left: 0
       └─ push: revoked
@@ -176,26 +202,12 @@ exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when
 "
 `;
 
-exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: uses 2, push allow then: reads push held, and names the split once 1`] = `
-"🐢 lets check the meter...
+exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t4] a legacy file: unlimited, push + stage allow then: reads push held, and names the split once 1`] = `
+"🐢 let's check the meter...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
    └─ meter
-      ├─ left: 2
-      └─ push: held
-
-🥥 did you know?
-   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
-   └─ git.release.uses set --quant 1   # ask your human, to ship
-"
-`;
-
-exports[`git.commit.uses.sh given: [case6b] get on a legacy grant (F6, F20) when: [t0] a legacy file: uses 2, push block then: reads push held, and names the split once 1`] = `
-"🐢 lets check the meter...
-
-🐚 git.commit.uses
-   └─ meter
-      ├─ left: 2
+      ├─ left: unlimited
       └─ push: held
 
 🥥 did you know?
@@ -221,9 +233,9 @@ exports[`git.commit.uses.sh given: [case6c] a directory sits at the local quota 
 `;
 
 exports[`git.commit.uses.sh given: [case7] get when no state file when: [t0] no .meter/git.commit.uses.jsonc exists then: shows no quota set 1`] = `
-"🐢 lets check the meter...
+"🐢 let's check the meter...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
    ├─ no quota set
    └─ global: blocked
 
@@ -234,14 +246,14 @@ exports[`git.commit.uses.sh given: [case7] get when no state file when: [t0] no 
 `;
 
 exports[`git.commit.uses.sh given: [case8] block --global when: [t0] no global blocker yet then: creates global blocker file 1`] = `
-"🐢 groovy, bond fire time
+"🐢 groovy, bonfire time
 
 🐚 git.commit.uses block --global
    └─ commits blocked globally
 
 🥥 did you know?
    ├─ releases ride their own switch; this one leaves them live. to halt releases too
-   └─ git.release.uses block --global
+   └─ rhx git.release.uses block --global
 "
 `;
 
@@ -278,7 +290,7 @@ exports[`git.commit.uses.sh given: [case9] allow --global when: [t3] a sponsor i
 `;
 
 exports[`git.commit.uses.sh given: [case10] get --global when: [t0] global blocker is active then: shows blocked 1`] = `
-"🐢 lets check the global meter...
+"🐢 let's check the global meter...
 
 🐚 git.commit.uses get --global
    └─ global: blocked
@@ -286,7 +298,7 @@ exports[`git.commit.uses.sh given: [case10] get --global when: [t0] global block
 `;
 
 exports[`git.commit.uses.sh given: [case10] get --global when: [t1] no global blocker then: shows not blocked 1`] = `
-"🐢 lets check the global meter...
+"🐢 let's check the global meter...
 
 🐚 git.commit.uses get --global
    └─ global: not blocked
@@ -294,17 +306,15 @@ exports[`git.commit.uses.sh given: [case10] get --global when: [t1] no global bl
 `;
 
 exports[`git.commit.uses.sh given: [case10] get --global when: [t2] the global blocker file is present and UNPARSEABLE then: the whole render is pinned 1`] = `
-"🐢 lets check the global meter...
+"🐢 let's check the global meter...
 
 🐚 git.commit.uses get --global
    └─ global: blocked (file corrupt)
 
-   the global blocker file cannot be read:
-     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-
-until it parses, every commit is blocked. a human may inspect or clear it:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+🥥 did you know?
+   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
 "
 `;
 
@@ -347,9 +357,9 @@ exports[`git.commit.uses.sh given: [case17b] set over a legacy grant when: [t0] 
 `;
 
 exports[`git.commit.uses.sh given: [case19] get shows local + global state when: [t0] local quota present and global blocked then: shows local meter and global blocked 1`] = `
-"🐢 lets check the meter...
+"🐢 let's check the meter...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
    └─ meter
       ├─ left: 3
       ├─ push: held
@@ -358,9 +368,9 @@ exports[`git.commit.uses.sh given: [case19] get shows local + global state when:
 `;
 
 exports[`git.commit.uses.sh given: [case19] get shows local + global state when: [t2] no local quota and global blocked then: shows no quota set and global blocked 1`] = `
-"🐢 lets check the meter...
+"🐢 let's check the meter...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
    ├─ no quota set
    └─ global: blocked
 
@@ -371,36 +381,32 @@ exports[`git.commit.uses.sh given: [case19] get shows local + global state when:
 `;
 
 exports[`git.commit.uses.sh given: [case19] get shows local + global state when: [t3] the global blocker file is present and UNPARSEABLE then: the whole render is pinned 1`] = `
-"🐢 lets check the meter...
+"🐢 let's check the meter...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
    └─ meter
       ├─ left: 3
       ├─ push: held
       └─ global: blocked (file corrupt)
 
-   the global blocker file cannot be read:
-     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-
-until it parses, every commit is blocked. a human may inspect or clear it:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+🥥 did you know?
+   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
 "
 `;
 
 exports[`git.commit.uses.sh given: [case19] get shows local + global state when: [t4] no local quota and the global blocker file is corrupt then: shows no quota set and the corrupt note, never a raw crash 1`] = `
-"🐢 lets check the meter...
+"🐢 let's check the meter...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
    ├─ no quota set
    └─ global: blocked (file corrupt)
 
-   the global blocker file cannot be read:
-     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-
-until it parses, every commit is blocked. a human may inspect or clear it:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+🥥 did you know?
+   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
 
 🥥 did you know?
    ├─ no quota is granted on this tree, so commits will refuse
@@ -411,15 +417,56 @@ until it parses, every commit is blocked. a human may inspect or clear it:
 exports[`git.commit.uses.sh given: [case20] TTY guard for local mutations when: [t0] set is called from non-TTY then: blocks: no terminal on this command 1`] = `
 "🐢 bummer dude...
 
-🐚 git.commit.uses set
-   └─ ✋ ConstraintError: no terminal on this command
+🐚 git.commit.uses set --quant 3
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
 
-   only a human at a real terminal may run this, and this command
-   has none. a clone's tool call has none, and neither does a claude
-   \`!\` command, so the two cannot be told apart here.
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.commit.uses set --quant 3
+"
+`;
 
-run it from your own terminal, with the same args:
-  $ rhx git.commit.uses set ...
+exports[`git.commit.uses.sh given: [case20] TTY guard for local mutations when: [t1] del is called from non-TTY then: blocks: no terminal on this command 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses del
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.commit.uses del
+"
+`;
+
+exports[`git.commit.uses.sh given: [case20] TTY guard for local mutations when: [t2] block is called from non-TTY then: blocks: no terminal on this command 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses block
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.commit.uses block
+"
+`;
+
+exports[`git.commit.uses.sh given: [case20] TTY guard for local mutations when: [t3] allow is called from non-TTY then: blocks: no terminal on this command 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses allow
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.commit.uses allow
 "
 `;
 
@@ -427,14 +474,27 @@ exports[`git.commit.uses.sh given: [case21] TTY guard for global mutations when:
 "🐢 bummer dude...
 
 🐚 git.commit.uses block --global
-   └─ ✋ ConstraintError: no terminal on this command
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
 
-   only a human at a real terminal may run this, and this command
-   has none. a clone's tool call has none, and neither does a claude
-   \`!\` command, so the two cannot be told apart here.
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.commit.uses block --global
+"
+`;
 
-run it from your own terminal, with the same args:
-  $ rhx git.commit.uses block --global ...
+exports[`git.commit.uses.sh given: [case21] TTY guard for global mutations when: [t1] allow --global is called from non-TTY then: blocks: no terminal on this command 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses allow --global
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.commit.uses allow --global
 "
 `;
 
@@ -471,7 +531,7 @@ exports[`git.commit.uses.sh given: [case22] allow --org ehmpathy when: [t3] a sp
 `;
 
 exports[`git.commit.uses.sh given: [case23] block --org ehmpathy when: [t0] org was allowed then: updates to blocked 1`] = `
-"🐢 groovy, bond fire time
+"🐢 groovy, bonfire time
 
 🐚 git.commit.uses block --org ehmpathy
    └─ ehmpathy: blocked
@@ -492,7 +552,7 @@ exports[`git.commit.uses.sh given: [case24] allow --org @all when: [t0] orgs had
 `;
 
 exports[`git.commit.uses.sh given: [case25] block --org @all when: [t0] orgs had mixed states then: resets all and sets @all to blocked 1`] = `
-"🐢 groovy, bond fire time
+"🐢 groovy, bonfire time
 
 🐚 git.commit.uses block --org @all
    ├─ reset: all orgs → blocked
@@ -509,17 +569,31 @@ exports[`git.commit.uses.sh given: [case26] del --org ehmpathy when: [t0] org ha
 `;
 
 exports[`git.commit.uses.sh given: [case26] del --org ehmpathy when: [t1] del --org @all then: errors - cannot delete @all: stderr 1`] = `
-"✋ ConstraintError: cannot delete @all, use allow or block instead
+"🐢 bummer dude...
+
+🐚 git.commit.uses
+   └─ ✋ ConstraintError: cannot delete @all, use allow or block instead
+
+🥥 did you know?
+   ├─ see every form git.commit.uses takes, with examples
+   └─ rhx git.commit.uses --help
 "
 `;
 
 exports[`git.commit.uses.sh given: [case26] del --org ehmpathy when: [t1] del --org @all then: errors - cannot delete @all: stdout 1`] = `
-"✋ ConstraintError: cannot delete @all, use allow or block instead
+"🐢 bummer dude...
+
+🐚 git.commit.uses
+   └─ ✋ ConstraintError: cannot delete @all, use allow or block instead
+
+🥥 did you know?
+   ├─ see every form git.commit.uses takes, with examples
+   └─ rhx git.commit.uses --help
 "
 `;
 
 exports[`git.commit.uses.sh given: [case27] get --org when: [t0] orgs have config then: shows all org configs 1`] = `
-"🐢 lets check the meter...
+"🐢 let's check the meter...
 
 🐚 git.commit.uses get --org
    ├─ @all: blocked
@@ -528,7 +602,7 @@ exports[`git.commit.uses.sh given: [case27] get --org when: [t0] orgs have confi
 `;
 
 exports[`git.commit.uses.sh given: [case27] get --org when: [t1] no org config then: shows no org configs set 1`] = `
-"🐢 lets check the meter...
+"🐢 let's check the meter...
 
 🐚 git.commit.uses get --org
    └─ no org configs set
@@ -536,7 +610,7 @@ exports[`git.commit.uses.sh given: [case27] get --org when: [t1] no org config t
 `;
 
 exports[`git.commit.uses.sh given: [case28] get --org ehmpathy when: [t1] org unset but @all set then: shows inherited from @all 1`] = `
-"🐢 lets check the meter...
+"🐢 let's check the meter...
 
 🐚 git.commit.uses get --org ehmpathy
    └─ ehmpathy: blocked (from @all)
@@ -555,14 +629,41 @@ exports[`git.commit.uses.sh given: [case30] TTY guard for org mutations when: [t
 "🐢 bummer dude...
 
 🐚 git.commit.uses allow --org ehmpathy
-   └─ ✋ ConstraintError: no terminal on this command
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
 
-   only a human at a real terminal may run this, and this command
-   has none. a clone's tool call has none, and neither does a claude
-   \`!\` command, so the two cannot be told apart here.
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.commit.uses allow --org ehmpathy
+"
+`;
 
-run it from your own terminal, with the same args:
-  $ rhx git.commit.uses allow --org ehmpathy ...
+exports[`git.commit.uses.sh given: [case30] TTY guard for org mutations when: [t1] block --org is called from non-TTY then: blocks: no terminal on this command 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses block --org ehmpathy
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.commit.uses block --org ehmpathy
+"
+`;
+
+exports[`git.commit.uses.sh given: [case30] TTY guard for org mutations when: [t2] del --org is called from non-TTY then: blocks: no terminal on this command 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.uses del --org ehmpathy
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.commit.uses del --org ehmpathy
 "
 `;
 
@@ -601,12 +702,10 @@ exports[`git.commit.uses.sh given: [case37] the ORG meter is damaged, and a huma
 🐚 git.commit.uses allow --org ahbode
    └─ 💥 MalfunctionError: org meter file corrupt
 
-   the org meter file cannot be read:
-     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
-
-until it parses, every commit is blocked. a human may inspect or clear it:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
-  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+🥥 did you know?
+   ├─ the org meter file cannot be read, so every commit is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
 "
 `;
 
@@ -616,19 +715,17 @@ exports[`git.commit.uses.sh given: [case37] the ORG meter is damaged, and a huma
 🐚 git.commit.uses get --org
    └─ 💥 MalfunctionError: org meter file corrupt
 
-   the org meter file cannot be read:
-     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
-
-until it parses, every commit is blocked. a human may inspect or clear it:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
-  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+🥥 did you know?
+   ├─ the org meter file cannot be read, so every commit is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
 "
 `;
 
 exports[`git.commit.uses.sh given: [caseLocalMeterDamaged] the LOCAL quota file is damaged when: [t0] \`get\` reads a truncated file then: it names the class, the file, and the fix, on both streams 1`] = `
 "🐢 bummer dude...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
    └─ 💥 MalfunctionError: commit quota file corrupt
 
    the file that holds this tree's commit quota cannot be read:
@@ -644,7 +741,7 @@ exports[`git.commit.uses.sh given: [caseLocalMeterDamaged] the LOCAL quota file 
 exports[`git.commit.uses.sh given: [caseLocalMeterDamaged] the LOCAL quota file is damaged when: [t0] \`get\` reads a truncated file then: it names the class, the file, and the fix, on both streams: stderr 1`] = `
 "🐢 bummer dude...
 
-🐚 git.commit.uses
+🐚 git.commit.uses get
    └─ 💥 MalfunctionError: commit quota file corrupt
 
    the file that holds this tree's commit quota cannot be read:

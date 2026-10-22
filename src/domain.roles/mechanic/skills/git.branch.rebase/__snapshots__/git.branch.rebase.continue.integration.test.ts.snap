@@ -4,7 +4,11 @@ exports[`git.branch.rebase.continue given: [case1] no rebase in progress when: [
 "🐢 hold up dude...
 
 🐚 git.branch.rebase continue
-   └─ error: no rebase in progress
+   └─ ✋ ConstraintError: no rebase in progress
+
+🥥 did you know?
+   ├─ start a rebase onto main first
+   └─ rhx git.branch.rebase begin
 "
 `;
 
@@ -96,7 +100,11 @@ exports[`git.branch.rebase.continue given: [case6] worktree with no rebase in pr
 "🐢 hold up dude...
 
 🐚 git.branch.rebase continue
-   └─ error: no rebase in progress
+   └─ ✋ ConstraintError: no rebase in progress
+
+🥥 did you know?
+   ├─ start a rebase onto main first
+   └─ rhx git.branch.rebase begin
 "
 `;
 
@@ -121,5 +129,54 @@ exports[`git.branch.rebase.continue given: [case7] rebase in progress with unsta
    ├─ git diff
    ├─ rhx git.stage.add <files>
    └─ rhx git.branch.rebase continue
+"
+`;
+
+exports[`git.branch.rebase.continue given: [case8] a real rebase that stops at each commit, with no conflict when: [t0] continue moves past one stop to the next then: exit 0: renders the rebase as still in progress 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  └─ status: in progress
+   ├─ left: 1 commits
+   └─ git.output
+      ├─
+      │
+      │  <git output>
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase.continue given: [case9] a real rebase that stops at its one commit, with no conflict when: [t0] continue moves past the last stop then: exit 0: renders the rebase complete, ready to push 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 1 ✓
+   │  └─ status: complete
+   ├─ meter
+   │  └─ push: held
+   └─ git.output
+      ├─
+      │
+      │  <git output>
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase.continue given: [case10] an argument the skill does not know when: [t0] continue is called with --bogus then: exit 2, the refusal rides both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase continue
+   └─ ✋ ConstraintError: unknown argument: --bogus
+
+🥥 did you know?
+   ├─ see every form git.branch.rebase continue takes, with examples
+   └─ rhx git.branch.rebase continue --help
 "
 `;

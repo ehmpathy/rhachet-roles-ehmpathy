@@ -168,7 +168,9 @@ if is_base_branch; then
   emit_both "$(
     print_turtle_header "hold up dude..."
     print_tree_start "git.branch.rebase begin"
-    echo "   └─ ✋ ConstraintError: cannot rebase main/master"
+    print_tree_constraint "cannot rebase main/master"
+    print_coconut_hint "a rebase moves a feature branch onto main; check one out first" \
+      "git checkout <feature-branch>"
   )"
   exit 2
 fi
@@ -467,27 +469,28 @@ if [[ "$MODE" == "apply" ]]; then
       SETTLE_STEP="clear what stopped it, per git.output below"
     fi
 
-    print_turtle_header "hang tight..."
-    print_tree_start "git.branch.rebase begin --mode apply"
-    echo "   ├─ rebase"
-    echo "   │  ├─ target: origin/$DEFAULT_BRANCH"
-    echo "   │  ├─ commits: $COMMIT_COUNT"
-    echo "   │  └─ status: $STOP_STATUS"
-    if [[ -n "$CONFLICT_FILES" ]]; then
-      echo "   ├─ conflict"
-      if [[ -n "$CONFLICT_COMMIT" ]]; then
-        echo "   │  ├─ commit: $CONFLICT_COMMIT"
+    # a halt on conflict exits non-zero, so it rides both streams, as every
+    # other refusal in this file does (rule.require.skill-output-streams)
+    emit_both "$(
+      print_turtle_header "hang tight..."
+      print_tree_start "git.branch.rebase begin --mode apply"
+      echo "   ├─ rebase"
+      echo "   │  ├─ target: origin/$DEFAULT_BRANCH"
+      echo "   │  ├─ commits: $COMMIT_COUNT"
+      echo "   │  └─ status: $STOP_STATUS"
+      if [[ -n "$CONFLICT_FILES" ]]; then
+        echo "   ├─ conflict"
+        if [[ -n "$CONFLICT_COMMIT" ]]; then
+          echo "   │  ├─ commit: $CONFLICT_COMMIT"
+        fi
+        echo "   │  └─ files"
+        print_files_tree "   │     " "$CONFLICT_FILES"
       fi
-      echo "   │  └─ files"
-      print_files_tree "   │     " "$CONFLICT_FILES"
-    fi
-    print_aside_held_branch superseded=""
-    print_rebase_next_steps settle_step="$SETTLE_STEP"
-    echo "   └─ git.output"
-    print_git_output_tree "$GIT_OUTPUT"
-    print_coconut_hint "settle the conflicts in the files above, stage them, then continue" \
-      "rhx git.stage.add <files>" \
-      "rhx git.branch.rebase continue"
+      print_aside_held_branch superseded=""
+      print_rebase_next_steps settle_step="$SETTLE_STEP"
+      echo "   └─ git.output"
+      print_git_output_tree "$GIT_OUTPUT"
+    )"
     exit 1
   fi
 

@@ -2,7 +2,7 @@ import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import { MalfunctionError } from 'helpful-errors';
 import * as path from 'path';
-import { genTempDir, given, then, when } from 'test-fns';
+import { genTempDir, given, then, useBeforeAll, useThen, when } from 'test-fns';
 
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
@@ -2195,6 +2195,95 @@ describe('git.release.p2', () => {
     );
 
     given(
+      '[case-done-test] one tree walks the wish done-test: a crew spent its commit grant, then asks to ship',
+      () => {
+        // one tree for the whole journey; each step reads the meters the last one left
+        const scene = useBeforeAll(async () =>
+          setupScene({
+            scene: { branch: 'feat', featPr: 'passed:wout-automerge' },
+            slug: 'done-test-journey',
+          }),
+        );
+        afterAll(() => scene.cleanup());
+
+        // the commit grant a director gave, spent to 0 by a commit + push; held, never revoked
+        const commitMeterHeld = JSON.stringify({ uses: 0 });
+        const readMeter = (input: { name: string }): string | null => {
+          const meterPath = path.join(scene.tempDir, '.meter', input.name);
+          if (!fs.existsSync(meterPath)) return null;
+          return fs.readFileSync(meterPath, 'utf-8');
+        };
+
+        when('[t0] the crew asks to ship with the commit grant alone', () => {
+          const result = useThen('the skill runs', async () => {
+            fs.rmSync(
+              path.join(scene.tempDir, '.meter/git.release.uses.jsonc'),
+              {
+                force: true,
+              },
+            );
+            fs.writeFileSync(
+              path.join(scene.tempDir, '.meter/git.commit.uses.jsonc'),
+              commitMeterHeld,
+            );
+            return runSkill(['--mode', 'apply'], scene);
+          });
+
+          then('exit 2: the release is refused', () => {
+            expect(result.status).toEqual(2);
+          });
+
+          then('the refusal names the release meter', () => {
+            expect(result.stdout).toContain('no release grant on this tree');
+            expect(result.stdout).toContain('git.release.uses');
+          });
+
+          then('no meter changed', () => {
+            expect(readMeter({ name: 'git.release.uses.jsonc' })).toBeNull();
+            expect(readMeter({ name: 'git.commit.uses.jsonc' })).toEqual(
+              commitMeterHeld,
+            );
+          });
+        });
+
+        when(
+          '[t1] the human stamps one release, and the crew asks again',
+          () => {
+            const result = useThen('the skill runs', async () => {
+              fs.writeFileSync(
+                path.join(scene.tempDir, '.meter/git.release.uses.jsonc'),
+                JSON.stringify({ uses: 1 }),
+              );
+              return runSkill(['--mode', 'apply'], scene);
+            });
+
+            then('exit 0: the release proceeds', () => {
+              expect(result.status).toEqual(0);
+            });
+
+            then('the release spends its one stamp', () => {
+              expect(
+                JSON.parse(
+                  readMeter({ name: 'git.release.uses.jsonc' }) ?? '{}',
+                ).uses,
+              ).toEqual(0);
+              expect(result.stdout).toContain('release stamp spent: 0 left');
+            });
+
+            then(
+              'the commit grant is untouched: a release spends no commit',
+              () => {
+                expect(readMeter({ name: 'git.commit.uses.jsonc' })).toEqual(
+                  commitMeterHeld,
+                );
+              },
+            );
+          },
+        );
+      },
+    );
+
+    given(
       '[case-perm-commit-only] a commit grant with no release grant',
       () => {
         const scene: Scene = {
@@ -2226,7 +2315,10 @@ describe('git.release.p2', () => {
                 fakeBinDir,
               });
               expect(result.stdout).toContain('no release grant on this tree');
+              expect(result.stderr).toContain('no release grant on this tree');
               expect(result.status).toEqual(2);
+              // the upgraded-tree refusal (case=8): a legacy push:allow file never ships
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             } finally {
               cleanup();
             }
@@ -2393,6 +2485,14 @@ exec "$(dirname "$0")/gh.scene" "$@"
                 ),
               ).toEqual({ uses: 1 });
               expect(result.stdout).not.toContain('release stamp spent');
+              // the failed arm closes the tree and is named on both streams
+              expect(result.stdout).toContain(
+                '└─ 💥 MalfunctionError: could not arm the merge',
+              );
+              expect(result.stderr).toContain(
+                '└─ 💥 MalfunctionError: could not arm the merge',
+              );
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             } finally {
               cleanup();
             }
@@ -2448,6 +2548,9 @@ exec "$(dirname "$0")/gh.scene" "$@"
                   { uses: 0 },
                 );
                 expect(result.stdout).toContain('a human changed it');
+                expect(
+                  asSnapshotReadyWithAnsi(result.stdout),
+                ).toMatchSnapshot();
               } finally {
                 cleanup();
               }
@@ -2507,11 +2610,77 @@ exec "$(dirname "$0")/gh.scene" "$@"
                     '💥 MalfunctionError: could not refund the release use',
                   );
                   expect(result.stdout).not.toContain('a human changed it');
+                  // jq's cause rides inside the 💥 line, never as a raw stray line
+                  expect(result.stderr).toContain('could not be read (jq: ');
+                  expect(result.stderr).not.toMatch(/^parse error/m);
+                  expect(
+                    asSnapshotReadyWithAnsi(result.stdout),
+                  ).toMatchSnapshot();
+                  expect(
+                    asSnapshotReadyWithAnsi(result.stderr),
+                  ).toMatchSnapshot();
                 } finally {
                   cleanup();
                 }
               },
             );
+          },
+        );
+
+        when(
+          '[t5] a human removes the stamp mid-apply, then the arm fails',
+          () => {
+            then('the removal stands: the failed arm refunds naught', () => {
+              const { tempDir, fakeBinDir, cleanup } = setupScene({
+                scene,
+                slug: 'perm-release-only-removed-mid-apply',
+              });
+              fs.rmSync(path.join(tempDir, '.meter/git.commit.uses.jsonc'), {
+                force: true,
+              });
+              const stampPath = path.join(
+                tempDir,
+                '.meter/git.release.uses.jsonc',
+              );
+              fs.writeFileSync(stampPath, JSON.stringify({ uses: 1 }));
+
+              // .mock = shim over the scene's gh mock: at `pr merge`, a human
+              //         `git.release.uses del` lands (the stamp file goes),
+              //         then the merge fails; all else defers
+              fs.renameSync(
+                path.join(fakeBinDir, 'gh'),
+                path.join(fakeBinDir, 'gh.scene'),
+              );
+              fs.writeFileSync(
+                path.join(fakeBinDir, 'gh'),
+                `#!/bin/bash
+if [[ "$1" == "pr" && "$2" == "merge" ]]; then
+  rm -f '${stampPath}'
+  echo "GraphQL: Resource not accessible by integration (mergePullRequest)" >&2
+  exit 1
+fi
+exec "$(dirname "$0")/gh.scene" "$@"
+`,
+              );
+              fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+              try {
+                const result = runSkill(['--mode', 'apply'], {
+                  tempDir,
+                  fakeBinDir,
+                });
+                expect(result.status).not.toEqual(0);
+                expect(fs.existsSync(stampPath)).toBe(false);
+                expect(result.stdout).toContain(
+                  'it was removed since the spend; it stays removed',
+                );
+                expect(
+                  asSnapshotReadyWithAnsi(result.stdout),
+                ).toMatchSnapshot();
+              } finally {
+                cleanup();
+              }
+            });
           },
         );
       },
@@ -3121,6 +3290,55 @@ exec "$(dirname "$0")/gh.scene" "$@"
               // the plan never refuses, but names what apply would meet
               expect(result.stdout).toContain(
                 'apply would refuse: no release grant on this tree',
+              );
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+              expect(result.status).toEqual(0);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+
+        when('[t1] plan with the global release blocker set', () => {
+          then('exit 0: the preview names the global blocker', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-plan-global-blocked',
+            });
+            fs.mkdirSync(asGlobalMeterDir(tempDir), { recursive: true });
+            fs.writeFileSync(
+              path.join(asGlobalMeterDir(tempDir), 'git.release.uses.jsonc'),
+              JSON.stringify({ blocked: true }),
+            );
+
+            try {
+              const result = runSkill([], { tempDir, fakeBinDir }); // plan mode (default)
+              expect(result.stdout).toContain(
+                'apply would refuse: releases blocked globally',
+              );
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+              expect(result.status).toEqual(0);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+
+        when('[t2] plan with a damaged local release stamp', () => {
+          then('exit 0: the preview names the damaged meter file', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-plan-local-damaged',
+            });
+            fs.writeFileSync(
+              path.join(tempDir, '.meter/git.release.uses.jsonc'),
+              '{ broken',
+            );
+
+            try {
+              const result = runSkill([], { tempDir, fakeBinDir }); // plan mode (default)
+              expect(result.stdout).toContain(
+                'apply would refuse: a release meter file is damaged',
               );
               expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);

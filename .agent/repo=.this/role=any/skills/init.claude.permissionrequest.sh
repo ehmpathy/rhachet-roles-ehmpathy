@@ -43,9 +43,12 @@ SETTINGS_REL="${SETTINGS_FILE#"$PROJECT_ROOT/"}"
 # refuse a target that is itself a link: the write would land in the link's target
 if [[ -L "$SETTINGS_FILE" ]]; then
   # .note = echo to each stream, not `tee /dev/stderr`: a socket stderr (node spawn) refuses the open
+  # the fix is a next move, so it renders as a coconut (rule.require.coconut-hints)
   LINK_REFUSAL="✋ ConstraintError: $SETTINGS_REL is a link; this init writes only a real file
 
-fix: run \`npx rhachet init --hooks\` first, so the repo settings file is real, then rerun."
+🥥 did you know?
+   ├─ run rhachet init first, so the repo settings file is real, then rerun this init
+   └─ npx rhachet init --hooks"
   echo "$LINK_REFUSAL"
   echo "$LINK_REFUSAL" >&2
   exit 2
@@ -78,11 +81,11 @@ fi
 if jq -e --slurpfile before "$SETTINGS_FILE" --slurpfile after "$FILE_TEMP" -n '$before[0] == $after[0]' > /dev/null; then
   rm -f "$FILE_TEMP"
   echo "👌 PermissionRequest decider already registered"
-  echo "   $SETTINGS_REL"
+  echo "   └─ $SETTINGS_REL"
   exit 0
 fi
 
 # apply via rename in the same dir
 mv "$FILE_TEMP" "$SETTINGS_FILE"
 echo "✨ PermissionRequest decider registered"
-echo "   $SETTINGS_REL"
+echo "   └─ $SETTINGS_REL"

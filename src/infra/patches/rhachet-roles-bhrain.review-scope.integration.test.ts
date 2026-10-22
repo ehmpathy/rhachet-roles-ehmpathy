@@ -1,3 +1,4 @@
+import * as fs from 'fs';
 import * as path from 'path';
 import { given, then, when } from 'test-fns';
 
@@ -5,7 +6,7 @@ import { given, then, when } from 'test-fns';
  * .what = proves the review scope filter keeps every file a stage's peer lane binds
  * .why  = bhrain's polluter filter dropped 12 of the 13 `1.vision.*` files on route
  *         v2026_10_18.feat-split-release-uses — three peer rounds read only the yield.
- *         a glob is exempt from the drop only when EVERY file it matched is paperwork,
+ *         a glob is exempt from the drop only when every file it matched is paperwork,
  *         and `1.vision.*.md` also matched the yield, so it never earned the exemption.
  *         this suite runs the real filter on the real paths, with no review call.
  */
@@ -18,29 +19,21 @@ describe('rhachet-roles-bhrain review scope: polluter verdict on a stage bind', 
     ),
   );
 
-  // the 13 files the vision lanes joined (glob ∩ since-main), from the i003 scope trace
+  // the real `1.vision.*.md` files on the route, read from disk so no name can
+  // drift from the files the lanes join; the yield is one, every other is a demo
   const route = '.behavior/v2026_10_18.feat-split-release-uses';
-  const targets = [
-    'case=1.grant-each-alone',
-    'case=10.rebase-conflict-mark-done',
-    'case=2.release-on-its-own-meter',
-    'case=3.rebase-zero-ahead',
-    'case=4.rebase-then-push',
-    'case=5.revoke-one-leaves-two',
-    'case=6.kill-switch-and-damage',
-    'case=7.robot-cannot-grant',
-    'case=8.upgraded-tree',
-    'case=9.crew-day-dense-journey',
-    'case=_',
-    'dimensions',
-  ]
-    .map((leaf) => `${route}/1.vision.experience.${leaf}.md`)
-    .concat(`${route}/1.vision.yield.md`);
+  const targets = fs
+    .readdirSync(path.join(process.cwd(), route))
+    .filter((name) => /^1\.vision\..*\.md$/.test(name))
+    .map((name) => `${route}/${name}`);
+  const demos = targets.filter(
+    (target) => !target.endsWith('1.vision.yield.md'),
+  );
 
   given(
     '[case1] the repaired 1.vision guard bind (two --paths-with globs)',
     () => {
-      when('[t0] the scope filter judges the 13 joined targets', () => {
+      when('[t0] the scope filter judges every joined target', () => {
         const verdict = getAllTargetsByPolluterVerdict({
           targets,
           globs: [
@@ -50,8 +43,16 @@ describe('rhachet-roles-bhrain review scope: polluter verdict on a stage bind', 
           mode: 'drop',
         });
 
-        then('all 13 are kept', () => {
-          expect(verdict.kept).toHaveLength(13);
+        then(
+          'the read found the real route files (an empty read proves naught)',
+          () => {
+            expect(demos.length).toBeGreaterThanOrEqual(12);
+            expect(targets).toContain(`${route}/1.vision.yield.md`);
+          },
+        );
+
+        then('every target is kept', () => {
+          expect(verdict.kept).toHaveLength(targets.length);
           expect([...verdict.kept].sort()).toEqual([...targets].sort());
         });
 
@@ -67,15 +68,15 @@ describe('rhachet-roles-bhrain review scope: polluter verdict on a stage bind', 
   given(
     '[case2] the stage bind as the template ships it (one --paths-with glob)',
     () => {
-      when('[t0] the scope filter judges the 13 joined targets', () => {
+      when('[t0] the scope filter judges every joined target', () => {
         const verdict = getAllTargetsByPolluterVerdict({
           targets,
           globs: [`${route}/1.vision.*.md`],
           mode: 'drop',
         });
 
-        then('all 13 are kept, the yield beside the 12 demos', () => {
-          expect(verdict.kept).toHaveLength(13);
+        then('every target is kept, the yield beside the demos', () => {
+          expect(verdict.kept).toHaveLength(targets.length);
           expect(verdict.dropped).toEqual([]);
         });
       });
@@ -92,8 +93,8 @@ describe('rhachet-roles-bhrain review scope: polluter verdict on a stage bind', 
         mode: 'drop',
       });
 
-      then('the exemption does not loosen: the 12 demos still drop', () => {
-        expect(verdict.dropped).toHaveLength(12);
+      then('the exemption does not loosen: the demos still drop', () => {
+        expect(verdict.dropped).toHaveLength(demos.length);
         expect(verdict.kept).toHaveLength(2);
         expect(verdict.kept).toContain(source);
         expect(verdict.kept).toContain(`${route}/1.vision.yield.md`);

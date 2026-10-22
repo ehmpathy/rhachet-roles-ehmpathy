@@ -29,7 +29,7 @@ set_meter_scope release
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  emit_both "✋ ConstraintError: not in a git repository"
+  emit_usage_refusal --skill git.release.uses --message "not in a git repository"
   exit 2
 fi
 
@@ -64,8 +64,8 @@ get_one_release_blocked_levels() {
 
 USAGE="usage: git.release.uses set --quant N
        git.release.uses allow | block | del | get
-       git.release.uses allow|block|get --global
-       git.release.uses allow|block|del|get --org <org>"
+       git.release.uses allow | block | get --global
+       git.release.uses allow | block | del | get --org <org>"
 
 # parse args
 COMMAND=""
@@ -134,8 +134,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      emit_both "✋ ConstraintError: unknown option: $1
-$USAGE"
+      emit_usage_refusal --skill git.release.uses --message "unknown option: $1"
       exit 2
       ;;
     *)
@@ -145,8 +144,7 @@ $USAGE"
 done
 
 if [[ -z "$COMMAND" ]]; then
-  emit_both "✋ ConstraintError: command required (set, allow, block, del, or get)
-$USAGE"
+  emit_usage_refusal --skill git.release.uses --message "command required (set, allow, block, del, or get)"
   exit 2
 fi
 
@@ -156,9 +154,12 @@ fi
 ######################################################################
 case "$COMMAND" in
   set|del|block|allow)
-    guard_actor_is_human_via_stdin "git.release.uses $COMMAND"
+    guard_actor_is_human_via_stdin "git.release.uses $COMMAND${QUANT:+ --quant $QUANT}"
     ;;
 esac
+
+# the root names the command as typed, args included, as the refusal does
+COMMAND_SHOWN="git.release.uses $COMMAND${QUANT:+ --quant $QUANT}"
 
 # the revoke + unlimited shorthands fix the quota
 case "$COMMAND" in
@@ -173,12 +174,11 @@ esac
 case "$COMMAND" in
   set|del|block|allow)
     if [[ -z "$QUANT" ]]; then
-      emit_both "✋ ConstraintError: --quant N is required
-$USAGE"
+      emit_usage_refusal --skill git.release.uses --message "--quant N is required"
       exit 2
     fi
     if [[ "$QUANT" != "infinite" ]] && ! [[ "$QUANT" =~ ^[0-9]+$ ]]; then
-      emit_both "✋ ConstraintError: --quant must be a non-negative integer or 'infinite'"
+      emit_usage_refusal --skill git.release.uses --message "--quant must be a non-negative integer or 'infinite'"
       exit 2
     fi
 
@@ -190,7 +190,7 @@ $USAGE"
     if [[ "$WRITE_STATUS" -eq 1 ]]; then
       emit_both "$(
         print_turtle_header "bummer dude..."
-        print_tree_start "git.release.uses $COMMAND"
+        print_tree_start "$COMMAND_SHOWN"
         print_tree_malfunction "release quota file corrupt"
         print_local_meter_damaged_fix file="$STATE_FILE_SHOWN"
       )"
@@ -199,7 +199,7 @@ $USAGE"
     if [[ "$WRITE_STATUS" -ne 0 ]]; then
       emit_both "$(
         print_turtle_header "bummer dude..."
-        print_tree_start "git.release.uses $COMMAND"
+        print_tree_start "$COMMAND_SHOWN"
         print_tree_malfunction "could not write $STATE_FILE_SHOWN; the prior grant stands"
       )"
       exit 1
@@ -208,10 +208,14 @@ $USAGE"
     # render a revoke
     if [[ "$QUANT" == "0" ]]; then
       print_turtle_header "groovy, no ships today"
-      print_tree_start "git.release.uses $COMMAND"
-      echo "   └─ releases: revoked"
+      print_tree_start "$COMMAND_SHOWN"
+      echo "   └─ local: revoked"
       exit 0
     fi
+
+    # the level line reads as `get` reads it: `local: N left` or `local: unlimited`
+    LOCAL_LABEL="$(as_meter_uses_display uses="$QUANT")"
+    [[ "$QUANT" != "infinite" ]] && LOCAL_LABEL="$LOCAL_LABEL left"
 
     # a stamp ships only where org and global allow it too; name the level
     # that still blocks, so a grant never reads as usable when it is not
@@ -224,23 +228,32 @@ $USAGE"
     # render a grant that can ship now
     if [[ -z "$BLOCKED_LEVELS" ]]; then
       print_turtle_header "radical! ship it when ready"
-      print_tree_start "git.release.uses $COMMAND"
-      echo "   └─ releases: $(as_meter_uses_display uses="$QUANT")"
+      print_tree_start "$COMMAND_SHOWN"
+      echo "   └─ local: $LOCAL_LABEL"
       # a finite stamp: each apply spends one, so a ship to prod should ride one apply
       if [[ "$QUANT" != "infinite" ]]; then
-        print_coconut_hint "each apply spends one use; to reach prod on one use, ship feat → main → prod in one apply" \
+        print_coconut_hint "the clone spends one use per apply; to reach prod on one use, it ships feat → main → prod in one apply" \
           "rhx git.release --into prod --mode apply"
+      fi
+      # an unlimited stamp: every release from this tree goes unmetered; name the way back
+      if [[ "$QUANT" == "infinite" ]]; then
+        print_coconut_hint "every release from this tree is now unmetered, until a human takes it back" \
+          "rhx git.release.uses block"
       fi
       exit 0
     fi
 
     # render a grant that waits on another level
     print_turtle_header "righteous, the stamp is set"
-    print_tree_start "git.release.uses $COMMAND"
-    echo "   ├─ releases: $(as_meter_uses_display uses="$QUANT")"
+    print_tree_start "$COMMAND_SHOWN"
+    echo "   ├─ local: $LOCAL_LABEL"
     echo "   └─ still blocked: $BLOCKED_LEVELS"
     print_coconut_hint "a release needs every level to allow it; see all three" \
-      "git.release.uses get"
+      "rhx git.release.uses get"
+    if [[ "$QUANT" == "infinite" ]]; then
+      print_coconut_hint "once the other levels allow, every release from this tree goes unmetered, until a human takes it back" \
+        "rhx git.release.uses block"
+    fi
     ;;
 
   get)
@@ -250,15 +263,18 @@ $USAGE"
     if [[ "$LOCAL_STATUS" -eq 1 ]]; then
       emit_both "$(
         print_turtle_header "bummer dude..."
-        print_tree_start "git.release.uses"
+        print_tree_start "git.release.uses get"
         print_tree_malfunction "release quota file corrupt"
         print_local_meter_damaged_fix file="$STATE_FILE_SHOWN"
       )"
       exit 1
     fi
+    # the level line names its level (`local`), as the verdict line does;
+    # a count reads `N left`, so the quota keeps its unit
     LOCAL_LABEL="unset (blocked)"
     if [[ "$LOCAL_STATUS" -eq 0 ]]; then
       LOCAL_LABEL="$(as_meter_uses_display uses="$RELEASE_USES")"
+      [[ "$RELEASE_USES" != "infinite" ]] && LOCAL_LABEL="$LOCAL_LABEL left"
     fi
 
     # org level: the shared hardened reader decides
@@ -283,19 +299,29 @@ $USAGE"
     VERDICT_LABEL="can ship now"
     [[ -n "$VERDICT_BLOCKED" ]] && VERDICT_LABEL="blocked by $VERDICT_BLOCKED"
 
-    print_turtle_header "lets check the release meter..."
-    print_tree_start "git.release.uses"
-    echo "   ├─ left: $LOCAL_LABEL"
+    print_turtle_header "let's check the release meter..."
+    print_tree_start "git.release.uses get"
+    echo "   ├─ local: $LOCAL_LABEL"
     echo "   ├─ org: $ORG_LABEL"
     echo "   ├─ global: $GLOBAL_LABEL"
     echo "   └─ verdict: $VERDICT_LABEL"
     print_global_corrupt_note
     print_org_corrupt_note
+
+    # a blocked verdict names the next move: one grant per level that blocks.
+    # a damaged level already printed its own remedy, so it adds none here
+    if [[ -n "$VERDICT_BLOCKED" && "${GLOBAL_BLOCK_CORRUPT:-false}" != "true" && "${ORG_BLOCK_CORRUPT:-false}" != "true" ]]; then
+      LIFT_COMMANDS=()
+      [[ "$VERDICT_LOCAL" -ne 0 ]] && LIFT_COMMANDS+=("rhx git.release.uses set --quant 1")
+      [[ "$ORG_STATUS" -ne 0 ]] && LIFT_COMMANDS+=("rhx git.release.uses allow --org ${ORG_VALUE:-<org>}")
+      [[ "$GLOBAL_STATUS" -ne 0 ]] && LIFT_COMMANDS+=("rhx git.release.uses allow --global")
+      print_coconut_hint "a human lifts a level from their own terminal; one command per level that blocks" \
+        "${LIFT_COMMANDS[@]}"
+    fi
     ;;
 
   *)
-    emit_both "✋ ConstraintError: unknown command: $COMMAND
-$USAGE"
+    emit_usage_refusal --skill git.release.uses --message "unknown command: $COMMAND"
     exit 2
     ;;
 esac
