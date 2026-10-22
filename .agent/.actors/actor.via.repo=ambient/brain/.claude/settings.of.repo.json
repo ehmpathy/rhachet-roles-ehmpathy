@@ -1,9 +1,4 @@
 {
-  "statusLine": {
-    "type": "command",
-    "command": "node -e \"import('rhachet-roles-bhrain/cli/route').then(m => m.routeStatusLine())\"",
-    "padding": 0
-  },
   "permissions": {
     "allow": [
       "Bash(cat:*)",
@@ -99,6 +94,8 @@
       "Bash(npx rhachet run --skill git.commit.sponsor:*)",
       "Bash(npx rhachet run --skill git.commit.uses get)",
       "Bash(npx rhachet run --skill git.commit.uses:*)",
+      "Bash(npx rhachet run --skill git.release.uses get)",
+      "Bash(npx rhachet run --skill git.release.uses:*)",
       "Bash(npx rhachet run --skill git.release:*)",
       "Bash(npx rhachet run --skill git.repo.get:*)",
       "Bash(npx rhachet run --skill git.repo.test:*)",
@@ -289,6 +286,13 @@
       "Bash(npx rhachet run --skill git.commit.uses --org * del:*)",
       "Bash(npx rhachet run --skill git.commit.uses allow:*)",
       "Bash(npx rhachet run --skill git.commit.uses set:*)",
+      "Bash(npx rhachet run --skill git.release.uses -- allow:*)",
+      "Bash(npx rhachet run --skill git.release.uses -- set:*)",
+      "Bash(npx rhachet run --skill git.release.uses --global allow:*)",
+      "Bash(npx rhachet run --skill git.release.uses --org * allow:*)",
+      "Bash(npx rhachet run --skill git.release.uses --org * del:*)",
+      "Bash(npx rhachet run --skill git.release.uses allow:*)",
+      "Bash(npx rhachet run --skill git.release.uses set:*)",
       "Bash(rhx git.commit.bind -- del:*)",
       "Bash(rhx git.commit.bind -- set:*)",
       "Bash(rhx git.commit.bind del:*)",
@@ -304,6 +308,13 @@
       "Bash(rhx git.commit.uses --org * del:*)",
       "Bash(rhx git.commit.uses allow:*)",
       "Bash(rhx git.commit.uses set:*)",
+      "Bash(rhx git.release.uses -- allow:*)",
+      "Bash(rhx git.release.uses -- set:*)",
+      "Bash(rhx git.release.uses --global allow:*)",
+      "Bash(rhx git.release.uses --org * allow:*)",
+      "Bash(rhx git.release.uses --org * del:*)",
+      "Bash(rhx git.release.uses allow:*)",
+      "Bash(rhx git.release.uses set:*)",
       "Bash(sed:*)",
       "Bash(tee:*)",
       "Edit(.branch/.bind/*)",
@@ -317,6 +328,11 @@
       "Bash(pnpm add:*)",
       "Bash(pnpm install:*)"
     ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node -e \"import('rhachet-roles-bhrain/cli/route').then(m => m.routeStatusLine())\"",
+    "padding": 0
   },
   "hooks": {
     "SessionStart": [
