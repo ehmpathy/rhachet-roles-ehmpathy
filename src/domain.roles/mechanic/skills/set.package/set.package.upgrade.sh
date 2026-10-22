@@ -44,7 +44,10 @@ parse_args() {
         shift 2
         ;;
       *)
-        echo "error: unknown argument: $1" >&2
+        OUTPUT_STREAM="both"
+        print_turtle_header "bummer dude..."
+        print_tree_start "set.package.upgrade"
+        print_error "unknown argument: $1"
         exit 2
         ;;
     esac
@@ -56,7 +59,7 @@ parse_args() {
 ######################################################################
 validate_flags() {
   if [[ -z "$PACKAGE" ]]; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.upgrade"
     print_error "--package is required"
@@ -64,7 +67,7 @@ validate_flags() {
   fi
 
   if [[ -z "$VERSION" ]]; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.upgrade"
     print_tree_leaf "package" "$PACKAGE"
@@ -95,7 +98,7 @@ main() {
   parse_args "$@"
 
   # check dependencies
-  if ! _check_dependencies; then
+  if ! _check_dependencies --skill set.package.upgrade; then
     exit 2
   fi
 
@@ -107,11 +110,14 @@ main() {
 
   # check if installed
   if ! _check_package_installed "$PACKAGE" "$repo_root/package.json"; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.upgrade"
     print_tree_leaf "package" "$PACKAGE"
-    print_error "package not installed. use set.package.install instead."
+    print_error "package not installed"
+    print_coconut_hint \
+      "install it instead, with a reason" \
+      "rhx set.package.install --package $PACKAGE --at $VERSION --for prod --reason '...'"
     exit 2
   fi
 
@@ -124,7 +130,7 @@ main() {
   local expand_status=0
   actual_version=$(_expand_version "$PACKAGE" "$VERSION") || expand_status=$?
   if [[ $expand_status -ne 0 ]]; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.upgrade"
     print_tree_leaf "package" "$PACKAGE"
@@ -137,8 +143,20 @@ main() {
   local security_status=0
   vuln_output=$(_check_security "$PACKAGE" "$actual_version" 2>&1) || security_status=$?
 
+  # the audit could not run: fail closed as a malfunction, never as a vulnerability
+  if [[ $security_status -eq 2 ]]; then
+    OUTPUT_STREAM="both"
+    print_turtle_header "bummer dude..."
+    print_tree_start "set.package.upgrade"
+    print_tree_leaf "package" "$PACKAGE"
+    print_tree_leaf "to" "$actual_version"
+    print_malfunction "security audit could not run ($vuln_output)"
+    print_footer "upgrade blocked. the audit fails closed; retry once the registry answers."
+    exit 1
+  fi
+
   if [[ $security_status -ne 0 ]]; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     local vuln_count
     vuln_count=$(echo "$vuln_output" | wc -l)
 
@@ -172,7 +190,7 @@ main() {
 
   # upgrade
   if ! _upgrade_package "$PACKAGE" "$actual_version" "$pm"; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.upgrade"
     print_tree_leaf "package" "$PACKAGE"

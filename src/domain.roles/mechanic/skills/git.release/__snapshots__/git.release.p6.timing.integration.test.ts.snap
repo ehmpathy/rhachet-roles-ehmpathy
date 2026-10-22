@@ -1,0 +1,83 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release.p6.timing negative: graceful fallback when timestamps absent given: [case4] already merged PR (no active checks) when: [t0] --watch is called then: it gracefully handles already merged state 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+"
+`;
+
+exports[`git.release.p6.timing negative: graceful fallback when timestamps absent given: [case5] tag watch with grace period (no runs yet) when: [t0] --watch --into prod --from main is called with no initial runs then: it gracefully handles absent timestamps in grace period 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 🐢 1 check(s) in progress
+   └─ 🥥 let's watch
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      ├─ 💤 publish.yml, Xs in action, Xs watched
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
+"
+`;
+
+exports[`git.release.p6.timing positive: accurate duration from timestamps given: [case1] PR inflight then merges with known timestamps when: [t0] --watch is called then: it shows duration from completedAt - startedAt, not now - startedAt 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 🐢 1 check(s) in progress
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ... (Nx more)
+      └─ ✨ done! Xm Ys in action, Xs watched
+"
+`;
+
+exports[`git.release.p6.timing positive: accurate duration from timestamps given: [case2] tag workflow completed with known timestamps when: [t0] --watch --into prod --from main is called then: it shows duration from updatedAt - startedAt 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into prod --watch
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
+"
+`;
+
+exports[`git.release.p6.timing positive: accurate duration from timestamps given: [case3] PR checks done without automerge when: [t0] --watch is called then: it shows accurate duration for completed checks 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xm Ys in action, Xs watched
+"
+`;

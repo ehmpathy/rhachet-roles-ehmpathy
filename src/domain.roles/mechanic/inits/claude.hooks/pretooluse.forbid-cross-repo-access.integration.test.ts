@@ -317,7 +317,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
       });
     });
 
-    when('[t3] Grep names a specific file, with words', () => {
+    when('[t2] Grep names a specific file, with words', () => {
       then('the fix line carries both the words and the file', () => {
         const { gitRoot, homeDir, repoSelf, repoPeer, cleanup } = genTempRoot();
         try {
@@ -342,7 +342,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
       });
     });
 
-    when('[t4] Grep words carry a single quote', () => {
+    when('[t3] Grep words carry a single quote', () => {
       then('the fix line stays a valid shell command', () => {
         const { gitRoot, homeDir, repoSelf, repoPeer, cleanup } = genTempRoot();
         try {
@@ -363,7 +363,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
       });
     });
 
-    when('[t2] Grep carries the documented paths[] array shape', () => {
+    when('[t4] Grep carries the documented paths[] array shape', () => {
       then('blocks it too, whichever shape the tool sends', () => {
         const { gitRoot, homeDir, repoSelf, repoPeer, cleanup } = genTempRoot();
         try {
@@ -383,7 +383,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
       });
     });
 
-    when('[t3] Grep carries no path at all', () => {
+    when('[t5] Grep carries no path at all', () => {
       then('allows it (defaults to the current repo)', () => {
         const { gitRoot, homeDir, repoSelf, cleanup } = genTempRoot();
         try {
@@ -680,7 +680,7 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
           { label: 'a removed tree', treedir: 'peer-repo.vlad.feat-gone' },
           { label: 'a glob', treedir: 'peer-repo*' },
         ];
-        cases.map((thisCase) =>
+        cases.forEach((thisCase) =>
           then(
             `derives the true slug for ${thisCase.label}, never _worktrees`,
             () => {
@@ -709,6 +709,9 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
                 // that was blocked. only the slug and the redirect must not carry it
                 expect(result.stderr).not.toContain('repo: testorg/_worktrees');
                 expect(result.stderr).not.toContain('--in testorg/_worktrees');
+                expect(
+                  redactTempRoot(result.stderr, gitRoot),
+                ).toMatchSnapshot();
               } finally {
                 cleanup();
               }

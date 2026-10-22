@@ -60,7 +60,10 @@ parse_args() {
         shift 2
         ;;
       *)
-        echo "error: unknown argument: $1" >&2
+        OUTPUT_STREAM="both"
+        print_turtle_header "bummer dude..."
+        print_tree_start "set.package.install"
+        print_error "unknown argument: $1"
         exit 2
         ;;
     esac
@@ -72,7 +75,7 @@ parse_args() {
 ######################################################################
 validate_flags() {
   if [[ -z "$PACKAGE" ]]; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.install"
     print_error "--package is required"
@@ -80,7 +83,7 @@ validate_flags() {
   fi
 
   if [[ -z "$VERSION" ]]; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.install"
     print_tree_leaf "package" "$PACKAGE"
@@ -89,7 +92,7 @@ validate_flags() {
   fi
 
   if [[ -z "$DEP_TYPE" ]]; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.install"
     print_tree_leaf "package" "$PACKAGE"
@@ -100,30 +103,35 @@ validate_flags() {
 
   # failfast on --for dev with helpful hint
   if [[ "$DEP_TYPE" == "dev" ]]; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.install"
     print_tree_leaf "package" "$PACKAGE"
     print_tree_leaf "version" "$VERSION"
     print_tree_leaf "for" "$DEP_TYPE"
-    print_error "--for dev is not valid. use --for prep instead."
-    print_footer "prep = prepare, pre-production. describes what happens there, not who uses it."
+    print_error "--for dev is not valid"
+    print_coconut_hint \
+      "prep = prepare, pre-production; it names what happens there, not who uses it" \
+      "rhx set.package.install --package $PACKAGE --at $VERSION --for prep --reason '...'"
     exit 2
   fi
 
   if [[ "$DEP_TYPE" != "prod" && "$DEP_TYPE" != "prep" ]]; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.install"
     print_tree_leaf "package" "$PACKAGE"
     print_tree_leaf "version" "$VERSION"
     print_tree_leaf "for" "$DEP_TYPE"
     print_error "--for must be 'prod' or 'prep'"
+    print_coconut_hint \
+      "pick prod for a runtime dependency, prep for a dev-time one" \
+      "rhx set.package.install --package $PACKAGE --at $VERSION --for prod --reason '...'"
     exit 2
   fi
 
   if [[ -z "$REASON" ]]; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.install"
     print_tree_leaf "package" "$PACKAGE"
@@ -203,7 +211,7 @@ main() {
   parse_args "$@"
 
   # check dependencies
-  if ! _check_dependencies; then
+  if ! _check_dependencies --skill set.package.install; then
     exit 2
   fi
 
@@ -215,11 +223,14 @@ main() {
 
   # check if already installed
   if _check_package_installed "$PACKAGE" "$repo_root/package.json"; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.install"
     print_tree_leaf "package" "$PACKAGE"
-    print_error "package already installed. use set.package.upgrade instead."
+    print_error "package already installed"
+    print_coconut_hint \
+      "upgrade it instead" \
+      "rhx set.package.upgrade --package $PACKAGE --to $VERSION"
     exit 2
   fi
 
@@ -228,7 +239,7 @@ main() {
   local expand_status=0
   actual_version=$(_expand_version "$PACKAGE" "$VERSION") || expand_status=$?
   if [[ $expand_status -ne 0 ]]; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.install"
     print_tree_leaf "package" "$PACKAGE"
@@ -241,8 +252,20 @@ main() {
   local security_status=0
   vuln_output=$(_check_security "$PACKAGE" "$actual_version" 2>&1) || security_status=$?
 
+  # the audit could not run: fail closed as a malfunction, never as a vulnerability
+  if [[ $security_status -eq 2 ]]; then
+    OUTPUT_STREAM="both"
+    print_turtle_header "bummer dude..."
+    print_tree_start "set.package.install"
+    print_tree_leaf "package" "$PACKAGE"
+    print_tree_leaf "version" "$actual_version"
+    print_malfunction "security audit could not run ($vuln_output)"
+    print_footer "install blocked. the audit fails closed; retry once the registry answers."
+    exit 1
+  fi
+
   if [[ $security_status -ne 0 ]]; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     local vuln_count
     vuln_count=$(echo "$vuln_output" | wc -l)
 
@@ -280,7 +303,7 @@ main() {
 
   # install
   if ! _install_package "$PACKAGE" "$actual_version" "$DEP_TYPE" "$pm"; then
-    OUTPUT_STREAM="stderr"
+    OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.install"
     print_tree_leaf "package" "$PACKAGE"

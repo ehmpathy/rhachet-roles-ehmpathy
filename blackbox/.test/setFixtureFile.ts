@@ -25,13 +25,25 @@ export const setFixtureFile = (input: {
       hint: 'unlink it first (setFixtureLayoutOld), or write the real file the layout uses',
     });
 
-  // refuse a target whose parent resolves outside the fixture repo
-  fs.mkdirSync(path.dirname(target), { recursive: true });
+  // refuse a target whose nearest extant ancestor resolves outside the fixture repo,
+  // before any dir is made: a mkdir through an escaped link would land outside it
   const repoReal = fs.realpathSync(input.dir);
+  const getAncestorExtant = (dir: string): string =>
+    fs.existsSync(dir) ? dir : getAncestorExtant(path.dirname(dir));
+  const ancestorReal = fs.realpathSync(getAncestorExtant(path.dirname(target)));
+  const isWithinRepo = (real: string): boolean =>
+    real === repoReal || real.startsWith(`${repoReal}${path.sep}`);
+  if (!isWithinRepo(ancestorReal))
+    throw new ConstraintError('fixture write refused: target resolves outside the repo', {
+      target,
+      ancestorReal,
+      repoReal,
+    });
+
+  // make the parent, then confirm it still sits within the repo
+  fs.mkdirSync(path.dirname(target), { recursive: true });
   const parentReal = fs.realpathSync(path.dirname(target));
-  const isParentWithinRepo =
-    parentReal === repoReal || parentReal.startsWith(`${repoReal}${path.sep}`);
-  if (!isParentWithinRepo)
+  if (!isWithinRepo(parentReal))
     throw new ConstraintError('fixture write refused: target resolves outside the repo', {
       target,
       parentReal,

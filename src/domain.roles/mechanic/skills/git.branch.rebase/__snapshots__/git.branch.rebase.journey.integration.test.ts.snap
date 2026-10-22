@@ -11,7 +11,7 @@ exports[`git.branch.rebase journey given: [journey1] clean rebase: 4 commits ont
    │  │  ├─ HASH123 fix(api): feature commit 4
    │  │  ├─ HASH123 fix(api): feature commit 3
    │  │  ├─ HASH123 fix(api): feature commit 2
-   │  │  ├─ HASH123 fix(api): feature commit 1
+   │  │  └─ HASH123 fix(api): feature commit 1
    │  └─ behind: 3 commits
    │     ├─ HASH123 chore: main commit 3
    │     ├─ HASH123 chore: main commit 2
@@ -60,7 +60,7 @@ exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 co
    │  ├─ ahead: 3 commits
    │  │  ├─ HASH123 fix(api): add feature-only file
    │  │  ├─ HASH123 fix(settings): feature settings
-   │  │  ├─ HASH123 fix(config): feature config
+   │  │  └─ HASH123 fix(config): feature config
    │  └─ behind: 2 commits
    │     ├─ HASH123 chore: add settings.yml on main
    │     └─ HASH123 chore: add config.json on main
@@ -328,7 +328,7 @@ exports[`git.branch.rebase journey given: [journey7] plan on a held grant with z
    │  ├─ target: origin/main
    │  ├─ shape: replay
    │  ├─ ahead: 1 commits
-   │  │  ├─ HASH123 feat: one
+   │  │  └─ HASH123 feat: one
    │  └─ behind: 1 commits
    │     └─ HASH123 chore: main a
    └─ meter

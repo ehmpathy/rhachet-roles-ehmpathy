@@ -75,7 +75,7 @@ describe('git.release.uses.sh', () => {
 
       then('it reads every level as blocked, exit 0', () => {
         expect(res.exitCode).toBe(0);
-        expect(res.stdout).toContain('left: unset (blocked)');
+        expect(res.stdout).toContain('local: unset (blocked)');
         expect(res.stdout).toContain('org: blocked');
         expect(res.stdout).toContain('global: not blocked');
       });
@@ -134,7 +134,7 @@ describe('git.release.uses.sh', () => {
 
       then('it shows one release left', () => {
         expect(res.exitCode).toBe(0);
-        expect(res.stdout).toContain('left: 1');
+        expect(res.stdout).toContain('local: 1 left');
         expect(res.stdout).toContain('verdict: blocked by org');
         expect(res.stdout).toMatchSnapshot();
       });
@@ -147,12 +147,19 @@ describe('git.release.uses.sh', () => {
 
       then('the quota is unlimited', () => {
         expect(res.exitCode).toBe(0);
-        expect(res.stdout).toContain('releases: unlimited');
+        expect(res.stdout).toContain('local: unlimited');
         const local = path.join(scene.repo, '.meter', 'git.release.uses.jsonc');
         expect(JSON.parse(fs.readFileSync(local, 'utf-8'))).toEqual({
           uses: 'infinite',
         });
         expect(res.stdout).toMatchSnapshot();
+      });
+
+      then('it names the unmetered scope and the way back', () => {
+        expect(res.stdout).toContain(
+          'every release from this tree goes unmetered, until a human takes it back',
+        );
+        expect(res.stdout).toContain('└─ rhx git.release.uses block');
       });
     });
 
@@ -163,7 +170,7 @@ describe('git.release.uses.sh', () => {
 
       then('the quota is revoked to zero', () => {
         expect(res.exitCode).toBe(0);
-        expect(res.stdout).toContain('releases: revoked');
+        expect(res.stdout).toContain('local: revoked');
         const local = path.join(scene.repo, '.meter', 'git.release.uses.jsonc');
         expect(JSON.parse(fs.readFileSync(local, 'utf-8'))).toEqual({
           uses: 0,
@@ -183,7 +190,7 @@ describe('git.release.uses.sh', () => {
 
       then('del revokes to zero, and the render matches snapshot', () => {
         expect(res.exitCode).toBe(0);
-        expect(res.stdout).toContain('releases: revoked');
+        expect(res.stdout).toContain('local: revoked');
         const local = path.join(scene.repo, '.meter', 'git.release.uses.jsonc');
         expect(JSON.parse(fs.readFileSync(local, 'utf-8'))).toEqual({
           uses: 0,
@@ -199,7 +206,7 @@ describe('git.release.uses.sh', () => {
 
       then('it revokes, and the render matches snapshot', () => {
         expect(res.exitCode).toBe(0);
-        expect(res.stdout).toContain('releases: revoked');
+        expect(res.stdout).toContain('local: revoked');
         expect(res.stdout).toMatchSnapshot();
       });
     });
@@ -251,8 +258,8 @@ describe('git.release.uses.sh', () => {
       ['block', '--org', '@all'],
     ];
 
-    forms.forEach((args) => {
-      when(`[t0] ${args.join(' ')} with no tty`, () => {
+    forms.forEach((args, index) => {
+      when(`[t${index}] ${args.join(' ')} with no tty`, () => {
         const res = useThen('the write runs', async () =>
           run({ scene, args, human: false }),
         );
@@ -274,6 +281,15 @@ describe('git.release.uses.sh', () => {
           ).toBe(false);
           expect(res.stdout).toMatchSnapshot();
         });
+
+        then('the refusal rides both streams', () => {
+          expect(res.stdout).toContain(
+            '✋ ConstraintError: no terminal on this command',
+          );
+          expect(res.stderr).toContain(
+            '✋ ConstraintError: no terminal on this command',
+          );
+        });
       });
     });
   });
@@ -286,8 +302,8 @@ describe('git.release.uses.sh', () => {
       { slug: 'negative uses', raw: '{"uses": -1}' },
     ];
 
-    shapes.forEach((shape) => {
-      when(`[t0] get on a ${shape.slug} file`, () => {
+    shapes.forEach((shape, index) => {
+      when(`[t${index}] get on a ${shape.slug} file`, () => {
         const res = useThen('get runs', async () =>
           run({
             scene: genScene({ org: 'ehmpathy', localRaw: shape.raw }),
@@ -395,6 +411,39 @@ describe('git.release.uses.sh', () => {
     });
   });
 
+  given(
+    '[case5b] the org allows releases, and the global blocker is up',
+    () => {
+      const scene = useBeforeAll(async () => {
+        const fresh = genScene({ org: 'ehmpathy', localRaw: null });
+        run({
+          scene: fresh,
+          args: ['allow', '--org', 'ehmpathy'],
+          human: true,
+        });
+        run({ scene: fresh, args: ['block', '--global'], human: true });
+        return fresh;
+      });
+
+      when('[t0] a human stamps the tree', () => {
+        const res = useThen('set runs', async () =>
+          run({ scene, args: ['set', '--quant', '1'], human: true }),
+        );
+
+        then(
+          'the render names global as the one level that still blocks',
+          () => {
+            expect(res.exitCode).toBe(0);
+            expect(res.stdout).toContain('still blocked: global');
+            expect(res.stdout).not.toContain('org');
+            expect(res.stdout).not.toContain('ship it');
+            expect(res.stdout).toMatchSnapshot();
+          },
+        );
+      });
+    },
+  );
+
   given('[case6] a damaged global release blocker', () => {
     const scene = useBeforeAll(async () => {
       const fresh = genScene({ org: 'ehmpathy', localRaw: '{"uses": 1}' });
@@ -497,6 +546,13 @@ describe('git.release.uses.sh', () => {
         expect(res.stdout).not.toContain('sponsor');
         expect(res.stdout).toMatchSnapshot();
       });
+
+      then('it says the org lift alone ships no release', () => {
+        expect(res.stdout).toContain(
+          'this lifts the org level alone; global and local still decide whether a tree can ship',
+        );
+        expect(res.stdout).toContain('└─ rhx git.release.uses get');
+      });
     });
 
     when('[t1] get reads it', () => {
@@ -514,17 +570,47 @@ describe('git.release.uses.sh', () => {
 
     when('[t1b] a human stamps the tree, then get reads it', () => {
       const res = useThen('set, then get run', async () => {
-        await run({ scene, args: ['set', '--quant', '1'], human: true });
-        const got = await run({ scene, args: ['get'], human: false });
+        const stamped = run({
+          scene,
+          args: ['set', '--quant', '1'],
+          human: true,
+        });
+        const got = run({ scene, args: ['get'], human: false });
+
+        // restore the unset tree the later cases read
+        fs.rmSync(path.join(scene.repo, '.meter', 'git.release.uses.jsonc'));
+        return { stamped, got };
+      });
+
+      then('the set render says ship it, since every level allows', () => {
+        expect(res.stamped.exitCode).toBe(0);
+        expect(res.stamped.stdout).toContain('ship it');
+        expect(res.stamped.stdout).not.toContain('still blocked');
+        expect(res.stamped.stdout).toMatchSnapshot();
+      });
+
+      then('every level allows, so the verdict reads can ship now', () => {
+        expect(res.got.exitCode).toBe(0);
+        expect(res.got.stdout).toContain('verdict: can ship now');
+        expect(res.got.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1c] a human allows the tree, then get reads it', () => {
+      const res = useThen('allow, then get run', async () => {
+        run({ scene, args: ['allow'], human: true });
+        const got = run({ scene, args: ['get'], human: false });
 
         // restore the unset tree the later cases read
         fs.rmSync(path.join(scene.repo, '.meter', 'git.release.uses.jsonc'));
         return got;
       });
 
-      then('every level allows, so the verdict reads can ship now', () => {
+      then('the local level reads unlimited and the verdict can ship', () => {
         expect(res.exitCode).toBe(0);
+        expect(res.stdout).toContain('unlimited');
         expect(res.stdout).toContain('verdict: can ship now');
+        expect(res.stdout).toMatchSnapshot();
       });
     });
 
@@ -708,6 +794,7 @@ describe('git.release.uses.sh', () => {
       then('it refuses and names the commit meter', () => {
         expect(res.exitCode).toBe(2);
         expect(res.stdout).toContain('--push is not a release field');
+        expect(res.stderr).toContain('--push is not a release field');
         expect(res.stdout).toContain('git.commit.uses set --quant N');
         expect(res.stdout).toMatchSnapshot();
         expect(
@@ -730,6 +817,7 @@ describe('git.release.uses.sh', () => {
       then('it refuses and names the commit meter', () => {
         expect(res.exitCode).toBe(2);
         expect(res.stdout).toContain('--stage is not a release field');
+        expect(res.stderr).toContain('--stage is not a release field');
         expect(res.stdout).toContain('git.commit.uses set --quant N');
         expect(res.stdout).toMatchSnapshot();
       });

@@ -17,7 +17,7 @@ exports[`git.commit.bind.sh given: [case2] set --level feat when: [t0] level set
 `;
 
 exports[`git.commit.bind.sh given: [case3] get when: [t0] level is bound to fix then: shows bound level 1`] = `
-"🐢 lets check the bind...
+"🐢 let's check the bind...
 
 🐚 git.commit.bind
    ├─ level: fix
@@ -26,7 +26,7 @@ exports[`git.commit.bind.sh given: [case3] get when: [t0] level is bound to fix 
 `;
 
 exports[`git.commit.bind.sh given: [case3] get when: [t1] no level is bound then: shows (none) 1`] = `
-"🐢 lets check the bind...
+"🐢 let's check the bind...
 
 🐚 git.commit.bind
    └─ level: (none — will nudge on feat commits)

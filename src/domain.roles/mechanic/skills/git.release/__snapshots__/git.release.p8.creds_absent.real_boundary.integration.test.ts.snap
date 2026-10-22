@@ -9,3 +9,15 @@ error: could not query github for open prs on 'turtle/feature-x'
   "stdout": "",
 }
 `;
+
+exports[`git.release :: the real external boundary, with no credential given: [case1] the real gh binary on PATH, and no credential reachable anywhere when: [t1] 🟢 CONTROL — a gh that SUCCEEDS and reports no PR still reads as crickets then: the crickets frame survives — the repair narrows the LIE, never the legitimate empty 1`] = `
+"🐢 crickets...
+
+🫧 no open branch pr
+   └─ turtle/feature-x
+
+🥥 did you know?
+   ├─ push the branch; the push findserts its pr
+   └─ rhx git.commit.push --mode apply
+"
+`;

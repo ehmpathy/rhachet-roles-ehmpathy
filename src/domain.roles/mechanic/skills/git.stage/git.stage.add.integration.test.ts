@@ -21,19 +21,20 @@ describe('git.stage.add.sh', () => {
       push?: string;
       stage?: string;
     };
+    meterRaw?: string;
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
     const tempDir = genTempDir({ slug: 'git-stage-add-test', git: true });
 
     // configure git user
     configureTestGitUser({ cwd: tempDir });
 
-    // create .meter state
-    if (args.meterState) {
+    // create .meter state; raw bytes drive the damaged-file branch
+    if (args.meterState || args.meterRaw !== undefined) {
       const meterDir = path.join(tempDir, '.meter');
       fs.mkdirSync(meterDir, { recursive: true });
       fs.writeFileSync(
         path.join(meterDir, 'git.commit.uses.jsonc'),
-        JSON.stringify(args.meterState, null, 2),
+        args.meterRaw ?? JSON.stringify(args.meterState, null, 2),
       );
     }
 
@@ -301,6 +302,33 @@ describe('git.stage.add.sh', () => {
       });
     });
 
+    when('[t3b] a legacy grant whose retired stage field reads block', () => {
+      then(
+        'stage rides the live commit grant; the retired field gates naught (F12)',
+        () => {
+          const result = runInTempGitRepo({
+            args: ['test.txt'],
+            files: { 'test.txt': 'content' },
+            meterState: { uses: 5, push: 'allow', stage: 'block' },
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('staged: test.txt');
+        },
+      );
+
+      then('the same file at 0 uses left still refuses', () => {
+        const result = runInTempGitRepo({
+          args: ['test.txt'],
+          files: { 'test.txt': 'content' },
+          meterState: { uses: 0, push: 'block', stage: 'block' },
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('ConstraintError');
+      });
+    });
+
     when('[t4] a release grant alone, no commit grant', () => {
       then('ConstraintError: a release stamp carries no commit auth', () => {
         const result = runInTempGitRepo({
@@ -332,7 +360,9 @@ describe('git.stage.add.sh', () => {
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('error: file not found: absent.ts');
+        expect(result.stdout).toContain(
+          'ConstraintError: file not found: absent.ts',
+        );
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -346,7 +376,9 @@ describe('git.stage.add.sh', () => {
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('error: file not found: absent.ts');
+        expect(result.stdout).toContain(
+          'ConstraintError: file not found: absent.ts',
+        );
 
         // verify file1 is NOT staged (fail-fast)
         const statusResult = spawnSync('git', ['status', '--porcelain'], {
@@ -408,7 +440,9 @@ describe('git.stage.add.sh', () => {
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('error: path must be within repo');
+        expect(result.stdout).toContain(
+          'ConstraintError: path must be within repo',
+        );
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -427,7 +461,7 @@ describe('git.stage.add.sh', () => {
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('error: no files specified');
+        expect(result.stdout).toContain('ConstraintError: no files specified');
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -478,6 +512,55 @@ describe('git.stage.add.sh', () => {
   });
 
   // ========================================
+  // damaged local quota
+  // ========================================
+
+  given('[case10] the local commit quota file is damaged', () => {
+    when('[t0] stage reads a truncated quota file', () => {
+      then('malfunction: names the file, fails closed, stages naught', () => {
+        const result = runInTempGitRepo({
+          args: ['test.txt'],
+          files: { 'test.txt': 'content' },
+          meterRaw: '{ "uses": 3, "pu',
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: commit quota file corrupt',
+        );
+        expect(result.stderr).toContain(
+          '💥 MalfunctionError: commit quota file corrupt',
+        );
+        const statusResult = spawnSync('git', ['status', '--porcelain'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8' as const, // node api requires this exact string
+        });
+        expect(statusResult.stdout).not.toContain('A  test.txt');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ========================================
+  // help
+  // ========================================
+
+  given('[case11] --help', () => {
+    when('[t0] help is asked for', () => {
+      then('names the grant constraints, matches snapshot', () => {
+        const result = runInTempGitRepo({ args: ['--help'] });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          'out of a rebase, requires a live commit grant',
+        );
+        expect(result.stdout).toContain('mid-rebase, reads no meter');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ========================================
   // mid-rebase (F12)
   // ========================================
 
@@ -493,6 +576,7 @@ describe('git.stage.add.sh', () => {
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('staged: test.txt');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });

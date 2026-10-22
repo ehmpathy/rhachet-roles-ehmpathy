@@ -20,7 +20,6 @@ describe('claude.tools refuse a human grant', () => {
     args: string[];
     stdin?: string;
     setup?: (tempDir: string) => void;
-    pre?: { tool: string; args: string[] }[];
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
     const tempDir = genTempDir({ slug: 'refuse-human-grant', git: true });
     fs.mkdirSync(path.join(tempDir, '.meter'), { recursive: true });
@@ -30,15 +29,6 @@ describe('claude.tools refuse a human grant', () => {
     );
     fs.writeFileSync(path.join(tempDir, 'forged.jsonc'), '{"uses":99}');
     input.setup?.(tempDir);
-
-    // a prior call in the same tree, e.g. the plan a sedreplace apply requires
-    (input.pre ?? []).forEach((call) =>
-      spawnSync('bash', [toolPath(call.tool), ...call.args], {
-        cwd: tempDir,
-        encoding: 'utf-8',
-        stdio: ['pipe', 'pipe', 'pipe'],
-      }),
-    );
 
     const result = spawnSync('bash', [toolPath(input.tool), ...input.args], {
       cwd: tempDir,
@@ -61,6 +51,23 @@ describe('claude.tools refuse a human grant', () => {
     return fs.readFileSync(stampPath, 'utf-8');
   };
 
+  /**
+   * .what = assert the refusal contract every tool shares
+   * .why  = one shape for every refusal: exit 2, the ConstraintError on both
+   *         streams, and the frame pinned so a dropped line shows in review
+   */
+  const expectRefusal = (result: {
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+  }): void => {
+    expect(result.exitCode).toBe(2);
+    expect(result.stdout).toContain('✋ ConstraintError');
+    expect(result.stderr).toContain('✋ ConstraintError');
+    expect(result.stdout).not.toContain('🐢 sweet'); // a refusal never follows a success frame
+    expect(result.stdout).toMatchSnapshot();
+  };
+
   given(
     '[case1] a spent release stamp at .meter/git.release.uses.jsonc',
     () => {
@@ -71,11 +78,10 @@ describe('claude.tools refuse a human grant', () => {
             args: ['--into', '.meter/git.release.uses.jsonc'],
             stdin: '{"uses":99}',
           });
-          expect(result.exitCode).toBe(2);
-          expect(result.stdout).toContain('ConstraintError');
-          expect(result.stderr).toContain('ConstraintError');
+          expectRefusal(result);
           expect(readStamp(result.tempDir)).toBe('{"uses":0}');
-          expect(result.stdout).toMatchSnapshot();
+          // the hint reads the meter that was refused, never the commit meter
+          expect(result.stdout).toContain('└─ rhx git.release.uses get');
         });
       });
 
@@ -90,7 +96,7 @@ describe('claude.tools refuse a human grant', () => {
               '.meter/git.release.uses.jsonc',
             ],
           });
-          expect(result.exitCode).toBe(2);
+          expectRefusal(result);
           expect(readStamp(result.tempDir)).toBe('{"uses":0}');
         });
       });
@@ -106,7 +112,7 @@ describe('claude.tools refuse a human grant', () => {
               '.meter/git.release.uses.jsonc',
             ],
           });
-          expect(result.exitCode).toBe(2);
+          expectRefusal(result);
           expect(readStamp(result.tempDir)).toBe('{"uses":0}');
         });
       });
@@ -126,46 +132,93 @@ describe('claude.tools refuse a human grant', () => {
               'upsert',
             ],
           });
-          expect(result.exitCode).toBe(2);
+          expectRefusal(result);
+          expect(readStamp(result.tempDir)).toBe('{"uses":0}');
+        });
+      });
+
+      when('[t4] symlink places a bridge whose target is the stamp', () => {
+        then('exit 2, no bridge is created', () => {
+          const result = runTool({
+            tool: 'symlink',
+            args: [
+              '--at',
+              'bridge.jsonc',
+              '--to',
+              '.meter/git.release.uses.jsonc',
+              '--mode',
+              'relative',
+            ],
+          });
+          expectRefusal(result);
+          expect(fs.existsSync(path.join(result.tempDir, 'bridge.jsonc'))).toBe(
+            false,
+          );
           expect(readStamp(result.tempDir)).toBe('{"uses":0}');
         });
       });
 
       when(
-        '[t4] sedreplace plans, then applies, a rewrite of the uses count',
+        '[t5] sedreplace plans a rewrite whose match holds the stamp',
         () => {
           then(
-            'the apply passes the plan gate, and the stamp is left out',
+            'exit 2, loud: the stamp is named, and no plan is recorded',
             () => {
-              // .note = a plan first, so the apply reaches the grant filter (the
-              //         prior case stopped at the plan gate and never reached it)
-              const sedArgs = ['--old', '"uses":0', '--new', '"uses":99'];
+              // .note = the plan refuses, so no plan is on record and an apply
+              //         stops at the plan gate; the grant is never in reach
               const result = runTool({
                 tool: 'sedreplace',
-                args: [...sedArgs, '--mode', 'apply'],
+                args: ['--old', '"uses":0', '--new', '"uses":99'],
                 setup: (tempDir) =>
                   fs.writeFileSync(
                     path.join(tempDir, 'notes.jsonc'),
                     '{"uses":0}',
                   ),
-                pre: [
-                  { tool: 'sedreplace', args: [...sedArgs, '--mode', 'plan'] },
-                ],
               });
-              expect(result.exitCode).toBe(0);
+              expectRefusal(result);
+              expect(result.stdout).toContain('.meter/git.release.uses.jsonc');
               expect(
                 fs.readFileSync(
                   path.join(result.tempDir, 'notes.jsonc'),
                   'utf-8',
                 ),
-              ).toBe('{"uses":99}');
+              ).toBe('{"uses":0}');
               expect(readStamp(result.tempDir)).toBe('{"uses":0}');
             },
           );
         },
       );
 
-      when('[t6] mvsafe moves a directory into .meter/', () => {
+      when(
+        '[t6] sedreplace plans a rewrite through a link that bridges into .meter/',
+        () => {
+          then(
+            'exit 2: the guard checks where the link writes, not its name',
+            () => {
+              const result = runTool({
+                tool: 'sedreplace',
+                args: [
+                  '--old',
+                  '"uses":0',
+                  '--new',
+                  '"uses":99',
+                  '--glob',
+                  'bridge.jsonc',
+                ],
+                setup: (tempDir) =>
+                  fs.symlinkSync(
+                    '.meter/git.release.uses.jsonc',
+                    path.join(tempDir, 'bridge.jsonc'),
+                  ),
+              });
+              expectRefusal(result);
+              expect(readStamp(result.tempDir)).toBe('{"uses":0}');
+            },
+          );
+        },
+      );
+
+      when('[t7] mvsafe moves a directory into .meter/', () => {
         then('exit 2, naught lands in .meter', () => {
           const result = runTool({
             tool: 'mvsafe',
@@ -178,14 +231,14 @@ describe('claude.tools refuse a human grant', () => {
               );
             },
           });
-          expect(result.exitCode).toBe(2);
+          expectRefusal(result);
           expect(
             fs.existsSync(path.join(result.tempDir, '.meter/forged-dir')),
           ).toBe(false);
         });
       });
 
-      when('[t7] mvsafe moves the stamp out of .meter/', () => {
+      when('[t8] mvsafe moves the stamp out of .meter/', () => {
         then('exit 2, the stamp stays in place', () => {
           const result = runTool({
             tool: 'mvsafe',
@@ -196,12 +249,12 @@ describe('claude.tools refuse a human grant', () => {
               'moved.jsonc',
             ],
           });
-          expect(result.exitCode).toBe(2);
+          expectRefusal(result);
           expect(readStamp(result.tempDir)).toBe('{"uses":0}');
         });
       });
 
-      when('[t8] mvsafe moves a link that sits inside .meter/', () => {
+      when('[t9] mvsafe moves a link that sits inside .meter/', () => {
         then('exit 2, the link stays in place', () => {
           const result = runTool({
             tool: 'mvsafe',
@@ -212,7 +265,7 @@ describe('claude.tools refuse a human grant', () => {
                 path.join(tempDir, '.meter/link.jsonc'),
               ),
           });
-          expect(result.exitCode).toBe(2);
+          expectRefusal(result);
           expect(
             fs
               .lstatSync(path.join(result.tempDir, '.meter/link.jsonc'))
@@ -221,14 +274,36 @@ describe('claude.tools refuse a human grant', () => {
         });
       });
 
-      when('[t5] teesafe writes into .branch/.bind/', () => {
+      when('[t10] cpsafe copies a glob of files into .meter/', () => {
+        then('exit 2, not one file lands: every dest is checked first', () => {
+          const result = runTool({
+            tool: 'cpsafe',
+            args: ['--from', 'src/*.jsonc', '--into', '.meter/'],
+            setup: (tempDir) => {
+              fs.mkdirSync(path.join(tempDir, 'src'));
+              fs.writeFileSync(path.join(tempDir, 'src/a.jsonc'), '{}');
+              fs.writeFileSync(path.join(tempDir, 'src/b.jsonc'), '{}');
+            },
+          });
+          expectRefusal(result);
+          expect(
+            fs.existsSync(path.join(result.tempDir, '.meter/a.jsonc')),
+          ).toBe(false);
+          expect(
+            fs.existsSync(path.join(result.tempDir, '.meter/b.jsonc')),
+          ).toBe(false);
+        });
+      });
+
+      when('[t11] teesafe writes into .branch/.bind/', () => {
         then('exit 2, no bind written', () => {
           const result = runTool({
             tool: 'teesafe',
             args: ['--into', '.branch/.bind/git.commit.level'],
             stdin: 'feat',
           });
-          expect(result.exitCode).toBe(2);
+          expectRefusal(result);
+          expect(result.stdout).toContain('└─ rhx git.commit.bind get');
           expect(
             fs.existsSync(
               path.join(result.tempDir, '.branch/.bind/git.commit.level'),
@@ -254,6 +329,51 @@ describe('claude.tools refuse a human grant', () => {
             'utf-8',
           ),
         ).toBe('notes');
+      });
+    });
+  });
+
+  given('[case3] the guard is called with an arg it does not know', () => {
+    /**
+     * .what = call the guard leaf directly, then mark whether control passed it
+     * .why  = a guard that cannot parse its call must halt the write (fail
+     *         closed), so the marker after it must never print
+     */
+    const runGuardLeaf = (input: { args: string }) => {
+      const result = spawnSync(
+        'bash',
+        [
+          '-c',
+          `source "${path.join(__dirname, 'output.sh')}"; refuse_if_human_grant ${input.args}; echo "write proceeded"`,
+        ],
+        { encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] },
+      );
+      return {
+        stdout: result.stdout ?? '',
+        stderr: result.stderr ?? '',
+        exitCode: result.status ?? 1,
+      };
+    };
+
+    when('[t0] refuse_if_human_grant gets --bogus', () => {
+      then('exit 1, MalfunctionError on both streams, write halted', () => {
+        const result = runGuardLeaf({ args: '--bogus x' });
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('💥 MalfunctionError');
+        expect(result.stderr).toContain('💥 MalfunctionError');
+        expect(result.stdout).not.toContain('write proceeded');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] refuse_if_human_grant gets no --path', () => {
+      then('exit 1, MalfunctionError on both streams, write halted', () => {
+        const result = runGuardLeaf({ args: '--skill teesafe --root /tmp' });
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('💥 MalfunctionError');
+        expect(result.stderr).toContain('💥 MalfunctionError');
+        expect(result.stdout).not.toContain('write proceeded');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });

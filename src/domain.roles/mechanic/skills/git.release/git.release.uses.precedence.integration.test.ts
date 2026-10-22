@@ -83,52 +83,58 @@ describe('git.release._.guard_release_meter.sh', () => {
     return input.local;
   };
 
-  globalLevels.forEach((global) =>
-    orgLevels.forEach((org) =>
-      localLevels.forEach((local) => {
-        const shipped = isShipExpected({ global, org, local });
-        given(`[cell] global=${global} org=${org} local=${local}`, () => {
-          when('[t0] the gate runs', () => {
-            then(
-              shipped
-                ? 'exit 0: all three allow, one use spent'
-                : 'exit 2: a level refuses, no use spent',
-              () => {
-                const cell = genCell({ global, org, local });
-                const result = spawnSync(
-                  'bash',
-                  [gatePath, '--mode', 'spend', '--spent-nonce', 'n1'],
-                  {
-                    cwd: cell.repo,
-                    encoding: 'utf-8',
-                    stdio: ['pipe', 'pipe', 'pipe'],
-                    env: { ...process.env, HOME: cell.home },
-                  },
-                );
-
-                expect(result.status).toEqual(shipped ? 0 : 2);
-                if (!shipped)
-                  expect(result.stdout).toContain('✋ ConstraintError');
-
-                const usesAfter = asLocalUsesAfter({ local, shipped });
-                if (usesAfter === null)
-                  expect(fs.existsSync(cell.localFile)).toBe(false);
-                const spentHere = shipped && local === 1;
-                if (usesAfter !== null)
-                  expect(
-                    JSON.parse(fs.readFileSync(cell.localFile, 'utf-8')),
-                  ).toEqual(
-                    spentHere
-                      ? { uses: usesAfter, spent: 'n1' }
-                      : { uses: usesAfter },
-                  );
-              },
-            );
-          });
-        });
-      }),
+  // every cell of the product global × org × local
+  const cells = globalLevels.flatMap((global) =>
+    orgLevels.flatMap((org) =>
+      localLevels.map((local) => ({ global, org, local })),
     ),
   );
+
+  given('[case0] the AND-composition matrix, global ∧ org ∧ local', () => {
+    cells.forEach(({ global, org, local }, index) => {
+      const shipped = isShipExpected({ global, org, local });
+      when(
+        `[t${index}] the gate runs on global=${global} org=${org} local=${local}`,
+        () => {
+          then(
+            shipped
+              ? 'exit 0: all three allow, one use spent'
+              : 'exit 2: a level refuses, no use spent',
+            () => {
+              const cell = genCell({ global, org, local });
+              const result = spawnSync(
+                'bash',
+                [gatePath, '--mode', 'spend', '--spent-nonce', 'n1'],
+                {
+                  cwd: cell.repo,
+                  encoding: 'utf-8',
+                  stdio: ['pipe', 'pipe', 'pipe'],
+                  env: { ...process.env, HOME: cell.home },
+                },
+              );
+
+              expect(result.status).toEqual(shipped ? 0 : 2);
+              if (!shipped)
+                expect(result.stdout).toContain('✋ ConstraintError');
+
+              const usesAfter = asLocalUsesAfter({ local, shipped });
+              if (usesAfter === null)
+                expect(fs.existsSync(cell.localFile)).toBe(false);
+              const spentHere = shipped && local === 1;
+              if (usesAfter !== null)
+                expect(
+                  JSON.parse(fs.readFileSync(cell.localFile, 'utf-8')),
+                ).toEqual(
+                  spentHere
+                    ? { uses: usesAfter, spent: 'n1' }
+                    : { uses: usesAfter },
+                );
+            },
+          );
+        },
+      );
+    });
+  });
 
   /**
    * .what = run the gate in one provisioned cell, with the given args

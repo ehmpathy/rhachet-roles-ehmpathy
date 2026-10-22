@@ -115,8 +115,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      emit_both "✋ ConstraintError: unknown option: $1
-usage: git.commit.push [--mode plan|apply] [--output tree|json]"
+      emit_usage_refusal --skill git.commit.push --message "unknown option: $1"
       exit 2
       ;;
     *)
@@ -229,21 +228,17 @@ emit_pr_open_guide() {
   IFS=$'\t' read -r prefer_label prefer_cmd alt_label alt_cmd \
     < <(get_ordered_pr_fixes "$fix2_label" "$fix2_cmd")
 
-  # render as a tree guide (the keyrack.yml-not-found guide shape): a generic
-  # header, the specific cause on the `error:` line, then a 🥥 block of two
-  # numbered fixes — #1 leads, #2 carries the "or" prefix.
+  # render as a tree guide: a generic header, the specific cause on the
+  # constraint line, then a 🥥 block that names both fixes in its affordance
+  # and closes on their two commands — the preferred one first
   local guide
   guide=$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.push"
     print_tree_constraint "$error_line"
-    echo ""
-    echo "🥥 your commit is pushed; to open its pr, either:"
-    echo "   ├─ 1. ${prefer_label}:"
-    echo "   │     \$ ${prefer_cmd}"
-    echo "   │"
-    echo "   └─ 2. or ${alt_label}:"
-    echo "         \$ ${alt_cmd}"
+    print_coconut_hint "your commit is pushed; to open its pr, ${prefer_label}, or ${alt_label}" \
+      "$prefer_cmd" \
+      "$alt_cmd"
   )
   # the human-readable guide always rides stderr; stdout carries the
   # mode-appropriate failure — a json error object in json mode (machine-safe
@@ -277,7 +272,8 @@ if ! check_global_blocker; then
   fi
   emit_error class="$GLOBAL_BLOCK_CLASS" message="$GLOBAL_BLOCK_REASON"
   if [[ "$OUTPUT" == "tree" && "$GLOBAL_BLOCK_CORRUPT" != "true" ]]; then
-    print_instruction "ask your human to lift:" "  \$ git.commit.uses allow --global"
+    print_coconut_hint "a human set the global blocker; ask them to lift it" \
+      "git.commit.uses allow --global"
   fi
   if [[ "$OUTPUT" == "tree" && "$GLOBAL_BLOCK_CORRUPT" == "true" ]]; then
     print_global_corrupt_note
@@ -301,16 +297,11 @@ if ! check_org_blocker; then
     # different guidance based on error type
     if [[ "$ORG_BLOCK_REASON" == *"keyrack.yml not found"* ]]; then
       # output to both stdout and stderr per skill output streams brief
-      KEYRACK_HINT=$(cat <<'EOF'
-
-🥥 to fix this, ask a human to either:
-   ├─ 1. add .agent/keyrack.yml with their org:
-   │     $ echo 'org: ehmpathy' > .agent/keyrack.yml
-   │
-   └─ 2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
-         $ npx rhachet run --init keyrack.ehmpath
-EOF
-)
+      KEYRACK_HINT=$(
+        print_coconut_hint "ask a human to name the org in .agent/keyrack.yml, or to add the ehmpath keyrack so ehmpaths can unlock their own keys" \
+          "echo 'org: ehmpathy' > .agent/keyrack.yml" \
+          "npx rhachet run --init keyrack.ehmpath"
+      )
       echo "$KEYRACK_HINT"
       echo "$KEYRACK_HINT" >&2
     elif [[ "$ORG_BLOCK_CORRUPT" == "true" ]]; then
@@ -330,7 +321,7 @@ EOF
       #    grades the REPAIR rather than the refusal around it.
       print_org_corrupt_note
     else
-      print_instruction "ask your human to allow:" "  \$ git.commit.uses allow --org <org>"
+      print_org_blocked_hint
     fi
   fi
   # .why the exit branches on `_CORRUPT` = `git.commit.set` exits 1 on this
@@ -374,11 +365,8 @@ if [[ "$MODE" == "apply" ]]; then
       # dual-stream the fix-hint so the stderr-only path also names the fix, to
       # match the dual-streamed error above (rule.require.errors-name-the-fix +
       # rule.require.skill-output-streams)
-      AUTHOR_FIX=$(echo ""
-        echo "push only works for commits made by $ROBOT_NAME."
-        echo "use git.commit.set to create a proper commit first.")
-      echo "$AUTHOR_FIX"
-      echo "$AUTHOR_FIX" >&2
+      emit_both "$(print_coconut_hint "a push carries only commits made by $ROBOT_NAME; commit through the skill first" \
+        "rhx git.commit.set -m @stdin --mode apply")"
     fi
     exit 2  # blocked by constraints
   fi
@@ -393,11 +381,8 @@ if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
     # remediation, not just the bare error — emit_error already dual-streams the
     # error line above, so the hint must match or the stderr path reads as a
     # fix-less dead end (rule.require.errors-name-the-fix + skill-output-streams)
-    BRANCH_FIX=$(echo ""
-      echo "create a feature branch first:"
-      echo "  \$ git checkout -b turtle/your-branch-name")
-    echo "$BRANCH_FIX"
-    echo "$BRANCH_FIX" >&2
+    emit_both "$(print_coconut_hint "a push lands on a feature branch; create a feature branch first" \
+      "git checkout -b turtle/your-branch-name")"
   fi
   exit 2  # blocked by constraints
 fi
@@ -475,18 +460,22 @@ PUSH_OUTPUT=$(git push origin HEAD --force-with-lease 2>&1) || PUSH_EXIT=$?
 if [[ $PUSH_EXIT -ne 0 ]]; then
   # transport failed: the message rides BOTH streams (stdout for a terminal or a
   # stdout-only consumer, stderr for log aggregation) and is json-aware — a push
-  # failure is never stdout-silent (rule.require.skill-output-streams). emit_error
-  # carries the headline to both streams + the json object; the raw git output
-  # follows on both streams in tree mode so the human sees WHY it failed.
-  emit_error class=malfunction message="git push failed"
-  if [[ "$OUTPUT" == "tree" ]]; then
-    # label the raw git output `cause:` so it reads as the root error, not part of
-    # the structured guide — consistent with the keyrack/gh failure guides that
-    # prefix their raw diagnostics the same way (rule.forbid.snapshot-visual-blemishes)
-    PUSH_FAIL_DETAIL=$(echo ""; echo "cause: $PUSH_OUTPUT"; echo "")
-    echo "$PUSH_FAIL_DETAIL"
-    echo "$PUSH_FAIL_DETAIL" >&2
+  # failure is never stdout-silent (rule.require.skill-output-streams).
+  # json mode: emit_error carries the json object to both streams.
+  if [[ "$OUTPUT" == "json" ]]; then
+    emit_error class=malfunction message="git push failed"
+    exit 1
   fi
+
+  # tree mode: the raw git output hangs under a `git.output` branch, the same
+  # sub.bucket the rebase family renders, so the human sees WHY it failed
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.commit.push"
+    echo "   ├─ 💥 MalfunctionError: git push failed"
+    echo "   └─ git.output"
+    print_git_output_tree "$PUSH_OUTPUT"
+  )"
   exit 1
 fi
 
@@ -529,7 +518,7 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
     # bot id via graphql and fails loud on that divergence. the composed path
     # (PREFETCHED=1) already verified once in set.sh, so it skips this branch and
     # pays no redundant round-trip.
-    assert_token_identity_in_sync "$GH_PR_TOKEN" || exit 2
+    assert_token_identity_in_sync "$GH_PR_TOKEN" skill=git.commit.push || exit 2
   fi
 
   # keyrack unreachable → the commit is already pushed; only the pr-open is
@@ -569,16 +558,22 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
   if [[ "$MODE" == "apply" && -n "$GH_PR_TOKEN" ]]; then
     IFS=$'\t' read -r PR_OPENER_NAME _ < <(get_one_seaturtle_identity "$GH_PR_TOKEN")
     if [[ "$PR_OPENER_NAME" != "$HEAD_AUTHOR" ]]; then
-      emit_error class=constraint message="pr-open identity out of sync with the commit author"
-      if [[ "$OUTPUT" == "tree" ]]; then
-        echo ""
-        echo "the commit was authored by: $HEAD_AUTHOR"
-        echo "but the keyrack token opens the pr as: $PR_OPENER_NAME"
-        echo "opening the pr now would show a 3rd contributor on squash."
-        echo ""
-        echo "fix: open the pr with the human's github login instead — the commit is already pushed"
-        echo "  rhx git.commit.push --mode apply --auth as-human"
+      # json mode: the machine object alone
+      if [[ "$OUTPUT" == "json" ]]; then
+        emit_error class=constraint message="pr-open identity out of sync with the commit author"
+        exit 2  # caller must fix: identities diverged
       fi
+      # tree mode: the facts as leaves, the fix as a coconut, on both streams
+      emit_both "$(
+        print_turtle_header "bummer dude..."
+        print_tree_start "git.commit.push"
+        echo "   ├─ authored by: $HEAD_AUTHOR"
+        echo "   ├─ pr opener: $PR_OPENER_NAME"
+        echo "   ├─ why: a pr opened now would show a 3rd contributor on squash"
+        print_tree_constraint "pr-open identity out of sync with the commit author"
+        print_coconut_hint "the commit is already pushed; open the pr with the human's github login instead" \
+          "rhx git.commit.push --mode apply --auth as-human"
+      )"
       exit 2  # caller must fix: identities diverged
     fi
   fi
@@ -739,7 +734,7 @@ fi
 
 # tree mode: precompute the outcome-dependent lines as conditional overrides of a
 # sensible default (no else), then build the tree once and route it by outcome
-PR_HEADER="bummer dude, pushed but the pr didnt open"
+PR_HEADER="bummer dude, pushed but the pr didn't open"
 [[ "$PR_OK" == true ]] && PR_HEADER="cowabunga!"
 METER_LINE="      └─ push: held"
 
@@ -755,7 +750,7 @@ TREE_OUTPUT=$(
   echo "$METER_LINE"
   if [[ "$PR_OK" == true ]]; then
     echo ""
-    echo "🌊 now lets ride the release wave and catch any wipeouts"
+    echo "🌊 now let's ride the release wave and catch any wipeouts"
     echo "   └─ rhx git.release --watch || rhx show.gh.test.errors"
   fi
   # a legacy grant changed sense under the split: say so on the push it rode

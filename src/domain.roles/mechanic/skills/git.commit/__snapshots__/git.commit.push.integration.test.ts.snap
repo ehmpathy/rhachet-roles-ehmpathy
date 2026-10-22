@@ -22,8 +22,9 @@ exports[`git.commit.push.sh given: [case2] author guard in apply mode when: [t0]
 🐚 git.commit.push
    └─ ✋ ConstraintError: HEAD commit not authored by seaturtle[bot]
 
-push only works for commits made by seaturtle[bot].
-use git.commit.set to create a proper commit first.
+🥥 did you know?
+   ├─ a push carries only commits made by seaturtle[bot]; commit through the skill first
+   └─ rhx git.commit.set -m @stdin --mode apply
 "
 `;
 
@@ -73,12 +74,10 @@ exports[`git.commit.push.sh given: [case12] keyrack not configured (sad path) wh
 🐚 git.commit.push
    └─ ✋ ConstraintError: .agent/keyrack.yml not found
 
-🥥 to fix this, ask a human to either:
-   ├─ 1. add .agent/keyrack.yml with their org:
-   │     $ echo 'org: ehmpathy' > .agent/keyrack.yml
-   │
-   └─ 2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
-         $ npx rhachet run --init keyrack.ehmpath
+🥥 did you know?
+   ├─ ask a human to name the org in .agent/keyrack.yml, or to add the ehmpath keyrack so ehmpaths can unlock their own keys
+   ├─ echo 'org: ehmpathy' > .agent/keyrack.yml
+   └─ npx rhachet run --init keyrack.ehmpath
 "
 `;
 
@@ -88,12 +87,10 @@ exports[`git.commit.push.sh given: [case12] keyrack not configured (sad path) wh
 🐚 git.commit.push
    └─ ✋ ConstraintError: .agent/keyrack.yml not found
 
-🥥 to fix this, ask a human to either:
-   ├─ 1. add .agent/keyrack.yml with their org:
-   │     $ echo 'org: ehmpathy' > .agent/keyrack.yml
-   │
-   └─ 2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
-         $ npx rhachet run --init keyrack.ehmpath
+🥥 did you know?
+   ├─ ask a human to name the org in .agent/keyrack.yml, or to add the ehmpath keyrack so ehmpaths can unlock their own keys
+   ├─ echo 'org: ehmpathy' > .agent/keyrack.yml
+   └─ npx rhachet run --init keyrack.ehmpath
 "
 `;
 
@@ -123,7 +120,7 @@ exports[`git.commit.push.sh given: [case14b] a depleted grant stays held for pus
    └─ meter
       └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -180,7 +177,7 @@ exports[`git.commit.push.sh given: [case14e] a legacy push block grant (F6, F20)
    └─ meter
       └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 
 🥥 did you know?
@@ -195,12 +192,10 @@ exports[`git.commit.push.sh given: [case15] as-ehmpath keyrack locked → guide 
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -210,12 +205,10 @@ exports[`git.commit.push.sh given: [case15] as-ehmpath keyrack locked → guide 
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -225,12 +218,10 @@ exports[`git.commit.push.sh given: [case16] keyrack.yml does not declare request
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -240,12 +231,10 @@ exports[`git.commit.push.sh given: [case16] keyrack.yml does not declare request
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -259,7 +248,7 @@ exports[`git.commit.push.sh given: [case18] CI watch reminder after successful p
    └─ meter
       └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -286,12 +275,10 @@ exports[`git.commit.push.sh given: [case20] both keyrack sources locked → guid
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -301,12 +288,10 @@ exports[`git.commit.push.sh given: [case20] both keyrack sources locked → guid
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -316,8 +301,9 @@ exports[`git.commit.push.sh given: [case21] global blocker guard when: [t0] glob
 🐚 git.commit.push
    └─ ✋ ConstraintError: commits blocked globally
 
-ask your human to lift:
-  $ git.commit.uses allow --global
+🥥 did you know?
+   ├─ a human set the global blocker; ask them to lift it
+   └─ git.commit.uses allow --global
 "
 `;
 
@@ -341,7 +327,7 @@ exports[`git.commit.push.sh given: [case23] --auth as-human apply opens the pr v
    └─ meter
       └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -354,12 +340,10 @@ exports[`git.commit.push.sh given: [case24] --auth as-ehmpath guides to as-human
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -369,12 +353,10 @@ exports[`git.commit.push.sh given: [case24] --auth as-ehmpath guides to as-human
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 
 cause: <keyrack error, masked>"
 `;
@@ -390,12 +372,10 @@ exports[`git.commit.push.sh given: [case25] --auth as-ehmpath keyrack failure in
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 
 cause: <keyrack error, masked>"
 `;
@@ -406,12 +386,10 @@ exports[`git.commit.push.sh given: [case26] --auth as-human guides to the two fi
 🐚 git.commit.push
    └─ ✋ ConstraintError: no usable gh credential to open the pr
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. log in the human's github, so the as-human fallback works:
-   │     $ gh auth login
-   │
-   └─ 2. or unlock the ehmpath keyrack, so the seaturtle can open the pr instead:
-         $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, log in the human's github, so the as-human fallback works, or unlock the ehmpath keyrack, so the seaturtle can open the pr instead
+   ├─ gh auth login
+   └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
 "
 `;
 
@@ -421,12 +399,10 @@ exports[`git.commit.push.sh given: [case26] --auth as-human guides to the two fi
 🐚 git.commit.push
    └─ ✋ ConstraintError: no usable gh credential to open the pr
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. log in the human's github, so the as-human fallback works:
-   │     $ gh auth login
-   │
-   └─ 2. or unlock the ehmpath keyrack, so the seaturtle can open the pr instead:
-         $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, log in the human's github, so the as-human fallback works, or unlock the ehmpath keyrack, so the seaturtle can open the pr instead
+   ├─ gh auth login
+   └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
 
 cause: gh: To use GitHub CLI, please run: gh auth login
 HTTP 401: Bad credentials
@@ -434,7 +410,7 @@ HTTP 401: Bad credentials
 `;
 
 exports[`git.commit.push.sh given: [case27] a non-auth gh failure does NOT fire the two-fix guide when: [t0] pr create fails for a branch-protection reason (not auth) then: the generic failure is surfaced, the auth guide stays silent 1`] = `
-"🐢 bummer dude, pushed but the pr didnt open
+"🐢 bummer dude, pushed but the pr didn't open
 
 🐚 git.commit.push
    ├─ push: origin/turtle/feature ✓
@@ -446,7 +422,7 @@ exports[`git.commit.push.sh given: [case27] a non-auth gh failure does NOT fire 
 `;
 
 exports[`git.commit.push.sh given: [case27] a non-auth gh failure does NOT fire the two-fix guide when: [t0] pr create fails for a branch-protection reason (not auth) then: the generic failure is surfaced, the auth guide stays silent 2`] = `
-"🐢 bummer dude, pushed but the pr didnt open
+"🐢 bummer dude, pushed but the pr didn't open
 
 🐚 git.commit.push
    ├─ push: origin/turtle/feature ✓
@@ -467,7 +443,7 @@ exports[`git.commit.push.sh given: [case28] --auth as-human, the pr already exis
    └─ meter
       └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -480,12 +456,10 @@ exports[`git.commit.push.sh given: [case29] --auth as-human, gh create fails for
 🐚 git.commit.push
    └─ ✋ ConstraintError: no usable gh credential to open the pr
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. log in the human's github, so the as-human fallback works:
-   │     $ gh auth login
-   │
-   └─ 2. or unlock the ehmpath keyrack, so the seaturtle can open the pr instead:
-         $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, log in the human's github, so the as-human fallback works, or unlock the ehmpath keyrack, so the seaturtle can open the pr instead
+   ├─ gh auth login
+   └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
 "
 `;
 
@@ -495,12 +469,10 @@ exports[`git.commit.push.sh given: [case29] --auth as-human, gh create fails for
 🐚 git.commit.push
    └─ ✋ ConstraintError: no usable gh credential to open the pr
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. log in the human's github, so the as-human fallback works:
-   │     $ gh auth login
-   │
-   └─ 2. or unlock the ehmpath keyrack, so the seaturtle can open the pr instead:
-         $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, log in the human's github, so the as-human fallback works, or unlock the ehmpath keyrack, so the seaturtle can open the pr instead
+   ├─ gh auth login
+   └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
 
 cause: HTTP 401: Bad credentials
 "
@@ -512,12 +484,10 @@ exports[`git.commit.push.sh given: [case29b] the ORG meter file is corrupt, and 
 🐚 git.commit.push
    └─ 💥 MalfunctionError: org meter file corrupt
 
-   the org meter file cannot be read:
-     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
-
-until it parses, every commit is blocked. a human may inspect or clear it:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
-  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+🥥 did you know?
+   ├─ the org meter file cannot be read, so every commit is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
 "
 `;
 
@@ -587,12 +557,10 @@ exports[`git.commit.push.sh given: [case32] EXTERNAL_CALL_TIMEOUT bounds a stall
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -602,12 +570,10 @@ exports[`git.commit.push.sh given: [case32] EXTERNAL_CALL_TIMEOUT bounds a stall
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -621,7 +587,7 @@ exports[`git.commit.push.sh given: [case33] a threaded (prefetched) token is reu
    └─ meter
       └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -632,14 +598,14 @@ exports[`git.commit.push.sh given: [case35] identity-sync guard fires when the t
 "🐢 bummer dude...
 
 🐚 git.commit.push
+   ├─ authored by: seaturtle[bot]
+   ├─ pr opener: ehm-a-seaturtle[bot]
+   ├─ why: a pr opened now would show a 3rd contributor on squash
    └─ ✋ ConstraintError: pr-open identity out of sync with the commit author
 
-the commit was authored by: seaturtle[bot]
-but the keyrack token opens the pr as: ehm-a-seaturtle[bot]
-opening the pr now would show a 3rd contributor on squash.
-
-fix: open the pr with the human's github login instead — the commit is already pushed
-  rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ the commit is already pushed; open the pr with the human's github login instead
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -647,7 +613,14 @@ exports[`git.commit.push.sh given: [case35] identity-sync guard fires when the t
 "🐢 bummer dude...
 
 🐚 git.commit.push
+   ├─ authored by: seaturtle[bot]
+   ├─ pr opener: ehm-a-seaturtle[bot]
+   ├─ why: a pr opened now would show a 3rd contributor on squash
    └─ ✋ ConstraintError: pr-open identity out of sync with the commit author
+
+🥥 did you know?
+   ├─ the commit is already pushed; open the pr with the human's github login instead
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -662,24 +635,32 @@ exports[`git.commit.push.sh given: [case36] a non-auth pr-open failure in json m
 `;
 
 exports[`git.commit.push.sh given: [case37] a standalone as-ehmpath fetch runs the strong graphql identity assert when: [t0] the freshly-fetched ghs_ token maps to a DIFFERENT app bot id then: the graphql-verified assert fails loud (exit 2), gh never opens a pr 1`] = `
-"✋ ConstraintError: github token identity out of sync with the expected app bot
-  expected: ehm-a-seaturtle[bot] (id 295111357)
-  actual:   impostor[bot] (id 999999)
+"🐢 bummer dude...
 
-the commit-author email hardcodes the expected bot id; if the token
-maps to a different bot, the squash-merge would show a 3rd contributor.
-fix the token, or update the seaturtle identities in keyrack.operations.sh.
+🐚 git.commit.push
+   ├─ expected: ehm-a-seaturtle[bot] (id 295111357)
+   ├─ actual: impostor[bot] (id 999999)
+   ├─ why: the commit-author email names the expected bot id; another bot adds a 3rd contributor on squash
+   └─ ✋ ConstraintError: github token identity out of sync with the expected app bot
+
+🥥 did you know?
+   ├─ a human fixes the token, or updates the seaturtle identities in keyrack.operations.sh
+   └─ rhx keyrack status --owner ehmpath
 "
 `;
 
 exports[`git.commit.push.sh given: [case37] a standalone as-ehmpath fetch runs the strong graphql identity assert when: [t0] the freshly-fetched ghs_ token maps to a DIFFERENT app bot id then: the graphql-verified assert fails loud (exit 2), gh never opens a pr 2`] = `
-"✋ ConstraintError: github token identity out of sync with the expected app bot
-  expected: ehm-a-seaturtle[bot] (id 295111357)
-  actual:   impostor[bot] (id 999999)
+"🐢 bummer dude...
 
-the commit-author email hardcodes the expected bot id; if the token
-maps to a different bot, the squash-merge would show a 3rd contributor.
-fix the token, or update the seaturtle identities in keyrack.operations.sh.
+🐚 git.commit.push
+   ├─ expected: ehm-a-seaturtle[bot] (id 295111357)
+   ├─ actual: impostor[bot] (id 999999)
+   ├─ why: the commit-author email names the expected bot id; another bot adds a 3rd contributor on squash
+   └─ ✋ ConstraintError: github token identity out of sync with the expected app bot
+
+🥥 did you know?
+   ├─ a human fixes the token, or updates the seaturtle identities in keyrack.operations.sh
+   └─ rhx keyrack status --owner ehmpath
 "
 `;
 
@@ -689,12 +670,10 @@ exports[`git.commit.push.sh given: [case38] --auth as-ehmpath surfaces the exact
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -704,12 +683,10 @@ exports[`git.commit.push.sh given: [case38] --auth as-ehmpath surfaces the exact
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 
 cause: fake keyrack: get unreachable (host manifest absent)
 fake keyrack: unlock unreachable (host manifest absent)
@@ -728,12 +705,10 @@ exports[`git.commit.push.sh given: [case39] --auth as-human + --output json emit
 🐚 git.commit.push
    └─ ✋ ConstraintError: no usable gh credential to open the pr
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. log in the human's github, so the as-human fallback works:
-   │     $ gh auth login
-   │
-   └─ 2. or unlock the ehmpath keyrack, so the seaturtle can open the pr instead:
-         $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, log in the human's github, so the as-human fallback works, or unlock the ehmpath keyrack, so the seaturtle can open the pr instead
+   ├─ gh auth login
+   └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
 
 cause: gh: To use GitHub CLI, please run: gh auth login
 HTTP 401: Bad credentials
@@ -744,11 +719,15 @@ exports[`git.commit.push.sh given: [case40] the git push transport itself fails 
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ 💥 MalfunctionError: git push failed
-
-cause: To github.com:test/repo.git
- ! [rejected]        HEAD -> turtle/feature (non-fast-forward)
-error: failed to push some refs to 'github.com:test/repo.git'
+   ├─ 💥 MalfunctionError: git push failed
+   └─ git.output
+      ├─
+      │
+      │  To github.com:test/repo.git
+      │   ! [rejected]        HEAD -> turtle/feature (non-fast-forward)
+      │  error: failed to push some refs to 'github.com:test/repo.git'
+      │
+      └─
 "
 `;
 
@@ -756,10 +735,31 @@ exports[`git.commit.push.sh given: [case40] the git push transport itself fails 
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ 💥 MalfunctionError: git push failed
-
-cause: To github.com:test/repo.git
- ! [rejected]        HEAD -> turtle/feature (non-fast-forward)
-error: failed to push some refs to 'github.com:test/repo.git'
+   ├─ 💥 MalfunctionError: git push failed
+   └─ git.output
+      ├─
+      │
+      │  To github.com:test/repo.git
+      │   ! [rejected]        HEAD -> turtle/feature (non-fast-forward)
+      │  error: failed to push some refs to 'github.com:test/repo.git'
+      │
+      └─
 "
 `;
+
+exports[`git.commit.push.sh given: [case41] a published branch, rewritten by a rebase, against a real bare origin when: [t0] apply mode pushes the rewritten history then: the lease-guarded force push lands the rewrite on origin, exit 0 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/feature ✓
+   ├─ pr: pr #78 (created)
+   ├─ opened: as-human (gh cli login, fallback)
+   └─ meter
+      └─ push: held
+
+🌊 now let's ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;
+
+exports[`git.commit.push.sh given: [case41] a published branch, rewritten by a rebase, against a real bare origin when: [t0] apply mode pushes the rewritten history then: the lease-guarded force push lands the rewrite on origin, exit 0 2`] = `""`;

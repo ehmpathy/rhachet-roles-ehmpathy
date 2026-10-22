@@ -167,6 +167,32 @@ print_tree_constraint() {
   echo "   └─ ✋ ConstraintError: $message"
 }
 
+# render a malformed invocation on the family frame, on both streams
+# usage: emit_usage_refusal --skill "git.commit.uses" --message "unknown option: --x"
+#        then the caller exits 2
+#
+# .why = an unknown option or an absent command is a refusal like any other;
+#        one frame keeps every skill on one refusal shape, and the coconut
+#        names --help rather than a raw usage dump below the tree
+emit_usage_refusal() {
+  local skill="" message=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --skill) skill="$2"; shift 2 ;;
+      --message) message="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "$skill"
+    print_tree_constraint "$message"
+    print_coconut_hint \
+      "see every form $skill takes, with examples" \
+      "rhx $skill --help"
+  )"
+}
+
 # print a MALFUNCTION error in tree format — the system must be fixed (exit 1)
 # usage: print_tree_malfunction "git commit failed"
 print_tree_malfunction() {
@@ -174,26 +200,76 @@ print_tree_malfunction() {
   echo "   └─ 💥 MalfunctionError: $message"
 }
 
+# render a skill defect on the family frame, on both streams
+# usage: emit_skill_defect --skill "git.commit.operations" --message "meter read with no scope"
+#        then the caller exits 1
+#
+# .why = a defect in the skill itself is a malfunction like any other; a bare
+#        column-0 line would break the one frame every other error rides
+emit_skill_defect() {
+  local skill="" message=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --skill) skill="$2"; shift 2 ;;
+      --message) message="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "$skill"
+    print_tree_malfunction "$message"
+    echo ""
+    echo "   a defect in the skill, never the caller's input; report it upstream"
+  )"
+}
+
+# print raw git output as a sub.bucket, under a `└─ git.output` branch
+# opens with ├─, content with │, closes with └─; ANSI + control chars stripped
+# usage: echo "   └─ git.output"; print_git_output_tree "$GIT_OUTPUT"
+#
+# .why here = the commit and rebase families both relay raw git output;
+#             one renderer keeps one shape (rule.prefer.most-common-denominator)
+print_git_output_tree() {
+  local git_output="$1"
+
+  # split on newlines and carriage returns; drop ANSI escapes + control chars
+  local cleaned
+  cleaned=$(echo "$git_output" | \
+    sed 's/\x1b\[[0-9;]*[A-Za-z]//g' | \
+    tr '\r' '\n' | \
+    sed 's/[[:cntrl:]]//g')
+
+  # collect non-empty lines
+  local lines=()
+  while IFS= read -r line; do
+    if [[ -n "$line" ]]; then
+      lines+=("$line")
+    fi
+  done <<< "$cleaned"
+
+  # print sub.bucket: open, blank, content, blank, close
+  if [[ ${#lines[@]} -gt 0 ]]; then
+    echo "      ├─"
+    echo "      │"
+    for line in "${lines[@]}"; do
+      echo "      │  $line"
+    done
+    echo "      │"
+    echo "      └─"
+  fi
+}
+
 # print an UNQUALIFIED error in tree format
 #
 # ⚠️ .note = for skills OUTSIDE git.commit that source this file and are not
-#         yet migrated (`git.stage.add`, `git.repo.get`). no git.commit skill
+#         yet migrated (`git.stage.add`). no git.commit skill
 #         calls it — they name the class via the two leaves above. the
 #         migration of the rest is caught in
 #         `.dream/v2026_09_27.fix.qualified-error-headers-beyond-git-commit.md`.
 print_tree_error() {
   local message="$1"
   echo "   └─ error: $message"
-}
-
-# print instruction block (after tree)
-# usage: print_instruction "ask your human to grant more:" "  $ git.commit.uses set ..."
-print_instruction() {
-  local header="$1"
-  local command="$2"
-  echo ""
-  echo "$header"
-  echo "$command"
 }
 
 # print tip in dim/muted style

@@ -29,4 +29,6 @@ dream: `.dream/2026_10_21.journey-test-for-the-two-meter-done-test.dream.md` (li
 
 ## .verdict
 
-open.
+open for the acceptance form (B). the release clause now walks one tree in an integration
+journey, p2 `[case-done-test]`, beside the p-suite gh mock — no harness lift. the acceptance
+journey stays a dream.
