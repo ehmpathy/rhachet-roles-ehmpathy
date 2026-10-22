@@ -54,6 +54,42 @@ exports[`pretooluse.forbid-cross-repo-access.sh given: [case7] a WORKTREE of a p
 "
 `;
 
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case7] a WORKTREE of a peer repo when: [t1] the worktree dir is absent on disk (a removed tree, or a glob) then: derives the true slug for a glob, never _worktrees 1`] = `
+"
+✋ ConstraintError: adhoc cross-repo access — Read
+
+   path: <gitroot>/testorg/_worktrees/peer-repo*/src/index.ts
+   repo: testorg/peer-repo (not your current repo)
+
+   why: that clone holds whatever is checked out there right now —
+        a stale branch or a dirty tree. a direct read is a trap.
+
+🥥 did you know?
+   ├─ --tree reads a local tree's inflight state — a worktree, or the repo's own clone
+   ├─ rhx git.repo.get files --in testorg/peer-repo   # latest (origin/main)
+   └─ rhx git.repo.get files --in testorg/peer-repo --tree <branch>   # inflight (uncommitted included)
+
+"
+`;
+
+exports[`pretooluse.forbid-cross-repo-access.sh given: [case7] a WORKTREE of a peer repo when: [t1] the worktree dir is absent on disk (a removed tree, or a glob) then: derives the true slug for a removed tree, never _worktrees 1`] = `
+"
+✋ ConstraintError: adhoc cross-repo access — Read
+
+   path: <gitroot>/testorg/_worktrees/peer-repo.vlad.feat-gone/src/index.ts
+   repo: testorg/peer-repo (not your current repo)
+
+   why: that clone holds whatever is checked out there right now —
+        a stale branch or a dirty tree. a direct read is a trap.
+
+🥥 did you know?
+   ├─ --tree reads a local tree's inflight state — a worktree, or the repo's own clone
+   ├─ rhx git.repo.get files --in testorg/peer-repo   # latest (origin/main)
+   └─ rhx git.repo.get files --in testorg/peer-repo --tree <branch>   # inflight (uncommitted included)
+
+"
+`;
+
 exports[`pretooluse.forbid-cross-repo-access.sh given: [case10] the caller sits in a WORKTREE of their own repo when: [t0] they reach into that same repo main clone then: blocks it — another tree can be stale or dirty too 1`] = `
 "
 ✋ ConstraintError: adhoc cross-tree access — Read

@@ -2,13 +2,32 @@
 
 exports[`init.claude.permissionrequest.sh given: [case1] a split-layout repo whose settings hold a foreign entry and a stale decider when: [t0] the init runs then: it seats one decider first, keeps the foreign entry, and leaves all else 1`] = `
 "✨ PermissionRequest decider registered
-   .claude/settings.of.repo.json
+   └─ .claude/settings.of.repo.json
+"
+`;
+
+exports[`init.claude.permissionrequest.sh given: [case1] a split-layout repo whose settings hold a foreign entry and a stale decider when: [t1] the init runs again then: it writes naught and says so 1`] = `
+"👌 PermissionRequest decider already registered
+   └─ .claude/settings.of.repo.json
+"
+`;
+
+exports[`init.claude.permissionrequest.sh given: [case2] an old-layout repo with no settings file when: [t0] the init runs then: it seeds settings.json with the decider alone 1`] = `
+"✨ PermissionRequest decider registered
+   └─ .claude/settings.json
 "
 `;
 
 exports[`init.claude.permissionrequest.sh given: [case3] a repo whose settings.of.repo.json is a link when: [t0] the init runs then: it refuses on both streams, exit 2, and the link target stays untouched 1`] = `
 "✋ ConstraintError: .claude/settings.of.repo.json is a link; this init writes only a real file
 
-fix: run \`npx rhachet init --hooks\` first, so the repo settings file is real, then rerun.
+🥥 did you know?
+   ├─ run rhachet init first, so the repo settings file is real, then rerun this init
+   └─ npx rhachet init --hooks
+"
+`;
+
+exports[`init.claude.permissionrequest.sh given: [case4] a repo whose settings.of.repo.json is not json when: [t0] the init runs then: it fails as a malfunction on both streams, exit 1, and the file stays as found 1`] = `
+"💥 MalfunctionError: could not parse .claude/settings.of.repo.json as json
 "
 `;

@@ -123,8 +123,8 @@ set_meter_scope() {
       ;;
     *)
       # both streams: a malfunction must show in the terminal and the error log
-      echo "💥 MalfunctionError: set_meter_scope: unknown meter '$kind' (expected commit|release)"
-      echo "💥 MalfunctionError: set_meter_scope: unknown meter '$kind' (expected commit|release)" >&2
+      emit_skill_defect --skill "git.commit.operations" \
+        --message "set_meter_scope: unknown meter '$kind' (expected commit|release)"
       exit 1
       ;;
   esac
@@ -147,8 +147,8 @@ assure_meter_scope() {
   if [[ -n "$METER_KIND" ]]; then
     return 0
   fi
-  echo "💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release first"
-  echo "💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release first" >&2
+  emit_skill_defect --skill "git.commit.operations" \
+    --message "meter read with no scope; call set_meter_scope commit|release first"
   exit 1
 }
 
@@ -201,29 +201,21 @@ print_global_corrupt_note() {
   if [[ "${GLOBAL_BLOCK_CORRUPT:-false}" != "true" ]]; then
     return 0
   fi
-  echo ""
-  echo "   the global blocker file cannot be read:"
-  echo "     $GLOBAL_METER_FILE_SHOWN"
-  # 🔴 .why this LAYOUT = one error family ("a state file this skill depends on
-  #    cannot be read → refuse → give a remedy") has THREE renders, and they
-  #    carried two typographic grammars: this note and the org body indented
-  #    the lead-in by 3 and the commands by 5, while
-  #    `print_sponsor_corrupt_render` used the shared `print_instruction`
-  #    helper (blank line, lead-in at 0, commands at 2). a human who met a
-  #    corrupt global meter and then a corrupt sponsor file read a shell that
-  #    disagrees with itself about how to lay out one idea
-  #    (rule.forbid.snapshot-visual-blemishes).
+  # 🔴 .why a COCONUT = the remedy is a next move, so it renders apart from the
+  #    diagnosis, in the same 🥥 shape as every other remedy in the meter family
+  #    (rule.require.coconut-hints, rule.forbid.snapshot-visual-blemishes).
   #
-  # ⚠️ .why it MATCHES `print_instruction` rather than CALLS it = that helper
+  # ⚠️ .why it MATCHES `print_coconut_hint` rather than CALLS it = that helper
   #    lives in `output.sh`, and this file does not source it. a call here
   #    resolves only because every real caller happens to source both — an
   #    undeclared dependency that dies the moment `operations.sh` is sourced
   #    alone, which is exactly how the test harness uses it (it exits 127).
-  #    ⇒ the shape is matched by hand; the coupling is not created.
+  #    ⇒ the shape is matched by hand; no new dependency is made.
   echo ""
-  echo "until it parses, every $METER_NOUN is blocked. a human may inspect or clear it:"
-  echo "  \$ cat $GLOBAL_METER_FILE_SHOWN"
-  echo "  \$ rm -r $GLOBAL_METER_FILE_SHOWN"
+  echo "🥥 did you know?"
+  echo "   ├─ the global blocker file cannot be read, so every $METER_NOUN is blocked; a human may read it, then clear it"
+  echo "   ├─ cat $GLOBAL_METER_FILE_SHOWN"
+  echo "   └─ rm -r $GLOBAL_METER_FILE_SHOWN"
 }
 
 ######################################################################
@@ -292,16 +284,13 @@ print_global_corrupt_note() {
 ORG_CORRUPT_HEADLINE="org meter file corrupt"
 
 print_org_corrupt_body() {
+  # .why this layout = the twin of `print_global_corrupt_note`; the reasons,
+  #      and why it is matched rather than called, sit there.
   echo ""
-  echo "   the org meter file cannot be read:"
-  echo "     $ORG_METER_FILE_SHOWN"
-  # .why this layout = the third member of the family takes the same shape;
-  #      the reasons, and why it is matched rather than called, are on
-  #      `print_global_corrupt_note`.
-  echo ""
-  echo "until it parses, every $METER_NOUN is blocked. a human may inspect or clear it:"
-  echo "  \$ cat $ORG_METER_FILE_SHOWN"
-  echo "  \$ rm -r $ORG_METER_FILE_SHOWN"
+  echo "🥥 did you know?"
+  echo "   ├─ the org meter file cannot be read, so every $METER_NOUN is blocked; a human may read it, then clear it"
+  echo "   ├─ cat $ORG_METER_FILE_SHOWN"
+  echo "   └─ rm -r $ORG_METER_FILE_SHOWN"
 }
 
 print_org_corrupt_note() {
@@ -431,7 +420,7 @@ SPONSOR_BIND_VIA_LITERAL="rhx git.commit.sponsor set --who \"Name <email>\""
 #        grove with no route they can run (`Q2'`). ⇒ shared, so a render
 #        cannot silently carry half the answer.
 #
-# .note = 2-space indent, which is what a `print_instruction` block takes.
+# .note = `  $ ` lines; `print_remedy_coconut` (sponsor) strips the prefix.
 #         `--help` indents by 4 and composes its own line from the two
 #         constants above — the prefix is still per-site, as the note above
 #         says; only the SET is now fixed.
@@ -470,7 +459,7 @@ SPONSOR_BIND_REMEDY="  \$ $SPONSOR_BIND_VIA_STDIN
 # .note = the NAME comes from the shared constant, so a rename cannot leave
 #         this prose pointed at a file nobody writes.
 #
-# .note = no `echo ""` before `print_instruction`; it opens with its own blank
+# .note = no `echo ""` before `print_coconut_hint`; it opens with its own blank
 #         line, and a second renders as a gap (forbid.snapshot-visual-blemishes)
 #
 # .note = `@self` stays absent on purpose — it reads THIS machine's git
@@ -487,9 +476,11 @@ print_sponsor_corrupt_render() {
   echo ""
   echo "   the file that names this tree's sponsor cannot be read:"
   echo "     .meter/$SPONSOR_STATE_FILENAME"
-  print_instruction "inspect it, or clear the bind and set it afresh:" "  \$ cat .meter/$SPONSOR_STATE_FILENAME
-  \$ rhx git.commit.sponsor del
-$SPONSOR_BIND_REMEDY"
+  print_coconut_hint "inspect it, or clear the bind and set it afresh" \
+    "cat .meter/$SPONSOR_STATE_FILENAME" \
+    "rhx git.commit.sponsor del" \
+    "$SPONSOR_BIND_VIA_STDIN" \
+    "$SPONSOR_BIND_VIA_LITERAL"
 }
 
 ######################################################################
@@ -913,8 +904,8 @@ guard_git_identity_readable() {
     print_turtle_header "bummer dude..."
     print_tree_start "$skill"
     print_tree_malfunction "git config could not be read (exit $GIT_IDENTITY_READ_EXIT)"
-    print_instruction "find the git config file at fault:" \
-      "  \$ git config --list --show-origin"
+    print_coconut_hint "find the git config file at fault" \
+      "git config --list --show-origin"
   )"
   exit 1
 }
@@ -932,8 +923,8 @@ guard_git_identity_readable() {
 assert_git_identity_read() {
   [[ -n "${GIT_IDENTITY_KIND:-}" ]] && return 0
 
-  emit_both "💥 MalfunctionError: the git identity was read before get_one_git_config_identity ran
-   this is a defect in the skill, never the caller's input — call the reader first"
+  emit_skill_defect --skill "git.commit.operations" \
+    --message "the git identity was read before get_one_git_config_identity ran"
   exit 1
 }
 
@@ -964,7 +955,7 @@ as_git_config_fix_commands() {
 }
 
 # .what = a PURE transformer: fault halves → the fix commands as `  $ ` lines,
-#         the shape a `print_instruction` block takes
+#         the shape a remedy block takes before `print_remedy_coconut`
 #
 # usage: as_git_config_fix_lines "${GIT_IDENTITY_FAULTS[@]}"
 as_git_config_fix_lines() {
@@ -1106,16 +1097,18 @@ guard_actor_is_human_via_stdin() {
   #        command has no terminal either, so "only humans can run this"
   #        told a human at that prompt they were not one. the same words as
   #        `git.commit.sponsor`'s actor refusal, so the family speaks once.
+  # .why the body rides tree branches and a 🥥 hint = one refusal shape for
+  #        the family: no prose hangs below a tree that already closed
+  #        (rule.forbid.snapshot-visual-blemishes, rule.require.coconut-hints)
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "$1"
-    print_tree_constraint "no terminal on this command"
-    echo ""
-    echo "   only a human at a real terminal may run this, and this command"
-    echo "   has none. a clone's tool call has none, and neither does a claude"
-    echo "   \`!\` command, so the two cannot be told apart here."
-    print_instruction "run it from your own terminal, with the same args:" \
-      "  \$ rhx $1 ..."
+    print_tree_branch "✋ ConstraintError: no terminal on this command"
+    print_tree_branch "only a human at a real terminal may run this"
+    print_tree_branch "a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart" true
+    print_coconut_hint \
+      "a human runs it from their own terminal" \
+      "rhx $1"
   )"
   exit 2
 }
@@ -1838,7 +1831,7 @@ as_git_identity_refusal_phrase() {
 print_sponsor_unbound_state() {
   get_one_git_config_identity
 
-  print_turtle_header "lets check the sponsor..."
+  print_turtle_header "let's check the sponsor..."
   print_tree_start "git.commit.sponsor"
   echo "   ├─ sponsor: (none bound)"
 
@@ -2137,6 +2130,21 @@ is_org_state_known() {
   return 1
 }
 
+######################################################################
+# .what = the next-move coconut for an org level that holds a commit
+# .why  = an unset org and a blocked org share one remedy but not one
+#         cause; a coconut that says "a human blocked this org" under
+#         "no org config" contradicts the line above it
+# usage: print_org_blocked_hint   (after check_org_blocker returned 2)
+######################################################################
+print_org_blocked_hint() {
+  local org="${ORG_VALUE:-<org>}"
+  local affordance="a human blocked this org; ask them to allow it"
+  [[ "$ORG_BLOCK_REASON" == "no org config for"* ]] \
+    && affordance="no human has allowed this org yet; ask one to allow it"
+  print_coconut_hint "$affordance" "git.commit.uses allow --org $org"
+}
+
 check_org_blocker() {
   assure_meter_scope
   ORG_BLOCK_REASON=""
@@ -2173,7 +2181,7 @@ check_org_blocker() {
   #    meters, one absence/damage split — so a reader learns it once.
   if [[ ! -e "$ORG_METER_FILE" ]]; then
     # no org config = unset = check for @all
-    ORG_BLOCK_REASON="no org config for $org (org permissions not configured)"
+    ORG_BLOCK_REASON="no org config for $org"
     return 2
   fi
 
@@ -2210,7 +2218,7 @@ check_org_blocker() {
   #        `-e` holds and the read falls through to the gates below, which
   #        classify it as damage exactly as they should.
   if [[ -z "$contents" && ! -e "$ORG_METER_FILE" ]]; then
-    ORG_BLOCK_REASON="no org config for $org (org permissions not configured)"
+    ORG_BLOCK_REASON="no org config for $org"
     return 2
   fi
 
@@ -2281,7 +2289,7 @@ check_org_blocker() {
   fi
 
   if [[ "$all_state" == "unset" ]]; then
-    ORG_BLOCK_REASON="no org config for $org (org permissions not configured)"
+    ORG_BLOCK_REASON="no org config for $org"
     return 2
   fi
 

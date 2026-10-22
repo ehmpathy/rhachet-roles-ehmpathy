@@ -61,11 +61,17 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "unknown argument: $1"
-      exit 1
+      emit_usage_refusal --skill "git.branch.rebase begin" --message "unknown argument: $1"
+      exit 2
       ;;
   esac
 done
+
+# guard: refuse an unknown mode before any guard or fetch runs
+if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
+  emit_usage_refusal --skill "git.branch.rebase begin" --message "unknown mode '$MODE' (valid modes: plan, apply)"
+  exit 2
+fi
 
 ######################################################################
 # guards
@@ -129,31 +135,39 @@ fi
 
 # guard: cannot rebase main/master
 if is_base_branch; then
-  print_turtle_header "hold up dude..."
-  print_tree_start "git.branch.rebase begin"
-  echo "   └─ error: cannot rebase main/master"
-  exit 1
+  emit_both "$(
+    print_turtle_header "hold up dude..."
+    print_tree_start "git.branch.rebase begin"
+    print_tree_constraint "cannot rebase main/master"
+    print_coconut_hint "a rebase moves a feature branch onto main; check one out first" \
+      "git checkout <feature-branch>"
+  )"
+  exit 2
 fi
 
 # guard: dirty work tree
 if is_worktree_dirty; then
-  print_turtle_header "hold up dude..."
-  print_tree_start "git.branch.rebase begin"
-  echo "   └─ error: unstaged changes found"
-  echo ""
-  echo "commit or stash your changes first"
-  exit 1
+  emit_both "$(
+    print_turtle_header "hold up dude..."
+    print_tree_start "git.branch.rebase begin"
+    print_tree_constraint "unstaged changes found"
+    print_coconut_hint "commit your changes first, so the rebase moves them too" \
+      "rhx git.commit.set -m @stdin --unstaged include --mode apply"
+  )"
+  exit 2
 fi
 
 # guard: rebase already in progress
 if is_rebase_in_progress; then
-  print_turtle_header "hold up dude..."
-  print_tree_start "git.branch.rebase begin"
-  echo "   └─ error: rebase already in progress"
-  echo ""
-  echo "to continue: rhx git.branch.rebase continue"
-  echo "to abort:    rhx git.branch.rebase abort"
-  exit 1
+  emit_both "$(
+    print_turtle_header "hold up dude..."
+    print_tree_start "git.branch.rebase begin"
+    print_tree_constraint "rebase already in progress"
+    print_coconut_hint "finish the rebase underway, or abandon it" \
+      "rhx git.branch.rebase continue" \
+      "rhx git.branch.rebase abort"
+  )"
+  exit 2
 fi
 
 ######################################################################
@@ -164,9 +178,11 @@ if git rev-parse --verify origin/main &>/dev/null; then
 elif git rev-parse --verify origin/master &>/dev/null; then
   DEFAULT_BRANCH="master"
 else
-  print_turtle_header "hold up dude..."
-  print_tree_start "git.branch.rebase begin"
-  echo "   └─ error: no main or master branch found on origin"
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.branch.rebase begin"
+    print_tree_malfunction "no main or master branch found on origin"
+  )"
   exit 1
 fi
 
@@ -174,11 +190,13 @@ fi
 # fetch latest from origin
 ######################################################################
 git fetch origin "$DEFAULT_BRANCH" 2>/dev/null || {
-  print_turtle_header "hold up dude..."
-  print_tree_start "git.branch.rebase begin"
-  echo "   └─ error: failed to fetch origin/$DEFAULT_BRANCH"
-  echo ""
-  echo "check your network connection and try again"
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.branch.rebase begin"
+    print_tree_malfunction "failed to fetch origin/$DEFAULT_BRANCH"
+    print_coconut_hint "check the network connection, then try again" \
+      "rhx git.branch.rebase begin"
+  )"
   exit 1
 }
 
@@ -268,8 +286,14 @@ if [[ "$MODE" == "plan" ]]; then
   while IFS= read -r line; do
     [[ -n "$line" ]] && AHEAD_LINES+=("$line")
   done <<< "$COMMITS_TO_REBASE"
+  # the last ahead line closes its subtree, as the behind list below does
+  AHEAD_LAST_IDX=$((${#AHEAD_LINES[@]} - 1))
   for i in "${!AHEAD_LINES[@]}"; do
-    echo "   │  │  ├─ ${AHEAD_LINES[$i]}"
+    if [[ $i -eq $AHEAD_LAST_IDX ]]; then
+      echo "   │  │  └─ ${AHEAD_LINES[$i]}"
+    else
+      echo "   │  │  ├─ ${AHEAD_LINES[$i]}"
+    fi
   done
 
   # show commits behind (what main has)
@@ -340,36 +364,37 @@ if [[ "$MODE" == "apply" ]]; then
     CONFLICT_FILES=$(get_conflict_files)
     CONFLICT_COMMIT=$(get_conflict_commit)
 
-    print_turtle_header "hang tight..."
-    print_tree_start "git.branch.rebase begin --mode apply"
-    echo "   ├─ rebase"
-    echo "   │  ├─ target: origin/$DEFAULT_BRANCH"
-    echo "   │  ├─ commits: $COMMIT_COUNT"
-    echo "   │  └─ status: conflict"
-    echo "   ├─ conflict"
-    if [[ -n "$CONFLICT_COMMIT" ]]; then
-      echo "   │  ├─ commit: $CONFLICT_COMMIT"
-    fi
-    echo "   │  └─ files"
-    print_files_tree "   │     " "$CONFLICT_FILES"
-    echo "   └─ git.output"
-    print_git_output_tree "$GIT_OUTPUT"
-    print_coconut_hint "settle the conflicts in the files above, stage them, then continue" \
-      "rhx git.stage.add <files>" \
-      "rhx git.branch.rebase continue"
+    # a halt on conflict exits non-zero, so it rides both streams, as every
+    # other refusal in this file does (rule.require.skill-output-streams)
+    emit_both "$(
+      print_turtle_header "hang tight..."
+      print_tree_start "git.branch.rebase begin --mode apply"
+      echo "   ├─ rebase"
+      echo "   │  ├─ target: origin/$DEFAULT_BRANCH"
+      echo "   │  ├─ commits: $COMMIT_COUNT"
+      echo "   │  └─ status: conflict"
+      echo "   ├─ conflict"
+      if [[ -n "$CONFLICT_COMMIT" ]]; then
+        echo "   │  ├─ commit: $CONFLICT_COMMIT"
+      fi
+      echo "   │  └─ files"
+      print_files_tree "   │     " "$CONFLICT_FILES"
+      echo "   └─ git.output"
+      print_git_output_tree "$GIT_OUTPUT"
+      print_coconut_hint "settle the conflicts in the files above, stage them, then continue" \
+        "rhx git.stage.add <files>" \
+        "rhx git.branch.rebase continue"
+    )"
     exit 1
   fi
 
   # some other failure
-  print_turtle_header "hold up dude..."
-  print_tree_start "git.branch.rebase begin --mode apply"
-  echo "   ├─ error: rebase failed"
-  echo "   └─ git.output"
-  print_git_output_tree "$GIT_OUTPUT"
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.branch.rebase begin --mode apply"
+    echo "   ├─ 💥 MalfunctionError: rebase failed"
+    echo "   └─ git.output"
+    print_git_output_tree "$GIT_OUTPUT"
+  )"
   exit 1
 fi
-
-# invalid mode
-echo "error: unknown mode '$MODE'"
-echo "valid modes: plan, apply"
-exit 1

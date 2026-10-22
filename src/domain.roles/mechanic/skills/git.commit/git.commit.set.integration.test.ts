@@ -57,7 +57,7 @@ describe('git.commit.set.sh', () => {
       name: string;
       email: string;
       // how the bind's value arrived — `--who @self` writes `self`, a piped or
-      // literal value writes `supplied`. `[case44]` varies it.
+      // literal value writes `supplied`. `[case54]` varies it.
       source?: 'self' | 'supplied' | 'me';
     } | null;
     // raw bytes for the sponsor state file, written INSTEAD of a seeded sponsor.
@@ -1103,6 +1103,7 @@ exit 1
       then('exit 2: a release stamp never buys a commit', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('git.commit.uses set --quant N');
+        expect(result.stdout).toMatchSnapshot();
       });
 
       then('no commit is created', () => {
@@ -1186,10 +1187,10 @@ exit 1
         expect(result.stdout).toContain('names a placeholder');
         expect(result.stdout).toContain('you cannot fix this yourself');
         // a real name fixes a placeholder, so that fix leads the bind forms
+        expect(result.stdout).toContain('🥥 did you know?');
         expect(result.stdout).toContain(
-          'ask your human to fix git config — then commits name them:',
+          'ask your human to fix git config, so commits name them; or to bind a sponsor, in this tree',
         );
-        expect(result.stdout).toContain('or to bind a sponsor, in this tree:');
         expect(result.stdout).toMatchSnapshot();
       });
 
@@ -4406,7 +4407,13 @@ exit 1`,
           expect(result.stdout).toContain('no sponsor for this commit');
           expect(result.stdout).toContain('names a clone');
           expect(result.stdout).toContain("so this is the clone's machine");
-          expect(result.stdout).toContain('ask your human to run');
+          expect(result.stdout).toContain('🥥 did you know?');
+          expect(result.stdout).toContain(
+            '├─ ask your human to bind a sponsor, in this tree',
+          );
+          expect(result.stdout).toContain(
+            '└─ rhx git.commit.sponsor set --who "Name <email>"',
+          );
           expect(result.stdout).toMatchSnapshot();
         });
 
@@ -4442,7 +4449,7 @@ exit 1`,
             expect(result.exitCode).toBe(2);
             expect(result.stdout).toContain('git config user.email is unset.');
             expect(result.stdout).toContain(
-              '$ git config --global user.email "you@example.com"',
+              '├─ git config --global user.email "you@example.com"',
             );
             expect(result.stdout).toContain('--who @stdin');
             expect(result.stdout).toMatchSnapshot();
@@ -4467,7 +4474,7 @@ exit 1`,
           expect(result.stdout).toContain('git config user.name is unset.');
           expect(result.stdout).not.toContain('user.email is unset');
           expect(result.stdout).toContain(
-            '$ git config --global user.name "Your Name"',
+            '├─ git config --global user.name "Your Name"',
           );
           expect(result.stdout).not.toContain('git config --global user.email');
           expect(result.stdout).toMatchSnapshot();
@@ -4611,8 +4618,8 @@ exit 1`,
           expect(result.stdout).toContain('git.commit.set');
           // the fetch, if reached, emits a keyrack heads-up on failure; --help
           // must exit before it ever runs — so the note is absent on both streams
-          expect(result.stdout).not.toContain('keyrack token wasnt fetched');
-          expect(result.stderr).not.toContain('keyrack token wasnt fetched');
+          expect(result.stdout).not.toContain("keyrack token wasn't fetched");
+          expect(result.stderr).not.toContain("keyrack token wasn't fetched");
           // lock the human-visible --help contract so a reworded or dropped flag
           // cannot ship undetected (rule.require.contract-snapshot-exhaustiveness)
           expect(result.stdout).toMatchSnapshot();
@@ -4665,8 +4672,8 @@ exit 1`,
             // the fetch, if reached, emits a keyrack heads-up when it fails —
             // and in a hermetic temp repo with no keyrack it WOULD fail. its
             // absence on both streams is the proof the refusal came first.
-            expect(result.stdout).not.toContain('keyrack token wasnt fetched');
-            expect(result.stderr).not.toContain('keyrack token wasnt fetched');
+            expect(result.stdout).not.toContain("keyrack token wasn't fetched");
+            expect(result.stderr).not.toContain("keyrack token wasn't fetched");
           });
         },
       );
@@ -5773,7 +5780,7 @@ exec /usr/bin/git "$@"
   );
 
   given(
-    '[case44] how a bind arrived is inert — the commit tree is byte-identical for @self and @stdin binds',
+    '[case54] how a bind arrived is inert — the commit tree is byte-identical for @self and @stdin binds',
     () => {
       // 🔴 .what the two binds differ on = HOW the value arrived. `--who
       //        @self` records `self`; a piped or literal value records

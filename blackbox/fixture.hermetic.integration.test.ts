@@ -65,5 +65,58 @@ describe('fixture writes stay inside the fixture repo', () => {
         expect(fs.existsSync(path.join(scene.outside, 'settings.json'))).toBe(false);
       });
     });
+
+    when('[t0b] a suite writes into a nested dir under the link', () => {
+      then('the write is refused before any dir is made outside', async () => {
+        const error = await getError(async () =>
+          setFixtureFile({ dir: scene.repo, relPath: '.claude/reef/settings.json', content: '{}' }),
+        );
+        expect(error.message).toContain('resolves outside the repo');
+        expect(fs.existsSync(path.join(scene.outside, 'reef'))).toBe(false);
+      });
+    });
+
+    when('[t1] a suite pins the old layout', () => {
+      then('the pin is refused, and naught lands outside', async () => {
+        fs.writeFileSync(path.join(scene.outside, 'settings.of.repo.json'), '{}');
+        const error = await getError(async () =>
+          setFixtureLayoutOld({ dir: scene.repo }),
+        );
+        expect(error.message).toContain('.claude links outside the fixture');
+        expect(
+          fs.existsSync(path.join(scene.outside, 'settings.of.repo.json')),
+        ).toBe(true);
+      });
+    });
+  });
+
+  given('[case3] a repo whose .claude dir links into its own actor dir (rhachet >= 1.49)', () => {
+    const scene = (() => {
+      const repo = genTempDir({ slug: 'fixture-repo-indir' });
+      const actorClaude = path.join(
+        repo,
+        '.agent/.actors/actor.via.repo=ambient/brain/.claude',
+      );
+      fs.mkdirSync(actorClaude, { recursive: true });
+      fs.writeFileSync(path.join(actorClaude, 'settings.of.repo.json'), '{}');
+      fs.symlinkSync(
+        '.agent/.actors/actor.via.repo=ambient/brain/.claude',
+        path.join(repo, '.claude'),
+      );
+      return { repo, actorClaude };
+    })();
+
+    when('[t0] a suite pins the old layout, then writes', () => {
+      then('the pin and the write land inside the fixture', () => {
+        setFixtureLayoutOld({ dir: scene.repo });
+        setFixtureFile({ dir: scene.repo, relPath: '.claude/settings.json', content: '{}' });
+        expect(
+          fs.existsSync(path.join(scene.actorClaude, 'settings.of.repo.json')),
+        ).toBe(false);
+        expect(
+          fs.readFileSync(path.join(scene.actorClaude, 'settings.json'), 'utf-8'),
+        ).toBe('{}');
+      });
+    });
   });
 });

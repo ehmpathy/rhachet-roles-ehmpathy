@@ -655,7 +655,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
     // ------------------------------------------------------------------------
     // rows 19-21: feat PR rebase:dirty
     // ------------------------------------------------------------------------
-    given('[row-19] feat PR: rebase:dirty', () => {
+    given('[row-19b] feat PR: rebase:dirty', () => {
       const scene: Scene = { branch: 'feat', featPr: 'rebase:dirty' };
 
       when('[plan] --into prod', () => {
@@ -1300,7 +1300,7 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
     // ------------------------------------------------------------------------
     // rows 40-42: feat PR merged, release PR rebase:dirty
     // ------------------------------------------------------------------------
-    given('[row-40] feat PR: merged, release PR: rebase:dirty', () => {
+    given('[row-40b] feat PR: merged, release PR: rebase:dirty', () => {
       const scene: Scene = {
         branch: 'feat',
         featPr: 'merged',
@@ -1632,6 +1632,8 @@ describe('git.release.p3.scenes.on_feat.into_prod', () => {
               expect(
                 result.stdout.split('release stamp spent').length - 1,
               ).toBe(1);
+              // the one p3 render that carries the finite-stamp spend footer
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             } finally {
               cleanup();
             }

@@ -39,8 +39,8 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "unknown argument: $1"
-      exit 1
+      emit_usage_refusal --skill "git.branch.rebase continue" --message "unknown argument: $1"
+      exit 2
       ;;
   esac
 done
@@ -51,29 +51,35 @@ done
 
 # guard: must be in a rebase
 if ! is_rebase_in_progress; then
-  print_turtle_header "hold up dude..."
-  print_tree_start "git.branch.rebase continue"
-  echo "   └─ error: no rebase in progress"
-  exit 1
+  emit_both "$(
+    print_turtle_header "hold up dude..."
+    print_tree_start "git.branch.rebase continue"
+    print_tree_constraint "no rebase in progress"
+    print_coconut_hint "start a rebase onto main first" \
+      "rhx git.branch.rebase begin"
+  )"
+  exit 2
 fi
 
 # guard: conflicts must be settled
 CONFLICT_FILES=$(get_conflict_files)
 if [[ -n "$CONFLICT_FILES" ]]; then
   CONFLICT_COMMIT=$(get_conflict_commit)
-  print_turtle_header "hang tight..."
-  print_tree_start "git.branch.rebase continue"
-  echo "   ├─ rebase"
-  echo "   │  └─ status: conflict"
-  echo "   ├─ conflict"
-  if [[ -n "$CONFLICT_COMMIT" ]]; then
-    echo "   │  ├─ commit: $CONFLICT_COMMIT"
-  fi
-  echo "   └─ files"
-  print_files_tree "      " "$CONFLICT_FILES"
-  print_coconut_hint "settle the conflicts in the files above, stage them, then continue" \
-    "rhx git.stage.add <files>" \
-    "rhx git.branch.rebase continue"
+  emit_both "$(
+    print_turtle_header "hang tight..."
+    print_tree_start "git.branch.rebase continue"
+    echo "   ├─ rebase"
+    echo "   │  └─ status: conflict"
+    echo "   ├─ conflict"
+    if [[ -n "$CONFLICT_COMMIT" ]]; then
+      echo "   │  ├─ commit: $CONFLICT_COMMIT"
+    fi
+    echo "   └─ files"
+    print_files_tree "      " "$CONFLICT_FILES"
+    print_coconut_hint "settle the conflicts in the files above, stage them, then continue" \
+      "rhx git.stage.add <files>" \
+      "rhx git.branch.rebase continue"
+  )"
   exit 1
 fi
 
@@ -124,40 +130,44 @@ fi
 NEW_CONFLICTS=$(get_conflict_files)
 if [[ -n "$NEW_CONFLICTS" ]]; then
   CONFLICT_COMMIT=$(get_conflict_commit)
-  print_turtle_header "hang tight..."
-  print_tree_start "git.branch.rebase continue"
-  echo "   ├─ rebase"
-  echo "   │  └─ status: conflict"
-  echo "   ├─ conflict"
-  if [[ -n "$CONFLICT_COMMIT" ]]; then
-    echo "   │  ├─ commit: $CONFLICT_COMMIT"
-  fi
-  echo "   │  └─ files"
-  print_files_tree "   │     " "$NEW_CONFLICTS"
-  echo "   └─ git.output"
-  print_git_output_tree "$GIT_OUTPUT"
-  print_coconut_hint "settle the conflicts in the files above, stage them, then continue" \
-    "rhx git.stage.add <files>" \
-    "rhx git.branch.rebase continue"
+  emit_both "$(
+    print_turtle_header "hang tight..."
+    print_tree_start "git.branch.rebase continue"
+    echo "   ├─ rebase"
+    echo "   │  └─ status: conflict"
+    echo "   ├─ conflict"
+    if [[ -n "$CONFLICT_COMMIT" ]]; then
+      echo "   │  ├─ commit: $CONFLICT_COMMIT"
+    fi
+    echo "   │  └─ files"
+    print_files_tree "   │     " "$NEW_CONFLICTS"
+    echo "   └─ git.output"
+    print_git_output_tree "$GIT_OUTPUT"
+    print_coconut_hint "settle the conflicts in the files above, stage them, then continue" \
+      "rhx git.stage.add <files>" \
+      "rhx git.branch.rebase continue"
+  )"
   exit 1
 fi
 
 # check for unstaged modifications that block continue
 UNSTAGED_FILES=$(get_unstaged_files)
 if [[ -n "$UNSTAGED_FILES" ]]; then
-  print_turtle_header "hang tight..."
-  print_tree_start "git.branch.rebase continue"
-  echo "   ├─ rebase"
-  echo "   │  └─ status: blocked"
-  echo "   ├─ unstaged"
-  echo "   │  └─ files"
-  print_files_tree "   │     " "$UNSTAGED_FILES"
-  echo "   └─ git.output"
-  print_git_output_tree "$GIT_OUTPUT"
-  print_coconut_hint "review the unstaged files, stage them, then continue" \
-    "git diff" \
-    "rhx git.stage.add <files>" \
-    "rhx git.branch.rebase continue"
+  emit_both "$(
+    print_turtle_header "hang tight..."
+    print_tree_start "git.branch.rebase continue"
+    echo "   ├─ rebase"
+    echo "   │  └─ status: blocked"
+    echo "   ├─ unstaged"
+    echo "   │  └─ files"
+    print_files_tree "   │     " "$UNSTAGED_FILES"
+    echo "   └─ git.output"
+    print_git_output_tree "$GIT_OUTPUT"
+    print_coconut_hint "review the unstaged files, stage them, then continue" \
+      "git diff" \
+      "rhx git.stage.add <files>" \
+      "rhx git.branch.rebase continue"
+  )"
   exit 1
 fi
 

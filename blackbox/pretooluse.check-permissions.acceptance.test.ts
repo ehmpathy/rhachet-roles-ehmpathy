@@ -936,6 +936,10 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
         expect(res.code).toBe(0);
         expect(res.stderr).toBe('');
       });
+
+      then('the silent pass matches snapshot', () => {
+        expect({ code: res.code, stdout: res.stdout, stderr: res.stderr }).toMatchSnapshot();
+      });
     });
 
     when('[t1] the bot runs `grep -rln reef src/`', () => {
@@ -947,6 +951,7 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
         expect(res.code).toBe(2);
         expect(res.stderr).toContain('rhx grepsafe');
         expect(res.stderr).not.toContain('MalfunctionError');
+        expect(res.stderr).toMatchSnapshot();
       });
     });
   });

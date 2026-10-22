@@ -92,6 +92,7 @@ describe('init.claude.permissionrequest.sh', () => {
         const result = runInit({ cwd });
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('👌 PermissionRequest decider already registered');
+        expect(result.stdout).toMatchSnapshot();
         expect(fs.readFileSync(settingsPath, 'utf-8')).toEqual(before);
       });
     });
@@ -105,6 +106,7 @@ describe('init.claude.permissionrequest.sh', () => {
         const result = runInit({ cwd });
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('.claude/settings.json');
+        expect(result.stdout).toMatchSnapshot();
         const settings = readJson(path.join(cwd, '.claude', 'settings.json'));
         expect(settings.hooks.PermissionRequest).toEqual([deciderEntry]);
       });
@@ -123,8 +125,26 @@ describe('init.claude.permissionrequest.sh', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('✋ ConstraintError');
         expect(result.stderr).toContain('✋ ConstraintError');
+        expect(result.stdout).toContain('└─ npx rhachet init --hooks');
         expect(result.stdout).toMatchSnapshot();
         expect(fs.readFileSync(target, 'utf-8')).toEqual('{}');
+      });
+    });
+  });
+
+  given('[case4] a repo whose settings.of.repo.json is not json', () => {
+    const cwd = genRepo({ slug: 'permreq-unparseable', settingsOfRepo: null });
+    const settingsPath = path.join(cwd, '.claude', 'settings.of.repo.json');
+    fs.writeFileSync(settingsPath, '{ reef');
+
+    when('[t0] the init runs', () => {
+      then('it fails as a malfunction on both streams, exit 1, and the file stays as found', () => {
+        const result = runInit({ cwd });
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('💥 MalfunctionError');
+        expect(result.stderr).toContain('💥 MalfunctionError');
+        expect(result.stdout).toMatchSnapshot();
+        expect(fs.readFileSync(settingsPath, 'utf-8')).toEqual('{ reef');
       });
     });
   });

@@ -32,7 +32,7 @@ set_meter_scope commit
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "error: not in a git repository"
+  emit_both "✋ ConstraintError: not in a git repository"
   exit 2
 fi
 
@@ -72,7 +72,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      echo "error: unknown option: $1"
+      emit_usage_refusal --skill git.stage.add --message "unknown option: $1"
       exit 2
       ;;
     *)
@@ -89,12 +89,13 @@ done
 
 # guard: at least one path required
 if [[ ${#FILES[@]} -eq 0 ]]; then
-  print_turtle_header "hold up dude..."
-  print_tree_start "git.stage.add"
-  print_tree_error "no files specified"
-  echo ""
-  echo "usage: git.stage.add path1 path2 ..."
-  echo "       git.stage.add .                  # stage all"
+  emit_both "$(
+    print_turtle_header "hold up dude..."
+    print_tree_start "git.stage.add"
+    print_tree_constraint "no files specified"
+    print_coconut_hint "name the files to stage, or . for all in this dir" \
+      "rhx git.stage.add <files>"
+  )"
   exit 2
 fi
 
@@ -174,19 +175,22 @@ for file in "${FILES[@]}"; do
 
   # guard: path must be within repo
   if [[ "$abs_path" != "$REPO_ROOT"* ]]; then
-    print_turtle_header "hold up dude..."
-    print_tree_start "git.stage.add"
-    print_tree_error "path must be within repo"
-    echo ""
-    echo "path: $file"
+    emit_both "$(
+      print_turtle_header "hold up dude..."
+      print_tree_start "git.stage.add"
+      echo "   ├─ path: $file"
+      print_tree_constraint "path must be within repo"
+    )"
     exit 2
   fi
 
   # guard: file must exist
   if [[ ! -e "$abs_path" ]]; then
-    print_turtle_header "hold up dude..."
-    print_tree_start "git.stage.add"
-    print_tree_error "file not found: $file"
+    emit_both "$(
+      print_turtle_header "hold up dude..."
+      print_tree_start "git.stage.add"
+      print_tree_constraint "file not found: $file"
+    )"
     exit 2
   fi
 done

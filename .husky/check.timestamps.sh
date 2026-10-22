@@ -38,10 +38,15 @@ while IFS= read -r file; do
   # read the staged content; fail loud if git cannot read the staged blob
   # (2>&1 captures git's error into the var so the halt message can surface it)
   if ! content=$(git show ":$file" 2>&1); then
-    {
+    # .note = echo to each stream, not `| tee /dev/stderr`: a socket stderr (a node
+    #         spawn) refuses the open, and under `set -e` the failed tee would exit
+    #         before the intended exit code
+    refusal=$(
       printf '💥 MalfunctionError: could not read staged content for %s\n' "$file"
       printf '   └─ %s\n' "$content"
-    } | tee /dev/stderr
+    )
+    printf '%s\n' "$refusal"
+    printf '%s\n' "$refusal" >&2
     exit 1
   fi
 
@@ -50,10 +55,18 @@ while IFS= read -r file; do
   # and falls through; a line that also holds a real stamp still matches (the stamp wins)
   match=$(printf '%s\n' "$content" | sed -E "s/$DURATION_PATTERN//g" | grep -nIE "$TIMESTAMP_PATTERN" | head -n 1)
   if [ -n "$match" ]; then
-    {
-      printf '✋ ConstraintError: timestamps are forbidden in snapshots. mask them to prevent permadrift\n'
+    # the remedy is a next move, so it renders as a coconut (rule.require.coconut-hints);
+    # the block rides both streams via two echoes (see the malfunction note above)
+    refusal=$(
+      printf '✋ ConstraintError: timestamps are forbidden in staged files\n'
       printf '   └─ %s:%s\n' "$file" "$match"
-    } | tee /dev/stderr
+      printf '\n'
+      printf '🥥 did you know?\n'
+      printf '   ├─ a timestamp permadrifts; mask it in the test (e.g. asTimeReplaced), then resnap\n'
+      printf '   └─ rhx git.repo.test --what unit --mode apply --resnap\n'
+    )
+    printf '%s\n' "$refusal"
+    printf '%s\n' "$refusal" >&2
     exit 2
   fi
 done <<EOF

@@ -16,8 +16,11 @@ exports[`git.release given: [case1] release to main (plan mode) when: [t1] featu
 "🐢 crickets...
 
 🫧 no open branch pr
-   ├─ turtle/feature-x
-   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
+   └─ turtle/feature-x
+
+🥥 did you know?
+   ├─ push the branch; the push findserts its pr
+   └─ rhx git.commit.push --mode apply
 "
 `;
 
@@ -94,7 +97,8 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t3] auto
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   └─ 🌴 automerge enabled [added] -> and merged already
+   ├─ 🌴 automerge enabled [added]
+   └─ 🌴 already merged
 
 [dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
@@ -109,11 +113,13 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t4] auto
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   └─ 💥 MalfunctionError: could not arm the merge of pr #42; gh printed the cause on stderr
 "
 `;
 
 exports[`git.release given: [case2] release to main (apply mode) when: [t4] automerge fails with actual error then: failloud: gh error goes to stderr, exits 1 2`] = `
 "GraphQL: Could not enable auto-merge: not authorized
+   └─ 💥 MalfunctionError: could not arm the merge of pr #42; gh printed the cause on stderr
 "
 `;
 
@@ -174,8 +180,11 @@ exports[`git.release given: [case3b] release to prod from feat (plan mode) when:
 "🐢 crickets...
 
 🫧 no open branch pr
-   ├─ turtle/feature-x
-   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
+   └─ turtle/feature-x
+
+🥥 did you know?
+   ├─ push the branch; the push findserts its pr
+   └─ rhx git.commit.push --mode apply
 "
 `;
 
@@ -195,7 +204,7 @@ exports[`git.release given: [case3b] release to prod from feat (plan mode) when:
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 
-🐚 git.release.uses
+🐚 release stamp
    └─ apply would refuse: .agent/keyrack.yml not found; no release grant on this tree
 
 🥥 did you know?
@@ -224,7 +233,7 @@ exports[`git.release given: [case3b] release to prod from feat (plan mode) when:
 🌊 release: v1.33.0
    └─ 👌 all checks passed
 
-🐚 git.release.uses
+🐚 release stamp
    └─ apply would refuse: .agent/keyrack.yml not found; no release grant on this tree
 
 🥥 did you know?
@@ -309,7 +318,8 @@ exports[`git.release given: [case4a] release to prod from main (apply mode) when
 
 🌊 release: chore(release): v1.32.0 🎉
    ├─ 🐢 1 check(s) in progress
-   └─ 🌴 automerge enabled [added] -> and merged already
+   ├─ 🌴 automerge enabled [added]
+   └─ 🌴 already merged
 
 🫧 and then...
 
@@ -377,8 +387,11 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 "🐢 crickets...
 
 🫧 no open branch pr
-   ├─ turtle/feature-x
-   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
+   └─ turtle/feature-x
+
+🥥 did you know?
+   ├─ push the branch; the push findserts its pr
+   └─ rhx git.commit.push --mode apply
 "
 `;
 
@@ -412,7 +425,7 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 "
 `;
 
-exports[`git.release given: [case4b] release to prod from feat (apply mode) when: [t2] release PR merges immediately after feature PR (no automerge was set on release) then: shows feature PR watch then release PR -> and merged already 1`] = `
+exports[`git.release given: [case4b] release to prod from feat (apply mode) when: [t2] release PR merges immediately after feature PR (no automerge was set on release) then: shows feature PR watch, then the release PR reads already merged 1`] = `
 "🐢 cowabunga!
 
 🐚 git.release --into prod --mode apply --watch
@@ -427,7 +440,8 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 
 🌊 release: chore(release): v1.32.0
    ├─ 👌 all checks passed
-   └─ 🌴 automerge enabled [added] -> and merged already
+   ├─ 🌴 automerge enabled [added]
+   └─ 🌴 already merged
 
 🫧 and then...
 
@@ -567,6 +581,7 @@ exports[`git.release given: [case6] boundary conditions when: [t0] keyrack locke
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   └─ 💥 MalfunctionError: could not arm the merge of pr #42; gh printed the cause on stderr
 "
 `;
 

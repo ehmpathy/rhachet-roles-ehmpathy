@@ -398,10 +398,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      UNKNOWN_OPT_ERR="✋ ConstraintError: unknown option: $1
-usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push]"
-      echo "$UNKNOWN_OPT_ERR"
-      echo "$UNKNOWN_OPT_ERR" >&2
+      emit_usage_refusal --skill git.commit.set --message "unknown option: $1"
       exit 2
       ;;
     *)
@@ -614,11 +611,8 @@ if [[ "$BEHAVIORAL_COMMITS" == "ON_BASE" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
     print_tree_constraint "cannot commit to base branch"
-    echo ""
-    echo "   you are on main - create a feature branch first"
-    echo ""
-    echo "   example:"
-    echo "     git checkout -b feat/my-feature"
+    print_coconut_hint "a commit lands on a feature branch; create a feature branch first" \
+      "git checkout -b feat/my-feature"
   )"
   exit 2
 fi
@@ -723,7 +717,8 @@ if ! check_global_blocker; then
     #    clears a blocker a human set; it is not what clears a damaged file,
     #    and both at once reads as a menu where the reader must pick.
     if [[ "$GLOBAL_BLOCK_CORRUPT" != "true" ]]; then
-      print_instruction "ask your human to lift:" "  \$ git.commit.uses allow --global"
+      print_coconut_hint "a human set the global blocker; ask them to lift it" \
+        "git.commit.uses allow --global"
     fi
     print_global_corrupt_note
   )"
@@ -749,7 +744,7 @@ if ! check_org_blocker; then
     # ⚠️ exclusive, as above: `allow --org` writes a key into a file, which is
     #    no remedy for a file that cannot be parsed to write into.
     if [[ "$ORG_BLOCK_CORRUPT" != "true" ]]; then
-      print_instruction "ask your human to allow:" "  \$ git.commit.uses allow --org <org>"
+      print_org_blocked_hint
     fi
     print_org_corrupt_note
   )"
@@ -961,7 +956,15 @@ refuse_commit_for_absent_sponsor() {
   # the render below reads the reader's globals — fail named, never raw
   assert_git_identity_read
 
-  local lead="ask your human to run, in this tree:"
+  # one coconut: the git config fixes (where a half is at fault) lead, then
+  # the two bind forms close the block
+  local affordance="ask your human to bind a sponsor, in this tree"
+  local commands=()
+  if (( ${#GIT_IDENTITY_FAULTS[@]} > 0 )); then
+    affordance="ask your human to fix git config, so commits name them; or to bind a sponsor, in this tree"
+    mapfile -t commands < <(as_git_config_fix_commands "${GIT_IDENTITY_FAULTS[@]}")
+  fi
+  commands+=("$SPONSOR_BIND_VIA_STDIN" "$SPONSOR_BIND_VIA_LITERAL")
 
   emit_both "$(
     print_turtle_header "bummer dude..."
@@ -972,12 +975,7 @@ refuse_commit_for_absent_sponsor() {
     echo ""
     echo "   ⛔ you cannot fix this yourself. a sponsor is bound by a human,"
     echo "      at a terminal."
-    if (( ${#GIT_IDENTITY_FAULTS[@]} > 0 )); then
-      print_instruction "ask your human to fix git config — then commits name them:" \
-        "$(as_git_config_fix_lines "${GIT_IDENTITY_FAULTS[@]}")"
-      lead="or to bind a sponsor, in this tree:"
-    fi
-    print_instruction "$lead" "$SPONSOR_BIND_REMEDY"
+    print_coconut_hint "$affordance" "${commands[@]}"
   )"
   exit 2  # blocked by constraints
 }
@@ -1036,13 +1034,13 @@ if [[ "$AUTH" == "as-ehmpath" && "${NODE_ENV:-}" != "test" ]]; then
   fetch_robot_token
   ROBOT_TOKEN_FETCHED=true
   if [[ -z "$ROBOT_TOKEN" && -n "$TOKEN_FETCH_ERR" ]]; then
-    echo "🐢 heads up: the ehmpath keyrack token wasnt fetched; the commit will" >&2
+    echo "🐢 heads up: the ehmpath keyrack token wasn't fetched; the commit will" >&2
     echo "   author as the default seaturtle. cause: $TOKEN_FETCH_ERR" >&2
   fi
 
   # failfast: an app token must map to the bot identity we hardcode for it,
   # else the squash-merge could silently show a 3rd contributor
-  assert_token_identity_in_sync "$ROBOT_TOKEN" || exit 2
+  assert_token_identity_in_sync "$ROBOT_TOKEN" skill=git.commit.set || exit 2
 fi
 IFS=$'\t' read -r ROBOT_NAME ROBOT_EMAIL < <(get_one_seaturtle_identity "$ROBOT_TOKEN")
 
@@ -1213,21 +1211,18 @@ if ! git commit \
   > /dev/null 2>"$COMMIT_STDERR_FILE"; then
   # commit failure rides BOTH streams (stdout for a terminal viewer, stderr for
   # log aggregation) — a failure is never stdout-only, and every other failure
-  # path in this file dual-streams (rule.require.skill-output-streams). build the
-  # framed error once (header + tree + the raw git cause), then emit to each
-  # stream via a portable dual-echo (not `tee /dev/stderr`, absent in some
-  # spawned shells).
-  COMMIT_ERR=$(print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.set"
-    print_tree_malfunction "git commit failed"
-    echo ""
-    # label the raw git output `cause:` so it reads as the root error, not part of
-    # the structured guide — consistent with the keyrack/gh failure guides that
-    # prefix their raw diagnostics the same way (rule.forbid.snapshot-visual-blemishes)
-    echo "cause: $(cat "$COMMIT_STDERR_FILE")")
+  # path in this file dual-streams (rule.require.skill-output-streams). the raw
+  # git output hangs under a `git.output` branch, the same sub.bucket the rebase
+  # family and git.commit.push render (rule.forbid.snapshot-visual-blemishes)
+  COMMIT_GIT_OUTPUT="$(cat "$COMMIT_STDERR_FILE")"
   rm -f "$COMMIT_STDERR_FILE"
-  echo "$COMMIT_ERR"
-  echo "$COMMIT_ERR" >&2
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.commit.set"
+    echo "   ├─ 💥 MalfunctionError: git commit failed"
+    echo "   └─ git.output"
+    print_git_output_tree "$COMMIT_GIT_OUTPUT"
+  )"
   exit 1
 fi
 rm -f "$COMMIT_STDERR_FILE"
@@ -1377,7 +1372,7 @@ SET_OUTPUT=$(
   # remind to watch CI after push
   if is_push_shipped "$DO_PUSH" "$PUSH_RESULT_STATUS"; then
     echo ""
-    echo "🌊 now lets ride the release wave and catch any wipeouts"
+    echo "🌊 now let's ride the release wave and catch any wipeouts"
     echo "   └─ rhx git.release --watch || rhx show.gh.test.errors"
   fi
 )
