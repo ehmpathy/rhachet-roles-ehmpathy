@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { given, then, when } from 'test-fns';
 
 import { genGhMockExecutable } from './.test/infra/mockGh';
@@ -356,6 +358,53 @@ describe('emit_transport_status', () => {
         expect(result.status).toBe(0);
 
         env.cleanup();
+      });
+    });
+  });
+
+  // ============================================================================
+  // case-arm-site: one arm site carries the spend
+  // ============================================================================
+  given("[case-arm-site] the skill's shell sources", () => {
+    // .why = this suite stubs the spend to isolate the render, so it cannot see an arm that
+    //        skips it. the rule it would miss: enable_automerge (the call that ships) runs
+    //        only inside arm_release_merge, which spends first and refunds a failed arm
+    when('[t0] every call of enable_automerge is read', () => {
+      then('each one sits inside arm_release_merge, after the spend', () => {
+        const operationsPath = path.join(
+          __dirname,
+          'git.release.operations.sh',
+        );
+        const callSites = fs
+          .readdirSync(__dirname)
+          .filter((file) => file.endsWith('.sh'))
+          .flatMap((file) =>
+            fs
+              .readFileSync(path.join(__dirname, file), 'utf-8')
+              .split('\n')
+              .filter((line) => /\benable_automerge\b/.test(line))
+              .filter((line) => !/^\s*#/.test(line))
+              .filter((line) => !/enable_automerge\(\)/.test(line))
+              .map((line) => ({ file, line: line.trim() })),
+          );
+        expect(callSites).toEqual([
+          {
+            file: 'git.release.operations.sh',
+            line: 'if enable_automerge "$pr_number"; then',
+          },
+        ]);
+
+        const armBody =
+          fs
+            .readFileSync(operationsPath, 'utf-8')
+            .split('arm_release_merge() {')[1]
+            ?.split('\n}\n')[0] ?? '';
+        expect(armBody.indexOf('spend_release_use_before_arm')).toBeGreaterThan(
+          -1,
+        );
+        expect(armBody.indexOf('spend_release_use_before_arm')).toBeLessThan(
+          armBody.indexOf('enable_automerge "$pr_number"'),
+        );
       });
     });
   });

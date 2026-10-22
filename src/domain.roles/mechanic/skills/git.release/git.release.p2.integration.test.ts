@@ -1,5 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import { MalfunctionError } from 'helpful-errors';
 import * as path from 'path';
 import { genTempDir, given, then, when } from 'test-fns';
 
@@ -9,7 +10,9 @@ import {
   asSkillExitStatus,
   SKILL_SPAWN_TIMEOUT_MS,
 } from './.test/infra/asSkillExitStatus';
+import { setGitReleaseUsesOrgAllowed } from './.test/infra/mockGh';
 import { genGitMockExecutable } from './.test/infra/mockGit';
+import { setGitBranchPushed } from './.test/infra/setGitBranchPushed';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
@@ -638,12 +641,16 @@ exit 1
     spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
   }
 
+  // model a pushed branch: origin/<branch> at HEAD
+  setGitBranchPushed({ tempDir });
+
   // setup git.commit.uses permission for apply mode
   const meterDir = path.join(tempDir, '.meter');
+  setGitReleaseUsesOrgAllowed({ tempDir });
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
-    path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+    path.join(meterDir, 'git.release.uses.jsonc'),
+    JSON.stringify({ uses: 'infinite' }),
   );
 
   return {
@@ -704,6 +711,7 @@ describe('git.release.p2', () => {
             expect(result.stdout).toContain('crickets');
             expect(result.stdout).toContain('no open branch pr');
             expect(result.stdout).toContain('git.commit.push');
+            expect(result.stderr).toContain('no open branch pr');
             expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
           } finally {
@@ -726,8 +734,38 @@ describe('git.release.p2', () => {
             expect(result.stdout).toContain('crickets');
             expect(result.stdout).toContain('no open branch pr');
             expect(result.stdout).toContain('git.commit.push');
+            expect(result.stderr).toContain('crickets');
+            expect(result.stderr).toContain('no open branch pr');
             expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
+          } finally {
+            cleanup();
+          }
+        });
+      });
+
+      when('[t2] apply mode on a one-use release grant', () => {
+        then('exit 2, and the refusal spends no release use', () => {
+          const { tempDir, fakeBinDir, cleanup } = setupScene({
+            scene,
+            slug: 'feat-unfound-apply-onequota',
+          });
+          try {
+            const releaseMeterFile = path.join(
+              tempDir,
+              '.meter',
+              'git.release.uses.jsonc',
+            );
+            fs.writeFileSync(releaseMeterFile, JSON.stringify({ uses: 1 }));
+            const result = runSkill(['--mode', 'apply'], {
+              tempDir,
+              fakeBinDir,
+            });
+            expect(result.status).toEqual(2);
+            expect(result.stdout).toContain('no open branch pr');
+            expect(
+              JSON.parse(fs.readFileSync(releaseMeterFile, 'utf-8')),
+            ).toEqual({ uses: 1 });
           } finally {
             cleanup();
           }
@@ -2116,68 +2154,904 @@ describe('git.release.p2', () => {
   // ============================================================================
 
   describe('permission requirements', () => {
-    given('[case-perm-no-local] apply mode without local permission', () => {
-      const scene: Scene = { branch: 'feat', featPr: 'passed:wout-automerge' };
+    // the dirs the release meter reads under HOME (runSkill sets HOME=tempDir)
+    const asGlobalMeterDir = (tempDir: string): string =>
+      path.join(tempDir, '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter');
 
-      when('[t0] apply without .meter/git.commit.uses.jsonc', () => {
-        then('exit 2: hint permission', () => {
-          // use setupScene for proper git config, then remove permission file
-          const { tempDir, fakeBinDir, cleanup } = setupScene({
-            scene,
-            slug: 'perm-no-local',
-          });
+    given(
+      '[case-perm-no-local] apply mode without a local release grant',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'passed:wout-automerge',
+        };
 
-          // remove the permission file that setupScene creates
-          const meterFile = path.join(tempDir, '.meter/git.commit.uses.jsonc');
-          fs.rmSync(meterFile, { force: true });
-
-          try {
-            const result = runSkill(['--mode', 'apply'], {
-              tempDir,
-              fakeBinDir,
+        when('[t0] apply without .meter/git.release.uses.jsonc', () => {
+          then('exit 2: hint the release stamp', () => {
+            // use setupScene for proper git config, then remove the release grant
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-no-local',
             });
-            expect(result.stdout).toContain('git.commit.uses');
-            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
-            expect(result.status).toEqual(2);
-          } finally {
-            cleanup();
-          }
+            fs.rmSync(path.join(tempDir, '.meter/git.release.uses.jsonc'), {
+              force: true,
+            });
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.stdout).toContain('no release grant on this tree');
+              expect(result.stdout).toContain('git.release.uses set --quant 1');
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+              expect(result.status).toEqual(2);
+            } finally {
+              cleanup();
+            }
+          });
         });
-      });
-    });
+      },
+    );
 
-    given('[case-perm-global-blocked] apply mode with global blocker', () => {
-      const scene: Scene = { branch: 'feat', featPr: 'passed:wout-automerge' };
+    given(
+      '[case-perm-commit-only] a commit grant with no release grant',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'passed:wout-automerge',
+        };
 
-      when('[t0] apply with global blocker set', () => {
-        then('exit 2: hint global blocker', () => {
-          // use setupScene for proper git config
+        when('[t0] apply with an unlimited commit grant alone', () => {
+          then('exit 2: a commit grant never ships', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-commit-only',
+            });
+            fs.rmSync(path.join(tempDir, '.meter/git.release.uses.jsonc'), {
+              force: true,
+            });
+            fs.writeFileSync(
+              path.join(tempDir, '.meter/git.commit.uses.jsonc'),
+              JSON.stringify({
+                uses: 'infinite',
+                push: 'allow',
+                stage: 'allow',
+              }),
+            );
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.stdout).toContain('no release grant on this tree');
+              expect(result.status).toEqual(2);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+
+        when('[t1] apply with no pr and no release grant', () => {
+          then('exit 2: the stamp refusal comes first, not "no pr"', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene: { branch: 'feat', featPr: 'unfound' },
+              slug: 'perm-commit-only-no-pr',
+            });
+            fs.rmSync(path.join(tempDir, '.meter/git.release.uses.jsonc'), {
+              force: true,
+            });
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              // one trip: the crew learns of the absent stamp before it pushes
+              expect(result.stdout).toContain('no release grant on this tree');
+              expect(result.stdout).not.toContain('crickets');
+              expect(result.status).toEqual(2);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+      },
+    );
+
+    given(
+      '[case-perm-release-only] a release grant with no commit grant',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'passed:wout-automerge',
+        };
+
+        when('[t0] apply with a release grant of 1 and no commit meter', () => {
+          then('exit 0: the release proceeds and spends its one use', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-release-only',
+            });
+            fs.rmSync(path.join(tempDir, '.meter/git.commit.uses.jsonc'), {
+              force: true,
+            });
+            fs.writeFileSync(
+              path.join(tempDir, '.meter/git.release.uses.jsonc'),
+              JSON.stringify({ uses: 1 }),
+            );
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.status).toEqual(0);
+              // .note = a ship leaves the spend's nonce beside uses; only a failed arm reads it
+              expect(
+                JSON.parse(
+                  fs.readFileSync(
+                    path.join(tempDir, '.meter/git.release.uses.jsonc'),
+                    'utf-8',
+                  ),
+                ).uses,
+              ).toEqual(0);
+
+              // the spend is announced at exit, whatever the watch's verdict
+              expect(result.stdout).toContain('release stamp spent');
+              expect(result.stdout).toContain('release stamp spent: 0 left');
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+            } finally {
+              cleanup();
+            }
+          });
+        });
+
+        when(
+          '[t1] apply on a pr behind main, with a release grant of 1',
+          () => {
+            then('exit 2: the rebase refusal spends no release use', () => {
+              const { tempDir, fakeBinDir, cleanup } = setupScene({
+                scene: { branch: 'feat', featPr: 'rebase:behind' },
+                slug: 'perm-release-only-behind',
+              });
+              fs.rmSync(path.join(tempDir, '.meter/git.commit.uses.jsonc'), {
+                force: true,
+              });
+              fs.writeFileSync(
+                path.join(tempDir, '.meter/git.release.uses.jsonc'),
+                JSON.stringify({ uses: 1 }),
+              );
+
+              try {
+                const result = runSkill(['--mode', 'apply'], {
+                  tempDir,
+                  fakeBinDir,
+                });
+                expect(result.status).toEqual(2);
+                expect(
+                  JSON.parse(
+                    fs.readFileSync(
+                      path.join(tempDir, '.meter/git.release.uses.jsonc'),
+                      'utf-8',
+                    ),
+                  ),
+                ).toEqual({ uses: 1 });
+                expect(result.stdout).not.toContain('release stamp spent');
+              } finally {
+                cleanup();
+              }
+            });
+          },
+        );
+
+        when('[t2] the arm itself fails (gh pr merge errors)', () => {
+          then('exit non-zero, and the failed arm refunds its use', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-release-only-arm-fails',
+            });
+            fs.rmSync(path.join(tempDir, '.meter/git.commit.uses.jsonc'), {
+              force: true,
+            });
+            fs.writeFileSync(
+              path.join(tempDir, '.meter/git.release.uses.jsonc'),
+              JSON.stringify({ uses: 1 }),
+            );
+
+            // .mock = shim over the scene's gh mock: `pr merge` fails as a
+            //         real token or mergeability error would; all else defers
+            fs.renameSync(
+              path.join(fakeBinDir, 'gh'),
+              path.join(fakeBinDir, 'gh.scene'),
+            );
+            fs.writeFileSync(
+              path.join(fakeBinDir, 'gh'),
+              `#!/bin/bash
+if [[ "$1" == "pr" && "$2" == "merge" ]]; then
+  echo "GraphQL: Resource not accessible by integration (mergePullRequest)" >&2
+  exit 1
+fi
+exec "$(dirname "$0")/gh.scene" "$@"
+`,
+            );
+            fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.status).not.toEqual(0);
+              expect(
+                JSON.parse(
+                  fs.readFileSync(
+                    path.join(tempDir, '.meter/git.release.uses.jsonc'),
+                    'utf-8',
+                  ),
+                ),
+              ).toEqual({ uses: 1 });
+              expect(result.stdout).not.toContain('release stamp spent');
+            } finally {
+              cleanup();
+            }
+          });
+        });
+
+        when(
+          '[t3] a human revokes the stamp mid-apply, then the arm fails',
+          () => {
+            then('the revoke stands: the failed arm refunds naught', () => {
+              // .note = the clamp for r11 i007 blocker.1, second hazard: a blind
+              //         read-then-increment refund undid a mid-apply revoke
+              const { tempDir, fakeBinDir, cleanup } = setupScene({
+                scene,
+                slug: 'perm-release-only-revoke-mid-apply',
+              });
+              fs.rmSync(path.join(tempDir, '.meter/git.commit.uses.jsonc'), {
+                force: true,
+              });
+              const stampPath = path.join(
+                tempDir,
+                '.meter/git.release.uses.jsonc',
+              );
+              fs.writeFileSync(stampPath, JSON.stringify({ uses: 1 }));
+
+              // .mock = shim over the scene's gh mock: at `pr merge`, a human
+              //         `git.release.uses block` lands (it writes { uses: 0 }),
+              //         then the merge fails; all else defers
+              fs.renameSync(
+                path.join(fakeBinDir, 'gh'),
+                path.join(fakeBinDir, 'gh.scene'),
+              );
+              fs.writeFileSync(
+                path.join(fakeBinDir, 'gh'),
+                `#!/bin/bash
+if [[ "$1" == "pr" && "$2" == "merge" ]]; then
+  printf '{\\n  "uses": 0\\n}\\n' > '${stampPath}'
+  echo "GraphQL: Resource not accessible by integration (mergePullRequest)" >&2
+  exit 1
+fi
+exec "$(dirname "$0")/gh.scene" "$@"
+`,
+              );
+              fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+              try {
+                const result = runSkill(['--mode', 'apply'], {
+                  tempDir,
+                  fakeBinDir,
+                });
+                expect(result.status).not.toEqual(0);
+                expect(JSON.parse(fs.readFileSync(stampPath, 'utf-8'))).toEqual(
+                  { uses: 0 },
+                );
+                expect(result.stdout).toContain('a human changed it');
+              } finally {
+                cleanup();
+              }
+            });
+          },
+        );
+
+        when(
+          '[t4] the stamp turns damaged mid-apply, then the arm fails',
+          () => {
+            then(
+              'the refund fails loud as a malfunction, never as a human change',
+              () => {
+                // .note = the clamp for r11 i008 blocker.1: an unreadable stamp read as "changed"
+                const { tempDir, fakeBinDir, cleanup } = setupScene({
+                  scene,
+                  slug: 'perm-release-only-damaged-mid-apply',
+                });
+                fs.rmSync(path.join(tempDir, '.meter/git.commit.uses.jsonc'), {
+                  force: true,
+                });
+                const stampPath = path.join(
+                  tempDir,
+                  '.meter/git.release.uses.jsonc',
+                );
+                fs.writeFileSync(stampPath, JSON.stringify({ uses: 1 }));
+
+                // .mock = shim over the scene's gh mock: at `pr merge`, the stamp
+                //         turns unreadable, then the merge fails; all else defers
+                fs.renameSync(
+                  path.join(fakeBinDir, 'gh'),
+                  path.join(fakeBinDir, 'gh.scene'),
+                );
+                fs.writeFileSync(
+                  path.join(fakeBinDir, 'gh'),
+                  `#!/bin/bash
+if [[ "$1" == "pr" && "$2" == "merge" ]]; then
+  printf '{ not json' > '${stampPath}'
+  echo "GraphQL: Resource not accessible by integration (mergePullRequest)" >&2
+  exit 1
+fi
+exec "$(dirname "$0")/gh.scene" "$@"
+`,
+                );
+                fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+                try {
+                  const result = runSkill(['--mode', 'apply'], {
+                    tempDir,
+                    fakeBinDir,
+                  });
+                  expect(result.status).not.toEqual(0);
+                  expect(result.stdout).toContain(
+                    '💥 MalfunctionError: could not refund the release use',
+                  );
+                  expect(result.stderr).toContain(
+                    '💥 MalfunctionError: could not refund the release use',
+                  );
+                  expect(result.stdout).not.toContain('a human changed it');
+                } finally {
+                  cleanup();
+                }
+              },
+            );
+          },
+        );
+      },
+    );
+
+    given(
+      '[case-perm-unpushed] the branch holds commits its pr lacks (F14)',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'passed:wout-automerge',
+        };
+
+        /**
+         * .what = pin origin/<branch> at HEAD, then add `ahead` local commits
+         * .why  = the pr holds only what reached origin; the gap is the hazard
+         */
+        const setOriginBehindBy = (input: {
+          tempDir: string;
+          ahead: number;
+        }): void => {
+          // pin origin at HEAD; the leaf throws on a failed update-ref
+          setGitBranchPushed({ tempDir: input.tempDir });
+
+          // add the local-only commits; a failed commit fails the fixture, never the skill
+          Array.from({ length: input.ahead }).forEach((_, index) => {
+            const commit = spawnSync(
+              'git',
+              ['commit', '--allow-empty', '-m', `local only ${index}`],
+              { cwd: input.tempDir, encoding: 'utf-8' },
+            );
+            if (commit.status !== 0)
+              throw new MalfunctionError('fixture commit failed', {
+                index,
+                stderr: commit.stderr,
+              });
+          });
+        };
+
+        when('[t0] apply with two commits not yet pushed', () => {
+          then('exit 2: names the count and the push, spends no use', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-unpushed',
+            });
+            fs.writeFileSync(
+              path.join(tempDir, '.meter/git.release.uses.jsonc'),
+              JSON.stringify({ uses: 1 }),
+            );
+            setOriginBehindBy({ tempDir, ahead: 2 });
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.stdout).toContain('2 unpushed commit(s)');
+              expect(result.stdout).toContain(
+                'rhx git.commit.push --mode apply',
+              );
+              // a release-only crew learns the push needs a commit grant
+              expect(result.stdout).toContain('git.commit.uses set --quant N');
+              expect(result.stderr).toContain('2 unpushed commit(s)');
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+              expect(result.status).toEqual(2);
+              expect(
+                JSON.parse(
+                  fs.readFileSync(
+                    path.join(tempDir, '.meter/git.release.uses.jsonc'),
+                    'utf-8',
+                  ),
+                ),
+              ).toEqual({ uses: 1 });
+            } finally {
+              cleanup();
+            }
+          });
+        });
+
+        when('[t1] 🟢 CONTROL — apply with origin level with HEAD', () => {
+          then('exit 0: a fully pushed branch ships', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-pushed',
+            });
+            setOriginBehindBy({ tempDir, ahead: 0 });
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.stdout).not.toContain('unpushed');
+              expect(result.status).toEqual(0);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+
+        when('[t2] apply with no origin/<branch> ref to count against', () => {
+          then('exit 1: a count it cannot read never passes as zero', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-unpushed-unreadable',
+            });
+            fs.writeFileSync(
+              path.join(tempDir, '.meter/git.release.uses.jsonc'),
+              JSON.stringify({ uses: 1 }),
+            );
+            spawnSync(
+              'git',
+              ['update-ref', '-d', 'refs/remotes/origin/turtle/feature-x'],
+              { cwd: tempDir },
+            );
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.stdout).toContain(
+                'MalfunctionError: could not count unpushed commits on turtle/feature-x',
+              );
+              expect(result.stdout).toContain(
+                'git fetch origin turtle/feature-x',
+              );
+              expect(result.stderr).toContain(
+                'MalfunctionError: could not count unpushed commits',
+              );
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+              expect(result.status).toEqual(1);
+              expect(
+                JSON.parse(
+                  fs.readFileSync(
+                    path.join(tempDir, '.meter/git.release.uses.jsonc'),
+                    'utf-8',
+                  ),
+                ),
+              ).toEqual({ uses: 1 });
+            } finally {
+              cleanup();
+            }
+          });
+        });
+
+        when(
+          '[t3] apply after the merged branch was deleted on origin and pruned here',
+          () => {
+            then(
+              'exit 0: origin answers the branch is gone, so the guard has naught to protect',
+              () => {
+                const { tempDir, fakeBinDir, cleanup } = setupScene({
+                  scene,
+                  slug: 'perm-unpushed-deleted',
+                });
+                fs.writeFileSync(
+                  path.join(tempDir, '.meter/git.release.uses.jsonc'),
+                  JSON.stringify({ uses: 1 }),
+                );
+
+                // origin = a real bare repo that holds no such branch; the local ref is pruned
+                const originDir = genTempDir({
+                  slug: 'perm-unpushed-deleted-origin',
+                  git: false,
+                });
+                const init = spawnSync('git', ['init', '--bare', originDir], {
+                  encoding: 'utf-8',
+                });
+                if (init.status !== 0)
+                  throw new MalfunctionError('fixture bare init failed', {
+                    stderr: init.stderr,
+                  });
+                spawnSync('git', ['remote', 'remove', 'origin'], {
+                  cwd: tempDir,
+                });
+                const add = spawnSync(
+                  'git',
+                  ['remote', 'add', 'origin', originDir],
+                  { cwd: tempDir, encoding: 'utf-8' },
+                );
+                if (add.status !== 0)
+                  throw new MalfunctionError('fixture remote add failed', {
+                    stderr: add.stderr,
+                  });
+                spawnSync(
+                  'git',
+                  ['update-ref', '-d', 'refs/remotes/origin/turtle/feature-x'],
+                  { cwd: tempDir },
+                );
+
+                try {
+                  const result = runSkill(['--mode', 'apply'], {
+                    tempDir,
+                    fakeBinDir,
+                  });
+                  expect(result.stdout).not.toContain('MalfunctionError');
+                  expect(result.stdout).not.toContain('unpushed');
+                  expect(result.status).toEqual(0);
+                } finally {
+                  cleanup();
+                }
+              },
+            );
+          },
+        );
+      },
+    );
+
+    given(
+      '[case-perm-global-blocked] apply mode with the global release blocker',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'passed:wout-automerge',
+        };
+
+        when('[t0] apply with the release blocker set', () => {
+          then('exit 2: hint the global release blocker', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-global-blocked',
+            });
+            fs.mkdirSync(asGlobalMeterDir(tempDir), { recursive: true });
+            fs.writeFileSync(
+              path.join(asGlobalMeterDir(tempDir), 'git.release.uses.jsonc'),
+              JSON.stringify({ blocked: true }),
+            );
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.stdout).toContain('releases blocked globally');
+              expect(result.stdout).toContain(
+                'git.release.uses allow --global',
+              );
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+              expect(result.status).toEqual(2);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+
+        when(
+          '[t1] apply with the global blocker AND no stamp on this tree',
+          () => {
+            then(
+              'exit 2: one refusal names both levels and both remedies',
+              () => {
+                const { tempDir, fakeBinDir, cleanup } = setupScene({
+                  scene,
+                  slug: 'perm-global-and-local-blocked',
+                });
+                fs.mkdirSync(asGlobalMeterDir(tempDir), { recursive: true });
+                fs.writeFileSync(
+                  path.join(
+                    asGlobalMeterDir(tempDir),
+                    'git.release.uses.jsonc',
+                  ),
+                  JSON.stringify({ blocked: true }),
+                );
+                fs.rmSync(path.join(tempDir, '.meter/git.release.uses.jsonc'), {
+                  force: true,
+                });
+
+                try {
+                  const result = runSkill(['--mode', 'apply'], {
+                    tempDir,
+                    fakeBinDir,
+                  });
+                  expect(result.stdout).toContain(
+                    'releases blocked at 2 levels',
+                  );
+                  expect(result.stdout).toContain('releases blocked globally');
+                  expect(result.stdout).toContain(
+                    'no release grant on this tree',
+                  );
+                  expect(result.stdout).toContain(
+                    'git.release.uses allow --global',
+                  );
+                  expect(result.stdout).toContain(
+                    'git.release.uses set --quant 1',
+                  );
+                  expect(result.stderr).toContain(
+                    'releases blocked at 2 levels',
+                  );
+                  expect(
+                    asSnapshotReadyWithAnsi(result.stdout),
+                  ).toMatchSnapshot();
+                  expect(result.status).toEqual(2);
+                } finally {
+                  cleanup();
+                }
+              },
+            );
+          },
+        );
+      },
+    );
+
+    given(
+      '[case-perm-global-damaged] apply mode with a 0-byte global release blocker',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'passed:wout-automerge',
+        };
+
+        when('[t0] apply reads the damaged blocker', () => {
+          then('exit 1: fails closed and names the file', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-global-damaged',
+            });
+            fs.mkdirSync(asGlobalMeterDir(tempDir), { recursive: true });
+            fs.writeFileSync(
+              path.join(asGlobalMeterDir(tempDir), 'git.release.uses.jsonc'),
+              '',
+            );
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.stdout).toContain('💥 MalfunctionError');
+              expect(result.stdout).toContain('git.release.uses.jsonc');
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+              expect(result.status).toEqual(1);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+      },
+    );
+
+    given(
+      '[case-perm-commit-global-blocked] the global COMMIT blocker is set',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'passed:wout-automerge',
+        };
+
+        when('[t0] apply with a release grant', () => {
+          then('exit 0: a commit blocker never halts a release', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-commit-global-blocked',
+            });
+            fs.mkdirSync(asGlobalMeterDir(tempDir), { recursive: true });
+            fs.writeFileSync(
+              path.join(asGlobalMeterDir(tempDir), 'git.commit.uses.jsonc'),
+              JSON.stringify({ blocked: true }),
+            );
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.status).toEqual(0);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+      },
+    );
+
+    given(
+      '[case-perm-org-unset] the tree names an org with no release permission',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'passed:wout-automerge',
+        };
+
+        when('[t0] apply with a local release grant', () => {
+          then('exit 2: names the org grant to ask for', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-org-unset',
+            });
+            fs.rmSync(
+              path.join(
+                asGlobalMeterDir(tempDir),
+                'git.release.uses.org.jsonc',
+              ),
+              { force: true },
+            );
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.stdout).toContain('no org config for ehmpathy');
+              expect(result.stdout).toContain(
+                'git.release.uses allow --org ehmpathy',
+              );
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+              expect(result.status).toEqual(2);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+      },
+    );
+
+    given(
+      '[case-perm-org-damaged] the release org meter file is unparseable',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'passed:wout-automerge',
+        };
+
+        when('[t0] apply reads the damaged org file', () => {
+          then('exit 1: fails closed, names the file, spends no use', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-org-damaged',
+            });
+            fs.writeFileSync(
+              path.join(tempDir, '.meter/git.release.uses.jsonc'),
+              JSON.stringify({ uses: 1 }),
+            );
+            fs.writeFileSync(
+              path.join(
+                asGlobalMeterDir(tempDir),
+                'git.release.uses.org.jsonc',
+              ),
+              '{ broken',
+            );
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.stdout).toContain(
+                'MalfunctionError: org meter file corrupt',
+              );
+              expect(result.stdout).toContain('git.release.uses.org.jsonc');
+              expect(result.stdout).not.toContain('git.commit.uses.org.jsonc');
+              expect(result.stderr).toContain('org meter file corrupt');
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+              expect(result.status).toEqual(1);
+              expect(
+                JSON.parse(
+                  fs.readFileSync(
+                    path.join(tempDir, '.meter/git.release.uses.jsonc'),
+                    'utf-8',
+                  ),
+                ),
+              ).toEqual({ uses: 1 });
+            } finally {
+              cleanup();
+            }
+          });
+        });
+      },
+    );
+
+    given(
+      '[case-perm-org-unnamed] the tree has no keyrack.yml to name its org',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'passed:wout-automerge',
+        };
+
+        when('[t0] apply with a local release grant', () => {
+          then('exit 2: names the keyrack.yml fix, not an org grant', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-org-unnamed',
+            });
+            fs.rmSync(path.join(tempDir, '.agent/keyrack.yml'), {
+              force: true,
+            });
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.stdout).toContain('.agent/keyrack.yml');
+              expect(result.stdout).not.toContain('allow --org');
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+              expect(result.status).toEqual(2);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+      },
+    );
+
+    given('[case-perm-depleted] the release stamp is spent', () => {
+      const scene: Scene = {
+        branch: 'feat',
+        featPr: 'passed:wout-automerge',
+      };
+
+      when('[t0] apply with a local release grant of 0', () => {
+        then('exit 2: the stamp is spent, and the file stays at 0', () => {
           const { tempDir, fakeBinDir, cleanup } = setupScene({
             scene,
-            slug: 'perm-global-blocked',
+            slug: 'perm-depleted',
           });
-
-          // setup global blocker in the test's HOME directory (tempDir)
-          // runSkill sets HOME=tempDir, so the skill looks here
-          const globalDir = path.join(
-            tempDir,
-            '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter',
+          fs.writeFileSync(
+            path.join(tempDir, '.meter/git.release.uses.jsonc'),
+            JSON.stringify({ uses: 0 }),
           );
-          fs.mkdirSync(globalDir, { recursive: true });
-          const globalFile = path.join(
-            globalDir,
-            'git.commit.uses.global.jsonc',
-          );
-          fs.writeFileSync(globalFile, JSON.stringify({ blocked: true }));
 
           try {
             const result = runSkill(['--mode', 'apply'], {
               tempDir,
               fakeBinDir,
             });
-            expect(result.stdout).toContain('blocked globally');
+            expect(result.stdout).toContain('no release uses left');
+            expect(result.stdout).toContain('git.release.uses set --quant 1');
+            expect(result.stderr).toContain('no release uses left');
             expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
             expect(result.status).toEqual(2);
+            expect(
+              JSON.parse(
+                fs.readFileSync(
+                  path.join(tempDir, '.meter/git.release.uses.jsonc'),
+                  'utf-8',
+                ),
+              ),
+            ).toEqual({ uses: 0 });
           } finally {
             cleanup();
           }
@@ -2186,31 +3060,68 @@ describe('git.release.p2', () => {
     });
 
     given(
-      '[case-perm-plan-no-check] plan mode does not check permissions',
+      '[case-perm-local-damaged] the local release stamp is damaged',
       () => {
         const scene: Scene = {
           branch: 'feat',
           featPr: 'passed:wout-automerge',
         };
 
-        when('[t0] plan without .meter/git.commit.uses.jsonc', () => {
+        when('[t0] apply reads an unparseable local file', () => {
+          then('exit 1: fails closed and names the file', () => {
+            const { tempDir, fakeBinDir, cleanup } = setupScene({
+              scene,
+              slug: 'perm-local-damaged',
+            });
+            fs.writeFileSync(
+              path.join(tempDir, '.meter/git.release.uses.jsonc'),
+              '{ broken',
+            );
+
+            try {
+              const result = runSkill(['--mode', 'apply'], {
+                tempDir,
+                fakeBinDir,
+              });
+              expect(result.stdout).toContain('release quota file corrupt');
+              expect(result.stdout).toContain('.meter/git.release.uses.jsonc');
+              expect(result.stderr).toContain('release quota file corrupt');
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+              expect(result.status).toEqual(1);
+            } finally {
+              cleanup();
+            }
+          });
+        });
+      },
+    );
+
+    given(
+      '[case-perm-plan-no-check] plan mode previews permissions, never refuses',
+      () => {
+        const scene: Scene = {
+          branch: 'feat',
+          featPr: 'passed:wout-automerge',
+        };
+
+        when('[t0] plan without .meter/git.release.uses.jsonc', () => {
           then('exit 0: plan proceeds without permission check', () => {
-            // use setupScene for proper git config, then remove permission file
+            // use setupScene for proper git config, then remove the release grant
             const { tempDir, fakeBinDir, cleanup } = setupScene({
               scene,
               slug: 'perm-plan-no-check',
             });
-
-            // remove the permission file that setupScene creates
-            const meterFile = path.join(
-              tempDir,
-              '.meter/git.commit.uses.jsonc',
-            );
-            fs.rmSync(meterFile, { force: true });
+            fs.rmSync(path.join(tempDir, '.meter/git.release.uses.jsonc'), {
+              force: true,
+            });
 
             try {
               const result = runSkill([], { tempDir, fakeBinDir }); // plan mode (default)
               expect(result.stdout).toContain('passed');
+              // the plan never refuses, but names what apply would meet
+              expect(result.stdout).toContain(
+                'apply would refuse: no release grant on this tree',
+              );
               expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               expect(result.status).toEqual(0);
             } finally {
@@ -2457,6 +3368,7 @@ describe('git.release.p2', () => {
           fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'original');
           spawnSync('git', ['add', 'tracked.txt'], { cwd: tempDir });
           spawnSync('git', ['commit', '-m', 'add tracked'], { cwd: tempDir });
+          setGitBranchPushed({ tempDir }); // the commit reached origin
           fs.writeFileSync(path.join(tempDir, 'tracked.txt'), 'modified');
 
           try {

@@ -818,9 +818,14 @@ fail_tree_not_found() {
         echo "     (none)"
       fi
     fi
+    # 🔴 .why the hint names a `--tree` rerun, never `git -C <path> worktree list` =
+    #        the mechanic's own PreToolUse check-permissions hook blocks that raw git
+    #        call ("no paved path fits this part"), so the hint sent its reader into
+    #        a refusal. the list above already IS that command's output; the move
+    #        left is to rerun with one of its names (rule.require.errors-name-the-fix)
     print_coconut_hint \
-      "you can list the worktrees yourself" \
-      "git -C $repo_path worktree list"
+      "rerun with a name from the list above" \
+      "rhx git.repo.get $subcommand --in $repo_slug --tree <name>"
   )"
   exit 2
 }

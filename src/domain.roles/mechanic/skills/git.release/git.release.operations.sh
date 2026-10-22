@@ -401,6 +401,125 @@ get_pr_title() {
 }
 
 ######################################################################
+# the release meter gate, located beside this file
+######################################################################
+RELEASE_GATE_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/git.release._.guard_release_meter.sh"
+RELEASE_USE_SPENT="false"
+RELEASE_USES_LEFT=""
+RELEASE_SPEND_NONCE=""
+
+######################################################################
+# .what = spend one release use, once per apply
+# .why  = an --into prod apply arms two prs on one use; the second arm
+#         finds the use already spent and spends naught
+# .note = a refusal (blocked level, spent stamp, damaged file) exits the
+#         skill with the gate's code: no arm runs on a refused spend
+######################################################################
+spend_release_use_before_arm() {
+  if [[ "$RELEASE_USE_SPENT" == "true" ]]; then
+    return 0
+  fi
+  local spend_output spend_status=0
+  RELEASE_SPEND_NONCE="$$.$RANDOM$RANDOM.$(date +%s%N)"
+  spend_output=$(bash "$RELEASE_GATE_PATH" --mode spend --spent-nonce "$RELEASE_SPEND_NONCE") || spend_status=$?
+  if [[ "$spend_status" -ne 0 ]]; then
+    echo "$spend_output"
+    exit "$spend_status"
+  fi
+  RELEASE_USE_SPENT="true"
+  RELEASE_USES_LEFT="$spend_output"
+}
+
+######################################################################
+# .what = return the use a failed arm spent
+# .why  = a failed arm ships naught; to keep its use would cost the crew a
+#         second human grant for a merge that never happened
+# .note = compare-and-set: the refund writes uses+1 only while the stamp
+#         still bears the nonce this apply's spend wrote. a human write since
+#         the spend (set, block, del) dropped the nonce, so the human's value
+#         stands. no executable entry raises the stamp, so no caller can
+#         mint a use (r11 i007 blocker.1)
+# .note = a refund that cannot be written is said aloud on both streams;
+#         the stamp then stays spent, and the footer says so
+######################################################################
+refund_release_use() {
+  local stamp_name="git.release.uses.jsonc"
+  local stamp_file
+  stamp_file="$(git rev-parse --show-toplevel)/.meter/$stamp_name"
+
+  # an unlimited grant spent naught, so there is naught to refund
+  if [[ "$RELEASE_USES_LEFT" == "infinite" ]]; then
+    RELEASE_USE_SPENT="false"
+    return 0
+  fi
+
+  # a human `del` removed the stamp since the spend: the revoke stands
+  if [[ ! -e "$stamp_file" ]]; then
+    RELEASE_USE_SPENT="false"
+    RELEASE_USES_LEFT="0"
+    echo "   ├─ release stamp not refunded: it was removed since the spend; it stays removed"
+    return 0
+  fi
+
+  # read the stamp; a read that fails is a malfunction, never a human's change
+  local stamp_read
+  if ! stamp_read=$(jq -c --arg nonce "$RELEASE_SPEND_NONCE" \
+    '{ ours: ((.spent // "") == $nonce and $nonce != ""), uses: .uses }' "$stamp_file"); then
+    echo "💥 MalfunctionError: could not refund the release use; .meter/$stamp_name could not be read"
+    echo "💥 MalfunctionError: could not refund the release use; .meter/$stamp_name could not be read" >&2
+    return 1
+  fi
+
+  # the stamp no longer bears this spend's nonce: a human wrote it since; it stands
+  if [[ "$(jq -r '.ours' <<< "$stamp_read")" != "true" ]]; then
+    RELEASE_USE_SPENT="false"
+    RELEASE_USES_LEFT="$(jq -r '.uses' <<< "$stamp_read")"
+    echo "   ├─ release stamp not refunded: a human changed it since the spend; it stands as written"
+    return 0
+  fi
+
+  # write uses+1 via temp-then-mv in the same dir; the nonce is dropped
+  local uses_back=$(($(jq -r '.uses' <<< "$stamp_read") + 1))
+  local file_temp="${stamp_file}.tmp.$$"
+  if ! printf '{\n  "uses": %s\n}\n' "$uses_back" > "$file_temp" || ! mv -f "$file_temp" "$stamp_file"; then
+    rm -f "$file_temp"
+    echo "💥 MalfunctionError: could not refund the release use; .meter/$stamp_name was not written"
+    echo "💥 MalfunctionError: could not refund the release use; .meter/$stamp_name was not written" >&2
+    return 1
+  fi
+  RELEASE_USE_SPENT="false"
+  RELEASE_USES_LEFT="$uses_back"
+}
+
+######################################################################
+# .what = arm a pr's merge: spend the release use, enable automerge, and
+#         refund the use if the arm fails
+# .why  = the arm is the one act that ships. spend and arm live in one leaf,
+#         so no arm site can ship unbilled and no failed arm keeps a use
+# usage: arm_release_merge "42"
+# returns: 0 armed; 1 the arm failed (its use refunded where this arm spent it)
+######################################################################
+arm_release_merge() {
+  local pr_number="$1"
+
+  # spend first; an apply that already spent (the second hop) spends naught
+  local spent_here="false"
+  if [[ "$RELEASE_USE_SPENT" != "true" ]]; then
+    spend_release_use_before_arm
+    spent_here="true"
+  fi
+
+  # arm; a failed arm returns the use this arm spent, never an earlier hop's
+  if enable_automerge "$pr_number"; then
+    return 0
+  fi
+  if [[ "$spent_here" == "true" ]]; then
+    refund_release_use || true
+  fi
+  return 1
+}
+
+######################################################################
 # enable_automerge
 # enable automerge on PR via gh pr merge --auto --squash
 # falls back to direct merge if automerge is unavailable (free tier orgs)
@@ -643,15 +762,130 @@ get_current_branch() {
 
 ######################################################################
 # get_unpushed_count
-# count commits not pushed to origin
+# .what = count commits on HEAD that origin/<branch> lacks
+# .why  = the F14 guard refuses a ship that would leave them behind, so a
+#         count it cannot read must never pass as zero
 #
 # usage: get_unpushed_count
-# returns: count
+# returns: the count on stdout, exit 0; exit 1 with no stdout when
+#          origin/<branch> is absent locally or the count fails
 ######################################################################
 get_unpushed_count() {
   local branch
-  branch=$(get_current_branch)
-  git rev-list --count "origin/$branch..HEAD" 2>/dev/null || echo "0"
+  branch=$(get_current_branch) || return 1
+  git rev-parse --verify --quiet "refs/remotes/origin/$branch" >/dev/null || return 1
+  git rev-list --count "origin/$branch..HEAD" 2>/dev/null || return 1
+}
+
+######################################################################
+# is_remote_branch_deleted
+# .what = does origin answer, and hold no branch by this name?
+# .why  = a merged pr's branch is often deleted on origin and pruned here, so
+#         the unpushed count has no ref to read. a deleted branch can take no
+#         push, so the F14 guard has naught to protect. only a definite "absent"
+#         (ls-remote exit 2) counts; an unreachable origin stays unreadable
+#
+# usage: is_remote_branch_deleted branch="turtle/feature-x"
+# returns: 0 if origin answered and lacks the branch, 1 otherwise
+######################################################################
+is_remote_branch_deleted() {
+  local branch="${1#branch=}"
+  local exit_code=0
+  git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1 || exit_code=$?
+  [[ "$exit_code" -eq 2 ]]
+}
+
+######################################################################
+# emit_unpushed_refusal
+# .what = the F14 refusals, on both streams: a count that cannot be read
+#         (💥, exit 1) or commits the pr lacks (✋, exit 2)
+# .why  = one leaf per refusal keeps the orchestrator a narrative, beside
+#         emit_no_pr_refusal
+#
+# usage: emit_unpushed_unreadable_refusal branch="feat"
+#        emit_unpushed_refusal branch="feat" count=2
+######################################################################
+emit_unpushed_unreadable_refusal() {
+  local branch="${1#branch=}"
+  local refusal
+  refusal=$(
+    print_turtle_header "bummer dude..."
+    echo "🐚 git.release --mode apply"
+    echo "   └─ 💥 MalfunctionError: could not count unpushed commits on $branch"
+    echo ""
+    echo "🥥 did you know?"
+    echo "   ├─ the count reads origin/$branch, which this tree lacks or cannot read; fetch it, then release"
+    echo "   └─ git fetch origin $branch"
+  )
+  echo "$refusal"
+  echo "$refusal" >&2
+}
+
+emit_unpushed_refusal() {
+  local branch="" count=""
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      branch=*) branch="${arg#branch=}" ;;
+      count=*) count="${arg#count=}" ;;
+    esac
+  done
+  local refusal
+  refusal=$(
+    print_turtle_header "bummer dude..."
+    echo "🐚 git.release --mode apply"
+    echo "   └─ ✋ ConstraintError: $count unpushed commit(s) on $branch"
+    echo ""
+    echo "🥥 did you know?"
+    echo "   ├─ the pr holds only what was pushed; push first, then release"
+    echo "   ├─ rhx git.commit.push --mode apply"
+    echo "   └─ a push rides the commit grant, not the release stamp; if push refuses, ask your human"
+    echo "      └─ git.commit.uses set --quant N"
+  )
+  echo "$refusal"
+  echo "$refusal" >&2
+}
+
+######################################################################
+# is_apply_from_feature
+# .what = is this an apply that ships a feature branch's pr (not --from main)?
+# .why  = the pre-gate refusals (no pr, unpushed commits) apply only there
+#
+# usage: is_apply_from_feature mode="$MODE" from="$GOAL_FROM"
+# returns: 0 if so, 1 otherwise
+######################################################################
+is_apply_from_feature() {
+  local mode="" from=""
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      mode=*) mode="${arg#mode=}" ;;
+      from=*) from="${arg#from=}" ;;
+    esac
+  done
+  [[ "$mode" == "apply" && "$from" != "main" ]]
+}
+
+######################################################################
+# is_apply_of_own_branch
+# .what = is this an apply that ships the branch this tree has checked out?
+# .why  = only then can local commits the pr lacks exist to be left behind (F14)
+#
+# usage: is_apply_of_own_branch mode= from= release= current=
+# returns: 0 if so, 1 otherwise
+######################################################################
+is_apply_of_own_branch() {
+  local mode="" from="" release="" current=""
+  local arg
+  for arg in "$@"; do
+    case "$arg" in
+      mode=*) mode="${arg#mode=}" ;;
+      from=*) from="${arg#from=}" ;;
+      release=*) release="${arg#release=}" ;;
+      current=*) current="${arg#current=}" ;;
+    esac
+  done
+  is_apply_from_feature mode="$mode" from="$from" && [[ "$release" == "$current" ]]
 }
 
 ######################################################################

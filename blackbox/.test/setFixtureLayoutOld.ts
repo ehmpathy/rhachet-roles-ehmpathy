@@ -1,6 +1,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 
+import { ConstraintError } from 'helpful-errors';
+
 /**
  * .what = pin a linked fixture repo to the old (pre-1.49.2) settings layout
  * .why = `rhachet roles link` seeds the split layout: `.claude/settings.of.repo.json` ({}) and a
@@ -11,6 +13,16 @@ import * as path from 'path';
  */
 export const setFixtureLayoutOld = (input: { dir: string }): void => {
   const claudeDir = path.join(input.dir, '.claude');
+
+  // refuse a linked .claude: a removal below would follow it and delete a
+  // file outside the fixture repo
+  const claudeStat = fs.lstatSync(claudeDir, { throwIfNoEntry: false });
+  if (claudeStat?.isSymbolicLink())
+    throw new ConstraintError('fixture layout refused: .claude is a link', {
+      claudeDir,
+      linkTo: fs.readlinkSync(claudeDir),
+      hint: 'the fixture repo must own a real .claude dir',
+    });
   fs.mkdirSync(claudeDir, { recursive: true });
 
   // drop the split-layout signal

@@ -32,20 +32,21 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, lo
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
 `;
 
-exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, local=blocked] when: [t0] push is attempted then: blocked by local push config 1`] = `
+exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, local=blocked] when: [t0] push is attempted then: blocked by the revoked local grant 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ ✋ ConstraintError: push not allowed
+   └─ ✋ ConstraintError: no commit grant held
 
-ask your human to grant with --push allow:
-  $ git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ a push rides the commit grant; ask your human to grant one
+   └─ git.commit.uses set --quant N
 "
 `;
 

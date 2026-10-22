@@ -76,6 +76,8 @@ describe('permissionrequest.decide-permissions.sh', () => {
             'Bash(rhx git.commit.uses set:*)',
             'Bash(rhx git.commit.uses allow:*)',
             'Bash(rhx git.commit.uses --org * del:*)',
+            'Bash(rhx git.release.uses set:*)',
+            'Bash(rhx git.release.uses allow:*)',
             'Bash(bash:*)',
             'Bash(tee:*)',
           ],
