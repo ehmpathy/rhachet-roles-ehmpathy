@@ -37,16 +37,21 @@ const config: Config = {
   ],
   // .agent/ holds no tracked tests; it holds caches and each actor's brain dir,
   // whose plugin caches ship their own foreign test suites
-  testMatch: ['**/*.integration.test.ts', '!**/.yalc/**', '!**/.scratch/**', '!**/.agent/**'],
+  testMatch: [
+    '**/*.integration.test.ts',
+    '!**/.yalc/**',
+    '!**/.scratch/**',
+    '!**/.agent/**',
 
-  // kernelization moves to rhachet-roles-bhrain, which owns its tests from there on; its
-  // brain-graded suites run no more here, so their flakes cannot gate this repo's release
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/src/domain\\.operations/kernelize/',
-    '/src/domain\\.roles/librarian/skills/cluster/cluster\\.integration\\.test\\.ts$',
-    '/src/domain\\.roles/librarian/skills/brief\\.compress/extractKernels\\.integration\\.test\\.ts$',
-    '/src/domain\\.roles/librarian/skills/brief\\.condense/domain\\.operations/verify/(checkRetention|restoreKernels)\\.integration\\.test\\.ts$',
+    // kernelization moves to rhachet-roles-bhrain, which owns its tests from there on; its
+    // brain-graded suites run no more here, so their flakes cannot gate this repo's release.
+    // .note = these live in testMatch, never testPathIgnorePatterns: the ci shards pass
+    //         --testPathIgnorePatterns on the cli, which replaces the config's list whole
+    '!**/src/domain.operations/kernelize/**',
+    '!**/src/domain.roles/librarian/skills/cluster/cluster.integration.test.ts',
+    '!**/src/domain.roles/librarian/skills/brief.compress/extractKernels.integration.test.ts',
+    '!**/src/domain.roles/librarian/skills/brief.condense/domain.operations/verify/checkRetention.integration.test.ts',
+    '!**/src/domain.roles/librarian/skills/brief.condense/domain.operations/verify/restoreKernels.integration.test.ts',
   ],
   setupFilesAfterEnv: ['./jest.integration.env.ts'],
 
