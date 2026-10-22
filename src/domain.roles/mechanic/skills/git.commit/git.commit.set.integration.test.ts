@@ -34,10 +34,18 @@ describe('git.commit.set.sh', () => {
     files?: Record<string, string>;
     filesUnstaged?: Record<string, string>;
     staged?: boolean;
-    meterState?: { uses: number | string; push: string; stage?: string };
+    meterState?: {
+      uses: number | string;
+      held?: boolean;
+      push?: string;
+      stage?: string;
+    };
     // raw bytes for the quota file, written INSTEAD of meterState — the
     // present-and-damaged case a valid shape cannot express
     meterRaw?: string;
+    // a release stamp beside (or instead of) the commit grant; it must never
+    // buy a commit
+    releaseState?: { uses: number | 'infinite' };
     bindLevel?: string;
     // the repo's git identity. default = the `Test Human` placeholder, which
     // cannot answer for a change — so a case with no bind still refuses unless
@@ -162,13 +170,19 @@ describe('git.commit.set.sh', () => {
 
     // create .meter state (gitignored to match real repo setup)
     // must happen before test files so the gitignore commit doesn't include them
-    if (args.meterState || args.meterRaw !== undefined) {
+    if (args.meterState || args.meterRaw !== undefined || args.releaseState) {
       const meterDir = path.join(tempDir, '.meter');
       fs.mkdirSync(meterDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(meterDir, 'git.commit.uses.jsonc'),
-        args.meterRaw ?? JSON.stringify(args.meterState, null, 2),
-      );
+      if (args.meterState || args.meterRaw !== undefined)
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          args.meterRaw ?? JSON.stringify(args.meterState, null, 2),
+        );
+      if (args.releaseState)
+        fs.writeFileSync(
+          path.join(meterDir, 'git.release.uses.jsonc'),
+          JSON.stringify(args.releaseState),
+        );
 
       // commit .gitignore for .meter/ and .agent/ so they don't trigger the unstaged guard
       const gitignorePath = path.join(tempDir, '.gitignore');
@@ -291,7 +305,7 @@ describe('git.commit.set.sh', () => {
       then('outputs righteous with commit details', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: [
             '--message',
             'fix(api): validate input',
@@ -315,7 +329,7 @@ describe('git.commit.set.sh', () => {
       then('git log shows correct author', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           commitArgs: [
             '--message',
             'fix(api): validate input',
@@ -358,7 +372,7 @@ describe('git.commit.set.sh', () => {
       const result = useThen('the commit and push are attempted', () =>
         runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 2, push: 'allow' },
+          meterState: { uses: 2, held: true },
           commitArgs: [
             '--message',
             'fix(api): handle edge case',
@@ -426,7 +440,7 @@ describe('git.commit.set.sh', () => {
       then('it fails fast (exit 2) with the valid values', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 2, push: 'allow' },
+          meterState: { uses: 2, held: true },
           commitArgs: ['--message', 'fix(api): bad auth', '--auth', 'bogus'],
         });
 
@@ -444,7 +458,7 @@ describe('git.commit.set.sh', () => {
       then('the plan is accepted (exit 0)', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 2, push: 'allow' },
+          meterState: { uses: 2, held: true },
           commitArgs: [
             '--message',
             'fix(api): good auth',
@@ -468,7 +482,7 @@ describe('git.commit.set.sh', () => {
         then('the plan tree states opened: as-human (gh cli login)', () => {
           const result = runInTempGitRepo({
             files: { 'fix.txt': 'fixed content' },
-            meterState: { uses: 2, push: 'allow' },
+            meterState: { uses: 2, held: true },
             commitArgs: [
               '--message',
               'fix(api): plan push as human',
@@ -521,7 +535,7 @@ exec /usr/bin/git "$@"
 
               const result = runInTempGitRepo({
                 files: { 'fix.txt': 'fixed content' },
-                meterState: { uses: 2, push: 'allow' },
+                meterState: { uses: 2, held: true },
                 branch: 'turtle/feature',
                 gitUser: {
                   name: 'seaturtle[bot]',
@@ -611,7 +625,7 @@ exit 1
 
           const result = runInTempGitRepo({
             files: { 'fix.txt': 'fixed content' },
-            meterState: { uses: 2, push: 'allow' },
+            meterState: { uses: 2, held: true },
             branch: 'turtle/feature',
             gitUser: {
               name: 'seaturtle[bot]',
@@ -700,7 +714,7 @@ exit 1
 
               const result = runInTempGitRepo({
                 files: { 'fix.txt': 'fixed content' },
-                meterState: { uses: 2, push: 'allow' },
+                meterState: { uses: 2, held: true },
                 branch: 'turtle/feature',
                 gitUser: {
                   name: 'seaturtle[bot]',
@@ -793,7 +807,7 @@ exit 1
 
               const result = runInTempGitRepo({
                 files: { 'fix.txt': 'fixed content' },
-                meterState: { uses: 2, push: 'allow' },
+                meterState: { uses: 2, held: true },
                 branch: 'turtle/feature',
                 gitUser: {
                   name: 'ehm-a-seaturtle[bot]',
@@ -863,7 +877,7 @@ exit 0
               // identical guide — no raw json tail, no fix-less stderr.
               const result = runInTempGitRepo({
                 files: { 'fix.txt': 'fixed content' },
-                meterState: { uses: 2, push: 'allow' },
+                meterState: { uses: 2, held: true },
                 branch: 'master',
                 gitUser: {
                   name: 'seaturtle[bot]',
@@ -957,7 +971,7 @@ exit 1
               // attempt 1: the default as-ehmpath with no keyrack token → the guide
               const first = runInTempGitRepo({
                 files: { 'fix.txt': 'fixed content' },
-                meterState: { uses: 2, push: 'allow' },
+                meterState: { uses: 2, held: true },
                 branch: 'turtle/feature',
                 gitUser: {
                   name: 'seaturtle[bot]',
@@ -1034,7 +1048,7 @@ exit 1
       const result = useThen('the commit is refused', () =>
         runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 0, push: 'block' },
+          meterState: { uses: 0, held: true },
           commitArgs: ['--message', 'fix(test): some fix', '--mode', 'apply'],
         }),
       );
@@ -1043,9 +1057,8 @@ exit 1
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('🐢 bummer dude...');
         expect(result.stdout).toContain('no commit uses left');
-        expect(result.stdout).toContain(
-          'git.commit.uses set --quant N --push allow|block',
-        );
+        expect(result.stdout).toContain('git.commit.uses set --quant N');
+        expect(result.stdout).not.toContain('--push');
         expect(result.stdout).toMatchSnapshot();
       });
 
@@ -1064,7 +1077,7 @@ exit 1
       then('plan is allowed without uses', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 0, push: 'block' },
+          meterState: { uses: 0, held: true },
           commitArgs: ['--message', 'fix(test): zero uses plan'],
         });
 
@@ -1077,18 +1090,43 @@ exit 1
     });
   });
 
-  given('[case4] push not allowed', () => {
-    when('[t0] push is blocked but --push requested', () => {
-      then('outputs bummer dude about push', () => {
+  given('[case3b] a release stamp with no commit grant', () => {
+    when('[t0] apply mode, release uses infinite, no commit meter', () => {
+      const result = useThen('the commit is refused', () =>
+        runInTempGitRepo({
+          files: { 'fix.txt': 'fixed content' },
+          releaseState: { uses: 'infinite' },
+          commitArgs: ['--message', 'fix(test): some fix', '--mode', 'apply'],
+        }),
+      );
+
+      then('exit 2: a release stamp never buys a commit', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('git.commit.uses set --quant N');
+      });
+
+      then('no commit is created', () => {
+        const log = spawnSync('git', ['log', '--oneline'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8' as BufferEncoding, // note: library api requires this term
+        });
+        expect(log.stdout).not.toContain('fix(test): some fix');
+      });
+    });
+  });
+
+  given('[case4] commit grant revoked', () => {
+    when('[t0] the grant was revoked and --push requested', () => {
+      then('outputs bummer dude about the revoked grant', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 1, push: 'block' },
+          meterState: { uses: 0, held: false },
           commitArgs: ['--message', 'fix(test): some fix', '--push'],
         });
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('🐢 bummer dude...');
-        expect(result.stdout).toContain('push not allowed in current grant');
+        expect(result.stdout).toContain('commit grant revoked');
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -1102,7 +1140,7 @@ exit 1
       //        (rule.forbid.redundant-expensive-operations).
       const result = useThen('the commit refuses', () =>
         runInTempGitRepo({
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           commitArgs: ['--message', 'fix(test): some fix'],
         }),
       );
@@ -1136,7 +1174,7 @@ exit 1
       const result = useThen('the commit refuses', () =>
         runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           sponsor: null,
           commitArgs: ['--message', 'fix(test): some fix'],
         }),
@@ -1212,7 +1250,7 @@ exit 1
         const refused = runInTempGitRepo({
           files: { 'base.txt': 'base content' },
           filesUnstaged: { 'sneaky.txt': 'never asked to be staged' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           sponsor: null,
           commitArgs: [
             '--message',
@@ -1242,7 +1280,7 @@ exit 1
         //        authorization, which is the defect's own shape.
         const bound = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: ['--message', 'fix(test): some fix', '--mode', 'apply'],
         });
         expect(bound.exitCode).toBe(0);
@@ -1283,7 +1321,7 @@ exit 1
       then('state shows 2 after commit', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: ['--message', 'fix(test): something', '--mode', 'apply'],
         });
 
@@ -1310,7 +1348,7 @@ exit 1
         runInTempGitRepo({
           files: { 'staged.txt': 'staged content' },
           filesUnstaged: { 'unstaged.txt': 'unstaged content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           commitArgs: ['--message', 'fix(test): some fix'],
         }),
       );
@@ -1336,7 +1374,7 @@ exit 1
         const result = runInTempGitRepo({
           files: { 'staged.txt': 'staged content' },
           filesUnstaged: { 'unstaged.txt': 'unstaged content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           commitArgs: [
             '--message',
             'fix(test): staged only',
@@ -1369,7 +1407,7 @@ exit 1
         const result = runInTempGitRepo({
           files: { 'staged.txt': 'staged content' },
           filesUnstaged: { 'unstaged.txt': 'unstaged content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           commitArgs: [
             '--message',
             'fix(test): all changes',
@@ -1402,7 +1440,7 @@ exit 1
         const result = runInTempGitRepo({
           files: { 'tracked.txt': 'original' },
           filesUnstaged: { 'new.txt': 'new content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           commitArgs: [
             '--message',
             'fix(test): from unstaged',
@@ -1424,7 +1462,7 @@ exit 1
       then('trailer has correct format', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           commitArgs: [
             '--message',
             'fix(test): trailer test',
@@ -1447,7 +1485,7 @@ exit 1
       then('trailer is after blank line', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           commitArgs: [
             '--message',
             'fix(test): blank line test',
@@ -1477,7 +1515,7 @@ exit 1
       then('shows plan output without committing', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: ['--message', 'fix(test): plan test'],
         });
 
@@ -1499,7 +1537,7 @@ exit 1
       then('shows meter transition', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: ['--message', 'fix(test): meter test'],
         });
 
@@ -1509,7 +1547,7 @@ exit 1
       then('does not decrement uses', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: ['--message', 'fix(test): no decrement'],
         });
 
@@ -1540,7 +1578,7 @@ exit 1
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 2, push: 'allow' }, null, 2),
+          JSON.stringify({ uses: 2, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -1653,7 +1691,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         // gitignore .meter
         fs.writeFileSync(
@@ -1789,7 +1827,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -1931,7 +1969,7 @@ exit 1`,
       then('commit succeeds', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           bindLevel: 'fix',
           commitArgs: [
             '--message',
@@ -1950,7 +1988,7 @@ exit 1`,
       then('commit succeeds', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           bindLevel: 'fix',
           commitArgs: [
             '--message',
@@ -1975,7 +2013,7 @@ exit 1`,
       const result = useThen('the commit refuses', () =>
         runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           bindLevel: 'fix',
           commitArgs: [
             '--message',
@@ -2019,7 +2057,7 @@ exit 1`,
       then('commit succeeds', () => {
         const result = runInTempGitRepo({
           files: { 'feat.txt': 'new feature' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           bindLevel: 'feat',
           commitArgs: ['--message', 'feat(ui): add button', '--mode', 'apply'],
         });
@@ -2035,7 +2073,7 @@ exit 1`,
       then('exits with level mismatch error', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           bindLevel: 'feat',
           commitArgs: ['--message', 'fix(ui): button color', '--mode', 'apply'],
         });
@@ -2054,7 +2092,7 @@ exit 1`,
       then('commit succeeds', () => {
         const result = runInTempGitRepo({
           files: { 'feat.txt': 'feature content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           branch: 'feat/test-branch', // signals feat
           commitArgs: [
             '--message',
@@ -2073,7 +2111,7 @@ exit 1`,
       then('commit succeeds', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fix content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: [
             '--message',
             'fix(api): validate input',
@@ -2093,7 +2131,7 @@ exit 1`,
       then('plan mode also rejects mismatched level', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           bindLevel: 'fix',
           commitArgs: ['--message', 'feat(api): add endpoint'],
         });
@@ -2115,7 +2153,7 @@ exit 1`,
       const result = useThen('the commit refuses', () =>
         runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 2, push: 'allow' },
+          meterState: { uses: 2, held: true },
           commitArgs: ['--message', 'fix(test): on main', '--push'],
           branch: null, // stay on main
         }),
@@ -2151,31 +2189,46 @@ exit 1`,
     });
   });
 
-  given('[case21] last use with push allowed shows push status', () => {
-    when('[t0] uses go from 1 to 0 with push allowed', () => {
-      then('meter shows push: allowed after commit', () => {
+  given('[case21] last use keeps the grant held for push', () => {
+    when('[t0] uses go from 1 to 0', () => {
+      then(
+        'meter shows push: held after commit, and the file stays held',
+        () => {
+          const result = runInTempGitRepo({
+            files: { 'fix.txt': 'fixed content' },
+            meterState: { uses: 1, held: true },
+            commitArgs: [
+              '--message',
+              'fix(api): last commit',
+              '--mode',
+              'apply',
+            ],
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('left: 0');
+          expect(result.stdout).toContain('push: held');
+          const state = JSON.parse(
+            fs.readFileSync(
+              path.join(result.tempDir, '.meter', 'git.commit.uses.jsonc'),
+              'utf-8',
+            ),
+          );
+          expect(state).toEqual({ uses: 0, held: true });
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
+
+      then('plan mode also shows push: held', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 1, push: 'allow' },
-          commitArgs: ['--message', 'fix(api): last commit', '--mode', 'apply'],
-        });
-
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('left: 0');
-        expect(result.stdout).toContain('push: allowed');
-        expect(result.stdout).toMatchSnapshot();
-      });
-
-      then('plan mode also shows push: allowed', () => {
-        const result = runInTempGitRepo({
-          files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 1, push: 'allow' },
+          meterState: { uses: 1, held: true },
           commitArgs: ['--message', 'fix(api): last commit plan'],
         });
 
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain('left: 1 → 0');
-        expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).toContain('push: held');
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -2199,7 +2252,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 2, push: 'block' }, null, 2),
+          JSON.stringify({ uses: 2, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -2235,7 +2288,7 @@ exit 1`,
       then('body appears in plan tree output', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           commitArgs: [
             '--message',
             'fix(test): with desc\n\n- fixed the bug\n- added tests',
@@ -2252,7 +2305,7 @@ exit 1`,
       then('body appears in commit body', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           commitArgs: [
             '--message',
             'fix(test): body in commit\n\n- fixed validation',
@@ -2274,9 +2327,9 @@ exit 1`,
     });
   });
 
-  given('[case23] plan mode auto-revoke display with push', () => {
-    when('[t0] uses go from 1 to 0 with push allowed', () => {
-      then('plan shows push: allowed to blocked (revoked)', () => {
+  given('[case23] plan mode on the last use with push', () => {
+    when('[t0] uses go from 1 to 0, grant held', () => {
+      then('plan shows push: held, no revoke', () => {
         const tempDir = genTempDir({
           slug: 'git-commit-set-test',
           git: true,
@@ -2292,7 +2345,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 1, push: 'allow' }, null, 2),
+          JSON.stringify({ uses: 1, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -2383,7 +2436,8 @@ exit 1`,
 
         expect(result.status).toBe(0);
         expect(result.stdout).toContain('left: 1 → 0');
-        expect(result.stdout).toContain('push: allowed → blocked (revoked)');
+        expect(result.stdout).toContain('push: held');
+        expect(result.stdout).not.toContain('revoked');
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -2394,7 +2448,7 @@ exit 1`,
       then('commit succeeds with stdin message', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: ['-m', '@stdin', '--mode', 'apply'],
           stdin: 'fix(api): stdin message\n\n- fixed via stdin',
         });
@@ -2407,7 +2461,7 @@ exit 1`,
       then('commit log shows correct header from stdin', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           commitArgs: ['-m', '@stdin', '--mode', 'apply'],
           stdin: 'fix(api): from stdin\n\n- body from stdin',
         });
@@ -2424,7 +2478,7 @@ exit 1`,
       then('commit body contains stdin content', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           commitArgs: ['-m', '@stdin', '--mode', 'apply'],
           stdin: 'fix(api): body test\n\n- line one\n- line two',
         });
@@ -2444,7 +2498,7 @@ exit 1`,
       then('works the same as -m @stdin', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: ['--message', '@stdin', '--mode', 'apply'],
           stdin: 'fix(api): long flag stdin\n\n- via --message @stdin',
         });
@@ -2459,7 +2513,7 @@ exit 1`,
       then('shows preview from stdin message', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: ['-m', '@stdin'],
           stdin: 'fix(api): plan from stdin\n\n- planned via stdin',
         });
@@ -2482,7 +2536,7 @@ exit 1`,
 
         const result = runInTempGitRepo({
           files: { 'button.tsx': 'button content' },
-          meterState: { uses: 2, push: 'block' },
+          meterState: { uses: 2, held: true },
           branch: 'feat/test-branch', // signals feat
           commitArgs: ['-m', '@stdin', '--mode', 'apply'],
           stdin: multilineMessage,
@@ -2505,7 +2559,7 @@ exit 1`,
       then('rejects mismatched level from stdin', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           bindLevel: 'fix',
           commitArgs: ['-m', '@stdin', '--mode', 'apply'],
           stdin: 'feat(api): wrong level\n\n- should fail',
@@ -2520,7 +2574,7 @@ exit 1`,
       then('accepts matching level from stdin', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           bindLevel: 'fix',
           commitArgs: ['-m', '@stdin', '--mode', 'apply'],
           stdin: 'fix(api): correct level\n\n- should pass',
@@ -2541,7 +2595,7 @@ exit 1`,
       const result = useThen('the commit refuses', () =>
         runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: ['-m', '@stdin', '--mode', 'apply'],
           stdin:
             'fix(api): with adhoc coauthor\n\n- some change\n\nCo-authored-by: Someone <someone@example.com>',
@@ -2578,7 +2632,7 @@ exit 1`,
       then('also exits with error (case insensitive)', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: ['-m', '@stdin', '--mode', 'apply'],
           stdin:
             'fix(api): lowercase coauthor\n\n- change\n\nco-authored-by: someone <someone@example.com>',
@@ -2593,7 +2647,7 @@ exit 1`,
       then('also exits with error in plan mode', () => {
         const result = runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: ['-m', '@stdin'], // plan mode (default)
           stdin:
             'fix(api): plan with coauthor\n\n- change\n\nCo-authored-by: Someone <someone@example.com>',
@@ -2622,7 +2676,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -2712,7 +2766,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -2802,7 +2856,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -2877,7 +2931,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -2946,7 +3000,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -3043,7 +3097,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -3140,7 +3194,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -3237,7 +3291,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -3333,7 +3387,7 @@ exit 1`,
           fs.mkdirSync(meterDir, { recursive: true });
           fs.writeFileSync(
             path.join(meterDir, 'git.commit.uses.jsonc'),
-            JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+            JSON.stringify({ uses: 5, held: true }, null, 2),
           );
           fs.writeFileSync(
             path.join(tempDir, '.gitignore'),
@@ -3434,7 +3488,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -3531,7 +3585,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'block' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -3629,7 +3683,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'block', stage: 'allow' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -3749,7 +3803,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -3850,7 +3904,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 3, push: 'block' }, null, 2),
+          JSON.stringify({ uses: 3, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -3950,7 +4004,7 @@ exit 1`,
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -4011,36 +4065,37 @@ exit 1`,
   // ========================================
 
   given('[case27] commit with unlimited quota', () => {
-    when('[t0] uses is "infinite"', () => {
-      then('commit succeeds and uses stays infinite', () => {
-        const result = runInTempGitRepo({
-          files: { 'test.txt': 'test content' },
-          staged: true,
-          meterState: { uses: 'infinite', push: 'allow', stage: 'allow' },
-          commitArgs: [
-            '--message',
-            'fix(api): validate input\n\n- test change',
-            '--mode',
-            'apply',
-          ],
-        });
+    when('[t0] uses is "infinite", in the legacy push/stage shape', () => {
+      then(
+        'commit succeeds, uses stays infinite, file migrates to held',
+        () => {
+          const result = runInTempGitRepo({
+            files: { 'test.txt': 'test content' },
+            staged: true,
+            meterState: { uses: 'infinite', push: 'allow', stage: 'allow' },
+            commitArgs: [
+              '--message',
+              'fix(api): validate input\n\n- test change',
+              '--mode',
+              'apply',
+            ],
+          });
 
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('righteous');
-        expect(result.stdout).toContain('left: unlimited');
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('righteous');
+          expect(result.stdout).toContain('left: unlimited');
 
-        // verify state file still shows infinite
-        const stateFile = path.join(
-          result.tempDir,
-          '.meter',
-          'git.commit.uses.jsonc',
-        );
-        const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
-        expect(state.uses).toBe('infinite');
-        expect(state.push).toBe('allow');
-        expect(state.stage).toBe('allow');
-        expect(result.stdout).toMatchSnapshot();
-      });
+          // verify state file still shows infinite
+          const stateFile = path.join(
+            result.tempDir,
+            '.meter',
+            'git.commit.uses.jsonc',
+          );
+          const state = JSON.parse(fs.readFileSync(stateFile, 'utf-8'));
+          expect(state).toEqual({ uses: 'infinite', held: true });
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
     });
 
     when('[t1] plan mode with unlimited quota', () => {
@@ -4048,7 +4103,7 @@ exit 1`,
         const result = runInTempGitRepo({
           files: { 'test.txt': 'test content' },
           staged: true,
-          meterState: { uses: 'infinite', push: 'allow' },
+          meterState: { uses: 'infinite', held: true },
           commitArgs: [
             '--message',
             'fix(api): validate input\n\n- test change',
@@ -4084,7 +4139,7 @@ exit 1`,
           runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             gitUser: { name: 'Test User', email: 'test@example.com' },
             sponsor: { name: 'Ada Lovelace', email: 'ada@example.com' },
             commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
@@ -4121,7 +4176,7 @@ exit 1`,
         const result = runInTempGitRepo({
           files: { 'test.txt': 'content' },
           staged: true,
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           gitUser: { name: 'Test User', email: 'test@example.com' },
           sponsor: { name: 'Ada Lovelace', email: 'ada@example.com' },
           commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
@@ -4140,7 +4195,7 @@ exit 1`,
         const result = runInTempGitRepo({
           files: { 'test.txt': 'content' },
           staged: true,
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           gitUser: { name: 'Test User', email: 'test@example.com' },
           sponsor: { name: 'Ada Lovelace', email: 'ada@example.com' },
           commitArgs: ['-m', 'fix(api): test\n\n- change'],
@@ -4157,7 +4212,7 @@ exit 1`,
         runInTempGitRepo({
           files: { 'test.txt': 'content' },
           staged: true,
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           gitUser: { name: 'Kai Nalu', email: 'kai@example.com' },
           sponsor: { name: 'Jo Rivera', email: 'jo@example.com' },
           commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
@@ -4289,7 +4344,7 @@ exit 1`,
           runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             gitUser: { name: 'Kai Nalu', email: 'kai@example.com' },
             sponsor: null,
             commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
@@ -4339,7 +4394,7 @@ exit 1`,
           runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             gitUser: { name: 'seaturtle[bot]', email: 'seaturtle@ehmpath.com' },
             sponsor: null,
             commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
@@ -4373,7 +4428,7 @@ exit 1`,
             const result = runInTempGitRepo({
               files: { 'test.txt': 'content' },
               staged: true,
-              meterState: { uses: 3, push: 'block' },
+              meterState: { uses: 3, held: true },
               gitUser: { name: 'Kai Nalu', email: null },
               sponsor: null,
               commitArgs: [
@@ -4402,7 +4457,7 @@ exit 1`,
           const result = runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             gitUser: { name: null, email: 'kai@example.com' },
             sponsor: null,
             commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
@@ -4425,7 +4480,7 @@ exit 1`,
           const result = runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             gitUser: { name: null, email: null },
             sponsor: null,
             commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
@@ -4448,7 +4503,7 @@ exit 1`,
           const result = runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             gitUser: { name: 'Kai Nalu', email: 'kai@example.com' },
             sponsorRaw: '{ not json',
             commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
@@ -4468,7 +4523,7 @@ exit 1`,
           const result = runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             gitUser: { name: 'Kai Nalu', email: 'kai@localhost' },
             sponsor: null,
             commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
@@ -4492,7 +4547,7 @@ exit 1`,
           const result = runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             gitUser: { name: 'Test Human', email: 'human@test.com' },
             sponsor: null,
             commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
@@ -4514,7 +4569,7 @@ exit 1`,
           const result = runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             gitUser: { name: 'seaturtle[bot]', email: 'seaturtle@ehmpath.com' },
             sponsor: { name: 'Kai Nalu', email: 'kai@example.com' },
             commitArgs: ['-m', 'fix(api): test\n\n- change', '--mode', 'apply'],
@@ -4546,7 +4601,7 @@ exit 1`,
           // clamps the most-repeated blocker (identity-fetch used to block --help)
           // per rule.require.test-covered-repairs.
           const result = runInTempGitRepo({
-            meterState: { uses: 3, push: 'allow' },
+            meterState: { uses: 3, held: true },
             commitArgs: ['--help'],
             env: { NODE_ENV: 'production' },
           });
@@ -4590,7 +4645,7 @@ exit 1`,
             // .note = the shape is `[case34]`'s, which clamps the same class
             //         of precondition for `--help` (rule.require.clamp-edge-cases).
             const result = runInTempGitRepo({
-              meterState: { uses: 3, push: 'allow' },
+              meterState: { uses: 3, held: true },
               sponsor: null, // bind none, so the commit refuses
               stdin: 'fix(scope): summary\n\n- detail',
               commitArgs: [
@@ -4692,7 +4747,7 @@ exit 1
 
               const result = runInTempGitRepo({
                 files: { 'fix.txt': 'fixed content' },
-                meterState: { uses: 2, push: 'allow' },
+                meterState: { uses: 2, held: true },
                 branch: 'turtle/feature',
                 gitUser: {
                   name: 'seaturtle[bot]',
@@ -4780,7 +4835,7 @@ exec /usr/bin/git "$@"
 
             const result = runInTempGitRepo({
               files: { 'fix.txt': 'fixed content' },
-              meterState: { uses: 3, push: 'allow' },
+              meterState: { uses: 3, held: true },
               branch: 'fix/test-branch',
               gitUser: {
                 name: 'seaturtle[bot]',
@@ -4839,7 +4894,7 @@ exec /usr/bin/git "$@"
         runInTempGitRepo({
           files: { 'test.txt': 'content' },
           staged: true,
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           sponsorRaw: '{ "sponsor": { "name": "Ada',
           commitArgs: ['-m', '@stdin', '--mode', 'apply'],
           stdin: 'fix(x): y\n\n- z',
@@ -4915,7 +4970,7 @@ exec /usr/bin/git "$@"
           runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             sponsorRaw: '{ "sponsor": {} }',
             commitArgs: ['-m', '@stdin', '--mode', 'apply'],
             stdin: 'fix(x): y\n\n- z',
@@ -4947,7 +5002,7 @@ exec /usr/bin/git "$@"
           const result = runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             sponsorRaw: '{ "sponsor": { "name": "Ada Lovelace" } }',
             commitArgs: ['-m', '@stdin', '--mode', 'apply'],
             stdin: 'fix(x): y\n\n- z',
@@ -5001,7 +5056,7 @@ exec /usr/bin/git "$@"
       const result = useThen('the chain runs end to end', () =>
         runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           sponsorViaSkill: {
             who: '@stdin',
             stdin: 'Ada Lovelace <ada@example.com>',
@@ -5083,7 +5138,7 @@ exec /usr/bin/git "$@"
         runInTempGitRepo({
           files: { 'test.txt': 'content' },
           staged: true,
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           // the `\\n` here is a JSON escape, so the file on disk holds a REAL
           // newline once jq parses it — which is the attack, not a test artifact
           sponsorRaw:
@@ -5151,7 +5206,7 @@ exec /usr/bin/git "$@"
         runInTempGitRepo({
           files: { 'test.txt': 'content' },
           staged: true,
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           sponsorRaw:
             '{ "sponsor": { "name": "Ada Lovelace", "email": "ada@example.com\\rOVERWRITE", "source": "supplied" } }',
           commitArgs: ['-m', '@stdin', '--mode', 'apply'],
@@ -5225,7 +5280,7 @@ exec /usr/bin/git "$@"
         const refused = runInTempGitRepo({
           files: { 'test.txt': 'content' },
           staged: true,
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           sponsor: null,
           commitArgs: ['-m', '@stdin', '--mode', 'apply'],
           stdin: 'fix(x): y\n\n- z',
@@ -5293,7 +5348,7 @@ exec /usr/bin/git "$@"
           const refused = runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             sponsorRaw: '{ "sponsor": { "name": "Ada',
             commitArgs: ['-m', '@stdin', '--mode', 'apply'],
             stdin: 'fix(x): y\n\n- z',
@@ -5380,7 +5435,7 @@ exec /usr/bin/git "$@"
           const first = runInTempGitRepo({
             files: { 'test.txt': 'content' },
             staged: true,
-            meterState: { uses: 3, push: 'block' },
+            meterState: { uses: 3, held: true },
             gitUser: { name: 'Kai Nalu', email: 'kai@example.com' },
             sponsor: { name: 'Jo Rivera', email: 'jo@example.com' },
             commitArgs: ['-m', '@stdin', '--mode', 'apply'],
@@ -5487,7 +5542,7 @@ exec /usr/bin/git "$@"
       const scene = runInTempGitRepo({
         files: { 'test.txt': 'content' },
         staged: true,
-        meterState: { uses: 3, push: 'block' },
+        meterState: { uses: 3, held: true },
         commitArgs: ['-m', '@stdin', '--mode', 'plan'],
         stdin: 'fix(x): y\n\n- z',
       });
@@ -5625,7 +5680,7 @@ exec /usr/bin/git "$@"
         const scene = runInTempGitRepo({
           files: { 'test.txt': 'content' },
           staged: true,
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           commitArgs: ['-m', '@stdin', '--mode', 'plan'],
           stdin: 'fix(x): y\n\n- z',
         });
@@ -5737,7 +5792,7 @@ exec /usr/bin/git "$@"
       const renderOnGrove = (source: 'self' | 'supplied') =>
         runInTempGitRepo({
           files: { 'fix.txt': 'fixed content' },
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 3, held: true },
           sponsor: { name: 'Test Human', email: 'human@test.com', source },
           commitArgs: ['--message', 'fix(api): validate input\n\n- detail'],
         });

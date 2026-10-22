@@ -5,7 +5,7 @@ import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
 import { genTestDir, invokeHook } from './.test/invokeHook';
 import { setFixtureLayoutOld } from './.test/setFixtureLayoutOld';
-import { writeFixtureFile } from './.test/writeFixtureFile';
+import { setFixtureFile } from './.test/setFixtureFile';
 
 /**
  * .what = acceptance tests for the sessionstart.notify-permissions hook
@@ -38,7 +38,7 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
     const repo = useBeforeAll(async () => {
       const dir = await genTestDir({ slug: 'sn-notice' });
       setFixtureLayoutOld({ dir });
-      writeFixtureFile({
+      setFixtureFile({
         dir,
         relPath: '.claude/settings.json',
         content: JSON.stringify({
@@ -108,8 +108,8 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
     const repo = useBeforeAll(async () => {
       const dir = await genTestDir({ slug: 'sn-both-broken' });
       setFixtureLayoutOld({ dir });
-      writeFixtureFile({ dir, relPath: '.claude/settings.json', content: '{ broken' });
-      writeFixtureFile({ dir, relPath: '.claude/settings.local.json', content: '{ also broken' });
+      setFixtureFile({ dir, relPath: '.claude/settings.json', content: '{ broken' });
+      setFixtureFile({ dir, relPath: '.claude/settings.local.json', content: '{ also broken' });
       return { dir };
     });
 
@@ -141,8 +141,8 @@ describe('sessionstart.notify-permissions.sh (acceptance)', () => {
     const repo = useBeforeAll(async () => {
       const dir = await genTestDir({ slug: 'sn-broken' });
       setFixtureLayoutOld({ dir });
-      writeFixtureFile({ dir, relPath: '.claude/settings.json', content: '{ broken' });
-      writeFixtureFile({
+      setFixtureFile({ dir, relPath: '.claude/settings.json', content: '{ broken' });
+      setFixtureFile({
         dir,
         relPath: '.claude/settings.local.json',
         content: JSON.stringify({ permissions: { allow: ['Bash(tree:*)'] } }),

@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`claude.tools refuse a human grant given: [case1] a spent release stamp at .meter/git.release.uses.jsonc when: [t0] teesafe writes into the stamp then: exit 2, ConstraintError on both streams, stamp unchanged 1`] = `
+"🐢 bummer dude...
+
+🐚 teesafe
+   └─ ✋ ConstraintError: .meter/git.release.uses.jsonc holds a human's grant; no file tool may write it
+
+🥥 did you know?
+   ├─ only a human grants a meter, at a terminal; read it instead
+   └─ rhx git.commit.uses get    rhx git.release.uses get
+"
+`;

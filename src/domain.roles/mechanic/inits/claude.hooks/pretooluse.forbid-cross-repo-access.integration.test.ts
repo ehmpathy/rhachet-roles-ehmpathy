@@ -668,6 +668,55 @@ describe('pretooluse.forbid-cross-repo-access.sh', () => {
         }
       });
     });
+
+    // .why = measured 2026-10-18: a Bash glob `~/git/<org>/_worktrees/<repo>*/src/…`
+    //        named a tree dir that is not on disk, so git had no dir to answer for
+    //        and the segment fallback printed `repo: <org>/_worktrees` — a slug no
+    //        repo has, inside a redirect that then fails when pasted
+    when(
+      '[t1] the worktree dir is absent on disk (a removed tree, or a glob)',
+      () => {
+        const cases = [
+          { label: 'a removed tree', treedir: 'peer-repo.vlad.feat-gone' },
+          { label: 'a glob', treedir: 'peer-repo*' },
+        ];
+        cases.map((thisCase) =>
+          then(
+            `derives the true slug for ${thisCase.label}, never _worktrees`,
+            () => {
+              const { gitRoot, homeDir, repoSelf, cleanup } = genTempRoot();
+              try {
+                const result = runHook({
+                  toolName: 'Read',
+                  toolInput: {
+                    file_path: path.join(
+                      gitRoot,
+                      'testorg',
+                      '_worktrees',
+                      thisCase.treedir,
+                      'src/index.ts',
+                    ),
+                  },
+                  cwd: repoSelf,
+                  homeDir,
+                  gitRoot,
+                });
+
+                expect(result.exitCode).toBe(2);
+                expect(result.stderr).toContain('repo: testorg/peer-repo');
+                expect(result.stderr).toContain('--in testorg/peer-repo');
+                // the `path:` line keeps the raw `_worktrees/…` path — that is the path
+                // that was blocked. only the slug and the redirect must not carry it
+                expect(result.stderr).not.toContain('repo: testorg/_worktrees');
+                expect(result.stderr).not.toContain('--in testorg/_worktrees');
+              } finally {
+                cleanup();
+              }
+            },
+          ),
+        );
+      },
+    );
   });
 
   // .why = the vision named binary files as a cost of the no-escape-hatch

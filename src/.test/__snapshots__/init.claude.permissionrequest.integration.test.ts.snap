@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`init.claude.permissionrequest.sh given: [case1] a split-layout repo whose settings hold a foreign entry and a stale decider when: [t0] the init runs then: it seats one decider first, keeps the foreign entry, and leaves all else 1`] = `
+"✨ PermissionRequest decider registered
+   .claude/settings.of.repo.json
+"
+`;
+
+exports[`init.claude.permissionrequest.sh given: [case3] a repo whose settings.of.repo.json is a link when: [t0] the init runs then: it refuses on both streams, exit 2, and the link target stays untouched 1`] = `
+"✋ ConstraintError: .claude/settings.of.repo.json is a link; this init writes only a real file
+
+fix: run \`npx rhachet init --hooks\` first, so the repo settings file is real, then rerun.
+"
+`;

@@ -7,7 +7,7 @@ import { given, then, useBeforeAll, when } from 'test-fns';
 
 import { genTestDir } from './.test/invokeHook';
 import { setFixtureLayoutOld } from './.test/setFixtureLayoutOld';
-import { writeFixtureFile } from './.test/writeFixtureFile';
+import { setFixtureFile } from './.test/setFixtureFile';
 
 /**
  * .what = acceptance tests for `rhx permissions.get`, run via rhachet against the linked role
@@ -22,7 +22,7 @@ import { writeFixtureFile } from './.test/writeFixtureFile';
 const genSkillRepo = async (input: { slug: string }): Promise<{ dir: string }> => {
   const dir = await genTestDir({ slug: input.slug });
   setFixtureLayoutOld({ dir });
-  writeFixtureFile({
+  setFixtureFile({
     dir,
     relPath: '.claude/settings.json',
     content: JSON.stringify({
@@ -216,7 +216,7 @@ describe('permissions.get (acceptance)', () => {
     // the lookup's promise: every candidate ranked, no cap — the inverse of the block's 21
     const repo = useBeforeAll(async () => {
       const fresh = await genSkillRepo({ slug: 'pg-nocap' });
-      writeFixtureFile({
+      setFixtureFile({
         dir: fresh.dir,
         relPath: '.claude/settings.json',
         content: JSON.stringify({
@@ -278,7 +278,7 @@ describe('permissions.get (acceptance)', () => {
   given('[case2] a linked repo whose settings.json cannot be parsed', () => {
     const repo = useBeforeAll(async () => {
       const fresh = await genSkillRepo({ slug: 'pg-broken' });
-      writeFixtureFile({ dir: fresh.dir, relPath: '.claude/settings.json', content: '{ broken' });
+      setFixtureFile({ dir: fresh.dir, relPath: '.claude/settings.json', content: '{ broken' });
       return fresh;
     });
 

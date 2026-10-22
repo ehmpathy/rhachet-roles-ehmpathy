@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = manage global git commit blocker for mechanics
+# .what = manage the global blocker for one meter: commit or release
 #
-# .why  = humans can pause all mechanic commits across all repos
-#         with a single global circuit breaker
+# .why  = humans can pause all mechanic commits, or all releases, across
+#         all repos with a single global circuit breaker per meter
 #
 # usage:
-#   git.commit.uses.global block    # block commits globally
-#   git.commit.uses.global allow    # lift global blocker
-#   git.commit.uses.global get      # check global blocker state
+#   git.commit.uses --global block     # block commits globally
+#   git.commit.uses --global allow     # lift the commit blocker
+#   git.release.uses --global block    # block releases globally
+#   git.release.uses --global get      # check the release blocker
 #
 # guarantee:
-#   - global blocker stored at ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/
-#   - global blocker overrides local quota
+#   - the dispatcher names the meter via `--meter commit|release`, first arg
+#   - blocker stored at ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/
+#     (git.commit.uses.jsonc · git.release.uses.jsonc)
+#   - a global blocker overrides the org and local levels of its own meter only
 ######################################################################
 set -euo pipefail
 
@@ -27,6 +30,15 @@ source "$SCRIPT_DIR/output.sh"
 # .note = operations.sh is pure at source time (constants + functions, no
 #         top-level command), so this source adds names and no behavior.
 source "$SCRIPT_DIR/git.commit.operations.sh"
+
+# scope the shared global reader + renders to the meter the dispatcher named;
+# no default: a call with no --meter fails closed in set_meter_scope
+METER_ARG=""
+if [[ "${1:-}" == "--meter" ]]; then
+  METER_ARG="${2:-}"
+  shift 2 || shift $#
+fi
+set_meter_scope "$METER_ARG"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
@@ -50,12 +62,12 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help|-h)
-      echo "usage: git.commit.uses --global block"
-      echo "       git.commit.uses --global allow"
-      echo "       git.commit.uses --global get"
+      echo "usage: $METER_SKILL --global block"
+      echo "       $METER_SKILL --global allow"
+      echo "       $METER_SKILL --global get"
       echo ""
       echo "commands:"
-      echo "  block  pause all mechanic commits globally"
+      echo "  block  pause all mechanic $METER_NOUN_PLURAL globally"
       echo "  allow  lift global blocker, resume local behavior"
       echo "  get    check global blocker state"
       echo ""
@@ -79,7 +91,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --*)
       emit_both "✋ ConstraintError: unknown option: $1
-usage: git.commit.uses --global block|allow|get"
+usage: $METER_SKILL --global block|allow|get"
       exit 2
       ;;
     *)
@@ -91,7 +103,7 @@ done
 # validate command
 if [[ -z "$COMMAND" ]]; then
   emit_both "✋ ConstraintError: command required (block, allow, or get)
-usage: git.commit.uses --global block|allow|get"
+usage: $METER_SKILL --global block|allow|get"
   exit 2
 fi
 
@@ -101,7 +113,7 @@ fi
 ######################################################################
 case "$COMMAND" in
   block|allow)
-    guard_actor_is_human_via_stdin "git.commit.uses $COMMAND --global"
+    guard_actor_is_human_via_stdin "$METER_SKILL $COMMAND --global"
     ;;
 esac
 
@@ -145,8 +157,15 @@ EOF
     mv -f "$GLOBAL_METER_FILE_TEMP" "$GLOBAL_METER_FILE"
 
     print_turtle_header "groovy, bond fire time"
-    print_tree_start "git.commit.uses block --global"
-    echo "   └─ commits blocked globally"
+    print_tree_start "$METER_SKILL block --global"
+    echo "   └─ $METER_NOUN_PLURAL blocked globally"
+
+    # each meter owns its own kill switch (F10): a commit block leaves releases
+    # live, so a human mid-incident learns the second switch from this render
+    if [[ "$METER_KIND" == "commit" ]]; then
+      print_coconut_hint "releases ride their own switch; this one leaves them live. to halt releases too" \
+        "git.release.uses block --global"
+    fi
     ;;
 
   allow)
@@ -165,14 +184,14 @@ EOF
     if [[ -e "$GLOBAL_METER_FILE" && ! -f "$GLOBAL_METER_FILE" ]]; then
       emit_both "$(
         print_turtle_header "bummer dude..."
-        print_tree_start "git.commit.uses allow --global"
+        print_tree_start "$METER_SKILL allow --global"
         print_tree_malfunction "the global blocker path is not a file"
         echo ""
-        echo "   commits stay blocked until this path is cleared by hand:"
+        echo "   $METER_NOUN_PLURAL stay blocked until this path is cleared by hand:"
         echo "     $GLOBAL_METER_FILE_SHOWN"
-        echo "   inspect it, then remove it:"
-        echo "     \$ ls -la $GLOBAL_METER_FILE_SHOWN"
-        echo "     \$ rm -r $GLOBAL_METER_FILE_SHOWN"
+        print_coconut_hint "inspect the path, then remove it" \
+          "ls -la $GLOBAL_METER_FILE_SHOWN" \
+          "rm -r $GLOBAL_METER_FILE_SHOWN"
       )"
       # a damaged host path is a MALFUNCTION, not bad caller input — the same
       # class `guard_org_meter_is_readable` and `refuse_set_state_damaged`
@@ -186,18 +205,21 @@ EOF
     fi
 
     print_turtle_header "shell yeah, back in the water!"
-    print_tree_start "git.commit.uses allow --global"
-    echo "   └─ commits resumed globally"
+    print_tree_start "$METER_SKILL allow --global"
+    echo "   └─ $METER_NOUN_PLURAL resumed globally"
 
     # nudge: this lifts the fleet-wide blocker, so it is a quota-grant
     # moment for THIS tree same as a local `set` — shared reader, see
     # `print_sponsor_bind_nudge_if_absent` (git.commit.operations.sh).
-    print_sponsor_bind_nudge_if_absent
+    # .note = only the commit meter buys commits, so only it earns the nudge
+    if [[ "$METER_KIND" == "commit" ]]; then
+      print_sponsor_bind_nudge_if_absent
+    fi
     ;;
 
   get)
     print_turtle_header "lets check the global meter..."
-    print_tree_start "git.commit.uses get --global"
+    print_tree_start "$METER_SKILL get --global"
 
     # 🔴 the SHARED reader decides, and this render only asks it.
     #
@@ -216,20 +238,10 @@ EOF
     GLOBAL_BLOCK_STATUS=0
     check_global_blocker || GLOBAL_BLOCK_STATUS=$?
 
-    # 🔴 .why ONE label, nested once = three OVERLAPPING `if`s used to stand
-    #        here (not-2, 2-and-not-corrupt, corrupt), and a reader had to
-    #        hold all three and confirm the last two are mutually exclusive
-    #        with the first to know exactly one ever fires. this mirrors the
-    #        twin surface's own shape (`uses.local get`'s `GLOBAL_BLOCK_LABEL`)
-    #        so the two reads of one file render it the same way, by
-    #        construction (rule.require.named-transformers).
-    GLOBAL_BLOCK_LABEL="not blocked"
-    if [[ "$GLOBAL_BLOCK_STATUS" -eq 2 ]]; then
-      GLOBAL_BLOCK_LABEL="blocked"
-      if [[ "$GLOBAL_BLOCK_CORRUPT" == "true" ]]; then
-        GLOBAL_BLOCK_LABEL="blocked (file corrupt)"
-      fi
-    fi
+    # .why the SHARED leaf = every surface that reads the global blocker
+    #       (commit get, commit get --global, release get) renders it through
+    #       one label leaf, so the three cannot drift (rule.require.named-transformers)
+    GLOBAL_BLOCK_LABEL="$(as_global_block_display status="$GLOBAL_BLOCK_STATUS" corrupt="$GLOBAL_BLOCK_CORRUPT")"
     echo "   └─ global: $GLOBAL_BLOCK_LABEL"
 
     # 🔴 .why the file is NAMED = this render is the most authoritative read
@@ -252,7 +264,7 @@ EOF
 
   *)
     emit_both "✋ ConstraintError: unknown command: $COMMAND
-usage: git.commit.uses --global block|allow|get"
+usage: $METER_SKILL --global block|allow|get"
     exit 2
     ;;
 esac

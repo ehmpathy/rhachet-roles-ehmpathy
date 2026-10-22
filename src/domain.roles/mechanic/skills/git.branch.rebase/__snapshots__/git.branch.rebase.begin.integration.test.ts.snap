@@ -30,14 +30,15 @@ check your network connection and try again
 "
 `;
 
-exports[`git.branch.rebase.begin given: [case4] no push permission granted when: [t0] attempt rebase then: shows error: push permission required 1`] = `
+exports[`git.branch.rebase.begin given: [case4] no commit grant held when: [t0] attempt rebase after a revoke then: shows error: no commit grant on this tree 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: rebase requires push permission
+   └─ ✋ ConstraintError: no commit grant on this tree
 
-ask your human to grant permission:
-  $ rhx git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ a rebase rides the commit grant; ask your human to grant one
+   └─ rhx git.commit.uses set --quant N
 "
 `;
 

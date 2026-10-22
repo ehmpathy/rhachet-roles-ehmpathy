@@ -79,7 +79,7 @@ const setupRebaseInProgress = (): string => {
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
     path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ quant: 5, push: 'allow' }, null, 2),
+    JSON.stringify({ uses: 5, held: true }, null, 2),
   );
 
   // simulate rebase in progress
@@ -130,7 +130,7 @@ const setupNoRebase = (): string => {
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
     path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ quant: 5, push: 'allow' }, null, 2),
+    JSON.stringify({ uses: 5, held: true }, null, 2),
   );
 
   return tempDir;

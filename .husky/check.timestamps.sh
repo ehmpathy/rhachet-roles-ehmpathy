@@ -38,8 +38,10 @@ while IFS= read -r file; do
   # read the staged content; fail loud if git cannot read the staged blob
   # (2>&1 captures git's error into the var so the halt message can surface it)
   if ! content=$(git show ":$file" 2>&1); then
-    printf '💥 check.timestamps: failed to read staged content for %s\n' "$file" >&2
-    printf '   └─ %s\n' "$content" >&2
+    {
+      printf '💥 MalfunctionError: could not read staged content for %s\n' "$file"
+      printf '   └─ %s\n' "$content"
+    } | tee /dev/stderr
     exit 1
   fi
 
@@ -48,8 +50,10 @@ while IFS= read -r file; do
   # and falls through; a line that also holds a real stamp still matches (the stamp wins)
   match=$(printf '%s\n' "$content" | sed -E "s/$DURATION_PATTERN//g" | grep -nIE "$TIMESTAMP_PATTERN" | head -n 1)
   if [ -n "$match" ]; then
-    printf '✋ timestamps are forbidden in snapshots. mask them to prevent permadrift\n'
-    printf '   └─ %s:%s\n' "$file" "$match"
+    {
+      printf '✋ ConstraintError: timestamps are forbidden in snapshots. mask them to prevent permadrift\n'
+      printf '   └─ %s:%s\n' "$file" "$match"
+    } | tee /dev/stderr
     exit 2
   fi
 done <<EOF

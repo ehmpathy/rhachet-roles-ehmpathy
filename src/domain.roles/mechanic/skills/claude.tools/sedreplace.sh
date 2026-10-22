@@ -275,6 +275,10 @@ else
   fi
 fi
 
+# never touch a human-held grant (.meter/, .branch/.bind/), even with
+# --include-ignored: a replace there forges the grant a human stamps
+FILES=$(printf '%s\n' "$FILES" | grep -v -E '(^|/)\.meter(/|$)|(^|/)\.branch/\.bind(/|$)' || true)
+
 if [[ -z "$FILES" ]]; then
   echo "🐢 crickets..."
   echo ""

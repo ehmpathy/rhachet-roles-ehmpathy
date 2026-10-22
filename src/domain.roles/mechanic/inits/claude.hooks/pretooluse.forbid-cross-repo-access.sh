@@ -372,6 +372,28 @@ get_repo_slug() {
   local org="${rel%%/*}"
   local rest="${rel#*/}"
   local repo="${rest%%/*}"
+
+  # 🔴 .why = a worktree path whose tree dir is ABSENT on disk (a removed tree, or a
+  #        glob like `_worktrees/<repo>*`) walks up to `_worktrees/` itself, which no
+  #        git can answer for, so the segment form above named `<org>/_worktrees` —
+  #        a slug no repo has, pasted into a redirect that then fails when run.
+  #        the tree dir is named `<repo>.<owner>.<branch>`, so strip any glob tail,
+  #        then shed one `.`-segment at a time until a real clone answers. the walk
+  #        asks the disk, never a guess about how many dots a repo name holds
+  if [[ "$repo" == "_worktrees" ]]; then
+    local treedir="${rest#*/}"
+    treedir="${treedir%%/*}"
+    treedir="${treedir%%[*?[]*}"
+    while [[ -n "$treedir" ]]; do
+      if [[ -d "$GIT_ROOT/$org/$treedir" ]]; then
+        echo "$org/$treedir"
+        return 0
+      fi
+      [[ "$treedir" == *.* ]] || break
+      treedir="${treedir%.*}"
+    done
+  fi
+
   echo "$org/$repo"
 }
 

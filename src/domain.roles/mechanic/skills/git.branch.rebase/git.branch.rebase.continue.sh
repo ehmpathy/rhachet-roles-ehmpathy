@@ -69,11 +69,11 @@ if [[ -n "$CONFLICT_FILES" ]]; then
   if [[ -n "$CONFLICT_COMMIT" ]]; then
     echo "   │  ├─ commit: $CONFLICT_COMMIT"
   fi
-  echo "   │  └─ files"
-  print_files_tree "   │     " "$CONFLICT_FILES"
-  echo "   └─ next steps"
-  echo "      ├─ settle conflicts in files above"
-  echo "      └─ rhx git.branch.rebase continue"
+  echo "   └─ files"
+  print_files_tree "      " "$CONFLICT_FILES"
+  print_coconut_hint "settle the conflicts in the files above, stage them, then continue" \
+    "rhx git.stage.add <files>" \
+    "rhx git.branch.rebase continue"
   exit 1
 fi
 
@@ -98,8 +98,9 @@ CURRENT_NUM=$(get_current_commit_num)
 export GIT_EDITOR="true"
 
 # capture git output
-GIT_OUTPUT=$(git rebase --continue 2>&1) || true
-GIT_EXIT_CODE=$?
+# capture the real exit code: `$?` after `|| true` always reads 0
+GIT_EXIT_CODE=0
+GIT_OUTPUT=$(git rebase --continue 2>&1) || GIT_EXIT_CODE=$?
 
 # check if still in progress (more commits to process) or complete
 if ! is_rebase_in_progress; then
@@ -110,7 +111,7 @@ if ! is_rebase_in_progress; then
   echo "   │  ├─ commits: $TOTAL_COMMITS ✓"
   echo "   │  └─ status: complete"
   echo "   ├─ meter"
-  echo "   │  └─ push: allowed"
+  echo "   │  └─ push: held"
   echo "   └─ git.output"
   print_git_output_tree "$GIT_OUTPUT"
   echo ""
@@ -133,11 +134,11 @@ if [[ -n "$NEW_CONFLICTS" ]]; then
   fi
   echo "   │  └─ files"
   print_files_tree "   │     " "$NEW_CONFLICTS"
-  echo "   ├─ next steps"
-  echo "   │  ├─ settle conflicts in files above"
-  echo "   │  └─ rhx git.branch.rebase continue"
   echo "   └─ git.output"
   print_git_output_tree "$GIT_OUTPUT"
+  print_coconut_hint "settle the conflicts in the files above, stage them, then continue" \
+    "rhx git.stage.add <files>" \
+    "rhx git.branch.rebase continue"
   exit 1
 fi
 
@@ -151,12 +152,30 @@ if [[ -n "$UNSTAGED_FILES" ]]; then
   echo "   ├─ unstaged"
   echo "   │  └─ files"
   print_files_tree "   │     " "$UNSTAGED_FILES"
-  echo "   ├─ next steps"
-  echo "   │  ├─ git diff"
-  echo "   │  ├─ rhx git.stage.add <files>"
-  echo "   │  └─ rhx git.branch.rebase continue"
   echo "   └─ git.output"
   print_git_output_tree "$GIT_OUTPUT"
+  print_coconut_hint "review the unstaged files, stage them, then continue" \
+    "git diff" \
+    "rhx git.stage.add <files>" \
+    "rhx git.branch.rebase continue"
+  exit 1
+fi
+
+# git refused the continue with no conflict and no unstaged file to name
+# (an empty commit, a rejected hook): never render it as progress
+if [[ "$GIT_EXIT_CODE" -ne 0 ]]; then
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.branch.rebase continue"
+    echo "   ├─ rebase"
+    echo "   │  └─ status: halted"
+    echo "   ├─ 💥 MalfunctionError: git rebase --continue failed (exit $GIT_EXIT_CODE)"
+    echo "   └─ git.output"
+    print_git_output_tree "$GIT_OUTPUT"
+    print_coconut_hint "read the git output above; settle it, or abandon the rebase" \
+      "git status" \
+      "rhx git.branch.rebase abort"
+  )"
   exit 1
 fi
 

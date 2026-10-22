@@ -31,7 +31,7 @@
       // mechanic can `get` (read quota) but never `set` or `allow` (grant itself
       // more). `allow` is the skill's OWN documented shorthand for an unlimited
       // quota grant (`allow`, `allow --global`, `allow --org`) — exactly as
-      // dangerous as `set --quant 999 --push allow`. `block`/`del`/`get` are the
+      // dangerous as `set --quant 999`. `block`/`del`/`get` are the
       // safe, de-escalation direction and stay allowed.
       // deny BOTH invocation shapes: the `npx rhachet run --skill` form AND the
       // bare `rhx` alias. the bare form is NOT suspicious-syntax (no parens/pipe),
@@ -65,6 +65,29 @@
       // (local `git.commit.uses del` stays allowed — it is an unconditional revoke.)
       "Bash(rhx git.commit.uses --org * del:*)",
       "Bash(npx rhachet run --skill git.commit.uses --org * del:*)",
+
+      // git.release.uses set/allow — only humans can grant a release
+      // a release ships, so this meter is the costlier of the two. the same
+      // shapes as git.commit.uses above are denied, for the same reasons: both
+      // invocation shapes, the `--` passthrough, the flag-before-verb forms, and
+      // the org-scoped del that falls back to a permissive `@all`.
+      // `block`/`del`/`get` in the LOCAL scope stay allowed — the safe direction.
+      // .note = the skill also refuses every write with no tty; this list stops
+      //         the invocation, the tty guard travels with the code.
+      "Bash(npx rhachet run --skill git.release.uses set:*)",
+      "Bash(npx rhachet run --skill git.release.uses -- set:*)",
+      "Bash(rhx git.release.uses set:*)",
+      "Bash(rhx git.release.uses -- set:*)",
+      "Bash(npx rhachet run --skill git.release.uses allow:*)",
+      "Bash(npx rhachet run --skill git.release.uses -- allow:*)",
+      "Bash(rhx git.release.uses allow:*)",
+      "Bash(rhx git.release.uses -- allow:*)",
+      "Bash(rhx git.release.uses --global allow:*)",
+      "Bash(rhx git.release.uses --org * allow:*)",
+      "Bash(npx rhachet run --skill git.release.uses --global allow:*)",
+      "Bash(npx rhachet run --skill git.release.uses --org * allow:*)",
+      "Bash(rhx git.release.uses --org * del:*)",
+      "Bash(npx rhachet run --skill git.release.uses --org * del:*)",
 
       // git.commit.bind — only humans can set/del the commit level
       // mechanic can `get` (check bound level) but never `set` or `del`
@@ -370,6 +393,10 @@
       "Bash(npx rhachet run --skill git.commit.uses:*)",
       "Bash(npx rhachet run --skill git.commit.uses get)",
 
+      // git.release.uses - check the release meter (get only; set/allow denied)
+      "Bash(npx rhachet run --skill git.release.uses:*)",
+      "Bash(npx rhachet run --skill git.release.uses get)",
+
       // git.commit.bind - check bound level (get only; set/del are denied)
       "Bash(npx rhachet run --skill git.commit.bind:*)",
       "Bash(npx rhachet run --skill git.commit.bind get)",
@@ -408,7 +435,7 @@
       "Bash(npx rhachet run --skill git.commit.push:*)",
       "Bash(rhx git.commit.push:*)",
 
-      // git.stage.add - stage files for commit (requires --stage allow in quota)
+      // git.stage.add - stage files for commit (rides the live commit grant)
       // note: does NOT decrement uses (quota counts commits only)
       // note: --all and unbound globs are forbidden
       "Bash(npx rhachet run --skill git.stage.add:*)",

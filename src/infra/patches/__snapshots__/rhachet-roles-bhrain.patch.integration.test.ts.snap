@@ -9,3 +9,11 @@ exports[`rhachet-roles-bhrain patch: promised emit given: [case1] a promise with
    └─ next = review.self 3/5
       └─ to be handed it, run: rhx route.stone.set --stone 1.vision --as passed"
 `;
+
+exports[`rhachet-roles-bhrain patch: promised emit given: [case2] a promise with no review left when: [t0] the promised emit renders then: the emit matches snapshot 1`] = `
+"🦉 the way speaks for itself
+
+🗿 route.stone.set
+   ├─ stone = 1.vision
+   └─ passage = progressed (review.self 5/5 promised)"
+`;
