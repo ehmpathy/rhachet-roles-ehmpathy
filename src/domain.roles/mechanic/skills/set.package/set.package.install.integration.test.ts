@@ -1,5 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import { ConstraintError } from 'helpful-errors';
 import * as os from 'os';
 import * as path from 'path';
 import { given, then, useBeforeAll, useThen, when } from 'test-fns';
@@ -139,6 +140,47 @@ exit 1
       .replace(/\/home\/[^\s]+\/.route/g, '.route')
       .replace(/v\d{4}_\d{2}_\d{2}\.package\.install/g, 'vDATE.package.install')
       .replace(/\d+\.\d+\.\d+/g, 'X.Y.Z');
+  };
+
+  /**
+   * .what = provision the repo's pinned pnpm into a bin dir, via corepack
+   * .why = the ci test jobs install no pnpm, so a bare host pnpm is a host dep
+   *        (rule.forbid.bare-host-deps); corepack ships with node and fetches
+   *        the exact version this repo's package.json pins
+   */
+  const genPnpmBinDir = (input: { tempDir: string }): string => {
+    // read the pin from this repo's package.json, never a magic version
+    const repoPkg = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, '../../../../../package.json'),
+        'utf-8',
+      ),
+    );
+    const pnpmPinned: string = repoPkg.packageManager ?? '';
+    if (!/^pnpm@\d+\.\d+\.\d+$/.test(pnpmPinned))
+      throw new ConstraintError(
+        'genPnpmBinDir: package.json packageManager is not a pnpm pin',
+        {
+          packageManager: pnpmPinned,
+          hint: "pin pnpm in package.json, e.g. packageManager: 'pnpm@10.24.0'",
+        },
+      );
+
+    // write a pnpm shim that runs the pinned version, with no prompt and no auto-pin
+    const binDir = path.join(input.tempDir, '.pnpmbin');
+    fs.mkdirSync(binDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(binDir, 'pnpm'),
+      [
+        '#!/bin/bash',
+        'export COREPACK_ENABLE_DOWNLOAD_PROMPT=0',
+        'export COREPACK_ENABLE_AUTO_PIN=0',
+        `exec corepack ${pnpmPinned} "$@"`,
+        '',
+      ].join('\n'),
+    );
+    fs.chmodSync(path.join(binDir, 'pnpm'), '755');
+    return binDir;
   };
 
   /**
@@ -1034,9 +1076,13 @@ echo '${input.answer ?? '{}'}'
     when('[t0] install is called', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir();
       afterAll(() => cleanup());
-      setFakeTool({ fakeBinDir, tool: 'pnpm', body: 'exit 1' });
+      setFakeTool({
+        fakeBinDir,
+        tool: 'pnpm',
+        body: 'echo "ERR_PNPM_FETCH_404  GET https://registry.npmjs.org/test-fns: Not Found" >&2; exit 1',
+      });
 
-      then('the failure is named on both streams', () => {
+      then('the failure is named on both streams, with the cause', () => {
         const result = runSkill(
           [
             '--package',
@@ -1053,6 +1099,7 @@ echo '${input.answer ?? '{}'}'
         expect(result.exitCode).not.toBe(0);
         expect(result.stdout).toContain('install failed');
         expect(result.stderr).toContain('install failed');
+        expect(result.stdout).toContain('ERR_PNPM_FETCH_404');
         expect(asStableOutput(result.stdout)).toMatchSnapshot('install-failed');
       });
     });
@@ -1067,7 +1114,8 @@ echo '${input.answer ?? '{}'}'
           const { tempDir, cleanup } = createTempDir();
           afterAll(() => cleanup());
 
-          // no fakeBinDir: real npm view, real registry audit, real pnpm add
+          // no fakes: real npm view, real registry audit, real pnpm add (the pinned pnpm, via corepack)
+          const pnpmBinDir = genPnpmBinDir({ tempDir });
           const scene = useBeforeAll(async () => {
             const result = runSkill(
               [
@@ -1080,7 +1128,7 @@ echo '${input.answer ?? '{}'}'
                 '--reason',
                 'real registry',
               ],
-              { cwd: tempDir },
+              { cwd: tempDir, fakeBinDir: pnpmBinDir },
             );
             const pkgJson = JSON.parse(
               fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),

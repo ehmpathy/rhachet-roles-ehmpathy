@@ -599,33 +599,3 @@ exports[`pretooluse.check-permissions.sh (acceptance) given: [case19] the built 
 
 "
 `;
-
-exports[`pretooluse.check-permissions.sh (acceptance) given: [case21] a linked repo on the split layout rhachet >= 1.49.2 seeds when: [t0] the bot runs a command the repo allowlist paves then: the silent pass matches snapshot 1`] = `
-{
-  "code": 0,
-  "stderr": "",
-  "stdout": "",
-}
-`;
-
-exports[`pretooluse.check-permissions.sh (acceptance) given: [case21] a linked repo on the split layout rhachet >= 1.49.2 seeds when: [t1] the bot runs \`grep -rln reef src/\` then: the gate blocks with its paved alternatives, and no malfunction 1`] = `
-"
-✋ ConstraintError: this command is not paved
-   ├─ blocked: grep -rln reef src/
-   └─ paved alternatives for \`grep\`
-      ├─ rhx grepsafe --pattern '<regex>' --path <dir>
-      └─ rhx git.repo.get lines --in <org/repo> --words '<text>'
-
-🐚 pave what recurs
-   ├─ you will use it again? pave it
-   ├─ a future traveler will need it? pave it
-   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
-   └─ where? always start in .agent/repo=.this/role=any/skills/
-
-🥥 did you know?
-   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'grep -rln reef src/'
-   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
-   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
-
-"
-`;

@@ -197,6 +197,19 @@ describe('git.repo.get.sh', () => {
     const refreshFlag = options?.refresh === 'on' ? '' : '--refresh off';
     const fullArgs = `${args} ${refreshFlag}`.trim();
 
+    // pin gh to no credential: a host's GH_TOKEN (ci sets one) or its gh login
+    // would otherwise decide whether the cloud lookup runs (rule.require.hermetic-tests)
+    const ghConfigDir = path.join(env.HOME, '.gh-empty');
+    fs.mkdirSync(ghConfigDir, { recursive: true });
+    const envHermetic: NodeJS.ProcessEnv = {
+      ...process.env,
+      HOME: env.HOME,
+      GH_CONFIG_DIR: ghConfigDir,
+      ...(env.PATH ? { PATH: env.PATH } : {}),
+    };
+    delete envHermetic.GH_TOKEN;
+    delete envHermetic.GITHUB_TOKEN;
+
     const result = spawnSync(
       'bash',
       [scriptPath, ...fullArgs.split(' ').filter(Boolean)],
@@ -205,11 +218,7 @@ describe('git.repo.get.sh', () => {
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'pipe'],
         timeout: 30000,
-        env: {
-          ...process.env,
-          HOME: env.HOME,
-          ...(env.PATH ? { PATH: env.PATH } : {}),
-        },
+        env: envHermetic,
       },
     );
 
@@ -450,6 +459,56 @@ describe('git.repo.get.sh', () => {
         }
       });
     });
+
+    when(
+      '[t2] the real gh holds no github credential, inside a github actions job',
+      () => {
+        then('still names the login, not a repo that may well exist', () => {
+          const { homeDir, cleanup } = genTempDir();
+          try {
+            // .why = with GITHUB_ACTIONS=true the real gh words its refusal as
+            //        "set the GH_TOKEN environment variable", with no mention of
+            //        `gh auth login`; that wording once read as "repo not found"
+            const ghConfigDir = path.join(homeDir, '.gh-empty');
+            fs.mkdirSync(ghConfigDir, { recursive: true });
+            const env: NodeJS.ProcessEnv = {
+              ...process.env,
+              HOME: homeDir,
+              GH_CONFIG_DIR: ghConfigDir,
+              GITHUB_ACTIONS: 'true',
+            };
+            delete env.GH_TOKEN;
+            delete env.GITHUB_TOKEN;
+
+            const spawned = spawnSync(
+              'bash',
+              [
+                scriptPath,
+                'files',
+                '--in',
+                'ehmpathy/rhachet-roles-ehmpathy',
+                '--refresh',
+                'off',
+              ],
+              {
+                encoding: 'utf-8', // note: library api requires this term
+                stdio: ['pipe', 'pipe', 'pipe'],
+                timeout: 60000,
+                env,
+              },
+            );
+
+            expect(spawned.status).toBe(2);
+            expect(spawned.stdout).toContain(
+              '✋ ConstraintError: gh is not logged in',
+            );
+            expect(spawned.stdout).not.toContain('repo not found');
+          } finally {
+            cleanup();
+          }
+        });
+      },
+    );
   });
 
   // .why = `lines` reaches the same lookup as `files` through its own caller

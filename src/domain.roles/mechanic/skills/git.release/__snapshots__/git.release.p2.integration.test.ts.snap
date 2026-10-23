@@ -625,7 +625,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-release-only] 
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 💥 MalfunctionError: could not refund the release use; .meter/git.release.uses.jsonc could not be read (jq: parse error: Invalid literal at line 1, column 6)
+   ├─ 💥 MalfunctionError: could not refund the release use; .meter/git.release.uses.jsonc could not be read (<jq error>)
    └─ 💥 MalfunctionError: could not arm the merge of pr #42; gh printed the cause on stderr
 
 🐚 release stamp
@@ -636,7 +636,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-release-only] 
 
 exports[`git.release.p2 permission requirements given: [case-perm-release-only] a release grant with no commit grant when: [t4] the stamp turns damaged mid-apply, then the arm fails then: the refund fails loud as a malfunction, never as a human change 2`] = `
 "GraphQL: Resource not accessible by integration (mergePullRequest)
-   ├─ 💥 MalfunctionError: could not refund the release use; .meter/git.release.uses.jsonc could not be read (jq: parse error: Invalid literal at line 1, column 6)
+   ├─ 💥 MalfunctionError: could not refund the release use; .meter/git.release.uses.jsonc could not be read (<jq error>)
    └─ 💥 MalfunctionError: could not arm the merge of pr #42; gh printed the cause on stderr
 "
 `;

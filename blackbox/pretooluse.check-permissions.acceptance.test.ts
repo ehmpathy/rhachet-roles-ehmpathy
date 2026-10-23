@@ -5,9 +5,7 @@ import * as path from 'path';
 import { ConstraintError } from 'helpful-errors';
 import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 
-import { genTestDir, invokeHook } from './.test/invokeHook';
-import { setFixtureLayoutOld } from './.test/setFixtureLayoutOld';
-import { setFixtureFile } from './.test/setFixtureFile';
+import { genTestDir, invokeHook, setTestRepoSettings } from './.test/invokeHook';
 
 /**
  * .what = acceptance tests for the check-permissions PreToolUse hook, one per vision journey
@@ -22,8 +20,7 @@ import { setFixtureFile } from './.test/setFixtureFile';
  *
  * .pattern = blackbox against the linked role:
  *   1. clone the fixture repo and link the mechanic role (genTestDir)
- *   2. pin the old settings layout, then write the repo's .claude/settings.json allowlist
- *      ([case-split] covers the split layout rhachet >= 1.49.2 seeds)
+ *   2. write the repo's .claude/settings.of.repo.json allowlist
  *   3. pipe a PreToolUse payload into the linked hook; read exit code + both streams
  */
 
@@ -53,13 +50,9 @@ const genHookRepo = async (input: {
   allow?: string[];
 }): Promise<{ dir: string }> => {
   const dir = await genTestDir({ slug: input.slug });
-  setFixtureLayoutOld({ dir });
-  setFixtureFile({
+  setTestRepoSettings({
     dir,
-    relPath: '.claude/settings.json',
-    content: JSON.stringify({
-      permissions: { allow: input.allow ?? ALLOW, deny: [], ask: [] },
-    }),
+    settings: { permissions: { allow: input.allow ?? ALLOW, deny: [], ask: [] } },
   });
   return { dir };
 };
@@ -679,7 +672,7 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
   given('[case11] the repo settings cannot be parsed', () => {
     const repo = useBeforeAll(async () => {
       const fresh = await genHookRepo({ slug: 'cp-settings-broken' });
-      setFixtureFile({ dir: fresh.dir, relPath: '.claude/settings.json', content: '{ broken' });
+      setTestRepoSettings({ dir: fresh.dir, settings: { raw: '{ broken' } });
       return fresh;
     });
 
@@ -725,11 +718,10 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
   given('[case15] the nudge record holds no valid json', () => {
     const repo = useBeforeAll(async () => {
       const fresh = await genHookRepo({ slug: 'cp-record-broken' });
-      setFixtureFile({
-        dir: fresh.dir,
-        relPath: '.claude/permission.nudges.local.json',
-        content: '{ broken',
-      });
+      fs.writeFileSync(
+        path.join(fresh.dir, '.claude', 'permission.nudges.local.json'),
+        '{ broken',
+      );
       return fresh;
     });
 
@@ -910,47 +902,6 @@ describe('pretooluse.check-permissions.sh (acceptance)', () => {
       });
 
       then('the render matches snapshot', () => {
-        expect(res.stderr).toMatchSnapshot();
-      });
-    });
-  });
-
-  given('[case21] a linked repo on the split layout rhachet >= 1.49.2 seeds', () => {
-    // the layout `rhachet roles link` leaves: the repo allowlist lives in settings.of.repo.json
-    const repo = useBeforeAll(async () => {
-      const dir = await genTestDir({ slug: 'cp-split' });
-      setFixtureFile({
-        dir,
-        relPath: '.claude/settings.of.repo.json',
-        content: JSON.stringify({ permissions: { allow: ALLOW, deny: [], ask: [] } }),
-      });
-      return { dir };
-    });
-
-    when('[t0] the bot runs a command the repo allowlist paves', () => {
-      const res = useThen('the hook runs', async () =>
-        invokeBash({ repo: repo.dir, command: 'git diff --stat' }),
-      );
-
-      then('the command passes, silent', () => {
-        expect(res.code).toBe(0);
-        expect(res.stderr).toBe('');
-      });
-
-      then('the silent pass matches snapshot', () => {
-        expect({ code: res.code, stdout: res.stdout, stderr: res.stderr }).toMatchSnapshot();
-      });
-    });
-
-    when('[t1] the bot runs `grep -rln reef src/`', () => {
-      const res = useThen('the hook runs', async () =>
-        invokeBash({ repo: repo.dir, command: 'grep -rln reef src/' }),
-      );
-
-      then('the gate blocks with its paved alternatives, and no malfunction', () => {
-        expect(res.code).toBe(2);
-        expect(res.stderr).toContain('rhx grepsafe');
-        expect(res.stderr).not.toContain('MalfunctionError');
         expect(res.stderr).toMatchSnapshot();
       });
     });

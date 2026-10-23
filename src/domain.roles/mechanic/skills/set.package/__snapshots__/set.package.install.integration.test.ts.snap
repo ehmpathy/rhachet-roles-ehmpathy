@@ -61,13 +61,13 @@ exports[`set.package.install.sh given: [case20] a dist-tag the registry does not
 "
 `;
 
-exports[`set.package.install.sh given: [case21] the package manager fails the add when: [t0] install is called then: the failure is named on both streams: install-failed 1`] = `
+exports[`set.package.install.sh given: [case21] the package manager fails the add when: [t0] install is called then: the failure is named on both streams, with the cause: install-failed 1`] = `
 "🐢 bummer dude...
 
 🐚 set.package.install
    ├─ package: test-fns
    ├─ version: X.Y.Z
-   └─ ✋ ConstraintError: install failed
+   └─ ✋ ConstraintError: install failed (pnpm exit 1: ERR_PNPM_FETCH_404  GET https://registry.npmjs.org/test-fns: Not Found)
 "
 `;
 
