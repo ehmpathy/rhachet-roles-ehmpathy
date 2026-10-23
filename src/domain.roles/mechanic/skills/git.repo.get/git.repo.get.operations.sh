@@ -165,8 +165,10 @@ refresh_local_repo() {
 # .why = only phrases gh itself prints on a credential refusal; a bare
 #        `authentication` would also match a repo name or an unrelated error
 #        that merely holds the word, and misread a true 404 as a login problem
+# .note = inside a github actions job gh words its refusal differently: "set the
+#         GH_TOKEN environment variable", with no mention of `gh auth login`
 is_gh_auth_refusal() {
-  grep -qiE 'gh auth login|not logged in|requires authentication|bad credentials|http 401|populate the gh_token' <<< "$1"
+  grep -qiE 'gh auth login|not logged in|requires authentication|bad credentials|http 401|populate the gh_token|set the gh_token environment variable' <<< "$1"
 }
 
 ######################################################################

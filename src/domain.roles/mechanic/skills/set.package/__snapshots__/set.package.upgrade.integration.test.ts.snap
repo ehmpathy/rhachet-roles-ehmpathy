@@ -29,12 +29,12 @@ exports[`set.package.upgrade.sh given: [case9] a dist-tag the registry does not 
 "
 `;
 
-exports[`set.package.upgrade.sh given: [case10] the package manager fails the add when: [t0] upgrade is called then: the failure is named on both streams: upgrade-failed 1`] = `
+exports[`set.package.upgrade.sh given: [case10] the package manager fails the add when: [t0] upgrade is called then: the failure is named on both streams, with the cause: upgrade-failed 1`] = `
 "🐢 bummer dude...
 
 🐚 set.package.upgrade
    ├─ package: test-fns
-   └─ ✋ ConstraintError: upgrade failed
+   └─ ✋ ConstraintError: upgrade failed (pnpm exit 1: ERR_PNPM_FETCH_404  GET https://registry.npmjs.org/test-fns: Not Found)
 "
 `;
 

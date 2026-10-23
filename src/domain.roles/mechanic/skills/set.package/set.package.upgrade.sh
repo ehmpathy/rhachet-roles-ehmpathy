@@ -84,10 +84,11 @@ _upgrade_package() {
   local version="$2"
   local pm="$3"
 
+  # both streams return to the caller, so a failure can name its cause
   if [[ "$pm" == "npm" ]]; then
-    npm install "${package}@${version}" >/dev/null 2>&1
+    npm install "${package}@${version}" 2>&1
   else
-    pnpm add "${package}@${version}" >/dev/null 2>&1
+    pnpm add "${package}@${version}" 2>&1
   fi
 }
 
@@ -189,12 +190,18 @@ main() {
   pm=$(_detect_package_manager "$repo_root")
 
   # upgrade
-  if ! _upgrade_package "$PACKAGE" "$actual_version" "$pm"; then
+  # capture status and output, so a failure names the package manager's cause
+  local upgrade_output
+  local upgrade_status=0
+  upgrade_output=$(_upgrade_package "$PACKAGE" "$actual_version" "$pm") || upgrade_status=$?
+  if [[ $upgrade_status -ne 0 ]]; then
+    local upgrade_cause
+    upgrade_cause=$(echo "$upgrade_output" | awk 'NF' | tail -n 1)
     OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.upgrade"
     print_tree_leaf "package" "$PACKAGE"
-    print_error "upgrade failed"
+    print_error "upgrade failed ($pm exit $upgrade_status: ${upgrade_cause:-no output})"
     exit 2
   fi
 
