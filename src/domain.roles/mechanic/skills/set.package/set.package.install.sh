@@ -189,17 +189,18 @@ _install_package() {
   local dep_type="$3"
   local pm="$4"
 
+  # both streams return to the caller, so a failure can name its cause
   if [[ "$pm" == "npm" ]]; then
     if [[ "$dep_type" == "prep" ]]; then
-      npm install --save-dev "${package}@${version}" >/dev/null 2>&1
+      npm install --save-dev "${package}@${version}" 2>&1
     else
-      npm install --save "${package}@${version}" >/dev/null 2>&1
+      npm install --save "${package}@${version}" 2>&1
     fi
   else
     if [[ "$dep_type" == "prep" ]]; then
-      pnpm add -D "${package}@${version}" >/dev/null 2>&1
+      pnpm add -D "${package}@${version}" 2>&1
     else
-      pnpm add "${package}@${version}" >/dev/null 2>&1
+      pnpm add "${package}@${version}" 2>&1
     fi
   fi
 }
@@ -301,14 +302,19 @@ main() {
   local pm
   pm=$(_detect_package_manager "$repo_root")
 
-  # install
-  if ! _install_package "$PACKAGE" "$actual_version" "$DEP_TYPE" "$pm"; then
+  # install - capture status and output, so a failure names the package manager's cause
+  local install_output
+  local install_status=0
+  install_output=$(_install_package "$PACKAGE" "$actual_version" "$DEP_TYPE" "$pm") || install_status=$?
+  if [[ $install_status -ne 0 ]]; then
+    local install_cause
+    install_cause=$(echo "$install_output" | awk 'NF' | tail -n 1)
     OUTPUT_STREAM="both"
     print_turtle_header "bummer dude..."
     print_tree_start "set.package.install"
     print_tree_leaf "package" "$PACKAGE"
     print_tree_leaf "version" "$actual_version"
-    print_error "install failed"
+    print_error "install failed ($pm exit $install_status: ${install_cause:-no output})"
     exit 2
   fi
 

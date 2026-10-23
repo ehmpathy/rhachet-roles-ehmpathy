@@ -139,6 +139,15 @@ export const asPollCollapsed = (input: string): string => {
   return collapsedLines.join('\n');
 };
 
+/**
+ * .what = mask the parse cause jq appends to an unreadable-file malfunction
+ * .why = jq words its parse error per version ("Invalid literal" on one runner,
+ *        "jq: ... Invalid numeric literal" on another); the malfunction itself
+ *        stays pinned, only jq's own words are masked
+ */
+export const asJqErrorMasked = (input: string): string =>
+  input.replace(/\(jq: [^)]*\)/g, '(<jq error>)');
+
 // ============================================================================
 // full preparation
 // ============================================================================
@@ -153,6 +162,7 @@ export const asSnapshotReady = (input: string): string => {
   result = asTimeReplaced(result);
   result = asUrlReplaced(result);
   result = asPollCollapsed(result);
+  result = asJqErrorMasked(result);
   return result;
 };
 
@@ -166,5 +176,6 @@ export const asSnapshotReadyWithAnsi = (input: string): string => {
   result = asTimeReplaced(result);
   result = asUrlReplaced(result);
   result = asPollCollapsed(result);
+  result = asJqErrorMasked(result);
   return result;
 };
