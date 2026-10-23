@@ -563,7 +563,7 @@ describe('boot.budget', () => {
               });
               const output = execSync(
                 `npx rhachet roles boot --what '${pathToSpecSlice}' --subject '${cap.slugSubject}'`,
-                { encoding: 'utf-8', timeout: 40_000, cwd: dirRepo },
+                { encoding: 'utf-8', timeout: TIMEOUT_MS_COST, cwd: dirRepo },
               );
               return {
                 section: specSlice[`subject.${cap.slugSubject}`]!,
