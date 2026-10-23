@@ -15,20 +15,26 @@ describe('git.stage.add.sh', () => {
   const runInTempGitRepo = (args: {
     args: string[];
     files?: Record<string, string>;
-    meterState?: { uses: number | string; push: string; stage?: string };
+    meterState?: {
+      uses: number | string;
+      held?: boolean;
+      push?: string;
+      stage?: string;
+    };
+    meterRaw?: string;
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
     const tempDir = genTempDir({ slug: 'git-stage-add-test', git: true });
 
     // configure git user
     configureTestGitUser({ cwd: tempDir });
 
-    // create .meter state
-    if (args.meterState) {
+    // create .meter state; raw bytes drive the damaged-file branch
+    if (args.meterState || args.meterRaw !== undefined) {
       const meterDir = path.join(tempDir, '.meter');
       fs.mkdirSync(meterDir, { recursive: true });
       fs.writeFileSync(
         path.join(meterDir, 'git.commit.uses.jsonc'),
-        JSON.stringify(args.meterState, null, 2),
+        args.meterRaw ?? JSON.stringify(args.meterState, null, 2),
       );
     }
 
@@ -66,8 +72,16 @@ describe('git.stage.add.sh', () => {
   const runWithGlobalStorage = (args: {
     args: string[];
     files?: Record<string, string>;
-    meterState?: { uses: number | string; push: string; stage?: string };
+    meterState?: {
+      uses: number | string;
+      held?: boolean;
+      push?: string;
+      stage?: string;
+    };
     globalBlocker?: boolean;
+    // raw bytes for the global blocker file, written INSTEAD of globalBlocker
+    globalRaw?: string;
+    rebaseInProgress?: boolean;
   }): {
     stdout: string;
     stderr: string;
@@ -100,12 +114,19 @@ describe('git.stage.add.sh', () => {
     }
 
     // create global blocker
-    if (args.globalBlocker) {
+    if (args.globalBlocker || args.globalRaw !== undefined) {
       fs.mkdirSync(globalMeterDir, { recursive: true });
       fs.writeFileSync(
         path.join(globalMeterDir, 'git.commit.uses.jsonc'),
-        JSON.stringify({ blocked: true }, null, 2),
+        args.globalRaw ?? JSON.stringify({ blocked: true }, null, 2),
       );
+    }
+
+    // simulate a rebase in progress (the probe reads .git/rebase-merge)
+    if (args.rebaseInProgress) {
+      fs.mkdirSync(path.join(tempDir, '.git', 'rebase-merge'), {
+        recursive: true,
+      });
     }
 
     // create test files
@@ -147,7 +168,7 @@ describe('git.stage.add.sh', () => {
             'src/file1.ts': 'content1',
             'src/file2.ts': 'content2',
           },
-          meterState: { uses: 5, push: 'allow', stage: 'allow' },
+          meterState: { uses: 5, held: true },
         });
 
         expect(result.exitCode).toBe(0);
@@ -172,7 +193,7 @@ describe('git.stage.add.sh', () => {
         const result = runInTempGitRepo({
           args: ['test.txt'],
           files: { 'test.txt': 'content' },
-          meterState: { uses: 5, push: 'allow', stage: 'allow' },
+          meterState: { uses: 5, held: true },
         });
 
         expect(result.exitCode).toBe(0);
@@ -196,7 +217,7 @@ describe('git.stage.add.sh', () => {
             'file2.ts': 'content2',
             'src/nested.ts': 'content3',
           },
-          meterState: { uses: 5, push: 'allow', stage: 'allow' },
+          meterState: { uses: 5, held: true },
         });
 
         expect(result.exitCode).toBe(0);
@@ -220,44 +241,108 @@ describe('git.stage.add.sh', () => {
   // no permission
   // ========================================
 
-  given('[case3] stage without permission', () => {
-    when('[t0] stage is blocked', () => {
-      then('error: stage not allowed', () => {
+  given('[case3] stage without a live commit grant', () => {
+    when('[t0] the commit grant was revoked', () => {
+      then('ConstraintError: no live commit grant', () => {
         const result = runInTempGitRepo({
           args: ['test.txt'],
           files: { 'test.txt': 'content' },
-          meterState: { uses: 5, push: 'allow', stage: 'block' },
+          meterState: { uses: 0, held: false },
         });
 
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('hold up dude');
-        expect(result.stdout).toContain('error: stage not allowed');
+        expect(result.stdout).toContain(
+          'ConstraintError: no live commit grant',
+        );
+        expect(result.stdout).toContain('git.commit.uses set --quant N');
         expect(result.stdout).toMatchSnapshot();
       });
     });
 
-    when('[t1] no stage field (legacy state)', () => {
-      then('error: stage not allowed (defaults to block)', () => {
+    when('[t1] the commit grant is held but depleted', () => {
+      then('ConstraintError: no live commit grant', () => {
+        const result = runInTempGitRepo({
+          args: ['test.txt'],
+          files: { 'test.txt': 'content' },
+          meterState: { uses: 0, held: true },
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain(
+          'ConstraintError: no live commit grant',
+        );
+      });
+    });
+
+    when('[t2] no quota file', () => {
+      then('ConstraintError: no live commit grant', () => {
+        const result = runInTempGitRepo({
+          args: ['test.txt'],
+          files: { 'test.txt': 'content' },
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain(
+          'ConstraintError: no live commit grant',
+        );
+      });
+    });
+
+    when('[t3] a legacy grant with no stage field', () => {
+      then('stage rides the commit grant and proceeds', () => {
         const result = runInTempGitRepo({
           args: ['test.txt'],
           files: { 'test.txt': 'content' },
           meterState: { uses: 5, push: 'allow' },
         });
 
-        expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('error: stage not allowed');
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('staged: test.txt');
       });
     });
 
-    when('[t2] no quota file', () => {
-      then('error: stage not allowed', () => {
+    when('[t3b] a legacy grant whose retired stage field reads block', () => {
+      then(
+        'stage rides the live commit grant; the retired field gates naught (F12)',
+        () => {
+          const result = runInTempGitRepo({
+            args: ['test.txt'],
+            files: { 'test.txt': 'content' },
+            meterState: { uses: 5, push: 'allow', stage: 'block' },
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('staged: test.txt');
+        },
+      );
+
+      then('the same file at 0 uses left still refuses', () => {
         const result = runInTempGitRepo({
           args: ['test.txt'],
           files: { 'test.txt': 'content' },
+          meterState: { uses: 0, push: 'block', stage: 'block' },
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('error: stage not allowed');
+        expect(result.stdout).toContain('ConstraintError');
+      });
+    });
+
+    when('[t4] a release grant alone, no commit grant', () => {
+      then('ConstraintError: a release stamp carries no commit auth', () => {
+        const result = runInTempGitRepo({
+          args: ['test.txt'],
+          files: {
+            'test.txt': 'content',
+            '.meter/git.release.uses.jsonc': '{ "uses": "infinite" }',
+          },
+        });
+
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain(
+          'ConstraintError: no live commit grant',
+        );
       });
     });
   });
@@ -271,11 +356,13 @@ describe('git.stage.add.sh', () => {
       then('error: file not found', () => {
         const result = runInTempGitRepo({
           args: ['absent.ts'],
-          meterState: { uses: 5, push: 'allow', stage: 'allow' },
+          meterState: { uses: 5, held: true },
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('error: file not found: absent.ts');
+        expect(result.stdout).toContain(
+          'ConstraintError: file not found: absent.ts',
+        );
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -285,11 +372,13 @@ describe('git.stage.add.sh', () => {
         const result = runInTempGitRepo({
           args: ['file1.ts', 'absent.ts'],
           files: { 'file1.ts': 'content' },
-          meterState: { uses: 5, push: 'allow', stage: 'allow' },
+          meterState: { uses: 5, held: true },
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('error: file not found: absent.ts');
+        expect(result.stdout).toContain(
+          'ConstraintError: file not found: absent.ts',
+        );
 
         // verify file1 is NOT staged (fail-fast)
         const statusResult = spawnSync('git', ['status', '--porcelain'], {
@@ -316,7 +405,7 @@ describe('git.stage.add.sh', () => {
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 5, push: 'allow', stage: 'allow' }, null, 2),
+          JSON.stringify({ uses: 5, held: true }, null, 2),
         );
 
         // create and stage file
@@ -347,11 +436,13 @@ describe('git.stage.add.sh', () => {
       then('error: path must be within repo', () => {
         const result = runInTempGitRepo({
           args: ['/etc/passwd'],
-          meterState: { uses: 5, push: 'allow', stage: 'allow' },
+          meterState: { uses: 5, held: true },
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('error: path must be within repo');
+        expect(result.stdout).toContain(
+          'ConstraintError: path must be within repo',
+        );
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -366,11 +457,11 @@ describe('git.stage.add.sh', () => {
       then('error: no files specified', () => {
         const result = runInTempGitRepo({
           args: [],
-          meterState: { uses: 5, push: 'allow', stage: 'allow' },
+          meterState: { uses: 5, held: true },
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('error: no files specified');
+        expect(result.stdout).toContain('ConstraintError: no files specified');
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -382,16 +473,109 @@ describe('git.stage.add.sh', () => {
 
   given('[case8] global blocker', () => {
     when('[t0] global blocker is active', () => {
-      then('error: globally blocked', () => {
+      then('ConstraintError: globally blocked', () => {
         const result = runWithGlobalStorage({
           args: ['test.txt'],
           files: { 'test.txt': 'content' },
-          meterState: { uses: 5, push: 'allow', stage: 'allow' },
+          meterState: { uses: 5, held: true },
           globalBlocker: true,
         });
 
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('error: globally blocked');
+        expect(result.stdout).toContain('ConstraintError: globally blocked');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] the global blocker file is damaged (0 bytes)', () => {
+      then('malfunction: fails closed, exit 1, stages naught', () => {
+        const result = runWithGlobalStorage({
+          args: ['test.txt'],
+          files: { 'test.txt': 'content' },
+          meterState: { uses: 5, held: true },
+          globalRaw: '',
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain(
+          'MalfunctionError: global blocker file corrupt',
+        );
+        expect(result.stderr).toContain('global blocker file corrupt');
+        const statusResult = spawnSync('git', ['status', '--porcelain'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8' as const,
+        });
+        expect(statusResult.stdout).not.toContain('A  test.txt');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ========================================
+  // damaged local quota
+  // ========================================
+
+  given('[case10] the local commit quota file is damaged', () => {
+    when('[t0] stage reads a truncated quota file', () => {
+      then('malfunction: names the file, fails closed, stages naught', () => {
+        const result = runInTempGitRepo({
+          args: ['test.txt'],
+          files: { 'test.txt': 'content' },
+          meterRaw: '{ "uses": 3, "pu',
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: commit quota file corrupt',
+        );
+        expect(result.stderr).toContain(
+          '💥 MalfunctionError: commit quota file corrupt',
+        );
+        const statusResult = spawnSync('git', ['status', '--porcelain'], {
+          cwd: result.tempDir,
+          encoding: 'utf-8' as const, // node api requires this exact string
+        });
+        expect(statusResult.stdout).not.toContain('A  test.txt');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ========================================
+  // help
+  // ========================================
+
+  given('[case11] --help', () => {
+    when('[t0] help is asked for', () => {
+      then('names the grant constraints, matches snapshot', () => {
+        const result = runInTempGitRepo({ args: ['--help'] });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          'out of a rebase, requires a live commit grant',
+        );
+        expect(result.stdout).toContain('mid-rebase, reads no meter');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  // ========================================
+  // mid-rebase (F12)
+  // ========================================
+
+  given('[case9] a rebase is in progress', () => {
+    when('[t0] no local grant and a global blocker', () => {
+      then('stage reads no meter and marks the file done', () => {
+        const result = runWithGlobalStorage({
+          args: ['test.txt'],
+          files: { 'test.txt': 'content' },
+          globalBlocker: true,
+          rebaseInProgress: true,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('staged: test.txt');
         expect(result.stdout).toMatchSnapshot();
       });
     });

@@ -1,5 +1,124 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`set.package.install.sh given: [case16] the audit connection stalls on every attempt when: [t0] install is called then: the audit fails closed after three attempts as a malfunction on both streams, and naught installs: network-error 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: test-fns
+   ├─ version: X.Y.Z
+   └─ 💥 MalfunctionError: security audit could not run (network error, after 3 attempts)
+
+install blocked. the audit fails closed; retry once the registry answers.
+"
+`;
+
+exports[`set.package.install.sh given: [case17] the registry answers with a body the audit cannot read when: [t0] the body is invalid-response then: the audit fails closed as a malfunction on both streams: invalid-response 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: test-fns
+   ├─ version: X.Y.Z
+   └─ 💥 MalfunctionError: security audit could not run (invalid response from the registry)
+
+install blocked. the audit fails closed; retry once the registry answers.
+"
+`;
+
+exports[`set.package.install.sh given: [case17] the registry answers with a body the audit cannot read when: [t1] the body is unparsable-response then: the audit fails closed as a malfunction on both streams: unparsable-response 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: test-fns
+   ├─ version: X.Y.Z
+   └─ 💥 MalfunctionError: security audit could not run (registry response could not be parsed)
+
+install blocked. the audit fails closed; retry once the registry answers.
+"
+`;
+
+exports[`set.package.install.sh given: [case18] an argument the skill does not know when: [t0] install is called with --bogus then: exit 2, a ConstraintError in the family frame on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   └─ ✋ ConstraintError: unknown argument: --bogus
+"
+`;
+
+exports[`set.package.install.sh given: [case19] a host with no jq when: [t0] install is called then: exit 2, a ConstraintError in the family frame on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   └─ ✋ ConstraintError: jq is required but not installed
+"
+`;
+
+exports[`set.package.install.sh given: [case20] a dist-tag the registry does not know when: [t0] install is called with --at @nonesuch then: exit 2, the unexpanded tag named on both streams: expand-failed 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: test-fns
+   └─ ✋ ConstraintError: could not expand version: @nonesuch
+"
+`;
+
+exports[`set.package.install.sh given: [case21] the package manager fails the add when: [t0] install is called then: the failure is named on both streams, with the cause: install-failed 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.install
+   ├─ package: test-fns
+   ├─ version: X.Y.Z
+   └─ ✋ ConstraintError: install failed (pnpm exit 1: ERR_PNPM_FETCH_404  GET https://registry.npmjs.org/test-fns: Not Found)
+"
+`;
+
+exports[`set.package.install.sh given: [case22] the real registry and the real package manager, no fakes when: [t0] install is called with --at @latest for a dependency-free package then: the output matches snapshot: real-registry 1`] = `
+"🐢 shell yeah!
+
+🐚 set.package.install
+   ├─ package: is-number
+   ├─ version: X.Y.Z
+   ├─ for: prod
+   ├─ security
+   │  └─ audit: passed (0 vulnerabilities)
+   ├─ reason
+   │  └─ saved: /tmp/TEMP_DIR
+   └─ install
+      └─ pnpm add is-number@X.Y.Z: success
+"
+`;
+
+exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: @latest success output matches snapshot: latest 1`] = `
+"🐢 shell yeah!
+
+🐚 set.package.install
+   ├─ package: type-fns
+   ├─ version: X.Y.Z
+   ├─ for: prep
+   ├─ security
+   │  └─ audit: passed (0 vulnerabilities)
+   ├─ reason
+   │  └─ saved: /tmp/TEMP_DIR
+   └─ install
+      └─ pnpm add type-fns@X.Y.Z: success
+"
+`;
+
+exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: @stdin reason success output matches snapshot: stdin-reason 1`] = `
+"🐢 shell yeah!
+
+🐚 set.package.install
+   ├─ package: uuid-fns
+   ├─ version: X.Y.Z
+   ├─ for: prod
+   ├─ security
+   │  └─ audit: passed (0 vulnerabilities)
+   ├─ reason
+   │  └─ saved: /tmp/TEMP_DIR
+   └─ install
+      └─ pnpm add uuid-fns@X.Y.Z: success
+"
+`;
+
 exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all output variants then: --for dev error matches snapshot: for-dev-error 1`] = `
 "🐢 bummer dude...
 
@@ -7,9 +126,11 @@ exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all
    ├─ package: test-fns
    ├─ version: X.Y.Z
    ├─ for: dev
-   └─ error: --for dev is not valid. use --for prep instead.
+   └─ ✋ ConstraintError: --for dev is not valid
 
-prep = prepare, pre-production. describes what happens there, not who uses it.
+🥥 did you know?
+   ├─ prep = prepare, pre-production; it names what happens there, not who uses it
+   └─ rhx set.package.install --package test-fns --at X.Y.Z --for prep --reason '...'
 "
 `;
 
@@ -18,7 +139,7 @@ exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all
 
 🐚 set.package.install
    ├─ package: test-fns
-   └─ error: --at is required
+   └─ ✋ ConstraintError: --at is required
 "
 `;
 
@@ -28,7 +149,7 @@ exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all
 🐚 set.package.install
    ├─ package: test-fns
    ├─ version: X.Y.Z
-   └─ error: --for is required
+   └─ ✋ ConstraintError: --for is required
 "
 `;
 
@@ -36,7 +157,7 @@ exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all
 "🐢 bummer dude...
 
 🐚 set.package.install
-   └─ error: --package is required
+   └─ ✋ ConstraintError: --package is required
 "
 `;
 
@@ -47,7 +168,7 @@ exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all
    ├─ package: test-fns
    ├─ version: X.Y.Z
    ├─ for: prod
-   └─ error: --reason is required
+   └─ ✋ ConstraintError: --reason is required
 "
 `;
 
@@ -56,7 +177,11 @@ exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all
 
 🐚 set.package.install
    ├─ package: extant-pkg
-   └─ error: package already installed. use set.package.upgrade instead.
+   └─ ✋ ConstraintError: package already installed
+
+🥥 did you know?
+   ├─ upgrade it instead
+   └─ rhx set.package.upgrade --package extant-pkg --to X.Y.Z
 "
 `;
 
@@ -67,7 +192,11 @@ exports[`set.package.install.sh given: [snapshots] output formats when: [t0] all
    ├─ package: test-fns
    ├─ version: X.Y.Z
    ├─ for: invalid
-   └─ error: --for must be 'prod' or 'prep'
+   └─ ✋ ConstraintError: --for must be 'prod' or 'prep'
+
+🥥 did you know?
+   ├─ pick prod for a runtime dependency, prep for a dev-time one
+   └─ rhx set.package.install --package test-fns --at X.Y.Z --for prod --reason '...'
 "
 `;
 

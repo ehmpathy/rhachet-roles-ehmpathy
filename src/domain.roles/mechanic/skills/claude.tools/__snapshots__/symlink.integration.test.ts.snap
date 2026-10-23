@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`symlink.sh given: [case3] mode is required when: [t0] --mode is omitted then: error mentions --mode is required 1`] = `
+"🐢 bummer dude...
+
+🐚 symlink
+   └─ ✋ ConstraintError: --mode is required (relative | absolute)
+
+🥥 did you know?
+   ├─ see every form symlink takes, with examples
+   └─ rhx symlink --help
+"
+`;

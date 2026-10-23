@@ -1,8 +1,9 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import { ConstraintError } from 'helpful-errors';
 import * as os from 'os';
 import * as path from 'path';
-import { given, then, when } from 'test-fns';
+import { given, then, useBeforeAll, when } from 'test-fns';
 
 /**
  * .what = integration tests for set.package.install.sh skill
@@ -131,6 +132,47 @@ exit 1
       .replace(/\/home\/[^\s]+\/.route/g, '.route')
       .replace(/v\d{4}_\d{2}_\d{2}\.package\.install/g, 'vDATE.package.install')
       .replace(/\d+\.\d+\.\d+/g, 'X.Y.Z');
+  };
+
+  /**
+   * .what = provision the repo's pinned pnpm into a bin dir, via corepack
+   * .why = the ci test jobs install no pnpm, so a bare host pnpm is a host dep
+   *        (rule.forbid.bare-host-deps); corepack ships with node and fetches
+   *        the exact version this repo's package.json pins
+   */
+  const genPnpmBinDir = (input: { tempDir: string }): string => {
+    // read the pin from this repo's package.json, never a magic version
+    const repoPkg = JSON.parse(
+      fs.readFileSync(
+        path.join(__dirname, '../../../../../package.json'),
+        'utf-8',
+      ),
+    );
+    const pnpmPinned: string = repoPkg.packageManager ?? '';
+    if (!/^pnpm@\d+\.\d+\.\d+$/.test(pnpmPinned))
+      throw new ConstraintError(
+        'genPnpmBinDir: package.json packageManager is not a pnpm pin',
+        {
+          packageManager: pnpmPinned,
+          hint: "pin pnpm in package.json, e.g. packageManager: 'pnpm@10.24.0'",
+        },
+      );
+
+    // write a pnpm shim that runs the pinned version, with no prompt and no auto-pin
+    const binDir = path.join(input.tempDir, '.pnpmbin');
+    fs.mkdirSync(binDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(binDir, 'pnpm'),
+      [
+        '#!/bin/bash',
+        'export COREPACK_ENABLE_DOWNLOAD_PROMPT=0',
+        'export COREPACK_ENABLE_AUTO_PIN=0',
+        `exec corepack ${pnpmPinned} "$@"`,
+        '',
+      ].join('\n'),
+    );
+    fs.chmodSync(path.join(binDir, 'pnpm'), '755');
+    return binDir;
   };
 
   /**
@@ -343,6 +385,7 @@ exit 1
           { cwd: tempDir, fakeBinDir },
         );
         expect(result.stderr).toContain('set.package.upgrade');
+        expect(result.stdout).toContain('set.package.upgrade'); // a refusal rides both streams
       });
     });
   });
@@ -727,6 +770,377 @@ exit 1
   });
 
   /**
+   * .what = clamp: the audit's registry call is bounded and retried on a fresh connection
+   * .why = an unbounded call that met a stalled connection hung the skill past the 300s test
+   *        bound (rule.require.clamp-edge-cases)
+   * .mock = curl, via a fake on PATH
+   *         .why = a stalled connection, or a malformed registry body, cannot be provoked on
+   *                demand against the real registry; the fake answers as curl does on a
+   *                timeout (exit 28, empty body), or with the body a case names
+   *         .real = every other case in this suite audits against the real registry
+   */
+  const setFakeCurl = (input: {
+    fakeBinDir: string;
+    timeoutsBeforeAnswer: number;
+    answer?: string; // the body the registry returns once it answers; default = no advisories
+  }): { callsLog: string } => {
+    const callsLog = path.join(input.fakeBinDir, 'curl.calls.log');
+    fs.writeFileSync(
+      path.join(input.fakeBinDir, 'curl'),
+      `#!/bin/bash
+echo "$*" | tr '\\n' ' ' >> "${callsLog}"
+echo >> "${callsLog}"
+CALLS=$(wc -l < "${callsLog}")
+if [[ $CALLS -le ${input.timeoutsBeforeAnswer} ]]; then
+  exit 28
+fi
+echo '${input.answer ?? '{}'}'
+`,
+    );
+    fs.chmodSync(path.join(input.fakeBinDir, 'curl'), '755');
+    return { callsLog };
+  };
+
+  given('[case15] the audit connection stalls once', () => {
+    when('[t0] install is called', () => {
+      const { tempDir, fakeBinDir, cleanup } = createTempDir();
+      afterAll(() => cleanup());
+      const { callsLog } = setFakeCurl({ fakeBinDir, timeoutsBeforeAnswer: 1 });
+
+      then('the retry succeeds, and each attempt is bounded', () => {
+        const result = runSkill(
+          [
+            '--package',
+            'test-fns',
+            '--at',
+            '1.0.0',
+            '--for',
+            'prod',
+            '--reason',
+            'test',
+          ],
+          { cwd: tempDir, fakeBinDir },
+        );
+        expect(result.exitCode).toBe(0);
+        const calls = fs.readFileSync(callsLog, 'utf-8').trim().split('\n');
+        expect(calls).toHaveLength(2);
+        for (const call of calls) expect(call).toContain('--max-time');
+      });
+    });
+  });
+
+  given('[case16] the audit connection stalls on every attempt', () => {
+    when('[t0] install is called', () => {
+      const { tempDir, fakeBinDir, cleanup } = createTempDir();
+      afterAll(() => cleanup());
+      const { callsLog } = setFakeCurl({
+        fakeBinDir,
+        timeoutsBeforeAnswer: 99,
+      });
+
+      then(
+        'the audit fails closed after three attempts as a malfunction on both streams, and naught installs',
+        () => {
+          const result = runSkill(
+            [
+              '--package',
+              'test-fns',
+              '--at',
+              '1.0.0',
+              '--for',
+              'prod',
+              '--reason',
+              'test',
+            ],
+            { cwd: tempDir, fakeBinDir },
+          );
+          expect(result.exitCode).toBe(1); // a network fault is a malfunction, not a caller constraint
+          expect(result.stdout).toContain('💥 MalfunctionError');
+          expect(result.stdout).toContain('network error');
+          expect(result.stderr).toContain('network error');
+          expect(result.stdout).not.toContain('vulnerabilities'); // never reads as a vulnerable verdict
+          expect(
+            fs.readFileSync(callsLog, 'utf-8').trim().split('\n'),
+          ).toHaveLength(3);
+          const pkgJson = JSON.parse(
+            fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),
+          );
+          expect(pkgJson.dependencies['test-fns']).toBeUndefined();
+          expect(asStableOutput(result.stdout)).toMatchSnapshot(
+            'network-error',
+          );
+        },
+      );
+    });
+  });
+
+  // the two other causes the audit cannot run: a body that is not json, and json that is
+  // not an advisory map. each fails closed as a malfunction, on both streams
+  const auditFaults = [
+    {
+      slug: 'invalid-response',
+      answer: 'not json',
+      cause: 'invalid response from the registry',
+    },
+    {
+      slug: 'unparsable-response',
+      answer: '"an advisory string, not a map"',
+      cause: 'registry response could not be parsed',
+    },
+  ];
+  given(
+    '[case17] the registry answers with a body the audit cannot read',
+    () => {
+      auditFaults.forEach((fault, index) => {
+        when(`[t${index}] the body is ${fault.slug}`, () => {
+          const { tempDir, fakeBinDir, cleanup } = createTempDir();
+          afterAll(() => cleanup());
+          setFakeCurl({
+            fakeBinDir,
+            timeoutsBeforeAnswer: 0,
+            answer: fault.answer,
+          });
+
+          then(
+            'the audit fails closed as a malfunction on both streams',
+            () => {
+              const result = runSkill(
+                [
+                  '--package',
+                  'test-fns',
+                  '--at',
+                  '1.0.0',
+                  '--for',
+                  'prod',
+                  '--reason',
+                  'test',
+                ],
+                { cwd: tempDir, fakeBinDir },
+              );
+              expect(result.exitCode).toBe(1);
+              expect(result.stdout).toContain(`💥 MalfunctionError`);
+              expect(result.stdout).toContain(fault.cause);
+              expect(result.stderr).toContain(fault.cause);
+              expect(asStableOutput(result.stdout)).toMatchSnapshot(fault.slug);
+            },
+          );
+        });
+      });
+    },
+  );
+
+  given('[case18] an argument the skill does not know', () => {
+    when('[t0] install is called with --bogus', () => {
+      then(
+        'exit 2, a ConstraintError in the family frame on both streams',
+        () => {
+          const result = runSkill(['--package', 'test-fns', '--bogus', 'x']);
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: unknown argument: --bogus',
+          );
+          expect(result.stderr).toContain(
+            '✋ ConstraintError: unknown argument: --bogus',
+          );
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
+    });
+  });
+
+  given('[case19] a host with no jq', () => {
+    when('[t0] install is called', () => {
+      // a PATH that holds only what the skill needs before its dependency check
+      const { tempDir, cleanup } = createTempDir();
+      afterAll(() => cleanup());
+      const binDir = path.join(tempDir, '.bin-wout-jq');
+      fs.mkdirSync(binDir, { recursive: true });
+      fs.symlinkSync(
+        spawnSync('which', ['dirname'], { encoding: 'utf-8' }).stdout.trim(), // node.js API requirement
+        path.join(binDir, 'dirname'),
+      );
+
+      then(
+        'exit 2, a ConstraintError in the family frame on both streams',
+        () => {
+          const result = spawnSync(
+            '/bin/bash',
+            [
+              scriptPath,
+              '--package',
+              'test-fns',
+              '--at',
+              '1.0.0',
+              '--for',
+              'prod',
+              '--reason',
+              'test',
+            ],
+            {
+              cwd: tempDir,
+              encoding: 'utf-8',
+              env: { ...process.env, PATH: binDir },
+            }, // node.js API requirement
+          );
+          expect(result.status).toBe(2);
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: jq is required but not installed',
+          );
+          expect(result.stderr).toContain(
+            '✋ ConstraintError: jq is required but not installed',
+          );
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
+    });
+  });
+
+  /**
+   * .what = overwrite one tool on the fake PATH with the body a case names
+   * .mock = npm / pnpm, via a fake on PATH
+   *         .why = an unresolved dist-tag and a failed add cannot be provoked on demand
+   *                against the real registry or package manager
+   *         .real = the audit in [case21] still calls the real registry
+   */
+  const setFakeTool = (input: {
+    fakeBinDir: string;
+    tool: string;
+    body: string;
+  }): void => {
+    const target = path.join(input.fakeBinDir, input.tool);
+    fs.writeFileSync(target, `#!/bin/bash\n${input.body}\n`);
+    fs.chmodSync(target, '755');
+  };
+
+  given('[case20] a dist-tag the registry does not know', () => {
+    when('[t0] install is called with --at @nonesuch', () => {
+      const { tempDir, fakeBinDir, cleanup } = createTempDir();
+      afterAll(() => cleanup());
+      setFakeTool({ fakeBinDir, tool: 'npm', body: 'exit 1' });
+
+      then('exit 2, the unexpanded tag named on both streams', () => {
+        const result = runSkill(
+          [
+            '--package',
+            'test-fns',
+            '--at',
+            '@nonesuch',
+            '--for',
+            'prod',
+            '--reason',
+            'test',
+          ],
+          { cwd: tempDir, fakeBinDir },
+        );
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('could not expand version: @nonesuch');
+        expect(result.stderr).toContain('could not expand version: @nonesuch');
+        expect(asStableOutput(result.stdout)).toMatchSnapshot('expand-failed');
+      });
+    });
+  });
+
+  given('[case21] the package manager fails the add', () => {
+    when('[t0] install is called', () => {
+      const { tempDir, fakeBinDir, cleanup } = createTempDir();
+      afterAll(() => cleanup());
+      setFakeTool({
+        fakeBinDir,
+        tool: 'pnpm',
+        body: 'echo "ERR_PNPM_FETCH_404  GET https://registry.npmjs.org/test-fns: Not Found" >&2; exit 1',
+      });
+
+      then('the failure is named on both streams, with the cause', () => {
+        const result = runSkill(
+          [
+            '--package',
+            'test-fns',
+            '--at',
+            '1.0.0',
+            '--for',
+            'prod',
+            '--reason',
+            'test',
+          ],
+          { cwd: tempDir, fakeBinDir },
+        );
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stdout).toContain('install failed');
+        expect(result.stderr).toContain('install failed');
+        expect(result.stdout).toContain('ERR_PNPM_FETCH_404');
+        expect(asStableOutput(result.stdout)).toMatchSnapshot('install-failed');
+      });
+    });
+  });
+
+  given(
+    '[case22] the real registry and the real package manager, no fakes',
+    () => {
+      when(
+        '[t0] install is called with --at @latest for a dependency-free package',
+        () => {
+          const { tempDir, cleanup } = createTempDir();
+          afterAll(() => cleanup());
+
+          // no fakes: real npm view, real registry audit, real pnpm add (the pinned pnpm, via corepack)
+          const pnpmBinDir = genPnpmBinDir({ tempDir });
+          const scene = useBeforeAll(async () => {
+            const result = runSkill(
+              [
+                '--package',
+                'is-number',
+                '--at',
+                '@latest',
+                '--for',
+                'prod',
+                '--reason',
+                'real registry',
+              ],
+              { cwd: tempDir, fakeBinDir: pnpmBinDir },
+            );
+            const pkgJson = JSON.parse(
+              fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),
+            );
+            const versionDeclared: string =
+              pkgJson.dependencies['is-number'] ?? 'absent';
+            return {
+              result,
+              versionPinned: versionDeclared.replace(/^[\^~]/, ''),
+            };
+          });
+
+          then('exit 0', () => {
+            expect(scene.result.exitCode).toBe(0);
+          });
+
+          then(
+            'the dist-tag expands to a concrete semver in package.json',
+            () => {
+              expect(scene.versionPinned).toMatch(/^\d+\.\d+\.\d+$/);
+            },
+          );
+
+          then('the package lands in node_modules at that version', () => {
+            const installed = JSON.parse(
+              fs.readFileSync(
+                path.join(tempDir, 'node_modules', 'is-number', 'package.json'),
+                'utf-8',
+              ),
+            );
+            expect(installed.version).toEqual(scene.versionPinned);
+          });
+
+          then('the output matches snapshot', () => {
+            expect(asStableOutput(scene.result.stdout)).toMatchSnapshot(
+              'real-registry',
+            );
+          });
+        },
+      );
+    },
+  );
+
+  /**
    * .what = snapshot tests for all output variants
    * .why = enable vibe-check in PR reviews, detect unintended output changes
    */
@@ -854,6 +1268,42 @@ exit 1
           { cwd: tempDir, fakeBinDir },
         );
         expect(asStableOutput(result.stderr)).toMatchSnapshot('for-dev-error');
+      });
+
+      then('@latest success output matches snapshot', () => {
+        const result = runSkill(
+          [
+            '--package',
+            'type-fns',
+            '--at',
+            '@latest',
+            '--for',
+            'prep',
+            '--reason',
+            'test',
+          ],
+          { cwd: tempDir, fakeBinDir },
+        );
+        expect(result.exitCode).toBe(0);
+        expect(asStableOutput(result.stdout)).toMatchSnapshot('latest');
+      });
+
+      then('@stdin reason success output matches snapshot', () => {
+        const result = runSkill(
+          [
+            '--package',
+            'uuid-fns',
+            '--at',
+            '1.0.0',
+            '--for',
+            'prod',
+            '--reason',
+            '@stdin',
+          ],
+          { cwd: tempDir, fakeBinDir, stdin: 'reason from stdin' },
+        );
+        expect(result.exitCode).toBe(0);
+        expect(asStableOutput(result.stdout)).toMatchSnapshot('stdin-reason');
       });
     });
   });

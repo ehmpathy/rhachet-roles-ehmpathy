@@ -74,6 +74,7 @@ always:
 
       # git release
       - skills/git.release/git.release.sh
+      - skills/git.release/git.release.uses.sh
 
       # git repo
       - skills/git.repo.get/git.repo.get.sh

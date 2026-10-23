@@ -9,7 +9,11 @@ import {
   asSkillExitStatus,
   SKILL_SPAWN_TIMEOUT_MS,
 } from './.test/infra/asSkillExitStatus';
-import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
+import {
+  type Scene,
+  setGitReleaseUsesOrgAllowed,
+  writeSceneGhMock,
+} from './.test/infra/mockGh';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
@@ -44,7 +48,11 @@ const setupScene = (input: {
   fs.mkdirSync(stateDir, { recursive: true });
 
   writeSceneGhMock({
-    scene: { ...input.scene, enableRetry: input.enableRetry },
+    // the arg overrides the scene only when supplied; the scene stays the default
+    scene: {
+      ...input.scene,
+      enableRetry: input.enableRetry ?? input.scene.enableRetry,
+    },
     mockBinDir: fakeBinDir,
     stateDir,
   });
@@ -85,10 +93,11 @@ exit 1
   spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
 
   const meterDir = path.join(tempDir, '.meter');
+  setGitReleaseUsesOrgAllowed({ tempDir });
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
-    path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+    path.join(meterDir, 'git.release.uses.jsonc'),
+    JSON.stringify({ uses: 'infinite' }),
   );
 
   return {
@@ -524,7 +533,7 @@ describe('git.release.p3.scenes.on_main.into_prod', () => {
     // ========================================================================
     // rows 10-12: release PR passed:with-automerge
     // ========================================================================
-    given('[row-10] release PR: passed:with-automerge', () => {
+    given('[row-10b] release PR: passed:with-automerge', () => {
       when('[plan] no flags', () => {
         then('exit 0: passed, automerge found', () => {
           const scene: Scene = {
@@ -1180,7 +1189,7 @@ describe('git.release.p3.scenes.on_main.into_prod', () => {
 
     // ========================================================================
     // edge case: no prior release found in last 21 PRs
-    // THIS IS THE ONLY TEST THAT SHOULD SHOW "latest: not found in last 20 prs"
+    // THIS IS THE ONLY TEST THAT SHOULD SHOW "latest: not found in last 21 prs"
     // ========================================================================
     given('[edge] no prior release found', () => {
       const scene: Scene = {

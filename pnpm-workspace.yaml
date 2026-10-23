@@ -1,0 +1,2 @@
+patchedDependencies:
+  rhachet-roles-bhrain@0.42.1: patches/rhachet-roles-bhrain@0.42.1.patch

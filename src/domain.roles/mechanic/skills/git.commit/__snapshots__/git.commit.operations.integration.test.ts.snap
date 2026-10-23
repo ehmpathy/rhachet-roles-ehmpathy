@@ -1,13 +1,74 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`git.commit.operations.sh given: [case33] a meter read with no scope when: [t0] check_global_blocker runs before set_meter_scope then: it refuses as a malfunction, exit 1, and reads no meter 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.operations
+   └─ 💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release first
+
+   a defect in the skill, never the caller's input; report it upstream
+"
+`;
+
+exports[`git.commit.operations.sh given: [case33] a meter read with no scope when: [t0] check_global_blocker runs before set_meter_scope then: it refuses as a malfunction, exit 1, and reads no meter 2`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.operations
+   └─ 💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release first
+
+   a defect in the skill, never the caller's input; report it upstream
+"
+`;
+
+exports[`git.commit.operations.sh given: [case33] a meter read with no scope when: [t1] check_org_blocker runs before set_meter_scope then: it refuses as a malfunction, exit 1, and reads no meter 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.operations
+   └─ 💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release first
+
+   a defect in the skill, never the caller's input; report it upstream
+"
+`;
+
+exports[`git.commit.operations.sh given: [case33] a meter read with no scope when: [t1] check_org_blocker runs before set_meter_scope then: it refuses as a malfunction, exit 1, and reads no meter 2`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.operations
+   └─ 💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release first
+
+   a defect in the skill, never the caller's input; report it upstream
+"
+`;
+
+exports[`git.commit.operations.sh given: [case33] a meter read with no scope when: [t2] set_meter_scope names a meter that does not exist then: it refuses as a malfunction, exit 1, on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.operations
+   └─ 💥 MalfunctionError: set_meter_scope: unknown meter 'bogus' (expected commit|release)
+
+   a defect in the skill, never the caller's input; report it upstream
+"
+`;
+
+exports[`git.commit.operations.sh given: [case33] a meter read with no scope when: [t2] set_meter_scope names a meter that does not exist then: it refuses as a malfunction, exit 1, on both streams 2`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.operations
+   └─ 💥 MalfunctionError: set_meter_scope: unknown meter 'bogus' (expected commit|release)
+
+   a defect in the skill, never the caller's input; report it upstream
+"
+`;
+
 exports[`git.commit.operations.sh given: [case36] get_one_git_config_identity reads git config when: [t1] a git config file is unparseable, and the guard runs then: it names the malfunction and the command to find the file 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit
    └─ 💥 MalfunctionError: git config could not be read (exit 128)
 
-find the git config file at fault:
-  $ git config --list --show-origin
+🥥 did you know?
+   ├─ find the git config file at fault
+   └─ git config --list --show-origin
 "
 `;
 
@@ -18,8 +79,9 @@ exports[`git.commit.operations.sh given: [case36] get_one_git_config_identity re
 🐚 git.commit
    └─ 💥 MalfunctionError: git config could not be read (exit 128)
 
-find the git config file at fault:
-  $ git config --list --show-origin
+🥥 did you know?
+   ├─ find the git config file at fault
+   └─ git config --list --show-origin
 "
 `;
 
@@ -32,7 +94,7 @@ exports[`git.commit.operations.sh given: [case36] get_one_git_config_identity re
 `;
 
 exports[`git.commit.operations.sh given: [case36] get_one_git_config_identity reads git config when: [t1c] a git config file is unparseable, and \`get\` renders then: 🔴 it reports the state and returns — it never exits 1`] = `
-"🐢 lets check the sponsor...
+"🐢 let's check the sponsor...
 
 🐚 git.commit.sponsor
    ├─ sponsor: (none bound)
@@ -46,7 +108,7 @@ exports[`git.commit.operations.sh given: [case36] get_one_git_config_identity re
 `;
 
 exports[`git.commit.operations.sh given: [case36] get_one_git_config_identity reads git config when: [t1d] git config holds no user.email, and \`get\` renders then: it names the git config fix before the bind forms 1`] = `
-"🐢 lets check the sponsor...
+"🐢 let's check the sponsor...
 
 🐚 git.commit.sponsor
    ├─ sponsor: (none bound)
@@ -62,7 +124,7 @@ exports[`git.commit.operations.sh given: [case36] get_one_git_config_identity re
 `;
 
 exports[`git.commit.operations.sh given: [case36] get_one_git_config_identity reads git config when: [t1e] git config names a clone, and \`get\` renders then: it offers the bind forms alone — never a git config fix 1`] = `
-"🐢 lets check the sponsor...
+"🐢 let's check the sponsor...
 
 🐚 git.commit.sponsor
    ├─ sponsor: (none bound)
@@ -77,13 +139,21 @@ exports[`git.commit.operations.sh given: [case36] get_one_git_config_identity re
 `;
 
 exports[`git.commit.operations.sh given: [case39] assert_git_identity_read guards the reader contract when: [t0] a leaf reads the identity before the reader ran then: it exits 1, as a named malfunction — never a raw unbound crash: stderr 1`] = `
-"💥 MalfunctionError: the git identity was read before get_one_git_config_identity ran
-   this is a defect in the skill, never the caller's input — call the reader first
+"🐢 bummer dude...
+
+🐚 git.commit.operations
+   └─ 💥 MalfunctionError: the git identity was read before get_one_git_config_identity ran
+
+   a defect in the skill, never the caller's input; report it upstream
 "
 `;
 
 exports[`git.commit.operations.sh given: [case39] assert_git_identity_read guards the reader contract when: [t0] a leaf reads the identity before the reader ran then: it exits 1, as a named malfunction — never a raw unbound crash: stdout 1`] = `
-"💥 MalfunctionError: the git identity was read before get_one_git_config_identity ran
-   this is a defect in the skill, never the caller's input — call the reader first
+"🐢 bummer dude...
+
+🐚 git.commit.operations
+   └─ 💥 MalfunctionError: the git identity was read before get_one_git_config_identity ran
+
+   a defect in the skill, never the caller's input; report it upstream
 "
 `;

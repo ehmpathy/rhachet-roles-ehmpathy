@@ -337,16 +337,16 @@ rhx git.release --from main --into prod
 
 ## permission requirements
 
-apply mode requires git.commit.uses permission (locally or globally).
+apply mode requires a `git.release.uses` stamp: global ∧ org ∧ local. a commit grant never ships.
 
-| permission state | plan | --watch | apply |
-|------------------|------|---------|-------|
-| allowed | proceed | proceed | proceed |
-| blocked (local) | proceed | proceed | exit 2: hint permission |
-| blocked (global) | proceed | proceed | exit 2: hint permission |
-| quota exhausted | proceed | proceed | exit 2: hint permission |
+| release meter state | plan | --watch | apply |
+|---------------------|------|---------|-------|
+| allowed, uses left | proceed | proceed | spend one use, announce it, proceed |
+| unset or blocked at one or more levels | proceed | proceed | exit 2: one refusal names each level + remedy |
+| uses exhausted | proceed | proceed | exit 2: hint `git.release.uses set --quant 1` |
+| a meter file damaged | proceed | proceed | exit 1: names the file |
 
-**note:** plan and `--watch` modes never check permissions — they are read-only. only `--mode apply` requires permission because it enables automerge (a mutation).
+**note:** plan and `--watch` modes never read the meter — they are read-only. only `--mode apply` spends, because it enables automerge (a mutation).
 
 ---
 
@@ -362,7 +362,7 @@ apply mode requires git.commit.uses permission (locally or globally).
 | `--from` invalid value | exit 2 | `--from must be 'main'` |
 | `--from main --into main` | exit 2 | already on main, can't release to main |
 | not in git repo | exit 2 | not in a git repository |
-| apply without git.commit.uses | exit 2 | hint permission |
+| apply without a git.release.uses stamp | exit 2 | hint the stamp |
 | dirty worktree + apply | exit 2 | hint stash or --dirty allow |
 
 ### runtime errors (exit 1 = malfunction)

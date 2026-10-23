@@ -26,14 +26,15 @@ exports[`git.stage.add.sh given: [case2] stage all with dot when: [t0] stage wit
 "
 `;
 
-exports[`git.stage.add.sh given: [case3] stage without permission when: [t0] stage is blocked then: error: stage not allowed 1`] = `
+exports[`git.stage.add.sh given: [case3] stage without a live commit grant when: [t0] the commit grant was revoked then: ConstraintError: no live commit grant 1`] = `
 "🐢 hold up dude...
 
 🐚 git.stage.add
-   └─ error: stage not allowed
+   └─ ✋ ConstraintError: no live commit grant
 
-ask your human to grant stage permission:
-  $ git.commit.uses set --quant N --push allow|block --stage allow
+🥥 did you know?
+   ├─ stage rides the commit grant; ask your human to grant one
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -41,7 +42,7 @@ exports[`git.stage.add.sh given: [case4] file not found when: [t0] file does not
 "🐢 hold up dude...
 
 🐚 git.stage.add
-   └─ error: file not found: absent.ts
+   └─ ✋ ConstraintError: file not found: absent.ts
 "
 `;
 
@@ -49,9 +50,8 @@ exports[`git.stage.add.sh given: [case6] path outside repo when: [t0] absolute p
 "🐢 hold up dude...
 
 🐚 git.stage.add
-   └─ error: path must be within repo
-
-path: /etc/passwd
+   ├─ path: /etc/passwd
+   └─ ✋ ConstraintError: path must be within repo
 "
 `;
 
@@ -59,21 +59,74 @@ exports[`git.stage.add.sh given: [case7] no files specified when: [t0] no args t
 "🐢 hold up dude...
 
 🐚 git.stage.add
-   └─ error: no files specified
+   └─ ✋ ConstraintError: no files specified
 
-usage: git.stage.add path1 path2 ...
-       git.stage.add .                  # stage all
+🥥 did you know?
+   ├─ name the files to stage, or . for all in this dir
+   └─ rhx git.stage.add <files>
 "
 `;
 
-exports[`git.stage.add.sh given: [case8] global blocker when: [t0] global blocker is active then: error: globally blocked 1`] = `
+exports[`git.stage.add.sh given: [case8] global blocker when: [t0] global blocker is active then: ConstraintError: globally blocked 1`] = `
 "🐢 bummer dude...
 
 🐚 git.stage.add
-   └─ error: globally blocked
+   └─ ✋ ConstraintError: globally blocked
 
-a human has blocked all mechanic operations
-ask your human to lift the blocker:
-  $ git.commit.uses allow --global
+🥥 did you know?
+   ├─ a human has blocked all mechanic operations; ask them to lift it
+   └─ git.commit.uses allow --global
+"
+`;
+
+exports[`git.stage.add.sh given: [case8] global blocker when: [t1] the global blocker file is damaged (0 bytes) then: malfunction: fails closed, exit 1, stages naught 1`] = `
+"🐢 bummer dude...
+
+🐚 git.stage.add
+   └─ 💥 MalfunctionError: global blocker file corrupt
+
+🥥 did you know?
+   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+"
+`;
+
+exports[`git.stage.add.sh given: [case9] a rebase is in progress when: [t0] no local grant and a global blocker then: stage reads no meter and marks the file done 1`] = `
+"🐢 gnarly!
+
+🐚 git.stage.add
+   └─ staged: test.txt
+"
+`;
+
+exports[`git.stage.add.sh given: [case10] the local commit quota file is damaged when: [t0] stage reads a truncated quota file then: malfunction: names the file, fails closed, stages naught 1`] = `
+"🐢 bummer dude...
+
+🐚 git.stage.add
+   └─ 💥 MalfunctionError: commit quota file corrupt
+
+   the file that holds this tree's commit quota cannot be read:
+     .meter/git.commit.uses.jsonc
+
+🥥 did you know?
+   ├─ ask your human to reset the quota, then grant again
+   ├─ git.commit.uses del
+   └─ git.commit.uses set --quant N
+"
+`;
+
+exports[`git.stage.add.sh given: [case11] --help when: [t0] help is asked for then: names the grant constraints, matches snapshot 1`] = `
+"usage: git.stage.add path1 path2 ...    # stage specific files
+       git.stage.add src/**/*.ts        # stage via shell glob
+       git.stage.add .                  # stage all in current dir
+
+options:
+  --help, -h    show this help
+
+constraints:
+  - out of a rebase, requires a live commit grant (git.commit.uses set --quant N)
+  - mid-rebase, reads no meter
+  - paths must be within repo
 "
 `;

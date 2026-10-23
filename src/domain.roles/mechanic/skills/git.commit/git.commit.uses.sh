@@ -2,14 +2,14 @@
 ######################################################################
 # .what = manage git commit quota for mechanics
 #
-# .why  = humans control how many commits a mechanic can make
-#         and whether push is allowed
+# .why  = humans control how many commits a mechanic can make. the grant
+#         covers commit, stage, rebase, and push to the tree's own branch;
+#         a release rides git.release.uses alone
 #
 # usage:
-#   git.commit.uses set --quant 3 --push block
-#   git.commit.uses set --quant 1 --push allow
-#   git.commit.uses set --quant 0               # revoke (--push defaults to block)
-#   git.commit.uses del                         # same as set --quant 0
+#   git.commit.uses set --quant 3               # grant three commits
+#   git.commit.uses set --quant 0               # commit no more; push stays held
+#   git.commit.uses del                         # revoke (commit + push)
 #   git.commit.uses block                       # alias for del
 #   git.commit.uses allow                       # shorthand for unlimited
 #   git.commit.uses get
@@ -21,7 +21,8 @@
 #   git.commit.uses get --org                   # show all org configs
 #
 # guarantee:
-#   - --push is required on set (except --quant 0 which defaults to block)
+#   - --push and --stage are retired; each refuses and names the split
+#   - a push spends no use, and works at 0 left until a human revokes
 #   - state stored in .meter/git.commit.uses.jsonc
 #   - global blocker stored at ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/
 ######################################################################
@@ -47,9 +48,9 @@ done
 # dispatch to appropriate handler
 # precedence: --global > --org > local
 if [[ "$GLOBAL_MODE" == "true" ]]; then
-  exec "$SCRIPT_DIR/git.commit.uses.global.sh" "${ARGS[@]}"
+  exec "$SCRIPT_DIR/git.commit.uses.global.sh" --meter commit "${ARGS[@]}"
 elif [[ "$ORG_MODE" == "true" ]]; then
-  exec "$SCRIPT_DIR/git.commit.uses.org.sh" "${ARGS[@]}"
+  exec "$SCRIPT_DIR/git.commit.uses.org.sh" --meter commit "${ARGS[@]}"
 else
   exec "$SCRIPT_DIR/git.commit.uses.local.sh" "${ARGS[@]}"
 fi

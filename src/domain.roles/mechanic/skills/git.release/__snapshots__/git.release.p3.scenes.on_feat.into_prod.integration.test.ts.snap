@@ -4,8 +4,11 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 "🐢 crickets...
 
 🫧 no open branch pr
-   ├─ turtle/feature-x
-   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
+   └─ turtle/feature-x
+
+🥥 did you know?
+   ├─ push the branch; the push findserts its pr
+   └─ rhx git.commit.push --mode apply
 "
 `;
 
@@ -13,8 +16,11 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 "🐢 crickets...
 
 🫧 no open branch pr
-   ├─ turtle/feature-x
-   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
+   └─ turtle/feature-x
+
+🥥 did you know?
+   ├─ push the branch; the push findserts its pr
+   └─ rhx git.commit.push --mode apply
 "
 `;
 
@@ -22,8 +28,11 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 "🐢 crickets...
 
 🫧 no open branch pr
-   ├─ turtle/feature-x
-   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
+   └─ turtle/feature-x
+
+🥥 did you know?
+   ├─ push the branch; the push findserts its pr
+   └─ rhx git.commit.push --mode apply
 "
 `;
 
@@ -354,7 +363,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 "
 `;
 
-exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-19] feat PR: rebase:dirty when: [apply] --into prod --apply then: exit 2: needs rebase with conflicts 1`] = `
+exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-19b] feat PR: rebase:dirty when: [apply] --into prod --apply then: exit 2: needs rebase with conflicts 1`] = `
 "🐢 cowabunga!
 
 🐚 git.release --into prod --mode apply --watch
@@ -367,7 +376,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 "
 `;
 
-exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-19] feat PR: rebase:dirty when: [plan] --into prod then: exit 2: needs rebase with conflicts 1`] = `
+exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-19b] feat PR: rebase:dirty when: [plan] --into prod then: exit 2: needs rebase with conflicts 1`] = `
 "🐢 heres the wave...
 
 🐚 git.release --into prod --mode plan
@@ -380,7 +389,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 "
 `;
 
-exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-19] feat PR: rebase:dirty when: [watch] --into prod --watch then: exit 2: needs rebase with conflicts 1`] = `
+exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-19b] feat PR: rebase:dirty when: [watch] --into prod --watch then: exit 2: needs rebase with conflicts 1`] = `
 "🐢 heres the wave...
 
 🐚 git.release --into prod --watch
@@ -896,7 +905,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 "
 `;
 
-exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-40] feat PR: merged, release PR: rebase:dirty when: [apply] --into prod --apply then: exit 2: needs rebase with conflicts 1`] = `
+exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-40b] feat PR: merged, release PR: rebase:dirty when: [apply] --into prod --apply then: exit 2: needs rebase with conflicts 1`] = `
 "🐢 cowabunga!
 
 🐚 git.release --into prod --mode apply --watch
@@ -915,7 +924,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 "
 `;
 
-exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-40] feat PR: merged, release PR: rebase:dirty when: [plan] --into prod then: exit 2: needs rebase with conflicts 1`] = `
+exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-40b] feat PR: merged, release PR: rebase:dirty when: [plan] --into prod then: exit 2: needs rebase with conflicts 1`] = `
 "🐢 heres the wave...
 
 🐚 git.release --into prod --mode plan
@@ -934,7 +943,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
 "
 `;
 
-exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-40] feat PR: merged, release PR: rebase:dirty when: [watch] --into prod --watch then: exit 2: needs rebase with conflicts 1`] = `
+exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-40b] feat PR: merged, release PR: rebase:dirty when: [watch] --into prod --watch then: exit 2: needs rebase with conflicts 1`] = `
 "🐢 heres the wave...
 
 🐚 git.release --into prod --watch
@@ -1172,6 +1181,39 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
       └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
+"
+`;
+
+exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into prod given: [row-49s] one release stamp, two arms: feat pr then release pr when: [apply] --into prod --apply, with a release stamp of 1 then: both arms ride the one use: it spends once, 1 → 0 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+🫧 and then...
+
+🌊 release: chore(release): v1.3.0
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      └─ ✨ done! merged!
+
+🫧 and then...
+
+🌊 release: v1.3.0
+   ├─ 👌 all checks passed
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! publish.yml, Xm Ys in action, Xs watched
+
+🐚 release stamp
+   ├─ release stamp spent: 0 left (a red ci or a timeout does not refund it)
+   └─ --watch and --retry spend none; a red hop needs no new grant to rerun
 "
 `;
 

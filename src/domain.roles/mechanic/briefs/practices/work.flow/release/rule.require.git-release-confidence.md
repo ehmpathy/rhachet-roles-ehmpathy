@@ -11,6 +11,8 @@ the normal release workflow is two steps:
 
 `--into prod` runs the full feat → main → prod cycle itself, so there is no separate merge-to-main step to run.
 
+step 2 needs the human's release stamp (`git.release.uses set --quant 1`); a commit grant never ships. `--into prod` arms both prs on one use. see the stamp: `rhx git.release.uses get`.
+
 do not re-ask to verify intent — they already told you what they want.
 
 ## .the only judgment

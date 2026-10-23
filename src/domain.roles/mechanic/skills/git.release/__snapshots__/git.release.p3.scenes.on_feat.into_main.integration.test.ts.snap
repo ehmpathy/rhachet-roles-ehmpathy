@@ -4,8 +4,11 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
 "🐢 crickets...
 
 🫧 no open branch pr
-   ├─ turtle/feature-x
-   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
+   └─ turtle/feature-x
+
+🥥 did you know?
+   ├─ push the branch; the push findserts its pr
+   └─ rhx git.commit.push --mode apply
 "
 `;
 
@@ -13,8 +16,11 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
 "🐢 crickets...
 
 🫧 no open branch pr
-   ├─ turtle/feature-x
-   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
+   └─ turtle/feature-x
+
+🥥 did you know?
+   ├─ push the branch; the push findserts its pr
+   └─ rhx git.commit.push --mode apply
 "
 `;
 
@@ -22,8 +28,11 @@ exports[`git.release.p3.scenes.on_feat.into_main scene.1: on feat branch, into m
 "🐢 crickets...
 
 🫧 no open branch pr
-   ├─ turtle/feature-x
-   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
+   └─ turtle/feature-x
+
+🥥 did you know?
+   ├─ push the branch; the push findserts its pr
+   └─ rhx git.commit.push --mode apply
 "
 `;
 
