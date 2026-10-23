@@ -5,9 +5,7 @@ import * as path from 'path';
 
 import { given, then, useBeforeAll, when } from 'test-fns';
 
-import { genTestDir } from './.test/invokeHook';
-import { setFixtureLayoutOld } from './.test/setFixtureLayoutOld';
-import { setFixtureFile } from './.test/setFixtureFile';
+import { genTestDir, setTestRepoSettings } from './.test/invokeHook';
 
 /**
  * .what = acceptance tests for `rhx permissions.get`, run via rhachet against the linked role
@@ -21,17 +19,15 @@ import { setFixtureFile } from './.test/setFixtureFile';
  */
 const genSkillRepo = async (input: { slug: string }): Promise<{ dir: string }> => {
   const dir = await genTestDir({ slug: input.slug });
-  setFixtureLayoutOld({ dir });
-  setFixtureFile({
+  setTestRepoSettings({
     dir,
-    relPath: '.claude/settings.json',
-    content: JSON.stringify({
+    settings: {
       permissions: {
         allow: ['Bash(rhx:*)', 'Bash(tree:*)', 'Bash(git status:*)', 'Bash(git diff:*)'],
         deny: [],
         ask: [],
       },
-    }),
+    },
   });
   return { dir };
 };
@@ -46,11 +42,6 @@ const runViaRhachet = (input: {
   dir: string;
   args: string[];
 }): { stdout: string; stderr: string; code: number } => {
-  // drop the runner's config dir and pin HOME inside the fixture, so the runner's own user
-  // layer ($HOME/.claude) never leaks in (rule.require.hermetic-tests)
-  const { CLAUDE_CONFIG_DIR: _configDirOmitted, ...envRunner } = process.env;
-  const homeHermetic = path.join(input.dir, '.home-hermetic');
-  fs.mkdirSync(homeHermetic, { recursive: true });
   const result = spawnSync(
     'npx',
     ['rhachet', 'run', '--skill', 'permissions.get', ...input.args],
@@ -59,8 +50,9 @@ const runViaRhachet = (input: {
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
       env: {
-        ...envRunner,
-        HOME: homeHermetic,
+        ...process.env,
+        CLAUDE_CONFIG_DIR: undefined,
+        HOME: path.join(input.dir, '.home-hermetic'),
         npm_config_cache:
           process.env.npm_config_cache ?? path.join(os.homedir(), '.npm'),
       },
@@ -216,16 +208,15 @@ describe('permissions.get (acceptance)', () => {
     // the lookup's promise: every candidate ranked, no cap — the inverse of the block's 21
     const repo = useBeforeAll(async () => {
       const fresh = await genSkillRepo({ slug: 'pg-nocap' });
-      setFixtureFile({
+      setTestRepoSettings({
         dir: fresh.dir,
-        relPath: '.claude/settings.json',
-        content: JSON.stringify({
+        settings: {
           permissions: {
             allow: Array.from({ length: 30 }, (_, index) => `Bash(git wave${index}:*)`),
             deny: [],
             ask: [],
           },
-        }),
+        },
       });
       return fresh;
     });
@@ -275,10 +266,10 @@ describe('permissions.get (acceptance)', () => {
     });
   });
 
-  given('[case2] a linked repo whose settings.json cannot be parsed', () => {
+  given('[case2] a linked repo whose settings.of.repo.json cannot be parsed', () => {
     const repo = useBeforeAll(async () => {
       const fresh = await genSkillRepo({ slug: 'pg-broken' });
-      setFixtureFile({ dir: fresh.dir, relPath: '.claude/settings.json', content: '{ broken' });
+      setTestRepoSettings({ dir: fresh.dir, settings: { raw: '{ broken' } });
       return fresh;
     });
 
@@ -289,7 +280,7 @@ describe('permissions.get (acceptance)', () => {
 
       then('the lookup names the broken file on both streams', () => {
         expect(res.stdout).toContain('💥 MalfunctionError: ');
-        expect(res.stdout).toContain('settings.json');
+        expect(res.stdout).toContain('settings.of.repo.json');
         expect(res.stderr).toContain('💥 MalfunctionError: ');
       });
 

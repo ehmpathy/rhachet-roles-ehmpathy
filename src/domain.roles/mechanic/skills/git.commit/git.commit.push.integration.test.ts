@@ -3403,6 +3403,11 @@ exec /usr/bin/git "$@"
               cwd: tempDir,
             });
 
+            // pin `main` at the base commit: the first branch name follows the host's
+            // init.defaultBranch, so a runner that names it otherwise would lack `main`
+            // (a no-op where `main` already sits there)
+            spawnSync('git', ['branch', 'main', 'HEAD~1'], { cwd: tempDir });
+
             // publish main and the feature branch, as a prior push would
             spawnSync('git', ['push', 'origin', 'main'], { cwd: tempDir });
             spawnSync('git', ['push', '-u', 'origin', 'turtle/feature'], {
