@@ -447,9 +447,13 @@ exit 1
         withPackage: { name: 'test-fns', version: '1.0.0' },
       });
       afterAll(() => cleanup());
-      setFakeTool({ fakeBinDir, tool: 'pnpm', body: 'exit 1' });
+      setFakeTool({
+        fakeBinDir,
+        tool: 'pnpm',
+        body: 'echo "ERR_PNPM_FETCH_404  GET https://registry.npmjs.org/test-fns: Not Found" >&2; exit 1',
+      });
 
-      then('the failure is named on both streams', () => {
+      then('the failure is named on both streams, with the cause', () => {
         const result = runSkill(['--package', 'test-fns', '--to', '2.0.0'], {
           cwd: tempDir,
           fakeBinDir,
@@ -457,6 +461,7 @@ exit 1
         expect(result.exitCode).not.toBe(0);
         expect(result.stdout).toContain('upgrade failed');
         expect(result.stderr).toContain('upgrade failed');
+        expect(result.stdout).toContain('ERR_PNPM_FETCH_404');
         expect(asStableOutput(result.stdout)).toMatchSnapshot('upgrade-failed');
       });
     });
