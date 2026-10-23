@@ -1,0 +1,84 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`boot.budget given: [cap.mechanic.101] the mechanic subject.101 section alone, under its cap when: [t0] its section is costed alone, apart from always then: its slice fits within its cap 1`] = `
+{
+  "slice": "≈ 3k / ≈ 10k tokens (section alone)",
+}
+`;
+
+exports[`boot.budget given: [cap.mechanic.101] the mechanic subject.101 section alone, under its cap when: [t1] its slice is booted, as a seat focused on it would boot then: the paths a seat sees match the snapshot 1`] = `
+{
+  "ref": [
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt2.md",
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[demo].shell.md",
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[seed].md",
+    "briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md",
+    "briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.assure-via-type-checks.md",
+    "briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md",
+  ],
+  "say": [
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt1.md",
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.require.exit-code-semantics.md",
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.md",
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.require.failloud.md",
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.require.qualified-error-headers.md",
+    "briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md",
+    "briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md",
+    "briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md",
+  ],
+  "skills": [],
+}
+`;
+
+exports[`boot.budget given: [cap.mechanic.101] the mechanic subject.101 section alone, under its cap when: [t2] a slice over its cap is judged then: it fails with the named breach 1`] = `
+"✋ ConstraintError: subject.101 boots past its cap
+slugRole:
+  mechanic
+tokens:
+  2,900
+cap:
+  2,899
+hint:
+  move a say row to ref, or condense it to a .min"
+`;
+
+exports[`boot.budget given: [cap.mechanic.101] the mechanic subject.101 section alone, under its cap when: [t3] its row goes stale then: an absent role fails loud, with the fix named 1`] = `
+"✋ ConstraintError: a capped subject names a role with no boot spec
+slugRole:
+  mechanic
+hint:
+  fix the slugRole in SUBJECT_BUDGETS"
+`;
+
+exports[`boot.budget given: [cap.mechanic.101] the mechanic subject.101 section alone, under its cap when: [t3] its row goes stale then: an absent subject fails loud, with the fix named 1`] = `
+"✋ ConstraintError: subject with a cap is absent from its boot.yml
+slugSubject:
+  101
+hint:
+  drop the row from SUBJECT_BUDGETS, or restore the subject"
+`;
+
+exports[`boot.budget given: [cap.mechanic.101] the mechanic subject.101 section alone, under its cap when: [t3] its row goes stale then: an emptied subject fails loud, with the fix named 1`] = `
+"✋ ConstraintError: subject with a cap says no brief
+slugSubject:
+  101
+hint:
+  restore its say rows, or drop the row from SUBJECT_BUDGETS"
+`;
+
+exports[`boot.budget given: [readout] a roles cost readout when: [t1] its token count no longer parses then: it fails loud, with the fix named 1`] = `
+"💥 MalfunctionError: roles cost output carries no token count or budget line; did its format change?
+output:
+  a readout in a format nobody parses
+hint:
+  update the tokens/budget regex in asBootCost to match the new roles cost format"
+`;
+
+exports[`boot.budget given: [readout] a roles cost readout when: [t2] its budget line no longer parses then: it fails loud, rather than read as a spec with no budget 1`] = `
+"💥 MalfunctionError: roles cost output carries no token count or budget line; did its format change?
+output:
+     ├─ tokens  = 3,046 (full emitted payload, o200k_base)
+     └─ cap     = 30k
+hint:
+  update the tokens/budget regex in asBootCost to match the new roles cost format"
+`;
