@@ -1,5 +1,7 @@
 import { spawnSync } from 'child_process';
+import * as fs from 'fs';
 import { ConstraintError, MalfunctionError } from 'helpful-errors';
+import * as os from 'os';
 import * as path from 'path';
 import { getError, given, then, useThen, when } from 'test-fns';
 
@@ -24,8 +26,10 @@ import { getError, given, then, useThen, when } from 'test-fns';
  * .note = each live output is snapped after its volatile bytes (ids, urls,
  *         hashes, times, the run key) are masked, so the real shape is under
  *         snapshot beside the stub suite's
- * .note = the token comes from keyrack (owner ehmpath, env test), which
- *         `rhx git.repo.test` sources into env. absent → fail loud, never skip
+ * .note = every verb runs `--auth as-human`: the gh cli login of the seat
+ *         that runs the suite. on a human's machine, their own login; in ci,
+ *         the job's own GITHUB_TOKEN, logged into gh by the workflow
+ *         (.test.yml, step "gh login"). no login → fail loud, never skip
  */
 describe('github.comment (real github api)', () => {
   const REPO = 'ehmpathy/rhachet-roles-ehmpathy';
@@ -36,22 +40,32 @@ describe('github.comment (real github api)', () => {
   const repoRoot = path.join(__dirname, '../../../../..');
 
   /**
-   * .what = the token from an env, or a loud ConstraintError
+   * .what = confirm a gh cli login is present, or throw a loud ConstraintError
+   * .why  = as-human reads only the gh login (it strips GH_TOKEN), so the
+   *         case cannot run without one
    */
-  const getToken = (input: { env: NodeJS.ProcessEnv }): string => {
-    const token = input.env.EHMPATHY_SEATURTLE_GITHUB_TOKEN;
-    if (token) return token;
-    throw new ConstraintError('github token required for the real-api case', {
-      key: 'EHMPATHY_SEATURTLE_GITHUB_TOKEN',
-      hint: 'rhx keyrack unlock --owner ehmpath --env test --key EHMPATHY_SEATURTLE_GITHUB_TOKEN',
+  const assertGhLogin = (input: { env: NodeJS.ProcessEnv }): void => {
+    const {
+      GH_TOKEN: _ghToken,
+      GITHUB_TOKEN: _githubToken,
+      ...env
+    } = input.env;
+    const status = spawnSync('gh', ['auth', 'status'], {
+      encoding: 'utf-8',
+      env,
+    });
+    if (status.status === 0) return;
+    throw new ConstraintError('gh login required for the real-api case', {
+      detail: status.stderr || status.stdout,
+      hint: 'gh auth login   # on a human seat; in ci, the "gh login" step of .test.yml',
     });
   };
 
   /**
-   * .what = run one verb against the real api under the ehmpath token
+   * .what = run one verb against the real api under the seat's gh login
    */
   const run = (verb: 'get' | 'set' | 'del', args: string[], stdin?: string) => {
-    const token = getToken({ env: process.env });
+    assertGhLogin({ env: process.env });
     const result = spawnSync(
       'bash',
       [
@@ -60,13 +74,15 @@ describe('github.comment (real github api)', () => {
         REPO,
         '--pr',
         PR,
+        '--auth',
+        'as-human',
         ...args,
       ],
       {
         cwd: repoRoot,
         encoding: 'utf-8',
         input: stdin ?? '',
-        env: { ...process.env, EHMPATHY_SEATURTLE_GITHUB_TOKEN: token },
+        env: process.env,
       },
     );
     return {
@@ -140,13 +156,17 @@ describe('github.comment (real github api)', () => {
 
   /**
    * .what = a live output with its volatile bytes masked
-   * .why  = ids, urls, hashes, times, and the run key differ per run; the
-   *         shape around them is the contract the snapshot holds
+   * .why  = ids, urls, hashes, times, the run key, and the login differ per
+   *         run or per seat; the shape around them is the contract the
+   *         snapshot holds
    */
   const asStable = (input: { text: string }): string =>
     input.text
       .split(KEY)
       .join('<key>')
+      .replace(/(auth: .* as )\S+/g, '$1<login>')
+      .replace(/("author": )"[^"]*"/g, '$1"<login>"')
+      .replace(/(─ author: )\S+/g, '$1<login>')
       .replace(/[0-9a-f]{64}/g, '<sha256>')
       .replace(/\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z/g, '<ts>')
       .replace(/(issuecomment-|comments\/|"id": )\d+/g, '$1<id>');
@@ -318,19 +338,25 @@ describe('github.comment (real github api)', () => {
     });
   });
 
-  given('[case2] no token reachable', () => {
-    when('[t0] the case reads its token from an env that lacks it', () => {
+  given('[case2] no gh login reachable', () => {
+    when('[t0] the case checks a gh config dir that holds no login', () => {
+      const configDir = fs.mkdtempSync(
+        path.join(os.tmpdir(), 'gh-config-empty-'),
+      );
+      afterAll(() => fs.rmSync(configDir, { recursive: true, force: true }));
       then(
-        'it fails loud with a ConstraintError and the unlock hint',
+        'it fails loud with a ConstraintError and the login hint',
         async () => {
-          const error = await getError(async () => getToken({ env: {} }));
+          const error = await getError(async () =>
+            assertGhLogin({
+              env: { ...process.env, GH_CONFIG_DIR: configDir },
+            }),
+          );
           expect(error).toBeInstanceOf(ConstraintError);
           expect(error.message).toContain(
-            'github token required for the real-api case',
+            'gh login required for the real-api case',
           );
-          expect(error.message).toContain(
-            'rhx keyrack unlock --owner ehmpath --env test --key EHMPATHY_SEATURTLE_GITHUB_TOKEN',
-          );
+          expect(error.message).toContain('gh auth login');
         },
       );
     });
