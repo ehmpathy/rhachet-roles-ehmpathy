@@ -2,7 +2,7 @@ import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { given, then, when } from 'test-fns';
+import { given, then, useThen, when } from 'test-fns';
 
 /**
  * .what = integration tests for set.package.install.sh skill
@@ -14,6 +14,14 @@ describe('set.package.install.sh', () => {
   /**
    * .what = create temp directory with package.json and fake package managers
    * .why = isolate tests from real repo and avoid actual installs
+   *
+   * .mock = the install leg: `pnpm add`, `npm install`, and `npm view <pkg> version`
+   * .why  = most cases grade the skill's own contract (flag checks, the reason
+   *         file, the output), which a real install would slow by seconds per
+   *         run and tie to the registry's latest versions
+   * .real = the audit leg is never faked: every case posts to the live npm
+   *         advisory api (case2 proves a real block). the install leg runs real
+   *         in [case15], with no fake bins
    */
   const createTempDir = (options?: {
     withPackageLock?: boolean;
@@ -169,25 +177,7 @@ exit 1
     when('[t0] install is called', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir();
       afterAll(() => cleanup());
-
-      then('exit code is 0', () => {
-        const result = runSkill(
-          [
-            '--package',
-            'test-fns',
-            '--at',
-            '1.0.0',
-            '--for',
-            'prod',
-            '--reason',
-            'test reason',
-          ],
-          { cwd: tempDir, fakeBinDir },
-        );
-        expect(result.exitCode).toBe(0);
-      });
-
-      then('reason file is created', () => {
+      const result = useThen('it runs', async () =>
         runSkill(
           [
             '--package',
@@ -200,8 +190,14 @@ exit 1
             'test reason',
           ],
           { cwd: tempDir, fakeBinDir },
-        );
+        ),
+      );
 
+      then('exit code is 0', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('reason file is created', () => {
         // .route/v{date}.package.install/3.reason.for_{pkg}.yield.md
         const routeBase = path.join(tempDir, '.route');
         expect(fs.existsSync(routeBase)).toBe(true);
@@ -217,19 +213,6 @@ exit 1
       });
 
       then('package is in package.json', () => {
-        runSkill(
-          [
-            '--package',
-            'test-fns',
-            '--at',
-            '1.0.0',
-            '--for',
-            'prod',
-            '--reason',
-            'test reason',
-          ],
-          { cwd: tempDir, fakeBinDir },
-        );
         const pkgJson = JSON.parse(
           fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),
         );
@@ -237,32 +220,73 @@ exit 1
       });
 
       then('output shows success', () => {
-        const result = runSkill(
-          [
-            '--package',
-            'zod',
-            '--at',
-            '3.22.4',
-            '--for',
-            'prod',
-            '--reason',
-            'another test',
-          ],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.stdout).toContain('shell yeah!');
         expect(result.stdout).toContain('set.package.install');
       });
     });
+
+    // .note = the second package was zod@3.22.4, which now carries a live high
+    //         advisory (GHSA-mrhx-c7xc-m3w5), so the skill blocks it, correctly;
+    //         type-fns@1.21.0 keeps the scenario with an input whose audit passes
+    when(
+      '[t1] a second package is installed into a project that holds one',
+      () => {
+        const { tempDir, fakeBinDir, cleanup } = createTempDir();
+        afterAll(() => cleanup());
+        const result = useThen('both run', async () => {
+          const first = runSkill(
+            [
+              '--package',
+              'test-fns',
+              '--at',
+              '1.0.0',
+              '--for',
+              'prod',
+              '--reason',
+              'test reason',
+            ],
+            { cwd: tempDir, fakeBinDir },
+          );
+          const second = runSkill(
+            [
+              '--package',
+              'type-fns',
+              '--at',
+              '1.21.0',
+              '--for',
+              'prod',
+              '--reason',
+              'test reason',
+            ],
+            { cwd: tempDir, fakeBinDir },
+          );
+          return { first, second };
+        });
+
+        then('the second install exits 0 and shows success', () => {
+          expect(result.first.exitCode).toBe(0);
+          expect(result.second.exitCode).toBe(0);
+          expect(result.second.stdout).toContain('shell yeah!');
+          expect(result.second.stdout).toContain('set.package.install');
+        });
+
+        then('both packages are in package.json', () => {
+          const pkgJson = JSON.parse(
+            fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),
+          );
+          expect(pkgJson.dependencies['test-fns']).toBeDefined();
+          expect(pkgJson.dependencies['type-fns']).toBeDefined();
+        });
+      },
+    );
   });
 
   given('[case2] audit fails (known vulnerable pkg)', () => {
     when('[t0] install is called with vulnerable package', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir();
       afterAll(() => cleanup());
-
-      then('exit code is 2', () => {
-        const result = runSkill(
+      const result = useThen('it runs', async () =>
+        runSkill(
           [
             '--package',
             'lodash',
@@ -274,7 +298,10 @@ exit 1
             'test',
           ],
           { cwd: tempDir, fakeBinDir },
-        );
+        ),
+      );
+
+      then('exit code is 2', () => {
         expect(result.exitCode).toBe(2);
       });
 
@@ -286,19 +313,6 @@ exit 1
       });
 
       then('output shows bummer', () => {
-        const result = runSkill(
-          [
-            '--package',
-            'lodash',
-            '--at',
-            '4.17.0',
-            '--for',
-            'prod',
-            '--reason',
-            'test',
-          ],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.stderr).toContain('bummer dude');
       });
     });
@@ -310,9 +324,8 @@ exit 1
         withPackage: { name: 'test-fns', version: '1.0.0' },
       });
       afterAll(() => cleanup());
-
-      then('exit code is 2', () => {
-        const result = runSkill(
+      const result = useThen('it runs', async () =>
+        runSkill(
           [
             '--package',
             'test-fns',
@@ -324,24 +337,14 @@ exit 1
             'upgrade',
           ],
           { cwd: tempDir, fakeBinDir },
-        );
+        ),
+      );
+
+      then('exit code is 2', () => {
         expect(result.exitCode).toBe(2);
       });
 
       then('error mentions use upgrade', () => {
-        const result = runSkill(
-          [
-            '--package',
-            'test-fns',
-            '--at',
-            '2.0.0',
-            '--for',
-            'prod',
-            '--reason',
-            'upgrade',
-          ],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.stderr).toContain('set.package.upgrade');
       });
     });
@@ -351,20 +354,18 @@ exit 1
     when('[t0] install is called without --package', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir();
       afterAll(() => cleanup());
+      const result = useThen('it runs', async () =>
+        runSkill(['--at', '1.0.0', '--for', 'prod', '--reason', 'test'], {
+          cwd: tempDir,
+          fakeBinDir,
+        }),
+      );
 
       then('exit code is 2', () => {
-        const result = runSkill(
-          ['--at', '1.0.0', '--for', 'prod', '--reason', 'test'],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.exitCode).toBe(2);
       });
 
       then('error mentions --package', () => {
-        const result = runSkill(
-          ['--at', '1.0.0', '--for', 'prod', '--reason', 'test'],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.stderr).toContain('--package');
       });
     });
@@ -374,20 +375,21 @@ exit 1
     when('[t0] install is called without --at', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir();
       afterAll(() => cleanup());
+      const result = useThen('it runs', async () =>
+        runSkill(
+          ['--package', 'test-fns', '--for', 'prod', '--reason', 'test'],
+          {
+            cwd: tempDir,
+            fakeBinDir,
+          },
+        ),
+      );
 
       then('exit code is 2', () => {
-        const result = runSkill(
-          ['--package', 'test-fns', '--for', 'prod', '--reason', 'test'],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.exitCode).toBe(2);
       });
 
       then('error mentions --at', () => {
-        const result = runSkill(
-          ['--package', 'test-fns', '--for', 'prod', '--reason', 'test'],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.stderr).toContain('--at');
       });
     });
@@ -397,20 +399,21 @@ exit 1
     when('[t0] install is called without --for', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir();
       afterAll(() => cleanup());
+      const result = useThen('it runs', async () =>
+        runSkill(
+          ['--package', 'test-fns', '--at', '1.0.0', '--reason', 'test'],
+          {
+            cwd: tempDir,
+            fakeBinDir,
+          },
+        ),
+      );
 
       then('exit code is 2', () => {
-        const result = runSkill(
-          ['--package', 'test-fns', '--at', '1.0.0', '--reason', 'test'],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.exitCode).toBe(2);
       });
 
       then('error mentions --for', () => {
-        const result = runSkill(
-          ['--package', 'test-fns', '--at', '1.0.0', '--reason', 'test'],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.stderr).toContain('--for');
       });
     });
@@ -420,20 +423,18 @@ exit 1
     when('[t0] install is called without --reason', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir();
       afterAll(() => cleanup());
+      const result = useThen('it runs', async () =>
+        runSkill(['--package', 'test-fns', '--at', '1.0.0', '--for', 'prod'], {
+          cwd: tempDir,
+          fakeBinDir,
+        }),
+      );
 
       then('exit code is 2', () => {
-        const result = runSkill(
-          ['--package', 'test-fns', '--at', '1.0.0', '--for', 'prod'],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.exitCode).toBe(2);
       });
 
       then('error mentions --reason', () => {
-        const result = runSkill(
-          ['--package', 'test-fns', '--at', '1.0.0', '--for', 'prod'],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.stderr).toContain('--reason');
       });
     });
@@ -443,9 +444,8 @@ exit 1
     when('[t0] install is called with invalid --for', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir();
       afterAll(() => cleanup());
-
-      then('exit code is 2', () => {
-        const result = runSkill(
+      const result = useThen('it runs', async () =>
+        runSkill(
           [
             '--package',
             'test-fns',
@@ -457,24 +457,14 @@ exit 1
             'test',
           ],
           { cwd: tempDir, fakeBinDir },
-        );
+        ),
+      );
+
+      then('exit code is 2', () => {
         expect(result.exitCode).toBe(2);
       });
 
       then('error mentions prod or prep', () => {
-        const result = runSkill(
-          [
-            '--package',
-            'test-fns',
-            '--at',
-            '1.0.0',
-            '--for',
-            'invalid',
-            '--reason',
-            'test',
-          ],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.stderr).toContain('prod');
         expect(result.stderr).toContain('prep');
       });
@@ -485,9 +475,8 @@ exit 1
     when('[t0] install is called with --for dev', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir();
       afterAll(() => cleanup());
-
-      then('exit code is 2', () => {
-        const result = runSkill(
+      const result = useThen('it runs', async () =>
+        runSkill(
           [
             '--package',
             'test-fns',
@@ -499,24 +488,14 @@ exit 1
             'test',
           ],
           { cwd: tempDir, fakeBinDir },
-        );
+        ),
+      );
+
+      then('exit code is 2', () => {
         expect(result.exitCode).toBe(2);
       });
 
       then('error suggests --for prep', () => {
-        const result = runSkill(
-          [
-            '--package',
-            'test-fns',
-            '--at',
-            '1.0.0',
-            '--for',
-            'dev',
-            '--reason',
-            'test',
-          ],
-          { cwd: tempDir, fakeBinDir },
-        );
         expect(result.stderr).toContain('--for prep');
         expect(result.stderr).toContain('prep = prepare');
       });
@@ -722,6 +701,50 @@ exit 1
           { cwd: tempDir, fakeBinDir },
         );
         expect(result.exitCode).toBe(0);
+      });
+    });
+  });
+
+  given('[case15] a real install, no fake package managers', () => {
+    when('[t0] install is called with the real pnpm on PATH', () => {
+      const { tempDir, cleanup } = createTempDir();
+      afterAll(() => cleanup());
+      const result = useThen('it runs', async () =>
+        runSkill(
+          [
+            '--package',
+            'type-fns',
+            '--at',
+            '1.21.0',
+            '--for',
+            'prod',
+            '--reason',
+            'the real install leg',
+          ],
+          { cwd: tempDir },
+        ),
+      );
+
+      then('exit code is 0, and the output says so', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('shell yeah!');
+      });
+
+      then('the registry delivered the asked version into node_modules', () => {
+        const installed = JSON.parse(
+          fs.readFileSync(
+            path.join(tempDir, 'node_modules', 'type-fns', 'package.json'),
+            'utf-8',
+          ),
+        );
+        expect(installed.version).toBe('1.21.0');
+      });
+
+      then('package.json declares it as a prod dependency', () => {
+        const pkgJson = JSON.parse(
+          fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),
+        );
+        expect(pkgJson.dependencies['type-fns']).toContain('1.21.0');
       });
     });
   });

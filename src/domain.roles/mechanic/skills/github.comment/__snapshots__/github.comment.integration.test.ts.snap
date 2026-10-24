@@ -1,0 +1,1811 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`github.comment given: [case1] plan is the default, on set and on del when: [t0] set --key plans a new comment then: it exits 0 and says it would post 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode plan
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/issues/7/comments
+   ├─ new
+   │  ├─ from: ./status.md
+   │  ├─ bytes: 57
+   │  └─ sha256: 9113f0a33830a87974820f3623aff42b1230d2ce427882b8c6d9140ab3efee30
+   └─ verdict: would post (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ rhx github.comment.set --pr 7 --key status --from ./status.md --mode apply
+"
+`;
+
+exports[`github.comment given: [case1] plan is the default, on set and on del when: [t1] del --key plans a delete then: it exits 0 and says it would delete 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.del --mode plan
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=old-status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: DELETE repos/ehmpathy/surf-demo/issues/comments/101
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-101
+   │  ├─ bytes: 59
+   │  └─ sha256: 8ef92606637c1d84b4379e4480bcdc1e704f402c22f8d0b4b19d9890bb87629f
+   └─ verdict: would delete issue comment 101 (plan)
+
+🥥 did you know?
+   └─ plan deletes naught; to delete it
+      └─ rhx github.comment.del --pr 7 --key old-status --mode apply
+"
+`;
+
+exports[`github.comment given: [case1] plan is the default, on set and on del when: [t2] set and del plan with --output json then: each exits 0 with a parseable plan, and writes naught 1`] = `
+{
+  "del": {
+    "endpoint": "repos/ehmpathy/surf-demo/issues/comments/101",
+    "id": 101,
+    "mode": "plan",
+    "target": "ehmpathy/surf-demo#7, top-level comment key=old-status",
+    "verdict": "would delete issue comment 101 (plan)",
+  },
+  "set": {
+    "endpoint": "repos/ehmpathy/surf-demo/issues/7/comments",
+    "id": null,
+    "method": "POST",
+    "mode": "plan",
+    "sha256": {
+      "current": null,
+      "new": "9113f0a33830a87974820f3623aff42b1230d2ce427882b8c6d9140ab3efee30",
+      "readback": null,
+    },
+    "target": "ehmpathy/surf-demo#7, top-level comment key=status",
+    "url": null,
+    "verdict": "would post (plan)",
+  },
+}
+`;
+
+exports[`github.comment given: [case2] apply posts the exact body when: [t0] the text lacks the 🐢 prefix then: it posts 🐢 + text + the key marker, read back 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/issues/7/comments
+   ├─ new
+   │  ├─ from: ./status.md
+   │  ├─ bytes: 57
+   │  └─ sha256: 9113f0a33830a87974820f3623aff42b1230d2ce427882b8c6d9140ab3efee30
+   └─ verdict: posted, read back, hash matches
+      ├─ id: 5001
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
+      └─ read-back sha256: 9113f0a33830a87974820f3623aff42b1230d2ce427882b8c6d9140ab3efee30
+"
+`;
+
+exports[`github.comment given: [case2] apply posts the exact body when: [t1] the text already opens with 🐢 then: the prefix is not doubled 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/issues/7/comments
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ bytes: 57
+   │  └─ sha256: 9113f0a33830a87974820f3623aff42b1230d2ce427882b8c6d9140ab3efee30
+   └─ verdict: posted, read back, hash matches
+      ├─ id: 5001
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
+      └─ read-back sha256: 9113f0a33830a87974820f3623aff42b1230d2ce427882b8c6d9140ab3efee30
+"
+`;
+
+exports[`github.comment given: [case2] apply posts the exact body when: [t2] the text carries a stale marker, as a body piped back from get does then: the stale marker is dropped; the one marker names --key 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/issues/7/comments
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ bytes: 57
+   │  └─ sha256: 9113f0a33830a87974820f3623aff42b1230d2ce427882b8c6d9140ab3efee30
+   └─ verdict: posted, read back, hash matches
+      ├─ id: 5001
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
+      └─ read-back sha256: 9113f0a33830a87974820f3623aff42b1230d2ce427882b8c6d9140ab3efee30
+"
+`;
+
+exports[`github.comment given: [case3] a reply posts to the thread replies endpoint when: [t0] set --reply-to 203 --key answer --mode apply then: it POSTs to pulls/7/comments/203/replies 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, reply to review comment 203, key=answer
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/pulls/7/comments/203/replies
+   ├─ new
+   │  ├─ from: ./answer.md
+   │  ├─ bytes: 59
+   │  └─ sha256: b4a6b7599aa283d4e3d7ed7083de3b123189a522804f5646ed02cf0e4f3faeb9
+   └─ verdict: posted, read back, hash matches
+      ├─ id: 5001
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r5001
+      └─ read-back sha256: b4a6b7599aa283d4e3d7ed7083de3b123189a522804f5646ed02cf0e4f3faeb9
+"
+`;
+
+exports[`github.comment given: [case3] a reply posts to the thread replies endpoint when: [t1] the reply target is absent, or sits on another pr then: each exits 2, names the target, writes naught 1`] = `
+{
+  "absent": "✋ ConstraintError: no review comment 999 on ehmpathy/surf-demo for --reply-to
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+",
+  "otherPr": "✋ ConstraintError: review comment 211 is not on ehmpathy/surf-demo#7
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+",
+}
+`;
+
+exports[`github.comment given: [case4] a key upserts: absent → POST, differs → PATCH, same → no-op when: [t0] the key is absent then: it POSTs 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/issues/7/comments
+   ├─ new
+   │  ├─ from: ./status.md
+   │  ├─ bytes: 52
+   │  └─ sha256: d050ca61e32fd5d7f1b739e399a8faf252f229c10109fee4a5cf8c092ce6bd40
+   └─ verdict: posted, read back, hash matches
+      ├─ id: 5001
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
+      └─ read-back sha256: d050ca61e32fd5d7f1b739e399a8faf252f229c10109fee4a5cf8c092ce6bd40
+"
+`;
+
+exports[`github.comment given: [case4] a key upserts: absent → POST, differs → PATCH, same → no-op when: [t1] the key holds a different body then: it PATCHes the same comment in place 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: PATCH repos/ehmpathy/surf-demo/issues/comments/5001
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
+   │  ├─ bytes: 52
+   │  └─ sha256: d050ca61e32fd5d7f1b739e399a8faf252f229c10109fee4a5cf8c092ce6bd40
+   ├─ new
+   │  ├─ from: ./status.md
+   │  ├─ bytes: 52
+   │  └─ sha256: ed2294831496ea8926cff8b53e657219f368221b60e4cde99e5f85f4639872b7
+   └─ verdict: edited, read back, hash matches
+      ├─ id: 5001
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
+      └─ read-back sha256: ed2294831496ea8926cff8b53e657219f368221b60e4cde99e5f85f4639872b7
+"
+`;
+
+exports[`github.comment given: [case4] a key upserts: absent → POST, differs → PATCH, same → no-op when: [t2] the key already holds this body then: it is a no-op, with no write 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: none (no-op; an edit would PATCH repos/ehmpathy/surf-demo/issues/comments/5001)
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
+   │  ├─ bytes: 52
+   │  └─ sha256: ed2294831496ea8926cff8b53e657219f368221b60e4cde99e5f85f4639872b7
+   ├─ new
+   │  ├─ from: ./status.md
+   │  ├─ bytes: 52
+   │  └─ sha256: ed2294831496ea8926cff8b53e657219f368221b60e4cde99e5f85f4639872b7
+   └─ verdict: already there — no-op
+      ├─ id: 5001
+      └─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
+"
+`;
+
+exports[`github.comment given: [case4] a key upserts: absent → POST, differs → PATCH, same → no-op when: [t3] a plan for a body that differs then: it shows both hashes and would edit, and writes naught 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode plan
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: PATCH repos/ehmpathy/surf-demo/issues/comments/5001
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
+   │  ├─ bytes: 52
+   │  └─ sha256: ed2294831496ea8926cff8b53e657219f368221b60e4cde99e5f85f4639872b7
+   ├─ new
+   │  ├─ from: ./status.md
+   │  ├─ bytes: 52
+   │  └─ sha256: 84fe65311b8133c82905f44d9e8afe0fb08518edac4eb59d4543dc72008e7dd8
+   └─ verdict: would edit (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ rhx github.comment.set --pr 7 --key status --from ./status.md --mode apply
+"
+`;
+
+exports[`github.comment given: [case5] a reply key ignores a match in another thread when: [t0] set --reply-to 302 --key answer --mode apply then: it POSTs a new reply in thread 302, and leaves 303 as is 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, reply to review comment 302, key=answer
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/pulls/7/comments/302/replies
+   ├─ new
+   │  ├─ from: ./answer.md
+   │  ├─ bytes: 52
+   │  └─ sha256: 1167e136f05e193ad4869d58a21f2f4469dfaf76faf90d4c574185f5ebab5106
+   └─ verdict: posted, read back, hash matches
+      ├─ id: 5001
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r5001
+      └─ read-back sha256: 1167e136f05e193ad4869d58a21f2f4469dfaf76faf90d4c574185f5ebab5106
+"
+`;
+
+exports[`github.comment given: [case5] a reply key ignores a match in another thread when: [t1] del --reply-to 302 --key answer --mode apply then: it deletes the keyed reply in thread 302, and leaves 303 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.del --mode apply
+   ├─ target: ehmpathy/surf-demo#7, reply to review comment 302, key=answer
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: DELETE repos/ehmpathy/surf-demo/pulls/comments/5001
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r5001
+   │  ├─ bytes: 52
+   │  └─ sha256: 1167e136f05e193ad4869d58a21f2f4469dfaf76faf90d4c574185f5ebab5106
+   └─ verdict: deleted, confirmed absent
+"
+`;
+
+exports[`github.comment given: [case5] a reply key ignores a match in another thread when: [t2] set --reply-to 303, a reply, with the body 303 holds then: it scopes the key to the thread root 301, finds 303, and is a no-op 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, reply to review comment 303, key=answer
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: none (no-op; an edit would PATCH repos/ehmpathy/surf-demo/pulls/comments/303)
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r303
+   │  ├─ bytes: 52
+   │  └─ sha256: cb25fa0582213cefcb54e516feb2799d05121b3b533688a733270a1a4ba4b22c
+   ├─ new
+   │  ├─ from: ./answer.md
+   │  ├─ bytes: 52
+   │  └─ sha256: cb25fa0582213cefcb54e516feb2799d05121b3b533688a733270a1a4ba4b22c
+   └─ verdict: already there — no-op
+      ├─ id: 303
+      └─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r303
+"
+`;
+
+exports[`github.comment given: [case5] a reply key ignores a match in another thread when: [t3] get --key answer --reply-to 303, a reply then: it reads the keyed reply of thread root 301 1`] = `
+[
+  {
+    "author": "ehm-seaturtle",
+    "body": "🐢 because
+
+<!-- rhx:github.comment key=answer -->",
+    "bytes": 52,
+    "created_at": "2026-10-24T<time>",
+    "id": 303,
+    "in_reply_to": 301,
+    "key": "answer",
+    "kind": "review",
+    "sha256": "cb25fa0582213cefcb54e516feb2799d05121b3b533688a733270a1a4ba4b22c",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r303",
+  },
+]
+`;
+
+exports[`github.comment given: [case6] a key held by another author refuses when: [t0] set --key status --mode apply as-ehmpath then: it exits 2, names the author and the --auth fix, writes naught 1`] = `
+"✋ ConstraintError: key 'status' on ehmpathy/surf-demo#7 is held by surfer-kai, not by ehm-seaturtle (as-ehmpath)
+   └─ held by: issue comment 401
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rerun with --auth as-human   # if surfer-kai is that login
+      ├─ rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if surfer-kai is that login: plan, then add --mode apply, then rerun
+      └─ pick another --key
+"
+`;
+
+exports[`github.comment given: [case6] a key held by another author refuses when: [t1] get --key status reads a key another author holds then: it exits 2 and names the holder, never "absent" 1`] = `
+"✋ ConstraintError: key 'status' on ehmpathy/surf-demo#7 is held by surfer-kai, not by ehm-seaturtle (as-ehmpath)
+   └─ held by: issue comment 401
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue
+"
+`;
+
+exports[`github.comment given: [case6] a key held by another author refuses when: [t2] del --key status --mode apply as-ehmpath then: it exits 2, names the holder and the --auth fix, deletes naught 1`] = `
+"✋ ConstraintError: key 'status' on ehmpathy/surf-demo#7 is held by surfer-kai, not by ehm-seaturtle (as-ehmpath)
+   └─ held by: issue comment 401
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if surfer-kai is that login: plan, then add --mode apply
+      └─ pick another --key
+"
+`;
+
+exports[`github.comment given: [case6] a key held by another author refuses when: [t3] del --id 401 --kind issue --mode apply as-ehmpath then: it exits 2: the comment is by another author; deletes naught 1`] = `
+"✋ ConstraintError: issue comment 401 is by surfer-kai, not by ehm-seaturtle (as-ehmpath)
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if surfer-kai is that login: plan, then add --mode apply; else only surfer-kai can delete it
+"
+`;
+
+exports[`github.comment given: [case7] two own matches on one key refuse when: [t0] set --key status --mode apply then: it exits 2, names both ids, writes naught 1`] = `
+"✋ ConstraintError: key 'status' matches 2 comments by ehm-seaturtle on ehmpathy/surf-demo#7
+   ├─ issue comment 501 by ehm-seaturtle, created 2026-10-24T<time>
+   └─ issue comment 502 by ehm-seaturtle, created 2026-10-24T<time>
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 501 --kind issue   # read it first
+      ├─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue   # read it first
+      └─ rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply   # the newest goes: the oldest is the one a reader already linked to
+"
+`;
+
+exports[`github.comment given: [case7] two own matches on one key refuse when: [t1] del --key status --mode apply then: it exits 2, names both ids, deletes neither 1`] = `
+"✋ ConstraintError: key 'status' matches 2 comments by ehm-seaturtle on ehmpathy/surf-demo#7
+   ├─ issue comment 501 by ehm-seaturtle, created 2026-10-24T<time>
+   └─ issue comment 502 by ehm-seaturtle, created 2026-10-24T<time>
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 501 --kind issue   # read it first
+      ├─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue   # read it first
+      └─ rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply   # the newest goes: the oldest is the one a reader already linked to
+"
+`;
+
+exports[`github.comment given: [case7] two own matches on one key refuse when: [t2] get --key status then: it exits 2 and names both ids, as set and del do 1`] = `
+"✋ ConstraintError: key 'status' matches 2 comments by ehm-seaturtle on ehmpathy/surf-demo#7
+   ├─ issue comment 501 by ehm-seaturtle, created 2026-10-24T<time>
+   └─ issue comment 502 by ehm-seaturtle, created 2026-10-24T<time>
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 501 --kind issue   # read it first
+      ├─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue   # read it first
+      └─ rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply   # the newest goes: the oldest is the one a reader already linked to
+"
+`;
+
+exports[`github.comment given: [case7] two own matches on one key refuse when: [t3] a foreign comment quotes the marker mid-body then: the mid-body marker claims no key: never "held by" 1`] = `
+{
+  "get": "✋ ConstraintError: no comment carries key 'tide' on ehmpathy/surf-demo#7
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo   # lists every row and its key
+",
+  "set": "🐢 heres the wave...
+
+🐚 github.comment.set --mode plan
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=tide
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/issues/7/comments
+   ├─ new
+   │  ├─ from: ./tide.md
+   │  ├─ bytes: 60
+   │  └─ sha256: bdfe693005cd90f98d2c46a53726df2a6447098461627b02901d44b7b0633a86
+   └─ verdict: would post (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ rhx github.comment.set --pr 7 --key tide --from ./tide.md --mode apply
+",
+}
+`;
+
+exports[`github.comment given: [case7] two own matches on one key refuse when: [t4] two own replies hold one key in one review thread then: each refuses the thread twin and names the newest review reply 1`] = `
+{
+  "del": "✋ ConstraintError: key 'answer' matches 2 comments by ehm-seaturtle on ehmpathy/surf-demo#7
+   ├─ review comment 522 by ehm-seaturtle, created 2026-10-24T<time>
+   └─ review comment 523 by ehm-seaturtle, created 2026-10-24T<time>
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 522 --kind review   # read it first
+      ├─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 523 --kind review   # read it first
+      └─ rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply   # the newest goes: the oldest is the one a reader already linked to
+",
+  "get": "✋ ConstraintError: key 'answer' matches 2 comments by ehm-seaturtle on ehmpathy/surf-demo#7
+   ├─ review comment 522 by ehm-seaturtle, created 2026-10-24T<time>
+   └─ review comment 523 by ehm-seaturtle, created 2026-10-24T<time>
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 522 --kind review   # read it first
+      ├─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 523 --kind review   # read it first
+      └─ rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply   # the newest goes: the oldest is the one a reader already linked to
+",
+  "set": "✋ ConstraintError: key 'answer' matches 2 comments by ehm-seaturtle on ehmpathy/surf-demo#7
+   ├─ review comment 522 by ehm-seaturtle, created 2026-10-24T<time>
+   └─ review comment 523 by ehm-seaturtle, created 2026-10-24T<time>
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 522 --kind review   # read it first
+      ├─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 523 --kind review   # read it first
+      └─ rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply   # the newest goes: the oldest is the one a reader already linked to
+",
+}
+`;
+
+exports[`github.comment given: [case8] set refuses before any gh call: no target, no file, no text when: [t0] set --from with no target then: it exits 2 before any gh call 1`] = `
+"✋ ConstraintError: a new comment needs --key; an unkeyed post would double on every retry
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx github.comment.set --pr 7 --key <slug> --from <file>   # a keyed comment
+      ├─ rhx github.comment.set --pr 7 --id <id> --kind issue|review --from <file>   # edit one known comment
+      └─ rhx github.comment.set --pr 7 --kind body --from <file>   # the pr description
+"
+`;
+
+exports[`github.comment given: [case8] set refuses before any gh call: no target, no file, no text when: [t1] --from names a file that is absent then: it exits 2, names the path, calls no gh 1`] = `
+"✋ ConstraintError: --from './absent.md' is not a file
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ name a body file that exists
+      └─ pipe the body in via --from @stdin
+"
+`;
+
+exports[`github.comment given: [case8] set refuses before any gh call: no target, no file, no text when: [t2] --from @stdin carries only whitespace then: it exits 2 as an empty body, calls no gh 1`] = `
+"✋ ConstraintError: the body from '@stdin' is empty
+
+🥥 did you know?
+   └─ to fix it
+      └─ cat ./reply.md | rhx github.comment.set --pr 7 --key status --from @stdin --mode plan   # pipe a body that is not empty
+"
+`;
+
+exports[`github.comment given: [case9] del converges: absent is a no-op, present is deleted and confirmed when: [t0] del an id that is absent then: it exits 0 as a no-op, with no DELETE 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.del --mode apply
+   ├─ target: ehmpathy/surf-demo#7, review comment 999
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   └─ verdict: absent — no-op
+"
+`;
+
+exports[`github.comment given: [case9] del converges: absent is a no-op, present is deleted and confirmed when: [t1] del an id that is present then: it DELETEs, confirms absent, exits 0 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.del --mode apply
+   ├─ target: ehmpathy/surf-demo#7, review comment 601
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: DELETE repos/ehmpathy/surf-demo/pulls/comments/601
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r601
+   │  ├─ bytes: 4
+   │  └─ sha256: 72b33a1cb0bfc9cdd3db0102962414c7a0d85aad94eba64cd8c33265242f7f9f
+   └─ verdict: deleted, confirmed absent
+"
+`;
+
+exports[`github.comment given: [case9] del converges: absent is a no-op, present is deleted and confirmed when: [t2] a delete that github holds then: it exits 1, still present 1`] = `
+"💥 MalfunctionError: issue comment 602 is still present after DELETE
+   ├─ endpoint: repos/ehmpathy/surf-demo/issues/comments/602
+   └─ state: github accepted the DELETE, yet the comment still reads back
+
+🥥 did you know?
+   └─ next
+      └─ rerun the same command: del is a no-op once the comment is absent, so a rerun is safe
+"
+`;
+
+exports[`github.comment given: [case9] del converges: absent is a no-op, present is deleted and confirmed when: [t3] del an id on a pr the credential cannot see then: it exits 2, never "absent — no-op", since the 404 proves naught 1`] = `
+"✋ ConstraintError: pull request ehmpathy/surf-demo#9 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ check --pr and --in
+      └─ rerun with --auth as-human
+"
+`;
+
+exports[`github.comment given: [case9] del converges: absent is a no-op, present is deleted and confirmed when: [t4] del a key no comment carries then: it exits 0 as a no-op, with no DELETE 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.del --mode apply
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=absent-key
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   └─ verdict: absent — no-op
+"
+`;
+
+exports[`github.comment given: [case9] del converges: absent is a no-op, present is deleted and confirmed when: [t5] set and del a key on a pr the credential cannot see then: each exits 2 and names the visibility, never a malfunction 1`] = `
+{
+  "del": "✋ ConstraintError: pull request ehmpathy/surf-demo#9 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ check --pr and --in
+      └─ rerun with --auth as-human
+",
+  "set": "✋ ConstraintError: pull request ehmpathy/surf-demo#9 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ check --pr and --in
+      └─ rerun with --auth as-human
+",
+}
+`;
+
+exports[`github.comment given: [case9] del converges: absent is a no-op, present is deleted and confirmed when: [t6] get, and set --kind body, on a pr the credential cannot see then: each exits 2 with the one visibility message 1`] = `
+{
+  "get": "✋ ConstraintError: pull request ehmpathy/surf-demo#9 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ check --pr and --in
+      └─ rerun with --auth as-human
+",
+  "setBody": "✋ ConstraintError: pull request ehmpathy/surf-demo#9 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ check --pr and --in
+      └─ rerun with --auth as-human
+",
+}
+`;
+
+exports[`github.comment given: [case9] del converges: absent is a no-op, present is deleted and confirmed when: [t7] a wrong --kind, or a --reply-to thread that does not exist then: each refusal is snapped 1`] = `
+{
+  "delSwap": "✋ ConstraintError: no review comment 1301, but issue comment 1301 sits on ehmpathy/surf-demo#7
+
+🥥 did you know?
+   └─ to fix it
+      └─ pass --kind issue
+",
+  "delThread": "✋ ConstraintError: no review comment 123456 on ehmpathy/surf-demo for --reply-to
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+",
+  "getSwap": "✋ ConstraintError: no review comment 1301, but issue comment 1301 sits on ehmpathy/surf-demo#7
+
+🥥 did you know?
+   └─ to fix it
+      └─ pass --kind issue
+",
+  "getThread": "✋ ConstraintError: no review comment 123456 on ehmpathy/surf-demo for --reply-to
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+",
+  "setSwap": "✋ ConstraintError: no review comment 1301, but issue comment 1301 sits on ehmpathy/surf-demo#7
+
+🥥 did you know?
+   └─ to fix it
+      └─ pass --kind issue
+",
+}
+`;
+
+exports[`github.comment given: [case10] a read-back hash mismatch fails as a malfunction when: [t0] github stores a different body than the one posted then: it exits 1 and names both hashes 1`] = `
+"💥 MalfunctionError: read-back hash mismatch on repos/ehmpathy/surf-demo/issues/comments/5001
+   ├─ posted sha256:    9113f0a33830a87974820f3623aff42b1230d2ce427882b8c6d9140ab3efee30
+   ├─ read-back sha256: 3fcab4398c3acd706d294eac343efa0b5bb4ee8366a29823ba857d8a6781ad1c
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
+   ├─ state: the comment is live, with a body other than the one posted
+   └─ live body: rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 5001 --kind issue
+
+🥥 did you know?
+   └─ next
+      └─ rerun the same command: set edits that comment in place, so a rerun converges
+"
+`;
+
+exports[`github.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t0] get, set, del each get --id with no --kind then: each exits 2, says the kind is never guessed, calls no gh 1`] = `
+{
+  "del": "✋ ConstraintError: --id needs --kind issue|review, got '<none>'; the kind is never guessed
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.del ... --id 101 --kind issue|review
+",
+  "get": "✋ ConstraintError: --id needs --kind issue|review, got '<none>'; the kind is never guessed
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get ... --id 101 --kind issue|review
+",
+  "set": "✋ ConstraintError: --id needs --kind issue|review, got '<none>'; the kind is never guessed
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.set ... --id 101 --kind issue|review
+",
+}
+`;
+
+exports[`github.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t1] get, set, del each get --help then: each exits 0 with usage, inputs, an example; calls no gh 1`] = `
+{
+  "del": "🐢 heres the wave...
+
+🐚 github.comment.del — delete one comment of a pull request; a no-op if absent
+   ├─ usage: rhx github.comment.del --pr <n> (--id <id> --kind issue|review | --key <k> [--reply-to <id>]) [--mode plan|apply]
+   ├─ inputs
+   │  ├─ --pr <n>                      required
+   │  ├─ --key <k> [--reply-to <id>]   the current login's keyed comment (in that thread, with --reply-to)
+   │  ├─ --id <id> --kind <kind>       one comment, by id; kind = issue | review, never guessed
+   │  ├─ --in <owner/name>             default: the cwd's github origin; home orgs only (ehmpathy whodisio ahbode uladkasach)
+   │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human
+   │  ├─ --mode                        plan (default, no write) | apply (delete, then confirm absent)
+   │  └─ --output                      tree (default) | json
+   ├─ example: rhx github.comment.del --pr 69 --key status --mode apply
+   └─ exit: 0 planned, deleted, or no-op; 1 malfunction; 2 constraint
+",
+  "get": "🐢 heres the wave...
+
+🐚 github.comment.get — read the comments of a pull request
+   ├─ usage: rhx github.comment.get --pr <n> [--id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--in <o/r>] [--auth as-ehmpath|as-human] [--output tree|json]
+   ├─ inputs
+   │  ├─ --pr <n>                      required
+   │  ├─ --id <id> --kind <kind>       one comment, by id; kind = issue | review, never guessed
+   │  ├─ --key <k> [--reply-to <id>]   the current login's keyed comment (in that thread, with --reply-to)
+   │  ├─ --kind body                   the pr description alone
+   │  ├─ --in <owner/name>             default: the cwd's github origin; home orgs only (ehmpathy whodisio ahbode uladkasach)
+   │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human
+   │  └─ --output                      tree (default) | json
+   ├─ example: rhx github.comment.get --pr 69
+   └─ exit: 0 shown; 1 malfunction; 2 constraint (bad input or absent target)
+",
+  "set": "🐢 heres the wave...
+
+🐚 github.comment.set — upsert one comment of a pull request, or its description
+   ├─ usage: rhx github.comment.set --pr <n> (--key <k> [--reply-to <id>] | --id <id> --kind issue|review | --kind body) --from <path|@stdin> [--mode plan|apply]
+   ├─ targets
+   │  ├─ --key <k>                     top-level comment: absent → POST, differs → PATCH, same → no-op
+   │  ├─ --reply-to <id> --key <k>     a reply in that review thread, same upsert
+   │  ├─ --id <id> --kind <kind>       edit a known comment; kind = issue | review
+   │  └─ --kind body                   the pr description
+   ├─ inputs
+   │  ├─ --pr <n>                      required
+   │  ├─ --from <path|@stdin>          the body; posted as '🐢 ' + body (+ a hidden key marker)
+   │  ├─ --in <owner/name>             default: the cwd's github origin; home orgs only (ehmpathy whodisio ahbode uladkasach)
+   │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human
+   │  ├─ --mode                        plan (default, no write) | apply (write, read back, hash-check)
+   │  └─ --output                      tree (default) | json
+   ├─ example: rhx github.comment.set --pr 69 --key status --from ./status.md --mode apply
+   └─ exit: 0 planned, written, or no-op; 1 malfunction; 2 constraint
+",
+}
+`;
+
+exports[`github.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t2] each check meets a bad input then: each exits 2 with a ConstraintError and a fix; calls no gh 1`] = `
+{
+  "auth": "✋ ConstraintError: --auth must be 'as-ehmpath' or 'as-human', got 'as-robot'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --auth as-ehmpath (the default)
+",
+  "idAndKey": "✋ ConstraintError: --id and --key are two targets; name one
+
+🥥 did you know?
+   └─ to fix it
+      └─ drop one
+",
+  "key": "✋ ConstraintError: --key must be a lowercase slug (a-z 0-9 . _ -, up to 64), got 'Round 2'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --key round-2-status
+",
+  "mode": "✋ ConstraintError: --mode must be plan or apply, got 'go'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --mode plan (the default)
+",
+  "noRepo": "✋ ConstraintError: no repo: --in <owner/name> absent, and the cwd has no github origin
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --in ehmpathy/<repo> ...
+",
+  "output": "✋ ConstraintError: --output must be tree or json, got 'yaml'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --output tree (the default)
+",
+  "pr": "✋ ConstraintError: --pr <number> is required, got 'seven'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 69 ...
+",
+}
+`;
+
+exports[`github.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t3] each verb meets a flag set it cannot use then: each exits 2 with a ConstraintError and a fix; calls no gh 1`] = `
+{
+  "delIdWithReply": "✋ ConstraintError: --id names one comment; it takes no --reply-to
+
+🥥 did you know?
+   └─ to fix it
+      └─ drop --reply-to
+",
+  "delKindNoId": "✋ ConstraintError: --kind issue pairs with --id
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ add --id <id>
+      └─ drop --kind
+",
+  "delNoTarget": "✋ ConstraintError: del needs a target: --id <id> --kind issue|review, or --key <k>
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7   # lists the ids and keys
+",
+  "delReplyNotNumber": "✋ ConstraintError: --reply-to must be a numeric review comment id, got 'x'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7   # lists the ids
+",
+  "delUnknownArg": "✋ ConstraintError: unknown arg '--wave'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.del --help
+",
+  "getBodyWithKey": "✋ ConstraintError: a pr description holds no key
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ drop --key
+      └─ drop --kind body
+",
+  "getIdAndKey": "✋ ConstraintError: --id and --key are two reads; name one
+
+🥥 did you know?
+   └─ to fix it
+      └─ drop one
+",
+  "getIdNotNumber": "✋ ConstraintError: --id must be a numeric comment id, got 'abc'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr <n>   # lists the ids
+",
+  "getKindNoId": "✋ ConstraintError: --kind issue pairs with --id; alone, only --kind body reads one target
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ add --id <id>
+      └─ drop --kind
+",
+  "getReplyNoKey": "✋ ConstraintError: --reply-to reads a keyed reply; it needs --key
+
+🥥 did you know?
+   └─ to fix it
+      └─ --reply-to 5 --key <k>
+",
+  "getReplyNotNumber": "✋ ConstraintError: --reply-to must be a numeric review comment id, got 'x'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7   # lists the ids
+",
+  "getUnknownArg": "✋ ConstraintError: unknown arg '--wave'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --help
+",
+  "setBodyWithKey": "✋ ConstraintError: --kind body targets the pr description alone; it takes no --id, --key, or --reply-to
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ drop --id, --key, and --reply-to
+      └─ drop --kind body
+",
+  "setIdWithKey": "✋ ConstraintError: --id edits one known comment; it takes no --key or --reply-to
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ drop --key and --reply-to
+      └─ drop --id
+",
+  "setKeyWithKind": "✋ ConstraintError: --kind pairs with --id or names body; a keyed comment needs none
+
+🥥 did you know?
+   └─ to fix it
+      └─ drop --kind
+",
+  "setKindNoId": "✋ ConstraintError: --kind issue pairs with --id; alone, only --kind body names a target
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ add --id <id>
+      └─ drop --kind
+",
+  "setNoFrom": "✋ ConstraintError: --from <path|@stdin> is required
+
+🥥 did you know?
+   └─ to fix it
+      └─ --from ./reply.md
+",
+  "setReplyNotNumber": "✋ ConstraintError: --reply-to must be a numeric review comment id, got 'x'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7   # lists the ids
+",
+  "setUnknownArg": "✋ ConstraintError: unknown arg '--wave'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.set --help
+",
+}
+`;
+
+exports[`github.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t4] a refusal under --output json then: stdout holds one json error object; stderr holds the tree 1`] = `
+{
+  "key": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [],
+      "fixes": [
+        "--key round-2-status",
+      ],
+      "message": "--key must be a lowercase slug (a-z 0-9 . _ -, up to 64), got 'Round 2'",
+    },
+  },
+  "pr": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [],
+      "fixes": [
+        "rhx github.comment.get --pr 69 ...",
+      ],
+      "message": "--pr <number> is required, got 'seven'",
+    },
+  },
+}
+`;
+
+exports[`github.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t5] a --flag at the end of the line, with no value then: each exits 2, names the flag, and calls no gh; never a silent exit 1 1`] = `
+{
+  "del": "✋ ConstraintError: --mode needs a value
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.del --help   # lists each flag and its value
+",
+  "get": "✋ ConstraintError: --pr needs a value
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --help   # lists each flag and its value
+",
+  "set": "✋ ConstraintError: --from needs a value
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.set --help   # lists each flag and its value
+",
+}
+`;
+
+exports[`github.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t6] a --flag followed by a --flag, and the --flag=value form then: --flag=value parses the same as --flag value 1`] = `
+{
+  "getEquals": "🐢 heres the wave...
+
+🐚 github.comment.get
+   ├─ target: ehmpathy/surf-demo#7, pr description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ counts: 1 pr description, 0 issue comments, 0 review comments
+   └─ pr description by surfer-kai at 2026-10-24T<time>
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+      ├─ bytes: 18
+      ├─ sha256: 84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb
+      └─ text
+         surf lesson booker
+",
+  "setEquals": "🐢 heres the wave...
+
+🐚 github.comment.set --mode plan
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/issues/7/comments
+   ├─ new
+   │  ├─ from: ./status.md
+   │  ├─ bytes: 55
+   │  └─ sha256: 6c8427044c21b1809ec9d8745b22c4641f291f0302799f647cddb8d9415044d4
+   └─ verdict: would post (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ rhx github.comment.set --pr=7 --key=status --from=./status.md --mode apply
+",
+}
+`;
+
+exports[`github.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t6] a --flag followed by a --flag, and the --flag=value form then: a --flag never swallows the next --flag as its value 1`] = `
+"✋ ConstraintError: --pr needs a value
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --help   # lists each flag and its value
+"
+`;
+
+exports[`github.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t6] a --flag followed by a --flag, and the --flag=value form then: an unknown --flag reads "unknown arg", never "needs a value" 1`] = `
+"✋ ConstraintError: unknown arg '--apply'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.set --help
+"
+`;
+
+exports[`github.comment given: [case12] the target fences: the pr, and the home orgs when: [t0] an --id that sits on another pr then: it exits 2 and writes naught 1`] = `
+"✋ ConstraintError: issue comment 701 is not on ehmpathy/surf-demo#7
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+"
+`;
+
+exports[`github.comment given: [case12] the target fences: the pr, and the home orgs when: [t1] --in names an owner outside the home orgs then: it exits 2, names the allowlist, calls no gh 1`] = `
+"✋ ConstraintError: owner 'seaturtlecorp' is outside the home orgs
+   └─ allowed: ehmpathy · whodisio · ahbode · uladkasach
+
+🥥 did you know?
+   └─ to fix it
+      └─ target a repo in one of those orgs, via --in <owner/name>
+"
+`;
+
+exports[`github.comment given: [case12] the target fences: the pr, and the home orgs when: [t2] the cwd origin sits outside the home orgs then: it exits 2 and calls no gh 1`] = `
+"✋ ConstraintError: owner 'seaturtlecorp' is outside the home orgs
+   └─ allowed: ehmpathy · whodisio · ahbode · uladkasach
+
+🥥 did you know?
+   └─ to fix it
+      └─ target a repo in one of those orgs, via --in <owner/name>
+"
+`;
+
+exports[`github.comment given: [case12] the target fences: the pr, and the home orgs when: [t3] --in names a home org in other case then: the fence lets it through, since github owners are case-blind 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.get
+   ├─ target: Ehmpathy/surf-demo#7, every comment
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ counts: 1 pr description, 0 issue comments, 0 review comments
+   └─ pr description by surfer-kai at 2026-10-24T<time>
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+      ├─ bytes: 18
+      ├─ sha256: 84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb
+      └─ text
+         surf lesson booker
+"
+`;
+
+exports[`github.comment given: [case12] the target fences: the pr, and the home orgs when: [t4] the comment is own, and the body differs then: it PATCHes that id, and keeps its key marker 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, issue comment 711
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: PATCH repos/ehmpathy/surf-demo/issues/comments/711
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-711
+   │  ├─ bytes: 55
+   │  └─ sha256: 2d86c041b710f8c41d14708193b338ef3e6e6a893057b4d9a387c355b240f6fd
+   ├─ new
+   │  ├─ from: ./edit.md
+   │  ├─ bytes: 55
+   │  └─ sha256: 976f7989a2df31c8db2c42f47ababd79254a09fc593ede7705f8a3f3008abd73
+   └─ verdict: edited, read back, hash matches
+      ├─ id: 711
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-711
+      └─ read-back sha256: 976f7989a2df31c8db2c42f47ababd79254a09fc593ede7705f8a3f3008abd73
+"
+`;
+
+exports[`github.comment given: [case12] the target fences: the pr, and the home orgs when: [t5] the comment already says this then: it is a no-op 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, issue comment 711
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: none (no-op; an edit would PATCH repos/ehmpathy/surf-demo/issues/comments/711)
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-711
+   │  ├─ bytes: 55
+   │  └─ sha256: 976f7989a2df31c8db2c42f47ababd79254a09fc593ede7705f8a3f3008abd73
+   ├─ new
+   │  ├─ from: ./edit.md
+   │  ├─ bytes: 55
+   │  └─ sha256: 976f7989a2df31c8db2c42f47ababd79254a09fc593ede7705f8a3f3008abd73
+   └─ verdict: already there — no-op
+      ├─ id: 711
+      └─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-711
+"
+`;
+
+exports[`github.comment given: [case12] the target fences: the pr, and the home orgs when: [t6] the comment is by another author then: it exits 2, names the author, writes naught 1`] = `
+"✋ ConstraintError: issue comment 712 is by surfer-kai, not by ehm-seaturtle (as-ehmpath)
+
+🥥 did you know?
+   └─ to fix it
+      └─ rerun with --auth as-human   # if surfer-kai is that login; else only surfer-kai can edit it
+"
+`;
+
+exports[`github.comment given: [case12] the target fences: the pr, and the home orgs when: [t7] the id is absent then: it exits 2 and names the list command 1`] = `
+"✋ ConstraintError: no issue comment 799 on ehmpathy/surf-demo to edit
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+"
+`;
+
+exports[`github.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t0] get --pr 7 then: it shows all six rows, every page 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.get
+   ├─ target: ehmpathy/surf-demo#7, every comment
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ counts: 1 pr description, 3 issue comments, 2 review comments
+   ├─ pr description by surfer-kai at 2026-10-24T<time>
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   │  ├─ bytes: 18
+   │  ├─ sha256: 84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb
+   │  └─ text
+   │     surf lesson booker
+   ├─ issue comment 801 by surfer-kai at 2026-10-24T<time>
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-801
+   │  ├─ bytes: 5
+   │  ├─ sha256: 0fcaf722c7fc5acefdc4812b234c9e918be2cc65bf7a20b4e382ab7bddda8087
+   │  └─ text
+   │     lgtm?
+   ├─ review comment 804 by surfer-kai at 2026-10-24T<time>
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r804
+   │  ├─ bytes: 14
+   │  ├─ sha256: 9d249c04b0277924b0f1815ebe3619dcdabb07196a877a32e24109b455780fb3
+   │  └─ text
+   │     why foamboard?
+   ├─ issue comment 802 by ehm-seaturtle at 2026-10-24T<time>  key=status
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-802
+   │  ├─ bytes: 51
+   │  ├─ sha256: cc836c4c3928f550003d2c881bd353c8dffb6b6084d6e42a2db976ce7a9ff374
+   │  └─ text
+   │     🐢 status
+   │
+   │     <!-- rhx:github.comment key=status -->
+   ├─ review comment 805 by ehm-seaturtle at 2026-10-24T<time>  reply-to=804
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r805
+   │  ├─ bytes: 14
+   │  ├─ sha256: 0ce9b2b392f34c76e765a1ac7ae447176fc10272f7ac0d2c18ebda4d220c08d5
+   │  └─ text
+   │     🐢 beginners
+   └─ issue comment 803 by surfer-kai at 2026-10-24T<time>
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-803
+      ├─ bytes: 8
+      ├─ sha256: 58094382d8457966396b3eacbd29b67f78971d3387ddec687ec535f365425ac8
+      └─ text
+         one more
+"
+`;
+
+exports[`github.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t1] get --pr 7 --output json then: the rows sort body first, then by created time 1`] = `
+[
+  {
+    "author": "surfer-kai",
+    "body": "surf lesson booker",
+    "bytes": 18,
+    "created_at": "2026-10-24T<time>",
+    "id": null,
+    "in_reply_to": null,
+    "key": null,
+    "kind": "body",
+    "sha256": "84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7",
+  },
+  {
+    "author": "surfer-kai",
+    "body": "lgtm?",
+    "bytes": 5,
+    "created_at": "2026-10-24T<time>",
+    "id": 801,
+    "in_reply_to": null,
+    "key": null,
+    "kind": "issue",
+    "sha256": "0fcaf722c7fc5acefdc4812b234c9e918be2cc65bf7a20b4e382ab7bddda8087",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-801",
+  },
+  {
+    "author": "surfer-kai",
+    "body": "why foamboard?",
+    "bytes": 14,
+    "created_at": "2026-10-24T<time>",
+    "id": 804,
+    "in_reply_to": null,
+    "key": null,
+    "kind": "review",
+    "sha256": "9d249c04b0277924b0f1815ebe3619dcdabb07196a877a32e24109b455780fb3",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r804",
+  },
+  {
+    "author": "ehm-seaturtle",
+    "body": "🐢 status
+
+<!-- rhx:github.comment key=status -->",
+    "bytes": 51,
+    "created_at": "2026-10-24T<time>",
+    "id": 802,
+    "in_reply_to": null,
+    "key": "status",
+    "kind": "issue",
+    "sha256": "cc836c4c3928f550003d2c881bd353c8dffb6b6084d6e42a2db976ce7a9ff374",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-802",
+  },
+  {
+    "author": "ehm-seaturtle",
+    "body": "🐢 beginners",
+    "bytes": 14,
+    "created_at": "2026-10-24T<time>",
+    "id": 805,
+    "in_reply_to": 804,
+    "key": null,
+    "kind": "review",
+    "sha256": "0ce9b2b392f34c76e765a1ac7ae447176fc10272f7ac0d2c18ebda4d220c08d5",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r805",
+  },
+  {
+    "author": "surfer-kai",
+    "body": "one more",
+    "bytes": 8,
+    "created_at": "2026-10-24T<time>",
+    "id": 803,
+    "in_reply_to": null,
+    "key": null,
+    "kind": "issue",
+    "sha256": "58094382d8457966396b3eacbd29b67f78971d3387ddec687ec535f365425ac8",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-803",
+  },
+]
+`;
+
+exports[`github.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t2] get --pr 7 --key status then: it returns the one own keyed row 1`] = `
+[
+  {
+    "author": "ehm-seaturtle",
+    "body": "🐢 status
+
+<!-- rhx:github.comment key=status -->",
+    "bytes": 51,
+    "created_at": "2026-10-24T<time>",
+    "id": 802,
+    "in_reply_to": null,
+    "key": "status",
+    "kind": "issue",
+    "sha256": "cc836c4c3928f550003d2c881bd353c8dffb6b6084d6e42a2db976ce7a9ff374",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-802",
+  },
+]
+`;
+
+exports[`github.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t3] get --pr 7 --id 805 --kind review then: it shows the one row, with its thread 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.get
+   ├─ target: ehmpathy/surf-demo#7, review comment 805
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ counts: 0 pr description, 0 issue comments, 1 review comments
+   └─ review comment 805 by ehm-seaturtle at 2026-10-24T<time>  reply-to=804
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r805
+      ├─ bytes: 14
+      ├─ sha256: 0ce9b2b392f34c76e765a1ac7ae447176fc10272f7ac0d2c18ebda4d220c08d5
+      └─ text
+         🐢 beginners
+"
+`;
+
+exports[`github.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t4] get --pr 7 --id 999 --kind issue, an absent id then: it exits 2 and names the list command 1`] = `
+"✋ ConstraintError: no issue comment 999 on ehmpathy/surf-demo
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+"
+`;
+
+exports[`github.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t5] get --pr 7 --key absent-key, a key no comment carries then: it exits 2 and names the list command, with the repo 1`] = `
+"✋ ConstraintError: no comment carries key 'absent-key' on ehmpathy/surf-demo#7
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo   # lists every row and its key
+"
+`;
+
+exports[`github.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t6] get --key answer --reply-to, scoped to one thread then: it returns the keyed reply of thread 902 alone 1`] = `
+[
+  {
+    "author": "ehm-seaturtle",
+    "body": "🐢 like so
+
+<!-- rhx:github.comment key=answer -->",
+    "bytes": 52,
+    "created_at": "2026-10-24T<time>",
+    "id": 904,
+    "in_reply_to": 902,
+    "key": "answer",
+    "kind": "review",
+    "sha256": "1167e136f05e193ad4869d58a21f2f4469dfaf76faf90d4c574185f5ebab5106",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r904",
+  },
+]
+`;
+
+exports[`github.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t7] get --in --auth as-human for an absent key, from the cwd of another repo then: the fix names --in and --auth as-human, so a copy reaches the same target as the same login 1`] = `
+"✋ ConstraintError: no comment carries key 'absent-key' on ehmpathy/surf-demo#7
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --auth as-human   # lists every row and its key
+"
+`;
+
+exports[`github.comment given: [case14] set --kind body edits the pr description; del refuses it when: [t0] the body differs then: it PATCHes pulls/7 with the body as given, no prefix 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, pr description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: PATCH repos/ehmpathy/surf-demo/pulls/7
+   ├─ current
+   │  ├─ author: surfer-kai
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   │  ├─ bytes: 18
+   │  └─ sha256: 84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb
+   ├─ new
+   │  ├─ from: ./pr.md
+   │  ├─ bytes: 37
+   │  └─ sha256: b95417d915da68ab71f65c4a34232cc820585c0e60c5b74619740c1358d75831
+   └─ verdict: edited, read back, hash matches
+      ├─ pr: 7
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+      └─ read-back sha256: b95417d915da68ab71f65c4a34232cc820585c0e60c5b74619740c1358d75831
+"
+`;
+
+exports[`github.comment given: [case14] set --kind body edits the pr description; del refuses it when: [t1] the body already matches then: it is a no-op 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, pr description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: none (no-op; an edit would PATCH repos/ehmpathy/surf-demo/pulls/7)
+   ├─ current
+   │  ├─ author: surfer-kai
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   │  ├─ bytes: 37
+   │  └─ sha256: b95417d915da68ab71f65c4a34232cc820585c0e60c5b74619740c1358d75831
+   ├─ new
+   │  ├─ from: ./pr.md
+   │  ├─ bytes: 37
+   │  └─ sha256: b95417d915da68ab71f65c4a34232cc820585c0e60c5b74619740c1358d75831
+   └─ verdict: already there — no-op
+      ├─ pr: 7
+      └─ url: https://github.com/ehmpathy/surf-demo/pull/7
+"
+`;
+
+exports[`github.comment given: [case14] set --kind body edits the pr description; del refuses it when: [t2] del --kind body then: it exits 2: github offers no delete for a pr description 1`] = `
+"✋ ConstraintError: github offers no delete for a pr description
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.set --pr 7 --kind body --from <file>   # to rewrite it
+"
+`;
+
+exports[`github.comment given: [case14] set --kind body edits the pr description; del refuses it when: [t3] set --kind body --output json then: the body has no comment id: id is null, as get reports it 1`] = `
+{
+  "endpoint": "repos/ehmpathy/surf-demo/pulls/7",
+  "id": null,
+  "method": "PATCH",
+  "mode": "plan",
+  "sha256": {
+    "current": "b95417d915da68ab71f65c4a34232cc820585c0e60c5b74619740c1358d75831",
+    "new": "b95417d915da68ab71f65c4a34232cc820585c0e60c5b74619740c1358d75831",
+    "readback": null,
+  },
+  "target": "ehmpathy/surf-demo#7, pr description",
+  "url": "https://github.com/ehmpathy/surf-demo/pull/7",
+  "verdict": "already there — no-op",
+}
+`;
+
+exports[`github.comment given: [case15] auth: as-ehmpath needs a token; as-human strips them when: [t0] as-ehmpath with no token reachable then: it exits 2, names both fixes, calls no gh 1`] = `
+"✋ ConstraintError: ehmpath keyrack token not available
+   └─ cause: credential not found: EHMPATHY_SEATURTLE_GITHUB_TOKEN
+
+🥥 did you know?
+   └─ to fix it, by the state of the token, pick one
+      ├─ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # a human, where the token was never set
+      ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # the token is set, but locked
+      └─ rerun with --auth as-human   # post under your own gh login instead
+"
+`;
+
+exports[`github.comment given: [case15] auth: as-ehmpath needs a token; as-human strips them when: [t1] as-ehmpath with the token then: gh runs with GH_TOKEN set to the keyrack token 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.get
+   ├─ target: ehmpathy/surf-demo#7, pr description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ counts: 1 pr description, 0 issue comments, 0 review comments
+   └─ pr description by surfer-kai at 2026-10-24T<time>
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+      ├─ bytes: 18
+      ├─ sha256: 84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb
+      └─ text
+         surf lesson booker
+"
+`;
+
+exports[`github.comment given: [case15] auth: as-ehmpath needs a token; as-human strips them when: [t2] as-human, with stray tokens in the shell then: gh runs with GH_TOKEN and GITHUB_TOKEN unset, under the human login 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.get
+   ├─ target: ehmpathy/surf-demo#7, pr description
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ counts: 1 pr description, 0 issue comments, 0 review comments
+   └─ pr description by surfer-kai at 2026-10-24T<time>
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+      ├─ bytes: 18
+      ├─ sha256: 84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb
+      └─ text
+         surf lesson booker
+"
+`;
+
+exports[`github.comment given: [case15] auth: as-ehmpath needs a token; as-human strips them when: [t3] github fails the call: 401, 403, a rate limit, a 5xx then: each refusal is snapped 1`] = `
+{
+  "forbidden": "✋ ConstraintError: github forbade GET repos/ehmpathy/surf-demo/pulls/7 under as-ehmpath
+   └─ detail: gh: Resource not accessible by integration (HTTP 403)
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ check the credential can act on ehmpathy/surf-demo
+      └─ rerun with --auth as-human
+",
+  "rateLimited": "💥 MalfunctionError: gh api failed on GET repos/ehmpathy/surf-demo/pulls/7
+   └─ gh: API rate limit exceeded for user ID 1 (HTTP 403)
+
+🥥 did you know?
+   └─ next
+      └─ rerun the same command once the rate limit resets (gh api rate_limit shows when): get, set, and del are each safe to rerun
+",
+  "serverError": "💥 MalfunctionError: gh api failed on GET repos/ehmpathy/surf-demo/pulls/7
+   └─ gh: Server Error (HTTP 502)
+
+🥥 did you know?
+   └─ next
+      └─ rerun the same command after a pause: get, set, and del are each safe to rerun
+",
+  "unauthorized": "✋ ConstraintError: github refused the credential (as-ehmpath) on GET repos/ehmpathy/surf-demo/pulls/7
+   └─ detail: gh: Bad credentials (HTTP 401)
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh   # a human: set a token github accepts
+      └─ rerun with --auth as-human   # post under your own gh login instead
+",
+  "unauthorizedJson": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [
+        "detail: gh: Bad credentials (HTTP 401)",
+      ],
+      "fixes": [
+        "rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh   # a human: set a token github accepts",
+        "rerun with --auth as-human   # post under your own gh login instead",
+      ],
+      "message": "github refused the credential (as-ehmpath) on GET repos/ehmpathy/surf-demo/pulls/7",
+    },
+  },
+}
+`;
+
+exports[`github.comment given: [case15] auth: as-ehmpath needs a token; as-human strips them when: [t4] an app token: the login and its comments differ by [bot] then: the key matches as own both ways: a no-op, never a foreign refusal 1`] = `
+{
+  "authorBot": "🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: none (no-op; an edit would PATCH repos/ehmpathy/surf-demo/issues/comments/1101)
+   ├─ current
+   │  ├─ author: ehm-seaturtle[bot]
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-1101
+   │  ├─ bytes: 55
+   │  └─ sha256: cef522341382b0c4a55744b6ccedf05dbb11c1c88bd2f8fb8e2a5cd317511415
+   ├─ new
+   │  ├─ from: ./status.md
+   │  ├─ bytes: 55
+   │  └─ sha256: cef522341382b0c4a55744b6ccedf05dbb11c1c88bd2f8fb8e2a5cd317511415
+   └─ verdict: already there — no-op
+      ├─ id: 1101
+      └─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-1101
+",
+  "viewerBot": "🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle[bot]
+   ├─ endpoint: none (no-op; an edit would PATCH repos/ehmpathy/surf-demo/issues/comments/1102)
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-1102
+   │  ├─ bytes: 55
+   │  └─ sha256: cef522341382b0c4a55744b6ccedf05dbb11c1c88bd2f8fb8e2a5cd317511415
+   ├─ new
+   │  ├─ from: ./status.md
+   │  ├─ bytes: 55
+   │  └─ sha256: cef522341382b0c4a55744b6ccedf05dbb11c1c88bd2f8fb8e2a5cd317511415
+   └─ verdict: already there — no-op
+      ├─ id: 1102
+      └─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-1102
+",
+}
+`;
+
+exports[`github.comment given: [case15] auth: as-ehmpath needs a token; as-human strips them when: [t5] as-ehmpath with a token in the env, none in keyrack then: a refused env token names the env var, never a keyrack unlock 1`] = `
+"✋ ConstraintError: github refused the credential (as-ehmpath) on GET repos/ehmpathy/surf-demo/pulls/7
+   └─ detail: gh: Bad credentials (HTTP 401)
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ unset EHMPATHY_SEATURTLE_GITHUB_TOKEN, then rerun   # the env token wins over the keyrack
+      └─ rerun with --auth as-human   # post under your own gh login instead
+"
+`;
+
+exports[`github.comment given: [case15] auth: as-ehmpath needs a token; as-human strips them when: [t5] as-ehmpath with a token in the env, none in keyrack then: gh runs with GH_TOKEN set to the env token 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.get
+   ├─ target: ehmpathy/surf-demo#7, pr description
+   ├─ auth: as-ehmpath (env EHMPATHY_SEATURTLE_GITHUB_TOKEN) as ehm-seaturtle
+   ├─ counts: 1 pr description, 0 issue comments, 0 review comments
+   └─ pr description by surfer-kai at 2026-10-24T<time>
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+      ├─ bytes: 18
+      ├─ sha256: 84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb
+      └─ text
+         surf lesson booker
+"
+`;
+
+exports[`github.comment given: [case15] auth: as-ehmpath needs a token; as-human strips them when: [t6] github fails a write: POST 422, PATCH 404, DELETE 404 then: each is snapped 1`] = `
+{
+  "del": "🐢 heres the wave...
+
+🐚 github.comment.del --mode apply
+   ├─ target: ehmpathy/surf-demo#7, issue comment 1201
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: DELETE repos/ehmpathy/surf-demo/issues/comments/1201
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-1201
+   │  ├─ bytes: 55
+   │  └─ sha256: 2d86c041b710f8c41d14708193b338ef3e6e6a893057b4d9a387c355b240f6fd
+   └─ verdict: absent — no-op (gone before the DELETE)
+",
+  "patch": "✋ ConstraintError: github answered 404 on PATCH repos/ehmpathy/surf-demo/issues/comments/1201: the target is absent, or as-ehmpath cannot see it
+   └─ detail: gh: Not Found (HTTP 404)
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ check --pr, --in, and --id
+      └─ rerun with --auth as-human
+",
+  "post": "✋ ConstraintError: github refused the payload on POST repos/ehmpathy/surf-demo/issues/7/comments
+   └─ detail: gh: Validation Failed (HTTP 422)
+
+🥥 did you know?
+   └─ to fix it
+      └─ edit the body file so github accepts it, then rerun the same command   # the size cap is checked before any write, so a 422 is the content
+",
+}
+`;
+
+exports[`github.comment given: [case15] auth: as-ehmpath needs a token; as-human strips them when: [t7] a body over github cap of 65536 characters then: plan and apply each exit 2 before any write 1`] = `
+{
+  "apply": "✋ ConstraintError: the body holds 65834 characters; github caps a comment or pr description at 65536
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ trim the body
+      └─ split it across two keyed comments
+",
+  "plan": "✋ ConstraintError: the body holds 65834 characters; github caps a comment or pr description at 65536
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ trim the body
+      └─ split it across two keyed comments
+",
+}
+`;
+
+exports[`github.comment given: [case15] auth: as-ehmpath needs a token; as-human strips them when: [t8] as-human writes: a thread reply, the mirror refusal, a thread-foreign key, logged out then: each output is snapped 1`] = `
+{
+  "again": "🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, reply to review comment 531, key=answer
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ endpoint: none (no-op; an edit would PATCH repos/ehmpathy/surf-demo/pulls/comments/5001)
+   ├─ current
+   │  ├─ author: surfer-kai
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r5001
+   │  ├─ bytes: 61
+   │  └─ sha256: c4a99ccf93ad83218a12c200d519233266a85b860ba82143a3ee28ac15719b44
+   ├─ new
+   │  ├─ from: ./answer.md
+   │  ├─ bytes: 61
+   │  └─ sha256: c4a99ccf93ad83218a12c200d519233266a85b860ba82143a3ee28ac15719b44
+   └─ verdict: already there — no-op
+      ├─ id: 5001
+      └─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r5001
+",
+  "loggedOut": "✋ ConstraintError: github refused the credential (as-human) on the read of the current login
+   └─ detail: To get started with GitHub CLI, please run:  gh auth login
+
+🥥 did you know?
+   └─ to fix it
+      └─ gh auth login
+",
+  "mirror": "✋ ConstraintError: key 'status' on ehmpathy/surf-demo#7 is held by ehm-seaturtle, not by surfer-kai (as-human)
+   └─ held by: issue comment 541
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rerun with --auth as-ehmpath   # if ehm-seaturtle is that login
+      ├─ rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 541 --kind issue --auth as-ehmpath   # if ehm-seaturtle is that login: plan, then add --mode apply, then rerun
+      └─ pick another --key
+",
+  "posted": "🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, reply to review comment 531, key=answer
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/pulls/7/comments/531/replies
+   ├─ new
+   │  ├─ from: ./answer.md
+   │  ├─ bytes: 61
+   │  └─ sha256: c4a99ccf93ad83218a12c200d519233266a85b860ba82143a3ee28ac15719b44
+   └─ verdict: posted, read back, hash matches
+      ├─ id: 5001
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r5001
+      └─ read-back sha256: c4a99ccf93ad83218a12c200d519233266a85b860ba82143a3ee28ac15719b44
+",
+  "threadForeign": "✋ ConstraintError: key 'answer' on ehmpathy/surf-demo#7 is held by surfer-kai, not by ehm-seaturtle (as-ehmpath)
+   └─ held by: review comment 532
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rerun with --auth as-human   # if surfer-kai is that login
+      ├─ rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 532 --kind review --auth as-human   # if surfer-kai is that login: plan, then add --mode apply, then rerun
+      └─ pick another --key
+",
+}
+`;
+
+exports[`github.comment given: [case16] the apply json, the keyed tree reads, and the edges when: [t0] set, then del, then del again, each under --mode apply --output json then: each json is snapped 1`] = `
+{
+  "again": {
+    "endpoint": null,
+    "id": null,
+    "mode": "apply",
+    "target": "ehmpathy/surf-demo#7, top-level comment key=status",
+    "verdict": "absent — no-op",
+  },
+  "del": {
+    "endpoint": "repos/ehmpathy/surf-demo/issues/comments/5001",
+    "id": 5001,
+    "mode": "apply",
+    "target": "ehmpathy/surf-demo#7, top-level comment key=status",
+    "verdict": "deleted, confirmed absent",
+  },
+  "set": {
+    "endpoint": "repos/ehmpathy/surf-demo/issues/7/comments",
+    "id": 5001,
+    "method": "POST",
+    "mode": "apply",
+    "sha256": {
+      "current": null,
+      "new": "9113f0a33830a87974820f3623aff42b1230d2ce427882b8c6d9140ab3efee30",
+      "readback": "9113f0a33830a87974820f3623aff42b1230d2ce427882b8c6d9140ab3efee30",
+    },
+    "target": "ehmpathy/surf-demo#7, top-level comment key=status",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001",
+    "verdict": "posted, read back, hash matches",
+  },
+}
+`;
+
+exports[`github.comment given: [case16] the apply json, the keyed tree reads, and the edges when: [t1] get --key, and get --key --reply-to, in the tree render then: each names its target and its one row 1`] = `
+{
+  "key": "🐢 heres the wave...
+
+🐚 github.comment.get
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ counts: 0 pr description, 1 issue comments, 0 review comments
+   └─ issue comment 161 by ehm-seaturtle at 2026-10-24T<time>  key=status
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-161
+      ├─ bytes: 57
+      ├─ sha256: 9113f0a33830a87974820f3623aff42b1230d2ce427882b8c6d9140ab3efee30
+      └─ text
+         🐢 waves are up
+
+         <!-- rhx:github.comment key=status -->
+",
+  "reply": "🐢 heres the wave...
+
+🐚 github.comment.get
+   ├─ target: ehmpathy/surf-demo#7, reply to review comment 162, key=answer
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ counts: 0 pr description, 0 issue comments, 1 review comments
+   └─ review comment 163 by ehm-seaturtle at 2026-10-24T<time>  reply-to=162  key=answer
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r163
+      ├─ bytes: 58
+      ├─ sha256: 4d8eca342fb1e3e5dcb956e6492d205d6dddbf2d31626077a4483c60e26a33dc
+      └─ text
+         🐢 fixed in 3a1f
+
+         <!-- rhx:github.comment key=answer -->
+",
+}
+`;
+
+exports[`github.comment given: [case16] the apply json, the keyed tree reads, and the edges when: [t2] get on a pr with an empty description and no comments then: it counts the description alone, and marks its text (empty) 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.get
+   ├─ target: ehmpathy/surf-demo#9, every comment
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ counts: 1 pr description, 0 issue comments, 0 review comments
+   └─ pr description by surfer-kai at 2026-10-24T<time>
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/9
+      ├─ bytes: 0
+      ├─ sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+      └─ text
+         (empty)
+"
+`;
+
+exports[`github.comment given: [case16] the apply json, the keyed tree reads, and the edges when: [t3] the graphql viewer answers with no login then: it fails as a malfunction, exit 1, before any rest call 1`] = `
+"💥 MalfunctionError: graphql viewer returned no login
+   ├─ response: {"data":{"viewer":{"login":""}}}
+   └─ state: no read or write ran
+
+🥥 did you know?
+   └─ next
+      └─ rerun the same command; if it fails again, check the credential: gh auth status for as-human, rhx keyrack status --owner ehmpath for as-ehmpath
+"
+`;
+
+exports[`github.comment given: [case17] a review comment edited in place, and two writes gone astray when: [t0] a keyed reply whose text differs is set again then: it PATCHes the reply in place and reads it back 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, reply to review comment 171, key=answer
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: PATCH repos/ehmpathy/surf-demo/pulls/comments/172
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r172
+   │  ├─ bytes: 58
+   │  └─ sha256: 4d8eca342fb1e3e5dcb956e6492d205d6dddbf2d31626077a4483c60e26a33dc
+   ├─ new
+   │  ├─ from: ./answer.md
+   │  ├─ bytes: 58
+   │  └─ sha256: bc259678eb78201af18d21e2684691ec7ab3a1f75f129d52289746b44e676ddb
+   └─ verdict: edited, read back, hash matches
+      ├─ id: 172
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r172
+      └─ read-back sha256: bc259678eb78201af18d21e2684691ec7ab3a1f75f129d52289746b44e676ddb
+"
+`;
+
+exports[`github.comment given: [case17] a review comment edited in place, and two writes gone astray when: [t1] set --id --kind review --mode apply edits a known review comment then: it PATCHes the review endpoint and reads it back 1`] = `
+"🐢 heres the wave...
+
+🐚 github.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, review comment 173
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: PATCH repos/ehmpathy/surf-demo/pulls/comments/173
+   ├─ current
+   │  ├─ author: ehm-seaturtle
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r173
+   │  ├─ bytes: 13
+   │  └─ sha256: 4ef4c6c781a074585698c3e8ccfb9412d97869a24dd4d085c3ad65f638ceab2b
+   ├─ new
+   │  ├─ from: ./note.md
+   │  ├─ bytes: 13
+   │  └─ sha256: 99e1e940a587ea95faa3048a969229afd4275d2081aec0bba978166b27715f47
+   └─ verdict: edited, read back, hash matches
+      ├─ id: 173
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r173
+      └─ read-back sha256: 99e1e940a587ea95faa3048a969229afd4275d2081aec0bba978166b27715f47
+"
+`;
+
+exports[`github.comment given: [case17] a review comment edited in place, and two writes gone astray when: [t2] github answers a POST with no id then: it fails as a malfunction, names the state, and says a rerun converges 1`] = `
+"💥 MalfunctionError: gh api POST repos/ehmpathy/surf-demo/issues/7/comments returned no id
+   ├─ response: {"body":"🐢 waves are up\\n\\n<!-- rhx:github.comment key=status -->","user":{"login":"ehm-seaturtle"},"created_at":"2026-10-24T<time>","html_url":"https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001","issue_url":"https://api.github.com/repos/ehmpathy/surf-demo/issues/7"}
+   └─ state: the write may have landed; its id is unknown
+
+🥥 did you know?
+   └─ next
+      └─ rerun the same command: a keyed set finds the comment by its key, so a rerun converges and names the id
+"
+`;
+
+exports[`github.comment given: [case17] a review comment edited in place, and two writes gone astray when: [t3] github answers a POST yet never holds the comment then: it fails as a malfunction on the read-back, and says a rerun converges 1`] = `
+"💥 MalfunctionError: the write is absent on read-back
+   ├─ endpoint: repos/ehmpathy/surf-demo/issues/comments/5001
+   └─ state: github accepted the write, yet the comment does not read back
+
+🥥 did you know?
+   └─ next
+      └─ rerun the same command: set posts again only where the key reads absent, so a rerun converges
+"
+`;

@@ -45,6 +45,16 @@ describe('permission gates parity (check-permissions vs decide-permissions)', ()
   };
 
   /**
+   * .what = the env each gate runs under: the caller's, minus every settings source outside the temp repo
+   * .why = both gates read $CLAUDE_CONFIG_DIR (else $HOME/.claude) as a settings layer; a clone's
+   *        own actor allowlist would otherwise leak into the verdicts, so the table would differ per machine
+   */
+  const asHermeticEnv = (input: { dir: string }): NodeJS.ProcessEnv => {
+    const { CLAUDE_CONFIG_DIR: _omit, ...env } = process.env;
+    return { ...env, HOME: input.dir };
+  };
+
+  /**
    * .what = does gate 2 let the command run? (exit 0, no ask payload)
    * .note = each call runs in a fresh repo, so it is always a first attempt — never a retry
    */
@@ -52,6 +62,7 @@ describe('permission gates parity (check-permissions vs decide-permissions)', ()
     const repo = genRepo();
     const result = spawnSync('bash', [gatePath], {
       cwd: repo.dir,
+      env: asHermeticEnv({ dir: repo.dir }),
       encoding: 'utf-8',
       input: JSON.stringify({
         tool_name: 'Bash',
@@ -68,6 +79,7 @@ describe('permission gates parity (check-permissions vs decide-permissions)', ()
     const repo = genRepo();
     const result = spawnSync('bash', [seamPath], {
       cwd: repo.dir,
+      env: asHermeticEnv({ dir: repo.dir }),
       encoding: 'utf-8',
       input: JSON.stringify({
         tool_name: 'Bash',
