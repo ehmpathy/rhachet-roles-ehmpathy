@@ -237,12 +237,14 @@ exit 1
       });
 
       then('output shows success', () => {
+        // the real advisory endpoint grades this pin, so it must be one no advisory names:
+        // an ehmpathy package at the version this repo pins (zod@3.22.4 drew GHSA-mrhx-c7xc-m3w5)
         const result = runSkill(
           [
             '--package',
-            'zod',
+            'helpful-errors',
             '--at',
-            '3.22.4',
+            '1.7.3',
             '--for',
             'prod',
             '--reason',

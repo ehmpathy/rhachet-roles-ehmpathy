@@ -22,6 +22,18 @@ describe('permission gates parity (check-permissions vs decide-permissions)', ()
     'permissionrequest.decide-permissions.sh',
   );
 
+  /**
+   * .what = a hermetic env for every gate run in this suite
+   * .why = both gates read $CLAUDE_CONFIG_DIR and $HOME/.claude ahead of the walk-up dir;
+   *        inherited from the runner, they would judge each command against the runner's
+   *        allowlist, never the fixture's
+   */
+  const { CLAUDE_CONFIG_DIR: _runnerConfigDir, ...envRunnerRest } = process.env;
+  const GATE_ENV: NodeJS.ProcessEnv = {
+    ...envRunnerRest,
+    HOME: genTempDir({ slug: 'permission-gates-parity-home' }),
+  };
+
   const ALLOW = [
     'Bash(npm run test:*)',
     'Bash(git status)',
@@ -52,6 +64,7 @@ describe('permission gates parity (check-permissions vs decide-permissions)', ()
     const repo = genRepo();
     const result = spawnSync('bash', [gatePath], {
       cwd: repo.dir,
+      env: GATE_ENV,
       encoding: 'utf-8',
       input: JSON.stringify({
         tool_name: 'Bash',
@@ -68,6 +81,7 @@ describe('permission gates parity (check-permissions vs decide-permissions)', ()
     const repo = genRepo();
     const result = spawnSync('bash', [seamPath], {
       cwd: repo.dir,
+      env: GATE_ENV,
       encoding: 'utf-8',
       input: JSON.stringify({
         tool_name: 'Bash',

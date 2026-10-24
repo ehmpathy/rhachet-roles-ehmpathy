@@ -5,17 +5,17 @@
 #         another first — raise this cap only as a deliberate, reviewed call
 budget:
   tokens: 30_000
+# .note = `always` holds what every seat needs, subject.101 included. the seaturtle persona and the
+#         skills to release, merge, and browse other repos boot in every other subject instead,
+#         repeated in each (wet over dry), so a default or single-subject boot holds them as before
 always:
   briefs:
     say:
-      # identity & tone
-      - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
+      # tone
       - briefs/practices/lang.tones/rule.prefer.lowercase.md
       - briefs/practices/lang.tones/rule.require.term-human.md
-      - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
       - briefs/practices/lang.tones/rule.forbid.buzzwords.md
       - briefs/practices/lang.tones/rule.forbid.shouts.md
-      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
 
       # foundational terms
       - briefs/practices/lang.terms/define.directives.terms=forbid_avoid_prefer_require.md
@@ -66,24 +66,13 @@ always:
       - skills/get.package.docs.sh
 
       # git commit
-      - skills/git.commit/git.commit.push.sh
       - skills/git.commit/git.commit.set.sh
 
-      # git branch
-      - skills/git.branch.rebase/git.branch.rebase.sh
-
-      # git release
-      - skills/git.release/git.release.sh
-
       # git repo
-      - skills/git.repo.get/git.repo.get.sh
       - skills/git.repo.test/git.repo.test.sh
 
       # git stage
       - skills/git.stage/git.stage.add.sh
-
-      # github actions
-      - skills/show.gh.test.errors.sh
 
       # permissions: the pre-approved commands, on demand
       - skills/permissions.get.sh
@@ -117,6 +106,11 @@ always:
 subject.code.prod:
   briefs:
     say:
+      # persona — here, not in always, so subject.101 skips it (repeated in each subject)
+      - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
+      - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
+      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
+
       # procedures
       - briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt1.md
       - briefs/practices/code.prod/evolvable.procedures/rule.require.arrow-only.md
@@ -237,9 +231,23 @@ subject.code.prod:
       # lint
       - briefs/practices/code.prod/pitofsuccess.lint/rule.forbid.dpdm-exclude-change.md
 
+  skills:
+    say:
+      # push, merge, release, other repos — here, not in always, so subject.101 skips them
+      - skills/git.commit/git.commit.push.sh
+      - skills/git.branch.rebase/git.branch.rebase.sh
+      - skills/git.release/git.release.sh
+      - skills/git.repo.get/git.repo.get.sh
+      - skills/show.gh.test.errors.sh
+
 subject.code.test:
   briefs:
     say:
+      # persona — here, not in always, so subject.101 skips it (repeated in each subject)
+      - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
+      - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
+      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
+
       # errors — the most important rules
       - briefs/practices/code.test/pitofsuccess.errors/rule.forbid.failhide.md
       - briefs/practices/code.test/pitofsuccess.errors/rule.require.failfast.md
@@ -279,9 +287,23 @@ subject.code.test:
       - briefs/practices/code.test/pitofsuccess.portability/rule.forbid.test-assets-dunder.md
       - briefs/practices/code.test/pitofsuccess.portability/rule.require.blackbox-via-selflink.md
 
+  skills:
+    say:
+      # push, merge, release, other repos — here, not in always, so subject.101 skips them
+      - skills/git.commit/git.commit.push.sh
+      - skills/git.branch.rebase/git.branch.rebase.sh
+      - skills/git.release/git.release.sh
+      - skills/git.repo.get/git.repo.get.sh
+      - skills/show.gh.test.errors.sh
+
 subject.arch:
   briefs:
     say:
+      # persona — here, not in always, so subject.101 skips it (repeated in each subject)
+      - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
+      - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
+      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
+
       # overlap with code.prod is intentional
       - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.nullable-without-reason.md
       - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.undefined-attributes.md
@@ -291,9 +313,23 @@ subject.arch:
       - briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md
       - briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md
 
+  skills:
+    say:
+      # push, merge, release, other repos — here, not in always, so subject.101 skips them
+      - skills/git.commit/git.commit.push.sh
+      - skills/git.branch.rebase/git.branch.rebase.sh
+      - skills/git.release/git.release.sh
+      - skills/git.repo.get/git.repo.get.sh
+      - skills/show.gh.test.errors.sh
+
 subject.flow:
   briefs:
     say:
+      # persona — here, not in always, so subject.101 skips it (repeated in each subject)
+      - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
+      - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
+      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
+
       - briefs/practices/work.flow/rule.require.trust-but-verify.md
       - briefs/practices/work.flow/rule.prefer.scouts-honor.md
       - briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md
@@ -319,3 +355,52 @@ subject.flow:
       - briefs/practices/work.flow/tools/rule.prefer.allowlist-examples.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.jq.[demo].md
       - briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt2.md
+
+  skills:
+    say:
+      # push, merge, release, other repos — here, not in always, so subject.101 skips them
+      - skills/git.commit/git.commit.push.sh
+      - skills/git.branch.rebase/git.branch.rebase.sh
+      - skills/git.release/git.release.sh
+      - skills/git.repo.get/git.repo.get.sh
+      - skills/show.gh.test.errors.sh
+
+# .what = the basics: the rules an in-seat cure must meet that no hook enforces
+# .why  = a seat outside mechanic (e.g. a director) enrolls mechanic::101 for the hooks, plus these
+#         few cues, without the full role's boot
+# .note = rhachet unions `always` into every subject and refuses a budget inside a section, so a
+#         101 seat boots always ∪ 101, and boot.budget.integration.test.ts caps both the section
+#         alone and that union. to keep the union under its cap, `always` holds only what a 101
+#         seat needs; the rest boots in every other subject. once rhachet lets a subject opt out of
+#         `always` and accepts a section budget, declare `budget:` here and drop the row from that
+#         test's SUBJECT_BUDGETS
+subject.101:
+  briefs:
+    say:
+      # errors — a cure that limps past bad state, or hides it, reports a false green
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failloud.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt1.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.exit-code-semantics.md
+
+      # the PreToolUse exception — a malfunction in a hook still exits 2, else the gate fails open
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.qualified-error-headers.md
+
+      # mutation + types — a cure re-runs on every wake; a cast hides its defect from tsc
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md
+      - briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md
+
+      # repairs — a fix to a shared tool owes a clamp that goes red without the fix
+      - briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md
+
+    ref:
+      # the argument + demos behind each cue
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt2.md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[seed].md
+      - briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[demo].shell.md
+      - briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md
+      - briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.assure-via-type-checks.md
+
+      # at ref, not say: subject.flow holds it at ref, and a say here would upgrade it in the full
+      # role's boot too; clamp-edge-cases, at say, already demands the test it requires
+      - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md

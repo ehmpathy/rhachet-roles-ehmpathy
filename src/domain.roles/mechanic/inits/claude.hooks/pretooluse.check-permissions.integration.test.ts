@@ -2331,7 +2331,13 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
     flags: string[];
     withInventory: boolean;
     prepare: ((scene: { tempDir: string }) => void) | null;
-  }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
+  }): {
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+    tempDir: string;
+    hookMs: number;
+  } => {
     const hookDir = genHookDir({ slug: 'permissions-hook-copy' });
     const hookCopy = path.join(hookDir, 'pretooluse.check-permissions.sh');
     fs.writeFileSync(hookCopy, input.hookSource);
@@ -2349,6 +2355,10 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
       }),
     );
     input.prepare?.({ tempDir });
+
+    // time the hook alone: a deadline case grades the hook, never the fixture setup above,
+    // which a loaded host stretches by seconds (git init, file copies)
+    const hookStartedAt = Date.now();
     const result = spawnSync('bash', [hookCopy, ...input.flags], {
       cwd: tempDir,
       encoding: 'utf-8',
@@ -2361,11 +2371,13 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
             }),
       stdio: ['pipe', 'pipe', 'pipe'],
     });
+    const hookMs = Date.now() - hookStartedAt;
     return {
       stdout: result.stdout ?? '',
       stderr: result.stderr ?? '',
       exitCode: result.status ?? 1,
       tempDir,
+      hookMs,
     };
   };
 
@@ -3434,7 +3446,6 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
             // 🔴 a hook the harness kills never reaches its EXIT trap, and claude code reads a
             //    killed PreToolUse hook as a permit. the wait once ran 30s against a 10s
             //    timeout, so lock contention could open the gate. the shipped bound, unpatched
-            const startedAt = Date.now();
             const result = runHookCopy({
               hookSource: hookSourceLive,
               command,
@@ -3447,14 +3458,13 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
                 fs.writeFileSync(path.join(lockDir, 'pid'), `${process.pid}\n`);
               },
             });
-            const elapsedMs = Date.now() - startedAt;
             expect(result.exitCode).toBe(2);
             expect(result.stderr).toContain(
               '💥 MalfunctionError: the nudge record lock stayed held',
             );
             // .note = the bound is the kill window less a margin for host load (the old wait ran
             //         30s); a full parallel suite measured 6.5s here
-            expect(elapsedMs).toBeLessThan(8500);
+            expect(result.hookMs).toBeLessThan(8500);
           },
         );
       });
@@ -3539,14 +3549,22 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           then(
             'the total across parts stays at 21, with one overflow line',
             () => {
-              const result = runHook({
+              // .note = this case pins the cap split, never the search clock: both parts must be
+              //         ranked, so the search budget is lifted; on a loaded host the shipped 3s
+              //         budget leaves the second part unsearched and the split this case pins
+              //         never forms. case58 clamps the shipped budget itself
+              const result = runHookCopy({
+                hookSource: hookSourceLive
+                  .replace('RANK_TIMEOUT=3', 'RANK_TIMEOUT=60')
+                  .replace('RANK_DEADLINE=5', 'RANK_DEADLINE=60'),
                 command: 'git stash && git stasj',
-                settings: {
-                  allow: Array.from(
-                    { length: 40 },
-                    (_, i) => `Bash(git stash${i}:*)`,
-                  ),
-                },
+                allow: Array.from(
+                  { length: 40 },
+                  (_, i) => `Bash(git stash${i}:*)`,
+                ),
+                flags: [],
+                withInventory: true,
+                prepare: null,
               });
               expect(result.exitCode).toBe(2);
               const candidates = result.stderr
@@ -4209,8 +4227,12 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         { length: 200 },
         (_, i) => `Bash(reef${i} tide${i} --swell:*)`,
       );
+      // .note = 30 parts: an unbounded search runs ~0.9s a part (~27s here), far past the 10s
+      //         kill, so the clamp still bites; while the lifted allow check, which scales with
+      //         parts × patterns, stays small enough that a loaded host cannot spend the window
+      //         on it before the search this case clamps even starts
       const command = Array.from(
-        { length: 150 },
+        { length: 30 },
         (_, i) => `kelp${i} --drift ${i}`,
       ).join(' ; ');
       // .note = only the allow check's own bound is lifted, so a loaded host cannot fail the
@@ -4224,7 +4246,6 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         then(
           'it blocks well inside its 10s registered timeout, and names the parts it left unsearched',
           () => {
-            const startedAt = Date.now();
             const result = runHookCopy({
               hookSource,
               command,
@@ -4233,15 +4254,14 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
               withInventory: true,
               prepare: null,
             });
-            const elapsedMs = Date.now() - startedAt;
             expect(result.exitCode).toBe(2);
             expect(result.stderr).toContain('blocked: kelp0 --drift 0');
             expect(result.stderr).toContain(
               'not searched — the candidate search ran out of time before this part',
             );
-            // .note = with the search unbounded, this compound took ~135s on the author's host;
+            // .note = with the search unbounded, 150 parts took ~135s on the author's host;
             //         the bound is the 10s kill window less a margin for host load
-            expect(elapsedMs).toBeLessThan(9500);
+            expect(result.hookMs).toBeLessThan(9500);
           },
         );
       });
@@ -4363,7 +4383,16 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           then(
             'the wait gives up at once, the block holds, and the deadline is named',
             () => {
-              const startedAt = Date.now();
+              // the same aged hook with no lock held: its time is the host's baseline cost for
+              // this hook, which a loaded host stretches past any fixed bound
+              const baseline = runHookCopy({
+                hookSource: hookSourceAged({ seconds: 9 }),
+                command: 'du -sh dist',
+                allow: ['Bash(surfwax:*)'],
+                flags: [],
+                withInventory: true,
+                prepare: null,
+              });
               const result = runHookCopy({
                 hookSource: hookSourceAged({ seconds: 9 }),
                 command: 'du -sh dist',
@@ -4387,7 +4416,10 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
               expect(result.stderr).toContain(
                 "the nudge record lock stayed held past the hook's deadline",
               );
-              expect(Date.now() - startedAt).toBeLessThan(1500);
+              // .note = "at once" is the wait itself: a held lock may add well under the shipped
+              //         ~2s wait (ATTEMPT_LOCK_LIVE_TRIES × 0.05s) to the baseline, never all of it
+              expect(baseline.exitCode).toBe(2);
+              expect(result.hookMs - baseline.hookMs).toBeLessThan(1000);
             },
           );
         },
