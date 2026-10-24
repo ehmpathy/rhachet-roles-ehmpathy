@@ -28,8 +28,9 @@ import { getError, given, then, useThen, when } from 'test-fns';
  *         snapshot beside the stub suite's
  * .note = every verb runs `--auth as-human`: the gh cli login of the seat
  *         that runs the suite. on a human's machine, their own login; in ci,
- *         the job's own GITHUB_TOKEN, logged into gh by the workflow
- *         (.test.yml, step "gh login"). no login → fail loud, never skip
+ *         the job's own GITHUB_TOKEN, logged into an isolated gh config dir
+ *         by the workflow (.test.yml, step "gh login (isolated, …)").
+ *         no login → fail loud, never skip
  */
 describe('github.comment (real github api)', () => {
   const REPO = 'ehmpathy/rhachet-roles-ehmpathy';
@@ -62,10 +63,23 @@ describe('github.comment (real github api)', () => {
   };
 
   /**
+   * .what = the env the case runs gh under
+   * .why  = ci logs the job token into an isolated gh config dir, named by
+   *         GITHUB_COMMENT_REAL_API_GH_CONFIG_DIR, so no other suite sees a
+   *         login; a human seat names none and runs under its own gh login
+   */
+  const getEnvOfCase = (): NodeJS.ProcessEnv => {
+    const configDir = process.env.GITHUB_COMMENT_REAL_API_GH_CONFIG_DIR;
+    if (!configDir) return process.env;
+    return { ...process.env, GH_CONFIG_DIR: configDir };
+  };
+
+  /**
    * .what = run one verb against the real api under the seat's gh login
    */
   const run = (verb: 'get' | 'set' | 'del', args: string[], stdin?: string) => {
-    assertGhLogin({ env: process.env });
+    const env = getEnvOfCase();
+    assertGhLogin({ env });
     const result = spawnSync(
       'bash',
       [
@@ -82,7 +96,7 @@ describe('github.comment (real github api)', () => {
         cwd: repoRoot,
         encoding: 'utf-8',
         input: stdin ?? '',
-        env: process.env,
+        env,
       },
     );
     return {
