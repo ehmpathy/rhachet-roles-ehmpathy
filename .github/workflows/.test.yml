@@ -190,6 +190,13 @@ jobs:
   test-shards-integration:
     runs-on: ubuntu-24.04
     needs: [install, enshard]
+    # .why = the github.comment real-api case writes to a pr of this repo via
+    #        the job's own token; a fork's pr gets a read-only token regardless
+    permissions:
+      id-token: write # required for oidc
+      contents: read
+      pull-requests: write # the real-api case edits a pr description
+      issues: write # the real-api case posts and deletes a pr comment
     strategy:
       fail-fast: false
       matrix:
@@ -235,6 +242,23 @@ jobs:
 
       - name: prepare:rhachet (link roles into .agent for cross-repo skill discovery in evals)
         run: npm run prepare:rhachet
+
+      # .why = the github.comment real-api case runs `--auth as-human`, which
+      #        reads only the gh cli login; in ci that login is the job's own
+      #        token, so no seat must grant a credential
+      # .note = the login lands in an isolated gh config dir, exported by a
+      #         dedicated name that only the real-api case reads; the default
+      #         gh config stays bare, so suites that assert "no credential
+      #         reachable" still see none
+      - name: gh login (isolated, for the github.comment real-api case)
+        run: |
+          dir="$RUNNER_TEMP/gh-config-github-comment-real-api"
+          mkdir -p "$dir"
+          GH_CONFIG_DIR="$dir" gh auth login --with-token <<< "$GH_LOGIN_TOKEN"
+          GH_CONFIG_DIR="$dir" gh auth status
+          echo "GITHUB_COMMENT_REAL_API_GH_CONFIG_DIR=$dir" >> "$GITHUB_ENV"
+        env:
+          GH_LOGIN_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # .why = keyrack firewall translates and validates secrets before tests run
       #        - filters to declared keys in keyrack.yml (env test)

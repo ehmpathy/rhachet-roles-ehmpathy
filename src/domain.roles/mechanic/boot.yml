@@ -85,6 +85,11 @@ always:
       # github actions
       - skills/show.gh.test.errors.sh
 
+      # github pr comments: read, upsert by key, delete
+      - skills/github.comment/github.comment.get.sh
+      - skills/github.comment/github.comment.set.sh
+      - skills/github.comment/github.comment.del.sh
+
       # permissions: the pre-approved commands, on demand
       - skills/permissions.get.sh
 

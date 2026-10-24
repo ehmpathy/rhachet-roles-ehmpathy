@@ -1,0 +1,120 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`github.comment (real github api) given: [case1] a keyed comment on a home-org pr when: [t0] the full lifecycle runs then: the live outputs match their masked snapshot 1`] = `
+{
+  "del": "🐢 heres the wave...
+
+🐚 github.comment.del --mode apply
+   ├─ target: ehmpathy/rhachet-roles-ehmpathy#1039, top-level comment key=<key>
+   ├─ auth: as-human (gh cli login, fallback) as <login>
+   ├─ endpoint: DELETE repos/ehmpathy/rhachet-roles-ehmpathy/issues/comments/<id>
+   ├─ current
+   │  ├─ author: <login>
+   │  ├─ url: https://github.com/ehmpathy/rhachet-roles-ehmpathy/pull/1039#issuecomment-<id>
+   │  ├─ bytes: 119
+   │  └─ sha256: <sha256>
+   └─ verdict: deleted, confirmed absent
+",
+  "getAfter": "✋ ConstraintError: no comment carries key '<key>' on ehmpathy/rhachet-roles-ehmpathy#1039
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx github.comment.get --pr 1039 --in ehmpathy/rhachet-roles-ehmpathy --auth as-human   # lists every row and its key
+",
+  "getFirst": "[
+  {
+    "kind": "issue",
+    "id": <id>,
+    "author": "<login>",
+    "created_at": "<ts>",
+    "in_reply_to": null,
+    "key": "<key>",
+    "bytes": 137,
+    "sha256": "<sha256>",
+    "url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/pull/1039#issuecomment-<id>",
+    "body": "🐢 real-api case: set → get → set (edit) → set (no-op) → del\\n\\n<!-- rhx:github.comment key=<key> -->"
+  }
+]
+",
+  "setAgain": "{
+  "mode": "apply",
+  "verdict": "already there — no-op",
+  "target": "ehmpathy/rhachet-roles-ehmpathy#1039, top-level comment key=<key>",
+  "method": "PATCH",
+  "endpoint": "repos/ehmpathy/rhachet-roles-ehmpathy/issues/comments/<id>",
+  "id": <id>,
+  "url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/pull/1039#issuecomment-<id>",
+  "sha256": {
+    "current": "<sha256>",
+    "new": "<sha256>",
+    "readback": null
+  }
+}
+",
+  "setEdit": "{
+  "mode": "apply",
+  "verdict": "edited, read back, hash matches",
+  "target": "ehmpathy/rhachet-roles-ehmpathy#1039, top-level comment key=<key>",
+  "method": "PATCH",
+  "endpoint": "repos/ehmpathy/rhachet-roles-ehmpathy/issues/comments/<id>",
+  "id": <id>,
+  "url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/pull/1039#issuecomment-<id>",
+  "sha256": {
+    "current": "<sha256>",
+    "new": "<sha256>",
+    "readback": "<sha256>"
+  }
+}
+",
+  "setFirst": "{
+  "mode": "apply",
+  "verdict": "posted, read back, hash matches",
+  "target": "ehmpathy/rhachet-roles-ehmpathy#1039, top-level comment key=<key>",
+  "method": "POST",
+  "endpoint": "repos/ehmpathy/rhachet-roles-ehmpathy/issues/1039/comments",
+  "id": <id>,
+  "url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/pull/1039#issuecomment-<id>",
+  "sha256": {
+    "current": null,
+    "new": "<sha256>",
+    "readback": "<sha256>"
+  }
+}
+",
+}
+`;
+
+exports[`github.comment (real github api) given: [case3] the pr body, edited and restored when: [t0] the body gets one mark line, then its original back then: the live outputs match their masked snapshot 1`] = `
+{
+  "setMark": "{
+  "mode": "apply",
+  "verdict": "edited, read back, hash matches",
+  "target": "ehmpathy/rhachet-roles-ehmpathy#1039, pr description",
+  "method": "PATCH",
+  "endpoint": "repos/ehmpathy/rhachet-roles-ehmpathy/pulls/1039",
+  "id": null,
+  "url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/pull/1039",
+  "sha256": {
+    "current": "<sha256>",
+    "new": "<sha256>",
+    "readback": "<sha256>"
+  }
+}
+",
+  "setRestore": "{
+  "mode": "apply",
+  "verdict": "edited, read back, hash matches",
+  "target": "ehmpathy/rhachet-roles-ehmpathy#1039, pr description",
+  "method": "PATCH",
+  "endpoint": "repos/ehmpathy/rhachet-roles-ehmpathy/pulls/1039",
+  "id": null,
+  "url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/pull/1039",
+  "sha256": {
+    "current": "<sha256>",
+    "new": "<sha256>",
+    "readback": "<sha256>"
+  }
+}
+",
+}
+`;
