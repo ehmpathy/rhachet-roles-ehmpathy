@@ -705,48 +705,57 @@ exit 1
     });
   });
 
+  // .note = a package-lock repo, so the skill takes its npm path: npm ships with
+  //         node on every host, while the ci test shards restore node_modules
+  //         from cache and set up no pnpm
   given('[case15] a real install, no fake package managers', () => {
-    when('[t0] install is called with the real pnpm on PATH', () => {
-      const { tempDir, cleanup } = createTempDir();
-      afterAll(() => cleanup());
-      const result = useThen('it runs', async () =>
-        runSkill(
-          [
-            '--package',
-            'type-fns',
-            '--at',
-            '1.21.0',
-            '--for',
-            'prod',
-            '--reason',
-            'the real install leg',
-          ],
-          { cwd: tempDir },
-        ),
-      );
-
-      then('exit code is 0, and the output says so', () => {
-        expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('shell yeah!');
-      });
-
-      then('the registry delivered the asked version into node_modules', () => {
-        const installed = JSON.parse(
-          fs.readFileSync(
-            path.join(tempDir, 'node_modules', 'type-fns', 'package.json'),
-            'utf-8',
+    when(
+      '[t0] install is called with the real npm on PATH, in a package-lock repo',
+      () => {
+        const { tempDir, cleanup } = createTempDir({ withPackageLock: true });
+        afterAll(() => cleanup());
+        const result = useThen('it runs', async () =>
+          runSkill(
+            [
+              '--package',
+              'type-fns',
+              '--at',
+              '1.21.0',
+              '--for',
+              'prod',
+              '--reason',
+              'the real install leg',
+            ],
+            { cwd: tempDir },
           ),
         );
-        expect(installed.version).toBe('1.21.0');
-      });
 
-      then('package.json declares it as a prod dependency', () => {
-        const pkgJson = JSON.parse(
-          fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),
+        then('exit code is 0, and the output says so', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('shell yeah!');
+        });
+
+        then(
+          'the registry delivered the asked version into node_modules',
+          () => {
+            const installed = JSON.parse(
+              fs.readFileSync(
+                path.join(tempDir, 'node_modules', 'type-fns', 'package.json'),
+                'utf-8',
+              ),
+            );
+            expect(installed.version).toBe('1.21.0');
+          },
         );
-        expect(pkgJson.dependencies['type-fns']).toContain('1.21.0');
-      });
-    });
+
+        then('package.json declares it as a prod dependency', () => {
+          const pkgJson = JSON.parse(
+            fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),
+          );
+          expect(pkgJson.dependencies['type-fns']).toContain('1.21.0');
+        });
+      },
+    );
   });
 
   /**
