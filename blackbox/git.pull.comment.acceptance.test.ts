@@ -5,12 +5,12 @@ import { given, then, useBeforeAll, useThen, when } from 'test-fns';
 import { genTestDir } from './.test/invokeHook';
 
 /**
- * .what = acceptance tests for `rhx github.comment.get | set | del`, run via rhachet against the linked role
+ * .what = acceptance tests for `rhx git.pull.comment.get | set | del`, run via rhachet against the linked role
  * .why  = a caller reaches the verbs through rhachet, never by their file path; the
  *         manifest registration and the dispatch must hold on that road. the contract
  *         itself (plan, upsert, thread scope, refusals) is proven in
- *         github.comment.integration.test.ts, and against the real api in
- *         github.comment.real.integration.test.ts
+ *         git.pull.comment.integration.test.ts, and against the real api in
+ *         git.pull.comment.real.integration.test.ts
  * .note = no case here reaches github: each run stops at --help or at an input
  *         refusal, before any gh call, so no credential is needed
  */
@@ -51,27 +51,27 @@ const asSkillRender = (input: { stdout: string }): string => {
   return plain.slice(Math.max(0, at));
 };
 
-describe('github.comment, via rhachet', () => {
+describe('git.pull.comment, via rhachet', () => {
   given('[case1] a repo with the mechanic role linked', () => {
     const scene = useBeforeAll(async () => ({
-      dir: await genTestDir({ slug: 'github-comment-acceptance' }),
+      dir: await genTestDir({ slug: 'git-pull-comment-acceptance' }),
     }));
 
     when('[t0] each verb is asked for --help', () => {
       const result = useThen('they run', async () => ({
         get: runViaRhachet({
           dir: scene.dir,
-          skill: 'github.comment.get',
+          skill: 'git.pull.comment.get',
           args: ['--help'],
         }),
         set: runViaRhachet({
           dir: scene.dir,
-          skill: 'github.comment.set',
+          skill: 'git.pull.comment.set',
           args: ['--help'],
         }),
         del: runViaRhachet({
           dir: scene.dir,
-          skill: 'github.comment.del',
+          skill: 'git.pull.comment.del',
           args: ['--help'],
         }),
       }));
@@ -79,9 +79,9 @@ describe('github.comment, via rhachet', () => {
         expect(result.get.code).toBe(0);
         expect(result.set.code).toBe(0);
         expect(result.del.code).toBe(0);
-        expect(result.get.stdout).toContain('usage: rhx github.comment.get');
-        expect(result.set.stdout).toContain('usage: rhx github.comment.set');
-        expect(result.del.stdout).toContain('usage: rhx github.comment.del');
+        expect(result.get.stdout).toContain('usage: rhx git.pull.comment.get');
+        expect(result.set.stdout).toContain('usage: rhx git.pull.comment.set');
+        expect(result.del.stdout).toContain('usage: rhx git.pull.comment.del');
       });
       then('each help is snapped', () => {
         expect({
@@ -96,7 +96,7 @@ describe('github.comment, via rhachet', () => {
       const result = useThen('it runs', async () =>
         runViaRhachet({
           dir: scene.dir,
-          skill: 'github.comment.set',
+          skill: 'git.pull.comment.set',
           args: ['--pr', '7', '--key', 'status', '--from', './absent.md'],
         }),
       );
@@ -114,12 +114,12 @@ describe('github.comment, via rhachet', () => {
       const result = useThen('they run', async () => ({
         get: runViaRhachet({
           dir: scene.dir,
-          skill: 'github.comment.get',
+          skill: 'git.pull.comment.get',
           args: ['--pr', '7', '--id', '5'],
         }),
         del: runViaRhachet({
           dir: scene.dir,
-          skill: 'github.comment.del',
+          skill: 'git.pull.comment.del',
           args: ['--pr', '7', '--kind', 'body'],
         }),
       }));
@@ -134,6 +134,43 @@ describe('github.comment, via rhachet', () => {
           get: asSkillRender(result.get),
           del: asSkillRender(result.del),
         }).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] the dispatcher is called with a spaced verb, or none', () => {
+      const result = useThen('they run', async () => ({
+        getHelp: runViaRhachet({
+          dir: scene.dir,
+          skill: 'git.pull.comment',
+          args: ['get', '--help'],
+        }),
+        delHelp: runViaRhachet({
+          dir: scene.dir,
+          skill: 'git.pull.comment',
+          args: ['del', '--help'],
+        }),
+        bare: runViaRhachet({
+          dir: scene.dir,
+          skill: 'git.pull.comment',
+          args: [],
+        }),
+      }));
+      then('a known verb runs that verb', () => {
+        expect(result.getHelp.code).toBe(0);
+        expect(result.getHelp.stdout).toContain(
+          'usage: rhx git.pull.comment.get',
+        );
+        expect(result.delHelp.code).toBe(0);
+        expect(result.delHelp.stdout).toContain(
+          'usage: rhx git.pull.comment.del',
+        );
+      });
+      then('no verb refuses with exit 2 and names the verbs', () => {
+        expect(result.bare.code).toBe(2);
+        expect(result.bare.stdout).toContain(
+          'a verb is required; the verbs are get | set | del',
+        );
+        expect(asSkillRender(result.bare)).toMatchSnapshot();
       });
     });
   });

@@ -1,11 +1,11 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`github.comment, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] each verb is asked for --help then: each help is snapped 1`] = `
+exports[`git.pull.comment, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] each verb is asked for --help then: each help is snapped 1`] = `
 {
   "del": "🐢 heres the wave...
 
-🐚 github.comment.del — delete one comment of a pull request; a no-op if absent
-   ├─ usage: rhx github.comment.del --pr <n> (--id <id> --kind issue|review | --key <k> [--reply-to <id>]) [--mode plan|apply]
+🐚 git.pull.comment.del — delete one comment the robot wrote on a pull request; a no-op if absent; a human's comment is refused
+   ├─ usage: rhx git.pull.comment.del --pr <n> (--id <id> --kind issue|review | --key <k> [--reply-to <id>]) [--mode plan|apply]
    ├─ inputs
    │  ├─ --pr <n>                      required
    │  ├─ --key <k> [--reply-to <id>]   the current login's keyed comment (in that thread, with --reply-to)
@@ -14,13 +14,13 @@ exports[`github.comment, via rhachet given: [case1] a repo with the mechanic rol
    │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human
    │  ├─ --mode                        plan (default, no write) | apply (delete, then confirm absent)
    │  └─ --output                      tree (default) | json
-   ├─ example: rhx github.comment.del --pr 69 --key status --mode apply
+   ├─ example: rhx git.pull.comment.del --pr 69 --key status --mode apply
    └─ exit: 0 planned, deleted, or no-op; 1 malfunction; 2 constraint
 ",
   "get": "🐢 heres the wave...
 
-🐚 github.comment.get — read the comments of a pull request
-   ├─ usage: rhx github.comment.get --pr <n> [--id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--in <o/r>] [--auth as-ehmpath|as-human] [--output tree|json]
+🐚 git.pull.comment.get — read the comments of a pull request
+   ├─ usage: rhx git.pull.comment.get --pr <n> [--id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--in <o/r>] [--auth as-ehmpath|as-human] [--output tree|json]
    ├─ inputs
    │  ├─ --pr <n>                      required
    │  ├─ --id <id> --kind <kind>       one comment, by id; kind = issue | review, never guessed
@@ -29,32 +29,31 @@ exports[`github.comment, via rhachet given: [case1] a repo with the mechanic rol
    │  ├─ --in <owner/name>             default: the cwd's github origin; home orgs only (ehmpathy whodisio ahbode uladkasach)
    │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human
    │  └─ --output                      tree (default) | json
-   ├─ example: rhx github.comment.get --pr 69
+   ├─ example: rhx git.pull.comment.get --pr 69
    └─ exit: 0 shown; 1 malfunction; 2 constraint (bad input or absent target)
 ",
   "set": "🐢 heres the wave...
 
-🐚 github.comment.set — upsert one comment of a pull request, or its description
-   ├─ usage: rhx github.comment.set --pr <n> (--key <k> [--reply-to <id>] | --id <id> --kind issue|review | --kind body) --from <path|@stdin> [--mode plan|apply]
+🐚 git.pull.comment.set — upsert one comment of a pull request
+   ├─ usage: rhx git.pull.comment.set --pr <n> (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--mode plan|apply]
    ├─ targets
    │  ├─ --key <k>                     top-level comment: absent → POST, differs → PATCH, same → no-op
    │  ├─ --reply-to <id> --key <k>     a reply in that review thread, same upsert
-   │  ├─ --id <id> --kind <kind>       edit a known comment; kind = issue | review
-   │  └─ --kind body                   the pr description
+   │  └─ --id <id> --kind <kind>       edit a known comment; kind = issue | review
    ├─ inputs
    │  ├─ --pr <n>                      required
-   │  ├─ --from <path|@stdin>          the body; posted as '🐢 ' + body (+ a hidden key marker)
+   │  ├─ --from <path|@stdin>          the body; always written as '🐢 ' + body (+ a hidden key marker); no flag omits the 🐢
    │  ├─ --in <owner/name>             default: the cwd's github origin; home orgs only (ehmpathy whodisio ahbode uladkasach)
    │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human
    │  ├─ --mode                        plan (default, no write) | apply (write, read back, hash-check)
    │  └─ --output                      tree (default) | json
-   ├─ example: rhx github.comment.set --pr 69 --key status --from ./status.md --mode apply
+   ├─ example: rhx git.pull.comment.set --pr 69 --key status --from ./status.md --mode apply
    └─ exit: 0 planned, written, or no-op; 1 malfunction; 2 constraint
 ",
 }
 `;
 
-exports[`github.comment, via rhachet given: [case1] a repo with the mechanic role linked when: [t1] set names a body file that is absent then: it refuses with exit 2 and names the fix, on both streams 1`] = `
+exports[`git.pull.comment, via rhachet given: [case1] a repo with the mechanic role linked when: [t1] set names a body file that is absent then: it refuses with exit 2 and names the fix, on both streams 1`] = `
 "✋ ConstraintError: --from './absent.md' is not a file
 
 🥥 did you know?
@@ -64,19 +63,29 @@ exports[`github.comment, via rhachet given: [case1] a repo with the mechanic rol
 "
 `;
 
-exports[`github.comment, via rhachet given: [case1] a repo with the mechanic role linked when: [t2] get and del each meet an input refusal then: each refuses with exit 2 and names the fix 1`] = `
+exports[`git.pull.comment, via rhachet given: [case1] a repo with the mechanic role linked when: [t2] get and del each meet an input refusal then: each refuses with exit 2 and names the fix 1`] = `
 {
   "del": "✋ ConstraintError: github offers no delete for a pr description
 
 🥥 did you know?
-   └─ to fix it
-      └─ rhx github.comment.set --pr 7 --kind body --from <file>   # to rewrite it
+   └─ to fix it, pick one
+      ├─ edit the pr description in the github ui, to rewrite it
+      └─ a pr description verb is tracked in ehmpathy/rhachet-roles-ehmpathy#1165
 ",
   "get": "✋ ConstraintError: --id needs --kind issue|review, got '<none>'; the kind is never guessed
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx github.comment.get ... --id 5 --kind issue|review
+      └─ rhx git.pull.comment.get ... --id 5 --kind issue|review
 ",
 }
+`;
+
+exports[`git.pull.comment, via rhachet given: [case1] a repo with the mechanic role linked when: [t3] the dispatcher is called with a spaced verb, or none then: no verb refuses with exit 2 and names the verbs 1`] = `
+"✋ ConstraintError: a verb is required; the verbs are get | set | del
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.comment get --help
+"
 `;

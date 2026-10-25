@@ -7,7 +7,7 @@
 
 ## why, at the time
 
-SAFE yes, CLEAN no. a test cannot sit where the skill sat: `jest.integration.config.ts` excludes `**/.agent/**`, so a tested skill needs a lift into a role under `src/`, with boot and permission registration. that is a second contract, beside the `github.comment` verbs this pr exists for. this repo's rule (`rule.require.jest-tests-for-skills`) forbids a release of a skill without its suite, so the untested draft must not ship.
+SAFE yes, CLEAN no. a test cannot sit where the skill sat: `jest.integration.config.ts` excludes `**/.agent/**`, so a tested skill needs a lift into a role under `src/`, with boot and permission registration. that is a second contract, beside the `git.pull.comment` verbs this pr exists for. this repo's rule (`rule.require.jest-tests-for-skills`) forbids a release of a skill without its suite, so the untested draft must not ship.
 
 ## rework
 

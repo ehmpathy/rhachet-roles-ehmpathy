@@ -1,17 +1,17 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`github.comment (real github api) given: [case1] a keyed comment on a home-org pr when: [t0] the full lifecycle runs then: the live outputs match their masked snapshot 1`] = `
+exports[`git.pull.comment (real github api) given: [case1] a keyed comment on a home-org pr when: [t0] the full lifecycle runs then: the live outputs match their masked snapshot 1`] = `
 {
   "del": "🐢 heres the wave...
 
-🐚 github.comment.del --mode apply
+🐚 git.pull.comment.del --mode apply
    ├─ target: ehmpathy/rhachet-roles-ehmpathy#1039, top-level comment key=<key>
    ├─ auth: as-human (gh cli login, fallback) as <login>
    ├─ endpoint: DELETE repos/ehmpathy/rhachet-roles-ehmpathy/issues/comments/<id>
    ├─ current
    │  ├─ author: <login>
    │  ├─ url: https://github.com/ehmpathy/rhachet-roles-ehmpathy/pull/1039#issuecomment-<id>
-   │  ├─ bytes: 119
+   │  ├─ bytes: 121
    │  └─ sha256: <sha256>
    └─ verdict: deleted, confirmed absent
 ",
@@ -19,7 +19,7 @@ exports[`github.comment (real github api) given: [case1] a keyed comment on a ho
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx github.comment.get --pr 1039 --in ehmpathy/rhachet-roles-ehmpathy --auth as-human   # lists every row and its key
+      └─ rhx git.pull.comment.get --pr 1039 --in ehmpathy/rhachet-roles-ehmpathy --auth as-human   # lists every row and its key
 ",
   "getFirst": "[
   {
@@ -29,10 +29,10 @@ exports[`github.comment (real github api) given: [case1] a keyed comment on a ho
     "created_at": "<ts>",
     "in_reply_to": null,
     "key": "<key>",
-    "bytes": 137,
+    "bytes": 139,
     "sha256": "<sha256>",
     "url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/pull/1039#issuecomment-<id>",
-    "body": "🐢 real-api case: set → get → set (edit) → set (no-op) → del\\n\\n<!-- rhx:github.comment key=<key> -->"
+    "body": "🐢 real-api case: set → get → set (edit) → set (no-op) → del\\n\\n<!-- rhx:git.pull.comment key=<key> -->"
   }
 ]
 ",
@@ -84,37 +84,17 @@ exports[`github.comment (real github api) given: [case1] a keyed comment on a ho
 }
 `;
 
-exports[`github.comment (real github api) given: [case3] the pr body, edited and restored when: [t0] the body gets one mark line, then its original back then: the live outputs match their masked snapshot 1`] = `
-{
-  "setMark": "{
-  "mode": "apply",
-  "verdict": "edited, read back, hash matches",
-  "target": "ehmpathy/rhachet-roles-ehmpathy#1039, pr description",
-  "method": "PATCH",
-  "endpoint": "repos/ehmpathy/rhachet-roles-ehmpathy/pulls/1039",
-  "id": null,
-  "url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/pull/1039",
-  "sha256": {
-    "current": "<sha256>",
-    "new": "<sha256>",
-    "readback": "<sha256>"
+exports[`git.pull.comment (real github api) given: [case3] the pr description: read, and refused as a write when: [t0] get reads the description; set --kind body tries to write it then: the refusal matches its masked snapshot 1`] = `
+"{
+  "error": {
+    "class": "ConstraintError",
+    "message": "the pr description is no comment; git.pull.comment.set writes comments only, each with the 🐢 prefix",
+    "details": [],
+    "fixes": [
+      "edit the pr description in the github ui",
+      "a pr description verb is tracked in ehmpathy/rhachet-roles-ehmpathy#1165"
+    ]
   }
 }
-",
-  "setRestore": "{
-  "mode": "apply",
-  "verdict": "edited, read back, hash matches",
-  "target": "ehmpathy/rhachet-roles-ehmpathy#1039, pr description",
-  "method": "PATCH",
-  "endpoint": "repos/ehmpathy/rhachet-roles-ehmpathy/pulls/1039",
-  "id": null,
-  "url": "https://github.com/ehmpathy/rhachet-roles-ehmpathy/pull/1039",
-  "sha256": {
-    "current": "<sha256>",
-    "new": "<sha256>",
-    "readback": "<sha256>"
-  }
-}
-",
-}
+"
 `;

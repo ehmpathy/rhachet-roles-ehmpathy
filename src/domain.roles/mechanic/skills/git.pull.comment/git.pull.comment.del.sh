@@ -1,19 +1,24 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = delete one pr comment; a no-op if absent
+# .what = delete one pr comment the robot wrote; a no-op if absent
 #
 # .why  = clear a twin or a stale comment; apply confirms it is gone
 #
 # usage:
-#   rhx github.comment.del --pr 69 --id <id> --kind issue|review [--mode apply]
-#   rhx github.comment.del --pr 69 --key status [--reply-to <id>]
-#   rhx github.comment.del --help    # every flag
+#   rhx git.pull.comment.del --pr 69 --id <id> --kind issue|review [--mode apply]
+#   rhx git.pull.comment.del --pr 69 --key status [--reply-to <id>]
+#   rhx git.pull.comment del --pr 69 --key status
+#   rhx git.pull.comment.del --help    # every flag
+#
+# guarantee:
+#   - refuses a human's comment, exit 2: another author's, or one by this
+#     login whose body does not open with the 🐢 that set always writes
 ######################################################################
 set -euo pipefail
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=github.comment.operations.sh
-source "$SKILL_DIR/github.comment.operations.sh"
+# shellcheck source=git.pull.comment.operations.sh
+source "$SKILL_DIR/git.pull.comment.operations.sh"
 
 PR=""
 ID=""
@@ -29,8 +34,8 @@ OUTPUT="tree"
 # .why  = --help is the one authoritative flag list; the file header names none
 help() {
   print_turtle_header "heres the wave..."
-  print_tree_start "github.comment.del — delete one comment of a pull request; a no-op if absent"
-  echo "   ├─ usage: rhx github.comment.del --pr <n> (--id <id> --kind issue|review | --key <k> [--reply-to <id>]) [--mode plan|apply]"
+  print_tree_start "git.pull.comment.del — delete one comment the robot wrote on a pull request; a no-op if absent; a human's comment is refused"
+  echo "   ├─ usage: rhx git.pull.comment.del --pr <n> (--id <id> --kind issue|review | --key <k> [--reply-to <id>]) [--mode plan|apply]"
   echo "   ├─ inputs"
   echo "   │  ├─ --pr <n>                      required"
   echo "   │  ├─ --key <k> [--reply-to <id>]   the current login's keyed comment (in that thread, with --reply-to)"
@@ -39,7 +44,7 @@ help() {
   echo "   │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human"
   echo "   │  ├─ --mode                        plan (default, no write) | apply (delete, then confirm absent)"
   echo "   │  └─ --output                      tree (default) | json"
-  echo "   ├─ example: rhx github.comment.del --pr 69 --key status --mode apply"
+  echo "   ├─ example: rhx git.pull.comment.del --pr 69 --key status --mode apply"
   echo "   └─ exit: 0 planned, deleted, or no-op; 1 malfunction; 2 constraint"
 }
 
@@ -50,7 +55,7 @@ ORIG_ARGS=("$@")
 while [[ $# -gt 0 ]]; do
   # split --flag=value into two args, so both forms parse one way
   [[ "$1" == --*=* ]] && set -- "${1%%=*}" "${1#*=}" "${@:2}"
-  check_flag_has_value "$1" "$#" "${2:-}" github.comment.del \
+  check_flag_has_value "$1" "$#" "${2:-}" git.pull.comment.del \
     --skill --repo --role --pr --id --key --reply-to --kind --in --auth --mode --output
   case "$1" in
     --skill|--repo|--role) shift 2 ;;
@@ -65,30 +70,30 @@ while [[ $# -gt 0 ]]; do
     --mode) MODE="${2:-}"; shift 2 ;;
     --output) OUTPUT="${2:-}"; shift 2 ;;
     help|--help|-h) help; exit 0 ;;
-    *) fail_comment_constraint "unknown arg '$1'" "rhx github.comment.del --help" ;;
+    *) fail_comment_constraint "unknown arg '$1'" "rhx git.pull.comment.del --help" ;;
   esac
 done
 
 # validate the input, before any gh call; --output first, so every refusal speaks it
 check_output_arg "$OUTPUT"
 set_comment_output "$OUTPUT"
-check_pr_number "$PR" github.comment.del
+check_pr_number "$PR" git.pull.comment.del
 check_auth_arg "$AUTH"
 check_mode_arg "$MODE"
 [[ "$KIND" != "body" ]] || fail_comment_constraint "github offers no delete for a pr description" \
-  "rhx github.comment.set $(as_comment_cmd_target "$PR") --kind body --from <file>   # to rewrite it"
+  "edit the pr description in the github ui, to rewrite it"$'\n'"a pr description verb is tracked in ehmpathy/rhachet-roles-ehmpathy#1165"
 [[ -z "$ID" || -z "$KEY" ]] || fail_comment_constraint "--id and --key are two targets; name one" "drop one"
 if [[ -n "$ID" ]]; then
-  check_comment_id_kind "$ID" "$KIND" github.comment.del
+  check_comment_id_kind "$ID" "$KIND" git.pull.comment.del
   [[ -z "$REPLY_TO" ]] || fail_comment_constraint "--id names one comment; it takes no --reply-to" "drop --reply-to"
 fi
 if [[ -z "$ID" ]]; then
   [[ -z "$KIND" ]] || fail_comment_constraint "--kind $KIND pairs with --id" "add --id <id>"$'\n'"drop --kind"
-  [[ -n "$KEY" ]] || fail_comment_constraint "del needs a target: --id <id> --kind issue|review, or --key <k>" "rhx github.comment.get $(as_comment_cmd_target "$PR")   # lists the ids and keys"
+  [[ -n "$KEY" ]] || fail_comment_constraint "del needs a target: --id <id> --kind issue|review, or --key <k>" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR")   # lists the ids and keys"
   check_comment_key "$KEY"
-  [[ -z "$REPLY_TO" || "$REPLY_TO" =~ ^[0-9]+$ ]] || fail_comment_constraint "--reply-to must be a numeric review comment id, got '$REPLY_TO'" "rhx github.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
+  [[ -z "$REPLY_TO" || "$REPLY_TO" =~ ^[0-9]+$ ]] || fail_comment_constraint "--reply-to must be a numeric review comment id, got '$REPLY_TO'" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
 fi
-set_comment_repo "$REPO_IN" github.comment.del
+set_comment_repo "$REPO_IN" git.pull.comment.del
 set_comment_auth "$AUTH"
 set_comment_login
 
@@ -108,7 +113,7 @@ emit() {
     return 0
   fi
   print_turtle_header "heres the wave..."
-  print_tree_start "github.comment.del --mode $MODE"
+  print_tree_start "git.pull.comment.del --mode $MODE"
   echo "   ├─ target: $LABEL"
   echo "   ├─ auth: $(get_comment_auth_label) as $COMMENT_LOGIN"
   [[ -z "$ENDPOINT" ]] || echo "   ├─ endpoint: DELETE $ENDPOINT"
@@ -144,9 +149,9 @@ if [[ -n "$ID" ]]; then
     exit 0
   fi
   [[ "$rc" == "0" ]] || exit "$rc"
-  is_comment_on_pr "$CURRENT" "$PR" || fail_comment_constraint "$KIND comment $ID is not on $COMMENT_REPO#$PR" "rhx github.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
+  is_comment_on_pr "$CURRENT" "$PR" || fail_comment_constraint "$KIND comment $ID is not on $COMMENT_REPO#$PR" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
   AUTHOR="$(printf '%s' "$CURRENT" | jq -r '.user.login // ""')"
-  is_author_self "$AUTHOR" || fail_comment_constraint "$KIND comment $ID is by $AUTHOR, not by $COMMENT_LOGIN ($AUTH)" "rhx github.comment.del $(as_comment_cmd_target "$PR" none) --id $ID --kind $KIND --auth $(as_auth_other "$AUTH")   # if $AUTHOR is that login: plan, then add --mode apply; else only $AUTHOR can delete it"
+  is_author_self "$AUTHOR" || fail_comment_constraint "$KIND comment $ID is by $AUTHOR, not by $COMMENT_LOGIN ($AUTH)" "rhx git.pull.comment.del $(as_comment_cmd_target "$PR" none) --id $ID --kind $KIND --auth $(as_auth_other "$AUTH")   # if $AUTHOR is that login: plan, then add --mode apply; else only $AUTHOR can delete it"
 fi
 if [[ -n "$KEY" ]]; then
   # a top-level key lists the issue comments; a reply key lists one thread
@@ -181,6 +186,11 @@ if [[ -n "$KEY" ]]; then
   KIND="$ONE_KIND"
   ENDPOINT="$(get_comment_endpoint "$COMMENT_REPO" "$KIND" "$ID")"
 fi
+
+# refuse a human's comment: del deletes only what the robot wrote, and the robot
+# wrote a body only if it opens with the 🐢 that git.pull.comment.set always adds
+is_comment_by_robot "$CURRENT" || fail_comment_constraint "$KIND comment $ID is a human's comment: its body does not open with 🐢, which every git.pull.comment.set body wears; del deletes only what the robot wrote" \
+  "rhx git.pull.comment.set $(as_comment_cmd_target "$PR") --reply-to $ID --key <slug> --from <file>   # answer it instead, for a review comment"$'\n'"a human deletes it in the github ui, if it must go"
 
 # plan: say what would happen, write naught
 if [[ "$MODE" == "plan" ]]; then

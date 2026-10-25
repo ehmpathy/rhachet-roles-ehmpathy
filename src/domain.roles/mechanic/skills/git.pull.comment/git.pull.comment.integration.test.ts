@@ -4,7 +4,7 @@ import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
 /**
- * .what = integration tests for github.comment.get | set | del
+ * .what = integration tests for git.pull.comment.get | set | del
  * .why  = prove the contract: plan by default, keyed upsert, thread scope,
  *         author + twin refusals, read-back hash, home-org fence, auth split
  *
@@ -16,7 +16,7 @@ import { genTempDir, given, then, useThen, when } from 'test-fns';
  *         silently holds — and they count every gh call, which proves "no write"
  *         and "no gh call" claims. a real api run per case would also post to a
  *         live pr fifteen times per ci run
- * .real = github.comment.real.integration.test.ts runs set → get → set (no-op) →
+ * .real = git.pull.comment.real.integration.test.ts runs set → get → set (no-op) →
  *         del → get (absent) against the real github api on a home-org pr
  */
 /**
@@ -39,7 +39,7 @@ expect.addSnapshotSerializer({
     ),
 });
 
-describe('github.comment', () => {
+describe('git.pull.comment', () => {
   const LOGIN_SELF = 'ehm-seaturtle';
   const LOGIN_HUMAN = 'surfer-kai';
   const REPO = 'ehmpathy/surf-demo';
@@ -69,6 +69,18 @@ const login = process.env.GH_TOKEN === undefined ? state.loginHuman : state.logi
 if (argv[0] !== 'api') { process.stderr.write('stub gh: only api\n'); process.exit(1); }
 // the whoami fails only when asked by name: a logged-out gh fails here first
 if (argv[1] === 'graphql' && state.fail && state.failMethod === 'GRAPHQL') { process.stderr.write(state.fail + '\n'); process.exit(1); }
+// review threads: one thread per root review comment; a root in state.resolved reads resolved
+if (argv[1] === 'graphql' && argv.some((a) => a.includes('reviewThreads'))) {
+  const prArg = argv.find((a) => a.startsWith('pr='));
+  const pr = Number(prArg ? prArg.slice(3) : 0);
+  const reviews = state.comments.filter((c) => c.kind === 'review' && c.pr === pr);
+  const roots = reviews.filter((c) => !c.in_reply_to_id);
+  const nodes = roots.map((root) => ({
+    isResolved: (state.resolved || []).includes(root.id),
+    comments: { nodes: reviews.filter((c) => c.id === root.id || c.in_reply_to_id === root.id).map((c) => ({ databaseId: c.id })) },
+  }));
+  out({ data: { repository: { pullRequest: { reviewThreads: { pageInfo: { hasNextPage: false, endCursor: null }, nodes } } } } });
+}
 if (argv[1] === 'graphql') out({ data: { viewer: { login } } });
 const methodAt = argv.indexOf('--method');
 const method = methodAt >= 0 ? argv[methodAt + 1] : 'GET';
@@ -145,9 +157,16 @@ if (rest[0] === 'pulls' && rest[2] === 'comments' && rest[4] === 'replies' && me
 if (rest[0] === 'pulls' && rest.length === 2) {
   const pr = state.prs[rest[1]];
   if (!pr) notFound();
-  const pull = () => ({ number: Number(rest[1]), body: pr.body, user: { login: pr.author }, created_at: pr.created_at, html_url: 'https://github.com/' + repo + '/pull/' + rest[1] });
+  const pull = () => ({ number: Number(rest[1]), title: pr.title, body: pr.body, user: { login: pr.author }, created_at: pr.created_at, html_url: 'https://github.com/' + repo + '/pull/' + rest[1] });
   if (method === 'GET') out(pull());
-  if (method === 'PATCH') { pr.body = bodyIn(); save(); out(pull()); }
+  // a pull PATCH carries the field it sets: title, body, or both
+  if (method === 'PATCH') {
+    const patch = JSON.parse(stdin);
+    if (patch.title !== undefined) pr.title = state.rewrite ? patch.title + ' (edited by a bot)' : patch.title;
+    if (patch.body !== undefined) pr.body = bodyIn();
+    save();
+    out(pull());
+  }
 }
 process.stderr.write('stub gh: no route for ' + method + ' ' + endpoint + '\n');
 process.exit(1);
@@ -187,7 +206,11 @@ exit 2
     noId: boolean;
     fail: string | null;
     failMethod: 'POST' | 'PATCH' | 'DELETE' | 'GRAPHQL' | null;
-    prs: Record<string, { body: string; author: string; created_at: string }>;
+    resolved: number[];
+    prs: Record<
+      string,
+      { title: string; body: string; author: string; created_at: string }
+    >;
     comments: Comment[];
   };
   type Call = {
@@ -202,7 +225,7 @@ exit 2
    * .what = a keyed body, the way set writes it
    */
   const asKeyedBody = (input: { text: string; key: string }): string =>
-    `🐢 ${input.text}\n\n<!-- rhx:github.comment key=${input.key} -->`;
+    `🐢 ${input.text}\n\n<!-- rhx:git.pull.comment key=${input.key} -->`;
 
   /**
    * .what = the scene input every case starts from: no comments, the default
@@ -227,8 +250,8 @@ exit 2
    * .note = token null → keyrack hands back none; origin null → no git remote
    */
   const genScene = (input: typeof SCENE_BARE) => {
-    const tempDir = genTempDir({ slug: 'github-comment-test', git: true });
-    const home = genTempDir({ slug: 'github-comment-home', git: false });
+    const tempDir = genTempDir({ slug: 'git-pull-comment-test', git: true });
+    const home = genTempDir({ slug: 'git-pull-comment-home', git: false });
     if (input.origin)
       spawnSync('git', ['remote', 'add', 'origin', input.origin], {
         cwd: tempDir,
@@ -261,13 +284,16 @@ exit 2
       noId: false,
       fail: null,
       failMethod: null,
+      resolved: [],
       prs: {
         '7': {
+          title: 'feat(lessons): book a surf lesson',
           body: 'surf lesson booker',
           author: LOGIN_HUMAN,
           created_at: '2026-10-24T00:00:01Z',
         },
         '8': {
+          title: 'feat(reports): sync the wave report',
           body: 'wave report sync',
           author: LOGIN_HUMAN,
           created_at: '2026-10-24T00:00:02Z',
@@ -279,8 +305,9 @@ exit 2
     fs.writeFileSync(statePath, JSON.stringify(store, null, 2));
     fs.writeFileSync(logPath, '');
 
-    const run = (
-      verb: 'get' | 'set' | 'del',
+    // run any git.pull.* skill executable against the stub, by its path
+    const runSkill = (
+      skillPath: string,
       args: string[],
       opts?: { stdin?: string; env?: Record<string, string> },
     ) => {
@@ -291,30 +318,39 @@ exit 2
         ...envBase
       } = process.env;
       const token = input.token;
-      const result = spawnSync(
-        'bash',
-        [path.join(__dirname, `github.comment.${verb}.sh`), ...args],
-        {
-          cwd: tempDir,
-          encoding: 'utf-8',
-          input: opts?.stdin ?? '',
-          env: {
-            ...envBase,
-            HOME: home,
-            PATH: `${fakeBin}:${process.env.PATH}`,
-            FAKE_GH_STATE: statePath,
-            FAKE_GH_LOG: logPath,
-            ...(token ? { FAKE_KEYRACK_TOKEN: token } : {}),
-            ...opts?.env,
-          },
+      const result = spawnSync('bash', [skillPath, ...args], {
+        cwd: tempDir,
+        encoding: 'utf-8',
+        input: opts?.stdin ?? '',
+        env: {
+          ...envBase,
+          HOME: home,
+          PATH: `${fakeBin}:${process.env.PATH}`,
+          FAKE_GH_STATE: statePath,
+          FAKE_GH_LOG: logPath,
+          ...(token ? { FAKE_KEYRACK_TOKEN: token } : {}),
+          ...opts?.env,
         },
-      );
+      });
       return {
         stdout: result.stdout ?? '',
         stderr: result.stderr ?? '',
         exitCode: result.status ?? 1,
       };
     };
+    // run one comment verb
+    const run = (
+      verb: 'get' | 'set' | 'del',
+      args: string[],
+      opts?: { stdin?: string; env?: Record<string, string> },
+    ) =>
+      runSkill(path.join(__dirname, `git.pull.comment.${verb}.sh`), args, opts);
+    // run one skill of this dir by name, e.g. the git.pull.comment dispatcher
+    const runPull = (
+      skill: string,
+      args: string[],
+      opts?: { stdin?: string; env?: Record<string, string> },
+    ) => runSkill(path.join(__dirname, `${skill}.sh`), args, opts);
     const getStore = (): Store =>
       JSON.parse(fs.readFileSync(statePath, 'utf-8'));
     const getCalls = (): Call[] =>
@@ -336,7 +372,15 @@ exit 2
       fs.writeFileSync(path.join(tempDir, name), content);
       return `./${name}`;
     };
-    return { tempDir, run, getStore, getCalls, getWrites, writeFile };
+    return {
+      tempDir,
+      run,
+      runPull,
+      getStore,
+      getCalls,
+      getWrites,
+      writeFile,
+    };
   };
 
   /**
@@ -346,7 +390,8 @@ exit 2
     kind: 'issue',
     pr: 7,
     author: LOGIN_SELF,
-    body: 'hang ten',
+    // the default seed is one the robot wrote: set opens every body with 🐢
+    body: '🐢 hang ten',
     created_at: `2026-10-24T00:00:0${input.id % 10}Z`,
     ...input,
   });
@@ -886,7 +931,7 @@ exit 2
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(`held by ${LOGIN_HUMAN}`);
         expect(result.stdout).toContain(
-          'rhx github.comment.get --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue',
+          'rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue',
         );
         expect(result.stdout).toMatchSnapshot();
       });
@@ -901,7 +946,7 @@ exit 2
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(`held by ${LOGIN_HUMAN}`);
           expect(result.stdout).toContain(
-            `rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if ${LOGIN_HUMAN} is that login: plan, then add --mode apply`,
+            `rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if ${LOGIN_HUMAN} is that login: plan, then add --mode apply`,
           );
           expect(scene.getWrites()).toEqual([]);
           expect(result.stdout).toMatchSnapshot();
@@ -927,7 +972,7 @@ exit 2
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(`is by ${LOGIN_HUMAN}`);
           expect(result.stdout).toContain(
-            `rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if ${LOGIN_HUMAN} is that login: plan, then add --mode apply; else only ${LOGIN_HUMAN} can delete it`,
+            `rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if ${LOGIN_HUMAN} is that login: plan, then add --mode apply; else only ${LOGIN_HUMAN} can delete it`,
           );
           expect(scene.getWrites()).toEqual([]);
           expect(scene.getStore().comments.map((c) => c.id)).toEqual([401]);
@@ -969,7 +1014,7 @@ exit 2
         expect(result.stdout).toContain('501');
         expect(result.stdout).toContain('502');
         expect(result.stdout).toContain(
-          'rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue',
+          'rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue',
         );
         expect(scene.getWrites()).toEqual([]);
         expect(result.stdout).toMatchSnapshot();
@@ -983,7 +1028,7 @@ exit 2
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('501');
         expect(result.stdout).toContain(
-          'rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply',
+          'rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply',
         );
         expect(scene.getWrites()).toEqual([]);
         expect(scene.getStore().comments.map((c) => c.id)).toEqual([501, 502]);
@@ -998,7 +1043,7 @@ exit 2
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain("key 'status' matches 2 comments");
         expect(result.stdout).toContain(
-          'rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply',
+          'rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply',
         );
         expect(result.stdout).toMatchSnapshot();
       });
@@ -1010,7 +1055,7 @@ exit 2
           genComment({
             id: 511,
             author: 'kelp-forest-fan',
-            body: 'try this:\n<!-- rhx:github.comment key=tide -->\nthen paddle out',
+            body: 'try this:\n<!-- rhx:git.pull.comment key=tide -->\nthen paddle out',
           }),
         ],
       });
@@ -1079,7 +1124,7 @@ exit 2
             expect(one.exitCode).toBe(2);
             expect(one.stdout).toContain("key 'answer' matches 2 comments");
             expect(one.stdout).toContain(
-              'rhx github.comment.del --pr 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply',
+              'rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply',
             );
           });
           expect(result.writes).toBe(0);
@@ -1164,7 +1209,7 @@ exit 2
             id: 601,
             kind: 'review',
             in_reply_to_id: 600,
-            body: 'twin',
+            body: '🐢 twin',
           }),
         ],
       });
@@ -1216,7 +1261,7 @@ exit 2
       when('[t2] a delete that github holds', () => {
         const held = genScene({
           ...SCENE_BARE,
-          comments: [genComment({ id: 602, body: 'sticky' })],
+          comments: [genComment({ id: 602, body: '🐢 sticky' })],
           store: { holdDelete: true },
         });
         const result = useThen('it runs', async () =>
@@ -1324,24 +1369,24 @@ exit 2
         );
       });
       when(
-        '[t6] get, and set --kind body, on a pr the credential cannot see',
+        '[t6] get, and set by key, on a pr the credential cannot see',
         () => {
           const result = useThen('they run', async () => ({
             writesBefore: scene.getWrites().length,
             get: scene.run('get', ['--pr', '9']),
-            setBody: scene.run('set', [
+            setKey: scene.run('set', [
               '--pr',
               '9',
-              '--kind',
-              'body',
+              '--key',
+              'status',
               '--from',
-              scene.writeFile('pr.md', 'a new description'),
+              scene.writeFile('status.md', 'a new status'),
               '--mode',
               'apply',
             ]),
           }));
           then('each exits 2 with the one visibility message', () => {
-            [result.get, result.setBody].forEach((one) => {
+            [result.get, result.setKey].forEach((one) => {
               expect(one.exitCode).toBe(2);
               expect(one.stdout).toContain(
                 `pull request ${REPO}#9 is absent, or ${LOGIN_SELF} (as-ehmpath) cannot see it`,
@@ -1350,7 +1395,7 @@ exit 2
             expect(scene.getWrites()).toHaveLength(result.writesBefore);
             expect({
               get: result.get.stdout,
-              setBody: result.setBody.stdout,
+              setKey: result.setKey.stdout,
             }).toMatchSnapshot();
           });
         },
@@ -1506,9 +1551,9 @@ exit 2
         then('each exits 0 with usage, inputs, an example; calls no gh', () => {
           [result.get, result.set, result.del].forEach((one) => {
             expect(one.exitCode).toBe(0);
-            expect(one.stdout).toContain('usage: rhx github.comment.');
+            expect(one.stdout).toContain('usage: rhx git.pull.comment.');
             expect(one.stdout).toContain('--auth');
-            expect(one.stdout).toContain('example: rhx github.comment.');
+            expect(one.stdout).toContain('example: rhx git.pull.comment.');
           });
           expect(scene.getCalls()).toEqual([]);
           expect({
@@ -2081,7 +2126,7 @@ exit 2
         then('it exits 2 and names the list command', () => {
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(`no issue comment 999 on ${REPO}`);
-          expect(result.stdout).toContain('rhx github.comment.get --pr 7');
+          expect(result.stdout).toContain('rhx git.pull.comment.get --pr 7');
           expect(result.stdout).toMatchSnapshot();
         });
       });
@@ -2095,7 +2140,7 @@ exit 2
             `no comment carries key 'absent-key' on ${REPO}#7`,
           );
           expect(result.stdout).toContain(
-            `rhx github.comment.get --pr 7 --in ${REPO}   # lists every row`,
+            `rhx git.pull.comment.get --pr 7 --in ${REPO}   # lists every row`,
           );
           expect(result.stdout).toMatchSnapshot();
         });
@@ -2125,7 +2170,7 @@ exit 2
             () => {
               expect(result.exitCode).toBe(2);
               expect(result.stdout).toContain(
-                `rhx github.comment.get --pr 7 --in ${REPO} --auth as-human   # lists every row`,
+                `rhx git.pull.comment.get --pr 7 --in ${REPO} --auth as-human   # lists every row`,
               );
               expect(result.stdout).toMatchSnapshot();
             },
@@ -2188,86 +2233,223 @@ exit 2
   );
 
   given(
-    '[case14] set --kind body edits the pr description; del refuses it',
+    '[case14] the pr description is no comment: set and del refuse it; the verbs dispatch as `git.pull.comment <verb>`',
     () => {
       const scene = genScene(SCENE_BARE);
-      const apply = () =>
-        scene.run('set', [
-          '--pr',
-          '7',
-          '--kind',
-          'body',
-          '--from',
-          scene.writeFile('pr.md', '## surf lesson booker\n\nbooks a lesson\n'),
-          '--mode',
-          'apply',
-        ]);
-      when('[t0] the body differs', () => {
-        const result = useThen('it runs', async () => apply());
-        then('it PATCHes pulls/7 with the body as given, no prefix', () => {
-          expect(result.exitCode).toBe(0);
-          expect(result.stdout).toContain(
-            `endpoint: PATCH repos/${REPO}/pulls/7`,
-          );
-          expect(scene.getStore().prs['7']?.body).toEqual(
-            '## surf lesson booker\n\nbooks a lesson',
-          );
-          expect(result.stdout).toMatchSnapshot();
-        });
-      });
-      when('[t1] the body already matches', () => {
-        const result = useThen('it runs', async () => {
-          const before = scene.getWrites().length;
-          const run = apply();
-          return { ...run, writesNew: scene.getWrites().length - before };
-        });
-        then('it is a no-op', () => {
-          expect(result.exitCode).toBe(0);
-          expect(result.stdout).toContain('already there — no-op');
-          expect(result.writesNew).toBe(0);
-          expect(result.stdout).toMatchSnapshot();
-        });
-      });
-      when('[t2] del --kind body', () => {
+      when('[t2] comment del --kind body', () => {
         const result = useThen('it runs', async () =>
           scene.run('del', ['--pr', '7', '--kind', 'body']),
         );
-        then('it exits 2: github offers no delete for a pr description', () => {
-          expect(result.exitCode).toBe(2);
-          expect(result.stdout).toContain(
-            'github offers no delete for a pr description',
-          );
-          expect(result.stdout).toMatchSnapshot();
-        });
+        then(
+          'it exits 2: github offers no delete; the fix names the github ui',
+          () => {
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain(
+              'github offers no delete for a pr description',
+            );
+            expect(result.stdout).toContain(
+              'edit the pr description in the github ui',
+            );
+            expect(result.stdout).toMatchSnapshot();
+          },
+        );
       });
-      when('[t3] set --kind body --output json', () => {
-        const result = useThen('it runs', async () =>
-          scene.run('set', [
+      when('[t4] comment set --kind body', () => {
+        const result = useThen('it runs', async () => {
+          const before = scene.getWrites().length;
+          const run = scene.run('set', [
             '--pr',
             '7',
             '--kind',
             'body',
             '--from',
-            scene.writeFile(
-              'pr.md',
-              '## surf lesson booker\n\nbooks a lesson\n',
-            ),
-            '--output',
-            'json',
-          ]),
-        );
+            scene.writeFile('pr.md', 'a new description'),
+            '--mode',
+            'apply',
+          ]);
+          return { ...run, writesNew: scene.getWrites().length - before };
+        });
         then(
-          'the body has no comment id: id is null, as get reports it',
+          'it exits 2: comment set writes comments only; the fix names the github ui',
           () => {
-            expect(result.exitCode).toBe(0);
-            const parsed: { id: number | null; verdict: string } = JSON.parse(
-              result.stdout,
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain('the pr description is no comment');
+            expect(result.stdout).toContain(
+              'edit the pr description in the github ui',
             );
-            expect(parsed.id).toBeNull();
-            expect(parsed.verdict).toBe('already there — no-op');
-            expect(parsed).toMatchSnapshot();
+            expect(result.writesNew).toBe(0);
+            expect(result.stdout).toMatchSnapshot();
           },
         );
+      });
+      when('[t7] the verbs run as `git.pull.comment <verb>`', () => {
+        const result = useThen('they run', async () => ({
+          commentGet: scene.runPull('git.pull.comment', ['get', '--pr', '8']),
+          commentGetDotted: scene.run('get', ['--pr', '8']),
+          bare: scene.runPull('git.pull.comment', []),
+          unknown: scene.runPull('git.pull.comment', ['put', '--pr', '7']),
+          help: scene.runPull('git.pull.comment', ['--help']),
+          verbHelp: scene.runPull('git.pull.comment', ['del', '--help']),
+        }));
+        then('the verb form and the dotted form print one output', () => {
+          expect(result.commentGet.exitCode).toBe(0);
+          expect(result.commentGet.stdout).toBe(result.commentGetDotted.stdout);
+          expect(result.verbHelp.exitCode).toBe(0);
+          expect(result.verbHelp.stdout).toContain(
+            'usage: rhx git.pull.comment.del',
+          );
+        });
+        then('an absent or unknown verb exits 2 and names the verbs', () => {
+          expect(result.bare.exitCode).toBe(2);
+          expect(result.bare.stdout).toContain('a verb is required');
+          expect(result.unknown.exitCode).toBe(2);
+          expect(result.unknown.stdout).toContain(
+            "unknown verb 'put'; the verbs are get | set | del",
+          );
+          expect(result.help.exitCode).toBe(0);
+          expect({
+            bare: result.bare.stdout,
+            unknown: result.unknown.stdout,
+            help: result.help.stdout,
+          }).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given(
+    '[case18] del deletes only what the robot wrote; a human comment is refused',
+    () => {
+      const scene = genScene({
+        ...SCENE_BARE,
+        comments: [
+          // typed by a human under the same login: no 🐢
+          genComment({ id: 1801, body: 'thanks, will look tomorrow' }),
+          // written by git.pull.comment.set: opens with 🐢
+          genComment({ id: 1802, body: '🐢 fixed in the next push' }),
+          // another author
+          genComment({ id: 1803, author: LOGIN_HUMAN, body: 'please rename' }),
+          // a review comment by the same login, typed by a human
+          genComment({
+            id: 1804,
+            kind: 'review',
+            body: 'nit: a space at the line end',
+          }),
+        ],
+      });
+      const del = (id: number, kind: 'issue' | 'review') =>
+        scene.run('del', [
+          '--pr',
+          '7',
+          '--id',
+          String(id),
+          '--kind',
+          kind,
+          '--mode',
+          'apply',
+        ]);
+      when('[t0] del each, under --mode apply', () => {
+        const result = useThen('they run', async () => {
+          const human = del(1801, 'issue');
+          const humanReview = del(1804, 'review');
+          const foreign = del(1803, 'issue');
+          const writesAfterRefusals = scene.getWrites().length;
+          const robot = del(1802, 'issue');
+          return {
+            human,
+            humanReview,
+            foreign,
+            robot,
+            writesAfterRefusals,
+            ids: scene.getStore().comments.map((c) => c.id),
+          };
+        });
+        then(
+          'a human-typed comment by the same login exits 2, no DELETE',
+          () => {
+            [result.human, result.humanReview].forEach((one) => {
+              expect(one.exitCode).toBe(2);
+              expect(one.stdout).toContain("is a human's comment");
+              expect(one.stderr).toContain("is a human's comment");
+            });
+            expect(result.writesAfterRefusals).toBe(0);
+          },
+        );
+        then('another author comment exits 2, no DELETE', () => {
+          expect(result.foreign.exitCode).toBe(2);
+          expect(result.foreign.stdout).toContain(
+            `issue comment 1803 is by ${LOGIN_HUMAN}`,
+          );
+        });
+        then('the 🐢 comment the robot wrote is deleted and confirmed', () => {
+          expect(result.robot.exitCode).toBe(0);
+          expect(result.robot.stdout).toContain('deleted, confirmed absent');
+          expect(result.ids).toEqual([1801, 1803, 1804]);
+          expect({
+            human: result.human.stdout,
+            humanReview: result.humanReview.stdout,
+            robot: result.robot.stdout,
+          }).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given(
+    '[case19] get reads every review thread, open and resolved, and names which',
+    () => {
+      const scene = genScene({
+        ...SCENE_BARE,
+        store: { resolved: [1901] },
+        comments: [
+          genComment({
+            id: 1901,
+            kind: 'review',
+            author: LOGIN_HUMAN,
+            body: 'resolved: rename this',
+          }),
+          genComment({
+            id: 1902,
+            kind: 'review',
+            author: LOGIN_SELF,
+            body: '🐢 renamed',
+            in_reply_to_id: 1901,
+          }),
+          genComment({
+            id: 1903,
+            kind: 'review',
+            author: LOGIN_HUMAN,
+            body: 'open: why this default?',
+          }),
+          genComment({ id: 1904, author: LOGIN_HUMAN, body: 'top-level ask' }),
+        ],
+      });
+      when('[t0] get --pr 7, tree and json', () => {
+        const result = useThen('they run', async () => ({
+          tree: scene.run('get', ['--pr', '7']),
+          json: scene.run('get', ['--pr', '7', '--output', 'json']),
+        }));
+        then('each review row names its thread: resolved or open', () => {
+          expect(result.json.exitCode).toBe(0);
+          const rows: {
+            id: number | null;
+            kind: string;
+            thread: string | null;
+          }[] = JSON.parse(result.json.stdout);
+          const threadOf = (id: number) =>
+            rows.find((row) => row.id === id)?.thread;
+          expect(threadOf(1901)).toBe('resolved');
+          expect(threadOf(1902)).toBe('resolved');
+          expect(threadOf(1903)).toBe('open');
+          expect(threadOf(1904)).toBeNull();
+          expect(rows.filter((row) => row.kind === 'review')).toHaveLength(3);
+        });
+        then('the tree shows both states', () => {
+          expect(result.tree.exitCode).toBe(0);
+          expect(result.tree.stdout).toContain('thread=resolved');
+          expect(result.tree.stdout).toContain('thread=open');
+          expect(result.tree.stdout).toMatchSnapshot();
+        });
       });
     },
   );
@@ -2727,7 +2909,7 @@ exit 2
             expect(made?.in_reply_to_id).toBe(531);
             expect(made?.body.startsWith('🐢 cowabunga, fixed')).toBe(true);
             expect(made?.body).toContain(
-              '<!-- rhx:github.comment key=answer -->',
+              '<!-- rhx:git.pull.comment key=answer -->',
             );
             result.replyCalls.forEach((call) =>
               expect(call.hasGhToken).toBe(false),
@@ -2902,6 +3084,7 @@ exit 2
         store: {
           prs: {
             '9': {
+              title: 'chore(empty): a pull with no description',
               body: '',
               author: LOGIN_HUMAN,
               created_at: '2026-10-24T00:00:03Z',

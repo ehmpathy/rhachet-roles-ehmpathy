@@ -6,7 +6,7 @@ import * as path from 'path';
 import { getError, given, then, useThen, when } from 'test-fns';
 
 /**
- * .what = the one real-api case for github.comment.get | set | del
+ * .what = the one real-api case for git.pull.comment.get | set | del
  * .why  = the stub suite proves the contract against a stub gh; this case
  *         proves the stub matches github: the endpoints, the marker kept
  *         byte for byte across a POST and a PATCH, the read-back hash, the delete
@@ -19,10 +19,8 @@ import { getError, given, then, useThen, when } from 'test-fns';
  *         at once never touch each other's comment. a run that died mid-way
  *         leaves its comment behind; the next run sweeps every prefixed key
  *         older than an hour — old enough that no live run still holds it
- * .note = the pr body PATCH runs as a round trip: append one marker line,
- *         then restore the body read before it, and prove the restored hash
- *         equals the original. a run that dies between the two leaves the
- *         marker line; the next run strips it from what it reads as original
+ * .note = the pr description is read, never written: set refuses it (exit 2),
+ *         and the case proves the live description hash is unchanged after
  * .note = each live output is snapped after its volatile bytes (ids, urls,
  *         hashes, times, the run key) are masked, so the real shape is under
  *         snapshot beside the stub suite's
@@ -32,7 +30,7 @@ import { getError, given, then, useThen, when } from 'test-fns';
  *         by the workflow (.test.yml, step "gh login (isolated, …)").
  *         no login → fail loud, never skip
  */
-describe('github.comment (real github api)', () => {
+describe('git.pull.comment (real github api)', () => {
   const REPO = 'ehmpathy/rhachet-roles-ehmpathy';
   const PR = '1039';
   const KEY_PREFIX = 'rhx-real-api-case-';
@@ -65,11 +63,11 @@ describe('github.comment (real github api)', () => {
   /**
    * .what = the env the case runs gh under
    * .why  = ci logs the job token into an isolated gh config dir, named by
-   *         GITHUB_COMMENT_REAL_API_GH_CONFIG_DIR, so no other suite sees a
+   *         GIT_PULL_COMMENT_REAL_API_GH_CONFIG_DIR, so no other suite sees a
    *         login; a human seat names none and runs under its own gh login
    */
   const getEnvOfCase = (): NodeJS.ProcessEnv => {
-    const configDir = process.env.GITHUB_COMMENT_REAL_API_GH_CONFIG_DIR;
+    const configDir = process.env.GIT_PULL_COMMENT_REAL_API_GH_CONFIG_DIR;
     if (!configDir) return process.env;
     return { ...process.env, GH_CONFIG_DIR: configDir };
   };
@@ -83,7 +81,7 @@ describe('github.comment (real github api)', () => {
     const result = spawnSync(
       'bash',
       [
-        path.join(__dirname, `github.comment.${verb}.sh`),
+        path.join(__dirname, `git.pull.comment.${verb}.sh`),
         '--in',
         REPO,
         '--pr',
@@ -236,7 +234,7 @@ describe('github.comment (real github api)', () => {
         expect(rows).toHaveLength(1);
         expect(rows[0]?.key).toBe(KEY);
         expect(rows[0]?.body).toBe(
-          `🐢 ${bodyFirst}\n\n<!-- rhx:github.comment key=${KEY} -->`,
+          `🐢 ${bodyFirst}\n\n<!-- rhx:git.pull.comment key=${KEY} -->`,
         );
         expect(rows[0]?.sha256).toBe(
           JSON.parse(result.setFirst.stdout).sha256.new,
@@ -255,7 +253,7 @@ describe('github.comment (real github api)', () => {
           );
           expect(rows).toHaveLength(1);
           expect(rows[0]?.body).toBe(
-            `🐢 ${bodySecond}\n\n<!-- rhx:github.comment key=${KEY} -->`,
+            `🐢 ${bodySecond}\n\n<!-- rhx:git.pull.comment key=${KEY} -->`,
           );
         },
       );
@@ -294,8 +292,7 @@ describe('github.comment (real github api)', () => {
     });
   });
 
-  given('[case3] the pr body, edited and restored', () => {
-    const BODY_MARK = '<!-- rhx real-api case: body round trip -->';
+  given('[case3] the pr description: read, and refused as a write', () => {
     const bodyArgs = [
       '--kind',
       'body',
@@ -321,35 +318,37 @@ describe('github.comment (real github api)', () => {
       return { body: rows[0]?.body ?? '', sha256: rows[0]?.sha256 ?? '' };
     };
 
-    when('[t0] the body gets one mark line, then its original back', () => {
-      const result = useThen('it runs', async () => {
-        const before = getBodyNow();
-        const original = before.body.split(`\n\n${BODY_MARK}`).join('');
-        const setMark = run('set', bodyArgs, `${original}\n\n${BODY_MARK}`);
-        const marked = getBodyNow();
-        const setRestore = run('set', bodyArgs, original);
-        const after = getBodyNow();
-        return { original, setMark, marked, setRestore, after };
-      });
-      then('the mark lands as a PATCH, read back, hash matches', () => {
-        expect(result.setMark.exitCode).toBe(0);
-        const out = JSON.parse(result.setMark.stdout);
-        expect(out.method).toBe('PATCH');
-        expect(out.verdict).toBe('edited, read back, hash matches');
-        expect(result.marked.body).toBe(`${result.original}\n\n${BODY_MARK}`);
-      });
-      then('the restore puts back the original body, byte for byte', () => {
-        expect(result.setRestore.exitCode).toBe(0);
-        expect(result.after.body).toBe(result.original);
-        expect(result.after.body).not.toContain(BODY_MARK);
-      });
-      then('the live outputs match their masked snapshot', () => {
-        expect({
-          setMark: asStable({ text: result.setMark.stdout }),
-          setRestore: asStable({ text: result.setRestore.stdout }),
-        }).toMatchSnapshot();
-      });
-    });
+    when(
+      '[t0] get reads the description; set --kind body tries to write it',
+      () => {
+        const result = useThen('it runs', async () => {
+          const before = getBodyNow();
+          const setBody = run(
+            'set',
+            bodyArgs,
+            'a description no comment verb may write',
+          );
+          const after = getBodyNow();
+          return { before, setBody, after };
+        });
+        then('get reads the live description with its hash', () => {
+          expect(result.before.sha256).toMatch(/^[0-9a-f]{64}$/);
+        });
+        then('set refuses with exit 2: the description is no comment', () => {
+          expect(result.setBody.exitCode).toBe(2);
+          expect(result.setBody.stdout).toContain(
+            'the pr description is no comment',
+          );
+        });
+        then('the description is untouched, byte for byte', () => {
+          expect(result.after.sha256).toBe(result.before.sha256);
+          expect(result.after.body).toBe(result.before.body);
+        });
+        then('the refusal matches its masked snapshot', () => {
+          expect(asStable({ text: result.setBody.stdout })).toMatchSnapshot();
+        });
+      },
+    );
   });
 
   given('[case2] no gh login reachable', () => {

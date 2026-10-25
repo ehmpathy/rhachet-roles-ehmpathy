@@ -5,16 +5,16 @@
 # .why  = see what is there, and which rows carry your keys, before a write
 #
 # usage:
-#   rhx github.comment.get --pr 69 [--output json]
-#   rhx github.comment.get --pr 69 --id <id> --kind issue|review
-#   rhx github.comment.get --pr 69 --key status [--reply-to <id>]
-#   rhx github.comment.get --help    # every flag; --auth as-ehmpath|as-human on all three verbs
+#   rhx git.pull.comment.get --pr 69 [--output json]
+#   rhx git.pull.comment.get --pr 69 --id <id> --kind issue|review
+#   rhx git.pull.comment.get --pr 69 --key status [--reply-to <id>]
+#   rhx git.pull.comment.get --help    # every flag; --auth as-ehmpath|as-human on all three verbs
 ######################################################################
 set -euo pipefail
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# shellcheck source=github.comment.operations.sh
-source "$SKILL_DIR/github.comment.operations.sh"
+# shellcheck source=git.pull.comment.operations.sh
+source "$SKILL_DIR/git.pull.comment.operations.sh"
 
 PR=""
 ID=""
@@ -29,8 +29,8 @@ OUTPUT="tree"
 # .why  = --help is the one authoritative flag list; the file header names none
 help() {
   print_turtle_header "heres the wave..."
-  print_tree_start "github.comment.get — read the comments of a pull request"
-  echo "   ├─ usage: rhx github.comment.get --pr <n> [--id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--in <o/r>] [--auth as-ehmpath|as-human] [--output tree|json]"
+  print_tree_start "git.pull.comment.get — read the comments of a pull request"
+  echo "   ├─ usage: rhx git.pull.comment.get --pr <n> [--id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--in <o/r>] [--auth as-ehmpath|as-human] [--output tree|json]"
   echo "   ├─ inputs"
   echo "   │  ├─ --pr <n>                      required"
   echo "   │  ├─ --id <id> --kind <kind>       one comment, by id; kind = issue | review, never guessed"
@@ -39,7 +39,7 @@ help() {
   echo "   │  ├─ --in <owner/name>             default: the cwd's github origin; home orgs only (${ORGS_HOME[*]})"
   echo "   │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human"
   echo "   │  └─ --output                      tree (default) | json"
-  echo "   ├─ example: rhx github.comment.get --pr 69"
+  echo "   ├─ example: rhx git.pull.comment.get --pr 69"
   echo "   └─ exit: 0 shown; 1 malfunction; 2 constraint (bad input or absent target)"
 }
 
@@ -47,7 +47,7 @@ help() {
 while [[ $# -gt 0 ]]; do
   # split --flag=value into two args, so both forms parse one way
   [[ "$1" == --*=* ]] && set -- "${1%%=*}" "${1#*=}" "${@:2}"
-  check_flag_has_value "$1" "$#" "${2:-}" github.comment.get \
+  check_flag_has_value "$1" "$#" "${2:-}" git.pull.comment.get \
     --skill --repo --role --pr --id --key --reply-to --kind --in --auth --output
   case "$1" in
     --skill|--repo|--role) shift 2 ;;
@@ -61,27 +61,27 @@ while [[ $# -gt 0 ]]; do
     --auth) AUTH="${2:-}"; shift 2 ;;
     --output) OUTPUT="${2:-}"; shift 2 ;;
     help|--help|-h) help; exit 0 ;;
-    *) fail_comment_constraint "unknown arg '$1'" "rhx github.comment.get --help" ;;
+    *) fail_comment_constraint "unknown arg '$1'" "rhx git.pull.comment.get --help" ;;
   esac
 done
 
 # validate the input, before any gh call; --output first, so every refusal speaks it
 check_output_arg "$OUTPUT"
 set_comment_output "$OUTPUT"
-check_pr_number "$PR" github.comment.get
+check_pr_number "$PR" git.pull.comment.get
 check_auth_arg "$AUTH"
 [[ -z "$ID" || -z "$KEY" ]] || fail_comment_constraint "--id and --key are two reads; name one" "drop one"
 [[ -z "$REPLY_TO" || -n "$KEY" ]] || fail_comment_constraint "--reply-to reads a keyed reply; it needs --key" "--reply-to $REPLY_TO --key <k>"
-[[ -z "$REPLY_TO" || "$REPLY_TO" =~ ^[0-9]+$ ]] || fail_comment_constraint "--reply-to must be a numeric review comment id, got '$REPLY_TO'" "rhx github.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
+[[ -z "$REPLY_TO" || "$REPLY_TO" =~ ^[0-9]+$ ]] || fail_comment_constraint "--reply-to must be a numeric review comment id, got '$REPLY_TO'" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
 [[ -z "$KEY" ]] || check_comment_key "$KEY"
 if [[ -n "$ID" ]]; then
-  check_comment_id_kind "$ID" "$KIND" github.comment.get
+  check_comment_id_kind "$ID" "$KIND" git.pull.comment.get
 fi
 if [[ -z "$ID" && -n "$KIND" && "$KIND" != "body" ]]; then
   fail_comment_constraint "--kind $KIND pairs with --id; alone, only --kind body reads one target" "add --id <id>"$'\n'"drop --kind"
 fi
 [[ "$KIND" != "body" || -z "$KEY" ]] || fail_comment_constraint "a pr description holds no key" "drop --key"$'\n'"drop --kind body"
-set_comment_repo "$REPO_IN" github.comment.get
+set_comment_repo "$REPO_IN" git.pull.comment.get
 set_comment_auth "$AUTH"
 set_comment_login
 
@@ -129,6 +129,14 @@ as_rows_sorted() {
   jq -cs 'sort_by(if .kind == "body" then "" else .created_at end, (.id // 0))'
 }
 
+# .what = the rows, each review row given its thread state: "open" | "resolved"
+# .why  = a reader must see which review threads still wait on an answer
+# .note = a review row graphql does not name reads "open"; a non-review row reads null
+as_rows_with_thread_state() {
+  printf '%s' "$1" | jq -c --argjson states "$2" '
+    map(.thread = (if .kind == "review" then ($states["\(.id)"] // "open") else null end))'
+}
+
 # .what = the rows of one kind that carry a key, split by author: { own, foreign }
 # .why  = --key reads the current login's comment; a foreign holder is named, never hidden
 # .note = a reply key is scoped to its thread root (reply != null)
@@ -161,6 +169,7 @@ print_rows_tree() {
         | (if $i == $n - 1 then "      " else "   │  " end) as $pad
         | $head + "\(if $c.kind == "body" then "pr description" else "\($c.kind) comment" end)\(if $c.id then " \($c.id)" else "" end) by \($c.author // "?") at \($c.created_at // "?")"
           + (if $c.in_reply_to then "  reply-to=\($c.in_reply_to)" else "" end)
+          + (if $c.thread then "  thread=\($c.thread)" else "" end)
           + (if $c.key then "  key=\($c.key)" else "" end)
           + "\n" + $pad + "├─ url: \($c.url // "?")"
           + "\n" + $pad + "├─ bytes: \($c.bytes)"
@@ -178,9 +187,9 @@ if [[ -n "$ID" ]]; then
   rc=0
   ONE="$(get_one_gh_resource "$(get_comment_endpoint "$COMMENT_REPO" "$KIND" "$ID")")" || rc=$?
   [[ "$rc" == "3" ]] && check_comment_kind_not_swapped "$PR" "$KIND" "$ID"
-  [[ "$rc" == "3" ]] && fail_comment_absent "$PR" "no $KIND comment $ID on $COMMENT_REPO" "rhx github.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
+  [[ "$rc" == "3" ]] && fail_comment_absent "$PR" "no $KIND comment $ID on $COMMENT_REPO" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
   [[ "$rc" == "0" ]] || exit "$rc"
-  is_comment_on_pr "$ONE" "$PR" || fail_comment_constraint "$KIND comment $ID is not on $COMMENT_REPO#$PR" "rhx github.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
+  is_comment_on_pr "$ONE" "$PR" || fail_comment_constraint "$KIND comment $ID is not on $COMMENT_REPO#$PR" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
   ROWS="$(shape "$KIND" "$ONE" | as_row_list)"
 fi
 
@@ -199,7 +208,7 @@ if [[ "$KIND" == "body" ]]; then
   ROWS="$(shape body "$PULL" | as_row_list)"
 fi
 
-# read every row: the body, every issue comment, every review comment
+# read every row: the body, every issue comment, every review comment (open and resolved threads)
 if [[ -z "$ROWS" ]]; then
   ISSUE_ALL="$(get_all_gh_resources "repos/$COMMENT_REPO/issues/$PR/comments")" || exit $?
   REVIEW_ALL="$(get_all_gh_resources "repos/$COMMENT_REPO/pulls/$PR/comments")" || exit $?
@@ -211,6 +220,12 @@ if [[ -z "$ROWS" ]]; then
       shape_all review "$REVIEW_ALL"
     } | as_rows_sorted
   )"
+fi
+
+# name the thread state of each review row: open or resolved
+if [[ "$(printf '%s' "$ROWS" | jq '[.[] | select(.kind == "review")] | length')" != "0" ]]; then
+  THREAD_STATES="$(get_all_review_thread_states "$PR")" || exit $?
+  ROWS="$(as_rows_with_thread_state "$ROWS" "$THREAD_STATES")"
 fi
 
 # narrow to a key, when asked
@@ -235,9 +250,9 @@ if [[ -n "$KEY" ]]; then
   if [[ "$(get_count_of_comments "$OWN")" == "0" && "$(get_count_of_comments "$FOREIGN")" != "0" ]]; then
     HOLDER="$(get_first_comment "$FOREIGN" | jq -r '.author // "?"')"
     HOLDER_ID="$(get_first_comment "$FOREIGN" | jq -r '.id')"
-    fail_comment_key_is_foreign "$KEY" "$PR" "$HOLDER" "$HOLDER_ID" "$WANT_KIND" "rhx github.comment.get $(as_comment_cmd_target "$PR") --id $HOLDER_ID --kind $WANT_KIND"
+    fail_comment_key_is_foreign "$KEY" "$PR" "$HOLDER" "$HOLDER_ID" "$WANT_KIND" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR") --id $HOLDER_ID --kind $WANT_KIND"
   fi
-  [[ "$(get_count_of_comments "$OWN")" != "0" ]] || fail_comment_constraint "no comment carries key '$KEY' on $COMMENT_REPO#$PR${REPLY_TO:+ in thread $REPLY_TO}" "rhx github.comment.get $(as_comment_cmd_target "$PR")   # lists every row and its key"
+  [[ "$(get_count_of_comments "$OWN")" != "0" ]] || fail_comment_constraint "no comment carries key '$KEY' on $COMMENT_REPO#$PR${REPLY_TO:+ in thread $REPLY_TO}" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR")   # lists every row and its key"
   ROWS="$OWN"
 fi
 
@@ -249,7 +264,7 @@ fi
 
 # emit the tree
 print_turtle_header "heres the wave..."
-print_tree_start "github.comment.get"
+print_tree_start "git.pull.comment.get"
 echo "   ├─ target: $LABEL"
 echo "   ├─ auth: $(get_comment_auth_label) as $COMMENT_LOGIN"
 echo "   ├─ counts: $(as_counts_line "$ROWS")"

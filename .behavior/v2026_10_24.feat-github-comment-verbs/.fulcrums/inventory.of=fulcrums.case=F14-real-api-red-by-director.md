@@ -2,7 +2,7 @@
 
 ## the fork
 
-- **taken:** ship `github.comment.real.integration.test.ts` as the one known red. no keyrack ask is filed. the case fails loud on the absent token (`ConstraintError` + unlock hint), never skips
+- **taken:** ship `git.pull.comment.real.integration.test.ts` as the one known red. no keyrack ask is filed. the case fails loud on the absent token (`ConstraintError` + unlock hint), never skips
 - **not taken:** obtain `EHMPATHY_SEATURTLE_GITHUB_TOKEN` before merge, or hold the pr until it lands
 
 ## why, at the time

@@ -86,9 +86,9 @@ always:
       - skills/show.gh.test.errors.sh
 
       # github pr comments: read, upsert by key, delete
-      - skills/github.comment/github.comment.get.sh
-      - skills/github.comment/github.comment.set.sh
-      - skills/github.comment/github.comment.del.sh
+      - skills/git.pull.comment/git.pull.comment.get.sh
+      - skills/git.pull.comment/git.pull.comment.set.sh
+      - skills/git.pull.comment/git.pull.comment.del.sh
 
       # permissions: the pre-approved commands, on demand
       - skills/permissions.get.sh
@@ -115,6 +115,9 @@ always:
 
       # cicd — a route, run on purpose
       - skills/cicd.deflake.sh
+
+      # git pull comment — the spaced-verb dispatcher (git.pull.comment get|set|del)
+      - skills/git.pull.comment/git.pull.comment.sh
 
       # permissions: what the nudge has recorded
       - skills/permissions.nudges.sh

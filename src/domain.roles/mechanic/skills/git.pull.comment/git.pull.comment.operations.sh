@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = shared operations for github.comment.get | set | del
+# .what = shared operations for git.pull.comment.get | set | del
 #
 # .why  = the three verbs share one home-org fence, one auth path, one
 #         endpoint map, one body shape, one key marker, and one hash. each
 #         is held once here, so the three verbs cannot drift apart
 #
 # usage:
-#   source "$SKILL_DIR/github.comment.operations.sh"
+#   source "$SKILL_DIR/git.pull.comment.operations.sh"
 #
 # guarantee:
 #   - sources only; runs naught on its own beyond `exec 3>&1`
@@ -45,10 +45,10 @@ COMMENT_KEY_PATTERN='^[a-z0-9][a-z0-9._-]{0,63}$'
 # two grammars, each held once: STRIP finds a marker anywhere, so set removes
 # every stray one; CLAIM finds only a marker on its own last line, so a marker
 # typed or quoted mid-body never claims a key
-COMMENT_KEY_MARKER_REGEX='<!-- rhx:github.comment key=([a-z0-9][a-z0-9._-]*) -->'
+COMMENT_KEY_MARKER_REGEX='<!-- rhx:git.pull.comment key=([a-z0-9][a-z0-9._-]*) -->'
 # .note = jq's regex runs in perl syntax, where ^ anchors the string start, not a
 #         line; so the claim names its line start as (?:^|\n), its end as \s*\z
-COMMENT_KEY_CLAIM_REGEX='(?:^|\n)<!-- rhx:github.comment key=([a-z0-9][a-z0-9._-]*) -->\s*\z'
+COMMENT_KEY_CLAIM_REGEX='(?:^|\n)<!-- rhx:git.pull.comment key=([a-z0-9][a-z0-9._-]*) -->\s*\z'
 
 # jq defs every comment transformer shares; each call passes --arg re and --arg login
 # .why = one definition of "the key of a comment" and "an author is me", so
@@ -58,6 +58,47 @@ COMMENT_JQ_DEFS='
   def is_login_self($author): ($author // "") as $a
     | $a == $login or $a == ($login + "[bot]") or ($a + "[bot]") == $login;
 '
+
+######################################################################
+# dispatch: `rhx git.pull.<noun> <verb>` routes to `git.pull.<noun>.<verb>.sh`
+######################################################################
+
+# .what = route `rhx git.pull.<noun> <verb> ...` to the verb's own skill
+# .why  = the wish names the tree as `git.pull.comment get`; each verb is also
+#         its own skill (`rhx git.pull.comment.get`), so both forms run one code
+# .note = args: the noun's dir, the noun's skill name, its verbs (comma list),
+#         then the caller's argv; rhachet's --skill/--repo/--role drop out
+dispatch_git_pull_verb() {
+  local dir="$1" skill="$2" verbs="$3"
+  shift 3
+  local verb="" rest=()
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --skill|--repo|--role) shift 2 ;;
+      *)
+        if [[ -z "$verb" ]]; then
+          verb="$1"
+          shift
+          continue
+        fi
+        rest+=("$1")
+        shift ;;
+    esac
+  done
+  local verb_list="${verbs//,/ | }"
+  [[ -n "$verb" ]] || fail_comment_constraint "a verb is required; the verbs are $verb_list" "rhx $skill ${verbs%%,*} --help"
+  if [[ "$verb" == "help" || "$verb" == "--help" || "$verb" == "-h" ]]; then
+    print_turtle_header "heres the wave..."
+    print_tree_start "$skill — $verb_list"
+    echo "   ├─ usage: rhx $skill <$verb_list> [flags]"
+    echo "   ├─ each verb is also its own skill: rhx $skill.<verb> [flags]"
+    echo "   └─ flags of one verb: rhx $skill <verb> --help"
+    exit 0
+  fi
+  [[ ",$verbs," == *",$verb,"* ]] || fail_comment_constraint "unknown verb '$verb'; the verbs are $verb_list" "rhx $skill --help"
+  # via bash, so the route never rests on a file's execute bit
+  exec bash "$dir/$skill.$verb.sh" "${rest[@]}"
+}
 
 ######################################################################
 # refusals: one shape, both streams
@@ -109,11 +150,14 @@ print_comment_hint() {
 # .what = the caller's own command, with the named --mode in place of any --mode
 # .why  = a plan's hint names the exact command that applies it, so a paste runs
 #         the write the plan showed; rhachet's own --skill/--repo/--role drop out
-# .note = args: the verb, the mode, then the argv the verb received
+# .note = args: the verb (or a full git.pull.* skill name), the mode, then the
+#         argv the verb received
 as_comment_cmd_in_mode() {
   local verb="$1" mode="$2"
   shift 2
-  local out=("rhx" "github.comment.$verb") skip=0 arg
+  local skill="$verb"
+  [[ "$skill" == git.* ]] || skill="git.pull.comment.$verb"
+  local out=("rhx" "$skill") skip=0 arg
   for arg in "$@"; do
     if [[ "$skip" == "1" ]]; then
       skip=0
@@ -230,7 +274,7 @@ check_pr_number() {
 # .why  = issue and review ids live on two endpoints; a guess could hit the wrong one
 check_comment_id_kind() {
   local id="$1" kind="$2" skill="$3"
-  [[ "$id" =~ ^[0-9]+$ ]] || fail_comment_constraint "--id must be a numeric comment id, got '${id:-<none>}'" "rhx github.comment.get --pr <n>   # lists the ids"
+  [[ "$id" =~ ^[0-9]+$ ]] || fail_comment_constraint "--id must be a numeric comment id, got '${id:-<none>}'" "rhx git.pull.comment.get --pr <n>   # lists the ids"
   [[ "$kind" == "issue" || "$kind" == "review" ]] || fail_comment_constraint "--id needs --kind issue|review, got '${kind:-<none>}'; the kind is never guessed" "rhx $skill ... --id $id --kind issue|review"
 }
 
@@ -493,6 +537,31 @@ get_all_gh_resources() {
   printf '%s' "$out" | jq -cs 'map(if type == "array" then . else [.] end) | add // []'
 }
 
+# .what = the thread state of every review comment on pr N, as a json map
+#         { "<review comment id>": "open" | "resolved" }
+# .why  = rest lists every review comment, resolved threads included, yet only
+#         graphql holds a thread's resolution; get names it per row, so a reader
+#         sees both open and resolved threads, and which is which
+get_all_review_thread_states() {
+  local pr="$1" owner="${COMMENT_REPO%%/*}" name="${COMMENT_REPO#*/}" err out rc=0 detail
+  local query='query($owner: String!, $name: String!, $pr: Int!, $endCursor: String) {
+    repository(owner: $owner, name: $name) { pullRequest(number: $pr) {
+      reviewThreads(first: 100, after: $endCursor) {
+        pageInfo { hasNextPage endCursor }
+        nodes { isResolved comments(first: 100) { nodes { databaseId } } }
+      } } } }'
+  err="$(mktemp)"
+  out="$(run_gh_as_auth api graphql --method POST --paginate -f query="$query" -F owner="$owner" -F name="$name" -F pr="$pr" 2>"$err")" || rc=$?
+  detail="$(cat "$err")"
+  rm -f "$err"
+  [[ "$rc" == "0" ]] || fail_gh_call "graphql reviewThreads of $COMMENT_REPO#$pr" "$detail"
+  printf '%s' "$out" | jq -cs '
+    [ .[] | .data.repository.pullRequest.reviewThreads.nodes[]?
+      | (if .isResolved then "resolved" else "open" end) as $state
+      | .comments.nodes[] | { key: "\(.databaseId)", value: $state } ]
+    | from_entries'
+}
+
 # .what = write one resource (POST or PATCH) with a body file; prints the response json
 # .why  = the write and its failure classification live in one place, beside the reads
 set_one_gh_resource() {
@@ -566,9 +635,9 @@ check_comment_kind_not_swapped() {
 check_reply_parent_on_pr() {
   local pr="$1" reply_to="$2" parent rc=0
   parent="$(get_one_gh_resource "$(get_comment_endpoint "$COMMENT_REPO" review "$reply_to")")" || rc=$?
-  [[ "$rc" == "3" ]] && fail_comment_absent "$pr" "no review comment $reply_to on $COMMENT_REPO for --reply-to" "rhx github.comment.get $(as_comment_cmd_target "$pr")   # lists the ids"
+  [[ "$rc" == "3" ]] && fail_comment_absent "$pr" "no review comment $reply_to on $COMMENT_REPO for --reply-to" "rhx git.pull.comment.get $(as_comment_cmd_target "$pr")   # lists the ids"
   [[ "$rc" == "0" ]] || exit "$rc"
-  is_comment_on_pr "$parent" "$pr" || fail_comment_constraint "review comment $reply_to is not on $COMMENT_REPO#$pr" "rhx github.comment.get $(as_comment_cmd_target "$pr")   # lists the ids"
+  is_comment_on_pr "$parent" "$pr" || fail_comment_constraint "review comment $reply_to is not on $COMMENT_REPO#$pr" "rhx git.pull.comment.get $(as_comment_cmd_target "$pr")   # lists the ids"
 }
 
 ######################################################################
@@ -594,6 +663,16 @@ is_author_self() {
   [[ -n "$COMMENT_LOGIN" ]] || fail_comment_malfunction "author check ran before set_comment_login" "a verb must read the login first"
   jq -en --arg re "$COMMENT_KEY_MARKER_REGEX" --arg login "$COMMENT_LOGIN" --arg author "$1" \
     "$COMMENT_JQ_DEFS"' is_login_self($author)' >/dev/null
+}
+
+# .what = did the robot write this comment? its body opens with 🐢
+# .why  = git.pull.comment.set prefixes every body it writes with 🐢 and no flag
+#         omits it, so a body without it was typed by a human, whatever the login
+# .note = the caller checks the author first; this reads the body alone
+is_comment_by_robot() {
+  local body
+  body="$(printf '%s' "$1" | jq -j '.body // ""')"
+  [[ "$body" == "🐢"* ]]
 }
 
 # .what = does this comment json sit on pr N?
@@ -683,9 +762,9 @@ check_key_has_no_twin() {
   latest="$(get_latest_comment_id "$own")"
   fixes=""
   while IFS= read -r id; do
-    fixes+="rhx github.comment.get $(as_comment_cmd_target "$pr") --id $id --kind $kind   # read it first"$'\n'
+    fixes+="rhx git.pull.comment.get $(as_comment_cmd_target "$pr") --id $id --kind $kind   # read it first"$'\n'
   done < <(printf '%s' "$own" | jq -r 'sort_by(.created_at) | .[].id')
-  fixes+="rhx github.comment.del $(as_comment_cmd_target "$pr") --id $latest --kind $kind --mode apply   # the newest goes: the oldest is the one a reader already linked to"
+  fixes+="rhx git.pull.comment.del $(as_comment_cmd_target "$pr") --id $latest --kind $kind --mode apply   # the newest goes: the oldest is the one a reader already linked to"
   fail_comment_constraint "key '$key' matches $own_count comments by $COMMENT_LOGIN on $COMMENT_REPO#$pr" "${twin_lines[@]}" "$fixes"
 }
 
@@ -710,7 +789,7 @@ check_key_matches_claimable() {
     holder_id="$(get_first_comment "$foreign" | jq -r '.id')"
     other="$(as_auth_other "$COMMENT_AUTH")"
     # each option on its own line; the holder may be a third party, not the caller's other credential
-    fix="rhx github.comment.del $(as_comment_cmd_target "$pr" none) --id $holder_id --kind $kind --auth $other   # if $holder is that login: plan, then add --mode apply"
+    fix="rhx git.pull.comment.del $(as_comment_cmd_target "$pr" none) --id $holder_id --kind $kind --auth $other   # if $holder is that login: plan, then add --mode apply"
     [[ "$verb" == "set" ]] && fix="rerun with --auth $other   # if $holder is that login"$'\n'"$fix, then rerun"
     fix="$fix"$'\n'"pick another --key"
     fail_comment_key_is_foreign "$key" "$pr" "$holder" "$holder_id" "$kind" "$fix"
@@ -753,7 +832,7 @@ as_body_prefixed() {
 # .what = the key marker for a key
 # .why  = a hidden html comment holds the key, so the rendered comment shows none
 as_key_marker() {
-  printf '<!-- rhx:github.comment key=%s -->' "$1"
+  printf '<!-- rhx:git.pull.comment key=%s -->' "$1"
 }
 
 # .what = the key a body carries, or empty
