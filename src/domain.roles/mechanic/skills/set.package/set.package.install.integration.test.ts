@@ -237,12 +237,14 @@ exit 1
       });
 
       then('output shows success', () => {
+        // .note = an advisory-free package; the audit reads the live registry, so an
+        //         old pin of a popular package (zod@3.22.4 gained one) fails it
         const result = runSkill(
           [
             '--package',
-            'zod',
+            'type-fns',
             '--at',
-            '3.22.4',
+            '1.21.0',
             '--for',
             'prod',
             '--reason',
