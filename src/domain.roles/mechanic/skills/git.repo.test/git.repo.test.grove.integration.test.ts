@@ -196,20 +196,24 @@ exit 0
 
   /**
    * .what = hold a slot from outside the skill, via a bare flock process
+   * .note = returns only once the lock is held, so no run can claim it first
    */
-  const holdSlot = (input: {
+  const holdSlot = async (input: {
     poolDir: string;
     slot: number;
     seconds: number;
     record: { tree: string; what: string; sinceAgo: number };
-  }): ChildProcess => {
+  }): Promise<ChildProcess> => {
     fs.mkdirSync(input.poolDir, { recursive: true });
     const lockFile = path.join(input.poolDir, `slot.${input.slot}.lock`);
-    const holder = spawn(
-      'flock',
-      ['-n', lockFile, 'sleep', String(input.seconds)],
-      { stdio: 'ignore' },
-    );
+    const holder = spawn('flock', [lockFile, 'sleep', String(input.seconds)], {
+      stdio: 'ignore',
+    });
+    await waitFor({
+      probe: () => spawnSync('flock', ['-n', lockFile, 'true']).status === 1,
+      what: 'holder takes the lock',
+      seconds: 10,
+    });
     fs.writeFileSync(
       path.join(input.poolDir, `slot.${input.slot}.holder`),
       [
@@ -336,7 +340,7 @@ exit 0
       const result = useThen('the waiter completes', async () => {
         const stage = genStage();
         const tree = genTree({ slug: 'tree-waiter', stage });
-        const holder = holdSlot({
+        const holder = await holdSlot({
           poolDir: stage.poolDir,
           slot: 0,
           seconds: 33,
@@ -375,7 +379,7 @@ exit 0
         async () => {
           const stage = genStage();
           const tree = genTree({ slug: 'tree-waiter', stage });
-          const holder = holdSlot({
+          const holder = await holdSlot({
             poolDir: stage.poolDir,
             slot: 0,
             seconds: 20,
@@ -514,7 +518,7 @@ exit 0
         const result = useThen('the waiter exits', async () => {
           const stage = genStage();
           const tree = genTree({ slug: 'tree-waiter', stage });
-          const holder = holdSlot({
+          const holder = await holdSlot({
             poolDir: stage.poolDir,
             slot: 0,
             seconds: 20,
@@ -627,7 +631,7 @@ exit 0
         const result = useThen('each is observed', async () => {
           const stage = genStage();
           const tree = genTree({ slug: 'tree-quick', stage });
-          const holder = holdSlot({
+          const holder = await holdSlot({
             poolDir: stage.poolDir,
             slot: 0,
             seconds: 30,
