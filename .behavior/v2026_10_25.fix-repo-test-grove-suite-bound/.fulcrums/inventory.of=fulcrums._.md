@@ -10,3 +10,4 @@
 | F6 | stale-holder hint at 30m; the waiter never kills | clean | best-guessed | 80% |
 | F7 | one pool per machine (`/run/lock/rhachet/git.repo.test/`) | clean | ✅ settled — director, 14:05 CT (guess overruled: was per user home) | — |
 | F8 | dispute EC i004 blocker.1: reviewer read a conversation line as target content | clean | ✅ settled — director, 15:01 CT (upheld on the cited lines) | — |
+| F9 | no `setsid` (stock macOS) → launch without a new session; a pid-aimed SIGTERM reaches npm alone (ctrl-c still reaches all) | clean | best-guessed | 80% |
