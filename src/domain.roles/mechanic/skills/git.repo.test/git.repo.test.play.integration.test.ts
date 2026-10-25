@@ -4,6 +4,10 @@ import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
 import { maskSpinnerTicks } from '../../../../.test/maskSpinnerTicks';
+import { setGroveIsolation } from '../../../../.test/setGroveIsolation';
+
+// isolate the grove: a private slot pool, so runs never queue on the box's pool
+setGroveIsolation();
 
 /**
  * .what = journey tests for git.repo.test skill

@@ -4,6 +4,7 @@ exports[`git.repo.test.sh given: [case1] lint passes when: [t0] \`rhx git.repo.t
 "🐢 lets ride...
 
 🐚 git.repo.test --what lint
+   ├─ grove: bypass (not a jest suite)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -105,6 +106,7 @@ exports[`git.repo.test.sh given: [case11] types passes when: [t0] \`rhx git.repo
 "🐢 lets ride...
 
 🐚 git.repo.test --what types
+   ├─ grove: bypass (not a jest suite)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -131,6 +133,7 @@ exports[`git.repo.test.sh given: [case13] format passes when: [t0] \`rhx git.rep
 "🐢 lets ride...
 
 🐚 git.repo.test --what format
+   ├─ grove: bypass (not a jest suite)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -157,6 +160,7 @@ exports[`git.repo.test.sh given: [case17] comma-separated --what values when: [t
 "🐢 lets ride...
 
 🐚 git.repo.test --what types
+   ├─ grove: bypass (not a jest suite)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -166,6 +170,7 @@ exports[`git.repo.test.sh given: [case17] comma-separated --what values when: [t
       └─ hint: use \`--log always\` to persist when desired
 
 🐚 git.repo.test --what format
+   ├─ grove: bypass (not a jest suite)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -217,6 +222,7 @@ exports[`git.repo.test.sh given: [case22] --timeout flag when: [t0] \`rhx git.re
 "🐢 lets ride...
 
 🐚 git.repo.test --what lint
+   ├─ grove: bypass (not a jest suite)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__

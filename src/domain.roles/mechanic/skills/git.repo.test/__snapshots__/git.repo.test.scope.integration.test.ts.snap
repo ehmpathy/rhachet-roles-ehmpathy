@@ -28,7 +28,14 @@ options:
   --log <mode>        auto | always (default: auto)
                         auto = persist logs on failure only
                         always = persist logs on success and failure
-  --help, -h          show this help"
+  --help, -h          show this help
+
+grove (a per-machine bound on full jest suites):
+  a full or --thorough suite claims a slot from one pool per machine, or
+  waits for one and names who holds each. types, format, lint, plan mode,
+  and scoped runs without --thorough bypass the bound.
+  GIT_REPO_TEST_SLOTS=<n>       slot count (default: max(1, cores / 6))
+  GIT_REPO_TEST_SLOTS_DIR=<dir>  pool dir (default: /run/lock/rhachet/git.repo.test)"
 `;
 
 exports[`git.repo.test.sh scope given: [case1] scope with path:// prefix when: [t0] --scope path://myfeature is used then: stderr matches snapshot 1`] = `""`;
@@ -89,6 +96,9 @@ exports[`git.repo.test.sh scope given: [case4] scope with --mode apply (executio
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope myfeature --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://myfeature
    │  └─ matched: 1 files
    ├─ files
@@ -226,6 +236,9 @@ exports[`git.repo.test.sh scope given: [case11] scope with name:// that matches 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope name://nonexistent --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: name://nonexistent
    │  └─ matched: 2 files
    ├─ files
@@ -262,6 +275,9 @@ exports[`git.repo.test.sh scope given: [case13] scope with path:// matches multi
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope path://feature --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://feature
    │  └─ matched: 2 files
    ├─ files
@@ -291,6 +307,9 @@ exports[`git.repo.test.sh scope given: [case14] scope with name:// prefix --mode
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope name://passes --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: name://passes
    │  └─ matched: 2 files
    ├─ files
@@ -311,6 +330,9 @@ exports[`git.repo.test.sh scope given: [case15] scope with name:// prefix --mode
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope name://myfeature --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: name://myfeature
    │  └─ matched: 2 files
    ├─ files
@@ -340,6 +362,9 @@ exports[`git.repo.test.sh scope given: [case16] scope with invalid:// prefix --m
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope invalid://foo --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://invalid://foo
    │  └─ matched: 0 files
    ├─ files
@@ -408,6 +433,9 @@ exports[`git.repo.test.sh scope given: [case19] stacked scopes: path + name in a
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope feature-a --scope name://feature-a --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://feature-a, name://feature-a
    │  └─ matched: 1 files
    ├─ files
@@ -436,6 +464,9 @@ exports[`git.repo.test.sh scope given: [case20] stacked scopes: path matches but
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope feature --scope name://nonexistent --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://feature, name://nonexistent
    │  └─ matched: 1 files
    ├─ files
@@ -498,6 +529,9 @@ exports[`git.repo.test.sh scope given: [case23] stacked scopes: two name scopes 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope name://feature-a --scope name://passes --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: name://feature-a, name://passes
    │  └─ matched: 3 files
    ├─ files
