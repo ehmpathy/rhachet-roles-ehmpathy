@@ -789,5 +789,134 @@ exit 0
         expect(result.stdout).toContain('fix: export GIT_REPO_TEST_SLOTS=2');
       });
     });
+
+    [
+      { tn: '[t1]', slots: '-1' },
+      { tn: '[t2]', slots: 'abc' },
+    ].map((thisCase) =>
+      when(`${thisCase.tn} GIT_REPO_TEST_SLOTS is ${thisCase.slots}`, () => {
+        const result = useThen('the run refuses', async () => {
+          const stage = genStage();
+          const tree = genTree({ slug: 'tree-typo', stage });
+          const run = startRun({
+            cwd: tree.tempDir,
+            env: genEnv({
+              stage,
+              fakeBinDir: tree.fakeBinDir,
+              slots: thisCase.slots,
+            }),
+            args: ['--what', 'unit', '--mode', 'apply'],
+          });
+          const outcome = await run.done;
+          return { outcome, stdout: run.stdout(), stage };
+        });
+
+        then('it exits 2 and names the value; no suite starts', () => {
+          expect(result.outcome.code).toBe(2);
+          expect(result.stdout).toContain(`got: ${thisCase.slots}`);
+          expect(fs.readFileSync(result.stage.logFile, 'utf-8')).toBe('');
+        });
+      }),
+    );
   });
+
+  given(
+    '[case6] the bound source, its reach, and a pool that cannot exist',
+    () => {
+      when('[t0] GIT_REPO_TEST_SLOTS is unset', () => {
+        const result = useThen('the run completes', async () => {
+          const stage = genStage();
+          const tree = genTree({ slug: 'tree-cores', stage });
+          const env = genEnv({ stage, fakeBinDir: tree.fakeBinDir, slots: '' });
+          delete env.GIT_REPO_TEST_SLOTS;
+          const run = startRun({
+            cwd: tree.tempDir,
+            env,
+            args: ['--what', 'unit', '--mode', 'apply'],
+          });
+          const outcome = await run.done;
+          const cores = Number(String(spawnSync('nproc', []).stdout).trim());
+          return { outcome, stdout: run.stdout(), cores };
+        });
+
+        then('the bound derives from the core count: max(1, cores ÷ 6)', () => {
+          const bound = Math.max(1, Math.floor(result.cores / 6));
+          const noun = bound === 1 ? 'slot' : 'slots';
+          expect(result.outcome.code).toBe(0);
+          expect(result.stdout).toContain(
+            `bound: ${bound} ${noun} (${result.cores} cores ÷ 6)`,
+          );
+        });
+      });
+
+      when(
+        '[t1] GIT_REPO_TEST_SLOTS=3 is set for a --what all style run',
+        () => {
+          const result = useThen('the run completes', async () => {
+            const stage = genStage();
+            const tree = genTree({ slug: 'tree-reach', stage });
+            const run = startRun({
+              cwd: tree.tempDir,
+              env: genEnv({ stage, fakeBinDir: tree.fakeBinDir, slots: '3' }),
+              args: ['--what', 'unit,unit', '--mode', 'apply'],
+            });
+            const outcome = await run.done;
+            return { outcome, stdout: run.stdout() };
+          });
+
+          then(
+            'each child reads the same bound, and the parent claims none',
+            () => {
+              expect(result.outcome.code).toBe(0);
+              const boundLines = result.stdout.match(
+                /bound: 3 slots \(GIT_REPO_TEST_SLOTS\)/g,
+              );
+              expect(boundLines).toHaveLength(2);
+            },
+          );
+        },
+      );
+
+      when('[t2] the pool dir cannot be created', () => {
+        const result = useThen('the run refuses', async () => {
+          const stage = genStage();
+          const tree = genTree({ slug: 'tree-nopool', stage });
+          const blocker = path.join(stage.root, 'a-file');
+          fs.writeFileSync(blocker, '');
+          const env = genEnv({
+            stage,
+            fakeBinDir: tree.fakeBinDir,
+            slots: '1',
+          });
+          env.GIT_REPO_TEST_SLOTS_DIR = path.join(blocker, 'pool');
+          const run = startRun({
+            cwd: tree.tempDir,
+            env,
+            args: ['--what', 'unit', '--mode', 'apply'],
+          });
+          const outcome = await run.done;
+          return {
+            outcome,
+            stdout: run.stdout(),
+            stderr: run.stderr(),
+            stage,
+          };
+        });
+
+        then('it exits 1 with MalfunctionError on stdout and stderr', () => {
+          expect(result.outcome.code).toBe(1);
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: grove pool dir is not writable',
+          );
+          expect(result.stderr).toContain('MalfunctionError');
+        });
+
+        then('the error names the path and the fix; no suite starts', () => {
+          expect(result.stdout).toContain('a-file/pool');
+          expect(result.stdout).toContain('GIT_REPO_TEST_SLOTS_DIR');
+          expect(fs.readFileSync(result.stage.logFile, 'utf-8')).toBe('');
+        });
+      });
+    },
+  );
 });

@@ -213,9 +213,9 @@ set_grove_holder_vars() {
 }
 
 ######################################################################
-# emit the holders under the wait line: tree · type · pid · age
+# print the holders under the wait line: tree · type · pid · age
 ######################################################################
-emit_grove_holders() {
+print_grove_holders() {
   local i glyph
   for ((i = 0; i < GROVE_BOUND; i++)); do
     glyph="├─"
@@ -226,9 +226,9 @@ emit_grove_holders() {
 }
 
 ######################################################################
-# emit a hint for each holder past the stale age, once per pid
+# print a hint for each holder past the stale age, once per pid
 ######################################################################
-emit_grove_stale_hints() {
+print_grove_stale_hints() {
   local i
   for ((i = 0; i < GROVE_BOUND; i++)); do
     set_grove_holder_vars "$i"
@@ -245,7 +245,7 @@ emit_grove_stale_hints() {
 }
 
 ######################################################################
-# emit the grove branch; claim a slot, wait for one, or bypass
+# print the grove branch; claim a slot, wait for one, or bypass
 ######################################################################
 set_grove_slot() {
   # bypass: one line, no lock
@@ -274,8 +274,8 @@ set_grove_slot() {
 
   # wait: name the holders once, then poll; a heartbeat proves liveness
   echo "   │  ├─ ⏳ $GROVE_BOUND of $GROVE_BOUND $(get_grove_slots_noun "$GROVE_BOUND") held, wait for one"
-  emit_grove_holders
-  emit_grove_stale_hints
+  print_grove_holders
+  print_grove_stale_hints
   local wait_start beat_next elapsed
   wait_start=$(date +%s)
   beat_next=$GROVE_BEAT_SECONDS
@@ -291,7 +291,7 @@ set_grove_slot() {
     elapsed=$(($(date +%s) - wait_start))
     if [[ "$elapsed" -ge "$beat_next" ]]; then
       echo "   │  ├─ ⏳ still held ($(get_grove_duration "$elapsed"))"
-      emit_grove_stale_hints
+      print_grove_stale_hints
       beat_next=$((beat_next + GROVE_BEAT_SECONDS))
     fi
   done
