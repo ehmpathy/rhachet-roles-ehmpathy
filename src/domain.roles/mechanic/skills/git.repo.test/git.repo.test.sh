@@ -1520,7 +1520,11 @@ if [[ "$MULTI_MODE" == "true" ]]; then
 
     # run this type (output goes directly to stdout/stderr)
     # pass --_multi-child to suppress turtle header in child
-    bash "$SCRIPT_PATH" "${type_args[@]}" --_multi-child || MULTI_EXIT_CODE=$?
+    # in the background + wait, so a signal to this parent reaches the child at once
+    bash "$SCRIPT_PATH" "${type_args[@]}" --_multi-child &
+    TEST_CHILD_PID=$!
+    wait "$TEST_CHILD_PID" || MULTI_EXIT_CODE=$?
+    TEST_CHILD_PID=""
 
     # stop on first failure
     if [[ $MULTI_EXIT_CODE -ne 0 ]]; then
