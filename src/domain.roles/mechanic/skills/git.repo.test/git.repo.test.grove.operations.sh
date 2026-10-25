@@ -15,8 +15,10 @@
 # guarantee:
 #   - pool dir = $GIT_REPO_TEST_SLOTS_DIR, else /run/lock/rhachet/git.repo.test
 #   - bound    = $GIT_REPO_TEST_SLOTS, else max(1, cores / 6)
-#   - the slot lock lives on fd 9 of this process alone; every child is
-#     launched with 9>&-, so the slot frees the instant this pid dies
+#   - the slot lock lives on fd 9 of this process alone. the suite and the
+#     timer launch with 9>&-; the --listTests subshells run `exec 9>&-`
+#     first. so the slot frees the instant this pid dies. short tools (git,
+#     date) inherit fd 9 for their milliseconds of life
 #   - a holder record (slot.N.holder) is display text; the lock is truth
 #   - the waiter never kills a holder; it names a stale one and the fix
 #   - bypass: non-jest types, scoped runs without --thorough, and runs
@@ -98,6 +100,17 @@ set_grove_plan() {
     return 0
   fi
 
+  # refuse a relative pool dir: each tree would read its own pool, and the bound would vanish
+  local dir_raw="${GIT_REPO_TEST_SLOTS_DIR:-}"
+  if [[ -n "$dir_raw" ]] && [[ "$dir_raw" != /* ]]; then
+    {
+      echo "✋ ConstraintError: GIT_REPO_TEST_SLOTS_DIR must be an absolute path"
+      echo "   ├─ got: $dir_raw"
+      echo "   └─ fix: export GIT_REPO_TEST_SLOTS_DIR=\"\$PWD/$dir_raw\", or unset it for the per-machine pool"
+    } | emit_to_both
+    exit 2
+  fi
+
   # bound from the env override, when set
   local raw="${GIT_REPO_TEST_SLOTS:-}"
   if [[ -n "$raw" ]]; then
@@ -160,8 +173,15 @@ set_grove_claim_once() {
     if [[ ! -e "$file" ]]; then
       (umask 000 && : >>"$file") 2>/dev/null || true
     fi
+
+    # fail loud on a slot no one can lock: a silent skip could wait forever
     if [[ ! -w "$file" ]]; then
-      continue
+      {
+        echo "   │  └─ 💥 MalfunctionError: grove slot file is not writable"
+        echo "   │     ├─ file: $file"
+        echo "   │     └─ fix: chmod 666 it, or remove it so the next run recreates it"
+      } | emit_to_both
+      exit 1
     fi
 
     # flock -n is atomic in the kernel: of two claimants, exactly one wins
@@ -177,6 +197,8 @@ set_grove_claim_once() {
 
 ######################################################################
 # set the holder record for the claimed slot (display only)
+# .note = a failed write is tolerated: waiters then show `?` for this
+#         holder, and the lock, which is the truth, is already held
 ######################################################################
 set_grove_holder_record() {
   local record="$GROVE_DIR/slot.$GROVE_SLOT.holder"
