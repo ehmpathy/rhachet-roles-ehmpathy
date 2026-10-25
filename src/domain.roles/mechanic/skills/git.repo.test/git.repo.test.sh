@@ -52,6 +52,10 @@
 # guarantee:
 #   - logs raw output to .log/role=mechanic/skill=git.repo.test/what=${WHAT}/
 #   - auto keyrack unlock for integration/acceptance
+#   - full and --thorough jest suites hold a per-machine grove slot
+#     (GIT_REPO_TEST_SLOTS, default max(1, cores / 6)); a run that finds
+#     every slot held waits, names the holders, and never fails for it
+#   - ctrl-c, SIGTERM, or SIGHUP stops the whole test process tree
 #   - exit 0 = passed, exit 1 = malfunction, exit 2 = constraint
 ######################################################################
 set -euo pipefail
@@ -64,6 +68,9 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # source shared output operations
 CLAUDE_TOOLS_DIR="$SCRIPT_DIR/../claude.tools"
 source "$CLAUDE_TOOLS_DIR/output.sh"
+
+# source grove operations (per-machine bound on full suites)
+source "$SCRIPT_DIR/git.repo.test.grove.operations.sh"
 
 ######################################################################
 # helper: emit to both stdout and stderr
@@ -130,8 +137,11 @@ start_timer() {
     local start_time next_emit
     start_time=$(date +%s)
     next_emit=5  # first emit at 5s
+    local parent_pid=$$
     while true; do
       sleep 1
+      # stop once the run is gone (a SIGKILL leaves no trap to stop us)
+      kill -0 "$parent_pid" 2>/dev/null || exit 0
       local now elapsed
       now=$(date +%s)
       elapsed=$((now - start_time))
@@ -145,7 +155,7 @@ start_timer() {
         fi
       fi
     done
-  ) &
+  ) 9>&- &
   TIMER_PID=$!
 }
 
@@ -159,6 +169,34 @@ stop_timer() {
 
 # cleanup timer on exit
 trap 'stop_timer; rm -f "$TEMP_STDOUT" "$TEMP_STDERR"' EXIT
+
+######################################################################
+# on ctrl-c, a closed session, or a harness timeout: take the test
+# process group down with this run, so slot and load free together
+# .note = SIGKILL cannot be trapped; then the kernel frees the slot
+#         and the orphaned jest tree may finish its suite alone
+######################################################################
+TEST_CHILD_PID=""
+
+stop_test_child() {
+  if [[ -z "$TEST_CHILD_PID" ]]; then
+    return 0
+  fi
+
+  # ask the whole group to stop, then insist after 2s
+  kill -TERM -- "-$TEST_CHILD_PID" 2>/dev/null || kill -TERM "$TEST_CHILD_PID" 2>/dev/null || true
+  local tick
+  for tick in $(seq 1 20); do
+    kill -0 -- "-$TEST_CHILD_PID" 2>/dev/null || break
+    sleep 0.1
+  done
+  kill -KILL -- "-$TEST_CHILD_PID" 2>/dev/null || true
+  TEST_CHILD_PID=""
+}
+
+trap 'stop_test_child; exit 130' INT
+trap 'stop_test_child; exit 143' TERM
+trap 'stop_test_child; exit 129' HUP
 
 ######################################################################
 # validate jest config exists for unit/integration/acceptance
@@ -658,6 +696,13 @@ while [[ $# -gt 0 ]]; do
       echo "                        auto = persist logs on failure only"
       echo "                        always = persist logs on success and failure"
       echo "  --help, -h          show this help"
+      echo ""
+      echo "grove (a per-machine bound on full jest suites):"
+      echo "  a full or --thorough suite claims a slot from one pool per machine, or"
+      echo "  waits for one and names who holds each. types, format, lint, plan mode,"
+      echo "  and scoped runs without --thorough bypass the bound."
+      echo "  GIT_REPO_TEST_SLOTS=<n>       slot count (default: max(1, cores / 6))"
+      echo "  GIT_REPO_TEST_SLOTS_DIR=<dir>  pool dir (default: /run/lock/rhachet/git.repo.test)"
       exit 0
       ;;
     *)
@@ -1253,22 +1298,30 @@ run_single_test() {
     env_vars+=("THOROUGH=true")
   fi
 
-  # run command (with optional timeout, at lower priority to avoid lockup)
+  # build command (with optional timeout, at lower priority to avoid lockup)
   # use env + array execution to avoid bash -c string issues
-  local exit_code=0
+  local -a cmd=()
   if [[ -n "$TIMEOUT" ]]; then
-    if [[ ${#jest_args[@]} -gt 0 ]]; then
-      timeout "${TIMEOUT}s" nice -n 5 env "${env_vars[@]}" npm run "$npm_target" -- "${jest_args[@]}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
-    else
-      timeout "${TIMEOUT}s" nice -n 5 env "${env_vars[@]}" npm run "$npm_target" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
-    fi
-  else
-    if [[ ${#jest_args[@]} -gt 0 ]]; then
-      nice -n 5 env "${env_vars[@]}" npm run "$npm_target" -- "${jest_args[@]}" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
-    else
-      nice -n 5 env "${env_vars[@]}" npm run "$npm_target" > "$temp_stdout" 2> "$temp_stderr" || exit_code=$?
-    fi
+    cmd+=(timeout "${TIMEOUT}s")
   fi
+  cmd+=(nice -n 5 env "${env_vars[@]}" npm run "$npm_target")
+  if [[ ${#jest_args[@]} -gt 0 ]]; then
+    cmd+=(-- "${jest_args[@]}")
+  fi
+
+  # run in its own session, so the signal trap can stop the whole test tree;
+  # in the background, so the trap fires at once rather than after jest ends;
+  # with fd 9 closed, so the grove slot keys to this run's pid alone
+  if command -v setsid >/dev/null 2>&1; then
+    setsid -w "${cmd[@]}" > "$temp_stdout" 2> "$temp_stderr" 9>&- &
+  else
+    "${cmd[@]}" > "$temp_stdout" 2> "$temp_stderr" 9>&- &
+  fi
+  TEST_CHILD_PID=$!
+
+  local exit_code=0
+  wait "$TEST_CHILD_PID" || exit_code=$?
+  TEST_CHILD_PID=""
 
   return $exit_code
 }
@@ -1563,6 +1616,9 @@ fi
 # apply mode: run tests
 ######################################################################
 
+# decide bound vs bypass, and read the bound (refuses a bad override before any output)
+set_grove_plan
+
 # emit progressive header immediately (skip if multi-child)
 if [[ "$MULTI_CHILD" != "true" ]]; then
   print_turtle_header "lets ride..."
@@ -1573,6 +1629,9 @@ print_tree_start "git.repo.test $DISPLAY_ARGS"
 if [[ -n "$KEYRACK_STATUS" ]]; then
   print_tree_branch "keyrack" "$KEYRACK_STATUS"
 fi
+
+# claim a grove slot before the suite runs (waits while the bound is full)
+set_grove_slot
 
 # show scope preview if applicable and failfast if 0 matches or check failed
 SCOPE_PREVIEW_OUTPUT=""

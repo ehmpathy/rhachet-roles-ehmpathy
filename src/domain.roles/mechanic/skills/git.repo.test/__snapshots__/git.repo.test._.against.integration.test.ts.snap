@@ -5,6 +5,9 @@ exports[`git.repo.test --against given: [case1] --against local with test:accept
 
 🐚 git.repo.test --what acceptance --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -20,6 +23,9 @@ exports[`git.repo.test --against given: [case1b] --against local --env prep when
 
 🐚 git.repo.test --what acceptance --mode apply --against local --env prep
    ├─ keyrack: unlocked ehmpath/prep
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -35,6 +41,9 @@ exports[`git.repo.test --against given: [case1c] --against local --env prod when
 
 🐚 git.repo.test --what acceptance --mode apply --against local --env prod
    ├─ keyrack: unlocked ehmpath/prod
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -50,6 +59,9 @@ exports[`git.repo.test --against given: [case2] --against cloud with test:accept
 
 🐚 git.repo.test --what acceptance --mode apply --against cloud --env prep
    ├─ keyrack: unlocked ehmpath/prep
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -65,6 +77,9 @@ exports[`git.repo.test --against given: [case2b] --against cloud --env prod when
 
 🐚 git.repo.test --what acceptance --mode apply --against cloud --env prod
    ├─ keyrack: unlocked ehmpath/prod
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
