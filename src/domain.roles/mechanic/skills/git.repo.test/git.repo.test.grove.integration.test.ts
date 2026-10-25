@@ -621,6 +621,51 @@ exit 0
           expect(result.stdout).toContain('🎉 passed');
         });
       });
+
+      when(
+        '[t4] a multi-type run is sent SIGTERM while a child suite runs',
+        () => {
+          const result = useThen('the parent exits', async () => {
+            const stage = genStage();
+            const tree = genTree({ slug: 'tree-multi', stage });
+            const parent = startRun({
+              cwd: tree.tempDir,
+              env: genEnv({
+                stage,
+                fakeBinDir: tree.fakeBinDir,
+                slots: '1',
+                suiteSeconds: 60,
+              }),
+              args: ['--what', 'unit,unit', '--mode', 'apply'],
+            });
+            await waitFor({
+              probe: () => getLivePids(stage.liveDir).length === 1,
+              what: 'child suite start',
+              seconds: 15,
+            });
+            const [suitePid] = getLivePids(stage.liveDir);
+            const killedAt = Date.now();
+            parent.child.kill('SIGTERM');
+            const outcome = await parent.done;
+            const parentExitMs = Date.now() - killedAt;
+            await waitFor({
+              probe: () => !isAlive(suitePid!),
+              what: 'child suite stopped',
+              seconds: 5,
+            });
+            return { outcome, parentExitMs, suiteAlive: isAlive(suitePid!) };
+          });
+
+          then('the parent exits 143 at once, not after the suite', () => {
+            expect(result.outcome.code).toBe(143);
+            expect(result.parentExitMs).toBeLessThan(10_000);
+          });
+
+          then('the child suite is stopped, not left to run on', () => {
+            expect(result.suiteAlive).toBe(false);
+          });
+        },
+      );
     },
   );
 
