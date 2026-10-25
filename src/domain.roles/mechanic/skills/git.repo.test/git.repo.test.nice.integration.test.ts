@@ -3,6 +3,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
+import { setGroveIsolation } from '../../../../.test/setGroveIsolation';
+
+// isolate the grove: a private slot pool, so runs never queue on the box's pool
+setGroveIsolation();
+
 /**
  * .what = verify git.repo.test.sh always runs tests via nice
  * .why = nice -n 5 prevents test suites from CPU starvation on the host.

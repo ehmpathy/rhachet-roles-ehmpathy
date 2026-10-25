@@ -1,0 +1,80 @@
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-grounded-in-reality"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-grounded-in-reality"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-experience-coverage"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-experience-coverage"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-requirements"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-questioned-requirements"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-assumptions"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-questioned-assumptions"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-questioned-questions"}
+{"stone":"1.vision","status":"promised","reason":"promised review.self: has-questioned-questions"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"poured","level":1}
+{"stone":"1.vision","status":"malfunction","reason":"1 of 2 reviewers malfunctioned; 1 reviewer rejected and awaits your answer\nr2 experience-coverage: review timed out after 20 minutes"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"blocker.1","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i001.a581730f104fa611b3.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition blocker.1 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.1","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i001.a581730f104fa611b3.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.1 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.2","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i001.a581730f104fa611b3.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.2 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.3","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i001.a581730f104fa611b3.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.3 (better)"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: dimensional-decomposition"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: experience-coverage"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.1","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i002.cf53cec25f9b366f01.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.1 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.2","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i002.cf53cec25f9b366f01.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.2 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"experience-coverage","about":"nitpick.1","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i002.cf53cec25f9b366f01.r002._.given.by_peer.experience-coverage.md","severity":"better","reason":"conceded review.peer: experience-coverage nitpick.1 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"experience-coverage","about":"nitpick.2","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i002.cf53cec25f9b366f01.r002._.given.by_peer.experience-coverage.md","severity":"better","reason":"conceded review.peer: experience-coverage nitpick.2 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"experience-coverage","about":"nitpick.3","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i002.cf53cec25f9b366f01.r002._.given.by_peer.experience-coverage.md","severity":"better","reason":"conceded review.peer: experience-coverage nitpick.3 (better)"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: dimensional-decomposition"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: experience-coverage"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.1","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i003.6fac24936f99eadef3.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.1 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.2","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i003.6fac24936f99eadef3.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.2 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.3","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i003.6fac24936f99eadef3.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.3 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"dimensional-decomposition","about":"nitpick.4","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i003.6fac24936f99eadef3.r001._.given.by_peer.dimensional-decomposition.md","severity":"better","reason":"conceded review.peer: dimensional-decomposition nitpick.4 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"experience-coverage","about":"nitpick.1","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i003.6fac24936f99eadef3.r002._.given.by_peer.experience-coverage.md","severity":"better","reason":"conceded review.peer: experience-coverage nitpick.1 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"experience-coverage","about":"nitpick.2","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i003.6fac24936f99eadef3.r002._.given.by_peer.experience-coverage.md","severity":"better","reason":"conceded review.peer: experience-coverage nitpick.2 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"experience-coverage","about":"nitpick.3","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i003.6fac24936f99eadef3.r002._.given.by_peer.experience-coverage.md","severity":"better","reason":"conceded review.peer: experience-coverage nitpick.3 (better)"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: dimensional-decomposition"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: experience-coverage"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"review.peer","reason":"blockers exceed threshold (1 > 0); wait for human approval"}
+{"stone":"1.vision","status":"disputed","reviewer":"experience-coverage","about":"blocker.1","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i004.07fa7245f3014d7c01.r002._.given.by_peer.experience-coverage.md","fulcrum":".behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.fulcrums/inventory.of=fulcrums.case=F8-dispute-ec-i004-blocker1-misread.md","reason":"disputed review.peer: experience-coverage blocker.1"}
+{"stone":"1.vision","status":"conceded","reviewer":"experience-coverage","about":"nitpick.1","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i004.07fa7245f3014d7c01.r002._.given.by_peer.experience-coverage.md","severity":"better","reason":"conceded review.peer: experience-coverage nitpick.1 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"experience-coverage","about":"nitpick.2","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i004.07fa7245f3014d7c01.r002._.given.by_peer.experience-coverage.md","severity":"better","reason":"conceded review.peer: experience-coverage nitpick.2 (better)"}
+{"stone":"1.vision","status":"conceded","reviewer":"experience-coverage","about":"nitpick.3","given":"/home/camper/git/ehmpathy/_worktrees/rhachet-roles-ehmpathy.beav.fix-repo-test-grove-suite-bound/.behavior/v2026_10_25.fix-repo-test-grove-suite-bound/.reviews/peer/1.vision._.review.i004.07fa7245f3014d7c01.r002._.given.by_peer.experience-coverage.md","severity":"better","reason":"conceded review.peer: experience-coverage nitpick.3 (better)"}
+{"stone":"1.vision","status":"absorbed","reason":"absorbed review.peer: experience-coverage"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"blocked","blocker":"approval","reason":"wait for human approval"}
+{"stone":"1.vision","status":"approved"}
+{"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"1.vision","status":"passed"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-pruned-yagni"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: has-pruned-yagni"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-pruned-backcompat"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: has-pruned-backcompat"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-consistent-mechanisms"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: has-consistent-mechanisms"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: has-consistent-conventions"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: has-consistent-conventions"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: behavior-declaration-coverage"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: behavior-declaration-coverage"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: behavior-declaration-adherance"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: behavior-declaration-adherance"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: role-standards-adherance"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: role-standards-adherance"}
+{"stone":"5.1.execution.from_vision","status":"arrived","reason":"entered guard reviews"}
+{"stone":"5.1.execution.from_vision","status":"blocked","blocker":"review.self","reason":"review.self required: role-standards-coverage"}
+{"stone":"5.1.execution.from_vision","status":"promised","reason":"promised review.self: role-standards-coverage"}
