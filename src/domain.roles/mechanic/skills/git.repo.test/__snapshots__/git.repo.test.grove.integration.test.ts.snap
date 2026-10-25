@@ -1,0 +1,16 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.repo.test.sh grove given: [case1] a grove with 2 slots, both free, pool dir absent when: [t0] a full unit suite runs then: the grove branch matches snapshot 1`] = `
+"   ├─ grove
+   │  ├─ bound: 2 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed"
+`;
+
+exports[`git.repo.test.sh grove given: [case2] N+1 suites against a bound of N (wish clamp 1) when: [t1] a holder lingers past 30s, then exits then: the grove branch matches snapshot 1`] = `
+"   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  ├─ ⏳ 1 of 1 slot held, wait for one
+   │  │  └─ slot.0: tree-holder · integration · pid <pid> · <age>
+   │  ├─ ⏳ still held (<age>)
+   │  └─ 🎫 slot.0 claimed after <age>"
+`;

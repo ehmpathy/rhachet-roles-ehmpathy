@@ -4,6 +4,9 @@ exports[`git.repo.test given: [case1] repo with tests that pass when: [t0] --wha
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -38,6 +41,7 @@ exports[`git.repo.test given: [case3] repo with multiple test files when: [t0] -
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply
+   ├─ grove: bypass (scoped run)
    ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
@@ -60,6 +64,9 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t0] --
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply --resnap
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -95,6 +102,9 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t2] --
 
 🐚 git.repo.test --what integration --mode apply --resnap
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -131,6 +141,9 @@ exports[`git.repo.test given: [case4] repo with snapshot to update when: [t4] --
 
 🐚 git.repo.test --what acceptance --mode apply --resnap --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -167,6 +180,9 @@ exports[`git.repo.test given: [case5] repo with integration tests when: [t0] --w
 
 🐚 git.repo.test --what integration --mode apply
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -234,6 +250,9 @@ exports[`git.repo.test given: [case8] repo with tests that need extra args when:
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -252,6 +271,7 @@ exports[`git.repo.test given: [case9] repo with lint command when: [t0] --what l
 "🐢 lets ride...
 
 🐚 git.repo.test --what lint --scope src --mode apply --resnap
+   ├─ grove: bypass (not a jest suite)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -279,6 +299,9 @@ exports[`git.repo.test given: [case10] repo with acceptance tests when: [t0] --w
 
 🐚 git.repo.test --what acceptance --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -328,6 +351,7 @@ exports[`git.repo.test given: [case10] repo with acceptance tests when: [t3] --w
 
 🐚 git.repo.test --what acceptance --scope checkout --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove: bypass (scoped run)
    ├─ scope: path://checkout
    │  └─ matched: 1 files
    ├─ files
@@ -350,6 +374,7 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t0] --
 "🐢 lets ride...
 
 🐚 git.repo.test --what lint --mode apply
+   ├─ grove: bypass (not a jest suite)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -359,6 +384,9 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t0] --
       └─ hint: use \`--log always\` to persist when desired
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -373,6 +401,9 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t0] --
 
 🐚 git.repo.test --what integration --mode apply
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -387,6 +418,9 @@ exports[`git.repo.test given: [case11] repo with all test commands when: [t0] --
 
 🐚 git.repo.test --what acceptance --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -468,6 +502,9 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t0
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -503,6 +540,9 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t2
 
 🐚 git.repo.test --what integration --mode apply --thorough
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -539,6 +579,9 @@ exports[`git.repo.test given: [case12] repo with tests to run thorough when: [t4
 
 🐚 git.repo.test --what acceptance --mode apply --thorough --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -574,6 +617,9 @@ exports[`git.repo.test given: [case13] repo with unit tests when: [t0] --what un
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -592,6 +638,9 @@ exports[`git.repo.test given: [case14] repo with no changed test files when: [t0
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -632,6 +681,13 @@ options:
                         auto = persist logs on failure only
                         always = persist logs on success and failure
   --help, -h          show this help
+
+grove (a per-machine bound on full jest suites):
+  a full or --thorough suite claims a slot from one pool per machine, or
+  waits for one and names who holds each. types, format, lint, plan mode,
+  and scoped runs without --thorough bypass the bound.
+  GIT_REPO_TEST_SLOTS=<n>       slot count (default: max(1, cores / 6))
+  GIT_REPO_TEST_SLOTS_DIR=<dir>  pool dir (default: /run/lock/rhachet/git.repo.test)
 "
 `;
 
@@ -660,6 +716,7 @@ exports[`git.repo.test given: [case18] real repo with real npm when: [t0] --what
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope nonexistent --mode apply
+   ├─ grove: bypass (scoped run)
    ├─ scope: path://nonexistent
    │  └─ matched: 0 files
    ├─ files
@@ -676,6 +733,9 @@ exports[`git.repo.test given: [case19] real integration test with keyrack when: 
 
 🐚 git.repo.test --what integration --mode apply
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -690,6 +750,7 @@ exports[`git.repo.test given: [case20] flag combinations when: [t0] --what unit 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply --resnap
+   ├─ grove: bypass (scoped run)
    ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
@@ -712,6 +773,9 @@ exports[`git.repo.test given: [case20] flag combinations when: [t1] --what unit 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
@@ -734,6 +798,9 @@ exports[`git.repo.test given: [case20] flag combinations when: [t2] --what unit 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply --resnap --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
@@ -757,6 +824,9 @@ exports[`git.repo.test given: [case20] flag combinations when: [t3] --what integ
 
 🐚 git.repo.test --what integration --scope api --mode apply --thorough
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://api
    │  └─ matched: 1 files
    ├─ files
@@ -779,6 +849,7 @@ exports[`git.repo.test given: [case20] flag combinations when: [t4] --what unit 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply
+   ├─ grove: bypass (scoped run)
    ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
@@ -801,6 +872,9 @@ exports[`git.repo.test given: [case21] edge cases when: [t0] --scope with empty 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -819,6 +893,7 @@ exports[`git.repo.test given: [case21] edge cases when: [t1] --scope with specia
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope path(src/*) --mode apply
+   ├─ grove: bypass (scoped run)
    ├─ scope: path://path(src/*)
    │  └─ matched: 0 files
    ├─ files
@@ -834,6 +909,7 @@ exports[`git.repo.test given: [case21b] --listTests failure when: [t0] jest --li
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply
+   ├─ grove: bypass (scoped run)
    ├─ status: malfunction
    └─ error: cannot verify scope - jest --listTests failed
 
@@ -845,6 +921,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t0] -
 "🐢 lets ride...
 
 🐚 git.repo.test --what lint --mode apply --thorough
+   ├─ grove: bypass (not a jest suite)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -854,6 +931,9 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t0] -
       └─ hint: use \`--log always\` to persist when desired
 
 🐚 git.repo.test --what unit --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -868,6 +948,9 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t0] -
 
 🐚 git.repo.test --what integration --mode apply --thorough
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -882,6 +965,9 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t0] -
 
 🐚 git.repo.test --what acceptance --mode apply --thorough --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -901,6 +987,7 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t1] -
 "🐢 lets ride...
 
 🐚 git.repo.test --what lint --mode apply --resnap
+   ├─ grove: bypass (not a jest suite)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -910,6 +997,9 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t1] -
       └─ hint: use \`--log always\` to persist when desired
 
 🐚 git.repo.test --what unit --mode apply --resnap
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -924,6 +1014,9 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t1] -
 
 🐚 git.repo.test --what integration --mode apply --resnap
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -938,6 +1031,9 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t1] -
 
 🐚 git.repo.test --what acceptance --mode apply --resnap --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -958,6 +1054,9 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t2] -
 
 🐚 git.repo.test --what integration --scope api --mode apply --resnap --thorough
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://api
    │  └─ matched: 1 files
    ├─ files
@@ -981,6 +1080,9 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t3] -
 
 🐚 git.repo.test --what acceptance --scope checkout --mode apply --resnap --thorough --against local --env test
    ├─ keyrack: unlocked ehmpath/test
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://checkout
    │  └─ matched: 1 files
    ├─ files
@@ -1003,6 +1105,9 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t4] -
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --mode apply --resnap
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
