@@ -55,13 +55,18 @@ describe('git.repo.test.sh grove', () => {
       `it('passes', () => {});`,
     );
 
-    // mock jest --listTests, for scoped runs
+    // mock jest --listTests, for scoped runs; it marks its start and may list slowly
     const jestBinDir = path.join(tempDir, 'node_modules', '.bin');
     fs.mkdirSync(jestBinDir, { recursive: true });
     fs.writeFileSync(
       path.join(jestBinDir, 'jest'),
       `#!/bin/bash
-if [[ "$*" == *"--listTests"* ]]; then echo "${tempDir}/src/example.test.js"; exit 0; fi
+if [[ "$*" == *"--listTests"* ]]; then
+  touch "${input.stage.root}/list.started"
+  sleep "\${GROVE_FAKE_LIST_SECONDS:-0}"
+  echo "${tempDir}/src/example.test.js"
+  exit 0
+fi
 exit 1
 `,
     );
@@ -163,6 +168,24 @@ exit 0
       await new Promise((wake) => setTimeout(wake, 100));
     }
     throw new Error(`waitFor timed out: ${input.what}`);
+  };
+
+  /**
+   * .what = await a run's exit, or kill it and fail loud after a deadline
+   * .why = a run that never returns must not outlive the test as an orphan
+   */
+  const awaitExitOrKill = async (input: {
+    run: LiveRun;
+    seconds: number;
+  }): Promise<{ code: number | null; signal: NodeJS.Signals | null }> => {
+    const deadline = new Promise<never>((_, refuse) => {
+      const timer = setTimeout(() => {
+        input.run.child.kill('SIGKILL');
+        refuse(new Error(`run did not exit within ${input.seconds}s`));
+      }, input.seconds * 1000);
+      void input.run.done.then(() => clearTimeout(timer));
+    });
+    return Promise.race([input.run.done, deadline]);
   };
 
   /**
@@ -666,6 +689,62 @@ exit 0
           });
         },
       );
+
+      when(
+        '[t5] the holder is sent SIGKILL while its jest --listTests runs',
+        () => {
+          const result = useThen('a waiter starts after the kill', async () => {
+            const stage = genStage();
+            const tree = genTree({ slug: 'tree-lister', stage });
+            const holder = startRun({
+              cwd: tree.tempDir,
+              env: {
+                ...genEnv({ stage, fakeBinDir: tree.fakeBinDir, slots: '1' }),
+                GROVE_FAKE_LIST_SECONDS: '30',
+              },
+              args: [
+                '--what',
+                'unit',
+                '--scope',
+                'example',
+                '--thorough',
+                '--mode',
+                'apply',
+              ],
+            });
+            await waitFor({
+              probe: () =>
+                holder.stdout().includes('🎫 slot.0 claimed') &&
+                fs.existsSync(path.join(stage.root, 'list.started')),
+              what: 'holder claims, then lists',
+              seconds: 15,
+            });
+            // await the holder's own death, not its pipes: an orphan may keep those open
+            const holderExited = new Promise((fulfil) =>
+              holder.child.once('exit', fulfil),
+            );
+            holder.child.kill('SIGKILL');
+            await holderExited;
+            const waiter = startRun({
+              cwd: tree.tempDir,
+              env: genEnv({ stage, fakeBinDir: tree.fakeBinDir, slots: '1' }),
+              args: ['--what', 'unit', '--mode', 'apply'],
+            });
+            await waitFor({
+              probe: () => waiter.stdout().includes('🎫 slot.0 claimed'),
+              what: 'waiter claims while the orphan --listTests still sleeps',
+              seconds: 10,
+            });
+            const outcome = await waiter.done;
+            return { outcome, stdout: waiter.stdout() };
+          });
+
+          then('the slot frees at once; the orphan lister holds none', () => {
+            expect(result.stdout).toContain('🎫 slot.0 claimed');
+            expect(result.outcome.code).toBe(0);
+          });
+        },
+      );
     },
   );
 
@@ -818,6 +897,47 @@ exit 0
         });
       }),
     );
+
+    when('[t3] GIT_REPO_TEST_SLOTS_DIR is a relative path', () => {
+      const result = useThen('the run refuses', async () => {
+        const stage = genStage();
+        const tree = genTree({ slug: 'tree-reldir', stage });
+        const run = startRun({
+          cwd: tree.tempDir,
+          env: {
+            ...genEnv({ stage, fakeBinDir: tree.fakeBinDir, slots: '1' }),
+            GIT_REPO_TEST_SLOTS_DIR: 'my-pool',
+          },
+          args: ['--what', 'unit', '--mode', 'apply'],
+        });
+        const outcome = await run.done;
+        return {
+          outcome,
+          stdout: run.stdout(),
+          stderr: run.stderr(),
+          stage,
+          poolMade: fs.existsSync(path.join(tree.tempDir, 'my-pool')),
+        };
+      });
+
+      then('it exits 2 with ConstraintError on stdout and stderr', () => {
+        expect(result.outcome.code).toBe(2);
+        expect(result.stdout).toContain(
+          '✋ ConstraintError: GIT_REPO_TEST_SLOTS_DIR must be an absolute path',
+        );
+        expect(result.stderr).toContain('ConstraintError');
+      });
+
+      then(
+        'it names the value and the fix; no pool made, no suite started',
+        () => {
+          expect(result.stdout).toContain('got: my-pool');
+          expect(result.stdout).toContain('$PWD/my-pool');
+          expect(result.poolMade).toBe(false);
+          expect(fs.readFileSync(result.stage.logFile, 'utf-8')).toBe('');
+        },
+      );
+    });
   });
 
   given(
@@ -914,6 +1034,43 @@ exit 0
         then('the error names the path and the fix; no suite starts', () => {
           expect(result.stdout).toContain('a-file/pool');
           expect(result.stdout).toContain('GIT_REPO_TEST_SLOTS_DIR');
+          expect(fs.readFileSync(result.stage.logFile, 'utf-8')).toBe('');
+        });
+      });
+
+      when('[t3] a slot file exists that this user cannot write', () => {
+        const result = useThen('the run refuses', async () => {
+          const stage = genStage();
+          const tree = genTree({ slug: 'tree-badslot', stage });
+          const slotFile = path.join(stage.poolDir, 'slot.0.lock');
+          fs.mkdirSync(stage.poolDir, { recursive: true });
+          fs.writeFileSync(slotFile, '');
+          fs.chmodSync(slotFile, 0o444);
+          const run = startRun({
+            cwd: tree.tempDir,
+            env: genEnv({ stage, fakeBinDir: tree.fakeBinDir, slots: '1' }),
+            args: ['--what', 'unit', '--mode', 'apply'],
+          });
+          const outcome = await awaitExitOrKill({ run, seconds: 15 });
+          return {
+            outcome,
+            stdout: run.stdout(),
+            stderr: run.stderr(),
+            stage,
+          };
+        });
+
+        then('it exits 1 with MalfunctionError, never a silent wait', () => {
+          expect(result.outcome.code).toBe(1);
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: grove slot file is not writable',
+          );
+          expect(result.stderr).toContain('MalfunctionError');
+        });
+
+        then('the error names the file and the fix; no suite starts', () => {
+          expect(result.stdout).toContain('slot.0.lock');
+          expect(result.stdout).toContain('chmod 666');
           expect(fs.readFileSync(result.stage.logFile, 'utf-8')).toBe('');
         });
       });

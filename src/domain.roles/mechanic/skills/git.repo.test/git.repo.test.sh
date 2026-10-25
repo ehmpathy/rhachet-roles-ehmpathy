@@ -1560,7 +1560,7 @@ if [[ "$MODE" == "plan" ]]; then
   fi
 
   # get file count
-  SCOPE_FILE_COUNT=$(get_scope_file_count "$WHAT" "$local_scope")
+  SCOPE_FILE_COUNT=$(exec 9>&-; get_scope_file_count "$WHAT" "$local_scope")
 
   # if count check failed, fall back to apply mode with warning
   if [[ "$SCOPE_FILE_COUNT" == "-1" ]]; then
@@ -1648,7 +1648,10 @@ if [[ ${#SCOPES[@]} -gt 0 ]] && [[ "$WHAT" != "lint" ]]; then
   if [[ ${#PATH_PATTERNS[@]} -gt 0 ]]; then
     local_scope="${PATH_PATTERNS[0]}"
   fi
-  SCOPE_FILE_COUNT=$(get_scope_file_count "$WHAT" "$local_scope")
+
+  # exec 9>&- inside each subshell, so it and its jest hold no grove slot past a kill.
+  # a bare `f 9>&-` would not do: bash keeps a saved copy of fd 9 open to restore it
+  SCOPE_FILE_COUNT=$(exec 9>&-; get_scope_file_count "$WHAT" "$local_scope")
 
   # failfast if scope check failed (can't verify scope without jest --listTests)
   if [[ "$SCOPE_FILE_COUNT" == "-1" ]]; then
@@ -1662,7 +1665,7 @@ if [[ ${#SCOPES[@]} -gt 0 ]] && [[ "$WHAT" != "lint" ]]; then
   fi
 
   # get files for display
-  SCOPE_FILES=$(get_scope_files "$WHAT" "$local_scope")
+  SCOPE_FILES=$(exec 9>&-; get_scope_files "$WHAT" "$local_scope")
 
   # build scope display (join all scopes)
   SCOPE_DISPLAY=$(format_scope_display "${SCOPES[@]}")
