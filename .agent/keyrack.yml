@@ -6,6 +6,7 @@ env.prep:
   - EHMPATHY_SEATURTLE_GITHUB_TOKEN
 env.test:
   - OPENROUTER_API_KEY
+  - EHMPATHY_SEATURTLE_GITHUB_TOKEN
 extends:
   - .agent/repo=bhrain/role=reviewer/keyrack.yml
   - .agent/repo=bhuild/role=dispatcher/keyrack.yml
