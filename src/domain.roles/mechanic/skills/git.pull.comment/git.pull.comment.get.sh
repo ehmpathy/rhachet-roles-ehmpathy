@@ -24,23 +24,25 @@ KIND=""
 REPO_IN=""
 AUTH="$AUTH_DEFAULT"
 OUTPUT="tree"
+UNANSWERED="false"
 
 # .what = print the usage tree: every flag, its default, and an example
 # .why  = --help is the one authoritative flag list; the file header names none
 help() {
-  print_turtle_header "heres the wave..."
-  print_tree_start "git.pull.comment.get — read the comments of a pull request"
-  echo "   ├─ usage: rhx git.pull.comment.get --pr <n> [--id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--in <o/r>] [--auth as-ehmpath|as-human] [--output tree|json]"
-  echo "   ├─ inputs"
-  echo "   │  ├─ --pr <n>                      required"
-  echo "   │  ├─ --id <id> --kind <kind>       one comment, by id; kind = issue | review, never guessed"
-  echo "   │  ├─ --key <k> [--reply-to <id>]   the current login's keyed comment (in that thread, with --reply-to)"
-  echo "   │  ├─ --kind body                   the pr description alone"
-  echo "   │  ├─ --in <owner/name>             default: the cwd's github origin; home orgs only (${ORGS_HOME[*]})"
-  echo "   │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human"
-  echo "   │  └─ --output                      tree (default) | json"
-  echo "   ├─ example: rhx git.pull.comment.get --pr 69"
-  echo "   └─ exit: 0 shown; 1 malfunction; 2 constraint (bad input or absent target)"
+  cat <<'EOF'
+usage: git.pull.comment.get [--pr <n>] [--in <owner/name>] [--unanswered | --id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--auth as-ehmpath|as-human] [--output tree|json]
+
+options:
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --unanswered                 only the comments that wait on an answer from you
+  --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
+  --key <k> [--reply-to <id>]  your keyed comment (in that review thread, with --reply-to)
+  --kind body                  the pr description alone
+  --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
+  --output tree|json           the output shape (default: tree)
+  --help, -h                   show this help
+EOF
 }
 
 # parse args
@@ -52,6 +54,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --skill|--repo|--role) shift 2 ;;
     --) shift ;;
+    --unanswered) UNANSWERED="true"; shift ;;
     --pr) PR="${2:-}"; shift 2 ;;
     --id) ID="${2:-}"; shift 2 ;;
     --key) KEY="${2:-}"; shift 2 ;;
@@ -81,9 +84,12 @@ if [[ -z "$ID" && -n "$KIND" && "$KIND" != "body" ]]; then
   fail_comment_constraint "--kind $KIND pairs with --id; alone, only --kind body reads one target" "add --id <id>"$'\n'"drop --kind"
 fi
 [[ "$KIND" != "body" || -z "$KEY" ]] || fail_comment_constraint "a pr description holds no key" "drop --key"$'\n'"drop --kind body"
+[[ "$UNANSWERED" == "false" || ( -z "$ID" && -z "$KEY" && -z "$KIND" ) ]] || fail_comment_constraint "--unanswered reads every comment; it takes no --id, --key, or --kind" "drop --unanswered"$'\n'"drop --id, --key, and --kind"
 set_comment_repo "$REPO_IN" git.pull.comment.get
 set_comment_auth "$AUTH"
 set_comment_login
+set_comment_pr "$PR" "$REPO_IN" git.pull.comment.get
+PR="$COMMENT_PR"
 
 # .what = one github json resource (pr or comment) as a row: kind, id, author, key, size, hash, body
 # .why  = the tree and the json read one row shape, whatever endpoint the row came from
@@ -146,6 +152,24 @@ get_rows_with_key() {
     --arg key "$key" --arg kind "$kind" --argjson reply "$reply" "$COMMENT_JQ_DEFS"'
     map(select(.kind == $kind and .key == $key and ($reply == null or .in_reply_to == $reply)))
     | { own: map(select(is_login_self(.author))), foreign: map(select(is_login_self(.author) | not)) }'
+}
+
+# .what = the rows that still wait on an answer from the current login
+# .why  = a reply round starts from "what have i not answered?": a review thread
+#         whose latest comment is not the robot's, and each human issue comment
+#         newer than the robot's latest issue comment
+# .note = the robot's comment = the current login's, with a body that opens with
+#         🐢 (is_comment_by_robot); a review row keeps its thread root in
+#         in_reply_to, or is the root itself, so --reply-to <root> answers it
+as_rows_unanswered() {
+  printf '%s' "$1" | jq -c --arg re "$COMMENT_KEY_CLAIM_REGEX" --arg login "$COMMENT_LOGIN" "$COMMENT_JQ_DEFS"'
+    def is_robot: is_login_self(.author) and (.body | startswith("🐢"));
+    ( [ .[] | select(.kind == "issue" and is_robot) | .created_at ] | max ) as $robot_last
+    | ( [ .[] | select(.kind == "review") ]
+        | group_by(.in_reply_to // .id)
+        | map(sort_by(.created_at, .id) | last | select(is_robot | not)) )
+      + [ .[] | select(.kind == "issue" and (is_robot | not) and ($robot_last == null or .created_at > $robot_last)) ]
+    | sort_by(.created_at, .id)'
 }
 
 # .what = the row counts by kind, as one line
@@ -254,6 +278,12 @@ if [[ -n "$KEY" ]]; then
   fi
   [[ "$(get_count_of_comments "$OWN")" != "0" ]] || fail_comment_constraint "no comment carries key '$KEY' on $COMMENT_REPO#$PR${REPLY_TO:+ in thread $REPLY_TO}" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR")   # lists every row and its key"
   ROWS="$OWN"
+fi
+
+# narrow to the rows that wait on an answer, when asked
+if [[ "$UNANSWERED" == "true" ]]; then
+  LABEL="$COMMENT_REPO#$PR, unanswered by $COMMENT_LOGIN"
+  ROWS="$(as_rows_unanswered "$ROWS")"
 fi
 
 # emit json

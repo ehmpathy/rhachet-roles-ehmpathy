@@ -25,10 +25,11 @@ import { getError, given, then, useThen, when } from 'test-fns';
  *         hashes, times, the run key) are masked, so the real shape is under
  *         snapshot beside the stub suite's
  * .note = every verb runs `--auth as-human`: the gh cli login of the seat
- *         that runs the suite. on a human's machine, their own login; in ci,
- *         the job's own GITHUB_TOKEN, logged into an isolated gh config dir
- *         by the workflow (.test.yml, step "gh login (isolated, …)").
- *         no login → fail loud, never skip
+ *         that runs the suite. no login → fail loud, never skip
+ * .note = ci never runs this case: it writes to a live pr, and a test job holds
+ *         no github write scope (jest.integration.config.ts excludes it). run it
+ *         by hand, under a human's gh login:
+ *         npx jest -c jest.integration.config.ts --testMatch '<rootDir>/src/domain.roles/mechanic/skills/git.pull.comment/git.pull.comment.real.integration.test.ts'
  */
 describe('git.pull.comment (real github api)', () => {
   const REPO = 'ehmpathy/rhachet-roles-ehmpathy';
@@ -61,22 +62,10 @@ describe('git.pull.comment (real github api)', () => {
   };
 
   /**
-   * .what = the env the case runs gh under
-   * .why  = ci logs the job token into an isolated gh config dir, named by
-   *         GIT_PULL_COMMENT_REAL_API_GH_CONFIG_DIR, so no other suite sees a
-   *         login; a human seat names none and runs under its own gh login
-   */
-  const getEnvOfCase = (): NodeJS.ProcessEnv => {
-    const configDir = process.env.GIT_PULL_COMMENT_REAL_API_GH_CONFIG_DIR;
-    if (!configDir) return process.env;
-    return { ...process.env, GH_CONFIG_DIR: configDir };
-  };
-
-  /**
    * .what = run one verb against the real api under the seat's gh login
    */
   const run = (verb: 'get' | 'set' | 'del', args: string[], stdin?: string) => {
-    const env = getEnvOfCase();
+    const env = process.env;
     assertGhLogin({ env });
     const result = spawnSync(
       'bash',

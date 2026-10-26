@@ -33,19 +33,20 @@ OUTPUT="tree"
 # .what = print the usage tree: every flag, its default, and an example
 # .why  = --help is the one authoritative flag list; the file header names none
 help() {
-  print_turtle_header "heres the wave..."
-  print_tree_start "git.pull.comment.del — delete one comment the robot wrote on a pull request; a no-op if absent; a human's comment is refused"
-  echo "   ├─ usage: rhx git.pull.comment.del --pr <n> (--id <id> --kind issue|review | --key <k> [--reply-to <id>]) [--mode plan|apply]"
-  echo "   ├─ inputs"
-  echo "   │  ├─ --pr <n>                      required"
-  echo "   │  ├─ --key <k> [--reply-to <id>]   the current login's keyed comment (in that thread, with --reply-to)"
-  echo "   │  ├─ --id <id> --kind <kind>       one comment, by id; kind = issue | review, never guessed"
-  echo "   │  ├─ --in <owner/name>             default: the cwd's github origin; home orgs only (${ORGS_HOME[*]})"
-  echo "   │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human"
-  echo "   │  ├─ --mode                        plan (default, no write) | apply (delete, then confirm absent)"
-  echo "   │  └─ --output                      tree (default) | json"
-  echo "   ├─ example: rhx git.pull.comment.del --pr 69 --key status --mode apply"
-  echo "   └─ exit: 0 planned, deleted, or no-op; 1 malfunction; 2 constraint"
+  cat <<'EOF'
+usage: git.pull.comment.del (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+
+options:
+  --key <k>                    your keyed top-level comment; a no-op if absent
+  --reply-to <id>              with --key: your keyed reply in that review thread
+  --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --mode plan|apply            plan shows preview, apply deletes and confirms absent (default: plan)
+  --auth as-ehmpath|as-human   who deletes (default: as-ehmpath); a human's comment is refused
+  --output tree|json           the output shape (default: tree)
+  --help, -h                   show this help
+EOF
 }
 
 # the caller's argv, kept whole: a plan's hint names the exact command
@@ -96,6 +97,8 @@ fi
 set_comment_repo "$REPO_IN" git.pull.comment.del
 set_comment_auth "$AUTH"
 set_comment_login
+set_comment_pr "$PR" "$REPO_IN" git.pull.comment.del
+PR="$COMMENT_PR"
 
 # .what = emit the result of del: the tree, or the json contract
 #         { mode, verdict, target, endpoint, id }

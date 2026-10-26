@@ -657,55 +657,47 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
 }
 `;
 
-exports[`git.pull.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t1] get, set, del each get --help then: each exits 0 with usage, inputs, an example; calls no gh 1`] = `
+exports[`git.pull.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t1] get, set, del each get --help then: each exits 0 with a usage line and its options; calls no gh 1`] = `
 {
-  "del": "🐢 heres the wave...
+  "del": "usage: git.pull.comment.del (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
-🐚 git.pull.comment.del — delete one comment the robot wrote on a pull request; a no-op if absent; a human's comment is refused
-   ├─ usage: rhx git.pull.comment.del --pr <n> (--id <id> --kind issue|review | --key <k> [--reply-to <id>]) [--mode plan|apply]
-   ├─ inputs
-   │  ├─ --pr <n>                      required
-   │  ├─ --key <k> [--reply-to <id>]   the current login's keyed comment (in that thread, with --reply-to)
-   │  ├─ --id <id> --kind <kind>       one comment, by id; kind = issue | review, never guessed
-   │  ├─ --in <owner/name>             default: the cwd's github origin; home orgs only (ehmpathy whodisio ahbode uladkasach)
-   │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human
-   │  ├─ --mode                        plan (default, no write) | apply (delete, then confirm absent)
-   │  └─ --output                      tree (default) | json
-   ├─ example: rhx git.pull.comment.del --pr 69 --key status --mode apply
-   └─ exit: 0 planned, deleted, or no-op; 1 malfunction; 2 constraint
+options:
+  --key <k>                    your keyed top-level comment; a no-op if absent
+  --reply-to <id>              with --key: your keyed reply in that review thread
+  --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --mode plan|apply            plan shows preview, apply deletes and confirms absent (default: plan)
+  --auth as-ehmpath|as-human   who deletes (default: as-ehmpath); a human's comment is refused
+  --output tree|json           the output shape (default: tree)
+  --help, -h                   show this help
 ",
-  "get": "🐢 heres the wave...
+  "get": "usage: git.pull.comment.get [--pr <n>] [--in <owner/name>] [--unanswered | --id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--auth as-ehmpath|as-human] [--output tree|json]
 
-🐚 git.pull.comment.get — read the comments of a pull request
-   ├─ usage: rhx git.pull.comment.get --pr <n> [--id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--in <o/r>] [--auth as-ehmpath|as-human] [--output tree|json]
-   ├─ inputs
-   │  ├─ --pr <n>                      required
-   │  ├─ --id <id> --kind <kind>       one comment, by id; kind = issue | review, never guessed
-   │  ├─ --key <k> [--reply-to <id>]   the current login's keyed comment (in that thread, with --reply-to)
-   │  ├─ --kind body                   the pr description alone
-   │  ├─ --in <owner/name>             default: the cwd's github origin; home orgs only (ehmpathy whodisio ahbode uladkasach)
-   │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human
-   │  └─ --output                      tree (default) | json
-   ├─ example: rhx git.pull.comment.get --pr 69
-   └─ exit: 0 shown; 1 malfunction; 2 constraint (bad input or absent target)
+options:
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --unanswered                 only the comments that wait on an answer from you
+  --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
+  --key <k> [--reply-to <id>]  your keyed comment (in that review thread, with --reply-to)
+  --kind body                  the pr description alone
+  --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
+  --output tree|json           the output shape (default: tree)
+  --help, -h                   show this help
 ",
-  "set": "🐢 heres the wave...
+  "set": "usage: git.pull.comment.set (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
-🐚 git.pull.comment.set — upsert one comment of a pull request
-   ├─ usage: rhx git.pull.comment.set --pr <n> (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--mode plan|apply]
-   ├─ targets
-   │  ├─ --key <k>                     top-level comment: absent → POST, differs → PATCH, same → no-op
-   │  ├─ --reply-to <id> --key <k>     a reply in that review thread, same upsert
-   │  └─ --id <id> --kind <kind>       edit a known comment; kind = issue | review
-   ├─ inputs
-   │  ├─ --pr <n>                      required
-   │  ├─ --from <path|@stdin>          the body; always written as '🐢 ' + body (+ a hidden key marker); no flag omits the 🐢
-   │  ├─ --in <owner/name>             default: the cwd's github origin; home orgs only (ehmpathy whodisio ahbode uladkasach)
-   │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human
-   │  ├─ --mode                        plan (default, no write) | apply (write, read back, hash-check)
-   │  └─ --output                      tree (default) | json
-   ├─ example: rhx git.pull.comment.set --pr 69 --key status --from ./status.md --mode apply
-   └─ exit: 0 planned, written, or no-op; 1 malfunction; 2 constraint
+options:
+  --key <k>                    a top-level comment, upserted by key: absent → post, differs → edit, same → no-op
+  --reply-to <id>              with --key: a reply in that review thread, upserted the same way
+  --id <id> --kind <kind>      edit one known comment; kind = issue | review, never guessed
+  --from <path|@stdin>         the body; written as '🐢 ' + body, plus a hidden key marker
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
+  --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
+  --output tree|json           the output shape (default: tree)
+  --help, -h                   show this help
 ",
 }
 `;
@@ -748,11 +740,11 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
    └─ to fix it
       └─ --output tree (the default)
 ",
-  "pr": "✋ ConstraintError: --pr <number> is required, got 'seven'
+  "pr": "✋ ConstraintError: --pr must be a pull request number, got 'seven'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 69 ...
+      └─ rhx git.pull.comment.get --pr 69 ...   # or omit --pr, for the open pull of the cwd branch
 ",
 }
 `;
@@ -899,9 +891,9 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
       "class": "ConstraintError",
       "details": [],
       "fixes": [
-        "rhx git.pull.comment.get --pr 69 ...",
+        "rhx git.pull.comment.get --pr 69 ...   # or omit --pr, for the open pull of the cwd branch",
       ],
-      "message": "--pr <number> is required, got 'seven'",
+      "message": "--pr must be a pull request number, got 'seven'",
     },
   },
 }
@@ -991,9 +983,12 @@ exports[`git.pull.comment given: [case12] the target fences: the pr, and the hom
 "
 `;
 
-exports[`git.pull.comment given: [case12] the target fences: the pr, and the home orgs when: [t1] --in names an owner outside the home orgs then: it exits 2, names the allowlist, calls no gh 1`] = `
+exports[`git.pull.comment given: [case12] the target fences: the pr, and the home orgs when: [t1] --in names an owner outside the home orgs then: it exits 2, names each home org on its own line, calls no gh 1`] = `
 "✋ ConstraintError: owner 'seaturtlecorp' is outside the home orgs
-   └─ allowed: ehmpathy · whodisio · ahbode · uladkasach
+   ├─ home org: ahbode
+   ├─ home org: ehmpathy
+   ├─ home org: uladkasach
+   └─ home org: whodisio
 
 🥥 did you know?
    └─ to fix it
@@ -1003,7 +998,10 @@ exports[`git.pull.comment given: [case12] the target fences: the pr, and the hom
 
 exports[`git.pull.comment given: [case12] the target fences: the pr, and the home orgs when: [t2] the cwd origin sits outside the home orgs then: it exits 2 and calls no gh 1`] = `
 "✋ ConstraintError: owner 'seaturtlecorp' is outside the home orgs
-   └─ allowed: ehmpathy · whodisio · ahbode · uladkasach
+   ├─ home org: ahbode
+   ├─ home org: ehmpathy
+   ├─ home org: uladkasach
+   └─ home org: whodisio
 
 🥥 did you know?
    └─ to fix it
@@ -1334,12 +1332,15 @@ exports[`git.pull.comment given: [case14] the pr description is no comment: set 
    └─ to fix it
       └─ rhx git.pull.comment get --help
 ",
-  "help": "🐢 heres the wave...
+  "help": "usage: git.pull.comment <get | set | del> [flags]
 
-🐚 git.pull.comment — get | set | del
-   ├─ usage: rhx git.pull.comment <get | set | del> [flags]
-   ├─ each verb is also its own skill: rhx git.pull.comment.<verb> [flags]
-   └─ flags of one verb: rhx git.pull.comment <verb> --help
+verbs:
+  get                          rhx git.pull.comment get --help, for its flags
+  set                          rhx git.pull.comment set --help, for its flags
+  del                          rhx git.pull.comment del --help, for its flags
+
+options:
+  --help, -h                   show this help
 ",
   "unknown": "✋ ConstraintError: unknown verb 'put'; the verbs are get | set | del
 
@@ -1860,5 +1861,51 @@ exports[`git.pull.comment given: [case19] get reads every review thread, open an
       ├─ sha256: ce306bbcb56f25c0c7d2ad54f578df232f6024108a579072d51c2e29dd2560ef
       └─ text
          top-level ask
+"
+`;
+
+exports[`git.pull.comment given: [case20] --pr defaults to the open pull of the cwd branch when: [t1] the branch has no open pull, and --pr is absent then: it exits 2, names the branch, writes naught 1`] = `
+"✋ ConstraintError: --pr is absent, and branch 'surf/no-pull' has no open pull on ehmpathy/surf-demo
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.comment.set --pr <n> ...   # name the pull
+"
+`;
+
+exports[`git.pull.comment given: [case20] --pr defaults to the open pull of the cwd branch when: [t2] --in names a repo other than the cwd origin then: it exits 2: the cwd branch is no pull of that repo 1`] = `
+"✋ ConstraintError: --pr is required with --in ehmpathy/other-reef: the cwd branch sits on 'ehmpathy/surf-demo', not on that repo
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.comment.del --pr <n> --in ehmpathy/other-reef ...
+"
+`;
+
+exports[`git.pull.comment given: [case21] get --unanswered lists what waits on an answer when: [t1] get --unanswered runs as a tree then: the tree names the target as unanswered 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.comment.get
+   ├─ target: ehmpathy/surf-demo#7, unanswered by ehm-seaturtle
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ counts: 0 pr description, 1 issue comments, 2 review comments
+   ├─ review comment 903 by surfer-kai at 2026-10-24T<time>  thread=open
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r903
+   │  ├─ bytes: 14
+   │  ├─ sha256: 3cce24d1eef67d5cd101a325bef29da5a34bd89cc316670b62c6e4db5ca73756
+   │  └─ text
+   │     forbid the dot
+   ├─ review comment 906 by surfer-kai at 2026-10-24T<time>  reply-to=904  thread=open
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r906
+   │  ├─ bytes: 14
+   │  ├─ sha256: 7bf82a3b1e6bbabd80276934a23dd418f0648ff4f36cb6a125b43ca0de7ae2be
+   │  └─ text
+   │     and the cache?
+   └─ issue comment 909 by surfer-kai at 2026-10-24T<time>
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-909
+      ├─ bytes: 13
+      ├─ sha256: f56a8e2f95606a42b1c382cc9a1167f764917ca236c9be2ac4d1aee0806cf850
+      └─ text
+         one more note
 "
 `;

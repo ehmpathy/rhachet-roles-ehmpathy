@@ -38,22 +38,21 @@ OUTPUT="tree"
 # .what = print the usage tree: every flag, its default, and an example
 # .why  = --help is the one authoritative flag list; the file header names none
 help() {
-  print_turtle_header "heres the wave..."
-  print_tree_start "git.pull.comment.set — upsert one comment of a pull request"
-  echo "   ├─ usage: rhx git.pull.comment.set --pr <n> (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--mode plan|apply]"
-  echo "   ├─ targets"
-  echo "   │  ├─ --key <k>                     top-level comment: absent → POST, differs → PATCH, same → no-op"
-  echo "   │  ├─ --reply-to <id> --key <k>     a reply in that review thread, same upsert"
-  echo "   │  └─ --id <id> --kind <kind>       edit a known comment; kind = issue | review"
-  echo "   ├─ inputs"
-  echo "   │  ├─ --pr <n>                      required"
-  echo "   │  ├─ --from <path|@stdin>          the body; always written as '🐢 ' + body (+ a hidden key marker); no flag omits the 🐢"
-  echo "   │  ├─ --in <owner/name>             default: the cwd's github origin; home orgs only (${ORGS_HOME[*]})"
-  echo "   │  ├─ --auth                        as-ehmpath (default; the env token, else the keyrack) | as-human"
-  echo "   │  ├─ --mode                        plan (default, no write) | apply (write, read back, hash-check)"
-  echo "   │  └─ --output                      tree (default) | json"
-  echo "   ├─ example: rhx git.pull.comment.set --pr 69 --key status --from ./status.md --mode apply"
-  echo "   └─ exit: 0 planned, written, or no-op; 1 malfunction; 2 constraint"
+  cat <<'EOF'
+usage: git.pull.comment.set (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+
+options:
+  --key <k>                    a top-level comment, upserted by key: absent → post, differs → edit, same → no-op
+  --reply-to <id>              with --key: a reply in that review thread, upserted the same way
+  --id <id> --kind <kind>      edit one known comment; kind = issue | review, never guessed
+  --from <path|@stdin>         the body; written as '🐢 ' + body, plus a hidden key marker
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
+  --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
+  --output tree|json           the output shape (default: tree)
+  --help, -h                   show this help
+EOF
 }
 
 # the caller's argv, kept whole: a plan's hint and a refusal's fix name the exact command
@@ -150,6 +149,8 @@ FIX_EMPTY="write the body into '$FROM', then rerun"
 set_comment_repo "$REPO_IN" git.pull.comment.set
 set_comment_auth "$AUTH"
 set_comment_login
+set_comment_pr "$PR" "$REPO_IN" git.pull.comment.set
+PR="$COMMENT_PR"
 
 # find the target and its current state
 CURRENT=""

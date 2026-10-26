@@ -122,6 +122,15 @@ const create = (fields) => {
 const base = 'repos/' + repo + '/';
 // github owners and repo names are case-blind, so the stub's are too
 if (!endpoint.toLowerCase().startsWith(base.toLowerCase())) notFound();
+// the open pulls of one head branch: pulls?state=open&head=<owner>:<branch>
+if (endpoint.slice(base.length).startsWith('pulls?') && method === 'GET') {
+  const query = new URLSearchParams(endpoint.slice(base.length + 'pulls?'.length));
+  const owner = repo.split('/')[0];
+  const rows = Object.entries(state.prs)
+    .filter(([, pr]) => query.get('state') === 'open' && owner + ':' + pr.head === query.get('head'))
+    .map(([number, pr]) => ({ number: Number(number), head: { ref: pr.head } }));
+  pages(rows);
+}
 const rest = endpoint.slice(base.length).split('/');
 const find = (kind, id) => state.comments.find((c) => c.kind === kind && c.id === Number(id));
 const one = (kind, id) => {
@@ -209,7 +218,13 @@ exit 2
     resolved: number[];
     prs: Record<
       string,
-      { title: string; body: string; author: string; created_at: string }
+      {
+        title: string;
+        body: string;
+        author: string;
+        created_at: string;
+        head: string;
+      }
     >;
     comments: Comment[];
   };
@@ -252,6 +267,25 @@ exit 2
   const genScene = (input: typeof SCENE_BARE) => {
     const tempDir = genTempDir({ slug: 'git-pull-comment-test', git: true });
     const home = genTempDir({ slug: 'git-pull-comment-home', git: false });
+
+    // the home orgs: one clone per org under ~/git/<org>/, each with a github
+    // origin of that org; ~/git/more/ holds a clone of no org, so it is no home org
+    const HOME_CLONES = [
+      { org: 'ehmpathy', url: 'git@github.com:ehmpathy/surf-demo.git' },
+      { org: 'whodisio', url: 'https://github.com/whodisio/wave-log.git' },
+      { org: 'ahbode', url: 'git@github.com:ahbode/beach-hut.git' },
+      { org: 'uladkasach', url: 'git@github.com:uladkasach/tide-chart.git' },
+      { org: 'more', url: 'git@github.com:seaturtlecorp/reef.git' },
+    ];
+    HOME_CLONES.forEach((clone) => {
+      const gitDir = path.join(home, 'git', clone.org, 'clone', '.git');
+      fs.mkdirSync(gitDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(gitDir, 'config'),
+        `[remote "origin"]\n\turl = ${clone.url}\n`,
+      );
+    });
+
     if (input.origin)
       spawnSync('git', ['remote', 'add', 'origin', input.origin], {
         cwd: tempDir,
@@ -291,12 +325,14 @@ exit 2
           body: 'surf lesson booker',
           author: LOGIN_HUMAN,
           created_at: '2026-10-24T00:00:01Z',
+          head: 'surf/book-lesson',
         },
         '8': {
           title: 'feat(reports): sync the wave report',
           body: 'wave report sync',
           author: LOGIN_HUMAN,
           created_at: '2026-10-24T00:00:02Z',
+          head: 'surf/wave-report',
         },
       },
       comments: input.comments,
@@ -1548,20 +1584,27 @@ exit 2
           set: scene.run('set', ['--help']),
           del: scene.run('del', ['-h']),
         }));
-        then('each exits 0 with usage, inputs, an example; calls no gh', () => {
-          [result.get, result.set, result.del].forEach((one) => {
-            expect(one.exitCode).toBe(0);
-            expect(one.stdout).toContain('usage: rhx git.pull.comment.');
-            expect(one.stdout).toContain('--auth');
-            expect(one.stdout).toContain('example: rhx git.pull.comment.');
-          });
-          expect(scene.getCalls()).toEqual([]);
-          expect({
-            get: result.get.stdout,
-            set: result.set.stdout,
-            del: result.del.stdout,
-          }).toMatchSnapshot();
-        });
+        then(
+          'each exits 0 with a usage line and its options; calls no gh',
+          () => {
+            [result.get, result.set, result.del].forEach((one) => {
+              expect(one.exitCode).toBe(0);
+              expect(one.stdout).toMatch(
+                /^usage: git\.pull\.comment\.(get|set|del) /,
+              );
+              expect(one.stdout).toContain('\noptions:\n');
+              expect(one.stdout).toContain('--auth as-ehmpath|as-human');
+              expect(one.stdout).toContain('--pr <n>');
+              expect(one.stdout).toContain('--help, -h');
+            });
+            expect(scene.getCalls()).toEqual([]);
+            expect({
+              get: result.get.stdout,
+              set: result.set.stdout,
+              del: result.del.stdout,
+            }).toMatchSnapshot();
+          },
+        );
       });
       when('[t2] each check meets a bad input', () => {
         const bare = genScene({ ...SCENE_BARE, origin: null });
@@ -1883,17 +1926,24 @@ exit 2
       const result = useThen('it runs', async () =>
         scene.run('get', ['--pr', '7', '--in', 'seaturtlecorp/reef']),
       );
-      then('it exits 2, names the allowlist, calls no gh', () => {
-        expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain(
-          "owner 'seaturtlecorp' is outside the home orgs",
-        );
-        expect(result.stdout).toContain(
-          'allowed: ehmpathy · whodisio · ahbode · uladkasach',
-        );
-        expect(scene.getCalls()).toEqual([]);
-        expect(result.stdout).toMatchSnapshot();
-      });
+      then(
+        'it exits 2, names each home org on its own line, calls no gh',
+        () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            "owner 'seaturtlecorp' is outside the home orgs",
+          );
+          ['ahbode', 'ehmpathy', 'uladkasach', 'whodisio'].forEach((org) =>
+            expect(result.stdout).toMatch(
+              new RegExp(`[├└]─ home org: ${org}\\n`),
+            ),
+          );
+          expect(result.stdout).not.toContain('·');
+          expect(result.stdout).not.toContain('home org: more');
+          expect(scene.getCalls()).toEqual([]);
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
     });
     when('[t2] the cwd origin sits outside the home orgs', () => {
       const scene = genScene({
@@ -2296,7 +2346,7 @@ exit 2
           expect(result.commentGet.stdout).toBe(result.commentGetDotted.stdout);
           expect(result.verbHelp.exitCode).toBe(0);
           expect(result.verbHelp.stdout).toContain(
-            'usage: rhx git.pull.comment.del',
+            'usage: git.pull.comment.del',
           );
         });
         then('an absent or unknown verb exits 2 and names the verbs', () => {
@@ -3088,6 +3138,7 @@ exit 2
               body: '',
               author: LOGIN_HUMAN,
               created_at: '2026-10-24T00:00:03Z',
+              head: 'surf/empty',
             },
           },
         },
@@ -3275,4 +3326,178 @@ exit 2
       });
     },
   );
+
+  given('[case20] --pr defaults to the open pull of the cwd branch', () => {
+    /**
+     * .what = a scene whose cwd sits on a named branch
+     */
+    const genSceneOnBranch = (input: { branch: string }) => {
+      const scene = genScene({
+        ...SCENE_BARE,
+        comments: [genComment({ id: 801 })],
+      });
+      spawnSync('git', ['checkout', '-q', '-b', input.branch], {
+        cwd: scene.tempDir,
+      });
+      return scene;
+    };
+    when('[t0] the branch has one open pull, and --pr is absent', () => {
+      const scene = genSceneOnBranch({ branch: 'surf/book-lesson' });
+      const result = useThen('it runs', async () =>
+        scene.run('get', ['--output', 'json']),
+      );
+      then('it reads that pull', () => {
+        expect(result.exitCode).toBe(0);
+        const rows = JSON.parse(result.stdout);
+        expect(rows.map((r: { id: number | null }) => r.id)).toEqual([
+          null,
+          801,
+        ]);
+        expect(
+          scene
+            .getCalls()
+            .some((call) =>
+              call.argv.includes(
+                `repos/${REPO}/pulls?state=open&head=ehmpathy:surf/book-lesson`,
+              ),
+            ),
+        ).toBe(true);
+      });
+    });
+    when('[t1] the branch has no open pull, and --pr is absent', () => {
+      const scene = genSceneOnBranch({ branch: 'surf/no-pull' });
+      const result = useThen('it runs', async () =>
+        scene.run('set', [
+          '--key',
+          'status',
+          '--from',
+          scene.writeFile('status.md', 'waves are up'),
+          '--mode',
+          'apply',
+        ]),
+      );
+      then('it exits 2, names the branch, writes naught', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain(
+          `branch 'surf/no-pull' has no open pull on ${REPO}`,
+        );
+        expect(scene.getWrites()).toEqual([]);
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+    when('[t2] --in names a repo other than the cwd origin', () => {
+      const scene = genSceneOnBranch({ branch: 'surf/book-lesson' });
+      const result = useThen('it runs', async () =>
+        scene.run('del', ['--key', 'status', '--in', 'ehmpathy/other-reef']),
+      );
+      then('it exits 2: the cwd branch is no pull of that repo', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain(
+          '--pr is required with --in ehmpathy/other-reef',
+        );
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case21] get --unanswered lists what waits on an answer', () => {
+    const scene = genScene({
+      ...SCENE_BARE,
+      comments: [
+        // thread 901: a human asks, the robot answers → answered
+        genComment({
+          id: 901,
+          kind: 'review',
+          author: LOGIN_HUMAN,
+          body: 'why so?',
+          created_at: '2026-10-24T00:00:01Z',
+        }),
+        genComment({
+          id: 902,
+          kind: 'review',
+          in_reply_to_id: 901,
+          created_at: '2026-10-24T00:00:02Z',
+        }),
+        // thread 903: a human asks, no answer → unanswered
+        genComment({
+          id: 903,
+          kind: 'review',
+          author: LOGIN_HUMAN,
+          body: 'forbid the dot',
+          created_at: '2026-10-24T00:00:03Z',
+        }),
+        // thread 904: the robot answers, then the human asks again → unanswered
+        genComment({
+          id: 904,
+          kind: 'review',
+          author: LOGIN_HUMAN,
+          body: 'not hardcoded?',
+          created_at: '2026-10-24T00:00:04Z',
+        }),
+        genComment({
+          id: 905,
+          kind: 'review',
+          in_reply_to_id: 904,
+          created_at: '2026-10-24T00:00:05Z',
+        }),
+        genComment({
+          id: 906,
+          kind: 'review',
+          in_reply_to_id: 904,
+          author: LOGIN_HUMAN,
+          body: 'and the cache?',
+          created_at: '2026-10-24T00:00:06Z',
+        }),
+        // issue rows: a human comment before the robot's latest, then one after
+        genComment({
+          id: 907,
+          kind: 'issue',
+          author: LOGIN_HUMAN,
+          body: 'looks good',
+          created_at: '2026-10-24T00:00:07Z',
+        }),
+        genComment({
+          id: 908,
+          kind: 'issue',
+          created_at: '2026-10-24T00:00:08Z',
+        }),
+        genComment({
+          id: 909,
+          kind: 'issue',
+          author: LOGIN_HUMAN,
+          body: 'one more note',
+          created_at: '2026-10-24T00:00:09Z',
+        }),
+      ],
+    });
+    when('[t0] get --unanswered runs', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('get', ['--pr', '7', '--unanswered', '--output', 'json']),
+      );
+      then('it lists the open threads and the newer human issue row', () => {
+        expect(result.exitCode).toBe(0);
+        const rows = JSON.parse(result.stdout);
+        expect(rows.map((r: { id: number }) => r.id)).toEqual([903, 906, 909]);
+      });
+    });
+    when('[t1] get --unanswered runs as a tree', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('get', ['--pr', '7', '--unanswered']),
+      );
+      then('the tree names the target as unanswered', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('unanswered by ehm-seaturtle');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+    when('[t2] get --unanswered with --key', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('get', ['--pr', '7', '--unanswered', '--key', 'status']),
+      );
+      then('it exits 2', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('--unanswered reads every comment');
+      });
+    });
+  });
 });

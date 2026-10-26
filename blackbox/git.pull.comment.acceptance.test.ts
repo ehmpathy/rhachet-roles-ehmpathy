@@ -41,13 +41,14 @@ const runViaRhachet = (input: {
 };
 
 /**
- * .what = what the caller sees, from the skill's 🐢 header on, color codes stripped
+ * .what = what the caller sees, from the skill's first line on (a 🐢 or ✋ header,
+ *         or a help's usage line), color codes stripped
  * .why  = npx and rhachet may print before the skill; color codes vary by terminal
  */
 const asSkillRender = (input: { stdout: string }): string => {
   // biome-ignore lint/suspicious/noControlCharactersInRegex: strip ansi color codes
   const plain = input.stdout.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '');
-  const at = plain.search(/🐢|✋/u);
+  const at = plain.search(/🐢|✋|^usage: /mu);
   return plain.slice(Math.max(0, at));
 };
 
@@ -79,9 +80,9 @@ describe('git.pull.comment, via rhachet', () => {
         expect(result.get.code).toBe(0);
         expect(result.set.code).toBe(0);
         expect(result.del.code).toBe(0);
-        expect(result.get.stdout).toContain('usage: rhx git.pull.comment.get');
-        expect(result.set.stdout).toContain('usage: rhx git.pull.comment.set');
-        expect(result.del.stdout).toContain('usage: rhx git.pull.comment.del');
+        expect(result.get.stdout).toContain('usage: git.pull.comment.get');
+        expect(result.set.stdout).toContain('usage: git.pull.comment.set');
+        expect(result.del.stdout).toContain('usage: git.pull.comment.del');
       });
       then('each help is snapped', () => {
         expect({
@@ -158,11 +159,11 @@ describe('git.pull.comment, via rhachet', () => {
       then('a known verb runs that verb', () => {
         expect(result.getHelp.code).toBe(0);
         expect(result.getHelp.stdout).toContain(
-          'usage: rhx git.pull.comment.get',
+          'usage: git.pull.comment.get',
         );
         expect(result.delHelp.code).toBe(0);
         expect(result.delHelp.stdout).toContain(
-          'usage: rhx git.pull.comment.del',
+          'usage: git.pull.comment.del',
         );
       });
       then('no verb refuses with exit 2 and names the verbs', () => {

@@ -35,8 +35,9 @@ source "$COMMENT_SKILL_DIR/../git.commit/output.sh"
 exec 3>&1
 
 # the fleet writes to github only inside its home orgs; a machine-user token
-# that can reach any repo makes this list the one guard
-ORGS_HOME=(ehmpathy whodisio ahbode uladkasach)
+# that can reach any repo makes this list the one guard. the list is read from
+# the machine, never hardcoded: see get_all_home_orgs
+ORGS_HOME=()
 
 # a key is a short lowercase slug, so its marker parses one way only
 COMMENT_KEY_PATTERN='^[a-z0-9][a-z0-9._-]{0,63}$'
@@ -88,11 +89,16 @@ dispatch_git_pull_verb() {
   local verb_list="${verbs//,/ | }"
   [[ -n "$verb" ]] || fail_comment_constraint "a verb is required; the verbs are $verb_list" "rhx $skill ${verbs%%,*} --help"
   if [[ "$verb" == "help" || "$verb" == "--help" || "$verb" == "-h" ]]; then
-    print_turtle_header "heres the wave..."
-    print_tree_start "$skill — $verb_list"
-    echo "   ├─ usage: rhx $skill <$verb_list> [flags]"
-    echo "   ├─ each verb is also its own skill: rhx $skill.<verb> [flags]"
-    echo "   └─ flags of one verb: rhx $skill <verb> --help"
+    echo "usage: $skill <$verb_list> [flags]"
+    echo ""
+    echo "verbs:"
+    local one
+    for one in ${verbs//,/ }; do
+      printf '  %-28s %s\n' "$one" "rhx $skill $one --help, for its flags"
+    done
+    echo ""
+    echo "options:"
+    printf '  %-28s %s\n' "--help, -h" "show this help"
     exit 0
   fi
   [[ ",$verbs," == *",$verb,"* ]] || fail_comment_constraint "unknown verb '$verb'; the verbs are $verb_list" "rhx $skill --help"
@@ -263,11 +269,13 @@ check_flag_has_value() {
   fi
 }
 
-# .what = check --pr is a pull request number
-# .why  = a bad --pr refuses before any gh call, never as a 404 later
+# .what = check --pr is a pull request number, when given
+# .why  = a bad --pr refuses before any gh call, never as a 404 later; an absent
+#         --pr is fine, since set_comment_pr finds the cwd branch's open pull
 check_pr_number() {
   local pr="$1" skill="$2"
-  [[ "$pr" =~ ^[0-9]+$ ]] || fail_comment_constraint "--pr <number> is required, got '${pr:-<none>}'" "rhx $skill --pr 69 ..."
+  [[ -z "$pr" ]] && return 0
+  [[ "$pr" =~ ^[0-9]+$ ]] || fail_comment_constraint "--pr must be a pull request number, got '$pr'" "rhx $skill --pr 69 ...   # or omit --pr, for the open pull of the cwd branch"
 }
 
 # .what = check --id pairs with --kind issue|review; the kind is never guessed
@@ -328,17 +336,46 @@ as_repo_slug_from_remote_url() {
   echo "${repo%.git}"
 }
 
+# .what = the home orgs of this machine: each ~/git/<org>/ dir that holds a
+#         clone whose origin is a github repo of that same org, lowercased
+# .why  = the orgs a human cloned into ~/git/<org>/ are the orgs they work in;
+#         the origin check drops a holder dir (e.g. ~/git/more/) that is no org
+# .note = a dir whose name opens with _ or . is a holder (e.g. _worktrees), never an org
+get_all_home_orgs() {
+  local root="$HOME/git" dir org config
+  [[ -d "$root" ]] || return 0
+  for dir in "$root"/*/; do
+    org="$(basename "$dir")"
+    [[ "$org" == _* || "$org" == .* ]] && continue
+    for config in "$dir"*/.git/config; do
+      [[ -f "$config" ]] || continue
+      if grep -qiE "url *= *.*github\.com[:/]$org/" "$config"; then
+        echo "${org,,}"
+        break
+      fi
+    done
+  done
+}
+
+# .what = set ORGS_HOME from the machine, once
+# .why  = the fence and the help both read it; one read serves both
+set_home_orgs() {
+  [[ "${#ORGS_HOME[@]}" == "0" ]] || return 0
+  mapfile -t ORGS_HOME < <(get_all_home_orgs)
+}
+
 # .what = refuse a repo whose owner sits outside the home orgs
 # .why  = a machine-user token can reach any repo; this fence is the one guard.
 #         github owners are case-blind, so the compare is too
 check_comment_repo_in_home_orgs() {
-  local repo="$1" owner allowed list
+  local repo="$1" owner allowed
   owner="${repo%%/*}"
+  set_home_orgs
+  [[ "${#ORGS_HOME[@]}" != "0" ]] || fail_comment_constraint "no home orgs: no clone under ~/git/<org>/ has a github origin of that org" "home: $HOME" "clone a repo of the target org into ~/git/<org>/<repo>, then rerun"
   for allowed in "${ORGS_HOME[@]}"; do
     [[ "${owner,,}" == "$allowed" ]] && return 0
   done
-  list="$(printf '%s · ' "${ORGS_HOME[@]}")"
-  fail_comment_constraint "owner '$owner' is outside the home orgs" "allowed: ${list% · }" "target a repo in one of those orgs, via --in <owner/name>"
+  fail_comment_constraint "owner '$owner' is outside the home orgs" "${ORGS_HOME[@]/#/home org: }" "target a repo in one of those orgs, via --in <owner/name>"
 }
 
 # .what = set COMMENT_REPO: --in if given, else the cwd's origin; then fence it
@@ -358,8 +395,8 @@ set_comment_repo() {
 # .note = auth arg: as-human adds `--auth as-human`; `none` omits it, for a
 #         fix that names its own --auth. as-ehmpath is the default, so unsaid
 as_comment_cmd_target() {
-  local pr="$1" auth="${2:-$COMMENT_AUTH}" out
-  out="--pr $pr"
+  local pr="$1" auth="${2:-$COMMENT_AUTH}" out=""
+  [[ -n "$pr" ]] && out="--pr $pr"
   [[ -n "$COMMENT_REPO" ]] && out="$out --in $COMMENT_REPO"
   [[ "$auth" == "as-human" ]] && out="$out --auth as-human"
   echo "$out"
@@ -592,6 +629,32 @@ del_one_gh_resource() {
 # .why  = a key matches only the current login's comments; every verb needs it
 set_comment_login() {
   COMMENT_LOGIN="$(get_one_gh_viewer_login)" || exit $?
+}
+
+# .what = set COMMENT_PR: --pr if given, else the one open pull of the cwd branch
+# .why  = the common case is "comment on the pull of the branch i stand on", so a
+#         bare call targets it; a guess is never made: a detached HEAD, a repo
+#         other than the cwd's origin, or zero or two open pulls each refuse
+# .note = a global, never a $(...) capture, so a refusal here stops the verb
+COMMENT_PR=""
+set_comment_pr() {
+  local pr_in="$1" repo_in="$2" skill="$3" branch origin owner pulls numbers count
+  COMMENT_PR="$pr_in"
+  [[ -n "$COMMENT_PR" ]] && return 0
+
+  # the cwd branch must sit on the target repo, else its pull is not on it
+  origin="$(as_repo_slug_from_remote_url "$(get_git_origin_url)")"
+  [[ -z "$repo_in" || "${repo_in,,}" == "${origin,,}" ]] || fail_comment_constraint "--pr is required with --in $repo_in: the cwd branch sits on '${origin:-no github origin}', not on that repo" "rhx $skill --pr <n> --in $repo_in ..."
+  branch="$(git symbolic-ref --quiet --short HEAD)" || fail_comment_constraint "--pr is absent, and the cwd has no branch to find a pull for (detached HEAD)" "rhx $skill --pr <n> ..."
+
+  # the open pulls whose head is this branch, in the repo's own owner
+  owner="${COMMENT_REPO%%/*}"
+  pulls="$(get_all_gh_resources "repos/$COMMENT_REPO/pulls?state=open&head=$owner:$branch")" || exit $?
+  numbers="$(printf '%s' "$pulls" | jq -r '.[].number')"
+  count="$(get_count_of_comments "$pulls")"
+  [[ "$count" == "0" ]] && fail_comment_constraint "--pr is absent, and branch '$branch' has no open pull on $COMMENT_REPO" "rhx $skill --pr <n> ...   # name the pull"
+  [[ "$count" == "1" ]] || fail_comment_constraint "--pr is absent, and branch '$branch' has $count open pulls on $COMMENT_REPO" "open pulls: ${numbers//$'\n'/, }" "rhx $skill --pr <n> ...   # name one"
+  COMMENT_PR="$numbers"
 }
 
 # .what = refuse when pr N is not visible to the credential
