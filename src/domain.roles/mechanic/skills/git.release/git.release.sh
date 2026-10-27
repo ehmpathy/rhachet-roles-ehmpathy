@@ -26,14 +26,10 @@
 #   - --from main, no --into: --into prod
 #
 # guarantee:
-#   - plan mode is default (safe preview)
-#   - --watch watches without automerge
-#   - apply mode enables automerge and watches
 #   - apply mode requires a git.release.uses stamp (global ∧ org ∧ local),
 #     spends one use per apply; a commit grant never ships
 #   - watches CI until complete or timeout (15 min)
 #   - surfaces errors with links and retry hints
-#   - --into prod is the default, safe path; --from main is special-circumstance only
 #
 # note:
 #   - MUST run in FOREGROUND (never background)
