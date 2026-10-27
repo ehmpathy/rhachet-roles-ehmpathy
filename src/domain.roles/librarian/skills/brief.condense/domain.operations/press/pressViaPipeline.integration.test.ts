@@ -6,6 +6,10 @@ import { pressViaPipeline } from './pressViaPipeline';
 
 const BRAIN_SLUG = 'openrouter/deepseek/flash';
 
+// one brain step measured up to ~64s on a loaded host, and [t1] chains two, each of which
+// retries once on a placeholder sitrep; the suite's 90s default fits one call, never a chain
+jest.setTimeout(300_000);
+
 // test fixtures
 const FIXTURES_DIR = path.join(__dirname, '../../.test/fixtures/briefs');
 const STABLE_BRIEF_PATH = path.join(FIXTURES_DIR, 'stable-rule.md');

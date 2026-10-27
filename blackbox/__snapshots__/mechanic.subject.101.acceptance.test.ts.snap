@@ -1,0 +1,149 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked from the package when: [t0] a seat boots --subject 101 then: the ref paths a seat reads match the snapshot, by section 1`] = `
+{
+  "from101": [
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt2.md",
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[demo].shell.md",
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.[seed].md",
+    "briefs/practices/code.prod/pitofsuccess.procedures/rule.require.idempotent-procedures.md",
+    "briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.assure-via-type-checks.md",
+    "briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md",
+  ],
+  "fromAlways": [
+    "briefs/practices/lang.terms/define.exec-vs-apply.md",
+    "briefs/practices/lang.terms/define.prodcode-testcode.terms=prodcode_vs_testcode.md",
+    "briefs/practices/lang.terms/rule.forbid.term-dryrun.md",
+    "briefs/practices/lang.terms/rule.forbid.term-script.md",
+    "briefs/practices/lang.terms/rule.forbid.term=dryrun.md",
+    "briefs/practices/lang.terms/rule.forbid.term=existing.md",
+    "briefs/practices/lang.terms/rule.forbid.term=helpers.md",
+    "briefs/practices/lang.terms/rule.forbid.term=normalize.md",
+    "briefs/practices/lang.terms/rule.forbid.term=resolve.md",
+    "briefs/practices/lang.terms/rule.prefer.kind-over-type.md",
+    "briefs/practices/lang.terms/rule.prefer.term-supplier.md",
+    "briefs/practices/lang.terms/rule.require.order.noun_adj.md.pt2.md",
+    "briefs/practices/lang.tones/rule.forbid.shouted-readme.md",
+  ],
+}
+`;
+
+exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked from the package when: [t0] a seat boots --subject 101 then: the say paths a seat reads match the snapshot, by section 1`] = `
+{
+  "from101": [
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.forbid.failhide.md.pt1.md.min",
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.require.exit-code-semantics.md.min",
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.require.failfast.md.min",
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.require.failloud.md",
+    "briefs/practices/code.prod/pitofsuccess.errors/rule.require.qualified-error-headers.md.min",
+    "briefs/practices/code.prod/pitofsuccess.procedures/rule.forbid.nonidempotent-mutations.md.min",
+    "briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md.min",
+    "briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md.min",
+  ],
+  "fromAlways": [
+    "briefs/practices/lang.prose/define.simplified-technical-english.md.min",
+    "briefs/practices/lang.prose/define.wick-dense.md.min",
+    "briefs/practices/lang.prose/rule.avoid.articles-copulas.md.min",
+    "briefs/practices/lang.prose/rule.avoid.passive-voice.md.min",
+    "briefs/practices/lang.prose/rule.forbid.chronological-accretion.md.min",
+    "briefs/practices/lang.prose/rule.forbid.rambles.md.min",
+    "briefs/practices/lang.prose/rule.prefer.active-simple-tense.md.min",
+    "briefs/practices/lang.prose/rule.prefer.one-instruction-per-sentence.md.min",
+    "briefs/practices/lang.prose/rule.prefer.short-sentences.md.min",
+    "briefs/practices/lang.prose/rule.prefer.wickup-touched-prose.md.min",
+    "briefs/practices/lang.prose/rule.require.brevity.md.min",
+    "briefs/practices/lang.terms/define.directives.terms=forbid_avoid_prefer_require.md.min",
+    "briefs/practices/lang.terms/rule.forbid.gerunds.md.min",
+    "briefs/practices/lang.terms/rule.require.order.noun_adj.md.min",
+    "briefs/practices/lang.terms/rule.require.treestruct.md.min",
+    "briefs/practices/lang.terms/rule.require.ubiqlang.md.min",
+    "briefs/practices/lang.tones/rule.forbid.buzzwords.md.min",
+    "briefs/practices/lang.tones/rule.forbid.shouts.md.min",
+    "briefs/practices/lang.tones/rule.prefer.lowercase.md.min",
+    "briefs/practices/lang.tones/rule.require.term-human.md.min",
+  ],
+}
+`;
+
+exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked from the package when: [t0] a seat boots --subject 101 then: the skill paths a seat reads match the snapshot, say apart from ref 1`] = `
+{
+  "ref": [
+    "skills/cicd.deflake.sh",
+    "skills/claude.tools/cpsafe.sh",
+    "skills/claude.tools/mvsafe.sh",
+    "skills/claude.tools/rmsafe.sh",
+    "skills/claude.tools/symlink.sh",
+    "skills/claude.tools/teesafe.sh",
+    "skills/declapract.upgrade.sh",
+    "skills/git.commit/git.commit.bind.sh",
+    "skills/git.commit/git.commit.uses.sh",
+    "skills/git.pull.comment/git.pull.comment.del.sh",
+    "skills/git.pull.comment/git.pull.comment.sh",
+    "skills/permissions.nudges.sh",
+    "skills/set.package/set.package.install.sh",
+    "skills/set.package/set.package.upgrade.sh",
+    "skills/show.gh.action.logs.sh",
+  ],
+  "say": [
+    "skills/claude.tools/sedreplace.sh",
+    "skills/get.package.docs.sh",
+    "skills/git.commit/git.commit.set.sh",
+    "skills/git.pull.comment/git.pull.comment.get.sh",
+    "skills/git.pull.comment/git.pull.comment.set.sh",
+    "skills/git.repo.test/git.repo.test.sh",
+    "skills/git.stage/git.stage.add.sh",
+    "skills/permissions.get.sh",
+  ],
+}
+`;
+
+exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked from the package when: [t1] the maintainer costs --subject 101 then: the readout a maintainer reads matches the snapshot 1`] = `
+"🧢 roles cost --repo ehmpathy --role mechanic --subject 101
+   ├─ tokens  = <n> (full emitted payload, o200k_base)
+   ├─ budget  = 30,000 tokens (<pct>% used)
+   ├─ batches = 37 say · 2 ref
+   ├─ chrome  = <n> tokens (<pct>%) — stats blocks, xml, join seams
+   │
+   └─ where the tokens go
+      └─ <n>  <pct>%  … <n> more
+
+   .note = the column plus chrome is the total. chrome is the renderer's own floor —
+           no edit to a say or ref entry reaches it."
+`;
+
+exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked from the package when: [t2] a cure in that seat writes to /tmp then: a shell write to /tmp is blocked too, with exit 2 1`] = `
+"✋ ConstraintError: Bash write to /tmp
+
+use .temp/ instead:
+
+  echo "data" > .temp/scratch.txt
+
+/tmp is not temporary - it persists and never auto-cleans.
+.temp/ is scoped to this repo and gitignored."
+`;
+
+exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked from the package when: [t2] a cure in that seat writes to /tmp then: the block names the safe path, its \`>\` tip pinned as is 1`] = `
+"✋ ConstraintError: Write to /tmp/crew.state
+
+use .temp/ instead:
+
+  echo "data" > .temp/scratch.txt
+
+/tmp is not temporary - it persists and never auto-cleans.
+.temp/ is scoped to this repo and gitignored."
+`;
+
+exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked from the package when: [t3] the seat mistypes the subject then: the headline and hint rhachet gives match the snapshot 1`] = `
+{
+  "code": 2,
+  "error": "✋ ConstraintError: subject not found: 1o1",
+  "hint": "pass --subject with one of: 101, code.prod, code.test, arch, flow",
+  "sayFrom101": [],
+}
+`;
+
+exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked from the package when: [t4] the seat asks for mechanic::101 before rhachet has :: then: the error and tip match the snapshot, a tripwire for rhachet :: support 1`] = `
+"✋ ConstraintError: no role "mechanic::101" found in .agent/repo=ehmpathy/
+
+tip: did you \`npx rhachet roles link --role mechanic::101\` first?"
+`;
