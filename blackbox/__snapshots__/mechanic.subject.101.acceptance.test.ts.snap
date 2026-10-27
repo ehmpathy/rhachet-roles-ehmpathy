@@ -77,6 +77,8 @@ exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked fr
     "skills/declapract.upgrade.sh",
     "skills/git.commit/git.commit.bind.sh",
     "skills/git.commit/git.commit.uses.sh",
+    "skills/git.pull.comment/git.pull.comment.del.sh",
+    "skills/git.pull.comment/git.pull.comment.sh",
     "skills/permissions.nudges.sh",
     "skills/set.package/set.package.install.sh",
     "skills/set.package/set.package.upgrade.sh",
@@ -86,6 +88,8 @@ exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked fr
     "skills/claude.tools/sedreplace.sh",
     "skills/get.package.docs.sh",
     "skills/git.commit/git.commit.set.sh",
+    "skills/git.pull.comment/git.pull.comment.get.sh",
+    "skills/git.pull.comment/git.pull.comment.set.sh",
     "skills/git.repo.test/git.repo.test.sh",
     "skills/git.stage/git.stage.add.sh",
     "skills/permissions.get.sh",
@@ -97,7 +101,7 @@ exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked fr
 "🧢 roles cost --repo ehmpathy --role mechanic --subject 101
    ├─ tokens  = <n> (full emitted payload, o200k_base)
    ├─ budget  = 30,000 tokens (<pct>% used)
-   ├─ batches = 35 say · 2 ref
+   ├─ batches = 37 say · 2 ref
    ├─ chrome  = <n> tokens (<pct>%) — stats blocks, xml, join seams
    │
    └─ where the tokens go
