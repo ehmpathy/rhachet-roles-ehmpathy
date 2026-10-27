@@ -43,4 +43,4 @@
 | F39 | the repo-local init.claude.permissionrequest skill is proven by integration alone | clean | best-guessed — disputes 5.3 i002 acceptance-journey nitpick.7 | 80% |
 | F40 | the brain's lack-of-creds case is owned by the keyrack, not driven here | clean | best-guessed — disputes 5.3 i002 external-contracts nitpick.2; attempt measured | 70% |
 | F41 | the meter usage refusals keep their column-0 shape; the frame is a dream | dirty | overtaken — 5.3 i003 r6 b1 raised it; framed in this route | 75% |
-| F42 | a test criterion that moved with a deliberate prod fix stays moved; the defect it pinned is named | clean | best-guessed — disputes 5.3 i004 test-intent b2, b3, b5, b6 and nitpicks; F27 rules out a split | 80% |
+| F42 | a test criterion that moved with a deliberate prod fix stays moved; the defect it pinned is named | clean | best-guessed — disputes 5.3 i004 test-intent b2, b3, b5, b6 and nitpicks; F27 rules out a split | 80% || F43 | the mechanic boot is trimmed back under its cap after the #1180 rebase: three say skills to ref, four restated header lines cut | clean | best-guessed — the del demotion reverses one line of #1180; margin 163 tokens | 75% |
