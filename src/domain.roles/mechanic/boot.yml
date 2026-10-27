@@ -62,9 +62,6 @@ always:
       # claude tools — the bulk edit tool; the hooks name the other safe tools when they block
       - skills/claude.tools/sedreplace.sh
 
-      # package docs
-      - skills/get.package.docs.sh
-
       # git commit
       - skills/git.commit/git.commit.push.sh
       - skills/git.commit/git.commit.set.sh
@@ -74,7 +71,6 @@ always:
 
       # git release
       - skills/git.release/git.release.sh
-      - skills/git.release/git.release.uses.sh
 
       # git repo
       - skills/git.repo.get/git.repo.get.sh
@@ -86,10 +82,9 @@ always:
       # github actions
       - skills/show.gh.test.errors.sh
 
-      # github pr comments: read, upsert by key, delete
+      # github pr comments: read, upsert by key (delete is a ref)
       - skills/git.pull.comment/git.pull.comment.get.sh
       - skills/git.pull.comment/git.pull.comment.set.sh
-      - skills/git.pull.comment/git.pull.comment.del.sh
 
       # permissions: the pre-approved commands, on demand
       - skills/permissions.get.sh
@@ -102,14 +97,18 @@ always:
       - skills/claude.tools/symlink.sh
       - skills/claude.tools/teesafe.sh
 
+      # package docs — the booted rule.require.read-package-docs-before-use names both commands
+      - skills/get.package.docs.sh
+
       # package management — rare, deliberate acts
       - skills/declapract.upgrade.sh
       - skills/set.package/set.package.install.sh
       - skills/set.package/set.package.upgrade.sh
 
-      # git commit — human-run grants (bind, quota)
+      # git commit + release — human-run grants (bind, commit quota, release stamp)
       - skills/git.commit/git.commit.bind.sh
       - skills/git.commit/git.commit.uses.sh
+      - skills/git.release/git.release.uses.sh
 
       # github actions — show.gh.test.errors covers the common case
       - skills/show.gh.action.logs.sh
@@ -117,8 +116,9 @@ always:
       # cicd — a route, run on purpose
       - skills/cicd.deflake.sh
 
-      # git pull comment — the spaced-verb dispatcher (git.pull.comment get|set|del)
+      # git pull comment — the spaced-verb dispatcher (git.pull.comment get|set|del), and the rare delete
       - skills/git.pull.comment/git.pull.comment.sh
+      - skills/git.pull.comment/git.pull.comment.del.sh
 
       # permissions: what the nudge has recorded
       - skills/permissions.nudges.sh
