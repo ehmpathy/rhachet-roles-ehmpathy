@@ -9,6 +9,14 @@
   orphaned jest tree may finish its suite: one suite over the bound for that window. raised by
   the experience-coverage reviewer (i003, nitpick.3); named in `case=3` `.note` and the
   inventory's `sigkilled` cell
+- **also raised (i006, enroll-impl-arch-defects):** a watchdog that stops the orphan tree when the
+  holder pid dies (a third post-claim background launch, held off: the harness timeout sends
+  SIGTERM, which the trap covers); a kill -9 by a foreign owner leaves its holder record in a
+  sticky `/tmp` pool, read as dead and skipped, never pruned (slow growth, no misnamed holder)
+- **also raised (i007, enroll-impl-behavior-intent):** `rhx` launches the skill via a
+  `spawnSync`, which forwards no signal; a harness that kills only the `rhx` pid leaves the skill
+  alive and its slot held until it ends. same residual class: the slot follows a live process and
+  frees at its exit; a parent-gone watchdog is the same deferred background launch
 - **rework:** clean — drop `9>&-` at the call sites to flip to the inherit side
 - **confidence:** 75%. the trade is window-of-overload (rare death) vs permanent-leak (rare
   daemon); the director may weigh it differently

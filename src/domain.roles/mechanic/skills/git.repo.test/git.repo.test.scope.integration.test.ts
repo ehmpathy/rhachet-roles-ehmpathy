@@ -1,5 +1,7 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import { MalfunctionError } from 'helpful-errors';
+import * as os from 'os';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
@@ -22,80 +24,148 @@ describe('git.repo.test.sh scope', () => {
   const repoRoot = path.join(__dirname, '../../../../..');
 
   /**
-   * .what = sanitize stdout for snapshots (removes dynamic values)
+   * .what = sanitize output for snapshots (removes dynamic values)
+   * .why = pins snapshots to behavior, apart from host time, paths, and speed
+   * .note = no keyrack normalizer is needed: the one keyrack case states its
+   *         own refusal via a fake rhx, so the test controls that input
    */
-  const sanitizeOutput = (output: string): string =>
-    maskSpinnerTicks(output)
+  const sanitizeOutput = (input: { output: string }): string =>
+    maskSpinnerTicks(input.output)
       .replace(/\(\d+m?s\)/g, '(Xs)') // time values
       .replace(/\d+m?s/g, 'Xs') // time without parens
-      // collapse the keyrack refusal frame to one shape. one command can
-      // render `✋ blocked: X` or `✋ ConstraintError: X` plus owner/ran rows,
-      // per ambient keyrack state; the message is the signal
-      // (rule.require.hermetic-tests)
-      // .note = the message is captured, not matched: the keyrack message
-      //         normalizations sit lower in this chain
+      // keep the error class; drop only the ambient owner/ran frame
       .replace(
         /✋ ConstraintError: ([^\n]*)\n\s+├─ owner: [^\n]*\n\s+└─ ran: [^\n]*/g,
-        '✋ blocked: $1',
+        '✋ ConstraintError: $1',
       )
-      // collapse a run of spinner ticks to one. the spinner emits a line per
-      // poll, so the count tracks host speed; one tick still pins that it
-      // rendered (rule.require.hermetic-tests)
+      // collapse a run of spinner ticks to one; the count tracks host speed, not behavior
       .replace(/(^[^\n]*💤 inflight \(Xs\)\n)+/gm, '$1')
       .replace(/suites: \d+ files/g, 'suites: N files') // suites count (varies by jest version/env)
-      .replace(/\/tmp\/[^\s\n]+/g, '/tmp/__sanitized__') // temp paths
+      .split(os.tmpdir())
+      .join('/tmp') // temp base, which differs per host
+      // temp paths; the grove's fixed fallback pool dir is a documented path, kept as is
+      .replace(
+        /\/tmp\/(?!rhachet\/git\.repo\.test\b)[^\s\n]+/g,
+        '/tmp/__sanitized__',
+      )
       .replace(/\/home\/[^\s]+\/node_modules\/.pnpm\/[^\s]+/g, '__pkg__') // absolute pnpm paths
       .replace(/ {4}at [^\n]+\n/g, '    at __stack__\n') // stack traces (4 space indent)
       .replace(/Node\.js v[\d.]+/g, 'Node.js vX.X.X') // node version
       .replace(/\[keyrack-daemon\][^\n]*\n?/g, '') // keyrack daemon output
       .trim();
 
-  // 🔴 .note = this sanitizer once carried a dozen more rules, all of them
-  //        shims over ONE keyrack error body: the class name, the metadata
-  //        object, the `throw` indent, the caret column, the stack tail, the
-  //        `[args]` line. each arrived on an sdk bump, and each held only
-  //        until the next.
-  //
-  //        ⇒ the chase ended when `[case8]` stopped to consult the host's
-  //        keyrack at all and stated its own refusal through a PATH-shadowed
-  //        stub (see `keyrack: 'absent'` below). the body is ours now, so it
-  //        cannot drift, and the shims went with it.
-  //
-  //   ⇒ the lesson, for whoever reaches for a thirteenth: a pile of
-  //     normalizers over a dependency's output that grows on every bump is
-  //     the tell that a test CONSULTS an input it ought to CONTROL
-  //     (`rule.require.hermetic-tests`). reach for the input, never another
-  //     regex.
+  /**
+   * .what = run one git command in a temp repo; fail loud on any nonzero exit
+   * .why = a silent setup failure would surface later as an unrelated mismatch
+   */
+  const runGitOrFail = (input: { args: string[]; cwd: string }): void => {
+    const result = spawnSync('git', input.args, {
+      cwd: input.cwd,
+      encoding: 'utf-8',
+    });
+    if (result.status === 0) return;
+    throw new MalfunctionError('test setup failed: git command', {
+      args: input.args,
+      cwd: input.cwd,
+      status: result.status,
+      signal: result.signal,
+      stderr: result.stderr,
+      error: result.error?.message,
+    });
+  };
+
+  /**
+   * .what = the exit code of a finished skill run; fail loud if it never exited
+   * .why = a spawn failure or a timeout must never read as exit 1 (malfunction)
+   */
+  const asExitCode = (input: {
+    result: ReturnType<typeof spawnSync>;
+  }): number => {
+    if (input.result.status !== null) return input.result.status;
+    throw new MalfunctionError('skill run did not exit', {
+      signal: input.result.signal,
+      error: input.result.error?.message,
+      hint: 'a signal is the spawn timeout or a hang; an error is a spawn failure',
+    });
+  };
+
+  /**
+   * .what = the skill args for a scope case
+   * .why = flag order, stacked scopes, and the optional flags live in one place
+   */
+  const asSkillArgs = (input: {
+    what: 'unit' | 'integration';
+    scopes: string[];
+    mode: 'plan' | 'apply' | null;
+    thorough: boolean;
+  }): string[] => [
+    '--what',
+    input.what,
+    ...input.scopes.flatMap((scope) => ['--scope', scope]),
+    ...(input.mode ? ['--mode', input.mode] : []),
+    ...(input.thorough ? ['--thorough'] : []),
+  ];
+
+  /**
+   * .what = a fake rhx whose keyrack refuses; any other rhx call fails loud
+   * .why = the keyrack refusal case states its own refusal, the same on every host
+   * .mock = keyrack unlock. the case is about how the skill surfaces a refusal; a real keyrack
+   *         would refuse or unlock by the host's state, so the outcome would not be the case's
+   * .real = the dogfood run: this repo runs its suites via `rhx git.repo.test`, which unlocks the real keyrack; a CI case is #1191
+   */
+  const setFakeRhxRefusal = (input: { binDir: string }): void => {
+    fs.mkdirSync(input.binDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(input.binDir, 'rhx'),
+      [
+        '#!/usr/bin/env bash',
+        '# .what = a keyrack that refuses, for the refusal-path case',
+        'if [[ "$1" == "keyrack" ]]; then',
+        '  echo "🔐 keyrack unlock"',
+        '  echo "   └─ ✋ blocked: no keyrack.yml found in repo"',
+        '  exit 1',
+        'fi',
+        '# any other rhx call sits outside this fake contract — fail loud',
+        'echo "unexpected rhx call: $*" 1>&2',
+        'exit 64',
+      ].join('\n'),
+      { mode: 0o755 },
+    );
+  };
 
   /**
    * .what = run git.repo.test.sh with arbitrary args (for --help, etc)
+   * .why = drives invocations that need no fixture repo
    */
-  const runRaw = (
-    args: string[],
-  ): { stdout: string; stderr: string; exitCode: number } => {
-    const result = spawnSync('bash', [scriptPath, ...args], {
+  const runRaw = (input: {
+    args: string[];
+  }): { stdout: string; stderr: string; exitCode: number } => {
+    const result = spawnSync('bash', [scriptPath, ...input.args], {
       encoding: 'utf-8' as const,
       stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 120_000, // a hung run fails loud within a known bound
     });
-    return {
-      stdout: result.stdout ?? '',
-      stderr: result.stderr ?? '',
-      exitCode: result.status ?? 1,
-    };
+    const exitCode = asExitCode({ result });
+    return { stdout: result.stdout, stderr: result.stderr, exitCode };
   };
 
   /**
    * .what = run git.repo.test.sh in a temp git repo with jest setup
+   * .why = exercises the real skill against its own hermetic fixture repo
    */
-  const runWithScope = (args: {
-    testFiles: Array<{ type: 'unit' | 'integration'; name: string }>;
-    scope?: string;
-    scopes?: string[];
-    what?: 'unit' | 'integration';
-    mode?: 'plan' | 'apply';
-    thorough?: boolean;
-    keyrack?: 'absent';
-  }): { stdout: string; stderr: string; exitCode: number } => {
+  const runWithScope = (
+    args: {
+      testFiles: Array<{ type: 'unit' | 'integration'; name: string }>;
+      scope?: string;
+      scopes?: string[];
+      mode?: 'plan' | 'apply';
+      thorough?: boolean;
+    } & (
+      | { what?: 'unit'; keyrack?: never }
+      // an integration run asks keyrack; the fake is required, so no run consults the host
+      | { what: 'integration'; keyrack: 'absent' }
+    ),
+  ): { stdout: string; stderr: string; exitCode: number } => {
     const tempDir = genTempDir({ slug: 'scope-test', git: true });
     const what = args.what ?? 'unit';
 
@@ -157,77 +227,40 @@ describe('git.repo.test.sh scope', () => {
       path.join(tempDir, 'node_modules'),
     );
 
-    // commit to establish git history
-    spawnSync('git', ['add', '.'], { cwd: tempDir });
-    spawnSync('git', ['commit', '-m', 'initial'], { cwd: tempDir });
+    // commit to establish git history, on a branch named main on every host
+    runGitOrFail({ args: ['add', '.'], cwd: tempDir });
+    runGitOrFail({ args: ['commit', '-m', 'initial'], cwd: tempDir });
+    runGitOrFail({ args: ['branch', '-M', 'main'], cwd: tempDir });
 
-    // rename branch to 'main' for cross-environment consistency
-    spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
-
-    // build args — support both single scope and stacked scopes
-    const scopeList = args.scopes ?? (args.scope ? [args.scope] : []);
-    const skillArgs = ['--what', what];
-    for (const s of scopeList) {
-      skillArgs.push('--scope', s);
-    }
-    if (args.mode) skillArgs.push('--mode', args.mode);
-    if (args.thorough) skillArgs.push('--thorough');
-
-    // 🔴 pin the keyrack outcome for the case that is ABOUT a keyrack refusal.
-    //
-    // .what = `unlock_keyrack` runs on every `--what integration` invocation,
-    //         whatever the mode, and it asks the HOST for credentials.
-    //
-    // .why  = a dev host that already holds an unlocked session answers yes;
-    //         a ci runner with none answers no. ⇒ one commit then goes green
-    //         here and red there, and the suite grades the runner rather than
-    //         the skill (`rule.require.hermetic-tests`).
-    //
-    // ⇒ so the refusal case SHADOWS `rhx` on PATH and states the refusal
-    //   itself. the input is controlled, so the outcome is — on any host.
-    //   it also retires a second hazard: the snapshot no longer pins
-    //   keyrack's own error render, which moved under us on an sdk bump.
+    // the keyrack refusal case controls its keyrack, so the outcome holds on any host
     const binDir = path.join(tempDir, '.bin');
-    if (args.keyrack === 'absent') {
-      fs.mkdirSync(binDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(binDir, 'rhx'),
-        [
-          '#!/usr/bin/env bash',
-          '# .what = a keyrack that refuses, for the refusal-path case',
-          'if [[ "$1" == "keyrack" ]]; then',
-          '  echo "🔐 keyrack unlock"',
-          '  echo "   └─ ✋ blocked: no keyrack.yml found in repo"',
-          '  exit 1',
-          'fi',
-          '# any other rhx call sits outside this stub contract — fail loud',
-          'echo "unexpected rhx call: $*" 1>&2',
-          'exit 64',
-        ].join('\n'),
-        { mode: 0o755 },
-      );
-    }
+    if (args.keyrack === 'absent') setFakeRhxRefusal({ binDir });
 
+    const skillArgs = asSkillArgs({
+      what,
+      scopes: args.scopes ?? (args.scope ? [args.scope] : []),
+      mode: args.mode ?? null,
+      thorough: args.thorough ?? false,
+    });
     const result = spawnSync('bash', [scriptPath, ...skillArgs], {
       cwd: tempDir,
       encoding: 'utf-8' as const, // node api requires this exact string
       stdio: ['pipe', 'pipe', 'pipe'],
+      timeout: 120_000, // a hung run fails loud within a known bound
       env:
         args.keyrack === 'absent'
           ? { ...process.env, PATH: `${binDir}:${process.env.PATH ?? ''}` }
           : process.env,
     });
-
-    return {
-      stdout: result.stdout ?? '',
-      stderr: result.stderr ?? '',
-      exitCode: result.status ?? 1,
-    };
+    const exitCode = asExitCode({ result });
+    return { stdout: result.stdout, stderr: result.stderr, exitCode };
   };
 
   given('[case0] --help output', () => {
     when('[t0] --help is passed', () => {
-      const result = useThen('skill executes', () => runRaw(['--help']));
+      const result = useThen('skill executes', () =>
+        runRaw({ args: ['--help'] }),
+      );
 
       then('exit code is 0', () => {
         expect(result.exitCode).toBe(0);
@@ -240,11 +273,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -264,7 +300,7 @@ describe('git.repo.test.sh scope', () => {
 
       then('exit code is 0 (not malfunction)', () => {
         // exit 1 = malfunction (jest failed), exit 0 = success, exit 2 = constraint
-        expect(result.exitCode).not.toBe(1);
+        expect(result.exitCode).toBe(0);
       });
 
       then('stdout shows matched files', () => {
@@ -277,11 +313,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -300,7 +339,7 @@ describe('git.repo.test.sh scope', () => {
       );
 
       then('exit code is 0', () => {
-        expect(result.exitCode).not.toBe(1);
+        expect(result.exitCode).toBe(0);
       });
 
       then('stdout shows matched: 1 files', () => {
@@ -308,11 +347,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -337,11 +379,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -369,11 +414,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -402,11 +450,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -426,7 +477,7 @@ describe('git.repo.test.sh scope', () => {
 
       then('exit code is 0 (not malfunction)', () => {
         // name:// scope cannot be verified at plan time, but should not error
-        expect(result.exitCode).not.toBe(1);
+        expect(result.exitCode).toBe(0);
       });
 
       then('stdout shows scope', () => {
@@ -434,11 +485,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -457,15 +511,18 @@ describe('git.repo.test.sh scope', () => {
       );
 
       then('exit code is not malfunction', () => {
-        expect(result.exitCode).not.toBe(1);
+        expect(result.exitCode).toBe(0);
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -473,17 +530,7 @@ describe('git.repo.test.sh scope', () => {
   given(
     '[case8] scope with --what integration (keyrack failure in temp repo)',
     () => {
-      // .note = this tests the ERROR PATH when keyrack unlock fails, NOT keyrack integration.
-      // purpose: verify git.repo.test.sh surfaces keyrack errors correctly to the user.
-      // keyrack integration tests belong in keyrack's own test suite.
-      //
-      // 🔴 .why `keyrack: 'absent'` = the refusal is STATED by a PATH-shadowed
-      //        stub, never inherited from the host. an earlier draft let the
-      //        real `rhx keyrack unlock` decide, and a temp repo alone does
-      //        not force a refusal — a host that already holds an unlocked
-      //        session answers yes. ⇒ the case went green on a dev host and
-      //        red in ci at one commit, which is the runner graded rather
-      //        than the skill (`rule.require.hermetic-tests`).
+      // .note = the error path of a keyrack refusal; the fake rhx states the refusal, so no host keyrack decides it
       when('[t0] --scope myfeature --what integration is used', () => {
         const result = useThen('skill executes', () =>
           runWithScope({
@@ -511,11 +558,14 @@ describe('git.repo.test.sh scope', () => {
         });
 
         then('stdout matches snapshot', () => {
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          expect(result.stdout).toContain('git.repo.test');
+          expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
         });
 
         then('stderr matches snapshot', () => {
-          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+          // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+          expect(result.stderr === '').toEqual(result.exitCode === 0);
+          expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
         });
       });
     },
@@ -537,11 +587,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -560,7 +613,7 @@ describe('git.repo.test.sh scope', () => {
       );
 
       then('exit code is not malfunction', () => {
-        expect(result.exitCode).not.toBe(1);
+        expect(result.exitCode).toBe(0);
       });
 
       then('stdout shows matched files', () => {
@@ -568,11 +621,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -591,17 +647,19 @@ describe('git.repo.test.sh scope', () => {
         }),
       );
 
-      then('exit code reflects jest finding no matching tests', () => {
-        // jest exits with error when --testNamePattern matches no tests
-        expect([0, 1, 2]).toContain(result.exitCode);
+      then('exit code is 2 (constraint: the name matched no tests)', () => {
+        expect(result.exitCode).toBe(2);
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -621,7 +679,7 @@ describe('git.repo.test.sh scope', () => {
       );
 
       then('exit code is not malfunction', () => {
-        expect(result.exitCode).not.toBe(1);
+        expect(result.exitCode).toBe(0);
       });
 
       then('stdout shows multiple matched files', () => {
@@ -629,11 +687,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -664,11 +725,14 @@ describe('git.repo.test.sh scope', () => {
         });
 
         then('stdout matches snapshot', () => {
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          expect(result.stdout).toContain('git.repo.test');
+          expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
         });
 
         then('stderr matches snapshot', () => {
-          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+          // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+          expect(result.stderr === '').toEqual(result.exitCode === 0);
+          expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
         });
       });
     },
@@ -701,11 +765,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -736,11 +803,14 @@ describe('git.repo.test.sh scope', () => {
         });
 
         then('stdout matches snapshot', () => {
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          expect(result.stdout).toContain('git.repo.test');
+          expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
         });
 
         then('stderr matches snapshot', () => {
-          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+          // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+          expect(result.stderr === '').toEqual(result.exitCode === 0);
+          expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
         });
       });
     },
@@ -763,11 +833,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -798,11 +871,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -845,11 +921,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -890,11 +969,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -931,11 +1013,14 @@ describe('git.repo.test.sh scope', () => {
           });
 
           then('stdout matches snapshot', () => {
-            expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+            expect(result.stdout).toContain('git.repo.test');
+            expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
           });
 
           then('stderr matches snapshot', () => {
-            expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+            // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+            expect(result.stderr === '').toEqual(result.exitCode === 0);
+            expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
           });
         },
       );
@@ -965,11 +1050,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -999,11 +1087,14 @@ describe('git.repo.test.sh scope', () => {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('git.repo.test');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -1025,10 +1116,12 @@ describe('git.repo.test.sh scope', () => {
           }),
         );
 
-        then('exit code reflects jest behavior with two name patterns', () => {
-          // jest applies multiple --testNamePattern as intersection
-          expect([0, 2]).toContain(result.exitCode);
-        });
+        then(
+          'exit code is 2 (constraint: two name patterns intersect to none)',
+          () => {
+            expect(result.exitCode).toBe(2);
+          },
+        );
 
         then('stdout shows combined scope display', () => {
           expect(result.stdout).toContain(
@@ -1037,11 +1130,14 @@ describe('git.repo.test.sh scope', () => {
         });
 
         then('stdout matches snapshot', () => {
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          expect(result.stdout).toContain('git.repo.test');
+          expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
         });
 
         then('stderr matches snapshot', () => {
-          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+          // stderr carries output exactly when the run fails (rule.require.skill-output-streams)
+          expect(result.stderr === '').toEqual(result.exitCode === 0);
+          expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
         });
       },
     );

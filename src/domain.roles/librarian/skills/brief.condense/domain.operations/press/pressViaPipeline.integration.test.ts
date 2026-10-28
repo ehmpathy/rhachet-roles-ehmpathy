@@ -6,6 +6,15 @@ import { pressViaPipeline } from './pressViaPipeline';
 
 const BRAIN_SLUG = 'openrouter/deepseek/flash';
 
+/**
+ * .what = a per-file budget of 240s for each timed pipeline call
+ * .why = each call here is one or two remote brain round trips. idle, the slowest took 18.7s;
+ *        inside a full --thorough run on a 4-core box the same calls ran ~5x slower (54.5s, and
+ *        two past the suite-wide 90s). 240s holds that inflation with margin; a call that still
+ *        exceeds it is a real hang, not load
+ */
+jest.setTimeout(240_000);
+
 // test fixtures
 const FIXTURES_DIR = path.join(__dirname, '../../.test/fixtures/briefs');
 const STABLE_BRIEF_PATH = path.join(FIXTURES_DIR, 'stable-rule.md');
