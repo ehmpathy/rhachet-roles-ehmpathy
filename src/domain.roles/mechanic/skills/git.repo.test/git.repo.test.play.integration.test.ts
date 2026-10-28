@@ -1,5 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import { ConstraintError, MalfunctionError } from 'helpful-errors';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
@@ -17,62 +18,194 @@ describe('git.repo.test', () => {
   const skillPath = path.join(__dirname, 'git.repo.test.sh');
 
   /**
-   * .what = run git.repo.test skill in a temp directory
+   * .what = the skill args, with `--mode apply` added where the caller named no mode
+   * .why = journeys exercise apply, while plan is the skill default
+   * .note = the mode lands before `--`, so it reaches the skill, not jest
    */
-  const runGitRepoTest = (args: {
+  const asSkillArgs = (input: { gitRepoTestArgs: string[] }): string[] => {
+    const dashDashIndex = input.gitRepoTestArgs.indexOf('--');
+    const skillSide =
+      dashDashIndex >= 0
+        ? input.gitRepoTestArgs.slice(0, dashDashIndex)
+        : input.gitRepoTestArgs;
+    const jestSide =
+      dashDashIndex >= 0 ? input.gitRepoTestArgs.slice(dashDashIndex) : [];
+    const hasMode = skillSide.some(
+      (arg) => arg === '--mode' || arg.startsWith('--mode='),
+    );
+    if (hasMode) return input.gitRepoTestArgs;
+    return [...skillSide, '--mode', 'apply', ...jestSide];
+  };
+
+  /**
+   * .what = the exit code of a finished skill run; fail loud if it never exited
+   * .why = a spawn failure or a timeout must never read as exit 1 (malfunction)
+   */
+  const asExitCode = (input: {
+    result: ReturnType<typeof spawnSync>;
+  }): number => {
+    if (input.result.status !== null) return input.result.status;
+    throw new MalfunctionError('skill run did not exit', {
+      signal: input.result.signal,
+      error: input.result.error?.message,
+      hint: 'a signal is the 60s timeout or a hang; an error is a spawn failure',
+    });
+  };
+
+  /**
+   * .what = run git.repo.test skill in a temp directory
+   * .why = each journey drives the real skill against its own fixture repo
+   */
+  const runGitRepoTest = (input: {
     tempDir: string;
     gitRepoTestArgs: string[];
     env?: NodeJS.ProcessEnv;
   }): { stdout: string; stderr: string; exitCode: number } => {
-    // add --mode apply by default if no mode specified (plan mode is now default)
-    // insert before -- if present, otherwise append
-    const hasMode = args.gitRepoTestArgs.includes('--mode');
-    let effectiveArgs: string[];
-    if (hasMode) {
-      effectiveArgs = args.gitRepoTestArgs;
-    } else {
-      const dashDashIndex = args.gitRepoTestArgs.indexOf('--');
-      if (dashDashIndex >= 0) {
-        // insert before -- so --mode apply goes to skill, not jest
-        effectiveArgs = [
-          ...args.gitRepoTestArgs.slice(0, dashDashIndex),
-          '--mode',
-          'apply',
-          ...args.gitRepoTestArgs.slice(dashDashIndex),
-        ];
-      } else {
-        effectiveArgs = [...args.gitRepoTestArgs, '--mode', 'apply'];
-      }
-    }
-    const result = spawnSync('bash', [skillPath, ...effectiveArgs], {
-      cwd: args.tempDir,
+    const skillArgs = asSkillArgs({ gitRepoTestArgs: input.gitRepoTestArgs });
+    const result = spawnSync('bash', [skillPath, ...skillArgs], {
+      cwd: input.tempDir,
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: args.env ?? process.env,
+      env: input.env ?? process.env,
       timeout: 60_000, // 60s timeout to prevent indefinite hangs
     });
-    return {
-      stdout: result.stdout ?? '',
-      stderr: result.stderr ?? '',
-      exitCode: result.status ?? 1,
-    };
+    const exitCode = asExitCode({ result });
+    return { stdout: result.stdout, stderr: result.stderr, exitCode };
+  };
+
+  /**
+   * .what = the absolute path of the real rhx; fail loud if absent
+   * .why = the fake rhx forwards non-keyrack calls to it, and must never exec ""
+   */
+  const getOneRealRhxPath = (): string => {
+    const result = spawnSync('which', ['rhx'], { encoding: 'utf-8' });
+    const rhxPath = result.status === 0 ? result.stdout.trim() : '';
+    if (rhxPath) return rhxPath;
+    throw new ConstraintError('rhx not found on PATH', {
+      status: result.status,
+      error: result.error?.message,
+      hint: 'install rhachet, or drop mockKeyrack from the fixture',
+    });
+  };
+
+  /**
+   * .what = write an executable file
+   * .why = each fake binary takes the same write + chmod
+   */
+  const setExecutable = (input: { path: string; content: string }): void => {
+    fs.mkdirSync(path.dirname(input.path), { recursive: true });
+    fs.writeFileSync(input.path, input.content);
+    fs.chmodSync(input.path, '755');
+  };
+
+  /**
+   * .what = a fake rhx whose keyrack unlock succeeds or fails
+   * .why = keyrack journeys stay hermetic; all other rhx calls reach the real one
+   * .mock = keyrack unlock. the CI runner holds no ehmpath keyrack host, and a real unlock
+   *         would decide each journey by the host's credentials, not by the skill under test
+   * .real = the dogfood run: this repo runs its suites via `rhx git.repo.test`, which unlocks the real keyrack; a CI case is #1191
+   * .note = the real path is read from a file, so no path text becomes shell syntax
+   */
+  const setFakeRhx = (input: {
+    fakeBinDir: string;
+    keyrack: 'unlock' | 'locked';
+  }): void => {
+    fs.mkdirSync(input.fakeBinDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(input.fakeBinDir, 'rhx.real'),
+      getOneRealRhxPath(),
+    );
+    const unlock =
+      input.keyrack === 'unlock'
+        ? 'echo "unlocked ehmpath/test"\n  exit 0'
+        : 'echo "keyrack unlock failed: vault locked" >&2\n  exit 1';
+    setExecutable({
+      path: path.join(input.fakeBinDir, 'rhx'),
+      content: `#!/bin/bash
+if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
+  ${unlock}
+fi
+if [[ "$1" == "keyrack" && "$2" == "source" ]]; then
+  # emit no-op env vars (skill expects eval-able output)
+  echo "# mock keyrack source"
+  exit 0
+fi
+# forward all else to the real rhx, by absolute path (no recursion)
+exec "$(cat "$(dirname "$0")/rhx.real")" "$@"
+`,
+    });
+  };
+
+  /**
+   * .what = a fake npm and pnpm that print fixed output and exit with a fixed code
+   * .why = journeys control the suite result; both names, since a shell alias may dispatch either
+   * .note = the output is read from files, so no fixture text becomes shell syntax
+   */
+  const setFakeNpm = (input: {
+    fakeBinDir: string;
+    exitCode: number;
+    stdout: string;
+    stderr: string;
+  }): void => {
+    fs.mkdirSync(input.fakeBinDir, { recursive: true });
+    fs.writeFileSync(path.join(input.fakeBinDir, 'npm.stdout'), input.stdout);
+    fs.writeFileSync(path.join(input.fakeBinDir, 'npm.stderr'), input.stderr);
+    const content = `#!/bin/bash
+cat "$(dirname "$0")/npm.stdout"; echo
+cat "$(dirname "$0")/npm.stderr" >&2; echo >&2
+exit ${input.exitCode}
+`;
+    setExecutable({ path: path.join(input.fakeBinDir, 'npm'), content });
+    setExecutable({ path: path.join(input.fakeBinDir, 'pnpm'), content });
+  };
+
+  /**
+   * .what = a fake node_modules/.bin/jest that answers --listTests
+   * .why = the scope check calls that path directly; journeys control its match
+   */
+  const setFakeJestListTests = (input: {
+    tempDir: string;
+    listTests: string[] | 'fail';
+  }): void => {
+    const jestBinDir = path.join(input.tempDir, 'node_modules', '.bin');
+    fs.mkdirSync(jestBinDir, { recursive: true });
+    const answer =
+      input.listTests === 'fail'
+        ? 'echo "jest --listTests failed" >&2\n  exit 1'
+        : 'cat "$(dirname "$0")/jest.listTests"\n  exit 0';
+    if (input.listTests !== 'fail')
+      fs.writeFileSync(
+        path.join(jestBinDir, 'jest.listTests'),
+        `${input.listTests.join('\n')}\n`,
+      );
+    setExecutable({
+      path: path.join(jestBinDir, 'jest'),
+      content: `#!/bin/bash
+if [[ "$*" == *"--listTests"* ]]; then
+  ${answer}
+fi
+# any other jest call is unexpected here; fail loud so the test notices
+exit 1
+`,
+    });
   };
 
   /**
    * .what = create a fixture repo with test infrastructure
+   * .why = each journey runs hermetic, apart from the host's keyrack, npm, and jest
    */
   const setupFixture = (config: {
     packageJson: object;
     jestConfig?: string;
     jestConfigs?: Array<'unit' | 'integration' | 'acceptance'>;
     testFiles?: Record<string, string>;
-    mockKeyrack?: boolean;
-    mockKeyrackFail?: boolean;
+    mockKeyrack?: 'unlock' | 'locked';
     mockNpm?: { exitCode: number; stdout?: string; stderr?: string };
     /** mock npx jest --listTests response (files to return, or 'fail' to simulate failure) */
     mockListTests?: string[] | 'fail';
   }): { tempDir: string; env: NodeJS.ProcessEnv } => {
     const tempDir = genTempDir({ slug: 'git-repo-test', git: true });
+    const fakeBinDir = path.join(tempDir, '.fakebin');
 
     // write package.json
     fs.writeFileSync(
@@ -104,139 +237,43 @@ describe('git.repo.test', () => {
       }
     }
 
-    let env = { ...process.env };
+    // fake rhx, with a keyrack unlock that succeeds or fails
+    if (config.mockKeyrack)
+      setFakeRhx({ fakeBinDir, keyrack: config.mockKeyrack });
 
-    // lookup real rhx path BEFORE modifying PATH (to avoid mock finding itself)
-    const realRhxPath = spawnSync('which', ['rhx'], {
-      encoding: 'utf-8',
-    }).stdout.trim();
+    // fake npm and pnpm, with a fixed result
+    if (config.mockNpm)
+      setFakeNpm({
+        fakeBinDir,
+        exitCode: config.mockNpm.exitCode,
+        stdout: config.mockNpm.stdout ?? '',
+        stderr: config.mockNpm.stderr ?? '',
+      });
 
-    // mock keyrack for hermetic tests
-    if (config.mockKeyrack) {
-      const fakeBinDir = path.join(tempDir, '.fakebin');
-      fs.mkdirSync(fakeBinDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(fakeBinDir, 'rhx'),
-        `#!/bin/bash
-if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
-  echo "unlocked ehmpath/test"
-  exit 0
-fi
-if [[ "$1" == "keyrack" && "$2" == "source" ]]; then
-  # emit no-op env vars (skill expects eval-able output)
-  echo "# mock keyrack source"
-  exit 0
-fi
-# pass through to real rhx for other commands (use absolute path to avoid recursion)
-exec "${realRhxPath}" "$@"
-`,
-      );
-      fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
-      env = { ...env, PATH: `${fakeBinDir}:${process.env.PATH}` };
-    }
+    // fake jest --listTests, for the scope check
+    if (config.mockListTests !== undefined)
+      setFakeJestListTests({ tempDir, listTests: config.mockListTests });
 
-    // mock keyrack to fail for error path tests
-    if (config.mockKeyrackFail) {
-      const fakeBinDir = path.join(tempDir, '.fakebin');
-      fs.mkdirSync(fakeBinDir, { recursive: true });
-      fs.writeFileSync(
-        path.join(fakeBinDir, 'rhx'),
-        `#!/bin/bash
-if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
-  echo "keyrack unlock failed: vault locked" >&2
-  exit 1
-fi
-if [[ "$1" == "keyrack" && "$2" == "source" ]]; then
-  # emit no-op env vars (skill expects eval-able output)
-  echo "# mock keyrack source"
-  exit 0
-fi
-# pass through to real rhx for other commands (use absolute path to avoid recursion)
-exec "${realRhxPath}" "$@"
-`,
-      );
-      fs.chmodSync(path.join(fakeBinDir, 'rhx'), '755');
-      env = { ...env, PATH: `${fakeBinDir}:${process.env.PATH}` };
-    }
-
-    // mock npm/pnpm for controlled test output
-    // note: on systems where `npm` is a shell function that delegates to `pnpm`,
-    // we must mock BOTH binaries to ensure the mock is used regardless of which
-    // package manager the shell function dispatches to.
-    if (config.mockNpm) {
-      const fakeBinDir = path.join(tempDir, '.fakebin');
-      fs.mkdirSync(fakeBinDir, { recursive: true });
-
-      const npmStdout = config.mockNpm.stdout ?? '';
-      const npmStderr = config.mockNpm.stderr ?? '';
-      const npmExitCode = config.mockNpm.exitCode;
-
-      const mockScript = `#!/bin/bash
-echo "${npmStdout.replace(/"/g, '\\"')}"
-echo "${npmStderr.replace(/"/g, '\\"')}" >&2
-exit ${npmExitCode}
-`;
-
-      // mock both npm and pnpm binaries
-      for (const bin of ['npm', 'pnpm']) {
-        fs.writeFileSync(path.join(fakeBinDir, bin), mockScript);
-        fs.chmodSync(path.join(fakeBinDir, bin), '755');
-      }
-      env = { ...env, PATH: `${fakeBinDir}:${process.env.PATH}` };
-    }
-
-    // mock jest --listTests for scope verification
-    // the skill calls node_modules/.bin/jest directly, so we need to mock that
-    if (config.mockListTests !== undefined) {
-      const jestBinDir = path.join(tempDir, 'node_modules', '.bin');
-      fs.mkdirSync(jestBinDir, { recursive: true });
-
-      if (config.mockListTests === 'fail') {
-        // mock jest to fail for --listTests
-        fs.writeFileSync(
-          path.join(jestBinDir, 'jest'),
-          `#!/bin/bash
-# fail for --listTests
-if [[ "$*" == *"--listTests"* ]]; then
-  echo "jest --listTests failed" >&2
-  exit 1
-fi
-# pass through for other commands (shouldn't happen in tests)
-exit 1
-`,
-        );
-      } else {
-        // mock jest to return configured file list for --listTests
-        const fileList = config.mockListTests.join('\n');
-        fs.writeFileSync(
-          path.join(jestBinDir, 'jest'),
-          `#!/bin/bash
-# return mock file list for --listTests
-if [[ "$*" == *"--listTests"* ]]; then
-  echo "${fileList}"
-  exit 0
-fi
-# pass through for other commands (shouldn't happen in tests)
-exit 1
-`,
-        );
-      }
-      fs.chmodSync(path.join(jestBinDir, 'jest'), '755');
-    }
+    // put the fake binaries first on PATH, when any were written
+    const hasFakeBin = fs.existsSync(fakeBinDir);
+    const env = hasFakeBin
+      ? { ...process.env, PATH: `${fakeBinDir}:${process.env.PATH}` }
+      : { ...process.env };
 
     return { tempDir, env };
   };
 
   /**
    * .what = sanitize output for stable snapshots
+   * .why = pins snapshots to behavior, apart from host time, paths, and speed
    */
-  const sanitizeOutput = (output: string): string => {
+  const sanitizeOutput = (input: { output: string }): string => {
     return (
-      maskSpinnerTicks(output)
+      maskSpinnerTicks(input.output)
         // sanitize timestamps: 2026-04-08T14-23-01Z -> TIMESTAMP
         .replace(/\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z/g, 'TIMESTAMP')
-        // sanitize temp paths
-        .replace(/\/tmp\/[^/\s]+/g, '/tmp/TEMP')
+        // sanitize temp paths; the grove's fixed fallback pool dir is a documented path, kept as is
+        .replace(/\/tmp\/(?!rhachet\/git\.repo\.test\b)[^/\s]+/g, '/tmp/TEMP')
         // sanitize time values: 1.234s -> X.XXXs, 5s -> Xs
         .replace(/\d+\.\d+s/g, 'X.XXXs')
         .replace(/\((\d+)s\)/g, '(Xs)')
@@ -248,9 +285,7 @@ exit 1
         )
         // sanitize rhachet versions: rhachet@1.40.7 -> rhachet@X.X.X
         .replace(/rhachet@\d+\.\d+\.\d+/g, 'rhachet@X.X.X')
-        // collapse a run of spinner ticks to one. the spinner emits a line
-        // per poll, so the count tracks host speed; one tick still pins that
-        // it rendered (rule.require.hermetic-tests)
+        // collapse a run of spinner ticks to one; the count tracks host speed, not behavior
         .replace(/(^[^\n]*💤 inflight \(Xs\)\n)+/gm, '$1')
     );
   };
@@ -306,7 +341,8 @@ Time:        0.5 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -355,14 +391,18 @@ Time:        0.3 s`,
 
       then('output shows failed status', () => {
         expect(result.stderr).toContain('✋ failed');
+        expect(result.stdout).toContain('✋ failed');
       });
 
       then('output shows tip', () => {
         expect(result.stderr).toContain('tip:');
+        expect(result.stdout).toContain('tip:');
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -413,7 +453,8 @@ Ran all test suites matched user.`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -461,7 +502,8 @@ Time:        0.3 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -511,10 +553,13 @@ Time:        0.4 s`,
 
       then('output shows failed', () => {
         expect(result.stderr).toContain('failed');
+        expect(result.stdout).toContain('failed');
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -528,7 +573,7 @@ Time:        0.4 s`,
             },
           },
           jestConfigs: ['integration'],
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockListTests: ['/tmp/test-repo/src/api.integration.test.ts'],
           mockNpm: {
             exitCode: 0,
@@ -556,7 +601,8 @@ Time:        1.2 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -570,7 +616,7 @@ Time:        1.2 s`,
             },
           },
           jestConfigs: ['integration'],
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockListTests: ['/tmp/test-repo/src/api.integration.test.ts'],
           mockNpm: {
             exitCode: 1,
@@ -605,10 +651,13 @@ Time:        1.5 s`,
 
       then('output shows failed', () => {
         expect(result.stderr).toContain('failed');
+        expect(result.stdout).toContain('failed');
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -623,7 +672,7 @@ Time:        1.5 s`,
             },
           },
           jestConfigs: ['acceptance'],
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockListTests: ['/tmp/test-repo/src/e2e.acceptance.test.ts'],
           mockNpm: {
             exitCode: 0,
@@ -659,7 +708,8 @@ Time:        2.5 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -674,7 +724,7 @@ Time:        2.5 s`,
             },
           },
           jestConfigs: ['acceptance'],
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockListTests: ['/tmp/test-repo/src/e2e.acceptance.test.ts'],
           mockNpm: {
             exitCode: 1,
@@ -717,10 +767,13 @@ Time:        3.1 s`,
 
       then('output shows failed', () => {
         expect(result.stderr).toContain('failed');
+        expect(result.stdout).toContain('failed');
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -739,7 +792,7 @@ Time:        3.1 s`,
             },
           },
           jestConfigs: ['integration'],
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockListTests: ['/tmp/test-repo/src/api.integration.test.ts'],
           mockNpm: {
             exitCode: 0,
@@ -771,7 +824,8 @@ Time:        2.1 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -785,7 +839,7 @@ Time:        2.1 s`,
             },
           },
           jestConfigs: ['integration'],
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockNpm: {
             exitCode: 1,
             stdout: '> test-repo@1.0.0 test:integration',
@@ -813,10 +867,13 @@ Time:        1.8 s`,
 
       then('output shows failed', () => {
         expect(result.stderr).toContain('failed');
+        expect(result.stdout).toContain('failed');
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -830,7 +887,7 @@ Time:        1.8 s`,
             },
           },
           jestConfigs: ['integration'],
-          mockKeyrackFail: true,
+          mockKeyrack: 'locked',
         });
         return runGitRepoTest({
           tempDir,
@@ -845,10 +902,13 @@ Time:        1.8 s`,
 
       then('output shows keyrack error', () => {
         expect(result.stderr).toMatch(/keyrack|unlock|failed|vault/i);
+        expect(result.stdout).toMatch(/keyrack|unlock|failed|vault/i);
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -889,10 +949,13 @@ No tests found related to files changed since last commit.`,
 
       then('output shows constraint error', () => {
         expect(result.stderr).toContain('constraint');
+        expect(result.stdout).toContain('constraint');
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -925,14 +988,18 @@ No tests found related to files changed since last commit.`,
 
       then('output shows constraint error', () => {
         expect(result.stderr).toContain('constraint');
+        expect(result.stdout).toContain('constraint');
       });
 
       then('output shows hint about test command', () => {
         expect(result.stderr).toContain('test:unit');
+        expect(result.stdout).toContain('test:unit');
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -980,7 +1047,8 @@ Time:        0.2 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -1025,7 +1093,8 @@ Time:        0.2 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -1062,10 +1131,13 @@ Time:        0.2 s`,
 
       then('output shows failed', () => {
         expect(result.stderr).toContain('failed');
+        expect(result.stdout).toContain('failed');
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -1085,7 +1157,7 @@ Time:        0.2 s`,
             },
           },
           jestConfigs: ['acceptance'],
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:acceptance:locally',
@@ -1128,7 +1200,8 @@ Time:        4.5 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -1143,7 +1216,7 @@ Time:        4.5 s`,
             },
           },
           jestConfigs: ['acceptance'],
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockNpm: {
             exitCode: 1,
             stdout: '> test-repo@1.0.0 test:acceptance:locally',
@@ -1178,10 +1251,13 @@ Time:        32.1 s`,
 
       then('output shows failed', () => {
         expect(result.stderr).toContain('failed');
+        expect(result.stdout).toContain('failed');
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -1196,7 +1272,7 @@ Time:        32.1 s`,
             },
           },
           jestConfigs: ['acceptance'],
-          mockKeyrackFail: true,
+          mockKeyrack: 'locked',
         });
         return runGitRepoTest({
           tempDir,
@@ -1218,10 +1294,13 @@ Time:        32.1 s`,
 
       then('output shows keyrack error', () => {
         expect(result.stderr).toMatch(/keyrack|unlock|failed|vault/i);
+        expect(result.stdout).toMatch(/keyrack|unlock|failed|vault/i);
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -1240,7 +1319,7 @@ Time:        32.1 s`,
             'src/checkout.acceptance.test.ts': `test('checkout works', () => expect(true).toBe(true));`,
             'src/login.acceptance.test.ts': `test('login works', () => expect(true).toBe(true));`,
           },
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockListTests: ['src/checkout.acceptance.test.ts'],
           mockNpm: {
             exitCode: 0,
@@ -1278,7 +1357,8 @@ Ran all test suites matched checkout.`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -1414,7 +1494,8 @@ exec "${realRhxPath}" "$@"
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -1496,8 +1577,10 @@ exit 0
       then('output shows lint failed', () => {
         // lint shell header should be in output
         expect(result.stderr).toContain('--what lint');
+        expect(result.stdout).toContain('--what lint');
         // and it should show failed (emoji varies: ✋)
         expect(result.stderr).toMatch(/failed/);
+        expect(result.stdout).toMatch(/failed/);
       });
 
       then('output does not show unit or other types', () => {
@@ -1507,7 +1590,9 @@ exit 0
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -1606,7 +1691,9 @@ exec "${realRhxPath}" "$@"
 
       then('output shows unit failed', () => {
         expect(result.stderr).toContain('--what unit');
+        expect(result.stdout).toContain('--what unit');
         expect(result.stderr).toMatch(/failed/);
+        expect(result.stdout).toMatch(/failed/);
       });
 
       then('output does not show integration or acceptance', () => {
@@ -1615,7 +1702,9 @@ exec "${realRhxPath}" "$@"
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -1717,7 +1806,9 @@ exec "${realRhxPath}" "$@"
 
       then('output shows integration failed', () => {
         expect(result.stderr).toContain('--what integration');
+        expect(result.stdout).toContain('--what integration');
         expect(result.stderr).toMatch(/failed/);
+        expect(result.stdout).toMatch(/failed/);
       });
 
       then('output does not show acceptance', () => {
@@ -1725,7 +1816,9 @@ exec "${realRhxPath}" "$@"
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -1833,11 +1926,15 @@ exec "${realRhxPath}" "$@"
 
         then('output shows acceptance failed', () => {
           expect(result.stderr).toContain('--what acceptance');
+          expect(result.stdout).toContain('--what acceptance');
           expect(result.stderr).toMatch(/failed/);
+          expect(result.stdout).toMatch(/failed/);
         });
 
         then('output matches snapshot', () => {
-          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+          expect(result.exitCode).not.toBe(0);
+          expect(result.stderr).not.toEqual('');
+          expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
         });
       },
     );
@@ -1883,7 +1980,8 @@ Time:        3.5 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -1927,10 +2025,13 @@ Time:        4.2 s`,
 
       then('output shows failed', () => {
         expect(result.stderr).toContain('failed');
+        expect(result.stdout).toContain('failed');
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -1944,7 +2045,7 @@ Time:        4.2 s`,
             },
           },
           jestConfigs: ['integration'],
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:integration',
@@ -1971,7 +2072,8 @@ Time:        8.5 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -1985,7 +2087,7 @@ Time:        8.5 s`,
             },
           },
           jestConfigs: ['integration'],
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockNpm: {
             exitCode: 1,
             stdout: '> test-repo@1.0.0 test:integration',
@@ -2013,10 +2115,13 @@ Time:        9.2 s`,
 
       then('output shows failed', () => {
         expect(result.stderr).toContain('failed');
+        expect(result.stdout).toContain('failed');
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -2031,7 +2136,7 @@ Time:        9.2 s`,
             },
           },
           jestConfigs: ['acceptance'],
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockNpm: {
             exitCode: 0,
             stdout: '> test-repo@1.0.0 test:acceptance:locally',
@@ -2066,7 +2171,8 @@ Time:        12.5 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -2081,7 +2187,7 @@ Time:        12.5 s`,
             },
           },
           jestConfigs: ['acceptance'],
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockNpm: {
             exitCode: 1,
             stdout: '> test-repo@1.0.0 test:acceptance:locally',
@@ -2117,10 +2223,13 @@ Time:        15.1 s`,
 
       then('output shows failed', () => {
         expect(result.stderr).toContain('failed');
+        expect(result.stdout).toContain('failed');
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -2159,7 +2268,8 @@ Time:        0.1 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -2209,7 +2319,8 @@ Time:        0.1 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -2242,7 +2353,8 @@ Time:        0.1 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -2272,10 +2384,13 @@ Time:        0.1 s`,
 
       then('output shows error about invalid type', () => {
         expect(result.stderr).toMatch(/invalid|constraint|unsupported/i);
+        expect(result.stdout).toMatch(/invalid|constraint|unsupported/i);
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -2305,10 +2420,13 @@ Time:        0.1 s`,
 
       then('output shows error about absent --what', () => {
         expect(result.stderr).toMatch(/--what|required/i);
+        expect(result.stdout).toMatch(/--what|required/i);
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stderr).not.toEqual('');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -2316,8 +2434,8 @@ Time:        0.1 s`,
   // ######################################################################
   // journey 18: real npm call (no mocks)
   // ######################################################################
-  // .note = skip in CI: real npm calls can hang due to npx install prompts
-  given.skipIf(!!process.env.CI)('[case18] real repo with real npm', () => {
+  // .note = no CI skip: a 0-match scope exits 2 before npm runs, so no npx prompt can hang it
+  given('[case18] real repo with real npm', () => {
     when('[t0] --what unit --scope with real npm call', () => {
       const result = useThen('skill executes', () => {
         const { tempDir, env } = setupFixture({
@@ -2366,80 +2484,67 @@ Time:        0.1 s`,
       });
 
       then('output matches snapshot', () => {
+        expect(result.exitCode).toBe(2);
         expect(
-          sanitizeOutput(result.stdout || result.stderr),
+          sanitizeOutput({ output: result.stdout || result.stderr }),
         ).toMatchSnapshot();
       });
     });
   });
 
   // ######################################################################
-  // journey 19: real keyrack call (no mocks)
+  // journey 19: integration run through a keyrack unlock, with real npm
   // ######################################################################
-  // .note = skip in CI: real npm/keyrack calls can hang due to npx install prompts
-  given.skipIf(!!process.env.CI)(
-    '[case19] real integration test with keyrack',
-    () => {
-      when('[t0] --what integration calls real keyrack', () => {
-        const result = useThen('skill executes', () => {
-          const { tempDir } = setupFixture({
-            packageJson: {
-              name: 'real-test-repo',
-              scripts: {
-                'test:integration': 'echo "integration test" && exit 0',
-              },
+  // .note = the keyrack is the fake rhx (its unlock prints the real render), so the case runs
+  //         on every box and in CI. a real keyrack unlock needs an ehmpath keyrack host the CI
+  //         runner lacks; that proof is its own task (F20), not a CI skip here
+  given('[case19] integration test through a keyrack unlock', () => {
+    when('[t0] --what integration unlocks keyrack', () => {
+      const result = useThen('skill executes', () => {
+        const { tempDir, env } = setupFixture({
+          packageJson: {
+            name: 'real-test-repo',
+            scripts: {
+              'test:integration': 'echo "integration test" && exit 0',
             },
-            jestConfigs: ['integration'],
-            // no mockKeyrack - uses real keyrack
-            // no mockNpm - uses real npm
-          });
-          return runGitRepoTest({
-            tempDir,
-            gitRepoTestArgs: ['--what', 'integration'],
-            // no env override - uses real PATH with real rhx/keyrack
-          });
+          },
+          jestConfigs: ['integration'],
+          mockKeyrack: 'unlock',
+          // no mockNpm - uses real npm
         });
-
-        then('keyrack was called (output contains keyrack info)', () => {
-          // real keyrack will either unlock or show an error
-          expect(result.stdout + result.stderr).toMatch(
-            /keyrack|unlock|ehmpath/i,
-          );
-        });
-
-        then('output has treestruct shape', () => {
-          // validate output follows treestruct format
-          const output = result.stdout + result.stderr;
-          expect(output).toMatch(/🐢|🐚|git\.repo\.test/);
-          expect(output).toMatch(/├─|└─|--what/);
-        });
-
-        then('keyrack response has valid structure', () => {
-          // validate keyrack output has expected fields
-          const output = result.stdout + result.stderr;
-          // keyrack output shows either unlocked or error
-          expect(output).toMatch(/keyrack:|unlocked|failed|vault|ehmpath/i);
-        });
-
-        then('skill output has expected fields', () => {
-          // validate skill output structure
-          const output = result.stdout + result.stderr;
-          // output should show keyrack info (success or failure)
-          expect(output).toMatch(/keyrack|unlock|malfunction/i);
-          // output should have status
-          expect(output).toMatch(/status|passed|failed|error/i);
-          // output should be integration type
-          expect(output).toMatch(/--what\s+integration|integration/i);
-        });
-
-        then('output matches snapshot', () => {
-          expect(
-            sanitizeOutput(result.stdout || result.stderr),
-          ).toMatchSnapshot();
+        return runGitRepoTest({
+          tempDir,
+          gitRepoTestArgs: ['--what', 'integration'],
+          env,
         });
       });
-    },
-  );
+
+      then('exit code is 0', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('keyrack was unlocked for ehmpath/test', () => {
+        expect(result.stdout).toContain('keyrack: unlocked ehmpath/test');
+      });
+
+      then('output has treestruct shape', () => {
+        expect(result.stdout).toContain('🐚 git.repo.test --what integration');
+        expect(result.stdout).toMatch(/├─|└─/);
+      });
+
+      then('the run passed through the real npm', () => {
+        expect(result.stdout).toContain('🎉 passed');
+        expect(result.stderr).toEqual('');
+      });
+
+      then('output matches snapshot', () => {
+        expect(result.stdout + result.stderr).toMatch(/keyrack/i);
+        expect(
+          sanitizeOutput({ output: result.stdout || result.stderr }),
+        ).toMatchSnapshot();
+      });
+    });
+  });
 
   // ######################################################################
   // journey 20: flag combinations
@@ -2485,7 +2590,8 @@ Time:        0.3 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -2529,7 +2635,8 @@ Time:        1.2 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -2580,7 +2687,8 @@ Time:        2.1 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -2597,7 +2705,7 @@ Time:        2.1 s`,
           testFiles: {
             'src/api.integration.test.ts': `test('api works', () => expect(true).toBe(true));`,
           },
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockListTests: ['src/api.integration.test.ts'],
           mockNpm: {
             exitCode: 0,
@@ -2635,7 +2743,8 @@ Time:        3.5 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -2686,7 +2795,8 @@ Time:        0.5 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -2725,7 +2835,8 @@ Time:        0.1 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -2758,8 +2869,9 @@ Time:        0.1 s`,
       });
 
       then('output matches snapshot', () => {
+        expect(result.exitCode).toBe(2);
         expect(
-          sanitizeOutput(result.stdout || result.stderr),
+          sanitizeOutput({ output: result.stdout || result.stderr }),
         ).toMatchSnapshot();
       });
     });
@@ -2819,8 +2931,9 @@ Time:        0.1 s`,
       });
 
       then('output matches snapshot', () => {
+        expect(result.exitCode).toBe(1);
         expect(
-          sanitizeOutput(result.stdout || result.stderr),
+          sanitizeOutput({ output: result.stdout || result.stderr }),
         ).toMatchSnapshot();
       });
     });
@@ -2944,7 +3057,8 @@ exec "${realRhxPath}" "$@"
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -3065,7 +3179,8 @@ exec "${realRhxPath}" "$@"
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -3082,7 +3197,7 @@ exec "${realRhxPath}" "$@"
           testFiles: {
             'src/api.integration.test.ts': `test('api works', () => expect(true).toBe(true));`,
           },
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockListTests: ['src/api.integration.test.ts'],
           mockNpm: {
             exitCode: 0,
@@ -3121,7 +3236,8 @@ Time:        5.2 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -3139,7 +3255,7 @@ Time:        5.2 s`,
           testFiles: {
             'src/checkout.acceptance.test.ts': `test('checkout works', () => expect(true).toBe(true));`,
           },
-          mockKeyrack: true,
+          mockKeyrack: 'unlock',
           mockListTests: ['src/checkout.acceptance.test.ts'],
           mockNpm: {
             exitCode: 0,
@@ -3182,7 +3298,8 @@ Time:        10.5 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -3229,7 +3346,8 @@ Time:        0.6 s`,
       });
 
       then('output matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.exitCode).toBe(0);
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });

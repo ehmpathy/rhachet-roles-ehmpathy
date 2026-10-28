@@ -20,6 +20,31 @@ describe('git.repo.test.sh', () => {
   const repoRoot = path.join(__dirname, '../../../../..');
 
   /**
+   * .what = run one git command in a temp repo; fail loud on any nonzero exit
+   * .why = a silent setup failure would surface later as an unrelated mismatch
+   */
+  const runGitOrFail = (input: { args: string[]; cwd: string }): void => {
+    const result = spawnSync('git', input.args, { cwd: input.cwd });
+    if (result.status === 0) return;
+    throw new Error(
+      `test setup failed: git ${input.args.join(' ')} (status ${result.status}, signal ${result.signal}): ${String(result.stdout)} ${String(result.stderr ?? result.error?.message)}`,
+    );
+  };
+
+  /**
+   * .what = the exit code of a finished skill run; fail loud if it never exited
+   * .why = a spawn failure or a signal death must never read as exit 1 (malfunction)
+   */
+  const asExitCode = (input: {
+    result: ReturnType<typeof spawnSync>;
+  }): number => {
+    if (input.result.status !== null) return input.result.status;
+    throw new Error(
+      `skill run did not exit: signal ${input.result.signal}, error ${input.result.error?.message}`,
+    );
+  };
+
+  /**
    * .what = run git.repo.test.sh in a temp git repo
    * .why = isolates tests from real repo state
    */
@@ -148,11 +173,15 @@ module.exports = {
 
     // commit all files on main to establish git history
     // required for --changedSince=main to work in plan mode
-    spawnSync('git', ['add', '.'], { cwd: tempDir });
-    spawnSync('git', ['commit', '-m', 'initial'], { cwd: tempDir });
+    runGitOrFail({ args: ['add', '.'], cwd: tempDir });
+    // (--allow-empty: a case may provision no files at all, as [case4] does)
+    runGitOrFail({
+      args: ['commit', '--allow-empty', '-m', 'initial'],
+      cwd: tempDir,
+    });
 
     // rename branch to 'main' for cross-environment consistency
-    spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+    runGitOrFail({ args: ['branch', '-M', 'main'], cwd: tempDir });
 
     // run git.repo.test.sh
     const result = spawnSync('bash', [scriptPath, ...args.gitRepoTestArgs], {
@@ -164,7 +193,7 @@ module.exports = {
     return {
       stdout: result.stdout ?? '',
       stderr: result.stderr ?? '',
-      exitCode: result.status ?? 1,
+      exitCode: asExitCode({ result }),
       tempDir,
     };
   };
@@ -173,8 +202,8 @@ module.exports = {
    * .what = sanitize stdout for snapshot stability
    * .why = temp dir paths, timestamps, and elapsed times change between runs
    */
-  const sanitizeOutput = (stdout: string): string =>
-    maskSpinnerTicks(stdout)
+  const sanitizeOutput = (input: { output: string }): string =>
+    maskSpinnerTicks(input.output)
       .replace(/\/tmp\/[^\s]+/g, '/tmp/TEMP_DIR')
       .replace(/\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}Z/g, 'ISOTIME')
       // mask elapsed times: (0s), (5s), (123s) -> (Xs)
@@ -191,7 +220,7 @@ module.exports = {
       // (rule.require.hermetic-tests)
       .replace(
         /✋ ConstraintError: ([^\n]*)\n\s+├─ owner: [^\n]*\n\s+└─ ran: [^\n]*/g,
-        '✋ blocked: $1',
+        '✋ ConstraintError: $1',
       );
 
   given('[case1] lint passes', () => {
@@ -263,12 +292,11 @@ module.exports = {
           result.tempDir,
           '.log/role=mechanic/skill=git.repo.test/what=lint',
         );
-        if (fs.existsSync(logDir)) {
-          const logFiles = fs
-            .readdirSync(logDir)
-            .filter((f) => f.endsWith('.stdout.log'));
-          expect(logFiles.length).toBe(0);
-        }
+        expect(fs.existsSync(logDir)).toBe(true);
+        const logFiles = fs
+          .readdirSync(logDir)
+          .filter((f) => f.endsWith('.stdout.log'));
+        expect(logFiles.length).toBe(0);
       });
 
       then(
@@ -296,7 +324,8 @@ module.exports = {
         });
 
         // success output goes to stdout
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(result.stdout).toContain('🎉 passed');
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -401,7 +430,8 @@ module.exports = {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.stderr).toContain('✋ failed');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -430,6 +460,7 @@ module.exports = {
         });
 
         expect(result.stderr).toContain('npm ERR!');
+        expect(result.stdout).toContain('npm ERR!');
       });
 
       then('output matches snapshot', () => {
@@ -441,7 +472,8 @@ module.exports = {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.stderr).toContain('npm ERR!');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -466,6 +498,7 @@ module.exports = {
         });
 
         expect(result.stderr).toContain('no package.json');
+        expect(result.stdout).toContain('no package.json');
       });
 
       then('output matches snapshot', () => {
@@ -475,7 +508,8 @@ module.exports = {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.stderr).toContain('no package.json');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -578,6 +612,7 @@ module.exports = {
         });
 
         expect(result.stderr).toContain('--what is required');
+        expect(result.stdout).toContain('--what is required');
       });
 
       then('output matches snapshot', () => {
@@ -585,7 +620,8 @@ module.exports = {
           gitRepoTestArgs: [],
         });
 
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.stderr).toContain('--what is required');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -614,7 +650,8 @@ module.exports = {
           gitRepoTestArgs: ['--what', 'foobar'],
         });
 
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.stderr).toContain("invalid --what value 'foobar'");
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -653,7 +690,10 @@ module.exports = {
           stdio: ['pipe', 'pipe', 'pipe'],
         });
 
-        expect(sanitizeOutput(result.stderr ?? '')).toMatchSnapshot();
+        expect(result.stderr).toContain('not in a git repository');
+        expect(
+          sanitizeOutput({ output: result.stderr ?? '' }),
+        ).toMatchSnapshot();
       });
     });
   });
@@ -684,7 +724,8 @@ module.exports = {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.stderr).toContain("no 'test:lint' command");
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -777,7 +818,8 @@ module.exports = {
           gitRepoTestArgs: ['--what', 'lint'],
         });
 
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(result.stderr).toContain('✋ failed');
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -809,7 +851,7 @@ module.exports = {
           gitRepoTestArgs: ['--what', 'types'],
         });
 
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -841,7 +883,7 @@ module.exports = {
           gitRepoTestArgs: ['--what', 'types'],
         });
 
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -873,7 +915,7 @@ module.exports = {
           gitRepoTestArgs: ['--what', 'format'],
         });
 
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
   });
@@ -905,7 +947,7 @@ module.exports = {
           gitRepoTestArgs: ['--what', 'format'],
         });
 
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
   });
@@ -1048,7 +1090,7 @@ module.exports = {
           gitRepoTestArgs: ['--what', 'types,format'],
         });
 
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
     });
 
@@ -1137,9 +1179,13 @@ module.exports = {
           },
         );
 
-        then('output matches snapshot', () => {
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
-          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        // the refusal goes to both streams, so the two snapshots match by design
+        then('stdout matches snapshot', () => {
+          expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
+        });
+
+        then('stderr matches snapshot', () => {
+          expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
         });
       },
     );
@@ -1279,7 +1325,7 @@ module.exports = {
             gitRepoTestArgs: ['--what', 'unit'],
           });
 
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
         });
       },
     );
@@ -1372,7 +1418,7 @@ module.exports = {
             gitRepoTestArgs: ['--what', 'lint', '--timeout', '1'],
           });
 
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
         });
       },
     );
@@ -1418,11 +1464,11 @@ module.exports = {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -1449,11 +1495,11 @@ module.exports = {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -1480,11 +1526,11 @@ module.exports = {
       });
 
       then('stdout matches snapshot', () => {
-        expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
       });
 
       then('stderr matches snapshot', () => {
-        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+        expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
       });
     });
 
@@ -1514,11 +1560,11 @@ module.exports = {
         });
 
         then('stdout matches snapshot', () => {
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
         });
 
         then('stderr matches snapshot', () => {
-          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+          expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
         });
       },
     );
@@ -1548,11 +1594,11 @@ module.exports = {
         });
 
         then('stdout matches snapshot', () => {
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
         });
 
         then('stderr matches snapshot', () => {
-          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+          expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
         });
       },
     );
@@ -1585,11 +1631,11 @@ module.exports = {
         });
 
         then('stdout matches snapshot', () => {
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
         });
 
         then('stderr matches snapshot', () => {
-          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+          expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
         });
       },
     );
@@ -1614,7 +1660,7 @@ module.exports = {
         });
 
         // ensure branch is named 'main' (git init may default to 'master' in some envs)
-        spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
+        runGitOrFail({ args: ['branch', '-M', 'main'], cwd: tempDir });
 
         // symlink node_modules manually (genTempDir symlink expects relative paths)
         fs.symlinkSync(
@@ -1624,19 +1670,22 @@ module.exports = {
 
         // commit all files on main to establish git history
         // required for --changedSince=main to work
-        spawnSync('git', ['add', '.'], { cwd: tempDir });
-        spawnSync('git', ['commit', '-m', 'initial'], { cwd: tempDir });
+        runGitOrFail({ args: ['add', '.'], cwd: tempDir });
+        runGitOrFail({ args: ['commit', '-m', 'initial'], cwd: tempDir });
 
         // create feature branch
-        spawnSync('git', ['checkout', '-b', 'feature'], { cwd: tempDir });
+        runGitOrFail({ args: ['checkout', '-b', 'feature'], cwd: tempDir });
 
         // modify ONLY moduleA.js (impacts only moduleA.test.js)
         fs.writeFileSync(
           path.join(tempDir, 'src/moduleA.js'),
           'module.exports = { a: 100 }; // changed',
         );
-        spawnSync('git', ['add', '.'], { cwd: tempDir });
-        spawnSync('git', ['commit', '-m', 'change moduleA'], { cwd: tempDir });
+        runGitOrFail({ args: ['add', '.'], cwd: tempDir });
+        runGitOrFail({
+          args: ['commit', '-m', 'change moduleA'],
+          cwd: tempDir,
+        });
 
         // run skill in plan mode (no --scope, no --thorough)
         const skillResult = spawnSync(
@@ -1660,7 +1709,7 @@ module.exports = {
           .filter((l) => l.includes('.test.js'));
 
         return {
-          exitCode: skillResult.status ?? 1,
+          exitCode: asExitCode({ result: skillResult }),
           matchedCount,
           fileLines,
           stdout: skillResult.stdout ?? '',
@@ -1709,12 +1758,11 @@ module.exports = {
           });
 
           const gitInDir = (gitArgs: string[]) =>
-            spawnSync('git', gitArgs, {
-              cwd: tempDir,
-              encoding: 'utf-8' as const,
-            });
+            runGitOrFail({ args: gitArgs, cwd: tempDir });
           const revParse = (ref: string) =>
-            (gitInDir(['rev-parse', ref]).stdout ?? '').trim();
+            String(
+              spawnSync('git', ['rev-parse', ref], { cwd: tempDir }).stdout,
+            ).trim();
 
           // ensure the base branch is named 'main'
           gitInDir(['branch', '-M', 'main']);
@@ -1773,7 +1821,7 @@ module.exports = {
             : 0;
 
           return {
-            exitCode: skillResult.status ?? 1,
+            exitCode: asExitCode({ result: skillResult }),
             matchedCount,
             stdout: skillResult.stdout ?? '',
             stderr: skillResult.stderr ?? '',
@@ -1799,13 +1847,13 @@ module.exports = {
         });
 
         then('stdout matches snapshot (temp paths + times masked)', () => {
-          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+          expect(sanitizeOutput({ output: result.stdout })).toMatchSnapshot();
         });
 
         then('stderr matches snapshot (empty on this success path)', () => {
           // pin stderr too, so a stray warn or debug line cannot slip in unseen
           // (rule.require.contract-snapshot-exhaustiveness)
-          expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
+          expect(sanitizeOutput({ output: result.stderr })).toMatchSnapshot();
         });
       },
     );

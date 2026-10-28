@@ -182,7 +182,7 @@ exports[`git.repo.test.sh given: [case17] comma-separated --what values when: [t
 "
 `;
 
-exports[`git.repo.test.sh given: [case19] --scope matches 0 files when: [t0] \`rhx git.repo.test --what unit --scope nonexistent-pattern-xyz\` is run then: output matches snapshot 1`] = `
+exports[`git.repo.test.sh given: [case19] --scope matches 0 files when: [t0] \`rhx git.repo.test --what unit --scope nonexistent-pattern-xyz\` is run then: stderr matches snapshot 1`] = `
 "🐢 bummer dude...
 
 🐚 git.repo.test --what unit --scope nonexistent-pattern-xyz-12345
@@ -194,7 +194,7 @@ hint: check the scope pattern or try without --scope
 "
 `;
 
-exports[`git.repo.test.sh given: [case19] --scope matches 0 files when: [t0] \`rhx git.repo.test --what unit --scope nonexistent-pattern-xyz\` is run then: output matches snapshot 2`] = `
+exports[`git.repo.test.sh given: [case19] --scope matches 0 files when: [t0] \`rhx git.repo.test --what unit --scope nonexistent-pattern-xyz\` is run then: stdout matches snapshot 1`] = `
 "🐢 bummer dude...
 
 🐚 git.repo.test --what unit --scope nonexistent-pattern-xyz-12345

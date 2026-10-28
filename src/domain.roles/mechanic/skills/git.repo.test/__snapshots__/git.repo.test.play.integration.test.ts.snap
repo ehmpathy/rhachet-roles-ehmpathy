@@ -41,11 +41,11 @@ exports[`git.repo.test given: [case3] repo with multiple test files when: [t0] -
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply
-   ├─ grove: bypass (scoped run)
    ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
    │  └─ /tmp/TEMP/src/user.unit.test.ts
+   ├─ grove: bypass (scoped run)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -351,11 +351,11 @@ exports[`git.repo.test given: [case10] repo with acceptance tests when: [t3] --w
 
 🐚 git.repo.test --what acceptance --scope checkout --mode apply --against local --env test
    ├─ keyrack: unlocked ehmpath/test
-   ├─ grove: bypass (scoped run)
    ├─ scope: path://checkout
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/checkout.acceptance.test.ts
+   ├─ grove: bypass (scoped run)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -677,6 +677,7 @@ options:
                         cloud = test against deployed service (test:acceptance)
                         note: --env test --against cloud is invalid
   --timeout <secs>    max time in seconds before timeout
+                        the clock starts once a slot is claimed (see grove below)
   --log <mode>        auto | always (default: auto)
                         auto = persist logs on failure only
                         always = persist logs on success and failure
@@ -685,9 +686,16 @@ options:
 grove (a per-machine bound on full jest suites):
   a full or --thorough suite claims a slot from one pool per machine, or
   waits for one and names who holds each. types, format, lint, plan mode,
-  and scoped runs without --thorough bypass the bound.
-  GIT_REPO_TEST_SLOTS=<n>       slot count (default: max(1, cores / 6))
-  GIT_REPO_TEST_SLOTS_DIR=<dir>  pool dir (default: /run/lock/rhachet/git.repo.test)
+  and path-scoped runs without --thorough bypass the bound. a name://
+  scope alone, under --mode apply, runs every file, so it is bounded.
+  a holder past 30m is named as possibly hung, and the wait shows how
+  to check and free its slot.
+
+  env:
+    GIT_REPO_TEST_SLOTS=<n>        slot count (default: max(1, cores ÷ 6);
+                                   set it in a container, whose cpu quota is unseen)
+    GIT_REPO_TEST_SLOTS_DIR=<dir>  pool dir (default: /run/lock/rhachet/git.repo.test,
+                                   else /tmp/rhachet/git.repo.test)
 "
 `;
 
@@ -716,7 +724,6 @@ exports[`git.repo.test given: [case18] real repo with real npm when: [t0] --what
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope nonexistent --mode apply
-   ├─ grove: bypass (scoped run)
    ├─ scope: path://nonexistent
    │  └─ matched: 0 files
    ├─ files
@@ -728,7 +735,7 @@ hint: check the scope pattern or run without --scope to see all tests
 "
 `;
 
-exports[`git.repo.test given: [case19] real integration test with keyrack when: [t0] --what integration calls real keyrack then: output matches snapshot 1`] = `
+exports[`git.repo.test given: [case19] integration test through a keyrack unlock when: [t0] --what integration unlocks keyrack then: output matches snapshot 1`] = `
 "🐢 lets ride...
 
 🐚 git.repo.test --what integration --mode apply
@@ -750,11 +757,11 @@ exports[`git.repo.test given: [case20] flag combinations when: [t0] --what unit 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply --resnap
-   ├─ grove: bypass (scoped run)
    ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/user.unit.test.ts
+   ├─ grove: bypass (scoped run)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -773,13 +780,13 @@ exports[`git.repo.test given: [case20] flag combinations when: [t1] --what unit 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply --thorough
-   ├─ grove
-   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
-   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/user.unit.test.ts
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -798,13 +805,13 @@ exports[`git.repo.test given: [case20] flag combinations when: [t2] --what unit 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply --resnap --thorough
-   ├─ grove
-   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
-   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/user.unit.test.ts
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -824,13 +831,13 @@ exports[`git.repo.test given: [case20] flag combinations when: [t3] --what integ
 
 🐚 git.repo.test --what integration --scope api --mode apply --thorough
    ├─ keyrack: unlocked ehmpath/test
-   ├─ grove
-   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
-   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://api
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/api.integration.test.ts
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -849,11 +856,11 @@ exports[`git.repo.test given: [case20] flag combinations when: [t4] --what unit 
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply
-   ├─ grove: bypass (scoped run)
    ├─ scope: path://user
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/user.unit.test.ts
+   ├─ grove: bypass (scoped run)
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -893,7 +900,6 @@ exports[`git.repo.test given: [case21] edge cases when: [t1] --scope with specia
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope path(src/*) --mode apply
-   ├─ grove: bypass (scoped run)
    ├─ scope: path://path(src/*)
    │  └─ matched: 0 files
    ├─ files
@@ -909,7 +915,6 @@ exports[`git.repo.test given: [case21b] --listTests failure when: [t0] jest --li
 "🐢 lets ride...
 
 🐚 git.repo.test --what unit --scope user --mode apply
-   ├─ grove: bypass (scoped run)
    ├─ status: malfunction
    └─ error: cannot verify scope - jest --listTests failed
 
@@ -1054,13 +1059,13 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t2] -
 
 🐚 git.repo.test --what integration --scope api --mode apply --resnap --thorough
    ├─ keyrack: unlocked ehmpath/test
-   ├─ grove
-   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
-   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://api
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/api.integration.test.ts
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
@@ -1080,13 +1085,13 @@ exports[`git.repo.test given: [case22] additional flag combinations when: [t3] -
 
 🐚 git.repo.test --what acceptance --scope checkout --mode apply --resnap --thorough --against local --env test
    ├─ keyrack: unlocked ehmpath/test
-   ├─ grove
-   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
-   │  └─ 🎫 slot.0 claimed
    ├─ scope: path://checkout
    │  └─ matched: 1 files
    ├─ files
    │  └─ src/checkout.acceptance.test.ts
+   ├─ grove
+   │  ├─ bound: 4 slots (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
    ├─ status
    │  ├─ 💤 inflight (Xs)
    │  ├─ 💤 inflight __xN__
