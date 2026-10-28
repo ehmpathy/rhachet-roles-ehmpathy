@@ -36,7 +36,13 @@ describe('git.repo.test --env', () => {
     const fakeBinDir = path.join(tempDir, '.fakebin');
     fs.mkdirSync(fakeBinDir, { recursive: true });
 
-    // mock rhx that succeeds for keyrack commands and echoes the correct env
+    /**
+     * .mock = keyrack (`rhx keyrack unlock` / `source`), via a fake rhx on PATH
+     * .why = these cases test that --env reaches the unlock call, not keyrack itself; the CI
+     *        runner holds no ehmpath keyrack host, and a real unlock would decide the outcome
+     *        by the host's credentials rather than by the flag under test
+     * .real = the dogfood run: this repo runs its suites via `rhx git.repo.test`, which unlocks the real keyrack; a CI case is #1191
+     */
     const mockRhx = `#!/bin/bash
 # mock rhx for keyrack commands in tests
 if [[ "$1" == "keyrack" && "$2" == "unlock" ]]; then
@@ -154,8 +160,16 @@ module.exports = {
         expect(result.stdout).toContain('unlocked ehmpath/test');
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -185,8 +199,16 @@ module.exports = {
         expect(result.stdout).toContain('unlocked ehmpath/test');
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -216,8 +238,16 @@ module.exports = {
         expect(result.stdout).toContain('unlocked ehmpath/prep');
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -247,8 +277,16 @@ module.exports = {
         expect(result.stdout).toContain('unlocked ehmpath/prod');
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -278,8 +316,16 @@ module.exports = {
         expect(result.stdout).not.toContain('unlocked ehmpath');
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });

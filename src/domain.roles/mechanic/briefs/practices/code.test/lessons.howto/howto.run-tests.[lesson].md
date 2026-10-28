@@ -51,6 +51,19 @@ rhx git.repo.test --what unit --scope "customer.*"
 rhx git.repo.test --what unit --scope "**/getUserById*"
 ```
 
+## .the grove — a wait is normal
+
+full and `--thorough` jest suites take a slot from one pool per machine (default `max(1, cores ÷ 6)`). when every slot is held, the run waits, names each holder (tree · type · pid · age), and beats every 30s. it never fails for the wait.
+
+- a wait adds to the run's wall time. set the Bash tool's `timeout` parameter (milliseconds) for every full run: `600000`, its cap, for `integration`, `acceptance`, or `all`. its default (2 minutes) cuts a full run short
+- when wait plus run may pass the cap, do not reach for the background (a hook blocks it): take the fast lane below, run one type at a time, or ask your human to run the suite
+- a tool timeout stops the call; on SIGTERM or SIGHUP the skill stops its own test tree, and the slot frees once the skill exits. a rerun joins the queue anew
+- `--timeout` counts from the claim, not from the start of the wait; it reaches each child of a `--what all` run
+- `--what all` claims a slot per child type, so a busy grove can make each child wait
+- the fast lane: a path `--scope` without `--thorough` bypasses the bound. a `name://` scope alone loads every file, so it is bounded. a wait with no path scope names this lane
+- a holder past 30m is named as possibly hung. a clone may not run `pgrep` or `kill`: ask your human, who should check its tree first (`pgrep -lP <pid>`); a long suite may still be at work
+- a full pool with low load in sight may hold suites you cannot see (a tree on an older skill version, a container with its own `/run/lock`); the holders list names each pid
+
 ## .exit codes
 
 | code | semantics |
@@ -58,6 +71,7 @@ rhx git.repo.test --what unit --scope "**/getUserById*"
 | 0 | tests passed |
 | 1 | malfunction (npm failed, keyrack failed) |
 | 2 | constraint (tests failed, no tests matched, absent command) |
+| 130 / 143 / 129 | stopped by sigint / sigterm / sighup; the test tree stopped with it |
 
 ## .log locations
 

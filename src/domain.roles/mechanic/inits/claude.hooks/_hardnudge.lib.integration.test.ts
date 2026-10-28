@@ -157,9 +157,16 @@ describe('_hardnudge.lib.sh', () => {
           });
 
           then('every path holds its record — none was erased', () => {
-            const absent = scene.filePaths.filter(
-              (filePath) => !scene.records[asNudgeKey({ filePath })],
-            );
+            // .why = each absent path carries its hook's stderr, where the lib names the cause
+            //        of a lost stamp (a wait past the cap, a lock taken over)
+            const absent = scene.filePaths
+              .map((filePath, index) => ({
+                filePath,
+                stderr: scene.results[index]?.stderr ?? '',
+              }))
+              .filter(
+                ({ filePath }) => !scene.records[asNudgeKey({ filePath })],
+              );
             expect(absent).toEqual([]);
           });
 
@@ -173,6 +180,68 @@ describe('_hardnudge.lib.sh', () => {
         });
       },
     );
+
+    given(`[case6] ${hook.name}: a live holder keeps the lock for 4s`, () => {
+      // 🔴 a waiter gave up its stamp after ~2s on a LIVE holder. a full suite on a
+      //    loaded box can serialize twelve writers past that, and each one past it
+      //    loses its stamp, as the race case above checks. the wait now spans the
+      //    hook's own budget
+      when('[t0] a first write arrives while the lock is held', () => {
+        const scene = useBeforeAll(async () => {
+          const cwd = genHookTempCwd({
+            slug: 'hardnudge-held',
+            nudgeFileName: hook.nudgeFileName,
+          });
+          const lockDir = path.join(
+            cwd,
+            '.claude',
+            `${hook.nudgeFileName}.lock`,
+          );
+
+          // a live holder: take the lock, mark it with its pid, hold 4s, release
+          const holder = spawn('bash', [
+            '-c',
+            `mkdir "${lockDir}" && echo $$ > "${lockDir}/pid" && sleep 4 && rm -f "${lockDir}/pid" && rmdir "${lockDir}"`,
+          ]);
+          const holderDone = new Promise((resolve) =>
+            holder.on('close', resolve),
+          );
+          while (!existsSync(path.join(lockDir, 'pid')))
+            await new Promise((resolve) => setTimeout(resolve, 20));
+
+          const filePath = 'wave-held.md';
+          const result = await runHookAsync({
+            hookPath,
+            json: asWriteJson({ filePath, content: hook.content }),
+            cwd,
+          });
+          await holderDone;
+          const records = JSON.parse(
+            readFileSync(
+              path.join(cwd, '.claude', hook.nudgeFileName),
+              'utf-8',
+            ),
+          );
+          return { result, record: records[asNudgeKey({ filePath })] ?? null };
+        });
+
+        then('the hook exits 2 — the write blocks', () => {
+          expect(scene.result.exitCode).toEqual(2);
+        });
+
+        then('the stamp lands once the holder releases', () => {
+          expect({
+            stamped: scene.record !== null,
+            gaveUp: scene.result.stderr.includes('past the wait'),
+            stderr: scene.result.stderr,
+          }).toEqual({
+            stamped: true,
+            gaveUp: false,
+            stderr: scene.result.stderr,
+          });
+        });
+      });
+    });
 
     given(`[case3] ${hook.name}: a crashed hook left its lock behind`, () => {
       // .why = a lock that outlives its hook must not freeze the stamp forever;

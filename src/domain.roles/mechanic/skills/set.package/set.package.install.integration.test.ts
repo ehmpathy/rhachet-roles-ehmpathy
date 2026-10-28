@@ -14,6 +14,12 @@ describe('set.package.install.sh', () => {
   /**
    * .what = create temp directory with package.json and fake package managers
    * .why = isolate tests from real repo and avoid actual installs
+   * .mock = `pnpm add`, `npm install`, and `npm view <pkg> version`, via fakes on PATH
+   * .why = the suite tests the skill's own gates (flags, reason file, audit verdict, manager
+   *        choice); a real install would pull a package tree into the temp dir on every case,
+   *        and a real `npm view` would make the pinned version drift with the registry
+   * .real = the audit is real: every other npm call passes through to the real npm, which reads
+   *         the live registry (the success case pins an owned package, type-fns, for that reason)
    */
   const createTempDir = (options?: {
     withPackageLock?: boolean;
@@ -237,8 +243,7 @@ exit 1
       });
 
       then('output shows success', () => {
-        // .note = an advisory-free package; the audit reads the live registry, so an
-        //         old pin of a popular package (zod@3.22.4 gained one) fails it
+        // .note = the audit reads the live registry; type-fns and its one dep are ehmpathy's own, so an advisory here is ours to fix
         const result = runSkill(
           [
             '--package',

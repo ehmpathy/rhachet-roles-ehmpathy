@@ -1,16 +1,278 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`git.repo.test.sh grove given: [case1] a grove with 2 slots, both free, pool dir absent when: [t0] a full unit suite runs then: the grove branch matches snapshot 1`] = `
-"   ├─ grove
+"🐚 git.repo.test --what unit --mode apply
+   ├─ grove
    │  ├─ bound: 2 slots (GIT_REPO_TEST_SLOTS)
    │  └─ 🎫 slot.0 claimed"
 `;
 
 exports[`git.repo.test.sh grove given: [case2] N+1 suites against a bound of N (wish clamp 1) when: [t1] a holder lingers past 30s, then exits then: the grove branch matches snapshot 1`] = `
-"   ├─ grove
+"🐚 git.repo.test --what unit --mode apply
+   ├─ grove
    │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
    │  ├─ ⏳ 1 of 1 slot held, wait for one
-   │  │  └─ slot.0: tree-holder · integration · pid <pid> · <age>
-   │  ├─ ⏳ still held (<age>)
-   │  └─ 🎫 slot.0 claimed after <age>"
+   │  │  └─ slot.0: tree-holder · integration · pid <pid> · <holder-age>
+   │  ├─ tip: a path --scope skips the wait (a name:// scope alone loads every file)
+   │  ├─ ⏳ still held (30s)
+   │  │  └─ slot.0: tree-holder · integration · pid <pid> · <holder-age>
+   │  └─ 🎫 slot.0 claimed after <wait-age>"
+`;
+
+exports[`git.repo.test.sh grove given: [case2] N+1 suites against a bound of N (wish clamp 1) when: [t2] a holder has held its slot past 30m then: the grove branch matches snapshot 1`] = `
+"🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  ├─ ⏳ 1 of 1 slot held, wait for one
+   │  │  └─ slot.0: tree-hung · integration · pid <pid> · <holder-age>
+   │  ├─ ⚠️ slot.0 held <holder-age> — tree-hung · pid <pid> · may be hung
+   │  │  ├─ check first: pgrep -lP <pid> (a long suite may still be at work)
+   │  │  ├─ to free it: kill <pid>
+   │  │  └─ a clone may not run these; ask your human
+   │  ├─ tip: a path --scope skips the wait (a name:// scope alone loads every file)
+   └─ 🌙 stopped by sigint; no test tree had started (exit 130)"
+`;
+
+exports[`git.repo.test.sh grove given: [case2] N+1 suites against a bound of N (wish clamp 1) when: [t6] a stale holder is another user's then: the grove branch matches snapshot 1`] = `
+"🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  ├─ ⏳ 1 of 1 slot held, wait for one
+   │  │  └─ slot.0: tree-hung · integration · pid <pid> · <holder-age>
+   │  ├─ ⚠️ slot.0 held <holder-age> — tree-hung · pid <pid> · may be hung
+   │  │  ├─ check first: pgrep -lP <pid> (a long suite may still be at work)
+   │  │  ├─ to free it: kill <pid> (as otherhuman, its owner)
+   │  │  └─ a clone may not run these; ask your human
+   │  ├─ tip: a path --scope skips the wait (a name:// scope alone loads every file)
+   └─ 🌙 stopped by sigint; no test tree had started (exit 130)"
+`;
+
+exports[`git.repo.test.sh grove given: [case2] N+1 suites against a bound of N (wish clamp 1) when: [t7] a waiter meets both slots held, bound 2 then: the grove branch matches snapshot 1`] = `
+"🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 2 slots (GIT_REPO_TEST_SLOTS)
+   │  ├─ ⏳ 2 of 2 slots held, wait for one
+   │  │  ├─ slot.0: tree-kai · integration · pid <pid> · <holder-age>
+   │  │  └─ slot.1: tree-jo · unit · pid <pid> · <holder-age>
+   │  ├─ tip: a path --scope skips the wait (a name:// scope alone loads every file)
+   └─ 🌙 stopped by sigint; no test tree had started (exit 130)"
+`;
+
+exports[`git.repo.test.sh grove given: [case3] a grove with 1 slot, held by a skill run (wish clamp 2) when: [t2] a waiter is sent SIGINT mid-wait then: the grove branch matches snapshot 1`] = `
+"🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  ├─ ⏳ 1 of 1 slot held, wait for one
+   │  │  └─ slot.0: tree-holder · unit · pid <pid> · <holder-age>
+   │  ├─ tip: a path --scope skips the wait (a name:// scope alone loads every file)
+   └─ 🌙 stopped by sigint; no test tree had started (exit 130)"
+`;
+
+exports[`git.repo.test.sh grove given: [case3] a grove with 1 slot, held by a skill run (wish clamp 2) when: [t3] the holder is sent SIGTERM mid-run then: the holder grove branch matches snapshot 1`] = `
+"🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
+   └─ 🌙 stopped by sigterm; the test tree is down (exit 143)"
+`;
+
+exports[`git.repo.test.sh grove given: [case3] a grove with 1 slot, held by a skill run (wish clamp 2) when: [t4] a multi-type run is sent SIGTERM while a child suite runs then: the stop render matches snapshot, both streams 1`] = `
+{
+  "stderr": "   └─ 🌙 stopped by sigterm; the test tree is down (exit 143)",
+  "stdout": "🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
+   └─ 🌙 stopped by sigterm; the test tree is down (exit 143)",
+}
+`;
+
+exports[`git.repo.test.sh grove given: [case3] a grove with 1 slot, held by a skill run (wish clamp 2) when: [t6] the holder is sent SIGHUP mid-run (a closed session) then: the holder grove branch matches snapshot 1`] = `
+"🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
+   └─ 🌙 stopped by sighup; the test tree is down (exit 129)"
+`;
+
+exports[`git.repo.test.sh grove given: [case3] a grove with 1 slot, held by a skill run (wish clamp 2) when: [t8] the holder is sent SIGTERM and each kill of its tree is refused then: the stop render matches snapshot 1`] = `
+"🐚 git.repo.test --what unit --mode apply
+   ├─ 💥 MalfunctionError: could not stop the test tree
+   │  ├─ target: <target> (TERM)
+   │  ├─ cause: bash: kill: (<target>) - Operation not permitted
+   │  └─ fix: kill -TERM -- <target>
+   ├─ 💥 MalfunctionError: could not stop the test tree
+   │  ├─ target: <target> (KILL)
+   │  ├─ cause: bash: kill: (<target>) - Operation not permitted
+   │  └─ fix: kill -KILL -- <target>
+   └─ 🌙 stopped by sigterm; the test tree may still run, run the kill -KILL fix above (exit 143)"
+`;
+
+exports[`git.repo.test.sh grove given: [case3] a grove with 1 slot, held by a skill run (wish clamp 2) when: [t9] the holder is sent SIGINT (ctrl-c) mid-run then: the stop render matches snapshot 1`] = `
+"🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
+   └─ 🌙 stopped by sigint; the test tree is down (exit 130)"
+`;
+
+exports[`git.repo.test.sh grove given: [case4] a grove with its only slot held when: [t0] a scoped run, a lint, a nested run, and a thorough scoped run start then: the bypass, nest, and fast-lane renders match snapshot 1`] = `
+{
+  "lint": "🐚 git.repo.test --what lint
+   ├─ grove: bypass (not a jest suite)",
+  "named": "🐚 git.repo.test --what unit --scope name://passes --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  ├─ ⏳ 1 of 1 slot held, wait for one
+   │  │  └─ slot.0: tree-holder · integration · pid <pid> · <holder-age>
+   │  ├─ tip: a path --scope skips the wait (a name:// scope alone loads every file)
+   └─ 🌙 stopped by sigint; no test tree had started (exit 130)",
+  "nested": "🐚 git.repo.test --what unit --mode apply
+   ├─ grove: bypass (nested in a held slot)",
+  "nomatch": "   │  └─ matched: 0 files
+   └─ error: no tests matched scope 'path://nomatch'",
+  "orphans": {
+    "markerGonePid": "🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  ├─ ⏳ 1 of 1 slot held, wait for one
+   │  │  └─ slot.0: tree-holder · integration · pid <pid> · <holder-age>
+   │  ├─ tip: a path --scope skips the wait (a name:// scope alone loads every file)
+   └─ 🌙 stopped by sigint; no test tree had started (exit 130)",
+    "markerNoPid": "🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  ├─ ⏳ 1 of 1 slot held, wait for one
+   │  │  └─ slot.0: tree-holder · integration · pid <pid> · <holder-age>
+   │  ├─ tip: a path --scope skips the wait (a name:// scope alone loads every file)
+   └─ 🌙 stopped by sigint; no test tree had started (exit 130)",
+  },
+  "scoped": "🐚 git.repo.test --what unit --scope example --mode apply
+   ├─ grove: bypass (scoped run)",
+  "thorough": "🐚 git.repo.test --what unit --scope example --mode apply --thorough
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  ├─ ⏳ 1 of 1 slot held, wait for one
+   │  │  └─ slot.0: tree-holder · integration · pid <pid> · <holder-age>
+   └─ 🌙 stopped by sigint; no test tree had started (exit 130)",
+}
+`;
+
+exports[`git.repo.test.sh grove given: [case5] an invalid bound override when: [t0] GIT_REPO_TEST_SLOTS is 0 then: the refusal matches snapshot 1`] = `
+"✋ ConstraintError: GIT_REPO_TEST_SLOTS must be a whole number ≥ 1
+   ├─ got: 0
+   └─ fix: export GIT_REPO_TEST_SLOTS=2, or unset it to derive from the core count
+"
+`;
+
+exports[`git.repo.test.sh grove given: [case5] an invalid bound override when: [t1] GIT_REPO_TEST_SLOTS is -1 then: the refusal matches snapshot 1`] = `
+"✋ ConstraintError: GIT_REPO_TEST_SLOTS must be a whole number ≥ 1
+   ├─ got: -1
+   └─ fix: export GIT_REPO_TEST_SLOTS=2, or unset it to derive from the core count
+"
+`;
+
+exports[`git.repo.test.sh grove given: [case5] an invalid bound override when: [t2] GIT_REPO_TEST_SLOTS is abc then: the refusal matches snapshot 1`] = `
+"✋ ConstraintError: GIT_REPO_TEST_SLOTS must be a whole number ≥ 1
+   ├─ got: abc
+   └─ fix: export GIT_REPO_TEST_SLOTS=2, or unset it to derive from the core count
+"
+`;
+
+exports[`git.repo.test.sh grove given: [case5] an invalid bound override when: [t3] GIT_REPO_TEST_SLOTS_DIR is a relative path then: the refusal matches snapshot 1`] = `
+"✋ ConstraintError: GIT_REPO_TEST_SLOTS_DIR must be an absolute path
+   ├─ got: my-pool
+   └─ fix: export GIT_REPO_TEST_SLOTS_DIR="$PWD/my-pool", or unset it for the per-machine pool
+"
+`;
+
+exports[`git.repo.test.sh grove given: [case6] the bound source, its reach, and a pool that cannot exist when: [t2] the pool dir cannot be created then: the refusal matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --mode apply
+   └─ 💥 MalfunctionError: grove pool dir is not writable
+      ├─ dir: <stage>/a-file/pool
+      └─ fix: create it with mode 1777, or export GIT_REPO_TEST_SLOTS_DIR=<a writable dir>
+"
+`;
+
+exports[`git.repo.test.sh grove given: [case6] the bound source, its reach, and a pool that cannot exist when: [t3] a slot file exists that this user cannot read then: the refusal matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  └─ 💥 MalfunctionError: grove slot file is not readable
+   │     ├─ file: <stage>/pool/slot.0.lock
+   │     └─ fix: chmod 666 it, or remove it so the next run recreates it
+"
+`;
+
+exports[`git.repo.test.sh grove given: [case6] the bound source, its reach, and a pool that cannot exist when: [t5] a --what all style run meets a busy grove then: the multi handoff matches snapshot 1`] = `
+"🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  ├─ ⏳ 1 of 1 slot held, wait for one
+   │  │  └─ slot.0: tree-holder · integration · pid <pid> · <holder-age>
+   │  ├─ tip: a path --scope skips the wait (a name:// scope alone loads every file)
+   │  └─ 🎫 slot.0 claimed after <wait-age>
+🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed"
+`;
+
+exports[`git.repo.test.sh grove given: [case6] the bound source, its reach, and a pool that cannot exist when: [t8] a multi run is sent SIGINT while its child waits then: the stop render matches snapshot, both streams 1`] = `
+{
+  "stderr": "   └─ 🌙 stopped by sigint; no test tree had started (exit 130)",
+  "stdout": "🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  ├─ ⏳ 1 of 1 slot held, wait for one
+   │  │  └─ slot.0: tree-holder · integration · pid <pid> · <holder-age>
+   │  ├─ tip: a path --scope skips the wait (a name:// scope alone loads every file)
+   └─ 🌙 stopped by sigint; no test tree had started (exit 130)",
+}
+`;
+
+exports[`git.repo.test.sh grove given: [case6] the bound source, its reach, and a pool that cannot exist when: [t9] a nested run whose env lost the nest marker meets the slot its own parent holds then: the refusal matches snapshot 1`] = `
+"🐢 lets ride...
+
+🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  └─ ✋ ConstraintError: this run waits on its own ancestor
+   │     ├─ slot.0 is held by pid <pid>, which spawned this run
+   │     └─ fix: keep GIT_REPO_TEST_GROVE_HELD in the nested run's env, or run it outside the parent
+"
+`;
+
+exports[`git.repo.test.sh grove given: [case6] the bound source, its reach, and a pool that cannot exist when: [t13] the box reports 4, 6, and 24 cores then: the bound lines match snapshot 1`] = `
+[
+  "🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (4 cores ÷ 6, min 1)
+   │  └─ 🎫 slot.0 claimed",
+  "🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (6 cores ÷ 6)
+   │  └─ 🎫 slot.0 claimed",
+  "🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 4 slots (24 cores ÷ 6)
+   │  └─ 🎫 slot.0 claimed",
+]
+`;
+
+exports[`git.repo.test.sh grove given: [case7] a box with no setsid (as stock macos) when: [t0] a holder is sent SIGTERM mid-run then: the stop render matches snapshot 1`] = `
+"🐚 git.repo.test --what unit --mode apply
+   ├─ grove
+   │  ├─ bound: 1 slot (GIT_REPO_TEST_SLOTS)
+   │  └─ 🎫 slot.0 claimed
+   └─ 🌙 stopped by sigterm; the test tree is down (exit 143)"
+`;
+
+exports[`git.repo.test.sh grove given: [case7] a box with no setsid (as stock macos) when: [t1] a full suite runs on a box with no flock then: the grove branch matches snapshot 1`] = `
+"🐚 git.repo.test --what unit --mode apply
+   ├─ grove: ⚠️ unbounded (flock not found; install it to bound suites: util-linux on linux, brew install flock on macos)"
 `;

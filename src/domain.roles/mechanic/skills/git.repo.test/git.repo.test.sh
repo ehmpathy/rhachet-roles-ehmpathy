@@ -53,10 +53,12 @@
 #   - logs raw output to .log/role=mechanic/skill=git.repo.test/what=${WHAT}/
 #   - auto keyrack unlock for integration/acceptance
 #   - full and --thorough jest suites hold a per-machine grove slot
-#     (GIT_REPO_TEST_SLOTS, default max(1, cores / 6)); a run that finds
+#     (GIT_REPO_TEST_SLOTS, default max(1, cores ÷ 6)); a run that finds
 #     every slot held waits, names the holders, and never fails for it
-#   - ctrl-c, SIGTERM, or SIGHUP stops the whole test process tree
-#   - exit 0 = passed, exit 1 = malfunction, exit 2 = constraint
+#   - ctrl-c, sigterm, or sighup stops the whole test process tree,
+#     says so on both streams, and exits 128 + the signal
+#   - exit 0 = passed, exit 1 = malfunction, exit 2 = constraint,
+#     exit 130 / 143 / 129 = stopped by sigint / sigterm / sighup
 ######################################################################
 set -euo pipefail
 
@@ -128,6 +130,8 @@ TIMER_PID=""
 # temp file paths (must be declared before trap for set -u compatibility)
 TEMP_STDOUT=""
 TEMP_STDERR=""
+# a --what all parent's note of the true stop signal, for its child to read
+STOP_LABEL_FILE=""
 
 start_timer() {
   # emit "status" parent branch once, then nested inflight lines
@@ -138,9 +142,11 @@ start_timer() {
     start_time=$(date +%s)
     next_emit=5  # first emit at 5s
     local parent_pid=$$
+    # a 1s tick, uncapped: it is the elapsed clock, and it ends with the run
     while true; do
       sleep 1
-      # stop once the run is gone (a SIGKILL leaves no trap to stop us)
+      # stop once the run is gone: a kill -9 leaves no trap to stop us.
+      # any kill -0 failure (no such process, or a pid reused by another user) means gone
       kill -0 "$parent_pid" 2>/dev/null || exit 0
       local now elapsed
       now=$(date +%s)
@@ -168,35 +174,172 @@ stop_timer() {
 }
 
 # cleanup timer on exit
-trap 'stop_timer; rm -f "$TEMP_STDOUT" "$TEMP_STDERR"' EXIT
+trap 'stop_timer; del_grove_holder_record; rm -f "$TEMP_STDOUT" "$TEMP_STDERR" "$STOP_LABEL_FILE"' EXIT
 
 ######################################################################
 # on ctrl-c, a closed session, or a harness timeout: take the test
 # process group down with this run, so slot and load free together
-# .note = SIGKILL cannot be trapped; then the kernel frees the slot
+# .note = a kill -9 cannot be trapped; then the kernel frees the slot
 #         and the orphaned jest tree may finish its suite alone
 ######################################################################
+# the test child: its pid, "launch" while it forks, or empty
 TEST_CHILD_PID=""
+# ticks of 0.1s to await a stop before a kill -9 (set per launch via --grace)
+TEST_CHILD_GRACE_TICKS=20
+# whether any test child has launched; the stop line says so
+TEST_CHILD_LAUNCHED="false"
+# $! just before the launch: a $! equal to it means the fork has not happened
+TEST_CHILD_BANG_BEFORE=""
+# whether the test child prints its own stop line (a --what all child does)
+TEST_CHILD_SPEAKS="false"
+# whether a kill -9 of the test tree was refused (the tree may still run)
+TEST_CHILD_STOP_REFUSED="false"
+
+######################################################################
+# send one signal to the test child; tolerate only "no such process"
+# .why = the tree may have exited already; any other failure means the
+#        tree may still run, so it is named on both streams
+######################################################################
+send_signal_to_test_child() {
+  local signal="$1"
+  local target="$2"
+  local refusal
+  if refusal=$(kill "-$signal" -- "$target" 2>&1); then
+    return 0
+  fi
+  if [[ "$refusal" == *"No such process"* ]]; then
+    return 0
+  fi
+  # a refused kill -9 leaves the tree up; the stop line must not claim it is down
+  [[ "$signal" == "KILL" ]] && TEST_CHILD_STOP_REFUSED="true"
+  {
+    echo "   ├─ 💥 MalfunctionError: could not stop the test tree"
+    echo "   │  ├─ target: $target ($signal)"
+    echo "   │  ├─ cause: $refusal"
+    echo "   │  └─ fix: kill -$signal -- $target"
+  } | emit_to_both
+}
 
 stop_test_child() {
+  # a signal that lands as the child forks: a $! that moved names the child;
+  # one that did not names an earlier, reaped job, so there is none to stop
+  if [[ "$TEST_CHILD_PID" == "launch" ]]; then
+    TEST_CHILD_PID=""
+    [[ "${!:-}" != "$TEST_CHILD_BANG_BEFORE" ]] && TEST_CHILD_PID="${!:-}"
+  fi
   if [[ -z "$TEST_CHILD_PID" ]]; then
     return 0
   fi
 
-  # ask the whole group to stop, then insist after 2s
-  kill -TERM -- "-$TEST_CHILD_PID" 2>/dev/null || kill -TERM "$TEST_CHILD_PID" 2>/dev/null || true
+  # aim at the child's group when it leads one, else at the child alone
+  local target="$TEST_CHILD_PID"
+  if kill -0 -- "-$TEST_CHILD_PID" 2>/dev/null; then
+    target="-$TEST_CHILD_PID"
+  fi
+
+  # ask the tree to stop, then insist once the grace runs out
+  send_signal_to_test_child TERM "$target"
   local tick
-  for tick in $(seq 1 20); do
-    kill -0 -- "-$TEST_CHILD_PID" 2>/dev/null || break
+  for ((tick = 0; tick < TEST_CHILD_GRACE_TICKS; tick++)); do
+    kill -0 -- "$target" 2>/dev/null || break
     sleep 0.1
   done
-  kill -KILL -- "-$TEST_CHILD_PID" 2>/dev/null || true
+  send_signal_to_test_child KILL "$target"
   TEST_CHILD_PID=""
 }
 
-trap 'stop_test_child; exit 130' INT
-trap 'stop_test_child; exit 143' TERM
-trap 'stop_test_child; exit 129' HUP
+######################################################################
+# stop the test tree, say so on both streams, exit 128 + the signal
+######################################################################
+stop_on_signal() {
+  local signal="$1"
+  local exit_code="$2"
+  local child_live="$TEST_CHILD_PID"
+
+  # a --what all child is stopped by TERM (as a background job it ignores SIGINT);
+  # its parent leaves the true signal in a label file, so the child names it
+  if [[ -n "${GIT_REPO_TEST_STOP_LABEL_FILE:-}" ]] && [[ -s "$GIT_REPO_TEST_STOP_LABEL_FILE" ]]; then
+    read -r signal exit_code <"$GIT_REPO_TEST_STOP_LABEL_FILE"
+  fi
+
+  # a --what all parent: leave the true signal for the child before it stops the child
+  if [[ -n "$child_live" ]] && [[ "$TEST_CHILD_SPEAKS" == "true" ]]; then
+    echo "$signal $exit_code" >"$STOP_LABEL_FILE"
+  fi
+  stop_test_child
+
+  # a live --what all child already said how it stopped; one line, not two
+  if [[ -n "$child_live" ]] && [[ "$TEST_CHILD_SPEAKS" == "true" ]]; then
+    exit "$exit_code"
+  fi
+  if [[ "$TEST_CHILD_LAUNCHED" != "true" ]]; then
+    echo "   └─ 🌙 stopped by $signal; no test tree had started (exit $exit_code)" | emit_to_both
+    exit "$exit_code"
+  fi
+  if [[ "$TEST_CHILD_STOP_REFUSED" == "true" ]]; then
+    echo "   └─ 🌙 stopped by $signal; the test tree may still run, run the kill -KILL fix above (exit $exit_code)" | emit_to_both
+    exit "$exit_code"
+  fi
+  echo "   └─ 🌙 stopped by $signal; the test tree is down (exit $exit_code)" | emit_to_both
+  exit "$exit_code"
+}
+
+trap 'stop_on_signal sigint 130' INT
+trap 'stop_on_signal sigterm 143' TERM
+trap 'stop_on_signal sighup 129' HUP
+
+######################################################################
+# run a test child in the background with the grove slot fd closed;
+# wait for it; return its exit code
+# usage:
+#   run_test_child --group own --stdout <file> --stderr <file> -- <cmd...>
+#   run_test_child --group shared --grace 40 -- <cmd...>
+# .note = --grace = ticks of 0.1s a stop waits before a kill -9 (default 20)
+# .why = in the background, the signal trap fires at once, not after
+#        jest ends; with fd 9 closed, the slot keys to this pid alone
+# .note = own: setsid, else job control (set -m), so the trap stops the
+#         whole tree by its group; stdin is /dev/null
+# .note = shared: the child stays in this run's group. as a background
+#         job it reads /dev/null and ignores SIGINT, so the trap here
+#         sends it TERM; it stops its own tree and prints its own stop line
+# .note = the child alone is redirected, never this function: a trap
+#         that fires in the wait must still reach the real stdout
+######################################################################
+run_test_child() {
+  local group="" out="/dev/stdout" err="/dev/stderr" grace=20
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --group) group="$2"; shift 2 ;;
+      --stdout) out="$2"; shift 2 ;;
+      --stderr) err="$2"; shift 2 ;;
+      --grace) grace="$2"; shift 2 ;;
+      --) shift; break ;;
+      *) echo "💥 MalfunctionError: run_test_child: unknown arg $1" | emit_to_both; exit 1 ;;
+    esac
+  done
+
+  TEST_CHILD_GRACE_TICKS="$grace"
+  TEST_CHILD_LAUNCHED="true"
+  TEST_CHILD_SPEAKS="false"
+  [[ "$group" == "shared" ]] && TEST_CHILD_SPEAKS="true"
+  TEST_CHILD_BANG_BEFORE="${!:-}"
+  TEST_CHILD_PID="launch"
+  if [[ "$group" == "shared" ]]; then
+    "$@" 9>&- &
+  elif command -v setsid >/dev/null 2>&1; then
+    setsid -w "$@" < /dev/null > "$out" 2> "$err" 9>&- &
+  else
+    set -m
+    "$@" < /dev/null > "$out" 2> "$err" 9>&- &
+    set +m
+  fi
+  TEST_CHILD_PID=$!
+
+  local exit_code=0
+  wait "$TEST_CHILD_PID" || exit_code=$?
+  TEST_CHILD_PID=""
+  return "$exit_code"
+}
 
 ######################################################################
 # validate jest config exists for unit/integration/acceptance
@@ -692,6 +835,7 @@ while [[ $# -gt 0 ]]; do
       echo "                        cloud = test against deployed service (test:acceptance)"
       echo "                        note: --env test --against cloud is invalid"
       echo "  --timeout <secs>    max time in seconds before timeout"
+      echo "                        the clock starts once a slot is claimed (see grove below)"
       echo "  --log <mode>        auto | always (default: auto)"
       echo "                        auto = persist logs on failure only"
       echo "                        always = persist logs on success and failure"
@@ -700,9 +844,16 @@ while [[ $# -gt 0 ]]; do
       echo "grove (a per-machine bound on full jest suites):"
       echo "  a full or --thorough suite claims a slot from one pool per machine, or"
       echo "  waits for one and names who holds each. types, format, lint, plan mode,"
-      echo "  and scoped runs without --thorough bypass the bound."
-      echo "  GIT_REPO_TEST_SLOTS=<n>       slot count (default: max(1, cores / 6))"
-      echo "  GIT_REPO_TEST_SLOTS_DIR=<dir>  pool dir (default: /run/lock/rhachet/git.repo.test)"
+      echo "  and path-scoped runs without --thorough bypass the bound. a name://"
+      echo "  scope alone, under --mode apply, runs every file, so it is bounded."
+      echo "  a holder past 30m is named as possibly hung, and the wait shows how"
+      echo "  to check and free its slot."
+      echo ""
+      echo "  env:"
+      echo "    GIT_REPO_TEST_SLOTS=<n>        slot count (default: max(1, cores ÷ 6);"
+      echo "                                   set it in a container, whose cpu quota is unseen)"
+      echo "    GIT_REPO_TEST_SLOTS_DIR=<dir>  pool dir (default: /run/lock/rhachet/git.repo.test,"
+      echo "                                   else /tmp/rhachet/git.repo.test)"
       exit 0
       ;;
     *)
@@ -1147,6 +1298,7 @@ STDERR_LOG="$LOG_PATH/${ISOTIME}.stderr.log"
 # temp files for capture (only persist to log on error)
 TEMP_STDOUT=$(mktemp)
 TEMP_STDERR=$(mktemp)
+STOP_LABEL_FILE="${TEMP_STDOUT}.stop"
 # note: trap for cleanup is set in timer section above
 
 ######################################################################
@@ -1309,21 +1461,8 @@ run_single_test() {
     cmd+=(-- "${jest_args[@]}")
   fi
 
-  # run in its own session, so the signal trap can stop the whole test tree;
-  # in the background, so the trap fires at once rather than after jest ends;
-  # with fd 9 closed, so the grove slot keys to this run's pid alone
-  if command -v setsid >/dev/null 2>&1; then
-    setsid -w "${cmd[@]}" > "$temp_stdout" 2> "$temp_stderr" 9>&- &
-  else
-    "${cmd[@]}" > "$temp_stdout" 2> "$temp_stderr" 9>&- &
-  fi
-  TEST_CHILD_PID=$!
-
-  local exit_code=0
-  wait "$TEST_CHILD_PID" || exit_code=$?
-  TEST_CHILD_PID=""
-
-  return $exit_code
+  # run the suite in its own process group, so a signal stops the whole tree
+  run_test_child --group own --stdout "$temp_stdout" --stderr "$temp_stderr" -- "${cmd[@]}"
 }
 
 ######################################################################
@@ -1511,6 +1650,7 @@ if [[ "$MULTI_MODE" == "true" ]]; then
     [[ "$THOROUGH" == "true" ]] && type_args+=("--thorough")
     [[ "$LOG_MODE" != "auto" ]] && type_args+=("--log" "$LOG_MODE")
     [[ -n "$WHEN" ]] && type_args+=("--when" "$WHEN")
+    [[ -n "$TIMEOUT" ]] && type_args+=("--timeout" "$TIMEOUT")
     # pass --against and --env for acceptance tests (required by acceptance)
     if [[ "$test_type" == "acceptance" ]]; then
       [[ -n "$AGAINST" ]] && type_args+=("--against" "$AGAINST")
@@ -1520,11 +1660,8 @@ if [[ "$MULTI_MODE" == "true" ]]; then
 
     # run this type (output goes directly to stdout/stderr)
     # pass --_multi-child to suppress turtle header in child
-    # in the background + wait, so a signal to this parent reaches the child at once
-    bash "$SCRIPT_PATH" "${type_args[@]}" --_multi-child &
-    TEST_CHILD_PID=$!
-    wait "$TEST_CHILD_PID" || MULTI_EXIT_CODE=$?
-    TEST_CHILD_PID=""
+    # the child stops its own tree on a signal; 40 ticks (4s) cover its own 20-tick (2s) grace
+    run_test_child --group shared --grace 40 -- env GIT_REPO_TEST_STOP_LABEL_FILE="$STOP_LABEL_FILE" bash "$SCRIPT_PATH" "${type_args[@]}" --_multi-child || MULTI_EXIT_CODE=$?
 
     # stop on first failure
     if [[ $MULTI_EXIT_CODE -ne 0 ]]; then
@@ -1560,7 +1697,7 @@ if [[ "$MODE" == "plan" ]]; then
   fi
 
   # get file count
-  SCOPE_FILE_COUNT=$(exec 9>&-; get_scope_file_count "$WHAT" "$local_scope")
+  SCOPE_FILE_COUNT=$(get_scope_file_count "$WHAT" "$local_scope")
 
   # if count check failed, fall back to apply mode with warning
   if [[ "$SCOPE_FILE_COUNT" == "-1" ]]; then
@@ -1634,10 +1771,8 @@ if [[ -n "$KEYRACK_STATUS" ]]; then
   print_tree_branch "keyrack" "$KEYRACK_STATUS"
 fi
 
-# claim a grove slot before the suite runs (waits while the bound is full)
-set_grove_slot
-
 # show scope preview if applicable and failfast if 0 matches or check failed
+# (before the grove claim: a run that fails fast never waits for a slot)
 SCOPE_PREVIEW_OUTPUT=""
 SCOPE_FILE_COUNT=""
 if [[ ${#SCOPES[@]} -gt 0 ]] && [[ "$WHAT" != "lint" ]]; then
@@ -1649,9 +1784,7 @@ if [[ ${#SCOPES[@]} -gt 0 ]] && [[ "$WHAT" != "lint" ]]; then
     local_scope="${PATH_PATTERNS[0]}"
   fi
 
-  # exec 9>&- inside each subshell, so it and its jest hold no grove slot past a kill.
-  # a bare `f 9>&-` would not do: bash keeps a saved copy of fd 9 open to restore it
-  SCOPE_FILE_COUNT=$(exec 9>&-; get_scope_file_count "$WHAT" "$local_scope")
+  SCOPE_FILE_COUNT=$(get_scope_file_count "$WHAT" "$local_scope")
 
   # failfast if scope check failed (can't verify scope without jest --listTests)
   if [[ "$SCOPE_FILE_COUNT" == "-1" ]]; then
@@ -1665,7 +1798,7 @@ if [[ ${#SCOPES[@]} -gt 0 ]] && [[ "$WHAT" != "lint" ]]; then
   fi
 
   # get files for display
-  SCOPE_FILES=$(exec 9>&-; get_scope_files "$WHAT" "$local_scope")
+  SCOPE_FILES=$(get_scope_files "$WHAT" "$local_scope")
 
   # build scope display (join all scopes)
   SCOPE_DISPLAY=$(format_scope_display "${SCOPES[@]}")
@@ -1680,6 +1813,9 @@ if [[ ${#SCOPES[@]} -gt 0 ]] && [[ "$WHAT" != "lint" ]]; then
     exit 2
   fi
 fi
+
+# claim a grove slot before the suite runs (waits while the bound is full)
+set_grove_slot
 
 # capture start time for total elapsed
 RUN_START_TIME=$(date +%s)

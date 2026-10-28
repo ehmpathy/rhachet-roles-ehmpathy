@@ -31,6 +31,19 @@ describe('permission gates parity (check-permissions vs decide-permissions)', ()
   ];
 
   /**
+   * .what = the env both gates run under: the runner's, minus its own settings layers
+   * .why = the loader takes $CLAUDE_CONFIG_DIR over the temp repo, and $HOME/.claude as the user
+   *        layer (permissions.layers.operations.sh). left in, a run from a clone whose config dir
+   *        is set reads that clone's allowlist, not ALLOW, and the verdicts follow it
+   *        (rule.require.hermetic-tests)
+   */
+  const ENV_HERMETIC = {
+    ...process.env,
+    CLAUDE_CONFIG_DIR: undefined,
+    HOME: '/nonexistent-home',
+  };
+
+  /**
    * .what = a temp repo with the settings pair both gates read
    * .note = returns an object: useBeforeAll proxies its value
    */
@@ -52,6 +65,7 @@ describe('permission gates parity (check-permissions vs decide-permissions)', ()
     const repo = genRepo();
     const result = spawnSync('bash', [gatePath], {
       cwd: repo.dir,
+      env: ENV_HERMETIC,
       encoding: 'utf-8',
       input: JSON.stringify({
         tool_name: 'Bash',
@@ -68,6 +82,7 @@ describe('permission gates parity (check-permissions vs decide-permissions)', ()
     const repo = genRepo();
     const result = spawnSync('bash', [seamPath], {
       cwd: repo.dir,
+      env: ENV_HERMETIC,
       encoding: 'utf-8',
       input: JSON.stringify({
         tool_name: 'Bash',
