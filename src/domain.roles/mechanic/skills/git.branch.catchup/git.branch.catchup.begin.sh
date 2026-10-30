@@ -131,7 +131,7 @@ refuse_if_commit_blocked skill="$LABEL"
 get_commit_quota_status file="$STATE_FILE"
 if [[ "$COMMIT_QUOTA_STATUS" == "corrupt" ]]; then
   refuse_commit_quota skill="$LABEL" status="corrupt" \
-    file_shown="${STATE_FILE#"$REPO_ROOT/"}"
+    file_shown="$(as_path_shown_from_repo path="$STATE_FILE" root="$REPO_ROOT")"
 fi
 
 # guard: a sponsor answers for the commit

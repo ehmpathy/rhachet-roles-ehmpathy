@@ -251,7 +251,7 @@ print_org_corrupt_note() {
 #
 # 🔴 .why = this scaffold guards the SAME invariant at every site: the state
 #        under it must never be committed. the sponsor state is the sharpest
-#        case — it holds a human's name and email, PII, and
+#        case — it holds a human's name and email, pii, and
 #        `git.commit.push.sh` already strips that exact value from pr bodies
 #        (*"privacy: avoid email leak"*). ⇒ a site that grew the dir and
 #        missed the `.gitignore` would PUBLISH, in the repo, the one value
@@ -261,7 +261,7 @@ print_org_corrupt_note() {
 #         hoisted anyway for the same reason `SPONSOR_EMAIL_PATTERN` is: the
 #         two are coupled for CORRECTNESS rather than merely duplicated. a
 #         drift between them is SILENT — the dir still works, the state still
-#         writes, and the only symptom is PII in a commit, one release later.
+#         writes, and the only symptom is pii in a commit, one release later.
 #
 # ⚠️ .note = `git.commit.bind.sh` has a THIRD copy of this shape, and it is
 #         deliberately NOT converted. it does not source this file, so a
@@ -444,14 +444,14 @@ $SPONSOR_BIND_REMEDY"
 # 🔴 .constraint = KEEP THIS PATTERN IN THE COMMON SUBSET OF TWO REGEX
 #         ENGINES. the one string is interpolated into two dialects:
 #
-#           bash `=~`   → POSIX ERE      (git.commit.sponsor.sh:458)
-#           jq `test()` → Oniguruma/PCRE (read_sponsor_state, below)
+#           bash `=~`   → posix ere      (git.commit.sponsor.sh:458)
+#           jq `test()` → oniguruma/pcre (read_sponsor_state, below)
 #
 #         it is portable today because it uses only `+`, `.`, and bracket
 #         classes — syntax both engines read identically.
 #
-#         ⛔ so do NOT add a PCRE-only construct: `\d`, a lookahead `(?=…)`,
-#         a non-greedy `+?`, or a backreference. bash ERE does not read them,
+#         ⛔ so do NOT add a pcre-only construct: `\d`, a lookahead `(?=…)`,
+#         a non-greedy `+?`, or a backreference. bash ere does not read them,
 #         and it fails SILENTLY rather than loudly — an unrecognized construct
 #         is matched as literal text, so the WRITER would start to refuse an
 #         address the READER still accepts.
@@ -466,8 +466,8 @@ $SPONSOR_BIND_REMEDY"
 #         ⇒ so this constraint is CHECKED now, never merely remembered.
 #
 # ⚠️ .note = MEASURED, and it CORRECTS the line above. an earlier draft listed
-#         `\w` beside `\d` as equally hazardous. it is not — `\w` is a GNU
-#         extension that glibc's ERE DOES read, so a `\w+` swap left the suite
+#         `\w` beside `\d` as equally hazardous. it is not — `\w` is a gnu
+#         extension that glibc's ere DOES read, so a `\w+` swap left the suite
 #         fully green. ⇒ the hazard is per-CONSTRUCT rather than per-family,
 #         and a list held in a comment cannot tell them apart. `[case35]` can.
 ######################################################################
@@ -1226,7 +1226,12 @@ check_global_blocker() {
 #   - 1 = the file is present and UNUSABLE — it will not parse, or it parses
 #         and carries no identity. a malfunction either way
 #   - 2 = no file is bound; the three vars are empty
+#
+# .note = callers compare against the named statuses below, never a bare digit
 ######################################################################
+SPONSOR_READ_BOUND=0
+SPONSOR_READ_CORRUPT=1
+SPONSOR_READ_ABSENT=2
 read_sponsor_state() {
   local file="$1"
 
@@ -2400,11 +2405,11 @@ is_local_meter_readable() {
   # empty file would pass and later read as zero uses (a false constraint)
   [[ -s "$file" ]] || return 1
 
-  # the shape every reader relies on: an object, a numeric or "infinite"
+  # the shape every reader relies on: an object, an integer or "infinite"
   # uses, and a string push. stage is optional (readers default it to block)
   jq -e '
     type == "object"
-    and ((.uses | type) == "number" or .uses == "infinite")
+    and (((.uses | type) == "number" and (.uses | floor) == .uses) or .uses == "infinite")
     and ((.push | type) == "string")
   ' "$file" >/dev/null 2>&1
 }
@@ -2639,6 +2644,16 @@ refuse_commit_quota() {
     )"
     exit 2  # blocked by constraints
   fi
+
+  # fail closed: a status this voice does not know never reads as healthy
+  if [[ "$status" != "ok" ]]; then
+    emit_both "$(
+      print_turtle_header "bummer dude..."
+      print_tree_start "$skill"
+      print_tree_malfunction "unknown commit quota status '$status'"
+    )"
+    exit 1  # malfunction
+  fi
 }
 
 ######################################################################
@@ -2785,13 +2800,13 @@ get_commit_sponsor() {
     esac
   done
 
-  local read_status=0
+  local read_status="$SPONSOR_READ_BOUND"
   read_sponsor_state "$file" || read_status=$?
 
   # an unreadable file is a MALFUNCTION, and it exits 1 — a class apart from
   # the unbound tree below, which is a constraint at exit 2. the remedy
   # differs too: inspect the file, rather than ask a human for a new bind.
-  if [[ "$read_status" -eq 1 ]]; then
+  if [[ "$read_status" -eq "$SPONSOR_READ_CORRUPT" ]]; then
     emit_both "$(print_sponsor_corrupt_render "$skill")"
     exit 1  # malfunction
   fi
@@ -2799,7 +2814,7 @@ get_commit_sponsor() {
   SPONSOR_PROVENANCE="$SPONSOR_PROVENANCE_BOUND"
 
   # no bind — the machine's git config names the sponsor, or the commit refuses
-  if [[ "$read_status" -eq 2 ]]; then
+  if [[ "$read_status" -eq "$SPONSOR_READ_ABSENT" ]]; then
     get_one_git_config_identity
     guard_git_identity_readable skill="$skill"
     [[ "$GIT_IDENTITY_KIND" == "human" ]] || refuse_commit_for_absent_sponsor skill="$skill"
@@ -2828,14 +2843,67 @@ get_commit_sponsor() {
 #        this function returns (callers run under `set -u`), which aborts
 #        the trap and overwrites the real exit code (measured: a refusal's
 #        `exit 2` came out as `1`).
+#
+# .why the exit status is kept = a failed fetch must never read as an empty
+#        token with no cause. a failure that wrote no stderr still names its
+#        exit status in TOKEN_FETCH_ERR, and any partial stdout is dropped.
 fetch_robot_token() {
   local err_file
   err_file=$(mktemp)
   trap 'rm -f "${err_file:-}"' EXIT
 
-  ROBOT_TOKEN=$(fetch_github_token 2>"$err_file" || echo "")
+  local fetch_status=0
+  ROBOT_TOKEN=$(fetch_github_token 2>"$err_file") || fetch_status=$?
   TOKEN_FETCH_ERR=$(cat "$err_file")
   rm -f "$err_file"
+
+  # a failed fetch yields no token, and always a cause
+  if [[ "$fetch_status" -ne 0 ]]; then
+    ROBOT_TOKEN=""
+    [[ -n "$TOKEN_FETCH_ERR" ]] || TOKEN_FETCH_ERR="token fetch exited $fetch_status, with no stderr"
+  fi
+}
+
+######################################################################
+# .what = warn that the keyrack token fetch failed, on stderr
+#
+# .why  = the fetch failure is a malfunction of the keyrack, so it opens with
+#         its class; the commit still lands, as the default seaturtle, so the
+#         render says so rather than refuse
+#
+# usage: print_token_fetch_malfunction cause="$TOKEN_FETCH_ERR"
+######################################################################
+print_token_fetch_malfunction() {
+  local cause="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      cause=*) cause="${arg#cause=}" ;;
+    esac
+  done
+
+  echo "💥 MalfunctionError: the ehmpath keyrack token fetch failed" >&2
+  echo "   ├─ effect: the commit authors as the default seaturtle" >&2
+  echo "   └─ cause: $cause" >&2
+}
+
+######################################################################
+# .what = set ROBOT_NAME and ROBOT_EMAIL from the seaturtle identity a token
+#         maps to
+#
+# .why  = the identity reader emits one `name<TAB>email` line; the split lives
+#         here so the orchestrator reads as one call
+#
+# usage: set_robot_identity_from_token token="$ROBOT_TOKEN"
+######################################################################
+set_robot_identity_from_token() {
+  local token="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      token=*) token="${arg#token=}" ;;
+    esac
+  done
+
+  IFS=$'\t' read -r ROBOT_NAME ROBOT_EMAIL < <(get_one_seaturtle_identity "$token")
 }
 
 ######################################################################
@@ -2875,29 +2943,84 @@ get_commit_robot_identity() {
     fetch_robot_token
     ROBOT_TOKEN_FETCHED=true
     if [[ -z "$ROBOT_TOKEN" && -n "$TOKEN_FETCH_ERR" ]]; then
-      echo "🐢 heads up: the ehmpath keyrack token wasnt fetched; the commit will" >&2
-      echo "   author as the default seaturtle. cause: $TOKEN_FETCH_ERR" >&2
+      print_token_fetch_malfunction cause="$TOKEN_FETCH_ERR"
     fi
 
     # failfast: an app token must map to the bot identity we hardcode for it,
     # else the squash-merge could silently show a 3rd contributor
     assert_token_identity_in_sync "$ROBOT_TOKEN" || exit 2
   fi
-  IFS=$'\t' read -r ROBOT_NAME ROBOT_EMAIL < <(get_one_seaturtle_identity "$ROBOT_TOKEN")
+  set_robot_identity_from_token token="$ROBOT_TOKEN"
 }
 
 ######################################################################
-# .what = a PURE transformer: the uses a commit leaves (infinite stays infinite)
+# .what = is this a uses value the quota file can hold: an integer, or
+#         "infinite"?
 #
-# usage: NEW_USES=$(as_commit_uses_after_spend uses="$USES")
+# usage: is_commit_uses_value uses="$USES"
 ######################################################################
-as_commit_uses_after_spend() {
-  local uses=""
+is_commit_uses_value() {
+  local uses="" arg
   for arg in "$@"; do
     case "$arg" in
       uses=*) uses="${arg#uses=}" ;;
     esac
   done
+
+  [[ "$uses" == "infinite" || "$uses" =~ ^-?[0-9]+$ ]]
+}
+
+######################################################################
+# .what = fail loud on a meter-op call no quota file could hold
+#
+# .why  = the meter ops run after a commit lands; a silent fallback there
+#         would record a spend that never happened, or none at all
+#
+# .note = stderr always, plus stdout where the caller reads no value from it
+#
+# usage: refuse_meter_op_input op="set_commit_meter_state" reason="..." [to=both|stderr]
+######################################################################
+refuse_meter_op_input() {
+  local op="" reason="" to="both" arg
+  for arg in "$@"; do
+    case "$arg" in
+      op=*) op="${arg#op=}" ;;
+      reason=*) reason="${arg#reason=}" ;;
+      to=*) to="${arg#to=}" ;;
+    esac
+  done
+
+  local render="💥 MalfunctionError: $op refused its input
+   └─ $reason"
+  # two echoes, never `tee /dev/stderr` (see emit_both in output.sh, which
+  # this file does not source)
+  if [[ "$to" != "stderr" ]]; then
+    echo "$render"
+  fi
+  echo "$render" >&2
+  exit 1
+}
+
+######################################################################
+# .what = a PURE transformer: the uses a commit leaves (infinite stays infinite)
+#
+# .note = a value that is no integer and not "infinite" fails loud (exit 1);
+#         stdout carries only the value, so the refusal goes to stderr
+#
+# usage: NEW_USES=$(as_commit_uses_after_spend uses="$USES")
+######################################################################
+as_commit_uses_after_spend() {
+  local uses="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      uses=*) uses="${arg#uses=}" ;;
+      *) refuse_meter_op_input op="as_commit_uses_after_spend" to="stderr" reason="unknown arg '$arg'" ;;
+    esac
+  done
+
+  is_commit_uses_value uses="$uses" || \
+    refuse_meter_op_input op="as_commit_uses_after_spend" to="stderr" \
+      reason="uses='$uses' is no integer and not \"infinite\""
 
   if [[ "$uses" == "infinite" ]]; then
     echo "infinite"
@@ -2913,22 +3036,37 @@ as_commit_uses_after_spend() {
 # .why  = one writer for the spend, so every verb that commits leaves the
 #         file in the same shape every reader expects
 #
+# .why jq = it encodes each value, so no input can emit invalid json
+#
+# .why temp + rename = the new file is written beside the target, then moved
+#        over it; a reader sees the old file or the new, never a half-written
+#        one, and a crash mid-write leaves the old file whole
+#
+# .note = any refused input or failed write exits 1, loud, even from a call
+#         inside an `if` (where `set -e` holds no sway)
+#
 # usage: set_commit_meter_state file="$STATE_FILE" uses="$NEW_USES" \
 #          push="$PUSH_ALLOWED" stage="$STAGE_ALLOWED"
 ######################################################################
 set_commit_meter_state() {
-  local file=""
-  local uses=""
-  local push=""
-  local stage=""
+  local file="" uses="" push="" stage="" arg
+  local op="set_commit_meter_state"
   for arg in "$@"; do
     case "$arg" in
       file=*) file="${arg#file=}" ;;
       uses=*) uses="${arg#uses=}" ;;
       push=*) push="${arg#push=}" ;;
       stage=*) stage="${arg#stage=}" ;;
+      *) refuse_meter_op_input op="$op" reason="unknown arg '$arg'" ;;
     esac
   done
+
+  # refuse any input a reader could not parse back
+  [[ -n "$file" ]] || refuse_meter_op_input op="$op" reason="file is empty"
+  is_commit_uses_value uses="$uses" || \
+    refuse_meter_op_input op="$op" reason="uses='$uses' is no integer and not \"infinite\""
+  [[ -n "$push" ]] || refuse_meter_op_input op="$op" reason="push is empty"
+  [[ -n "$stage" ]] || refuse_meter_op_input op="$op" reason="stage is empty"
 
   # infinite is a string; a count is a number
   local uses_json="$uses"
@@ -2936,11 +3074,35 @@ set_commit_meter_state() {
     uses_json='"infinite"'
   fi
 
-  cat > "$file" << EOF
-{
-  "uses": $uses_json,
-  "push": "$push",
-  "stage": "$stage"
+  # write beside the target, then rename over it
+  local file_next
+  file_next=$(mktemp "$file.XXXXXX") || \
+    refuse_meter_op_input op="$op" reason="could not create a temp file beside $file"
+  if ! jq -n --argjson uses "$uses_json" --arg push "$push" --arg stage "$stage" \
+    '{ uses: $uses, push: $push, stage: $stage }' > "$file_next"; then
+    rm -f "$file_next"
+    refuse_meter_op_input op="$op" reason="could not write $file_next"
+  fi
+  if ! mv -f "$file_next" "$file"; then
+    rm -f "$file_next"
+    refuse_meter_op_input op="$op" reason="could not move the new quota into $file"
+  fi
 }
-EOF
+
+######################################################################
+# .what = a PURE transformer: a path as shown to a human, relative to the
+#         repo root where it sits inside it
+#
+# usage: as_path_shown_from_repo path="$STATE_FILE" root="$REPO_ROOT"
+######################################################################
+as_path_shown_from_repo() {
+  local path="" root="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      path=*) path="${arg#path=}" ;;
+      root=*) root="${arg#root=}" ;;
+    esac
+  done
+
+  echo "${path#"$root/"}"
 }

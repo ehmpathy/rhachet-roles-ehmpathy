@@ -658,7 +658,7 @@ refuse_if_commit_blocked skill="git.commit.set"
 get_commit_quota_status file="$STATE_FILE"
 if [[ "$COMMIT_QUOTA_STATUS" == "absent" || "$COMMIT_QUOTA_STATUS" == "corrupt" ]]; then
   refuse_commit_quota skill="git.commit.set" status="$COMMIT_QUOTA_STATUS" \
-    file_shown="${STATE_FILE#"$REPO_ROOT/"}"
+    file_shown="$(as_path_shown_from_repo path="$STATE_FILE" root="$REPO_ROOT")"
 fi
 
 # spent uses refuse apply only (plan mode is allowed without uses)
@@ -970,17 +970,16 @@ if [[ "$DO_PUSH" == true ]]; then
   fi
 fi
 
-# update uses in state file (preserve stage, write "infinite" as string)
-set_commit_meter_state file="$STATE_FILE" uses="$NEW_USES" \
-  push="$PUSH_ALLOWED" stage="$STAGE_ALLOWED"
-
-# auto-revoke push if uses depleted and push was executed
+# auto-revoke push if uses depleted and push was executed (decided before the
+# write, so the spend and the revoke land in one write)
 if [[ "$DO_PUSH" == true && "$PUSH_RESULT_STATUS" == "pushed" && "$NEW_USES" != "infinite" && "$NEW_USES" -le 0 && "$PUSH_ALLOWED" == "allow" ]]; then
   PUSH_ALLOWED="block"
-  set_commit_meter_state file="$STATE_FILE" uses="$NEW_USES" \
-    push="block" stage="$STAGE_ALLOWED"
   PUSH_DISPLAY="blocked (revoked)"
 fi
+
+# update uses in state file, once (preserve stage, write "infinite" as string)
+set_commit_meter_state file="$STATE_FILE" uses="$NEW_USES" \
+  push="$PUSH_ALLOWED" stage="$STAGE_ALLOWED"
 
 # output with turtle vibes — cowabunga only when the push actually shipped;
 # a requested-but-failed push still landed the commit, so it reads as righteous

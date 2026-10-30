@@ -87,3 +87,9 @@ exports[`git.commit.operations.sh given: [case39] assert_git_identity_read guard
    this is a defect in the skill, never the caller's input — call the reader first
 "
 `;
+
+exports[`git.commit.operations.sh given: [case40] set_commit_meter_state writes the quota file when: [t3] uses is empty or no integer then: it exits 1 loud, and leaves the prior file whole: stdout 1`] = `
+"💥 MalfunctionError: set_commit_meter_state refused its input
+   └─ uses='' is no integer and not "infinite"
+"
+`;

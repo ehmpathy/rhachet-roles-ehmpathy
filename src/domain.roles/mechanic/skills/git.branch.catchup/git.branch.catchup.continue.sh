@@ -85,7 +85,7 @@ get_commit_sponsor skill="$LABEL" file="$METER_DIR/$SPONSOR_STATE_FILENAME"
 get_commit_quota_status file="$STATE_FILE"
 if [[ "$COMMIT_QUOTA_STATUS" != "ok" ]]; then
   refuse_commit_quota skill="$LABEL" status="$COMMIT_QUOTA_STATUS" \
-    file_shown="${STATE_FILE#"$REPO_ROOT/"}"
+    file_shown="$(as_path_shown_from_repo path="$STATE_FILE" root="$REPO_ROOT")"
 fi
 get_commit_robot_identity auth="$AUTH_DEFAULT"
 

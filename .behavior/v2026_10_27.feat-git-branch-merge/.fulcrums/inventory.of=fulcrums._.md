@@ -25,3 +25,6 @@ entry holds the reason.
 | F16 | src boot `not`: catchup subcommand bodies, plus test code under `skills/` | clean | low | taken by the driver: an execution fork (seed S6) | 85% |
 | F17 | catchup holds own git-state readers; lift the two shared one-liners once the rebase debt is paid | clean | low | taken by the driver: an execution fork (seed S6) | 80% |
 | F18 | commit-gate refusals (blockers, quota, sponsor) keep the lifted `git.commit.*` render, not the vision sketch's header-first form | clean | low | taken by the driver: an execution fork (seed S6) | 75% |
+| F19 | peer concerns on `git.commit.operations.sh` code present on main unchanged: defer to a dream; fix only the leaves this PR lifted or added | clean | low | taken by the driver: an execution fork (seed S6) | 85% |
+| F20 | intent reviewer (i001 r008) read the diff as git.commit-only: refute with the catchup file list | clean | low | taken by the driver: a refutation with cited evidence | 95% |
+| F21 | named args parsed by a `case` loop per function, not one shared parser | clean | low | taken by the driver: an execution fork (seed S6) | 85% |

@@ -1111,4 +1111,255 @@ extends:
       });
     });
   });
+
+  given('[case40] set_commit_meter_state writes the quota file', () => {
+    const readMeter = (tempDir: string): unknown =>
+      JSON.parse(
+        fs.readFileSync(path.join(tempDir, 'git.commit.uses.jsonc'), 'utf-8'),
+      );
+
+    when('[t0] a count, push, and stage are given', () => {
+      then('it writes valid json, and leaves no temp file beside it', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-count' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" uses=2 push=allow stage=block`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(readMeter(tempDir)).toEqual({
+          uses: 2,
+          push: 'allow',
+          stage: 'block',
+        });
+        expect(fs.readdirSync(tempDir)).toEqual(['git.commit.uses.jsonc']);
+      });
+    });
+
+    when('[t1] uses is infinite', () => {
+      then('it writes "infinite" as a string', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-infinite' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" uses=infinite push=block stage=allow`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(readMeter(tempDir)).toEqual({
+          uses: 'infinite',
+          push: 'block',
+          stage: 'allow',
+        });
+      });
+    });
+
+    when('[t2] a value carries a quote', () => {
+      then('jq encodes it, so the file still parses', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-quote' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" uses=1 push='al"low' stage=block`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(readMeter(tempDir)).toEqual({
+          uses: 1,
+          push: 'al"low',
+          stage: 'block',
+        });
+      });
+    });
+
+    when('[t3] uses is empty or no integer', () => {
+      then('it exits 1 loud, and leaves the prior file whole', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-bad-uses' });
+        const meterPath = path.join(tempDir, 'git.commit.uses.jsonc');
+        fs.writeFileSync(meterPath, '{"uses": 3, "push": "allow"}');
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${meterPath}" uses= push=allow stage=block`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: set_commit_meter_state refused its input',
+        );
+        expect(result.stderr).toContain('uses=');
+        expect(fs.readFileSync(meterPath, 'utf-8')).toEqual(
+          '{"uses": 3, "push": "allow"}',
+        );
+        expect(result.stdout).toMatchSnapshot('stdout');
+      });
+    });
+
+    when('[t4] push or stage is empty', () => {
+      then('it exits 1 loud, before any write', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-bad-push' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" uses=1 push= stage=block`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('push is empty');
+        expect(fs.readdirSync(tempDir)).toEqual([]);
+      });
+    });
+
+    when('[t5] an unknown arg is passed', () => {
+      then('it exits 1 and names the arg', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-bad-arg' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" usse=1 push=allow stage=block`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain("unknown arg 'usse=1'");
+      });
+    });
+
+    when('[t6] the write fails (the dir is absent)', () => {
+      then('it exits 1 loud, never silent', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-no-dir' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/absent/git.commit.uses.jsonc" uses=1 push=allow stage=block
+      echo "after-write"`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('could not create a temp file');
+        expect(result.stdout).not.toContain('after-write');
+      });
+    });
+
+    when('[t7] it is called inside an if (where set -e holds no sway)', () => {
+      then('a refused input still halts the caller', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-in-if' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set -e
+      if set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" uses=x push=allow stage=block; then echo "branch-ran"; fi
+      echo "after-if"`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).not.toContain('branch-ran');
+        expect(result.stdout).not.toContain('after-if');
+      });
+    });
+  });
+
+  given('[case41] as_commit_uses_after_spend', () => {
+    when('[t0] uses is a count or infinite', () => {
+      then('it spends one, and infinite stays infinite', () => {
+        const tempDir = genTempDir({ slug: 'uses-after-spend' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `echo "$(as_commit_uses_after_spend uses=3)"
+      echo "$(as_commit_uses_after_spend uses=infinite)"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout.trim().split('\n')).toEqual(['2', 'infinite']);
+      });
+    });
+
+    when('[t1] uses is empty or no integer', () => {
+      then('it exits 1 on stderr, never a silent -1', () => {
+        const tempDir = genTempDir({ slug: 'uses-after-spend-bad' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set -e
+      NEW_USES=$(as_commit_uses_after_spend uses=)
+      echo "left=$NEW_USES"`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).not.toContain('left=');
+        expect(result.stderr).toContain(
+          '💥 MalfunctionError: as_commit_uses_after_spend refused its input',
+        );
+      });
+    });
+  });
+
+  given('[case42] fetch_robot_token keeps the fetch status', () => {
+    /**
+     * .mock = fetch_github_token, redefined as a bash function after source
+     * .why = a keyrack fetch cannot be made to fail on demand in a hermetic test
+     * .real = the as-ehmpath push path, run against the real keyrack
+     */
+    when('[t0] the fetch fails with no stderr and a partial stdout', () => {
+      then('the token is empty, and the cause names the exit status', () => {
+        const tempDir = genTempDir({ slug: 'token-fetch-silent-fail' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `fetch_github_token() { echo "partial"; return 3; }
+      fetch_robot_token
+      echo "token=[$ROBOT_TOKEN]"
+      echo "cause=[$TOKEN_FETCH_ERR]"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('token=[]');
+        expect(result.stdout).toContain(
+          'cause=[token fetch exited 3, with no stderr]',
+        );
+      });
+    });
+
+    when('[t1] the fetch succeeds', () => {
+      then('the token holds, and no cause is set', () => {
+        const tempDir = genTempDir({ slug: 'token-fetch-ok' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `fetch_github_token() { echo "ghs_wave"; }
+      fetch_robot_token
+      echo "token=[$ROBOT_TOKEN]"
+      echo "cause=[$TOKEN_FETCH_ERR]"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('token=[ghs_wave]');
+        expect(result.stdout).toContain('cause=[]');
+      });
+    });
+  });
+
+  given('[case43] refuse_commit_quota fails closed', () => {
+    const outputPath = path.join(__dirname, 'output.sh');
+
+    when('[t0] the status is one it does not know', () => {
+      then('it exits 1 as a malfunction, never reads as healthy', () => {
+        const tempDir = genTempDir({ slug: 'quota-unknown-status' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      refuse_commit_quota skill="git.commit.set" status="drift"
+      echo "after-refuse"`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain("unknown commit quota status 'drift'");
+        expect(result.stdout).not.toContain('after-refuse');
+      });
+    });
+
+    when('[t1] the status is ok', () => {
+      then('it is a no-op', () => {
+        const tempDir = genTempDir({ slug: 'quota-ok-status' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      refuse_commit_quota skill="git.commit.set" status="ok"
+      echo "after-refuse"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('after-refuse');
+      });
+    });
+  });
 });
