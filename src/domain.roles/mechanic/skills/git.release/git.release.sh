@@ -49,6 +49,7 @@ SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # source dependencies
 source "$SKILL_DIR/output.sh"
 source "$SKILL_DIR/git.release.operations.sh"
+source "$SKILL_DIR/../git.commit/git.commit.director.sh"
 
 # source decomposed operations
 source "$SKILL_DIR/git.release._.get_one_goal_from_input.sh"
@@ -258,6 +259,10 @@ if [[ "$MODE" == "apply" ]]; then
   METER_DIR="$REPO_ROOT/.meter"
   LOCAL_STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 
+  # who holds the grant for this tree: a director, or a human
+  TREE_SLUG="$(basename "$REPO_ROOT")"
+  TREE_DIRECTOR="$(get_one_tree_director_state repo_root="$REPO_ROOT")"
+
   # global state file
   GLOBAL_DIR="$HOME/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter"
   GLOBAL_STATE_FILE="$GLOBAL_DIR/git.commit.uses.global.jsonc"
@@ -283,9 +288,9 @@ if [[ "$MODE" == "apply" ]]; then
     echo "🐚 git.release --mode apply"
     echo ""
     echo "✋ blocked: no commit quota set"
-    echo ""
-    echo "   ask your human to grant:"
-    echo "   $ git.commit.uses set --quant N --push allow"
+    print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant a quota" indent="   " \
+      human_lead="   ask your human to grant:" \
+      human_cmd="   \$ git.commit.uses set --quant N --push allow"
     exit 2
   fi
 
@@ -296,9 +301,9 @@ if [[ "$MODE" == "apply" ]]; then
     echo "🐚 git.release --mode apply"
     echo ""
     echo "✋ blocked: no commit uses left"
-    echo ""
-    echo "   ask your human to grant more:"
-    echo "   $ git.commit.uses set --quant N --push allow"
+    print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant more" indent="   " \
+      human_lead="   ask your human to grant more:" \
+      human_cmd="   \$ git.commit.uses set --quant N --push allow"
     exit 2
   fi
 fi

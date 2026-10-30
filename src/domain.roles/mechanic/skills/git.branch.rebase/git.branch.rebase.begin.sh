@@ -31,6 +31,7 @@ COMMIT_SKILL_DIR="$(cd "$SKILL_DIR/../git.commit" && pwd)"
 
 # source shared utils
 source "$COMMIT_SKILL_DIR/output.sh"
+source "$COMMIT_SKILL_DIR/git.commit.director.sh"
 source "$SKILL_DIR/git.branch.rebase.operations.sh"
 source "$SKILL_DIR/git.branch.rebase.aside.operations.sh"
 
@@ -40,6 +41,10 @@ source "$SKILL_DIR/git.branch.rebase.aside.operations.sh"
 REPO_ROOT=$(git rev-parse --show-toplevel)
 METER_DIR="$REPO_ROOT/.meter"
 STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
+
+# who holds the grant for this tree: a director, or a human
+TREE_SLUG="$(basename "$REPO_ROOT")"
+TREE_DIRECTOR="$(get_one_tree_director_state repo_root="$REPO_ROOT")"
 
 ######################################################################
 # parse arguments
