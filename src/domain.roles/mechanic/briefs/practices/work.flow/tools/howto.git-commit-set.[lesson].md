@@ -67,9 +67,10 @@ printf 'fix(typo): readme\n\n- fixed typo' | npx rhachet run --skill git.commit.
 
 - a quota, from whoever holds the grant for this tree:
   - a director governs the tree → ask your director, never a human. the director runs
-    `rhx git.crew.grant --tree <tree> --quota <n> --push allow --why '<why>'`; a driver cannot
+    `rhx git.crew.grant --tree <tree> --quota <n> --push allow --why '<why>'`; a driver
+    cannot run it
   - no director → ask your human: `git.commit.uses set --quant N --push allow|block`
-  - the refusal names which: read its fix line, then ask that granter
+  - you know your director from your charter; ask it first, even where a refusal names a human
 - a sponsor: on the human's own machine, `git config user.name` + `user.email`
   name them and no bind is needed. a bind wins over git config; on the clone's
   machine (git config names a seaturtle identity) a human must bind one, at a

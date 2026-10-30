@@ -100,7 +100,7 @@ check your network connection and try again
 "
 `;
 
-exports[`git.branch.rebase.begin given: [case10] uses spent, push allowed, no director governs the tree when: [t0] apply mode then: refuses on uses, and names the human grant 1`] = `
+exports[`git.branch.rebase.begin given: [case10] uses spent, push allowed, director detection answers none when: [t0] apply mode then: refuses on uses, and names the human grant 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin

@@ -259,10 +259,6 @@ if [[ "$MODE" == "apply" ]]; then
   METER_DIR="$REPO_ROOT/.meter"
   LOCAL_STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 
-  # who holds the grant for this tree: a director, or a human
-  TREE_SLUG="$(basename "$REPO_ROOT")"
-  TREE_DIRECTOR="$(get_one_tree_director_state repo_root="$REPO_ROOT")"
-
   # global state file
   GLOBAL_DIR="$HOME/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter"
   GLOBAL_STATE_FILE="$GLOBAL_DIR/git.commit.uses.global.jsonc"
@@ -288,9 +284,9 @@ if [[ "$MODE" == "apply" ]]; then
     echo "🐚 git.release --mode apply"
     echo ""
     echo "✋ blocked: no commit quota set"
-    print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant a quota" indent="   " \
-      human_lead="   ask your human to grant:" \
-      human_cmd="   \$ git.commit.uses set --quant N --push allow"
+    print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant a quota" indent="   " \
+      human_lead="ask your human to grant:" \
+      human_cmd="\$ git.commit.uses set --quant N --push allow"
     exit 2
   fi
 
@@ -301,9 +297,9 @@ if [[ "$MODE" == "apply" ]]; then
     echo "🐚 git.release --mode apply"
     echo ""
     echo "✋ blocked: no commit uses left"
-    print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant more" indent="   " \
-      human_lead="   ask your human to grant more:" \
-      human_cmd="   \$ git.commit.uses set --quant N --push allow"
+    print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant more" indent="   " \
+      human_lead="ask your human to grant more:" \
+      human_cmd="\$ git.commit.uses set --quant N --push allow"
     exit 2
   fi
 fi
