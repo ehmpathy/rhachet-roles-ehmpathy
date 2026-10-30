@@ -35,10 +35,6 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 METER_DIR="$REPO_ROOT/.meter"
 STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 
-# who holds the grant for this tree: a director, or a human
-TREE_SLUG="$(basename "$REPO_ROOT")"
-TREE_DIRECTOR="$(get_one_tree_director_state repo_root="$REPO_ROOT")"
-
 ######################################################################
 # parse arguments
 ######################################################################
@@ -78,7 +74,7 @@ if [[ ! -f "$STATE_FILE" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: no commit quota set"
-  print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant a quota" \
+  print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant a quota" \
     human_lead="ask your human to grant permission:" \
     human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
   exit 1
@@ -93,7 +89,7 @@ if [[ "$PUSH_ALLOWED" != "allow" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: rebase requires push permission"
-  print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant push" \
+  print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant push" \
     human_lead="ask your human to grant permission:" \
     human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
   exit 1
@@ -104,7 +100,7 @@ if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" == "apply" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: no commit uses left"
-  print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant more" \
+  print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant more" \
     human_lead="ask your human to grant more:" \
     human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
   exit 1

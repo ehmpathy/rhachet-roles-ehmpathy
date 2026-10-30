@@ -8,16 +8,23 @@
 #         and the one line the director runs; elsewhere it keeps the
 #         extant human fix, byte for byte.
 #
+# .note = this file is the published fix contract of the git.commit.uses
+#         meter (`.meter/git.commit.uses.jsonc`), which git.commit owns.
+#         every skill that refuses on that meter (git.commit.set,
+#         git.commit.push, git.branch.rebase begin, git.release) sources
+#         it, as they already read the meter and source git.commit's
+#         output.sh. one owner, one voice for the meter's fix.
+#
 # usage:
 #   source "$SCRIPT_DIR/git.commit.director.sh"
-#   TREE_DIRECTOR=$(get_one_tree_director_state repo_root="$REPO_ROOT")
-#   print_quota_grant_fix director="$TREE_DIRECTOR" tree="$(basename "$REPO_ROOT")" \
-#     ask="grant more" \
+#   print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant more" \
 #     human_lead="ask your human to grant more:" \
 #     human_cmd="  \$ git.commit.uses set --quant N --push allow|block"
 #
 # guarantee:
-#   - director state `none` renders the extant human fix, byte for byte
+#   - no director in the tree: the extant human fix, byte for byte
+#   - the director state is read only when a refusal renders, never at load
+#   - a fault in the read never aborts the skill and never hides the fix
 #   - the director never runs from the driver: the line is for the director
 ######################################################################
 
@@ -52,25 +59,61 @@ get_one_director_grant_command() {
 }
 
 ######################################################################
+# .what = a text line without its lead spaces
+#
+# .why  = the unreadable render sets both command lines at one depth, so
+#         each surface's own indent on its human lines must come off first
+######################################################################
+as_text_without_lead_spaces() {
+  local text=""
+  for arg in "$@"; do
+    case "$arg" in
+      text=*) text="${arg#text=}" ;;
+    esac
+  done
+  echo "${text#"${text%%[! ]*}"}"
+}
+
+######################################################################
+# .what = the director state of a tree, read at the moment a refusal renders
+#
+# .why  = a read that fails must not abort the skill (set -e) nor hide the
+#         fix: any failure reads as `unreadable`, which names both granters
+######################################################################
+get_one_tree_director_state_for_render() {
+  local repo_root=""
+  for arg in "$@"; do
+    case "$arg" in
+      repo_root=*) repo_root="${arg#repo_root=}" ;;
+    esac
+  done
+  get_one_tree_director_state repo_root="$repo_root" || echo "unreadable"
+}
+
+######################################################################
 # .what = the fix block under a quota refusal, by the tree's director state
 #
 # .why  = one voice for every surface that refuses on the quota meter
 #         (git.commit.set, git.commit.push, git.branch.rebase, git.release)
 #
-# .note = `indent` lets a surface whose block sits indented (git.release)
-#         keep its frame; human_lead and human_cmd carry their own indent,
-#         so the `none` render stays byte-identical to the extant one
+# .note = the renderer owns the frame indent: callers pass unindented
+#         human_lead and human_cmd (human_cmd keeps only its offset under
+#         its lead), and `indent` sets the frame for every line
 #
-# usage: print_quota_grant_fix director=none|charter|unreadable tree=<slug> \
-#          ask="grant more" human_lead="..." human_cmd="..." [indent="   "]
+# .note = `director` is read from the tree when absent; a caller passes it
+#         only to render a known state (the render's own test does)
+#
+# usage: print_quota_grant_fix repo_root=<path> ask="grant more" \
+#          human_lead="..." human_cmd="..." [indent="   "] \
+#          [director=none|charter|unreadable]
 #        (any other director value renders as unreadable)
 ######################################################################
 print_quota_grant_fix() {
-  local director="" tree="" ask="" human_lead="" human_cmd="" indent=""
+  local repo_root="" director="" ask="" human_lead="" human_cmd="" indent=""
   for arg in "$@"; do
     case "$arg" in
+      repo_root=*) repo_root="${arg#repo_root=}" ;;
       director=*) director="${arg#director=}" ;;
-      tree=*) tree="${arg#tree=}" ;;
       ask=*) ask="${arg#ask=}" ;;
       human_lead=*) human_lead="${arg#human_lead=}" ;;
       human_cmd=*) human_cmd="${arg#human_cmd=}" ;;
@@ -78,7 +121,14 @@ print_quota_grant_fix() {
     esac
   done
 
-  local grant_cmd
+  # read the tree's director state now, only because a refusal renders
+  if [[ -z "$director" ]]; then
+    director="$(get_one_tree_director_state_for_render repo_root="$repo_root")"
+  fi
+
+  # the tree slug is the worktree dir name, as the git.crew verbs take it
+  local tree grant_cmd
+  tree="$(basename "$repo_root")"
   grant_cmd="$(get_one_director_grant_command tree="$tree")"
 
   # a director governs this tree: the driver asks its director, never a human
@@ -94,8 +144,8 @@ print_quota_grant_fix() {
   #         written here so a surface that does not source output.sh can call it
   if [[ "$director" == "none" ]]; then
     echo ""
-    echo "$human_lead"
-    echo "$human_cmd"
+    echo "${indent}${human_lead}"
+    echo "${indent}${human_cmd}"
     return 0
   fi
 
@@ -104,13 +154,13 @@ print_quota_grant_fix() {
   #         fault shows as "cannot be read", never as a silent "ask your human"
   # .note = both commands sit at one depth under the frame indent, so the two
   #         `$` lines align; a surface with no human command prints none
-  local human_lead_bare="${human_lead#"${human_lead%%[! ]*}"}"
-  local human_cmd_bare="${human_cmd#"${human_cmd%%[! ]*}"}"
+  local human_cmd_bare
+  human_cmd_bare="$(as_text_without_lead_spaces text="$human_cmd")"
   echo ""
   echo "${indent}a director marker is in this tree but cannot be read; ask your director, else your human."
   echo "${indent}the director runs:"
   echo "${indent}  \$ $grant_cmd"
-  echo "${indent}else, ${human_lead_bare}"
+  echo "${indent}else, ${human_lead}"
   if [[ -n "$human_cmd_bare" ]]; then echo "${indent}  ${human_cmd_bare}"; fi
   return 0
 }

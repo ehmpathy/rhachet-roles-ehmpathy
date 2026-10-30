@@ -41,10 +41,6 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 METER_DIR="$REPO_ROOT/.meter"
 STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 
-# who holds the grant for this tree: a director, or a human
-TREE_SLUG="$(basename "$REPO_ROOT")"
-TREE_DIRECTOR="$(get_one_tree_director_state repo_root="$REPO_ROOT")"
-
 # parse arguments
 MODE="plan"
 OUTPUT="tree"
@@ -365,7 +361,7 @@ fi
 if [[ "$PUSH_ALLOWED" != "allow" ]]; then
   emit_error class=constraint message="push not allowed"
   if [[ "$OUTPUT" == "tree" ]]; then
-    print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant push" \
+    print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant push" \
       human_lead="ask your human to grant with --push allow:" \
       human_cmd="  \$ git.commit.uses set --quant N --push allow"
   fi

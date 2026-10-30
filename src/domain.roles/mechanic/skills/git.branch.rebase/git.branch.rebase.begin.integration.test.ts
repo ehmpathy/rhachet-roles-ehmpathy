@@ -429,25 +429,33 @@ describe('git.branch.rebase.begin', () => {
   });
 
   given(
-    '[case10] uses spent, push allowed, no director governs the tree',
+    '[case10] uses spent, push allowed, director detection answers none',
     () => {
       // .note = the svc-quotes #141 incident state. the fixture's own zero-uses
       //         path also blocks push, so the push guard fires first and the
       //         uses guard is reached only here
+      /**
+       * .what = a rebase fixture with its quota spent and push still allowed
+       * .why = both whens need the same state; setup sits inside each try so
+       *        the finally always removes the temp dir
+       */
+      const setupUsesSpent = (): string => {
+        const tempDir = setupRebaseScenario({
+          commitsAhead: 2,
+          pushAllowed: true,
+        });
+        fs.writeFileSync(
+          path.join(tempDir, '.meter', 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 0, push: 'allow' }, null, 2),
+        );
+        return tempDir;
+      };
+
       when('[t0] apply mode', () => {
         then('refuses on uses, and names the human grant', () => {
-          const tempDir = setupRebaseScenario({
-            commitsAhead: 2,
-            pushAllowed: true,
-          });
-
-          // spend the quota, keep push allowed
-          fs.writeFileSync(
-            path.join(tempDir, '.meter', 'git.commit.uses.jsonc'),
-            JSON.stringify({ uses: 0, push: 'allow' }, null, 2),
-          );
-
+          let tempDir: string | null = null; // .note = deliberate mutation: set inside try so finally can clean up
           try {
+            tempDir = setupUsesSpent();
             const result = runSkill(tempDir, ['--mode', 'apply']);
 
             expect(result.status).toBe(1);
@@ -462,29 +470,26 @@ describe('git.branch.rebase.begin', () => {
             expect(result.stdout).not.toContain('director');
             expect(result.stdout).toMatchSnapshot();
           } finally {
-            fs.rmSync(tempDir, { recursive: true, force: true });
+            if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
           }
         });
       });
 
       when('[t1] plan mode', () => {
-        then('does not refuse on uses (plan spends no use)', () => {
-          const tempDir = setupRebaseScenario({
-            commitsAhead: 2,
-            pushAllowed: true,
-          });
-
-          // spend the quota, keep push allowed
-          fs.writeFileSync(
-            path.join(tempDir, '.meter', 'git.commit.uses.jsonc'),
-            JSON.stringify({ uses: 0, push: 'allow' }, null, 2),
-          );
-
+        then('passes every quota guard (plan spends no use)', () => {
+          let tempDir: string | null = null; // .note = deliberate mutation: set inside try so finally can clean up
           try {
+            tempDir = setupUsesSpent();
             const result = runSkill(tempDir);
+
+            // past every quota guard, plan reaches the fetch, which has no remote here
+            expect(result.stdout).toContain(
+              'error: failed to fetch origin/main',
+            );
             expect(result.stdout).not.toContain('no commit uses left');
+            expect(result.stdout).not.toContain('ask your human');
           } finally {
-            fs.rmSync(tempDir, { recursive: true, force: true });
+            if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
           }
         });
       });
