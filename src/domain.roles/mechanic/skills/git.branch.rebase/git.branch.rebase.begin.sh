@@ -25,7 +25,7 @@ COMMIT_SKILL_DIR="$(cd "$SKILL_DIR/../git.commit" && pwd)"
 
 # source shared utils
 source "$COMMIT_SKILL_DIR/output.sh"
-source "$COMMIT_SKILL_DIR/git.commit.director.sh"
+source "$COMMIT_SKILL_DIR/git.commit.director.operations.sh"
 source "$SKILL_DIR/git.branch.rebase.operations.sh"
 
 ######################################################################
@@ -74,7 +74,9 @@ if [[ ! -f "$STATE_FILE" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: no commit quota set"
-  print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant a quota" \
+  # rebase force-pushes its result, so the grant it needs carries push
+  print_quota_grant_fix repo_root="$REPO_ROOT" refusal=quota-absent \
+    meter_file="$STATE_FILE" wants_push=true \
     human_lead="ask your human to grant permission:" \
     human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
   exit 1
@@ -89,7 +91,8 @@ if [[ "$PUSH_ALLOWED" != "allow" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: rebase requires push permission"
-  print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant push" \
+  print_quota_grant_fix repo_root="$REPO_ROOT" refusal=push-blocked \
+    meter_file="$STATE_FILE" \
     human_lead="ask your human to grant permission:" \
     human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
   exit 1
@@ -100,7 +103,8 @@ if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" == "apply" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: no commit uses left"
-  print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant more" \
+  print_quota_grant_fix repo_root="$REPO_ROOT" refusal=uses-out \
+    meter_file="$STATE_FILE" wants_push=true \
     human_lead="ask your human to grant more:" \
     human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
   exit 1

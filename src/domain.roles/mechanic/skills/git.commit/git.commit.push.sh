@@ -26,7 +26,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/output.sh"
 source "$SCRIPT_DIR/git.commit.operations.sh"
 source "$SCRIPT_DIR/keyrack.operations.sh"
-source "$SCRIPT_DIR/git.commit.director.sh"
+source "$SCRIPT_DIR/git.commit.director.operations.sh"
 
 # robot identity (label for messages; guard accepts any seaturtle identity)
 ROBOT_NAME="seaturtle[bot]"
@@ -145,11 +145,12 @@ AUTH_WHO=$(get_auth_who_label "$AUTH")
 #        caller uses next — constraint for 2, malfunction for 1.
 ######################################################################
 emit_error() {
-  local class="" message="" arg
+  local class="" message="" fix="" arg
   for arg in "$@"; do
     case "$arg" in
       class=*) class="${arg#class=}" ;;
       message=*) message="${arg#message=}" ;;
+      fix=*) fix="${arg#fix=}" ;;
     esac
   done
   # default to the tree format; the json branch overrides it (no else — the
@@ -166,6 +167,11 @@ emit_error() {
   if [[ "$OUTPUT" == "json" ]]; then
     output=$(printf '{"status":"error","error":"%s"}\n' "$(escape_json_string "$message")")
   fi
+  # a json refusal with a fix carries it in a `fix` field; with none, main's bytes
+  if [[ "$OUTPUT" == "json" && -n "$fix" ]]; then
+    output=$(printf '{"status":"error","error":"%s","fix":"%s"}\n' \
+      "$(escape_json_string "$message")" "$(escape_json_string "$fix")")
+  fi
   # output to both stdout and stderr
   echo "$output"
   echo "$output" >&2
@@ -176,16 +182,23 @@ emit_error() {
 # .what = given the mode-specific fix (label + cmd), return the ordered pair
 #         of fixes as four tab-separated fields:
 #         prefer_label \t prefer_cmd \t alt_label \t alt_cmd
-# .why  = the order is a pure decision (a function of $AUTH), separable from the
+# .why  = the order is a pure decision (a function of auth), separable from the
 #         guide's i/o. as a transformer it lets emit_pr_open_guide read as a
 #         straight compose of print_* calls (rule.forbid.decode-friction-in-orchestrators).
 # .note = keyrack leads by default (the vision's preferred bias); under as-human
 #         the caller already opted out of keyrack, so the mode fix leads and
 #         keyrack becomes the "instead" alternative.
-# args = fix2_label, fix2_cmd
+# usage: get_ordered_pr_fixes auth=<auth> fix2_label="..." fix2_cmd="..."
 ######################################################################
 get_ordered_pr_fixes() {
-  local fix2_label="$1" fix2_cmd="$2"
+  local auth="" fix2_label="" fix2_cmd="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      auth=*) auth="${arg#auth=}" ;;
+      fix2_label=*) fix2_label="${arg#fix2_label=}" ;;
+      fix2_cmd=*) fix2_cmd="${arg#fix2_cmd=}" ;;
+    esac
+  done
   local keyrack_label="unlock the ehmpath keyrack, so the seaturtle can open the pr"
   # name the specific key (rule.require.narrow-keyrack-unlocks): a bare unlock
   # would prompt for every declared key (e.g. aws sso), so scope the hint to the
@@ -194,7 +207,7 @@ get_ordered_pr_fixes() {
 
   # under as-human the caller already opted out of keyrack, so the mode fix leads
   # (trailing newline lets the caller's `read` return 0 under set -e)
-  if [[ "$AUTH" == "as-human" ]]; then
+  if [[ "$auth" == "as-human" ]]; then
     printf '%s\t%s\t%s\t%s\n' \
       "$fix2_label" "$fix2_cmd" "$keyrack_label instead" "$keyrack_cmd"
     return
@@ -218,15 +231,25 @@ get_ordered_pr_fixes() {
 # .note = the fix order is decided by the pure get_ordered_pr_fixes transformer;
 #         the fix2 label is passed bare — this helper renders it as numbered fix
 #         #1 or #2 (the "or" prefix rides #2) per that order.
-# args = error_line, fix2_label, fix2_cmd, json_error, [detail]
+# usage: emit_pr_open_guide error_line="..." fix2_label="..." fix2_cmd="..." \
+#          json_error="..." [detail="..."]
 ######################################################################
 emit_pr_open_guide() {
-  local error_line="$1" fix2_label="$2" fix2_cmd="$3" json_error="$4" detail="${5:-}"
+  local error_line="" fix2_label="" fix2_cmd="" json_error="" detail="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      error_line=*) error_line="${arg#error_line=}" ;;
+      fix2_label=*) fix2_label="${arg#fix2_label=}" ;;
+      fix2_cmd=*) fix2_cmd="${arg#fix2_cmd=}" ;;
+      json_error=*) json_error="${arg#json_error=}" ;;
+      detail=*) detail="${arg#detail=}" ;;
+    esac
+  done
 
   # order the two fixes (pure decision, delegated to the transformer)
   local prefer_label prefer_cmd alt_label alt_cmd
   IFS=$'\t' read -r prefer_label prefer_cmd alt_label alt_cmd \
-    < <(get_ordered_pr_fixes "$fix2_label" "$fix2_cmd")
+    < <(get_ordered_pr_fixes auth="$AUTH" fix2_label="$fix2_label" fix2_cmd="$fix2_cmd")
 
   # render as a tree guide (the keyrack.yml-not-found guide shape): a generic
   # header, the specific cause on the `error:` line, then a 🥥 block of two
@@ -359,9 +382,19 @@ if [[ -f "$STATE_FILE" ]]; then
   USES=$(jq -r '.uses' "$STATE_FILE")
 fi
 if [[ "$PUSH_ALLOWED" != "allow" ]]; then
-  emit_error class=constraint message="push not allowed"
+  # json: the director fix rides a `fix` field; with no director, main's bytes.
+  # tree: the fix renders below the error, so the error carries none
+  PUSH_GRANT_FIX=""
+  if [[ "$OUTPUT" == "json" ]]; then
+    PUSH_GRANT_FIX="$(get_one_quota_grant_fix_for_json repo_root="$REPO_ROOT" \
+      refusal=push-blocked meter_file="$STATE_FILE" \
+      human_lead="ask your human to grant with --push allow:" \
+      human_cmd="  \$ git.commit.uses set --quant N --push allow")"
+  fi
+  emit_error class=constraint message="push not allowed" fix="$PUSH_GRANT_FIX"
   if [[ "$OUTPUT" == "tree" ]]; then
-    print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant push" \
+    print_quota_grant_fix repo_root="$REPO_ROOT" refusal=push-blocked \
+      meter_file="$STATE_FILE" \
       human_lead="ask your human to grant with --push allow:" \
       human_cmd="  \$ git.commit.uses set --quant N --push allow"
   fi
@@ -441,10 +474,11 @@ PUSH_TARGET="origin/$CURRENT_BRANCH"
 ######################################################################
 if [[ "$MODE" == "plan" ]]; then
   if [[ "$OUTPUT" == "json" ]]; then
-    # escape quotes in pr title for valid json
-    PR_TITLE_ESCAPED=$(echo "$PR_TITLE" | sed 's/"/\\"/g')
+    # escape each value for valid json (backslash, quote, control chars); no echo,
+    # so a title that opens with a dash is never read as an echo flag
     printf '{"status":"planned","push_target":"%s","pr_title":"%s","pr_action":"findsert","auth":"%s"}\n' \
-      "$PUSH_TARGET" "$PR_TITLE_ESCAPED" "$AUTH"
+      "$(escape_json_string "$PUSH_TARGET")" "$(escape_json_string "$PR_TITLE")" \
+      "$(escape_json_string "$AUTH")"
   else
     print_turtle_header "heres the wave..."
     print_tree_start "git.commit.push --mode plan"
@@ -556,11 +590,11 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
     TOKEN_CAUSE=""
     [[ -n "$TOKEN_FETCH_ERR" ]] && TOKEN_CAUSE="cause: $TOKEN_FETCH_ERR"
     emit_pr_open_guide \
-      "ehmpath keyrack token not available" \
-      "open the pr with the human's github login" \
-      "rhx git.commit.push --mode apply --auth as-human" \
-      "$TOKEN_JSON_ERROR" \
-      "$TOKEN_CAUSE"
+      error_line="ehmpath keyrack token not available" \
+      fix2_label="open the pr with the human's github login" \
+      fix2_cmd="rhx git.commit.push --mode apply --auth as-human" \
+      json_error="$TOKEN_JSON_ERROR" \
+      detail="$TOKEN_CAUSE"
   fi
 
   # identity-sync guard: the fetched token must imply the SAME seaturtle identity
@@ -617,9 +651,14 @@ run_gh() {
 #         commit itself. a named transformer keeps the orchestrator readable
 #         (rule.require.named-transformers): the call site reads intent, not a
 #         grep|sed pipeline to decode.
-# usage: clean=$(get_clean_pr_body "$PR_BODY")
+# usage: clean=$(get_clean_pr_body body="$PR_BODY")
 get_clean_pr_body() {
-  local body="$1"
+  local body="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      body=*) body="${arg#body=}" ;;
+    esac
+  done
   # grep -v drops the trailer lines (exit 1 when none match → || true); the sed
   # collapses any blank lines the removal leaves at the tail
   echo "$body" | { grep -v '^Co-authored-by:' || true; } | sed -e :a -e '/^\n*$/{$d;N;ba;}'
@@ -631,18 +670,26 @@ get_clean_pr_body() {
 #         or gh auth login) — never a bare gh stack trace. the guide states both,
 #         so it is correct whichever mode failed. the commit is already pushed;
 #         only the pr-open is on hold.
+# usage: emit_gh_auth_guide gh_output="$PR_LIST_OUTPUT"
 emit_gh_auth_guide() {
+  local gh_output="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      gh_output=*) gh_output="${arg#gh_output=}" ;;
+    esac
+  done
+
   # label the raw gh output as the cause, to match the keyrack path's
   # `cause: $TOKEN_FETCH_ERR` — so the guide's diagnostic reads as an intentional
   # annotation, not leaked gh noise (consistent across both pr-open guide sites)
   local cause=""
-  [[ -n "$1" ]] && cause="cause: $1"
+  [[ -n "$gh_output" ]] && cause="cause: $gh_output"
   emit_pr_open_guide \
-    "no usable gh credential to open the pr" \
-    "log in the human's github, so the as-human fallback works" \
-    "gh auth login" \
-    "pr-open credential unusable — unlock keyrack or run gh auth login" \
-    "$cause"
+    error_line="no usable gh credential to open the pr" \
+    fix2_label="log in the human's github, so the as-human fallback works" \
+    fix2_cmd="gh auth login" \
+    json_error="pr-open credential unusable — unlock keyrack or run gh auth login" \
+    detail="$cause"
 }
 
 # findsert draft pr
@@ -657,7 +704,7 @@ PR_LIST_OUTPUT=$(run_gh pr list --head "$CURRENT_BRANCH" --json number --jq '.[0
 # the earliest signal of an unusable pr-open credential: guide now, before a
 # doomed create attempt, when the list failed for lack of auth (both modes)
 if [[ $PR_LIST_EXIT -ne 0 ]] && is_gh_auth_failure "$PR_LIST_OUTPUT"; then
-  emit_gh_auth_guide "$PR_LIST_OUTPUT"
+  emit_gh_auth_guide gh_output="$PR_LIST_OUTPUT"
 fi
 
 PR_FOUND=""
@@ -681,7 +728,7 @@ fi
 # so the narrative stays linear per rule.forbid.else-branches)
 if [[ -z "$PR_FOUND" ]]; then
   # strip Co-authored-by trailers from PR body (privacy: avoid email leak)
-  PR_BODY_CLEAN=$(get_clean_pr_body "$PR_BODY")
+  PR_BODY_CLEAN=$(get_clean_pr_body body="$PR_BODY")
   PR_BODY_FULL="$PR_BODY_CLEAN
 
 ---
@@ -707,7 +754,7 @@ if [[ -z "$PR_FOUND" ]]; then
     # an auth failure here means the credential is unusable under this mode —
     # guide to the two fixes rather than surface a bare gh error as pr status
     if is_gh_auth_failure "$PR_CREATE_OUTPUT"; then
-      emit_gh_auth_guide "$PR_CREATE_OUTPUT"
+      emit_gh_auth_guide gh_output="$PR_CREATE_OUTPUT"
     fi
     # a non-auth pr-create failure (branch protection, rate limit, no commits)
     # is a caller-must-fix constraint — record it so the output path reports the

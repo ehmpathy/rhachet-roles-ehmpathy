@@ -29,6 +29,18 @@ director" question is unresolved.
 ## .where
 `1.vision.yield.md` open question 1; every C1, C3, C4, C14 surface.
 
+## .owed once the commander rules
+until then the director line is inert (every tree reads `none`), and the pr is not ready to merge.
+- the detector body in `get_one_tree_director_state` (`git.commit.director.operations.sh`) reads the
+  ruled marker, and answers `unreadable` where the marker exists but cannot be read
+- detection and render split apart; the test-only `director=` arg retires
+- the skill-level test (`git.commit.director.operations.skills.integration.test.ts`) plants a real
+  marker in place of its detector override, so all five skills run end to end against a fixture
+- a clamp pins the marker path this repo commits to read
+- the json `fix` field takes its structured shape, `{ grantor, command }` (F12)
+- the skill-level suite stays green in all three states; its `charter` and `unreadable` scenes then
+  plant a fixture instead of the override
+
 ## .verdict
 director, 2026-10-30: a blueprint call. itemize the options with a lean in the blueprint; the
 commander rules, never best-guessed. unresolved until then.

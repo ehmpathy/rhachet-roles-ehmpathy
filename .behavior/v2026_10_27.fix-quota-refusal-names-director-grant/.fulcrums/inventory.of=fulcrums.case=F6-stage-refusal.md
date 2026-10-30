@@ -9,12 +9,17 @@
   not among them
 
 ## .taken, why
-B for now: not wired. F2 is a director's verdict with an explicit list; a fourth refusal widens
-scope, which is the director's call, not the driver's.
+A, on the director's verdict: wired. both sites call `print_quota_grant_fix` with
+`grant_flag="--stage allow"`; `get_one_director_grant_command` takes `grant_flag` (default
+`--push allow`). the no-director text stays byte for byte (stage suite: 12 pass, no resnap).
 
 ## .rework
-clean. two sites in one skill; `get_one_director_grant_command` gains a `grant=push|stage` arg; one
+clean. two sites in one skill; `get_one_director_grant_command` gains a `grant_flag` arg; one
 row in the director test's data table. no caller depends on the current text.
+
+## .risk
+low: two sites in one skill; the `--stage allow` flag on `git.crew.grant` is read from nheuron's
+decision logs, not its source (F5's caveat).
 
 ## .confidence
 70% that the director wants it wired: same meter, same harm (a driver pages a human for a grant
@@ -26,4 +31,5 @@ found in self review `has-consistent-mechanisms` of 5.1, via a sweep of "ask you
 `skills/*.sh`. inventory row C17.
 
 ## .verdict
-open — awaits the director.
+ruled by the director, 2026-10-30: wire it in this pr. same outcome as the wish (every quota refusal
+a driver meets names its director grant), so it is in scope; the grant line carries `--stage allow`.
