@@ -237,9 +237,10 @@ if [[ "$MODE" == "apply" ]]; then
   export GIT_COMMITTER_NAME="seaturtle[bot]"
   export GIT_COMMITTER_EMAIL="seaturtle@ehmpath.com"
 
-  # capture git output
-  GIT_OUTPUT=$(git pull origin "$DEFAULT_BRANCH" --rebase 2>&1) || true
-  GIT_EXIT_CODE=$?
+  # capture git output and the pull's own exit code (a bare `|| true` would
+  # leave `$?` at 0 and report a failed pull as a clean rebase)
+  GIT_EXIT_CODE=0
+  GIT_OUTPUT=$(git pull origin "$DEFAULT_BRANCH" --rebase 2>&1) || GIT_EXIT_CODE=$?
 
   # check if rebase succeeded
   if [[ $GIT_EXIT_CODE -eq 0 ]] && ! is_rebase_in_progress; then

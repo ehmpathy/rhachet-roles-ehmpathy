@@ -495,4 +495,87 @@ describe('git.branch.rebase.begin', () => {
       });
     },
   );
+
+  given(
+    '[case11] the pull fails and leaves no rebase in progress (a pre-rebase hook refuses)',
+    () => {
+      /**
+       * .what = a feature branch one commit behind a real (bare) origin, whose
+       *         pre-rebase hook refuses
+       * .why = the refusal makes `git pull --rebase` exit non-zero with no rebase
+       *        state left behind, the exact path a swallowed exit code reports
+       *        as a clean rebase
+       */
+      const setupPullRefused = (): string => {
+        const rootDir = fs.mkdtempSync(
+          path.join(os.tmpdir(), 'git-rebase-pull-refused-'),
+        );
+        const originDir = path.join(rootDir, 'origin.git');
+        const workDir = path.join(rootDir, 'work');
+        spawnSync('git', ['init', '--bare', '-b', 'main', originDir]);
+        fs.mkdirSync(workDir);
+        spawnSync('git', ['init', '-b', 'main'], { cwd: workDir });
+        configureTestGitUser({ cwd: workDir });
+        spawnSync('git', ['remote', 'add', 'origin', originDir], {
+          cwd: workDir,
+        });
+
+        // main: an initial commit, then one more that the feature branch lacks
+        fs.writeFileSync(path.join(workDir, 'README.md'), '# reef\n');
+        spawnSync('git', ['add', 'README.md'], { cwd: workDir });
+        spawnSync('git', ['commit', '-m', 'init: reef'], { cwd: workDir });
+        fs.writeFileSync(path.join(workDir, 'tide.txt'), 'high tide\n');
+        spawnSync('git', ['add', 'tide.txt'], { cwd: workDir });
+        spawnSync('git', ['commit', '-m', 'chore: tide'], { cwd: workDir });
+        spawnSync('git', ['push', 'origin', 'main'], { cwd: workDir });
+
+        // feature branch off the first commit, so it sits one behind origin/main
+        spawnSync('git', ['checkout', '-b', 'feature/kelp', 'HEAD~1'], {
+          cwd: workDir,
+        });
+        fs.writeFileSync(path.join(workDir, 'kelp.txt'), 'kelp\n');
+        spawnSync('git', ['add', 'kelp.txt'], { cwd: workDir });
+        spawnSync('git', ['commit', '-m', 'fix(kelp): add kelp'], {
+          cwd: workDir,
+        });
+
+        // meter: uses left, push allowed, so every quota guard passes
+        fs.mkdirSync(path.join(workDir, '.meter'));
+        fs.writeFileSync(
+          path.join(workDir, '.meter', 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
+        );
+
+        // a pre-rebase hook that refuses: the pull fails, no rebase state remains
+        const hookPath = path.join(workDir, '.git', 'hooks', 'pre-rebase');
+        fs.writeFileSync(
+          hookPath,
+          '#!/bin/sh\necho "pre-rebase: refused" >&2\nexit 1\n',
+        );
+        fs.chmodSync(hookPath, 0o755);
+
+        return rootDir;
+      };
+
+      when('[t0] apply mode', () => {
+        then('it reports the failure, never a clean rebase', () => {
+          let rootDir: string | null = null; // .note = deliberate mutation: set inside try so finally can clean up
+          try {
+            rootDir = setupPullRefused();
+            const result = runSkill(path.join(rootDir, 'work'), [
+              '--mode',
+              'apply',
+            ]);
+
+            expect(result.stdout).toContain('error: rebase failed');
+            expect(result.stdout).not.toContain('righteous');
+            expect(result.stdout).not.toContain('status: clean');
+            expect(result.status).toBe(1);
+          } finally {
+            if (rootDir) fs.rmSync(rootDir, { recursive: true, force: true });
+          }
+        });
+      });
+    },
+  );
 });
