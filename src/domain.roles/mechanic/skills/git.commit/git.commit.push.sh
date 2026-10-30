@@ -27,6 +27,7 @@ METER_SLUG="git.commit.uses"
 METER_NOUN="commit"
 source "$SCRIPT_DIR/git.commit.operations.sh"
 source "$SCRIPT_DIR/keyrack.operations.sh"
+source "$SCRIPT_DIR/git.commit.director.sh"
 # .why = the pr body this push opens is signed by the one attribution declaration
 # shellcheck source=../git/git.attribution.operations.sh
 source "$SCRIPT_DIR/../git/git.attribution.operations.sh"
@@ -43,6 +44,10 @@ fi
 REPO_ROOT=$(git rev-parse --show-toplevel)
 METER_DIR="$REPO_ROOT/.meter"
 STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
+
+# who holds the grant for this tree: a director, or a human
+TREE_SLUG="$(basename "$REPO_ROOT")"
+TREE_DIRECTOR="$(get_one_tree_director_state repo_root="$REPO_ROOT")"
 
 # parse arguments
 MODE="plan"
@@ -364,7 +369,9 @@ fi
 if [[ "$PUSH_ALLOWED" != "allow" ]]; then
   emit_error class=constraint message="push not allowed"
   if [[ "$OUTPUT" == "tree" ]]; then
-    print_instruction "ask your human to grant with --push allow:" "  \$ git.commit.uses set --quant N --push allow"
+    print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant push" \
+      human_lead="ask your human to grant with --push allow:" \
+      human_cmd="  \$ git.commit.uses set --quant N --push allow"
   fi
   exit 2  # blocked by constraints
 fi
