@@ -230,6 +230,12 @@ jobs:
       - name: install ripgrep (for grepsafe)
         run: command -v rg || (sudo apt-get update && sudo apt-get install -y ripgrep)
 
+      # .why = lock refresh suites (git.branch.catchup, git.branch.rebase) run a real
+      #        `pnpm install --lockfile-only`; the cache hit skips the install job's pnpm
+      #        setup, so put pnpm on PATH for the suites
+      - name: setup pnpm (for lock refresh suites)
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - name: build
         run: npm run build
 
