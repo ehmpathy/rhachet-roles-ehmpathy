@@ -1,0 +1,26 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.catchup given: [case29] a feature branch when: [t0] --help then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ one merge commit of origin/main into this branch; the push after it is plain
+   ├─ when: catchup once the branch is pushed; rebase before the first push
+   ├─ subcommands
+   │  ├─ begin      preview (default) or apply the merge
+   │  ├─ take       settle a conflict by side: --whos main|branch
+   │  ├─ lock       refresh a taken lockfile against the merged package.json
+   │  ├─ continue   make the merge commit once every conflict is settled
+   │  ├─ abort      back out to the state before begin
+   │  └─ help       show this usage
+   └─ examples
+      ├─ rhx git.branch.catchup begin
+      ├─ rhx git.branch.catchup begin --mode apply
+      ├─ rhx git.branch.catchup take --whos main pnpm-lock.yaml
+      ├─ rhx git.branch.catchup lock refresh
+      ├─ rhx git.branch.catchup continue
+      ├─ rhx git.branch.catchup abort
+      └─ then: rhx git.commit.push --mode apply
+"
+`;

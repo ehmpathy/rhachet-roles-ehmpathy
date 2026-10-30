@@ -1,0 +1,128 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.catchup begin given: [case1] a feature branch 3 behind origin/main, no overlap in files when: [t0] begin, plan mode (default) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 3 commits
+   │  │  ├─ HASH123 feat(docs): add c
+   │  │  ├─ HASH123 feat(docs): add b
+   │  │  └─ HASH123 feat(docs): add a
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   └─ meter
+      └─ left: 4 → 3
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.branch.catchup begin given: [case1] a feature branch 3 behind origin/main, no overlap in files when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ behind: 3 → 0
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case2] a feature branch and origin/main that both edit the same two files when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: merge stopped on conflicts
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  └─ status: in flight, unsettled
+   ├─ conflicts
+   │  ├─ src/a.md
+   │  └─ src/b.md
+   └─ next
+      ├─ settle each file, then: rhx git.stage.add <file>
+      ├─ or take a side:         rhx git.branch.catchup take --whos main|branch <file>
+      ├─ then:                   rhx git.branch.catchup continue
+      └─ or back out:            rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4a] HEAD on main when: [t0] begin (plan) then: matches snapshot 1`] = `
+"✋ ConstraintError: will not merge into main
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ branch: main
+   ├─ why: this verb levels a feature branch with main; it never writes to main
+   └─ fix: run it from the worktree of your feature branch
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4b] unstaged edits in the tree when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 1 commit
+   │  │  └─ HASH123 feat(docs): add a
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   ├─ ⚠️ apply will refuse: uncommitted changes
+   │  └─ readme.md
+   └─ meter
+      └─ left: 4 → 3
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4b] unstaged edits in the tree when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: uncommitted changes in the tree
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ dirty
+   │  └─ readme.md
+   ├─ why: a merge over uncommitted work folds it into a merge commit no one reviews
+   └─ fix: commit it first, then begin again
+      ├─ rhx git.stage.add <files>
+      └─ rhx git.commit.set -m @stdin --mode apply
+"
+`;
+
+exports[`git.branch.catchup begin given: [case4c] meter uses = 0 when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup begin --mode apply
+   └─ ✋ ConstraintError: no commit uses left
+
+ask your human to grant more:
+  $ git.commit.uses set --quant N --push allow|block
+"
+`;
+
+exports[`git.branch.catchup begin given: [case5] a feature branch that already contains origin/main when: [t0] begin (plan) then: matches snapshot 1`] = `
+"🐢 already level
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ from: origin/main
+   ├─ behind: 0
+   └─ no merge needed; meter untouched
+"
+`;

@@ -17,7 +17,9 @@ entry holds the reason.
 | F8 | conflict stop exits 2, unlike rebase's 1 | clean | low | answered by rule (`rule.require.exit-code-semantics`) | 95% |
 | F9 | plan previews and flags on mutation-only gates; refuses on intent and human halts | clean | low | answered by precedent (`git.commit.set` plan split) | 85% |
 | F10 | dispute i003 blockers: both grade content the files do not hold | clean | low | answered: disputes stand, ruled by the director (seed S2) | 95% |
-| F11 | commit step: compose `git.commit.set`, extract its gates, or duplicate them (blueprint C1) | clean, while no code rests on it | low | open: commander | n/a — unpicked |
-| F12 | `lock refresh`: new copy, or lift a shared body with rebase (blueprint C2) | clean, while no code rests on it | low | open: commander | n/a — unpicked |
-| F13 | boot slot `say` or `ref` at 29,924 / 30,000 tokens (blueprint C3) | clean | low | open: commander | n/a — unpicked |
-| F14 | fix the rebase twin's debt in this pr, or leave it to the dream (blueprint C4) | clean | low | open: commander | n/a — unpicked |
+| F11 | commit step: extract the `git.commit.set` gate leaves into `git.commit.operations.sh` (blueprint C1) | clean | low | taken by the driver: an execution fork (seed S6) | 80% |
+| F12 | `lock refresh`: a new copy in catchup, exit 2, manifest check (blueprint C2) | clean | low | taken by the driver: an execution fork (seed S6) | 85% |
+| F13 | boot slot `ref`; budget unchanged (blueprint C3) | clean | low | answered: the director's call (seed S6) | n/a — a director's call |
+| F14 | rebase twin's debt stays out; the dream holds it (blueprint C4) | clean | low | answered: the director's call (seed S6) | n/a — a director's call |
+| F15 | a rebase in flight refuses begin in both modes (vision cell #13 had plan flag it) | clean | low | taken by the driver: an execution fork (seed S6) | 90% |
+| F16 | src boot `not`: catchup subcommand bodies, plus test code under `skills/` | clean | low | taken by the driver: an execution fork (seed S6) | 85% |

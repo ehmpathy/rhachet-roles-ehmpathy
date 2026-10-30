@@ -68,3 +68,6 @@
 {"stone":"1.vision","status":"approved"}
 {"stone":"1.vision","status":"arrived","reason":"entered guard reviews"}
 {"stone":"1.vision","status":"passed"}
+{"stone":"5.1.execution.from_vision","status":"blocked"}
+{"stone":"5.1.execution.from_vision","status":"rewound"}
+{"stone":"5.3.verification","status":"rewound"}

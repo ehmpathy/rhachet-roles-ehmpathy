@@ -1,0 +1,38 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.catchup continue given: [case2] a merge in flight with two conflicted files when: [t1] one file settled + staged, the other not; continue then: matches snapshot 1`] = `
+"✋ ConstraintError: 1 file still in conflict
+
+🐚 git.branch.catchup continue
+   ├─ conflicts
+   │  └─ src/b.md
+   └─ next
+      └─ settle it, rhx git.stage.add it, then continue again
+"
+`;
+
+exports[`git.branch.catchup continue given: [case2] a merge in flight with two conflicted files when: [t2] every file settled and staged, then continue then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup continue
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ files: 2 merged
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup continue given: [case27] no merge in flight when: [t0] continue then: matches snapshot 1`] = `
+"✋ ConstraintError: no merge in flight
+
+🐚 git.branch.catchup continue
+   ├─ state: no catch-up merge is in flight
+   └─ fix: start one with rhx git.branch.catchup begin
+"
+`;

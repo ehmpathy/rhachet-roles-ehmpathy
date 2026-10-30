@@ -86,6 +86,10 @@
       "alternatives": ["rhx git.branch.rebase begin"]
     },
     {
+      "heads": ["git merge"],
+      "alternatives": ["rhx git.branch.catchup begin"]
+    },
+    {
       "heads": ["npm test", "jest", "npx jest", "pnpm test"],
       "alternatives": ["rhx git.repo.test --what unit --scope <scope>"]
     },

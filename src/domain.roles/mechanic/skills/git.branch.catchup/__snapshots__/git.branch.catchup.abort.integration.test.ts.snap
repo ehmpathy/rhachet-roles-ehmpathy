@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.catchup abort given: [case3] a merge in flight with unsettled conflicts when: [t0] abort then: matches snapshot 1`] = `
+"🐢 no worries dude
+
+🐚 git.branch.catchup abort
+   ├─ merge: aborted
+   ├─ HEAD: HASH123 (as before begin)
+   └─ meter
+      └─ left: 4 (no spend)
+"
+`;

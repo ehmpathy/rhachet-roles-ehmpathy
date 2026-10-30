@@ -110,6 +110,9 @@ always:
       - skills/git.commit/git.commit.bind.sh
       - skills/git.commit/git.commit.uses.sh
 
+      # git branch — catch up a pushed branch via merge; --help carries the rest
+      - skills/git.branch.catchup/git.branch.catchup.sh
+
       # github actions — show.gh.test.errors covers the common case
       - skills/show.gh.action.logs.sh
 
@@ -121,6 +124,16 @@ always:
 
       # permissions: what the nudge has recorded
       - skills/permissions.nudges.sh
+
+    not:
+      # git branch catchup — subcommand bodies the dispatcher execs; its --help names each
+      - skills/git.branch.catchup/git.branch.catchup.*.sh
+
+      # test code — the build (build:complete:dist) never ships it, so a consumer never boots it;
+      # the src boot drops it too, so the budget measures what ships
+      - skills/**/.test/**
+      - skills/**/*.test.ts
+      - skills/**/__snapshots__/**
 
 subject.code.prod:
   briefs:

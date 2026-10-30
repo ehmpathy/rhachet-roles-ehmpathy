@@ -1,0 +1,37 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.catchup lock refresh given: [case6] main adds dep b, the branch adds devDep b2; only the lock conflicts when: [t1] take --whos main pnpm-lock.yaml then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  └─ pnpm-lock.yaml ✓
+   └─ next
+      ├─ lockfile taken whole; refresh it: rhx git.branch.catchup lock refresh
+      └─ then: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case6] main adds dep b, the branch adds devDep b2; only the lock conflicts when: [t2] lock refresh then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup lock refresh
+   ├─ pm: pnpm
+   ├─ install: pnpm install --lockfile-only
+   ├─ staged
+   │  └─ pnpm-lock.yaml ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup lock refresh given: [case6b] main and the branch both add a dep at one spot; package.json conflicts too when: [t0] begin, take --whos main pnpm-lock.yaml, then lock refresh then: matches snapshot 1`] = `
+"✋ ConstraintError: a manifest is still in conflict
+
+🐚 git.branch.catchup lock refresh
+   ├─ settle first
+   │  └─ package.json
+   ├─ why: a refresh reads package.json as is; with conflict markers it writes a wrong lock
+   └─ next: settle it, rhx git.stage.add it, then lock refresh again
+"
+`;

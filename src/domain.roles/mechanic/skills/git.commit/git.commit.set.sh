@@ -225,40 +225,6 @@ is_push_failed() {
 }
 
 ######################################################################
-# communicator: fetch the robot token, with its stderr captured
-######################################################################
-# .what = `fetch_github_token`, wrapped so its own stderr (a network
-#         timeout, a locked keyrack, a corrupted credential store) lands in
-#         `TOKEN_FETCH_ERR` rather than the raw i/o boundary the orchestrator
-#         had to perform inline
-#
-# .why = the orchestrator below used to run its own four-line mktemp/call/
-#        cat/rm dance around `fetch_github_token` — the exact mixed-grain
-#        shape `rule.prefer.decomposable-architecture` names. as a named leaf,
-#        `ROBOT_TOKEN=$(fetch_github_token)` reads as one decision, and the
-#        capture machinery lives once, here.
-#
-# .why globals set by a DIRECT call, never a `$( )` substitution = a
-#        command substitution forks a subshell, and a variable this
-#        function sets would die with it.
-#
-# .why the mktemp+trap+rm pair = the explicit `rm -f` covers the normal
-#        return, and the `${err_file:-}`-guarded EXIT trap covers a kill
-#        mid-call. a bare `$err_file` in the trap would read as unbound once
-#        this function returns (this file runs under `set -u`), which aborts
-#        the trap and overwrites the real exit code (measured: a refusal's
-#        `exit 2` came out as `1`).
-fetch_robot_token() {
-  local err_file
-  err_file=$(mktemp)
-  trap 'rm -f "${err_file:-}"' EXIT
-
-  ROBOT_TOKEN=$(fetch_github_token 2>"$err_file" || echo "")
-  TOKEN_FETCH_ERR=$(cat "$err_file")
-  rm -f "$err_file"
-}
-
-######################################################################
 # source shared domain operations (get_behavioral_commits_on_branch, etc.)
 ######################################################################
 source "$SCRIPT_DIR/git.commit.operations.sh"
@@ -685,115 +651,19 @@ else
   fi
 fi
 
-# check global blocker (before local quota)
-#
-# 🔴 .why emit_both = a refusal that reaches stdout alone is a permission denial
-#        nobody can audit — a log aggregator, a parent process, or a ci hook
-#        that reads stderr sees exit 2 beside an empty stream
-#        (rule.require.skill-output-streams: a failure rides BOTH).
-#
-# 🔴 .why the corrupt note = this gate now fails CLOSED on a damaged file, so
-#        `global blocker file corrupt` is reachable here. the lift command is
-#        the remedy for a blocker a HUMAN set; it is not the remedy for a file
-#        that will not parse. ⇒ the note names the file and how to clear it,
-#        and is a no-op on the ordinary blocked case, so one call serves both
-#        (rule.require.errors-name-the-fix).
-#
-# 🔴 .why the EXIT CODE branches on `_CORRUPT` = a human-set block is a
-#        constraint the caller's human must lift (exit 2), but a file that
-#        will not parse is a malfunction the family classifies as exit 1
-#        everywhere else it appears — `guard_org_meter_is_readable` and
-#        `refuse_set_state_damaged` both exit 1 for this identical class. an
-#        aggregator that sorts exit 1 (malfunction) from exit 2 (constraint)
-#        would otherwise read a damaged permission file as bad caller input.
-if ! check_global_blocker; then
-  emit_both "$(
-    print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.set"
-    # the class follows the exit below: a damaged file is a malfunction (1),
-    # a human-set block is a constraint (2)
-    if [[ "$GLOBAL_BLOCK_CORRUPT" == "true" ]]; then
-      print_tree_malfunction "$GLOBAL_BLOCK_REASON"
-    fi
-    if [[ "$GLOBAL_BLOCK_CORRUPT" != "true" ]]; then
-      print_tree_constraint "$GLOBAL_BLOCK_REASON"
-    fi
-    # ⚠️ the two remedies are EXCLUSIVE, so exactly one prints. a lift is what
-    #    clears a blocker a human set; it is not what clears a damaged file,
-    #    and both at once reads as a menu where the reader must pick.
-    if [[ "$GLOBAL_BLOCK_CORRUPT" != "true" ]]; then
-      print_instruction "ask your human to lift:" "  \$ git.commit.uses allow --global"
-    fi
-    print_global_corrupt_note
-  )"
-  if [[ "$GLOBAL_BLOCK_CORRUPT" == "true" ]]; then
-    exit 1  # malfunction — the file is damaged, not the caller's input
-  fi
-  exit 2
+# refuse a commit a human halted: global blocker, then org blocker (both modes)
+refuse_if_commit_blocked skill="git.commit.set"
+
+# read the local quota; absent or damaged refuses in both modes
+get_commit_quota_status file="$STATE_FILE"
+if [[ "$COMMIT_QUOTA_STATUS" == "absent" || "$COMMIT_QUOTA_STATUS" == "corrupt" ]]; then
+  refuse_commit_quota skill="git.commit.set" status="$COMMIT_QUOTA_STATUS" \
+    file_shown="${STATE_FILE#"$REPO_ROOT/"}"
 fi
 
-# check org blocker (after global, before local)
-# ⇒ the twin of the block above, on the org meter. same two reasons.
-if ! check_org_blocker; then
-  emit_both "$(
-    print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.set"
-    # the class follows the exit below, as above
-    if [[ "$ORG_BLOCK_CORRUPT" == "true" ]]; then
-      print_tree_malfunction "$ORG_BLOCK_REASON"
-    fi
-    if [[ "$ORG_BLOCK_CORRUPT" != "true" ]]; then
-      print_tree_constraint "$ORG_BLOCK_REASON"
-    fi
-    # ⚠️ exclusive, as above: `allow --org` writes a key into a file, which is
-    #    no remedy for a file that cannot be parsed to write into.
-    if [[ "$ORG_BLOCK_CORRUPT" != "true" ]]; then
-      print_instruction "ask your human to allow:" "  \$ git.commit.uses allow --org <org>"
-    fi
-    print_org_corrupt_note
-  )"
-  if [[ "$ORG_BLOCK_CORRUPT" == "true" ]]; then
-    exit 1  # malfunction — the file is damaged, not the caller's input
-  fi
-  exit 2
-fi
-
-# check state file exists
-if [[ ! -f "$STATE_FILE" ]]; then
-  emit_both "$(
-    print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.set"
-    print_tree_constraint "no commit quota set"
-    print_instruction "ask your human to grant:" "  \$ git.commit.uses set --quant N --push allow|block"
-  )"
-  exit 2  # blocked by constraints
-fi
-
-# refuse a damaged quota file by name, before any raw read of it
-if ! is_local_meter_readable file="$STATE_FILE"; then
-  emit_both "$(
-    print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.set"
-    print_tree_malfunction "commit quota file corrupt"
-    print_local_meter_damaged_fix file="${STATE_FILE#"$REPO_ROOT/"}"
-  )"
-  exit 1  # malfunction — the file is damaged, not the caller's input
-fi
-
-# read state
-USES=$(jq -r '.uses' "$STATE_FILE")
-PUSH_ALLOWED=$(jq -r '.push' "$STATE_FILE")
-STAGE_ALLOWED=$(jq -r '.stage // "block"' "$STATE_FILE")
-
-# check uses > 0 or "infinite" (plan mode is allowed without uses)
-if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" != "plan" ]]; then
-  emit_both "$(
-    print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.set"
-    print_tree_constraint "no commit uses left"
-    print_instruction "ask your human to grant more:" "  \$ git.commit.uses set --quant N --push allow|block"
-  )"
-  exit 2  # blocked by constraints
+# spent uses refuse apply only (plan mode is allowed without uses)
+if [[ "$COMMIT_QUOTA_STATUS" == "spent" && "$MODE" != "plan" ]]; then
+  refuse_commit_quota skill="git.commit.set" status="spent"
 fi
 
 # check push permission
@@ -847,155 +717,7 @@ fi
 #        holds the same invariant, and its suite states it outright:
 #        "a refused bind must leave the tree exactly as it found it".
 ######################################################################
-SPONSOR_FILE="$METER_DIR/$SPONSOR_STATE_FILENAME"
-
-# .why = the shared reader, never a local jq. this read WAS a local
-#        `jq ... 2>/dev/null || echo ""`, which discarded jq's exit status
-#        and so collapsed a corrupt state file into the "no sponsor bound"
-#        refusal below — it told the human to bind a sponsor they had
-#        already bound, and never named the file that was truly at fault
-#        (rule.forbid.failhide). the reader keeps the two apart.
-#
-# .note = the read is FRESH per invocation — never cached across commits, so
-#         a cleared tree refuses on its very next commit. it is NOT, however,
-#         point-in-time consistent through to the `git commit` call far below:
-#         a `git.commit.sponsor del` that lands in that window commits a
-#         trailer for a sponsor just cleared. accepted, on the same terms as
-#         the set/del race under `F12` — both mutators are human-only and
-#         tty-gated, so the window needs a human who clears a sponsor in the
-#         seconds their own clone is mid-commit. distinct from F12 all the
-#         same: that one is mutator-vs-mutator, this is reader-vs-mutator
-#         inside one invocation.
-read_sponsor_state "$SPONSOR_FILE" || SPONSOR_READ_STATUS=$?
-SPONSOR_READ_STATUS="${SPONSOR_READ_STATUS:-0}"
-
-# an unreadable file is a MALFUNCTION, and it exits 1 — a class apart from
-# the unbound tree below, which is a constraint at exit 2. the remedy
-# differs too: inspect the file, rather than ask a human for a new bind.
-if [[ "$SPONSOR_READ_STATUS" -eq 1 ]]; then
-  # .note = the render is SHARED with `git.commit.sponsor get` — the two had
-  #         already drifted once on the bind-form set, so the tree now lives in
-  #         one leaf and only the label is per-site. the reasons for each line
-  #         are on `print_sponsor_corrupt_render`.
-  emit_both "$(print_sponsor_corrupt_render "git.commit.set")"
-  exit 1  # malfunction
-fi
-
-# .what = the cause lines of the no-sponsor refusal, one shape per git config
-#         kind. reads the GIT_IDENTITY_* globals.
-#
-# .why a named leaf = the refusal is one decision (no sponsor → refuse) with
-#        four ways to explain it; inline, the orchestrator would read as four
-#        renders rather than one refusal (rule.require.named-transformers).
-#
-# 🔴 .why the value is NOT echoed where it holds a control character = an
-#        ESC echoed into the tree would let the value rewrite the message.
-render_sponsor_absent_cause() {
-  local shown="$GIT_IDENTITY_NAME <$GIT_IDENTITY_EMAIL>"
-  is_identity_unprintable "$shown" && shown="(holds a control character)"
-
-  echo "   no sponsor is bound to this tree, and this machine's git config"
-
-  if [[ "$GIT_IDENTITY_KIND" == "unset" ]]; then
-    echo "   holds no complete identity:"
-    as_git_config_unset_lines "${GIT_IDENTITY_FAULTS[@]}"
-    echo ""
-    return 0
-  fi
-
-  if [[ "$GIT_IDENTITY_KIND" == "malformed" ]]; then
-    echo "   holds an identity that is not a 'Name <email>':"
-    echo "     $shown"
-    return 0
-  fi
-
-  if [[ "$GIT_IDENTITY_KIND" == "clone" ]]; then
-    echo "   names a clone:"
-    echo "     $shown"
-    echo "   ...so this is the clone's machine, and it cannot answer for the change."
-    return 0
-  fi
-
-  echo "   names a placeholder, which cannot answer for the change:"
-  echo "     $shown"
-}
-
-# 🔴 .why it branches on the STATUS, never on the parsed leaves = this read
-#        `[[ -z "$SPONSOR_NAME" || -z "$SPONSOR_EMAIL" ]]`, which re-derives
-#        from the fields a decision the reader already made. after the
-#        reader's gate 2, status 0 guarantees both are non-empty and status 2
-#        guarantees both are empty ⇒ the compound reduced to exactly this
-#        line, by a longer route.
-#
-# 🔴 .why = so it was a SECOND, narrower idea of "is a sponsor bound", sat
-#        beside the reader that owns the question. correct today, and the
-#        exact latent drift the shared reader was built to remove: widen the
-#        reader's sense of bound and this caller keeps the old one, silently.
-#        one state file, one reader, one decision point.
-#
-# ⚠️ .why this refusal is a leaf in THIS file while the corrupt case above
-#    routes through a shared leaf = a leaf moves to `git.commit.operations.sh`
-#    on proven reuse across skills, never on shape:
-#
-#      print_global_corrupt_note     → 4 sites, 3 skills
-#      print_sponsor_corrupt_render  → 2 sites, 2 skills (it had already drifted)
-#
-#    this refusal has ONE caller, below, and it is the only surface that
-#    refuses a commit for an absent sponsor
-#    (rule.prefer.most-common-denominator: lift is reactive, never speculative).
-#
-# .why a named leaf at all = the orchestrator reads as its decision — no
-#        bind, git config cannot answer, refuse — and never as a render.
-#
-# .why the git config fix comes first where a half is at fault = it also fixes
-#        the human's own commits, and makes every later commit here need no
-#        bind. the two bind forms follow; `@self` is absent on purpose, since
-#        it reads this same git config and would refuse.
-#
-# .note = reads GIT_IDENTITY_FAULTS (and, via the cause leaf, _KIND / _NAME /
-#         _EMAIL), which `get_one_git_config_identity` sets just above it.
-refuse_commit_for_absent_sponsor() {
-  # the render below reads the reader's globals — fail named, never raw
-  assert_git_identity_read
-
-  local lead="ask your human to run, in this tree:"
-
-  emit_both "$(
-    print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.set"
-    print_tree_constraint "no sponsor for this commit"
-    echo ""
-    render_sponsor_absent_cause
-    echo ""
-    echo "   ⛔ you cannot fix this yourself. a sponsor is bound by a human,"
-    echo "      at a terminal."
-    if (( ${#GIT_IDENTITY_FAULTS[@]} > 0 )); then
-      print_instruction "ask your human to fix git config — then commits name them:" \
-        "$(as_git_config_fix_lines "${GIT_IDENTITY_FAULTS[@]}")"
-      lead="or to bind a sponsor, in this tree:"
-    fi
-    print_instruction "$lead" "$SPONSOR_BIND_REMEDY"
-  )"
-  exit 2  # blocked by constraints
-}
-
-# 🔴 .note = the corrupt branch ABOVE runs first, and never falls through to
-#        git config. a damaged bind means a human meant a sponsor other than
-#        git config; to substitute git config would invent the answer
-#        (rule.forbid.failhide). only a truly absent bind (status 2) reaches
-#        the fallback below.
-SPONSOR_PROVENANCE="$SPONSOR_PROVENANCE_BOUND"
-
-# no bind — the machine's git config names the sponsor, or the commit refuses
-if [[ "$SPONSOR_READ_STATUS" -eq 2 ]]; then
-  get_one_git_config_identity
-  guard_git_identity_readable skill="git.commit.set"
-  [[ "$GIT_IDENTITY_KIND" == "human" ]] || refuse_commit_for_absent_sponsor
-
-  SPONSOR_NAME="$GIT_IDENTITY_NAME"
-  SPONSOR_EMAIL="$GIT_IDENTITY_EMAIL"
-  SPONSOR_PROVENANCE="$SPONSOR_PROVENANCE_GIT_CONFIG"
-fi
+get_commit_sponsor skill="git.commit.set" file="$METER_DIR/$SPONSOR_STATE_FILENAME"
 
 # robot identity — the commit is always authored as seaturtle[bot]; the token
 # only picks WHICH seaturtle (app bot vs standard) so the commit author equals
@@ -1023,25 +745,7 @@ fi
 #         fires in a different sequence tomorrow. the vars it sets are first
 #         read hundreds of lines below (the plan tree and `--author`), so the
 #         move costs the happy path no work at all.
-ROBOT_TOKEN=""
-ROBOT_TOKEN_FETCHED=false
-if [[ "$AUTH" == "as-ehmpath" && "${NODE_ENV:-}" != "test" ]]; then
-  # capture the keyrack error rather than discard it: a fetch miss soft-fails to
-  # the default seaturtle identity (the commit still lands), but the cause must
-  # not vanish — surface it on stderr so the human can tell a network blip from a
-  # locked keyrack (rule.forbid.failhide)
-  fetch_robot_token
-  ROBOT_TOKEN_FETCHED=true
-  if [[ -z "$ROBOT_TOKEN" && -n "$TOKEN_FETCH_ERR" ]]; then
-    echo "🐢 heads up: the ehmpath keyrack token wasnt fetched; the commit will" >&2
-    echo "   author as the default seaturtle. cause: $TOKEN_FETCH_ERR" >&2
-  fi
-
-  # failfast: an app token must map to the bot identity we hardcode for it,
-  # else the squash-merge could silently show a 3rd contributor
-  assert_token_identity_in_sync "$ROBOT_TOKEN" || exit 2
-fi
-IFS=$'\t' read -r ROBOT_NAME ROBOT_EMAIL < <(get_one_seaturtle_identity "$ROBOT_TOKEN")
+get_commit_robot_identity auth="$AUTH"
 
 # detect work outside the index (unstaged mods + untracked files)
 HAS_UNSTAGED_MODS=false
@@ -1105,11 +809,7 @@ fi
 CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # compute what meter will show after (skip decrement for infinite)
-if [[ "$USES" == "infinite" ]]; then
-  NEW_USES="infinite"
-else
-  NEW_USES=$((USES - 1))
-fi
+NEW_USES=$(as_commit_uses_after_spend uses="$USES")
 if [[ "$PUSH_ALLOWED" == "allow" ]]; then
   PUSH_DISPLAY="allowed"
 else
@@ -1322,34 +1022,14 @@ if [[ "$DO_PUSH" == true ]]; then
 fi
 
 # update uses in state file (preserve stage, write "infinite" as string)
-if [[ "$NEW_USES" == "infinite" ]]; then
-  cat > "$STATE_FILE" << EOF
-{
-  "uses": "infinite",
-  "push": "$PUSH_ALLOWED",
-  "stage": "$STAGE_ALLOWED"
-}
-EOF
-else
-  cat > "$STATE_FILE" << EOF
-{
-  "uses": $NEW_USES,
-  "push": "$PUSH_ALLOWED",
-  "stage": "$STAGE_ALLOWED"
-}
-EOF
-fi
+set_commit_meter_state file="$STATE_FILE" uses="$NEW_USES" \
+  push="$PUSH_ALLOWED" stage="$STAGE_ALLOWED"
 
 # auto-revoke push if uses depleted and push was executed
 if [[ "$DO_PUSH" == true && "$PUSH_RESULT_STATUS" == "pushed" && "$NEW_USES" != "infinite" && "$NEW_USES" -le 0 && "$PUSH_ALLOWED" == "allow" ]]; then
   PUSH_ALLOWED="block"
-  cat > "$STATE_FILE" << EOF
-{
-  "uses": $NEW_USES,
-  "push": "block",
-  "stage": "$STAGE_ALLOWED"
-}
-EOF
+  set_commit_meter_state file="$STATE_FILE" uses="$NEW_USES" \
+    push="block" stage="$STAGE_ALLOWED"
   PUSH_DISPLAY="blocked (revoked)"
 fi
 

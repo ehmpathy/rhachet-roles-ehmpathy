@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.catchup take given: [case23] a merge in flight with two text conflicts when: [t0] take --whos main src/a.md then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  └─ src/a.md ✓
+   ├─ still in conflict
+   │  └─ src/b.md
+   └─ next
+      ├─ settle the rest: take a side, or edit + rhx git.stage.add <file>
+      └─ then: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup take given: [case23b] a path that matches no conflicted file when: [t0] take --whos main src/a.md src/absent.md then: matches snapshot 1`] = `
+"✋ ConstraintError: a path matches no conflicted file
+
+🐚 git.branch.catchup take
+   ├─ unmatched
+   │  └─ src/absent.md
+   └─ in conflict
+      ├─ src/a.md
+      └─ src/b.md
+"
+`;

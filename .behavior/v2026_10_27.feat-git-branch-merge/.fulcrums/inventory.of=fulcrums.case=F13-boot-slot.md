@@ -4,23 +4,24 @@
 `boot.yml` must list the entry point (`boot.yml.integration.test.ts:365-387`). the mechanic boot
 measures 29,924 / 30,000 tokens (`npx rhachet roles cost --what src/domain.roles/mechanic/boot.yml`,
 2026-10-30), so a `say` header does not fit as is. (a) `ref`; (b) `say`, demote another skill;
-(c) `say`, raise the budget. blueprint C3.
+(c) `say`, raise the budget.
 
 ## .taken
-none. the commander's call.
+(a) `ref`, by the director's call: the budget stays; the path is listed and `--help` carries the
+verb (seed S6).
 
 ## .rework
 clean: a one-line move in `boot.yml`.
 
 ## .risk
-low: unpicked. with `ref`, a clone that never reads the path may reach for rebase from habit and
-hit the force wall again (vision § awkward); that harm is the one to weigh against the budget.
+low. a clone that never reads the path may reach for rebase from habit; the rebase verb's help is
+out of scope here, so the cure is the catchup `--help` and the `git merge` paved-alternative row.
 
 ## .confidence
-n/a — unpicked.
+n/a — a director's call.
 
 ## .where
-`5.1.execution.blueprint.md` § C3.
+`boot.yml`.
 
 ## .verdict
-open: commander.
+answered: the director's call (seed S6).
