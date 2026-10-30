@@ -88,7 +88,6 @@ a director marker is in this tree but cannot be read; ask your director, else yo
 the director runs:
   $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
 else, ask your human to grant with --push allow
-
 "
 `;
 
@@ -98,6 +97,6 @@ exports[`git.commit.director.sh given: [case4] a director marker that cannot be 
    the director runs:
      $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
    else, ask your human to grant more:
-   $ git.commit.uses set --quant N --push allow
+     $ git.commit.uses set --quant N --push allow
 "
 `;
