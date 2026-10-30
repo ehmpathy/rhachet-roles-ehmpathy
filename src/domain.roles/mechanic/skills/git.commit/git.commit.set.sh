@@ -36,6 +36,7 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/output.sh"
 source "$SCRIPT_DIR/keyrack.operations.sh"
+source "$SCRIPT_DIR/git.commit.director.sh"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
@@ -46,6 +47,10 @@ fi
 REPO_ROOT=$(git rev-parse --show-toplevel)
 METER_DIR="$REPO_ROOT/.meter"
 STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
+
+# who holds the grant for this tree: a director, or a human
+TREE_SLUG="$(basename "$REPO_ROOT")"
+TREE_DIRECTOR="$(get_one_tree_director_state repo_root="$REPO_ROOT")"
 
 # global blocker path (defined in git.commit.operations.sh)
 
@@ -764,7 +769,9 @@ if [[ ! -f "$STATE_FILE" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
     print_tree_constraint "no commit quota set"
-    print_instruction "ask your human to grant:" "  \$ git.commit.uses set --quant N --push allow|block"
+    print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant a quota" \
+      human_lead="ask your human to grant:" \
+      human_cmd="  \$ git.commit.uses set --quant N --push allow|block"
   )"
   exit 2  # blocked by constraints
 fi
@@ -791,7 +798,9 @@ if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" != "plan" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
     print_tree_constraint "no commit uses left"
-    print_instruction "ask your human to grant more:" "  \$ git.commit.uses set --quant N --push allow|block"
+    print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant more" \
+      human_lead="ask your human to grant more:" \
+      human_cmd="  \$ git.commit.uses set --quant N --push allow|block"
   )"
   exit 2  # blocked by constraints
 fi
@@ -802,7 +811,9 @@ if [[ "$DO_PUSH" == true && "$PUSH_ALLOWED" != "allow" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
     print_tree_constraint "push not allowed in current grant"
-    print_instruction "ask your human to grant with --push allow" ""
+    print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant push" \
+      human_lead="ask your human to grant with --push allow" \
+      human_cmd=""
   )"
   exit 2  # blocked by constraints
 fi

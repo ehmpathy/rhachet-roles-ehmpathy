@@ -25,6 +25,7 @@ COMMIT_SKILL_DIR="$(cd "$SKILL_DIR/../git.commit" && pwd)"
 
 # source shared utils
 source "$COMMIT_SKILL_DIR/output.sh"
+source "$COMMIT_SKILL_DIR/git.commit.director.sh"
 source "$SKILL_DIR/git.branch.rebase.operations.sh"
 
 ######################################################################
@@ -33,6 +34,10 @@ source "$SKILL_DIR/git.branch.rebase.operations.sh"
 REPO_ROOT=$(git rev-parse --show-toplevel)
 METER_DIR="$REPO_ROOT/.meter"
 STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
+
+# who holds the grant for this tree: a director, or a human
+TREE_SLUG="$(basename "$REPO_ROOT")"
+TREE_DIRECTOR="$(get_one_tree_director_state repo_root="$REPO_ROOT")"
 
 ######################################################################
 # parse arguments
@@ -73,9 +78,9 @@ if [[ ! -f "$STATE_FILE" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: no commit quota set"
-  echo ""
-  echo "ask your human to grant permission:"
-  echo "  $ rhx git.commit.uses set --quant N --push allow"
+  print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant a quota" \
+    human_lead="ask your human to grant permission:" \
+    human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
   exit 1
 fi
 
@@ -88,9 +93,9 @@ if [[ "$PUSH_ALLOWED" != "allow" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: rebase requires push permission"
-  echo ""
-  echo "ask your human to grant permission:"
-  echo "  $ rhx git.commit.uses set --quant N --push allow"
+  print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant push" \
+    human_lead="ask your human to grant permission:" \
+    human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
   exit 1
 fi
 
@@ -99,9 +104,9 @@ if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" == "apply" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: no commit uses left"
-  echo ""
-  echo "ask your human to grant more:"
-  echo "  $ rhx git.commit.uses set --quant N --push allow"
+  print_quota_grant_fix director="$TREE_DIRECTOR" tree="$TREE_SLUG" ask="grant more" \
+    human_lead="ask your human to grant more:" \
+    human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
   exit 1
 fi
 

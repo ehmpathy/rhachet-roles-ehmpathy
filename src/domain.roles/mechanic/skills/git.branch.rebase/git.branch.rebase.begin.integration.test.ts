@@ -427,4 +427,67 @@ describe('git.branch.rebase.begin', () => {
       });
     });
   });
+
+  given(
+    '[case10] uses spent, push allowed, no director governs the tree',
+    () => {
+      // .note = the svc-quotes #141 incident state. the fixture's own zero-uses
+      //         path also blocks push, so the push guard fires first and the
+      //         uses guard is reached only here
+      when('[t0] apply mode', () => {
+        then('refuses on uses, and names the human grant', () => {
+          const tempDir = setupRebaseScenario({
+            commitsAhead: 2,
+            pushAllowed: true,
+          });
+
+          // spend the quota, keep push allowed
+          fs.writeFileSync(
+            path.join(tempDir, '.meter', 'git.commit.uses.jsonc'),
+            JSON.stringify({ uses: 0, push: 'allow' }, null, 2),
+          );
+
+          try {
+            const result = runSkill(tempDir, ['--mode', 'apply']);
+
+            expect(result.status).toBe(1);
+            expect(result.stdout).toContain('error: no commit uses left');
+            expect(result.stdout).not.toContain(
+              'rebase requires push permission',
+            );
+            expect(result.stdout).toContain('ask your human to grant more:');
+            expect(result.stdout).toContain(
+              '$ rhx git.commit.uses set --quant N --push allow',
+            );
+            expect(result.stdout).not.toContain('director');
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        });
+      });
+
+      when('[t1] plan mode', () => {
+        then('does not refuse on uses (plan spends no use)', () => {
+          const tempDir = setupRebaseScenario({
+            commitsAhead: 2,
+            pushAllowed: true,
+          });
+
+          // spend the quota, keep push allowed
+          fs.writeFileSync(
+            path.join(tempDir, '.meter', 'git.commit.uses.jsonc'),
+            JSON.stringify({ uses: 0, push: 'allow' }, null, 2),
+          );
+
+          try {
+            const result = runSkill(tempDir);
+            expect(result.stdout).not.toContain('no commit uses left');
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        });
+      });
+    },
+  );
 });
