@@ -31,7 +31,7 @@ COMMIT_SKILL_DIR="$(cd "$SKILL_DIR/../git.commit" && pwd)"
 
 # source shared utils
 source "$COMMIT_SKILL_DIR/output.sh"
-source "$COMMIT_SKILL_DIR/git.commit.director.sh"
+source "$COMMIT_SKILL_DIR/git.commit.director.operations.sh"
 source "$SKILL_DIR/git.branch.rebase.operations.sh"
 source "$SKILL_DIR/git.branch.rebase.aside.operations.sh"
 

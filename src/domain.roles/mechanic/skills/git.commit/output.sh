@@ -18,8 +18,8 @@
 #        --output json path, and git.commit.set parses that via jq. a raw gh
 #        error text with a `"`, `\`, or newline would emit invalid JSON and
 #        break the jq parse under `set -o pipefail`. escape backslash, then
-#        double-quote, then fold newlines/tabs — mirrors the PR_TITLE_ESCAPED
-#        pattern, centralized so every json call site shares one escape.
+#        double-quote, then fold newlines/tabs; centralized so every json
+#        call site (plan json included) shares one escape.
 escape_json_string() {
   local raw="$1"
   raw="${raw//\\/\\\\}"

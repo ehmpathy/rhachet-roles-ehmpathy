@@ -49,7 +49,7 @@ SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # source dependencies
 source "$SKILL_DIR/output.sh"
 source "$SKILL_DIR/git.release.operations.sh"
-source "$SKILL_DIR/../git.commit/git.commit.director.sh"
+source "$SKILL_DIR/../git.commit/git.commit.director.operations.sh"
 
 # source decomposed operations
 source "$SKILL_DIR/git.release._.get_one_goal_from_input.sh"
@@ -284,7 +284,8 @@ if [[ "$MODE" == "apply" ]]; then
     echo "🐚 git.release --mode apply"
     echo ""
     echo "✋ blocked: no commit quota set"
-    print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant a quota" indent="   " \
+    print_quota_grant_fix repo_root="$REPO_ROOT" refusal=quota-absent \
+      meter_file="$LOCAL_STATE_FILE" indent="   " \
       human_lead="ask your human to grant:" \
       human_cmd="\$ git.commit.uses set --quant N --push allow"
     exit 2
@@ -297,7 +298,8 @@ if [[ "$MODE" == "apply" ]]; then
     echo "🐚 git.release --mode apply"
     echo ""
     echo "✋ blocked: no commit uses left"
-    print_quota_grant_fix repo_root="$REPO_ROOT" ask="grant more" indent="   " \
+    print_quota_grant_fix repo_root="$REPO_ROOT" refusal=uses-out \
+      meter_file="$LOCAL_STATE_FILE" indent="   " \
       human_lead="ask your human to grant more:" \
       human_cmd="\$ git.commit.uses set --quant N --push allow"
     exit 2
