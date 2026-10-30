@@ -5,16 +5,14 @@ import { given, then, useBeforeAll, when } from 'test-fns';
 import {
   asStableOutput,
   genCatchupScene,
+  getConflictFiles,
   getHeadFacts,
+  moveMain,
   readMeterUses,
   runCatchup,
   runGit,
 } from './.test/genCatchupScene';
-import {
-  asManifest,
-  genLockScene,
-  getConflictFiles,
-} from './.test/genLockScene';
+import { asManifest, genLockScene } from './.test/genLockScene';
 
 /**
  * .what = integration tests for `git.branch.catchup lock refresh`
@@ -210,6 +208,61 @@ describe('git.branch.catchup lock refresh', () => {
           '✋ ConstraintError: no merge in flight',
         );
       });
+    });
+
+    when('[t1] lock with no subcommand', () => {
+      const result = useBeforeAll(async () =>
+        runCatchup({ scene, args: ['lock'] }),
+      );
+
+      then('exits 2; names refresh as the one subcommand', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain(
+          '✋ ConstraintError: lock needs the subcommand refresh (got: none)',
+        );
+        expect(result.stdout).toContain('rhx git.branch.catchup lock refresh');
+      });
+    });
+  });
+
+  given('[case26c] a merge in flight, in a repo with no lockfile', () => {
+    const scene = useBeforeAll(async () => {
+      const scene = genCatchupScene({
+        slug: 'catchup-lock-case26c',
+        base: { 'src/a.md': 'a: base\n' },
+        ahead: { 'src/a.md': 'a: branch\n' },
+      });
+      moveMain({
+        scene,
+        files: { 'src/a.md': 'a: main\n' },
+        message: 'feat(src): edit a',
+      });
+      const begin = runCatchup({ scene, args: ['begin', '--mode', 'apply'] });
+      expect(begin.exitCode).toBe(2);
+      return scene;
+    });
+
+    when('[t0] lock refresh', () => {
+      const result = useBeforeAll(async () =>
+        runCatchup({ scene, args: ['lock', 'refresh'] }),
+      );
+
+      then('exits 2 on both streams; names the lockfiles it looked for', () => {
+        expect(result.exitCode).toBe(2);
+        for (const stream of [result.stdout, result.stderr]) {
+          expect(stream).toContain('✋ ConstraintError: no lockfile found');
+          expect(stream).toContain(
+            'pnpm-lock.yaml, package-lock.json, yarn.lock',
+          );
+        }
+      });
+
+      then(
+        'changes naught: the conflict stays for take or a hand settle',
+        () => {
+          expect(getConflictFiles(scene)).toBe('src/a.md');
+        },
+      );
     });
   });
 });

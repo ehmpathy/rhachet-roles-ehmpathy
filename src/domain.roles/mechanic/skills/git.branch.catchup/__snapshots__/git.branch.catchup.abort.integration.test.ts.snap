@@ -10,3 +10,16 @@ exports[`git.branch.catchup abort given: [case3] a merge in flight with unsettle
       └─ left: 4 (no spend)
 "
 `;
+
+exports[`git.branch.catchup abort given: [case3b] a merge in flight, every conflict settled and staged when: [t0] abort then: matches snapshot 1`] = `
+"🐢 no worries dude
+
+🐚 git.branch.catchup abort
+   ├─ merge: aborted
+   ├─ settlements discarded (staged, not committed)
+   │  └─ src/a.md
+   ├─ HEAD: HASH123 (as before begin)
+   └─ meter
+      └─ left: 4 (no spend)
+"
+`;

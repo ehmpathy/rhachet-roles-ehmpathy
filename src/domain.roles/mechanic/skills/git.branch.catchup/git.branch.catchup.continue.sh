@@ -45,7 +45,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      emit_catchup_constraint "unknown argument: $1" "$(
+      emit_catchup_constraint message="unknown argument: $1" tree="$(
         print_tree_start "$LABEL"
         echo "   └─ usage: rhx git.branch.catchup continue"
       )"
@@ -60,7 +60,7 @@ STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 BRANCH=$(get_current_branch)
 
 # guard: a merge in flight
-refuse_if_no_merge_in_flight "$LABEL"
+refuse_if_no_merge_in_flight label="$LABEL"
 
 # guard: every conflict settled (this speaks before the commit gates)
 CONFLICTS=$(get_conflict_files)
@@ -68,10 +68,10 @@ if [[ -n "$CONFLICTS" ]]; then
   CONFLICT_COUNT=$(grep -c . <<< "$CONFLICTS")
   NOUN="files"
   [[ "$CONFLICT_COUNT" -eq 1 ]] && NOUN="file"
-  emit_catchup_constraint "$CONFLICT_COUNT $NOUN still in conflict" "$(
+  emit_catchup_constraint message="$CONFLICT_COUNT $NOUN still in conflict" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ conflicts"
-    print_catchup_files_tree "   │  " "$CONFLICTS"
+    print_catchup_files_tree prefix="   │  " files="$CONFLICTS"
     echo "   └─ next"
     echo "      └─ settle it, rhx git.stage.add it, then continue again"
   )"
@@ -89,14 +89,15 @@ if [[ "$COMMIT_QUOTA_STATUS" != "ok" ]]; then
 fi
 get_commit_robot_identity auth="$AUTH_DEFAULT"
 
-# the settled count, for the result
-SETTLED_COUNT=$(git diff --cached --name-only | grep -c . || true)
+# every file the merge commit carries (clean and settled alike), for the result
+MERGED_COUNT=$(git diff --cached --name-only | grep -c . || true)
 
 # commit the merge
-if ! set_catchup_merge_commit "$BRANCH"; then
-  emit_catchup_malfunction "git commit failed; the merge stays in flight" "$(
+if ! set_catchup_merge_commit branch="$BRANCH"; then
+  emit_catchup_malfunction message="git commit failed; the merge stays in flight" tree="$(
     print_tree_start "$LABEL"
-    echo "   ├─ cause: $CATCHUP_COMMIT_ERR"
+    echo "   ├─ cause"
+    print_catchup_files_tree prefix="   │  " files="$CATCHUP_COMMIT_ERR"
     echo "   └─ next"
     echo "      ├─ retry:       rhx git.branch.catchup continue"
     echo "      └─ or back out: rhx git.branch.catchup abort"
@@ -104,4 +105,4 @@ if ! set_catchup_merge_commit "$BRANCH"; then
   exit 1
 fi
 
-print_catchup_committed "$LABEL" "files: $SETTLED_COUNT merged" "$BRANCH"
+print_catchup_committed label="$LABEL" merge_line="files: $MERGED_COUNT merged" branch="$BRANCH"

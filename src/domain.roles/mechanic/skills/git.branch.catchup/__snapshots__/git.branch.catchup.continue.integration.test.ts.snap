@@ -36,3 +36,16 @@ exports[`git.branch.catchup continue given: [case27] no merge in flight when: [t
    └─ fix: start one with rhx git.branch.catchup begin
 "
 `;
+
+exports[`git.branch.catchup continue given: [case32] a settled merge in flight, and a commit-msg hook that refuses when: [t0] continue then: matches snapshot 1`] = `
+"💥 MalfunctionError: git commit failed; the merge stays in flight
+
+🐚 git.branch.catchup continue
+   ├─ cause
+   │  ├─ commitlint: the header was refused
+   │  └─ commitlint: see the commit convention
+   └─ next
+      ├─ retry:       rhx git.branch.catchup continue
+      └─ or back out: rhx git.branch.catchup abort
+"
+`;

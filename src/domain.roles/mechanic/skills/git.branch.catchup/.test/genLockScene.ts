@@ -126,12 +126,3 @@ export const genLockScene = (input: {
   runGit({ cwd: scene.upstreamDir, args: ['push', '-q', 'origin', 'main'] });
   return scene;
 };
-
-/**
- * .what = the files git holds as unmerged in the scene's clone
- */
-export const getConflictFiles = (scene: CatchupScene): string =>
-  runGit({
-    cwd: scene.workDir,
-    args: ['diff', '--name-only', '--diff-filter=U'],
-  });

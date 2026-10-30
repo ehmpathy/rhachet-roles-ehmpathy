@@ -14,7 +14,9 @@
 #   - refuses while package.json is itself in conflict (exit 2): a refresh
 #     against half a manifest writes a wrong lock
 #   - detects the package manager: pnpm > npm > yarn
-#   - updates the lockfile only (no node_modules install), then stages it
+#   - pnpm and npm update the lockfile only (no node_modules install); yarn
+#     has no lockfile-only mode in v1, so it runs a full install
+#   - stages the refreshed lockfile
 #
 # .note = a copy apart from the rebase twin's lock refresh, on purpose: the
 #         rebase body demands a rebase in flight and exits 1 on constraints.
@@ -55,7 +57,7 @@ while [[ $# -gt 0 ]]; do
         shift
         continue
       fi
-      emit_catchup_constraint "unknown argument: $1" "$(
+      emit_catchup_constraint message="unknown argument: $1" tree="$(
         print_tree_start "git.branch.catchup lock"
         echo "   └─ usage: rhx git.branch.catchup lock refresh"
       )"
@@ -66,7 +68,7 @@ done
 
 # guard: the one subcommand
 if [[ "$SUBCMD" != "refresh" ]]; then
-  emit_catchup_constraint "lock needs the subcommand refresh (got: ${SUBCMD:-none})" "$(
+  emit_catchup_constraint message="lock needs the subcommand refresh (got: ${SUBCMD:-none})" tree="$(
     print_tree_start "git.branch.catchup lock"
     echo "   └─ usage: rhx git.branch.catchup lock refresh"
   )"
@@ -77,15 +79,15 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
 
 # guard: a merge in flight
-refuse_if_no_merge_in_flight "$LABEL"
+refuse_if_no_merge_in_flight label="$LABEL"
 
 # guard: no manifest in conflict
 MANIFESTS_UNSETTLED=$(get_conflict_files | grep -E '(^|/)package\.json$' || true)
 if [[ -n "$MANIFESTS_UNSETTLED" ]]; then
-  emit_catchup_constraint "a manifest is still in conflict" "$(
+  emit_catchup_constraint message="a manifest is still in conflict" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ settle first"
-    print_catchup_files_tree "   │  " "$MANIFESTS_UNSETTLED"
+    print_catchup_files_tree prefix="   │  " files="$MANIFESTS_UNSETTLED"
     echo "   ├─ why: a refresh reads package.json as is; with conflict markers it writes a wrong lock"
     echo "   └─ next: settle it, rhx git.stage.add it, then lock refresh again"
   )"
@@ -117,7 +119,7 @@ fi
 
 # guard: a lockfile
 if [[ -z "$LOCK_FILE" ]]; then
-  emit_catchup_constraint "no lockfile found" "$(
+  emit_catchup_constraint message="no lockfile found" tree="$(
     print_tree_start "$LABEL"
     echo "   └─ looked for: pnpm-lock.yaml, package-lock.json, yarn.lock"
   )"
@@ -126,7 +128,7 @@ fi
 
 # guard: its package manager on PATH
 if ! command -v "$PM" >/dev/null 2>&1; then
-  emit_catchup_constraint "$PM not found on PATH" "$(
+  emit_catchup_constraint message="$PM not found on PATH" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ lockfile: $LOCK_FILE"
     echo "   └─ fix: install $PM, then lock refresh again"
@@ -140,12 +142,12 @@ fi
 INSTALL_EXIT=0
 INSTALL_OUTPUT=$("${INSTALL[@]}" 2>&1) || INSTALL_EXIT=$?
 if [[ "$INSTALL_EXIT" -ne 0 ]]; then
-  emit_catchup_malfunction "$PM could not refresh the lockfile" "$(
+  emit_catchup_malfunction message="$PM could not refresh the lockfile" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ ran: ${INSTALL[*]}"
     echo "   ├─ exit: $INSTALL_EXIT"
     echo "   └─ output"
-    print_catchup_files_tree "      " "$INSTALL_OUTPUT"
+    print_catchup_files_tree prefix="      " files="$INSTALL_OUTPUT"
   )"
   exit 1
 fi

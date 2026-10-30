@@ -126,3 +126,16 @@ exports[`git.branch.catchup begin given: [case5] a feature branch that already c
    └─ no merge needed; meter untouched
 "
 `;
+
+exports[`git.branch.catchup begin given: [case7] a fetch that fails when: [t0] begin (plan) then: matches snapshot 1`] = `
+"💥 MalfunctionError: could not fetch origin/main
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ cause
+   │  ├─ fatal: '/TEMP' does not appear to be a git repository
+   │  ├─ fatal: Could not read from remote repository.
+   │  ├─ Please make sure you have the correct access rights
+   │  └─ and the repository exists.
+   └─ fix: check the network and the remote, then begin again
+"
+`;

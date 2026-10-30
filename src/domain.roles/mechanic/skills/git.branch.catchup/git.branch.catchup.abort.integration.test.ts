@@ -70,6 +70,10 @@ describe('git.branch.catchup abort', () => {
         expect(result.stdout).toContain('left: 4 (no spend)');
       });
 
+      then('names no settlement: none was made', () => {
+        expect(result.stdout).not.toContain('settlements discarded');
+      });
+
       then('matches snapshot', () => {
         expect(asStableOutput(result.stdout)).toMatchSnapshot();
       });
@@ -97,14 +101,64 @@ describe('git.branch.catchup abort', () => {
         () => {
           expect(result.exitCode).toBe(0);
           expect(getHeadFacts({ scene: ctx.scene }).sha).toBe(ctx.headBefore);
-          expect(result.stdout).toContain('settlements: discarded');
+          expect(result.stdout).toContain('settlements discarded');
+          expect(result.stdout).toContain('src/a.md');
           expect(
             fs.readFileSync(path.join(ctx.scene.workDir, 'src/a.md'), 'utf-8'),
           ).toBe('a: branch\n');
         },
       );
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
+      });
     });
   });
+
+  given(
+    '[case3c] a merge in flight, one conflict settled by take, one still open',
+    () => {
+      const ctx = useBeforeAll(async () => {
+        const scene = genCatchupScene({
+          slug: 'catchup-abort-case3c',
+          base: { 'src/a.md': 'a: base\n', 'src/b.md': 'b: base\n' },
+          ahead: { 'src/a.md': 'a: branch\n', 'src/b.md': 'b: branch\n' },
+        });
+        moveMain({
+          scene,
+          files: { 'src/a.md': 'a: main\n', 'src/b.md': 'b: main\n' },
+          message: 'feat(src): edit a and b',
+        });
+        const headBefore = getHeadFacts({ scene }).sha;
+        const begin = runCatchup({ scene, args: ['begin', '--mode', 'apply'] });
+        expect(begin.exitCode).toBe(2);
+        const take = runCatchup({
+          scene,
+          args: ['take', '--whos', 'main', 'src/a.md'],
+        });
+        expect(take.exitCode).toBe(0);
+        return { scene, headBefore };
+      });
+
+      when('[t0] abort', () => {
+        const result = useBeforeAll(async () =>
+          runCatchup({ scene: ctx.scene, args: ['abort'] }),
+        );
+
+        then('restores the pre-merge state', () => {
+          expect(result.exitCode).toBe(0);
+          expect(getHeadFacts({ scene: ctx.scene }).sha).toBe(ctx.headBefore);
+          expect(isMergeInFlight({ scene: ctx.scene })).toBe(false);
+        });
+
+        then('names the settled file it discarded, not the open one', () => {
+          expect(result.stdout).toContain('settlements discarded');
+          expect(result.stdout).toContain('src/a.md');
+          expect(result.stdout).not.toContain('src/b.md');
+        });
+      });
+    },
+  );
 
   given('[case28] no merge in flight', () => {
     const scene = useBeforeAll(async () =>

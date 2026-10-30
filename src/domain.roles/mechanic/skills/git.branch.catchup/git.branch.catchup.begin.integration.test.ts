@@ -12,6 +12,7 @@ import {
   readMeterUses,
   runCatchup,
   runGit,
+  setCommitMsgHookToReject,
 } from './.test/genCatchupScene';
 
 /**
@@ -332,6 +333,53 @@ describe('git.branch.catchup begin', () => {
           'rhx git.commit.uses set --quant N --push allow --stage allow',
         );
       });
+    });
+  });
+
+  given('[case2c] a clean merge, and a commit-msg hook that refuses', () => {
+    const scene = useBeforeAll(async () => {
+      const scene = genCatchupScene({ slug: 'catchup-begin-case2c' });
+      moveMain({
+        scene,
+        files: { 'docs/a.md': 'a\n' },
+        message: 'feat(docs): add a',
+      });
+      setCommitMsgHookToReject({ scene });
+      return scene;
+    });
+
+    when('[t0] begin --mode apply', () => {
+      const result = useBeforeAll(async () => {
+        const headBefore = getHeadFacts({ scene }).sha;
+        const run = runCatchup({ scene, args: ['begin', '--mode', 'apply'] });
+        return { run, headBefore };
+      });
+
+      then(
+        'exits 1 with a MalfunctionError and the hook cause, on both streams',
+        () => {
+          expect(result.run.exitCode).toBe(1);
+          for (const stream of [result.run.stdout, result.run.stderr]) {
+            expect(stream).toContain(
+              '💥 MalfunctionError: git commit failed; the merge stays in flight',
+            );
+            expect(stream).toContain('commitlint: the header was refused');
+          }
+        },
+      );
+
+      then(
+        'no commit; meter unchanged; the merge stays in flight for continue or abort',
+        () => {
+          expect(getHeadFacts({ scene }).sha).toBe(result.headBefore);
+          expect(readMeterUses({ scene })).toBe(4);
+          expect(isMergeInFlight({ scene })).toBe(true);
+          expect(result.run.stdout).toContain(
+            'rhx git.branch.catchup continue',
+          );
+          expect(result.run.stdout).toContain('rhx git.branch.catchup abort');
+        },
+      );
     });
   });
 
@@ -673,6 +721,148 @@ describe('git.branch.catchup begin', () => {
     });
   });
 
+  given('[case4a2] HEAD on master', () => {
+    const scene = useBeforeAll(async () => {
+      const scene = genCatchupScene({ slug: 'catchup-begin-case4a2' });
+      runGit({ cwd: scene.workDir, args: ['checkout', '-q', '-b', 'master'] });
+      return scene;
+    });
+
+    when('[t0] begin --mode apply', () => {
+      const result = useBeforeAll(async () => {
+        const headBefore = getHeadFacts({ scene }).sha;
+        const run = runCatchup({ scene, args: ['begin', '--mode', 'apply'] });
+        return { run, headBefore };
+      });
+
+      then('exits 2: will not merge into master; HEAD unchanged', () => {
+        expect(result.run.exitCode).toBe(2);
+        expect(result.run.stdout).toContain(
+          '✋ ConstraintError: will not merge into master',
+        );
+        expect(isMergeInFlight({ scene })).toBe(false);
+        expect(getHeadFacts({ scene }).sha).toBe(result.headBefore);
+      });
+    });
+  });
+
+  given('[case4f2] a human blocked commits for this org', () => {
+    const scene = useBeforeAll(async () => {
+      const scene = genCatchupScene({ slug: 'catchup-begin-case4f2' });
+      moveMain({
+        scene,
+        files: { 'docs/a.md': 'a\n' },
+        message: 'feat(docs): add a',
+      });
+      fs.writeFileSync(
+        path.join(
+          scene.homeDir,
+          '.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc',
+        ),
+        JSON.stringify({ orgs: { ehmpathy: 'blocked' } }),
+      );
+      return scene;
+    });
+
+    when('[t0] begin (plan)', () => {
+      const result = useBeforeAll(async () =>
+        runCatchup({ scene, args: ['begin'] }),
+      );
+
+      then('refuses in plan too: exit 2, names the human lift', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('commits blocked for org ehmpathy');
+        expect(result.stdout).toContain('git.commit.uses allow --org <org>');
+        expect(result.stderr).toContain('git.commit.uses allow --org <org>');
+      });
+    });
+  });
+
+  given('[case4h] a merge already in flight', () => {
+    const scene = useBeforeAll(async () => {
+      const scene = genCatchupScene({
+        slug: 'catchup-begin-case4h',
+        base: { 'src/a.md': 'a: base\n' },
+        ahead: { 'src/a.md': 'a: branch\n' },
+      });
+      moveMain({
+        scene,
+        files: { 'src/a.md': 'a: main\n' },
+        message: 'feat(src): edit a',
+      });
+      const first = runCatchup({ scene, args: ['begin', '--mode', 'apply'] });
+      expect(first.exitCode).toBe(2);
+      expect(isMergeInFlight({ scene })).toBe(true);
+      return scene;
+    });
+
+    when('[t0] begin (plan)', () => {
+      const result = useBeforeAll(async () =>
+        runCatchup({ scene, args: ['begin'] }),
+      );
+
+      then('exits 0; flags apply will refuse: a merge is in flight', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          '⚠️ apply will refuse: a merge is in flight',
+        );
+        expect(result.stdout).toContain(
+          'rhx git.branch.catchup continue|abort',
+        );
+      });
+    });
+
+    when('[t1] begin --mode apply', () => {
+      const result = useBeforeAll(async () => {
+        const usesBefore = readMeterUses({ scene });
+        const run = runCatchup({ scene, args: ['begin', '--mode', 'apply'] });
+        return { run, usesBefore };
+      });
+
+      then('exits 2; names continue and abort; meter unchanged', () => {
+        expect(result.run.exitCode).toBe(2);
+        expect(result.run.stdout).toContain(
+          '✋ ConstraintError: a merge is already in flight',
+        );
+        expect(result.run.stdout).toContain('rhx git.branch.catchup continue');
+        expect(result.run.stdout).toContain('rhx git.branch.catchup abort');
+        expect(isMergeInFlight({ scene })).toBe(true);
+        expect(readMeterUses({ scene })).toBe(result.usesBefore);
+      });
+    });
+  });
+
+  given('[case4i] a corrupt commit quota file', () => {
+    const scene = useBeforeAll(async () => {
+      const scene = genCatchupScene({ slug: 'catchup-begin-case4i' });
+      moveMain({
+        scene,
+        files: { 'docs/a.md': 'a\n' },
+        message: 'feat(docs): add a',
+      });
+      fs.writeFileSync(
+        path.join(scene.workDir, '.meter', 'git.commit.uses.jsonc'),
+        '{ not json',
+      );
+      return scene;
+    });
+
+    for (const mode of ['plan', 'apply'] as const) {
+      when(`[t-${mode}] begin --mode ${mode}`, () => {
+        const result = useBeforeAll(async () =>
+          runCatchup({ scene, args: ['begin', '--mode', mode] }),
+        );
+
+        then('exits 1: commit quota file corrupt, on both streams', () => {
+          expect(result.exitCode).toBe(1);
+          expect(result.stdout).toContain('commit quota file corrupt');
+          expect(result.stderr).toContain('commit quota file corrupt');
+          expect(isMergeInFlight({ scene })).toBe(false);
+        });
+      });
+    }
+  });
+
   given('[case5] a feature branch that already contains origin/main', () => {
     const scene = useBeforeAll(async () =>
       genCatchupScene({ slug: 'catchup-begin-case5' }),
@@ -791,6 +981,15 @@ describe('git.branch.catchup begin', () => {
         expect(result.stderr).toContain(
           '💥 MalfunctionError: could not fetch origin/main',
         );
+      });
+
+      then("git's cause lines render as tree leaves, never bare text", () => {
+        expect(result.stdout).toContain('├─ cause\n');
+        expect(result.stdout).toMatch(/│ {2}[├└]─ fatal: /);
+      });
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });

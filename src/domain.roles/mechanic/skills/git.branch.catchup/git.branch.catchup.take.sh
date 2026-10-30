@@ -73,11 +73,11 @@ done
 ######################################################################
 # guards
 ######################################################################
-refuse_if_no_merge_in_flight "$LABEL"
+refuse_if_no_merge_in_flight label="$LABEL"
 
 # guard: --whos is main or branch
 if [[ "$WHOS" != "main" && "$WHOS" != "branch" ]]; then
-  emit_catchup_constraint "--whos must be main or branch (got: ${WHOS:-none})" "$(
+  emit_catchup_constraint message="--whos must be main or branch (got: ${WHOS:-none})" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ main     origin/main's version of the file"
     echo "   ├─ branch   this branch's version of the file"
@@ -88,7 +88,7 @@ fi
 
 # guard: paths given
 if [[ ${#PATHS[@]} -eq 0 ]]; then
-  emit_catchup_constraint "no paths given" "$(
+  emit_catchup_constraint message="no paths given" tree="$(
     print_tree_start "$LABEL"
     echo "   └─ usage: $USAGE"
   )"
@@ -98,7 +98,7 @@ fi
 # guard: some file in conflict
 CONFLICTS=$(get_conflict_files)
 if [[ -z "$CONFLICTS" ]]; then
-  emit_catchup_constraint "no file in conflict" "$(
+  emit_catchup_constraint message="no file in conflict" tree="$(
     print_tree_start "$LABEL"
     echo "   └─ next: rhx git.branch.catchup continue"
   )"
@@ -122,12 +122,12 @@ for pattern in "${PATHS[@]}"; do
 done
 
 if [[ ${#MISSED[@]} -gt 0 ]]; then
-  emit_catchup_constraint "a path matches no conflicted file" "$(
+  emit_catchup_constraint message="a path matches no conflicted file" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ unmatched"
-    print_catchup_files_tree "   │  " "$(printf '%s\n' "${MISSED[@]}")"
+    print_catchup_files_tree prefix="   │  " files="$(printf '%s\n' "${MISSED[@]}")"
     echo "   └─ in conflict"
-    print_catchup_files_tree "      " "$CONFLICTS"
+    print_catchup_files_tree prefix="      " files="$CONFLICTS"
   )"
   exit 2
 fi
@@ -170,10 +170,10 @@ print_turtle_header "righteous!"
 print_tree_start "$LABEL"
 echo "   ├─ whos: $WHOS"
 echo "   ├─ settled"
-print_catchup_files_tree "   │  " "$(printf '%s ✓\n' "${TAKEN[@]}")"
+print_catchup_files_tree prefix="   │  " files="$(printf '%s ✓\n' "${TAKEN[@]}")"
 if [[ -n "$CONFLICTS_LEFT" ]]; then
   echo "   ├─ still in conflict"
-  print_catchup_files_tree "   │  " "$CONFLICTS_LEFT"
+  print_catchup_files_tree prefix="   │  " files="$CONFLICTS_LEFT"
 fi
 
 # no step remains before continue: one line

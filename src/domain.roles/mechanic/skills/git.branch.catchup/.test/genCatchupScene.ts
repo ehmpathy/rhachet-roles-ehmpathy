@@ -82,7 +82,6 @@ export const moveMain = (input: {
 export const writeMeter = (input: {
   scene: CatchupScene;
   uses: number | 'infinite';
-  push?: 'allow' | 'block';
   stage?: 'allow' | 'block';
 }): void => {
   const meterDir = path.join(input.scene.workDir, '.meter');
@@ -92,7 +91,7 @@ export const writeMeter = (input: {
     JSON.stringify(
       {
         uses: input.uses,
-        push: input.push ?? 'allow',
+        push: 'allow',
         stage: input.stage ?? 'allow',
       },
       null,
@@ -213,7 +212,7 @@ export const genCatchupScene = (input: {
 export const asStableOutput = (output: string): string =>
   output
     .replace(/\b[0-9a-f]{7,40}\b/g, 'HASH123')
-    .replace(/\/[^\s]*\.temp\/[^\s/]+/g, '/TEMP');
+    .replace(/\/[^\s']*\.temp\/[^\s']*/g, '/TEMP');
 
 /**
  * .what = run the catchup dispatcher in the scene's clone
@@ -255,6 +254,36 @@ export const getHeadFacts = (input: {
     message: runGit({ cwd, args: ['log', '-1', '--format=%B'] }),
   };
 };
+
+/**
+ * .what = point the clone at a commit-msg hook that rejects every commit
+ * .why = proves the commit step fails loud and leaves the merge in flight,
+ *        as when husky's commitlint refuses a message
+ */
+export const setCommitMsgHookToReject = (input: {
+  scene: CatchupScene;
+}): void => {
+  const hooksDir = path.join(input.scene.baseDir, 'hooks');
+  fs.mkdirSync(hooksDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(hooksDir, 'commit-msg'),
+    '#!/bin/sh\necho "commitlint: the header was refused" >&2\necho "commitlint: see the commit convention" >&2\nexit 1\n',
+    { mode: 0o755 },
+  );
+  runGit({
+    cwd: input.scene.workDir,
+    args: ['config', 'core.hooksPath', hooksDir],
+  });
+};
+
+/**
+ * .what = the files git holds as unmerged in the scene's clone
+ */
+export const getConflictFiles = (scene: CatchupScene): string =>
+  runGit({
+    cwd: scene.workDir,
+    args: ['diff', '--name-only', '--diff-filter=U'],
+  });
 
 /**
  * .what = is a merge in flight in the scene's clone?

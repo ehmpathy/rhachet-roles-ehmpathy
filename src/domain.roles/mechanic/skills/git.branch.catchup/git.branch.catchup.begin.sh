@@ -13,7 +13,8 @@
 #
 # guarantee:
 #   - never merges into main or master (refuses in both modes)
-#   - the git.commit.set gates, in its order: human halts, sponsor, quota
+#   - the git.commit.set gates, in its order: human halts, a corrupt quota
+#     file, sponsor; then uses left (apply refuses, plan flags)
 #   - never merges over uncommitted work, staged or unstaged
 #   - always --no-ff: the result is a 2-parent commit authored by the
 #     robot, with the sponsor Co-authored-by trailer; meter −1
@@ -65,7 +66,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      emit_catchup_constraint "unknown argument: $1" "$(
+      emit_catchup_constraint message="unknown argument: $1" tree="$(
         print_tree_start "git.branch.catchup begin"
         echo "   └─ usage: rhx git.branch.catchup begin [--mode plan|apply]"
       )"
@@ -82,7 +83,7 @@ LABEL="git.branch.catchup begin --mode $MODE"
 
 # guard: inside a git repo
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
-  emit_catchup_constraint "not in a git repository" "$(
+  emit_catchup_constraint message="not in a git repository" tree="$(
     print_tree_start "$LABEL"
     echo "   └─ fix: run it from the worktree of your feature branch"
   )"
@@ -100,8 +101,8 @@ BRANCH=$(get_current_branch)
 
 # guard: a rebase in flight. it detaches HEAD, so no branch is there to
 # plan against; refuse in both modes and name the rebase's own exits
-if is_rebase_in_progress; then
-  emit_catchup_constraint "a rebase is in flight" "$(
+if is_rebase_in_flight; then
+  emit_catchup_constraint message="a rebase is in flight" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ why: a rebase detaches HEAD; there is no branch to catch up until it ends"
     echo "   └─ next"
@@ -112,8 +113,8 @@ if is_rebase_in_progress; then
 fi
 
 # guard: never write to main, master, or a detached HEAD
-if ! is_branch_catchup_target "$BRANCH"; then
-  emit_catchup_constraint "will not merge into $BRANCH" "$(
+if ! is_branch_catchup_target branch="$BRANCH"; then
+  emit_catchup_constraint message="will not merge into $BRANCH" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ branch: $BRANCH"
     echo "   ├─ why: this verb levels a feature branch with main; it never writes to main"
@@ -125,15 +126,16 @@ fi
 # guard: a human halted commits (global, then org)
 refuse_if_commit_blocked skill="$LABEL"
 
-# guard: a sponsor answers for the commit
-get_commit_sponsor skill="$LABEL" file="$METER_DIR/$SPONSOR_STATE_FILENAME"
-
-# read the quota; a damaged file is a malfunction in both modes
+# read the quota; a damaged file is a malfunction in both modes. read before
+# the sponsor, in git.commit.set's gate order
 get_commit_quota_status file="$STATE_FILE"
 if [[ "$COMMIT_QUOTA_STATUS" == "corrupt" ]]; then
   refuse_commit_quota skill="$LABEL" status="corrupt" \
     file_shown="${STATE_FILE#"$REPO_ROOT/"}"
 fi
+
+# guard: a sponsor answers for the commit
+get_commit_sponsor skill="$LABEL" file="$METER_DIR/$SPONSOR_STATE_FILENAME"
 
 ######################################################################
 # fetch the source, then the level check (free in both modes)
@@ -142,9 +144,10 @@ FETCH_ERR_FILE=$(mktemp)
 if ! git fetch "$CATCHUP_SOURCE_REMOTE" "$CATCHUP_SOURCE_BRANCH" >/dev/null 2>"$FETCH_ERR_FILE"; then
   FETCH_ERR=$(cat "$FETCH_ERR_FILE")
   rm -f "$FETCH_ERR_FILE"
-  emit_catchup_malfunction "could not fetch $CATCHUP_SOURCE_REF" "$(
+  emit_catchup_malfunction message="could not fetch $CATCHUP_SOURCE_REF" tree="$(
     print_tree_start "$LABEL"
-    echo "   ├─ cause: $FETCH_ERR"
+    echo "   ├─ cause"
+    print_catchup_files_tree prefix="   │  " files="$FETCH_ERR"
     echo "   └─ fix: check the network and the remote, then begin again"
   )"
   exit 1
@@ -168,13 +171,13 @@ fi
 # gates that guard only the mutation: plan flags, apply refuses
 ######################################################################
 MERGE_IN_FLIGHT=false
-is_merge_in_progress && MERGE_IN_FLIGHT=true
+is_merge_in_flight && MERGE_IN_FLIGHT=true
 UNCOMMITTED=$(get_uncommitted_files)
 
 # robot identity, after the sponsor gate (its fetch can unlock a keyrack)
 get_commit_robot_identity auth="$AUTH_DEFAULT"
 
-HEADER=$(as_catchup_commit_header "$BRANCH")
+HEADER=$(as_catchup_commit_header branch="$BRANCH")
 
 ######################################################################
 # plan: preview + flags, mutate naught
@@ -189,14 +192,14 @@ if [[ "$MODE" == "plan" ]]; then
   echo "   ├─ merge"
   echo "   │  ├─ from: $CATCHUP_SOURCE_REF"
   echo "   │  ├─ into: $BRANCH"
-  echo "   │  ├─ behind: $(as_commit_count_phrase "$BEHIND_COUNT")"
-  BEHIND_SHOWN=$(get_commits_behind "$CATCHUP_PLAN_COMMITS_SHOWN")
+  echo "   │  ├─ behind: $(as_commit_count_phrase count="$BEHIND_COUNT")"
+  BEHIND_SHOWN=$(get_commits_behind limit="$CATCHUP_PLAN_COMMITS_SHOWN")
   if [[ "$BEHIND_COUNT" -gt "$CATCHUP_PLAN_COMMITS_SHOWN" ]]; then
     BEHIND_SHOWN="$BEHIND_SHOWN
 … and $((BEHIND_COUNT - CATCHUP_PLAN_COMMITS_SHOWN)) more"
   fi
-  print_catchup_files_tree "   │  │  " "$BEHIND_SHOWN"
-  echo "   │  └─ ahead: $(as_commit_count_phrase "$AHEAD_COUNT")"
+  print_catchup_files_tree prefix="   │  │  " files="$BEHIND_SHOWN"
+  echo "   │  └─ ahead: $(as_commit_count_phrase count="$AHEAD_COUNT")"
   echo "   ├─ commit"
   echo "   │  ├─ header: $HEADER"
   echo "   │  ├─ author: $ROBOT_NAME <$ROBOT_EMAIL>"
@@ -209,7 +212,7 @@ if [[ "$MODE" == "plan" ]]; then
   fi
   if [[ -n "$UNCOMMITTED" ]]; then
     echo "   ├─ ⚠️ apply will refuse: uncommitted changes"
-    print_catchup_files_tree "   │  " "$UNCOMMITTED"
+    print_catchup_files_tree prefix="   │  " files="$UNCOMMITTED"
   fi
   if [[ "$COMMIT_QUOTA_STATUS" == "absent" ]]; then
     echo "   ├─ ⚠️ apply will refuse: no commit quota set"
@@ -225,7 +228,7 @@ if [[ "$MODE" == "plan" ]]; then
     echo "      └─ left: none granted"
   fi
   if [[ "$COMMIT_QUOTA_STATUS" != "absent" ]]; then
-    echo "      └─ $(as_catchup_meter_line "$USES" "$USES_AFTER")"
+    echo "      └─ $(as_catchup_meter_line uses="$USES" after="$USES_AFTER")"
   fi
   echo ""
   echo "run with --mode apply to execute"
@@ -238,7 +241,7 @@ fi
 
 # guard: a merge already in flight
 if [[ "$MERGE_IN_FLIGHT" == true ]]; then
-  emit_catchup_constraint "a merge is already in flight" "$(
+  emit_catchup_constraint message="a merge is already in flight" tree="$(
     print_tree_start "$LABEL"
     echo "   └─ next"
     echo "      ├─ settle + finish it: rhx git.branch.catchup continue"
@@ -249,10 +252,10 @@ fi
 
 # guard: uncommitted work, staged or unstaged
 if [[ -n "$UNCOMMITTED" ]]; then
-  emit_catchup_constraint "uncommitted changes in the tree" "$(
+  emit_catchup_constraint message="uncommitted changes in the tree" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ dirty"
-    print_catchup_files_tree "   │  " "$UNCOMMITTED"
+    print_catchup_files_tree prefix="   │  " files="$UNCOMMITTED"
     echo "   ├─ why: a merge over uncommitted work folds it into a merge commit no one reviews"
     echo "   └─ fix: commit it first, then begin again"
     echo "      ├─ rhx git.stage.add <files>"
@@ -274,13 +277,13 @@ MERGE_EXIT=0
 MERGE_OUTPUT=$(git merge --no-ff --no-commit "$CATCHUP_SOURCE_REF" 2>&1) || MERGE_EXIT=$?
 
 # git refused to start the merge: the tree is as it was
-if ! is_merge_in_progress; then
-  emit_catchup_malfunction "git refused the merge; the tree is unchanged" "$(
+if ! is_merge_in_flight; then
+  emit_catchup_malfunction message="git refused the merge; the tree is unchanged" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ HEAD: $HEAD_BEFORE (unchanged)"
     echo "   ├─ git exit: $MERGE_EXIT"
     echo "   └─ cause"
-    print_catchup_files_tree "      " "$MERGE_OUTPUT"
+    print_catchup_files_tree prefix="      " files="$MERGE_OUTPUT"
   )"
   exit 1
 fi
@@ -292,13 +295,13 @@ if [[ -n "$CONFLICTS" ]]; then
   if [[ "$STAGE_ALLOWED" != "allow" ]]; then
     SETTLE_LINE="settle each file; its stage needs a human grant: $CATCHUP_GRANT_STAGE_COMMAND"
   fi
-  emit_catchup_constraint "merge stopped on conflicts" "$(
+  emit_catchup_constraint message="merge stopped on conflicts" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ merge"
     echo "   │  ├─ from: $CATCHUP_SOURCE_REF"
     echo "   │  └─ status: in flight, unsettled"
     echo "   ├─ conflicts"
-    print_catchup_files_tree "   │  " "$CONFLICTS"
+    print_catchup_files_tree prefix="   │  " files="$CONFLICTS"
     echo "   └─ next"
     echo "      ├─ $SETTLE_LINE"
     echo "      ├─ or take a side:         rhx git.branch.catchup take --whos main|branch <file>"
@@ -311,10 +314,11 @@ fi
 ######################################################################
 # clean merge: commit it
 ######################################################################
-if ! set_catchup_merge_commit "$BRANCH"; then
-  emit_catchup_malfunction "git commit failed; the merge stays in flight" "$(
+if ! set_catchup_merge_commit branch="$BRANCH"; then
+  emit_catchup_malfunction message="git commit failed; the merge stays in flight" tree="$(
     print_tree_start "$LABEL"
-    echo "   ├─ cause: $CATCHUP_COMMIT_ERR"
+    echo "   ├─ cause"
+    print_catchup_files_tree prefix="   │  " files="$CATCHUP_COMMIT_ERR"
     echo "   └─ next"
     echo "      ├─ retry:       rhx git.branch.catchup continue"
     echo "      └─ or back out: rhx git.branch.catchup abort"
@@ -322,4 +326,4 @@ if ! set_catchup_merge_commit "$BRANCH"; then
   exit 1
 fi
 
-print_catchup_committed "$LABEL" "behind: $BEHIND_COUNT → 0" "$BRANCH"
+print_catchup_committed label="$LABEL" merge_line="behind: $BEHIND_COUNT → 0" branch="$BRANCH"

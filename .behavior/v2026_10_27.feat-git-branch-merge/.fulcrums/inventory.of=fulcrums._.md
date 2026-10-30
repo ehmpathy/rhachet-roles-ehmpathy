@@ -23,3 +23,5 @@ entry holds the reason.
 | F14 | rebase twin's debt stays out; the dream holds it (blueprint C4) | clean | low | answered: the director's call (seed S6) | n/a — a director's call |
 | F15 | a rebase in flight refuses begin in both modes (vision cell #13 had plan flag it) | clean | low | taken by the driver: an execution fork (seed S6) | 90% |
 | F16 | src boot `not`: catchup subcommand bodies, plus test code under `skills/` | clean | low | taken by the driver: an execution fork (seed S6) | 85% |
+| F17 | catchup holds own git-state readers; lift the two shared one-liners once the rebase debt is paid | clean | low | taken by the driver: an execution fork (seed S6) | 80% |
+| F18 | commit-gate refusals (blockers, quota, sponsor) keep the lifted `git.commit.*` render, not the vision sketch's header-first form | clean | low | taken by the driver: an execution fork (seed S6) | 75% |

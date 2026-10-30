@@ -7,6 +7,7 @@ import {
   type CatchupScene,
   commitFiles,
   genCatchupScene,
+  getConflictFiles,
   isMergeInFlight,
   moveMain,
   runCatchup,
@@ -60,12 +61,6 @@ const readFileIn = (scene: CatchupScene, file: string): string =>
 const getStagedFiles = (scene: CatchupScene): string =>
   runGit({ cwd: scene.workDir, args: ['diff', '--cached', '--name-only'] });
 
-const getConflictFiles = (scene: CatchupScene): string =>
-  runGit({
-    cwd: scene.workDir,
-    args: ['diff', '--name-only', '--diff-filter=U'],
-  });
-
 /**
  * .what = integration tests for `git.branch.catchup take`
  * .why = proves a whole-file side pick names sides as main / branch, stages
@@ -91,12 +86,7 @@ describe('git.branch.catchup take', () => {
       then(
         'the other file stays in conflict; the merge stays in flight',
         () => {
-          expect(
-            runGit({
-              cwd: scene.workDir,
-              args: ['diff', '--name-only', '--diff-filter=U'],
-            }),
-          ).toBe('src/b.md');
+          expect(getConflictFiles(scene)).toBe('src/b.md');
           expect(isMergeInFlight({ scene })).toBe(true);
         },
       );
@@ -160,12 +150,7 @@ describe('git.branch.catchup take', () => {
       );
 
       then('changes naught: the matched file is still in conflict', () => {
-        expect(
-          runGit({
-            cwd: scene.workDir,
-            args: ['diff', '--name-only', '--diff-filter=U'],
-          }),
-        ).toContain('src/a.md');
+        expect(getConflictFiles(scene)).toContain('src/a.md');
       });
 
       then('matches snapshot', () => {
@@ -185,6 +170,22 @@ describe('git.branch.catchup take', () => {
         );
       });
     });
+
+    when('[t2] take --whos main, with no path', () => {
+      const result = useBeforeAll(async () =>
+        runCatchup({ scene, args: ['take', '--whos', 'main'] }),
+      );
+
+      then('exits 2 on both streams: no paths given', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('✋ ConstraintError: no paths given');
+        expect(result.stderr).toContain('✋ ConstraintError: no paths given');
+      });
+
+      then('changes naught: the file is still in conflict', () => {
+        expect(getConflictFiles(scene)).toContain('src/a.md');
+      });
+    });
   });
 
   given('[case25] main deleted a file the branch modified', () => {
@@ -202,12 +203,7 @@ describe('git.branch.catchup take', () => {
         expect(fs.existsSync(path.join(scene.workDir, 'src/tide.md'))).toBe(
           false,
         );
-        expect(
-          runGit({
-            cwd: scene.workDir,
-            args: ['diff', '--name-only', '--diff-filter=U'],
-          }),
-        ).toBe('');
+        expect(getConflictFiles(scene)).toBe('');
       });
     });
   });

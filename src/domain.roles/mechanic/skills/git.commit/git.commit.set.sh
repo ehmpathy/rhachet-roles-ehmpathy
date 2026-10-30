@@ -678,73 +678,22 @@ if [[ "$DO_PUSH" == true && "$PUSH_ALLOWED" != "allow" ]]; then
 fi
 
 ######################################################################
-# the SPONSOR — the human who answers for this change
+# the SPONSOR — the human who answers for this change (precedence and
+# rationale: get_commit_sponsor)
 #
-# .what = precedence: a bind in this worktree wins → else the machine's
-#         `git config`, where it names a human → else refuse.
-#
-# .why git config = on a human's own machine, git config already names
-#        that human — it is the identity git stamps on their own commits and
-#        on this clone's commits as committer. so no bind is needed there.
-#
-# .why the refusal stays = on the clone's machine, git config names a
-#        seaturtle identity, and that machine is the clone's BY DEFINITION;
-#        a clone cannot answer for its own change. unset, malformed, or
-#        placeholder git config cannot answer either. each refuses and names
-#        its fix. gh is never read, in any form.
-#
-# .why the read happens HERE, per commit, and is never cached. a tree
-#        whose sponsor was cleared must be refused at its very NEXT
-#        commit; a value read once per session would let a cleared tree
-#        keep its commit, on an authorization no longer held — a stale
-#        authorization, which is the defect's own shape.
-#
-# 🔴 .why = the POSITION of this block is load-bearing, in two directions,
-#        and both are about acts a REFUSED commit must not perform:
-#
+# 🔴 .why = the POSITION of this call is a guard: a REFUSED commit must
+#        perform no mutation.
 #          1. it sits ahead of `git add -A` (the `--unstaged include`
-#             branch below), so a refused commit stages not one file.
-#             the guard used to sit AFTER it, and a tree with no sponsor
-#             would have every change staged and then be refused — a
-#             mutation on the path that reports failure.
+#             branch below), so a refused commit stages not one file
 #          2. it sits ahead of the meter write (the last act of this
-#             skill), so a refused commit spends no quota. otherwise a
-#             tree would burn its grant on refusals and need TWO human
-#             grants to recover.
-#
-#        ⇒ the read is PURE and cheap, so it owes no order to the checks
-#        below and belongs ahead of every mutation. the sibling command
-#        holds the same invariant, and its suite states it outright:
-#        "a refused bind must leave the tree exactly as it found it".
+#             skill), so a refused commit spends no quota, and a tree
+#             never needs two human grants to recover
+#        ⇒ the read is pure and cheap, so it belongs ahead of every mutation.
 ######################################################################
 get_commit_sponsor skill="git.commit.set" file="$METER_DIR/$SPONSOR_STATE_FILENAME"
 
-# robot identity — the commit is always authored as seaturtle[bot]; the token
-# only picks WHICH seaturtle (app bot vs standard) so the commit author equals
-# the PR opener (github squash sets squash-author = opener). that match only
-# matters under --auth as-ehmpath, where the seaturtle bot opens the pr. under
-# --auth as-human the pr opens via the ambient gh login, so no token is needed
-# and the commit uses the default standard seaturtle identity. this fetch runs
-# AFTER arg-parse (so --help never pays the keyrack cost) and only for
-# as-ehmpath (so the as-human fallback escapes keyrack entirely, per the vision).
-# in test env we also skip the fetch to keep tests hermetic (default standard).
-#
-# 🔴 .why it sits HERE, below the sponsor guard = the fetch MUTATES an external
-#        store. `fetch_github_token`'s fallback runs `keyrack unlock` whenever
-#        the primary get fails, so it is not a read — it changes a store that
-#        outlives this process.
-#
-# 🔴 .why = the sponsor guard's own rationale above says a refused commit must
-#        stage not one file and spend no quota. an external unlock is the same
-#        claim's third case, and the fetch used to sit ~300 lines AHEAD of the
-#        refusal — so a tree with no sponsor unlocked the keyrack and then
-#        refused. a mutation on the path that reports failure.
-#
-# .note = it moved DOWN rather than the guard up, deliberately. every other
-#         refusal above keeps its relative order, so no error that fires today
-#         fires in a different sequence tomorrow. the vars it sets are first
-#         read hundreds of lines below (the plan tree and `--author`), so the
-#         move costs the happy path no work at all.
+# robot identity — below the sponsor guard: its token fetch may unlock a keyrack,
+# and a refused commit must mutate no store (see get_commit_robot_identity)
 get_commit_robot_identity auth="$AUTH"
 
 # detect work outside the index (unstaged mods + untracked files)

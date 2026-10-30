@@ -12,6 +12,7 @@ import {
   readMeterUses,
   runCatchup,
   runGit,
+  setCommitMsgHookToReject,
   writeMeter,
 } from './.test/genCatchupScene';
 
@@ -182,6 +183,88 @@ describe('git.branch.catchup continue', () => {
           expect(result.exitCode).toBe(0);
           expect(getHeadFacts({ scene }).parents).toBe(2);
           expect(readMeterUses({ scene })).toBe(1);
+        });
+      });
+    },
+  );
+
+  given(
+    '[case32] a settled merge in flight, and a commit-msg hook that refuses',
+    () => {
+      const scene = useBeforeAll(async () => {
+        const scene = genConflictScene({ slug: 'catchup-continue-case32' });
+        settleFile({ scene, file: 'src/a.md', content: 'a: settled\n' });
+        settleFile({ scene, file: 'src/b.md', content: 'b: settled\n' });
+        setCommitMsgHookToReject({ scene });
+        return scene;
+      });
+
+      when('[t0] continue', () => {
+        const result = useBeforeAll(async () => {
+          const headBefore = getHeadFacts({ scene }).sha;
+          const run = runCatchup({ scene, args: ['continue'] });
+          return { run, headBefore };
+        });
+
+        then(
+          'exits 1 with a MalfunctionError and the hook cause, on both streams',
+          () => {
+            expect(result.run.exitCode).toBe(1);
+            for (const stream of [result.run.stdout, result.run.stderr]) {
+              expect(stream).toContain(
+                '💥 MalfunctionError: git commit failed; the merge stays in flight',
+              );
+              expect(stream).toContain('commitlint: the header was refused');
+            }
+          },
+        );
+
+        then('each line of the cause is its own tree leaf', () => {
+          expect(result.run.stdout).toContain(
+            '   │  ├─ commitlint: the header was refused\n   │  └─ commitlint: see the commit convention\n',
+          );
+        });
+
+        then('names retry and abort as the next moves', () => {
+          expect(result.run.stdout).toContain(
+            'rhx git.branch.catchup continue',
+          );
+          expect(result.run.stdout).toContain('rhx git.branch.catchup abort');
+        });
+
+        then(
+          'no commit; meter unchanged; the merge and its settlements stay',
+          () => {
+            expect(getHeadFacts({ scene }).sha).toBe(result.headBefore);
+            expect(readMeterUses({ scene })).toBe(4);
+            expect(isMergeInFlight({ scene })).toBe(true);
+            expect(
+              runGit({
+                cwd: scene.workDir,
+                args: ['diff', '--cached', '--name-only'],
+              }),
+            ).toContain('src/a.md');
+          },
+        );
+
+        then('matches snapshot', () => {
+          expect(asStableOutput(result.run.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t1] the hook is fixed, then continue', () => {
+        const result = useBeforeAll(async () => {
+          runGit({
+            cwd: scene.workDir,
+            args: ['config', '--unset', 'core.hooksPath'],
+          });
+          return runCatchup({ scene, args: ['continue'] });
+        });
+
+        then('the merge commit lands; meter −1', () => {
+          expect(result.exitCode).toBe(0);
+          expect(getHeadFacts({ scene }).parents).toBe(2);
+          expect(readMeterUses({ scene })).toBe(3);
         });
       });
     },
