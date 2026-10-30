@@ -42,10 +42,6 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 METER_DIR="$REPO_ROOT/.meter"
 STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 
-# who holds the grant for this tree: a director, or a human
-TREE_SLUG="$(basename "$REPO_ROOT")"
-TREE_DIRECTOR="$(get_one_tree_director_state repo_root="$REPO_ROOT")"
-
 ######################################################################
 # parse arguments
 ######################################################################
