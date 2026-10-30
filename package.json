@@ -101,7 +101,7 @@
     "node-pty": "1.2.0-beta.15",
     "rhachet": "1.50.1",
     "rhachet-brains-anthropic": "0.4.3",
-    "rhachet-brains-openrouter": "0.1.4",
+    "rhachet-brains-openrouter": "0.1.3",
     "rhachet-brains-xai": "0.3.3",
     "rhachet-roles-bhrain": "0.42.4",
     "rhachet-roles-bhuild": "0.23.4",
