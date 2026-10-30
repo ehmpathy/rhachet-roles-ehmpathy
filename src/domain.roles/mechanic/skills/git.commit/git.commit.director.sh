@@ -63,6 +63,7 @@ get_one_director_grant_command() {
 #
 # usage: print_quota_grant_fix director=none|charter|unreadable tree=<slug> \
 #          ask="grant more" human_lead="..." human_cmd="..." [indent="   "]
+#        (any other director value renders as unreadable)
 ######################################################################
 print_quota_grant_fix() {
   local director="" tree="" ask="" human_lead="" human_cmd="" indent=""
@@ -88,22 +89,28 @@ print_quota_grant_fix() {
     return 0
   fi
 
-  # a director marker that cannot be read: name both granters, never hide the fix
-  if [[ "$director" == "unreadable" ]]; then
-    local human_lead_bare="${human_lead#"${human_lead%%[! ]*}"}"
+  # no director governs this tree: the extant human fix, unchanged
+  # .note = the same three lines print_instruction (git.commit/output.sh) emits,
+  #         written here so a surface that does not source output.sh can call it
+  if [[ "$director" == "none" ]]; then
     echo ""
-    echo "${indent}a director marker is in this tree but cannot be read; ask your director, else your human."
-    echo "${indent}the director runs:"
-    echo "${indent}  \$ $grant_cmd"
-    echo "${indent}else, ${human_lead_bare}"
+    echo "$human_lead"
     echo "$human_cmd"
     return 0
   fi
 
-  # no director governs this tree: the extant human fix, unchanged
-  # .note = the same three lines print_instruction (git.commit/output.sh) emits,
-  #         written here so a surface that does not source output.sh can call it
+  # a director marker that cannot be read: name both granters, never hide the fix
+  # .note = any state other than none or charter lands here too, so a detector
+  #         fault shows as "cannot be read", never as a silent "ask your human"
+  # .note = both commands sit at one depth under the frame indent, so the two
+  #         `$` lines align; a surface with no human command prints none
+  local human_lead_bare="${human_lead#"${human_lead%%[! ]*}"}"
+  local human_cmd_bare="${human_cmd#"${human_cmd%%[! ]*}"}"
   echo ""
-  echo "$human_lead"
-  echo "$human_cmd"
+  echo "${indent}a director marker is in this tree but cannot be read; ask your director, else your human."
+  echo "${indent}the director runs:"
+  echo "${indent}  \$ $grant_cmd"
+  echo "${indent}else, ${human_lead_bare}"
+  if [[ -n "$human_cmd_bare" ]]; then echo "${indent}  ${human_cmd_bare}"; fi
+  return 0
 }
