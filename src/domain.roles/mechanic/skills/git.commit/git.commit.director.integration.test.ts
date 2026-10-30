@@ -21,12 +21,13 @@ describe('git.commit.director.sh', () => {
   const runDirectorFn = (input: {
     fn: string;
     args: string[];
+    prelude?: string;
   }): { stdout: string; stderr: string; exitCode: number } => {
     const result = spawnSync(
       'bash',
       [
         '-c',
-        'source "$0"; fn="$1"; shift; "$fn" "$@"',
+        `set -euo pipefail; source "$0"; ${input.prelude ?? ''} fn="$1"; shift; "$fn" "$@"`,
         directorPath,
         input.fn,
         ...input.args,
@@ -41,9 +42,11 @@ describe('git.commit.director.sh', () => {
   };
 
   const TREE = 'svc-quotes.beav.fix-ask-for-details-survives-crash';
+  const REPO_ROOT = `/home/surfer/git/_worktrees/${TREE}`;
   const GRANT_LINE = `rhx git.crew.grant --tree ${TREE} --quota <n> --push allow --why '<why>'`;
 
-  // the extant fix of each surface, verbatim from main
+  // the extant fix of each surface, verbatim from main; `indent` is the
+  // surface's frame, which the renderer owns, so lead and cmd come unindented
   const SURFACES = [
     {
       surface: 'git.commit.set, no uses left',
@@ -84,8 +87,8 @@ describe('git.commit.director.sh', () => {
       surface: 'git.release, no uses left',
       ask: 'grant more',
       indent: '   ',
-      humanLead: '   ask your human to grant more:',
-      humanCmd: '   $ git.commit.uses set --quant N --push allow',
+      humanLead: 'ask your human to grant more:',
+      humanCmd: '$ git.commit.uses set --quant N --push allow',
     },
   ];
 
@@ -94,14 +97,16 @@ describe('git.commit.director.sh', () => {
    * .why = every case drives the same render; only the state and surface vary
    */
   const renderFix = (input: {
-    director: string;
+    director: string | null;
     surface: (typeof SURFACES)[number];
+    prelude?: string;
   }) =>
     runDirectorFn({
       fn: 'print_quota_grant_fix',
+      prelude: input.prelude,
       args: [
-        `director=${input.director}`,
-        `tree=${TREE}`,
+        ...(input.director === null ? [] : [`director=${input.director}`]),
+        `repo_root=${REPO_ROOT}`,
         `ask=${input.surface.ask}`,
         `indent=${input.surface.indent}`,
         `human_lead=${input.surface.humanLead}`,
@@ -132,7 +137,7 @@ describe('git.commit.director.sh', () => {
         then('the bytes match the extant human fix exactly', () => {
           expect(result.exitCode).toBe(0);
           expect(result.stdout).toEqual(
-            `\n${surface.humanLead}\n${surface.humanCmd}\n`,
+            `\n${surface.indent}${surface.humanLead}\n${surface.indent}${surface.humanCmd}\n`,
           );
         });
         then('no director and no git.crew.grant is named', () => {
@@ -192,9 +197,7 @@ describe('git.commit.director.sh', () => {
               expect(result.exitCode).toBe(0);
               expect(result.stdout).toContain('cannot be read');
               expect(result.stdout).toContain(`$ ${GRANT_LINE}`);
-              expect(result.stdout).toContain(
-                `else, ${surface.humanLead.trimStart()}`,
-              );
+              expect(result.stdout).toContain(`else, ${surface.humanLead}`);
               expect(result.stdout.indexOf('the director runs:')).toBeLessThan(
                 result.stdout.indexOf('else, '),
               );
@@ -240,4 +243,49 @@ describe('git.commit.director.sh', () => {
       );
     },
   );
+
+  given('[case6] the caller passes no director, as every skill does', () => {
+    SURFACES.map((surface) =>
+      when(`[t0] ${surface.surface} renders its fix`, () => {
+        // render once per surface; each then reads the shared result
+        const result = useThen('it renders', () =>
+          renderFix({ director: null, surface }),
+        );
+        const resultNone = useThen('the none render', () =>
+          renderFix({ director: 'none', surface }),
+        );
+        then('the state is read from the tree at render time', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toEqual(resultNone.stdout);
+        });
+      }),
+    );
+  });
+
+  given('[case7] the director read fails, under set -euo pipefail', () => {
+    SURFACES.map((surface) =>
+      when(`[t0] ${surface.surface} renders its fix`, () => {
+        // render once per surface; each then reads the shared result
+        const result = useThen('it renders', () =>
+          renderFix({
+            director: null,
+            surface,
+            prelude: 'get_one_tree_director_state() { return 1; };',
+          }),
+        );
+        const resultUnreadable = useThen('the unreadable render', () =>
+          renderFix({ director: 'unreadable', surface }),
+        );
+        then('the skill is not aborted: the render exits 0', () => {
+          expect(result.exitCode).toBe(0);
+        });
+        then(
+          'the fault renders as unreadable, so the fix is never hidden',
+          () => {
+            expect(result.stdout).toEqual(resultUnreadable.stdout);
+          },
+        );
+      }),
+    );
+  });
 });
