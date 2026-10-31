@@ -31,13 +31,7 @@ exports[`git.branch.rebase.begin given: [case2] feature branch one commit behind
    │  └─ status: clean
    └─ git.output
       ├─
-      │
-      │  From <tempdir>/.origin
-      │   * branch            main       -> FETCH_HEAD
-      │  Rebasing (1/2)
-      │  Rebasing (2/2)
-      │  Successfully rebased and updated refs/heads/feature/test-branch.
-      │
+      │  <git output>
       └─
 
 🌊 ready to push
@@ -62,21 +56,7 @@ exports[`git.branch.rebase.begin given: [case3] rebase with conflicts when: [t0]
    │  └─ rhx git.branch.rebase continue
    └─ git.output
       ├─
-      │
-      │  From <tempdir>/.origin
-      │   * branch            main       -> FETCH_HEAD
-      │  Rebasing (1/3)
-      │  Rebasing (2/3)
-      │  Rebasing (3/3)
-      │  Auto-merging conflict.txt
-      │  CONFLICT (add/add): Merge conflict in conflict.txt
-      │  error: could not apply <sha>... fix: add conflict file
-      │  hint: Resolve all conflicts manually, mark them as resolved with
-      │  hint: "git add/rm <conflicted_files>", then run "git rebase --continue".
-      │  hint: You can instead skip this commit: run "git rebase --skip".
-      │  hint: To abort and get back to the state before "git rebase", run "git rebase --abort".
-      │  Could not apply <sha>... fix: add conflict file
-      │
+      │  <git output>
       └─
 "
 `;
@@ -150,13 +130,7 @@ exports[`git.branch.rebase.begin given: [case9] uses is "infinite" when: [t0] ap
    │  └─ status: clean
    └─ git.output
       ├─
-      │
-      │  From <tempdir>/.origin
-      │   * branch            main       -> FETCH_HEAD
-      │  Rebasing (1/2)
-      │  Rebasing (2/2)
-      │  Successfully rebased and updated refs/heads/feature/test-branch.
-      │
+      │  <git output>
       └─
 
 🌊 ready to push
@@ -201,12 +175,7 @@ exports[`git.branch.rebase.begin given: [case11] the pull fails and leaves no re
    ├─ error: rebase failed
    └─ git.output
       ├─
-      │
-      │  From <tempdir>/origin
-      │   * branch            main       -> FETCH_HEAD
-      │  pre-rebase: refused
-      │  fatal: The pre-rebase hook refused to rebase.
-      │
+      │  <git output>
       └─
 "
 `;

@@ -157,14 +157,20 @@ const runSkill = (
 
 /**
  * .what = the skill's stdout with its volatile values masked
- * .why = commit shas change with each commit's timestamp and the temp dir is
- *        random; a snapshot must pin the frame, not those values
+ * .why = commit shas change with each commit's timestamp, the temp dir is
+ *        random, and the `git.output` block quotes git's own stderr, whose
+ *        words vary by git version (e.g. `fatal:` vs `error:`, an extra
+ *        `hint:` line); a snapshot must pin the skill's frame, not those values
  */
 const asStableOutput = (input: { stdout: string; tempDir: string }): string =>
   input.stdout
     .split(input.tempDir)
     .join('<tempdir>')
-    .replace(/\b[0-9a-f]{7,40}\b/g, '<sha>');
+    .replace(/\b[0-9a-f]{7,40}\b/g, '<sha>')
+    .replace(
+      /( {3}└─ git\.output\n {6}├─\n)(?: {6}│.*\n)*( {6}└─)/g,
+      '$1      │  <git output>\n$2',
+    );
 
 describe('git.branch.rebase.begin', () => {
   given('[case1] feature branch with commits ahead and behind', () => {
