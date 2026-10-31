@@ -1,0 +1,91 @@
+diff --git a/dist/domain.operations/isTargetPolluter.js b/dist/domain.operations/isTargetPolluter.js
+index e1bf37f5fccc66b10ef7d774d9949509daf17ec6..e487a2f0aad34ffccf89d9dbea2acd5375c82ad6 100644
+--- a/dist/domain.operations/isTargetPolluter.js
++++ b/dist/domain.operations/isTargetPolluter.js
+@@ -174,4 +174,22 @@ const isTargetPolluter = (input) => {
+     return !isRouteArtifactAllowed({ within });
+ };
+ exports.isTargetPolluter = isTargetPolluter;
++/**
++ * .what = whether a path is a file inside a route — `<variant>/<slug>/<file>`
++ * .why = a glob confined to one route names that route's files on purpose, its yield among
++ *        them. `getAllTargetsAskedForByName` reads this so a stage bind like
++ *        `$route/1.vision.*.md` — which matches the yield AND the experience demos — still
++ *        counts as asked-for. it reads the same variant constant as the drop, so the two
++ *        cannot drift
++ *
++ * .note = patched locally by rhachet-roles-ehmpathy; dispatched upstream
++ */
++const isTargetInsideRoute = (input) => {
++    const segments = input.path.split('/').filter((segment) => segment !== '.');
++    const variant = segments[0];
++    if (!variant || !SEGMENTS_OF_ROUTE_VARIANT.has(variant))
++        return false;
++    return segments.length > 2;
++};
++exports.isTargetInsideRoute = isTargetInsideRoute;
+ //# sourceMappingURL=isTargetPolluter.js.map
+\ No newline at end of file
+diff --git a/dist/domain.operations/review/getAllTargetsAskedForByName.js b/dist/domain.operations/review/getAllTargetsAskedForByName.js
+index 68fa8237fce84f7da8f7f8343cc070410ba4041a..c5523484456c043c0478d04c731c82ce50c57050 100644
+--- a/dist/domain.operations/review/getAllTargetsAskedForByName.js
++++ b/dist/domain.operations/review/getAllTargetsAskedForByName.js
+@@ -43,14 +43,25 @@ const getAllTargetsAskedForByName = (input) => {
+ };
+ exports.getAllTargetsAskedForByName = getAllTargetsAskedForByName;
+ /**
+- * .what = whether a glob matched at least one target and every one it matched is a polluter
++ * .what = whether a glob matched at least one target, and every one it matched is a polluter
++ *         or a file inside a route
+  * .why = such a glob named paperwork, and named naught besides — so it asked for it
++ *
++ * .note = 🔴 a route's allowed artifacts (`*.yield.md`) count as in-bounds, not as a mark
++ *         against the glob. a stage bind `$route/1.vision.*.md` matches the yield beside the
++ *         stage's experience demos; under "every match is a polluter" the yield voided the
++ *         exemption and the demos dropped — measured on rhachet-roles-ehmpathy, route
++ *         v2026_10_18.feat-split-release-uses: 12 of 13 files dropped, three rounds that read
++ *         only the yield. a catch-all still fails: it matches source outside any route
++ *
++ * .note = patched locally by rhachet-roles-ehmpathy; dispatched upstream
+  */
+ const isGlobSpecificToPolluters = (input) => {
+     const matched = input.targets.filter((target) => (0, isPathMatchedByGlob_1.isPathMatchedByGlob)({ path: target, glob: input.glob }));
+     if (matched.length === 0)
+         return false;
+-    return matched.every((target) => (0, isTargetPolluter_1.isTargetPolluter)({ path: target }));
++    return matched.every((target) => (0, isTargetPolluter_1.isTargetPolluter)({ path: target }) ||
++        (0, isTargetPolluter_1.isTargetInsideRoute)({ path: target }));
+ };
+ /**
+  * .what = whether a path is matched by at least one of the globs
+diff --git a/dist/domain.operations/route/formatRouteStoneEmit.js b/dist/domain.operations/route/formatRouteStoneEmit.js
+index 588d6710c696fbdb1fcc593ee2721ab8b600509e..88128c9123e11467d359a6551c318efd95ed35e6 100644
+--- a/dist/domain.operations/route/formatRouteStoneEmit.js
++++ b/dist/domain.operations/route/formatRouteStoneEmit.js
+@@ -280,18 +280,15 @@ const formatRouteStoneEmit = (input) => {
+         else if (input.action === 'promised') {
+             lines.push(`   ├─ stone = ${input.stone}`);
+             // show progress per vision: "passage = progressed (review.self N/M promised)"
+-            lines.push(`   └─ passage = progressed (review.self ${input.progress.index}/${input.progress.total} promised)`);
+-            // if there's a next review, show lets reflect section
++            // 🔴 .why = the next review's ask is minted ONLY by `--as passed` (setStoneAsPassed).
++            //    a guide rendered here had no ask behind it, so a promise against it was refused
++            //    with "no ask on record". point at the one command that mints the ask instead.
++            //    (patched locally by rhachet-roles-ehmpathy; dispatched upstream)
++            const passageConnector = input.nextReview ? '├─' : '└─';
++            lines.push(`   ${passageConnector} passage = progressed (review.self ${input.progress.index}/${input.progress.total} promised)`);
+             if (input.nextReview) {
+-                lines.push('');
+-                lines.push((0, formatLetsReflect_1.formatLetsReflect)({
+-                    stone: input.stone,
+-                    slug: input.nextReview.reviewSelf.slug,
+-                    route: input.route,
+-                    reviewSelf: input.nextReview.reviewSelf,
+-                    index: input.nextReview.index,
+-                    total: input.nextReview.total,
+-                }));
++                lines.push(`   └─ next = review.self ${input.nextReview.index}/${input.nextReview.total}`);
++                lines.push(`      └─ to be handed it, run: rhx route.stone.set --stone ${input.stone} --as passed`);
+             }
+             return lines.join('\n');
+         }

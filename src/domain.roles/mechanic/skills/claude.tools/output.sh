@@ -99,10 +99,104 @@ is_path_within_repo_root() {
     case $1 in
       --path) path="$2"; shift 2 ;;
       --root) root="$2"; shift 2 ;;
-      *) echo "is_path_within_repo_root: unknown arg: $1" >&2; return 1 ;;
+      *) emit_guard_malfunction "is_path_within_repo_root: unknown arg: $1"; return 1 ;;
     esac
   done
   [[ "$path" == "$root" || "$path" == "$root/"* ]]
+}
+
+# .what = is an absolute path a human-held grant: a meter or a bind?
+# .why  = `.meter/` holds the grants a human stamps (git.commit.uses,
+#         git.release.uses) and `.branch/.bind/` holds a human's binds. a
+#         pre-approved file tool that writes there forges a grant the tty
+#         guard keeps human-only — a forged release stamp ships to prod
+# .note = the path resolves through symlinks first, so a link that points
+#         into `.meter/` is caught as the place it writes, never as its name
+# .note = exit 0 = a grant, 1 = not a grant, 2 = cannot tell (a bad call or
+#         a path realpath cannot expand); a caller must treat 2 as a refusal
+# usage: is_path_a_human_grant --path "$abs" --root "$REPO_ROOT"
+is_path_a_human_grant() {
+  local path="" root=""
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --path) path="$2"; shift 2 ;;
+      --root) root="$2"; shift 2 ;;
+      *) emit_guard_malfunction "is_path_a_human_grant: unknown arg: $1"; return 2 ;;
+    esac
+  done
+  if [[ -z "$path" || -z "$root" ]]; then
+    emit_guard_malfunction "is_path_a_human_grant: --path and --root are required"
+    return 2
+  fi
+  local resolved rel
+  if ! resolved=$(realpath -m "$path"); then
+    emit_guard_malfunction "is_path_a_human_grant: realpath could not expand $path"
+    return 2
+  fi
+  rel="${resolved#"$root"/}"
+  case "/$rel" in
+    */.meter|*/.meter/*|*/.branch/.bind|*/.branch/.bind/*) return 0 ;;
+  esac
+  return 1
+}
+
+# .what = refuse a write into a human-held grant, on both streams, exit 2
+# .why  = one refusal for every file tool, so tee, cp, mv, sed, and symlink
+#         cannot drift apart on the one path that forges a grant
+# usage: refuse_if_human_grant --skill teesafe --path "$abs" --root "$REPO_ROOT"
+refuse_if_human_grant() {
+  local skill="" path="" root=""
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --skill) skill="$2"; shift 2 ;;
+      --path) path="$2"; shift 2 ;;
+      --root) root="$2"; shift 2 ;;
+      *) emit_guard_malfunction "refuse_if_human_grant: unknown arg: $1"; exit 1 ;;
+    esac
+  done
+
+  # fail closed: a guard that cannot tell must halt the write, never wave it through
+  local verdict=0
+  is_path_a_human_grant --path "$path" --root "$root" || verdict=$?
+  if [[ "$verdict" -eq 1 ]]; then
+    return 0
+  fi
+  if [[ "$verdict" -ne 0 ]]; then
+    exit 1
+  fi
+
+  local rel frame
+  rel=$(realpath -m "$path")
+  rel="${rel#"$root"/}"
+
+  # name the read for the grant refused, so the hint matches the file
+  local read_hint="rhx git.commit.uses get"
+  case "/$rel" in
+    */.meter/git.release.uses*) read_hint="rhx git.release.uses get" ;;
+    */.branch/.bind|*/.branch/.bind/*) read_hint="rhx git.commit.bind get" ;;
+  esac
+  frame=$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "$skill"
+    echo "   └─ ✋ ConstraintError: $rel holds a human's grant; no file tool may write it"
+    echo ""
+    echo "🥥 did you know?"
+    echo "   ├─ only a human grants it, at a terminal; read it instead"
+    echo "   └─ $read_hint"
+  )
+  echo "$frame"
+  echo "$frame" >&2
+  exit 2
+}
+
+# .what = report a grant-guard malfunction on both streams
+# .why  = the guard must never fail quiet; a caller that reads stdout alone
+#         still sees why the write halted
+# usage: emit_guard_malfunction "<what went wrong>"
+emit_guard_malfunction() {
+  local text="💥 MalfunctionError: $1"
+  echo "$text"
+  echo "$text" >&2
 }
 
 # .what = render a refusal on the streams its output mode permits
@@ -121,7 +215,7 @@ emit_refusal_to_streams() {
       --mode) mode="$2"; shift 2 ;;
       --vibes) vibes="$2"; shift 2 ;;
       --plain) plain="$2"; shift 2 ;;
-      *) echo "emit_refusal_to_streams: unknown arg: $1" >&2; return 1 ;;
+      *) emit_guard_malfunction "emit_refusal_to_streams: unknown arg: $1"; return 1 ;;
     esac
   done
   if [[ "$mode" == "pipeable" ]]; then
@@ -146,7 +240,7 @@ print_refusal_frame() {
       --diagnosis) diagnosis="$2"; shift 2 ;;
       --affordance) affordance="$2"; shift 2 ;;
       --command) command="$2"; shift 2 ;;
-      *) echo "print_refusal_frame: unknown arg: $1" >&2; return 1 ;;
+      *) emit_guard_malfunction "print_refusal_frame: unknown arg: $1"; return 1 ;;
     esac
   done
 
@@ -177,6 +271,30 @@ print_refusal_frame() {
   echo "🥥 did you know?"
   echo "   ├─ $affordance"
   echo "   └─ $command"
+}
+
+# .what = refuse a bad input in the house frame, on both streams
+# .why  = a path or arg refusal reads the same as the grant guard beside it:
+#         turtle, shell tree, qualified class, then the fix under 🥥
+# .note = later lines of the diagnosis render as details under the headline
+# usage: emit_constraint_frame --skill cpsafe --diagnosis $'source does not exist: x'
+emit_constraint_frame() {
+  local skill="" diagnosis=""
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      --skill) skill="$2"; shift 2 ;;
+      --diagnosis) diagnosis="$2"; shift 2 ;;
+      *) emit_guard_malfunction "emit_constraint_frame: unknown arg: $1"; return 1 ;;
+    esac
+  done
+
+  local frame
+  frame=$(print_refusal_frame --skill "$skill" \
+    --diagnosis "✋ ConstraintError: $diagnosis" \
+    --affordance "see every form $skill takes, with examples" \
+    --command "rhx $skill --help")
+  echo "$frame"
+  echo "$frame" >&2
 }
 
 # print error message to both stdout and stderr

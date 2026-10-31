@@ -137,8 +137,12 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     *)
-      echo "error: unknown argument: $1"
-      echo "run with --help for usage"
+      # a bare token in the subcommand slot names a subcommand; all else is an argument
+      if [[ -z "$SUBCOMMAND" && "$1" != -* ]]; then
+        emit_usage_refusal --skill git.repo.get --message "unknown subcommand: $1 (valid subcommands: repos, files, lines)"
+        exit 2
+      fi
+      emit_usage_refusal --skill git.repo.get --message "unknown argument: $1"
       exit 2
       ;;
   esac
@@ -227,13 +231,7 @@ case "$SUBCOMMAND" in
     cmd_lines
     ;;
   "")
-    echo "error: no subcommand specified"
-    echo "run with --help for usage"
-    exit 2
-    ;;
-  *)
-    echo "error: unknown subcommand: $SUBCOMMAND"
-    echo "run with --help for usage"
+    emit_usage_refusal --skill git.repo.get --message "no subcommand specified"
     exit 2
     ;;
 esac

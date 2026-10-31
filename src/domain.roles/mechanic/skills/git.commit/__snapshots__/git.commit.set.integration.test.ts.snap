@@ -18,7 +18,7 @@ exports[`git.commit.set.sh given: [case1] commit without push when: [t0] mechani
    ├─ push: skipped
    └─ meter
       ├─ left: 2
-      └─ push: blocked
+      └─ push: held
 "
 `;
 
@@ -40,7 +40,7 @@ exports[`git.commit.set.sh given: [case2] commit with push, and the tree has NO 
    ├─ push: 💥 MalfunctionError: git push failed
    └─ meter
       ├─ left: 1
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
@@ -62,7 +62,7 @@ exports[`git.commit.set.sh given: [case2] commit with push, and the tree has NO 
    ├─ push: 💥 MalfunctionError: git push failed
    └─ meter
       ├─ left: 1
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
@@ -72,8 +72,9 @@ exports[`git.commit.set.sh given: [case3] no uses left when: [t0] apply mode wit
 🐚 git.commit.set
    └─ ✋ ConstraintError: no commit uses left
 
-ask your human to grant more:
-  $ git.commit.uses set --quant N --push allow|block
+🥥 did you know?
+   ├─ the grant is spent; ask your human to grant more
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -97,19 +98,33 @@ exports[`git.commit.set.sh given: [case3] no uses left when: [t1] plan mode with
    ├─ push: skipped
    └─ meter
       ├─ left: 0 → -1
-      └─ push: blocked
+      └─ push: held
 
 run with --mode apply to execute
 "
 `;
 
-exports[`git.commit.set.sh given: [case4] push not allowed when: [t0] push is blocked but --push requested then: outputs bummer dude about push 1`] = `
+exports[`git.commit.set.sh given: [case3b] a release stamp with no commit grant when: [t0] apply mode, release uses infinite, no commit meter then: exit 2: a release stamp never buys a commit 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.set
-   └─ ✋ ConstraintError: push not allowed in current grant
+   └─ ✋ ConstraintError: no commit quota set
 
-ask your human to grant with --push allow
+🥥 did you know?
+   ├─ this tree holds no commit grant; ask your human to grant one
+   └─ git.commit.uses set --quant N
+"
+`;
+
+exports[`git.commit.set.sh given: [case4] commit grant revoked when: [t0] the grant was revoked and --push requested then: outputs bummer dude about the revoked grant 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: commit grant revoked
+
+🥥 did you know?
+   ├─ a human revoked this grant; ask your human to grant again
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -136,12 +151,11 @@ exports[`git.commit.set.sh given: [case6] no sponsor bound, and git config canno
    ⛔ you cannot fix this yourself. a sponsor is bound by a human,
       at a terminal.
 
-ask your human to fix git config — then commits name them:
-  $ git config --global user.name "Your Name"
-
-or to bind a sponsor, in this tree:
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ ask your human to fix git config, so commits name them; or to bind a sponsor, in this tree
+   ├─ git config --global user.name "Your Name"
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -165,7 +179,7 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t0] pl
    ├─ push: skipped
    └─ meter
       ├─ left: 3 → 2
-      └─ push: blocked
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -195,7 +209,7 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] pl
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
       ├─ left: 2 → 1
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -225,7 +239,7 @@ exports[`git.commit.set.sh given: [case10] plan mode shows preview when: [t1] pl
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
       ├─ left: 5 → 4
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -237,10 +251,9 @@ exports[`git.commit.set.sh given: [case11] commit to main blocked (ON_BASE guard
 🐚 git.commit.set
    └─ ✋ ConstraintError: cannot commit to base branch
 
-   you are on main - create a feature branch first
-
-   example:
-     git checkout -b feat/my-feature
+🥥 did you know?
+   ├─ a commit lands on a feature branch; create a feature branch first
+   └─ git checkout -b feat/my-feature
 "
 `;
 
@@ -268,7 +281,7 @@ exports[`git.commit.set.sh given: [case12] PR title on stacked branch (branch fr
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
       ├─ left: 5 → 4
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -334,7 +347,7 @@ exports[`git.commit.set.sh given: [case20] continuation commit enforcement when:
 "
 `;
 
-exports[`git.commit.set.sh given: [case21] last use with push allowed shows push status when: [t0] uses go from 1 to 0 with push allowed then: meter shows push: allowed after commit 1`] = `
+exports[`git.commit.set.sh given: [case21] last use keeps the grant held for push when: [t0] uses go from 1 to 0 then: meter shows push: held after commit, and the file stays held 1`] = `
 "🐢 righteous!
 
 🐚 git.commit.set
@@ -352,11 +365,11 @@ exports[`git.commit.set.sh given: [case21] last use with push allowed shows push
    ├─ push: skipped
    └─ meter
       ├─ left: 0
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
-exports[`git.commit.set.sh given: [case21] last use with push allowed shows push status when: [t0] uses go from 1 to 0 with push allowed then: plan mode also shows push: allowed 1`] = `
+exports[`git.commit.set.sh given: [case21] last use keeps the grant held for push when: [t0] uses go from 1 to 0 then: plan mode also shows push: held 1`] = `
 "🐢 heres the wave...
 
 🐚 git.commit.set --mode plan
@@ -376,7 +389,7 @@ exports[`git.commit.set.sh given: [case21] last use with push allowed shows push
    ├─ push: skipped
    └─ meter
       ├─ left: 1 → 0
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -415,13 +428,13 @@ exports[`git.commit.set.sh given: [case22] multiline message is required when: [
    ├─ push: skipped
    └─ meter
       ├─ left: 2 → 1
-      └─ push: blocked
+      └─ push: held
 
 run with --mode apply to execute
 "
 `;
 
-exports[`git.commit.set.sh given: [case23] plan mode auto-revoke display with push when: [t0] uses go from 1 to 0 with push allowed then: plan shows push: allowed to blocked (revoked) 1`] = `
+exports[`git.commit.set.sh given: [case23] plan mode on the last use with push when: [t0] uses go from 1 to 0, grant held then: plan shows push: held, no revoke 1`] = `
 "🐢 heres the wave...
 
 🐚 git.commit.set --mode plan
@@ -445,7 +458,7 @@ exports[`git.commit.set.sh given: [case23] plan mode auto-revoke display with pu
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
       ├─ left: 1 → 0
-      └─ push: allowed → blocked (revoked)
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -457,8 +470,9 @@ exports[`git.commit.set.sh given: [case24] commit with global blocker active whe
 🐚 git.commit.set
    └─ ✋ ConstraintError: commits blocked globally
 
-ask your human to lift:
-  $ git.commit.uses allow --global
+🥥 did you know?
+   ├─ a human set the global blocker; ask them to lift it
+   └─ git.commit.uses allow --global
 "
 `;
 
@@ -468,16 +482,14 @@ exports[`git.commit.set.sh given: [case26] commit with corrupt global blocker fi
 🐚 git.commit.set
    └─ 💥 MalfunctionError: global blocker file corrupt
 
-   the global blocker file cannot be read:
-     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-
-until it parses, every commit is blocked. a human may inspect or clear it:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
-  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+🥥 did you know?
+   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
 "
 `;
 
-exports[`git.commit.set.sh given: [case27] commit with unlimited quota when: [t0] uses is "infinite" then: commit succeeds and uses stays infinite 1`] = `
+exports[`git.commit.set.sh given: [case27] commit with unlimited quota when: [t0] uses is "infinite", in the legacy push/stage shape then: commit succeeds, uses stays infinite, file migrates to held 1`] = `
 "🐢 righteous!
 
 🐚 git.commit.set
@@ -495,7 +507,7 @@ exports[`git.commit.set.sh given: [case27] commit with unlimited quota when: [t0
    ├─ push: skipped
    └─ meter
       ├─ left: unlimited
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
@@ -519,7 +531,7 @@ exports[`git.commit.set.sh given: [case27] commit with unlimited quota when: [t1
    ├─ push: skipped
    └─ meter
       ├─ left: unlimited
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -543,7 +555,7 @@ exports[`git.commit.set.sh given: [case28] a bind wins over git config when: [t0
    ├─ push: skipped
    └─ meter
       ├─ left: 2
-      └─ push: blocked
+      └─ push: held
 "
 `;
 
@@ -567,7 +579,7 @@ exports[`git.commit.set.sh given: [case28] a bind wins over git config when: [t2
    ├─ push: skipped
    └─ meter
       ├─ left: 3 → 2
-      └─ push: blocked
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -591,7 +603,7 @@ exports[`git.commit.set.sh given: [case28] a bind wins over git config when: [t3
    ├─ push: skipped
    └─ meter
       ├─ left: 2
-      └─ push: blocked
+      └─ push: held
 "
 `;
 
@@ -627,7 +639,7 @@ exports[`git.commit.set.sh given: [case29] --auth flag when: [t1] a valid --auth
    ├─ push: skipped
    └─ meter
       ├─ left: 2 → 1
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -659,7 +671,7 @@ exports[`git.commit.set.sh given: [case29] --auth flag when: [t2] a valid --auth
    │  └─ opened: as-human (gh cli login, fallback)
    └─ meter
       ├─ left: 2 → 1
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -673,12 +685,10 @@ exports[`git.commit.set.sh given: [case30] apply + push, keyrack fails, guide su
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 
 🐢 righteous!
 
@@ -697,7 +707,7 @@ exports[`git.commit.set.sh given: [case30] apply + push, keyrack fails, guide su
    ├─ push: ✋ ConstraintError: ehmpath keyrack token unavailable
    └─ meter
       ├─ left: 1
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
@@ -707,12 +717,10 @@ exports[`git.commit.set.sh given: [case30] apply + push, keyrack fails, guide su
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 
 🐢 righteous!
 
@@ -731,7 +739,7 @@ exports[`git.commit.set.sh given: [case30] apply + push, keyrack fails, guide su
    ├─ push: ✋ ConstraintError: ehmpath keyrack token unavailable
    └─ meter
       ├─ left: 1
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
@@ -755,9 +763,9 @@ exports[`git.commit.set.sh given: [case31] apply + push --auth as-human surfaces
    ├─ opened: as-human (gh cli login, fallback)
    └─ meter
       ├─ left: 1
-      └─ push: allowed
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -770,12 +778,10 @@ exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, th
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 
 🐢 righteous!
 
@@ -794,7 +800,7 @@ exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, th
    ├─ push: ✋ ConstraintError: ehmpath keyrack token unavailable
    └─ meter
       ├─ left: 1
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
@@ -804,12 +810,10 @@ exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, th
 🐚 git.commit.push
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
-   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-   │
-   └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, unlock the ehmpath keyrack, so the seaturtle can open the pr, or open the pr with the human's github login
+   ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   └─ rhx git.commit.push --mode apply --auth as-human
 
 🐢 righteous!
 
@@ -828,7 +832,7 @@ exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, th
    ├─ push: ✋ ConstraintError: ehmpath keyrack token unavailable
    └─ meter
       ├─ left: 1
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
@@ -840,9 +844,9 @@ exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, th
    ├─ pr: pr #99 (created)
    ├─ opened: as-human (gh cli login, fallback)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -870,7 +874,7 @@ options:
   --message, -m @stdin   read multiline commit message from stdin (required)
                          first line = header, after blank line = body
   --mode plan|apply      plan shows preview, apply executes (default: plan)
-  --push                 push after commit (requires push permission)
+  --push                 push after commit (rides the held commit grant)
   --auth as-ehmpath|as-human
                          who opens the pr (default: as-ehmpath)
                          as-ehmpath = seaturtle bot via ehmpath keyrack token
@@ -919,9 +923,9 @@ exports[`git.commit.set.sh given: [case35] a composed --push under as-ehmpath pe
    ├─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
       ├─ left: 1
-      └─ push: allowed
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -934,12 +938,10 @@ exports[`git.commit.set.sh given: [case41] apply + push --auth as-human, gh not 
 🐚 git.commit.push
    └─ ✋ ConstraintError: no usable gh credential to open the pr
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. log in the human's github, so the as-human fallback works:
-   │     $ gh auth login
-   │
-   └─ 2. or unlock the ehmpath keyrack, so the seaturtle can open the pr instead:
-         $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, log in the human's github, so the as-human fallback works, or unlock the ehmpath keyrack, so the seaturtle can open the pr instead
+   ├─ gh auth login
+   └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
 
 cause: gh: To use GitHub CLI, please run: gh auth login
 HTTP 401: Bad credentials
@@ -961,7 +963,7 @@ HTTP 401: Bad credentials
    ├─ push: ✋ ConstraintError: pr-open credential unusable
    └─ meter
       ├─ left: 1
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
@@ -971,12 +973,10 @@ exports[`git.commit.set.sh given: [case41] apply + push --auth as-human, gh not 
 🐚 git.commit.push
    └─ ✋ ConstraintError: no usable gh credential to open the pr
 
-🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. log in the human's github, so the as-human fallback works:
-   │     $ gh auth login
-   │
-   └─ 2. or unlock the ehmpath keyrack, so the seaturtle can open the pr instead:
-         $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+🥥 did you know?
+   ├─ your commit is pushed; to open its pr, log in the human's github, so the as-human fallback works, or unlock the ehmpath keyrack, so the seaturtle can open the pr instead
+   ├─ gh auth login
+   └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
 
 cause: gh: To use GitHub CLI, please run: gh auth login
 HTTP 401: Bad credentials
@@ -998,29 +998,37 @@ HTTP 401: Bad credentials
    ├─ push: ✋ ConstraintError: pr-open credential unusable
    └─ meter
       ├─ left: 1
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
 exports[`git.commit.set.sh given: [case42] a composed as-ehmpath push runs the strong graphql identity assert when: [t0] the fetched ghs_ token maps to a DIFFERENT app bot id (NODE_ENV=production) then: the assert fails loud on BOTH streams (exit 2), before any commit or pr 1`] = `
-"✋ ConstraintError: github token identity out of sync with the expected app bot
-  expected: ehm-a-seaturtle[bot] (id 295111357)
-  actual:   impostor[bot] (id 999999)
+"🐢 bummer dude...
 
-the commit-author email hardcodes the expected bot id; if the token
-maps to a different bot, the squash-merge would show a 3rd contributor.
-fix the token, or update the seaturtle identities in keyrack.operations.sh.
+🐚 git.commit.set
+   ├─ expected: ehm-a-seaturtle[bot] (id 295111357)
+   ├─ actual: impostor[bot] (id 999999)
+   ├─ why: the commit-author email names the expected bot id; another bot adds a 3rd contributor on squash
+   └─ ✋ ConstraintError: github token identity out of sync with the expected app bot
+
+🥥 did you know?
+   ├─ a human fixes the token, or updates the seaturtle identities in keyrack.operations.sh
+   └─ rhx keyrack status --owner ehmpath
 "
 `;
 
 exports[`git.commit.set.sh given: [case42] a composed as-ehmpath push runs the strong graphql identity assert when: [t0] the fetched ghs_ token maps to a DIFFERENT app bot id (NODE_ENV=production) then: the assert fails loud on BOTH streams (exit 2), before any commit or pr 2`] = `
-"✋ ConstraintError: github token identity out of sync with the expected app bot
-  expected: ehm-a-seaturtle[bot] (id 295111357)
-  actual:   impostor[bot] (id 999999)
+"🐢 bummer dude...
 
-the commit-author email hardcodes the expected bot id; if the token
-maps to a different bot, the squash-merge would show a 3rd contributor.
-fix the token, or update the seaturtle identities in keyrack.operations.sh.
+🐚 git.commit.set
+   ├─ expected: ehm-a-seaturtle[bot] (id 295111357)
+   ├─ actual: impostor[bot] (id 999999)
+   ├─ why: the commit-author email names the expected bot id; another bot adds a 3rd contributor on squash
+   └─ ✋ ConstraintError: github token identity out of sync with the expected app bot
+
+🥥 did you know?
+   ├─ a human fixes the token, or updates the seaturtle identities in keyrack.operations.sh
+   └─ rhx keyrack status --owner ehmpath
 "
 `;
 
@@ -1030,8 +1038,9 @@ exports[`git.commit.set.sh given: [case43] plan + push, the delegated push plan 
 🐚 git.commit.push
    └─ ✋ ConstraintError: cannot push directly to master
 
-create a feature branch first:
-  $ git checkout -b turtle/your-branch-name
+🥥 did you know?
+   ├─ a push lands on a feature branch; create a feature branch first
+   └─ git checkout -b turtle/your-branch-name
 "
 `;
 
@@ -1041,8 +1050,9 @@ exports[`git.commit.set.sh given: [case43] plan + push, the delegated push plan 
 🐚 git.commit.push
    └─ ✋ ConstraintError: cannot push directly to master
 
-create a feature branch first:
-  $ git checkout -b turtle/your-branch-name
+🥥 did you know?
+   ├─ a push lands on a feature branch; create a feature branch first
+   └─ git checkout -b turtle/your-branch-name
 "
 `;
 
@@ -1050,9 +1060,13 @@ exports[`git.commit.set.sh given: [case44] the git commit itself fails (e.g. a p
 "🐢 bummer dude...
 
 🐚 git.commit.set
-   └─ 💥 MalfunctionError: git commit failed
-
-cause: error: failed to commit — simulated pre-commit hook rejection
+   ├─ 💥 MalfunctionError: git commit failed
+   └─ git.output
+      ├─
+      │
+      │  error: failed to commit — simulated pre-commit hook rejection
+      │
+      └─
 "
 `;
 
@@ -1060,9 +1074,13 @@ exports[`git.commit.set.sh given: [case44] the git commit itself fails (e.g. a p
 "🐢 bummer dude...
 
 🐚 git.commit.set
-   └─ 💥 MalfunctionError: git commit failed
-
-cause: error: failed to commit — simulated pre-commit hook rejection
+   ├─ 💥 MalfunctionError: git commit failed
+   └─ git.output
+      ├─
+      │
+      │  error: failed to commit — simulated pre-commit hook rejection
+      │
+      └─
 "
 `;
 
@@ -1075,11 +1093,12 @@ exports[`git.commit.set.sh given: [case45] the sponsor state file is present and
    the file that names this tree's sponsor cannot be read:
      .meter/git.commit.sponsor.jsonc
 
-inspect it, or clear the bind and set it afresh:
-  $ cat .meter/git.commit.sponsor.jsonc
-  $ rhx git.commit.sponsor del
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ inspect it, or clear the bind and set it afresh
+   ├─ cat .meter/git.commit.sponsor.jsonc
+   ├─ rhx git.commit.sponsor del
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -1092,11 +1111,12 @@ exports[`git.commit.set.sh given: [case46] the sponsor state file PARSES but car
    the file that names this tree's sponsor cannot be read:
      .meter/git.commit.sponsor.jsonc
 
-inspect it, or clear the bind and set it afresh:
-  $ cat .meter/git.commit.sponsor.jsonc
-  $ rhx git.commit.sponsor del
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ inspect it, or clear the bind and set it afresh
+   ├─ cat .meter/git.commit.sponsor.jsonc
+   ├─ rhx git.commit.sponsor del
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -1109,11 +1129,12 @@ exports[`git.commit.set.sh given: [case46] the sponsor state file PARSES but car
    the file that names this tree's sponsor cannot be read:
      .meter/git.commit.sponsor.jsonc
 
-inspect it, or clear the bind and set it afresh:
-  $ cat .meter/git.commit.sponsor.jsonc
-  $ rhx git.commit.sponsor del
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ inspect it, or clear the bind and set it afresh
+   ├─ cat .meter/git.commit.sponsor.jsonc
+   ├─ rhx git.commit.sponsor del
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -1126,11 +1147,12 @@ exports[`git.commit.set.sh given: [case48] the sponsor state file carries a CONT
    the file that names this tree's sponsor cannot be read:
      .meter/git.commit.sponsor.jsonc
 
-inspect it, or clear the bind and set it afresh:
-  $ cat .meter/git.commit.sponsor.jsonc
-  $ rhx git.commit.sponsor del
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ inspect it, or clear the bind and set it afresh
+   ├─ cat .meter/git.commit.sponsor.jsonc
+   ├─ rhx git.commit.sponsor del
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -1143,11 +1165,12 @@ exports[`git.commit.set.sh given: [case48] the sponsor state file carries a CONT
    the file that names this tree's sponsor cannot be read:
      .meter/git.commit.sponsor.jsonc
 
-inspect it, or clear the bind and set it afresh:
-  $ cat .meter/git.commit.sponsor.jsonc
-  $ rhx git.commit.sponsor del
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ inspect it, or clear the bind and set it afresh
+   ├─ cat .meter/git.commit.sponsor.jsonc
+   ├─ rhx git.commit.sponsor del
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -1157,12 +1180,10 @@ exports[`git.commit.set.sh given: [case51] the ORG meter is damaged, and a clone
 🐚 git.commit.set
    └─ 💥 MalfunctionError: org meter file corrupt
 
-   the org meter file cannot be read:
-     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
-
-until it parses, every commit is blocked. a human may inspect or clear it:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
-  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+🥥 did you know?
+   ├─ the org meter file cannot be read, so every commit is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
 "
 `;
 
@@ -1184,7 +1205,7 @@ exports[`git.commit.set.sh given: [case52] no bind — the commit takes its spon
    ├─ push: skipped
    └─ meter
       ├─ left: 2
-      └─ push: blocked
+      └─ push: held
 "
 `;
 
@@ -1202,9 +1223,10 @@ exports[`git.commit.set.sh given: [case52] no bind — the commit takes its spon
    ⛔ you cannot fix this yourself. a sponsor is bound by a human,
       at a terminal.
 
-ask your human to run, in this tree:
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ ask your human to bind a sponsor, in this tree
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -1221,12 +1243,11 @@ exports[`git.commit.set.sh given: [case52] no bind — the commit takes its spon
    ⛔ you cannot fix this yourself. a sponsor is bound by a human,
       at a terminal.
 
-ask your human to fix git config — then commits name them:
-  $ git config --global user.email "you@example.com"
-
-or to bind a sponsor, in this tree:
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ ask your human to fix git config, so commits name them; or to bind a sponsor, in this tree
+   ├─ git config --global user.email "you@example.com"
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -1243,12 +1264,11 @@ exports[`git.commit.set.sh given: [case52] no bind — the commit takes its spon
    ⛔ you cannot fix this yourself. a sponsor is bound by a human,
       at a terminal.
 
-ask your human to fix git config — then commits name them:
-  $ git config --global user.name "Your Name"
-
-or to bind a sponsor, in this tree:
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ ask your human to fix git config, so commits name them; or to bind a sponsor, in this tree
+   ├─ git config --global user.name "Your Name"
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -1266,13 +1286,12 @@ exports[`git.commit.set.sh given: [case52] no bind — the commit takes its spon
    ⛔ you cannot fix this yourself. a sponsor is bound by a human,
       at a terminal.
 
-ask your human to fix git config — then commits name them:
-  $ git config --global user.name "Your Name"
-  $ git config --global user.email "you@example.com"
-
-or to bind a sponsor, in this tree:
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ ask your human to fix git config, so commits name them; or to bind a sponsor, in this tree
+   ├─ git config --global user.name "Your Name"
+   ├─ git config --global user.email "you@example.com"
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -1285,11 +1304,12 @@ exports[`git.commit.set.sh given: [case52] no bind — the commit takes its spon
    the file that names this tree's sponsor cannot be read:
      .meter/git.commit.sponsor.jsonc
 
-inspect it, or clear the bind and set it afresh:
-  $ cat .meter/git.commit.sponsor.jsonc
-  $ rhx git.commit.sponsor del
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ inspect it, or clear the bind and set it afresh
+   ├─ cat .meter/git.commit.sponsor.jsonc
+   ├─ rhx git.commit.sponsor del
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -1306,12 +1326,11 @@ exports[`git.commit.set.sh given: [case52] no bind — the commit takes its spon
    ⛔ you cannot fix this yourself. a sponsor is bound by a human,
       at a terminal.
 
-ask your human to fix git config — then commits name them:
-  $ git config --global user.email "you@example.com"
-
-or to bind a sponsor, in this tree:
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ ask your human to fix git config, so commits name them; or to bind a sponsor, in this tree
+   ├─ git config --global user.email "you@example.com"
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -1328,12 +1347,11 @@ exports[`git.commit.set.sh given: [case52] no bind — the commit takes its spon
    ⛔ you cannot fix this yourself. a sponsor is bound by a human,
       at a terminal.
 
-ask your human to fix git config — then commits name them:
-  $ git config --global user.name "Your Name"
-
-or to bind a sponsor, in this tree:
-  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
-  $ rhx git.commit.sponsor set --who "Name <email>"
+🥥 did you know?
+   ├─ ask your human to fix git config, so commits name them; or to bind a sponsor, in this tree
+   ├─ git config --global user.name "Your Name"
+   ├─ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+   └─ rhx git.commit.sponsor set --who "Name <email>"
 "
 `;
 
@@ -1355,7 +1373,7 @@ exports[`git.commit.set.sh given: [case52] no bind — the commit takes its spon
    ├─ push: skipped
    └─ meter
       ├─ left: 2
-      └─ push: blocked
+      └─ push: held
 "
 `;
 
@@ -1368,9 +1386,10 @@ exports[`git.commit.set.sh given: [case53] the LOCAL quota file is damaged when:
    the file that holds this tree's commit quota cannot be read:
      .meter/git.commit.uses.jsonc
 
-ask your human to reset the quota, then grant again:
-  $ git.commit.uses del
-  $ git.commit.uses set --quant N --push allow|block
+🥥 did you know?
+   ├─ ask your human to reset the quota, then grant again
+   ├─ git.commit.uses del
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -1383,8 +1402,9 @@ exports[`git.commit.set.sh given: [case53] the LOCAL quota file is damaged when:
    the file that holds this tree's commit quota cannot be read:
      .meter/git.commit.uses.jsonc
 
-ask your human to reset the quota, then grant again:
-  $ git.commit.uses del
-  $ git.commit.uses set --quant N --push allow|block
+🥥 did you know?
+   ├─ ask your human to reset the quota, then grant again
+   ├─ git.commit.uses del
+   └─ git.commit.uses set --quant N
 "
 `;

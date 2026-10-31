@@ -148,15 +148,18 @@ emit_transport_status() {
   # note: skip if checks failed - can't enable automerge on PR with failed checks, and we want exit 2 not 1
   local automerge_added="false"
   if [[ "$flag_apply" == "true" && "$automerge_status" == "unfound" && "$transport_type" == "pr" && "$check_status" != "failed" ]]; then
-    # enable automerge (failloud: errors propagate via explicit || return)
+    # arm the merge: spend the release use, enable automerge, refund on a
+    # failed arm. every refusal above (behind, dirty, failed checks) spends none
     # note: set -e doesn't reliably propagate function failures inside if blocks
-    enable_automerge "$transport_ref" || return 1
+    arm_release_merge "$transport_ref" || return 1
 
     # check if instantly merged
     local post_status
     post_status=$(get_pr_status "$transport_ref")
     if [[ $(is_pr_merged "$post_status") == "true" ]]; then
-      echo "   └─ 🌴 automerge enabled [added] -> and merged already"
+      # same renderer as every other automerge line: two leaves, no ad-hoc arrow
+      print_automerge_status "enabled" "added" "false"
+      print_automerge_status "merged"
       return 3  # 3 = already merged, caller should skip watch
     fi
 

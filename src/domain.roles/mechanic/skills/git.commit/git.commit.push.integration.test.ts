@@ -60,7 +60,12 @@ describe('git.commit.push.sh', () => {
    * .why = reduces boilerplate across test cases
    */
   const setupTempRepo = (args: {
-    meterState?: { uses: number; push: string; stage?: string };
+    meterState?: {
+      uses: number | 'infinite';
+      held?: boolean;
+      push?: string;
+      stage?: string;
+    };
     branch?: string;
     commits?: string[];
     commitAuthor?: { name: string; email: string };
@@ -224,7 +229,7 @@ env.prod:
     when('[t0] branch has commits and meter allows push', () => {
       then('shows tree with push target and pr title', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: first commit'],
         });
@@ -257,7 +262,7 @@ exit 1`,
         expect(result.stdout).toContain('push: origin/turtle/feature');
         expect(result.stdout).toContain('title: feat: first commit');
         expect(result.stdout).toContain('findsert');
-        expect(result.stdout).toContain('push: allowed');
+        expect(result.stdout).toContain('push: held');
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -267,7 +272,7 @@ exit 1`,
     when('[t0] HEAD commit authored by a human (not seaturtle[bot])', () => {
       then('exits with error about author', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: human commit'],
           commitAuthor: { name: 'Test Human', email: 'human@test.com' },
@@ -294,7 +299,7 @@ exit 1`,
     when('[t0] HEAD commit authored by a human, plan mode', () => {
       then('plan succeeds (guard skipped)', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: human commit'],
           commitAuthor: { name: 'Test Human', email: 'human@test.com' },
@@ -334,7 +339,7 @@ exit 1`,
     when('[t0] on main branch', () => {
       then('exits with error about main branch', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           commits: ['feat: on main'],
         });
 
@@ -354,9 +359,9 @@ exit 1`,
     });
   });
 
-  given('[case5] push not allowed', () => {
+  given('[case5] no commit grant held', () => {
     when('[t0] no meter state file', () => {
-      then('exits with push not allowed', () => {
+      then('exits with no commit grant held', () => {
         const tempDir = setupTempRepo({
           branch: 'turtle/feature',
           commits: ['feat: no meter'],
@@ -370,15 +375,15 @@ exit 1`,
 
         expect(result.exitCode).toBe(2); // blocked by constraints
         expect(result.stdout).toContain('bummer dude');
-        expect(result.stdout).toContain('push not allowed');
+        expect(result.stdout).toContain('no commit grant held');
         expect(result.stdout).toMatchSnapshot();
       });
     });
 
-    when('[t1] meter has push: block', () => {
-      then('exits with push not allowed', () => {
+    when('[t1] the commit grant was revoked', () => {
+      then('exits with no commit grant held', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 0, held: false },
           branch: 'turtle/feature',
           commits: ['feat: blocked push'],
         });
@@ -391,7 +396,7 @@ exit 1`,
 
         expect(result.exitCode).toBe(2); // blocked by constraints
         expect(result.stdout).toContain('bummer dude');
-        expect(result.stdout).toContain('push not allowed');
+        expect(result.stdout).toContain('no commit grant held');
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -401,7 +406,7 @@ exit 1`,
     when('[t0] plan mode with --output json', () => {
       then('outputs valid json with planned fields', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: json plan test'],
         });
@@ -443,7 +448,7 @@ exit 1`,
     when('[t0] error with --output json', () => {
       then('outputs valid json with error field', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'block' },
+          meterState: { uses: 0, held: false },
           branch: 'turtle/feature',
           commits: ['feat: json error test'],
         });
@@ -457,7 +462,7 @@ exit 1`,
         expect(result.exitCode).toBe(2); // blocked by constraints
         const parsed = JSON.parse(result.stdout.trim());
         expect(parsed.status).toBe('error');
-        expect(parsed.error).toContain('push not allowed');
+        expect(parsed.error).toContain('no commit grant held');
       });
     });
   });
@@ -466,7 +471,7 @@ exit 1`,
     when('[t0] branch B created from branch A, both with commits', () => {
       then('pr title is first commit unique to branch B', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 5, push: 'allow' },
+          meterState: { uses: 5, held: true },
         });
 
         // create branch A from main
@@ -540,7 +545,7 @@ exit 1`,
     when('[t0] plan mode runs', () => {
       then('uses remain unchanged', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: meter check'],
         });
@@ -564,7 +569,7 @@ exit 1`,
       () => {
         then('uses fallback as pr title', () => {
           const tempDir = setupTempRepo({
-            meterState: { uses: 3, push: 'allow' },
+            meterState: { uses: 3, held: true },
             branch: 'turtle/feature',
           });
 
@@ -631,7 +636,7 @@ exit 1`,
         });
 
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: no keyrack config'],
           withKeyrack: false,
@@ -665,7 +670,7 @@ exit 1`,
     when('[t0] HEAD commit authored by seaturtle[bot], apply mode', () => {
       then('author guard passes (would proceed to push)', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: robot commit'],
           commitAuthor: {
@@ -690,11 +695,11 @@ exit 1`,
     });
   });
 
-  given('[case14] push-only auto-revoke plan display', () => {
-    when('[t0] uses 0 with push allowed (push-only mode)', () => {
-      then('plan shows push: allowed to blocked (revoked)', () => {
+  given('[case14] a depleted grant stays held for push (plan)', () => {
+    when('[t0] uses 0, grant held', () => {
+      then('plan proceeds and shows push: held', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 0, push: 'allow' },
+          meterState: { uses: 0, held: true },
           branch: 'turtle/push-revoke',
           commits: ['feat: prior commit'],
         });
@@ -723,20 +728,21 @@ exit 1`,
         });
 
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('push: allowed → blocked (revoked)');
+        expect(result.stdout).toContain('push: held');
+        expect(result.stdout).not.toContain('revoked');
         expect(result.stdout).toMatchSnapshot();
       });
     });
   });
 
-  given('[case14b] push-only auto-revoke in apply mode', () => {
-    // .note = a whole-file rewrite on revoke once dropped `stage`, and every
-    //         reader defaults an absent stage to block — so a depletion via push
-    //         erased the human's stage grant. the revoke must touch push alone
-    when('[t0] uses 0, push allowed, stage allowed; the push ships', () => {
+  given('[case14b] a depleted grant stays held for push (apply)', () => {
+    // .note = a push rides the commit grant and spends no use. a depletion
+    //         keeps the grant held, so the push neither revokes nor rewrites
+    //         the meter file (F16)
+    when('[t0] uses 0, grant held; the push ships', () => {
       const scene = useThen('the push runs in apply mode', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 0, push: 'allow', stage: 'allow' },
+          meterState: { uses: 0, held: true },
           branch: 'turtle/push-revoke-stage',
           commits: ['feat: revoke keeps stage'],
           commitAuthor: {
@@ -801,23 +807,89 @@ exec /usr/bin/git "$@"
         expect(scene.result.exitCode).toBe(0);
       });
 
-      then('the tree reports the revoke', () => {
-        expect(scene.result.stdout).toContain(
-          'push: allowed → blocked (revoked)',
-        );
+      then('the tree reports the grant held, no revoke', () => {
+        expect(scene.result.stdout).toContain('push: held');
+        expect(scene.result.stdout).not.toContain('revoked');
         expect(scene.result.stdout).toMatchSnapshot();
       });
 
-      then('push is revoked', () => {
-        expect(scene.meterAfter.push).toEqual('block');
-      });
-
-      then('the stage grant survives the revoke', () => {
-        expect(scene.meterAfter.stage).toEqual('allow');
+      then('the grant stays held', () => {
+        expect(scene.meterAfter.held).toEqual(true);
       });
 
       then('uses stay as they were', () => {
         expect(scene.meterAfter.uses).toEqual(0);
+      });
+    });
+  });
+
+  given('[case14e] a legacy push block grant (F6, F20)', () => {
+    // .note = under the split, push rides the commit grant: a legacy
+    //         `push: block` with uses left now pushes. the push names that
+    //         change once, so the gain is never silent (vision case=8)
+    when('[t0] uses 5, push block; the push ships', () => {
+      const result = useThen('the push runs in apply mode', () => {
+        const tempDir = setupTempRepo({
+          meterState: { uses: 5, push: 'block' },
+          branch: 'turtle/push-legacy-grant',
+          commits: ['feat: legacy grant push'],
+          commitAuthor: {
+            name: 'seaturtle[bot]',
+            email: 'seaturtle@ehmpath.com',
+          },
+        });
+
+        // .mock = fake gh cli - token validation, pr list (empty), pr create
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "list" ]]; then
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  echo "https://github.com/test/repo/pull/42"
+  exit 0
+fi
+exit 1
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        // .mock = fake git push - returns success; all else runs real git
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'git'),
+          `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+
+        return runPush({
+          tempDir,
+          pushArgs: ['--mode', 'apply'],
+          env: {
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
+          },
+        });
+      });
+
+      then('it exits 0', () => {
+        expect(result.exitCode).toBe(0);
+      });
+
+      then('the tree names the retired fields and the release stamp', () => {
+        expect(result.stdout).toContain('retired push / stage fields');
+        expect(result.stdout).toContain('git.release.uses set --quant 1');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -828,7 +900,7 @@ exec /usr/bin/git "$@"
     when('[t0] `--mode` is last', () => {
       then('a curated constraint, never a raw shift crash', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/bare-flag',
           commits: ['feat: bare flag'],
         });
@@ -852,7 +924,7 @@ exec /usr/bin/git "$@"
     when('[t0] the file is truncated mid-write', () => {
       const result = useThen('the push is attempted', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/damaged-meter',
           commits: ['feat: damaged meter'],
           commitAuthor: {
@@ -921,7 +993,7 @@ exec /usr/bin/git "$@"
             });
 
             const tempDir = setupTempRepo({
-              meterState: { uses: 3, push: 'allow' },
+              meterState: { uses: 3, held: true },
               branch: 'turtle/feature',
               commits: ['feat: locked keyrack test'],
               withKeyrack: true,
@@ -1030,7 +1102,7 @@ env.prod:
           fs.mkdirSync(meterDir, { recursive: true });
           fs.writeFileSync(
             path.join(meterDir, 'git.commit.uses.jsonc'),
-            JSON.stringify({ uses: 3, push: 'allow' }, null, 2),
+            JSON.stringify({ uses: 3, held: true }, null, 2),
           );
           fs.writeFileSync(
             path.join(tempDir, '.gitignore'),
@@ -1202,7 +1274,7 @@ Co-authored-by: Human <human@example.com>`;
     when('[t0] push and pr creation succeed', () => {
       then('shows full output with vibey reminder at end', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: test ci reminder'],
           commitAuthor: {
@@ -1263,7 +1335,7 @@ exec /usr/bin/git "$@"
         expect(result.stdout).toContain('cowabunga');
         expect(result.stdout).toContain('push:');
         expect(result.stdout).toContain('pr:');
-        expect(result.stdout).toContain('🌊 now lets ride the release wave');
+        expect(result.stdout).toContain("🌊 now let's ride the release wave");
         expect(result.stdout).toContain('wipeouts');
         expect(result.stdout).toContain('rhx git.release --watch');
         expect(result.stdout).toMatchSnapshot();
@@ -1323,7 +1395,7 @@ env.prod:
             fs.mkdirSync(meterDir, { recursive: true });
             fs.writeFileSync(
               path.join(meterDir, 'git.commit.uses.jsonc'),
-              JSON.stringify({ uses: 3, push: 'allow' }, null, 2),
+              JSON.stringify({ uses: 3, held: true }, null, 2),
             );
             fs.writeFileSync(
               path.join(tempDir, '.gitignore'),
@@ -1492,7 +1564,7 @@ env.prod:
         fs.mkdirSync(meterDir, { recursive: true });
         fs.writeFileSync(
           path.join(meterDir, 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 3, push: 'allow' }, null, 2),
+          JSON.stringify({ uses: 3, held: true }, null, 2),
         );
         fs.writeFileSync(
           path.join(tempDir, '.gitignore'),
@@ -1606,7 +1678,7 @@ exit 1
             });
 
             const tempDir = setupTempRepo({
-              meterState: { uses: 3, push: 'allow' },
+              meterState: { uses: 3, held: true },
               branch: 'turtle/feature',
               commits: ['feat: all locked test'],
               withKeyrack: true,
@@ -1689,7 +1761,7 @@ exec /usr/bin/git "$@"
         );
 
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: global blocked test'],
         });
@@ -1719,7 +1791,7 @@ exec /usr/bin/git "$@"
         });
 
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: no global block test'],
         });
@@ -1773,7 +1845,7 @@ exit 1`,
         );
 
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: corrupt global test'],
         });
@@ -1823,7 +1895,7 @@ exit 1`,
       const result = useThen('the push refuses', () => {
         const fakeHome = genTempDir({ slug: 'fake-home-corrupt-org' });
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: corrupt org test'],
         });
@@ -1879,7 +1951,7 @@ exit 1`,
     when('[t0] --auth as-human', () => {
       then('plan shows the pr opens via the gh cli login', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: auth human plan'],
         });
@@ -1902,7 +1974,7 @@ exit 1`,
     when('[t1] no --auth (default)', () => {
       then('plan shows the pr opens via the ehmpath keyrack', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: auth default plan'],
         });
@@ -1923,7 +1995,7 @@ exit 1`,
     when('[t2] --auth json plan', () => {
       then('json carries the auth mode', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: auth json plan'],
         });
@@ -1953,7 +2025,7 @@ exit 1`,
     when('[t0] --auth as-robot (unsupported)', () => {
       then('exits as constraint with a clear error', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: auth invalid'],
         });
@@ -1978,7 +2050,7 @@ exit 1`,
     when('[t0] no keyrack token, gh cli login available', () => {
       then('push succeeds and the pr opens without a GH_TOKEN override', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: auth human apply'],
           commitAuthor: {
@@ -2055,7 +2127,7 @@ exec /usr/bin/git "$@"
             'the commit is pushed, then a guide names the as-human fallback',
             () => {
               const tempDir = setupTempRepo({
-                meterState: { uses: 3, push: 'allow' },
+                meterState: { uses: 3, held: true },
                 branch: 'turtle/feature',
                 commits: ['feat: auth ehmpath guide'],
                 commitAuthor: {
@@ -2139,7 +2211,7 @@ exec /usr/bin/git "$@"
           'stdout carries a machine-readable error, stderr carries the guide',
           () => {
             const tempDir = setupTempRepo({
-              meterState: { uses: 3, push: 'allow' },
+              meterState: { uses: 3, held: true },
               branch: 'turtle/feature',
               commits: ['feat: auth ehmpath json guide'],
               commitAuthor: {
@@ -2222,7 +2294,7 @@ exec /usr/bin/git "$@"
               // sad paths (case15/16/20/24/25) assert only that a cause rides
               // stderr, since their cause text is machine dependent.
               const tempDir = setupTempRepo({
-                meterState: { uses: 3, push: 'allow' },
+                meterState: { uses: 3, held: true },
                 branch: 'turtle/feature',
                 commits: ['feat: auth ehmpath cause surfaced'],
                 commitAuthor: {
@@ -2290,7 +2362,7 @@ exec /usr/bin/git "$@"
           'the commit is pushed, then a guide names unlock-keyrack + gh-auth-login',
           () => {
             const tempDir = setupTempRepo({
-              meterState: { uses: 3, push: 'allow' },
+              meterState: { uses: 3, held: true },
               branch: 'turtle/feature',
               commits: ['feat: auth human no-login guide'],
               commitAuthor: {
@@ -2371,7 +2443,7 @@ exec /usr/bin/git "$@"
               // exhaustiveness). the fake gh emits a fixed auth signature, so both
               // streams are deterministic and snapshot-safe.
               const tempDir = setupTempRepo({
-                meterState: { uses: 3, push: 'allow' },
+                meterState: { uses: 3, held: true },
                 branch: 'turtle/feature',
                 commits: ['feat: auth human json guide'],
                 commitAuthor: {
@@ -2454,7 +2526,7 @@ exec /usr/bin/git "$@"
             'the generic failure is surfaced, the auth guide stays silent',
             () => {
               const tempDir = setupTempRepo({
-                meterState: { uses: 3, push: 'allow' },
+                meterState: { uses: 3, held: true },
                 branch: 'turtle/feature',
                 commits: ['feat: auth human non-auth failure'],
                 commitAuthor: {
@@ -2514,11 +2586,11 @@ exec /usr/bin/git "$@"
               // the generic failure path is taken, verbatim from gh
               expect(result.stdout).toContain('pr creation failed');
               // the header no longer celebrates — the pr did not open
-              expect(result.stdout).toContain('pushed but the pr didnt open');
+              expect(result.stdout).toContain("pushed but the pr didn't open");
               // stream parity: the failure tree also rides stderr, so a
               // stderr-only consumer sees why exit 2 happened, not just the code
               // (rule.require.skill-output-streams)
-              expect(result.stderr).toContain('pushed but the pr didnt open');
+              expect(result.stderr).toContain("pushed but the pr didn't open");
               // the two-fix auth guide must stay silent on both streams
               expect(result.stdout).not.toContain('no usable gh credential');
               expect(result.stderr).not.toContain('no usable gh credential');
@@ -2541,7 +2613,7 @@ exec /usr/bin/git "$@"
           'the tree states pr #N (found) and opened: as-human, no create attempt',
           () => {
             const tempDir = setupTempRepo({
-              meterState: { uses: 3, push: 'allow' },
+              meterState: { uses: 3, held: true },
               branch: 'turtle/feature',
               commits: ['feat: auth human found'],
               commitAuthor: {
@@ -2620,7 +2692,7 @@ exec /usr/bin/git "$@"
           'the two-fix guide fires from the create path (distinct from case26 list path)',
           () => {
             const tempDir = setupTempRepo({
-              meterState: { uses: 3, push: 'allow' },
+              meterState: { uses: 3, held: true },
               branch: 'turtle/feature',
               commits: ['feat: auth human create-fail'],
               commitAuthor: {
@@ -2697,7 +2769,7 @@ exec /usr/bin/git "$@"
     when('[t0] a fake rhachet records if it is ever called', () => {
       then('--help exits 0 with usage and never touches keyrack', () => {
         const tempDir = setupTempRepo({
-          meterState: { uses: 3, push: 'allow' },
+          meterState: { uses: 3, held: true },
           branch: 'turtle/feature',
           commits: ['feat: help fast path'],
           commitAuthor: {
@@ -2748,7 +2820,7 @@ exit 1
       when('[t0] rhachet hangs, but the timeout is lowered to 1s', () => {
         then('the fetch is bounded and the as-human guide fires fast', () => {
           const tempDir = setupTempRepo({
-            meterState: { uses: 3, push: 'allow' },
+            meterState: { uses: 3, held: true },
             branch: 'turtle/feature',
             commits: ['feat: bounded keyrack timeout'],
             commitAuthor: {
@@ -2857,7 +2929,7 @@ exit 0
             'push.sh opens the pr with the threaded token and never fetches',
             () => {
               const tempDir = setupTempRepo({
-                meterState: { uses: 3, push: 'allow' },
+                meterState: { uses: 3, held: true },
                 branch: 'turtle/feature',
                 commits: ['feat: threaded token reuse'],
                 commitAuthor: {
@@ -2966,7 +3038,7 @@ exit 1
             'the pr-open is refused before any gh call (no 3rd contributor)',
             () => {
               const tempDir = setupTempRepo({
-                meterState: { uses: 3, push: 'allow' },
+                meterState: { uses: 3, held: true },
                 branch: 'turtle/feature',
                 // the commit is authored by the STANDARD seaturtle identity
                 commits: ['feat: identity mismatch guard'],
@@ -3054,7 +3126,7 @@ exit 99
               // as-human keeps this off the keyrack fetch so the pr-create path is
               // reached directly.
               const tempDir = setupTempRepo({
-                meterState: { uses: 3, push: 'allow' },
+                meterState: { uses: 3, held: true },
                 branch: 'turtle/feature',
                 commits: ['feat: json non-auth failure'],
                 commitAuthor: {
@@ -3146,7 +3218,7 @@ exec /usr/bin/git "$@"
               // verifies the live bot id via graphql. this proves the assert is
               // wired into the standalone fetch path (rule.require.test-covered-repairs).
               const tempDir = setupTempRepo({
-                meterState: { uses: 3, push: 'allow' },
+                meterState: { uses: 3, held: true },
                 branch: 'turtle/feature',
                 commits: ['feat: standalone fetch identity assert'],
                 commitAuthor: {
@@ -3245,7 +3317,7 @@ exit 1
           'the "git push failed" error rides BOTH streams with the raw cause, exit 1',
           () => {
             const tempDir = setupTempRepo({
-              meterState: { uses: 3, push: 'allow' },
+              meterState: { uses: 3, held: true },
               branch: 'turtle/feature',
               commits: ['feat: push-fail test'],
               commitAuthor: {
@@ -3299,6 +3371,115 @@ exec /usr/bin/git "$@"
             expect(result.stdout).not.toContain('opened:');
             expect(result.stderr).not.toContain('opened:');
             // lock both streams (rule.require.contract-snapshot-exhaustiveness)
+            expect(result.stdout).toMatchSnapshot();
+            expect(result.stderr).toMatchSnapshot();
+          },
+        );
+      });
+    },
+  );
+
+  given(
+    '[case41] a published branch, rewritten by a rebase, against a real bare origin',
+    () => {
+      when('[t0] apply mode pushes the rewritten history', () => {
+        then(
+          'the lease-guarded force push lands the rewrite on origin, exit 0',
+          () => {
+            // a real bare origin: the transport under test is the real git push
+            const remoteDir = genTempDir({ slug: 'git-commit-push-rewrite' });
+            spawnSync('git', ['init', '--bare'], { cwd: remoteDir });
+
+            const tempDir = setupTempRepo({
+              meterState: { uses: 3, held: true },
+              branch: 'turtle/feature',
+              commits: ['feat: rewrite test'],
+              commitAuthor: {
+                name: 'seaturtle[bot]',
+                email: 'seaturtle@ehmpath.com',
+              },
+            });
+            spawnSync('git', ['remote', 'add', 'origin', remoteDir], {
+              cwd: tempDir,
+            });
+
+            // pin `main` at the base commit: the first branch name follows the host's
+            // init.defaultBranch, so a runner that names it otherwise would lack `main`
+            // (a no-op where `main` already sits there)
+            spawnSync('git', ['branch', 'main', 'HEAD~1'], { cwd: tempDir });
+
+            // publish main and the feature branch, as a prior push would
+            spawnSync('git', ['push', 'origin', 'main'], { cwd: tempDir });
+            spawnSync('git', ['push', '-u', 'origin', 'turtle/feature'], {
+              cwd: tempDir,
+            });
+            const shaPublished = spawnSync(
+              'git',
+              ['rev-parse', 'origin/turtle/feature'],
+              { cwd: tempDir, encoding: 'utf-8' },
+            ).stdout.trim();
+
+            // main moves on, and the feature branch rebases onto it
+            spawnSync('git', ['checkout', 'main'], { cwd: tempDir });
+            fs.writeFileSync(path.join(tempDir, 'main-next.txt'), 'next');
+            spawnSync('git', ['add', 'main-next.txt'], { cwd: tempDir });
+            spawnSync('git', ['commit', '-m', 'chore: main moves on'], {
+              cwd: tempDir,
+            });
+            spawnSync('git', ['push', 'origin', 'main'], { cwd: tempDir });
+            spawnSync('git', ['checkout', 'turtle/feature'], { cwd: tempDir });
+            spawnSync('git', ['rebase', 'main'], { cwd: tempDir });
+            const shaRewritten = spawnSync('git', ['rev-parse', 'HEAD'], {
+              cwd: tempDir,
+              encoding: 'utf-8',
+            }).stdout.trim();
+
+            // the rewrite does not fast-forward from what origin holds, so a
+            // plain push would refuse it
+            expect(shaRewritten).not.toEqual(shaPublished);
+            const fastForward = spawnSync(
+              'git',
+              ['merge-base', '--is-ancestor', shaPublished, shaRewritten],
+              { cwd: tempDir },
+            );
+            expect(fastForward.status).toBe(1);
+
+            // .mock = fake gh for the pr-open alone; github is unreachable here.
+            //         the push itself runs against the real bare origin
+            const fakeBinDir = path.join(tempDir, '.fakebin');
+            fs.mkdirSync(fakeBinDir, { recursive: true });
+            fs.writeFileSync(
+              path.join(fakeBinDir, 'gh'),
+              `#!/bin/bash
+if [[ "$1" == "pr" && "$2" == "list" ]]; then
+  echo ""
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  echo "https://github.com/test/repo/pull/78"
+  exit 0
+fi
+exit 1
+`,
+            );
+            fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+            const result = runPush({
+              tempDir,
+              pushArgs: ['--mode', 'apply', '--auth', 'as-human'],
+              env: {
+                PATH: `${fakeBinDir}:${process.env.PATH}`,
+              },
+            });
+
+            // the rewrite lands: origin now holds the rebased commit
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toContain('cowabunga');
+            const shaOnOrigin = spawnSync(
+              'git',
+              ['rev-parse', 'refs/heads/turtle/feature'],
+              { cwd: remoteDir, encoding: 'utf-8' },
+            ).stdout.trim();
+            expect(shaOnOrigin).toEqual(shaRewritten);
             expect(result.stdout).toMatchSnapshot();
             expect(result.stderr).toMatchSnapshot();
           },

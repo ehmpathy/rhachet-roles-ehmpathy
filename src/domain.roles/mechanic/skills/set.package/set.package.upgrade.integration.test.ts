@@ -338,6 +338,228 @@ exit 1
   });
 
   /**
+   * .what = overwrite one tool on the fake PATH with the body a case names
+   * .mock = curl / npm / pnpm, via a fake on PATH
+   *         .why = a stalled registry, an unresolved dist-tag, and a failed add cannot be
+   *                provoked on demand against the real registry or package manager
+   *         .real = cases 1–6 audit against the real registry
+   */
+  const setFakeTool = (input: {
+    fakeBinDir: string;
+    tool: string;
+    body: string;
+  }): void => {
+    const target = path.join(input.fakeBinDir, input.tool);
+    fs.writeFileSync(target, `#!/bin/bash\n${input.body}\n`);
+    fs.chmodSync(target, '755');
+  };
+
+  given('[case7] the audit connection stalls on every attempt', () => {
+    when('[t0] upgrade is called', () => {
+      const { tempDir, fakeBinDir, cleanup } = createTempDir({
+        withPackage: { name: 'test-fns', version: '1.0.0' },
+      });
+      afterAll(() => cleanup());
+      const callsLog = path.join(fakeBinDir, 'curl.calls.log');
+      setFakeTool({
+        fakeBinDir,
+        tool: 'curl',
+        body: `echo "$*" | tr '\\n' ' ' >> "${callsLog}"\necho >> "${callsLog}"\nexit 28`,
+      });
+
+      then(
+        'the audit fails closed as a malfunction on both streams, and naught upgrades',
+        () => {
+          const result = runSkill(['--package', 'test-fns', '--to', '2.0.0'], {
+            cwd: tempDir,
+            fakeBinDir,
+          });
+          expect(result.exitCode).toBe(1);
+
+          // the retry is bounded: three attempts, each capped by --max-time
+          const calls = fs.readFileSync(callsLog, 'utf-8').trim().split('\n');
+          expect(calls).toHaveLength(3);
+          for (const call of calls) expect(call).toContain('--max-time');
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: security audit could not run',
+          );
+          expect(result.stderr).toContain(
+            '💥 MalfunctionError: security audit could not run',
+          );
+          const pkgJson = JSON.parse(
+            fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),
+          );
+          expect(pkgJson.dependencies['test-fns']).toBe('1.0.0');
+          expect(asStableOutput(result.stdout)).toMatchSnapshot(
+            'network-error',
+          );
+        },
+      );
+    });
+  });
+
+  given('[case8] an argument the skill does not know', () => {
+    when('[t0] upgrade is called with --bogus', () => {
+      then(
+        'exit 2, a ConstraintError in the family frame on both streams',
+        () => {
+          const result = runSkill(['--package', 'test-fns', '--bogus', 'x']);
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: unknown argument: --bogus',
+          );
+          expect(result.stderr).toContain(
+            '✋ ConstraintError: unknown argument: --bogus',
+          );
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
+    });
+  });
+
+  given('[case9] a dist-tag the registry does not know', () => {
+    when('[t0] upgrade is called with --to @nonesuch', () => {
+      const { tempDir, fakeBinDir, cleanup } = createTempDir({
+        withPackage: { name: 'test-fns', version: '1.0.0' },
+      });
+      afterAll(() => cleanup());
+      setFakeTool({ fakeBinDir, tool: 'npm', body: 'exit 1' });
+
+      then('exit 2, the unexpanded tag named on both streams', () => {
+        const result = runSkill(
+          ['--package', 'test-fns', '--to', '@nonesuch'],
+          {
+            cwd: tempDir,
+            fakeBinDir,
+          },
+        );
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('could not expand version: @nonesuch');
+        expect(result.stderr).toContain('could not expand version: @nonesuch');
+        expect(asStableOutput(result.stdout)).toMatchSnapshot('expand-failed');
+      });
+    });
+  });
+
+  given('[case10] the package manager fails the add', () => {
+    when('[t0] upgrade is called', () => {
+      const { tempDir, fakeBinDir, cleanup } = createTempDir({
+        withPackage: { name: 'test-fns', version: '1.0.0' },
+      });
+      afterAll(() => cleanup());
+      setFakeTool({
+        fakeBinDir,
+        tool: 'pnpm',
+        body: 'echo "ERR_PNPM_FETCH_404  GET https://registry.npmjs.org/test-fns: Not Found" >&2; exit 1',
+      });
+
+      then('the failure is named on both streams, with the cause', () => {
+        const result = runSkill(['--package', 'test-fns', '--to', '2.0.0'], {
+          cwd: tempDir,
+          fakeBinDir,
+        });
+        expect(result.exitCode).not.toBe(0);
+        expect(result.stdout).toContain('upgrade failed');
+        expect(result.stderr).toContain('upgrade failed');
+        expect(result.stdout).toContain('ERR_PNPM_FETCH_404');
+        expect(asStableOutput(result.stdout)).toMatchSnapshot('upgrade-failed');
+      });
+    });
+  });
+
+  // the two other causes the audit cannot run: a body that is not json, and json that is
+  // not an advisory map. each fails closed as a malfunction, on both streams
+  const auditFaults = [
+    {
+      slug: 'invalid-response',
+      answer: 'not json',
+      cause: 'invalid response from the registry',
+    },
+    {
+      slug: 'unparsable-response',
+      answer: '"an advisory string, not a map"',
+      cause: 'registry response could not be parsed',
+    },
+  ];
+  given(
+    '[case11] the registry answers with a body the audit cannot read',
+    () => {
+      auditFaults.forEach((fault, index) => {
+        when(`[t${index}] the body is ${fault.slug}`, () => {
+          const { tempDir, fakeBinDir, cleanup } = createTempDir({
+            withPackage: { name: 'test-fns', version: '1.0.0' },
+          });
+          afterAll(() => cleanup());
+          setFakeTool({
+            fakeBinDir,
+            tool: 'curl',
+            body: `echo '${fault.answer}'`,
+          });
+
+          then(
+            'the audit fails closed as a malfunction on both streams, and naught upgrades',
+            () => {
+              const result = runSkill(
+                ['--package', 'test-fns', '--to', '2.0.0'],
+                { cwd: tempDir, fakeBinDir },
+              );
+              expect(result.exitCode).toBe(1);
+              expect(result.stdout).toContain(
+                `💥 MalfunctionError: security audit could not run (${fault.cause})`,
+              );
+              expect(result.stderr).toContain(fault.cause);
+              const pkgJson = JSON.parse(
+                fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),
+              );
+              expect(pkgJson.dependencies['test-fns']).toBe('1.0.0');
+              expect(asStableOutput(result.stdout)).toMatchSnapshot(fault.slug);
+            },
+          );
+        });
+      });
+    },
+  );
+
+  given('[case12] a host with no jq', () => {
+    when('[t0] upgrade is called', () => {
+      // a PATH that holds only what the skill needs before its dependency check
+      const { tempDir, cleanup } = createTempDir({
+        withPackage: { name: 'test-fns', version: '1.0.0' },
+      });
+      afterAll(() => cleanup());
+      const binDir = path.join(tempDir, '.bin-wout-jq');
+      fs.mkdirSync(binDir, { recursive: true });
+      fs.symlinkSync(
+        spawnSync('which', ['dirname'], { encoding: 'utf-8' }).stdout.trim(), // node.js API requirement
+        path.join(binDir, 'dirname'),
+      );
+
+      then(
+        'exit 2, a ConstraintError in the family frame on both streams',
+        () => {
+          const result = spawnSync(
+            '/bin/bash',
+            [scriptPath, '--package', 'test-fns', '--to', '2.0.0'],
+            {
+              cwd: tempDir,
+              encoding: 'utf-8',
+              env: { ...process.env, PATH: binDir },
+            }, // node.js API requirement
+          );
+          expect(result.status).toBe(2);
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: jq is required but not installed',
+          );
+          expect(result.stderr).toContain(
+            '✋ ConstraintError: jq is required but not installed',
+          );
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
+    });
+  });
+
+  /**
    * .what = snapshot tests for all output variants
    * .why = enable vibe-check in PR reviews, detect unintended output changes
    */
