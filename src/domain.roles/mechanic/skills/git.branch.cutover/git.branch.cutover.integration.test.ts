@@ -5134,7 +5134,9 @@ describe('git.branch.cutover', () => {
       ).stdout;
 
     when('[t0] apply --from @main', () => {
-      const scene = useBeforeAll(async () => genStaleScene('cutover-case74-main'));
+      const scene = useBeforeAll(async () =>
+        genStaleScene('cutover-case74-main'),
+      );
       const result = useBeforeAll(async () =>
         runCutover(scene, [
           'begin',
@@ -5157,7 +5159,9 @@ describe('git.branch.cutover', () => {
     });
 
     when('[t1] apply --from @tree', () => {
-      const scene = useBeforeAll(async () => genStaleScene('cutover-case74-tree'));
+      const scene = useBeforeAll(async () =>
+        genStaleScene('cutover-case74-tree'),
+      );
       const result = useBeforeAll(async () =>
         runCutover(scene, [
           'begin',
@@ -5180,128 +5184,144 @@ describe('git.branch.cutover', () => {
     });
   });
 
-  given('[case75] an abort is killed after its switch back to the source', () => {
-    // .why = F20: abort switches back to the source before it clears the
-    //        state. a rerun after a kill there must finish the undo, never
-    //        refuse "HEAD is not where this cutover left it", and never
-    //        reset the edits a prior run already laid back
-    //
-    // .mock = a git shim on PATH execs the real git for every call, except
-    //         one, where it kill -9s the abort itself
-    // .why  = a kill at one exact instant cannot be scheduled from outside
-    const genHaltedScene = (slug: string) => {
-      const scene = genConflictScene(slug);
-      fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
-      const halt = runCutover(scene, [
-        'begin',
-        '--from',
-        '@main',
-        '--into',
-        'turtle/wave-report-v2',
-        '--pick',
-        scene.featureShas[1]!,
-        '--mode',
-        'apply',
-      ]);
-      if (halt.exitCode !== 2)
-        throw new Error(`${slug} setup: begin did not halt: ${halt.stdout}`);
-      return scene;
-    };
-    const runAbortKilledAt = (scene: Scene, slug: string, trigger: string) => {
-      const binDir = genShimBin({
-        slug,
-        cli: 'git',
-        body: [
-          `if ${trigger}; then`,
-          '  kill -9 "$PPID"',
-          '  exit 1',
-          'fi',
-          'exec "$REAL_GIT" "$@"',
-        ],
-      });
-      const killed = spawnSync('bash', [scriptPath, 'abort'], {
-        cwd: scene.repoDir,
-        encoding: 'utf-8',
-        env: {
-          ...process.env,
-          HOME: scene.homeDir,
-          PATH: `${binDir}:${process.env.PATH}`,
-          REAL_GIT: getRealBin('git'),
-        },
-      });
-      return {
-        killed,
-        branchAfterKill: getBranch(scene),
-        stateAfterKill: hasStateFile(scene),
-        editAfterKill: fs.readFileSync(
-          path.join(scene.repoDir, 'readme.md'),
-          'utf-8',
-        ),
-        rerun: runCutover(scene, ['abort']),
+  given(
+    '[case75] an abort is killed after its switch back to the source',
+    () => {
+      // .why = F20: abort switches back to the source before it clears the
+      //        state. a rerun after a kill there must finish the undo, never
+      //        refuse "HEAD is not where this cutover left it", and never
+      //        reset the edits a prior run already laid back
+      //
+      // .mock = a git shim on PATH execs the real git for every call, except
+      //         one, where it kill -9s the abort itself
+      // .why  = a kill at one exact instant cannot be scheduled from outside
+      const genHaltedScene = (slug: string) => {
+        const scene = genConflictScene(slug);
+        fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+        const halt = runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+          '--pick',
+          scene.featureShas[1]!,
+          '--mode',
+          'apply',
+        ]);
+        if (halt.exitCode !== 2)
+          throw new Error(`${slug} setup: begin did not halt: ${halt.stdout}`);
+        return scene;
       };
-    };
+      const runAbortKilledAt = (
+        scene: Scene,
+        slug: string,
+        trigger: string,
+      ) => {
+        const binDir = genShimBin({
+          slug,
+          cli: 'git',
+          body: [
+            `if ${trigger}; then`,
+            '  kill -9 "$PPID"',
+            '  exit 1',
+            'fi',
+            'exec "$REAL_GIT" "$@"',
+          ],
+        });
+        const killed = spawnSync('bash', [scriptPath, 'abort'], {
+          cwd: scene.repoDir,
+          encoding: 'utf-8',
+          env: {
+            ...process.env,
+            HOME: scene.homeDir,
+            PATH: `${binDir}:${process.env.PATH}`,
+            REAL_GIT: getRealBin('git'),
+          },
+        });
+        return {
+          killed,
+          branchAfterKill: getBranch(scene),
+          stateAfterKill: hasStateFile(scene),
+          editAfterKill: fs.readFileSync(
+            path.join(scene.repoDir, 'readme.md'),
+            'utf-8',
+          ),
+          rerun: runCutover(scene, ['abort']),
+        };
+      };
 
-    when('[t0] the kill lands at the park restore, then abort reruns', () => {
-      const scene = useBeforeAll(async () =>
-        genHaltedScene('cutover-case75-t0'),
-      );
-      const outcome = useBeforeAll(async () =>
-        runAbortKilledAt(
-          scene,
-          'cutover-case75-t0-bin',
-          '[[ "$1" == "read-tree" && "$2" == "-m" && "$3" == "-u" ]]',
-        ),
-      );
+      when('[t0] the kill lands at the park restore, then abort reruns', () => {
+        const scene = useBeforeAll(async () =>
+          genHaltedScene('cutover-case75-t0'),
+        );
+        const outcome = useBeforeAll(async () =>
+          runAbortKilledAt(
+            scene,
+            'cutover-case75-t0-bin',
+            '[[ "$1" == "read-tree" && "$2" == "-m" && "$3" == "-u" ]]',
+          ),
+        );
 
-      then('the kill landed after the switch back, before the restore', () => {
-        expect(outcome.killed.signal).toEqual('SIGKILL');
-        expect(outcome.branchAfterKill).toEqual('turtle/wave-report');
-        expect(outcome.stateAfterKill).toBe(true);
-        expect(outcome.editAfterKill).not.toEqual('# reef v2\n');
+        then(
+          'the kill landed after the switch back, before the restore',
+          () => {
+            expect(outcome.killed.signal).toEqual('SIGKILL');
+            expect(outcome.branchAfterKill).toEqual('turtle/wave-report');
+            expect(outcome.stateAfterKill).toBe(true);
+            expect(outcome.editAfterKill).not.toEqual('# reef v2\n');
+          },
+        );
+
+        then(
+          'the rerun finishes the undo: edit back, branch gone, state gone',
+          () => {
+            expect(outcome.rerun.exitCode).toBe(0);
+            expect(outcome.rerun.stdout).not.toContain('HEAD is not where');
+            expect(getBranch(scene)).toEqual('turtle/wave-report');
+            expect(
+              fs.readFileSync(path.join(scene.repoDir, 'readme.md'), 'utf-8'),
+            ).toEqual('# reef v2\n');
+            expect(hasBranch(scene, 'turtle/wave-report-v2')).toBe(false);
+            expect(hasStateFile(scene)).toBe(false);
+          },
+        );
       });
 
-      then('the rerun finishes the undo: edit back, branch gone, state gone', () => {
-        expect(outcome.rerun.exitCode).toBe(0);
-        expect(outcome.rerun.stdout).not.toContain('HEAD is not where');
-        expect(getBranch(scene)).toEqual('turtle/wave-report');
-        expect(
-          fs.readFileSync(path.join(scene.repoDir, 'readme.md'), 'utf-8'),
-        ).toEqual('# reef v2\n');
-        expect(hasBranch(scene, 'turtle/wave-report-v2')).toBe(false);
-        expect(hasStateFile(scene)).toBe(false);
-      });
-    });
+      when('[t1] the kill lands after the restore, then abort reruns', () => {
+        const scene = useBeforeAll(async () =>
+          genHaltedScene('cutover-case75-t1'),
+        );
+        const outcome = useBeforeAll(async () =>
+          runAbortKilledAt(
+            scene,
+            'cutover-case75-t1-bin',
+            '[[ "$1" == "branch" && " $* " == *" -D "* ]]',
+          ),
+        );
 
-    when('[t1] the kill lands after the restore, then abort reruns', () => {
-      const scene = useBeforeAll(async () =>
-        genHaltedScene('cutover-case75-t1'),
-      );
-      const outcome = useBeforeAll(async () =>
-        runAbortKilledAt(
-          scene,
-          'cutover-case75-t1-bin',
-          '[[ "$1" == "branch" && " $* " == *" -D "* ]]',
-        ),
-      );
+        then(
+          'the kill landed with the edit laid back and the state kept',
+          () => {
+            expect(outcome.killed.signal).toEqual('SIGKILL');
+            expect(outcome.branchAfterKill).toEqual('turtle/wave-report');
+            expect(outcome.stateAfterKill).toBe(true);
+            expect(outcome.editAfterKill).toEqual('# reef v2\n');
+          },
+        );
 
-      then('the kill landed with the edit laid back and the state kept', () => {
-        expect(outcome.killed.signal).toEqual('SIGKILL');
-        expect(outcome.branchAfterKill).toEqual('turtle/wave-report');
-        expect(outcome.stateAfterKill).toBe(true);
-        expect(outcome.editAfterKill).toEqual('# reef v2\n');
+        then('the rerun keeps the restored edit, and clears the rest', () => {
+          expect(outcome.rerun.exitCode).toBe(0);
+          expect(
+            fs.readFileSync(path.join(scene.repoDir, 'readme.md'), 'utf-8'),
+          ).toEqual('# reef v2\n');
+          expect(getBranch(scene)).toEqual('turtle/wave-report');
+          expect(hasBranch(scene, 'turtle/wave-report-v2')).toBe(false);
+          expect(hasStateFile(scene)).toBe(false);
+        });
       });
-
-      then('the rerun keeps the restored edit, and clears the rest', () => {
-        expect(outcome.rerun.exitCode).toBe(0);
-        expect(
-          fs.readFileSync(path.join(scene.repoDir, 'readme.md'), 'utf-8'),
-        ).toEqual('# reef v2\n');
-        expect(getBranch(scene)).toEqual('turtle/wave-report');
-        expect(hasBranch(scene, 'turtle/wave-report-v2')).toBe(false);
-        expect(hasStateFile(scene)).toBe(false);
-      });
-    });
-  });
+    },
+  );
 
   given('[case76] a --from spelled as a remote-track ref or as HEAD', () => {
     // .why = the vision writes the base as origin/main; a caller who types
