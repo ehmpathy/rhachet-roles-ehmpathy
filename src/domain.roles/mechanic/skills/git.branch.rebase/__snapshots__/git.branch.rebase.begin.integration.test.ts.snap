@@ -1,32 +1,83 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`git.branch.rebase.begin given: [case1] feature branch with commits ahead and behind when: [t0] plan mode (default) then: shows preview or fetch error (no real remote in test) 1`] = `
-"🐢 hold up dude...
+exports[`git.branch.rebase.begin given: [case1] feature branch with commits ahead and behind when: [t0] plan mode (default) then: shows the preview: ahead, behind, and the meter 1`] = `
+"🐢 heres the wave...
 
-🐚 git.branch.rebase begin
-   └─ error: failed to fetch origin/main
+🐚 git.branch.rebase begin --mode plan
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ ahead: 3 commits
+   │  │  ├─ <sha> fix(api): feature commit 2
+   │  │  ├─ <sha> fix(api): feature commit 1
+   │  │  ├─ <sha> fix(api): feature commit 0
+   │  └─ behind: 2 commits
+   │     ├─ <sha> chore: commit behind 1
+   │     └─ <sha> chore: commit behind 0
+   └─ meter
+      ├─ commits: allowed
+      └─ push: allowed
 
-check your network connection and try again
+run with --mode apply to execute
 "
 `;
 
-exports[`git.branch.rebase.begin given: [case2] feature branch ready to rebase when: [t0] apply mode attempts rebase then: shows result or fetch error (no real remote in test) 1`] = `
-"🐢 hold up dude...
+exports[`git.branch.rebase.begin given: [case2] feature branch one commit behind origin/main when: [t0] apply mode attempts rebase then: rebases onto origin/main and shows the result 1`] = `
+"🐢 righteous!
 
-🐚 git.branch.rebase begin
-   └─ error: failed to fetch origin/main
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 2 ✓
+   │  └─ status: clean
+   └─ git.output
+      ├─
+      │
+      │  From <tempdir>/.origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/2)
+      │  Rebasing (2/2)
+      │  Successfully rebased and updated refs/heads/feature/test-branch.
+      │
+      └─
 
-check your network connection and try again
+🌊 ready to push
+   └─ rhx git.commit.push
 "
 `;
 
 exports[`git.branch.rebase.begin given: [case3] rebase with conflicts when: [t0] apply mode hits conflict then: shows conflict status and files 1`] = `
-"🐢 hold up dude...
+"🐢 hang tight...
 
-🐚 git.branch.rebase begin
-   └─ error: failed to fetch origin/main
-
-check your network connection and try again
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 3
+   │  └─ status: conflict
+   ├─ conflict
+   │  ├─ commit: <sha> fix: add conflict file
+   │  └─ files
+   │     └─ conflict.txt
+   ├─ next steps
+   │  ├─ settle conflicts in files above
+   │  └─ rhx git.branch.rebase continue
+   └─ git.output
+      ├─
+      │
+      │  From <tempdir>/.origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/3)
+      │  Rebasing (2/3)
+      │  Rebasing (3/3)
+      │  Auto-merging conflict.txt
+      │  CONFLICT (add/add): Merge conflict in conflict.txt
+      │  error: could not apply <sha>... fix: add conflict file
+      │  hint: Resolve all conflicts manually, mark them as resolved with
+      │  hint: "git add/rm <conflicted_files>", then run "git rebase --continue".
+      │  hint: You can instead skip this commit: run "git rebase --skip".
+      │  hint: To abort and get back to the state before "git rebase", run "git rebase --abort".
+      │  Could not apply <sha>... fix: add conflict file
+      │
+      └─
 "
 `;
 
@@ -59,13 +110,22 @@ commit or stash your changes first
 "
 `;
 
-exports[`git.branch.rebase.begin given: [case7] branch already up to date when: [t0] attempt rebase then: shows up to date or fetch error (no real remote in test) 1`] = `
-"🐢 hold up dude...
+exports[`git.branch.rebase.begin given: [case7] branch already up to date when: [t0] attempt rebase with zero commits ahead then: says there is no commit to rebase 1`] = `
+"🐢 already up to date
 
 🐚 git.branch.rebase begin
-   └─ error: failed to fetch origin/main
+   └─ no commits to rebase
+"
+`;
 
-check your network connection and try again
+exports[`git.branch.rebase.begin given: [case7] branch already up to date when: [t1] attempt rebase with commits ahead and zero behind then: shows up to date, with one count per line 1`] = `
+"🐢 already up to date
+
+🐚 git.branch.rebase begin
+   ├─ commits: 2 (ahead)
+   └─ behind: 0
+
+no rebase needed, ready to push
 "
 `;
 
@@ -81,22 +141,45 @@ to abort:    rhx git.branch.rebase abort
 `;
 
 exports[`git.branch.rebase.begin given: [case9] uses is "infinite" when: [t0] apply mode with infinite uses then: does not fail on integer comparison (handles infinite) 1`] = `
-"🐢 hold up dude...
+"🐢 righteous!
 
-🐚 git.branch.rebase begin
-   └─ error: failed to fetch origin/main
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 2 ✓
+   │  └─ status: clean
+   └─ git.output
+      ├─
+      │
+      │  From <tempdir>/.origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/2)
+      │  Rebasing (2/2)
+      │  Successfully rebased and updated refs/heads/feature/test-branch.
+      │
+      └─
 
-check your network connection and try again
+🌊 ready to push
+   └─ rhx git.commit.push
 "
 `;
 
 exports[`git.branch.rebase.begin given: [case9] uses is "infinite" when: [t1] plan mode with infinite uses then: shows preview (plan mode is always free) 1`] = `
-"🐢 hold up dude...
+"🐢 heres the wave...
 
-🐚 git.branch.rebase begin
-   └─ error: failed to fetch origin/main
+🐚 git.branch.rebase begin --mode plan
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ ahead: 2 commits
+   │  │  ├─ <sha> fix(api): feature commit 1
+   │  │  ├─ <sha> fix(api): feature commit 0
+   │  └─ behind: 1 commits
+   │     └─ <sha> chore: commit behind 0
+   └─ meter
+      ├─ commits: allowed
+      └─ push: allowed
 
-check your network connection and try again
+run with --mode apply to execute
 "
 `;
 
@@ -108,5 +191,40 @@ exports[`git.branch.rebase.begin given: [case10] uses spent, push allowed, direc
 
 ask your human to grant more:
   $ rhx git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case11] the pull fails and leaves no rebase in progress (a pre-rebase hook refuses) when: [t0] apply mode then: it reports the failure, never a clean rebase 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ error: rebase failed
+   └─ git.output
+      ├─
+      │
+      │  From <tempdir>/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  pre-rebase: refused
+      │  fatal: The pre-rebase hook refused to rebase.
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case12] a tree with no origin remote when: [t0] attempt rebase then: refuses: no main or master on origin 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ error: no main or master branch found on origin
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case13] origin/main is known, but the origin cannot be reached when: [t0] attempt rebase then: refuses: failed to fetch origin/main 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ error: failed to fetch origin/main
+
+check your network connection and try again
 "
 `;

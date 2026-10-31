@@ -169,7 +169,8 @@ git fetch origin "$DEFAULT_BRANCH" 2>/dev/null || {
 # get rebase info
 ######################################################################
 COMMITS_TO_REBASE=$(get_commits_to_rebase "origin/$DEFAULT_BRANCH")
-COMMIT_COUNT=$(echo "$COMMITS_TO_REBASE" | grep -c . || echo "0")
+# .note = grep -c prints its own 0 on no match (exit 1); `|| true` keeps that one 0
+COMMIT_COUNT=$(echo "$COMMITS_TO_REBASE" | grep -c . || true)
 BEHIND_COUNT=$(get_behind_count "origin/$DEFAULT_BRANCH")
 COMMITS_BEHIND=$(get_commits_behind "origin/$DEFAULT_BRANCH")
 

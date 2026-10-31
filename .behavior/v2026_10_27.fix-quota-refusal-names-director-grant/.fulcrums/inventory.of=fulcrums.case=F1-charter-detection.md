@@ -48,3 +48,10 @@ commander rules, never best-guessed. unresolved until then.
 director, 2026-10-30 (later): no blueprint stone. F1 goes to the commander as a three-line question
 through the director's queue. execution builds all but the detection check itself; the check stays
 unbuilt until the commander rules.
+
+director, 2026-10-30 13:1xZ: sort it, WHAT or execution. driver's sort: **WHAT**. each option
+draws a different set of trees that get the director line: A excludes a crew booted with no seat
+hired; B excludes every tree before its first grant (C3); C excludes any process outside the booted
+session; and A's own sub-question (any charter, or only a director-seated one) moves the line
+again. the approved vision names the outcome ("a director charter governs the tree") but not that
+set, so the choice is the commander's, as one ranked ask: A (lean), then B, C, D.
