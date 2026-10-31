@@ -110,6 +110,11 @@ always:
       - skills/git.commit/git.commit.bind.sh
       - skills/git.commit/git.commit.uses.sh
 
+      # git branch — the cutover, named at the moment of need by git.commit.set and
+      # git.branch.rebase help; its quota, a human-run grant
+      - skills/git.branch.cutover/git.branch.cutover.sh
+      - skills/git.branch.uses/git.branch.uses.sh
+
       # github actions — show.gh.test.errors covers the common case
       - skills/show.gh.action.logs.sh
 

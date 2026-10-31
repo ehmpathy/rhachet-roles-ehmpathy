@@ -40,13 +40,15 @@ show_usage() {
   echo "   │  ├─ abort      abandon rebase, restore pre-rebase state"
   echo "   │  ├─ lock       lock file operations (refresh)"
   echo "   │  └─ help       show this usage"
-  echo "   └─ examples"
-  echo "      ├─ rhx git.branch.rebase begin --mode plan"
-  echo "      ├─ rhx git.branch.rebase begin --mode apply"
-  echo "      ├─ rhx git.branch.rebase continue"
-  echo "      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml"
-  echo "      ├─ rhx git.branch.rebase lock refresh"
-  echo "      └─ rhx git.branch.rebase abort"
+  echo "   ├─ examples"
+  echo "   │  ├─ rhx git.branch.rebase begin --mode plan"
+  echo "   │  ├─ rhx git.branch.rebase begin --mode apply"
+  echo "   │  ├─ rhx git.branch.rebase continue"
+  echo "   │  ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml"
+  echo "   │  ├─ rhx git.branch.rebase lock refresh"
+  echo "   │  └─ rhx git.branch.rebase abort"
+  echo "   └─ the branch's first feat already shipped? a rebase keeps that history;"
+  echo "      cut a fresh branch instead: rhx git.branch.cutover help"
 }
 
 ######################################################################
