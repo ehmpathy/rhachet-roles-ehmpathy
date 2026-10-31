@@ -50,7 +50,7 @@ done
 if ! is_rebase_in_progress; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase abort"
-  echo "   └─ error: no rebase in progress"
+  print_no_rebase_error
   exit 1
 fi
 

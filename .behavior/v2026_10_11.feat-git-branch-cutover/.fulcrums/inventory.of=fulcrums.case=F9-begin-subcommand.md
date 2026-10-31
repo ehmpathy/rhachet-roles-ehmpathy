@@ -7,4 +7,4 @@
 - **rework**: clean — the dispatcher can also accept the bare form as an alias of `begin`
 - **confidence**: 80% — the wish's own text shows a bare start form
 - **where**: yield `.the contract`, q1
-- **verdict**: —
+- **verdict**: approved by wisher, 2026-10-21 — `begin` subcommand

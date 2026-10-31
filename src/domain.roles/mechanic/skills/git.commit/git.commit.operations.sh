@@ -38,9 +38,27 @@ source "$(dirname "${BASH_SOURCE[0]}")/keyrack.operations.sh"
 ######################################################################
 ROLE_REPO="ehmpathy"
 ROLE_SLUG="mechanic"
+
+# .what = which meter the global + org readers and handlers serve
+#
+# .why  = two meters share one copy of the hardened global + org readers and
+#         handlers: `git.commit.uses` (the default) and `git.branch.uses`. a
+#         caller for the branch meter exports `METER_SLUG=git.branch.uses` and
+#         `METER_NOUN=cutover` before it sources this file. the commit family
+#         pins both to the defaults below (git.commit.set.sh, git.commit.push.sh,
+#         git.commit.uses.sh), so a METER_SLUG left exported in the shell can
+#         never aim the commit gate at the branch meter; pinned = default is
+#         what keeps the commit paths and prose byte-identical.
+#
+# .why  = a second copy would fork every repair these readers carry (torn
+#         reads, a directory at the path, a 0-byte file, a non-boolean leaf),
+#         and the next fix would land in one copy only (fulcrum F11).
+METER_SLUG="${METER_SLUG:-git.commit.uses}"
+METER_NOUN="${METER_NOUN:-commit}"
+
 GLOBAL_METER_DIR="$HOME/.rhachet/storage/repo=$ROLE_REPO/role=$ROLE_SLUG/.meter"
-GLOBAL_METER_FILE="$GLOBAL_METER_DIR/git.commit.uses.jsonc"
-ORG_METER_FILE="$GLOBAL_METER_DIR/git.commit.uses.org.jsonc"
+GLOBAL_METER_FILE="$GLOBAL_METER_DIR/$METER_SLUG.jsonc"
+ORG_METER_FILE="$GLOBAL_METER_DIR/$METER_SLUG.org.jsonc"
 
 ######################################################################
 # the global meter's DISPLAY path — a `~`-rooted twin of GLOBAL_METER_FILE
@@ -152,7 +170,7 @@ print_global_corrupt_note() {
   #    alone, which is exactly how the test harness uses it (it exits 127).
   #    ⇒ the shape is matched by hand; the coupling is not created.
   echo ""
-  echo "until it parses, every commit is blocked. a human may inspect or clear it:"
+  echo "until it parses, every $METER_NOUN is blocked. a human may inspect or clear it:"
   echo "  \$ cat $GLOBAL_METER_FILE_SHOWN"
   echo "  \$ rm -r $GLOBAL_METER_FILE_SHOWN"
 }
@@ -230,7 +248,7 @@ print_org_corrupt_body() {
   #      the reasons, and why it is matched rather than called, are on
   #      `print_global_corrupt_note`.
   echo ""
-  echo "until it parses, every commit is blocked. a human may inspect or clear it:"
+  echo "until it parses, every $METER_NOUN is blocked. a human may inspect or clear it:"
   echo "  \$ cat $ORG_METER_FILE_SHOWN"
   echo "  \$ rm -r $ORG_METER_FILE_SHOWN"
 }
@@ -1195,7 +1213,7 @@ check_global_blocker() {
   blocked_val=$(printf '%s' "$contents" | jq -s -r '.[0].blocked // false')
 
   if [[ "$blocked_val" == "true" ]]; then
-    GLOBAL_BLOCK_REASON="commits blocked globally"
+    GLOBAL_BLOCK_REASON="${METER_NOUN}s blocked globally"
     return 2
   fi
 
@@ -1664,6 +1682,25 @@ print_sponsor_bind_nudge_if_absent() {
     "${hints[@]}" \
     "$SPONSOR_BIND_VIA_STDIN" \
     "$SPONSOR_BIND_VIA_LITERAL"
+}
+
+######################################################################
+# .what = this worktree's explicit commit-level bind (`fix`|`feat`), or ""
+#         when none is bound
+#
+# .why  = the commit domain owns the bind file (git.commit.bind writes it,
+#         git.commit.set enforces it); a peer that reports the level reads
+#         it here, never by its path, so the file can move in one place
+#
+# usage: level=$(get_commit_level_bind)
+######################################################################
+get_commit_level_bind() {
+  local level_file
+  level_file="$(git rev-parse --show-toplevel)/.branch/.bind/git.commit.level"
+  if [[ -f "$level_file" ]]; then
+    cat "$level_file"
+  fi
+  return 0
 }
 
 ######################################################################
@@ -2187,7 +2224,7 @@ check_org_blocker() {
   # if org-specific state exists, use it
   if [[ "$org_state" != "unset" ]]; then
     if [[ "$org_state" == "blocked" ]]; then
-      ORG_BLOCK_REASON="commits blocked for org $org"
+      ORG_BLOCK_REASON="${METER_NOUN}s blocked for org $org"
       return 2
     fi
     return 0  # org is allowed
@@ -2215,7 +2252,7 @@ check_org_blocker() {
   fi
 
   if [[ "$all_state" == "blocked" ]]; then
-    ORG_BLOCK_REASON="commits blocked for org $org (from @all)"
+    ORG_BLOCK_REASON="${METER_NOUN}s blocked for org $org (from @all)"
     return 2
   fi
 

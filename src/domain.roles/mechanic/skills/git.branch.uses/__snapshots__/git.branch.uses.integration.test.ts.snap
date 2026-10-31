@@ -1,0 +1,375 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.uses given: [case1] a human grants a local quota when: [t0] set --quant 2 then: it grants two cutovers 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.branch.uses set
+   └─ granted: 2
+"
+`;
+
+exports[`git.branch.uses given: [case1] a human grants a local quota when: [t1] get then: it shows two left 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.branch.uses
+   └─ meter
+      └─ left: 2
+"
+`;
+
+exports[`git.branch.uses given: [case1] a human grants a local quota when: [t2] allow then: it grants unlimited 1`] = `
+"🐢 radical! let's ride!
+
+🐚 git.branch.uses allow
+   └─ granted: unlimited
+"
+`;
+
+exports[`git.branch.uses given: [case1] a human grants a local quota when: [t3] del then: it revokes the quota 1`] = `
+"🐢 groovy, break time
+
+🐚 git.branch.uses del
+   └─ revoked
+"
+`;
+
+exports[`git.branch.uses given: [case2] no quota is set when: [t0] get then: it says no quota, and names how to get one 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.branch.uses
+   └─ no quota set
+
+🥥 did you know?
+   ├─ no quota is granted on this tree, so a cutover apply will refuse
+   └─ rhx git.branch.uses set --quant N   # ask your human
+"
+`;
+
+exports[`git.branch.uses given: [case3] a robot tries to grant itself a quota when: [t0] set --quant 5 without a human at the terminal then: it refuses, and writes no meter 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.uses set
+   └─ ✋ ConstraintError: no terminal on this command
+
+   only a human at a real terminal may run this, and this command
+   has none. a clone's tool call has none, and neither does a claude
+   \`!\` command, so the two cannot be told apart here.
+
+run it from your own terminal, with the same args:
+  $ rhx git.branch.uses set ...
+"
+`;
+
+exports[`git.branch.uses given: [case3] a robot tries to grant itself a quota when: [t1] get without a human at the terminal then: it answers — a read needs no human 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.branch.uses
+   └─ no quota set
+
+🥥 did you know?
+   ├─ no quota is granted on this tree, so a cutover apply will refuse
+   └─ rhx git.branch.uses set --quant N   # ask your human
+"
+`;
+
+exports[`git.branch.uses given: [case4] bad set input when: [t0] set with no --quant then: it refuses with exit 2 1`] = `
+"✋ ConstraintError: --quant N is required
+usage: git.branch.uses set --quant N
+"
+`;
+
+exports[`git.branch.uses given: [case4] bad set input when: [t1] set --quant lots then: it refuses with exit 2 1`] = `
+"✋ ConstraintError: --quant must be a non-negative integer or 'infinite'
+usage: git.branch.uses set --quant N
+"
+`;
+
+exports[`git.branch.uses given: [case4] bad set input when: [t2] set --push allow then: it refuses: the branch meter has no push axis 1`] = `
+"✋ ConstraintError: unknown option: --push
+usage: git.branch.uses set --quant N
+       git.branch.uses del
+       git.branch.uses allow
+       git.branch.uses get
+"
+`;
+
+exports[`git.branch.uses given: [case5] the local meter file is damaged when: [t0] the file is truncated then: get refuses by name with exit 1 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.uses
+   └─ 💥 MalfunctionError: cutover quota file corrupt
+
+   the file that holds this tree's cutover quota cannot be read:
+     .meter/git.branch.uses.jsonc
+
+ask your human to reset the quota, then grant again:
+  $ rhx git.branch.uses del
+  $ rhx git.branch.uses set --quant N
+"
+`;
+
+exports[`git.branch.uses given: [case5] the local meter file is damaged when: [t1] the file is empty then: get refuses by name with exit 1 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.uses
+   └─ 💥 MalfunctionError: cutover quota file corrupt
+
+   the file that holds this tree's cutover quota cannot be read:
+     .meter/git.branch.uses.jsonc
+
+ask your human to reset the quota, then grant again:
+  $ rhx git.branch.uses del
+  $ rhx git.branch.uses set --quant N
+"
+`;
+
+exports[`git.branch.uses given: [case5] the local meter file is damaged when: [t2] uses is negative then: get refuses by name with exit 1 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.uses
+   └─ 💥 MalfunctionError: cutover quota file corrupt
+
+   the file that holds this tree's cutover quota cannot be read:
+     .meter/git.branch.uses.jsonc
+
+ask your human to reset the quota, then grant again:
+  $ rhx git.branch.uses del
+  $ rhx git.branch.uses set --quant N
+"
+`;
+
+exports[`git.branch.uses given: [case6] the global level when: [t0] block --global then: it writes the branch global file, never the commit one 1`] = `
+"🐢 groovy, bond fire time
+
+🐚 git.branch.uses block --global
+   └─ cutovers blocked globally
+"
+`;
+
+exports[`git.branch.uses given: [case6] the global level when: [t1] get --global then: it reads the branch global file 1`] = `
+"🐢 lets check the global meter...
+
+🐚 git.branch.uses get --global
+   └─ global: blocked
+"
+`;
+
+exports[`git.branch.uses given: [case6] the global level when: [t2] allow --global then: it lifts the blocker, with no sponsor nudge 1`] = `
+"🐢 shell yeah, back in the water!
+
+🐚 git.branch.uses allow --global
+   └─ cutovers resumed globally
+"
+`;
+
+exports[`git.branch.uses given: [case7] the org level when: [t0] allow --org ehmpathy then: it writes the branch org file, with no sponsor nudge 1`] = `
+"🐢 shell yeah, back in the water!
+
+🐚 git.branch.uses allow --org ehmpathy
+   └─ ehmpathy: allowed
+"
+`;
+
+exports[`git.branch.uses given: [case7] the org level when: [t1] get --org ehmpathy then: it reads allowed 1`] = `
+"🐢 lets check the meter...
+
+🐚 git.branch.uses get --org ehmpathy
+   └─ ehmpathy: allowed
+"
+`;
+
+exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t0] the global level is blocked then: it refuses with exit 2 and names the lift 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.cutover begin
+   └─ ✋ ConstraintError: cutovers blocked globally
+
+ask your human to lift it:
+  $ rhx git.branch.uses allow --global
+"
+`;
+
+exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t1] a blocked COMMIT meter does not block a cutover then: the gate passes 1`] = `
+"GATE_PASSED
+"
+`;
+
+exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t2] the org is not configured then: it refuses with exit 2 and names the org allow 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.cutover begin
+   └─ ✋ ConstraintError: no org config for ehmpathy (org permissions not configured)
+
+ask your human to allow:
+  $ rhx git.branch.uses allow --org <org>
+"
+`;
+
+exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t3] the org is blocked via @all then: it refuses with exit 2 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.cutover begin
+   └─ ✋ ConstraintError: cutovers blocked for org ehmpathy (from @all)
+
+ask your human to allow:
+  $ rhx git.branch.uses allow --org <org>
+"
+`;
+
+exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t4] no local quota then: it refuses with exit 2 and names the grant 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.cutover begin
+   └─ ✋ ConstraintError: no cutover quota set
+
+ask your human to grant:
+  $ rhx git.branch.uses set --quant N
+"
+`;
+
+exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t5] the local quota is spent then: it refuses with exit 2 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.cutover begin
+   └─ ✋ ConstraintError: no cutover uses left
+
+ask your human to grant more:
+  $ rhx git.branch.uses set --quant N
+"
+`;
+
+exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t6] the local quota is damaged then: it refuses with exit 1 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.cutover begin
+   └─ 💥 MalfunctionError: cutover quota file corrupt
+
+   the file that holds this tree's cutover quota cannot be read:
+     .meter/git.branch.uses.jsonc
+
+ask your human to reset the quota, then grant again:
+  $ rhx git.branch.uses del
+  $ rhx git.branch.uses set --quant N
+"
+`;
+
+exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t7] two cutovers are granted then: one pass spends exactly one 1`] = `
+"GATE_PASSED
+"
+`;
+
+exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t8] unlimited is granted then: a pass spends none 1`] = `
+"GATE_PASSED
+"
+`;
+
+exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t9] the global blocker file is damaged then: it refuses as a malfunction with exit 1 and names the repair 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.cutover begin
+   └─ 💥 MalfunctionError: global blocker file corrupt
+
+   the global blocker file cannot be read:
+     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.branch.uses.jsonc
+
+until it parses, every cutover is blocked. a human may inspect or clear it:
+  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.branch.uses.jsonc
+  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.branch.uses.jsonc
+"
+`;
+
+exports[`git.branch.uses given: [case9] the branch meter slug is left exported in the shell when: [t0] the commit meter blocks globally then: it writes the commit global file, never the branch one 1`] = `
+"🐢 groovy, bond fire time
+
+🐚 git.commit.uses block --global
+   └─ commits blocked globally
+"
+`;
+
+exports[`git.branch.uses given: [case10] a human asks for help when: [t0] --help then: it teaches every command, with a copy-paste example 1`] = `
+"usage: git.branch.uses set --quant N
+       git.branch.uses del
+       git.branch.uses block         (alias for del)
+       git.branch.uses allow         (unlimited)
+       git.branch.uses get
+       git.branch.uses --global block|allow|get
+       git.branch.uses --org <org> allow|block|del|get
+
+commands:
+  set    grant cutover quota (human only)
+  del    revoke quota (shortcut for set --quant 0)
+  block  alias for del
+  allow  grant unlimited quota (human only)
+  get    check quota left
+
+options (set):
+  --quant N             cutovers to allow (or 'infinite')
+
+options:
+  --help, -h            show this help
+
+examples:
+  rhx git.branch.uses get                    # how many cutovers are left
+  rhx git.branch.uses set --quant 3          # grant 3 cutovers in this repo (human)
+  rhx git.branch.uses --global block         # pause cutovers in every repo
+"
+`;
+
+exports[`git.branch.uses given: [case11] the local revoke variants and the parser refusals when: [t0] block, with no --global then: it revokes the local quota 1`] = `
+"🐢 groovy, break time
+
+🐚 git.branch.uses block
+   └─ revoked
+"
+`;
+
+exports[`git.branch.uses given: [case11] the local revoke variants and the parser refusals when: [t1] set --quant 0 then: it revokes, and names del as the same act 1`] = `
+"🐢 groovy, break time
+
+🐚 git.branch.uses set
+   ├─ revoked
+   └─ [2mtip: 'rhx git.branch.uses del' does the same[0m
+"
+`;
+
+exports[`git.branch.uses given: [case11] the local revoke variants and the parser refusals when: [t2] no command then: it refuses and names the commands 1`] = `
+"✋ ConstraintError: command required (set, del, block, allow, or get)
+usage: git.branch.uses set --quant N
+       git.branch.uses del
+       git.branch.uses allow
+       git.branch.uses get
+"
+`;
+
+exports[`git.branch.uses given: [case11] the local revoke variants and the parser refusals when: [t3] an unknown option then: it refuses and names the option 1`] = `
+"✋ ConstraintError: unknown option: --bogus
+usage: git.branch.uses set --quant N
+       git.branch.uses del
+       git.branch.uses allow
+       git.branch.uses get
+"
+`;
+
+exports[`git.branch.uses given: [case11] the local revoke variants and the parser refusals when: [t4] an unknown command then: it refuses and names the command 1`] = `
+"✋ ConstraintError: unknown command: sprout
+usage: git.branch.uses set --quant N
+       git.branch.uses del
+       git.branch.uses allow
+       git.branch.uses get
+"
+`;
+
+exports[`git.branch.uses given: [case12] the quota path holds a dir, not a file when: [t0] set --quant 2 then: it fails loud, claims no grant, and names the repair 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.uses set
+   └─ 💥 MalfunctionError: the quota path is not a file, so no grant was written
+
+   the path that should hold this tree's cutover quota:
+     .meter/git.branch.uses.jsonc
+
+remove what sits there, then grant again:
+  $ rhx rmsafe -r .meter/git.branch.uses.jsonc
+  $ rhx git.branch.uses set --quant 2
+"
+`;

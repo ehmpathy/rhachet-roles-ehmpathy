@@ -34,6 +34,10 @@ source "$SCRIPT_DIR/keyrack.operations.sh"
 #        identity checks. git.commit.set reads the same file and judges the
 #        same git config, so one shared source is what keeps the bind and the
 #        commit from a drift in what they accept.
+# pin the meter: a METER_SLUG left exported in the shell must never redirect
+# the shared file's meter paths
+METER_SLUG="git.commit.uses"
+METER_NOUN="commit"
 source "$SCRIPT_DIR/git.commit.operations.sh"
 
 # ensure we're in a git repo

@@ -3812,6 +3812,96 @@ exit 1`,
         expect(localState.uses).toBe(5);
       });
     });
+
+    when('[t1] the cutover meter slug is left exported in the shell', () => {
+      then('the commit gate still reads the commit meter, and blocks', () => {
+        // a commit global blocker; the cutover meter's global file is absent
+        const tempHome = genTempDir({
+          slug: 'git-commit-set-home',
+          git: false,
+        });
+        const globalMeterDir = path.join(
+          tempHome,
+          '.rhachet',
+          'storage',
+          'repo=ehmpathy',
+          'role=mechanic',
+          '.meter',
+        );
+        fs.mkdirSync(globalMeterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(globalMeterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ blocked: true }, null, 2),
+        );
+        fs.writeFileSync(path.join(tempHome, '.bash_aliases.ductwork.sh'), '');
+        fs.writeFileSync(path.join(tempHome, '.bash_aliases.termwork.sh'), '');
+
+        // a repo with local quota and a staged change
+        const tempDir = genTempDir({
+          slug: 'git-commit-set-test',
+          git: true,
+          symlink: [{ at: 'node_modules', to: 'node_modules' }],
+        });
+        configureTestGitUser({ cwd: tempDir });
+        seedTestSponsor({ cwd: tempDir });
+        const meterDir = path.join(tempDir, '.meter');
+        fs.mkdirSync(meterDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(meterDir, 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 5, push: 'allow' }, null, 2),
+        );
+        fs.writeFileSync(
+          path.join(tempDir, '.gitignore'),
+          '.meter/\n.agent/\n',
+        );
+        spawnSync('git', ['add', '.gitignore'], { cwd: tempDir });
+        spawnSync('git', ['commit', '-m', 'setup: add .gitignore'], {
+          cwd: tempDir,
+        });
+        spawnSync('git', ['checkout', '-b', 'fix/test-branch'], {
+          cwd: tempDir,
+        });
+        fs.writeFileSync(path.join(tempDir, 'fix.txt'), 'fixed content');
+        spawnSync('git', ['add', 'fix.txt'], { cwd: tempDir });
+        fs.mkdirSync(path.join(tempDir, '.agent'), { recursive: true });
+        fs.writeFileSync(
+          path.join(tempDir, '.agent', 'keyrack.yml'),
+          'org: ehmpathy\n',
+        );
+
+        // run commit with the cutover meter's slug exported
+        const result = spawnSync(
+          'bash',
+          [
+            scriptPath,
+            '--message',
+            'fix(api): validate input\n\n- test change',
+            '--mode',
+            'apply',
+          ],
+          {
+            cwd: tempDir,
+            encoding: 'utf-8' as const,
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: {
+              ...process.env,
+              HOME: tempHome,
+              METER_SLUG: 'git.branch.uses',
+              METER_NOUN: 'cutover',
+            },
+          },
+        );
+
+        expect(result.status).toBe(2);
+        expect(result.stdout).toContain('commits blocked globally');
+        expect(
+          spawnSync('git', ['log', '-1', '--format=%s'], {
+            cwd: tempDir,
+            encoding: 'utf-8' as const,
+          }).stdout.trim(),
+        ).toEqual('setup: add .gitignore');
+      });
+    });
   });
 
   given('[case25] commit after global blocker lifted', () => {

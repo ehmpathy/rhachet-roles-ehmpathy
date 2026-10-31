@@ -66,6 +66,26 @@
       "Bash(rhx git.commit.uses --org * del:*)",
       "Bash(npx rhachet run --skill git.commit.uses --org * del:*)",
 
+      // git.branch.uses set/allow — only humans can grant cutover quota
+      // the same shape as git.commit.uses above, for the same reasons: `get`,
+      // `block`, and local `del` de-escalate and stay allowed; every grant
+      // (local set/allow, --global allow, --org allow, --org del) is denied in
+      // both invocation shapes and both flag orders
+      "Bash(npx rhachet run --skill git.branch.uses set:*)",
+      "Bash(npx rhachet run --skill git.branch.uses -- set:*)",
+      "Bash(rhx git.branch.uses set:*)",
+      "Bash(rhx git.branch.uses -- set:*)",
+      "Bash(npx rhachet run --skill git.branch.uses allow:*)",
+      "Bash(npx rhachet run --skill git.branch.uses -- allow:*)",
+      "Bash(rhx git.branch.uses allow:*)",
+      "Bash(rhx git.branch.uses -- allow:*)",
+      "Bash(rhx git.branch.uses --global allow:*)",
+      "Bash(rhx git.branch.uses --org * allow:*)",
+      "Bash(npx rhachet run --skill git.branch.uses --global allow:*)",
+      "Bash(npx rhachet run --skill git.branch.uses --org * allow:*)",
+      "Bash(rhx git.branch.uses --org * del:*)",
+      "Bash(npx rhachet run --skill git.branch.uses --org * del:*)",
+
       // git.commit.bind — only humans can set/del the commit level
       // mechanic can `get` (check bound level) but never `set` or `del`
       // deny both the `npx rhachet run --skill` form AND the bare `rhx` alias
@@ -441,6 +461,20 @@
       "Bash(rhx git.branch.rebase take --whos theirs pnpm-lock.yaml)",
       "Bash(rhx git.branch.rebase take --whos ours .eslintrc.json)",
       "Bash(rhx git.branch.rebase take --whos theirs .)",
+
+      // git.branch.cutover - dispatcher for cutover subcommands (begin/continue/abort)
+      // apply is gated by the git.branch.uses meter, so the verb itself is safe to allow
+      "Bash(npx rhachet run --skill git.branch.cutover:*)",
+      "Bash(rhx git.branch.cutover:*)",
+      "Bash(rhx git.branch.cutover begin --from @main --into turtle/wave-report-v2 --pick a1b2c3d)",
+      "Bash(rhx git.branch.cutover begin --from @main --into turtle/wave-report-v2 --pick a1b2c3d --mode apply)",
+      "Bash(rhx git.branch.cutover continue)",
+      "Bash(rhx git.branch.cutover abort)",
+
+      // git.branch.uses - check cutover quota (get only; grants are denied)
+      "Bash(npx rhachet run --skill git.branch.uses:*)",
+      "Bash(rhx git.branch.uses:*)",
+      "Bash(rhx git.branch.uses get)",
 
       // git.repo.get - search and browse repos without permission prompts
       "Bash(npx rhachet run --skill git.repo.get:*)",
