@@ -32,3 +32,14 @@ medium: the HEAD race and the failhide ship on main today; this pr neither adds 
 ## .verdict
 the director, 2026-10-30: F9 stays the driver's best-guess (small safe ones here, dreams for push
 behavior). round i004 added one more small safe fix under it: the rebase pull exit code (clamped).
+
+## .settled in review, 5.3 i005
+two peer lanes asked opposites on the rebase render fixes in `begin.sh` (the open `├─` on the last
+ahead row; `1 commits`; the up-to-date labels): ergo-snapshot-visual-blemishes asked for them (i001,
+i002); enroll-verif-test-intent asked to revert them (i003–i005), since they moved two lines of the
+extant journey snapshot, a locked contract outside the wish. after the third raise the driver
+reverted them: the revert was clean, it regresses no guarantee of the wish, and the asker had since
+approved. the real bug fixes in the same file stay (`grep -c . || true`, the pull exit code). the
+cosmetic fixes ride `dreams/v2026_10_30.fix.rebase-tests-reach-a-real-origin.md` items 4 and 6.
+so B's line sharpens: a small safe fix rides the pr only where it moves no locked snapshot of
+behavior outside the wish.

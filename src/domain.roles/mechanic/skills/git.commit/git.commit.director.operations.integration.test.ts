@@ -248,6 +248,27 @@ describe('git.commit.director.operations.sh', () => {
       ],
     });
 
+  /**
+   * .what = the column of each `$ ` command line in a render
+   * .why = the three states of one refusal must print their commands at one column
+   */
+  const getCmdColumns = (input: { stdout: string }) =>
+    input.stdout
+      .split('\n')
+      .filter((line) => line.trimStart().startsWith('$ '))
+      .map((line) => line.length - line.trimStart().length);
+
+  /**
+   * .what = the column a surface's command takes: its human command's, else two under the frame
+   * .why = a surface with no human command (set, push refusal) still sets a column for its director line
+   */
+  const getSurfaceCmdColumn = (input: { surface: (typeof SURFACES)[number] }) =>
+    input.surface.indent.length +
+    (input.surface.humanCmd.length
+      ? input.surface.humanCmd.length -
+        input.surface.humanCmd.trimStart().length
+      : 2);
+
   given('[case1] the detection seam, which reads no marker', () => {
     when('[t0] a tree asks whether a director governs it', () => {
       then('it answers none, so every refusal keeps its extant fix', () => {
@@ -262,8 +283,8 @@ describe('git.commit.director.operations.sh', () => {
   });
 
   given('[case2] a tree no director governs (director=none)', () => {
-    SURFACES.map((surface) =>
-      when(`[t0] ${surface.surface} renders its fix`, () => {
+    SURFACES.forEach((surface, index) =>
+      when(`[t${index}] ${surface.surface} renders its fix`, () => {
         // render once per surface; each then reads the shared result
         const result = useThen('it renders', () =>
           renderFix({ director: 'none', surface }),
@@ -283,8 +304,8 @@ describe('git.commit.director.operations.sh', () => {
   });
 
   given('[case3] a tree a director governs (director=charter)', () => {
-    SURFACES.map((surface) =>
-      when(`[t0] ${surface.surface} renders its fix`, () => {
+    SURFACES.forEach((surface, index) =>
+      when(`[t${index}] ${surface.surface} renders its fix`, () => {
         // render once per surface; each then reads the shared result
         const result = useThen('it renders', () =>
           renderFix({ director: 'charter', surface }),
@@ -311,6 +332,14 @@ describe('git.commit.director.operations.sh', () => {
             expect(line.startsWith(surface.indent)).toBe(true),
           );
         });
+        then(
+          'its command sits at the column the human command takes with no director',
+          () => {
+            expect(getCmdColumns({ stdout: result.stdout })).toEqual([
+              getSurfaceCmdColumn({ surface }),
+            ]);
+          },
+        );
         then('the render matches the snapshot', () => {
           expect(result.stdout).toMatchSnapshot();
         });
@@ -321,8 +350,8 @@ describe('git.commit.director.operations.sh', () => {
   given(
     '[case4] a director marker that cannot be read (director=unreadable)',
     () => {
-      SURFACES.map((surface) =>
-        when(`[t0] ${surface.surface} renders its fix`, () => {
+      SURFACES.forEach((surface, index) =>
+        when(`[t${index}] ${surface.surface} renders its fix`, () => {
           // render once per surface; each then reads the shared result
           const result = useThen('it renders', () =>
             renderFix({ director: 'unreadable', surface }),
@@ -341,14 +370,17 @@ describe('git.commit.director.operations.sh', () => {
               );
             },
           );
-          then('the two command lines align, and no blank line trails', () => {
-            const lines = result.stdout.split('\n');
-            const cmdIndents = lines
-              .filter((line) => line.trimStart().startsWith('$ '))
-              .map((line) => line.length - line.trimStart().length);
-            expect(new Set(cmdIndents).size).toBe(1);
-            expect(result.stdout.endsWith('\n\n')).toBe(false);
-          });
+          then(
+            'the command lines sit at the column the human command takes with no director, and no blank line trails',
+            () => {
+              const cmdColumns = getCmdColumns({ stdout: result.stdout });
+              expect(cmdColumns.length).toBeGreaterThan(0);
+              expect(new Set(cmdColumns)).toEqual(
+                new Set([getSurfaceCmdColumn({ surface })]),
+              );
+              expect(result.stdout.endsWith('\n\n')).toBe(false);
+            },
+          );
           then('the render matches the snapshot', () => {
             expect(result.stdout).toMatchSnapshot();
           });
@@ -360,33 +392,36 @@ describe('git.commit.director.operations.sh', () => {
   given(
     '[case5] a director state the render does not know (a detector fault)',
     () => {
-      SURFACES.map((surface) =>
-        when(`[t0] ${surface.surface} renders under director=Charter`, () => {
-          // render once per surface; each then reads the shared result
-          const result = useThen('it renders', () =>
-            renderFix({ director: 'Charter', surface }),
-          );
-          const resultUnreadable = useThen('the unreadable render', () =>
-            renderFix({ director: 'unreadable', surface }),
-          );
-          then('it never falls back to a silent human-only fix', () => {
-            expect(result.exitCode).toBe(0);
-            expect(result.stdout).toContain(
-              `$ ${asGrantLine({ grantFlag: surface.grantFlag })}`,
+      SURFACES.forEach((surface, index) =>
+        when(
+          `[t${index}] ${surface.surface} renders under director=Charter`,
+          () => {
+            // render once per surface; each then reads the shared result
+            const result = useThen('it renders', () =>
+              renderFix({ director: 'Charter', surface }),
             );
-            expect(result.stdout).toContain('cannot be read');
-          });
-          then('it renders exactly as unreadable', () => {
-            expect(result.stdout).toEqual(resultUnreadable.stdout);
-          });
-        }),
+            const resultUnreadable = useThen('the unreadable render', () =>
+              renderFix({ director: 'unreadable', surface }),
+            );
+            then('it never falls back to a silent human-only fix', () => {
+              expect(result.exitCode).toBe(0);
+              expect(result.stdout).toContain(
+                `$ ${asGrantLine({ grantFlag: surface.grantFlag })}`,
+              );
+              expect(result.stdout).toContain('cannot be read');
+            });
+            then('it renders exactly as unreadable', () => {
+              expect(result.stdout).toEqual(resultUnreadable.stdout);
+            });
+          },
+        ),
       );
     },
   );
 
   given('[case6] the caller passes no director, as every skill does', () => {
-    SURFACES.map((surface) =>
-      when(`[t0] ${surface.surface} renders its fix`, () => {
+    SURFACES.forEach((surface, index) =>
+      when(`[t${index}] ${surface.surface} renders its fix`, () => {
         // render once per surface; each then reads the shared result
         const result = useThen('it renders', () =>
           renderFix({ director: null, surface }),
@@ -403,8 +438,8 @@ describe('git.commit.director.operations.sh', () => {
   });
 
   given('[case7] the director read fails, under set -euo pipefail', () => {
-    SURFACES.map((surface) =>
-      when(`[t0] ${surface.surface} renders its fix`, () => {
+    SURFACES.forEach((surface, index) =>
+      when(`[t${index}] ${surface.surface} renders its fix`, () => {
         // render once per surface; each then reads the shared result
         const result = useThen('it renders', () =>
           renderFix({
@@ -512,8 +547,8 @@ describe('git.commit.director.operations.sh', () => {
         { push: '', flag: '--push <allow|block>' },
         { push: 'null', flag: '--push <allow|block>' },
       ];
-      PUSH_FLAG_CASES.map((thisCase) =>
-        when(`[t0] the meter's push state is '${thisCase.push}'`, () => {
+      PUSH_FLAG_CASES.forEach((thisCase, index) =>
+        when(`[t${index}] the meter's push state is '${thisCase.push}'`, () => {
           then(`the flag is '${thisCase.flag}'`, () => {
             const result = runDirectorFn({
               fn: 'get_one_push_grant_flag',
@@ -600,9 +635,9 @@ describe('git.commit.director.operations.sh', () => {
         flags: '--push <allow|block>',
       },
     ];
-    FLAG_CASES.map((thisCase) =>
+    FLAG_CASES.forEach((thisCase, index) =>
       when(
-        `[t0] refusal '${thisCase.refusal}', meter ${JSON.stringify(thisCase.meter)}, wants_push ${thisCase.wantsPush}`,
+        `[t${index}] refusal '${thisCase.refusal}', meter ${JSON.stringify(thisCase.meter)}, wants_push ${thisCase.wantsPush}`,
         () => {
           then(`the flags are '${thisCase.flags}'`, () => {
             const result = runDirectorFn({
@@ -636,5 +671,39 @@ describe('git.commit.director.operations.sh', () => {
         expect(result.stdout.trim()).toEqual('--push <allow|block>');
       });
     });
+  });
+
+  // every named-arg function refuses a key it does not know: a mistyped key
+  // would otherwise blank its value and render a wrong fix with no error
+  const NAMED_ARG_FNS = [
+    'get_one_meter_field',
+    'get_one_push_grant_flag',
+    'get_one_director_grant_flags',
+    'get_one_quota_grant_ask',
+    'get_one_director_grant_command',
+    'as_text_without_lead_spaces',
+    'get_one_tree_director_state_for_render',
+    'print_quota_grant_fix',
+    'get_one_quota_grant_fix_for_json',
+  ];
+
+  given('[case11] a caller passes a key the function does not know', () => {
+    NAMED_ARG_FNS.forEach((fn, index) =>
+      when(`[t${index}] ${fn} gets refusl=uses-out`, () => {
+        then(
+          'it fails loud: exit 1, a malfunction that names the key, on both streams',
+          () => {
+            const result = runDirectorFn({ fn, args: ['refusl=uses-out'] });
+            expect(result.exitCode).toBe(1);
+            expect(result.stderr).toContain(
+              `💥 MalfunctionError: ${fn} got an unknown arg: refusl`,
+            );
+            expect(result.stdout).toContain(
+              `💥 MalfunctionError: ${fn} got an unknown arg: refusl`,
+            );
+          },
+        );
+      }),
+    );
   });
 });
