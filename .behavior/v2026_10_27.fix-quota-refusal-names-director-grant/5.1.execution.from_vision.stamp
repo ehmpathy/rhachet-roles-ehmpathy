@@ -2,135 +2,93 @@
 
 🗿 route.stone.set
    ├─ stone = 5.1.execution.from_vision
-   ├─ passage = blocked
-   ├─ reason = blockers exceed threshold (11 > 0)
-   │  ├─ after 6 blockers shed (3 disputed + 3 conceded better)
-   │  └─ after 13 nitpicks shed (12 disputed + 1 conceded better)
-   └─ guard
-      ├─ artifacts
-      │   ├─ $route/5.1.execution.from_vision.yield.md
-      │   └─ src/**/*
-      ├─ reviews
-      │   ├─ r1: repo-rules (l1, 3/3)
-      │   │   ├─ exhausted 🌙, cached — set aside by dispute
-      │   │   ├─ disputed 🌙 — skipped this generation, no round spent
-      │   │   ├─ terminal — does not block higher levels
-      │   │   ├─ 1 blocker, 1 disputed → 0 tallied ✓
-      │   │   ├─ 2 nitpicks, 2 disputed → 0 tallied ✓
-      │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r001._.given.by_peer.repo-rules.md
-      │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r001._.taken.by_self.repo-rules.md
-      │   ├─ r2: mech-failhides (l1, 3/3)
-      │   │   ├─ approved, cached
-      │   │   ├─ 0 blockers ✓
-      │   │   ├─ 1 nitpick 🟠
-      │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r002._.given.by_peer.mech-failhides.md
-      │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r002._.taken.by_self.mech-failhides.md
-      │   ├─ r3: mech-decode-friction (l1, 3/3)
-      │   │   ├─ approved, cached
-      │   │   ├─ 0 blockers ✓
-      │   │   ├─ 0 nitpicks ✓
-      │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r003._.given.by_peer.mech-decode-friction.md
-      │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r003._.taken.by_self.mech-decode-friction.md
-      │   ├─ r4: arch-opport-decomposition (l1, 3/3)
-      │   │   ├─ exhausted 🌙, cached
-      │   │   ├─ terminal — does not block higher levels
-      │   │   ├─ 1 blocker 🔴
-      │   │   ├─ 2 nitpicks, 1 disputed → 1 tallied 🟠
-      │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r004._.given.by_peer.arch-opport-decomposition.md
-      │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r004._.taken.by_self.arch-opport-decomposition.md
-      │   ├─ r5: arch-smell-scopeleaks (l1, 3/3)
-      │   │   ├─ approved, cached
-      │   │   ├─ 0 blockers ✓
-      │   │   ├─ 0 nitpicks ✓
-      │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r005._.given.by_peer.arch-smell-scopeleaks.md
-      │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r005._.taken.by_self.arch-smell-scopeleaks.md
-      │   ├─ r6: arch-hazards-maintenance (l1, 3/3)
-      │   │   ├─ exhausted 🌙, cached — set aside by dispute
-      │   │   ├─ disputed 🌙 — skipped this generation, no round spent
-      │   │   ├─ terminal — does not block higher levels
-      │   │   ├─ 1 blocker, 1 disputed → 0 tallied ✓
-      │   │   ├─ 3 nitpicks, 3 disputed → 0 tallied ✓
-      │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r006._.given.by_peer.arch-hazards-maintenance.md
-      │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r006._.taken.by_self.arch-hazards-maintenance.md
-      │   ├─ r7: arch-hazards-behavior (l1, 3/3)
-      │   │   ├─ exhausted 🌙, cached
-      │   │   ├─ terminal — does not block higher levels
-      │   │   ├─ 2 blockers, 1 disputed → 1 tallied 🔴
-      │   │   ├─ 1 nitpick, 1 disputed → 0 tallied ✓
-      │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r007._.given.by_peer.arch-hazards-behavior.md
-      │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r007._.taken.by_self.arch-hazards-behavior.md
-      │   ├─ r8: behavior-intent-coverage (l1, 3/3)
-      │   │   ├─ exhausted 🌙, cached
-      │   │   ├─ terminal — does not block higher levels
-      │   │   ├─ 1 blocker 🔴
-      │   │   ├─ 0 nitpicks ✓
-      │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r008._.given.by_peer.behavior-intent-coverage.md
-      │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r008._.taken.by_self.behavior-intent-coverage.md
-      │   ├─ r9: ergo-friction-hazards (l1, 3/3)
-      │   │   ├─ exhausted 🌙, cached
-      │   │   ├─ terminal — does not block higher levels
-      │   │   ├─ 1 blocker 🔴
-      │   │   ├─ 5 nitpicks, 5 disputed → 0 tallied ✓
-      │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i004.f9f8e5fd92d1db2589.r009._.given.by_peer.ergo-friction-hazards.md
-      │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i004.f9f8e5fd92d1db2589.r009._.taken.by_self.ergo-friction-hazards.md
-      │   ├─ r10: enroll-impl-behavior-intent (l3, 3/3)
-      │   │   ├─ rejected 360.5s
-      │   │   ├─ 10 blockers 🔴
-      │   │   ├─ 1 nitpick 🟠
-      │   │   ├─ tallied by reviewer@openrouter/deepseek/flash
-      │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i007.f52154ed1ae925b9e3.r010._.given.by_peer.enroll-impl-behavior-intent.md
-      │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i007.f52154ed1ae925b9e3.r010._.taken.by_self.enroll-impl-behavior-intent.md
-      │   └─ r11: enroll-impl-arch-defects (l3, 3/3)
-      │       ├─ approved 246.8s
-      │       ├─ 0 blockers ✓
-      │       ├─ 6 nitpicks 🟠
-      │       ├─ tallied by reviewer@openrouter/deepseek/flash
-      │       ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i007.f52154ed1ae925b9e3.r011._.given.by_peer.enroll-impl-arch-defects.md
-      │       └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i007.f52154ed1ae925b9e3.r011._.taken.by_self.enroll-impl-arch-defects.md
-      └─ judges
-          └─ j1: $rhachet run --repo bhrain --skill route.stone.judge --mechanism reviewed? --stone $stone --route $route --allow-blockers 0 --allow-nitpicks 7
-              ├─ finished 5.1s ✗
-              └─ reason: blockers exceed threshold (11 > 0)
-                 ├─ after 6 blockers shed (3 disputed + 3 conceded better)
-                 └─ after 13 nitpicks shed (12 disputed + 1 conceded better)
-
-🪷 the path continues
-   ├─ l1 is terminal (exhausted 🌙) — it no longer blocks you
-   ├─ l3 has engaged — address its blockers, then:
-   │  └─ rhx route.stone.set --stone 5.1.execution.from_vision --as arrived
-   └─ a human is only needed once every level is terminal
-
-────────────────────────────────────────────────────────────────
-
-🪶 judge 1
-   ├─ stdout
-   │  ├─
-   │  │
-   │  │  🪨 run solid skill repo=bhrain/role=driver/skill=route.stone.judge
-   │  │
-   │  │  passed: false
-   │  │  reason: blockers exceed threshold (11 > 0), after 6 blockers shed (3 disputed + 3 conceded better), 13 nitpicks shed (12 disputed + 1 conceded better)
-   │  │
-   │  └─
-   ├─ stderr
-   │  ├─
-   │  │
-   │  │  🪨 run solid skill repo=bhrain/role=driver/skill=route.stone.judge
-   │  │     └─ ✋ blocked by constraints
-   │  │
-   │  │  disputed: 3 blockers, 12 nitpicks excluded from the tally
-   │  │  conceded better: 3 blockers, 1 nitpick excluded from the tally
-   │  │  residual: 11/0 blockers, 8/7 nitpicks
-   │  │
-   │  │  ✋ halted, an urgent concession stands — ergo-friction-hazards
-   │  │     ├─ its harm ships if unfixed, so this stone earns more budget
-   │  │     ├─ please ask your human to
-   │  │     │  └─ rhx route.guard.budget --for review --add 2 --peer ergo-friction-hazards --stone 5.1.execution.from_vision
-   │  │     │
-   │  │     └─ after the grant, address the concession, then run
-   │  │        └─ rhx route.stone.set --stone 5.1.execution.from_vision --as passed
-   │  │
-   │  └─
-   └─ passage blocked
-      ├─ blocked by constraints
-      └─ exit code: 2 ✋
+   ├─ passage = allowed
+   ├─ guard
+   │  ├─ artifacts
+   │  │   ├─ $route/5.1.execution.from_vision.yield.md
+   │  │   └─ src/**/*
+   │  ├─ reviews
+   │  │   ├─ r1: repo-rules (l1, 3/3)
+   │  │   │   ├─ exhausted 🌙, cached — set aside by dispute
+   │  │   │   ├─ disputed 🌙 — skipped this generation, no round spent
+   │  │   │   ├─ terminal — does not block higher levels
+   │  │   │   ├─ 1 blocker, 1 disputed → 0 tallied ✓
+   │  │   │   ├─ 2 nitpicks, 2 disputed → 0 tallied ✓
+   │  │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r001._.given.by_peer.repo-rules.md
+   │  │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r001._.taken.by_self.repo-rules.md
+   │  │   ├─ r2: mech-failhides (l1, 3/3)
+   │  │   │   ├─ approved, cached
+   │  │   │   ├─ 0 blockers ✓
+   │  │   │   ├─ 1 nitpick 🟠
+   │  │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r002._.given.by_peer.mech-failhides.md
+   │  │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r002._.taken.by_self.mech-failhides.md
+   │  │   ├─ r3: mech-decode-friction (l1, 3/3)
+   │  │   │   ├─ approved, cached
+   │  │   │   ├─ 0 blockers ✓
+   │  │   │   ├─ 0 nitpicks ✓
+   │  │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r003._.given.by_peer.mech-decode-friction.md
+   │  │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r003._.taken.by_self.mech-decode-friction.md
+   │  │   ├─ r4: arch-opport-decomposition (l1, 3/3)
+   │  │   │   ├─ exhausted 🌙, cached
+   │  │   │   ├─ terminal — does not block higher levels
+   │  │   │   ├─ 1 blocker 🔴
+   │  │   │   ├─ 2 nitpicks, 1 disputed → 1 tallied 🟠
+   │  │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r004._.given.by_peer.arch-opport-decomposition.md
+   │  │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r004._.taken.by_self.arch-opport-decomposition.md
+   │  │   ├─ r5: arch-smell-scopeleaks (l1, 3/3)
+   │  │   │   ├─ approved, cached
+   │  │   │   ├─ 0 blockers ✓
+   │  │   │   ├─ 0 nitpicks ✓
+   │  │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r005._.given.by_peer.arch-smell-scopeleaks.md
+   │  │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r005._.taken.by_self.arch-smell-scopeleaks.md
+   │  │   ├─ r6: arch-hazards-maintenance (l1, 3/3)
+   │  │   │   ├─ exhausted 🌙, cached — set aside by dispute
+   │  │   │   ├─ disputed 🌙 — skipped this generation, no round spent
+   │  │   │   ├─ terminal — does not block higher levels
+   │  │   │   ├─ 1 blocker, 1 disputed → 0 tallied ✓
+   │  │   │   ├─ 3 nitpicks, 3 disputed → 0 tallied ✓
+   │  │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r006._.given.by_peer.arch-hazards-maintenance.md
+   │  │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r006._.taken.by_self.arch-hazards-maintenance.md
+   │  │   ├─ r7: arch-hazards-behavior (l1, 3/3)
+   │  │   │   ├─ exhausted 🌙, cached
+   │  │   │   ├─ terminal — does not block higher levels
+   │  │   │   ├─ 2 blockers, 1 disputed → 1 tallied 🔴
+   │  │   │   ├─ 1 nitpick, 1 disputed → 0 tallied ✓
+   │  │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r007._.given.by_peer.arch-hazards-behavior.md
+   │  │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r007._.taken.by_self.arch-hazards-behavior.md
+   │  │   ├─ r8: behavior-intent-coverage (l1, 3/3)
+   │  │   │   ├─ exhausted 🌙, cached
+   │  │   │   ├─ terminal — does not block higher levels
+   │  │   │   ├─ 1 blocker 🔴
+   │  │   │   ├─ 0 nitpicks ✓
+   │  │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r008._.given.by_peer.behavior-intent-coverage.md
+   │  │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i003.207b997c16226e175d.r008._.taken.by_self.behavior-intent-coverage.md
+   │  │   ├─ r9: ergo-friction-hazards (l1, 4/4)
+   │  │   │   ├─ exhausted 🌙, cached
+   │  │   │   ├─ terminal — does not block higher levels
+   │  │   │   ├─ 2 blockers, 1 disputed → 1 tallied 🔴
+   │  │   │   ├─ 3 nitpicks, 1 disputed → 2 tallied 🟠
+   │  │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i008.43b340e9adfa835067.r009._.given.by_peer.ergo-friction-hazards.md
+   │  │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i008.43b340e9adfa835067.r009._.taken.by_self.ergo-friction-hazards.md
+   │  │   ├─ r10: enroll-impl-behavior-intent (l3, 3/3)
+   │  │   │   ├─ exhausted 🌙, cached
+   │  │   │   ├─ terminal — does not block higher levels
+   │  │   │   ├─ 10 blockers, 4 disputed → 6 tallied 🔴
+   │  │   │   ├─ 1 nitpick, 1 disputed → 0 tallied ✓
+   │  │   │   ├─ tallied by reviewer@openrouter/deepseek/flash
+   │  │   │   ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i007.f52154ed1ae925b9e3.r010._.given.by_peer.enroll-impl-behavior-intent.md
+   │  │   │   └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i007.f52154ed1ae925b9e3.r010._.taken.by_self.enroll-impl-behavior-intent.md
+   │  │   └─ r11: enroll-impl-arch-defects (l3, 3/3)
+   │  │       ├─ approved, cached — set aside by dispute
+   │  │       ├─ disputed 🌙 — skipped this generation, no round spent
+   │  │       ├─ 0 blockers ✓
+   │  │       ├─ 6 nitpicks, 3 disputed → 3 tallied 🟠
+   │  │       ├─ tallied by reviewer@openrouter/deepseek/flash
+   │  │       ├─ given: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i007.f52154ed1ae925b9e3.r011._.given.by_peer.enroll-impl-arch-defects.md
+   │  │       └─ taken: .behavior/v2026_10_27.fix-quota-refusal-names-director-grant/.reviews/peer/5.1.execution.from_vision._.review.i007.f52154ed1ae925b9e3.r011._.taken.by_self.enroll-impl-arch-defects.md
+   │  └─ judges
+   │      └─ j1: $rhachet run --repo bhrain --skill route.stone.judge --mechanism reviewed? --stone $stone --route $route --allow-blockers 0 --allow-nitpicks 7
+   │          └─ finished 1.6s ✓
+   │
+   └─ the way continues, run
+      └─ rhx route.drive

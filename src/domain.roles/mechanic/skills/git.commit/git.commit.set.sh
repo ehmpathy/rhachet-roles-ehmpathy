@@ -81,6 +81,7 @@ render_body_as_tree_lines() {
   for arg in "$@"; do
     case "$arg" in
       body=*) body="${arg#body=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   local lines
@@ -138,6 +139,7 @@ render_files_as_tree_lines() {
   for arg in "$@"; do
     case "$arg" in
       files=*) files="${arg#files=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   local lines
@@ -170,6 +172,7 @@ get_commit_prefix() {
   for arg in "$@"; do
     case "$arg" in
       header=*) header="${arg#header=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   if [[ "$header" =~ ^([a-z]+)[\(:] ]]; then
@@ -187,6 +190,7 @@ has_scope() {
   for arg in "$@"; do
     case "$arg" in
       header=*) header="${arg#header=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   # extract scope via sed - returns non-empty if scope present
@@ -226,6 +230,7 @@ is_push_shipped() {
     case "$arg" in
       do_push=*) do_push="${arg#do_push=}" ;;
       push_result_status=*) push_result_status="${arg#push_result_status=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   [[ "$do_push" == true && "$push_result_status" == "pushed" ]]
@@ -249,6 +254,7 @@ is_push_failed() {
     case "$arg" in
       do_push=*) do_push="${arg#do_push=}" ;;
       push_result_status=*) push_result_status="${arg#push_result_status=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   [[ "$do_push" == true && "$push_result_status" != "pushed" ]]

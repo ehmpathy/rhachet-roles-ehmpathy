@@ -105,11 +105,20 @@ const genScene = (input: {
       orgs: { ehmpathy: input.above === 'org' ? 'blocked' : 'allowed' },
     }),
   );
-  if (input.above === 'global')
+  // a global block, where `git.commit.uses --global block` writes it (read by
+  // set, push, stage) and where git.release reads it today
+  // .note = the two paths differ on main; the release read path rides the
+  //         dream v2026_10_30.fix.release-reads-the-global-block-the-verb-writes
+  if (input.above === 'global') {
+    fs.writeFileSync(
+      path.join(globalMeterDir, 'git.commit.uses.jsonc'),
+      JSON.stringify({ blocked: true }),
+    );
     fs.writeFileSync(
       path.join(globalMeterDir, 'git.commit.uses.global.jsonc'),
       JSON.stringify({ blocked: true }),
     );
+  }
 
   // the quota meter: absent, damaged (raw text), or a json state
   if (input.meter !== null) {
@@ -139,6 +148,21 @@ const runSkill = (input: {
   args: string[];
   stdin?: string;
 }): { stdout: string; stderr: string; exitCode: number } => {
+  const result = spawnSkill(input);
+  fs.rmSync(input.scene.rootDir, { recursive: true, force: true });
+  return result;
+};
+
+/**
+ * .what = run one skill of the copied tree in the scene, and keep the scene
+ * .why = a journey runs a skill, changes the scene, then runs it again
+ */
+const spawnSkill = (input: {
+  scene: ReturnType<typeof genScene>;
+  skill: string;
+  args: string[];
+  stdin?: string;
+}): { stdout: string; stderr: string; exitCode: number } => {
   const result = spawnSync(
     'bash',
     [path.join(input.scene.skillsDir, input.skill), ...input.args],
@@ -154,7 +178,6 @@ const runSkill = (input: {
       },
     },
   );
-  fs.rmSync(input.scene.rootDir, { recursive: true, force: true });
   return {
     stdout: result.stdout ?? '',
     stderr: result.stderr ?? '',
@@ -314,6 +337,55 @@ const SCENES = [
     ask: 'grant stage',
     flags: '--push block --stage allow',
   },
+  {
+    // C3 on push: no quota file meets the push refusal (push spends no use)
+    scene:
+      'git.commit.push, no quota set, which push meets as its push refusal (push spends no use)',
+    meter: null,
+    skill: 'git.commit/git.commit.push.sh',
+    args: ['--mode', 'plan'],
+    stdin: undefined,
+    staged: false,
+    exitCode: 2,
+    ask: 'grant push',
+    flags: '--push allow',
+  },
+  {
+    // a grant never revokes a permission the meter holds: stage stays allowed
+    scene: 'git.branch.rebase begin, no uses left, stage already granted',
+    meter: { uses: 0, push: 'allow', stage: 'allow' },
+    skill: 'git.branch.rebase/git.branch.rebase.begin.sh',
+    args: ['--mode', 'apply'],
+    stdin: undefined,
+    staged: false,
+    exitCode: 1,
+    ask: 'grant more',
+    flags: '--push allow --stage allow',
+  },
+  {
+    // C9 note: the quota-absent refusal carries no mode test, so plan meets it
+    scene: 'git.commit.set in plan mode, no quota set',
+    meter: null,
+    skill: 'git.commit/git.commit.set.sh',
+    args: ['-m', '@stdin'],
+    stdin: MESSAGE,
+    staged: true,
+    exitCode: 2,
+    ask: 'grant a quota',
+    flags: '--push <allow|block>',
+  },
+  {
+    // the push refusal carries no mode test either, so rebase plan meets it
+    scene: 'git.branch.rebase begin in plan mode, push not allowed',
+    meter: { uses: 3, push: 'block' },
+    skill: 'git.branch.rebase/git.branch.rebase.begin.sh',
+    args: [],
+    stdin: undefined,
+    staged: false,
+    exitCode: 1,
+    ask: 'grant push',
+    flags: '--push allow',
+  },
 ];
 
 // refusals a director grant cannot lift: each keeps its extant fix even
@@ -337,6 +409,43 @@ const GUARDS = [
     args: ['--mode', 'apply'],
     stdin: undefined,
     refusal: 'blocked: commits blocked globally',
+  },
+  {
+    scene: 'C8, git.commit.set, commits blocked globally',
+    meter: { uses: 0, push: 'block' },
+    above: 'global' as const,
+    skill: 'git.commit/git.commit.set.sh',
+    args: ['-m', '@stdin', '--mode', 'apply'],
+    stdin: MESSAGE,
+    refusal: 'commits blocked globally',
+  },
+  {
+    scene: 'C8, git.commit.push, the org blocks commits above the tree',
+    meter: { uses: 3, push: 'block' },
+    above: 'org' as const,
+    skill: 'git.commit/git.commit.push.sh',
+    args: ['--mode', 'plan'],
+    stdin: undefined,
+    refusal: 'commits blocked for org ehmpathy',
+  },
+  {
+    scene: 'C8, git.commit.push, commits blocked globally',
+    meter: { uses: 3, push: 'block' },
+    above: 'global' as const,
+    skill: 'git.commit/git.commit.push.sh',
+    args: ['--mode', 'plan'],
+    stdin: undefined,
+    refusal: 'commits blocked globally',
+  },
+  {
+    // git.stage.add checks only the global block; it reads no org state
+    scene: 'C8, git.stage.add, all mechanic operations blocked globally',
+    meter: { uses: 3, push: 'block', stage: 'block' },
+    above: 'global' as const,
+    skill: 'git.stage/git.stage.add.sh',
+    args: ['kelp.txt'],
+    stdin: undefined,
+    refusal: 'globally blocked',
   },
   {
     scene: 'C7, git.commit.set, a damaged quota file',
@@ -390,8 +499,8 @@ const runScene = (input: {
 };
 
 describe('git.commit.director.operations.sh, through every real quota refusal', () => {
-  SCENES.map((thisScene) =>
-    given(`[case] ${thisScene.scene}, with no director`, () => {
+  SCENES.forEach((thisScene, index) =>
+    given(`[case1.${index}] ${thisScene.scene}, with no director`, () => {
       when('[t0] the skill refuses', () => {
         const result = useThen('it refuses', () =>
           runScene({
@@ -414,12 +523,16 @@ describe('git.commit.director.operations.sh, through every real quota refusal', 
         then('its bytes match the snapshot', () => {
           expect(result.stdout).toMatchSnapshot();
         });
+
+        then('its stderr matches the snapshot, as each surface emits', () => {
+          expect(result.stderr).toMatchSnapshot();
+        });
       });
     }),
   );
 
-  SCENES.map((thisScene) =>
-    given(`[case] ${thisScene.scene}, under a director`, () => {
+  SCENES.forEach((thisScene, index) =>
+    given(`[case2.${index}] ${thisScene.scene}, under a director`, () => {
       when('[t0] the skill refuses', () => {
         const result = useThen('it refuses', () =>
           runScene({
@@ -461,41 +574,48 @@ describe('git.commit.director.operations.sh, through every real quota refusal', 
     }),
   );
 
-  SCENES.map((thisScene) =>
-    given(`[case] ${thisScene.scene}, director state unreadable`, () => {
-      when('[t0] the skill refuses', () => {
-        const result = useThen('it refuses', () =>
-          runScene({
-            scene: thisScene,
-            above: 'none',
-            staged: thisScene.staged,
-            director: 'unreadable',
-          }),
-        );
-
-        then('it exits as the skill always has', () => {
-          expect(result.exitCode).toBe(thisScene.exitCode);
-        });
-
-        then('it names both granters, the director first', () => {
-          expect(result.stdout).toContain(
-            'whether a director governs this tree cannot be read; ask your director, else your human.',
+  SCENES.forEach((thisScene, index) =>
+    given(
+      `[case3.${index}] ${thisScene.scene}, director state unreadable`,
+      () => {
+        when('[t0] the skill refuses', () => {
+          const result = useThen('it refuses', () =>
+            runScene({
+              scene: thisScene,
+              above: 'none',
+              staged: thisScene.staged,
+              director: 'unreadable',
+            }),
           );
-          expect(result.stdout).toContain(
-            asGrantLine({ flags: thisScene.flags }),
-          );
-          expect(result.stdout).toContain('ask your human');
-        });
 
-        then('its whole frame matches the snapshot', () => {
-          expect(result.stdout).toMatchSnapshot();
+          then('it exits as the skill always has', () => {
+            expect(result.exitCode).toBe(thisScene.exitCode);
+          });
+
+          then('it names both granters, the director first', () => {
+            expect(result.stdout).toContain(
+              'whether a director governs this tree cannot be read; ask your director, else your human.',
+            );
+            expect(result.stdout).toContain(
+              asGrantLine({ flags: thisScene.flags }),
+            );
+            expect(result.stdout).toContain('ask your human');
+          });
+
+          then('its whole frame matches the snapshot', () => {
+            expect(result.stdout).toMatchSnapshot();
+          });
+
+          then('its stderr matches the snapshot, as each surface emits', () => {
+            expect(result.stderr).toMatchSnapshot();
+          });
         });
-      });
-    }),
+      },
+    ),
   );
 
-  GUARDS.map((thisGuard) =>
-    given(`[case] ${thisGuard.scene}, under a director`, () => {
+  GUARDS.forEach((thisGuard, index) =>
+    given(`[case4.${index}] ${thisGuard.scene}, under a director`, () => {
       when('[t0] the skill refuses', () => {
         const result = useThen('it refuses', () =>
           runScene({
@@ -519,12 +639,16 @@ describe('git.commit.director.operations.sh, through every real quota refusal', 
         then('its bytes match the snapshot', () => {
           expect(result.stdout).toMatchSnapshot();
         });
+
+        then('its stderr matches the snapshot, as each surface emits', () => {
+          expect(result.stderr).toMatchSnapshot();
+        });
       });
     }),
   );
 
   given(
-    '[case] git.commit.push --output json, push not allowed, under a director',
+    '[case5] git.commit.push --output json, push not allowed, under a director',
     () => {
       when('[t0] the skill refuses', () => {
         const result = useThen('it refuses', () =>
@@ -548,7 +672,173 @@ describe('git.commit.director.operations.sh, through every real quota refusal', 
           expect(parsed.fix).toContain(asGrantLine({ flags: '--push allow' }));
           expect(parsed.fix).not.toContain('ask your human');
         });
+
+        then('its whole json object matches the snapshot', () => {
+          expect(result.stdout).toMatchSnapshot();
+        });
       });
     },
+  );
+
+  given(
+    '[case6] git.commit.push --output json, push not allowed, director state unreadable',
+    () => {
+      when('[t0] the skill refuses', () => {
+        const result = useThen('it refuses', () =>
+          runSkill({
+            scene: genScene({
+              meter: { uses: 3, push: 'block' },
+              above: 'none',
+              director: 'unreadable',
+            }),
+            skill: 'git.commit/git.commit.push.sh',
+            args: ['--mode', 'plan', '--output', 'json'],
+          }),
+        );
+
+        then('the json fix names both granters, the director first', () => {
+          expect(result.exitCode).toBe(2);
+          const parsed = JSON.parse(result.stdout.trim());
+          expect(parsed.status).toBe('error');
+          expect(parsed.error).toBe('push not allowed');
+          expect(parsed.fix).toContain('cannot be read');
+          expect(parsed.fix).toContain(asGrantLine({ flags: '--push allow' }));
+          expect(parsed.fix).toContain('ask your human');
+        });
+
+        then('its whole json object matches the snapshot', () => {
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given(
+    '[case7] git.commit.push --output json, no quota set, which push meets as its push refusal (push spends no use), under a director',
+    () => {
+      when('[t0] the skill refuses', () => {
+        const result = useThen('it refuses', () =>
+          runSkill({
+            scene: genScene({
+              meter: null,
+              above: 'none',
+              director: 'charter',
+            }),
+            skill: 'git.commit/git.commit.push.sh',
+            args: ['--mode', 'plan', '--output', 'json'],
+          }),
+        );
+
+        then('the json carries the director fix in its fix field', () => {
+          expect(result.exitCode).toBe(2);
+          const parsed = JSON.parse(result.stdout.trim());
+          expect(parsed.status).toBe('error');
+          expect(parsed.fix).toContain('ask your director to grant push');
+          expect(parsed.fix).toContain(asGrantLine({ flags: '--push allow' }));
+          expect(parsed.fix).not.toContain('ask your human');
+        });
+
+        then('its whole json object matches the snapshot', () => {
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given(
+    '[case8] git.commit.push --output json, no quota set, which push meets as its push refusal (push spends no use), director state unreadable',
+    () => {
+      when('[t0] the skill refuses', () => {
+        const result = useThen('it refuses', () =>
+          runSkill({
+            scene: genScene({
+              meter: null,
+              above: 'none',
+              director: 'unreadable',
+            }),
+            skill: 'git.commit/git.commit.push.sh',
+            args: ['--mode', 'plan', '--output', 'json'],
+          }),
+        );
+
+        then('the json fix names both granters, the director first', () => {
+          expect(result.exitCode).toBe(2);
+          const parsed = JSON.parse(result.stdout.trim());
+          expect(parsed.status).toBe('error');
+          expect(parsed.fix).toContain('cannot be read');
+          expect(parsed.fix).toContain(asGrantLine({ flags: '--push allow' }));
+          expect(parsed.fix).toContain('ask your human');
+        });
+
+        then('its whole json object matches the snapshot', () => {
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  [
+    {
+      journey:
+        'C14, rebase with no uses left and push not allowed, under a director',
+      meter: { uses: 0, push: 'block' },
+      args: [] as string[],
+    },
+    {
+      journey:
+        'C1, rebase with no uses left (the incident shape), under a director',
+      meter: { uses: 0, push: 'allow' },
+      args: ['--mode', 'apply'],
+    },
+  ].forEach((thisJourney, index) =>
+    given(`[case9.${index}] ${thisJourney.journey}`, () => {
+      // the journey: the refusal names one grant; the director runs it, which
+      // sets the meter as `git.commit.uses set --quant <n> --push allow` does;
+      // the driver re-runs the same command
+      const journey = useThen('the driver refuses, is granted, re-runs', () => {
+        const scene = genScene({
+          meter: thisJourney.meter,
+          above: 'none',
+          director: 'charter',
+        });
+        const refused = spawnSkill({
+          scene,
+          skill: 'git.branch.rebase/git.branch.rebase.begin.sh',
+          args: thisJourney.args,
+        });
+        fs.writeFileSync(
+          path.join(scene.repoDir, '.meter', 'git.commit.uses.jsonc'),
+          JSON.stringify({ uses: 3, push: 'allow' }),
+        );
+        const rerun = runSkill({
+          scene,
+          skill: 'git.branch.rebase/git.branch.rebase.begin.sh',
+          args: thisJourney.args,
+        });
+        return { refused, rerun };
+      });
+
+      when('[t0] the driver meets the refusal', () => {
+        then('it names one grant, with the push the rebase needs', () => {
+          expect(journey.refused.exitCode).toBe(1);
+          expect(journey.refused.stdout).toContain(
+            asGrantLine({ flags: '--push allow' }),
+          );
+        });
+      });
+
+      when('[t1] the director grants, and the driver re-runs', () => {
+        then('neither quota refusal stands: the one grant lifted both', () => {
+          expect(journey.rerun.stdout).not.toContain('push not allowed');
+          expect(journey.rerun.stdout).not.toContain('no commit uses left');
+          expect(journey.rerun.stdout).not.toContain('git.crew.grant');
+        });
+        then('the rebase moves on to the git work past the guards', () => {
+          expect(journey.rerun.stdout).toContain(
+            'no main or master branch found on origin',
+          );
+        });
+      });
+    }),
   );
 });
