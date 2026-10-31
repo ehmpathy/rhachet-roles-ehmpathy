@@ -1,30 +1,16 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = dispatch git.branch.cutover subcommands to their handlers
+# .what = cut a fresh branch and carry work onto it (begin | continue | abort)
 #
-# .why  = one entry point for the cutover verb:
-#         - a single permission rule covers every subcommand
-#         - the same begin | continue | abort words as git.branch.rebase
+# .why  = a branch whose first feat already shipped needs a new branch for
+#         new work; a rebase would keep the shipped history
 #
 # usage:
-#   rhx git.branch.cutover begin --from @main --into <branch> [--pick <sha>]... [--mode plan|apply]
-#   rhx git.branch.cutover continue
-#   rhx git.branch.cutover abort
-#   rhx git.branch.cutover help
-#
-# --from forms (required; no default base):
-#   @main       cut from origin/main, after a fetch
-#   @tree       cut from the current tree as is; no --pick
-#   <branch>    cut from a named branch
-#
-# quota:
-#   plan (the default) spends naught. apply spends one unit of
-#   git.branch.uses, which only a human grants:
-#     rhx git.branch.uses set --quant 1
+#   rhx git.branch.cutover begin --from @main|@tree|<branch> --into <branch> [--pick <sha>]... [--mode apply]
+#   rhx git.branch.cutover continue | abort | help
 #
 # guarantee:
-#   - dispatches to the subcommand via exec (single process)
-#   - passes every rest arg to the subcommand
+#   - plan by default; apply spends one git.branch.uses unit, which a human grants
 #   - an absent or unknown subcommand refuses with exit 2
 ######################################################################
 set -euo pipefail

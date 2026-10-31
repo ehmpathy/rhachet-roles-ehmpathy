@@ -22,3 +22,4 @@
 | [F18](./inventory.of=fulcrums.case=F18-assume-unchanged-edits-refuse-or-park.md) | an edit under assume-unchanged / skip-worktree: refuse at preflight (lean) or park it | clean | open — awaits commander | 70% |
 | [F19](./inventory.of=fulcrums.case=F19-abort-over-unparked-edits-refuse-or-rescue.md) | abort over an edit no park holds: rescue ref (lean) or refuse | clean | open — awaits commander | 70% |
 | [F20](./inventory.of=fulcrums.case=F20-abort-converges-on-rerun.md) | abort converges on a rerun: minimal in this stone (lean), the full recast a dream | clean (a) / dirty (b) | ruled (a) — director | 85% |
+| [F21](./inventory.of=fulcrums.case=F21-mechanic-boot-over-its-cap-after-rebase.md) | the mechanic boot over its 30,000 cap after the rebase: cutover to ref (ruled c); still 91 over from the boot lister's auto-listed sub-skills | clean | ruled (c), then commit at 91 over — director; cure upstream | 60% |

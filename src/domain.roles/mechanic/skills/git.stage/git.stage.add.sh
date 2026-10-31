@@ -16,7 +16,6 @@
 #   - paths must be within repo
 #   - idempotent: re-stage of staged file is no-op
 #   - fail-fast: if any file not found, entire operation fails
-#     (a conflicted path settled by its delete stages the delete)
 ######################################################################
 
 set -euo pipefail
