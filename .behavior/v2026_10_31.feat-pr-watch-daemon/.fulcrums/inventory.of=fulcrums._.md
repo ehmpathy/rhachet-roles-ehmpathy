@@ -14,4 +14,5 @@ risk bar: **risky** = it touches a credential or writes to prod; else **low**.
 | F8 | own-comment filter by per-clone ledger of posted ids, not by login | clean | low — a local ledger of comment ids; the token use in `git.pull.comment set` is extant and unchanged | ruled by director: (b) per-clone ledger (Q9) | 80% |
 | F9 | dispute r2 nitpick "case=5 has no bdd sketch" as a diff misread | clean | low — a review disposition; no credential, no prod write | disputed; council | 97% |
 | F10 | dispute r3 blocker "case=9 bdd truncated" — the prompt held it whole | clean | low — a review disposition; no credential, no prod write | disputed; council | 97% |
+| F12 | a blueprint inside 5.1, sent to the commander before any code | clean | low — a document and read-only probes; no credential, no prod write | best-guessed; commander | 85% |
 | F11 | github token the daemon reads with | clean | **risky — it touches a credential**: one box-wide token reads every watched pr | ruled by director: (a) ehmpath keyrack token; the human login is never used (Q2) | 95% |
