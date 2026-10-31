@@ -157,6 +157,7 @@ emit_error() {
       class=*) class="${arg#class=}" ;;
       message=*) message="${arg#message=}" ;;
       fix=*) fix="${arg#fix=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   # default to the tree format; the json branch overrides it (no else — the
@@ -254,6 +255,7 @@ emit_pr_open_guide() {
       fix2_cmd=*) fix2_cmd="${arg#fix2_cmd=}" ;;
       json_error=*) json_error="${arg#json_error=}" ;;
       detail=*) detail="${arg#detail=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
 
@@ -675,6 +677,7 @@ emit_gh_auth_guide() {
   for arg in "$@"; do
     case "$arg" in
       gh_output=*) gh_output="${arg#gh_output=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
 
