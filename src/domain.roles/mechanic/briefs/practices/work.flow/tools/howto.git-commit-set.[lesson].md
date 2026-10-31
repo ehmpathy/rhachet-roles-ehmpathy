@@ -44,6 +44,7 @@ EOF
 | `--mode plan` | preview commit (default) |
 | `--mode apply` | execute commit |
 | `--push` | push + findsert pr after commit |
+| (no `--unstaged`) | refuse when unstaged changes exist (the default) |
 | `--unstaged ignore` | commit staged only, ignore unstaged |
 | `--unstaged include` | stage all changes before commit |
 
@@ -65,9 +66,14 @@ printf 'fix(typo): readme\n\n- fixed typo' | npx rhachet run --skill git.commit.
 
 ## .prerequisites
 
-- human must grant quota: `git.commit.uses set --quant N --push allow|block`
+- a quota, from whoever holds the grant for this tree:
+  - a director governs the tree → ask your director, never a human. the director runs
+    `rhx git.crew.grant --tree <tree> --quota <n> --push allow --why '<why>'`; a driver
+    cannot run it
+  - no director → ask your human: `git.commit.uses set --quant N --push allow|block`
+  - you know your director from your charter; ask it first, even where a refusal names a human
 - a sponsor: on the human's own machine, `git config user.name` + `user.email`
   name them and no bind is needed. a bind wins over git config; on the clone's
   machine (git config names a seaturtle identity) a human must bind one, at a
   real terminal: `rhx git.commit.sponsor set --who <@stdin|@self|"Name <email>">`
-- for `--push`: requires `--push allow` in quota grant
+- for `--push`: requires `--push allow` in the quota grant

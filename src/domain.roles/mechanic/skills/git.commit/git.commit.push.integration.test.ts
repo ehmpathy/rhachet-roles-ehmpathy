@@ -437,6 +437,56 @@ exit 1`,
         expect(parsed.pr_action).toBe('findsert');
       });
     });
+
+    // a title with a backslash and a quote, or one that opens with a dash, must
+    // still yield valid json with the title intact (the escape must not drop it)
+    const TITLE_CASES = [
+      { label: 'a backslash and a quote', title: 'feat: reef \\ path "kelp"' },
+      { label: 'a lead dash', title: '-n feat: dash-led tide' },
+    ];
+    TITLE_CASES.forEach((thisCase, index) => {
+      when(
+        `[t${index + 1}] plan mode with --output json, title has ${thisCase.label}`,
+        () => {
+          then('outputs valid json with the title intact', () => {
+            const tempDir = setupTempRepo({
+              meterState: { uses: 3, push: 'allow' },
+              branch: 'turtle/feature',
+              commits: [thisCase.title],
+            });
+
+            // .mock = fake gh cli for token validation (.why/.real: the suite header)
+            const fakeBinDir = path.join(tempDir, '.fakebin');
+            fs.mkdirSync(fakeBinDir, { recursive: true });
+            fs.writeFileSync(
+              path.join(fakeBinDir, 'gh'),
+              `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+fi
+exit 1`,
+            );
+            fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+            const result = runPush({
+              tempDir,
+              pushArgs: ['--mode', 'plan', '--output', 'json'],
+              env: {
+                EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
+                PATH: `${fakeBinDir}:${process.env.PATH}`,
+              },
+            });
+
+            expect(result.exitCode).toBe(0);
+            const parsed = JSON.parse(result.stdout.trim());
+            expect(parsed.status).toBe('planned');
+            expect(parsed.pr_title).toBe(thisCase.title);
+            expect(result.stdout).toMatchSnapshot();
+          });
+        },
+      );
+    });
   });
 
   given('[case8] json output error', () => {
@@ -458,6 +508,12 @@ exit 1`,
         const parsed = JSON.parse(result.stdout.trim());
         expect(parsed.status).toBe('error');
         expect(parsed.error).toContain('push not allowed');
+
+        // no director governs this tree: main's json bytes, no fix field
+        expect(parsed.fix).toBeUndefined();
+        expect(result.stdout.trim()).toEqual(
+          '{"status":"error","error":"push not allowed"}',
+        );
       });
     });
   });

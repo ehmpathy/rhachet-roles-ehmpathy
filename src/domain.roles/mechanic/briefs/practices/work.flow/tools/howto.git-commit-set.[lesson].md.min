@@ -24,7 +24,7 @@ line 1 = header (required), line 2 = blank (required), lines 3+ = body (required
 
 ## prerequisite
 
-human must grant quota: `git.commit.uses set --quant N --push allow|block`
+quota: a director governs the tree → ask it first, even if a refusal names a human (it runs `git.crew.grant`). else your human: `git.commit.uses set --quant N --push allow|block`
 
 sponsor: on the human's own machine, git config names them; no bind needed
 a bind wins over git config; on the clone's machine (git config names a seaturtle identity) a human must bind one, at a real terminal: `rhx git.commit.sponsor set --who <@stdin|@self|"Name <email>">`

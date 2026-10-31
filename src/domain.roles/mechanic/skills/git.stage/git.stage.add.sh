@@ -25,6 +25,7 @@ COMMIT_SKILL_DIR="$(cd "$SKILL_DIR/../git.commit" && pwd)"
 
 # source shared utils
 source "$COMMIT_SKILL_DIR/output.sh"
+source "$COMMIT_SKILL_DIR/git.commit.director.operations.sh"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
@@ -119,9 +120,10 @@ if [[ ! -f "$STATE_FILE" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.stage.add"
   print_tree_error "stage not allowed"
-  echo ""
-  echo "ask your human to grant stage permission:"
-  echo "  \$ git.commit.uses set --quant N --push allow|block --stage allow"
+  print_quota_grant_fix repo_root="$REPO_ROOT" refusal=stage-blocked \
+    meter_file="$STATE_FILE" \
+    human_lead="ask your human to grant stage permission:" \
+    human_cmd="  \$ git.commit.uses set --quant N --push allow|block --stage allow"
   exit 2
 fi
 
@@ -130,9 +132,10 @@ if [[ "$STAGE_ALLOWED" != "allow" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.stage.add"
   print_tree_error "stage not allowed"
-  echo ""
-  echo "ask your human to grant stage permission:"
-  echo "  \$ git.commit.uses set --quant N --push allow|block --stage allow"
+  print_quota_grant_fix repo_root="$REPO_ROOT" refusal=stage-blocked \
+    meter_file="$STATE_FILE" \
+    human_lead="ask your human to grant stage permission:" \
+    human_cmd="  \$ git.commit.uses set --quant N --push allow|block --stage allow"
   exit 2
 fi
 
