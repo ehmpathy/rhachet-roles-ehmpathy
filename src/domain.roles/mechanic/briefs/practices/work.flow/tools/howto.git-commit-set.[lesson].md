@@ -44,6 +44,7 @@ EOF
 | `--mode plan` | preview commit (default) |
 | `--mode apply` | execute commit |
 | `--push` | push + findsert pr after commit |
+| (no `--unstaged`) | refuse when unstaged changes exist (the default) |
 | `--unstaged ignore` | commit staged only, ignore unstaged |
 | `--unstaged include` | stage all changes before commit |
 

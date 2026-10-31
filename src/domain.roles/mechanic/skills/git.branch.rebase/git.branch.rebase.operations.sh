@@ -248,7 +248,8 @@ print_files_tree() {
   local i=0
 
   # count non-empty lines
-  count=$(echo "$files" | grep -c . || echo "0")
+  # .note = grep -c prints its own 0 on no match (exit 1); `|| true` keeps that one 0
+  count=$(echo "$files" | grep -c . || true)
 
   # print with proper termination
   while IFS= read -r file; do

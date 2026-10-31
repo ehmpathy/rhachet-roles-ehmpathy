@@ -2,7 +2,7 @@
 
 | case | title | rework | risk | status | confidence |
 |---|---|---|---|---|---|
-| F1 | how a tree is known to have a director | dirty | **high**: a cross-repo contract (nheuron writes, this repo reads); a miss re-creates the incident, a false hit tells a human to ask a director that does not exist | unresolved — a blueprint call; options + lean A (charter granted in the tree) go to the commander | 60% on the lean |
+| F1 | how a tree is known to have a director | dirty | **high**: a cross-repo contract (nheuron writes, this repo reads); a miss re-creates the incident, a false hit tells a human to ask a director that does not exist | unresolved — sorted WHAT (it sets which trees get the director line); one ranked ask to the commander, lean A (charter granted in the tree) | 60% on the lean |
 | F2 | refusals in scope | clean | **medium**: three refusals × four surfaces, json mode on push included; each needs a variant and a clamp | ruled: widen to push-not-allowed and no-quota-set, set and push included | 100% (ruled) |
 | F3 | amend the briefs that say a human grants quota | clean | **low**: a two-line brief edit; `.min` must match its source | ruled: amend this repo's brief in this pr; bhrain → reseed dream | 100% (ruled) |
 | F4 | skip detection, name both granters | clean | **low**: not built | ruled: no; keep detection | 100% (ruled) |
@@ -13,4 +13,8 @@
 | F6 | the stage refusal (`git.stage.add`) | clean | **low**: two sites in one skill; the grant line needs `--stage allow` instead of `--push allow`, so `get_one_director_grant_command` gains one arg | ruled: wire it in this pr; the grant line carries `--stage allow` | 100% (ruled) |
 | F11 | which permission flags the director grant line carries | clean | **medium**: a fixed `--push allow` widens push on a commit-only tree; a too-narrow line costs a second round trip | best-guess: by refusal kind + meter + the driver's command; no flag widens what the refusal is not about | 90% |
 | F12 | the shape of the json `fix` field on push | clean | **low**: no caller meets the field until detection lands | best-guess: rendered text now; a structured `{ grantor, command }` with the detector | 75% |
+| F13 | the two ci flakes outside the diff, at verification | clean | **low**: each costs a ci retry; neither touches this pr's behavior | best-guess: dream with the diagnosis so far; no guessed fix without its writer named | 70% |
+| F14 | the suite-level skips outside the diff, at verification | clean | **low**: 12 `describe.skip` suites in evals/librarian hide whether those suites work; none touches this pr's behavior | best-guess: dream to the evals owner; no unskip of paid evals in a quota-refusal pr | 80% |
+| F15 | a skill's journey proof: blackbox integration test vs a new acceptance file | clean | **low**: the integration suites spawn the real skill against real git; a new file would duplicate them | best-guess: keep the repo convention (`rule.require.jest-tests-for-skills`) | 85% |
+| F16 | the director line's shape: mirror the extant fix vs a coconut block | clean | **low**: one renderer; a reshape later is one function plus snapshots | best-guess: mirror the extant `lead:` + `  $ cmd` shape, so both granters read alike in one frame | 80% |
 | F10 | `--quota <n>` stays a bare placeholder, no uses-left hint | clean | **low**: a director who types a small `n` grants too few uses; the next refusal says so at once | best-guess: keep the bare placeholder (vision open question 4) | 85% |

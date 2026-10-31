@@ -27,6 +27,9 @@
 #     the renderer, not the caller, picks every flag from the refusal kind
 ######################################################################
 
+# emit_both: a malfunction reaches both streams, under any stdio
+source "$(dirname "${BASH_SOURCE[0]}")/output.sh"
+
 ######################################################################
 # .what = whether a director governs this tree: none | charter | unreadable
 #
@@ -56,6 +59,7 @@ get_one_meter_field() {
     case "$arg" in
       meter_file=*) meter_file="${arg#meter_file=}" ;;
       field=*) field="${arg#field=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   if [[ -z "$meter_file" || ! -f "$meter_file" ]]; then
@@ -78,6 +82,7 @@ get_one_push_grant_flag() {
   for arg in "$@"; do
     case "$arg" in
       push=*) push="${arg#push=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   if [[ "$push" == "allow" || "$push" == "block" ]]; then
@@ -109,6 +114,7 @@ get_one_director_grant_flags() {
       refusal=*) refusal="${arg#refusal=}" ;;
       meter_file=*) meter_file="${arg#meter_file=}" ;;
       wants_push=*) wants_push="${arg#wants_push=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
 
@@ -142,6 +148,7 @@ get_one_quota_grant_ask() {
   for arg in "$@"; do
     case "$arg" in
       refusal=*) refusal="${arg#refusal=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   case "$refusal" in
@@ -166,6 +173,7 @@ get_one_director_grant_command() {
     case "$arg" in
       tree=*) tree="${arg#tree=}" ;;
       grant_flags=*) grant_flags="${arg#grant_flags=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   echo "rhx git.crew.grant --tree $tree --quota <n> $grant_flags --why '<why>'"
@@ -182,6 +190,7 @@ as_text_without_lead_spaces() {
   for arg in "$@"; do
     case "$arg" in
       text=*) text="${arg#text=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   echo "${text#"${text%%[! ]*}"}"
@@ -198,6 +207,7 @@ get_one_tree_director_state_for_render() {
   for arg in "$@"; do
     case "$arg" in
       repo_root=*) repo_root="${arg#repo_root=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   get_one_tree_director_state repo_root="$repo_root" || echo "unreadable"
@@ -239,6 +249,7 @@ print_quota_grant_fix() {
       human_lead=*) human_lead="${arg#human_lead=}" ;;
       human_cmd=*) human_cmd="${arg#human_cmd=}" ;;
       indent=*) indent="${arg#indent=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
 
@@ -266,11 +277,16 @@ print_quota_grant_fix() {
     meter_file="$meter_file" wants_push="$wants_push")"
   grant_cmd="$(get_one_director_grant_command tree="$tree" grant_flags="$grant_flags")"
 
+  # each command line sits at the offset the surface gives its human command,
+  # so the three states of one refusal align; a surface with none takes two
+  local cmd_offset="  "
+  if [[ -n "$human_cmd" ]]; then cmd_offset="${human_cmd%%[! ]*}"; fi
+
   # a director governs this tree: the driver asks its director, never a human
   if [[ "$director" == "charter" ]]; then
     echo ""
     echo "${indent}a director governs this tree; ask your director to ${ask}. the director runs:"
-    echo "${indent}  \$ $grant_cmd"
+    echo "${indent}${cmd_offset}\$ $grant_cmd"
     return 0
   fi
 
@@ -279,16 +295,16 @@ print_quota_grant_fix() {
   #         read alike, so it states only what is known
   # .note = any state other than none or charter lands here too, so a detector
   #         fault shows as "cannot be read", never as a silent "ask your human"
-  # .note = both commands sit at one depth under the frame indent, so the two
-  #         `$` lines align; a surface with no human command prints none
+  # .note = both commands sit at the surface's offset, so the two `$` lines
+  #         align; a surface with no human command prints none
   local human_cmd_bare
   human_cmd_bare="$(as_text_without_lead_spaces text="$human_cmd")"
   echo ""
   echo "${indent}whether a director governs this tree cannot be read; ask your director, else your human."
   echo "${indent}the director runs:"
-  echo "${indent}  \$ $grant_cmd"
+  echo "${indent}${cmd_offset}\$ $grant_cmd"
   echo "${indent}else, ${human_lead}"
-  if [[ -n "$human_cmd_bare" ]]; then echo "${indent}  ${human_cmd_bare}"; fi
+  if [[ -n "$human_cmd_bare" ]]; then echo "${indent}${cmd_offset}${human_cmd_bare}"; fi
   return 0
 }
 
@@ -317,6 +333,7 @@ get_one_quota_grant_fix_for_json() {
       wants_push=*) wants_push="${arg#wants_push=}" ;;
       human_lead=*) human_lead="${arg#human_lead=}" ;;
       human_cmd=*) human_cmd="${arg#human_cmd=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
 

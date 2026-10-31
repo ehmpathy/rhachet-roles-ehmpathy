@@ -2,7 +2,7 @@ import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { given, then, when } from 'test-fns';
+import { given, then, useBeforeAll, when } from 'test-fns';
 
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
@@ -16,6 +16,9 @@ const SKILL_PATH = path.resolve(__dirname, 'git.branch.rebase.begin.sh');
 /**
  * .what = setup a git repo scenario for rebase tests
  * .why = each test needs isolated repo with specific state
+ * .note = the origin is a real bare repo inside the temp dir (excluded from
+ *         git), so the skill's fetch and pull reach it and one rmSync cleans
+ *         both; withOrigin: false leaves no remote, for the no-origin refusal
  */
 const setupRebaseScenario = (options: {
   commitsAhead?: number;
@@ -24,11 +27,13 @@ const setupRebaseScenario = (options: {
   onMainBranch?: boolean;
   dirtyWorkTree?: boolean;
   rebaseInProgress?: boolean;
+  withOrigin?: boolean;
 }): string => {
   const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'git-rebase-test-'));
+  const withOrigin = options.withOrigin ?? true;
 
-  // init git repo
-  spawnSync('git', ['init'], { cwd: tempDir });
+  // init git repo on main
+  spawnSync('git', ['init', '-b', 'main'], { cwd: tempDir });
   configureTestGitUser({ cwd: tempDir });
 
   // create initial commit on main
@@ -36,13 +41,19 @@ const setupRebaseScenario = (options: {
   spawnSync('git', ['add', 'README.md'], { cwd: tempDir });
   spawnSync('git', ['commit', '-m', 'init: initial commit'], { cwd: tempDir });
 
-  // rename to main if needed
-  spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
-
-  // create fake origin/main ref
-  spawnSync('git', ['update-ref', 'refs/remotes/origin/main', 'HEAD'], {
-    cwd: tempDir,
-  });
+  // a real bare origin, inside the temp dir and excluded from the work tree
+  if (withOrigin) {
+    const originDir = path.join(tempDir, '.origin.git');
+    spawnSync('git', ['init', '--bare', '-b', 'main', originDir]);
+    fs.appendFileSync(
+      path.join(tempDir, '.git', 'info', 'exclude'),
+      '.origin.git/\n',
+    );
+    spawnSync('git', ['remote', 'add', 'origin', originDir], {
+      cwd: tempDir,
+    });
+    spawnSync('git', ['push', 'origin', 'main'], { cwd: tempDir });
+  }
 
   // add commits behind on origin/main (simulates main moved forward)
   if (options.commitsBehind && options.commitsBehind > 0) {
@@ -54,10 +65,9 @@ const setupRebaseScenario = (options: {
         cwd: tempDir,
       });
     }
-    // update origin/main to include these commits
-    spawnSync('git', ['update-ref', 'refs/remotes/origin/main', 'HEAD'], {
-      cwd: tempDir,
-    });
+    // push these commits to origin/main
+    if (withOrigin)
+      spawnSync('git', ['push', 'origin', 'main'], { cwd: tempDir });
 
     // reset back for feature branch
     spawnSync('git', ['reset', '--hard', 'HEAD~' + options.commitsBehind], {
@@ -145,10 +155,21 @@ const runSkill = (
   };
 };
 
+/**
+ * .what = the skill's stdout with its volatile values masked
+ * .why = commit shas change with each commit's timestamp and the temp dir is
+ *        random; a snapshot must pin the frame, not those values
+ */
+const asStableOutput = (input: { stdout: string; tempDir: string }): string =>
+  input.stdout
+    .split(input.tempDir)
+    .join('<tempdir>')
+    .replace(/\b[0-9a-f]{7,40}\b/g, '<sha>');
+
 describe('git.branch.rebase.begin', () => {
   given('[case1] feature branch with commits ahead and behind', () => {
     when('[t0] plan mode (default)', () => {
-      then('shows preview or fetch error (no real remote in test)', () => {
+      then('shows the preview: ahead, behind, and the meter', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 3,
           commitsBehind: 2,
@@ -158,10 +179,14 @@ describe('git.branch.rebase.begin', () => {
         try {
           const result = runSkill(tempDir);
 
-          // note: in test env without real remote, fetch fails
-          // snapshot captures actual behavior for vibecheck
+          expect(result.status).toBe(0);
           expect(result.stdout).toContain('git.branch.rebase begin');
-          expect(result.stdout).toMatchSnapshot();
+          expect(result.stdout).toContain('ahead: 3 commits');
+          expect(result.stdout).toContain('behind: 2 commits');
+          expect(result.stdout).toContain('run with --mode apply to execute');
+          expect(
+            asStableOutput({ stdout: result.stdout, tempDir }),
+          ).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -169,22 +194,33 @@ describe('git.branch.rebase.begin', () => {
     });
   });
 
-  given('[case2] feature branch ready to rebase', () => {
+  given('[case2] feature branch one commit behind origin/main', () => {
     when('[t0] apply mode attempts rebase', () => {
-      then('shows result or fetch error (no real remote in test)', () => {
+      then('rebases onto origin/main and shows the result', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
-          commitsBehind: 0,
+          commitsBehind: 1,
           pushAllowed: true,
         });
 
         try {
           const result = runSkill(tempDir, ['--mode', 'apply']);
 
-          // note: in test env without real remote, fetch fails
-          // snapshot captures actual behavior for vibecheck
+          expect(result.status).toBe(0);
           expect(result.stdout).toContain('git.branch.rebase begin');
-          expect(result.stdout).toMatchSnapshot();
+          expect(result.stdout).not.toContain('conflict');
+          expect(result.stdout).not.toContain('failed');
+          expect(
+            asStableOutput({ stdout: result.stdout, tempDir }),
+          ).toMatchSnapshot();
+
+          // the feature branch now sits on top of origin/main
+          const isOnTop = spawnSync(
+            'git',
+            ['merge-base', '--is-ancestor', 'origin/main', 'HEAD'],
+            { cwd: tempDir },
+          );
+          expect(isOnTop.status).toBe(0);
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -195,15 +231,13 @@ describe('git.branch.rebase.begin', () => {
   given('[case3] rebase with conflicts', () => {
     when('[t0] apply mode hits conflict', () => {
       then('shows conflict status and files', () => {
-        // note: simulating real conflict requires complex setup
-        // this test validates the output format when conflicts detected
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
           commitsBehind: 2,
           pushAllowed: true,
         });
 
-        // create conflicting content on both branches
+        // the feature branch adds conflict.txt
         fs.writeFileSync(
           path.join(tempDir, 'conflict.txt'),
           'feature version\n',
@@ -213,28 +247,27 @@ describe('git.branch.rebase.begin', () => {
           cwd: tempDir,
         });
 
-        // add same file on origin/main with different content
+        // origin/main adds the same file with other content
         spawnSync('git', ['checkout', 'main'], { cwd: tempDir });
+        spawnSync('git', ['reset', '--hard', 'origin/main'], { cwd: tempDir });
         fs.writeFileSync(path.join(tempDir, 'conflict.txt'), 'main version\n');
         spawnSync('git', ['add', 'conflict.txt'], { cwd: tempDir });
         spawnSync('git', ['commit', '-m', 'fix: main conflict file'], {
           cwd: tempDir,
         });
-        spawnSync('git', ['update-ref', 'refs/remotes/origin/main', 'HEAD'], {
-          cwd: tempDir,
-        });
+        spawnSync('git', ['push', 'origin', 'main'], { cwd: tempDir });
         spawnSync('git', ['checkout', 'feature/test-branch'], { cwd: tempDir });
 
         try {
           const result = runSkill(tempDir, ['--mode', 'apply']);
 
-          // conflict should show specific output
-          if (result.stdout.includes('conflict')) {
-            expect(result.stdout).toContain('hang tight');
-            expect(result.stdout).toContain('conflict');
-            expect(result.stdout).toContain('settle conflicts');
-          }
-          expect(result.stdout).toMatchSnapshot();
+          expect(result.stdout).toContain('hang tight');
+          expect(result.stdout).toContain('conflict');
+          expect(result.stdout).toContain('conflict.txt');
+          expect(result.stdout).toContain('settle conflicts');
+          expect(
+            asStableOutput({ stdout: result.stdout, tempDir }),
+          ).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -311,8 +344,8 @@ describe('git.branch.rebase.begin', () => {
   });
 
   given('[case7] branch already up to date', () => {
-    when('[t0] attempt rebase', () => {
-      then('shows up to date or fetch error (no real remote in test)', () => {
+    when('[t0] attempt rebase with zero commits ahead', () => {
+      then('says there is no commit to rebase', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 0,
           commitsBehind: 0,
@@ -322,10 +355,39 @@ describe('git.branch.rebase.begin', () => {
         try {
           const result = runSkill(tempDir);
 
-          // note: in test env without real remote, fetch fails
-          // snapshot captures actual behavior for vibecheck
+          // a zero count once read as "0\n0", failed the zero test, and fell through
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain('already up to date');
           expect(result.stdout).toContain('git.branch.rebase begin');
-          expect(result.stdout).toMatchSnapshot();
+          expect(result.stdout).toContain('no commits to rebase');
+          expect(result.stdout).not.toContain('0\n0');
+          expect(
+            asStableOutput({ stdout: result.stdout, tempDir }),
+          ).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+
+    when('[t1] attempt rebase with commits ahead and zero behind', () => {
+      then('shows up to date, with one count per line', () => {
+        const tempDir = setupRebaseScenario({
+          commitsAhead: 2,
+          commitsBehind: 0,
+          pushAllowed: true,
+        });
+
+        try {
+          const result = runSkill(tempDir);
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain('   ├─ commits: 2 (ahead)\n');
+          expect(result.stdout).toContain('   └─ behind: 0\n');
+          expect(result.stdout).toContain('no rebase needed');
+          expect(
+            asStableOutput({ stdout: result.stdout, tempDir }),
+          ).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -361,6 +423,7 @@ describe('git.branch.rebase.begin', () => {
       then('does not fail on integer comparison (handles infinite)', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
+          commitsBehind: 1,
           pushAllowed: true,
         });
 
@@ -382,10 +445,13 @@ describe('git.branch.rebase.begin', () => {
           expect(result.stderr).not.toContain('infinite: unbound variable');
           expect(result.stderr).not.toContain('integer expression expected');
 
-          // note: fetch will fail in test env (no real remote)
-          // but we verify it gets past the "uses" check
+          // past the uses check, the apply rebases onto origin/main
+          expect(result.status).toBe(0);
           expect(result.stdout).toContain('git.branch.rebase begin');
-          expect(result.stdout).toMatchSnapshot();
+          expect(result.stdout).not.toContain('no commit uses left');
+          expect(
+            asStableOutput({ stdout: result.stdout, tempDir }),
+          ).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -396,6 +462,7 @@ describe('git.branch.rebase.begin', () => {
       then('shows preview (plan mode is always free)', () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
+          commitsBehind: 1,
           pushAllowed: true,
         });
 
@@ -417,10 +484,14 @@ describe('git.branch.rebase.begin', () => {
           expect(result.stderr).not.toContain('infinite: unbound variable');
           expect(result.stderr).not.toContain('integer expression expected');
 
-          // note: fetch will fail in test env (no real remote)
-          // but we verify it handles "infinite" correctly
+          // infinite uses reach the preview
+          expect(result.status).toBe(0);
           expect(result.stdout).toContain('git.branch.rebase begin');
-          expect(result.stdout).toMatchSnapshot();
+          expect(result.stdout).toContain('behind: 1 commits\n');
+          expect(result.stdout).toContain('run with --mode apply to execute');
+          expect(
+            asStableOutput({ stdout: result.stdout, tempDir }),
+          ).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -434,63 +505,52 @@ describe('git.branch.rebase.begin', () => {
       // .note = the svc-quotes #141 incident state. the fixture's own zero-uses
       //         path also blocks push, so the push guard fires first and the
       //         uses guard is reached only here
-      /**
-       * .what = a rebase fixture with its quota spent and push still allowed
-       * .why = both whens need the same state; setup sits inside each try so
-       *        the finally always removes the temp dir
-       */
-      const setupUsesSpent = (): string => {
+      // one fixture for both whens: neither mutates it (apply refuses before
+      // any git call; plan only fetches an origin that is already current)
+      const scene = useBeforeAll(async () => {
         const tempDir = setupRebaseScenario({
           commitsAhead: 2,
+          commitsBehind: 1,
           pushAllowed: true,
         });
         fs.writeFileSync(
           path.join(tempDir, '.meter', 'git.commit.uses.jsonc'),
           JSON.stringify({ uses: 0, push: 'allow' }, null, 2),
         );
-        return tempDir;
-      };
+        return { tempDir };
+      });
+      afterAll(() => {
+        fs.rmSync(scene.tempDir, { recursive: true, force: true });
+      });
 
       when('[t0] apply mode', () => {
         then('refuses on uses, and names the human grant', () => {
-          let tempDir: string | null = null; // .note = deliberate mutation: set inside try so finally can clean up
-          try {
-            tempDir = setupUsesSpent();
-            const result = runSkill(tempDir, ['--mode', 'apply']);
+          const result = runSkill(scene.tempDir, ['--mode', 'apply']);
 
-            expect(result.status).toBe(1);
-            expect(result.stdout).toContain('error: no commit uses left');
-            expect(result.stdout).not.toContain(
-              'rebase requires push permission',
-            );
-            expect(result.stdout).toContain('ask your human to grant more:');
-            expect(result.stdout).toContain(
-              '$ rhx git.commit.uses set --quant N --push allow',
-            );
-            expect(result.stdout).not.toContain('director');
-            expect(result.stdout).toMatchSnapshot();
-          } finally {
-            if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
-          }
+          expect(result.status).toBe(1);
+          expect(result.stdout).toContain('error: no commit uses left');
+          expect(result.stdout).not.toContain(
+            'rebase requires push permission',
+          );
+          expect(result.stdout).toContain('ask your human to grant more:');
+          expect(result.stdout).toContain(
+            '$ rhx git.commit.uses set --quant N --push allow',
+          );
+          expect(result.stdout).not.toContain('director');
+          expect(result.stdout).not.toContain('git.crew.grant');
+          expect(result.stdout).toMatchSnapshot();
         });
       });
 
       when('[t1] plan mode', () => {
         then('passes every quota guard (plan spends no use)', () => {
-          let tempDir: string | null = null; // .note = deliberate mutation: set inside try so finally can clean up
-          try {
-            tempDir = setupUsesSpent();
-            const result = runSkill(tempDir);
+          const result = runSkill(scene.tempDir);
 
-            // past every quota guard, plan reaches the fetch, which has no remote here
-            expect(result.stdout).toContain(
-              'error: failed to fetch origin/main',
-            );
-            expect(result.stdout).not.toContain('no commit uses left');
-            expect(result.stdout).not.toContain('ask your human');
-          } finally {
-            if (tempDir) fs.rmSync(tempDir, { recursive: true, force: true });
-          }
+          // past every quota guard, plan reaches the origin and previews
+          expect(result.status).toBe(0);
+          expect(result.stdout).toContain('run with --mode apply to execute');
+          expect(result.stdout).not.toContain('no commit uses left');
+          expect(result.stdout).not.toContain('ask your human');
         });
       });
     },
@@ -559,9 +619,8 @@ describe('git.branch.rebase.begin', () => {
 
       when('[t0] apply mode', () => {
         then('it reports the failure, never a clean rebase', () => {
-          let rootDir: string | null = null; // .note = deliberate mutation: set inside try so finally can clean up
+          const rootDir = setupPullRefused();
           try {
-            rootDir = setupPullRefused();
             const result = runSkill(path.join(rootDir, 'work'), [
               '--mode',
               'apply',
@@ -571,8 +630,76 @@ describe('git.branch.rebase.begin', () => {
             expect(result.stdout).not.toContain('righteous');
             expect(result.stdout).not.toContain('status: clean');
             expect(result.status).toBe(1);
+            expect(
+              asStableOutput({ stdout: result.stdout, tempDir: rootDir }),
+            ).toMatchSnapshot();
           } finally {
-            if (rootDir) fs.rmSync(rootDir, { recursive: true, force: true });
+            fs.rmSync(rootDir, { recursive: true, force: true });
+          }
+        });
+      });
+    },
+  );
+
+  given('[case12] a tree with no origin remote', () => {
+    when('[t0] attempt rebase', () => {
+      then('refuses: no main or master on origin', () => {
+        const tempDir = setupRebaseScenario({
+          commitsAhead: 2,
+          pushAllowed: true,
+          withOrigin: false,
+        });
+
+        try {
+          const result = runSkill(tempDir);
+
+          expect(result.status).not.toBe(0);
+          expect(result.stdout).toContain(
+            'error: no main or master branch found on origin',
+          );
+          expect(
+            asStableOutput({ stdout: result.stdout, tempDir }),
+          ).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+  });
+
+  given(
+    '[case13] origin/main is known, but the origin cannot be reached',
+    () => {
+      when('[t0] attempt rebase', () => {
+        then('refuses: failed to fetch origin/main', () => {
+          const tempDir = setupRebaseScenario({
+            commitsAhead: 2,
+            commitsBehind: 1,
+            pushAllowed: true,
+          });
+
+          // the local origin/main ref stays; the remote now points nowhere
+          spawnSync(
+            'git',
+            ['remote', 'set-url', 'origin', path.join(tempDir, '.absent.git')],
+            { cwd: tempDir },
+          );
+
+          try {
+            const result = runSkill(tempDir);
+
+            expect(result.status).toBe(1);
+            expect(result.stdout).toContain(
+              'error: failed to fetch origin/main',
+            );
+            expect(result.stdout).toContain(
+              'check your network connection and try again',
+            );
+            expect(
+              asStableOutput({ stdout: result.stdout, tempDir }),
+            ).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
           }
         });
       });

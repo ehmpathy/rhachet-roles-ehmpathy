@@ -444,9 +444,9 @@ exit 1`,
       { label: 'a backslash and a quote', title: 'feat: reef \\ path "kelp"' },
       { label: 'a lead dash', title: '-n feat: dash-led tide' },
     ];
-    TITLE_CASES.map((thisCase) =>
+    TITLE_CASES.forEach((thisCase, index) => {
       when(
-        `[t1] plan mode with --output json, title has ${thisCase.label}`,
+        `[t${index + 1}] plan mode with --output json, title has ${thisCase.label}`,
         () => {
           then('outputs valid json with the title intact', () => {
             const tempDir = setupTempRepo({
@@ -455,7 +455,7 @@ exit 1`,
               commits: [thisCase.title],
             });
 
-            // .mock = fake gh cli for token validation
+            // .mock = fake gh cli for token validation (.why/.real: the suite header)
             const fakeBinDir = path.join(tempDir, '.fakebin');
             fs.mkdirSync(fakeBinDir, { recursive: true });
             fs.writeFileSync(
@@ -482,10 +482,11 @@ exit 1`,
             const parsed = JSON.parse(result.stdout.trim());
             expect(parsed.status).toBe('planned');
             expect(parsed.pr_title).toBe(thisCase.title);
+            expect(result.stdout).toMatchSnapshot();
           });
         },
-      ),
-    );
+      );
+    });
   });
 
   given('[case8] json output error', () => {

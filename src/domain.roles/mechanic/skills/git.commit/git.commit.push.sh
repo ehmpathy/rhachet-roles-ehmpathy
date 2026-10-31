@@ -151,6 +151,7 @@ emit_error() {
       class=*) class="${arg#class=}" ;;
       message=*) message="${arg#message=}" ;;
       fix=*) fix="${arg#fix=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   # default to the tree format; the json branch overrides it (no else — the
@@ -197,6 +198,7 @@ get_ordered_pr_fixes() {
       auth=*) auth="${arg#auth=}" ;;
       fix2_label=*) fix2_label="${arg#fix2_label=}" ;;
       fix2_cmd=*) fix2_cmd="${arg#fix2_cmd=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   local keyrack_label="unlock the ehmpath keyrack, so the seaturtle can open the pr"
@@ -243,6 +245,7 @@ emit_pr_open_guide() {
       fix2_cmd=*) fix2_cmd="${arg#fix2_cmd=}" ;;
       json_error=*) json_error="${arg#json_error=}" ;;
       detail=*) detail="${arg#detail=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
 
@@ -657,6 +660,7 @@ get_clean_pr_body() {
   for arg in "$@"; do
     case "$arg" in
       body=*) body="${arg#body=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
   # grep -v drops the trailer lines (exit 1 when none match → || true); the sed
@@ -676,6 +680,7 @@ emit_gh_auth_guide() {
   for arg in "$@"; do
     case "$arg" in
       gh_output=*) gh_output="${arg#gh_output=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
 
