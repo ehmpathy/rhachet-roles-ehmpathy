@@ -1687,6 +1687,47 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         expect(result.stderr).toContain('rhx git.repo.test');
       });
     });
+
+    when('[t6] a hand-cut of a new branch, in each form', () => {
+      const BRANCH_CUTS = [
+        { command: 'git checkout -b turtle/reef', head: 'git checkout -b' },
+        { command: 'git checkout -B turtle/reef', head: 'git checkout -B' },
+        {
+          command: 'git checkout --no-track -b turtle/reef origin/main',
+          head: 'git checkout --no-track',
+        },
+        { command: 'git switch -c turtle/reef', head: 'git switch -c' },
+        { command: 'git switch -C turtle/reef', head: 'git switch -C' },
+        {
+          command: 'git switch --create turtle/reef',
+          head: 'git switch --create',
+        },
+        {
+          command: 'git switch --force-create turtle/reef',
+          head: 'git switch --force-create',
+        },
+        {
+          command: 'git switch --no-track -c turtle/reef origin/main',
+          head: 'git switch --no-track',
+        },
+      ];
+      BRANCH_CUTS.map((cut) =>
+        then(`${cut.command} points to the cutover`, () => {
+          const result = runHook({
+            command: cut.command,
+            settings: { allow: ['Bash(rhx:*)'] },
+            clearNudges: true,
+          });
+          expect(result.exitCode).toBe(2);
+          expect(result.stderr).toContain(
+            `paved alternatives for \`${cut.head}\``,
+          );
+          expect(result.stderr).toContain(
+            'rhx git.branch.cutover begin --from @main --into <branch>',
+          );
+        }),
+      );
+    });
   });
 
   given('[case31] a typo of a paved command', () => {

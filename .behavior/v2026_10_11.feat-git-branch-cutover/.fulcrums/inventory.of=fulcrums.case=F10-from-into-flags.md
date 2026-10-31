@@ -10,4 +10,9 @@
 - **rework**: clean — a flag definition, before any code
 - **confidence**: 75%
 - **where**: yield `.the contract`
-- **verdict**: —
+- **verdict**: refined by wisher, 2026-10-21 — `--from` is the base and is **required**, no
+  default: `@main` (fresh origin/main), `<branch>` (fresh origin/<branch>), or `@tree` (stacked at
+  HEAD). `@tree` qualifiers (`:commit`/`:stage`/`:delta`) dropped — in one worktree the uncommitted
+  changes always come along. `--cherry-pick` renamed `--pick`; an allowlist, refused with `@tree`;
+  no `--prune` (a prune is a history rewrite that keeps the stale base). every commit left behind
+  is listed in plan and report (inv-14)

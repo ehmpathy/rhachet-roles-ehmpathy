@@ -16,6 +16,7 @@
 #   - paths must be within repo
 #   - idempotent: re-stage of staged file is no-op
 #   - fail-fast: if any file not found, entire operation fails
+#     (a conflicted path settled by its delete stages the delete)
 ######################################################################
 
 set -euo pipefail
@@ -160,8 +161,9 @@ for file in "${FILES[@]}"; do
     exit 2
   fi
 
-  # guard: file must exist
-  if [[ ! -e "$abs_path" ]]; then
+  # guard: file must exist, unless it is a conflict settled by its delete
+  # (a modify/delete conflict is settled by removal; the stage records it)
+  if [[ ! -e "$abs_path" ]] && [[ -z "$(git -C "$REPO_ROOT" ls-files -u -- "$abs_path" 2> /dev/null)" ]]; then
     print_turtle_header "hold up dude..."
     print_tree_start "git.stage.add"
     print_tree_error "file not found: $file"

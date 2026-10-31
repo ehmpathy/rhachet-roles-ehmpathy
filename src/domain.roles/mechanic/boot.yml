@@ -70,7 +70,9 @@ always:
       - skills/git.commit/git.commit.set.sh
 
       # git branch
+      - skills/git.branch.cutover/git.branch.cutover.sh
       - skills/git.branch.rebase/git.branch.rebase.sh
+      - skills/git.branch.uses/git.branch.uses.sh
 
       # git release
       - skills/git.release/git.release.sh

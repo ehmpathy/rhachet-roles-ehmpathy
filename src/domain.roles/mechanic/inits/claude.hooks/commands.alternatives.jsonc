@@ -86,6 +86,31 @@
       "alternatives": ["rhx git.branch.rebase begin"]
     },
     {
+      // every form of "cut a new branch here": the short flags, the long
+      // flags, and --no-track (the hand-cut that avoids the main upstream)
+      "heads": [
+        "git checkout -b",
+        "git checkout -B",
+        "git checkout --no-track",
+        "git switch -c",
+        "git switch -C",
+        "git switch --create",
+        "git switch --force-create",
+        "git switch --no-track"
+      ],
+      "alternatives": [
+        "rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>",
+        "rhx git.branch.cutover begin --from @tree --into <branch>"
+      ]
+    },
+    {
+      // cutover always cuts a new branch, so it is no in-place cherry-pick;
+      // the advice says so rather than send the bot to a verb that differs
+      "heads": ["git cherry-pick"],
+      "alternatives": [],
+      "advice": "no paved in-place pick; to carry commits onto a fresh branch cut from main, run rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>"
+    },
+    {
       "heads": ["npm test", "jest", "npx jest", "pnpm test"],
       "alternatives": ["rhx git.repo.test --what unit --scope <scope>"]
     },

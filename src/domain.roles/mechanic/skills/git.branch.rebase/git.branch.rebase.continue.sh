@@ -96,7 +96,7 @@ if ! is_rebase_in_progress; then
   emit_both "$(
     print_turtle_header "hold up dude..."
     print_tree_start "git.branch.rebase continue"
-    echo "   └─ ✋ ConstraintError: no rebase in progress"
+    print_no_rebase_error
     print_coconut_hint "start one first" \
       "rhx git.branch.rebase begin --mode apply"
   )"

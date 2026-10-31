@@ -44,6 +44,12 @@ for arg in "$@"; do
   fi
 done
 
+# pin the meter: the global + org handlers serve two meters by METER_SLUG
+# (git.commit.operations.sh); a value left exported in the shell must never
+# point this skill at the cutover meter's files
+export METER_SLUG="git.commit.uses"
+export METER_NOUN="commit"
+
 # dispatch to appropriate handler
 # precedence: --global > --org > local
 if [[ "$GLOBAL_MODE" == "true" ]]; then

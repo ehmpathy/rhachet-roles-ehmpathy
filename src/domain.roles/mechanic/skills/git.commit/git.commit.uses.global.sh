@@ -50,12 +50,12 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help|-h)
-      echo "usage: git.commit.uses --global block"
-      echo "       git.commit.uses --global allow"
-      echo "       git.commit.uses --global get"
+      echo "usage: $METER_SLUG --global block"
+      echo "       $METER_SLUG --global allow"
+      echo "       $METER_SLUG --global get"
       echo ""
       echo "commands:"
-      echo "  block  pause all mechanic commits globally"
+      echo "  block  pause all mechanic ${METER_NOUN}s globally"
       echo "  allow  lift global blocker, resume local behavior"
       echo "  get    check global blocker state"
       echo ""
@@ -79,7 +79,7 @@ while [[ $# -gt 0 ]]; do
       ;;
     --*)
       emit_both "✋ ConstraintError: unknown option: $1
-usage: git.commit.uses --global block|allow|get"
+usage: $METER_SLUG --global block|allow|get"
       exit 2
       ;;
     *)
@@ -91,7 +91,7 @@ done
 # validate command
 if [[ -z "$COMMAND" ]]; then
   emit_both "✋ ConstraintError: command required (block, allow, or get)
-usage: git.commit.uses --global block|allow|get"
+usage: $METER_SLUG --global block|allow|get"
   exit 2
 fi
 
@@ -101,7 +101,7 @@ fi
 ######################################################################
 case "$COMMAND" in
   block|allow)
-    guard_actor_is_human_via_stdin "git.commit.uses $COMMAND --global"
+    guard_actor_is_human_via_stdin "$METER_SLUG $COMMAND --global"
     ;;
 esac
 
@@ -145,8 +145,8 @@ EOF
     mv -f "$GLOBAL_METER_FILE_TEMP" "$GLOBAL_METER_FILE"
 
     print_turtle_header "groovy, bond fire time"
-    print_tree_start "git.commit.uses block --global"
-    echo "   └─ commits blocked globally"
+    print_tree_start "$METER_SLUG block --global"
+    echo "   └─ ${METER_NOUN}s blocked globally"
     ;;
 
   allow)
@@ -165,10 +165,10 @@ EOF
     if [[ -e "$GLOBAL_METER_FILE" && ! -f "$GLOBAL_METER_FILE" ]]; then
       emit_both "$(
         print_turtle_header "bummer dude..."
-        print_tree_start "git.commit.uses allow --global"
+        print_tree_start "$METER_SLUG allow --global"
         print_tree_malfunction "the global blocker path is not a file"
         echo ""
-        echo "   commits stay blocked until this path is cleared by hand:"
+        echo "   ${METER_NOUN}s stay blocked until this path is cleared by hand:"
         echo "     $GLOBAL_METER_FILE_SHOWN"
         echo "   inspect it, then remove it:"
         echo "     \$ ls -la $GLOBAL_METER_FILE_SHOWN"
@@ -186,18 +186,22 @@ EOF
     fi
 
     print_turtle_header "shell yeah, back in the water!"
-    print_tree_start "git.commit.uses allow --global"
-    echo "   └─ commits resumed globally"
+    print_tree_start "$METER_SLUG allow --global"
+    echo "   └─ ${METER_NOUN}s resumed globally"
 
     # nudge: this lifts the fleet-wide blocker, so it is a quota-grant
     # moment for THIS tree same as a local `set` — shared reader, see
     # `print_sponsor_bind_nudge_if_absent` (git.commit.operations.sh).
-    print_sponsor_bind_nudge_if_absent
+    # .why the slug gate = a sponsor signs commits, not cutovers, so the
+    #      nudge belongs to the commit meter alone.
+    if [[ "$METER_SLUG" == "git.commit.uses" ]]; then
+      print_sponsor_bind_nudge_if_absent
+    fi
     ;;
 
   get)
     print_turtle_header "lets check the global meter..."
-    print_tree_start "git.commit.uses get --global"
+    print_tree_start "$METER_SLUG get --global"
 
     # 🔴 the SHARED reader decides, and this render only asks it.
     #
@@ -252,7 +256,7 @@ EOF
 
   *)
     emit_both "✋ ConstraintError: unknown command: $COMMAND
-usage: git.commit.uses --global block|allow|get"
+usage: $METER_SLUG --global block|allow|get"
     exit 2
     ;;
 esac

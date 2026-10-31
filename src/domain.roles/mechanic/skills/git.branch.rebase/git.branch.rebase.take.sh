@@ -83,10 +83,12 @@ done
 
 # guard: must be in a rebase
 if ! is_rebase_in_progress; then
-  print_turtle_header "hold up dude..."
-  print_tree_start "git.branch.rebase take"
-  echo "   └─ error: no rebase in progress"
-  exit 1
+  emit_both "$(
+    print_turtle_header "hold up dude..."
+    print_tree_start "git.branch.rebase take"
+    print_no_rebase_error
+  )"
+  exit 2
 fi
 
 # guard: --whos is required and valid
