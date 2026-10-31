@@ -47,6 +47,69 @@ exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry the
 "
 `;
 
+exports[`pretooluse.check-permissions.sh given: [case30b] a raw git merge, where a branch needs main when: [t0] git merge origin/main then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git merge origin/main
+   └─ paved alternatives for \`git merge\`
+      └─ rhx git.branch.catchup begin
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git merge origin/main'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh given: [case30b] a raw git merge, where a branch needs main when: [t1] git merge --abort, mid-merge then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git merge --abort
+   └─ paved alternatives for \`git merge --abort\`
+      └─ rhx git.branch.catchup abort
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git merge --abort'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh given: [case30b] a raw git merge, where a branch needs main when: [t2] git merge --continue, mid-merge then: the render matches snapshot 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git merge --continue
+   └─ paved alternatives for \`git merge --continue\`
+      └─ rhx git.branch.catchup continue
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git merge --continue'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
 exports[`pretooluse.check-permissions.sh given: [case31] a typo of a paved command when: [t0] the head has an adjacent swap then: the render matches snapshot 1`] = `
 "
 ✋ ConstraintError: this command is not paved
