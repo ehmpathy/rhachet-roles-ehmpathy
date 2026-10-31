@@ -26,6 +26,7 @@ describe('set.package.install.sh', () => {
   const createTempDir = (options?: {
     withPackageLock?: boolean;
     withPackage?: { name: string; version: string; dev?: boolean };
+    advisories?: Record<string, Array<{ severity: string; title: string }>>;
   }): {
     tempDir: string;
     fakeBinDir: string;
@@ -121,6 +122,43 @@ exit 1
 `,
     );
     fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
+
+    // create fake curl that answers the npm bulk advisory check from a fixture
+    // .why = the live registry gains advisories over time (zod <4.6.6 since
+    //        2026-10-01), so a live check turns a pass case red with no change
+    //        here. the fixture holds the advisories each case declares; the
+    //        default {} means "no advisory", the shape the registry returns
+    fs.writeFileSync(
+      path.join(fakeBinDir, 'advisories.json'),
+      JSON.stringify(options?.advisories ?? {}),
+    );
+    fs.writeFileSync(
+      path.join(fakeBinDir, 'curl'),
+      `#!/bin/bash
+IS_BULK=""
+for arg in "$@"; do
+  [[ "$arg" == *"/-/npm/v1/security/advisories/bulk" ]] && IS_BULK=1
+done
+if [[ -n "$IS_BULK" ]]; then
+  BODY=""
+  PREV=""
+  for arg in "$@"; do
+    [[ "$PREV" == "-d" ]] && BODY="$arg"
+    PREV="$arg"
+  done
+  # answer only for the packages the request names, as the registry does
+  jq -c --argjson req "$BODY" 'with_entries(select(.key as $k | $req | has($k)))' "$(dirname "$0")/advisories.json"
+  exit 0
+fi
+# passthrough for any other call — find real curl outside fakebin
+REAL_CURL=$(PATH="\${PATH#*:}" command -v curl 2>/dev/null || echo "")
+if [[ -n "$REAL_CURL" ]]; then
+  exec "$REAL_CURL" "$@"
+fi
+exit 1
+`,
+    );
+    fs.chmodSync(path.join(fakeBinDir, 'curl'), '755');
 
     return {
       tempDir,
@@ -281,9 +319,15 @@ exit 1
     );
   });
 
-  given('[case2] audit fails (known vulnerable pkg)', () => {
+  given('[case2] audit fails (the registry reports an advisory)', () => {
     when('[t0] install is called with vulnerable package', () => {
-      const { tempDir, fakeBinDir, cleanup } = createTempDir();
+      const { tempDir, fakeBinDir, cleanup } = createTempDir({
+        advisories: {
+          lodash: [
+            { severity: 'high', title: 'Prototype Pollution in lodash' },
+          ],
+        },
+      });
       afterAll(() => cleanup());
       const result = useThen('it runs', async () =>
         runSkill(
@@ -314,6 +358,29 @@ exit 1
 
       then('output shows bummer', () => {
         expect(result.stderr).toContain('bummer dude');
+      });
+
+      then('output names the advisory that blocked it', () => {
+        const result = runSkill(
+          [
+            '--package',
+            'lodash',
+            '--at',
+            '4.17.0',
+            '--for',
+            'prod',
+            '--reason',
+            'test',
+          ],
+          { cwd: tempDir, fakeBinDir },
+        );
+        expect(result.stderr).toContain('audit: FAILED (1 vulnerabilities)');
+        expect(result.stderr).toContain('high: Prototype Pollution in lodash');
+        expect(
+          JSON.parse(
+            fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),
+          ).dependencies.lodash,
+        ).toBeUndefined();
       });
     });
   });
@@ -766,6 +833,12 @@ exit 1
     when('[t0] all output variants', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir({
         withPackage: { name: 'extant-pkg', version: '1.0.0' },
+        advisories: {
+          lodash: [
+            { severity: 'critical', title: 'Prototype Pollution in lodash' },
+            { severity: 'high', title: 'Command Injection in lodash' },
+          ],
+        },
       });
       afterAll(() => cleanup());
 
