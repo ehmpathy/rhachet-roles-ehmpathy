@@ -13,7 +13,7 @@
 # usage:
 #   rhx git.branch.catchup begin                          # plan (default)
 #   rhx git.branch.catchup begin --mode apply             # merge + commit
-#   rhx git.branch.catchup take --whos main|branch <paths…>
+#   rhx git.branch.catchup take --whos <main|branch> <paths…>
 #   rhx git.branch.catchup lock refresh
 #   rhx git.branch.catchup continue
 #   rhx git.branch.catchup abort
@@ -34,17 +34,16 @@ source "$COMMIT_SKILL_DIR/output.sh"
 source "$SKILL_DIR/git.branch.catchup.operations.sh"
 
 ######################################################################
-# show usage
+# show usage: the tree alone (under an error header), or with the help vibe
 ######################################################################
-show_usage() {
-  print_turtle_header "heres the wave..."
+show_usage_tree() {
   print_tree_start "git.branch.catchup"
   echo "   ├─ $CATCHUP_HOW_LINE"
   echo "   ├─ one merge commit of origin/main into this branch; the push after it is plain"
-  echo "   ├─ when: catchup once the branch is pushed; rebase before the first push"
+  echo "   ├─ when: use it once the branch is pushed; rebase before the first push"
   echo "   ├─ subcommands"
   echo "   │  ├─ begin      preview (default) or apply the merge"
-  echo "   │  ├─ take       settle a conflict by side: --whos main|branch"
+  echo "   │  ├─ take       settle a conflict by side: --whos <main|branch>"
   echo "   │  ├─ lock       refresh a taken lockfile against the merged package.json"
   echo "   │  ├─ continue   make the merge commit once every conflict is settled"
   echo "   │  ├─ abort      back out to the state before begin"
@@ -57,6 +56,10 @@ show_usage() {
   echo "      ├─ rhx git.branch.catchup continue"
   echo "      ├─ rhx git.branch.catchup abort"
   echo "      └─ then: rhx git.commit.push --mode apply"
+}
+show_usage() {
+  print_turtle_header "heres the wave..."
+  show_usage_tree
 }
 
 ######################################################################
@@ -105,7 +108,7 @@ case "$SUBCMD" in
   *)
     emit_both "✋ ConstraintError: unknown subcommand: $SUBCMD
 
-$(show_usage)"
+$(show_usage_tree)"
     exit 2
     ;;
 esac

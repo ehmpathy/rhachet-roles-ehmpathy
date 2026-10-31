@@ -21,9 +21,9 @@ clean: (b) or (c) changes render lines only; no exit code, gate, or caller contr
 
 ## .risk
 low. two shapes in one verb: catchup's own refusals open header-first, the commit gates open with
-the turtle header. both name the class and the fix. the plan flag names
-`rhx git.commit.uses set --quant N --push allow`; the apply refusal names the shared
-`git.commit.uses set --quant N --push allow|block`. a human reads one command in two spellings.
+the turtle header. both name the class and the fix. the grant command reads one way: the shared
+render takes `grant=`, so catchup's plan flag and apply refusal both name
+`rhx git.commit.uses set --quant N --push allow` (begin `[case4c]`).
 
 ## .confidence
 75%. the vision sketch and `rule.require.qualified-error-headers` both lean header-first; the
@@ -34,4 +34,5 @@ family standard and the lift lean leaf-qualified.
 sponsor refusal); `git.branch.catchup.begin.sh`; begin snapshots `[case4c]`, `[case4f]`, `[case4g]`.
 
 ## .verdict
-taken by the driver: an execution fork (seed S6). open to the commander at done.
+taken by the driver: an execution fork (seeds S6, S7). render lines only; it changes neither what
+the verb does nor how it decomposes, and the lift it keeps is C1, a craft call.

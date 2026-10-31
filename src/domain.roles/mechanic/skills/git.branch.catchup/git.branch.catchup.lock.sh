@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = regenerate the lockfile against the merged manifest, and stage it
+# .what = refresh the lockfile against the merged manifest, and stage it
 #
 # .why  = a lockfile conflict is settled by `take --whos main`, which drops
 #         the branch's own dependency changes from the lock; a refresh
@@ -28,7 +28,6 @@ SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 COMMIT_SKILL_DIR="$(cd "$SKILL_DIR/../git.commit" && pwd)"
 
 source "$COMMIT_SKILL_DIR/output.sh"
-source "$COMMIT_SKILL_DIR/git.commit.operations.sh"
 source "$SKILL_DIR/git.branch.catchup.operations.sh"
 
 LABEL="git.branch.catchup lock refresh"
@@ -48,7 +47,7 @@ while [[ $# -gt 0 ]]; do
       print_tree_start "git.branch.catchup lock"
       echo "   ├─ usage"
       echo "   │  └─ rhx git.branch.catchup lock refresh"
-      echo "   └─ regenerates the lockfile against the merged package.json, and stages it"
+      echo "   └─ refreshes the lockfile against the merged package.json, and stages it"
       exit 0
       ;;
     *)
@@ -79,7 +78,7 @@ REPO_ROOT=$(git rev-parse --show-toplevel)
 cd "$REPO_ROOT"
 
 # guard: a merge in flight
-refuse_if_no_merge_in_flight label="$LABEL"
+refuse_if_no_catchup_merge_in_flight label="$LABEL"
 
 # guard: no manifest in conflict
 MANIFESTS_UNSETTLED=$(get_conflict_files | grep -E '(^|/)package\.json$' || true)
@@ -87,9 +86,13 @@ if [[ -n "$MANIFESTS_UNSETTLED" ]]; then
   emit_catchup_constraint message="a manifest is still in conflict" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ settle first"
-    print_catchup_files_tree prefix="   │  " files="$MANIFESTS_UNSETTLED"
+    print_catchup_lines_tree prefix="   │  " files="$MANIFESTS_UNSETTLED"
     echo "   ├─ why: a refresh reads package.json as is; with conflict markers it writes a wrong lock"
-    echo "   └─ next: settle it, rhx git.stage.add it, then lock refresh again"
+    echo "   └─ next"
+    echo "      ├─ $CATCHUP_MARKERS_ADVICE"
+    # lock refresh reads no meter; git.stage.add names the grant if a stage is blocked
+    print_catchup_stage_advice stage="allow"
+    echo "      └─ then:              rhx git.branch.catchup lock refresh"
   )"
   exit 2
 fi
@@ -147,7 +150,7 @@ if [[ "$INSTALL_EXIT" -ne 0 ]]; then
     echo "   ├─ ran: ${INSTALL[*]}"
     echo "   ├─ exit: $INSTALL_EXIT"
     echo "   └─ output"
-    print_catchup_files_tree prefix="      " files="$INSTALL_OUTPUT"
+    print_catchup_lines_tree prefix="      " files="$INSTALL_OUTPUT"
   )"
   exit 1
 fi
@@ -156,7 +159,7 @@ git add -- "$LOCK_FILE"
 
 print_turtle_header "righteous!"
 print_tree_start "$LABEL"
-echo "   ├─ pm: $PM"
+echo "   ├─ package manager: $PM"
 echo "   ├─ install: ${INSTALL[*]}"
 echo "   ├─ staged"
 echo "   │  └─ $LOCK_FILE ✓"

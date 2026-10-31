@@ -5,7 +5,7 @@ exports[`git.branch.catchup abort given: [case3] a merge in flight with unsettle
 
 🐚 git.branch.catchup abort
    ├─ merge: aborted
-   ├─ HEAD: HASH123 (as before begin)
+   ├─ HEAD: HASH123 (as before the merge)
    └─ meter
       └─ left: 4 (no spend)
 "
@@ -18,8 +18,63 @@ exports[`git.branch.catchup abort given: [case3b] a merge in flight, every confl
    ├─ merge: aborted
    ├─ settlements discarded (staged, not committed)
    │  └─ src/a.md
-   ├─ HEAD: HASH123 (as before begin)
+   ├─ HEAD: HASH123 (as before the merge)
    └─ meter
       └─ left: 4 (no spend)
+"
+`;
+
+exports[`git.branch.catchup abort given: [case3c] a merge in flight, one conflict settled by take, one still open when: [t0] abort then: matches snapshot 1`] = `
+"🐢 no worries dude
+
+🐚 git.branch.catchup abort
+   ├─ merge: aborted
+   ├─ settlements discarded (staged, not committed)
+   │  └─ src/a.md
+   ├─ HEAD: HASH123 (as before the merge)
+   └─ meter
+      └─ left: 4 (no spend)
+"
+`;
+
+exports[`git.branch.catchup abort given: [case3d] an unsettled conflict on a non-ASCII path when: [t0] abort then: matches snapshot 1`] = `
+"🐢 no worries dude
+
+🐚 git.branch.catchup abort
+   ├─ merge: aborted
+   ├─ HEAD: HASH123 (as before the merge)
+   └─ meter
+      └─ left: 4 (no spend)
+"
+`;
+
+exports[`git.branch.catchup abort given: [case3e] a hand merge of another branch in flight when: [t0] abort: the one way out that begin and continue name then: matches snapshot 1`] = `
+"🐢 no worries dude
+
+🐚 git.branch.catchup abort
+   ├─ merge: aborted
+   ├─ HEAD: HASH123 (as before the merge)
+   └─ meter
+      └─ left: 4 (no spend)
+"
+`;
+
+exports[`git.branch.catchup abort given: [case3f] a merge of origin/main in flight on main itself when: [t0] abort then: matches snapshot 1`] = `
+"🐢 no worries dude
+
+🐚 git.branch.catchup abort
+   ├─ merge: aborted
+   ├─ HEAD: HASH123 (as before the merge)
+   └─ meter
+      └─ left: 4 (no spend)
+"
+`;
+
+exports[`git.branch.catchup abort given: [case28] no merge in flight when: [t0] abort then: matches snapshot 1`] = `
+"✋ ConstraintError: no merge in flight
+
+🐚 git.branch.catchup abort
+   ├─ state: no catch-up merge is in flight
+   └─ fix: start one with rhx git.branch.catchup begin
 "
 `;

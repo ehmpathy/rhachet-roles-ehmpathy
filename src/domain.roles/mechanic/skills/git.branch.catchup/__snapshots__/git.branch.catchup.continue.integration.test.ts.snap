@@ -7,7 +7,11 @@ exports[`git.branch.catchup continue given: [case2] a merge in flight with two c
    ├─ conflicts
    │  └─ src/b.md
    └─ next
-      └─ settle it, rhx git.stage.add it, then continue again
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle each file:  rhx git.stage.add <file>
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
 "
 `;
 
@@ -37,6 +41,17 @@ exports[`git.branch.catchup continue given: [case27] no merge in flight when: [t
 "
 `;
 
+exports[`git.branch.catchup continue given: [case31] a settled merge in flight, and the meter ran dry since begin when: [t0] continue then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup continue
+   └─ ✋ ConstraintError: no commit uses left
+
+ask your human to grant more:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
+
 exports[`git.branch.catchup continue given: [case32] a settled merge in flight, and a commit-msg hook that refuses when: [t0] continue then: matches snapshot 1`] = `
 "💥 MalfunctionError: git commit failed; the merge stays in flight
 
@@ -45,7 +60,341 @@ exports[`git.branch.catchup continue given: [case32] a settled merge in flight, 
    │  ├─ commitlint: the header was refused
    │  └─ commitlint: see the commit convention
    └─ next
-      ├─ retry:       rhx git.branch.catchup continue
-      └─ or back out: rhx git.branch.catchup abort
+      ├─ fix the cause above
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup continue given: [case33] an unsettled merge in flight, and the meter ran dry when: [t0] continue then: matches snapshot 1`] = `
+"✋ ConstraintError: 2 files still in conflict
+
+🐚 git.branch.catchup continue
+   ├─ conflicts
+   │  ├─ src/a.md
+   │  └─ src/b.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle each file:  rhx git.stage.add <file>
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup continue given: [case33b] an unsettled merge in flight, and no sponsor when: [t0] continue then: matches snapshot 1`] = `
+"✋ ConstraintError: 2 files still in conflict
+
+🐚 git.branch.catchup continue
+   ├─ conflicts
+   │  ├─ src/a.md
+   │  └─ src/b.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle each file:  rhx git.stage.add <file>
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup continue given: [case33c] an unsettled merge in flight, and a human set the global blocker when: [t0] continue then: matches snapshot 1`] = `
+"✋ ConstraintError: 2 files still in conflict
+
+🐚 git.branch.catchup continue
+   ├─ conflicts
+   │  ├─ src/a.md
+   │  └─ src/b.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle each file:  rhx git.stage.add <file>
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup continue given: [case34] a settled merge in flight, a corrupt quota, and no sponsor when: [t0] continue then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup continue
+   └─ 💥 MalfunctionError: commit quota file corrupt
+
+   the file that holds this tree's commit quota cannot be read:
+     .meter/git.commit.uses.jsonc
+
+ask your human to reset the quota, then grant again:
+  $ git.commit.uses del
+  $ git.commit.uses set --quant N --push allow|block
+"
+`;
+
+exports[`git.branch.catchup continue given: [case35] a settled merge in flight, and no sponsor when: [t0] continue then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup continue
+   └─ ✋ ConstraintError: no sponsor for this commit
+
+   no sponsor is bound to this tree, and this machine's git config
+   names a clone:
+     seaturtle[bot] <seaturtle@ehmpath.com>
+   ...so this is the clone's machine, and it cannot answer for the change.
+
+   ⛔ you cannot fix this yourself. a sponsor is bound by a human,
+      at a terminal.
+
+ask your human to run, in this tree:
+  $ printf 'Name <email>' | rhx git.commit.sponsor set --who @stdin
+  $ rhx git.commit.sponsor set --who "Name <email>"
+"
+`;
+
+exports[`git.branch.catchup continue given: [case36] a settled merge in flight, and a human blocked the org when: [t0] continue then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.catchup continue
+   └─ ✋ ConstraintError: commits blocked for org ehmpathy
+
+ask your human to allow:
+  $ git.commit.uses allow --org <org>
+"
+`;
+
+exports[`git.branch.catchup continue given: [case37] a merge in flight where one staged file still holds markers when: [t0] continue then: matches snapshot 1`] = `
+"✋ ConstraintError: 1 file staged with conflict markers
+
+🐚 git.branch.catchup continue
+   ├─ marked
+   │  └─ src/b.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ restage each file: rhx git.stage.add <file>
+      └─ then:              rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup continue given: [case38] a hand merge of another branch in flight when: [t0] continue then: matches snapshot 1`] = `
+"✋ ConstraintError: the merge in flight is not a catch-up from origin/main
+
+🐚 git.branch.catchup continue
+   ├─ MERGE_HEAD: HASH123 (not on origin/main)
+   ├─ why: this verb commits only a merge of origin/main
+   └─ fix: back it out with rhx git.branch.catchup abort, then begin
+"
+`;
+
+exports[`git.branch.catchup continue given: [case39] a settled merge in flight, and push is blocked when: [t0] continue then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup continue
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ files: 2 merged
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 committed; the push needs a human grant
+   └─ a human runs: rhx git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.branch.catchup continue given: [case40] a conflicted merge in flight, and stage is blocked when: [t0] continue then: matches snapshot 1`] = `
+"✋ ConstraintError: 2 files still in conflict
+
+🐚 git.branch.catchup continue
+   ├─ conflicts
+   │  ├─ src/a.md
+   │  └─ src/b.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle each file:  a human grants stage first
+      │  └─ a human runs: rhx git.commit.uses set --quant N --push allow --stage allow
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup continue given: [case41] main adds, clean, a doc whose lines look like markers when: [t0] continue then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup continue
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ files: 2 merged
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup continue given: [case42] a merge of origin/main in flight on main itself when: [t0] continue then: matches snapshot 1`] = `
+"✋ ConstraintError: will not catch up main
+
+🐚 git.branch.catchup continue
+   ├─ branch: main
+   ├─ why: this verb levels a feature branch with main; it never writes to main or master
+   └─ fix: back the merge out with rhx git.branch.catchup abort, then run from your feature branch
+"
+`;
+
+exports[`git.branch.catchup continue given: [case43] core.commentChar is ";", and a staged file still holds markers when: [t0] continue then: matches snapshot 1`] = `
+"✋ ConstraintError: 1 file staged with conflict markers
+
+🐚 git.branch.catchup continue
+   ├─ marked
+   │  └─ src/a.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ restage each file: rhx git.stage.add <file>
+      └─ then:              rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup continue given: [case44] main deleted a file the branch changed when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: merge stopped on conflicts
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  └─ status: in flight, unsettled
+   ├─ conflicts
+   │  └─ src/tide.md (deleted on main, changed on the branch)
+   └─ next
+      ├─ a deleted file holds no markers; settle it with take
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup continue given: [case44] main deleted a file the branch changed when: [t1] continue, still unsettled then: matches snapshot 1`] = `
+"✋ ConstraintError: 1 file still in conflict
+
+🐚 git.branch.catchup continue
+   ├─ conflicts
+   │  └─ src/tide.md (deleted on main, changed on the branch)
+   └─ next
+      ├─ a deleted file holds no markers; settle it with take
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup continue given: [case45] the branch deleted a file main changed when: [t0] continue, still unsettled then: matches snapshot 1`] = `
+"✋ ConstraintError: 1 file still in conflict
+
+🐚 git.branch.catchup continue
+   ├─ conflicts
+   │  └─ src/tide.md (deleted on the branch, changed on main)
+   └─ next
+      ├─ a deleted file holds no markers; settle it with take
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup continue given: [case46] main adds a \`=======\` underline to a file both sides edit; the settle keeps it when: [t0] continue then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup continue
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ files: 1 merged
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup continue given: [case47] a settled merge, plus a staged file main never changed when: [t0] continue then: matches snapshot 1`] = `
+"🌙 left out of the merge commit: origin/main did not change 1 file
+   ├─ still in your tree, unstaged
+   │  └─ src/other.md
+   └─ commit it apart, once this merge lands
+      ├─ rhx git.stage.add <files>
+      └─ printf '<message>' | rhx git.commit.set -m @stdin --mode apply
+
+🐢 righteous!
+
+🐚 git.branch.catchup continue
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ files: 2 merged
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup continue given: [case48] MERGE_MSG holds no conflict list, and a staged file holds markers when: [t0] continue then: matches snapshot 1`] = `
+"✋ ConstraintError: 1 file staged with conflict markers
+
+🐚 git.branch.catchup continue
+   ├─ marked
+   │  └─ src/a.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ restage each file: rhx git.stage.add <file>
+      └─ then:              rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup continue given: [case49] a large file: main underlines its title with \`=======\`, both sides edit its end when: [t0] continue then: matches snapshot: a large file leaves the render as is 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup continue
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ files: 1 merged
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup continue given: [case50] a settled catch-up in flight, plus a stray file; the clone reaches for git.commit.set when: [t0] git.commit.set --mode apply --unstaged include then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: a merge is in flight; git.commit.set makes no merge commit
+
+   finish the catch-up through its own verb, which checks the merge first:
+     $ rhx git.branch.catchup continue
+   or back it out:
+     $ rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup continue given: [case50] a settled catch-up in flight, plus a stray file; the clone reaches for git.commit.set when: [t1] git.commit.set, plan mode (its default) then: matches snapshot 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ ✋ ConstraintError: a merge is in flight; git.commit.set makes no merge commit
+
+   finish the catch-up through its own verb, which checks the merge first:
+     $ rhx git.branch.catchup continue
+   or back it out:
+     $ rhx git.branch.catchup abort
 "
 `;

@@ -1,8 +1,10 @@
+import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { given, then, useBeforeAll, when } from 'test-fns';
 
 import {
+  asStableOutput,
   getConflictFiles,
   getHeadFacts,
   isMergeInFlight,
@@ -67,6 +69,10 @@ describe('git.branch.catchup journey', () => {
           expect(readMeterUses({ scene })).toBe(4);
           expect(isMergeInFlight({ scene })).toBe(false);
         });
+
+        then('matches snapshot', () => {
+          expect(asStableOutput(result.run.stdout)).toMatchSnapshot();
+        });
       });
 
       when('[t1] begin --mode apply', () => {
@@ -88,6 +94,35 @@ describe('git.branch.catchup journey', () => {
         then('meter unchanged: a conflicted merge never commits', () => {
           expect(readMeterUses({ scene })).toBe(4);
         });
+
+        then('cues the lockfile cure where the clone first meets it', () => {
+          expect(result.stdout).toContain(
+            '├─ a lockfile is refreshed, not merged\n      │  ├─ rhx git.branch.catchup take --whos main pnpm-lock.yaml\n      │  └─ rhx git.branch.catchup lock refresh',
+          );
+        });
+
+        then('matches snapshot', () => {
+          expect(asStableOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t1b] continue, too soon: both files unsettled', () => {
+        const result = useBeforeAll(async () =>
+          runCatchup({ scene, args: ['continue'] }),
+        );
+
+        then('exits 2; names both files; meter unchanged', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('2 files still in conflict');
+          expect(result.stdout).toContain('pnpm-lock.yaml');
+          expect(result.stdout).toContain('src/spot.test.ts');
+          expect(readMeterUses({ scene })).toBe(4);
+          expect(isMergeInFlight({ scene })).toBe(true);
+        });
+
+        then('matches snapshot', () => {
+          expect(asStableOutput(result.stdout)).toMatchSnapshot();
+        });
       });
 
       when('[t2] the test file settled by hand and staged; continue', () => {
@@ -106,6 +141,10 @@ describe('git.branch.catchup journey', () => {
           expect(result.stdout).toContain('pnpm-lock.yaml');
           expect(result.stdout).not.toContain('src/spot.test.ts');
           expect(readMeterUses({ scene })).toBe(4);
+        });
+
+        then('matches snapshot', () => {
+          expect(asStableOutput(result.stdout)).toMatchSnapshot();
         });
       });
 
@@ -127,6 +166,10 @@ describe('git.branch.catchup journey', () => {
             );
           },
         );
+
+        then('matches snapshot', () => {
+          expect(asStableOutput(result.stdout)).toMatchSnapshot();
+        });
       });
 
       when('[t4] lock refresh', () => {
@@ -142,6 +185,10 @@ describe('git.branch.catchup journey', () => {
           );
           expect(lock).toContain('pkgs/b2');
           expect(lock).toMatch(/pkgs\/b\b/);
+        });
+
+        then('matches snapshot', () => {
+          expect(asStableOutput(result.stdout)).toMatchSnapshot();
         });
       });
 
@@ -175,9 +222,63 @@ describe('git.branch.catchup journey', () => {
             'rhx git.commit.push --mode apply',
           );
         });
+
+        then('matches snapshot', () => {
+          expect(asStableOutput(result.run.stdout)).toMatchSnapshot();
+        });
       });
 
-      // a push with no --force refuses a non-fast-forward; git.commit.push needs a github pr
+      // the handoff: git.commit.push plan reads the merge commit with no github call
+      when('[t5b] git.commit.push --mode plan --output json', () => {
+        const result = useBeforeAll(async () => {
+          const run = spawnSync(
+            'bash',
+            [
+              path.join(__dirname, '../git.commit/git.commit.push.sh'),
+              '--mode',
+              'plan',
+              '--output',
+              'json',
+            ],
+            {
+              cwd: scene.workDir,
+              encoding: 'utf-8',
+              env: { ...process.env, HOME: scene.homeDir },
+            },
+          );
+          const branchTitle = runGit({
+            cwd: scene.workDir,
+            args: ['log', '-1', '--format=%s', 'HEAD^1'],
+          });
+          return { run, branchTitle };
+        });
+
+        then('exits 0: the merge commit clears the push guards', () => {
+          expect(result.run.status).toBe(0);
+        });
+
+        then(
+          "plans a plain push of the branch; the pr title is the branch's own commit, never main's",
+          () => {
+            const plan = JSON.parse(result.run.stdout.trim());
+            expect(plan.status).toBe('planned');
+            expect(plan.push_target).toBe(`origin/${scene.branch}`);
+            expect(plan.pr_title).toBe(result.branchTitle);
+            expect(plan.pr_title).not.toContain('the main dep change');
+          },
+        );
+      });
+
+      /**
+       * .mock = github, as the push target: a bare origin on disk stands in
+       * .why = a write to github needs a credential and a pr that a test cannot
+       *        drive into CONFLICTING on demand; the property this verb owes the
+       *        push is git's, not github's: a push with no --force accepts only a
+       *        fast-forward, so ancestry on any remote proves no force is needed
+       * .real = git.commit.push owns the github push and pr; its real-service
+       *         cases live in git.commit/external.contracts.integration.test.ts,
+       *         and catchup's own fetch meets real github in begin [case7c]
+       */
       when('[t6] a plain push, no force', () => {
         const result = useBeforeAll(async () => {
           const remoteBefore = runGit({
@@ -224,6 +325,10 @@ describe('git.branch.catchup journey', () => {
           expect(result.exitCode).toBe(0);
           expect(result.stdout).toContain('already level');
           expect(readMeterUses({ scene })).toBe(3);
+        });
+
+        then('matches snapshot', () => {
+          expect(asStableOutput(result.stdout)).toMatchSnapshot();
         });
       });
     },

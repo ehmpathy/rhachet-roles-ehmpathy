@@ -33,6 +33,12 @@
 #        functions only.
 source "$(dirname "${BASH_SOURCE[0]}")/keyrack.operations.sh"
 
+# the render functions the gates and corrupt renders call (print_turtle_header,
+# print_tree_*, print_instruction, emit_both). declared here, so a lone source
+# of this file renders whole rather than die 127 mid-tree. output.sh holds
+# functions only, so a caller's own second source is harmless.
+source "$(dirname "${BASH_SOURCE[0]}")/output.sh"
+
 ######################################################################
 # global blocker constants (shared across git.commit skills)
 ######################################################################
@@ -41,6 +47,31 @@ ROLE_SLUG="mechanic"
 GLOBAL_METER_DIR="$HOME/.rhachet/storage/repo=$ROLE_REPO/role=$ROLE_SLUG/.meter"
 GLOBAL_METER_FILE="$GLOBAL_METER_DIR/git.commit.uses.jsonc"
 ORG_METER_FILE="$GLOBAL_METER_DIR/git.commit.uses.org.jsonc"
+
+######################################################################
+# .what = a PURE transformer: a path as shown to a human, `~`-rooted where it
+#         sits under home
+#
+# .note = an empty home, or a path outside it, is shown whole: a `~` there
+#         would name a file that does not exist
+#
+# usage: as_path_shown_from_home path="$GLOBAL_METER_FILE" home="$HOME"
+######################################################################
+as_path_shown_from_home() {
+  local path="" home="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      path=*) path="${arg#path=}" ;;
+      home=*) home="${arg#home=}" ;;
+    esac
+  done
+
+  if [[ -n "$home" && "$path" == "$home"/* ]]; then
+    echo "~${path#"$home"}"
+    return 0
+  fi
+  echo "$path"
+}
 
 ######################################################################
 # the global meter's DISPLAY path — a `~`-rooted twin of GLOBAL_METER_FILE
@@ -78,10 +109,10 @@ ORG_METER_FILE="$GLOBAL_METER_DIR/git.commit.uses.org.jsonc"
 #         stays `~/.rhachet/…` on every host and in every run
 #         (rule.require.hermetic-tests).
 ######################################################################
-GLOBAL_METER_FILE_SHOWN="~${GLOBAL_METER_FILE#"$HOME"}"
+GLOBAL_METER_FILE_SHOWN="$(as_path_shown_from_home path="$GLOBAL_METER_FILE" home="$HOME")"
 
 # the ORG meter's display path — the same `~`-rooted treatment, same reasons
-ORG_METER_FILE_SHOWN="~${ORG_METER_FILE#"$HOME"}"
+ORG_METER_FILE_SHOWN="$(as_path_shown_from_home path="$ORG_METER_FILE" home="$HOME")"
 
 ######################################################################
 # render: name the damaged global meter, below the tree that reported it
@@ -145,12 +176,8 @@ print_global_corrupt_note() {
   #    disagrees with itself about how to lay out one idea
   #    (rule.forbid.snapshot-visual-blemishes).
   #
-  # ⚠️ .why it MATCHES `print_instruction` rather than CALLS it = that helper
-  #    lives in `output.sh`, and this file does not source it. a call here
-  #    resolves only because every real caller happens to source both — an
-  #    undeclared dependency that dies the moment `operations.sh` is sourced
-  #    alone, which is exactly how the test harness uses it (it exits 127).
-  #    ⇒ the shape is matched by hand; the coupling is not created.
+  # .note = written out in `print_instruction`'s layout, line for line, as its
+  #    org twin `print_org_corrupt_body` is; the two stay one shape.
   echo ""
   echo "until it parses, every commit is blocked. a human may inspect or clear it:"
   echo "  \$ cat $GLOBAL_METER_FILE_SHOWN"
@@ -171,8 +198,10 @@ print_global_corrupt_note() {
 #        command (rule.require.errors-name-the-fix).
 #
 # ⇒ .why it MIRRORS the global note rather than reuses it = the two name two
-#    different files, with two different clear commands. one note with two
-#    branches would hide that behind a conditional; two notes state it.
+#    different files, under two different gates (global, org); the clear
+#    commands share one form (`cat`, `rm -r`). a lift into one leaf on the
+#    label and path is recorded in
+#    .dream/v2026_10_30.fix.git-commit-operations-preextant-hazards.md
 #
 # 🔴 .why `rm -r` and never a bare `rm` = the corrupt state this note renders is
 #        classified to INCLUDE a directory at the path — that is what the `-e`
@@ -280,19 +309,27 @@ findsert_gitignored_dir() {
   shift
 
   mkdir -p "$dir"
+  local gitignore="$dir/.gitignore"
 
-  if [[ -f "$dir/.gitignore" ]]; then
+  # a file that already holds the `*` rule is done. one that lacks it (a
+  # write cut short before the rule, by an older build) gets the rule, so a
+  # re-run converges rather than trust a file merely because it exists
+  if [[ -f "$gitignore" ]]; then
+    grep -qxF '*' "$gitignore" || printf '*\n' >> "$gitignore"
     return 0
   fi
 
   # .why = `*` goes LAST, so an optional header reads above the rule it
-  #        explains. the file is absent at this point (the guard above
-  #        returned otherwise), so the appends build it from empty.
-  local line
+  #        explains. the file is built beside the target, then moved over
+  #        it, so a cut-short write never leaves a `.gitignore` with no rule
+  local gitignore_next line
+  gitignore_next=$(mktemp "$gitignore.XXXXXX")
   for line in "$@"; do
-    printf '%s\n' "$line" >> "$dir/.gitignore"
+    printf '%s\n' "$line" >> "$gitignore_next"
   done
-  printf '*\n' >> "$dir/.gitignore"
+  printf '*\n' >> "$gitignore_next"
+  chmod 644 "$gitignore_next"
+  mv -f "$gitignore_next" "$gitignore"
 }
 
 ######################################################################
@@ -310,6 +347,9 @@ findsert_gitignored_dir() {
 #         which is what keeps the cross-language pair honest.
 ######################################################################
 SPONSOR_STATE_FILENAME="git.commit.sponsor.jsonc"
+
+# the local commit quota's one name, beside the sponsor's, under `.meter/`
+COMMIT_STATE_FILENAME="git.commit.uses.jsonc"
 
 ######################################################################
 # the two bind commands a refusal may print
@@ -864,7 +904,7 @@ assert_git_identity_read() {
   [[ -n "${GIT_IDENTITY_KIND:-}" ]] && return 0
 
   emit_both "💥 MalfunctionError: the git identity was read before get_one_git_config_identity ran
-   this is a defect in the skill, never the caller's input — call the reader first"
+   └─ this is a defect in the skill, never the caller's input — call the reader first"
   exit 1
 }
 
@@ -2607,20 +2647,26 @@ refuse_commit_quota() {
   local skill=""
   local status=""
   local file_shown=""
+  local grant=""
   for arg in "$@"; do
     case "$arg" in
       skill=*) skill="${arg#skill=}" ;;
       status=*) status="${arg#status=}" ;;
       file_shown=*) file_shown="${arg#file_shown=}" ;;
+      grant=*) grant="${arg#grant=}" ;;
     esac
   done
+
+  # the grant a human runs; a verb whose plan names its own grant passes it,
+  # so plan and apply name one command
+  [[ -n "$grant" ]] || grant="git.commit.uses set --quant N --push allow|block"
 
   if [[ "$status" == "absent" ]]; then
     emit_both "$(
       print_turtle_header "bummer dude..."
       print_tree_start "$skill"
       print_tree_constraint "no commit quota set"
-      print_instruction "ask your human to grant:" "  \$ git.commit.uses set --quant N --push allow|block"
+      print_instruction "ask your human to grant:" "  \$ $grant"
     )"
     exit 2  # blocked by constraints
   fi
@@ -2640,7 +2686,7 @@ refuse_commit_quota() {
       print_turtle_header "bummer dude..."
       print_tree_start "$skill"
       print_tree_constraint "no commit uses left"
-      print_instruction "ask your human to grant more:" "  \$ git.commit.uses set --quant N --push allow|block"
+      print_instruction "ask your human to grant more:" "  \$ $grant"
     )"
     exit 2  # blocked by constraints
   fi
@@ -2811,6 +2857,16 @@ get_commit_sponsor() {
     exit 1  # malfunction
   fi
 
+  # fail closed: a read status this gate does not know never reads as bound
+  if [[ "$read_status" -ne "$SPONSOR_READ_BOUND" && "$read_status" -ne "$SPONSOR_READ_ABSENT" ]]; then
+    emit_both "$(
+      print_turtle_header "bummer dude..."
+      print_tree_start "$skill"
+      print_tree_malfunction "unknown sponsor read status '$read_status'"
+    )"
+    exit 1  # malfunction
+  fi
+
   SPONSOR_PROVENANCE="$SPONSOR_PROVENANCE_BOUND"
 
   # no bind — the machine's git config names the sponsor, or the commit refuses
@@ -2823,6 +2879,78 @@ get_commit_sponsor() {
     SPONSOR_EMAIL="$GIT_IDENTITY_EMAIL"
     SPONSOR_PROVENANCE="$SPONSOR_PROVENANCE_GIT_CONFIG"
   fi
+}
+
+######################################################################
+# .what = the commit gates, in their one order: human halts → quota read →
+#         sponsor. each refusal exits; a pass leaves the quota and sponsor
+#         globals set
+#
+# .why  = every verb that commits through the meter calls this one leaf,
+#         so no two verbs can refuse one tree in a different order
+#
+# .note = `refuse` names the quota statuses this caller refuses at the
+#         gate. a caller that flags a status in plan, or refuses it after
+#         a later check, leaves it out and acts on COMMIT_QUOTA_STATUS itself
+#
+# usage: refuse_if_commit_gates_fail skill="git.commit.set" \
+#          state_file="$STATE_FILE" sponsor_file="$METER_DIR/$SPONSOR_STATE_FILENAME" \
+#          repo_root="$REPO_ROOT" refuse="corrupt absent spent" [grant="<command>"]
+#
+# a `refuse=` token outside corrupt/absent/spent is a malfunction (exit 1)
+######################################################################
+refuse_if_commit_gates_fail() {
+  local skill="" state_file="" sponsor_file="" repo_root="" refuse="" grant="" arg token
+  for arg in "$@"; do
+    case "$arg" in
+      skill=*) skill="${arg#skill=}" ;;
+      state_file=*) state_file="${arg#state_file=}" ;;
+      sponsor_file=*) sponsor_file="${arg#sponsor_file=}" ;;
+      repo_root=*) repo_root="${arg#repo_root=}" ;;
+      refuse=*) refuse="${arg#refuse=}" ;;
+      grant=*) grant="${arg#grant=}" ;;
+    esac
+  done
+
+  # a mistyped status would disable its gate in silence; refuse it loud
+  for token in $refuse; do
+    case "$token" in
+      corrupt|absent|spent) ;;
+      *) refuse_meter_op_input op="refuse_if_commit_gates_fail" reason="refuse= holds '$token', not one of: corrupt, absent, spent" ;;
+    esac
+  done
+
+  # a human halted commits (global, then org)
+  refuse_if_commit_blocked skill="$skill"
+
+  # the quota, read before the sponsor; refuse each status the caller names
+  get_commit_quota_status file="$state_file"
+  if [[ " $refuse " == *" $COMMIT_QUOTA_STATUS "* ]]; then
+    refuse_commit_quota skill="$skill" status="$COMMIT_QUOTA_STATUS" grant="$grant" \
+      file_shown="$(as_path_shown_from_repo path="$state_file" root="$repo_root")"
+  fi
+
+  # a sponsor answers for the commit
+  get_commit_sponsor skill="$skill" file="$sponsor_file"
+}
+
+######################################################################
+# .what = a PURE transformer: a commit message with its sponsor trailer
+# .why  = git.commit.set and the catch-up merge commit credit the sponsor
+#         in one form
+# usage: as_commit_message_with_sponsor message="$MESSAGE" \
+#          sponsor_name="$SPONSOR_NAME" sponsor_email="$SPONSOR_EMAIL"
+######################################################################
+as_commit_message_with_sponsor() {
+  local message="" sponsor_name="" sponsor_email="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      message=*) message="${arg#message=}" ;;
+      sponsor_name=*) sponsor_name="${arg#sponsor_name=}" ;;
+      sponsor_email=*) sponsor_email="${arg#sponsor_email=}" ;;
+    esac
+  done
+  printf '%s\n\nCo-authored-by: %s <%s>\n' "$message" "$sponsor_name" "$sponsor_email"
 }
 
 ######################################################################
@@ -2862,10 +2990,15 @@ fetch_robot_token() {
     ROBOT_TOKEN=""
     [[ -n "$TOKEN_FETCH_ERR" ]] || TOKEN_FETCH_ERR="token fetch exited $fetch_status, with no stderr"
   fi
+
+  # a clean exit with no token is a fault too, and names itself
+  if [[ -z "$ROBOT_TOKEN" && -z "$TOKEN_FETCH_ERR" ]]; then
+    TOKEN_FETCH_ERR="token fetch exited 0, with no token"
+  fi
 }
 
 ######################################################################
-# .what = warn that the keyrack token fetch failed, on stderr
+# .what = warn that the keyrack token fetch failed, on stdout and stderr
 #
 # .why  = the fetch failure is a malfunction of the keyrack, so it opens with
 #         its class; the commit still lands, as the default seaturtle, so the
@@ -2881,9 +3014,23 @@ print_token_fetch_malfunction() {
     esac
   done
 
-  echo "💥 MalfunctionError: the ehmpath keyrack token fetch failed" >&2
-  echo "   ├─ effect: the commit authors as the default seaturtle" >&2
-  echo "   └─ cause: $cause" >&2
+  # the fetch retries after an unlock, so one fault can write the same line
+  # more than once; each distinct line, blank lines cut, is one cause leaf
+  local cause_lines
+  cause_lines=$(printf '%s\n' "$cause" | awk 'NF && !seen[$0]++')
+  local cause_tree="   ├─ cause: $cause_lines"
+  if [[ $(printf '%s\n' "$cause_lines" | wc -l) -gt 1 ]]; then
+    cause_tree="   ├─ cause"$'\n'$(printf '%s\n' "$cause_lines" | awk '{ rows[NR] = $0 } END { for (i = 1; i <= NR; i++) printf "   │  %s %s\n", (i < NR ? "├─" : "└─"), rows[i] }')
+  fi
+
+  # both streams, as every error render (rule.require.skill-output-streams)
+  local render="💥 MalfunctionError: the ehmpath keyrack token fetch failed
+   ├─ effect: the commit authors as the default seaturtle
+${cause_tree}
+   └─ fix: unlock the token before the next commit
+      └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+  echo "$render"
+  echo "$render" >&2
 }
 
 ######################################################################
@@ -2903,7 +3050,16 @@ set_robot_identity_from_token() {
     esac
   done
 
-  IFS=$'\t' read -r ROBOT_NAME ROBOT_EMAIL < <(get_one_seaturtle_identity "$token")
+  ROBOT_NAME=""
+  ROBOT_EMAIL=""
+  IFS=$'\t' read -r ROBOT_NAME ROBOT_EMAIL < <(get_one_seaturtle_identity "$token") || true
+
+  # a commit is never authored by a blank identity
+  if [[ -z "$ROBOT_NAME" || -z "$ROBOT_EMAIL" ]]; then
+    echo "💥 MalfunctionError: no seaturtle identity for this token"
+    echo "💥 MalfunctionError: no seaturtle identity for this token" >&2
+    exit 1
+  fi
 }
 
 ######################################################################
@@ -2992,19 +3148,19 @@ refuse_meter_op_input() {
 
   local render="💥 MalfunctionError: $op refused its input
    └─ $reason"
-  # two echoes, never `tee /dev/stderr` (see emit_both in output.sh, which
-  # this file does not source)
-  if [[ "$to" != "stderr" ]]; then
-    echo "$render"
+  # stderr only where stdout carries the caller's value; else both streams
+  if [[ "$to" == "stderr" ]]; then
+    echo "$render" >&2
+    exit 1
   fi
-  echo "$render" >&2
+  emit_both "$render"
   exit 1
 }
 
 ######################################################################
 # .what = a PURE transformer: the uses a commit leaves (infinite stays infinite)
 #
-# .note = a value that is no integer and not "infinite" fails loud (exit 1);
+# .note = a value that is not an integer and not "infinite" fails loud (exit 1);
 #         stdout carries only the value, so the refusal goes to stderr
 #
 # usage: NEW_USES=$(as_commit_uses_after_spend uses="$USES")
@@ -3020,7 +3176,7 @@ as_commit_uses_after_spend() {
 
   is_commit_uses_value uses="$uses" || \
     refuse_meter_op_input op="as_commit_uses_after_spend" to="stderr" \
-      reason="uses='$uses' is no integer and not \"infinite\""
+      reason="uses='$uses' is not an integer and not 'infinite'"
 
   if [[ "$uses" == "infinite" ]]; then
     echo "infinite"
@@ -3030,8 +3186,9 @@ as_commit_uses_after_spend() {
 }
 
 ######################################################################
-# .what = write the local commit quota file (preserve stage, write
-#         "infinite" as a string)
+# .what = write the local commit quota file: the uses, push, and stage the
+#         caller passes (the caller passes the stage it read, so a spend keeps
+#         it); "infinite" is written as a string
 #
 # .why  = one writer for the spend, so every verb that commits leaves the
 #         file in the same shape every reader expects
@@ -3064,7 +3221,9 @@ set_commit_meter_state() {
   # refuse any input a reader could not parse back
   [[ -n "$file" ]] || refuse_meter_op_input op="$op" reason="file is empty"
   is_commit_uses_value uses="$uses" || \
-    refuse_meter_op_input op="$op" reason="uses='$uses' is no integer and not \"infinite\""
+    refuse_meter_op_input op="$op" reason="uses='$uses' is not an integer and not 'infinite'"
+  [[ "$uses" != -* ]] || \
+    refuse_meter_op_input op="$op" reason="uses='$uses' is below zero; a spend from zero never lands"
   [[ -n "$push" ]] || refuse_meter_op_input op="$op" reason="push is empty"
   [[ -n "$stage" ]] || refuse_meter_op_input op="$op" reason="stage is empty"
 
@@ -3104,5 +3263,10 @@ as_path_shown_from_repo() {
     esac
   done
 
+  # an empty root leaves the path whole (a bare strip would cut its lead `/`)
+  if [[ -z "$root" ]]; then
+    echo "$path"
+    return 0
+  fi
   echo "${path#"$root/"}"
 }

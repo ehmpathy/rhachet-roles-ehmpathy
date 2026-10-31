@@ -39,7 +39,7 @@ while [[ $# -gt 0 ]]; do
       print_tree_start "$LABEL"
       echo "   ├─ usage"
       echo "   │  └─ rhx git.branch.catchup abort"
-      echo "   └─ backs out of the merge in flight; HEAD, index, and tree return to before begin"
+      echo "   └─ backs out of the merge in flight; HEAD, index, and tree return to before the merge"
       exit 0
       ;;
     *)
@@ -53,7 +53,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 REPO_ROOT=$(git rev-parse --show-toplevel)
-STATE_FILE="$REPO_ROOT/.meter/git.commit.uses.jsonc"
+cd "$REPO_ROOT"  # git lists paths from the root; read and act on them from there
+STATE_FILE="$REPO_ROOT/.meter/$COMMIT_STATE_FILENAME"
 
 # guard: a merge in flight
 refuse_if_no_merge_in_flight label="$LABEL"
@@ -69,7 +70,7 @@ if ! git merge --abort 2>"$ABORT_ERR_FILE"; then
   emit_catchup_malfunction message="git merge --abort failed" tree="$(
     print_tree_start "$LABEL"
     echo "   └─ cause"
-    print_catchup_files_tree prefix="      " files="$ABORT_ERR"
+    print_catchup_lines_tree prefix="      " files="$ABORT_ERR"
   )"
   exit 1
 fi
@@ -86,8 +87,8 @@ print_tree_start "$LABEL"
 echo "   ├─ merge: aborted"
 if [[ -n "$SETTLED_FILES" ]]; then
   echo "   ├─ settlements discarded (staged, not committed)"
-  print_catchup_files_tree prefix="   │  " files="$SETTLED_FILES"
+  print_catchup_lines_tree prefix="   │  " files="$SETTLED_FILES"
 fi
-echo "   ├─ HEAD: $(git rev-parse --short HEAD) (as before begin)"
+echo "   ├─ HEAD: $(git rev-parse --short HEAD) (as before the merge)"
 echo "   └─ meter"
 echo "      └─ $METER_LINE"

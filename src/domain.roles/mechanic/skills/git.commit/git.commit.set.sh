@@ -62,7 +62,7 @@ STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 #        twice, and a change applied once would show as a diff in one mode
 #        only (rule.require.named-transformers).
 #
-# .why = the `if [[ -n "$bline" ]]` skip is why this is not a one-liner: a
+# .why = the `if [[ -z "$line" ]]` skip is why this is not a one-liner: a
 #        body's blank lines carry no leaf, so the LAST non-blank line is not
 #        always the last index. the loop reads the count, never the content.
 #
@@ -118,7 +118,7 @@ render_body_as_tree_lines() {
 # .why = extraction also closes a leak: `FILES_ARR`, `FILES_COUNT`, `i`,
 #        and `f` were GLOBALS in the middle of a render. they are locals now.
 #
-# .note = the `if [[ -n "$f" ]]` skip mirrors the body render — a blank at
+# .note = the `if [[ -z "$line" ]]` skip mirrors the body render — a blank at
 #         the end carries no leaf, so the last INDEX is not always the last
 #         leaf. the loop reads the count, never the content.
 #
@@ -222,6 +222,30 @@ is_push_failed() {
   local do_push="$1"
   local push_result_status="$2"
   [[ "$do_push" == true && "$push_result_status" != "pushed" ]]
+}
+
+######################################################################
+# .what = a named predicate for "the last use shipped a push, so revoke push"
+#
+# .why  = five facts answer one question: a push was asked for and shipped,
+#         the quota is finite, it is spent, and push is still allowed
+#
+# usage: is_push_revoke_due do_push="$DO_PUSH" push_status="$PUSH_RESULT_STATUS" \
+#          uses_after="$NEW_USES" push_allowed="$PUSH_ALLOWED"
+######################################################################
+is_push_revoke_due() {
+  local do_push="" push_status="" uses_after="" push_allowed="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      do_push=*) do_push="${arg#do_push=}" ;;
+      push_status=*) push_status="${arg#push_status=}" ;;
+      uses_after=*) uses_after="${arg#uses_after=}" ;;
+      push_allowed=*) push_allowed="${arg#push_allowed=}" ;;
+    esac
+  done
+
+  is_push_shipped "$do_push" "$push_status" || return 1
+  [[ "$uses_after" != "infinite" && "$uses_after" -le 0 && "$push_allowed" == "allow" ]]
 }
 
 ######################################################################
@@ -651,20 +675,46 @@ else
   fi
 fi
 
-# refuse a commit a human halted: global blocker, then org blocker (both modes)
-refuse_if_commit_blocked skill="git.commit.set"
-
-# read the local quota; absent or damaged refuses in both modes
-get_commit_quota_status file="$STATE_FILE"
-if [[ "$COMMIT_QUOTA_STATUS" == "absent" || "$COMMIT_QUOTA_STATUS" == "corrupt" ]]; then
-  refuse_commit_quota skill="git.commit.set" status="$COMMIT_QUOTA_STATUS" \
-    file_shown="$(as_path_shown_from_repo path="$STATE_FILE" root="$REPO_ROOT")"
+# guard: no merge in flight. with MERGE_HEAD set, a plain commit records two
+# parents, so this skill would make a merge commit past every gate the merge
+# verb holds (stopped-file markers, stray stage). a pure read, ahead of every
+# mutation, so a refusal stages and spends naught
+if git rev-parse -q --verify MERGE_HEAD >/dev/null 2>&1; then
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.commit.set"
+    print_tree_constraint "a merge is in flight; git.commit.set makes no merge commit"
+    echo ""
+    echo "   finish the catch-up through its own verb, which checks the merge first:"
+    echo "     \$ rhx git.branch.catchup continue"
+    echo "   or back it out:"
+    echo "     \$ rhx git.branch.catchup abort"
+  )"
+  exit 2
 fi
 
-# spent uses refuse apply only (plan mode is allowed without uses)
-if [[ "$COMMIT_QUOTA_STATUS" == "spent" && "$MODE" != "plan" ]]; then
-  refuse_commit_quota skill="git.commit.set" status="spent"
-fi
+######################################################################
+# the commit gates, in their one order (refuse_if_commit_gates_fail):
+# human halts, then the quota, then the SPONSOR — the human who answers
+# for this change (precedence and rationale: get_commit_sponsor)
+#
+# absent or damaged quota refuses in both modes; spent refuses apply only
+# (plan mode is allowed without uses)
+#
+# 🔴 .why = the POSITION of this call is a guard: a REFUSED commit must
+#        perform no mutation.
+#          1. it sits ahead of `git add -A` (the `--unstaged include`
+#             branch below), so a refused commit stages not one file
+#          2. it sits ahead of the meter write (the last act of this
+#             skill), so a refused commit spends no quota, and a tree
+#             never needs two human grants to recover
+#        ⇒ the reads are pure and cheap, so they belong ahead of every mutation.
+######################################################################
+QUOTA_REFUSED="absent corrupt"
+[[ "$MODE" != "plan" ]] && QUOTA_REFUSED="absent corrupt spent"
+refuse_if_commit_gates_fail skill="git.commit.set" \
+  state_file="$STATE_FILE" sponsor_file="$METER_DIR/$SPONSOR_STATE_FILENAME" \
+  repo_root="$REPO_ROOT" refuse="$QUOTA_REFUSED"
 
 # check push permission
 if [[ "$DO_PUSH" == true && "$PUSH_ALLOWED" != "allow" ]]; then
@@ -676,21 +726,6 @@ if [[ "$DO_PUSH" == true && "$PUSH_ALLOWED" != "allow" ]]; then
   )"
   exit 2  # blocked by constraints
 fi
-
-######################################################################
-# the SPONSOR — the human who answers for this change (precedence and
-# rationale: get_commit_sponsor)
-#
-# 🔴 .why = the POSITION of this call is a guard: a REFUSED commit must
-#        perform no mutation.
-#          1. it sits ahead of `git add -A` (the `--unstaged include`
-#             branch below), so a refused commit stages not one file
-#          2. it sits ahead of the meter write (the last act of this
-#             skill), so a refused commit spends no quota, and a tree
-#             never needs two human grants to recover
-#        ⇒ the read is pure and cheap, so it belongs ahead of every mutation.
-######################################################################
-get_commit_sponsor skill="git.commit.set" file="$METER_DIR/$SPONSOR_STATE_FILENAME"
 
 # robot identity — below the sponsor guard: its token fetch may unlock a keyrack,
 # and a refused commit must mutate no store (see get_commit_robot_identity)
@@ -854,9 +889,8 @@ fi
 ######################################################################
 
 # create commit
-FULL_MESSAGE="$MESSAGE
-
-Co-authored-by: $SPONSOR_NAME <$SPONSOR_EMAIL>"
+FULL_MESSAGE=$(as_commit_message_with_sponsor message="$MESSAGE" \
+  sponsor_name="$SPONSOR_NAME" sponsor_email="$SPONSOR_EMAIL")
 
 COMMIT_STDERR_FILE=$(mktemp)
 if ! git commit \
@@ -970,9 +1004,10 @@ if [[ "$DO_PUSH" == true ]]; then
   fi
 fi
 
-# auto-revoke push if uses depleted and push was executed (decided before the
-# write, so the spend and the revoke land in one write)
-if [[ "$DO_PUSH" == true && "$PUSH_RESULT_STATUS" == "pushed" && "$NEW_USES" != "infinite" && "$NEW_USES" -le 0 && "$PUSH_ALLOWED" == "allow" ]]; then
+# auto-revoke push once the last use shipped a push (decided before the write,
+# so the spend and the revoke land in one write)
+if is_push_revoke_due do_push="$DO_PUSH" push_status="$PUSH_RESULT_STATUS" \
+  uses_after="$NEW_USES" push_allowed="$PUSH_ALLOWED"; then
   PUSH_ALLOWED="block"
   PUSH_DISPLAY="blocked (revoked)"
 fi

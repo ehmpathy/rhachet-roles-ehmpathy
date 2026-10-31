@@ -156,9 +156,145 @@ describe('git.branch.catchup abort', () => {
           expect(result.stdout).toContain('src/a.md');
           expect(result.stdout).not.toContain('src/b.md');
         });
+
+        then('matches snapshot', () => {
+          expect(asStableOutput(result.stdout)).toMatchSnapshot();
+        });
       });
     },
   );
+
+  given('[case3d] an unsettled conflict on a non-ASCII path', () => {
+    const scene = useBeforeAll(async () => {
+      const scene = genCatchupScene({
+        slug: 'catchup-abort-case3d',
+        base: { 'src/café.md': 'café: base\n' },
+        ahead: { 'src/café.md': 'café: branch\n' },
+      });
+      moveMain({
+        scene,
+        files: { 'src/café.md': 'café: main\n' },
+        message: 'feat(src): edit café',
+      });
+      const begin = runCatchup({ scene, args: ['begin', '--mode', 'apply'] });
+      expect(begin.exitCode).toBe(2);
+      expect(begin.stdout).toContain('src/café.md');
+      return scene;
+    });
+
+    when('[t0] abort', () => {
+      const result = useBeforeAll(async () =>
+        runCatchup({ scene, args: ['abort'] }),
+      );
+
+      then(
+        'backs out, and names no settlement: the file was never settled',
+        () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).not.toContain('settlements discarded');
+          expect(isMergeInFlight({ scene })).toBe(false);
+        },
+      );
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case3e] a hand merge of another branch in flight', () => {
+    const ctx = useBeforeAll(async () => {
+      const scene = genCatchupScene({ slug: 'catchup-abort-case3e' });
+      runGit({
+        cwd: scene.workDir,
+        args: ['checkout', '-q', '-b', 'turtle/other', 'main'],
+      });
+      fs.writeFileSync(path.join(scene.workDir, 'docs.md'), 'other\n');
+      runGit({ cwd: scene.workDir, args: ['add', 'docs.md'] });
+      runGit({
+        cwd: scene.workDir,
+        args: ['commit', '-q', '-m', 'feat(docs): other'],
+      });
+      runGit({ cwd: scene.workDir, args: ['checkout', '-q', scene.branch] });
+      const headBefore = getHeadFacts({ scene }).sha;
+      runGit({
+        cwd: scene.workDir,
+        args: ['merge', '--no-ff', '--no-commit', 'turtle/other'],
+      });
+      expect(isMergeInFlight({ scene })).toBe(true);
+      return { scene, headBefore };
+    });
+
+    when('[t0] abort: the one way out that begin and continue name', () => {
+      const result = useBeforeAll(async () =>
+        runCatchup({ scene: ctx.scene, args: ['abort'] }),
+      );
+
+      then('exits 0; HEAD back to before the merge; tree clean', () => {
+        expect(result.exitCode).toBe(0);
+        expect(getHeadFacts({ scene: ctx.scene }).sha).toBe(ctx.headBefore);
+        expect(isMergeInFlight({ scene: ctx.scene })).toBe(false);
+        expect(
+          runGit({ cwd: ctx.scene.workDir, args: ['status', '--porcelain'] }),
+        ).toBe('');
+      });
+
+      then('claims no begin it never saw, and names no settlement', () => {
+        expect(result.stdout).toContain('(as before the merge)');
+        expect(result.stdout).not.toContain('before begin');
+        expect(result.stdout).not.toContain('settlements discarded');
+      });
+
+      then('meter unchanged', () => {
+        expect(readMeterUses({ scene: ctx.scene })).toBe(4);
+      });
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case3f] a merge of origin/main in flight on main itself', () => {
+    const ctx = useBeforeAll(async () => {
+      const scene = genCatchupScene({ slug: 'catchup-abort-case3f' });
+      moveMain({
+        scene,
+        files: { 'docs/a.md': 'a\n' },
+        message: 'feat(docs): add a',
+      });
+      runGit({ cwd: scene.workDir, args: ['fetch', '-q', 'origin'] });
+      runGit({ cwd: scene.workDir, args: ['checkout', '-q', 'main'] });
+      const headBefore = getHeadFacts({ scene }).sha;
+      runGit({
+        cwd: scene.workDir,
+        args: ['merge', '--no-ff', '--no-commit', 'origin/main'],
+      });
+      expect(isMergeInFlight({ scene })).toBe(true);
+      return { scene, headBefore };
+    });
+
+    when('[t0] abort', () => {
+      const result = useBeforeAll(async () =>
+        runCatchup({ scene: ctx.scene, args: ['abort'] }),
+      );
+
+      then('exits 0; main back to before the merge; no commit on main', () => {
+        expect(result.exitCode).toBe(0);
+        expect(getHeadFacts({ scene: ctx.scene }).sha).toBe(ctx.headBefore);
+        expect(isMergeInFlight({ scene: ctx.scene })).toBe(false);
+        expect(result.stdout).toContain('(as before the merge)');
+      });
+
+      then('meter unchanged', () => {
+        expect(readMeterUses({ scene: ctx.scene })).toBe(4);
+      });
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
 
   given('[case28] no merge in flight', () => {
     const scene = useBeforeAll(async () =>
@@ -178,6 +314,10 @@ describe('git.branch.catchup abort', () => {
         expect(result.stderr).toContain(
           '✋ ConstraintError: no merge in flight',
         );
+      });
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });

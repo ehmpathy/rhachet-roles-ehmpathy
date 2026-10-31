@@ -83,6 +83,7 @@ export const writeMeter = (input: {
   scene: CatchupScene;
   uses: number | 'infinite';
   stage?: 'allow' | 'block';
+  push?: 'allow' | 'block';
 }): void => {
   const meterDir = path.join(input.scene.workDir, '.meter');
   fs.mkdirSync(meterDir, { recursive: true });
@@ -91,7 +92,7 @@ export const writeMeter = (input: {
     JSON.stringify(
       {
         uses: input.uses,
-        push: 'allow',
+        push: input.push ?? 'allow',
         stage: input.stage ?? 'allow',
       },
       null,
@@ -212,7 +213,8 @@ export const genCatchupScene = (input: {
 export const asStableOutput = (output: string): string =>
   output
     .replace(/\b[0-9a-f]{7,40}\b/g, 'HASH123')
-    .replace(/\/[^\s']*\.temp\/[^\s']*/g, '/TEMP');
+    // mask the temp root through its timestamped dir; the subpath after it stays in the snap
+    .replace(/\/[^\s']*\.temp\/(?:[^\s'/]+\/)*?\d{4}-\d{2}-\d{2}T[^\s'/]+/g, '/TEMP');
 
 /**
  * .what = run the catchup dispatcher in the scene's clone
@@ -222,12 +224,14 @@ export const runCatchup = (input: {
   scene: CatchupScene;
   args: string[];
   env?: Record<string, string>;
+  // a dir under the clone to run from (default: the clone root)
+  subdir?: string;
 }): { stdout: string; stderr: string; exitCode: number } => {
   const result = spawnSync(
     'bash',
     [path.join(SKILL_DIR, 'git.branch.catchup.sh'), ...input.args],
     {
-      cwd: input.scene.workDir,
+      cwd: path.join(input.scene.workDir, input.subdir ?? ''),
       encoding: 'utf-8',
       env: { ...process.env, HOME: input.scene.homeDir, ...input.env },
     },

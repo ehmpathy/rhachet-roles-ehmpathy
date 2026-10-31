@@ -29,7 +29,7 @@ source "$COMMIT_SKILL_DIR/git.commit.operations.sh"
 source "$SKILL_DIR/git.branch.catchup.operations.sh"
 
 LABEL="git.branch.catchup take"
-USAGE="rhx git.branch.catchup take --whos main|branch <paths…>"
+USAGE="rhx git.branch.catchup take --whos <main|branch> <paths…>"
 
 ######################################################################
 # parse arguments
@@ -57,11 +57,19 @@ while [[ $# -gt 0 ]]; do
       echo "   │  └─ $USAGE"
       echo "   ├─ args"
       echo "   │  ├─ --whos   main (origin/main's version) or branch (this branch's version)"
-      echo "   │  └─ paths    conflicted files or globs; . for every conflict"
+      echo "   │  └─ paths    conflicted files or globs, from the repo root; . for every conflict"
       echo "   └─ examples"
       echo "      ├─ rhx git.branch.catchup take --whos main pnpm-lock.yaml"
       echo "      └─ rhx git.branch.catchup take --whos branch src/readme.md"
       exit 0
+      ;;
+    --*)
+      # a flag take does not know is a typo, never a path to match
+      emit_catchup_constraint message="unknown argument: $1" tree="$(
+        print_tree_start "$LABEL"
+        echo "   └─ usage: $USAGE"
+      )"
+      exit 2
       ;;
     *)
       PATHS+=("$1")
@@ -73,7 +81,11 @@ done
 ######################################################################
 # guards
 ######################################################################
-refuse_if_no_merge_in_flight label="$LABEL"
+REPO_ROOT=$(git rev-parse --show-toplevel)
+cd "$REPO_ROOT"  # git lists conflicts from the root; take them from there
+STATE_FILE="$REPO_ROOT/.meter/$COMMIT_STATE_FILENAME"
+
+refuse_if_no_catchup_merge_in_flight label="$LABEL"
 
 # guard: --whos is main or branch
 if [[ "$WHOS" != "main" && "$WHOS" != "branch" ]]; then
@@ -105,29 +117,37 @@ if [[ -z "$CONFLICTS" ]]; then
   exit 2
 fi
 
-# match each path to the conflicted files; refuse before any change if one misses
+# match each conflicted file to the paths; refuse before any change if a path
+# misses. files loop outside, so each file is taken once, with no dedupe
 TAKEN=()
 MISSED=()
-for pattern in "${PATHS[@]}"; do
-  HIT=false
-  while IFS= read -r file; do
-    [[ -z "$file" ]] && continue
-    # shellcheck disable=SC2053 # the pattern is a glob on purpose
-    if [[ "$pattern" == "." || "$file" == $pattern ]]; then
-      HIT=true
-      [[ " ${TAKEN[*]-} " == *" $file "* ]] || TAKEN+=("$file")
+PATTERN_HITS=()
+while IFS= read -r file; do
+  [[ -z "$file" ]] && continue
+  FILE_HIT=false
+  for i in "${!PATHS[@]}"; do
+    # an exact name matches first, so `app/[id]/page.tsx` typed as printed is
+    # that file, never a one-char class; else the path is a glob on purpose
+    # shellcheck disable=SC2053
+    if [[ "${PATHS[$i]}" == "." || "$file" == "${PATHS[$i]}" || "$file" == ${PATHS[$i]} ]]; then
+      PATTERN_HITS[i]=true
+      FILE_HIT=true
     fi
-  done <<< "$CONFLICTS"
-  [[ "$HIT" == true ]] || MISSED+=("$pattern")
+  done
+  [[ "$FILE_HIT" == true ]] && TAKEN+=("$file")
+done <<< "$CONFLICTS"
+for i in "${!PATHS[@]}"; do
+  [[ "${PATTERN_HITS[i]-}" == true ]] || MISSED+=("${PATHS[$i]}")
 done
 
 if [[ ${#MISSED[@]} -gt 0 ]]; then
   emit_catchup_constraint message="a path matches no conflicted file" tree="$(
     print_tree_start "$LABEL"
     echo "   ├─ unmatched"
-    print_catchup_files_tree prefix="   │  " files="$(printf '%s\n' "${MISSED[@]}")"
+    print_catchup_lines_tree prefix="   │  " files="$(printf '%s\n' "${MISSED[@]}")"
+    echo "   ├─ note: paths are read from the repo root, wherever take runs"
     echo "   └─ in conflict"
-    print_catchup_files_tree prefix="      " files="$CONFLICTS"
+    print_catchup_lines_tree prefix="      " files="$CONFLICTS"
   )"
   exit 2
 fi
@@ -142,6 +162,9 @@ if [[ "$WHOS" == "branch" ]]; then
   GIT_SIDE="--ours"
   GIT_STAGE=2
 fi
+
+# each name is a raw path, never a glob: `a[1].md` names one file
+export GIT_LITERAL_PATHSPECS=1
 
 LOCK_TAKEN=false
 for file in "${TAKEN[@]}"; do
@@ -170,10 +193,11 @@ print_turtle_header "righteous!"
 print_tree_start "$LABEL"
 echo "   ├─ whos: $WHOS"
 echo "   ├─ settled"
-print_catchup_files_tree prefix="   │  " files="$(printf '%s ✓\n' "${TAKEN[@]}")"
+print_catchup_lines_tree prefix="   │  " files="$(printf '%s ✓\n' "${TAKEN[@]}")"
 if [[ -n "$CONFLICTS_LEFT" ]]; then
+  CONFLICTS_LEFT_SHOWN=$(get_conflict_files_shown)
   echo "   ├─ still in conflict"
-  print_catchup_files_tree prefix="   │  " files="$CONFLICTS_LEFT"
+  print_catchup_lines_tree prefix="   │  " files="$CONFLICTS_LEFT_SHOWN"
 fi
 
 # no step remains before continue: one line
@@ -182,12 +206,21 @@ if [[ "$LOCK_TAKEN" != true && -z "$CONFLICTS_LEFT" ]]; then
   exit 0
 fi
 
-# steps remain: list each, then continue
+# steps remain: a label, then a command a human can paste; then continue
 echo "   └─ next"
 if [[ "$LOCK_TAKEN" == true ]]; then
-  echo "      ├─ lockfile taken whole; refresh it: rhx git.branch.catchup lock refresh"
+  printf '      ├─ %-18s rhx git.branch.catchup lock refresh\n' "refresh the lock:"
 fi
 if [[ -n "$CONFLICTS_LEFT" ]]; then
-  echo "      ├─ settle the rest: take a side, or edit + rhx git.stage.add <file>"
+  # the stage grant, read pure, names the right next step for a hand edit
+  get_commit_quota_status file="$STATE_FILE"
+  if has_deleted_conflict shown="$CONFLICTS_LEFT_SHOWN"; then
+    echo "      ├─ $CATCHUP_DELETED_ADVICE"
+  fi
+  if has_text_conflict shown="$CONFLICTS_LEFT_SHOWN"; then
+    echo "      ├─ $CATCHUP_MARKERS_ADVICE"
+    print_catchup_stage_advice stage="${STAGE_ALLOWED:-block}" label="settle the rest:"
+  fi
+  printf '      ├─ %-18s rhx git.branch.catchup take --whos <main|branch> <file>\n' "or take a side:"
 fi
-echo "      └─ then: rhx git.branch.catchup continue"
+printf '      └─ %-18s rhx git.branch.catchup continue\n' "then:"

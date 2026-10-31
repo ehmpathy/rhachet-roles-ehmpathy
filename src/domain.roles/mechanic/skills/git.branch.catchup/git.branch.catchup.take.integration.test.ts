@@ -12,6 +12,7 @@ import {
   moveMain,
   runCatchup,
   runGit,
+  writeMeter,
 } from './.test/genCatchupScene';
 
 /**
@@ -110,6 +111,10 @@ describe('git.branch.catchup take', () => {
           expect(getConflictFiles(scene)).toBe('');
         },
       );
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
+      });
     });
 
     when('[t2] take again, with no file left in conflict', () => {
@@ -123,6 +128,13 @@ describe('git.branch.catchup take', () => {
           '✋ ConstraintError: no file in conflict',
         );
         expect(result.stdout).toContain('rhx git.branch.catchup continue');
+        expect(result.stderr).toContain(
+          '✋ ConstraintError: no file in conflict',
+        );
+      });
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -146,6 +158,9 @@ describe('git.branch.catchup take', () => {
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain('a path matches no conflicted file');
           expect(result.stdout).toContain('src/absent.md');
+          expect(result.stdout).toContain(
+            'note: paths are read from the repo root, wherever take runs',
+          );
         },
       );
 
@@ -168,6 +183,13 @@ describe('git.branch.catchup take', () => {
         expect(result.stdout).toContain(
           '--whos must be main or branch (got: ours)',
         );
+        expect(result.stderr).toContain(
+          '--whos must be main or branch (got: ours)',
+        );
+      });
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -184,6 +206,36 @@ describe('git.branch.catchup take', () => {
 
       then('changes naught: the file is still in conflict', () => {
         expect(getConflictFiles(scene)).toContain('src/a.md');
+      });
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] take with an unknown flag', () => {
+      const result = useBeforeAll(async () =>
+        runCatchup({
+          scene,
+          args: ['take', '--whos', 'main', '--force', 'src/a.md'],
+        }),
+      );
+
+      then(
+        'exits 2 on both streams: an unknown flag, never a path to match',
+        () => {
+          expect(result.exitCode).toBe(2);
+          for (const stream of [result.stdout, result.stderr])
+            expect(stream).toContain(
+              '✋ ConstraintError: unknown argument: --force',
+            );
+          expect(result.stdout).not.toContain('matches no conflicted file');
+          expect(getConflictFiles(scene)).toContain('src/a.md');
+        },
+      );
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -204,6 +256,10 @@ describe('git.branch.catchup take', () => {
           false,
         );
         expect(getConflictFiles(scene)).toBe('');
+      });
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -232,9 +288,268 @@ describe('git.branch.catchup take', () => {
             expect(getConflictFiles(scene)).toBe('');
           },
         );
+
+        then('matches snapshot', () => {
+          expect(asStableOutput(result.stdout)).toMatchSnapshot();
+        });
       });
     },
   );
+
+  given(
+    '[case23c] conflicts on two files where one name holds the other',
+    () => {
+      const scene = useBeforeAll(async () => {
+        const scene = genCatchupScene({
+          slug: 'catchup-take-case23c',
+          base: { 'x y.txt': 'xy: base\n', x: 'x: base\n' },
+          ahead: { 'x y.txt': 'xy: branch\n', x: 'x: branch\n' },
+        });
+        moveMain({
+          scene,
+          files: { 'x y.txt': 'xy: main\n', x: 'x: main\n' },
+          message: 'feat(src): edit x and x y',
+        });
+        const begin = runCatchup({ scene, args: ['begin', '--mode', 'apply'] });
+        expect(begin.exitCode).toBe(2);
+        return scene;
+      });
+
+      when("[t0] take --whos main 'x y.txt' x", () => {
+        const result = useBeforeAll(async () =>
+          runCatchup({
+            scene,
+            args: ['take', '--whos', 'main', 'x y.txt', 'x'],
+          }),
+        );
+
+        then('exits 0 and takes both files, none skipped', () => {
+          expect(result.exitCode).toBe(0);
+          expect(readFileIn(scene, 'x y.txt')).toBe('xy: main\n');
+          expect(readFileIn(scene, 'x')).toBe('x: main\n');
+          expect(getConflictFiles(scene)).toBe('');
+        });
+
+        then('matches snapshot: the spaced name renders whole', () => {
+          expect(asStableOutput(result.stdout)).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given(
+    '[case23g] a conflict on a bracketed path, as a route dir holds',
+    () => {
+      const scene = useBeforeAll(async () => {
+        const scene = genCatchupScene({
+          slug: 'catchup-take-case23g',
+          base: { 'app/[id]/page.tsx': 'page: base\n' },
+          ahead: { 'app/[id]/page.tsx': 'page: branch\n' },
+        });
+        moveMain({
+          scene,
+          files: { 'app/[id]/page.tsx': 'page: main\n' },
+          message: 'feat(app): edit the page',
+        });
+        const begin = runCatchup({ scene, args: ['begin', '--mode', 'apply'] });
+        expect(begin.exitCode).toBe(2);
+        return scene;
+      });
+
+      when(
+        '[t0] take --whos main app/[id]/page.tsx, by name as printed',
+        () => {
+          const result = useBeforeAll(async () =>
+            runCatchup({
+              scene,
+              args: ['take', '--whos', 'main', 'app/[id]/page.tsx'],
+            }),
+          );
+
+          then(
+            'exits 0; the file holds main and leaves the conflict set',
+            () => {
+              expect(result.exitCode).toBe(0);
+              expect(readFileIn(scene, 'app/[id]/page.tsx')).toBe(
+                'page: main\n',
+              );
+              expect(getConflictFiles(scene)).toBe('');
+            },
+          );
+
+          then('matches snapshot: the bracketed name renders raw', () => {
+            expect(asStableOutput(result.stdout)).toMatchSnapshot();
+          });
+        },
+      );
+    },
+  );
+
+  given(
+    '[case23f] conflicts on a non-ASCII path and a glob-shaped path',
+    () => {
+      const scene = useBeforeAll(async () => {
+        const scene = genCatchupScene({
+          slug: 'catchup-take-case23f',
+          base: { 'src/café.md': 'café: base\n', 'src/a[1].md': 'a1: base\n' },
+          ahead: {
+            'src/café.md': 'café: branch\n',
+            'src/a[1].md': 'a1: branch\n',
+          },
+        });
+        moveMain({
+          scene,
+          files: { 'src/café.md': 'café: main\n', 'src/a[1].md': 'a1: main\n' },
+          message: 'feat(src): edit café and a1',
+        });
+        const begin = runCatchup({ scene, args: ['begin', '--mode', 'apply'] });
+        expect(begin.exitCode).toBe(2);
+        return scene;
+      });
+
+      when('[t0] take --whos main src/café.md', () => {
+        const result = useBeforeAll(async () =>
+          runCatchup({
+            scene,
+            args: ['take', '--whos', 'main', 'src/café.md'],
+          }),
+        );
+
+        then('exits 0: the raw name matches its conflict', () => {
+          expect(result.exitCode).toBe(0);
+          expect(readFileIn(scene, 'src/café.md')).toBe('café: main\n');
+        });
+
+        then(
+          'matches snapshot: the non-ASCII name renders raw, never quoted',
+          () => {
+            expect(asStableOutput(result.stdout)).toMatchSnapshot();
+          },
+        );
+      });
+
+      when('[t1] take --whos branch .', () => {
+        const result = useBeforeAll(async () =>
+          runCatchup({ scene, args: ['take', '--whos', 'branch', '.'] }),
+        );
+
+        then(
+          'exits 0 and takes the glob-shaped path as one literal file',
+          () => {
+            expect(result.exitCode).toBe(0);
+            expect(readFileIn(scene, 'src/a[1].md')).toBe('a1: branch\n');
+            expect(getConflictFiles(scene)).toBe('');
+          },
+        );
+
+        then(
+          'matches snapshot: the glob-shaped name renders as one file',
+          () => {
+            expect(asStableOutput(result.stdout)).toMatchSnapshot();
+          },
+        );
+      });
+    },
+  );
+
+  given('[case23e] take run from a subdirectory', () => {
+    const scene = useBeforeAll(async () =>
+      genTextConflictScene({ slug: 'catchup-take-case23e' }),
+    );
+
+    when('[t0] take --whos main . from src/', () => {
+      const result = useBeforeAll(async () =>
+        runCatchup({
+          scene,
+          args: ['take', '--whos', 'main', '.'],
+          subdir: 'src',
+        }),
+      );
+
+      then('exits 0 and takes every conflict, as from the root', () => {
+        expect(result.exitCode).toBe(0);
+        expect(readFileIn(scene, 'src/a.md')).toBe('a: main\n');
+        expect(readFileIn(scene, 'src/b.md')).toBe('b: main\n');
+        expect(getConflictFiles(scene)).toBe('');
+      });
+
+      then('the settled list names paths from the repo root, not cwd', () => {
+        expect(result.stdout).toContain('src/a.md ✓');
+        expect(result.stdout).toContain('src/b.md ✓');
+        expect(result.stdout).not.toMatch(/─ (\.\/)?a\.md ✓/);
+      });
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case26c] a hand merge of another branch in flight', () => {
+    const scene = useBeforeAll(async () => {
+      const scene = genCatchupScene({ slug: 'catchup-take-case26c' });
+      runGit({
+        cwd: scene.workDir,
+        args: ['checkout', '-q', '-b', 'turtle/other', 'main'],
+      });
+      fs.writeFileSync(path.join(scene.workDir, 'docs.md'), 'other\n');
+      runGit({ cwd: scene.workDir, args: ['add', 'docs.md'] });
+      runGit({
+        cwd: scene.workDir,
+        args: ['commit', '-q', '-m', 'feat(docs): other'],
+      });
+      runGit({ cwd: scene.workDir, args: ['checkout', '-q', scene.branch] });
+      runGit({
+        cwd: scene.workDir,
+        args: ['merge', '--no-ff', '--no-commit', 'turtle/other'],
+      });
+      return scene;
+    });
+
+    when('[t0] take --whos main docs.md', () => {
+      const result = useBeforeAll(async () =>
+        runCatchup({ scene, args: ['take', '--whos', 'main', 'docs.md'] }),
+      );
+
+      then('exits 2 on both streams: not a catch-up; names abort', () => {
+        expect(result.exitCode).toBe(2);
+        for (const stream of [result.stdout, result.stderr]) {
+          expect(stream).toContain('not a catch-up');
+        }
+        expect(result.stdout).toContain('rhx git.branch.catchup abort');
+        expect(isMergeInFlight({ scene })).toBe(true);
+      });
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case23d] a conflict left, and stage is blocked', () => {
+    const scene = useBeforeAll(async () => {
+      const scene = genTextConflictScene({ slug: 'catchup-take-case23d' });
+      writeMeter({ scene, uses: 4, stage: 'block' });
+      return scene;
+    });
+
+    when('[t0] take --whos main src/a.md', () => {
+      const result = useBeforeAll(async () =>
+        runCatchup({ scene, args: ['take', '--whos', 'main', 'src/a.md'] }),
+      );
+
+      then('names the stage grant for the rest, never git.stage.add', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('a human grants stage');
+        expect(result.stdout).toContain('--stage allow');
+        expect(result.stdout).not.toContain('rhx git.stage.add');
+      });
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
 
   given('[case26] no merge in flight', () => {
     const scene = useBeforeAll(async () =>
@@ -251,6 +566,10 @@ describe('git.branch.catchup take', () => {
         expect(result.stdout).toContain(
           '✋ ConstraintError: no merge in flight',
         );
+      });
+
+      then('matches snapshot', () => {
+        expect(asStableOutput(result.stdout)).toMatchSnapshot();
       });
     });
   });

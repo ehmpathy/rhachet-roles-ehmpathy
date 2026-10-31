@@ -1,0 +1,310 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.catchup, via rhachet given: [case1] a repo with the mechanic role linked, on its default branch when: [t0] the verb is asked for help then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ one merge commit of origin/main into this branch; the push after it is plain
+   ├─ when: use it once the branch is pushed; rebase before the first push
+   ├─ subcommands
+   │  ├─ begin      preview (default) or apply the merge
+   │  ├─ take       settle a conflict by side: --whos main|branch
+   │  ├─ lock       refresh a taken lockfile against the merged package.json
+   │  ├─ continue   make the merge commit once every conflict is settled
+   │  ├─ abort      back out to the state before begin
+   │  └─ help       show this usage
+   └─ examples
+      ├─ rhx git.branch.catchup begin
+      ├─ rhx git.branch.catchup begin --mode apply
+      ├─ rhx git.branch.catchup take --whos main pnpm-lock.yaml
+      ├─ rhx git.branch.catchup lock refresh
+      ├─ rhx git.branch.catchup continue
+      ├─ rhx git.branch.catchup abort
+      └─ then: rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case1] a repo with the mechanic role linked, on its default branch when: [t1] begin, plan mode, on the default branch then: matches snapshot 1`] = `
+"✋ ConstraintError: will not merge into main
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ branch: main
+   ├─ why: this verb levels a feature branch with main; it never writes to main or master
+   └─ fix: run it from the worktree of your feature branch
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case1] a repo with the mechanic role linked, on its default branch when: [t2] continue, with no merge in flight then: matches snapshot 1`] = `
+"✋ ConstraintError: no merge in flight
+
+🐚 git.branch.catchup continue
+   ├─ state: no catch-up merge is in flight
+   └─ fix: start one with rhx git.branch.catchup begin
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case2] a pushed branch behind main, with no overlap when: [t0] begin, plan mode then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.catchup begin --mode plan
+   ├─ catch up via merge (no rewrite) from origin/main
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ into: turtle/feat-wave-report
+   │  ├─ behind: 1 commit
+   │  │  └─ HASH123 feat(docs): the main change
+   │  └─ ahead: 1 commit
+   ├─ commit
+   │  ├─ header: cont(branch): merge origin/main into turtle/feat-wave-report
+   │  ├─ author: seaturtle[bot] <seaturtle@ehmpath.com>
+   │  └─ sponsor: Test Human <human@test.com>, from bound (this tree)
+   └─ meter
+      └─ left: 4 → 3
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case2] a pushed branch behind main, with no overlap when: [t1] begin --mode apply then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ behind: 1 → 0
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case2] a pushed branch behind main, with no overlap when: [t2] begin --mode apply again then: matches snapshot 1`] = `
+"🐢 already level
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ from: origin/main
+   ├─ behind: 0
+   └─ no merge needed; meter untouched
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case2] a pushed branch behind main, with no overlap when: [t3] git.commit.push, plan mode then: matches snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.push --mode plan
+   ├─ push: origin/turtle/feat-wave-report
+   ├─ pr
+   │  ├─ title: feat(spot): add the spot
+   │  ├─ action: findsert
+   │  └─ opened: as-ehmpath (ehmpath keyrack)
+   └─ meter
+      └─ push: allowed
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case3] a pushed branch that conflicts with main on one file when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: merge stopped on conflicts
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  └─ status: in flight, unsettled
+   ├─ conflicts
+   │  └─ src/spot.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle each file:  rhx git.stage.add <file>
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case3] a pushed branch that conflicts with main on one file when: [t1] take --whos main src/spot.md then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  └─ src/spot.md ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case3] a pushed branch that conflicts with main on one file when: [t2] continue then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup continue
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ files: 1 merged
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case3b] a pushed branch that conflicts with main, settled by hand when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: merge stopped on conflicts
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  └─ status: in flight, unsettled
+   ├─ conflicts
+   │  └─ src/spot.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle each file:  rhx git.stage.add <file>
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case3b] a pushed branch that conflicts with main, settled by hand when: [t1] the file edited by hand, then rhx git.stage.add src/spot.md then: matches snapshot 1`] = `
+"🐢 gnarly!
+
+🐚 git.stage.add
+   └─ staged: src/spot.md
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case3b] a pushed branch that conflicts with main, settled by hand when: [t2] continue then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup continue
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ files: 1 merged
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case3c] a pushed branch behind main, with an uncommitted edit when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: uncommitted changes in the tree
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ dirty
+   │  └─ src/spot.md
+   ├─ why: a merge over uncommitted work folds it into a merge commit no one reviews
+   └─ fix: commit it first, then begin again
+      ├─ rhx git.stage.add <files>
+      └─ rhx git.commit.set -m @stdin --mode apply
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case4] a conflicted merge in flight, then abort when: [t0] abort then: matches snapshot 1`] = `
+"🐢 no worries dude
+
+🐚 git.branch.catchup abort
+   ├─ merge: aborted
+   ├─ HEAD: HASH123 (as before the merge)
+   └─ meter
+      └─ left: 4 (no spend)
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case5] a pushed branch whose pnpm lockfile conflicts with main when: [t0] begin --mode apply then: matches snapshot 1`] = `
+"✋ ConstraintError: merge stopped on conflicts
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ merge
+   │  ├─ from: origin/main
+   │  └─ status: in flight, unsettled
+   ├─ conflicts
+   │  └─ pnpm-lock.yaml
+   └─ next
+      ├─ a lockfile is refreshed, not merged
+      │  ├─ rhx git.branch.catchup take --whos main pnpm-lock.yaml
+      │  └─ rhx git.branch.catchup lock refresh
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case5] a pushed branch whose pnpm lockfile conflicts with main when: [t1] continue, too soon: the lockfile is still in conflict then: matches snapshot 1`] = `
+"✋ ConstraintError: 1 file still in conflict
+
+🐚 git.branch.catchup continue
+   ├─ conflicts
+   │  └─ pnpm-lock.yaml
+   └─ next
+      ├─ a lockfile is refreshed, not merged
+      │  ├─ rhx git.branch.catchup take --whos main pnpm-lock.yaml
+      │  └─ rhx git.branch.catchup lock refresh
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      ├─ then:              rhx git.branch.catchup continue
+      └─ or back out:       rhx git.branch.catchup abort
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case5] a pushed branch whose pnpm lockfile conflicts with main when: [t2] take --whos main pnpm-lock.yaml then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  └─ pnpm-lock.yaml ✓
+   └─ next
+      ├─ refresh the lock:  rhx git.branch.catchup lock refresh
+      └─ then:              rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case5] a pushed branch whose pnpm lockfile conflicts with main when: [t3] lock refresh then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup lock refresh
+   ├─ package manager: pnpm
+   ├─ install: pnpm install --lockfile-only
+   ├─ staged
+   │  └─ pnpm-lock.yaml ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case5] a pushed branch whose pnpm lockfile conflicts with main when: [t4] continue then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup continue
+   ├─ merge
+   │  ├─ from: origin/main
+   │  ├─ files: 2 merged
+   │  └─ status: committed
+   ├─ commit: HASH123 cont(branch): merge origin/main into turtle/feat-wave-report
+   └─ meter
+      └─ left: 3
+
+🌊 ready to push
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.catchup, via rhachet given: [case5] a pushed branch whose pnpm lockfile conflicts with main when: [t5] begin --mode apply again then: matches snapshot 1`] = `
+"🐢 already level
+
+🐚 git.branch.catchup begin --mode apply
+   ├─ from: origin/main
+   ├─ behind: 0
+   └─ no merge needed; meter untouched
+"
+`;

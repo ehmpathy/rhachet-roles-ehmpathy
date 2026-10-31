@@ -78,18 +78,95 @@ exports[`git.commit.operations.sh given: [case36] get_one_git_config_identity re
 
 exports[`git.commit.operations.sh given: [case39] assert_git_identity_read guards the reader contract when: [t0] a leaf reads the identity before the reader ran then: it exits 1, as a named malfunction — never a raw unbound crash: stderr 1`] = `
 "💥 MalfunctionError: the git identity was read before get_one_git_config_identity ran
-   this is a defect in the skill, never the caller's input — call the reader first
+   └─ this is a defect in the skill, never the caller's input — call the reader first
 "
 `;
 
 exports[`git.commit.operations.sh given: [case39] assert_git_identity_read guards the reader contract when: [t0] a leaf reads the identity before the reader ran then: it exits 1, as a named malfunction — never a raw unbound crash: stdout 1`] = `
 "💥 MalfunctionError: the git identity was read before get_one_git_config_identity ran
-   this is a defect in the skill, never the caller's input — call the reader first
+   └─ this is a defect in the skill, never the caller's input — call the reader first
 "
 `;
 
 exports[`git.commit.operations.sh given: [case40] set_commit_meter_state writes the quota file when: [t3] uses is empty or no integer then: it exits 1 loud, and leaves the prior file whole: stdout 1`] = `
 "💥 MalfunctionError: set_commit_meter_state refused its input
-   └─ uses='' is no integer and not "infinite"
+   └─ uses='' is not an integer and not 'infinite'
+"
+`;
+
+exports[`git.commit.operations.sh given: [case40] set_commit_meter_state writes the quota file when: [t4] push or stage is empty then: it exits 1 loud, before any write 1`] = `
+"💥 MalfunctionError: set_commit_meter_state refused its input
+   └─ push is empty
+"
+`;
+
+exports[`git.commit.operations.sh given: [case40] set_commit_meter_state writes the quota file when: [t5] an unknown arg is passed then: it exits 1 and names the arg 1`] = `
+"💥 MalfunctionError: set_commit_meter_state refused its input
+   └─ unknown arg 'usse=1'
+"
+`;
+
+exports[`git.commit.operations.sh given: [case40] set_commit_meter_state writes the quota file when: [t6] the write fails (the dir is absent) then: it exits 1 loud, never silent 1`] = `
+"💥 MalfunctionError: set_commit_meter_state refused its input
+   └─ could not create a temp file beside <tmp>/absent/git.commit.uses.jsonc
+"
+`;
+
+exports[`git.commit.operations.sh given: [case40] set_commit_meter_state writes the quota file when: [t8] uses is below zero (a spend from zero) then: it exits 1 loud, and writes no file 1`] = `
+"💥 MalfunctionError: set_commit_meter_state refused its input
+   └─ uses='-1' is below zero; a spend from zero never lands
+"
+`;
+
+exports[`git.commit.operations.sh given: [case41] as_commit_uses_after_spend when: [t1] uses is empty or no integer then: it exits 1 on stderr, never a silent -1 1`] = `
+"💥 MalfunctionError: as_commit_uses_after_spend refused its input
+   └─ uses='' is not an integer and not 'infinite'
+"
+`;
+
+exports[`git.commit.operations.sh given: [case43] refuse_commit_quota fails closed when: [t0] the status is one it does not know then: it exits 1 as a malfunction, never reads as healthy: stdout 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ 💥 MalfunctionError: unknown commit quota status 'drift'
+"
+`;
+
+exports[`git.commit.operations.sh given: [case44] set_robot_identity_from_token when: [t1] the reader emits no identity then: it exits 1 loud, never a blank author 1`] = `
+"💥 MalfunctionError: no seaturtle identity for this token
+"
+`;
+
+exports[`git.commit.operations.sh given: [case46] get_commit_sponsor fails closed when: [t0] the reader returns a status the gate does not know then: it exits 1 as a malfunction, never reads as bound 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.set
+   └─ 💥 MalfunctionError: unknown sponsor read status '7'
+"
+`;
+
+exports[`git.commit.operations.sh given: [case47] print_token_fetch_malfunction when: [t0] it renders then: the render rides both stdout and stderr: stdout 1`] = `
+"💥 MalfunctionError: the ehmpath keyrack token fetch failed
+   ├─ effect: the commit authors as the default seaturtle
+   ├─ cause: keyrack locked
+   └─ fix: unlock the token before the next commit
+      └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+"
+`;
+
+exports[`git.commit.operations.sh given: [case47] print_token_fetch_malfunction when: [t1] the cause spans lines, one repeated by the retry then: each distinct line is one leaf, inside the tree: stdout 1`] = `
+"💥 MalfunctionError: the ehmpath keyrack token fetch failed
+   ├─ effect: the commit authors as the default seaturtle
+   ├─ cause
+   │  ├─ rhachet: not found
+   │  └─ keyrack: unlock failed
+   └─ fix: unlock the token before the next commit
+      └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+"
+`;
+
+exports[`git.commit.operations.sh given: [case51] refuse_if_commit_gates_fail checks its refuse= tokens when: [t0] a token is mistyped then: it exits 1 before any gate runs; the gate never fails open: stdout 1`] = `
+"💥 MalfunctionError: refuse_if_commit_gates_fail refused its input
+   └─ refuse= holds 'currupt', not one of: corrupt, absent, spent
 "
 `;
