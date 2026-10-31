@@ -138,9 +138,13 @@ const genLinkedCatchupScene = (input: {
 
 describe('git.branch.catchup, via rhachet', () => {
   given('[case1] a repo with the mechanic role linked, on its default branch', () => {
-    const scene = useBeforeAll(async () => ({
-      dir: await genTestDir({ slug: 'git-branch-catchup-acceptance' }),
-    }));
+    const scene = useBeforeAll(async () => {
+      const dir = await genTestDir({ slug: 'git-branch-catchup-acceptance' });
+
+      // pin the default branch: git init names it from the host's init.defaultBranch
+      execSync('git branch -M main', { cwd: dir, stdio: 'pipe' });
+      return { dir };
+    });
 
     when('[t0] the verb is asked for help', () => {
       const result = useThen('it runs', async () =>

@@ -9,7 +9,7 @@ exports[`git.branch.catchup, via rhachet given: [case1] a repo with the mechanic
    ├─ when: use it once the branch is pushed; rebase before the first push
    ├─ subcommands
    │  ├─ begin      preview (default) or apply the merge
-   │  ├─ take       settle a conflict by side: --whos main|branch
+   │  ├─ take       settle a conflict by side: --whos <main|branch>
    │  ├─ lock       refresh a taken lockfile against the merged package.json
    │  ├─ continue   make the merge commit once every conflict is settled
    │  ├─ abort      back out to the state before begin
