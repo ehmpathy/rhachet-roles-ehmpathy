@@ -23,7 +23,7 @@
   a mechanic to; (b) re-curates others' boot under this PR's banner
 - **rework**: clean for each — one boot.yml line or one header
 - **confidence**: 60% — the cap is a reviewed number, and the wish never weighed a boot cost
-- **status**: ruled — director, 2026-10-31, two rounds; built; committed at 91 over
+- **status**: ruled — director, 2026-10-31, three rounds; built; src 29,772 / 30,000 (uncommitted, lands with F18/F19)
 - **verdict**: (c). `git.branch.cutover.sh` moves to `ref`: the `git.commit.set` second-feat refusal
   and `git.branch.rebase help` name it at the moment of need. not (a): the cap is a reviewed bound,
   and a raise buys a pass by relaxing it. not (b): no re-curation of main's lists under this PR, so
@@ -44,3 +44,16 @@
   this PR's to clear: its cause is the boot lister's auto-list of the 7 sub-skill files (+137), and
   its cure is upstream (`dreams/v2026_10_31.reseed.boot-lister-auto-lists-sub-skills.md`). the
   director owns that cure and drives it; this PR rebases onto it when it ships
+- **verdict, round 3** (director, 2026-10-31): do not park on the upstream lister. cure it in this
+  tree, with no cut to a cue: a `say` brief that is an argument moves to `ref`, or a sub-skill file
+  stays out of the auto list. keep the reseed dream. no commit now; it lands with the F18/F19 build
+- **built, round 3**:
+  - `always.skills.not` (rhachet `RoleBootSpec`, present at v1.50.0) on this branch's 7 sub-files:
+    cutover abort/begin/continue/operations/output, uses local/operations. the dispatchers in `ref`
+    name each subcommand; operations + output are sourced libraries. `not` drops them from the
+    payload only; the dispatcher still execs them by path → −85 (30,091 → 30,006)
+  - `define.why-seaturtles-love-software.md` moves from `say` to `ref`: it argues the why behind
+    `rule.im_an.ehmpathy_seaturtle.md`, which stays in `say` → −234 (30,006 → 29,772)
+  - main's own sub-files (`git.branch.rebase.*`, …) are left in `<also>`: no re-curation
+- **proof**: `boot.budget.integration.test.ts` 16/16 after `npm run build` (mechanic src 29,772,
+  linked 28,268); `boot.yml.integration.test.ts` (mechanic + architect) 21/21
