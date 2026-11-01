@@ -607,19 +607,28 @@ run_gh() {
   GH_TOKEN="$GH_PR_TOKEN" gh "$@"
 }
 
-# .what = strip Co-authored-by trailers and blank tail lines from a pr body
-# .why  = the commit message carries Co-authored-by: trailers (the human's git
-#         identity), but the pr BODY must not echo them — they leak the human's
-#         email onto the public pr, and github already renders co-authors from the
-#         commit itself. a named transformer keeps the orchestrator readable
-#         (rule.require.named-transformers): the call site reads intent, not a
-#         grep|sed pipeline to decode.
+# .what = strip foreign attribution and blank tail lines from a pr body
+# .why  = the pr body carries one attribution: the seaturtle footer. three
+#         kinds of line must not ride along:
+#         - a Co-authored-by trailer, in any case: it leaks the human's email
+#           onto the public pr, and github renders co-authors from the commit.
+#           the harness writes `Co-Authored-By:`, so the match is case-blind
+#         - a `Generated with Claude Code` line, bare or as a markdown link: the
+#           seaturtle footer replaces it
+#         - a prior seaturtle footer and its `---` rule, so the footer the
+#           caller appends stands once, never twice
+#         a named transformer keeps the orchestrator readable
+#         (rule.require.named-transformers).
 # usage: clean=$(get_clean_pr_body "$PR_BODY")
 get_clean_pr_body() {
   local body="$1"
-  # grep -v drops the trailer lines (exit 1 when none match → || true); the sed
-  # collapses any blank lines the removal leaves at the tail
-  echo "$body" | { grep -v '^Co-authored-by:' || true; } | sed -e :a -e '/^\n*$/{$d;N;ba;}'
+  # grep -v drops each foreign line (exit 1 when none match → || true); the
+  # sed drops a `---` rule left as the last line, then the blank tail lines
+  echo "$body" \
+    | { grep -viE '^co-authored-by:|generated with \[?claude code|^🐢🌊 surfed in by seaturtle\[bot\]$' || true; } \
+    | sed -e :a -e '/^\n*$/{$d;N;ba;}' \
+    | sed -e '${/^---$/d;}' \
+    | sed -e :a -e '/^\n*$/{$d;N;ba;}'
 }
 
 # .what = guide the caller when the pr-open credential is unusable under both modes

@@ -1198,6 +1198,166 @@ Co-authored-by: Human <human@example.com>`;
     );
   });
 
+  given(
+    '[case17b] the pr body push opens carries only the seaturtle attribution',
+    () => {
+      /**
+       * .what = the clamp for the pr-body attribution repair (#1165)
+       * .why  = the harness writes `Co-Authored-By:` (capital A, capital B) and a
+       *         `🤖 Generated with [Claude Code](…)` link line into each commit
+       *         body. push copied both onto the public pr: the strip matched
+       *         only `Co-authored-by:` and knew no claude line. this case runs
+       *         the real push, so a revert of the strip turns it red
+       */
+      const runPushWithBody = (input: { body: string }) => {
+        const tempDir = setupTempRepo({
+          meterState: { uses: 3, push: 'allow' },
+          branch: 'turtle/attribution',
+          commits: [input.body],
+          commitAuthor: {
+            name: 'seaturtle[bot]',
+            email: 'seaturtle@ehmpath.com',
+          },
+        });
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        const bodyCapturePath = path.join(tempDir, '.pr-body.captured');
+
+        // .mock = fake gh: token check and an empty pr list pass; pr create
+        //         writes the --body it received to a file, so the test reads
+        //         the exact bytes github would get
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "list" ]]; then
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  shift 2
+  while [[ $# -gt 0 ]]; do
+    if [[ "$1" == "--body" ]]; then printf '%s' "$2" | tee "${bodyCapturePath}" >/dev/null; fi
+    shift
+  done
+  echo "https://github.com/test/repo/pull/42"
+  exit 0
+fi
+exit 1
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+        // .mock = fake git push; every other git call runs the real git
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'git'),
+          `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+
+        const result = runPush({
+          tempDir,
+          pushArgs: ['--mode', 'apply'],
+          env: {
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
+          },
+        });
+        const bodySent = fs.existsSync(bodyCapturePath)
+          ? fs.readFileSync(bodyCapturePath, 'utf-8')
+          : null;
+        return { result, bodySent };
+      };
+
+      when(
+        '[t0] the commit body holds the harness claude line and a capitalized trailer',
+        () => {
+          const out = useThen('push opens the pr', async () =>
+            runPushWithBody({
+              body: [
+                'feat(reef): map the kelp beds',
+                '',
+                '- adds the kelp bed map',
+                '',
+                '🤖 Generated with [Claude Code](https://claude.com/claude-code)',
+                '',
+                'Co-Authored-By: Claude <noreply@anthropic.com>',
+                'Co-authored-by: Test Human <human@test.com>',
+              ].join('\n'),
+            }),
+          );
+
+          then('push succeeds and the pr opens', () => {
+            expect(out.result.exitCode).toBe(0);
+            expect(out.bodySent).not.toBeNull();
+          });
+
+          then('the body carries no claude line', () => {
+            expect(out.bodySent).not.toMatch(/claude code/i);
+            expect(out.bodySent).not.toContain('🤖');
+          });
+
+          then(
+            'the body carries no co-authored-by trailer, in any case',
+            () => {
+              expect(out.bodySent).not.toMatch(/co-authored-by/i);
+              expect(out.bodySent).not.toContain('noreply@anthropic.com');
+              expect(out.bodySent).not.toContain('human@test.com');
+            },
+          );
+
+          then('the body keeps its own words', () => {
+            expect(out.bodySent).toContain('feat(reef): map the kelp beds');
+            expect(out.bodySent).toContain('- adds the kelp bed map');
+          });
+
+          then('the body ends with exactly one seaturtle footer', () => {
+            expect(
+              out.bodySent!.endsWith('\n---\n🐢🌊 surfed in by seaturtle[bot]'),
+            ).toBe(true);
+            expect(
+              out.bodySent!.split('surfed in by seaturtle[bot]').length,
+            ).toBe(2);
+            expect(out.bodySent).toMatchSnapshot();
+          });
+        },
+      );
+
+      when(
+        '[t1] the commit body already ends with the seaturtle footer',
+        () => {
+          const out = useThen('push opens the pr', async () =>
+            runPushWithBody({
+              body: [
+                'feat(reef): chart the tide pools',
+                '',
+                '- adds the tide pool chart',
+                '',
+                '---',
+                '🐢🌊 surfed in by seaturtle[bot]',
+              ].join('\n'),
+            }),
+          );
+
+          then('the footer stands once, never twice', () => {
+            expect(out.result.exitCode).toBe(0);
+            expect(
+              out.bodySent!.split('surfed in by seaturtle[bot]').length,
+            ).toBe(2);
+            expect(out.bodySent!.split('\n---\n').length).toBe(2);
+            expect(out.bodySent).toContain('- adds the tide pool chart');
+          });
+        },
+      );
+    },
+  );
+
   given('[case18] CI watch reminder after successful push', () => {
     when('[t0] push and pr creation succeed', () => {
       then('shows full output with vibey reminder at end', () => {
