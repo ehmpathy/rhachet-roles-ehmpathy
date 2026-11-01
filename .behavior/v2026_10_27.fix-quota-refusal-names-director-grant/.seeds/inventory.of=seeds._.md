@@ -11,4 +11,5 @@
 | S8 | land-after-the-switch-and-sort-f1 | quota 1 + push granted; commit and push after 20:00 CT (global switch); full suite once more, quoted; F1 sorted as WHAT (commander) or execution (driver) |
 | S9 | commit-now-and-watch | switch open 10-31; commit, push to #1206, `rhx git.release --watch` quoted; head sha + verdict by 10:30 CT; no merge, no --apply |
 | S10 | land-the-mask-fix | quota 1 more; commit the asStableOutput fix, push, watch; sha + verdict by 11:00 CT |
+| S11 | land-the-done-checkpoint | quota 1; commit the green-ci yield row, push, watch; #1206 held for F1 |
 | S6 | record-verdicts-with-risk | each verdict into its fulcrum entry; a risk column in the summary; hold for approval |
