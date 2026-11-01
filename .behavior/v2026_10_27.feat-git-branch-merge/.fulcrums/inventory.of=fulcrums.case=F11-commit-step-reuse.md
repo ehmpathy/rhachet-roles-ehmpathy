@@ -36,7 +36,7 @@ through the lift; any snapshot diff is a regression, never a resnap.
 confidence up.
 
 ## .where
-`5.1.execution.blueprint.md` § C1; `git.commit.operations.sh`; `git.commit.set.sh`.
+`5.1.execution.blueprint.md` § C1 (in commit `ee65762`; dropped from the pr, S9); `git.commit.operations.sh`; `git.commit.set.sh`.
 
 ## .verdict
 taken by the driver: an execution fork, by the director's call (seed S6).

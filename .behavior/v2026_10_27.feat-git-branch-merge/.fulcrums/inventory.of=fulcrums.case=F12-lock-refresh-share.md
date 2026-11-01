@@ -26,7 +26,7 @@ diverge. the dream `v2026_10_27.fix.rebase-begin-meter-and-exit-codes` is where 
 85%.
 
 ## .where
-`5.1.execution.blueprint.md` § C2; `git.branch.catchup.lock.sh`.
+`5.1.execution.blueprint.md` § C2 (in commit `ee65762`; dropped from the pr, S9); `git.branch.catchup.lock.sh`.
 
 ## .verdict
 taken by the driver: an execution fork, by the director's call (seed S6).

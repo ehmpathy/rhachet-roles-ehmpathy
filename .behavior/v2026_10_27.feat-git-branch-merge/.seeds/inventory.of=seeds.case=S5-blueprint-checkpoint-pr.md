@@ -10,10 +10,15 @@
 - at the blueprint checkpoint the driver pushes a pr so the commander reviews it on github
 - no merge of the pr, and no `--apply` of a release
 
+## .corrected
+the blueprint step came from this director send, not from the route. the route is a nano
+(1.vision, 5.1.execution.from_vision, 5.3.verification) and holds no blueprint stone. the
+surdirector ruled the send wrong (S9): the blueprint leaves the pr; commit `ee65762` keeps it.
+
 ## .landed
 | artifact | change |
 |---|---|
 | route | 1.vision passed |
 | `5.1.execution.from_vision.yield.md` | the blueprint is the first item; execution waits on the commander |
-| `5.1.execution.blueprint.md` | the blueprint, with its open questions for the commander |
+| `5.1.execution.blueprint.md` | written at this send; dropped from the pr at the done gate (S9), kept in `ee65762` |
 | github | a pr at the blueprint checkpoint; no merge, no release apply |
