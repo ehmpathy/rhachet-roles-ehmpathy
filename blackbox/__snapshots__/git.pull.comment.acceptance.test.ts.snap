@@ -60,9 +60,8 @@ exports[`git.pull.comment, via rhachet given: [case1] a repo with the mechanic r
   "del": "✋ ConstraintError: github offers no delete for a pr description
 
 🥥 did you know?
-   └─ to fix it, pick one
-      ├─ edit the pr description in the github ui, to rewrite it
-      └─ a pr description verb is tracked in ehmpathy/rhachet-roles-ehmpathy#1165
+   └─ to fix it
+      └─ rewrite the pr description via rhx git.pull.description set
 ",
   "get": "✋ ConstraintError: --id needs --kind issue|review, got '<none>'; the kind is never guessed
 

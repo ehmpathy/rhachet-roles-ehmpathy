@@ -1,0 +1,91 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.pull.title and git.pull.description, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] each verb is asked for --help then: each help is snapped 1`] = `
+{
+  "descGet": "usage: git.pull.description.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--to <path>]
+
+options:
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
+  --output tree|json|text      the output shape (default: tree); text = the body alone.
+                               via rhx, stdout opens with rhx's header line; to edit, use --to
+  --to <path>                  also write the bare body to <path>, to edit, then set --from <path>
+  --help, -h                   show this help
+
+example:
+  rhx git.pull.description get --to ./.temp/body.md
+  rhx git.pull.description set --from ./.temp/body.md
+",
+  "descSet": "usage: git.pull.description.set --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+
+options:
+  --from <path|@stdin>         the body; written with the seaturtle attribution as its last line
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
+  --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
+  --output tree|json           the output shape (default: tree)
+  --help, -h                   show this help
+
+example:
+  rhx git.pull.description get --to ./.temp/body.md
+  rhx git.pull.description set --from ./.temp/body.md --mode apply
+",
+  "titleGet": "usage: git.pull.title.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text]
+
+options:
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
+  --output tree|json|text      the output shape (default: tree); text = the title alone.
+                               via rhx, stdout opens with rhx's header line, so read the
+                               last line, never the whole stream
+  --help, -h                   show this help
+
+example:
+  rhx git.pull.title get --pr 69
+",
+  "titleSet": "usage: git.pull.title.set --title '<title>'|@stdin [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+
+options:
+  --title '<title>'|@stdin     the new title, one line; @stdin reads it from a pipe, for a title a shell would mangle
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
+  --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
+  --output tree|json           the output shape (default: tree)
+  --help, -h                   show this help
+
+example:
+  rhx git.pull.title set --title 'feat(reef): map the kelp beds' --mode apply
+",
+}
+`;
+
+exports[`git.pull.title and git.pull.description, via rhachet given: [case1] a repo with the mechanic role linked when: [t1] the dispatchers are called with a spaced verb, or none then: no verb refuses with exit 2 and names the verbs 1`] = `
+"✋ ConstraintError: a verb is required; the verbs are get | set
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description get --help
+"
+`;
+
+exports[`git.pull.title and git.pull.description, via rhachet given: [case1] a repo with the mechanic role linked when: [t2] description set is piped a body of attribution lines alone then: stdin reaches the verb: it is read, stripped, and refused as wordless 1`] = `
+"✋ ConstraintError: the body from '@stdin' holds no words once its attribution lines are stripped
+
+🥥 did you know?
+   └─ to fix it
+      └─ add the pull's own words to the body; attribution lines are stripped, and the footer is appended for you
+"
+`;
+
+exports[`git.pull.title and git.pull.description, via rhachet given: [case1] a repo with the mechanic role linked when: [t3] description get --to names a path outside the repo then: it refuses with exit 2 and names the fix, on both streams 1`] = `
+"✋ ConstraintError: --to must name a path inside this repo, got '../outside-the-reef.md'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --to ./.temp/body.md
+"
+`;
