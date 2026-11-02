@@ -134,6 +134,8 @@ emit() {
   echo "   ├─ auth: $(get_comment_auth_label) as $COMMENT_LOGIN"
   echo "   ├─ author: $AUTHOR"
   echo "   ├─ state: $STATE"
+  # a merged pull's squash commit is already written; say so, so a set here is not read as a release-note fix
+  [[ "$STATE" == "merged" ]] && echo "   │  └─ note: the squash commit is already written; this edits the pull record only"
   echo "   ├─ url: $URL"
   echo "   ├─ current: $CUR_TITLE"
   echo "   ├─ new: $TITLE"

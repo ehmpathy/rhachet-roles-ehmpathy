@@ -1237,6 +1237,36 @@ exec /usr/bin/git "$@"
       );
 
       when(
+        '[t0b] the commit body names co-authored-by in prose, beside a real trailer',
+        () => {
+          const out = useThen('push opens the pr', async () =>
+            runPushWithBody({
+              body: [
+                'docs(reef): explain the kelp credits',
+                '',
+                '- explains how Co-authored-by trailers work',
+                'Co-authored-by: lines with no email are prose, so they stay',
+                '',
+                'Co-authored-by: Test Human <human@test.com>',
+              ].join('\n'),
+            }),
+          );
+
+          then('push keeps the prose and strips only the trailer', () => {
+            expect(out.result.exitCode).toBe(0);
+            expect(out.bodySent).toContain(
+              '- explains how Co-authored-by trailers work',
+            );
+            expect(out.bodySent).toContain(
+              'Co-authored-by: lines with no email are prose, so they stay',
+            );
+            expect(out.bodySent).not.toContain('human@test.com');
+            expect(out.bodySent).toMatchSnapshot();
+          });
+        },
+      );
+
+      when(
         '[t1] the commit body already ends with the seaturtle footer',
         () => {
           const out = useThen('push opens the pr', async () =>

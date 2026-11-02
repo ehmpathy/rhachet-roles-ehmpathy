@@ -53,10 +53,12 @@ const config: Config = {
     '!**/src/domain.roles/librarian/skills/brief.condense/domain.operations/verify/checkRetention.integration.test.ts',
     '!**/src/domain.roles/librarian/skills/brief.condense/domain.operations/verify/restoreKernels.integration.test.ts',
 
-    // the git.pull.comment real-api case writes to a live pr, so it needs a github write
-    // credential; ci grants none (no write scope for a test job), so it runs only by hand:
+    // the git.pull.* real-api cases write to a live pr, so they need a github write
+    // credential; ci grants none (no write scope for a test job), so they run only by hand:
     //   npx jest -c jest.integration.config.ts --testMatch '<rootDir>/src/domain.roles/mechanic/skills/git.pull.comment/git.pull.comment.real.integration.test.ts'
+    //   GIT_PULL_REAL_TARGET='<owner/repo>#<n>' npx jest -c jest.integration.config.ts --testMatch '<rootDir>/src/domain.roles/mechanic/skills/git.pull/git.pull.real.integration.test.ts'
     '!**/src/domain.roles/mechanic/skills/git.pull.comment/git.pull.comment.real.integration.test.ts',
+    '!**/src/domain.roles/mechanic/skills/git.pull/git.pull.real.integration.test.ts',
   ],
   setupFilesAfterEnv: ['./jest.integration.env.ts'],
 

@@ -489,6 +489,79 @@ describe('git.pull.title', () => {
     });
   });
 
+  given('[case19] a merged pull, and a write github refuses', () => {
+    when('[t0] set runs on a merged pull, by number', () => {
+      const scene = genGitPullScene({
+        ...PULL_SCENE_BARE,
+        store: {
+          prs: {
+            '8': {
+              title: 'feat(reports): sync the wave report',
+              body: 'wave report sync',
+              head: 'surf/wave-report',
+              merged: true,
+            },
+          },
+        },
+      });
+      const result = useThen('plan and apply run', async () => ({
+        plan: scene.run(skill('git.pull.title.set'), [
+          '--pr',
+          '8',
+          '--title',
+          TITLE_NEW,
+        ]),
+        apply: scene.run(skill('git.pull.title.set'), [
+          '--pr',
+          '8',
+          '--title',
+          TITLE_NEW,
+          '--mode',
+          'apply',
+        ]),
+      }));
+      then('the plan names the state merged, not closed', () => {
+        expect(result.plan.exitCode).toBe(0);
+        expect(result.plan.stdout).toContain('state: merged');
+        expect(result.plan.stdout).not.toContain('state: closed');
+        expect(result.plan.stdout).toMatchSnapshot();
+      });
+      then('the write lands, as github allows on a merged pull', () => {
+        expect(result.apply.exitCode).toBe(0);
+        expect(scene.getStore().prs['8']!.title).toBe(TITLE_NEW);
+        expect(result.apply.stdout).toContain('state: merged');
+        expect(result.apply.stdout).toMatchSnapshot();
+      });
+    });
+    when('[t1] the write answers 403: the token may read, not write', () => {
+      const scene = genGitPullScene({
+        ...PULL_SCENE_BARE,
+        store: {
+          fail: 'gh: Resource not accessible by integration (HTTP 403)',
+          failMethod: 'PATCH',
+        },
+      });
+      const result = useThen('it runs', async () =>
+        scene.run(skill('git.pull.title.set'), [
+          '--title',
+          TITLE_NEW,
+          '--mode',
+          'apply',
+        ]),
+      );
+      then('it fails loud with the 403, and the title is untouched', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('✋ ConstraintError: github forbade');
+        expect(result.stdout).toContain('HTTP 403');
+        expect(result.stderr).toContain('HTTP 403');
+        expect(scene.getStore().prs['7']!.title).toBe(
+          'feat(lessons): book a surf lesson',
+        );
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
   given('[case10] the verbs dispatch as `git.pull.title <verb>`', () => {
     when('[t0] get, help, and an unknown verb run via the dispatcher', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);

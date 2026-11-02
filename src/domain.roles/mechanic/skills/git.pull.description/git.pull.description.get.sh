@@ -38,8 +38,10 @@ options:
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
   --output tree|json|text      the output shape (default: tree); text = the body alone.
-                               via rhx, stdout opens with rhx's header line; to edit, use --to
-  --to <path>                  also write the bare body to <path>, to edit, then set --from <path>
+                               via rhx, stdout opens with rhx's header lines: for json parse
+                               from the first {; to edit the body, use --to
+  --to <path>                  also write the bare body to <path>, for you to edit and pass to
+                               set --from <path>. <path> must sit inside this repo, untracked by git
   --help, -h                   show this help
 
 example:
@@ -81,6 +83,7 @@ PULL="$(get_one_gh_pull "$PR")" || exit $?
 BODY="$(printf '%s' "$PULL" | as_pull_field_from_json body)"
 URL="$(printf '%s' "$PULL" | as_pull_url_from_json)"
 AUTHOR="$(printf '%s' "$PULL" | as_pull_author_from_json)"
+STATE="$(printf '%s' "$PULL" | as_pull_state_from_json)"
 
 # --to: the bare body lands in a file, so a get → edit → set round trip never
 # passes through stdout, where rhx prints its own header first
@@ -97,9 +100,9 @@ BYTES="$(printf '%s' "$BODY" | as_bytes_count)"
 
 # json: one object
 if [[ "$OUTPUT" == "json" ]]; then
-  jq -n --arg repo "$COMMENT_REPO" --arg pr "$PR" --arg url "$URL" --arg author "$AUTHOR" \
+  jq -n --arg repo "$COMMENT_REPO" --arg pr "$PR" --arg url "$URL" --arg author "$AUTHOR" --arg state "$STATE" \
     --arg body "$BODY" --arg sha "$SHA" --argjson bytes "$BYTES" --arg to "$TO" \
-    '{ repo: $repo, pr: ($pr | tonumber), url: $url, author: $author, bytes: $bytes, sha256: $sha,
+    '{ repo: $repo, pr: ($pr | tonumber), url: $url, author: $author, state: $state, bytes: $bytes, sha256: $sha,
        to: (if $to == "" then null else $to end), body: $body }'
   exit 0
 fi
@@ -109,8 +112,9 @@ print_turtle_header "heres the wave..."
 print_tree_start "git.pull.description.get"
 echo "   ├─ target: $COMMENT_REPO#$PR, description"
 echo "   ├─ auth: $(get_comment_auth_label) as $COMMENT_LOGIN"
-echo "   ├─ url: $URL"
 echo "   ├─ author: $AUTHOR"
+echo "   ├─ state: $STATE"
+echo "   ├─ url: $URL"
 [[ -n "$TO" ]] && echo "   ├─ to: $TO"
 echo "   ├─ bytes: $BYTES"
 echo "   ├─ sha256: $SHA"

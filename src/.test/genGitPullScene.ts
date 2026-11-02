@@ -13,9 +13,10 @@ import { genTempDir } from 'test-fns';
  * .why  = these cases drive states github cannot be put into on demand (a 422,
  *         a logged-out gh, a write that reads back altered), and they count every
  *         gh call, which proves "no write" claims
- * .real = no real case of its own (fulcrum F7). the shared reads (auth, viewer
- *         login, the pull lookup, a GET of the description) run against the real api
- *         in git.pull.comment.real.integration.test.ts; the pull PATCH has no real case
+ * .real = this stub is the gate (fulcrum F7). git.pull.real.integration.test.ts runs
+ *         the pull PATCH against the real api, opt-in, only on a pull the runner names
+ *         via GIT_PULL_REAL_TARGET; git.pull.comment.real.integration.test.ts runs the
+ *         shared reads. both write to a live pull, so both run by hand, never in ci
  */
 export const PULL_SCENE_REPO = 'ehmpathy/surf-demo';
 export const PULL_SCENE_LOGIN_SELF = 'ehm-seaturtle';
@@ -67,7 +68,8 @@ const parts = rest.split('/');
 if (parts[0] === 'pulls' && parts.length === 2) {
   const pr = state.prs[parts[1]];
   if (!pr) fail('gh: Not Found (HTTP 404)');
-  const pull = () => ({ number: Number(parts[1]), state: pr.state || 'open', title: pr.title, body: pr.body, user: { login: pr.author || state.loginSelf }, html_url: 'https://github.com/' + state.repo + '/pull/' + parts[1] });
+  // a merged pull reads as github sends it: state closed, merged_at set
+  const pull = () => ({ number: Number(parts[1]), state: pr.merged ? 'closed' : (pr.state || 'open'), merged_at: pr.merged ? '2026-10-24T00:00:00Z' : null, title: pr.title, body: pr.body, user: { login: pr.author || state.loginSelf }, html_url: 'https://github.com/' + state.repo + '/pull/' + parts[1] });
   if (method === 'GET') out(pull());
   if (method === 'PATCH') {
     const patch = JSON.parse(stdin);
@@ -106,6 +108,8 @@ export type PullSceneStore = {
       body: string;
       head: string;
       state?: 'open' | 'closed';
+      // merged → github reads it as closed, with merged_at set
+      merged?: boolean;
       // the login that opened the pull; absent → loginSelf, the robot's own pull
       author?: string;
     }
@@ -132,11 +136,17 @@ export const PULL_SCENE_BARE: {
 };
 
 /**
- * .what = a hermetic temp repo with the stub gh, the stub keyrack, and a store
- * .note = token null → keyrack hands back none
+ * .what = put the stub gh, a store, a home org, and a home-org branch into a repo dir
+ * .why  = the integration scene and the acceptance journey (through rhachet, in a
+ *         linked repo) drive one stub, so the two cannot drift on what github answers
+ * .note = the stub keyrack is not placed here: a linked repo keeps its real rhachet
  */
-export const genGitPullScene = (input: typeof PULL_SCENE_BARE) => {
-  const tempDir = genTempDir({ slug: 'git-pull-field-test', git: true });
+export const setGitPullStubInto = (input: {
+  dir: string;
+  branch: string;
+  store: Partial<PullSceneStore> | null;
+}) => {
+  const tempDir = input.dir;
   const home = genTempDir({ slug: 'git-pull-field-home', git: false });
 
   // one home org: a clone under ~/git/ehmpathy/ with an ehmpathy origin
@@ -155,15 +165,11 @@ export const genGitPullScene = (input: typeof PULL_SCENE_BARE) => {
   );
   spawnSync('git', ['checkout', '-b', input.branch], { cwd: tempDir });
 
-  // stub bins
+  // the stub gh
   const fakeBin = path.join(tempDir, '.fakebin');
   fs.mkdirSync(fakeBin, { recursive: true });
   fs.writeFileSync(path.join(fakeBin, 'gh'), FAKE_GH);
   fs.chmodSync(path.join(fakeBin, 'gh'), '755');
-  const nodeBin = path.join(tempDir, 'node_modules', '.bin');
-  fs.mkdirSync(nodeBin, { recursive: true });
-  fs.writeFileSync(path.join(nodeBin, 'rhachet'), FAKE_RHACHET);
-  fs.chmodSync(path.join(nodeBin, 'rhachet'), '755');
 
   // the store
   const storeDir = path.join(tempDir, '.fakegh');
@@ -195,37 +201,22 @@ export const genGitPullScene = (input: typeof PULL_SCENE_BARE) => {
   fs.writeFileSync(statePath, JSON.stringify(store, null, 2));
   fs.writeFileSync(logPath, '');
 
-  // run one skill executable against the stub, by its path
-  const run = (
-    skillPath: string,
-    args: string[],
-    opts?: { stdin?: string },
-  ) => {
-    const {
-      EHMPATHY_SEATURTLE_GITHUB_TOKEN: _a,
-      GH_TOKEN: _b,
-      GITHUB_TOKEN: _c,
-      ...envBase
-    } = process.env;
-    const result = spawnSync('bash', [skillPath, ...args], {
-      cwd: tempDir,
-      encoding: 'utf-8',
-      input: opts?.stdin ?? '',
-      env: {
-        ...envBase,
-        HOME: home,
-        PATH: `${fakeBin}:${process.env.PATH}`,
-        FAKE_GH_STATE: statePath,
-        FAKE_GH_LOG: logPath,
-        ...(input.token ? { FAKE_KEYRACK_TOKEN: input.token } : {}),
-      },
-    });
-    return {
-      stdout: result.stdout ?? '',
-      stderr: result.stderr ?? '',
-      exitCode: result.status ?? 1,
-    };
+  // the env a run needs: the stub gh first on PATH, a home with one home org,
+  // and no github token, so no real credential can leak into a run
+  const {
+    EHMPATHY_SEATURTLE_GITHUB_TOKEN: _a,
+    GH_TOKEN: _b,
+    GITHUB_TOKEN: _c,
+    ...envBase
+  } = process.env;
+  const env: NodeJS.ProcessEnv = {
+    ...envBase,
+    HOME: home,
+    PATH: `${fakeBin}:${process.env.PATH}`,
+    FAKE_GH_STATE: statePath,
+    FAKE_GH_LOG: logPath,
   };
+
   const getStore = (): PullSceneStore =>
     JSON.parse(fs.readFileSync(statePath, 'utf-8'));
   const getCalls = (): PullSceneCall[] =>
@@ -238,9 +229,58 @@ export const genGitPullScene = (input: typeof PULL_SCENE_BARE) => {
     getCalls().filter(
       (call) => call.argv[call.argv.indexOf('--method') + 1] === 'PATCH',
     );
+  return { env, getStore, getCalls, getWrites };
+};
+
+/**
+ * .what = a hermetic temp repo with the stub gh, the stub keyrack, and a store
+ * .note = token null → keyrack hands back none
+ */
+export const genGitPullScene = (input: typeof PULL_SCENE_BARE) => {
+  const tempDir = genTempDir({ slug: 'git-pull-field-test', git: true });
+  const stub = setGitPullStubInto({
+    dir: tempDir,
+    branch: input.branch,
+    store: input.store,
+  });
+
+  // the stub keyrack, which a bare temp repo lacks
+  const nodeBin = path.join(tempDir, 'node_modules', '.bin');
+  fs.mkdirSync(nodeBin, { recursive: true });
+  fs.writeFileSync(path.join(nodeBin, 'rhachet'), FAKE_RHACHET);
+  fs.chmodSync(path.join(nodeBin, 'rhachet'), '755');
+
+  // run one skill executable against the stub, by its path
+  const run = (
+    skillPath: string,
+    args: string[],
+    opts?: { stdin?: string },
+  ) => {
+    const result = spawnSync('bash', [skillPath, ...args], {
+      cwd: tempDir,
+      encoding: 'utf-8',
+      input: opts?.stdin ?? '',
+      env: {
+        ...stub.env,
+        ...(input.token ? { FAKE_KEYRACK_TOKEN: input.token } : {}),
+      },
+    });
+    return {
+      stdout: result.stdout ?? '',
+      stderr: result.stderr ?? '',
+      exitCode: result.status ?? 1,
+    };
+  };
   const writeFile = (name: string, content: string): string => {
     fs.writeFileSync(path.join(tempDir, name), content);
     return `./${name}`;
   };
-  return { tempDir, run, getStore, getCalls, getWrites, writeFile };
+  return {
+    tempDir,
+    run,
+    getStore: stub.getStore,
+    getCalls: stub.getCalls,
+    getWrites: stub.getWrites,
+    writeFile,
+  };
 };

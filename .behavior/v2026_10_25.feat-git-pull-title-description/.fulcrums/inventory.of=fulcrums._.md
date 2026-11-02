@@ -11,7 +11,7 @@ at the pr review. each row is a clean rework unless marked.
 | F4 | no secret-shaped body refusal | clean | taken (Q4 lean A) | 80% |
 | F5 | the attribution lives in `git/git.attribution.operations.sh` | clean | taken (Q5 lean B, after i002 r5) | 90% |
 | F6 | one `git.pull.operations.sh`, which sources #1143's ops rather than a copy | clean | taken (Q6 lean A, copy clause dropped) | 85% |
-| F7 | fake gh only; no real-api test | clean | taken (Q7 lean B) | 80% |
+| F7 | the fake gh is the gate; a live-api suite is opt-in, by a named target flag | clean | ruled B (commander 2026-10-31, director at 5.3) | 90% |
 | F8 | no client title cap; github's 422 mapped to a ConstraintError | clean | taken (Q8 lean B) | 85% |
 | F9 | `get` adds `--output text`: the bare field, for a pipe | clean | taken (call under 93%) | 75% |
 | F10 | a body with no words once stripped is refused, as an empty one is | clean | taken (call under 93%) | 85% |
@@ -24,3 +24,9 @@ at the pr review. each row is a clean rework unless marked.
 | F17 | a set writes only a pull its own credential opened; no override flag | clean | taken (i007 r11 item 1) | 85% |
 | F18 | defer the pull-layer inversion and the protocol folds to a dream | clean | taken (deferral for dirt, i007 r11 items 2–3; re-raised i008 r11 item 2) | 75% |
 | F19 | the comment-verb edits this pull makes stale ride along with it | clean | taken (i008 r11 item 5) | 85% |
+| F20 | refusals and plan hints print the dotted verb; help and the steer teach the spaced one | clean | taken (deferral for dirt, 5.3 has-ergonomics-validated) | 70% |
+| F21 | the comment real-api snapshot keeps its json as strings until a live re-run | clean | taken (5.3 r6 blocker.1, disputed) | 80% |
+| F22 | the as-human auth label keeps the word "fallback" | dirty | taken (deferral for dirt, 5.3 r11 n1) | 75% |
+| F23 | the shared refusals this pull touches revise #1143's locked comment expectations | clean | taken (5.3 r12 i004 blocker.1, disputed for sign-off) | 80% |
+| F24 | the title and description renders changed under peer review, after the first push | clean | taken (5.3 r12 i004 blocker.2, i005 blockers 7–11, disputed for sign-off) | 85% |
+| F25 | the gh-logged-out refusal echoes its fix in the detail row | dirty | taken (deferral for dirt, 5.3 r11 i004 n4) | 75% |

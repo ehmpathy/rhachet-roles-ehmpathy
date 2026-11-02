@@ -35,9 +35,9 @@ options:
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
-  --output tree|json|text      the output shape (default: tree); text = the title alone.
-                               via rhx, stdout opens with rhx's header line, so read the
-                               last line, never the whole stream
+  --output tree|json|text      the output shape (default: tree). via rhx, stdout opens with
+                               rhx's header lines: for text (the title alone) read the last
+                               line; for json parse from the first {
   --help, -h                   show this help
 
 example:
@@ -76,6 +76,7 @@ PULL="$(get_one_gh_pull "$PR")" || exit $?
 TITLE="$(printf '%s' "$PULL" | as_pull_field_from_json title)"
 URL="$(printf '%s' "$PULL" | as_pull_url_from_json)"
 AUTHOR="$(printf '%s' "$PULL" | as_pull_author_from_json)"
+STATE="$(printf '%s' "$PULL" | as_pull_state_from_json)"
 
 # text: the bare title
 if [[ "$OUTPUT" == "text" ]]; then
@@ -85,8 +86,8 @@ fi
 
 # json: one object
 if [[ "$OUTPUT" == "json" ]]; then
-  jq -n --arg repo "$COMMENT_REPO" --arg pr "$PR" --arg url "$URL" --arg author "$AUTHOR" --arg title "$TITLE" \
-    '{ repo: $repo, pr: ($pr | tonumber), url: $url, author: $author, title: $title }'
+  jq -n --arg repo "$COMMENT_REPO" --arg pr "$PR" --arg url "$URL" --arg author "$AUTHOR" --arg state "$STATE" --arg title "$TITLE" \
+    '{ repo: $repo, pr: ($pr | tonumber), url: $url, author: $author, state: $state, title: $title }'
   exit 0
 fi
 
@@ -95,6 +96,7 @@ print_turtle_header "heres the wave..."
 print_tree_start "git.pull.title.get"
 echo "   ├─ target: $COMMENT_REPO#$PR, title"
 echo "   ├─ auth: $(get_comment_auth_label) as $COMMENT_LOGIN"
-echo "   ├─ url: $URL"
 echo "   ├─ author: $AUTHOR"
+echo "   ├─ state: $STATE"
+echo "   ├─ url: $URL"
 echo "   └─ title: $TITLE"

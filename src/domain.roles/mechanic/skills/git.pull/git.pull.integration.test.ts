@@ -1,3 +1,4 @@
+import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { given, then, useThen, when } from 'test-fns';
@@ -60,8 +61,322 @@ describe('git.pull', () => {
           expect(run.stdout).toContain('rhx git.commit.push --mode apply');
         });
         expect(scene.getWrites()).toHaveLength(0);
-        expect(result.verbs.titleSet.stdout).toMatchSnapshot();
       });
+      then(
+        'each verb names itself in its fix, so each render is snapped',
+        () => {
+          expect(result.verbs.titleGet.stdout).toContain(
+            'rhx git.pull.title.get --pr <n>',
+          );
+          expect(result.verbs.descriptionSet.stdout).toContain(
+            'rhx git.pull.description.set --pr <n>',
+          );
+          expect({
+            titleGet: result.verbs.titleGet.stdout,
+            titleSet: result.verbs.titleSet.stdout,
+            descriptionGet: result.verbs.descriptionGet.stdout,
+            descriptionSet: result.verbs.descriptionSet.stdout,
+          }).toMatchSnapshot();
+        },
+      );
+    });
+    when('[t1] each of the four verbs runs under --output json', () => {
+      const scene = genGitPullScene({
+        ...PULL_SCENE_BARE,
+        branch: 'surf/no-pull-here',
+      });
+      const result = useThen('they run', async () => ({
+        verbs: runFourVerbs(scene, ['--output', 'json']),
+      }));
+      then(
+        'each exits 2 with one json refusal on stdout and the tree on stderr',
+        () => {
+          Object.values(result.verbs).forEach((run) => {
+            expect(run.exitCode).toBe(2);
+            const refusal = JSON.parse(run.stdout);
+            expect(refusal.error.class).toBe('ConstraintError');
+            expect(refusal.error.message).toContain(
+              "branch 'surf/no-pull-here' has no open pull",
+            );
+            expect(run.stderr).toContain('✋ ConstraintError:');
+          });
+          expect(scene.getWrites()).toHaveLength(0);
+          expect({
+            titleGet: JSON.parse(result.verbs.titleGet.stdout),
+            titleSet: JSON.parse(result.verbs.titleSet.stdout),
+            descriptionGet: JSON.parse(result.verbs.descriptionGet.stdout),
+            descriptionSet: JSON.parse(result.verbs.descriptionSet.stdout),
+          }).toMatchSnapshot();
+        },
+      );
+    });
+  });
+
+  given('[case1b] each verb refuses bad input before any gh call', () => {
+    const CASES: { description: string; args: string[]; words: string }[] = [
+      {
+        description: 'an unknown arg',
+        args: ['--reef'],
+        words: "unknown arg '--reef'",
+      },
+      {
+        description: 'a flag with no value',
+        args: ['--pr'],
+        words: '--pr needs a value',
+      },
+      {
+        description: 'a non-numeric --pr',
+        args: ['--pr', 'seven'],
+        words: "--pr must be a pull request number, got 'seven'",
+      },
+      {
+        description: 'a bad --auth',
+        args: ['--auth', 'as-robot'],
+        words: '--auth must be',
+      },
+      {
+        description: 'a bad --output',
+        args: ['--output', 'yaml'],
+        words: '--output must be',
+      },
+    ];
+    CASES.forEach((thisCase, index) =>
+      when(`[t${index}] ${thisCase.description}`, () => {
+        const scene = genGitPullScene(PULL_SCENE_BARE);
+        const result = useThen('they run', async () => ({
+          verbs: runFourVerbs(scene, thisCase.args),
+          calls: scene.getCalls().length,
+        }));
+        then(
+          'each exits 2, names the input, on both streams, no gh call',
+          () => {
+            Object.values(result.verbs).forEach((run) => {
+              expect(run.exitCode).toBe(2);
+              expect(run.stdout).toContain('✋ ConstraintError:');
+              expect(run.stdout).toContain(thisCase.words);
+              expect(run.stderr).toContain('ConstraintError');
+            });
+            expect(result.calls).toBe(0);
+            expect({
+              titleGet: result.verbs.titleGet.stdout,
+              titleSet: result.verbs.titleSet.stdout,
+              descriptionGet: result.verbs.descriptionGet.stdout,
+              descriptionSet: result.verbs.descriptionSet.stdout,
+            }).toMatchSnapshot();
+          },
+        );
+      }),
+    );
+    when('[t5] --output text on a set verb (text is a get output)', () => {
+      const scene = genGitPullScene(PULL_SCENE_BARE);
+      const result = useThen('they run', async () => {
+        const verbs = runFourVerbs(scene, ['--output', 'text']);
+        return {
+          titleSet: verbs.titleSet,
+          descriptionSet: verbs.descriptionSet,
+        };
+      });
+      then('each set exits 2 and names tree or json', () => {
+        [result.titleSet, result.descriptionSet].forEach((run) => {
+          expect(run.exitCode).toBe(2);
+          expect(run.stdout).toContain(
+            "--output must be tree or json, got 'text'",
+          );
+        });
+        expect({
+          titleSet: result.titleSet.stdout,
+          descriptionSet: result.descriptionSet.stdout,
+        }).toMatchSnapshot();
+      });
+    });
+    when('[t6] the cwd is on a detached HEAD, with no --pr', () => {
+      const scene = genGitPullScene(PULL_SCENE_BARE);
+      const result = useThen('they run', async () => {
+        spawnSync('git', ['commit', '--allow-empty', '-m', 'tide'], {
+          cwd: scene.tempDir,
+        });
+        spawnSync('git', ['checkout', '--detach'], { cwd: scene.tempDir });
+        return { verbs: runFourVerbs(scene, []) };
+      });
+      then('each exits 2 and names the detached HEAD', () => {
+        Object.values(result.verbs).forEach((run) => {
+          expect(run.exitCode).toBe(2);
+          expect(run.stdout).toContain('detached HEAD');
+        });
+        expect(scene.getWrites()).toHaveLength(0);
+        expect({
+          titleGet: result.verbs.titleGet.stdout,
+          titleSet: result.verbs.titleSet.stdout,
+          descriptionGet: result.verbs.descriptionGet.stdout,
+          descriptionSet: result.verbs.descriptionSet.stdout,
+        }).toMatchSnapshot();
+      });
+    });
+    when('[t7] the branch has two open pulls, with no --pr', () => {
+      const scene = genGitPullScene({
+        ...PULL_SCENE_BARE,
+        store: {
+          prs: {
+            '7': {
+              title: 'feat(lessons): book a surf lesson',
+              body: 'surf lesson booker',
+              head: 'surf/book-lesson',
+            },
+            '9': {
+              title: 'feat(lessons): book a reef tour',
+              body: 'reef tour booker',
+              head: 'surf/book-lesson',
+            },
+          },
+        },
+      });
+      const result = useThen('they run', async () => ({
+        verbs: runFourVerbs(scene, []),
+      }));
+      then('each exits 2, lists both pulls, and writes naught', () => {
+        Object.values(result.verbs).forEach((run) => {
+          expect(run.exitCode).toBe(2);
+          expect(run.stdout).toContain('has 2 open pulls');
+          expect(run.stdout).toContain('7, 9');
+        });
+        expect(scene.getWrites()).toHaveLength(0);
+        expect({
+          titleGet: result.verbs.titleGet.stdout,
+          titleSet: result.verbs.titleSet.stdout,
+          descriptionGet: result.verbs.descriptionGet.stdout,
+          descriptionSet: result.verbs.descriptionSet.stdout,
+        }).toMatchSnapshot();
+      });
+    });
+    when('[t8] title set names --title as its last arg, with no value', () => {
+      const scene = genGitPullScene(PULL_SCENE_BARE);
+      const result = useThen('it runs', async () =>
+        scene.run(skill('title', 'set'), ['--mode', 'plan', '--title']),
+      );
+      then('it exits 2 and names the absent value, no gh call', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('--title needs a value');
+        expect(scene.getCalls()).toHaveLength(0);
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+    when('[t9] each verb takes its flags in the --flag=value form', () => {
+      const scene = genGitPullScene(PULL_SCENE_BARE);
+      const result = useThen('they run', async () => {
+        fs.mkdirSync(path.join(scene.tempDir, '.temp'), { recursive: true });
+        fs.writeFileSync(
+          path.join(scene.tempDir, '.temp', 'kelp.md'),
+          'kelp bed map, by tide\n',
+        );
+        return {
+          titleGet: scene.run(skill('title', 'get'), [
+            '--pr=7',
+            '--output=json',
+          ]),
+          titleSet: scene.run(skill('title', 'set'), [
+            '--pr=7',
+            '--title=feat(reef): map the kelp beds',
+            '--mode=plan',
+          ]),
+          descriptionGet: scene.run(skill('description', 'get'), [
+            '--pr=7',
+            '--output=json',
+          ]),
+          descriptionSet: scene.run(skill('description', 'set'), [
+            '--pr=7',
+            '--from=./.temp/kelp.md',
+            '--mode=plan',
+          ]),
+        };
+      });
+      then(
+        'each parses the = form as the spaced form, and writes naught',
+        () => {
+          expect(result.titleGet.exitCode).toBe(0);
+          expect(JSON.parse(result.titleGet.stdout).pr).toBe(7);
+          expect(result.titleSet.exitCode).toBe(0);
+          expect(result.titleSet.stdout).toContain(
+            'new: feat(reef): map the kelp beds',
+          );
+          expect(result.titleSet.stdout).toContain('would set (plan)');
+          expect(result.descriptionGet.exitCode).toBe(0);
+          expect(JSON.parse(result.descriptionGet.stdout).pr).toBe(7);
+          expect(result.descriptionSet.exitCode).toBe(0);
+          expect(result.descriptionSet.stdout).toContain(
+            'from: ./.temp/kelp.md',
+          );
+          expect(result.descriptionSet.stdout).toContain('would set (plan)');
+          expect(scene.getWrites()).toHaveLength(0);
+          expect({
+            titleSet: result.titleSet.stdout,
+            descriptionSet: result.descriptionSet.stdout,
+          }).toMatchSnapshot();
+        },
+      );
+    });
+  });
+
+  given('[case2c] github fails a read', () => {
+    when('[t0] every GET answers a server error (HTTP 502)', () => {
+      const scene = genGitPullScene({
+        ...PULL_SCENE_BARE,
+        store: {
+          fail: 'gh: Bad Gateway (HTTP 502)',
+          failMethod: 'GET',
+        },
+      });
+      const result = useThen('they run', async () => ({
+        verbs: runFourVerbs(scene, []),
+      }));
+      then(
+        'each fails loud as a MalfunctionError, exit 1, and writes naught',
+        () => {
+          Object.values(result.verbs).forEach((run) => {
+            expect(run.exitCode).toBe(1);
+            expect(run.stdout).toContain('💥 MalfunctionError:');
+            expect(run.stdout).toContain('HTTP 502');
+            expect(run.stderr).toContain('MalfunctionError');
+          });
+          expect(scene.getWrites()).toHaveLength(0);
+          expect({
+            titleGet: result.verbs.titleGet.stdout,
+            titleSet: result.verbs.titleSet.stdout,
+            descriptionGet: result.verbs.descriptionGet.stdout,
+            descriptionSet: result.verbs.descriptionSet.stdout,
+          }).toMatchSnapshot();
+        },
+      );
+    });
+    when('[t1] every GET answers bad credentials (HTTP 401)', () => {
+      const scene = genGitPullScene({
+        ...PULL_SCENE_BARE,
+        store: {
+          fail: 'gh: Bad credentials (HTTP 401)',
+          failMethod: 'GET',
+        },
+      });
+      const result = useThen('they run', async () => ({
+        verbs: runFourVerbs(scene, []),
+      }));
+      then(
+        'each refuses as a ConstraintError, exit 2, and names the token fix',
+        () => {
+          Object.values(result.verbs).forEach((run) => {
+            expect(run.exitCode).toBe(2);
+            expect(run.stdout).toContain(
+              '✋ ConstraintError: github refused the credential',
+            );
+            expect(run.stdout).toContain('rhx keyrack fill');
+          });
+          expect(scene.getWrites()).toHaveLength(0);
+          expect({
+            titleGet: result.verbs.titleGet.stdout,
+            titleSet: result.verbs.titleSet.stdout,
+            descriptionGet: result.verbs.descriptionGet.stdout,
+            descriptionSet: result.verbs.descriptionSet.stdout,
+          }).toMatchSnapshot();
+        },
+      );
     });
   });
 
@@ -78,6 +393,27 @@ describe('git.pull', () => {
         });
         expect(scene.getCalls()).toHaveLength(0);
         expect(result.verbs.titleGet.stdout).toMatchSnapshot();
+      });
+    });
+    when('[t0b] the keyrack holds no token, under --output json', () => {
+      const scene = genGitPullScene({ ...PULL_SCENE_BARE, token: null });
+      const result = useThen('they run', async () => ({
+        verbs: runFourVerbs(scene, ['--output', 'json']),
+      }));
+      then('each prints one json refusal, exit 2, and calls no gh', () => {
+        Object.values(result.verbs).forEach((run) => {
+          expect(run.exitCode).toBe(2);
+          const out = JSON.parse(run.stdout);
+          expect(out.error.class).toBe('ConstraintError');
+          expect(out.error.message).toContain(
+            'ehmpath keyrack token not available',
+          );
+        });
+        expect(scene.getCalls()).toHaveLength(0);
+        expect({
+          titleSet: JSON.parse(result.verbs.titleSet.stdout),
+          descriptionGet: JSON.parse(result.verbs.descriptionGet.stdout),
+        }).toMatchSnapshot();
       });
     });
     when('[t1] as-human, with gh logged out', () => {
@@ -162,6 +498,43 @@ describe('git.pull', () => {
         expect(result.verbs.titleSet.stdout).toMatchSnapshot();
       });
     });
+    when(
+      '[t2] --in names an owner outside the home orgs, under --output json',
+      () => {
+        const scene = genGitPullScene(PULL_SCENE_BARE);
+        const result = useThen('the four verbs run', async () => ({
+          verbs: runFourVerbs(scene, [
+            '--in',
+            'seaturtlecorp/reef',
+            '--pr',
+            '8',
+            '--output',
+            'json',
+          ]),
+        }));
+        then(
+          'each exits 2 at the fence with one json refusal, and calls no gh',
+          () => {
+            Object.values(result.verbs).forEach((run) => {
+              expect(run.exitCode).toBe(2);
+              const refusal = JSON.parse(run.stdout);
+              expect(refusal.error.class).toBe('ConstraintError');
+              expect(refusal.error.message).toContain(
+                "owner 'seaturtlecorp' is outside the home orgs",
+              );
+              expect(run.stderr).toContain('✋ ConstraintError:');
+            });
+            expect(scene.getCalls()).toHaveLength(0);
+            expect({
+              titleGet: JSON.parse(result.verbs.titleGet.stdout),
+              titleSet: JSON.parse(result.verbs.titleSet.stdout),
+              descriptionGet: JSON.parse(result.verbs.descriptionGet.stdout),
+              descriptionSet: JSON.parse(result.verbs.descriptionSet.stdout),
+            }).toMatchSnapshot();
+          },
+        );
+      },
+    );
   });
 
   given('[case5] the dispatcher routes set, as it routes get', () => {
@@ -330,6 +703,29 @@ describe('git.pull', () => {
         expect(out.verdict).toBe('already there — no-op');
         expect(out.repairs).toEqual([]);
         expect(scene.getWrites()).toHaveLength(0);
+        expect(out).toMatchSnapshot();
+      });
+    });
+    when('[t1] the title set already reads so', () => {
+      const scene = genGitPullScene(PULL_SCENE_BARE);
+      const result = useThen('it runs', async () => ({
+        set: scene.run(skill('title', 'set'), [
+          '--title',
+          scene.getStore().prs['7']!.title,
+          '--mode',
+          'apply',
+          '--output',
+          'json',
+        ]),
+        writes: scene.getWrites().length,
+      }));
+      then('the json reports the no-op, with no read-back', () => {
+        expect(result.set.exitCode).toBe(0);
+        const out = JSON.parse(result.set.stdout);
+        expect(out.verdict).toBe('already there — no-op');
+        expect(out.title.readback).toBeNull();
+        expect(result.writes).toBe(0);
+        expect(out).toMatchSnapshot();
       });
     });
   });

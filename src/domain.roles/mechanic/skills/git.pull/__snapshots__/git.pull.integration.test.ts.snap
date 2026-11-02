@@ -1,13 +1,373 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`git.pull given: [case1] the branch has no open pull when: [t0] each of the four verbs runs then: each exits 2, names the branch and the fix, writes naught 1`] = `
-"✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+exports[`git.pull given: [case1] the branch has no open pull when: [t0] each of the four verbs runs then: each verb names itself in its fix, so each render is snapped 1`] = `
+{
+  "descriptionGet": "✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
+      └─ rhx git.pull.description.get --pr <n> ...   # or name a pull, closed or merged included
+",
+  "descriptionSet": "✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
+      └─ rhx git.pull.description.set --pr <n> ...   # or name a pull, closed or merged included
+",
+  "titleGet": "✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
+      └─ rhx git.pull.title.get --pr <n> ...   # or name a pull, closed or merged included
+",
+  "titleSet": "✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
 
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
       └─ rhx git.pull.title.set --pr <n> ...   # or name a pull, closed or merged included
+",
+}
+`;
+
+exports[`git.pull given: [case1] the branch has no open pull when: [t1] each of the four verbs runs under --output json then: each exits 2 with one json refusal on stdout and the tree on stderr 1`] = `
+{
+  "descriptionGet": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [],
+      "fixes": [
+        "rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one",
+        "rhx git.pull.description.get --pr <n> ...   # or name a pull, closed or merged included",
+      ],
+      "message": "--pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo",
+    },
+  },
+  "descriptionSet": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [],
+      "fixes": [
+        "rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one",
+        "rhx git.pull.description.set --pr <n> ...   # or name a pull, closed or merged included",
+      ],
+      "message": "--pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo",
+    },
+  },
+  "titleGet": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [],
+      "fixes": [
+        "rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one",
+        "rhx git.pull.title.get --pr <n> ...   # or name a pull, closed or merged included",
+      ],
+      "message": "--pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo",
+    },
+  },
+  "titleSet": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [],
+      "fixes": [
+        "rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one",
+        "rhx git.pull.title.set --pr <n> ...   # or name a pull, closed or merged included",
+      ],
+      "message": "--pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo",
+    },
+  },
+}
+`;
+
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t0] an unknown arg then: each exits 2, names the input, on both streams, no gh call 1`] = `
+{
+  "descriptionGet": "✋ ConstraintError: unknown arg '--reef'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description.get --help
+",
+  "descriptionSet": "✋ ConstraintError: unknown arg '--reef'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description.set --help
+",
+  "titleGet": "✋ ConstraintError: unknown arg '--reef'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title.get --help
+",
+  "titleSet": "✋ ConstraintError: unknown arg '--reef'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title.set --help
+",
+}
+`;
+
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t1] a flag with no value then: each exits 2, names the input, on both streams, no gh call 1`] = `
+{
+  "descriptionGet": "✋ ConstraintError: --pr needs a value
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description.get --help   # lists each flag and its value
+",
+  "descriptionSet": "✋ ConstraintError: --pr needs a value
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description.set --help   # lists each flag and its value
+",
+  "titleGet": "✋ ConstraintError: --pr needs a value
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title.get --help   # lists each flag and its value
+",
+  "titleSet": "✋ ConstraintError: --pr needs a value
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title.set --help   # lists each flag and its value
+",
+}
+`;
+
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t2] a non-numeric --pr then: each exits 2, names the input, on both streams, no gh call 1`] = `
+{
+  "descriptionGet": "✋ ConstraintError: --pr must be a pull request number, got 'seven'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description.get --pr 69 ...   # or omit --pr, for the open pull of the cwd branch
+",
+  "descriptionSet": "✋ ConstraintError: --pr must be a pull request number, got 'seven'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description.set --pr 69 ...   # or omit --pr, for the open pull of the cwd branch
+",
+  "titleGet": "✋ ConstraintError: --pr must be a pull request number, got 'seven'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title.get --pr 69 ...   # or omit --pr, for the open pull of the cwd branch
+",
+  "titleSet": "✋ ConstraintError: --pr must be a pull request number, got 'seven'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title.set --pr 69 ...   # or omit --pr, for the open pull of the cwd branch
+",
+}
+`;
+
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t3] a bad --auth then: each exits 2, names the input, on both streams, no gh call 1`] = `
+{
+  "descriptionGet": "✋ ConstraintError: --auth must be 'as-ehmpath' or 'as-human', got 'as-robot'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --auth as-ehmpath (the default)
+",
+  "descriptionSet": "✋ ConstraintError: --auth must be 'as-ehmpath' or 'as-human', got 'as-robot'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --auth as-ehmpath (the default)
+",
+  "titleGet": "✋ ConstraintError: --auth must be 'as-ehmpath' or 'as-human', got 'as-robot'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --auth as-ehmpath (the default)
+",
+  "titleSet": "✋ ConstraintError: --auth must be 'as-ehmpath' or 'as-human', got 'as-robot'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --auth as-ehmpath (the default)
+",
+}
+`;
+
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t4] a bad --output then: each exits 2, names the input, on both streams, no gh call 1`] = `
+{
+  "descriptionGet": "✋ ConstraintError: --output must be tree, json, or text, got 'yaml'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --output tree (the default)
+",
+  "descriptionSet": "✋ ConstraintError: --output must be tree or json, got 'yaml'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --output tree (the default)
+",
+  "titleGet": "✋ ConstraintError: --output must be tree, json, or text, got 'yaml'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --output tree (the default)
+",
+  "titleSet": "✋ ConstraintError: --output must be tree or json, got 'yaml'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --output tree (the default)
+",
+}
+`;
+
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t5] --output text on a set verb (text is a get output) then: each set exits 2 and names tree or json 1`] = `
+{
+  "descriptionSet": "✋ ConstraintError: --output must be tree or json, got 'text'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --output tree (the default)
+",
+  "titleSet": "✋ ConstraintError: --output must be tree or json, got 'text'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --output tree (the default)
+",
+}
+`;
+
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t6] the cwd is on a detached HEAD, with no --pr then: each exits 2 and names the detached HEAD 1`] = `
+{
+  "descriptionGet": "✋ ConstraintError: --pr is absent, and the cwd has no branch to find a pull for (detached HEAD)
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description.get --pr <n> ...
+",
+  "descriptionSet": "✋ ConstraintError: --pr is absent, and the cwd has no branch to find a pull for (detached HEAD)
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description.set --pr <n> ...
+",
+  "titleGet": "✋ ConstraintError: --pr is absent, and the cwd has no branch to find a pull for (detached HEAD)
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title.get --pr <n> ...
+",
+  "titleSet": "✋ ConstraintError: --pr is absent, and the cwd has no branch to find a pull for (detached HEAD)
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title.set --pr <n> ...
+",
+}
+`;
+
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t7] the branch has two open pulls, with no --pr then: each exits 2, lists both pulls, and writes naught 1`] = `
+{
+  "descriptionGet": "✋ ConstraintError: --pr is absent, and branch 'surf/book-lesson' has 2 open pulls on ehmpathy/surf-demo
+   └─ open pulls: 7, 9
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description.get --pr <n> ...   # name one
+",
+  "descriptionSet": "✋ ConstraintError: --pr is absent, and branch 'surf/book-lesson' has 2 open pulls on ehmpathy/surf-demo
+   └─ open pulls: 7, 9
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description.set --pr <n> ...   # name one
+",
+  "titleGet": "✋ ConstraintError: --pr is absent, and branch 'surf/book-lesson' has 2 open pulls on ehmpathy/surf-demo
+   └─ open pulls: 7, 9
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title.get --pr <n> ...   # name one
+",
+  "titleSet": "✋ ConstraintError: --pr is absent, and branch 'surf/book-lesson' has 2 open pulls on ehmpathy/surf-demo
+   └─ open pulls: 7, 9
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title.set --pr <n> ...   # name one
+",
+}
+`;
+
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t8] title set names --title as its last arg, with no value then: it exits 2 and names the absent value, no gh call 1`] = `
+"✋ ConstraintError: --title needs a value
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title.set --title 'feat(reef): map the kelp beds'
 "
+`;
+
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t9] each verb takes its flags in the --flag=value form then: each parses the = form as the spaced form, and writes naught 1`] = `
+{
+  "descriptionSet": "🐢 heres the wave...
+
+🐚 git.pull.description.set --mode plan
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ current
+   │  ├─ bytes: 60
+   │  ├─ sha256: 8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28
+   │  └─ text
+   │     surf lesson booker
+   │
+   │     ---
+   │     🐢🌊 surfed in by seaturtle[bot]
+   │
+   ├─ new
+   │  ├─ from: ./.temp/kelp.md
+   │  ├─ repair: appended the seaturtle footer
+   │  ├─ bytes: 63
+   │  ├─ sha256: 5117ad55c3303af0b47847626bb244efab635d2629da1e512c1e438785f73ade
+   │  └─ text
+   │     kelp bed map, by tide
+   │
+   │     ---
+   │     🐢🌊 surfed in by seaturtle[bot]
+   │
+   └─ verdict: would set (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ rhx git.pull.description.set --pr=7 --from=./.temp/kelp.md --mode apply
+",
+  "titleSet": "🐢 heres the wave...
+
+🐚 git.pull.title.set --mode plan
+   ├─ target: ehmpathy/surf-demo#7, title
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ current: feat(lessons): book a surf lesson
+   ├─ new: feat(reef): map the kelp beds
+   └─ verdict: would set (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ rhx git.pull.title.set --pr=7 '--title=feat(reef): map the kelp beds' --mode apply
+",
+}
 `;
 
 exports[`git.pull given: [case2] the credential is unusable when: [t0] the keyrack holds no token then: each exits 2, names the keyrack fix, and calls no gh 1`] = `
@@ -18,8 +378,41 @@ exports[`git.pull given: [case2] the credential is unusable when: [t0] the keyra
    └─ to fix it, by the state of the token, pick one
       ├─ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # a human, where the token was never set
       ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # the token is set, but locked
-      └─ rerun with --auth as-human   # post under your own gh login instead
+      └─ rerun with --auth as-human   # act under your own gh login instead
 "
+`;
+
+exports[`git.pull given: [case2] the credential is unusable when: [t0b] the keyrack holds no token, under --output json then: each prints one json refusal, exit 2, and calls no gh 1`] = `
+{
+  "descriptionGet": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [
+        "cause: credential not found: EHMPATHY_SEATURTLE_GITHUB_TOKEN",
+      ],
+      "fixes": [
+        "rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # a human, where the token was never set",
+        "rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # the token is set, but locked",
+        "rerun with --auth as-human   # act under your own gh login instead",
+      ],
+      "message": "ehmpath keyrack token not available",
+    },
+  },
+  "titleSet": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [
+        "cause: credential not found: EHMPATHY_SEATURTLE_GITHUB_TOKEN",
+      ],
+      "fixes": [
+        "rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # a human, where the token was never set",
+        "rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # the token is set, but locked",
+        "rerun with --auth as-human   # act under your own gh login instead",
+      ],
+      "message": "ehmpath keyrack token not available",
+    },
+  },
+}
 `;
 
 exports[`git.pull given: [case2] the credential is unusable when: [t1] as-human, with gh logged out then: each exits 2, names gh auth login, and writes naught 1`] = `
@@ -30,6 +423,76 @@ exports[`git.pull given: [case2] the credential is unusable when: [t1] as-human,
    └─ to fix it
       └─ gh auth login
 "
+`;
+
+exports[`git.pull given: [case2c] github fails a read when: [t0] every GET answers a server error (HTTP 502) then: each fails loud as a MalfunctionError, exit 1, and writes naught 1`] = `
+{
+  "descriptionGet": "💥 MalfunctionError: gh api failed on GET repos/ehmpathy/surf-demo/pulls?state=open&head=ehmpathy:surf/book-lesson
+   └─ gh: Bad Gateway (HTTP 502)
+
+🥥 did you know?
+   └─ next
+      └─ rerun the same command after a pause: get, set, and del are each safe to rerun
+",
+  "descriptionSet": "💥 MalfunctionError: gh api failed on GET repos/ehmpathy/surf-demo/pulls?state=open&head=ehmpathy:surf/book-lesson
+   └─ gh: Bad Gateway (HTTP 502)
+
+🥥 did you know?
+   └─ next
+      └─ rerun the same command after a pause: get, set, and del are each safe to rerun
+",
+  "titleGet": "💥 MalfunctionError: gh api failed on GET repos/ehmpathy/surf-demo/pulls?state=open&head=ehmpathy:surf/book-lesson
+   └─ gh: Bad Gateway (HTTP 502)
+
+🥥 did you know?
+   └─ next
+      └─ rerun the same command after a pause: get, set, and del are each safe to rerun
+",
+  "titleSet": "💥 MalfunctionError: gh api failed on GET repos/ehmpathy/surf-demo/pulls?state=open&head=ehmpathy:surf/book-lesson
+   └─ gh: Bad Gateway (HTTP 502)
+
+🥥 did you know?
+   └─ next
+      └─ rerun the same command after a pause: get, set, and del are each safe to rerun
+",
+}
+`;
+
+exports[`git.pull given: [case2c] github fails a read when: [t1] every GET answers bad credentials (HTTP 401) then: each refuses as a ConstraintError, exit 2, and names the token fix 1`] = `
+{
+  "descriptionGet": "✋ ConstraintError: github refused the credential (as-ehmpath) on GET repos/ehmpathy/surf-demo/pulls?state=open&head=ehmpathy:surf/book-lesson
+   └─ detail: gh: Bad credentials (HTTP 401)
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh   # a human: set a token github accepts
+      └─ rerun with --auth as-human   # act under your own gh login instead
+",
+  "descriptionSet": "✋ ConstraintError: github refused the credential (as-ehmpath) on GET repos/ehmpathy/surf-demo/pulls?state=open&head=ehmpathy:surf/book-lesson
+   └─ detail: gh: Bad credentials (HTTP 401)
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh   # a human: set a token github accepts
+      └─ rerun with --auth as-human   # act under your own gh login instead
+",
+  "titleGet": "✋ ConstraintError: github refused the credential (as-ehmpath) on GET repos/ehmpathy/surf-demo/pulls?state=open&head=ehmpathy:surf/book-lesson
+   └─ detail: gh: Bad credentials (HTTP 401)
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh   # a human: set a token github accepts
+      └─ rerun with --auth as-human   # act under your own gh login instead
+",
+  "titleSet": "✋ ConstraintError: github refused the credential (as-ehmpath) on GET repos/ehmpathy/surf-demo/pulls?state=open&head=ehmpathy:surf/book-lesson
+   └─ detail: gh: Bad credentials (HTTP 401)
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh   # a human: set a token github accepts
+      └─ rerun with --auth as-human   # act under your own gh login instead
+",
+}
 `;
 
 exports[`git.pull given: [case3] a get under --output text is refused when: [t0] each get runs on a branch with no open pull then: the refusal reads on both streams, with its class and fix 1`] = `
@@ -76,8 +539,8 @@ exports[`git.pull given: [case4] --in names the repo when: [t0] --in names the h
    ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
    ├─ author: ehm-seaturtle
    ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
    ├─ current
-   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
    │  ├─ bytes: 16
    │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    ├─ new
@@ -98,6 +561,59 @@ exports[`git.pull given: [case4] --in names the repo when: [t1] --in names an ow
    └─ to fix it
       └─ target a repo in one of those orgs, via --in <owner/name>
 "
+`;
+
+exports[`git.pull given: [case4] --in names the repo when: [t2] --in names an owner outside the home orgs, under --output json then: each exits 2 at the fence with one json refusal, and calls no gh 1`] = `
+{
+  "descriptionGet": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [
+        "home org: ehmpathy",
+      ],
+      "fixes": [
+        "target a repo in one of those orgs, via --in <owner/name>",
+      ],
+      "message": "owner 'seaturtlecorp' is outside the home orgs",
+    },
+  },
+  "descriptionSet": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [
+        "home org: ehmpathy",
+      ],
+      "fixes": [
+        "target a repo in one of those orgs, via --in <owner/name>",
+      ],
+      "message": "owner 'seaturtlecorp' is outside the home orgs",
+    },
+  },
+  "titleGet": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [
+        "home org: ehmpathy",
+      ],
+      "fixes": [
+        "target a repo in one of those orgs, via --in <owner/name>",
+      ],
+      "message": "owner 'seaturtlecorp' is outside the home orgs",
+    },
+  },
+  "titleSet": {
+    "error": {
+      "class": "ConstraintError",
+      "details": [
+        "home org: ehmpathy",
+      ],
+      "fixes": [
+        "target a repo in one of those orgs, via --in <owner/name>",
+      ],
+      "message": "owner 'seaturtlecorp' is outside the home orgs",
+    },
+  },
+}
 `;
 
 exports[`git.pull given: [case5] the dispatcher routes set, as it routes get when: [t0] \`git.pull.<noun> set\` runs, with its value flags then: each write lands, as the dotted form would 1`] = `
@@ -124,8 +640,8 @@ exports[`git.pull given: [case5] the dispatcher routes set, as it routes get whe
    ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
    ├─ author: ehm-seaturtle
    ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
    ├─ current
-   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
    │  ├─ bytes: 16
    │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    ├─ new
@@ -179,8 +695,9 @@ exports[`git.pull given: [case6] the less-trod contract paths of each noun when:
 🐚 git.pull.title.get
    ├─ target: ehmpathy/surf-demo#8, title
    ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
-   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
    ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
    └─ title: feat(reports): sync the wave report
 "
 `;
@@ -201,9 +718,9 @@ options:
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
-  --output tree|json|text      the output shape (default: tree); text = the title alone.
-                               via rhx, stdout opens with rhx's header line, so read the
-                               last line, never the whole stream
+  --output tree|json|text      the output shape (default: tree). via rhx, stdout opens with
+                               rhx's header lines: for text (the title alone) read the last
+                               line; for json parse from the first {
   --help, -h                   show this help
 
 example:
@@ -219,8 +736,10 @@ options:
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
   --output tree|json|text      the output shape (default: tree); text = the body alone.
-                               via rhx, stdout opens with rhx's header line; to edit, use --to
-  --to <path>                  also write the bare body to <path>, to edit, then set --from <path>
+                               via rhx, stdout opens with rhx's header lines: for json parse
+                               from the first {; to edit the body, use --to
+  --to <path>                  also write the bare body to <path>, for you to edit and pass to
+                               set --from <path>. <path> must sit inside this repo, untracked by git
   --help, -h                   show this help
 
 example:
@@ -251,4 +770,39 @@ verbs:
 options:
   --help, -h                   show this help
 "
+`;
+
+exports[`git.pull given: [case7] a no-op set, as json when: [t0] the description set already reads so then: the json reports no repairs, as the tree does 1`] = `
+{
+  "author": "ehm-seaturtle",
+  "mode": "apply",
+  "pr": 7,
+  "repairs": [],
+  "sha256": {
+    "current": "8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28",
+    "new": "8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28",
+    "readback": null,
+  },
+  "state": "open",
+  "target": "ehmpathy/surf-demo#7, description",
+  "url": "https://github.com/ehmpathy/surf-demo/pull/7",
+  "verdict": "already there — no-op",
+}
+`;
+
+exports[`git.pull given: [case7] a no-op set, as json when: [t1] the title set already reads so then: the json reports the no-op, with no read-back 1`] = `
+{
+  "author": "ehm-seaturtle",
+  "mode": "apply",
+  "pr": 7,
+  "state": "open",
+  "target": "ehmpathy/surf-demo#7, title",
+  "title": {
+    "current": "feat(lessons): book a surf lesson",
+    "new": "feat(lessons): book a surf lesson",
+    "readback": null,
+  },
+  "url": "https://github.com/ehmpathy/surf-demo/pull/7",
+  "verdict": "already there — no-op",
+}
 `;

@@ -1,6 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as path from 'path';
-import { given, then, when } from 'test-fns';
+import { given, then, useThen, when } from 'test-fns';
 
 /**
  * .what = caselist tests for the pr body attribution transformer
@@ -41,32 +41,65 @@ describe('git.attribution.operations.sh', () => {
     {
       description: 'a co-authored-by trailer is stripped (no email leak)',
       given: {
-        body: 'fix(api): validate input\n\n- added schema validation\n\nCo-authored-by: Human Name <human@example.com>',
+        body: 'fix(reef): map the kelp beds\n\n- added the tide chart\n\nCo-authored-by: Surfer Kai <kai@example.com>',
       },
       expect: {
-        clean: 'fix(api): validate input\n\n- added schema validation',
+        clean: 'fix(reef): map the kelp beds\n\n- added the tide chart',
         repairs: ['stripped the co-authored-by trailer(s)'],
       },
     },
     {
       description: 'every co-authored-by trailer is stripped',
       given: {
-        body: 'feat(auth): add oauth\n\n- added provider\n\nCo-authored-by: Human One <one@example.com>\nCo-authored-by: Human Two <two@example.com>',
+        body: 'feat(lessons): book a surf lesson\n\n- added the wave report\n\nCo-authored-by: Surfer Kai <kai@example.com>\nCo-authored-by: Reef Ranger <ranger@example.com>',
       },
       expect: {
-        clean: 'feat(auth): add oauth\n\n- added provider',
+        clean: 'feat(lessons): book a surf lesson\n\n- added the wave report',
         repairs: ['stripped the co-authored-by trailer(s)'],
       },
     },
     {
       description:
-        'a prose line that opens with co-authored-by, with no <email>, is kept',
+        'prose that names co-authored-by, mid-line or at line start with no <email>, is kept',
       given: {
-        body: 'docs: explain the trailer\n\nCo-authored-by: is how a commit credits a pair\n\nCo-authored-by: Human <human@example.com>',
+        body: 'docs(reef): explain the trailer\n\n- explains how Co-authored-by trailers work\n\nCo-authored-by: is how a commit credits a pair\n\nCo-authored-by: Surfer Kai <kai@example.com>',
       },
       expect: {
         clean:
-          'docs: explain the trailer\n\nCo-authored-by: is how a commit credits a pair',
+          'docs(reef): explain the trailer\n\n- explains how Co-authored-by trailers work\n\nCo-authored-by: is how a commit credits a pair',
+        repairs: ['stripped the co-authored-by trailer(s)'],
+      },
+    },
+    {
+      description:
+        'a co-authored-by trailer with a bare email, no brackets, is stripped (no email leak)',
+      given: {
+        body: 'fix(reef): map the kelp beds\n\nCo-authored-by: kai@example.com',
+      },
+      expect: {
+        clean: 'fix(reef): map the kelp beds',
+        repairs: ['stripped the co-authored-by trailer(s)'],
+      },
+    },
+    {
+      description:
+        'a co-authored-by trailer that ends in a carriage return is stripped (no email leak)',
+      given: {
+        body: 'fix(reef): map the kelp beds\n\nCo-authored-by: Surfer Kai <kai@example.com>\r',
+      },
+      expect: {
+        clean: 'fix(reef): map the kelp beds',
+        repairs: ['stripped the co-authored-by trailer(s)'],
+      },
+    },
+    {
+      description:
+        'a co-authored-by trailer in bracket shape with no email inside is stripped, as main did',
+      given: {
+        body: 'fix(reef): map the kelp beds\n\nCo-authored-by: Surfer Kai <>\nCo-authored-by: Reef Ranger <not-an-email>',
+      },
+      expect: {
+        clean: 'fix(reef): map the kelp beds',
         repairs: ['stripped the co-authored-by trailer(s)'],
       },
     },
@@ -96,10 +129,10 @@ describe('git.attribution.operations.sh', () => {
       description:
         'a stripped line mid-body takes the rule above it; the sections around it join',
       given: {
-        body: 'intro\n\n---\nCo-authored-by: Kai <kai@example.com>\n\nmore words',
+        body: 'surf lesson booker\n\n---\nCo-authored-by: Surfer Kai <kai@example.com>\n\nno night lessons',
       },
       expect: {
-        clean: 'intro\n\nmore words',
+        clean: 'surf lesson booker\n\nno night lessons',
         repairs: ['stripped the co-authored-by trailer(s)'],
       },
     },
@@ -138,19 +171,22 @@ describe('git.attribution.operations.sh', () => {
   CASES.forEach((thisCase, index) =>
     given(`[case${index + 1}] ${thisCase.description}`, () => {
       when('[t0] the body is signed', () => {
+        const result = useThen('it signs, once per transform', async () => {
+          const attributed = asAttributed(thisCase.given.body);
+          return {
+            attributed,
+            repairs: getRepairs(thisCase.given.body),
+            signedAgain: asAttributed(attributed),
+          };
+        });
         then('it ends in one seaturtle footer, foreign lines gone', () => {
-          expect(asAttributed(thisCase.given.body)).toEqual(
-            signed(thisCase.expect.clean),
-          );
+          expect(result.attributed).toEqual(signed(thisCase.expect.clean));
         });
         then('the repairs name each kind stripped', () => {
-          expect(getRepairs(thisCase.given.body)).toEqual(
-            thisCase.expect.repairs,
-          );
+          expect(result.repairs).toEqual(thisCase.expect.repairs);
         });
         then('a signed body signs again to itself (round trip)', () => {
-          const once = asAttributed(thisCase.given.body);
-          expect(asAttributed(once)).toEqual(once);
+          expect(result.signedAgain).toEqual(result.attributed);
         });
       });
     }),

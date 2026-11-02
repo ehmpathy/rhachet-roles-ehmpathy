@@ -464,7 +464,7 @@ set_comment_auth() {
   local details=("cause: ${cause:-keyrack returned no token}")
   local fix_unlock="rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # the token is set, but locked"
   local fix_fill="rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # a human, where the token was never set"
-  local fix_human="rerun with --auth as-human   # post under your own gh login instead"
+  local fix_human="rerun with --auth as-human   # act under your own gh login instead"
   local fixes=("$fix_unlock" "$fix_fill" "$fix_human")
   [[ "${cause,,}" == *"not found"* ]] && fixes=("$fix_fill" "$fix_unlock" "$fix_human")
   emit_comment_refusal ConstraintError "ehmpath keyrack token not available" \
@@ -512,9 +512,9 @@ fail_gh_call() {
   local first="${detail%%$'\n'*}"
   if is_gh_auth_failure "$detail"; then
     # github refused the token's value, so an unlock would hand back the same one
-    local fix="rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh   # a human: set a token github accepts"$'\n'"rerun with --auth as-human   # post under your own gh login instead"
+    local fix="rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh   # a human: set a token github accepts"$'\n'"rerun with --auth as-human   # act under your own gh login instead"
     # an env token wins over the keyrack, so a keyrack refill alone would not change it
-    [[ "$COMMENT_TOKEN_SOURCE" == "env" ]] && fix="unset EHMPATHY_SEATURTLE_GITHUB_TOKEN, then rerun   # the env token wins over the keyrack"$'\n'"rerun with --auth as-human   # post under your own gh login instead"
+    [[ "$COMMENT_TOKEN_SOURCE" == "env" ]] && fix="unset EHMPATHY_SEATURTLE_GITHUB_TOKEN, then rerun   # the env token wins over the keyrack"$'\n'"rerun with --auth as-human   # act under your own gh login instead"
     [[ "$COMMENT_AUTH" == "as-human" ]] && fix="gh auth login"
     fail_comment_constraint "github refused the credential ($COMMENT_AUTH) on $what" "detail: $first" "$fix"
   fi
@@ -974,10 +974,12 @@ as_chars_count() {
 # .what = refuse a body over github's cap, before any write
 # .why  = a plan must never show green for an apply github would refuse with a 422
 COMMENT_BODY_CHARS_MAX=65536
-# .note = args: the char count; the second fix, per noun (default: the comment's)
+# .note = args: the char count; the second fix, per noun (default: the comment's);
+#         the subject, per noun (default: "the body"; a description names its footer,
+#         since the count includes it)
 check_body_under_cap() {
-  local chars="$1" fix_split="${2:-split it across two keyed comments}"
-  ((chars <= COMMENT_BODY_CHARS_MAX)) || fail_comment_constraint "the body holds $chars characters; github caps a comment or pr description at $COMMENT_BODY_CHARS_MAX" "trim the body"$'\n'"$fix_split"
+  local chars="$1" fix_split="${2:-split it across two keyed comments}" subject="${3:-the body}"
+  ((chars <= COMMENT_BODY_CHARS_MAX)) || fail_comment_constraint "$subject holds $chars characters; github caps a comment or pr description at $COMMENT_BODY_CHARS_MAX" "trim the body"$'\n'"$fix_split"
 }
 
 # .what = bytes of a json resource's trimmed .body

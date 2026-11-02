@@ -9,8 +9,10 @@ options:
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
   --output tree|json|text      the output shape (default: tree); text = the body alone.
-                               via rhx, stdout opens with rhx's header line; to edit, use --to
-  --to <path>                  also write the bare body to <path>, to edit, then set --from <path>
+                               via rhx, stdout opens with rhx's header lines: for json parse
+                               from the first {; to edit the body, use --to
+  --to <path>                  also write the bare body to <path>, for you to edit and pass to
+                               set --from <path>. <path> must sit inside this repo, untracked by git
   --help, -h                   show this help
 
 example:
@@ -38,9 +40,9 @@ options:
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
-  --output tree|json|text      the output shape (default: tree); text = the title alone.
-                               via rhx, stdout opens with rhx's header line, so read the
-                               last line, never the whole stream
+  --output tree|json|text      the output shape (default: tree). via rhx, stdout opens with
+                               rhx's header lines: for text (the title alone) read the last
+                               line; for json parse from the first {
   --help, -h                   show this help
 
 example:
@@ -87,5 +89,313 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case1] a r
 🥥 did you know?
    └─ to fix it
       └─ --to ./.temp/body.md
+"
+`;
+
+exports[`git.pull.title and git.pull.description, via rhachet given: [case2] a linked repo on a branch whose pull the caller opened when: [t0] the driver walks get, edit, set, rerun, and a retitle then: each render is snapped 1`] = `
+{
+  "descAgain": "🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ author: surfer-kai
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ current
+   │  ├─ bytes: 90
+   │  └─ sha256: aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322
+   ├─ new
+   │  ├─ from: ./.temp/body.md
+   │  ├─ repair: already applied (the pull holds this body, repaired)
+   │  ├─ bytes: 90
+   │  └─ sha256: aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322
+   └─ verdict: already there — no-op
+",
+  "descApply": "🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ author: surfer-kai
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ current
+   │  ├─ bytes: 85
+   │  └─ sha256: d1af4efd415d012c2c1e8f9eb90fd3f1c5b9613b485d610541f2a545474e7a6d
+   ├─ new
+   │  ├─ from: ./.temp/body.md
+   │  ├─ repair: stripped the claude code line; appended the seaturtle footer
+   │  ├─ bytes: 90
+   │  └─ sha256: aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322
+",
+  "descGet": "🐢 heres the wave...
+
+🐚 git.pull.description.get
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ author: surfer-kai
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ to: ./.temp/body.md
+   ├─ bytes: 85
+   ├─ sha256: d1af4efd415d012c2c1e8f9eb90fd3f1c5b9613b485d610541f2a545474e7a6d
+   └─ text
+      surf lesson booker
+
+      🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+🥥 did you know?
+   └─ to edit it
+      ├─ 1. edit ./.temp/body.md
+      └─ 2. rhx git.pull.description set --pr 7 --in ehmpathy/surf-demo --auth as-human --from ./.temp/body.md   # plan; add --mode apply to write
+",
+  "descPlan": "🐢 heres the wave...
+
+🐚 git.pull.description.set --mode plan
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ author: surfer-kai
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ current
+   │  ├─ bytes: 85
+   │  ├─ sha256: d1af4efd415d012c2c1e8f9eb90fd3f1c5b9613b485d610541f2a545474e7a6d
+   │  └─ text
+   │     surf lesson booker
+   │
+   │     🤖 Generated with [Claude Code](https://claude.com/claude-code)
+   │
+   ├─ new
+   │  ├─ from: ./.temp/body.md
+   │  ├─ repair: stripped the claude code line; appended the seaturtle footer
+   │  ├─ bytes: 90
+   │  ├─ sha256: aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322
+   │  └─ text
+   │     surf lesson booker
+   │
+   │     ## .limits
+   │
+   │     no night lessons
+   │
+   │     ---
+   │     🐢🌊 surfed in by seaturtle[bot]
+   │
+   └─ verdict: would set (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ rhx git.pull.description.set --from ./.temp/body.md --auth as-human --mode apply
+",
+  "titleApply": "🐢 heres the wave...
+
+🐚 git.pull.title.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, title
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ author: surfer-kai
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ current: feat(lessons): book a surf lesson
+   ├─ new: feat(lessons): book a surf lesson, with limits
+   └─ verdict: set, read back, matches
+      └─ read-back: feat(lessons): book a surf lesson, with limits
+",
+  "titleGet": "🐢 heres the wave...
+
+🐚 git.pull.title.get
+   ├─ target: ehmpathy/surf-demo#7, title
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ author: surfer-kai
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   └─ title: feat(lessons): book a surf lesson
+",
+}
+`;
+
+exports[`git.pull.title and git.pull.description, via rhachet given: [case2] a linked repo on a branch whose pull the caller opened when: [t1] the driver asks for json, plans a retitle, and pipes the same title then: each render is snapped; json with the rhx lines that precede it 1`] = `
+{
+  "descJsonStdout": "
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.pull.description
+
+{
+  "repo": "ehmpathy/surf-demo",
+  "pr": 7,
+  "url": "https://github.com/ehmpathy/surf-demo/pull/7",
+  "author": "surfer-kai",
+  "state": "open",
+  "bytes": 90,
+  "sha256": "aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322",
+  "to": null,
+  "body": "surf lesson booker\\n\\n## .limits\\n\\nno night lessons\\n\\n---\\n🐢🌊 surfed in by seaturtle[bot]"
+}
+",
+  "titleJsonStdout": "
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.pull.title
+
+{
+  "repo": "ehmpathy/surf-demo",
+  "pr": 7,
+  "url": "https://github.com/ehmpathy/surf-demo/pull/7",
+  "author": "surfer-kai",
+  "state": "open",
+  "title": "feat(lessons): book a surf lesson, with limits"
+}
+",
+  "titlePlan": "🐢 heres the wave...
+
+🐚 git.pull.title.set --mode plan
+   ├─ target: ehmpathy/surf-demo#7, title
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ author: surfer-kai
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ current: feat(lessons): book a surf lesson, with limits
+   ├─ new: feat(lessons): book a dawn patrol lesson
+   └─ verdict: would set (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ rhx git.pull.title.set --title 'feat(lessons): book a dawn patrol lesson' --auth as-human --mode apply
+",
+  "titleStdinNoop": "🐢 heres the wave...
+
+🐚 git.pull.title.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, title
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ author: surfer-kai
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ current: feat(lessons): book a surf lesson, with limits
+   ├─ new: feat(lessons): book a surf lesson, with limits
+   └─ verdict: already there — no-op
+",
+}
+`;
+
+exports[`git.pull.title and git.pull.description, via rhachet given: [case3] a linked repo where each refusal critipath is walked when: [t0] each refusal runs through rhachet, under --auth as-human then: each refusal is snapped from the skill first line on 1`] = `
+{
+  "bodyOverCap": "✋ ConstraintError: the body, with its seaturtle footer, holds 70036 characters; github caps a comment or pr description at 65536
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ trim the body
+      └─ move a section into a keyed comment: rhx git.pull.comment set --key <name> --from <file>
+",
+  "foreignAuthor": "✋ ConstraintError: ehmpathy/surf-demo#8 was opened by reef-ranger, not by surfer-kai (as-human)
+   └─ a set writes only a pull its own credential opened
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ cat ./.temp/body.md | rhx git.pull.description.set --pr 8 --from @stdin --mode plan --auth as-ehmpath   # if reef-ranger is that login: plan, then add --mode apply; pipe the same body in again
+      └─ ask reef-ranger to set it; this credential may not
+",
+  "foreignOrg": "✋ ConstraintError: owner 'seaturtlecorp' is outside the home orgs
+   └─ home org: ehmpathy
+
+🥥 did you know?
+   └─ to fix it
+      └─ target a repo in one of those orgs, via --in <owner/name>
+",
+  "loggedOut": "✋ ConstraintError: github refused the credential (as-human) on the read of the current login
+   └─ detail: To get started with GitHub CLI, please run:  gh auth login
+
+🥥 did you know?
+   └─ to fix it
+      └─ gh auth login
+",
+  "noPull": "✋ ConstraintError: pull request ehmpathy/surf-demo#99 is absent, or surfer-kai (as-human) cannot see it
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ check --pr and --in
+      ├─ drop --pr to address the pull of this branch
+      └─ rerun with --auth as-ehmpath
+",
+  "titleEmpty": "✋ ConstraintError: the title is empty; a pull needs a title
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title.set --title 'feat(reef): map the kelp beds'
+",
+  "titleMultiLine": "✋ ConstraintError: the title holds a newline; a pull title is one line
+
+🥥 did you know?
+   └─ to fix it
+      └─ put the first line in --title, the rest in the description
+",
+}
+`;
+
+exports[`git.pull.title and git.pull.description, via rhachet given: [case4] a linked repo on a fresh branch, beside peer pulls by number when: [t0] the driver reads its own pull, then sets peer pulls by number then: each render is snapped from the skill first line on 1`] = `
+{
+  "mergedSet": "🐢 heres the wave...
+
+🐚 git.pull.title.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, title
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ author: surfer-kai
+   ├─ state: merged
+   │  └─ note: the squash commit is already written; this edits the pull record only
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ current: feat(reports): sync the wave report
+   ├─ new: feat(reports): sync the wave report, hourly
+   └─ verdict: set, read back, matches
+      └─ read-back: feat(reports): sync the wave report, hourly
+",
+  "ownAbsent": "✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
+      └─ rhx git.pull.title.get --pr <n> ...   # or name a pull, closed or merged included
+",
+  "peerSet": "🐢 heres the wave...
+
+🐚 git.pull.title.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, title
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ author: surfer-kai
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ current: feat(lessons): book a surf lesson
+   ├─ new: feat(lessons): book a dawn patrol lesson
+   └─ verdict: set, read back, matches
+      └─ read-back: feat(lessons): book a dawn patrol lesson
+",
+}
+`;
+
+exports[`git.pull.title and git.pull.description, via rhachet given: [case4] a linked repo on a fresh branch, beside peer pulls by number when: [t1] the driver pipes a body with the claude line into a peer pull, then applies then: the stored body carries the seaturtle line, never the claude line 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ author: surfer-kai
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ current
+   │  ├─ bytes: 18
+   │  └─ sha256: 84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: stripped the claude code line; appended the seaturtle footer
+   │  ├─ bytes: 78
+   │  └─ sha256: a55f7e13d8c5a2a54486804dfd571f95963ddd878cc97627ab57e70f9252cd87
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: a55f7e13d8c5a2a54486804dfd571f95963ddd878cc97627ab57e70f9252cd87
+"
+`;
+
+exports[`git.pull.title and git.pull.description, via rhachet given: [case5] a linked repo where github fails every read when: [t0] title get runs through rhachet then: it fails loud as a MalfunctionError, exit 1, on both streams, no write 1`] = `
+"💥 MalfunctionError: gh api failed on GET repos/ehmpathy/surf-demo/pulls/7
+   └─ gh: Bad Gateway (HTTP 502)
+
+🥥 did you know?
+   └─ next
+      └─ rerun the same command after a pause: get, set, and del are each safe to rerun
 "
 `;

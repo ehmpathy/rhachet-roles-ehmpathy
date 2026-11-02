@@ -28,10 +28,12 @@ PR_BODY_ATTRIBUTION="${PR_BODY_ATTRIBUTION_LEAD}seaturtle[bot]"
 # .why  = the strip and the report of what it stripped both read this one
 #         classifier, so they cannot disagree. each kind is matched by the WHOLE
 #         line's shape, so prose that merely mentions a kind is kept:
-#         - coauthor: a `Co-authored-by: name <email>` trailer, in any case. it
+#         - coauthor: a `Co-authored-by:` line in trailer shape (it ends in a
+#           `<…>`) or that holds an email anywhere, in any case, crlf or lf. it
 #           leaks the human's email onto the public pr; github renders
 #           co-authors from the commit. the harness writes `Co-Authored-By:`,
-#           hence case-blind
+#           hence case-blind. a line with neither is prose that names the
+#           trailer, and is kept
 #         - claude: the harness line alone on its line: an optional 🤖, then
 #           `Generated with` and `Claude Code`, bare or as a markdown link
 #         - footer: a prior seaturtle attribution line of any bot name
@@ -47,8 +49,8 @@ PR_BODY_ATTRIBUTION="${PR_BODY_ATTRIBUTION_LEAD}seaturtle[bot]"
 PR_BODY_LINE_CLASSIFIER='
   function kind(line,   l) {
     l = tolower(line)
-    sub(/^[ \t]+/, "", l); sub(/[ \t]+$/, "", l)
-    if (l ~ /^co-authored-by:[^<]*<[^>]*>$/) return "coauthor"
+    sub(/^[ \t]+/, "", l); sub(/[ \t\r]+$/, "", l)
+    if (l ~ /^co-authored-by:/ && (l ~ /[^ \t<>]+@[^ \t<>]+\.[^ \t<>]+/ || l ~ /<[^>]*>$/)) return "coauthor"
     if (index(l, lead) == 1 && l ~ /\[bot\]$/) return "footer"
     if (index(l, "🤖") == 1) { l = substr(l, length("🤖") + 1); sub(/^[ \t]+/, "", l) }
     if (l ~ /^generated with (claude code|\[claude code\]\([^)]*\))[.!]?$/) return "claude"

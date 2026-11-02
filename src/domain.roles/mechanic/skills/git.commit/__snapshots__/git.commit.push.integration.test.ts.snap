@@ -235,6 +235,16 @@ exports[`git.commit.push.sh given: [case17b] the pr body push opens carries only
 🐢🌊 surfed in by seaturtle[bot]"
 `;
 
+exports[`git.commit.push.sh given: [case17b] the pr body push opens carries only the seaturtle attribution when: [t0b] the commit body names co-authored-by in prose, beside a real trailer then: push keeps the prose and strips only the trailer 1`] = `
+"docs(reef): explain the kelp credits
+
+- explains how Co-authored-by trailers work
+Co-authored-by: lines with no email are prose, so they stay
+
+---
+🐢🌊 surfed in by seaturtle[bot]"
+`;
+
 exports[`git.commit.push.sh given: [case17b] the pr body push opens carries only the seaturtle attribution when: [t1] the commit body already ends with the seaturtle footer then: the footer stands once, never twice 1`] = `
 "feat(reef): chart the tide pools
 

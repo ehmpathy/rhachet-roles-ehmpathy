@@ -60,14 +60,14 @@ describe('git.pull.description', () => {
           expect(result.stdout).not.toContain('Generated with');
           expect(result.stdout).not.toMatch(/co-authored-by: claude/i);
           expect(result.stdout).toMatch(
-            /│ {8}---\n {3}│ {8}🐢🌊 surfed in by seaturtle\[bot\]\n/,
+            /│ {5}---\n {3}│ {5}🐢🌊 surfed in by seaturtle\[bot\]\n/,
           );
           // the spacer after the new text sits on its own line, never glued to the footer
           expect(result.stdout).not.toMatch(/\[bot\] +│/);
         },
       );
       then('it shows the current text it would overwrite, read fresh', () => {
-        expect(result.stdout).toMatch(/│ {8}surf lesson booker\n/);
+        expect(result.stdout).toMatch(/│ {5}surf lesson booker\n/);
         expect(result.stdout).toContain('author: ehm-seaturtle');
       });
     });
@@ -191,6 +191,7 @@ describe('git.pull.description', () => {
         expect(result.stdout).not.toContain('heres the wave');
         expect(result.stdout).not.toContain('did you know');
         expect(result.stdout.endsWith(`${FOOTER}\n`)).toBe(true);
+        expect(result.stdout).toMatchSnapshot();
       });
     });
     when('[t4] get --to names a path outside the repo', () => {
@@ -232,6 +233,34 @@ describe('git.pull.description', () => {
         );
         expect(result.run.stderr).toContain('--to names a file git tracks');
         expect(result.content).toBe('the reef, as the human wrote it\n');
+        expect(result.run.stdout).toMatchSnapshot();
+      });
+    });
+    when('[t6] get --to names a directory', () => {
+      const result = useThen('it runs', async () => {
+        const dir = path.join(scene.tempDir, 'tide-pools');
+        fs.mkdirSync(dir, { recursive: true });
+        const writesBefore = scene.getWrites().length;
+        const run = await scene.run(skill('git.pull.description.get'), [
+          '--to',
+          './tide-pools',
+        ]);
+        return {
+          run,
+          isDir: fs.statSync(dir).isDirectory(),
+          entries: fs.readdirSync(dir),
+          writesNew: scene.getWrites().length - writesBefore,
+        };
+      });
+      then('it refuses before any gh call, and writes no file', () => {
+        expect(result.run.exitCode).toBe(2);
+        expect(result.run.stdout).toContain(
+          "--to names a directory, not a file: './tide-pools'",
+        );
+        expect(result.run.stderr).toContain('--to names a directory');
+        expect(result.isDir).toBe(true);
+        expect(result.entries).toEqual([]);
+        expect(result.writesNew).toBe(0);
         expect(result.run.stdout).toMatchSnapshot();
       });
     });
@@ -592,7 +621,8 @@ describe('git.pull.description', () => {
         ),
       );
       then('it fails loud with the 403, and the body is untouched', () => {
-        expect(result.exitCode).not.toBe(0);
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('✋ ConstraintError: github forbade');
         expect(result.stdout).toContain('HTTP 403');
         expect(result.stderr).toContain('HTTP 403');
         expect(scene.getStore().prs['7']!.body).toBe(
@@ -600,6 +630,130 @@ describe('git.pull.description', () => {
         );
         expect(result.stdout).toMatchSnapshot();
       });
+    });
+    when('[t2] the write answers 422: github refuses the body', () => {
+      const scene = genGitPullScene({
+        ...PULL_SCENE_BARE,
+        store: {
+          fail: 'gh: Validation Failed (HTTP 422)\nbody is too long (maximum is 65536 characters)',
+          failMethod: 'PATCH',
+        },
+      });
+      const result = useThen('it runs', async () =>
+        scene.run(
+          skill('git.pull.description.set'),
+          ['--from', '@stdin', '--mode', 'apply'],
+          { stdin: 'a new body' },
+        ),
+      );
+      then('it exits 2, names the body, the detail, and the fix', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain(
+          'github refused the body of ehmpathy/surf-demo#7',
+        );
+        expect(result.stdout).toContain('body is too long');
+        expect(result.stdout).toContain('edit the body so github accepts it');
+        expect(result.stderr).toContain('github refused the body');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case18] a body github holds with crlf line ends', () => {
+    when('[t0] the same words are set back with lf line ends', () => {
+      const scene = genGitPullScene({
+        ...PULL_SCENE_BARE,
+        store: {
+          prs: {
+            '7': {
+              title: 'feat(lessons): book a surf lesson',
+              body: 'surf lesson booker\r\n\r\n- adds the reef map\r\n\r\n---\r\n🐢🌊 surfed in by seaturtle[bot]',
+              head: 'surf/book-lesson',
+            },
+          },
+        },
+      });
+      const result = useThen('it runs', async () =>
+        scene.run(
+          skill('git.pull.description.set'),
+          ['--from', '@stdin', '--mode', 'apply'],
+          { stdin: 'surf lesson booker\n\n- adds the reef map\n' },
+        ),
+      );
+      then('it reads as the same body: a no-op, no write', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('already there — no-op');
+        expect(scene.getWrites()).toHaveLength(0);
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case19] a merged pull, by number', () => {
+    when('[t0] set plans on a merged pull', () => {
+      const scene = genGitPullScene({
+        ...PULL_SCENE_BARE,
+        store: {
+          prs: {
+            '8': {
+              title: 'feat(reports): sync the wave report',
+              body: 'wave report sync',
+              head: 'surf/wave-report',
+              merged: true,
+            },
+          },
+        },
+      });
+      const result = useThen('it runs', async () =>
+        scene.run(
+          skill('git.pull.description.set'),
+          ['--pr', '8', '--from', '@stdin'],
+          { stdin: 'wave report sync, with the tide table' },
+        ),
+      );
+      then('the plan names the state merged, not closed', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('state: merged');
+        expect(result.stdout).not.toContain('state: closed');
+        expect(scene.getWrites()).toHaveLength(0);
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] set applies on a merged pull', () => {
+      const scene = genGitPullScene({
+        ...PULL_SCENE_BARE,
+        store: {
+          prs: {
+            '8': {
+              title: 'feat(reports): sync the wave report',
+              body: 'wave report sync',
+              head: 'surf/wave-report',
+              merged: true,
+            },
+          },
+        },
+      });
+      const result = useThen('it runs', async () =>
+        scene.run(
+          skill('git.pull.description.set'),
+          ['--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          { stdin: 'wave report sync, with the tide table' },
+        ),
+      );
+      then(
+        'the write lands, as github allows, and the tree names merged',
+        () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('state: merged');
+          expect(result.stdout).toContain('set, read back, hash matches');
+          expect(scene.getStore().prs['8']!.body).toContain(
+            'with the tide table',
+          );
+          expect(scene.getWrites()).toHaveLength(1);
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
     });
   });
 
@@ -760,7 +914,9 @@ describe('git.pull.description', () => {
       );
       then('it exits 2, names the count, and calls no gh', () => {
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('the body holds 65537 characters');
+        expect(result.stdout).toContain(
+          'the body, with its seaturtle footer, holds 65537 characters',
+        );
         expect(scene.getCalls()).toHaveLength(0);
         expect(result.stdout).toMatchSnapshot();
       });
@@ -856,7 +1012,29 @@ describe('git.pull.description', () => {
         help: scene.run(skill('git.pull.description'), ['--help']),
         unknown: scene.run(skill('git.pull.description'), ['del']),
         setHelp: scene.run(skill('git.pull.description.set'), ['--help']),
+        getTo: scene.run(skill('git.pull.description'), [
+          'get',
+          '--output',
+          'json',
+          '--to',
+          './.temp/tide.md',
+        ]),
       }));
+      then(
+        'get --output json --to names the file in `to`, and writes it',
+        () => {
+          expect(result.getTo.exitCode).toBe(0);
+          const json = JSON.parse(result.getTo.stdout);
+          expect(json.to).toBe('./.temp/tide.md');
+          expect(
+            fs.readFileSync(
+              path.join(scene.tempDir, '.temp', 'tide.md'),
+              'utf-8',
+            ),
+          ).toBe(`${json.body}\n`);
+          expect(json).toMatchSnapshot();
+        },
+      );
       then('get returns the body as json', () => {
         expect(result.get.exitCode).toBe(0);
         const json = JSON.parse(result.get.stdout);

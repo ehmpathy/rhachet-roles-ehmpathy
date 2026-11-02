@@ -112,7 +112,8 @@ as_pr_body_attributed "$TEXT" >"$WORK/posted.md"
 NEW_SHA="$(as_body_trimmed <"$WORK/posted.md" | as_sha256)"
 NEW_BYTES="$(as_body_trimmed <"$WORK/posted.md" | as_bytes_count)"
 check_body_under_cap "$(as_body_trimmed <"$WORK/posted.md" | as_chars_count)" \
-  "move a section into a keyed comment: rhx git.pull.comment set --key <name> --from <file>"
+  "move a section into a keyed comment: rhx git.pull.comment set --key <name> --from <file>" \
+  "the body, with its seaturtle footer,"
 
 # find the pull, under the chosen credential
 set_pull_target "$PR" "$REPO_IN" "$SKILL" "$AUTH"
@@ -135,7 +136,7 @@ VERDICT="would set"
 # so tree and json both report none
 [[ "$VERDICT" != "no-op" ]] || REPAIRS=()
 REPAIR_LINE="$(as_pull_repair_summary "${REPAIRS[@]}")"
-[[ "$VERDICT" != "no-op" ]] || REPAIR_LINE="none: the pull already reads so"
+[[ "$VERDICT" != "no-op" ]] || REPAIR_LINE="already applied (the pull holds this body, repaired)"
 
 # .what = emit the result of set: the tree, or the json contract
 #         { mode, verdict, target, pr, url, author, repairs, sha256: { current, new, readback } }
@@ -157,14 +158,16 @@ emit() {
   echo "   ├─ auth: $(get_comment_auth_label) as $COMMENT_LOGIN"
   echo "   ├─ author: $AUTHOR"
   echo "   ├─ state: $STATE"
+  # a merged pull's squash commit is already written; say so, so a set here is not read as a release-note fix
+  [[ "$STATE" == "merged" ]] && echo "   │  └─ note: the squash commit is already written; this edits the pull record only"
+  echo "   ├─ url: $URL"
   echo "   ├─ current"
-  echo "   │  ├─ url: $URL"
   echo "   │  ├─ bytes: $CUR_BYTES"
   # a plan shows the text it would overwrite, read fresh, beside the new text
   if [[ "$verdict" == *"(plan)" ]]; then
     echo "   │  ├─ sha256: $CUR_SHA"
     echo "   │  └─ text"
-    printf '%s\n' "$CUR_BODY" | as_tree_indented_text '   │        '
+    printf '%s\n' "$CUR_BODY" | as_tree_indented_text '   │     '
     echo "   │"
   fi
   [[ "$verdict" == *"(plan)" ]] || echo "   │  └─ sha256: $CUR_SHA"
@@ -177,7 +180,7 @@ emit() {
     echo "   │  ├─ sha256: $NEW_SHA"
     echo "   │  └─ text"
     # posted.md ends with no newline; printf adds one so the spacer sits on its own line
-    printf '%s\n' "$(cat "$WORK/posted.md")" | as_tree_indented_text '   │        '
+    printf '%s\n' "$(cat "$WORK/posted.md")" | as_tree_indented_text '   │     '
     echo "   │"
   fi
   [[ "$verdict" == *"(plan)" ]] || echo "   │  └─ sha256: $NEW_SHA"

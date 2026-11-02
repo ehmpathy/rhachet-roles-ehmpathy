@@ -142,14 +142,16 @@ as_pull_cmd_under_auth() {
 #         stamps PULL_WRITE_PR, which set_one_gh_pull_field demands before it writes
 PULL_WRITE_PR=""
 check_pull_by_self() {
-  local pull="$1" skill="$2" prefix="$3" author who
+  local pull="$1" skill="$2" prefix="$3" author who note=""
   shift 3
   author="$(printf '%s' "$pull" | as_pull_author_from_json)"
   is_author_self "$author" && { PULL_WRITE_PR="$COMMENT_PR"; return 0; }
   who="${author:-its author}"
+  # a stdin pipe prefix names the paved round-trip file; say so, since the caller may have piped another
+  [[ -n "$prefix" ]] && note="; pipe the same body in again"
   fail_comment_constraint "$COMMENT_REPO#$COMMENT_PR was opened by ${author:-an unknown login}, not by $COMMENT_LOGIN ($COMMENT_AUTH)" \
     "a set writes only a pull its own credential opened" \
-    "${prefix}$(as_pull_cmd_under_auth "$skill" "$(as_auth_other "$COMMENT_AUTH")" "$@")   # if $who is that login"$'\n'"ask $who to set it; this credential may not"
+    "${prefix}$(as_pull_cmd_under_auth "$skill" "$(as_auth_other "$COMMENT_AUTH")" "$@")   # if $who is that login: plan, then add --mode apply${note}"$'\n'"ask $who to set it; this credential may not"
 }
 
 # .what = the repair line: each strip the set made, then the footer append

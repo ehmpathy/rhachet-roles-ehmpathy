@@ -11,8 +11,9 @@ exports[`git.pull.title given: [case3] a driver retitles its own pull when: [t0]
 🐚 git.pull.title.get
    ├─ target: ehmpathy/surf-demo#7, title
    ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
-   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
    ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
    └─ title: feat(lessons): book a surf lesson
 "
 `;
@@ -178,6 +179,7 @@ exports[`git.pull.title given: [case10] the verbs dispatch as \`git.pull.title <
   "author": "ehm-seaturtle",
   "pr": 7,
   "repo": "ehmpathy/surf-demo",
+  "state": "open",
   "title": "feat(lessons): book a surf lesson",
   "url": "https://github.com/ehmpathy/surf-demo/pull/7",
 }
@@ -297,7 +299,7 @@ exports[`git.pull.title given: [case17] a pull its credential did not open when:
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.title.set --pr 8 --title 'feat(reports): mine now' --mode plan --auth as-human   # if reef-ranger is that login
+      ├─ rhx git.pull.title.set --pr 8 --title 'feat(reports): mine now' --mode plan --auth as-human   # if reef-ranger is that login: plan, then add --mode apply
       └─ ask reef-ranger to set it; this credential may not
 "
 `;
@@ -308,7 +310,7 @@ exports[`git.pull.title given: [case17] a pull its credential did not open when:
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.title.set --title 'feat(lessons): book a surf lesson, with a reef map' --mode plan --auth as-human   # if surfer-kai is that login
+      ├─ rhx git.pull.title.set --title 'feat(lessons): book a surf lesson, with a reef map' --mode plan --auth as-human   # if surfer-kai is that login: plan, then add --mode apply
       └─ ask surfer-kai to set it; this credential may not
 "
 `;
@@ -345,5 +347,53 @@ exports[`git.pull.title given: [case18] a title a shell would mangle, via @stdin
 🥥 did you know?
    └─ plan writes naught; to write it
       └─ cat ./.temp/title.txt | rhx git.pull.title.set --title @stdin --mode apply   # pipe the same title in again
+"
+`;
+
+exports[`git.pull.title given: [case19] a merged pull, and a write github refuses when: [t0] set runs on a merged pull, by number then: the plan names the state merged, not closed 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.title.set --mode plan
+   ├─ target: ehmpathy/surf-demo#8, title
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: merged
+   │  └─ note: the squash commit is already written; this edits the pull record only
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ current: feat(reports): sync the wave report
+   ├─ new: feat(lessons): book a surf lesson, with a reef map
+   └─ verdict: would set (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ rhx git.pull.title.set --pr 8 --title 'feat(lessons): book a surf lesson, with a reef map' --mode apply
+"
+`;
+
+exports[`git.pull.title given: [case19] a merged pull, and a write github refuses when: [t0] set runs on a merged pull, by number then: the write lands, as github allows on a merged pull 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.title.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, title
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: merged
+   │  └─ note: the squash commit is already written; this edits the pull record only
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ current: feat(reports): sync the wave report
+   ├─ new: feat(lessons): book a surf lesson, with a reef map
+   └─ verdict: set, read back, matches
+      └─ read-back: feat(lessons): book a surf lesson, with a reef map
+"
+`;
+
+exports[`git.pull.title given: [case19] a merged pull, and a write github refuses when: [t1] the write answers 403: the token may read, not write then: it fails loud with the 403, and the title is untouched 1`] = `
+"✋ ConstraintError: github forbade PATCH repos/ehmpathy/surf-demo/pulls/7 (title) under as-ehmpath
+   └─ detail: gh: Resource not accessible by integration (HTTP 403)
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ check the credential can act on ehmpathy/surf-demo
+      └─ rerun with --auth as-human
 "
 `;

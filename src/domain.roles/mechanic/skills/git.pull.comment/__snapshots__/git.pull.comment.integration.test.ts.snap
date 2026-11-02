@@ -1361,7 +1361,7 @@ exports[`git.pull.comment given: [case15] auth: as-ehmpath needs a token; as-hum
    └─ to fix it, by the state of the token, pick one
       ├─ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # a human, where the token was never set
       ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # the token is set, but locked
-      └─ rerun with --auth as-human   # post under your own gh login instead
+      └─ rerun with --auth as-human   # act under your own gh login instead
 "
 `;
 
@@ -1427,7 +1427,7 @@ exports[`git.pull.comment given: [case15] auth: as-ehmpath needs a token; as-hum
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh   # a human: set a token github accepts
-      └─ rerun with --auth as-human   # post under your own gh login instead
+      └─ rerun with --auth as-human   # act under your own gh login instead
 ",
   "unauthorizedJson": {
     "error": {
@@ -1437,7 +1437,7 @@ exports[`git.pull.comment given: [case15] auth: as-ehmpath needs a token; as-hum
       ],
       "fixes": [
         "rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh   # a human: set a token github accepts",
-        "rerun with --auth as-human   # post under your own gh login instead",
+        "rerun with --auth as-human   # act under your own gh login instead",
       ],
       "message": "github refused the credential (as-ehmpath) on GET repos/ehmpathy/surf-demo/pulls/7",
     },
@@ -1495,7 +1495,7 @@ exports[`git.pull.comment given: [case15] auth: as-ehmpath needs a token; as-hum
 🥥 did you know?
    └─ to fix it, pick one
       ├─ unset EHMPATHY_SEATURTLE_GITHUB_TOKEN, then rerun   # the env token wins over the keyrack
-      └─ rerun with --auth as-human   # post under your own gh login instead
+      └─ rerun with --auth as-human   # act under your own gh login instead
 "
 `;
 
