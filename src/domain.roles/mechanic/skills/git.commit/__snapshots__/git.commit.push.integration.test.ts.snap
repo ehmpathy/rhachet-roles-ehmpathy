@@ -118,6 +118,7 @@ exports[`git.commit.push.sh given: [case14b] push-only auto-revoke in apply mode
    ├─ push: origin/turtle/push-revoke-stage ✓
    ├─ pr: pr #42 (created)
    ├─ opened: as-ehmpath (ehmpath keyrack)
+   ├─ watch: skipped (not an enrolled clone)
    └─ meter
       └─ push: allowed → blocked (revoked)
 
@@ -261,6 +262,99 @@ exports[`git.commit.push.sh given: [case18] CI watch reminder after successful p
    ├─ push: origin/turtle/feature ✓
    ├─ pr: pr #42 (created)
    ├─ opened: as-ehmpath (ehmpath keyrack)
+   ├─ watch: skipped (not an enrolled clone)
+   └─ meter
+      └─ push: allowed
+
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;
+
+exports[`git.commit.push.sh given: [case18b] an enrolled clone whose pr watch refuses when: [t0] push and pr creation succeed; the clone is not in this repo registry then: the push still succeeds, and the watch line names the refusal 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/feature ✓
+   ├─ pr: pr #42 (created)
+   ├─ opened: as-ehmpath (ehmpath keyrack)
+   ├─ watch: ✋ ConstraintError: no repo: --in <owner/name> absent, and the cwd has no github origin; rerun: rhx git.pull.watch.set --pr 42 --mode apply
+   └─ meter
+      └─ push: allowed
+
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;
+
+exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch replies when: [t0] the watch is set then: the tree relays the watch line 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/feature ✓
+   ├─ pr: pr #42 (created)
+   ├─ opened: as-ehmpath (ehmpath keyrack)
+   ├─ watch: set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)
+   └─ meter
+      └─ push: allowed
+
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;
+
+exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch replies when: [t1] the watch crashes before it can reply then: the push succeeds and names the cause from stderr, with its class 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/feature ✓
+   ├─ pr: pr #42 (created)
+   ├─ opened: as-ehmpath (ehmpath keyrack)
+   ├─ watch: ✋ ConstraintError: the watch said naught (exit 2); stderr: git.pull.watch.set.sh: line 9: syntax error near unexpected token; rerun: rhx git.pull.watch.set --pr 42 --mode apply
+   └─ meter
+      └─ push: allowed
+
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;
+
+exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch replies when: [t2] the watch reports a malfunction then: the line carries the class from the reply 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/feature ✓
+   ├─ pr: pr #42 (created)
+   ├─ opened: as-ehmpath (ehmpath keyrack)
+   ├─ watch: 💥 MalfunctionError: the clone registry is unreadable; no watch was set; rerun: rhx git.pull.watch.set --pr 42 --mode apply
+   └─ meter
+      └─ push: allowed
+
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;
+
+exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch replies when: [t3] the pr was opened before; this push finds it (A6) then: the json carries the watch line for the found pr 1`] = `
+{
+  "auth": "as-ehmpath",
+  "pr": "ok",
+  "pr_status": "pr #55 (found)",
+  "push_revoked": false,
+  "push_target": "origin/turtle/feature",
+  "status": "pushed",
+  "watch": "set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)",
+}
+`;
+
+exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch replies when: [t3] the pr was opened before; this push finds it (A6) then: the tree relays the watch line for the found pr 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/feature ✓
+   ├─ pr: pr #55 (found)
+   ├─ opened: as-ehmpath (ehmpath keyrack)
+   ├─ watch: set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)
    └─ meter
       └─ push: allowed
 
@@ -343,6 +437,7 @@ exports[`git.commit.push.sh given: [case23] --auth as-human apply opens the pr v
    ├─ push: origin/turtle/feature ✓
    ├─ pr: pr #77 (created)
    ├─ opened: as-human (gh cli login, fallback)
+   ├─ watch: skipped (not an enrolled clone)
    └─ meter
       └─ push: allowed
 
@@ -469,6 +564,7 @@ exports[`git.commit.push.sh given: [case28] --auth as-human, the pr already exis
    ├─ push: origin/turtle/feature ✓
    ├─ pr: pr #55 (found)
    ├─ opened: as-human (gh cli login, fallback)
+   ├─ watch: skipped (not an enrolled clone)
    └─ meter
       └─ push: allowed
 
@@ -623,6 +719,7 @@ exports[`git.commit.push.sh given: [case33] a threaded (prefetched) token is reu
    ├─ push: origin/turtle/feature ✓
    ├─ pr: pr #42 (created)
    ├─ opened: as-ehmpath (ehmpath keyrack)
+   ├─ watch: skipped (not an enrolled clone)
    └─ meter
       └─ push: allowed
 
@@ -657,12 +754,12 @@ exports[`git.commit.push.sh given: [case35] identity-sync guard fires when the t
 `;
 
 exports[`git.commit.push.sh given: [case36] a non-auth pr-open failure in json mode duplicates the error to stderr when: [t0] pr create fails for a non-auth reason under --output json then: stdout carries the json error AND stderr carries the same line 1`] = `
-"{"status":"pushed","push_target":"origin/turtle/feature","pr":"error","pr_status":"pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)","auth":"as-human","push_revoked":false}
+"{"status":"pushed","push_target":"origin/turtle/feature","pr":"error","pr_status":"pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)","auth":"as-human","push_revoked":false,"watch":null}
 "
 `;
 
 exports[`git.commit.push.sh given: [case36] a non-auth pr-open failure in json mode duplicates the error to stderr when: [t0] pr create fails for a non-auth reason under --output json then: stdout carries the json error AND stderr carries the same line 2`] = `
-"{"status":"pushed","push_target":"origin/turtle/feature","pr":"error","pr_status":"pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)","auth":"as-human","push_revoked":false}
+"{"status":"pushed","push_target":"origin/turtle/feature","pr":"error","pr_status":"pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)","auth":"as-human","push_revoked":false,"watch":null}
 "
 `;
 
