@@ -8,6 +8,7 @@
 #   git.commit.push                  # plan
 #   git.commit.push --mode apply     # push
 #   git.commit.push --output json    # json, to compose
+#   git.commit.push --pr-title-fallback "<title>"   # title when the branch has no commits
 #
 # guarantee:
 #   - pushes only a seaturtle[bot] HEAD, if .meter/git.commit.uses.jsonc grants push

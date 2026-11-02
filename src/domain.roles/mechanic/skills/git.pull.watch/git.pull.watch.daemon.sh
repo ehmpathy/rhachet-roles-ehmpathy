@@ -178,8 +178,16 @@ set_watch_heartbeat() {
   get_watch_epoch_now | set_watch_file_atomic "$KEY_DIR/daemon.heartbeat"
 }
 
+# .what = touch the heartbeat, only while the daemon itself lives
+# .why  = a bound inside `$(…)` returns in a subshell; `$$` stays the daemon's pid
+#         there, so an orphan subshell of a killed daemon never forges a fresh tick
+set_watch_heartbeat_if_daemon_lives() {
+  kill -0 "$$" 2>/dev/null || return 0
+  set_watch_heartbeat
+}
+
 # every bound that returns touches the heartbeat, so no call site can forget it
-WATCH_ON_BOUND_DONE=set_watch_heartbeat
+WATCH_ON_BOUND_DONE=set_watch_heartbeat_if_daemon_lives
 
 # .what = delete one watch life and its outbox, under the key lock
 # .why  = a held alert for a gone watch has no clone to reach; it leaves too.
