@@ -10,12 +10,12 @@
 #   git.commit.push --output json    # json, to compose
 #
 # guarantee:
-#   - pushes only a seaturtle[bot] HEAD, with push granted in .meter/git.commit.uses.jsonc
+#   - pushes only a seaturtle[bot] HEAD, if .meter/git.commit.uses.jsonc grants push
 #   - never pushes to main/master
-#   - opens the pr under --auth: as-ehmpath (default, keyrack token) or as-human (gh login)
-#   - a new pr body ends in one seaturtle line; claude and co-author lines are stripped
-#   - never decrements uses (git.commit.set does)
-#   - plan by default; --mode apply executes
+#   - opens the pr --auth as-ehmpath (default, keyrack) or as-human (gh login)
+#   - a new pr body ends in one seaturtle line; claude and co-author lines stripped
+#   - never decrements uses
+#   - plan by default
 ######################################################################
 set -euo pipefail
 
