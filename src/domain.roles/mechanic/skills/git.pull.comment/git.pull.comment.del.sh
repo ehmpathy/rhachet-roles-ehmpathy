@@ -7,7 +7,6 @@
 # usage:
 #   rhx git.pull.comment.del --pr 69 --id <id> --kind issue|review [--mode apply]
 #   rhx git.pull.comment.del --pr 69 --key status [--reply-to <id>]
-#   rhx git.pull.comment del --pr 69 --key status
 #   rhx git.pull.comment.del --help    # every flag
 #
 # guarantee:
@@ -82,7 +81,7 @@ check_pr_number "$PR" git.pull.comment.del
 check_auth_arg "$AUTH"
 check_mode_arg "$MODE"
 [[ "$KIND" != "body" ]] || fail_comment_constraint "github offers no delete for a pr description" \
-  "edit the pr description in the github ui, to rewrite it"$'\n'"a pr description verb is tracked in ehmpathy/rhachet-roles-ehmpathy#1165"
+  "rewrite the pr description via rhx git.pull.description set"
 [[ -z "$ID" || -z "$KEY" ]] || fail_comment_constraint "--id and --key are two targets; name one" "drop one"
 if [[ -n "$ID" ]]; then
   check_comment_id_kind "$ID" "$KIND" git.pull.comment.del

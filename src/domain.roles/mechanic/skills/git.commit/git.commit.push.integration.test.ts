@@ -1102,102 +1102,9 @@ exec /usr/bin/git "$@"
     },
   );
 
-  given('[case17] Co-authored-by trailer stripped from PR body', () => {
-    when('[t0] commit body has Co-authored-by trailer', () => {
-      then('trailer is removed (privacy: no email leak)', () => {
-        // run the same strip logic used in git.commit.push.sh
-        // grep -v returns exit 1 if no lines match, so use || true
-        const inputWithTrailer = `fix(api): validate input
-
-- added schema validation
-- updated tests
-
-Co-authored-by: Human Name <human@example.com>`;
-
-        // use stdin to pass multiline content reliably
-        const result = spawnSync(
-          'bash',
-          [
-            '-c',
-            "{ grep -v '^Co-authored-by:' || true; } | sed -e :a -e '/^\\n*$/{$d;N;ba;}'",
-          ],
-          {
-            input: inputWithTrailer,
-            encoding: 'utf-8' as BufferEncoding,
-          },
-        );
-
-        expect(result.status).toBe(0);
-        expect(result.stdout).not.toContain('Co-authored-by');
-        expect(result.stdout).not.toContain('human@example.com');
-        expect(result.stdout).toContain('fix(api): validate input');
-        expect(result.stdout).toContain('added schema validation');
-      });
-    });
-
-    when('[t1] commit body has multiple Co-authored-by trailers', () => {
-      then('all trailers are removed', () => {
-        const inputWithTrailers = `feat(auth): add oauth
-
-- added provider
-
-Co-authored-by: Human One <one@example.com>
-Co-authored-by: Human Two <two@example.com>`;
-
-        const result = spawnSync(
-          'bash',
-          [
-            '-c',
-            "{ grep -v '^Co-authored-by:' || true; } | sed -e :a -e '/^\\n*$/{$d;N;ba;}'",
-          ],
-          {
-            input: inputWithTrailers,
-            encoding: 'utf-8' as BufferEncoding,
-          },
-        );
-
-        expect(result.status).toBe(0);
-        expect(result.stdout).not.toContain('Co-authored-by');
-        expect(result.stdout).not.toContain('one@example.com');
-        expect(result.stdout).not.toContain('two@example.com');
-        expect(result.stdout).toContain('feat(auth): add oauth');
-      });
-    });
-
-    when(
-      '[t2] commit body mentions Co-authored-by inline (not as trailer)',
-      () => {
-        then('inline mention is preserved, only trailer removed', () => {
-          const inputWithInline = `docs: explain Co-authored-by convention
-
-- describes how Co-authored-by trailers work
-- links to docs
-
-Co-authored-by: Human <human@example.com>`;
-
-          const result = spawnSync(
-            'bash',
-            [
-              '-c',
-              "{ grep -v '^Co-authored-by:' || true; } | sed -e :a -e '/^\\n*$/{$d;N;ba;}'",
-            ],
-            {
-              input: inputWithInline,
-              encoding: 'utf-8' as BufferEncoding,
-            },
-          );
-
-          expect(result.status).toBe(0);
-          // inline mention (not at start of line) is preserved
-          expect(result.stdout).toContain('how Co-authored-by trailers work');
-          // trailer at start of line is stripped
-          expect(result.stdout).not.toContain('Co-authored-by: Human');
-          expect(result.stdout).not.toContain('human@example.com');
-        });
-      },
-    );
-  });
-
+  // .note = the strip's own cases live beside it, in
+  //         git/git.attribution.operations.integration.test.ts; case17b below
+  //         proves push signs through that one transformer
   given(
     '[case17b] the pr body push opens carries only the seaturtle attribution',
     () => {
@@ -1352,6 +1259,7 @@ exec /usr/bin/git "$@"
             ).toBe(2);
             expect(out.bodySent!.split('\n---\n').length).toBe(2);
             expect(out.bodySent).toContain('- adds the tide pool chart');
+            expect(out.bodySent).toMatchSnapshot();
           });
         },
       );
@@ -2720,6 +2628,7 @@ exec /usr/bin/git "$@"
             fs.writeFileSync(
               path.join(fakeBinDir, 'gh'),
               `#!/bin/bash
+echo "$*" >> "${fakeBinDir}/gh.calls.log"
 if [[ -n "$GH_TOKEN" ]]; then
   echo "unexpected GH_TOKEN override under as-human" >&2
   exit 3
@@ -2766,6 +2675,13 @@ exec /usr/bin/git "$@"
             expect(result.stdout).toMatchSnapshot();
             // pin stderr too (expected empty on the found path) to catch drift
             expect(result.stderr).toMatchSnapshot();
+            // a found pull's body is never touched: gh saw only the lookup
+            const ghCalls = fs
+              .readFileSync(path.join(fakeBinDir, 'gh.calls.log'), 'utf-8')
+              .trim()
+              .split('\n');
+            expect(ghCalls.length).toBeGreaterThan(0);
+            ghCalls.forEach((call) => expect(call).toMatch(/^pr list /));
           },
         );
       });

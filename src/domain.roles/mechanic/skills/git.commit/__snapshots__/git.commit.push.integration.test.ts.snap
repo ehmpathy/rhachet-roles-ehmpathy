@@ -235,6 +235,15 @@ exports[`git.commit.push.sh given: [case17b] the pr body push opens carries only
 🐢🌊 surfed in by seaturtle[bot]"
 `;
 
+exports[`git.commit.push.sh given: [case17b] the pr body push opens carries only the seaturtle attribution when: [t1] the commit body already ends with the seaturtle footer then: the footer stands once, never twice 1`] = `
+"feat(reef): chart the tide pools
+
+- adds the tide pool chart
+
+---
+🐢🌊 surfed in by seaturtle[bot]"
+`;
+
 exports[`git.commit.push.sh given: [case18] CI watch reminder after successful push when: [t0] push and pr creation succeed then: shows full output with vibey reminder at end 1`] = `
 "🐢 cowabunga!
 

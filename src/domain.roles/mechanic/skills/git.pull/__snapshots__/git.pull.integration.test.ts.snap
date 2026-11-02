@@ -1,0 +1,254 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.pull given: [case1] the branch has no open pull when: [t0] each of the four verbs runs then: each exits 2, names the branch and the fix, writes naught 1`] = `
+"✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
+      └─ rhx git.pull.title.set --pr <n> ...   # or name a pull, closed or merged included
+"
+`;
+
+exports[`git.pull given: [case2] the credential is unusable when: [t0] the keyrack holds no token then: each exits 2, names the keyrack fix, and calls no gh 1`] = `
+"✋ ConstraintError: ehmpath keyrack token not available
+   └─ cause: credential not found: EHMPATHY_SEATURTLE_GITHUB_TOKEN
+
+🥥 did you know?
+   └─ to fix it, by the state of the token, pick one
+      ├─ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # a human, where the token was never set
+      ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # the token is set, but locked
+      └─ rerun with --auth as-human   # post under your own gh login instead
+"
+`;
+
+exports[`git.pull given: [case2] the credential is unusable when: [t1] as-human, with gh logged out then: each exits 2, names gh auth login, and writes naught 1`] = `
+"✋ ConstraintError: github refused the credential (as-human) on the read of the current login
+   └─ detail: To get started with GitHub CLI, please run:  gh auth login
+
+🥥 did you know?
+   └─ to fix it
+      └─ gh auth login
+"
+`;
+
+exports[`git.pull given: [case3] a get under --output text is refused when: [t0] each get runs on a branch with no open pull then: the refusal reads on both streams, with its class and fix 1`] = `
+"✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
+      └─ rhx git.pull.title.get --pr <n> ...   # or name a pull, closed or merged included
+"
+`;
+
+exports[`git.pull given: [case3] a get under --output text is refused when: [t0] each get runs on a branch with no open pull then: the refusal reads on both streams, with its class and fix 2`] = `
+"✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
+      └─ rhx git.pull.description.get --pr <n> ...   # or name a pull, closed or merged included
+"
+`;
+
+exports[`git.pull given: [case4] --in names the repo when: [t0] --in names the home-org repo, with --pr 8 then: each lands on pull #8 of the named repo 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.title.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, title
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ current: feat(reports): sync the wave report
+   ├─ new: feat(reports): sync the wave report, via --in
+   └─ verdict: set, read back, matches
+      └─ read-back: feat(reports): sync the wave report, via --in
+"
+`;
+
+exports[`git.pull given: [case4] --in names the repo when: [t0] --in names the home-org repo, with --pr 8 then: each lands on pull #8 of the named repo 2`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ current
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   │  ├─ bytes: 16
+   │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: appended the seaturtle footer
+   │  ├─ bytes: 68
+   │  └─ sha256: 3812a6b2ab526062c3e40b353d06f0256fc59db2c7c720a04169b589fbe7efa6
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: 3812a6b2ab526062c3e40b353d06f0256fc59db2c7c720a04169b589fbe7efa6
+"
+`;
+
+exports[`git.pull given: [case4] --in names the repo when: [t1] --in names an owner outside the home orgs then: each exits 2 at the fence and calls no gh 1`] = `
+"✋ ConstraintError: owner 'seaturtlecorp' is outside the home orgs
+   └─ home org: ehmpathy
+
+🥥 did you know?
+   └─ to fix it
+      └─ target a repo in one of those orgs, via --in <owner/name>
+"
+`;
+
+exports[`git.pull given: [case5] the dispatcher routes set, as it routes get when: [t0] \`git.pull.<noun> set\` runs, with its value flags then: each write lands, as the dotted form would 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.title.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, title
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ current: feat(reports): sync the wave report
+   ├─ new: feat(reports): sync the wave report, dispatched
+   └─ verdict: set, read back, matches
+      └─ read-back: feat(reports): sync the wave report, dispatched
+"
+`;
+
+exports[`git.pull given: [case5] the dispatcher routes set, as it routes get when: [t0] \`git.pull.<noun> set\` runs, with its value flags then: each write lands, as the dotted form would 2`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ current
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   │  ├─ bytes: 16
+   │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: appended the seaturtle footer
+   │  ├─ bytes: 70
+   │  └─ sha256: 7f05f07735ad87c7cc222f22a729e7e94e3ca14463cf1ef2ab46588871576b82
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: 7f05f07735ad87c7cc222f22a729e7e94e3ca14463cf1ef2ab46588871576b82
+"
+`;
+
+exports[`git.pull given: [case6] the less-trod contract paths of each noun when: [t0] each set plans with --output json then: each is one json object: plan, would set, no read-back 1`] = `
+{
+  "author": "ehm-seaturtle",
+  "mode": "plan",
+  "pr": 8,
+  "state": "open",
+  "target": "ehmpathy/surf-demo#8, title",
+  "title": {
+    "current": "feat(reports): sync the wave report",
+    "new": "feat(reports): sync the wave report, planned",
+    "readback": null,
+  },
+  "url": "https://github.com/ehmpathy/surf-demo/pull/8",
+  "verdict": "would set (plan)",
+}
+`;
+
+exports[`git.pull given: [case6] the less-trod contract paths of each noun when: [t0] each set plans with --output json then: each is one json object: plan, would set, no read-back 2`] = `
+{
+  "author": "ehm-seaturtle",
+  "mode": "plan",
+  "pr": 8,
+  "repairs": [],
+  "sha256": {
+    "current": "7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa",
+    "new": "7e490553ea8b8f05d7de6481c9d3e7baac24fe82a462ae0b9949a44862535187",
+    "readback": null,
+  },
+  "state": "open",
+  "target": "ehmpathy/surf-demo#8, description",
+  "url": "https://github.com/ehmpathy/surf-demo/pull/8",
+  "verdict": "would set (plan)",
+}
+`;
+
+exports[`git.pull given: [case6] the less-trod contract paths of each noun when: [t1] each get names the repo via --in then: each reads pull #8 of the named repo 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.title.get
+   ├─ target: ehmpathy/surf-demo#8, title
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ author: ehm-seaturtle
+   └─ title: feat(reports): sync the wave report
+"
+`;
+
+exports[`git.pull given: [case6] the less-trod contract paths of each noun when: [t2] each dispatcher runs with no verb then: each exits 2 and names the verbs 1`] = `
+"✋ ConstraintError: a verb is required; the verbs are get | set
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.title get --help
+"
+`;
+
+exports[`git.pull given: [case6] the less-trod contract paths of each noun when: [t3] each get and each noun shows its --help then: each get help names every flag 1`] = `
+"usage: git.pull.title.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text]
+
+options:
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
+  --output tree|json|text      the output shape (default: tree); text = the title alone.
+                               via rhx, stdout opens with rhx's header line, so read the
+                               last line, never the whole stream
+  --help, -h                   show this help
+
+example:
+  rhx git.pull.title get --pr 69
+"
+`;
+
+exports[`git.pull given: [case6] the less-trod contract paths of each noun when: [t3] each get and each noun shows its --help then: each get help names every flag 2`] = `
+"usage: git.pull.description.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--to <path>]
+
+options:
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
+  --output tree|json|text      the output shape (default: tree); text = the body alone.
+                               via rhx, stdout opens with rhx's header line; to edit, use --to
+  --to <path>                  also write the bare body to <path>, to edit, then set --from <path>
+  --help, -h                   show this help
+
+example:
+  rhx git.pull.description get --to ./.temp/body.md
+  rhx git.pull.description set --from ./.temp/body.md
+"
+`;
+
+exports[`git.pull given: [case6] the less-trod contract paths of each noun when: [t3] each get and each noun shows its --help then: each noun help names both verbs 1`] = `
+"usage: git.pull.title <get | set> [flags]
+
+verbs:
+  get                          rhx git.pull.title get --help, for its flags
+  set                          rhx git.pull.title set --help, for its flags
+
+options:
+  --help, -h                   show this help
+"
+`;
+
+exports[`git.pull given: [case6] the less-trod contract paths of each noun when: [t3] each get and each noun shows its --help then: each noun help names both verbs 2`] = `
+"usage: git.pull.description <get | set> [flags]
+
+verbs:
+  get                          rhx git.pull.description get --help, for its flags
+  set                          rhx git.pull.description set --help, for its flags
+
+options:
+  --help, -h                   show this help
+"
+`;

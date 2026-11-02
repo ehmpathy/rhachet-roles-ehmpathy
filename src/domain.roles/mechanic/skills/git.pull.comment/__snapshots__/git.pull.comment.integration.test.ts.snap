@@ -486,7 +486,7 @@ exports[`git.pull.comment given: [case8] set refuses before any gh call: no targ
 
 🥥 did you know?
    └─ to fix it
-      └─ cat ./reply.md | rhx git.pull.comment.set --pr 7 --key status --from @stdin --mode plan   # pipe a body that is not empty
+      └─ cat ./.temp/reply.md | rhx git.pull.comment.set --pr 7 --key status --from @stdin --mode plan   # pipe a body that is not empty
 "
 `;
 
@@ -533,6 +533,7 @@ exports[`git.pull.comment given: [case9] del converges: absent is a no-op, prese
 🥥 did you know?
    └─ to fix it, pick one
       ├─ check --pr and --in
+      ├─ drop --pr to address the pull of this branch
       └─ rerun with --auth as-human
 "
 `;
@@ -554,6 +555,7 @@ exports[`git.pull.comment given: [case9] del converges: absent is a no-op, prese
 🥥 did you know?
    └─ to fix it, pick one
       ├─ check --pr and --in
+      ├─ drop --pr to address the pull of this branch
       └─ rerun with --auth as-human
 ",
   "set": "✋ ConstraintError: pull request ehmpathy/surf-demo#9 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
@@ -561,6 +563,7 @@ exports[`git.pull.comment given: [case9] del converges: absent is a no-op, prese
 🥥 did you know?
    └─ to fix it, pick one
       ├─ check --pr and --in
+      ├─ drop --pr to address the pull of this branch
       └─ rerun with --auth as-human
 ",
 }
@@ -573,6 +576,7 @@ exports[`git.pull.comment given: [case9] del converges: absent is a no-op, prese
 🥥 did you know?
    └─ to fix it, pick one
       ├─ check --pr and --in
+      ├─ drop --pr to address the pull of this branch
       └─ rerun with --auth as-human
 ",
   "setKey": "✋ ConstraintError: pull request ehmpathy/surf-demo#9 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
@@ -580,6 +584,7 @@ exports[`git.pull.comment given: [case9] del converges: absent is a no-op, prese
 🥥 did you know?
    └─ to fix it, pick one
       ├─ check --pr and --in
+      ├─ drop --pr to address the pull of this branch
       └─ rerun with --auth as-human
 ",
 }
@@ -829,9 +834,8 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
   "setBodyWithKey": "✋ ConstraintError: the pr description is no comment; git.pull.comment.set writes comments only, each with the 🐢 prefix
 
 🥥 did you know?
-   └─ to fix it, pick one
-      ├─ edit the pr description in the github ui
-      └─ a pr description verb is tracked in ehmpathy/rhachet-roles-ehmpathy#1165
+   └─ to fix it
+      └─ rhx git.pull.description set --from <path|@stdin>   # the pr description has its own verb
 ",
   "setIdWithKey": "✋ ConstraintError: --id edits one known comment; it takes no --key or --reply-to
 
@@ -857,7 +861,7 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
 
 🥥 did you know?
    └─ to fix it
-      └─ --from ./reply.md
+      └─ --from ./.temp/reply.md
 ",
   "setReplyNotNumber": "✋ ConstraintError: --reply-to must be a numeric review comment id, got 'x'
 
@@ -1304,23 +1308,21 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
 "
 `;
 
-exports[`git.pull.comment given: [case14] the pr description is no comment: set and del refuse it; the verbs dispatch as \`git.pull.comment <verb>\` when: [t2] comment del --kind body then: it exits 2: github offers no delete; the fix names the github ui 1`] = `
+exports[`git.pull.comment given: [case14] the pr description is no comment: set and del refuse it; the verbs dispatch as \`git.pull.comment <verb>\` when: [t2] comment del --kind body then: it exits 2: github offers no delete; the fix names git.pull.description set 1`] = `
 "✋ ConstraintError: github offers no delete for a pr description
 
 🥥 did you know?
-   └─ to fix it, pick one
-      ├─ edit the pr description in the github ui, to rewrite it
-      └─ a pr description verb is tracked in ehmpathy/rhachet-roles-ehmpathy#1165
+   └─ to fix it
+      └─ rewrite the pr description via rhx git.pull.description set
 "
 `;
 
-exports[`git.pull.comment given: [case14] the pr description is no comment: set and del refuse it; the verbs dispatch as \`git.pull.comment <verb>\` when: [t4] comment set --kind body then: it exits 2: comment set writes comments only; the fix names the github ui 1`] = `
+exports[`git.pull.comment given: [case14] the pr description is no comment: set and del refuse it; the verbs dispatch as \`git.pull.comment <verb>\` when: [t4] comment set --kind body then: it exits 2: comment set writes comments only; the fix names git.pull.description set 1`] = `
 "✋ ConstraintError: the pr description is no comment; git.pull.comment.set writes comments only, each with the 🐢 prefix
 
 🥥 did you know?
-   └─ to fix it, pick one
-      ├─ edit the pr description in the github ui
-      └─ a pr description verb is tracked in ehmpathy/rhachet-roles-ehmpathy#1165
+   └─ to fix it
+      └─ rhx git.pull.description set --from <path|@stdin>   # the pr description has its own verb
 "
 `;
 
@@ -1868,8 +1870,9 @@ exports[`git.pull.comment given: [case20] --pr defaults to the open pull of the 
 "✋ ConstraintError: --pr is absent, and branch 'surf/no-pull' has no open pull on ehmpathy/surf-demo
 
 🥥 did you know?
-   └─ to fix it
-      └─ rhx git.pull.comment.set --pr <n> ...   # name the pull
+   └─ to fix it, pick one
+      ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
+      └─ rhx git.pull.comment.set --pr <n> ...   # or name a pull, closed or merged included
 "
 `;
 
