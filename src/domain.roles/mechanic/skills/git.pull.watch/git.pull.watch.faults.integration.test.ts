@@ -465,6 +465,86 @@ describe('git.pull.watch faults', () => {
     },
   );
 
+  given('[case11] a daemon killed while a clone list read is in flight', () => {
+    const scene = genWatchTestScene({
+      slug: 'watch-faults-case11',
+      repos: ['surf-demo'],
+      store: {},
+    });
+    scene.setStore((store) => {
+      store.clones[scene.roots['surf-demo']!] = [
+        { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+      ];
+    });
+    setPrOpen({ scene, repo: 'ehmpathy/surf-demo', pr: '1220' });
+    afterAll(() => scene.stopAllDaemons());
+
+    // the pids of the stub clone list reads of this scene, in flight now
+    const getAllCloneListReadPids = (): number[] =>
+      spawnSync('ps', ['-eo', 'pid=,args='], { encoding: 'utf-8' })
+        .stdout.split('\n')
+        .filter(
+          (row) =>
+            row.includes(scene.roots['surf-demo']!) &&
+            row.includes('rhachet clone list'),
+        )
+        .map((row) => Number(row.trim().split(/\s+/)[0]));
+
+    // true while a pid still runs
+    const isPidAlive = (pid: number): boolean => {
+      try {
+        process.kill(pid, 0);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+
+    when(
+      '[t0] the read returns after the daemon is gone, and the tick on disk is old',
+      () => {
+        const result = useThen('the orphan read ends', async () => {
+          scene.runSkill({
+            verb: 'set',
+            args: ['--pr', '1220', '--mode', 'apply'],
+            root: scene.roots['surf-demo']!,
+            serial: SERIAL_A,
+          });
+          await scene.waitForPrimed();
+
+          // slow each clone list read, then give the daemon an alert to deliver
+          scene.setStore((store) => {
+            store.cloneListDelayMs = 6_000;
+          });
+          setCheckFailed({ scene, pr: '1220', id: 91, name: 'test-unit' });
+          await waitForWatch({
+            label: 'a clone list read in flight',
+            check: () => getAllCloneListReadPids().length > 0,
+            scene,
+          });
+          const reads = getAllCloneListReadPids();
+
+          // kill the daemon mid-read; plant a tick an hour old
+          scene.stopAllDaemons();
+          const tickOld = String(Math.floor(Date.now() / 1000) - 3600);
+          const heartbeat = path.join(getKeyDir(scene), 'daemon.heartbeat');
+          fs.writeFileSync(heartbeat, tickOld);
+          await waitForWatch({
+            label: 'the orphan reads exit',
+            check: () => reads.every((pid) => !isPidAlive(pid)),
+            scene,
+          });
+          // the orphan subshell's hook runs just after its read returns
+          await new Promise((done) => setTimeout(done, 1_000));
+          return { tickOld, tickNow: fs.readFileSync(heartbeat, 'utf-8') };
+        });
+        then('the tick on disk stays the old one, never forged fresh', () => {
+          expect(result.tickNow.trim()).toEqual(result.tickOld);
+        });
+      },
+    );
+  });
+
   given('[case9] a set over the clone own watch record, gone corrupt', () => {
     const scene = genWatchTestScene({
       slug: 'watch-faults-case9',
