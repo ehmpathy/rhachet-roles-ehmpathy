@@ -410,8 +410,10 @@ exit 2
     };
     return {
       tempDir,
+      home,
       run,
       runPull,
+      runSkill,
       getStore,
       getCalls,
       getWrites,
@@ -594,6 +596,246 @@ exit 2
       },
     );
   });
+
+  given(
+    '[case2b] an enrolled clone notes each comment it posts in its pr-watch ledger',
+    () => {
+      const SERIAL = 'a1a1a1a1-0000-4000-8000-00000000000a';
+      // the ledger path comes from the watch skill's own operation, so the test reads where the daemon reads
+      const getLedger = (home: string): string[] => {
+        const file = spawnSync(
+          'bash',
+          [
+            '-c',
+            'source "$1" && get_watch_ledger_file "$2"',
+            '_',
+            path.join(
+              __dirname,
+              '../git.pull.watch/git.pull.watch.operations.sh',
+            ),
+            SERIAL,
+          ],
+          { encoding: 'utf-8', env: { ...process.env, HOME: home } },
+        ).stdout.trim();
+        return fs.existsSync(file)
+          ? fs
+              .readFileSync(file, 'utf-8')
+              .split('\n')
+              .filter((line) => line)
+          : [];
+      };
+      when('[t0] the clone posts a keyed comment', () => {
+        const scene = genScene(SCENE_BARE);
+        const result = useThen('it runs', async () =>
+          scene.run(
+            'set',
+            [
+              '--pr',
+              '7',
+              '--key',
+              'status',
+              '--from',
+              '@stdin',
+              '--mode',
+              'apply',
+            ],
+            { stdin: 'waves are up', env: { RHACHET_CLONE_SERIAL: SERIAL } },
+          ),
+        );
+        then('the posted id lands in the ledger of this clone', () => {
+          expect(result.exitCode).toBe(0);
+          const posted = scene.getStore().comments[0]!;
+          expect(getLedger(scene.home)).toEqual([String(posted.id)]);
+        });
+      });
+      when('[t1] a session with no clone serial posts', () => {
+        const scene = genScene(SCENE_BARE);
+        const result = useThen('it runs', async () =>
+          scene.run(
+            'set',
+            [
+              '--pr',
+              '7',
+              '--key',
+              'status',
+              '--from',
+              '@stdin',
+              '--mode',
+              'apply',
+            ],
+            { stdin: 'waves are up' },
+          ),
+        );
+        then('no ledger is written', () => {
+          expect(result.exitCode).toBe(0);
+          expect(getLedger(scene.home)).toEqual([]);
+        });
+      });
+      when('[t2] the ledger dir cannot be made', () => {
+        const scene = genScene(SCENE_BARE);
+        const result = useThen('it runs', async () => {
+          // a plain file where the ledger dir belongs: mkdir -p fails
+          const watchDir = path.join(
+            scene.home,
+            '.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch',
+          );
+          fs.mkdirSync(watchDir, { recursive: true });
+          fs.writeFileSync(path.join(watchDir, 'ledger'), 'not a dir');
+          return scene.run(
+            'set',
+            [
+              '--pr',
+              '7',
+              '--key',
+              'status',
+              '--from',
+              '@stdin',
+              '--mode',
+              'apply',
+            ],
+            { stdin: 'waves are up', env: { RHACHET_CLONE_SERIAL: SERIAL } },
+          );
+        });
+        then('the comment still posts, exit 0', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('posted, read back, hash matches');
+        });
+        then(
+          'the ledger fault is named on both streams, with cause and fix',
+          () => {
+            [result.stdout, result.stderr].forEach((stream) => {
+              expect(stream).toContain('💥 MalfunctionError: comment ');
+              expect(stream).toContain(
+                'the pr-watch ledger could not record it',
+              );
+              expect(stream).toContain('└─ cause: ');
+              expect(stream).toContain('🥥 did you know?');
+              expect(stream).toContain('└─ to fix it');
+            });
+            const block = result.stderr
+              .slice(result.stderr.indexOf('💥 MalfunctionError: comment'))
+              .split(scene.home)
+              .join('$HOME')
+              .replace(/comment \d+ posted/, 'comment <id> posted')
+              .replace(
+                /cause: .*/,
+                'cause: <the mkdir error, worded per locale>',
+              );
+            expect(result.stderr).toContain('ledger');
+            expect(block).toMatchSnapshot();
+          },
+        );
+      });
+      when('[t3] the ledger dir cannot be made, under --output json', () => {
+        const scene = genScene(SCENE_BARE);
+        const result = useThen('it runs', async () => {
+          // a plain file where the ledger dir belongs: mkdir -p fails
+          const watchDir = path.join(
+            scene.home,
+            '.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch',
+          );
+          fs.mkdirSync(watchDir, { recursive: true });
+          fs.writeFileSync(path.join(watchDir, 'ledger'), 'not a dir');
+          return scene.run(
+            'set',
+            [
+              '--pr',
+              '7',
+              '--key',
+              'status',
+              '--from',
+              '@stdin',
+              '--mode',
+              'apply',
+              '--output',
+              'json',
+            ],
+            { stdin: 'waves are up', env: { RHACHET_CLONE_SERIAL: SERIAL } },
+          );
+        });
+        then(
+          'stdout is one json result whose ledgerFault names the cause',
+          () => {
+            expect(result.exitCode).toBe(0);
+            const parsed = JSON.parse(result.stdout);
+            expect(parsed.verdict).toEqual('posted, read back, hash matches');
+            expect(parsed.ledgerFault).toMatch(/mkdir/);
+          },
+        );
+        then('stderr holds the human block, with cause and fix', () => {
+          expect(result.stderr).toContain('💥 MalfunctionError: comment ');
+          expect(result.stderr).toContain('🥥 did you know?');
+          const masked = result.stderr
+            .slice(result.stderr.indexOf('💥 MalfunctionError: comment'))
+            .split(scene.home)
+            .join('$HOME')
+            .replace(/comment \d+ posted/, 'comment <id> posted')
+            .replace(
+              /cause: .*/,
+              'cause: <the mkdir error, worded per locale>',
+            );
+          expect(masked).toMatchSnapshot();
+        });
+      });
+      when('[t4] the watch operations beside the skill will not load', () => {
+        const scene = genScene(SCENE_BARE);
+        const result = useThen('it runs', async () => {
+          // a copy of this skill, beside a watch operations file that will not parse
+          const skills = path.join(scene.tempDir, '.skills');
+          fs.mkdirSync(path.join(skills, 'git.pull.comment'), {
+            recursive: true,
+          });
+          fs.mkdirSync(path.join(skills, 'git.pull.watch'), {
+            recursive: true,
+          });
+          // this skill sources git.commit beside it, so that dir rides along whole
+          ['git.pull.comment', 'git.commit'].forEach((dir) => {
+            const from = path.join(__dirname, '..', dir);
+            fs.mkdirSync(path.join(skills, dir), { recursive: true });
+            fs.readdirSync(from)
+              .filter((name) => name.endsWith('.sh'))
+              .forEach((name) =>
+                fs.copyFileSync(
+                  path.join(from, name),
+                  path.join(skills, dir, name),
+                ),
+              );
+          });
+          fs.writeFileSync(
+            path.join(skills, 'git.pull.watch', 'git.pull.watch.operations.sh'),
+            // a load that fails as a sourced peer would: one line on stderr, a nonzero return
+            'echo "a peer the watch operations source is absent" >&2\nreturn 3\n',
+          );
+          return scene.runSkill(
+            path.join(skills, 'git.pull.comment', 'git.pull.comment.set.sh'),
+            [
+              '--pr',
+              '7',
+              '--key',
+              'status',
+              '--from',
+              '@stdin',
+              '--mode',
+              'apply',
+              '--output',
+              'json',
+            ],
+            { stdin: 'waves are up', env: { RHACHET_CLONE_SERIAL: SERIAL } },
+          );
+        });
+        then('the comment still posts, and the fault names the cause', () => {
+          expect(result.exitCode).toBe(0);
+          const parsed = JSON.parse(result.stdout);
+          expect(parsed.verdict).toEqual('posted, read back, hash matches');
+          expect(parsed.ledgerFault).toContain('could not load');
+          expect(parsed.ledgerFault).toContain(
+            'a peer the watch operations source is absent',
+          );
+          expect(result.stderr).toContain('reinstall the mechanic role');
+        });
+      });
+    },
+  );
 
   given('[case3] a reply posts to the thread replies endpoint', () => {
     const scene = genScene({

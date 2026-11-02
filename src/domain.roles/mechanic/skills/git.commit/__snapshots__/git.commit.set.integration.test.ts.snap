@@ -839,6 +839,7 @@ exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, th
    ├─ push: origin/turtle/feature ✓
    ├─ pr: pr #99 (created)
    ├─ opened: as-human (gh cli login, fallback)
+   ├─ watch: skipped (not an enrolled clone)
    └─ meter
       └─ push: allowed
 

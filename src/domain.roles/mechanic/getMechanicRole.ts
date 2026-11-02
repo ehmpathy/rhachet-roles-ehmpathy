@@ -70,6 +70,14 @@ export const ROLE_MECHANIC: Role = Role.build({
           command: asHookCommand('sessionstart.notify-permissions'),
           timeout: 'PT10S',
         },
+        // .note = brings back the pr-watch daemon of a clone that holds a watch
+        //         (a reboot or a kill ended it); silent when there is naught to do
+        // .note = the timeout outruns the findsert's own bounds (10s lock wait + 20s
+        //         boot wait), so a slow box hears the hook's line, never a kill mid-spawn
+        {
+          command: asHookCommand('sessionstart.git-pull-watch'),
+          timeout: 'PT45S',
+        },
         // .note = no `roles boot --role` hook here. briefs reach a session via the
         //         brain dir boot.md render, and rhachet's `repo introspect` refuses
         //         a role that boots itself (or any role) from a hook

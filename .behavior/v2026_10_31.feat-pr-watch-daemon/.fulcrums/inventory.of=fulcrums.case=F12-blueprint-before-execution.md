@@ -5,5 +5,5 @@
 - rework: clean — if the commander prefers (2), the blueprint file moves into the new stone as is
 - risk: low — a document and read-only probes; no credential, no prod write
 - confidence: 85% — the director may read his Q1–Q12 verdicts as the commander review and want (3)
-- where: `5.1.execution.from_vision.yield.md`, `5.1.execution.blueprint.md`
-- verdict: (open; commander)
+- where: `5.1.execution.from_vision.yield.md` (the plan; the separate blueprint file folded in)
+- verdict: ruled (3) by the commander, 2026-11-01 — the route is a nano with no blueprint stone; the gate was a misread of the route. execute direct from the vision; the blueprint content is the 5.1 plan; QB1–QB6 land as rows F13–F18 (seed S2)
