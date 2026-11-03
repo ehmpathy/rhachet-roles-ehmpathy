@@ -173,15 +173,28 @@ as_comment_cmd_in_mode() {
       --mode | --skill | --repo | --role) skip=1; continue ;;
       --mode=* | --skill=* | --repo=* | --role=*) continue ;;
     esac
-    out+=("$(printf '%q' "$arg")")
+    out+=("$(as_shell_word "$arg")")
   done
   echo "${out[*]} --mode $mode"
+}
+
+# .what = one arg as a shell word a human can read and paste: bare when plain,
+#         else in single quotes (an inner ' closes, escapes, and reopens)
+# .why  = printf %q pastes, yet reads as `feat\(reef\):\ map`; a hint is for a human
+as_shell_word() {
+  local arg="$1" q="'"
+  if [[ "$arg" =~ ^[A-Za-z0-9_./:@=+,%-]+$ ]]; then
+    printf '%s' "$arg"
+    return 0
+  fi
+  printf "'%s'" "${arg//$q/$q\\$q$q}"
 }
 
 # .what = render one refusal: a header, detail leaves, then a 🥥 hint with the fixes
 # .why  = every refusal of the family shares this one shape. under --output json,
 #         stdout gets one json object and stderr the tree, so a json caller parses
-#         every exit while a human still reads the tree
+#         every exit while a human still reads the tree. tree and text put the
+#         tree on both streams
 # .note = args: class, message, hint affordance, then the NAMES of two arrays —
 #         the detail lines and the fix commands (either may be empty)
 emit_comment_refusal() {
@@ -201,7 +214,8 @@ emit_comment_refusal() {
   done
   [[ "${#refusal_fixes_ref[@]}" == "0" ]] || block+=$'\n'"$(print_comment_hint "$affordance" "${refusal_fixes_ref[@]}")"
 
-  # tree: both streams
+  # tree and text: both streams (rule.require.skill-output-streams). a text
+  # caller tells a refusal from a field by the exit code: 2, never 0
   if [[ "$COMMENT_OUTPUT" != "json" ]]; then
     emit_both "$block" >&3
     return 0
@@ -450,7 +464,7 @@ set_comment_auth() {
   local details=("cause: ${cause:-keyrack returned no token}")
   local fix_unlock="rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # the token is set, but locked"
   local fix_fill="rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # a human, where the token was never set"
-  local fix_human="rerun with --auth as-human   # post under your own gh login instead"
+  local fix_human="rerun with --auth as-human   # act under your own gh login instead"
   local fixes=("$fix_unlock" "$fix_fill" "$fix_human")
   [[ "${cause,,}" == *"not found"* ]] && fixes=("$fix_fill" "$fix_unlock" "$fix_human")
   emit_comment_refusal ConstraintError "ehmpath keyrack token not available" \
@@ -498,9 +512,9 @@ fail_gh_call() {
   local first="${detail%%$'\n'*}"
   if is_gh_auth_failure "$detail"; then
     # github refused the token's value, so an unlock would hand back the same one
-    local fix="rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh   # a human: set a token github accepts"$'\n'"rerun with --auth as-human   # post under your own gh login instead"
+    local fix="rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh   # a human: set a token github accepts"$'\n'"rerun with --auth as-human   # act under your own gh login instead"
     # an env token wins over the keyrack, so a keyrack refill alone would not change it
-    [[ "$COMMENT_TOKEN_SOURCE" == "env" ]] && fix="unset EHMPATHY_SEATURTLE_GITHUB_TOKEN, then rerun   # the env token wins over the keyrack"$'\n'"rerun with --auth as-human   # post under your own gh login instead"
+    [[ "$COMMENT_TOKEN_SOURCE" == "env" ]] && fix="unset EHMPATHY_SEATURTLE_GITHUB_TOKEN, then rerun   # the env token wins over the keyrack"$'\n'"rerun with --auth as-human   # act under your own gh login instead"
     [[ "$COMMENT_AUTH" == "as-human" ]] && fix="gh auth login"
     fail_comment_constraint "github refused the credential ($COMMENT_AUTH) on $what" "detail: $first" "$fix"
   fi
@@ -652,7 +666,8 @@ set_comment_pr() {
   pulls="$(get_all_gh_resources "repos/$COMMENT_REPO/pulls?state=open&head=$owner:$branch")" || exit $?
   numbers="$(printf '%s' "$pulls" | jq -r '.[].number')"
   count="$(get_count_of_comments "$pulls")"
-  [[ "$count" == "0" ]] && fail_comment_constraint "--pr is absent, and branch '$branch' has no open pull on $COMMENT_REPO" "rhx $skill --pr <n> ...   # name the pull"
+  [[ "$count" == "0" ]] && fail_comment_constraint "--pr is absent, and branch '$branch' has no open pull on $COMMENT_REPO" \
+    "rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one"$'\n'"rhx $skill --pr <n> ...   # or name a pull, closed or merged included"
   [[ "$count" == "1" ]] || fail_comment_constraint "--pr is absent, and branch '$branch' has $count open pulls on $COMMENT_REPO" "open pulls: ${numbers//$'\n'/, }" "rhx $skill --pr <n> ...   # name one"
   COMMENT_PR="$numbers"
 }
@@ -662,10 +677,19 @@ set_comment_pr() {
 #         cannot see. a visible pr proves the 404 meant absent, so del never
 #         reports "absent — no-op" for a comment it simply could not read
 check_pr_visible() {
-  local pr="$1" rc=0
-  get_one_gh_resource "repos/$COMMENT_REPO/pulls/$pr" >/dev/null || rc=$?
-  [[ "$rc" == "3" ]] && fail_comment_constraint "pull request $COMMENT_REPO#$pr is absent, or $COMMENT_LOGIN ($COMMENT_AUTH) cannot see it" "check --pr and --in"$'\n'"rerun with --auth $(as_auth_other "$COMMENT_AUTH")"
+  get_one_gh_pull "$1" >/dev/null || exit $?
+}
+
+# .what = read pull N; prints its json, or refuses when the credential cannot see it
+# .why  = one read and one absent-pull refusal for the whole git.pull.* family
+#         (comment checks visibility; title and description read the fields)
+get_one_gh_pull() {
+  local pr="$1" out rc=0
+  out="$(get_one_gh_resource "repos/$COMMENT_REPO/pulls/$pr")" || rc=$?
+  [[ "$rc" == "3" ]] && fail_comment_constraint "pull request $COMMENT_REPO#$pr is absent, or $COMMENT_LOGIN ($COMMENT_AUTH) cannot see it" \
+    "check --pr and --in"$'\n'"drop --pr to address the pull of this branch"$'\n'"rerun with --auth $(as_auth_other "$COMMENT_AUTH")"
   [[ "$rc" == "0" ]] || exit "$rc"
+  printf '%s' "$out"
 }
 
 # .what = refuse an absent target, once the pr proves visible
@@ -950,9 +974,12 @@ as_chars_count() {
 # .what = refuse a body over github's cap, before any write
 # .why  = a plan must never show green for an apply github would refuse with a 422
 COMMENT_BODY_CHARS_MAX=65536
+# .note = args: the char count; the second fix, per noun (default: the comment's);
+#         the subject, per noun (default: "the body"; a description names its footer,
+#         since the count includes it)
 check_body_under_cap() {
-  local chars="$1"
-  ((chars <= COMMENT_BODY_CHARS_MAX)) || fail_comment_constraint "the body holds $chars characters; github caps a comment or pr description at $COMMENT_BODY_CHARS_MAX" "trim the body"$'\n'"split it across two keyed comments"
+  local chars="$1" fix_split="${2:-split it across two keyed comments}" subject="${3:-the body}"
+  ((chars <= COMMENT_BODY_CHARS_MAX)) || fail_comment_constraint "$subject holds $chars characters; github caps a comment or pr description at $COMMENT_BODY_CHARS_MAX" "trim the body"$'\n'"$fix_split"
 }
 
 # .what = bytes of a json resource's trimmed .body

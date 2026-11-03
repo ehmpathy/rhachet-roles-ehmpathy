@@ -101,6 +101,17 @@
       "alternatives": ["rhx git.release"]
     },
     {
+      "heads": ["gh pr edit"],
+      "alternatives": [
+        "rhx git.pull.title set --from ./.temp/title.md",
+        "rhx git.pull.description set --from ./.temp/body.md"
+      ]
+    },
+    {
+      "heads": ["gh pr comment"],
+      "alternatives": ["rhx git.pull.comment set --key <name> --from <file>"]
+    },
+    {
       "heads": ["./node_modules/.bin/rhachet", "node_modules/.bin/rhachet", "rhachet"],
       "alternatives": ["npx rhachet <args>", "rhx <skill> <args>"]
     }

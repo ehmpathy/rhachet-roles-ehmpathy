@@ -226,6 +226,34 @@ exports[`git.commit.push.sh given: [case16] keyrack.yml does not declare request
 "
 `;
 
+exports[`git.commit.push.sh given: [case17b] the pr body push opens carries only the seaturtle attribution when: [t0] the commit body holds the harness claude line and a capitalized trailer then: the body ends with exactly one seaturtle footer 1`] = `
+"feat(reef): map the kelp beds
+
+- adds the kelp bed map
+
+---
+🐢🌊 surfed in by seaturtle[bot]"
+`;
+
+exports[`git.commit.push.sh given: [case17b] the pr body push opens carries only the seaturtle attribution when: [t0b] the commit body names co-authored-by in prose, beside a real trailer then: push keeps the prose and strips only the trailer 1`] = `
+"docs(reef): explain the kelp credits
+
+- explains how Co-authored-by trailers work
+Co-authored-by: lines with no email are prose, so they stay
+
+---
+🐢🌊 surfed in by seaturtle[bot]"
+`;
+
+exports[`git.commit.push.sh given: [case17b] the pr body push opens carries only the seaturtle attribution when: [t1] the commit body already ends with the seaturtle footer then: the footer stands once, never twice 1`] = `
+"feat(reef): chart the tide pools
+
+- adds the tide pool chart
+
+---
+🐢🌊 surfed in by seaturtle[bot]"
+`;
+
 exports[`git.commit.push.sh given: [case18] CI watch reminder after successful push when: [t0] push and pr creation succeed then: shows full output with vibey reminder at end 1`] = `
 "🐢 cowabunga!
 

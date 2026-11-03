@@ -1,0 +1,848 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.pull.description given: [case1] a body with the harness claude line and its trailer when: [t0] set plans it then: it exits 0, writes naught, and names each repair 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode plan
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ old
+   │  ├─ bytes: 60
+   │  ├─ sha256: 8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28
+   │  └─ text
+   │     surf lesson booker
+   │
+   │     ---
+   │     🐢🌊 surfed in by seaturtle[bot]
+   │
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: stripped the claude code line; stripped the co-authored-by trailer(s); appended the seaturtle footer
+   │  ├─ bytes: 82
+   │  ├─ sha256: 627e3808569b86c9d5f74bcb8f79fec60fd95938f0c104654b63c6477ad8aa89
+   │  └─ text
+   │     ## .what
+   │
+   │     book a surf lesson at the reef
+   │
+   │     ---
+   │     🐢🌊 surfed in by seaturtle[bot]
+   │
+   └─ verdict: would set (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ cat ./.temp/body.md | rhx git.pull.description.set --from @stdin --mode apply   # pipe the same body in again
+"
+`;
+
+exports[`git.pull.description given: [case1] a body with the harness claude line and its trailer when: [t1] set applies it then: it reads back and the hash matches 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ old
+   │  ├─ bytes: 60
+   │  └─ sha256: 8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: stripped the claude code line; stripped the co-authored-by trailer(s); appended the seaturtle footer
+   │  ├─ bytes: 82
+   │  └─ sha256: 627e3808569b86c9d5f74bcb8f79fec60fd95938f0c104654b63c6477ad8aa89
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: 627e3808569b86c9d5f74bcb8f79fec60fd95938f0c104654b63c6477ad8aa89
+"
+`;
+
+exports[`git.pull.description given: [case1] a body with the harness claude line and its trailer when: [t1] set applies it then: the pull body keeps its words and ends in one footer 1`] = `
+"## .what
+
+book a surf lesson at the reef
+
+---
+🐢🌊 surfed in by seaturtle[bot]"
+`;
+
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t0] get reads the body then: it shows the body of this branch pull, footer included 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.get
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ bytes: 60
+   ├─ sha256: 8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28
+   └─ text
+      surf lesson booker
+
+      ---
+      🐢🌊 surfed in by seaturtle[bot]
+
+🥥 did you know?
+   └─ to edit it
+      ├─ 1. rhx git.pull.description get --into ./.temp/body.md
+      ├─ 2. edit ./.temp/body.md
+      └─ 3. rhx git.pull.description set --from ./.temp/body.md   # plan; add --mode apply to write
+"
+`;
+
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t1] get --into a file, a section appended, set --from it then: the body holds the section and ends in one footer 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ old
+   │  ├─ bytes: 60
+   │  └─ sha256: 8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28
+   ├─ new
+   │  ├─ from: ./.temp/body.md
+   │  ├─ repair: stripped the prior seaturtle footer; appended the seaturtle footer
+   │  ├─ bytes: 90
+   │  └─ sha256: aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322
+"
+`;
+
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t1] get --into a file, a section appended, set --from it then: the get hint names the file, and set plans first, on this branch pull 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.get
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ into: ./.temp/body.md
+   ├─ bytes: 60
+   ├─ sha256: 8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28
+   └─ text
+      surf lesson booker
+
+      ---
+      🐢🌊 surfed in by seaturtle[bot]
+
+🥥 did you know?
+   └─ to edit it
+      ├─ 1. edit ./.temp/body.md
+      └─ 2. rhx git.pull.description set --from ./.temp/body.md   # plan; add --mode apply to write
+"
+`;
+
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t2] the same get --into, then set --from, reruns then: it reports a no-op and writes naught 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ old
+   │  ├─ bytes: 90
+   │  └─ sha256: aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322
+   ├─ new
+   │  ├─ from: ./.temp/body.md
+   │  ├─ repair: already applied (the pull holds this body, repaired)
+   │  ├─ bytes: 90
+   │  └─ sha256: aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322
+   └─ verdict: already there — no-op
+"
+`;
+
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t3] get --output text, from the skill file direct then: it prints the bare body, no tree 1`] = `
+"surf lesson booker
+
+## .limits
+
+no night lessons
+
+---
+🐢🌊 surfed in by seaturtle[bot]
+"
+`;
+
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t4] get --into names a path outside the repo then: it refuses before any gh call, exit 2, both streams 1`] = `
+"✋ ConstraintError: --into must name a path inside this repo, got '../outside-the-reef.md'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --into ./.temp/body.md
+"
+`;
+
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t5] get --into names a file git tracks then: it refuses before any gh call, and the file is untouched 1`] = `
+"✋ ConstraintError: --into names a file git tracks; get never overwrites one: './reef-notes.md'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --into ./.temp/body.md
+"
+`;
+
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t6] get --into names a directory then: it refuses before any gh call, and writes no file 1`] = `
+"✋ ConstraintError: --into names a directory, not a file: './tide-pools'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --into ./.temp/body.md
+"
+`;
+
+exports[`git.pull.description given: [case4] no pull to target when: [t0] the branch has no open pull then: it exits 2 and names git.commit.push, then --pr, as the fix 1`] = `
+"✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
+      └─ rhx git.pull.description.get --pr <n> ...   # or name a pull, closed or merged included
+"
+`;
+
+exports[`git.pull.description given: [case4] no pull to target when: [t1] --pr names a pull that does not exist then: each exits 2, names the pull, and writes naught 1`] = `
+"✋ ConstraintError: pull request ehmpathy/surf-demo#9999 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ check --pr and --in
+      ├─ drop --pr to address the pull of this branch
+      └─ rerun with --auth as-human
+"
+`;
+
+exports[`git.pull.description given: [case4] no pull to target when: [t1] --pr names a pull that does not exist then: each exits 2, names the pull, and writes naught 2`] = `
+"✋ ConstraintError: pull request ehmpathy/surf-demo#9999 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ check --pr and --in
+      ├─ drop --pr to address the pull of this branch
+      └─ rerun with --auth as-human
+"
+`;
+
+exports[`git.pull.description given: [case5] the credential is unusable when: [t0] the keyrack holds no token then: it exits 2, names the keyrack fix, and calls no gh 1`] = `
+"✋ ConstraintError: ehmpath keyrack token not available
+   └─ cause: credential not found: EHMPATHY_SEATURTLE_GITHUB_TOKEN
+
+🥥 did you know?
+   └─ to fix it, by the state of the token, pick one
+      ├─ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # a human, where the token was never set
+      ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN   # the token is set, but locked
+      └─ rerun with --auth as-human   # act under your own gh login instead
+"
+`;
+
+exports[`git.pull.description given: [case5] the credential is unusable when: [t1] as-human, with gh logged out then: it exits 2, names gh auth login, and writes naught 1`] = `
+"✋ ConstraintError: github refused the credential (as-human) on the read of the current login
+   └─ detail: To get started with GitHub CLI, please run:  gh auth login
+
+🥥 did you know?
+   └─ to fix it
+      └─ gh auth login
+"
+`;
+
+exports[`git.pull.description given: [case5] the credential is unusable when: [t3] as-human, with gh logged in, sets the human own pull then: the body is set under the host gh login, read back 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-human (gh cli login, fallback) as surfer-kai
+   ├─ author: surfer-kai
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ old
+   │  ├─ bytes: 18
+   │  └─ sha256: 84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: appended the seaturtle footer
+   │  ├─ bytes: 63
+   │  └─ sha256: 5117ad55c3303af0b47847626bb244efab635d2629da1e512c1e438785f73ade
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: 5117ad55c3303af0b47847626bb244efab635d2629da1e512c1e438785f73ade
+"
+`;
+
+exports[`git.pull.description given: [case6] a peer pull, by number when: [t0] set --pr 8 applies then: pull #8 is set and signed; pull #7 is untouched 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ old
+   │  ├─ bytes: 16
+   │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: stripped the claude code line; appended the seaturtle footer
+   │  ├─ bytes: 67
+   │  └─ sha256: fbf0434309acfe085401f9241d9268c28387eca32efcbb5659a20519219cad92
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: fbf0434309acfe085401f9241d9268c28387eca32efcbb5659a20519219cad92
+"
+`;
+
+exports[`git.pull.description given: [case6] a peer pull, by number when: [t1] get and a plan, by number then: get names pull #8 and its body 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.get
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ bytes: 16
+   ├─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   └─ text
+      wave report sync
+
+🥥 did you know?
+   └─ to edit it
+      ├─ 1. rhx git.pull.description get --pr 8 --into ./.temp/body.md
+      ├─ 2. edit ./.temp/body.md
+      └─ 3. rhx git.pull.description set --pr 8 --from ./.temp/body.md   # plan; add --mode apply to write
+"
+`;
+
+exports[`git.pull.description given: [case6] a peer pull, by number when: [t1] get and a plan, by number then: the plan targets pull #8, writes naught, and hints --pr 8 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode plan
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ old
+   │  ├─ bytes: 16
+   │  ├─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   │  └─ text
+   │     wave report sync
+   │
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: appended the seaturtle footer
+   │  ├─ bytes: 67
+   │  ├─ sha256: fbf0434309acfe085401f9241d9268c28387eca32efcbb5659a20519219cad92
+   │  └─ text
+   │     wave report sync, nightly
+   │
+   │     ---
+   │     🐢🌊 surfed in by seaturtle[bot]
+   │
+   └─ verdict: would set (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ cat ./.temp/body.md | rhx git.pull.description.set --pr 8 --from @stdin --mode apply   # pipe the same body in again
+"
+`;
+
+exports[`git.pull.description given: [case6] a peer pull, by number when: [t2] get reads a pull whose body is empty then: the tree says the body is empty; text prints naught 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.get
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ bytes: 0
+   ├─ sha256: e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
+   └─ text
+      (empty)
+
+🥥 did you know?
+   └─ to edit it
+      ├─ 1. rhx git.pull.description get --into ./.temp/body.md
+      ├─ 2. edit ./.temp/body.md
+      └─ 3. rhx git.pull.description set --from ./.temp/body.md   # plan; add --mode apply to write
+"
+`;
+
+exports[`git.pull.description given: [case7] a clean body, and a body with every marker when: [t0] a clean body is set then: the footer is appended once 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ old
+   │  ├─ bytes: 16
+   │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: appended the seaturtle footer
+   │  ├─ bytes: 65
+   │  └─ sha256: 551d9045a25e477c103b824cd58e3b9442b17950bf41d0f67b4c718b01e7b903
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: 551d9045a25e477c103b824cd58e3b9442b17950bf41d0f67b4c718b01e7b903
+"
+`;
+
+exports[`git.pull.description given: [case7] a clean body, and a body with every marker when: [t1] a body with the claude line, two trailers, and two footers then: every marker goes, and one footer stands 1`] = `
+"tide chart for the reef
+
+---
+🐢🌊 surfed in by seaturtle[bot]"
+`;
+
+exports[`git.pull.description given: [case8] refused before any gh call when: [t0] the body is empty then: it exits 2 and calls no gh 1`] = `
+"✋ ConstraintError: the body from '@stdin' is empty; an empty body would wipe the pull's description
+
+🥥 did you know?
+   └─ to fix it
+      └─ cat ./.temp/body.md | rhx git.pull.description.set --from @stdin --mode apply   # pipe a body that is not empty
+"
+`;
+
+exports[`git.pull.description given: [case8] refused before any gh call when: [t1] the body holds only attribution lines then: it exits 2 and calls no gh 1`] = `
+"✋ ConstraintError: the body from '@stdin' holds no words once its attribution lines are stripped
+
+🥥 did you know?
+   └─ to fix it
+      └─ add the pull's own words to the body; attribution lines are stripped, and the footer is appended for you
+"
+`;
+
+exports[`git.pull.description given: [case8] refused before any gh call when: [t2] the body is over the 65536 cap once signed then: it exits 2 and calls no gh 1`] = `
+"✋ ConstraintError: the body, with its seaturtle footer, holds 65572 characters; github caps a comment or pr description at 65536
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ trim the body
+      └─ move a section into a keyed comment: rhx git.pull.comment set --key <name> --from <file>
+"
+`;
+
+exports[`git.pull.description given: [case8] refused before any gh call when: [t3] --from is absent then: it exits 2 and names --from 1`] = `
+"✋ ConstraintError: --from <path|@stdin> is required
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description.set --from ./.temp/body.md
+"
+`;
+
+exports[`git.pull.description given: [case9] the write reads back altered when: [t0] github holds a body other than the one sent then: it exits 1 as a malfunction, with both hashes 1`] = `
+"💥 MalfunctionError: read-back hash mismatch on ehmpathy/surf-demo#7, description
+   ├─ posted sha256:    8bb8c2c0eb2107cdb355186bfd2c7d99166c59cf818dd9a32e921e78bf159893
+   ├─ read-back sha256: 8542950e9749134bc89bb5d1cba17ef0bbec46699ce8c0a446ed4464775f97a6
+   ├─ state: the description is live, with a body other than the one posted
+   └─ live body: rhx git.pull.description get
+
+🥥 did you know?
+   └─ next, pick one
+      ├─ rerun the same command once: set overwrites the description, so a race converges
+      └─ a second mismatch means github rewrites this body on write: compare it via the get above, and set the read-back text
+"
+`;
+
+exports[`git.pull.description given: [case9] the write reads back altered when: [t1] the write answers 403: the token may read, not write then: it fails loud with the 403, and the body is untouched 1`] = `
+"✋ ConstraintError: github forbade PATCH repos/ehmpathy/surf-demo/pulls/7 (body) under as-ehmpath
+   └─ detail: gh: Resource not accessible by integration (HTTP 403)
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ check the credential can act on ehmpathy/surf-demo
+      └─ rerun with --auth as-human
+"
+`;
+
+exports[`git.pull.description given: [case9] the write reads back altered when: [t2] the write answers 422: github refuses the body then: it exits 2, names the body, the detail, and the fix 1`] = `
+"✋ ConstraintError: github refused the body of ehmpathy/surf-demo#7
+   ├─ detail: gh: Validation Failed (HTTP 422)
+   └─ detail: body is too long (maximum is 65536 characters)
+
+🥥 did you know?
+   └─ to fix it
+      └─ edit the body so github accepts it, then rerun the same command
+"
+`;
+
+exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.description <verb>\` when: [t0] get, help, and an unknown verb run via the dispatcher then: an unknown verb exits 2 1`] = `
+"✋ ConstraintError: unknown verb 'del'; the verbs are get | set
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.description --help
+"
+`;
+
+exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.description <verb>\` when: [t0] get, help, and an unknown verb run via the dispatcher then: get --output json --into names the file in \`into\`, and writes it 1`] = `
+{
+  "author": "ehm-seaturtle",
+  "body": "surf lesson booker
+
+---
+🐢🌊 surfed in by seaturtle[bot]",
+  "bytes": 60,
+  "into": "./.temp/tide.md",
+  "pr": 7,
+  "repo": "ehmpathy/surf-demo",
+  "sha256": "8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28",
+  "state": "open",
+  "url": "https://github.com/ehmpathy/surf-demo/pull/7",
+}
+`;
+
+exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.description <verb>\` when: [t0] get, help, and an unknown verb run via the dispatcher then: get returns the body as json 1`] = `
+{
+  "author": "ehm-seaturtle",
+  "body": "surf lesson booker
+
+---
+🐢🌊 surfed in by seaturtle[bot]",
+  "bytes": 60,
+  "into": null,
+  "pr": 7,
+  "repo": "ehmpathy/surf-demo",
+  "sha256": "8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28",
+  "state": "open",
+  "url": "https://github.com/ehmpathy/surf-demo/pull/7",
+}
+`;
+
+exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.description <verb>\` when: [t0] get, help, and an unknown verb run via the dispatcher then: help names both verbs; set --help names its flags 1`] = `
+"usage: git.pull.description.set --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+
+options:
+  --from <path|@stdin>         the body; written with the seaturtle attribution as its last line
+  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --in <owner/name>            the repo (default: the cwd's github origin); a home org only
+  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
+  --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
+  --output tree|json           the output shape (default: tree)
+  --help, -h                   show this help
+
+example:
+  rhx git.pull.description get --into ./.temp/body.md
+  rhx git.pull.description set --from ./.temp/body.md --mode apply
+"
+`;
+
+exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.description <verb>\` when: [t1] set applies with --output json then: stdout is one json object: verdict, repairs, and the three hashes 1`] = `
+{
+  "author": "ehm-seaturtle",
+  "mode": "apply",
+  "pr": 8,
+  "repairs": [
+    "stripped the claude code line",
+  ],
+  "sha256": {
+    "new": "551d9045a25e477c103b824cd58e3b9442b17950bf41d0f67b4c718b01e7b903",
+    "old": "7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa",
+    "readback": "551d9045a25e477c103b824cd58e3b9442b17950bf41d0f67b4c718b01e7b903",
+  },
+  "state": "open",
+  "target": "ehmpathy/surf-demo#8, description",
+  "url": "https://github.com/ehmpathy/surf-demo/pull/8",
+  "verdict": "set, read back, hash matches",
+}
+`;
+
+exports[`git.pull.description given: [case13] the strip matches whole attribution lines, never prose when: [t0] a body mentions the claude phrase inside a sentence then: the prose survives, word for word, and no strip is reported 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ old
+   │  ├─ bytes: 16
+   │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: appended the seaturtle footer
+   │  ├─ bytes: 164
+   │  └─ sha256: d0a3030048805e3c5f298b6ae8f35ee853a6d1dded8d3ba2f567143f0160b259
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: d0a3030048805e3c5f298b6ae8f35ee853a6d1dded8d3ba2f567143f0160b259
+"
+`;
+
+exports[`git.pull.description given: [case13] the strip matches whole attribution lines, never prose when: [t1] a \`---\` rule sits above the harness claude line then: the rule goes with the line: one rule, one footer 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ old
+   │  ├─ bytes: 16
+   │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: stripped the claude code line; appended the seaturtle footer
+   │  ├─ bytes: 65
+   │  └─ sha256: 551d9045a25e477c103b824cd58e3b9442b17950bf41d0f67b4c718b01e7b903
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: 551d9045a25e477c103b824cd58e3b9442b17950bf41d0f67b4c718b01e7b903
+"
+`;
+
+exports[`git.pull.description given: [case13] the strip matches whole attribution lines, never prose when: [t2] a code fence holds a run of blank lines then: the blank run is kept as written; only the claude line goes 1`] = `
+"tide chart
+
+\`\`\`ts
+const reef = 1;
+
+
+const tide = 2;
+\`\`\`
+
+---
+🐢🌊 surfed in by seaturtle[bot]"
+`;
+
+exports[`git.pull.description given: [case14] the cap holds at its edge, footer included when: [t0] the signed body lands at exactly 65536 characters then: the set succeeds, and the stored body is exactly at the cap 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ old
+   │  ├─ bytes: 16
+   │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: appended the seaturtle footer
+   │  ├─ bytes: 65542
+   │  └─ sha256: 714ecbcb0c3b46a32cd6754afa8eff6054917668f6c6595058a879e65ebd6c13
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: 714ecbcb0c3b46a32cd6754afa8eff6054917668f6c6595058a879e65ebd6c13
+"
+`;
+
+exports[`git.pull.description given: [case14] the cap holds at its edge, footer included when: [t1] the signed body lands one character over then: it exits 2, names the count, and calls no gh 1`] = `
+"✋ ConstraintError: the body, with its seaturtle footer, holds 65537 characters; github caps a comment or pr description at 65536
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ trim the body
+      └─ move a section into a keyed comment: rhx git.pull.comment set --key <name> --from <file>
+"
+`;
+
+exports[`git.pull.description given: [case15] the body comes from a file when: [t0] --from names a body file, and the set applies then: the file body lands, signed once, the claude line gone 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ old
+   │  ├─ bytes: 16
+   │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   ├─ new
+   │  ├─ from: ./body.md
+   │  ├─ repair: stripped the claude code line; appended the seaturtle footer
+   │  ├─ bytes: 60
+   │  └─ sha256: 1bd6e410a01ac1c7cc7db3f2669e4521e05176654c489756a1c015bcb9b560bd
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: 1bd6e410a01ac1c7cc7db3f2669e4521e05176654c489756a1c015bcb9b560bd
+"
+`;
+
+exports[`git.pull.description given: [case15] the body comes from a file when: [t1] --from names a file that is absent then: it exits 2, names the path, and calls no gh 1`] = `
+"✋ ConstraintError: --from './absent.md' is not a file
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ name a body file that exists
+      └─ pipe the body in via --from @stdin
+"
+`;
+
+exports[`git.pull.description given: [case16] a closed pull, by number when: [t0] set --pr 8 applies to a closed pull then: the set works on any state, as github allows 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: closed
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ old
+   │  ├─ bytes: 16
+   │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: appended the seaturtle footer
+   │  ├─ bytes: 68
+   │  └─ sha256: 628be8ca7f7674ddfcb15d15955a367b4b648571980233da1557f5a39417b051
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: 628be8ca7f7674ddfcb15d15955a367b4b648571980233da1557f5a39417b051
+"
+`;
+
+exports[`git.pull.description given: [case17] a pull its credential did not open when: [t0] set runs on a pull another login opened then: each exits 2, names the author, and writes naught 1`] = `
+"✋ ConstraintError: ehmpathy/surf-demo#8 was opened by reef-ranger, not by ehm-seaturtle (as-ehmpath)
+   └─ a set writes only a pull its own credential opened
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ cat ./.temp/body.md | rhx git.pull.description.set --pr 8 --from @stdin --mode plan --auth as-human   # if reef-ranger is that login: plan, then add --mode apply; pipe the same body in again
+      └─ ask reef-ranger to set it; this credential may not
+"
+`;
+
+exports[`git.pull.description given: [case18] a body github holds with crlf line ends when: [t0] the same words are set back with lf line ends then: it reads as the same body: a no-op, no write 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ old
+   │  ├─ bytes: 81
+   │  └─ sha256: 418fab18eed44c294a6cb6ffaeffad0b7ed896b25400a0fce578cc77c4707ac8
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: already applied (the pull holds this body, repaired)
+   │  ├─ bytes: 81
+   │  └─ sha256: 418fab18eed44c294a6cb6ffaeffad0b7ed896b25400a0fce578cc77c4707ac8
+   └─ verdict: already there — no-op
+"
+`;
+
+exports[`git.pull.description given: [case19] a merged pull, by number when: [t0] set plans on a merged pull then: the plan names the state merged, not closed 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode plan
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: merged
+   │  └─ note: the squash commit is already written; this edits the pull record only
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ old
+   │  ├─ bytes: 16
+   │  ├─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   │  └─ text
+   │     wave report sync
+   │
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: appended the seaturtle footer
+   │  ├─ bytes: 79
+   │  ├─ sha256: a3cb596f6149a17fb9e59c264f8c80faf023f71d60483b10eac2e23a639e123c
+   │  └─ text
+   │     wave report sync, with the tide table
+   │
+   │     ---
+   │     🐢🌊 surfed in by seaturtle[bot]
+   │
+   └─ verdict: would set (plan)
+
+🥥 did you know?
+   └─ plan writes naught; to write it
+      └─ cat ./.temp/body.md | rhx git.pull.description.set --pr 8 --from @stdin --mode apply   # pipe the same body in again
+"
+`;
+
+exports[`git.pull.description given: [case19] a merged pull, by number when: [t1] set applies on a merged pull then: the write lands, as github allows, and the tree names merged 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.set --mode apply
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: merged
+   │  └─ note: the squash commit is already written; this edits the pull record only
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ old
+   │  ├─ bytes: 16
+   │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   ├─ new
+   │  ├─ from: @stdin
+   │  ├─ repair: appended the seaturtle footer
+   │  ├─ bytes: 79
+   │  └─ sha256: a3cb596f6149a17fb9e59c264f8c80faf023f71d60483b10eac2e23a639e123c
+   └─ verdict: set, read back, hash matches
+      └─ read-back sha256: a3cb596f6149a17fb9e59c264f8c80faf023f71d60483b10eac2e23a639e123c
+"
+`;
+
+exports[`git.pull.description given: [case20] a body that holds a secret-shaped value when: [t0] the body holds a private key header on line 3 then: each exits 2 before any gh call, names the shape and line, never the value 1`] = `
+"✋ ConstraintError: the body from '@stdin' holds a secret-shaped value; a pull shows its words to every reader
+   └─ shape: private key, line 3 (the value is not echoed)
+
+🥥 did you know?
+   └─ to fix it
+      └─ remove the value from the body, then rerun; a credential belongs in the keyrack, never in a pull
+"
+`;
+
+exports[`git.pull.description given: [case20] a body that holds a secret-shaped value when: [t1] the body holds a slack token on line 3 then: each exits 2 before any gh call, names the shape and line, never the value 1`] = `
+"✋ ConstraintError: the body from '@stdin' holds a secret-shaped value; a pull shows its words to every reader
+   └─ shape: slack token, line 3 (the value is not echoed)
+
+🥥 did you know?
+   └─ to fix it
+      └─ remove the value from the body, then rerun; a credential belongs in the keyrack, never in a pull
+"
+`;
+
+exports[`git.pull.description given: [case20] a body that holds a secret-shaped value when: [t2] the body holds a github fine-grained token on line 3 then: each exits 2 before any gh call, names the shape and line, never the value 1`] = `
+"✋ ConstraintError: the body from '@stdin' holds a secret-shaped value; a pull shows its words to every reader
+   └─ shape: github token, line 3 (the value is not echoed)
+
+🥥 did you know?
+   └─ to fix it
+      └─ remove the value from the body, then rerun; a credential belongs in the keyrack, never in a pull
+"
+`;
+
+exports[`git.pull.description given: [case21] the get hint keeps the target as the caller named it when: [t0] get --pr 8 --into a file then: the set step names --pr 8, as typed 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.get
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ into: ./.temp/body.md
+   ├─ bytes: 16
+   ├─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   └─ text
+      wave report sync
+
+🥥 did you know?
+   └─ to edit it
+      ├─ 1. edit ./.temp/body.md
+      └─ 2. rhx git.pull.description set --pr 8 --from ./.temp/body.md   # plan; add --mode apply to write
+"
+`;

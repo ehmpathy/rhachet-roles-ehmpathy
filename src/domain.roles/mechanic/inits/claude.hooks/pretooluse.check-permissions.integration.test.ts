@@ -2058,6 +2058,22 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         expect(empty).toEqual([]);
       });
 
+      then(
+        'a raw pull edit or comment is steered to the git.pull verbs',
+        () => {
+          const offerFor = (head: string): string[] =>
+            inventory.entries.find((entry) => entry.heads.includes(head))
+              ?.alternatives ?? [];
+          expect(offerFor('gh pr edit')).toEqual([
+            'rhx git.pull.title set --from ./.temp/title.md',
+            'rhx git.pull.description set --from ./.temp/body.md',
+          ]);
+          expect(offerFor('gh pr comment')).toEqual([
+            'rhx git.pull.comment set --key <name> --from <file>',
+          ]);
+        },
+      );
+
       then('a double slash inside a value survives the loader intact', () => {
         // clamp: the loader once stripped `//.*` from every line, so a value like a url
         //        was silently cut short. only whole-line comments are stripped now

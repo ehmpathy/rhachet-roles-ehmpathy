@@ -2291,14 +2291,14 @@ exit 2
           scene.run('del', ['--pr', '7', '--kind', 'body']),
         );
         then(
-          'it exits 2: github offers no delete; the fix names the github ui',
+          'it exits 2: github offers no delete; the fix names git.pull.description set',
           () => {
             expect(result.exitCode).toBe(2);
             expect(result.stdout).toContain(
               'github offers no delete for a pr description',
             );
             expect(result.stdout).toContain(
-              'edit the pr description in the github ui',
+              'rewrite the pr description via rhx git.pull.description set',
             );
             expect(result.stdout).toMatchSnapshot();
           },
@@ -2320,12 +2320,12 @@ exit 2
           return { ...run, writesNew: scene.getWrites().length - before };
         });
         then(
-          'it exits 2: comment set writes comments only; the fix names the github ui',
+          'it exits 2: comment set writes comments only; the fix names git.pull.description set',
           () => {
             expect(result.exitCode).toBe(2);
             expect(result.stdout).toContain('the pr description is no comment');
             expect(result.stdout).toContain(
-              'edit the pr description in the github ui',
+              'rhx git.pull.description set --from <path|@stdin>',
             );
             expect(result.writesNew).toBe(0);
             expect(result.stdout).toMatchSnapshot();
