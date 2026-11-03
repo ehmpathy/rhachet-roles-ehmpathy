@@ -647,30 +647,6 @@ run_gh() {
   GH_TOKEN="$GH_PR_TOKEN" gh "$@"
 }
 
-<<<<<<< HEAD
-=======
-# .what = strip Co-authored-by trailers and blank tail lines from a pr body
-# .why  = the commit message carries Co-authored-by: trailers (the human's git
-#         identity), but the pr BODY must not echo them — they leak the human's
-#         email onto the public pr, and github already renders co-authors from the
-#         commit itself. a named transformer keeps the orchestrator readable
-#         (rule.require.named-transformers): the call site reads intent, not a
-#         grep|sed pipeline to decode.
-# usage: clean=$(get_clean_pr_body body="$PR_BODY")
-get_clean_pr_body() {
-  local body="" arg
-  for arg in "$@"; do
-    case "$arg" in
-      body=*) body="${arg#body=}" ;;
-      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
-    esac
-  done
-  # grep -v drops the trailer lines (exit 1 when none match → || true); the sed
-  # collapses any blank lines the removal leaves at the tail
-  echo "$body" | { grep -v '^Co-authored-by:' || true; } | sed -e :a -e '/^\n*$/{$d;N;ba;}'
-}
-
->>>>>>> 7d03464 (cont(git.commit): the renderer picks every grant flag; every real refusal is tested under a director)
 # .what = guide the caller when the pr-open credential is unusable under both modes
 # .why  = the vision requires: when both the ehmpath keyrack token AND the human
 #         gh login are unavailable, fail loud with two named fixes (unlock keyrack,
@@ -735,17 +711,8 @@ fi
 # create: only when no pr was found (guarded on the negated condition — no else,
 # so the narrative stays linear per rule.forbid.else-branches)
 if [[ -z "$PR_FOUND" ]]; then
-<<<<<<< HEAD
   # strip foreign attribution, then sign once (git/git.attribution.operations.sh)
   PR_BODY_FULL=$(as_pr_body_attributed "$PR_BODY")
-=======
-  # strip Co-authored-by trailers from PR body (privacy: avoid email leak)
-  PR_BODY_CLEAN=$(get_clean_pr_body body="$PR_BODY")
-  PR_BODY_FULL="$PR_BODY_CLEAN
-
----
-🐢🌊 surfed in by seaturtle[bot]"
->>>>>>> 7d03464 (cont(git.commit): the renderer picks every grant flag; every real refusal is tested under a director)
   [[ "$DEBUG" == "true" ]] && echo "[debug] pr create as $AUTH (token len=${#GH_PR_TOKEN})" >&2
   PR_CREATE_OUTPUT=""
   PR_CREATE_EXIT=0
