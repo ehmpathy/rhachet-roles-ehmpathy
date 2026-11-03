@@ -25,6 +25,7 @@ COMMIT_SKILL_DIR="$(cd "$SKILL_DIR/../git.commit" && pwd)"
 
 # source shared utils
 source "$COMMIT_SKILL_DIR/output.sh"
+source "$COMMIT_SKILL_DIR/git.commit.director.operations.sh"
 source "$SKILL_DIR/git.branch.rebase.operations.sh"
 
 ######################################################################
@@ -73,9 +74,11 @@ if [[ ! -f "$STATE_FILE" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: no commit quota set"
-  echo ""
-  echo "ask your human to grant permission:"
-  echo "  $ rhx git.commit.uses set --quant N --push allow"
+  # rebase force-pushes its result, so the grant it needs carries push
+  print_quota_grant_fix repo_root="$REPO_ROOT" refusal=quota-absent \
+    meter_file="$STATE_FILE" wants_push=true \
+    human_lead="ask your human to grant permission:" \
+    human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
   exit 1
 fi
 
@@ -88,9 +91,10 @@ if [[ "$PUSH_ALLOWED" != "allow" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: rebase requires push permission"
-  echo ""
-  echo "ask your human to grant permission:"
-  echo "  $ rhx git.commit.uses set --quant N --push allow"
+  print_quota_grant_fix repo_root="$REPO_ROOT" refusal=push-blocked \
+    meter_file="$STATE_FILE" \
+    human_lead="ask your human to grant permission:" \
+    human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
   exit 1
 fi
 
@@ -99,9 +103,10 @@ if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" == "apply" ]]; then
   print_turtle_header "hold up dude..."
   print_tree_start "git.branch.rebase begin"
   echo "   └─ error: no commit uses left"
-  echo ""
-  echo "ask your human to grant more:"
-  echo "  $ rhx git.commit.uses set --quant N --push allow"
+  print_quota_grant_fix repo_root="$REPO_ROOT" refusal=uses-out \
+    meter_file="$STATE_FILE" wants_push=true \
+    human_lead="ask your human to grant more:" \
+    human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
   exit 1
 fi
 
@@ -164,7 +169,8 @@ git fetch origin "$DEFAULT_BRANCH" 2>/dev/null || {
 # get rebase info
 ######################################################################
 COMMITS_TO_REBASE=$(get_commits_to_rebase "origin/$DEFAULT_BRANCH")
-COMMIT_COUNT=$(echo "$COMMITS_TO_REBASE" | grep -c . || echo "0")
+# .note = grep -c prints its own 0 on no match (exit 1); `|| true` keeps that one 0
+COMMIT_COUNT=$(echo "$COMMITS_TO_REBASE" | grep -c . || true)
 BEHIND_COUNT=$(get_behind_count "origin/$DEFAULT_BRANCH")
 COMMITS_BEHIND=$(get_commits_behind "origin/$DEFAULT_BRANCH")
 
@@ -236,9 +242,10 @@ if [[ "$MODE" == "apply" ]]; then
   export GIT_COMMITTER_NAME="seaturtle[bot]"
   export GIT_COMMITTER_EMAIL="seaturtle@ehmpath.com"
 
-  # capture git output
-  GIT_OUTPUT=$(git pull origin "$DEFAULT_BRANCH" --rebase 2>&1) || true
-  GIT_EXIT_CODE=$?
+  # capture git output and the pull's own exit code (a bare `|| true` would
+  # leave `$?` at 0 and report a failed pull as a clean rebase)
+  GIT_EXIT_CODE=0
+  GIT_OUTPUT=$(git pull origin "$DEFAULT_BRANCH" --rebase 2>&1) || GIT_EXIT_CODE=$?
 
   # check if rebase succeeded
   if [[ $GIT_EXIT_CODE -eq 0 ]] && ! is_rebase_in_progress; then
