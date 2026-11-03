@@ -69,6 +69,20 @@ emit_watch_both() {
 # the caller's --output; a refusal speaks it too
 WATCH_OUTPUT="tree"
 
+# .what = set WATCH_OUTPUT to json if the args ask for it, before they are parsed
+# .why  = a refusal inside the parse loop (unknown arg, bare flag) must speak json
+#         to a composer that asked for it, wherever `--output json` sits in argv
+# usage: set_watch_output_from_args "$@"
+set_watch_output_from_args() {
+  local prior="" one
+  for one in "$@"; do
+    [[ "$one" == "--output=json" ]] && WATCH_OUTPUT="json"
+    [[ "$prior" == "--output" && "$one" == "json" ]] && WATCH_OUTPUT="json"
+    prior="$one"
+  done
+  return 0
+}
+
 # .what = in json mode, print one error object to stdout and the tree to stderr
 # .why  = a composer (git.commit.push) parses stdout; a human reads stderr
 emit_watch_refusal() {
@@ -90,8 +104,30 @@ emit_watch_refusal() {
 print_watch_coconut() {
   local label="$1"
   shift
-  local i=0 move
   [[ $# -gt 1 ]] && label="$label, pick one"
+  print_watch_coconut_block "$label" "$@"
+}
+
+# .what = print a coconut block whose moves are steps, each numbered in run order
+# .why  = a read, then a fix, is no choice: "pick one" would let a human skip the read,
+#         and a number on each step reads as order where a suffix on the label would not
+# usage: print_watch_coconut_steps <label> <step> [step...]
+print_watch_coconut_steps() {
+  local label="$1" step i=0 steps=()
+  shift
+  for step in "$@"; do
+    i=$((i + 1))
+    steps+=("$i. $step")
+  done
+  print_watch_coconut_block "$label" "${steps[@]}"
+}
+
+# .what = print the coconut block itself: the header, the label, each move as a branch
+# usage: print_watch_coconut_block <label> <move> [move...]
+print_watch_coconut_block() {
+  local label="$1"
+  shift
+  local i=0 move
   echo ""
   echo "🥥 did you know?"
   echo "   └─ $label"
@@ -101,6 +137,30 @@ print_watch_coconut() {
     [[ $i -eq $# ]] && echo "      └─ $move"
   done
   return 0
+}
+
+# .what = print the coconut that resumes a paused daemon, for its pause status
+# .why  = a pause reads naught until the token is back; `get` names the fix in place,
+#         as the paused alert does, so a human never hunts for the command
+# usage: print_watch_paused_coconut <absent|expired|locked|blocked>
+print_watch_paused_coconut() {
+  local status="$1"
+  local key="--owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+  echo ""
+  echo "🥥 did you know?"
+  if [[ "$status" == "absent" ]]; then
+    echo "   └─ a paused daemon reads naught; the github token is not filled"
+    echo "      ├─ 1. a human runs: rhx keyrack fill $key"
+    echo "      └─ 2. rhx keyrack unlock $key"
+    return 0
+  fi
+  if [[ "$status" == "expired" ]]; then
+    echo "   └─ a paused daemon reads naught; github refused the token"
+    echo "      └─ a human runs: rhx keyrack fill $key --refresh"
+    return 0
+  fi
+  echo "   └─ a paused daemon reads naught; the github token is $status"
+  echo "      └─ rhx keyrack unlock $key"
 }
 
 # .what = refuse with a ConstraintError tree, both streams, exit 2
@@ -973,14 +1033,23 @@ check_watch_enum_arg() {
   for one in "$@"; do
     [[ "$value" == "$one" ]] && return 0
   done
-  fail_watch_constraint "$skill" "$flag must be one of: $*; got '$value'" "rhx $skill --help"
+  local choices
+  choices="$(printf '%s | ' "$@")"
+  fail_watch_constraint "$skill" "$flag must be one of: ${choices% | }; got '$value'" "rhx $skill --help"
 }
 
-# .what = check --pr is a positive integer
+# .what = is the value a github <owner/name> slug?
+is_watch_repo_slug() {
+  [[ "$1" =~ ^[A-Za-z0-9-]+/[A-Za-z0-9_.-]+$ ]]
+}
+
+# .what = refuse a --pr that is absent or not a pr number
+# usage: check_watch_pr_arg <skill> <pr>
 check_watch_pr_arg() {
   local skill="$1" pr="$2"
   [[ "$pr" =~ ^[1-9][0-9]*$ ]] && return 0
-  fail_watch_constraint "$skill" "--pr <n> is required, a pr number; got '$pr'" "rhx $skill --pr 1220"
+  [[ -n "$pr" ]] || fail_watch_constraint "$skill" "--pr <n> is required" "rhx $skill --pr <n> --mode apply"
+  fail_watch_constraint "$skill" "--pr must be a pr number; got '$pr'" "rhx $skill --pr <n> --mode apply"
 }
 
 # .what = set the clone serial and the repo slug, or refuse with the fix
@@ -996,10 +1065,16 @@ set_watch_clone_and_repo() {
     "$serial_fix"
 
   # the repo: --in, else the origin of the cwd
+  # a bad --in names the value it got; an absent one names the absent origin
   WATCH_REPO="$repo_in"
-  [[ -n "$WATCH_REPO" ]] || WATCH_REPO="$(as_watch_repo_from_remote_url "$(git config --get remote.origin.url 2>/dev/null || echo "")")"
-  [[ "$WATCH_REPO" =~ ^[A-Za-z0-9-]+/[A-Za-z0-9_.-]+$ ]] || fail_watch_constraint "$skill" "no repo: --in <owner/name> absent, and the cwd has no github origin" \
-    "rhx $skill --pr $pr --in <owner/name>"
+  if [[ -n "$WATCH_REPO" ]]; then
+    is_watch_repo_slug "$WATCH_REPO" || fail_watch_constraint "$skill" "--in must be <owner/name>; got '$WATCH_REPO'" \
+      "rhx $skill --pr $pr --in <owner/name> --mode apply"
+    return 0
+  fi
+  WATCH_REPO="$(as_watch_repo_from_remote_url "$(git config --get remote.origin.url 2>/dev/null || echo "")")"
+  is_watch_repo_slug "$WATCH_REPO" || fail_watch_constraint "$skill" "no repo: --in <owner/name> absent, and the cwd has no github origin" \
+    "rhx $skill --pr $pr --in <owner/name> --mode apply"
   return 0
 }
 

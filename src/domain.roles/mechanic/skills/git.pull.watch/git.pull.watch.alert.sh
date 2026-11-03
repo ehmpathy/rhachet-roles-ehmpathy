@@ -27,7 +27,8 @@ as_watch_alert_phrase() {
   local pr="$1" events="$2" count kinds
   count="$(printf '%s' "$events" | jq 'length')"
   kinds="$(printf '%s' "$events" | jq -r '[.[].kind] | unique | join(",")')"
-  [[ "$kinds" == "ci.failed" ]] && { echo "ci failed on #$pr"; return 0; }
+  [[ "$kinds" == "ci.failed" && "$count" == "1" ]] && { echo "ci failed on #$pr"; return 0; }
+  [[ "$kinds" == "ci.failed" ]] && { echo "$count checks failed on #$pr"; return 0; }
   [[ "$kinds" == "review.approved" ]] && { echo "approved #$pr"; return 0; }
   [[ "$kinds" == "comment.new" && "$count" == "1" ]] && { echo "new comment on #$pr"; return 0; }
   [[ "$kinds" == "comment.new" ]] && { echo "$count new comments on #$pr"; return 0; }
@@ -101,27 +102,42 @@ print_watch_branches() {
 
 # .what = the text of one event alert (no closure)
 # .why  = all of one tick's events on one pr ride one alert (A9)
-# .note = one kind of event → its leaves sit flat under the pr; several kinds
-#         → one section per event, each with its own `next:`
+# .note = one event → its leaves sit flat under the pr; several events of one
+#         kind → one section per event, headed by its first leaf, then one
+#         `next:`; several kinds → one labeled section per event, each with its own `next:`
 as_watch_events_text() {
   local repo="$1" pr="$2" events="$3" kinds_count count
   count="$(printf '%s' "$events" | jq 'length')"
   kinds_count="$(printf '%s' "$events" | jq '[.[].kind] | unique | length')"
   echo "🐢 pr watch — $(as_watch_alert_phrase "$pr" "$events")"
 
-  # one kind: flat leaves, one next line
-  if [[ "$kinds_count" == "1" ]]; then
-    local lines=() event last=""
+  # one event: flat leaves, one next line
+  if [[ "$count" == "1" ]]; then
+    local lines=() event leaf
+    event="$(printf '%s' "$events" | jq -c '.[0]')"
     lines+=("pr: $repo#$pr")
-    while IFS= read -r event; do
-      local leaf
-      last="$event"
-      while IFS= read -r leaf; do
-        lines+=("$leaf")
-      done < <(as_watch_event_leaves "$event" "$repo" "$pr")
-    done < <(printf '%s' "$events" | jq -c '.[]')
-    lines+=("next: $(as_watch_event_next "$last" "$repo" "$pr")")
+    while IFS= read -r leaf; do
+      lines+=("$leaf")
+    done < <(as_watch_event_leaves "$event" "$repo" "$pr")
+    lines+=("next: $(as_watch_event_next "$event" "$repo" "$pr")")
     print_watch_branches "   " "${lines[@]}"
+    return 0
+  fi
+
+  # several events of one kind: a section per event, so each field sits under its own event
+  if [[ "$kinds_count" == "1" ]]; then
+    echo "   ├─ pr: $repo#$pr"
+    local event last="" leaves=() leaf
+    while IFS= read -r event; do
+      last="$event"
+      leaves=()
+      while IFS= read -r leaf; do
+        leaves+=("$leaf")
+      done < <(as_watch_event_leaves "$event" "$repo" "$pr")
+      echo "   ├─ ${leaves[0]}"
+      print_watch_branches "   │  " "${leaves[@]:1}"
+    done < <(printf '%s' "$events" | jq -c '.[]')
+    echo "   └─ next: $(as_watch_event_next "$last" "$repo" "$pr")"
     return 0
   fi
 

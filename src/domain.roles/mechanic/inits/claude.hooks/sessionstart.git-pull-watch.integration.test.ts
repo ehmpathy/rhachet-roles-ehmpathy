@@ -15,6 +15,15 @@ import { waitForWatch } from '../../skills/git.pull.watch/__test_utils__/waitFor
  * .why  = a reboot or a kill ends the daemon; the clone's next session must
  *         serve its watches again with no push to prompt it
  */
+/**
+ * .mock = github (`gh api`), the clone registry (`rhachet`), and the keyrack token
+ *         read answer from genWatchTestScene stub bins on PATH; the hook, the
+ *         skill, the daemon, and the filesystem run for real
+ * .why  = a stale pid, a boot death, and a lock timeout cannot be forced on the
+ *         real services on demand
+ * .real = skills/git.pull.watch/git.pull.watch.github.real.integration.test.ts
+ *         (TEST_LIVE=github) and git.pull.watch.rhachet.real.integration.test.ts
+ */
 jest.setTimeout(400_000);
 
 const SERIAL = 'a1a1a1a1-0000-4000-8000-00000000000a';
@@ -111,6 +120,64 @@ describe('sessionstart.git-pull-watch.sh', () => {
         expect(result.after).toEqual(result.before);
       });
     });
+
+    when('[t4] a watch record under the key will not parse', () => {
+      const result = useThen('the hook runs', async () => {
+        // a half-written record beside the clone's good one
+        const corrupt = path.join(
+          path.dirname(scene.getAllWatchRecords()[0]!.path),
+          'ehmpathy.surf-demo.pr=9.clone=c3.json',
+        );
+        fs.writeFileSync(corrupt, '{"repo": "ehmpathy/surf-de');
+        const hook = runHook(SERIAL);
+        fs.rmSync(corrupt, { force: true });
+        return { hook };
+      });
+      then(
+        'it exits 0, so the session lives, and names the unreadable record',
+        () => {
+          expect(result.hook.status).toEqual(0);
+          expect(result.hook.stdout).toContain(
+            '💥 MalfunctionError: 1 pr-watch record(s) of v',
+          );
+          expect(result.hook.stdout).toContain(
+            'a watch of this clone may be unserved',
+          );
+          expect(result.hook.stdout).toContain('rhx git.pull.watch get');
+          expect(result.hook.stderr).toContain('are unreadable');
+        },
+      );
+      then('the fault tree reads the same on each run', () => {
+        expect(scene.asMasked(result.hook.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t5] the clone holds a watch, and no daemon record stands', () => {
+      const result = useThen('the hook spawns one', async () => {
+        const keyDir = path.dirname(
+          path.dirname(scene.getAllWatchRecords()[0]!.path),
+        );
+        const [prior] = getAllWatchDaemonPids({ home: scene.home });
+        scene.stopAllDaemons();
+        await waitForWatch({
+          label: 'daemon stopped',
+          check: () => !isPidAlive(prior!),
+        });
+        fs.rmSync(path.join(keyDir, 'daemon.pid'), { force: true });
+        const hook = runHook(SERIAL);
+        return { hook, pids: getAllWatchDaemonPids({ home: scene.home }) };
+      });
+      then('it exits 0 and names the daemon it spawned', () => {
+        expect(result.hook.status).toEqual(0);
+        expect(result.hook.stdout).toContain(', spawned');
+        expect(result.hook.stdout).toContain('for 1 watch(es)');
+        expect(result.hook.stdout).not.toContain('replaced');
+        expect(scene.asMasked(result.hook.stdout)).toMatchSnapshot();
+      });
+      then('one daemon runs', () => {
+        expect(result.pids).toHaveLength(1);
+      });
+    });
   });
 
   given('[case2] a hook that cannot serve its watches', () => {
@@ -168,6 +235,18 @@ describe('sessionstart.git-pull-watch.sh', () => {
       then('it names the load fault itself as the cause', () => {
         expect(result.stdout).toContain('├─ cause: ');
         expect(result.stdout).toContain('No such file or directory');
+      });
+      then('the fault tree reads the same on each run', () => {
+        // the header and the cause name a temp path that differs per run; the tree does not
+        expect(
+          scene
+            .asMasked(result.stdout)
+            .replace(
+              /could not load \S+?\/dist\//,
+              'could not load <bare>/dist/',
+            )
+            .replace(/cause: .*/, 'cause: <the load error, at its temp path>'),
+        ).toMatchSnapshot();
       });
     });
 

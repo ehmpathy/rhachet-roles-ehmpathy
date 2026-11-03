@@ -287,6 +287,8 @@ exports[`git.commit.push.sh given: [case18b] an enrolled clone whose pr watch re
 "
 `;
 
+exports[`git.commit.push.sh given: [case18b] an enrolled clone whose pr watch refuses when: [t0] push and pr creation succeed; the clone is not in this repo registry then: the push still succeeds, and the watch line names the refusal 2`] = `"watch: ✋ ConstraintError: no repo: --in <owner/name> absent, and the cwd has no github origin; rerun: rhx git.pull.watch.set --pr 42 --mode apply"`;
+
 exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch replies when: [t0] the watch is set then: the tree relays the watch line 1`] = `
 "🐢 cowabunga!
 
@@ -303,6 +305,8 @@ exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch re
 "
 `;
 
+exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch replies when: [t1] the watch crashes before it can reply then: the failed watch line rides stderr too 1`] = `"watch: ✋ ConstraintError: the watch said naught (exit 2); stderr: git.pull.watch.set.sh: line 9: syntax error near unexpected token; rerun: rhx git.pull.watch.set --pr 42 --mode apply"`;
+
 exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch replies when: [t1] the watch crashes before it can reply then: the push succeeds and names the cause from stderr, with its class 1`] = `
 "🐢 cowabunga!
 
@@ -318,6 +322,8 @@ exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch re
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
+
+exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch replies when: [t2] the watch reports a malfunction then: the failed watch line rides stderr too 1`] = `"watch: 💥 MalfunctionError: the clone registry is unreadable; no watch was set; rerun: rhx git.pull.watch.set --pr 42 --mode apply"`;
 
 exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch replies when: [t2] the watch reports a malfunction then: the line carries the class from the reply 1`] = `
 "🐢 cowabunga!
@@ -362,6 +368,8 @@ exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch re
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
+
+exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch replies when: [t4] the watch crashes, under --output json then: the push succeeds; the json and stderr each name the failed watch 1`] = `"watch: ✋ ConstraintError: the watch said naught (exit 2); stderr: git.pull.watch.set.sh: line 9: syntax error near unexpected token; rerun: rhx git.pull.watch.set --pr 42 --mode apply"`;
 
 exports[`git.commit.push.sh given: [case19] local main behind origin/main (PR #269 regression) when: [t1] also verify PR body excludes origin/main commits then: pr body only has feature branch commit body 1`] = `
 "🐢 heres the wave...

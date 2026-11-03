@@ -17,6 +17,15 @@ import { waitForWatch } from './__test_utils__/waitForWatch';
  *         stale or wedged, gone at zero watches, never tied to its spawner
  * .why  = vision demo cases 4, 5, 6, 9, 10, 12, 14 and invariants F1, F3, F4, F9, F10, F11
  */
+/**
+ * .mock = github (`gh api`), the clone registry and `clone say` (`rhachet`), and
+ *         the keyrack token read answer from genWatchTestScene stub bins on PATH;
+ *         the skill, the daemon, and the filesystem run for real
+ * .why  = a ci red, an outage, a rate limit, a token that expires, and a clone
+ *         mid-turn cannot be forced on the real services on demand, nor billed per run
+ * .real = git.pull.watch.github.real.integration.test.ts (TEST_LIVE=github) and
+ *         git.pull.watch.rhachet.real.integration.test.ts
+ */
 jest.setTimeout(400_000);
 
 const SERIAL_A = 'a1a1a1a1-0000-4000-8000-00000000000a';
@@ -43,6 +52,7 @@ const setPrOpen = (input: { scene: WatchScene; pr: string }): void =>
 const asSetJson = (
   stdout: string,
 ): {
+  mode: 'plan' | 'apply';
   watch: { verdict: string; from: string | null };
   daemon: {
     key: string;
@@ -72,6 +82,13 @@ describe('git.pull.watch lifecycle', () => {
 
     when('[t0] clone A watches #1220, then clone B watches #1221', () => {
       const result = useThen('both succeed', async () => {
+        // a plan first: it writes naught, so the apply below still spawns
+        const plan = scene.runSkill({
+          verb: 'set',
+          args: ['--pr', '1220', '--output', 'json'],
+          root: scene.roots['surf-demo']!,
+          serial: SERIAL_A,
+        });
         const first = scene.runSkill({
           verb: 'set',
           args: ['--pr', '1220', '--mode', 'apply', '--output', 'json'],
@@ -97,7 +114,14 @@ describe('git.pull.watch lifecycle', () => {
           root: scene.roots['surf-demo']!,
           serial: null,
         });
-        return { first, second, listed, listedJson };
+        return { plan, first, second, listed, listedJson };
+      });
+      then('the plan in json names what would happen, with no pid', () => {
+        const json = asSetJson(result.plan.stdout);
+        expect(json.mode).toEqual('plan');
+        expect(json.watch.verdict).toEqual('set');
+        expect(json.daemon.pid).toEqual(null);
+        expect(scene.asMasked(result.plan.stdout)).toMatchSnapshot();
       });
       then('set and get in json each speak their contract shape', () => {
         // the pid and the tick age vary per run; all else is the contract
@@ -117,6 +141,7 @@ describe('git.pull.watch lifecycle', () => {
           'spawned',
         );
         expect(asSetJson(result.second.stdout).daemon.verdict).toEqual('found');
+        expect(scene.asMasked(result.second.stdout)).toMatchSnapshot();
       });
       then('both name the same daemon pid, and one daemon runs', () => {
         expect(asSetJson(result.second.stdout).daemon.pid).toEqual(
@@ -704,11 +729,16 @@ describe('git.pull.watch lifecycle', () => {
         expect(result.tree.status).toEqual(0);
         expect(result.tree.stdout).toContain(' · absent · ');
         expect(result.tree.stdout).toContain(
-          'findsert a fresh one: rhx git.pull.watch set --pr <n> --mode apply',
+          'start a fresh one: rhx git.pull.watch set --pr <n> --mode apply',
         );
         expect(result.tree.stdout).toMatch(
           /read why it stopped: cat .*daemon\.log/,
         );
+        // the read comes first: the cure is a list of numbered steps, not a choice
+        expect(result.tree.stdout).toContain(
+          'serves no watch\n      ├─ 1. read why it stopped',
+        );
+        expect(result.tree.stdout).toContain('└─ 2. start a fresh one: ');
         expect(scene.asMasked(result.tree.stdout)).toMatchSnapshot();
       });
       then('the json names the state', () => {
@@ -736,7 +766,7 @@ describe('git.pull.watch lifecycle', () => {
       then('the tree names the state and the cure', () => {
         expect(result.tree.status).toEqual(0);
         expect(result.tree.stdout).toContain(' · stale · ');
-        expect(result.tree.stdout).toContain('findsert a fresh one');
+        expect(result.tree.stdout).toContain('start a fresh one');
         expect(scene.asMasked(result.tree.stdout)).toMatchSnapshot();
       });
       then('the json names the state', () => {
@@ -774,7 +804,7 @@ describe('git.pull.watch lifecycle', () => {
         then('the tree names the state and the cure', () => {
           expect(result.tree.status).toEqual(0);
           expect(result.tree.stdout).toContain(' · wedged · ');
-          expect(result.tree.stdout).toContain('findsert a fresh one');
+          expect(result.tree.stdout).toContain('start a fresh one');
           expect(scene.asMasked(result.tree.stdout)).toMatchSnapshot();
         });
         then('the json names the state', () => {
@@ -854,6 +884,7 @@ describe('git.pull.watch lifecycle', () => {
               '🐢 pr watch — #1220 merged; watch ended',
               '🐢 pr watch — #1222 closed without merge; watch ended\n   └─ by: @surfer-mano',
             ]);
+            texts.forEach((text) => expect(text).toMatchSnapshot());
           },
         );
         then('both watches are deleted; #1221 stands', () => {
@@ -897,6 +928,97 @@ describe('git.pull.watch lifecycle', () => {
           },
         );
       });
+    },
+  );
+
+  given(
+    '[case10d] an approval and a merge land in one tick; a close has no known closer',
+    () => {
+      const scene = genWatchTestScene({
+        slug: 'watch-case10d',
+        repos: ['surf-demo'],
+        store: {},
+      });
+      scene.setStore((store) => {
+        store.clones[scene.roots['surf-demo']!] = [
+          { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+        ];
+      });
+      ['1230', '1231'].forEach((pr) => setPrOpen({ scene, pr }));
+      afterAll(() => scene.stopAllDaemons());
+
+      when(
+        '[t0] the clone watches both; then #1230 is approved and merged, #1231 closed by an unknown hand',
+        () => {
+          const result = useThen('two alerts arrive', async () => {
+            ['1230', '1231'].forEach((pr) =>
+              scene.runSkill({
+                verb: 'set',
+                args: ['--pr', pr, '--mode', 'apply'],
+                root: scene.roots['surf-demo']!,
+                serial: SERIAL_A,
+              }),
+            );
+            await scene.waitForPrimed();
+            // one store write: the next tick reads the approval and the merge together
+            scene.setStore((store) => {
+              store.github.reviews[`${REPO}#1230`] = [
+                {
+                  id: 7301,
+                  body: 'shaka, ship it',
+                  user: { login: 'surfer-kai', type: 'User' },
+                  html_url: `https://github.com/${REPO}/pull/1230#pullrequestreview-7301`,
+                  state: 'APPROVED',
+                  submitted_at: new Date().toISOString(),
+                },
+              ];
+              store.github.prs[`${REPO}#1230`]!.state = 'closed';
+              store.github.prs[`${REPO}#1230`]!.merged = true;
+              store.github.prs[`${REPO}#1231`]!.state = 'closed';
+              store.github.prs[`${REPO}#1231`]!.closedBy = null;
+            });
+            const says = await waitForWatch({
+              label: 'approval + closure alerts',
+              check: () =>
+                scene.getSays().length >= 2 ? scene.getSays() : null,
+              scene,
+            });
+            await scene.waitForDaemonTicks({ ticks: 1 });
+            return { says, records: scene.getAllWatchRecords() };
+          });
+          then(
+            'the merged pr gets one alert: the approval, a blank line, then the merge note',
+            () => {
+              const merged = result.says.filter((say) =>
+                say.text.includes('#1230'),
+              );
+              expect(merged).toHaveLength(1);
+              expect(merged[0]!.text).toContain('surfer-kai');
+              expect(merged[0]!.text).toContain(
+                '\n\n🐢 pr watch — #1230 merged; watch ended',
+              );
+              expect(
+                merged[0]!.text.indexOf('surfer-kai') <
+                  merged[0]!.text.indexOf('merged; watch ended'),
+              ).toBe(true);
+              expect(scene.asMasked(merged[0]!.text)).toMatchSnapshot();
+            },
+          );
+          then('a close with no known closer names no one', () => {
+            const closed = result.says.filter((say) =>
+              say.text.includes('#1231'),
+            );
+            expect(closed).toHaveLength(1);
+            expect(closed[0]!.text).toEqual(
+              '🐢 pr watch — #1231 closed without merge; watch ended',
+            );
+            expect(closed[0]!.text).toMatchSnapshot();
+          });
+          then('both watches are deleted', () => {
+            expect(result.records).toHaveLength(0);
+          });
+        },
+      );
     },
   );
 
@@ -1405,9 +1527,16 @@ describe('git.pull.watch lifecycle', () => {
           root: scene.roots['surf-demo']!,
           serial: null,
         });
+        const listedJson = scene.runSkill({
+          verb: 'get',
+          args: ['--output', 'json'],
+          root: scene.roots['surf-demo']!,
+          serial: null,
+        });
         return {
           plan,
           planJson,
+          listedJson,
           noPr,
           badMode,
           applied,
@@ -1443,8 +1572,10 @@ describe('git.pull.watch lifecycle', () => {
           expect(result.noPr.stdout).toContain('--pr <n> is required');
           expect(result.badMode.status).toEqual(2);
           expect(result.badMode.stdout).toContain(
-            '--mode must be one of: plan apply',
+            '--mode must be one of: plan | apply',
           );
+          expect(scene.asMasked(result.noPr.stdout)).toMatchSnapshot();
+          expect(scene.asMasked(result.badMode.stdout)).toMatchSnapshot();
         },
       );
       then(
@@ -1470,6 +1601,10 @@ describe('git.pull.watch lifecycle', () => {
       then('get then shows no daemons and no watches, with the hint', () => {
         expect(result.listed.stdout).toContain('no daemons, no watches');
         expect(scene.asMasked(result.listed.stdout)).toMatchSnapshot();
+      });
+      then('get in json then holds an empty daemons list', () => {
+        expect(JSON.parse(result.listedJson.stdout)).toEqual({ daemons: [] });
+        expect(scene.asMasked(result.listedJson.stdout)).toMatchSnapshot();
       });
     });
 

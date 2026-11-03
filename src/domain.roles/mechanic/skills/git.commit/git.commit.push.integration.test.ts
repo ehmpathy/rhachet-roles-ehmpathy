@@ -1447,6 +1447,18 @@ exec /usr/bin/git "$@"
             expect(
               result.stdout.split(fs.realpathSync(tempDir)).join('$REPO'),
             ).toMatchSnapshot();
+            // the watch fault also lands on stderr, its failure channel
+            expect(result.stderr).toMatch(
+              /watch: ✋ ConstraintError: .+; rerun: rhx git\.pull\.watch\.set --pr 42 --mode apply/,
+            );
+            expect(
+              result.stderr
+                .split('\n')
+                .filter((line) => line.startsWith('watch: '))
+                .join('\n')
+                .split(fs.realpathSync(tempDir))
+                .join('$REPO'),
+            ).toMatchSnapshot();
           },
         );
       },
@@ -1454,6 +1466,13 @@ exec /usr/bin/git "$@"
   });
 
   given('[case18c] an enrolled clone whose pr watch replies', () => {
+    // the push's own `watch:` line on stderr, apart from git and gh noise
+    const asPushWatchStderrLine = (input: { stderr: string }): string =>
+      input.stderr
+        .split('\n')
+        .filter((line) => line.startsWith('watch: '))
+        .join('\n');
+
     /**
      * .what = a push from a copy of this skill, beside a stub git.pull.watch.set
      * .why  = the real set spawns a live daemon; the stub speaks set's json
@@ -1568,6 +1587,10 @@ echo '{"line":"set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)"}'
         );
         expect(result.tree.stdout).toMatchSnapshot();
       });
+      then('a watch that sets stays off stderr', () => {
+        expect(result.tree.stderr).not.toContain('watch:');
+        expect(result.json.stderr).not.toContain('watch:');
+      });
       then('the json carries the watch line', () => {
         expect(result.json.exitCode).toBe(0);
         expect(JSON.parse(result.json.stdout).watch).toEqual(
@@ -1634,6 +1657,14 @@ exit 2
           expect(result.stdout).toMatchSnapshot();
         },
       );
+      then('the failed watch line rides stderr too', () => {
+        expect(result.stderr).toContain(
+          'watch: ✋ ConstraintError: the watch said naught (exit 2)',
+        );
+        expect(
+          asPushWatchStderrLine({ stderr: result.stderr }),
+        ).toMatchSnapshot();
+      });
     });
 
     when('[t2] the watch reports a malfunction', () => {
@@ -1653,6 +1684,41 @@ exit 1
         );
         expect(result.stdout).toMatchSnapshot();
       });
+      then('the failed watch line rides stderr too', () => {
+        expect(result.stderr).toContain(
+          'watch: 💥 MalfunctionError: the clone registry is unreadable',
+        );
+        expect(
+          asPushWatchStderrLine({ stderr: result.stderr }),
+        ).toMatchSnapshot();
+      });
+    });
+
+    when('[t4] the watch crashes, under --output json', () => {
+      const result = useThen('the push runs', async () =>
+        runPushBesideWatch({
+          watchBody: `#!/bin/bash
+echo "git.pull.watch.set.sh: line 9: syntax error near unexpected token" >&2
+exit 2
+`,
+          pushArgs: ['--mode', 'apply', '--output', 'json'],
+        }),
+      );
+      then(
+        'the push succeeds; the json and stderr each name the failed watch',
+        () => {
+          expect(result.exitCode).toBe(0);
+          expect(JSON.parse(result.stdout).watch).toContain(
+            '✋ ConstraintError: the watch said naught (exit 2)',
+          );
+          expect(result.stderr).toContain(
+            'watch: ✋ ConstraintError: the watch said naught (exit 2)',
+          );
+          expect(
+            asPushWatchStderrLine({ stderr: result.stderr }),
+          ).toMatchSnapshot();
+        },
+      );
     });
   });
 

@@ -1,5 +1,38 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`git.pull.watch faults given: [case4] a watch record that will not parse when: [t0] a human reads the watches with get then: the good watch still shows 1`] = `
+"{
+  "daemons": [
+    {
+      "key": "<key>",
+      "state": "live",
+      "pid": "<pid>",
+      "lastTickSecondsAgo": "<n>",
+      "paused": null,
+      "marks": [],
+      "home": "<home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin",
+      "watches": [
+        {
+          "repo": "ehmpathy/surf-demo",
+          "pr": 1220,
+          "cloneSerial": "a1a1a1a1-0000-4000-8000-00000000000a",
+          "cloneSlug": "mechanic",
+          "repoRoot": "<root:surf-demo>",
+          "primed": true,
+          "held": 0,
+          "ended": null
+        },
+        {
+          "unreadable": true,
+          "record": "<home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=9.clone=c3.json"
+        }
+      ]
+    }
+  ]
+}
+"
+`;
+
 exports[`git.pull.watch faults given: [case4] a watch record that will not parse when: [t0] a human reads the watches with get then: the unreadable record is a row of its own, named by path 1`] = `
 "🐢 heres the wave...
 
@@ -11,9 +44,9 @@ exports[`git.pull.watch faults given: [case4] a watch record that will not parse
          └─ unreadable record: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=9.clone=c3.json
 
 🥥 did you know?
-   └─ a watch record that does not parse is held, never served, pick one
-      ├─ read it: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=9.clone=c3.json
-      └─ rewrite it from its clone: rhx git.pull.watch set --pr <n> --mode apply
+   └─ a watch record that does not parse is held, never served
+      ├─ 1. read it: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=9.clone=c3.json
+      └─ 2. rewrite it from its clone: rhx git.pull.watch set --pr <n> --mode apply
 "
 `;
 
@@ -24,5 +57,9 @@ exports[`git.pull.watch faults given: [case5] a set while the daemon is paused w
    ├─ pr: ehmpathy/surf-demo#1221
    ├─ clone: @:mechanic
    └─ watch: set → @:mechanic (daemon v<key> pid <pid>, found) · paused: token locked
+
+🥥 did you know?
+   └─ a paused daemon reads naught; the github token is locked
+      └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
 "
 `;

@@ -32,9 +32,10 @@ OUTPUT="tree"
 help() {
   cat <<'EOF'
 usage: git.pull.watch.del --pr <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
+needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
 options:
-  --pr <n>            the pull request to stop the watch of (required)
+  --pr <n>            the pull request whose watch to stop (required)
   --in <owner/name>   the repo (default: the cwd's github origin)
   --mode plan|apply   plan shows what would happen; apply deletes (default: plan)
   --output tree|json  the output shape (default: tree)
@@ -45,7 +46,8 @@ example:
 EOF
 }
 
-# parse args
+# parse args; a refusal in the loop speaks json if asked
+set_watch_output_from_args "$@"
 while [[ $# -gt 0 ]]; do
   [[ "$1" == --*=* ]] && set -- "${1%%=*}" "${1#*=}" "${@:2}"
   case "$1" in
@@ -116,13 +118,10 @@ HEADER="righteous, watch stopped"
 [[ "$MODE" == "plan" || ${#RECORDS[@]} -eq 0 ]] && HEADER="heres the wave..."
 print_watch_header "$HEADER" "$SKILL --mode $MODE"
 echo "   ├─ pr: $WATCH_REPO#$PR"
-if [[ ${#KEYS[@]} -gt 0 ]]; then
-  echo "   ├─ keys: $(as_watch_keys_label "${KEYS[@]}")"
-fi
+[[ ${#KEYS[@]} -eq 1 ]] && echo "   ├─ daemon: $(as_watch_keys_label "${KEYS[@]}")"
+[[ ${#KEYS[@]} -gt 1 ]] && echo "   ├─ daemons: $(as_watch_keys_label "${KEYS[@]}")"
 echo "   └─ verdict: $VERDICT"
 if [[ "$MODE" == "plan" && ${#RECORDS[@]} -gt 0 ]]; then
-  echo ""
-  echo "🥥 did you know?"
-  echo "   ├─ plan writes naught; to stop the watch"
-  echo "   └─ rhx $SKILL --pr $PR --in $WATCH_REPO --mode apply"
+  print_watch_coconut "plan writes naught; to stop the watch" \
+    "rhx $SKILL --pr $PR --in $WATCH_REPO --mode apply"
 fi

@@ -18,6 +18,15 @@ import { waitForWatch } from './__test_utils__/waitForWatch';
  * .why  = each fault once blinded a watch in silence, or dropped an alert; each
  *         clamp here fails with its fix reverted
  */
+/**
+ * .mock = github (`gh api`), the clone registry and `clone say` (`rhachet`), and
+ *         the keyrack token read answer from genWatchTestScene stub bins on PATH;
+ *         the skill, the daemon, and the filesystem run for real
+ * .why  = a ci red, an outage, a rate limit, a token that expires, and a clone
+ *         mid-turn cannot be forced on the real services on demand, nor billed per run
+ * .real = git.pull.watch.github.real.integration.test.ts (TEST_LIVE=github) and
+ *         git.pull.watch.rhachet.real.integration.test.ts
+ */
 jest.setTimeout(400_000);
 
 const SERIAL_A = 'a1a1a1a1-0000-4000-8000-00000000000a';
@@ -303,6 +312,7 @@ describe('git.pull.watch faults', () => {
         expect(
           watches.filter((w: { unreadable?: boolean }) => w.unreadable),
         ).toHaveLength(1);
+        expect(scene.asMasked(result.json.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -347,6 +357,14 @@ describe('git.pull.watch faults', () => {
         expect(result.status).toEqual(0);
         expect(result.stdout).toContain('· paused: token locked');
         expect(scene.asMasked(result.stdout)).toMatchSnapshot();
+      });
+      then('set names the fix for the pause in place', () => {
+        expect(result.stdout).toContain(
+          'a paused daemon reads naught; the github token is locked',
+        );
+        expect(result.stdout).toContain(
+          'rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN',
+        );
       });
     });
   });

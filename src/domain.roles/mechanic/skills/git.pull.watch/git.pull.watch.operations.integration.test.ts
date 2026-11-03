@@ -8,6 +8,12 @@ import { genTempDir, given, then, useThen, when } from 'test-fns';
  *         flight, bound a slow read, and note a clone's own comment ids
  * .why  = each guards a race or a platform gap no daemon run can force on
  *         demand, so each is driven here directly, on a real filesystem
+ * .mock = a hung `gh` / `rhachet` (genHungBin), a `ps` that fails, and a `stat`
+ *         that prints `?` stand in for real tools on PATH, each at its own case
+ * .why  = a tool that hangs, or a platform whose ps/stat cannot answer, cannot be
+ *         forced on demand; the bound and the fallback are what each clamp proves
+ * .real = the real gh and rhachet calls: git.pull.watch.github.real and
+ *         git.pull.watch.rhachet.real integration suites
  */
 const OPS = path.join(__dirname, 'git.pull.watch.operations.sh');
 

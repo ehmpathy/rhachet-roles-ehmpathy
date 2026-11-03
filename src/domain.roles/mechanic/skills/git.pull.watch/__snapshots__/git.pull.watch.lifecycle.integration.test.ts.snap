@@ -75,6 +75,54 @@ exports[`git.pull.watch lifecycle given: [case4] two clones on one version share
 "
 `;
 
+exports[`git.pull.watch lifecycle given: [case4] two clones on one version share one daemon when: [t0] clone A watches #1220, then clone B watches #1221 then: the first spawns the daemon; the second finds it 1`] = `
+"{
+  "mode": "apply",
+  "repo": "ehmpathy/surf-demo",
+  "pr": 1221,
+  "clone": {
+    "serial": "b2b2b2b2-0000-4000-8000-00000000000b",
+    "slug": "reviewer"
+  },
+  "watch": {
+    "verdict": "set",
+    "from": null
+  },
+  "daemon": {
+    "key": "<key>",
+    "pid": "<pid>",
+    "verdict": "found",
+    "prior": null
+  },
+  "line": "set → @:reviewer (daemon v<key> pid <pid>, found)"
+}
+"
+`;
+
+exports[`git.pull.watch lifecycle given: [case4] two clones on one version share one daemon when: [t0] clone A watches #1220, then clone B watches #1221 then: the plan in json names what would happen, with no pid 1`] = `
+"{
+  "mode": "plan",
+  "repo": "ehmpathy/surf-demo",
+  "pr": 1220,
+  "clone": {
+    "serial": "a1a1a1a1-0000-4000-8000-00000000000a",
+    "slug": "mechanic"
+  },
+  "watch": {
+    "verdict": "set",
+    "from": null
+  },
+  "daemon": {
+    "key": "<key>",
+    "pid": null,
+    "verdict": null,
+    "prior": null
+  },
+  "line": "would set → @:mechanic (daemon v<key>)"
+}
+"
+`;
+
 exports[`git.pull.watch lifecycle given: [case4] two clones on one version share one daemon when: [t1] clone A watches #1220 again then: the watch reads found; no twin record is written 1`] = `
 "🐢 shell yeah, watched
 
@@ -134,9 +182,9 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
          └─ ehmpathy/surf-demo#1220 → @:mechanic (<root:surf-demo>)
 
 🥥 did you know?
-   └─ a stale, wedged, or absent daemon serves no watch, pick one
-      ├─ findsert a fresh one: rhx git.pull.watch set --pr <n> --mode apply
-      └─ read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
+   └─ a stale, wedged, or absent daemon serves no watch
+      ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
+      └─ 2. start a fresh one: rhx git.pull.watch set --pr <n> --mode apply
 "
 `;
 
@@ -179,9 +227,9 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
          └─ ehmpathy/surf-demo#1220 → @:mechanic (<root:surf-demo>)
 
 🥥 did you know?
-   └─ a stale, wedged, or absent daemon serves no watch, pick one
-      ├─ findsert a fresh one: rhx git.pull.watch set --pr <n> --mode apply
-      └─ read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
+   └─ a stale, wedged, or absent daemon serves no watch
+      ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
+      └─ 2. start a fresh one: rhx git.pull.watch set --pr <n> --mode apply
 "
 `;
 
@@ -224,10 +272,30 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
          └─ ehmpathy/surf-demo#1220 → @:mechanic (<root:surf-demo>)
 
 🥥 did you know?
-   └─ a stale, wedged, or absent daemon serves no watch, pick one
-      ├─ findsert a fresh one: rhx git.pull.watch set --pr <n> --mode apply
-      └─ read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
+   └─ a stale, wedged, or absent daemon serves no watch
+      ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
+      └─ 2. start a fresh one: rhx git.pull.watch set --pr <n> --mode apply
 "
+`;
+
+exports[`git.pull.watch lifecycle given: [case10] watches end on merge, on close, and on a dead clone; then the daemon exits when: [t1] #1220 merges and #1222 is closed without merge then: the merge note says merged; the close note says who closed it 1`] = `"🐢 pr watch — #1220 merged; watch ended"`;
+
+exports[`git.pull.watch lifecycle given: [case10] watches end on merge, on close, and on a dead clone; then the daemon exits when: [t1] #1220 merges and #1222 is closed without merge then: the merge note says merged; the close note says who closed it 2`] = `
+"🐢 pr watch — #1222 closed without merge; watch ended
+   └─ by: @surfer-mano"
+`;
+
+exports[`git.pull.watch lifecycle given: [case10d] an approval and a merge land in one tick; a close has no known closer when: [t0] the clone watches both; then #1230 is approved and merged, #1231 closed by an unknown hand then: a close with no known closer names no one 1`] = `"🐢 pr watch — #1231 closed without merge; watch ended"`;
+
+exports[`git.pull.watch lifecycle given: [case10d] an approval and a merge land in one tick; a close has no known closer when: [t0] the clone watches both; then #1230 is approved and merged, #1231 closed by an unknown hand then: the merged pr gets one alert: the approval, a blank line, then the merge note 1`] = `
+"🐢 pr watch — approved #1230
+   ├─ pr: ehmpathy/surf-demo#1230
+   ├─ by: @surfer-kai
+   ├─ ci: no checks
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/1230#pullrequestreview-7301
+   └─ next: rhx git.release --watch
+
+🐢 pr watch — #1230 merged; watch ended"
 `;
 
 exports[`git.pull.watch lifecycle given: [case12b] a daemon copy that cannot boot when: [t0] a set findserts the daemon then: it names the boot failure and the log path, on both streams 1`] = `
@@ -251,6 +319,30 @@ exports[`git.pull.watch lifecycle given: [case14] an upgrade moves the watch whe
    ├─ pr: ehmpathy/surf-demo#1221
    ├─ clone: @:mechanic
    └─ watch: moved v<key> → v<key> (daemon pid <pid>, spawned)
+"
+`;
+
+exports[`git.pull.watch lifecycle given: [case15] a clone stops its watch (entry E5) when: [t0] the clone watches #1220, then deletes the watch then: a call with no --pr or a bad --mode is refused with its fix 1`] = `
+"🐢 bummer dude...
+
+🐚 git.pull.watch.del
+   └─ ✋ ConstraintError: --pr <n> is required
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.watch.del --pr <n> --mode apply
+"
+`;
+
+exports[`git.pull.watch lifecycle given: [case15] a clone stops its watch (entry E5) when: [t0] the clone watches #1220, then deletes the watch then: a call with no --pr or a bad --mode is refused with its fix 2`] = `
+"🐢 bummer dude...
+
+🐚 git.pull.watch.del
+   └─ ✋ ConstraintError: --mode must be one of: plan | apply; got 'yolo'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx git.pull.watch.del --help
 "
 `;
 
@@ -282,8 +374,15 @@ exports[`git.pull.watch lifecycle given: [case15] a clone stops its watch (entry
 
 🐚 git.pull.watch.del --mode apply
    ├─ pr: ehmpathy/surf-demo#1220
-   ├─ keys: v<key> v<key>
+   ├─ daemons: v<key> v<key>
    └─ verdict: deleted
+"
+`;
+
+exports[`git.pull.watch lifecycle given: [case15] a clone stops its watch (entry E5) when: [t0] the clone watches #1220, then deletes the watch then: get in json then holds an empty daemons list 1`] = `
+"{
+  "daemons": []
+}
 "
 `;
 
@@ -304,12 +403,12 @@ exports[`git.pull.watch lifecycle given: [case15] a clone stops its watch (entry
 
 🐚 git.pull.watch.del --mode plan
    ├─ pr: ehmpathy/surf-demo#1220
-   ├─ keys: v<key> v<key>
+   ├─ daemons: v<key> v<key>
    └─ verdict: would delete
 
 🥥 did you know?
-   ├─ plan writes naught; to stop the watch
-   └─ rhx git.pull.watch.del --pr 1220 --in ehmpathy/surf-demo --mode apply
+   └─ plan writes naught; to stop the watch
+      └─ rhx git.pull.watch.del --pr 1220 --in ehmpathy/surf-demo --mode apply
 "
 `;
 
