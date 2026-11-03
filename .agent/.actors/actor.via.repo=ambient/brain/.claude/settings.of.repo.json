@@ -535,8 +535,7 @@
           {
             "type": "command",
             "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/permissionrequest.decide-permissions.sh",
-            "timeout": 5,
-            "author": "repo=ehmpathy/role=mechanic"
+            "timeout": 5
           }
         ]
       }

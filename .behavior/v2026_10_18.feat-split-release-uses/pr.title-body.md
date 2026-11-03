@@ -1,16 +1,14 @@
 # pr #1021: title + body
 
-held here until a `git.pull.title` verb ships; no human sets it. set the title from the `## title` line and the body from all below `## body`.
+set the title from the `## title` line via `rhx git.pull.title set`, and the body from all below `## body` via `rhx git.pull.description set`.
 
 ---
 
 ## title
 
-feat(git.release): split git.release.uses from git.commit.uses
+feat(git.release): split git.release.uses from git.commit.uses, plus seven ci fixes
 
 ## body
-
-feat(git.release): split git.release.uses from git.commit.uses
 
 ## .what
 
@@ -39,7 +37,7 @@ a commit grant never ships. a release grant needs no commit quota.
 
 this pr also carries what its suites need to run green:
 
-- **deps:** rhachet-roles-bhrain 0.42.1, rhachet 1.50.0, bhuild 0.23.2, plus a pnpm patch on bhrain (`patches/rhachet-roles-bhrain@0.42.1.patch`): a glob confined to a route keeps its matches; the promised emit points at `--as passed`. clamped in `src/infra/patches/`; the graded half goes upstream (bhrain#643, #645)
+- **deps:** rhachet-roles-bhrain 0.42.1, rhachet 1.50.0, bhuild 0.23.2, rhachet-roles-ehmpathy 1.41.0 (the git.pull title and description verbs), plus a pnpm patch on bhrain (`patches/rhachet-roles-bhrain@0.42.1.patch`): a glob confined to a route keeps its matches; the promised emit points at `--as passed`. clamped in `src/infra/patches/`; the graded half goes upstream (bhrain#643, #645)
 - **rhachet 1.49 split settings layout:** the repo brain dir moves to `.agent/.actors/actor.via.repo=ambient/`; hook and acceptance suites read the split layout; acceptance fixtures pin the old one (`setFixtureLayoutOld`)
 - **rhachet 1.50 introspect:** the self-boot hooks drop (introspect refuses a role whose onBoot runs `rhachet roles boot`; boot.md already renders it)
 - **ci fixes:**
@@ -73,6 +71,6 @@ then the riders (~40, mostly mechanical): `patches/`, `src/infra/patches/`, `src
 
 ## .tests
 
-full `--thorough` suite on `6f5ebe1`: unit 204 passed; integration 4,616 passed (8 local fails, each named in the route: boot cap fixed, 7 load or host-only); acceptance 275 passed. ci: 25 passed, 1 skipped (`github / apply`).
+full `--thorough` suite on `6f5ebe1`: unit 204 passed; integration 4,616 passed (8 local fails, each named in the route: boot cap fixed, 7 load or host-only); acceptance 275 passed. ci on the rebase onto v1.41.0 (`67d97d0`): 25 passed, 1 skipped (`github / apply`).
 
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
