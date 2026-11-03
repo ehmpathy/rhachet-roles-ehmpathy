@@ -1,7 +1,7 @@
 {
   "statusLine": {
     "type": "command",
-    "command": "node -e \"import('rhachet-roles-bhrain/cli/route').then(m => m.routeStatusLine())\"",
+    "command": "node -e \"import('rhachet-roles-bhrain/cli/route.status.line').then(m => m.routeStatusLine())\"",
     "padding": 0
   },
   "permissions": {
@@ -88,6 +88,7 @@
       "Bash(npx rhachet run --skill get.package.docs filetree --of iso-price)",
       "Bash(npx rhachet run --skill get.package.docs readme --of iso-price)",
       "Bash(npx rhachet run --skill get.package.docs:*)",
+      "Bash(npx rhachet run --skill git.branch.catchup:*)",
       "Bash(npx rhachet run --skill git.branch.rebase begin --mode apply)",
       "Bash(npx rhachet run --skill git.branch.rebase begin)",
       "Bash(npx rhachet run --skill git.branch.rebase:*)",
@@ -143,6 +144,13 @@
       "Bash(printf '{ old }\\0{ new }' | npx rhachet run --skill sedreplace --old @stdin --new @stdin --glob 'src/**/*.ts')",
       "Bash(printf:*)",
       "Bash(pwd)",
+      "Bash(rhx git.branch.catchup abort)",
+      "Bash(rhx git.branch.catchup begin --mode apply)",
+      "Bash(rhx git.branch.catchup begin)",
+      "Bash(rhx git.branch.catchup continue)",
+      "Bash(rhx git.branch.catchup lock refresh)",
+      "Bash(rhx git.branch.catchup take --whos main pnpm-lock.yaml)",
+      "Bash(rhx git.branch.catchup:*)",
       "Bash(rhx git.branch.rebase abort)",
       "Bash(rhx git.branch.rebase begin --mode apply)",
       "Bash(rhx git.branch.rebase begin)",
@@ -527,7 +535,7 @@
     ]
   },
   "claudeMdExcludes": [
-    "/home/vlad/.claude/CLAUDE.md",
+    "/home/camper/.claude/CLAUDE.md",
     "**/CLAUDE.local.md"
   ]
 }

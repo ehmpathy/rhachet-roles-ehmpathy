@@ -1689,6 +1689,81 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
     });
   });
 
+  given('[case30b] a raw git merge, where a branch needs main', () => {
+    when('[t0] git merge origin/main', () => {
+      const result = useBeforeAll(async () =>
+        runHook({
+          command: 'git merge origin/main',
+          settings: { allow: ['Bash(rhx:*)'] },
+          clearNudges: true,
+        }),
+      );
+
+      then('exits 2 and names the blocked command', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain(
+          '✋ ConstraintError: this command is not paved',
+        );
+        expect(result.stderr).toContain('blocked: git merge origin/main');
+      });
+
+      then('offers the paved catch-up', () => {
+        expect(result.stderr).toContain('paved alternatives for `git merge`');
+        expect(result.stderr).toContain('rhx git.branch.catchup begin');
+      });
+
+      then('the render matches snapshot', () => {
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] git merge --abort, mid-merge', () => {
+      const result = useBeforeAll(async () =>
+        runHook({
+          command: 'git merge --abort',
+          settings: { allow: ['Bash(rhx:*)'] },
+          clearNudges: true,
+        }),
+      );
+
+      then('offers the paved abort, not begin', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain(
+          'paved alternatives for `git merge --abort`',
+        );
+        expect(result.stderr).toContain('rhx git.branch.catchup abort');
+        expect(result.stderr).not.toContain('rhx git.branch.catchup begin');
+      });
+
+      then('the render matches snapshot', () => {
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] git merge --continue, mid-merge', () => {
+      const result = useBeforeAll(async () =>
+        runHook({
+          command: 'git merge --continue',
+          settings: { allow: ['Bash(rhx:*)'] },
+          clearNudges: true,
+        }),
+      );
+
+      then('offers the paved continue, not begin', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain(
+          'paved alternatives for `git merge --continue`',
+        );
+        expect(result.stderr).toContain('rhx git.branch.catchup continue');
+        expect(result.stderr).not.toContain('rhx git.branch.catchup begin');
+      });
+
+      then('the render matches snapshot', () => {
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+  });
+
   given('[case31] a typo of a paved command', () => {
     when('[t0] the head has an adjacent swap', () => {
       const result = useBeforeAll(async () =>

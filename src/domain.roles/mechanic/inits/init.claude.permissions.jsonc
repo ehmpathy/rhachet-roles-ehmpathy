@@ -442,6 +442,16 @@
       "Bash(rhx git.branch.rebase take --whos ours .eslintrc.json)",
       "Bash(rhx git.branch.rebase take --whos theirs .)",
 
+      // git.branch.catchup - catch up via merge (no rewrite) from origin/main
+      "Bash(npx rhachet run --skill git.branch.catchup:*)",
+      "Bash(rhx git.branch.catchup:*)",
+      "Bash(rhx git.branch.catchup begin)",
+      "Bash(rhx git.branch.catchup begin --mode apply)",
+      "Bash(rhx git.branch.catchup take --whos main pnpm-lock.yaml)",
+      "Bash(rhx git.branch.catchup lock refresh)",
+      "Bash(rhx git.branch.catchup continue)",
+      "Bash(rhx git.branch.catchup abort)",
+
       // git.repo.get - search and browse repos without permission prompts
       "Bash(npx rhachet run --skill git.repo.get:*)",
       "Bash(rhx git.repo.get:*)",

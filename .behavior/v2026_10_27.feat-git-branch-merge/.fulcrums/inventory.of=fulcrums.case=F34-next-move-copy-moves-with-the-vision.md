@@ -1,0 +1,23 @@
+# F34 — render copy changes with its tests and the vision, never alone
+
+- **fork**: peer `enroll-verif-test-intent` (5.3 i007, i008) flags each edit to an expected string on a test this branch added. under a strict read, a changed criterion is a blocker. (a) keep each change: the render, its test, and the vision move together, and no assertion loosens; (b) revert the tests, the snaps, the vision, and the renders to the first words
+- **taken**: (a). each change answers a playtest or peer concern, and each assertion names an exact string:
+  - the stopped-merge menu (begin, take, continue, lock): one shape, a label then a paste-ready command (`settle each file:  rhx git.stage.add <file>`). the first words (`settle it, rhx git.stage.add it`) read wrong over two files; the next form (`rhx git.stage.add each`) could not be pasted
+  - begin `[case2]` label `settle each file, then:` → `settle each file:`: one `then:` in the block
+  - continue `[case32]` `retry:` → `fix the cause above, then:`: a retry with the cause in place fails again. the test title and an assertion name the new words
+  - `--help` when line `catchup once the branch is pushed` → `use it once the branch is pushed`: the old one read two ways
+  - begin `[case4a]` why line names `main or master`, plus a `fix:` leaf: a superset; the master case is its own test
+  - ops `[case40]` `is no integer` → `is not an integer`; `"infinite"` → `'infinite'`, one quote style; the `[t3]` stderr check now pins the whole render (`toEqual(stdout)`), so `uses=''` is held by the snap and the equality
+  - `take --whos main|branch <file>` → `take --whos <main|branch> <file>`, in the menu and the usage line: the old form is a pipe when pasted
+  - begin in-flight flag `continue|abort` → two leaves, `finish it:` and `or back out:`, each one command; `not.toContain('continue|abort')` pins the pipe gone
+  - begin plan footer, when a refusal is flagged: `clear each ⚠️ apply will refuse above, then run with --mode apply`, never a bare apply
+  - abort `(as before begin)` → `(as before the merge)`: true for a merge begin never started (abort `[case3e]`)
+  - lock `pm:` → `package manager:`; `lockfile taken whole; refresh it:` → `refresh the lock:`; `--help` `regenerates` → `refreshes`, the verb's own word
+  - take's next block from comma prose to the shared menu: one move per leaf, a human grant on its own `a human runs:` leaf
+  - the hand-settle moves show only where a text conflict exists; a lockfile or deleted file holds no markers
+  - continue `[case47]` fix leaf, the commit-hook malfunction next block, and begin `[case4o]` apply: each move one leaf, each command paste-ready (`--mode apply`, the stage named)
+- **rework**: clean. copy edits in the renders, their snaps, and the vision sketches
+- **risk**: low. the behavior holds: each render still names the same moves, refusals, and exits
+- **confidence**: 90%
+- **where**: `git.branch.catchup.operations.sh` `print_catchup_next_moves`, `print_catchup_stage_advice`; `continue.sh`; `git.branch.catchup.sh`; `begin.sh`; `git.commit.operations.sh` meter guards; vision case=2, case=6
+- **verdict**: taken by the driver: copy, an execution fork (seed S7)
