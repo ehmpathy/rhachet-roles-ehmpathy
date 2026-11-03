@@ -34,6 +34,7 @@ OUTPUT="tree"
 help() {
   cat <<'EOF'
 usage: git.pull.watch.set --pr <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
+needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
 options:
   --pr <n>            the pull request to watch (required)
@@ -47,7 +48,8 @@ example:
 EOF
 }
 
-# parse args
+# parse args; a refusal in the loop speaks json if asked
+set_watch_output_from_args "$@"
 while [[ $# -gt 0 ]]; do
   [[ "$1" == --*=* ]] && set -- "${1%%=*}" "${1#*=}" "${@:2}"
   case "$1" in
@@ -141,12 +143,11 @@ emit() {
   echo "   ├─ pr: $WATCH_REPO#$PR"
   echo "   ├─ clone: @:$WATCH_SLUG"
   echo "   └─ watch: $line"
-  if [[ "$MODE" == "plan" ]]; then
-    echo ""
-    echo "🥥 did you know?"
-    echo "   ├─ plan writes naught; to watch it"
-    echo "   └─ rhx $SKILL --pr $PR --in $WATCH_REPO --mode apply"
-  fi
+  [[ "$MODE" == "plan" ]] && print_watch_coconut "plan writes naught; to watch it" \
+    "rhx $SKILL --pr $PR --in $WATCH_REPO --mode apply"
+  # a watch set on a paused daemon waits; name the fix in place, as get does
+  [[ -n "${PAUSE:-}" ]] && print_watch_paused_coconut "$PAUSE"
+  return 0
 }
 
 # plan: say what would happen, write naught

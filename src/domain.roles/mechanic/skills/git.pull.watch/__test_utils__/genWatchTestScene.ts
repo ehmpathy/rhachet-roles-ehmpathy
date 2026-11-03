@@ -46,7 +46,7 @@ export interface WatchStoreComment {
 }
 
 export interface WatchStoreReview extends WatchStoreComment {
-  state: 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED';
+  state: 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED' | 'DISMISSED';
   submitted_at?: string;
 }
 
@@ -89,9 +89,12 @@ export interface WatchStore {
   registryShapeOdd?: string[];
   /** a stall on every `clone list`, in ms, as a slow registry read would take */
   cloneListDelayMs?: number;
-  keyrack: 'granted' | 'locked' | 'absent' | 'fault';
+  keyrack: 'granted' | 'locked' | 'absent' | 'blocked' | 'fault';
   /** a keyrack answer per repo root realpath, as a root with no manifest reads absent */
-  keyrackByRoot?: Record<string, 'granted' | 'locked' | 'absent' | 'fault'>;
+  keyrackByRoot?: Record<
+    string,
+    'granted' | 'locked' | 'absent' | 'blocked' | 'fault'
+  >;
 }
 
 /**
@@ -457,7 +460,10 @@ export const genWatchTestScene = (input: {
       .join('<home>')
       .replace(/\d+\.\d+\.\d+\+[0-9a-f]{8}/g, '<key>')
       .replace(/pid \d+/g, 'pid <pid>')
-      .replace(/\d+s ago/g, '<n>s ago');
+      .replace(/\d+s ago/g, '<n>s ago')
+      // the same, in a json render
+      .replace(/"pid": \d+/g, '"pid": "<pid>"')
+      .replace(/"lastTickSecondsAgo": \d+/g, '"lastTickSecondsAgo": "<n>"');
 
   // every watch record on the machine, with its key
   const getAllWatchRecords = (): WatchRecordFound[] => {

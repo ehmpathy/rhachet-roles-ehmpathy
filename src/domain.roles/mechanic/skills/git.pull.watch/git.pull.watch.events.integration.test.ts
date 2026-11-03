@@ -14,6 +14,15 @@ import { waitForWatch } from './__test_utils__/waitForWatch';
  * .why  = vision demo cases 1, 2, 3; the daemon alerts once per event (F7), never
  *         echoes a clone's own comment (F5), and keys its check cursor by head sha (A5)
  */
+/**
+ * .mock = github (`gh api`), the clone registry and `clone say` (`rhachet`), and
+ *         the keyrack token read answer from genWatchTestScene stub bins on PATH;
+ *         the skill, the daemon, and the filesystem run for real
+ * .why  = a ci red, an outage, a rate limit, a token that expires, and a clone
+ *         mid-turn cannot be forced on the real services on demand, nor billed per run
+ * .real = git.pull.watch.github.real.integration.test.ts (TEST_LIVE=github) and
+ *         git.pull.watch.rhachet.real.integration.test.ts
+ */
 jest.setTimeout(400_000);
 
 const SERIAL = 'a1a1a1a1-0000-4000-8000-000000000001';
@@ -311,15 +320,171 @@ describe('git.pull.watch events', () => {
           expect(controls).toEqual([]);
         });
         then('the words of the comment and its author survive', () => {
-          expect(result.says[0]!.text).toContain(
-            'says: [31mwipeout[0m onthe reef',
-          );
+          // a whole ansi sequence goes, and a tab reads as a space
+          expect(result.says[0]!.text).toContain('says: wipeout on the reef');
+          expect(result.says[0]!.text).not.toContain('[31m');
           expect(result.says[0]!.text).toContain('by: @surfer-kai');
           expect(result.says[0]!.text).toMatchSnapshot();
         });
       },
     );
   });
+
+  given(
+    '[case2g] every check conclusion and review state github serves',
+    () => {
+      const scene = genWatchTestScene({
+        slug: 'watch-case2g',
+        repos: ['surf-demo'],
+        store: {},
+      });
+      scene.setStore((store) => {
+        store.clones[scene.roots['surf-demo']!] = [
+          { serial: SERIAL, slug: 'mechanic', reachState: 'LIVE' },
+        ];
+        store.github.prs[`${REPO}#${PR}`] = {
+          state: 'open',
+          merged: false,
+          headSha: 'sha-one',
+          closedBy: null,
+        };
+        store.github.checks['sha-one'] = [];
+      });
+      afterAll(() => scene.stopAllDaemons());
+
+      // each conclusion github can serve; the first four are a red ci, the rest are not
+      const CONCLUSIONS = [
+        { id: 91, conclusion: 'failure', red: true },
+        { id: 92, conclusion: 'cancelled', red: true },
+        { id: 93, conclusion: 'timed_out', red: true },
+        { id: 94, conclusion: 'action_required', red: true },
+        { id: 95, conclusion: 'success', red: false },
+        { id: 96, conclusion: 'neutral', red: false },
+        { id: 97, conclusion: 'skipped', red: false },
+      ];
+
+      when(
+        '[t0] checks conclude each way, and reviews land as comments, dismissed, and bare',
+        () => {
+          const result = useThen('the next tick alerts', async () => {
+            scene.runSkill({
+              verb: 'set',
+              args: ['--pr', PR, '--mode', 'apply'],
+              root: scene.roots['surf-demo']!,
+              serial: SERIAL,
+            });
+            await scene.waitForPrimed();
+            scene.setStore((store) => {
+              store.github.checks['sha-one'] = CONCLUSIONS.map((one) => ({
+                id: one.id,
+                name: `job-${one.conclusion}`,
+                status: 'completed' as const,
+                conclusion: one.conclusion,
+                html_url: `https://github.com/ehmpathy/surf-demo/runs/${one.id}`,
+              }));
+              store.github.reviews[`${REPO}#${PR}`] = [
+                {
+                  id: 501,
+                  body: 'the swell reads two feet high',
+                  state: 'COMMENTED',
+                  user: { login: 'surfer-kai', type: 'User' },
+                  html_url:
+                    'https://github.com/ehmpathy/surf-demo/pull/1220#pullrequestreview-501',
+                },
+                {
+                  id: 502,
+                  body: 'stale ask, the reef moved',
+                  state: 'DISMISSED',
+                  user: { login: 'surfer-mano', type: 'User' },
+                  html_url:
+                    'https://github.com/ehmpathy/surf-demo/pull/1220#pullrequestreview-502',
+                },
+                {
+                  id: 503,
+                  body: '',
+                  state: 'COMMENTED',
+                  user: { login: 'surfer-lani', type: 'User' },
+                  html_url:
+                    'https://github.com/ehmpathy/surf-demo/pull/1220#pullrequestreview-503',
+                },
+              ];
+            });
+            const says = await waitForWatch({
+              label: 'mixed alert',
+              check: () =>
+                scene.getSays().length > 0 ? scene.getSays() : null,
+              scene,
+            });
+            await scene.waitForDaemonTicks({ ticks: 2 });
+            return { says: scene.getSays() };
+          });
+          then('every red conclusion alerts, each named', () => {
+            expect(result.says).toHaveLength(1);
+            CONCLUSIONS.filter((one) => one.red).forEach((one) =>
+              expect(result.says[0]!.text).toContain(
+                `check: job-${one.conclusion} (${one.conclusion})`,
+              ),
+            );
+          });
+          then('a green, neutral, or skipped check stays quiet', () => {
+            CONCLUSIONS.filter((one) => !one.red).forEach((one) =>
+              expect(result.says[0]!.text).not.toContain(
+                `job-${one.conclusion}`,
+              ),
+            );
+          });
+          then('a review with a body alerts as a comment, by its state', () => {
+            expect(result.says[0]!.text).toContain(
+              'by: @surfer-kai · review: commented',
+            );
+            expect(result.says[0]!.text).toContain(
+              'by: @surfer-mano · review: dismissed',
+            );
+          });
+          then('a bare comment review stays quiet', () => {
+            expect(result.says[0]!.text).not.toContain('surfer-lani');
+          });
+          then('the alert reads as one tree', () => {
+            expect(scene.asMasked(result.says[0]!.text)).toMatchSnapshot();
+          });
+        },
+      );
+
+      when('[t1] two reviewers approve in one tick', () => {
+        const result = useThen('the next tick alerts', async () => {
+          scene.setStore((store) => {
+            store.github.reviews[`${REPO}#${PR}`]!.push(
+              ...[601, 602].map((id) => ({
+                id,
+                body: '',
+                state: 'APPROVED' as const,
+                user: {
+                  login: id === 601 ? 'surfer-kai' : 'surfer-mano',
+                  type: 'User' as const,
+                },
+                html_url: `https://github.com/ehmpathy/surf-demo/pull/1220#pullrequestreview-${id}`,
+              })),
+            );
+          });
+          await waitForWatch({
+            label: 'approval alert',
+            check: () => scene.getSays().length >= 2,
+            scene,
+          });
+          return { say: scene.getSays()[1]! };
+        });
+        then('both approvals ride one alert, each with its reviewer', () => {
+          expect(result.say.text).toContain('🐢 pr watch — approved #1220');
+          expect(result.say.text).toContain('by: @surfer-kai');
+          expect(result.say.text).toContain('by: @surfer-mano');
+        });
+        then('the next move follows the red ci', () => {
+          expect(result.say.text).toContain('next: rhx show.gh.test.errors');
+          expect(scene.asMasked(result.say.text)).toMatchSnapshot();
+        });
+      });
+    },
+  );
 
   given('[case2f] a burst of one kind of event in one tick', () => {
     const scene = genWatchTestScene({

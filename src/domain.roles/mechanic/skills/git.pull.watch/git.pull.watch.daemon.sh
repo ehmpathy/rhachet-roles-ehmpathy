@@ -115,8 +115,14 @@ WATCH_DIFF_JQ='
     or (((.body // "") | startswith("🐢")) and (is_bot or ((.user.login // "") as $l | $peerLogins | any(. == $l))));
   def who($peers; $peerLogins): if is_peer($peers; $peerLogins) then "clone" elif is_bot then "bot" else "human" end;
   # a control byte (an escape, a tab, a bell) in text from github would make the
-  # whole alert undeliverable at `clone say`, so every github string is cleaned
-  def clean: "\(. // "")" | gsub("\\p{Cc}"; "");
+  # whole alert undeliverable at `clone say`, so every github string is cleaned:
+  # a whole ansi sequence goes (never a half that leaves `[31m`), a tab reads as a
+  # space so words stay apart, and any other control byte goes
+  def clean: "\(. // "")"
+    | gsub("(\u001b\\[|\u009b)[0-?]*[ -/]*[@-~]"; "")
+    | gsub("\u001b[@-_]"; "")
+    | gsub("\t"; " ")
+    | gsub("\\p{Cc}"; "");
   # an inline review comment names its file and line, so the clone opens the spot at once
   def file_line: if (.path // "") == "" then null else "\(.path | clean):\(.line // .original_line // "?")" end;
   def first_line_whole: ((.body // "") | split("\n") | map(select(test("\\S"))) | (.[0] // "") | clean);

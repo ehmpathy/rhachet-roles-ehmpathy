@@ -1,3 +1,4 @@
+import { spawn } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 import { given, then, useThen, when } from 'test-fns';
@@ -15,6 +16,15 @@ import { waitForWatch } from './__test_utils__/waitForWatch';
  *         the watch loud, a clone in another repo is reached by serial, and a
  *         call the skill cannot serve is refused with its fix
  * .why  = vision demo cases 7, 8, 13 and invariants F6, F7, F8; entries E7
+ */
+/**
+ * .mock = github (`gh api`), the clone registry and `clone say` (`rhachet`), and
+ *         the keyrack token read answer from genWatchTestScene stub bins on PATH;
+ *         the skill, the daemon, and the filesystem run for real
+ * .why  = a ci red, an outage, a rate limit, a token that expires, and a clone
+ *         mid-turn cannot be forced on the real services on demand, nor billed per run
+ * .real = git.pull.watch.github.real.integration.test.ts (TEST_LIVE=github) and
+ *         git.pull.watch.rhachet.real.integration.test.ts
  */
 jest.setTimeout(400_000);
 
@@ -118,6 +128,7 @@ describe('git.pull.watch delivery', () => {
             return {
               says: scene.getSays(),
               listed: JSON.parse(listed.stdout),
+              listedRaw: listed.stdout,
               tree,
             };
           });
@@ -133,6 +144,7 @@ describe('git.pull.watch delivery', () => {
           });
           then('the alert sits in the outbox, named by get', () => {
             expect(result.listed.daemons[0].watches[0].held).toEqual(1);
+            expect(scene.asMasked(result.listedRaw)).toMatchSnapshot();
           });
         },
       );
@@ -181,6 +193,92 @@ describe('git.pull.watch delivery', () => {
       });
     },
   );
+
+  given('[case7c] a pr that merges while the clone is busy', () => {
+    const scene = genWatchTestScene({
+      slug: 'watch-case7c',
+      repos: ['surf-demo'],
+      store: {},
+    });
+    scene.setStore((store) => {
+      store.clones[scene.roots['surf-demo']!] = [
+        {
+          serial: SERIAL_A,
+          slug: 'mechanic',
+          reachState: 'LIVE',
+          say: 'withheld',
+        },
+      ];
+    });
+    setPrOpen({ scene, repo: 'ehmpathy/surf-demo', pr: '1220' });
+    afterAll(() => scene.stopAllDaemons());
+
+    when('[t0] the pr merges while clone say withholds every try', () => {
+      const result = useThen('the closure is held', async () => {
+        scene.runSkill({
+          verb: 'set',
+          args: ['--pr', '1220', '--mode', 'apply'],
+          root: scene.roots['surf-demo']!,
+          serial: SERIAL_A,
+        });
+        await scene.waitForPrimed();
+        scene.setStore((store) => {
+          store.github.prs['ehmpathy/surf-demo#1220']!.state = 'closed';
+          store.github.prs['ehmpathy/surf-demo#1220']!.merged = true;
+        });
+        await waitForWatch({
+          label: 'two withheld closure tries',
+          check: () => scene.getSays().length >= 2,
+          scene,
+        });
+        const tree = scene.runSkill({
+          verb: 'get',
+          args: [],
+          root: scene.roots['surf-demo']!,
+          serial: null,
+        });
+        const json = scene.runSkill({
+          verb: 'get',
+          args: ['--output', 'json'],
+          root: scene.roots['surf-demo']!,
+          serial: null,
+        });
+        return { tree, listed: JSON.parse(json.stdout) };
+      });
+      then('get marks the watch ended, its last alert held', () => {
+        expect(result.tree.stdout).toContain(' · 1 held · ended');
+        expect(result.listed.daemons[0].watches[0].ended).not.toBeNull();
+        expect(scene.asMasked(result.tree.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] the clone frees up; the next try is taken', () => {
+      const result = useThen('the closure lands once', async () => {
+        scene.setStore((store) => {
+          store.clones[scene.roots['surf-demo']!]![0]!.say = 'released';
+        });
+        await waitForWatch({
+          label: 'the watch ends',
+          check: () => scene.getAllWatchRecords().length === 0,
+          scene,
+        });
+        return {
+          says: scene.getSays().filter((say) => say.verdict === 'released'),
+        };
+      });
+      then('the closure is delivered once, marked as held', () => {
+        expect(result.says).toHaveLength(1);
+        expect(result.says[0]!.text).toMatch(
+          /#1220 merged; watch ended \(held \d+ ticks; you were busy\)/,
+        );
+        expect(
+          scene
+            .asMasked(result.says[0]!.text)
+            .replace(/held \d+ ticks/, 'held <n> ticks'),
+        ).toMatchSnapshot();
+      });
+    });
+  });
 
   given('[case7b] an alert due while clone say enqueues it mid-turn', () => {
     const scene = genWatchTestScene({
@@ -283,6 +381,14 @@ describe('git.pull.watch delivery', () => {
           expect(result.listed.stdout).toContain('paused (token expired)');
           expect(scene.asMasked(result.listed.stdout)).toMatchSnapshot();
         });
+        then('get names the fix for the pause in place', () => {
+          expect(result.listed.stdout).toContain(
+            'a paused daemon reads naught; github refused the token',
+          );
+          expect(result.listed.stdout).toContain(
+            'a human runs: rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh',
+          );
+        });
         then(
           'the clone gets one paused alert that names both prs and the refill',
           () => {
@@ -347,11 +453,40 @@ describe('git.pull.watch delivery', () => {
         });
         const ghCallsBefore = scene.getGhCalls().length;
         await scene.waitForDaemonTicks({ ticks: 2 });
+        const ghCallsAfter = scene.getGhCalls().length;
+        const listedTree = scene.runSkill({
+          verb: 'get',
+          args: [],
+          root: scene.roots['surf-demo']!,
+          serial: null,
+        });
+        const listedJson = scene.runSkill({
+          verb: 'get',
+          args: ['--output', 'json'],
+          root: scene.roots['surf-demo']!,
+          serial: null,
+        });
         return {
           says: getSaysPaused(),
           ghCallsBefore,
-          ghCallsAfter: scene.getGhCalls().length,
+          ghCallsAfter,
+          listedTree,
+          listedJson,
         };
+      });
+      then('get marks the daemon paused locked, and names the unlock', () => {
+        expect(result.listedTree.stdout).toContain('paused (token locked)');
+        expect(result.listedTree.stdout).toContain(
+          'a paused daemon reads naught; the github token is locked',
+        );
+        expect(result.listedTree.stdout).toContain(
+          'rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN',
+        );
+        expect(JSON.parse(result.listedJson.stdout).daemons[0].paused).toEqual(
+          'locked',
+        );
+        expect(scene.asMasked(result.listedTree.stdout)).toMatchSnapshot();
+        expect(scene.asMasked(result.listedJson.stdout)).toMatchSnapshot();
       });
       then('the alert says locked and names the unlock', () => {
         expect(result.says[1]!.text).toContain('github token locked');
@@ -387,7 +522,11 @@ describe('git.pull.watch delivery', () => {
             root: scene.roots['surf-demo']!,
             serial: null,
           });
-          return { says: getSaysPaused(), listed: JSON.parse(listed.stdout) };
+          return {
+            says: getSaysPaused(),
+            listed: JSON.parse(listed.stdout),
+            listedRaw: listed.stdout,
+          };
         });
         then(
           'a fresh paused alert says expired, so the clone never repeats an unlock that cannot clear it',
@@ -399,6 +538,7 @@ describe('git.pull.watch delivery', () => {
         );
         then('get shows the new cause', () => {
           expect(result.listed.daemons[0].paused).toEqual('expired');
+          expect(scene.asMasked(result.listedRaw)).toMatchSnapshot();
         });
       },
     );
@@ -431,8 +571,42 @@ describe('git.pull.watch delivery', () => {
           check: () => (scene.getSays().length > 0 ? scene.getSays() : null),
           scene,
         });
-        return { says };
+        await scene.waitForDaemonTicks({ ticks: 1 });
+        const listedTree = scene.runSkill({
+          verb: 'get',
+          args: [],
+          root: scene.roots['surf-demo']!,
+          serial: null,
+        });
+        const listedJson = scene.runSkill({
+          verb: 'get',
+          args: ['--output', 'json'],
+          root: scene.roots['surf-demo']!,
+          serial: null,
+        });
+        return { says, listedTree, listedJson };
       });
+      then(
+        'get marks the daemon paused absent, and names fill then unlock',
+        () => {
+          expect(result.listedTree.stdout).toContain('paused (token absent)');
+          expect(result.listedTree.stdout).toContain(
+            'a paused daemon reads naught; the github token is not filled',
+          );
+          // fill comes first, then unlock: each step carries its number
+          expect(result.listedTree.stdout).toContain(
+            '1. a human runs: rhx keyrack fill --owner ehmpath',
+          );
+          expect(result.listedTree.stdout).toContain(
+            '2. rhx keyrack unlock --owner ehmpath',
+          );
+          expect(
+            JSON.parse(result.listedJson.stdout).daemons[0].paused,
+          ).toEqual('absent');
+          expect(scene.asMasked(result.listedTree.stdout)).toMatchSnapshot();
+          expect(scene.asMasked(result.listedJson.stdout)).toMatchSnapshot();
+        },
+      );
       then('the alert names the human fill step, then the unlock', () => {
         expect(result.says[0]!.text).toContain('github token not filled');
         expect(result.says[0]!.text).toContain(
@@ -487,6 +661,70 @@ describe('git.pull.watch delivery', () => {
     );
   });
 
+  given('[case8f] a box whose keyrack blocks the github key', () => {
+    const scene = genWatchTestScene({
+      slug: 'watch-case8f',
+      repos: ['surf-demo'],
+      store: { keyrack: 'blocked' },
+    });
+    scene.setStore((store) => {
+      store.clones[scene.roots['surf-demo']!] = [
+        { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+      ];
+    });
+    setPrOpen({ scene, repo: 'ehmpathy/surf-demo', pr: '1220' });
+    afterAll(() => scene.stopAllDaemons());
+
+    when('[t0] the daemon spawns and reads its token', () => {
+      const result = useThen('one paused alert', async () => {
+        scene.runSkill({
+          verb: 'set',
+          args: ['--pr', '1220', '--mode', 'apply'],
+          root: scene.roots['surf-demo']!,
+          serial: SERIAL_A,
+        });
+        const says = await waitForWatch({
+          label: 'blocked alert',
+          check: () => (scene.getSays().length > 0 ? scene.getSays() : null),
+          scene,
+        });
+        await scene.waitForDaemonTicks({ ticks: 1 });
+        const listedTree = scene.runSkill({
+          verb: 'get',
+          args: [],
+          root: scene.roots['surf-demo']!,
+          serial: null,
+        });
+        const listedJson = scene.runSkill({
+          verb: 'get',
+          args: ['--output', 'json'],
+          root: scene.roots['surf-demo']!,
+          serial: null,
+        });
+        return { says, listedTree, listedJson };
+      });
+      then('the alert says keyrack blocked the token', () => {
+        expect(result.says).toHaveLength(1);
+        expect(result.says[0]!.text).toContain(
+          'github token blocked by keyrack',
+        );
+        expect(result.says[0]!.text).toContain('watches paused: #1220');
+        expect(scene.asMasked(result.says[0]!.text)).toMatchSnapshot();
+      });
+      then('get marks the daemon paused blocked, and names the unlock', () => {
+        expect(result.listedTree.stdout).toContain('paused (token blocked)');
+        expect(result.listedTree.stdout).toContain(
+          'a paused daemon reads naught; the github token is blocked',
+        );
+        expect(JSON.parse(result.listedJson.stdout).daemons[0].paused).toEqual(
+          'blocked',
+        );
+        expect(scene.asMasked(result.listedTree.stdout)).toMatchSnapshot();
+        expect(scene.asMasked(result.listedJson.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
   given('[case8c] github rate-limits the token, then the limit lifts', () => {
     const scene = genWatchTestScene({
       slug: 'watch-case8c',
@@ -534,11 +772,35 @@ describe('git.pull.watch delivery', () => {
           });
           const ghCallsBefore = scene.getGhCalls().length;
           await scene.waitForDaemonTicks({ ticks: 2 });
+          const ghCallsAfter = scene.getGhCalls().length;
+          // get, inside the backoff window: the mark names why no alert comes
+          const listedTree = scene.runSkill({
+            verb: 'get',
+            args: [],
+            root: scene.roots['surf-demo']!,
+            serial: null,
+          });
+          const listedJson = scene.runSkill({
+            verb: 'get',
+            args: ['--output', 'json'],
+            root: scene.roots['surf-demo']!,
+            serial: null,
+          });
           return {
             ghCallsBefore,
-            ghCallsAfter: scene.getGhCalls().length,
+            ghCallsAfter,
             says: scene.getSays(),
+            listedTree,
+            listedJson,
           };
+        });
+        then('get names the backoff mark, in tree and json', () => {
+          expect(result.listedTree.stdout).toContain('· held by: backoff');
+          expect(JSON.parse(result.listedJson.stdout).daemons[0].marks).toEqual(
+            ['backoff'],
+          );
+          expect(scene.asMasked(result.listedTree.stdout)).toMatchSnapshot();
+          expect(scene.asMasked(result.listedJson.stdout)).toMatchSnapshot();
         });
         then('no github read is made before the reset', () => {
           expect(result.ghCallsAfter).toEqual(result.ghCallsBefore);
@@ -643,7 +905,28 @@ describe('git.pull.watch delivery', () => {
           scene,
         });
         await scene.waitForDaemonTicks({ ticks: 2 });
-        return { says: getSaysOutage() };
+        // get, while the outage holds: the mark names why no alert comes
+        const listedTree = scene.runSkill({
+          verb: 'get',
+          args: [],
+          root: scene.roots['surf-demo']!,
+          serial: null,
+        });
+        const listedJson = scene.runSkill({
+          verb: 'get',
+          args: ['--output', 'json'],
+          root: scene.roots['surf-demo']!,
+          serial: null,
+        });
+        return { says: getSaysOutage(), listedTree, listedJson };
+      });
+      then('get names the unreachable mark, in tree and json', () => {
+        expect(result.listedTree.stdout).toContain('· held by: unreachable');
+        expect(JSON.parse(result.listedJson.stdout).daemons[0].marks).toEqual([
+          'unreachable',
+        ]);
+        expect(scene.asMasked(result.listedTree.stdout)).toMatchSnapshot();
+        expect(scene.asMasked(result.listedJson.stdout)).toMatchSnapshot();
       });
       then('the clone gets one note that names the pr', () => {
         expect(result.says).toHaveLength(1);
@@ -750,11 +1033,35 @@ describe('git.pull.watch delivery', () => {
           });
           const ghCallsBefore = scene.getGhCalls().length;
           await scene.waitForDaemonTicks({ ticks: 2 });
+          const ghCallsAfter = scene.getGhCalls().length;
+          // get, while the fault holds: the mark names why no alert comes
+          const listedTree = scene.runSkill({
+            verb: 'get',
+            args: [],
+            root: scene.roots['surf-demo']!,
+            serial: null,
+          });
+          const listedJson = scene.runSkill({
+            verb: 'get',
+            args: ['--output', 'json'],
+            root: scene.roots['surf-demo']!,
+            serial: null,
+          });
           return {
             says: getSaysTokenFault(),
             ghCallsBefore,
-            ghCallsAfter: scene.getGhCalls().length,
+            ghCallsAfter,
+            listedTree,
+            listedJson,
           };
+        });
+        then('get names the token-fault mark, in tree and json', () => {
+          expect(result.listedTree.stdout).toContain('· held by: tokenfault');
+          expect(JSON.parse(result.listedJson.stdout).daemons[0].marks).toEqual(
+            ['tokenfault'],
+          );
+          expect(scene.asMasked(result.listedTree.stdout)).toMatchSnapshot();
+          expect(scene.asMasked(result.listedJson.stdout)).toMatchSnapshot();
         });
         then('the clone gets one note, with the cause and the check', () => {
           expect(result.says).toHaveLength(1);
@@ -903,6 +1210,181 @@ describe('git.pull.watch delivery', () => {
     },
   );
 
+  given(
+    '[case16b] a daemon lock held past the wait, per verb (entry E3)',
+    () => {
+      const scene = genWatchTestScene({
+        slug: 'watch-case16b',
+        repos: ['surf-demo'],
+        store: {},
+      });
+      scene.setStore((store) => {
+        store.clones[scene.roots['surf-demo']!] = [
+          { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+        ];
+      });
+      const root = scene.roots['surf-demo']!;
+
+      // a live process owns each held lock, so no take reaps it inside its wait
+      const holder = spawn('sleep', ['600'], { stdio: 'ignore' });
+      afterAll(() => {
+        holder.kill();
+        scene.stopAllDaemons();
+      });
+      // a lock older than the hold bound (20s) is reaped as a stranger's, so each
+      // step takes it fresh: the wait (10s) then times out, and never reaps
+      const setLockHeld = (input: { keyDir: string }): void => {
+        const lock = path.join(input.keyDir, 'daemon.lock');
+        fs.mkdirSync(lock, { recursive: true });
+        fs.writeFileSync(path.join(lock, 'owner'), String(holder.pid));
+        fs.utimesSync(lock, new Date(), new Date());
+      };
+
+      // the key dir of this clone's key, read from a plan
+      const keyDir = path.join(
+        scene.getStateRoot(),
+        `v=${
+          JSON.parse(
+            scene.runSkill({
+              verb: 'set',
+              args: ['--pr', '1220', '--output', 'json'],
+              root,
+              serial: SERIAL_A,
+            }).stdout,
+          ).daemon.key
+        }`,
+      );
+      const keyDirOther = path.join(scene.getStateRoot(), 'v=0.0.1+cafe0009');
+
+      // one verb, in tree and json at once, so the two waits overlap
+      const runTreeAndJson = async (input: {
+        verb: 'set' | 'del';
+      }): Promise<{
+        tree: { stdout: string; stderr: string; status: number };
+        json: { stdout: string; stderr: string; status: number };
+      }> => {
+        const args = ['--pr', '1220', '--mode', 'apply'];
+        const [tree, json] = await Promise.all([
+          scene.runSkillAsync({
+            verb: input.verb,
+            args,
+            root,
+            serial: SERIAL_A,
+          }),
+          scene.runSkillAsync({
+            verb: input.verb,
+            args: [...args, '--output', 'json'],
+            root,
+            serial: SERIAL_A,
+          }),
+        ]);
+        return { tree, json };
+      };
+
+      when('[t0] set, while the lock of its key is held', () => {
+        const result = useThen('it times out', async () => {
+          setLockHeld({ keyDir });
+          return runTreeAndJson({ verb: 'set' });
+        });
+        then(
+          'it exits 1, a malfunction that names the lock and the fix',
+          () => {
+            expect(result.tree.status).toEqual(1);
+            expect(result.tree.stdout).toMatch(
+              /💥 MalfunctionError: the lock of daemon v\S+ timed out/,
+            );
+            expect(result.tree.stdout).toContain('/daemon.lock');
+            expect(result.tree.stdout).toContain(
+              'the watch is recorded; rerun to findsert its daemon',
+            );
+            expect(result.tree.stderr).toContain('timed out');
+            expect(scene.asMasked(result.tree.stdout)).toMatchSnapshot();
+          },
+        );
+        then('the json is one error object, exit 1', () => {
+          expect(result.json.status).toEqual(1);
+          const parsed = JSON.parse(result.json.stdout);
+          expect(parsed.error.class).toEqual('MalfunctionError');
+          expect(parsed.error.message).toContain('timed out');
+          expect(scene.asMasked(result.json.stdout)).toMatchSnapshot();
+        });
+        then('the watch is recorded, and no daemon spawns', () => {
+          expect(scene.getAllWatchRecords()).toHaveLength(1);
+          expect(getAllWatchDaemonPids({ home: scene.home })).toEqual([]);
+        });
+      });
+
+      when('[t1] del, while the lock of its key is held', () => {
+        const result = useThen('it times out', async () => {
+          setLockHeld({ keyDir });
+          return runTreeAndJson({ verb: 'del' });
+        });
+        then('it exits 1, a malfunction that says the watch stands', () => {
+          expect(result.tree.status).toEqual(1);
+          expect(result.tree.stdout).toMatch(
+            /💥 MalfunctionError: the lock of daemon v\S+ timed out; the watch stands/,
+          );
+          expect(result.tree.stderr).toContain('timed out');
+          expect(scene.asMasked(result.tree.stdout)).toMatchSnapshot();
+        });
+        then('the json is one error object, exit 1', () => {
+          expect(result.json.status).toEqual(1);
+          expect(JSON.parse(result.json.stdout).error.class).toEqual(
+            'MalfunctionError',
+          );
+          expect(scene.asMasked(result.json.stdout)).toMatchSnapshot();
+        });
+        then('the watch still stands', () => {
+          expect(scene.getAllWatchRecords()).toHaveLength(1);
+        });
+      });
+
+      when(
+        '[t2] set, while the watch sits under another key whose lock is held',
+        () => {
+          const result = useThen('it times out on the move', async () => {
+            const [found] = scene.getAllWatchRecords();
+            fs.mkdirSync(path.join(keyDirOther, 'watches'), {
+              recursive: true,
+            });
+            fs.renameSync(
+              found!.path,
+              path.join(keyDirOther, 'watches', path.basename(found!.path)),
+            );
+            setLockHeld({ keyDir });
+            setLockHeld({ keyDir: keyDirOther });
+            return runTreeAndJson({ verb: 'set' });
+          });
+          then(
+            'it exits 1, a malfunction that says the watch is under both keys',
+            () => {
+              expect(result.tree.status).toEqual(1);
+              expect(result.tree.stdout).toMatch(
+                /💥 MalfunctionError: the lock of daemon v0\.0\.1\+cafe0009 timed out; the watch is under both keys/,
+              );
+              expect(result.tree.stdout).toContain('rerun this command');
+              expect(scene.asMasked(result.tree.stdout)).toMatchSnapshot();
+            },
+          );
+          then('the json is one error object, exit 1', () => {
+            expect(result.json.status).toEqual(1);
+            expect(JSON.parse(result.json.stdout).error.class).toEqual(
+              'MalfunctionError',
+            );
+            expect(scene.asMasked(result.json.stdout)).toMatchSnapshot();
+          });
+          then('the watch stands under both keys, as the error says', () => {
+            expect(
+              new Set(scene.getAllWatchRecords().map((one) => one.key)),
+            ).toEqual(
+              new Set([path.basename(keyDir).slice(2), '0.0.1+cafe0009']),
+            );
+          });
+        },
+      );
+    },
+  );
+
   given('[case16] calls the skill refuses (entries E7, E3)', () => {
     const scene = genWatchTestScene({
       slug: 'watch-case16',
@@ -952,6 +1434,7 @@ describe('git.pull.watch delivery', () => {
         expect(result.stdout).toContain(
           `clone ${SERIAL_C} is absent in the registry of`,
         );
+        expect(scene.asMasked(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -994,8 +1477,10 @@ describe('git.pull.watch delivery', () => {
           expect(result.noPr.stdout).toContain('--pr <n> is required');
           expect(result.badMode.status).toEqual(2);
           expect(result.badMode.stdout).toContain(
-            '--mode must be one of: plan apply',
+            '--mode must be one of: plan | apply',
           );
+          expect(scene.asMasked(result.noPr.stdout)).toMatchSnapshot();
+          expect(scene.asMasked(result.badMode.stdout)).toMatchSnapshot();
         });
         then(
           'an unknown arg is refused by each verb, with the help command',
@@ -1143,6 +1628,126 @@ describe('git.pull.watch delivery', () => {
       });
     });
 
+    when('[t9] a refusal under --output json, per verb', () => {
+      const result = useThen('each refuses in json', async () => {
+        const run = (input: {
+          verb: 'get' | 'set' | 'del';
+          args: string[];
+          serial: string | null;
+        }) =>
+          scene.runSkill({
+            verb: input.verb,
+            args: input.args,
+            root: scene.roots['surf-demo']!,
+            serial: input.serial,
+          });
+        const getRefused = run({
+          verb: 'get',
+          args: ['--output', 'json', '--wave', 'big'],
+          serial: null,
+        });
+        const setRefused = run({
+          verb: 'set',
+          args: ['--output', 'json', '--pr', 'abc', '--mode', 'apply'],
+          serial: SERIAL_A,
+        });
+        const delRefused = run({
+          verb: 'del',
+          args: ['--output', 'json', '--pr', '1220', '--mode', 'yolo'],
+          serial: SERIAL_A,
+        });
+        scene.setStore((store) => {
+          store.registryFaults = [scene.roots['surf-demo']!];
+        });
+        const setFaulted = run({
+          verb: 'set',
+          args: ['--output', 'json', '--pr', '1220', '--mode', 'apply'],
+          serial: SERIAL_A,
+        });
+        scene.setStore((store) => {
+          store.registryFaults = [];
+        });
+        return { getRefused, setRefused, delRefused, setFaulted };
+      });
+      then(
+        'each constraint prints one error object on stdout, exit 2, and the tree on stderr',
+        () => {
+          [result.getRefused, result.setRefused, result.delRefused].forEach(
+            (one) => {
+              expect(one.status).toEqual(2);
+              const parsed = JSON.parse(one.stdout);
+              expect(parsed.error.class).toEqual('ConstraintError');
+              expect(typeof parsed.error.message).toEqual('string');
+              expect(Array.isArray(parsed.error.lines)).toBe(true);
+              expect(one.stderr).toContain('✋ ConstraintError: ');
+              expect(scene.asMasked(one.stdout)).toMatchSnapshot();
+              expect(scene.asMasked(one.stderr)).toMatchSnapshot();
+            },
+          );
+        },
+      );
+      then(
+        'a malfunction prints one error object with its cause and fix as lines, exit 1',
+        () => {
+          expect(result.setFaulted.status).toEqual(1);
+          const parsed = JSON.parse(result.setFaulted.stdout);
+          expect(parsed.error.class).toEqual('MalfunctionError');
+          expect(parsed.error.message).toContain('the clone registry of');
+          expect(
+            parsed.error.lines.some((line: string) =>
+              line.startsWith('cause: '),
+            ),
+          ).toBe(true);
+          expect(result.setFaulted.stderr).toContain('💥 MalfunctionError: ');
+          expect(scene.asMasked(result.setFaulted.stdout)).toMatchSnapshot();
+          expect(scene.asMasked(result.setFaulted.stderr)).toMatchSnapshot();
+        },
+      );
+    });
+
+    when(
+      '[t10] --output is not tree | json, or del has no clone serial',
+      () => {
+        const result = useThen('each refuses', async () => ({
+          badOutputs: (['get', 'set', 'del'] as const).map((verb) =>
+            scene.runSkill({
+              verb,
+              args:
+                verb === 'get'
+                  ? ['--output', 'yaml']
+                  : ['--pr', '1220', '--output', 'yaml'],
+              root: scene.roots['surf-demo']!,
+              serial: SERIAL_A,
+            }),
+          ),
+          delNoSerial: scene.runSkill({
+            verb: 'del',
+            args: ['--pr', '1220', '--mode', 'apply'],
+            root: scene.roots['surf-demo']!,
+            serial: null,
+          }),
+        }));
+        then(
+          'a bad --output exits 2 on each verb and names the choices',
+          () => {
+            result.badOutputs.forEach((one) => {
+              expect(one.status).toEqual(2);
+              expect(one.stdout).toContain('✋ ConstraintError: --output');
+              expect(one.stderr).toContain('--output');
+              expect(scene.asMasked(one.stdout)).toMatchSnapshot();
+            });
+          },
+        );
+        then('del with no clone serial exits 2, a constraint', () => {
+          expect(result.delNoSerial.status).toEqual(2);
+          expect(result.delNoSerial.stdout).toContain(
+            '✋ ConstraintError: not an enrolled clone',
+          );
+          expect(scene.asMasked(result.delNoSerial.stdout)).toMatchSnapshot();
+        });
+      },
+    );
+
     when('[t3] a plan for a pr the clone did not open', () => {
       const result = useThen('it previews', async () =>
         scene.runSkill({
@@ -1213,6 +1818,7 @@ describe('git.pull.watch delivery', () => {
       then('a bare call is refused with the verbs named', () => {
         expect(result.bare.status).toEqual(2);
         expect(result.bare.stdout).toContain('a verb is required');
+        expect(result.bare.stdout).toMatchSnapshot();
       });
       then(
         'a verb via the dispatcher runs the same code as the verb skill',

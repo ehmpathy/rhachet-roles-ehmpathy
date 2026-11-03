@@ -833,6 +833,24 @@ exit 2
           );
           expect(result.stderr).toContain('reinstall the mechanic role');
         });
+        then('the load fault reads the same on each run', () => {
+          // the temp dir and the home differ per run; the words do not
+          const asMasked = (text: string): string =>
+            text
+              .split(scene.tempDir)
+              .join('<tmp>')
+              .split(scene.home)
+              .join('$HOME')
+              .replace(/comment \d+ posted/, 'comment <id> posted');
+          expect(
+            asMasked(JSON.parse(result.stdout).ledgerFault),
+          ).toMatchSnapshot();
+          // from the header on, as the t2 and t3 ledger-fault snaps are framed
+          const stderrBlock = result.stderr.slice(
+            result.stderr.indexOf('💥 MalfunctionError:'),
+          );
+          expect(asMasked(stderrBlock)).toMatchSnapshot();
+        });
       });
     },
   );

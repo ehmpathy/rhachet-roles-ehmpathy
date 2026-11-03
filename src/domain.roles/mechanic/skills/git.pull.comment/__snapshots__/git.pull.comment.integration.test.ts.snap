@@ -140,6 +140,18 @@ exports[`git.pull.comment given: [case2b] an enrolled clone notes each comment i
 "
 `;
 
+exports[`git.pull.comment given: [case2b] an enrolled clone notes each comment it posts in its pr-watch ledger when: [t4] the watch operations beside the skill will not load then: the load fault reads the same on each run 1`] = `"could not load <tmp>/.skills/git.pull.comment/../git.pull.watch/git.pull.watch.operations.sh: a peer the watch operations source is absent"`;
+
+exports[`git.pull.comment given: [case2b] an enrolled clone notes each comment it posts in its pr-watch ledger when: [t4] the watch operations beside the skill will not load then: the load fault reads the same on each run 2`] = `
+"💥 MalfunctionError: comment <id> posted, but the pr-watch ledger could not record it; your watch may alert you of it once
+   └─ cause: could not load <tmp>/.skills/git.pull.comment/../git.pull.watch/git.pull.watch.operations.sh: a peer the watch operations source is absent
+
+🥥 did you know?
+   └─ to fix it
+      └─ reinstall the mechanic role, so git.pull.watch sits beside git.pull.comment
+"
+`;
+
 exports[`git.pull.comment given: [case3] a reply posts to the thread replies endpoint when: [t0] set --reply-to 203 --key answer --mode apply then: it POSTs to pulls/7/comments/203/replies 1`] = `
 "🐢 heres the wave...
 

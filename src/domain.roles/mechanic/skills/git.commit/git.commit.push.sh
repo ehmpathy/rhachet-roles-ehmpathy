@@ -767,6 +767,13 @@ if [[ -n "$PR_NUMBER" && -n "${RHACHET_CLONE_SERIAL:-}" ]]; then
   WATCH_STATUS="$(get_push_watch_status "$PR_NUMBER")"
 fi
 
+# .what = did the watch fail? its line then opens with an error glyph
+# .why  = a failed watch never fails the push, but its line must still reach
+#         stderr, as every failure does (rule.require.skill-output-streams)
+is_push_watch_fault() {
+  [[ "$WATCH_STATUS" == "✋"* || "$WATCH_STATUS" == "💥"* ]]
+}
+
 # output results
 # json mode emits one machine-readable line and is done; tree mode is the linear
 # default below (no else — the early-exit keeps json off the tree path). a failed
@@ -788,6 +795,8 @@ if [[ "$OUTPUT" == "json" ]]; then
     echo "$PR_JSON" >&2
     exit 2
   fi
+  # the push and pr landed, but the watch failed: its line rides stderr too
+  is_push_watch_fault && echo "watch: $WATCH_STATUS" >&2
   exit 0
 fi
 
@@ -823,3 +832,6 @@ if [[ "$PR_OK" == false ]]; then
   echo "$TREE_OUTPUT" >&2
   exit 2
 fi
+# the push and pr landed, but the watch failed: its line rides stderr too
+is_push_watch_fault && echo "watch: $WATCH_STATUS" >&2
+exit 0

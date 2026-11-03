@@ -5,6 +5,29 @@ exports[`sessionstart.git-pull-watch.sh given: [case1] a box with one repo and o
 "
 `;
 
+exports[`sessionstart.git-pull-watch.sh given: [case1] a box with one repo and one clone when: [t4] a watch record under the key will not parse then: the fault tree reads the same on each run 1`] = `
+"💥 MalfunctionError: 1 pr-watch record(s) of v<key> are unreadable; a watch of this clone may be unserved
+   └─ records: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/
+
+🥥 did you know?
+   └─ to find the watch, pick one
+      ├─ see each watch: rhx git.pull.watch get
+      └─ rewatch a pr: rhx git.pull.watch set --pr <n> --mode apply
+"
+`;
+
+exports[`sessionstart.git-pull-watch.sh given: [case1] a box with one repo and one clone when: [t5] the clone holds a watch, and no daemon record stands then: it exits 0 and names the daemon it spawned 1`] = `
+"🐢 pr watch: daemon v<key> pid <pid>, spawned, for 1 watch(es)
+"
+`;
+
+exports[`sessionstart.git-pull-watch.sh given: [case2] a hook that cannot serve its watches when: [t0] the skill beside the hook is absent then: the fault tree reads the same on each run 1`] = `
+"💥 MalfunctionError: sessionstart.git-pull-watch.sh could not load <bare>/dist/inits/claude.hooks/../../skills/git.pull.watch/git.pull.watch.operations.sh; pr watches are unserved
+   ├─ cause: <the load error, at its temp path>
+   └─ fix: repair the cause, or reinstall the mechanic role
+"
+`;
+
 exports[`sessionstart.git-pull-watch.sh given: [case2] a hook that cannot serve its watches when: [t1] the clone holds a watch whose daemon cannot boot then: it exits 0, and names the boot death with its cause 1`] = `
 "💥 MalfunctionError: pr-watch daemon v<key> could not start: it died at boot; 1 watch(es) unserved
    ├─ cause: boot defect: the copy is corrupt

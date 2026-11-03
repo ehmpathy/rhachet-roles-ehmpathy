@@ -37,7 +37,8 @@ example:
 EOF
 }
 
-# parse args
+# parse args; a refusal in the loop speaks json if asked
+set_watch_output_from_args "$@"
 while [[ $# -gt 0 ]]; do
   [[ "$1" == --*=* ]] && set -- "${1%%=*}" "${1#*=}" "${@:2}"
   case "$1" in
@@ -154,7 +155,7 @@ print_watch_daemons_tree() {
        ($d.watches | to_entries[] | .key as $j | .value as $w
          | (if $j == ($d.watches | length) - 1 then "└─" else "├─" end) as $wb
          | if $w.unreadable then "\($under)   \($wb) unreadable record: \($w.record)"
-           else "\($under)   \($wb) \($w.repo)#\($w.pr) → @:\($w.cloneSlug) (\($w.repoRoot | split("/") | last))\(if $w.held > 0 then " · \($w.held) held" else "" end)\(if $w.primed then "" else " · not yet primed" end)" end)
+           else "\($under)   \($wb) \($w.repo)#\($w.pr) → @:\($w.cloneSlug) (\($w.repoRoot | split("/") | last))\(if $w.held > 0 then " · \($w.held) held" else "" end)\(if ($w.ended // null) != null then " · ended" else "" end)\(if $w.primed then "" else " · not yet primed" end)" end)
      end)
 ' <<<"$1"
 }
@@ -176,15 +177,19 @@ print_watch_daemons_tree "$DAEMONS"
 
 # a daemon that is stale, wedged, or gone leaves its watches unserved; name the cure
 if is_watch_daemons_unwell "$DAEMONS"; then
-  print_watch_coconut "a stale, wedged, or absent daemon serves no watch" \
-    "findsert a fresh one: rhx git.pull.watch set --pr <n> --mode apply" \
-    "read why it stopped: cat $(get_watch_unwell_log_path "$DAEMONS")"
+  print_watch_coconut_steps "a stale, wedged, or absent daemon serves no watch" \
+    "read why it stopped: cat $(get_watch_unwell_log_path "$DAEMONS")" \
+    "start a fresh one: rhx git.pull.watch set --pr <n> --mode apply"
 fi
+
+# a paused daemon reads naught until its token is back; name the fix for its status
+PAUSED="$(jq -r '[.[] | select(.paused != null)][0].paused // empty' <<<"$DAEMONS")"
+[[ -n "$PAUSED" ]] && print_watch_paused_coconut "$PAUSED"
 
 # a record that does not parse holds its watch; name the file and the cure
 UNREADABLE="$(get_watch_unreadable_record_path "$DAEMONS")"
 if [[ -n "$UNREADABLE" ]]; then
-  print_watch_coconut "a watch record that does not parse is held, never served" \
+  print_watch_coconut_steps "a watch record that does not parse is held, never served" \
     "read it: cat $UNREADABLE" \
     "rewrite it from its clone: rhx git.pull.watch set --pr <n> --mode apply"
 fi
