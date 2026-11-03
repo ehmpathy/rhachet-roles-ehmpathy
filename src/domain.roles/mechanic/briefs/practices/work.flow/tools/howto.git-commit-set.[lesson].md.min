@@ -1,30 +1,13 @@
 # git.commit.set
 
-creates commits as seaturtle[bot] with human co-author credit.
+commits as seaturtle[bot], human co-author credit:
+`printf 'type(scope): summary\n\n- detail' | rhx git.commit.set -m @stdin --mode apply`
 
-## usage
-
-```bash
-printf 'type(scope): summary\n\n- detail' | rhx git.commit.set -m @stdin --mode apply
-```
-
-## message format
-
-line 1 = header (required), line 2 = blank (required), lines 3+ = body (required)
-
-## options
-
-| option | description |
-|--------|-------------|
-| `--mode plan` | preview (default) |
-| `--mode apply` | execute |
-| `--push` | push + findsert pr |
-| `--unstaged ignore` | staged only |
-| `--unstaged include` | stage all first |
+message: header, blank line, body
+options: `--mode plan` (default) | `apply` · `--push` (push + findsert pr) · `--unstaged ignore` (staged only) | `include` (stage all first)
 
 ## prerequisite
 
-quota: a director governs the tree → ask it first, even if a refusal names a human (it runs `git.crew.grant`). else your human: `git.commit.uses set --quant N --push allow|block`
+quota: a director governs the tree → ask it, even if a refusal names a human (it runs `git.crew.grant`). else your human: `git.commit.uses set --quant N --push allow|block`
 
-sponsor: on the human's own machine, git config names them; no bind needed
-a bind wins over git config; on the clone's machine (git config names a seaturtle identity) a human must bind one, at a real terminal: `rhx git.commit.sponsor set --who <@stdin|@self|"Name <email>">`
+sponsor: git config names the human on their machine; a bind overrides it. where it names a seaturtle, a human binds one in a real terminal: `rhx git.commit.sponsor set --who <@stdin|@self|"Name <email>">`
