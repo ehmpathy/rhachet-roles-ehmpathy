@@ -28,13 +28,11 @@ describe('git.pull', () => {
     argsShared: string[],
   ) => ({
     titleGet: scene.run(skill('title', 'get'), argsShared),
-    titleSet: scene.run(skill('title', 'set'), [
-      '--title',
-      'feat(reef): map the kelp beds',
-      '--mode',
-      'apply',
-      ...argsShared,
-    ]),
+    titleSet: scene.run(
+      skill('title', 'set'),
+      ['--from', '@stdin', '--mode', 'apply', ...argsShared],
+      { stdin: 'feat(reef): map the kelp beds' },
+    ),
     descriptionGet: scene.run(skill('description', 'get'), argsShared),
     descriptionSet: scene.run(
       skill('description', 'set'),
@@ -248,14 +246,14 @@ describe('git.pull', () => {
         }).toMatchSnapshot();
       });
     });
-    when('[t8] title set names --title as its last arg, with no value', () => {
+    when('[t8] title set names --from as its last arg, with no value', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('it runs', async () =>
-        scene.run(skill('title', 'set'), ['--mode', 'plan', '--title']),
+        scene.run(skill('title', 'set'), ['--mode', 'plan', '--from']),
       );
       then('it exits 2 and names the absent value, no gh call', () => {
         expect(result.exitCode).toBe(2);
-        expect(result.stdout).toContain('--title needs a value');
+        expect(result.stdout).toContain('--from needs a value');
         expect(scene.getCalls()).toHaveLength(0);
         expect(result.stdout).toMatchSnapshot();
       });
@@ -268,6 +266,10 @@ describe('git.pull', () => {
           path.join(scene.tempDir, '.temp', 'kelp.md'),
           'kelp bed map, by tide\n',
         );
+        fs.writeFileSync(
+          path.join(scene.tempDir, '.temp', 'title.md'),
+          'feat(reef): map the kelp beds\n',
+        );
         return {
           titleGet: scene.run(skill('title', 'get'), [
             '--pr=7',
@@ -275,7 +277,7 @@ describe('git.pull', () => {
           ]),
           titleSet: scene.run(skill('title', 'set'), [
             '--pr=7',
-            '--title=feat(reef): map the kelp beds',
+            '--from=./.temp/title.md',
             '--mode=plan',
           ]),
           descriptionGet: scene.run(skill('description', 'get'), [
@@ -439,16 +441,20 @@ describe('git.pull', () => {
     when('[t0] --in names the home-org repo, with --pr 8', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('both sets run', async () => ({
-        title: scene.run(skill('title', 'set'), [
-          '--in',
-          'ehmpathy/surf-demo',
-          '--pr',
-          '8',
-          '--title',
-          'feat(reports): sync the wave report, via --in',
-          '--mode',
-          'apply',
-        ]),
+        title: scene.run(
+          skill('title', 'set'),
+          [
+            '--in',
+            'ehmpathy/surf-demo',
+            '--pr',
+            '8',
+            '--from',
+            '@stdin',
+            '--mode',
+            'apply',
+          ],
+          { stdin: 'feat(reports): sync the wave report, via --in' },
+        ),
         description: scene.run(
           skill('description', 'set'),
           [
@@ -543,15 +549,11 @@ describe('git.pull', () => {
       const dispatcher = (noun: string) =>
         path.join(__dirname, '..', `git.pull.${noun}`, `git.pull.${noun}.sh`);
       const result = useThen('both sets run via the dispatcher', async () => ({
-        title: scene.run(dispatcher('title'), [
-          'set',
-          '--pr',
-          '8',
-          '--title',
-          'feat(reports): sync the wave report, dispatched',
-          '--mode',
-          'apply',
-        ]),
+        title: scene.run(
+          dispatcher('title'),
+          ['set', '--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          { stdin: 'feat(reports): sync the wave report, dispatched' },
+        ),
         description: scene.run(
           dispatcher('description'),
           ['set', '--pr', '8', '--from', '@stdin', '--mode', 'apply'],
@@ -579,14 +581,11 @@ describe('git.pull', () => {
     when('[t0] each set plans with --output json', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('both plans run', async () => ({
-        title: scene.run(skill('title', 'set'), [
-          '--pr',
-          '8',
-          '--title',
-          'feat(reports): sync the wave report, planned',
-          '--output',
-          'json',
-        ]),
+        title: scene.run(
+          skill('title', 'set'),
+          ['--pr', '8', '--from', '@stdin', '--output', 'json'],
+          { stdin: 'feat(reports): sync the wave report, planned' },
+        ),
         description: scene.run(
           skill('description', 'set'),
           ['--pr', '8', '--from', '@stdin', '--output', 'json'],
@@ -669,6 +668,7 @@ describe('git.pull', () => {
             '--in',
             '--auth',
             '--output tree|json|text',
+            '--into <path>',
             '--help',
           ].forEach((flag) => expect(run.stdout).toContain(flag));
         });
@@ -709,14 +709,11 @@ describe('git.pull', () => {
     when('[t1] the title set already reads so', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('it runs', async () => ({
-        set: scene.run(skill('title', 'set'), [
-          '--title',
-          scene.getStore().prs['7']!.title,
-          '--mode',
-          'apply',
-          '--output',
-          'json',
-        ]),
+        set: scene.run(
+          skill('title', 'set'),
+          ['--from', '@stdin', '--mode', 'apply', '--output', 'json'],
+          { stdin: scene.getStore().prs['7']!.title },
+        ),
         writes: scene.getWrites().length,
       }));
       then('the json reports the no-op, with no read-back', () => {

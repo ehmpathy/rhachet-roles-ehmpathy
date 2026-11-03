@@ -116,11 +116,11 @@ describe('git.pull.description', () => {
         expect(result.stdout).toMatchSnapshot();
       });
     });
-    when('[t1] get --to a file, a section appended, set --from it', () => {
+    when('[t1] get --into a file, a section appended, set --from it', () => {
       const bodyPath = path.join(scene.tempDir, '.temp', 'body.md');
       const result = useThen('it runs', async () => {
         const get = scene.run(skill('git.pull.description.get'), [
-          '--to',
+          '--into',
           './.temp/body.md',
         ]);
         const fetched = fs.readFileSync(bodyPath, 'utf-8');
@@ -136,19 +136,23 @@ describe('git.pull.description', () => {
         ]);
         return { get, fetched, set };
       });
-      then('get --to writes the bare body, parent dir made', () => {
+      then('get --into writes the bare body, parent dir made', () => {
         expect(result.get.exitCode).toBe(0);
         expect(result.fetched).toBe(`surf lesson booker\n\n---\n${FOOTER}\n`);
-        expect(result.get.stdout).toContain('to: ./.temp/body.md');
+        expect(result.get.stdout).toContain('into: ./.temp/body.md');
       });
-      then('the get hint names the file, and set plans first', () => {
-        expect(result.get.stdout).toContain('1. edit ./.temp/body.md');
-        expect(result.get.stdout).toContain(
-          '2. rhx git.pull.description set --pr 7 --in ehmpathy/surf-demo --from ./.temp/body.md   # plan; add --mode apply to write',
-        );
-        expect(result.get.stdout).not.toContain('--output text >');
-        expect(result.get.stdout).toMatchSnapshot();
-      });
+      then(
+        'the get hint names the file, and set plans first, on this branch pull',
+        () => {
+          expect(result.get.stdout).toContain('1. edit ./.temp/body.md');
+          expect(result.get.stdout).toContain(
+            '2. rhx git.pull.description set --from ./.temp/body.md   # plan; add --mode apply to write',
+          );
+          expect(result.get.stdout).not.toContain('--pr 7');
+          expect(result.get.stdout).not.toContain('--output text >');
+          expect(result.get.stdout).toMatchSnapshot();
+        },
+      );
       then('the body holds the section and ends in one footer', () => {
         expect(result.set.exitCode).toBe(0);
         expect(result.set.stdout).toMatchSnapshot();
@@ -158,10 +162,10 @@ describe('git.pull.description', () => {
         expect(countFooters(live)).toBe(1);
       });
     });
-    when('[t2] the same get --to, then set --from, reruns', () => {
+    when('[t2] the same get --into, then set --from, reruns', () => {
       const result = useThen('it runs', async () => {
         scene.run(skill('git.pull.description.get'), [
-          '--to',
+          '--into',
           './.temp/body.md',
         ]);
         const before = scene.getWrites().length;
@@ -194,20 +198,20 @@ describe('git.pull.description', () => {
         expect(result.stdout).toMatchSnapshot();
       });
     });
-    when('[t4] get --to names a path outside the repo', () => {
+    when('[t4] get --into names a path outside the repo', () => {
       const result = useThen('it runs', async () =>
         scene.run(skill('git.pull.description.get'), [
-          '--to',
+          '--into',
           '../outside-the-reef.md',
         ]),
       );
       then('it refuses before any gh call, exit 2, both streams', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
-          "--to must name a path inside this repo, got '../outside-the-reef.md'",
+          "--into must name a path inside this repo, got '../outside-the-reef.md'",
         );
         expect(result.stderr).toContain(
-          '--to must name a path inside this repo',
+          '--into must name a path inside this repo',
         );
         expect(
           fs.existsSync(path.join(scene.tempDir, '..', 'outside-the-reef.md')),
@@ -215,13 +219,13 @@ describe('git.pull.description', () => {
         expect(result.stdout).toMatchSnapshot();
       });
     });
-    when('[t5] get --to names a file git tracks', () => {
+    when('[t5] get --into names a file git tracks', () => {
       const result = useThen('it runs', async () => {
         const tracked = path.join(scene.tempDir, 'reef-notes.md');
         fs.writeFileSync(tracked, 'the reef, as the human wrote it\n');
         spawnSync('git', ['add', 'reef-notes.md'], { cwd: scene.tempDir });
         const run = await scene.run(skill('git.pull.description.get'), [
-          '--to',
+          '--into',
           './reef-notes.md',
         ]);
         return { run, content: fs.readFileSync(tracked, 'utf-8') };
@@ -229,20 +233,20 @@ describe('git.pull.description', () => {
       then('it refuses before any gh call, and the file is untouched', () => {
         expect(result.run.exitCode).toBe(2);
         expect(result.run.stdout).toContain(
-          "--to names a file git tracks; get never overwrites one: './reef-notes.md'",
+          "--into names a file git tracks; get never overwrites one: './reef-notes.md'",
         );
-        expect(result.run.stderr).toContain('--to names a file git tracks');
+        expect(result.run.stderr).toContain('--into names a file git tracks');
         expect(result.content).toBe('the reef, as the human wrote it\n');
         expect(result.run.stdout).toMatchSnapshot();
       });
     });
-    when('[t6] get --to names a directory', () => {
+    when('[t6] get --into names a directory', () => {
       const result = useThen('it runs', async () => {
         const dir = path.join(scene.tempDir, 'tide-pools');
         fs.mkdirSync(dir, { recursive: true });
         const writesBefore = scene.getWrites().length;
         const run = await scene.run(skill('git.pull.description.get'), [
-          '--to',
+          '--into',
           './tide-pools',
         ]);
         return {
@@ -255,9 +259,9 @@ describe('git.pull.description', () => {
       then('it refuses before any gh call, and writes no file', () => {
         expect(result.run.exitCode).toBe(2);
         expect(result.run.stdout).toContain(
-          "--to names a directory, not a file: './tide-pools'",
+          "--into names a directory, not a file: './tide-pools'",
         );
-        expect(result.run.stderr).toContain('--to names a directory');
+        expect(result.run.stderr).toContain('--into names a directory');
         expect(result.isDir).toBe(true);
         expect(result.entries).toEqual([]);
         expect(result.writesNew).toBe(0);
@@ -1016,16 +1020,16 @@ describe('git.pull.description', () => {
           'get',
           '--output',
           'json',
-          '--to',
+          '--into',
           './.temp/tide.md',
         ]),
       }));
       then(
-        'get --output json --to names the file in `to`, and writes it',
+        'get --output json --into names the file in `into`, and writes it',
         () => {
           expect(result.getTo.exitCode).toBe(0);
           const json = JSON.parse(result.getTo.stdout);
-          expect(json.to).toBe('./.temp/tide.md');
+          expect(json.into).toBe('./.temp/tide.md');
           expect(
             fs.readFileSync(
               path.join(scene.tempDir, '.temp', 'tide.md'),
@@ -1081,10 +1085,110 @@ describe('git.pull.description', () => {
           expect(out.pr).toBe(8);
           expect(out.repairs).toEqual(['stripped the claude code line']);
           expect(out.sha256.readback).toBe(out.sha256.new);
-          expect(out.sha256.current).not.toBe(out.sha256.new);
+          expect(out.sha256.old).not.toBe(out.sha256.new);
           expect(out).toMatchSnapshot();
         },
       );
+    });
+  });
+
+  given('[case20] a body that holds a secret-shaped value', () => {
+    // .note = each value is composed at run time, so no secret-shaped literal sits in the source
+    const CASES: { description: string; secret: string; shape: string }[] = [
+      {
+        description: 'a private key header',
+        secret: `-----BEGIN RSA ${'PRIVATE'} KEY-----`,
+        shape: 'private key',
+      },
+      {
+        description: 'a slack token',
+        secret: `xo${'xb'}-${'7'.repeat(12)}-reefreefreef`,
+        shape: 'slack token',
+      },
+      {
+        description: 'a github fine-grained token',
+        secret: `github_${'pat'}_${'Q'.repeat(30)}`,
+        shape: 'github token',
+      },
+    ];
+    CASES.forEach((thisCase, index) =>
+      when(
+        `[t${index}] the body holds ${thisCase.description} on line 3`,
+        () => {
+          const scene = genGitPullScene(PULL_SCENE_BARE);
+          const result = useThen('plan and apply run', async () => {
+            const body = `tide chart for the reef\n\n${thisCase.secret}\n`;
+            const bodyBefore = scene.getStore().prs['7']!.body;
+            return {
+              bodyBefore,
+              plan: scene.run(
+                skill('git.pull.description.set'),
+                ['--from', '@stdin'],
+                { stdin: body },
+              ),
+              apply: scene.run(
+                skill('git.pull.description.set'),
+                ['--from', '@stdin', '--mode', 'apply'],
+                { stdin: body },
+              ),
+              calls: scene.getCalls().length,
+            };
+          });
+          then(
+            'each exits 2 before any gh call, names the shape and line, never the value',
+            () => {
+              [result.plan, result.apply].forEach((run) => {
+                expect(run.exitCode).toBe(2);
+                expect(run.stdout).toContain(
+                  "the body from '@stdin' holds a secret-shaped value",
+                );
+                expect(run.stdout).toContain(
+                  `shape: ${thisCase.shape}, line 3`,
+                );
+                expect(run.stdout).not.toContain(thisCase.secret);
+                expect(run.stderr).toContain('ConstraintError');
+              });
+              expect(result.calls).toBe(0);
+              expect(scene.getStore().prs['7']!.body).toBe(result.bodyBefore);
+              expect(result.apply.stdout).toMatchSnapshot();
+            },
+          );
+        },
+      ),
+    );
+    when('[t3] a body that names a key kind in prose, with no value', () => {
+      const scene = genGitPullScene(PULL_SCENE_BARE);
+      const result = useThen('it runs', async () =>
+        scene.run(skill('git.pull.description.set'), ['--from', '@stdin'], {
+          stdin:
+            'rotate the github token and the aws access key; see the keyrack\n',
+        }),
+      );
+      then('the plan passes: only a value shape is refused', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('verdict: would set (plan)');
+      });
+    });
+  });
+
+  given('[case21] the get hint keeps the target as the caller named it', () => {
+    when('[t0] get --pr 8 --into a file', () => {
+      const scene = genGitPullScene(PULL_SCENE_BARE);
+      const result = useThen('it runs', async () =>
+        scene.run(skill('git.pull.description.get'), [
+          '--pr',
+          '8',
+          '--into',
+          './.temp/body.md',
+        ]),
+      );
+      then('the set step names --pr 8, as typed', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          '2. rhx git.pull.description set --pr 8 --from ./.temp/body.md   # plan; add --mode apply to write',
+        );
+        expect(result.stdout).toMatchSnapshot();
+      });
     });
   });
 });

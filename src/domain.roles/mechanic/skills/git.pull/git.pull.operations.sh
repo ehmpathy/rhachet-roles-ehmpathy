@@ -29,7 +29,7 @@ source "$PULL_OPS_DIR/../git/git.attribution.operations.sh"
 
 # .what = check --output for a pull-field get: tree, json, or text
 # .why  = text prints the bare field to stdout, for a direct call of the skill file
-#         (fulcrum F9); via rhx, `get --to <path>` carries the bare field instead
+#         (fulcrum F9); via rhx, `get --into <path>` carries the bare field instead
 check_pull_get_output_arg() {
   is_arg_in_enum "$1" tree json text || fail_comment_constraint "--output must be tree, json, or text, got '$1'" "--output tree (the default)"
 }
@@ -73,18 +73,19 @@ as_pull_url_from_json() {
   jq -r '.html_url // ""'
 }
 
-# .what = check a --to path: empty (no file), or an untracked file path inside this repo
+# .what = check an --into path: empty (no file), or an untracked file path inside this repo
 # .why  = get writes the one file it names; a path outside the repo, a directory, or a
 #         file git tracks is refused before any gh call, so a typo cannot clobber work
+# .note = args: the --into value, then the paved file the fix names (./.temp/body.md, ./.temp/title.md)
 check_pull_field_file_arg() {
-  local to="$1" root abs
-  [[ -z "$to" ]] && return 0
-  root="$(git rev-parse --show-toplevel 2>/dev/null)" || fail_comment_constraint "--to needs a git repo at the cwd" "run it from inside the repo"
-  abs="$(realpath -m -- "$to")"
-  [[ "$abs" == "$root/"* ]] || fail_comment_constraint "--to must name a path inside this repo, got '$to'" "--to ./.temp/body.md"
-  [[ -d "$abs" ]] && fail_comment_constraint "--to names a directory, not a file: '$to'" "--to ./.temp/body.md"
+  local into="$1" paved="$2" root abs
+  [[ -z "$into" ]] && return 0
+  root="$(git rev-parse --show-toplevel 2>/dev/null)" || fail_comment_constraint "--into needs a git repo at the cwd" "run it from inside the repo"
+  abs="$(realpath -m -- "$into")"
+  [[ "$abs" == "$root/"* ]] || fail_comment_constraint "--into must name a path inside this repo, got '$into'" "--into $paved"
+  [[ -d "$abs" ]] && fail_comment_constraint "--into names a directory, not a file: '$into'" "--into $paved"
   git -C "$root" ls-files --error-unmatch -- "$abs" >/dev/null 2>&1 &&
-    fail_comment_constraint "--to names a file git tracks; get never overwrites one: '$to'" "--to ./.temp/body.md"
+    fail_comment_constraint "--into names a file git tracks; get never overwrites one: '$into'" "--into $paved"
   return 0
 }
 
@@ -92,9 +93,59 @@ check_pull_field_file_arg() {
 # .why  = a round trip through a file carries the exact text: no rhx header, no
 #         shell redirect; set --from reads it back as is
 set_pull_field_into_file() {
-  local text="$1" to="$2"
-  mkdir -p -- "$(dirname -- "$to")"
-  printf '%s\n' "$text" >"$to"
+  local text="$1" into="$2"
+  mkdir -p -- "$(dirname -- "$into")"
+  printf '%s\n' "$text" >"$into"
+}
+
+# .what = the target flags of a hint, as the caller named them
+# .why  = a verb with no --pr acts on this branch's pull, so its hint does too;
+#         --pr and --in ride the hint only when the caller typed them
+# .note = args: the --pr value, the --in value, as given. as-human adds --auth as-human
+as_pull_cmd_target() {
+  local pr_in="$1" repo_in="$2" out=""
+  [[ -n "$pr_in" ]] && out="--pr $pr_in"
+  [[ -n "$repo_in" ]] && out="${out:+$out }--in $repo_in"
+  [[ "$COMMENT_AUTH" == "as-human" ]] && out="${out:+$out }--auth as-human"
+  echo "$out"
+}
+
+# .what = the kind and line of the first secret-shaped value in a text; empty if none
+# .why  = a pull's words are public to every reader of the repo; a token pasted into
+#         a title or body would leak the moment it is set. the value is never echoed
+# .note = output: '<kind>:<line>'. kinds: github token, aws access key, private key,
+#         slack token, stripe live key, api secret key, google api key
+get_one_pull_text_secret_shape() {
+  local text="$1" shape kind pattern hit
+  local -a shapes=(
+    'github token|(ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{22,}'
+    'aws access key|(AKIA|ASIA)[A-Z0-9]{16}'
+    'private key|-----BEGIN [A-Z ]*PRIVATE KEY-----'
+    'slack token|xox[abprs]-[A-Za-z0-9-]{10,}'
+    'stripe live key|(sk|rk)_live_[A-Za-z0-9]{16,}'
+    'api secret key|sk-(ant-)?[A-Za-z0-9_-]{20,}'
+    'google api key|AIza[0-9A-Za-z_-]{35}'
+  )
+  for shape in "${shapes[@]}"; do
+    kind="${shape%%|*}"
+    pattern="${shape#*|}"
+    hit="$(printf '%s\n' "$text" | grep -nE -m1 -- "$pattern" | cut -d: -f1)" || true
+    [[ -n "$hit" ]] && { echo "$kind:$hit"; return 0; }
+  done
+  return 0
+}
+
+# .what = refuse a title or body that holds a secret-shaped value, before any gh call
+# .why  = once set, the pull shows the value to every reader and its edit history keeps
+#         it; no plan or apply may carry it there. names the kind and line, never the value
+# .note = args: the text, the field (title, body), the source (--from value)
+check_pull_text_holds_no_secret() {
+  local text="$1" field="$2" from="$3" found
+  found="$(get_one_pull_text_secret_shape "$text")"
+  [[ -z "$found" ]] && return 0
+  fail_comment_constraint "the $field from '$from' holds a secret-shaped value; a pull shows its words to every reader" \
+    "shape: ${found%%:*}, line ${found##*:} (the value is not echoed)" \
+    "remove the value from the $field, then rerun; a credential belongs in the keyrack, never in a pull"
 }
 
 # .what = a pull's state, from its json: open, closed, or merged
@@ -148,7 +199,7 @@ check_pull_by_self() {
   is_author_self "$author" && { PULL_WRITE_PR="$COMMENT_PR"; return 0; }
   who="${author:-its author}"
   # a stdin pipe prefix names the paved round-trip file; say so, since the caller may have piped another
-  [[ -n "$prefix" ]] && note="; pipe the same body in again"
+  [[ -n "$prefix" ]] && note="; pipe the same $([[ "$skill" == *title* ]] && echo title || echo body) in again"
   fail_comment_constraint "$COMMENT_REPO#$COMMENT_PR was opened by ${author:-an unknown login}, not by $COMMENT_LOGIN ($COMMENT_AUTH)" \
     "a set writes only a pull its own credential opened" \
     "${prefix}$(as_pull_cmd_under_auth "$skill" "$(as_auth_other "$COMMENT_AUTH")" "$@")   # if $who is that login: plan, then add --mode apply${note}"$'\n'"ask $who to set it; this credential may not"

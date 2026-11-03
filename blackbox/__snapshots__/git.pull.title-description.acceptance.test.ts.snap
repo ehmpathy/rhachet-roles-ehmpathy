@@ -2,7 +2,7 @@
 
 exports[`git.pull.title and git.pull.description, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] each verb is asked for --help then: each help is snapped 1`] = `
 {
-  "descGet": "usage: git.pull.description.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--to <path>]
+  "descGet": "usage: git.pull.description.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
 
 options:
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
@@ -10,13 +10,13 @@ options:
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
   --output tree|json|text      the output shape (default: tree); text = the body alone.
                                via rhx, stdout opens with rhx's header lines: for json parse
-                               from the first {; to edit the body, use --to
-  --to <path>                  also write the bare body to <path>, for you to edit and pass to
+                               from the first {; to edit the body, use --into
+  --into <path>                also write the bare body into <path>, for you to edit and pass to
                                set --from <path>. <path> must sit inside this repo, untracked by git
   --help, -h                   show this help
 
 example:
-  rhx git.pull.description get --to ./.temp/body.md
+  rhx git.pull.description get --into ./.temp/body.md
   rhx git.pull.description set --from ./.temp/body.md
 ",
   "descSet": "usage: git.pull.description.set --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
@@ -31,10 +31,10 @@ options:
   --help, -h                   show this help
 
 example:
-  rhx git.pull.description get --to ./.temp/body.md
+  rhx git.pull.description get --into ./.temp/body.md
   rhx git.pull.description set --from ./.temp/body.md --mode apply
 ",
-  "titleGet": "usage: git.pull.title.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text]
+  "titleGet": "usage: git.pull.title.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
 
 options:
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
@@ -42,16 +42,19 @@ options:
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
   --output tree|json|text      the output shape (default: tree). via rhx, stdout opens with
                                rhx's header lines: for text (the title alone) read the last
-                               line; for json parse from the first {
+                               line; for json parse from the first {; to edit it, use --into
+  --into <path>                also write the bare title into <path>, for you to edit and pass to
+                               set --from <path>. <path> must sit inside this repo, untracked by git
   --help, -h                   show this help
 
 example:
-  rhx git.pull.title get --pr 69
+  rhx git.pull.title get --into ./.temp/title.md
+  rhx git.pull.title set --from ./.temp/title.md
 ",
-  "titleSet": "usage: git.pull.title.set --title '<title>'|@stdin [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+  "titleSet": "usage: git.pull.title.set --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
-  --title '<title>'|@stdin     the new title, one line; @stdin reads it from a pipe, for a title a shell would mangle
+  --from <path|@stdin>         the new title, one line; from a file, or piped in
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
@@ -60,7 +63,9 @@ options:
   --help, -h                   show this help
 
 example:
-  rhx git.pull.title set --title 'feat(reef): map the kelp beds' --mode apply
+  rhx git.pull.title get --into ./.temp/title.md
+  rhx git.pull.title set --from ./.temp/title.md --mode apply
+  echo 'feat(reef): map the kelp beds' | rhx git.pull.title set --from @stdin --mode apply
 ",
 }
 `;
@@ -83,12 +88,12 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case1] a r
 "
 `;
 
-exports[`git.pull.title and git.pull.description, via rhachet given: [case1] a repo with the mechanic role linked when: [t3] description get --to names a path outside the repo then: it refuses with exit 2 and names the fix, on both streams 1`] = `
-"✋ ConstraintError: --to must name a path inside this repo, got '../outside-the-reef.md'
+exports[`git.pull.title and git.pull.description, via rhachet given: [case1] a repo with the mechanic role linked when: [t3] description get --into names a path outside the repo then: it refuses with exit 2 and names the fix, on both streams 1`] = `
+"✋ ConstraintError: --into must name a path inside this repo, got '../outside-the-reef.md'
 
 🥥 did you know?
    └─ to fix it
-      └─ --to ./.temp/body.md
+      └─ --into ./.temp/body.md
 "
 `;
 
@@ -102,7 +107,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case2] a l
    ├─ author: surfer-kai
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current
+   ├─ old
    │  ├─ bytes: 90
    │  └─ sha256: aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322
    ├─ new
@@ -120,7 +125,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case2] a l
    ├─ author: surfer-kai
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current
+   ├─ old
    │  ├─ bytes: 85
    │  └─ sha256: d1af4efd415d012c2c1e8f9eb90fd3f1c5b9613b485d610541f2a545474e7a6d
    ├─ new
@@ -139,7 +144,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case2] a l
    ├─ author: surfer-kai
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ to: ./.temp/body.md
+   ├─ into: ./.temp/body.md
    ├─ bytes: 85
    ├─ sha256: d1af4efd415d012c2c1e8f9eb90fd3f1c5b9613b485d610541f2a545474e7a6d
    └─ text
@@ -150,7 +155,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case2] a l
 🥥 did you know?
    └─ to edit it
       ├─ 1. edit ./.temp/body.md
-      └─ 2. rhx git.pull.description set --pr 7 --in ehmpathy/surf-demo --auth as-human --from ./.temp/body.md   # plan; add --mode apply to write
+      └─ 2. rhx git.pull.description set --auth as-human --from ./.temp/body.md   # plan; add --mode apply to write
 ",
   "descPlan": "🐢 heres the wave...
 
@@ -160,7 +165,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case2] a l
    ├─ author: surfer-kai
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current
+   ├─ old
    │  ├─ bytes: 85
    │  ├─ sha256: d1af4efd415d012c2c1e8f9eb90fd3f1c5b9613b485d610541f2a545474e7a6d
    │  └─ text
@@ -197,7 +202,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case2] a l
    ├─ author: surfer-kai
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson
+   ├─ old: feat(lessons): book a surf lesson
    ├─ new: feat(lessons): book a surf lesson, with limits
    └─ verdict: set, read back, matches
       └─ read-back: feat(lessons): book a surf lesson, with limits
@@ -228,7 +233,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case2] a l
   "state": "open",
   "bytes": 90,
   "sha256": "aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322",
-  "to": null,
+  "into": null,
   "body": "surf lesson booker\\n\\n## .limits\\n\\nno night lessons\\n\\n---\\n🐢🌊 surfed in by seaturtle[bot]"
 }
 ",
@@ -241,6 +246,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case2] a l
   "url": "https://github.com/ehmpathy/surf-demo/pull/7",
   "author": "surfer-kai",
   "state": "open",
+  "into": null,
   "title": "feat(lessons): book a surf lesson, with limits"
 }
 ",
@@ -252,13 +258,13 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case2] a l
    ├─ author: surfer-kai
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson, with limits
+   ├─ old: feat(lessons): book a surf lesson, with limits
    ├─ new: feat(lessons): book a dawn patrol lesson
    └─ verdict: would set (plan)
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ rhx git.pull.title.set --title 'feat(lessons): book a dawn patrol lesson' --auth as-human --mode apply
+      └─ cat ./.temp/title.md | rhx git.pull.title.set --from @stdin --auth as-human --mode apply   # pipe the same title in again
 ",
   "titleStdinNoop": "🐢 heres the wave...
 
@@ -268,7 +274,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case2] a l
    ├─ author: surfer-kai
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson, with limits
+   ├─ old: feat(lessons): book a surf lesson, with limits
    ├─ new: feat(lessons): book a surf lesson, with limits
    └─ verdict: already there — no-op
 ",
@@ -283,6 +289,13 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case3] a l
    └─ to fix it, pick one
       ├─ trim the body
       └─ move a section into a keyed comment: rhx git.pull.comment set --key <name> --from <file>
+",
+  "bodySecret": "✋ ConstraintError: the body from '@stdin' holds a secret-shaped value; a pull shows its words to every reader
+   └─ shape: github token, line 3 (the value is not echoed)
+
+🥥 did you know?
+   └─ to fix it
+      └─ remove the value from the body, then rerun; a credential belongs in the keyrack, never in a pull
 ",
   "foreignAuthor": "✋ ConstraintError: ehmpathy/surf-demo#8 was opened by reef-ranger, not by surfer-kai (as-human)
    └─ a set writes only a pull its own credential opened
@@ -314,17 +327,17 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case3] a l
       ├─ drop --pr to address the pull of this branch
       └─ rerun with --auth as-ehmpath
 ",
-  "titleEmpty": "✋ ConstraintError: the title is empty; a pull needs a title
+  "titleEmpty": "✋ ConstraintError: the title from '@stdin' is empty; a pull needs a title
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.title.set --title 'feat(reef): map the kelp beds'
+      └─ echo 'feat(reef): map the kelp beds' | rhx git.pull.title.set --from @stdin --auth as-human --mode apply   # pipe a title that is not empty
 ",
-  "titleMultiLine": "✋ ConstraintError: the title holds a newline; a pull title is one line
+  "titleMultiLine": "✋ ConstraintError: the title from '@stdin' holds a newline; a pull title is one line
 
 🥥 did you know?
    └─ to fix it
-      └─ put the first line in --title, the rest in the description
+      └─ keep the first line as the title; move the rest into the description
 ",
 }
 `;
@@ -340,7 +353,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case4] a l
    ├─ state: merged
    │  └─ note: the squash commit is already written; this edits the pull record only
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current: feat(reports): sync the wave report
+   ├─ old: feat(reports): sync the wave report
    ├─ new: feat(reports): sync the wave report, hourly
    └─ verdict: set, read back, matches
       └─ read-back: feat(reports): sync the wave report, hourly
@@ -360,7 +373,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case4] a l
    ├─ author: surfer-kai
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson
+   ├─ old: feat(lessons): book a surf lesson
    ├─ new: feat(lessons): book a dawn patrol lesson
    └─ verdict: set, read back, matches
       └─ read-back: feat(lessons): book a dawn patrol lesson
@@ -377,7 +390,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case4] a l
    ├─ author: surfer-kai
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current
+   ├─ old
    │  ├─ bytes: 18
    │  └─ sha256: 84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb
    ├─ new

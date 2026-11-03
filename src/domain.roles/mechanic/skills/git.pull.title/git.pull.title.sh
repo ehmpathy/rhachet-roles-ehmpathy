@@ -7,7 +7,7 @@
 #
 # usage:
 #   rhx git.pull.title get
-#   rhx git.pull.title set --title 'feat(reef): map the kelp beds' --mode apply
+#   rhx git.pull.title set --from ./.temp/title.md --mode apply
 #   rhx git.pull.title --help
 #
 # guarantee:

@@ -18,7 +18,8 @@
 #   - writes only a pull its own credential opened
 #   - plan by default; apply writes, reads back, and compares the sha256
 #   - a body that already reads so is a no-op; a rerun never stacks a footer
-#   - refuses an empty or wordless body, and one over github's cap, before any write
+#   - refuses an empty, wordless, or secret-shaped body, and one over github's
+#     cap, before any write
 ######################################################################
 set -euo pipefail
 
@@ -50,7 +51,7 @@ options:
   --help, -h                   show this help
 
 example:
-  rhx git.pull.description get --to ./.temp/body.md
+  rhx git.pull.description get --into ./.temp/body.md
   rhx git.pull.description set --from ./.temp/body.md --mode apply
 EOF
 }
@@ -101,8 +102,11 @@ FIX_EMPTY="write the body into '$FROM', then rerun"
 [[ "$FROM" == "@stdin" ]] && FIX_EMPTY="cat ./.temp/body.md | $(as_comment_cmd_in_mode "$SKILL" "$MODE" "${ORIG_ARGS[@]}")   # pipe a body that is not empty"
 [[ -s "$WORK/text.md" ]] || fail_comment_constraint "the body from '$FROM' is empty; an empty body would wipe the pull's description" "$FIX_EMPTY"
 
-# compose the posted body: strip foreign attribution, sign once
+# refuse a secret-shaped value before any gh call: a pull shows its body to every reader
 TEXT="$(cat "$WORK/text.md")"
+check_pull_text_holds_no_secret "$TEXT" body "$FROM"
+
+# compose the posted body: strip foreign attribution, sign once
 CLEAN="$(get_clean_pr_body "$TEXT")"
 # refuse a body that holds only attribution lines: it would wipe the pull to a signature (fulcrum F10)
 ! is_text_wordless "$CLEAN" || fail_comment_constraint "the body from '$FROM' holds no words once its attribution lines are stripped" \
@@ -115,14 +119,15 @@ check_body_under_cap "$(as_body_trimmed <"$WORK/posted.md" | as_chars_count)" \
   "move a section into a keyed comment: rhx git.pull.comment set --key <name> --from <file>" \
   "the body, with its seaturtle footer,"
 
-# find the pull, under the chosen credential
+# find the pull, under the chosen credential; a hint keeps the target as the caller named it
+PR_IN="$PR"
 set_pull_target "$PR" "$REPO_IN" "$SKILL" "$AUTH"
 PR="$COMMENT_PR"
 CURRENT="$(get_one_gh_pull "$PR")" || exit $?
 check_pull_by_self "$CURRENT" "$SKILL" "$STDIN_PIPE" "${ORIG_ARGS[@]}"
-CUR_BODY="$(printf '%s' "$CURRENT" | as_pull_field_from_json body)"
-CUR_SHA="$(printf '%s' "$CUR_BODY" | as_sha256)"
-CUR_BYTES="$(printf '%s' "$CUR_BODY" | as_bytes_count)"
+OLD_BODY="$(printf '%s' "$CURRENT" | as_pull_field_from_json body)"
+OLD_SHA="$(printf '%s' "$OLD_BODY" | as_sha256)"
+OLD_BYTES="$(printf '%s' "$OLD_BODY" | as_bytes_count)"
 URL="$(printf '%s' "$CURRENT" | as_pull_url_from_json)"
 AUTHOR="$(printf '%s' "$CURRENT" | as_pull_author_from_json)"
 STATE="$(printf '%s' "$CURRENT" | as_pull_state_from_json)"
@@ -130,7 +135,7 @@ LABEL="$COMMENT_REPO#$PR, description"
 
 # decide the verdict
 VERDICT="would set"
-[[ "$CUR_SHA" == "$NEW_SHA" ]] && VERDICT="no-op"
+[[ "$OLD_SHA" == "$NEW_SHA" ]] && VERDICT="no-op"
 
 # the repairs: what the set changes in what the caller passed; a no-op changes naught,
 # so tree and json both report none
@@ -139,16 +144,16 @@ REPAIR_LINE="$(as_pull_repair_summary "${REPAIRS[@]}")"
 [[ "$VERDICT" != "no-op" ]] || REPAIR_LINE="already applied (the pull holds this body, repaired)"
 
 # .what = emit the result of set: the tree, or the json contract
-#         { mode, verdict, target, pr, url, author, repairs, sha256: { current, new, readback } }
+#         { mode, verdict, target, pr, url, author, state, repairs, sha256: { old, new, readback } }
 # .why  = one leaf renders every verdict, so plan, write, and no-op read alike
 emit() {
   local verdict="$1" back="${2:-}"
   if [[ "$OUTPUT" == "json" ]]; then
     jq -n --arg mode "$MODE" --arg verdict "$verdict" --arg target "$LABEL" --arg pr "$PR" --arg url "$URL" \
       --arg author "$AUTHOR" --arg state "$STATE" --argjson repairs "$(as_json_array_of_args "${REPAIRS[@]}")" \
-      --arg cur "$CUR_SHA" --arg new "$NEW_SHA" --arg back "$back" '{
+      --arg old "$OLD_SHA" --arg new "$NEW_SHA" --arg back "$back" '{
         mode: $mode, verdict: $verdict, target: $target, pr: ($pr | tonumber), url: $url, author: $author, state: $state, repairs: $repairs,
-        sha256: { current: $cur, new: $new, readback: (if $back == "" then null else $back end) }
+        sha256: { old: $old, new: $new, readback: (if $back == "" then null else $back end) }
       }'
     return 0
   fi
@@ -161,16 +166,16 @@ emit() {
   # a merged pull's squash commit is already written; say so, so a set here is not read as a release-note fix
   [[ "$STATE" == "merged" ]] && echo "   │  └─ note: the squash commit is already written; this edits the pull record only"
   echo "   ├─ url: $URL"
-  echo "   ├─ current"
-  echo "   │  ├─ bytes: $CUR_BYTES"
+  echo "   ├─ old"
+  echo "   │  ├─ bytes: $OLD_BYTES"
   # a plan shows the text it would overwrite, read fresh, beside the new text
   if [[ "$verdict" == *"(plan)" ]]; then
-    echo "   │  ├─ sha256: $CUR_SHA"
+    echo "   │  ├─ sha256: $OLD_SHA"
     echo "   │  └─ text"
-    printf '%s\n' "$CUR_BODY" | as_tree_indented_text '   │     '
+    printf '%s\n' "$OLD_BODY" | as_tree_indented_text '   │     '
     echo "   │"
   fi
-  [[ "$verdict" == *"(plan)" ]] || echo "   │  └─ sha256: $CUR_SHA"
+  [[ "$verdict" == *"(plan)" ]] || echo "   │  └─ sha256: $OLD_SHA"
   echo "   ├─ new"
   echo "   │  ├─ from: $FROM"
   echo "   │  ├─ repair: $REPAIR_LINE"
@@ -211,7 +216,8 @@ set_one_gh_pull_field body "$PR" "$WORK/posted.md" \
 BACK="$(get_one_gh_pull "$PR")" || exit $?
 BACK_SHA="$(printf '%s' "$BACK" | as_pull_field_from_json body | as_sha256)"
 if [[ "$BACK_SHA" != "$NEW_SHA" ]]; then
-  fail_comment_malfunction "read-back hash mismatch on $LABEL" "$(printf 'posted sha256:    %s\nread-back sha256: %s\nstate: the description is live, with a body other than the one posted\nlive body: rhx git.pull.description get %s' "$NEW_SHA" "$BACK_SHA" "$(as_comment_cmd_target "$PR")")" \
+  TARGET="$(as_pull_cmd_target "$PR_IN" "$REPO_IN")"
+  fail_comment_malfunction "read-back hash mismatch on $LABEL" "$(printf 'posted sha256:    %s\nread-back sha256: %s\nstate: the description is live, with a body other than the one posted\nlive body: rhx git.pull.description get%s' "$NEW_SHA" "$BACK_SHA" "${TARGET:+ $TARGET}")" \
     "rerun the same command once: set overwrites the description, so a race converges" \
     "a second mismatch means github rewrites this body on write: compare it via the get above, and set the read-back text"
 fi

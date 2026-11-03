@@ -6,9 +6,9 @@ at the pr review. each row is a clean rework unless marked.
 | case | title | rework | status | confidence |
 |---|---|---|---|---|
 | F1 | target: current branch by default, `--pr` override | clean | taken (Q1 lean A) | 90% |
-| F2 | title input: inline `--title` | clean | taken (Q2 lean A) | 90% |
-| F3 | no quota gate on set | clean | taken (Q3 lean A) | 85% |
-| F4 | no secret-shaped body refusal | clean | taken (Q4 lean A) | 80% |
+| F2 | title input: inline `--title` | clean | overturned (commander, #1173 review: `--from <path\|@stdin>`, symmetric with the body) | 90% |
+| F3 | no quota gate on set | clean | ruled: kept (commander, #1173 review) | 85% |
+| F4 | no secret-shaped body refusal | clean | overturned (commander, #1173 review: in; both set verbs refuse) | 80% |
 | F5 | the attribution lives in `git/git.attribution.operations.sh` | clean | taken (Q5 lean B, after i002 r5) | 90% |
 | F6 | one `git.pull.operations.sh`, which sources #1143's ops rather than a copy | clean | taken (Q6 lean A, copy clause dropped) | 85% |
 | F7 | the fake gh is the gate; a live-api suite is opt-in, by a named target flag | clean | ruled B (commander 2026-10-31, director at 5.3) | 90% |

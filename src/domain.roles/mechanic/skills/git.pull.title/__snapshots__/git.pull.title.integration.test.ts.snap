@@ -27,13 +27,13 @@ exports[`git.pull.title given: [case3] a driver retitles its own pull when: [t1]
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson
+   ├─ old: feat(lessons): book a surf lesson
    ├─ new: feat(lessons): book a surf lesson, with a reef map
    └─ verdict: would set (plan)
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ rhx git.pull.title.set --title 'feat(lessons): book a surf lesson, with a reef map' --mode apply
+      └─ cat ./.temp/title.md | rhx git.pull.title.set --from @stdin --mode apply   # pipe the same title in again
 "
 `;
 
@@ -46,7 +46,7 @@ exports[`git.pull.title given: [case3] a driver retitles its own pull when: [t2]
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson
+   ├─ old: feat(lessons): book a surf lesson
    ├─ new: feat(lessons): book a surf lesson, with a reef map
    └─ verdict: set, read back, matches
       └─ read-back: feat(lessons): book a surf lesson, with a reef map
@@ -62,9 +62,53 @@ exports[`git.pull.title given: [case3] a driver retitles its own pull when: [t3]
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson, with a reef map
+   ├─ old: feat(lessons): book a surf lesson, with a reef map
    ├─ new: feat(lessons): book a surf lesson, with a reef map
    └─ verdict: already there — no-op
+"
+`;
+
+exports[`git.pull.title given: [case3b] the round trip through a file: get --into, edit, set --from when: [t0] get writes the bare title into a file then: the file holds the bare title; the hint names the set 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.title.get
+   ├─ target: ehmpathy/surf-demo#7, title
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ into: ./.temp/title.md
+   └─ title: feat(lessons): book a surf lesson
+
+🥥 did you know?
+   └─ to edit it
+      ├─ 1. edit ./.temp/title.md
+      └─ 2. rhx git.pull.title set --from ./.temp/title.md   # plan; add --mode apply to write
+"
+`;
+
+exports[`git.pull.title given: [case3b] the round trip through a file: get --into, edit, set --from when: [t1] the file is edited and set --from it applies then: the pull holds the edited title, read back 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.title.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, title
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
+   ├─ old: feat(lessons): book a surf lesson
+   ├─ new: feat(lessons): book a surf lesson, with a reef map
+   └─ verdict: set, read back, matches
+      └─ read-back: feat(lessons): book a surf lesson, with a reef map
+"
+`;
+
+exports[`git.pull.title given: [case3b] the round trip through a file: get --into, edit, set --from when: [t2] --into names a file git tracks then: it exits 2 before any gh call and names the paved file 1`] = `
+"✋ ConstraintError: --into names a file git tracks; get never overwrites one: './reef-title.md'
+
+🥥 did you know?
+   └─ to fix it
+      └─ --into ./.temp/title.md
 "
 `;
 
@@ -99,7 +143,7 @@ exports[`git.pull.title given: [case5] as-human, with gh logged in when: [t0] se
    ├─ author: surfer-kai
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson
+   ├─ old: feat(lessons): book a surf lesson
    ├─ new: feat(lessons): book a surf lesson, with a reef map
    └─ verdict: set, read back, matches
       └─ read-back: feat(lessons): book a surf lesson, with a reef map
@@ -115,7 +159,7 @@ exports[`git.pull.title given: [case6] a peer pull, by number when: [t0] set --p
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current: feat(reports): sync the wave report
+   ├─ old: feat(reports): sync the wave report
    ├─ new: feat(reports): sync the wave report nightly
    └─ verdict: set, read back, matches
       └─ read-back: feat(reports): sync the wave report nightly
@@ -131,37 +175,47 @@ exports[`git.pull.title given: [case6] a peer pull, by number when: [t1] set --p
    ├─ author: ehm-seaturtle
    ├─ state: closed
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current: feat(reports): sync the wave report
+   ├─ old: feat(reports): sync the wave report
    ├─ new: feat(reports): sync the wave report, archived
    └─ verdict: set, read back, matches
       └─ read-back: feat(reports): sync the wave report, archived
 "
 `;
 
-exports[`git.pull.title given: [case8] refused before any gh call when: [t0] the title is empty, absent, or two lines then: each exits 2 and calls no gh 1`] = `
-"✋ ConstraintError: the title is empty; a pull needs a title
+exports[`git.pull.title given: [case8] refused before any gh call when: [t0] the title is empty, absent, two lines, or not a file then: each exits 2 and calls no gh 1`] = `
+"✋ ConstraintError: the title from '@stdin' is empty; a pull needs a title
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.title.set --title 'feat(reef): map the kelp beds'
+      └─ echo 'feat(reef): map the kelp beds' | rhx git.pull.title.set --from @stdin --mode plan   # pipe a title that is not empty
 "
 `;
 
-exports[`git.pull.title given: [case8] refused before any gh call when: [t0] the title is empty, absent, or two lines then: each exits 2 and calls no gh 2`] = `
-"✋ ConstraintError: --title '<title>' is required
+exports[`git.pull.title given: [case8] refused before any gh call when: [t0] the title is empty, absent, two lines, or not a file then: each exits 2 and calls no gh 2`] = `
+"✋ ConstraintError: --from <path|@stdin> is required
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.title.set --title 'feat(reef): map the kelp beds'
+      └─ rhx git.pull.title.set --from ./.temp/title.md
 "
 `;
 
-exports[`git.pull.title given: [case8] refused before any gh call when: [t0] the title is empty, absent, or two lines then: each exits 2 and calls no gh 3`] = `
-"✋ ConstraintError: the title holds a newline; a pull title is one line
+exports[`git.pull.title given: [case8] refused before any gh call when: [t0] the title is empty, absent, two lines, or not a file then: each exits 2 and calls no gh 3`] = `
+"✋ ConstraintError: the title from '@stdin' holds a newline; a pull title is one line
 
 🥥 did you know?
    └─ to fix it
-      └─ put the first line in --title, the rest in the description
+      └─ keep the first line as the title; move the rest into the description
+"
+`;
+
+exports[`git.pull.title given: [case8] refused before any gh call when: [t0] the title is empty, absent, two lines, or not a file then: each exits 2 and calls no gh 4`] = `
+"✋ ConstraintError: --from './.temp/absent.md' is not a file
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ name a title file that exists
+      └─ pipe the title in via --from @stdin
 "
 `;
 
@@ -177,6 +231,7 @@ exports[`git.pull.title given: [case10] the verbs dispatch as \`git.pull.title <
 exports[`git.pull.title given: [case10] the verbs dispatch as \`git.pull.title <verb>\` when: [t0] get, help, and an unknown verb run via the dispatcher then: get returns the title as json 1`] = `
 {
   "author": "ehm-seaturtle",
+  "into": null,
   "pr": 7,
   "repo": "ehmpathy/surf-demo",
   "state": "open",
@@ -186,10 +241,10 @@ exports[`git.pull.title given: [case10] the verbs dispatch as \`git.pull.title <
 `;
 
 exports[`git.pull.title given: [case10] the verbs dispatch as \`git.pull.title <verb>\` when: [t0] get, help, and an unknown verb run via the dispatcher then: help names both verbs; set --help names its flags 1`] = `
-"usage: git.pull.title.set --title '<title>'|@stdin [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+"usage: git.pull.title.set --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
-  --title '<title>'|@stdin     the new title, one line; @stdin reads it from a pipe, for a title a shell would mangle
+  --from <path|@stdin>         the new title, one line; from a file, or piped in
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
@@ -198,7 +253,9 @@ options:
   --help, -h                   show this help
 
 example:
-  rhx git.pull.title set --title 'feat(reef): map the kelp beds' --mode apply
+  rhx git.pull.title get --into ./.temp/title.md
+  rhx git.pull.title set --from ./.temp/title.md --mode apply
+  echo 'feat(reef): map the kelp beds' | rhx git.pull.title set --from @stdin --mode apply
 "
 `;
 
@@ -226,26 +283,7 @@ exports[`git.pull.title given: [case12] the less-trod paths of set when: [t0] gi
 "
 `;
 
-exports[`git.pull.title given: [case12] the less-trod paths of set when: [t1] the title holds an apostrophe, under plan then: the apply hint quotes it so a paste runs as is 1`] = `
-"🐢 heres the wave...
-
-🐚 git.pull.title.set --mode plan
-   ├─ target: ehmpathy/surf-demo#7, title
-   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
-   ├─ author: ehm-seaturtle
-   ├─ state: open
-   ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson
-   ├─ new: fix(lessons): kai's board size
-   └─ verdict: would set (plan)
-
-🥥 did you know?
-   └─ plan writes naught; to write it
-      └─ rhx git.pull.title.set --title 'fix(lessons): kai'\\''s board size' --mode apply
-"
-`;
-
-exports[`git.pull.title given: [case12] the less-trod paths of set when: [t2] set applies with --output json then: stdout is one json object with the before, after, and read-back 1`] = `
+exports[`git.pull.title given: [case12] the less-trod paths of set when: [t2] set applies with --output json then: stdout is one json object with the old, new, and read-back 1`] = `
 {
   "author": "ehm-seaturtle",
   "mode": "apply",
@@ -253,8 +291,8 @@ exports[`git.pull.title given: [case12] the less-trod paths of set when: [t2] se
   "state": "open",
   "target": "ehmpathy/surf-demo#7, title",
   "title": {
-    "current": "feat(lessons): book a surf lesson",
     "new": "feat(lessons): book a surf lesson, with a reef map",
+    "old": "feat(lessons): book a surf lesson",
     "readback": "feat(lessons): book a surf lesson, with a reef map",
   },
   "url": "https://github.com/ehmpathy/surf-demo/pull/7",
@@ -271,7 +309,7 @@ exports[`git.pull.title given: [case13] a title passed with blanks at its ends w
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson
+   ├─ old: feat(lessons): book a surf lesson
    ├─ new: feat(lessons): book a surf lesson, with a reef map
    └─ verdict: set, read back, matches
       └─ read-back: feat(lessons): book a surf lesson, with a reef map
@@ -287,7 +325,7 @@ exports[`git.pull.title given: [case13] a title passed with blanks at its ends w
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson, with a reef map
+   ├─ old: feat(lessons): book a surf lesson, with a reef map
    ├─ new: feat(lessons): book a surf lesson, with a reef map
    └─ verdict: already there — no-op
 "
@@ -299,7 +337,7 @@ exports[`git.pull.title given: [case17] a pull its credential did not open when:
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.title.set --pr 8 --title 'feat(reports): mine now' --mode plan --auth as-human   # if reef-ranger is that login: plan, then add --mode apply
+      ├─ cat ./.temp/title.md | rhx git.pull.title.set --from @stdin --pr 8 --mode plan --auth as-human   # if reef-ranger is that login: plan, then add --mode apply; pipe the same title in again
       └─ ask reef-ranger to set it; this credential may not
 "
 `;
@@ -310,12 +348,12 @@ exports[`git.pull.title given: [case17] a pull its credential did not open when:
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.title.set --title 'feat(lessons): book a surf lesson, with a reef map' --mode plan --auth as-human   # if surfer-kai is that login: plan, then add --mode apply
+      ├─ cat ./.temp/title.md | rhx git.pull.title.set --from @stdin --mode plan --auth as-human   # if surfer-kai is that login: plan, then add --mode apply; pipe the same title in again
       └─ ask surfer-kai to set it; this credential may not
 "
 `;
 
-exports[`git.pull.title given: [case18] a title a shell would mangle, via @stdin when: [t0] set applies a title with backticks from stdin then: the title is set as piped, read back 1`] = `
+exports[`git.pull.title given: [case18] a title a shell would mangle, via @stdin when: [t0] set applies a title with backticks and a quote from stdin then: the title is set as piped, read back 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.title.set --mode apply
@@ -324,10 +362,10 @@ exports[`git.pull.title given: [case18] a title a shell would mangle, via @stdin
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson
-   ├─ new: fix(lessons): book via \`rhx booklesson\`
+   ├─ old: feat(lessons): book a surf lesson
+   ├─ new: fix(lessons): book kai's lesson via \`rhx booklesson\`
    └─ verdict: set, read back, matches
-      └─ read-back: fix(lessons): book via \`rhx booklesson\`
+      └─ read-back: fix(lessons): book kai's lesson via \`rhx booklesson\`
 "
 `;
 
@@ -340,13 +378,13 @@ exports[`git.pull.title given: [case18] a title a shell would mangle, via @stdin
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson
-   ├─ new: fix(lessons): book via \`rhx booklesson\`
+   ├─ old: feat(lessons): book a surf lesson
+   ├─ new: fix(lessons): book kai's lesson via \`rhx booklesson\`
    └─ verdict: would set (plan)
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ cat ./.temp/title.txt | rhx git.pull.title.set --title @stdin --mode apply   # pipe the same title in again
+      └─ cat ./.temp/title.md | rhx git.pull.title.set --from @stdin --mode apply   # pipe the same title in again
 "
 `;
 
@@ -360,13 +398,13 @@ exports[`git.pull.title given: [case19] a merged pull, and a write github refuse
    ├─ state: merged
    │  └─ note: the squash commit is already written; this edits the pull record only
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current: feat(reports): sync the wave report
+   ├─ old: feat(reports): sync the wave report
    ├─ new: feat(lessons): book a surf lesson, with a reef map
    └─ verdict: would set (plan)
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ rhx git.pull.title.set --pr 8 --title 'feat(lessons): book a surf lesson, with a reef map' --mode apply
+      └─ cat ./.temp/title.md | rhx git.pull.title.set --from @stdin --pr 8 --mode apply   # pipe the same title in again
 "
 `;
 
@@ -380,7 +418,7 @@ exports[`git.pull.title given: [case19] a merged pull, and a write github refuse
    ├─ state: merged
    │  └─ note: the squash commit is already written; this edits the pull record only
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current: feat(reports): sync the wave report
+   ├─ old: feat(reports): sync the wave report
    ├─ new: feat(lessons): book a surf lesson, with a reef map
    └─ verdict: set, read back, matches
       └─ read-back: feat(lessons): book a surf lesson, with a reef map
@@ -395,5 +433,25 @@ exports[`git.pull.title given: [case19] a merged pull, and a write github refuse
    └─ to fix it, pick one
       ├─ check the credential can act on ehmpathy/surf-demo
       └─ rerun with --auth as-human
+"
+`;
+
+exports[`git.pull.title given: [case20] a title that holds a secret-shaped value when: [t0] the title holds a github token then: each exits 2 before any gh call, names the shape, never the value 1`] = `
+"✋ ConstraintError: the title from '@stdin' holds a secret-shaped value; a pull shows its words to every reader
+   └─ shape: github token, line 1 (the value is not echoed)
+
+🥥 did you know?
+   └─ to fix it
+      └─ remove the value from the title, then rerun; a credential belongs in the keyrack, never in a pull
+"
+`;
+
+exports[`git.pull.title given: [case20] a title that holds a secret-shaped value when: [t1] the title holds an aws access key then: each exits 2 before any gh call, names the shape, never the value 1`] = `
+"✋ ConstraintError: the title from '@stdin' holds a secret-shaped value; a pull shows its words to every reader
+   └─ shape: aws access key, line 1 (the value is not echoed)
+
+🥥 did you know?
+   └─ to fix it
+      └─ remove the value from the title, then rerun; a credential belongs in the keyrack, never in a pull
 "
 `;

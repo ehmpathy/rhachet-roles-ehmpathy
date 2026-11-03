@@ -126,9 +126,9 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
         );
       });
       then('the description round trip goes through a file, never a redirect', () => {
-        expect(result.descGet.stdout).toContain('--to <path>');
+        expect(result.descGet.stdout).toContain('--into <path>');
         expect(result.descGet.stdout).toContain(
-          'rhx git.pull.description get --to ./.temp/body.md',
+          'rhx git.pull.description get --into ./.temp/body.md',
         );
         expect(result.descGet.stdout).not.toContain('--output text >');
       });
@@ -200,21 +200,21 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
       });
     });
 
-    when('[t3] description get --to names a path outside the repo', () => {
+    when('[t3] description get --into names a path outside the repo', () => {
       const result = useThen('it runs', async () =>
         runViaRhachet({
           dir: scene.dir,
           skill: 'git.pull.description.get',
-          args: ['--pr', '7', '--to', '../outside-the-reef.md'],
+          args: ['--pr', '7', '--into', '../outside-the-reef.md'],
         }),
       );
       then('it refuses with exit 2 and names the fix, on both streams', () => {
         expect(result.code).toBe(2);
         expect(result.stdout).toContain(
-          "--to must name a path inside this repo, got '../outside-the-reef.md'",
+          "--into must name a path inside this repo, got '../outside-the-reef.md'",
         );
         expect(result.stderr).toContain(
-          "✋ ConstraintError: --to must name a path inside this repo, got '../outside-the-reef.md'",
+          "✋ ConstraintError: --into must name a path inside this repo, got '../outside-the-reef.md'",
         );
         expect(asSkillRender(result)).toMatchSnapshot();
       });
@@ -284,13 +284,13 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
         const titleGet = run('git.pull.title', ['get']);
         const descGet = run('git.pull.description', [
           'get',
-          '--to',
+          '--into',
           './.temp/body.md',
         ]);
         const bodyPath = path.join(scene.dir, '.temp', 'body.md');
         // a get that wrote no file fails loud with what the caller saw
         if (!fs.existsSync(bodyPath))
-          throw new MalfunctionError('get --to wrote no file', {
+          throw new MalfunctionError('get --into wrote no file', {
             titleGet,
             descGet,
           });
@@ -316,10 +316,14 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
           '--mode',
           'apply',
         ]);
+        fs.writeFileSync(
+          path.join(scene.dir, '.temp', 'title.md'),
+          'feat(lessons): book a surf lesson, with limits\n',
+        );
         const titleApply = run('git.pull.title', [
           'set',
-          '--title',
-          'feat(lessons): book a surf lesson, with limits',
+          '--from',
+          './.temp/title.md',
           '--mode',
           'apply',
         ]);
@@ -342,7 +346,7 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
           'feat(lessons): book a surf lesson',
         );
       });
-      then('get --to lands the bare body in the file', () => {
+      then('get --into lands the bare body in the file', () => {
         expect(result.descGet.code).toBe(0);
         expect(result.fetched).toContain('surf lesson booker');
         expect(result.fetched).not.toContain('heres the wave');
@@ -417,14 +421,14 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
         const writesBefore = sceneOwn.stub.getWrites().length;
         const titleJson = run('git.pull.title', ['get', '--output', 'json']);
         const descJson = run('git.pull.description', ['get', '--output', 'json']);
-        const titlePlan = run('git.pull.title', [
-          'set',
-          '--title',
-          'feat(lessons): book a dawn patrol lesson',
-        ]);
+        const titlePlan = run(
+          'git.pull.title',
+          ['set', '--from', '@stdin'],
+          'feat(lessons): book a dawn patrol lesson\n',
+        );
         const titleStdinNoop = run(
           'git.pull.title',
-          ['set', '--title', '@stdin', '--mode', 'apply'],
+          ['set', '--from', '@stdin', '--mode', 'apply'],
           'feat(lessons): book a surf lesson, with limits\n',
         );
         return {
@@ -530,14 +534,22 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
             '--in',
             'seaturtlecorp/surf-demo',
           ]),
-          titleEmpty: run('git.pull.title', ['set', '--title', '', '--mode', 'apply']),
-          titleMultiLine: run('git.pull.title', [
-            'set',
-            '--title',
+          titleEmpty: run(
+            'git.pull.title',
+            ['set', '--from', '@stdin', '--mode', 'apply'],
+            '',
+          ),
+          titleMultiLine: run(
+            'git.pull.title',
+            ['set', '--from', '@stdin', '--mode', 'apply'],
             'feat(lessons): book\na surf lesson',
-            '--mode',
-            'apply',
-          ]),
+          ),
+          // .note = composed at run time, so no secret-shaped literal sits in the source
+          bodySecret: run(
+            'git.pull.description',
+            ['set', '--from', '@stdin', '--mode', 'apply'],
+            `surf lesson booker\n\ndeploy key: gh${'p'}_${'k'.repeat(36)}\n`,
+          ),
           bodyOverCap: run(
             'git.pull.description',
             ['set', '--from', '@stdin', '--mode', 'apply'],
@@ -567,8 +579,14 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
         expect(result.runs.foreignOrg.stdout).toContain(
           "owner 'seaturtlecorp' is outside the home orgs",
         );
-        expect(result.runs.titleEmpty.stdout).toContain('the title is empty');
+        expect(result.runs.titleEmpty.stdout).toContain(
+          "the title from '@stdin' is empty",
+        );
         expect(result.runs.titleMultiLine.stdout).toContain('newline');
+        expect(result.runs.bodySecret.stdout).toContain(
+          'shape: github token, line 3 (the value is not echoed)',
+        );
+        expect(result.runs.bodySecret.stdout).not.toContain(`gh${'p'}_`);
         expect(result.runs.bodyOverCap.stdout).toContain('65536');
         expect(result.runs.loggedOut.stdout).toContain('gh auth login');
       });
@@ -619,34 +637,25 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
 
     when('[t0] the driver reads its own pull, then sets peer pulls by number', () => {
       const result = useThen('it runs', async () => {
-        const run = (skill: string, args: string[]) =>
+        const run = (skill: string, args: string[], stdin?: string) =>
           runViaRhachet({
             dir: scene.dir,
             skill,
             args: [...args, '--auth', 'as-human'],
+            stdin,
             env: scene.stub.env,
           });
         const ownAbsent = run('git.pull.title', ['get']);
-        const peerSet = run('git.pull.title', [
-          'set',
-          '--pr',
-          '7',
-          '--in',
-          'ehmpathy/surf-demo',
-          '--title',
-          'feat(lessons): book a dawn patrol lesson',
-          '--mode',
-          'apply',
-        ]);
-        const mergedSet = run('git.pull.title', [
-          'set',
-          '--pr',
-          '8',
-          '--title',
-          'feat(reports): sync the wave report, hourly',
-          '--mode',
-          'apply',
-        ]);
+        const peerSet = run(
+          'git.pull.title',
+          ['set', '--pr', '7', '--in', 'ehmpathy/surf-demo', '--from', '@stdin', '--mode', 'apply'],
+          'feat(lessons): book a dawn patrol lesson\n',
+        );
+        const mergedSet = run(
+          'git.pull.title',
+          ['set', '--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          'feat(reports): sync the wave report, hourly\n',
+        );
         return {
           ownAbsent,
           peerSet,

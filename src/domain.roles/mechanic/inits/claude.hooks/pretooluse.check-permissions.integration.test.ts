@@ -2065,7 +2065,7 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
             inventory.entries.find((entry) => entry.heads.includes(head))
               ?.alternatives ?? [];
           expect(offerFor('gh pr edit')).toEqual([
-            "rhx git.pull.title set --title '<title>'",
+            'rhx git.pull.title set --from ./.temp/title.md',
             'rhx git.pull.description set --from ./.temp/body.md',
           ]);
           expect(offerFor('gh pr comment')).toEqual([

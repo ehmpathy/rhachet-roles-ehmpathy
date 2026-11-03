@@ -306,12 +306,12 @@ exports[`git.pull given: [case1b] each verb refuses bad input before any gh call
 }
 `;
 
-exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t8] title set names --title as its last arg, with no value then: it exits 2 and names the absent value, no gh call 1`] = `
-"✋ ConstraintError: --title needs a value
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t8] title set names --from as its last arg, with no value then: it exits 2 and names the absent value, no gh call 1`] = `
+"✋ ConstraintError: --from needs a value
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.title.set --title 'feat(reef): map the kelp beds'
+      └─ rhx git.pull.title.set --help   # lists each flag and its value
 "
 `;
 
@@ -325,7 +325,7 @@ exports[`git.pull given: [case1b] each verb refuses bad input before any gh call
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current
+   ├─ old
    │  ├─ bytes: 60
    │  ├─ sha256: 8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28
    │  └─ text
@@ -359,13 +359,13 @@ exports[`git.pull given: [case1b] each verb refuses bad input before any gh call
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current: feat(lessons): book a surf lesson
+   ├─ old: feat(lessons): book a surf lesson
    ├─ new: feat(reef): map the kelp beds
    └─ verdict: would set (plan)
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ rhx git.pull.title.set --pr=7 '--title=feat(reef): map the kelp beds' --mode apply
+      └─ rhx git.pull.title.set --pr=7 --from=./.temp/title.md --mode apply
 ",
 }
 `;
@@ -524,7 +524,7 @@ exports[`git.pull given: [case4] --in names the repo when: [t0] --in names the h
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current: feat(reports): sync the wave report
+   ├─ old: feat(reports): sync the wave report
    ├─ new: feat(reports): sync the wave report, via --in
    └─ verdict: set, read back, matches
       └─ read-back: feat(reports): sync the wave report, via --in
@@ -540,7 +540,7 @@ exports[`git.pull given: [case4] --in names the repo when: [t0] --in names the h
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current
+   ├─ old
    │  ├─ bytes: 16
    │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    ├─ new
@@ -625,7 +625,7 @@ exports[`git.pull given: [case5] the dispatcher routes set, as it routes get whe
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current: feat(reports): sync the wave report
+   ├─ old: feat(reports): sync the wave report
    ├─ new: feat(reports): sync the wave report, dispatched
    └─ verdict: set, read back, matches
       └─ read-back: feat(reports): sync the wave report, dispatched
@@ -641,7 +641,7 @@ exports[`git.pull given: [case5] the dispatcher routes set, as it routes get whe
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current
+   ├─ old
    │  ├─ bytes: 16
    │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    ├─ new
@@ -662,8 +662,8 @@ exports[`git.pull given: [case6] the less-trod contract paths of each noun when:
   "state": "open",
   "target": "ehmpathy/surf-demo#8, title",
   "title": {
-    "current": "feat(reports): sync the wave report",
     "new": "feat(reports): sync the wave report, planned",
+    "old": "feat(reports): sync the wave report",
     "readback": null,
   },
   "url": "https://github.com/ehmpathy/surf-demo/pull/8",
@@ -678,8 +678,8 @@ exports[`git.pull given: [case6] the less-trod contract paths of each noun when:
   "pr": 8,
   "repairs": [],
   "sha256": {
-    "current": "7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa",
     "new": "7e490553ea8b8f05d7de6481c9d3e7baac24fe82a462ae0b9949a44862535187",
+    "old": "7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa",
     "readback": null,
   },
   "state": "open",
@@ -712,7 +712,7 @@ exports[`git.pull given: [case6] the less-trod contract paths of each noun when:
 `;
 
 exports[`git.pull given: [case6] the less-trod contract paths of each noun when: [t3] each get and each noun shows its --help then: each get help names every flag 1`] = `
-"usage: git.pull.title.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text]
+"usage: git.pull.title.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
 
 options:
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
@@ -720,16 +720,19 @@ options:
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
   --output tree|json|text      the output shape (default: tree). via rhx, stdout opens with
                                rhx's header lines: for text (the title alone) read the last
-                               line; for json parse from the first {
+                               line; for json parse from the first {; to edit it, use --into
+  --into <path>                also write the bare title into <path>, for you to edit and pass to
+                               set --from <path>. <path> must sit inside this repo, untracked by git
   --help, -h                   show this help
 
 example:
-  rhx git.pull.title get --pr 69
+  rhx git.pull.title get --into ./.temp/title.md
+  rhx git.pull.title set --from ./.temp/title.md
 "
 `;
 
 exports[`git.pull given: [case6] the less-trod contract paths of each noun when: [t3] each get and each noun shows its --help then: each get help names every flag 2`] = `
-"usage: git.pull.description.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--to <path>]
+"usage: git.pull.description.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
 
 options:
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
@@ -737,13 +740,13 @@ options:
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
   --output tree|json|text      the output shape (default: tree); text = the body alone.
                                via rhx, stdout opens with rhx's header lines: for json parse
-                               from the first {; to edit the body, use --to
-  --to <path>                  also write the bare body to <path>, for you to edit and pass to
+                               from the first {; to edit the body, use --into
+  --into <path>                also write the bare body into <path>, for you to edit and pass to
                                set --from <path>. <path> must sit inside this repo, untracked by git
   --help, -h                   show this help
 
 example:
-  rhx git.pull.description get --to ./.temp/body.md
+  rhx git.pull.description get --into ./.temp/body.md
   rhx git.pull.description set --from ./.temp/body.md
 "
 `;
@@ -779,8 +782,8 @@ exports[`git.pull given: [case7] a no-op set, as json when: [t0] the description
   "pr": 7,
   "repairs": [],
   "sha256": {
-    "current": "8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28",
     "new": "8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28",
+    "old": "8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28",
     "readback": null,
   },
   "state": "open",
@@ -798,8 +801,8 @@ exports[`git.pull given: [case7] a no-op set, as json when: [t1] the title set a
   "state": "open",
   "target": "ehmpathy/surf-demo#7, title",
   "title": {
-    "current": "feat(lessons): book a surf lesson",
     "new": "feat(lessons): book a surf lesson",
+    "old": "feat(lessons): book a surf lesson",
     "readback": null,
   },
   "url": "https://github.com/ehmpathy/surf-demo/pull/7",

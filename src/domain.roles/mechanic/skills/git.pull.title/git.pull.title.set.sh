@@ -6,18 +6,18 @@
 #         pull without a human edit or a raw `gh pr edit`
 #
 # usage:
-#   rhx git.pull.title set --title 'feat(reef): map the kelp beds'              # plan
-#   rhx git.pull.title set --title 'feat(reef): map the kelp beds' --mode apply
-#   rhx git.pull.title set --pr 69 --title '...' --mode apply
-#   cat ./.temp/title.txt | rhx git.pull.title set --title @stdin              # a title a shell would mangle
-#   rhx git.pull.title.set --help                                               # every flag
+#   rhx git.pull.title set --from ./.temp/title.md                    # plan
+#   rhx git.pull.title set --from ./.temp/title.md --mode apply
+#   rhx git.pull.title set --pr 69 --from ./.temp/title.md --mode apply
+#   echo 'feat(reef): map the kelp beds' | rhx git.pull.title set --from @stdin
+#   rhx git.pull.title.set --help                                     # every flag
 #
 # guarantee:
 #   - plan by default; apply writes, reads back, and compares the title
 #   - writes only a pull its own credential opened
 #   - a title that already reads so is a no-op
-#   - refuses an empty or multi-line title before any write; github's own
-#     refusal (422) names the fix (fulcrum F8)
+#   - refuses an empty, multi-line, or secret-shaped title before any write;
+#     github's own refusal (422) names the fix (fulcrum F8)
 ######################################################################
 set -euo pipefail
 
@@ -27,8 +27,7 @@ source "$SKILL_DIR/../git.pull/git.pull.operations.sh"
 
 SKILL="git.pull.title.set"
 PR=""
-TITLE=""
-TITLE_GIVEN="false"
+FROM=""
 REPO_IN=""
 AUTH="$AUTH_DEFAULT"
 MODE="plan"
@@ -38,10 +37,10 @@ OUTPUT="tree"
 # .why  = --help is the one authoritative flag list; the file header names none
 help() {
   cat <<'EOF'
-usage: git.pull.title.set --title '<title>'|@stdin [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+usage: git.pull.title.set --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
-  --title '<title>'|@stdin     the new title, one line; @stdin reads it from a pipe, for a title a shell would mangle
+  --from <path|@stdin>         the new title, one line; from a file, or piped in
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
@@ -50,7 +49,9 @@ options:
   --help, -h                   show this help
 
 example:
-  rhx git.pull.title set --title 'feat(reef): map the kelp beds' --mode apply
+  rhx git.pull.title get --into ./.temp/title.md
+  rhx git.pull.title set --from ./.temp/title.md --mode apply
+  echo 'feat(reef): map the kelp beds' | rhx git.pull.title set --from @stdin --mode apply
 EOF
 }
 
@@ -62,15 +63,12 @@ while [[ $# -gt 0 ]]; do
   # split --flag=value into two args, so both forms parse one way
   [[ "$1" == --*=* ]] && set -- "${1%%=*}" "${1#*=}" "${@:2}"
   check_flag_has_value "$1" "$#" "${2:-}" "$SKILL" \
-    --skill --repo --role --pr --in --auth --mode --output
+    --skill --repo --role --pr --from --in --auth --mode --output
   case "$1" in
     --skill|--repo|--role) shift 2 ;;
     --) shift ;;
     --pr) PR="${2:-}"; shift 2 ;;
-    # .note = --title may be given empty, so its value is read here, not by check_flag_has_value
-    --title)
-      [[ "$#" -ge 2 && "$2" != --* ]] || fail_comment_constraint "--title needs a value" "rhx $SKILL --title 'feat(reef): map the kelp beds'"
-      TITLE="$2"; TITLE_GIVEN="true"; shift 2 ;;
+    --from) FROM="${2:-}"; shift 2 ;;
     --in) REPO_IN="${2:-}"; shift 2 ;;
     --auth) AUTH="${2:-}"; shift 2 ;;
     --mode) MODE="${2:-}"; shift 2 ;;
@@ -86,26 +84,31 @@ set_comment_output "$OUTPUT"
 check_pr_number "$PR" "$SKILL"
 check_auth_arg "$AUTH"
 check_mode_arg "$MODE"
-[[ "$TITLE_GIVEN" == "true" ]] || fail_comment_constraint "--title '<title>' is required" "rhx $SKILL --title 'feat(reef): map the kelp beds'"
+[[ -n "$FROM" ]] || fail_comment_constraint "--from <path|@stdin> is required" "rhx $SKILL --from ./.temp/title.md"
+[[ "$FROM" == "@stdin" || -f "$FROM" ]] || fail_comment_constraint "--from '$FROM' is not a file" "name a title file that exists"$'\n'"pipe the title in via --from @stdin"
+
+# read the title
+# .note = stdin is read as fd 0, never via /dev/stdin, which a socket stdin refuses (ENXIO)
+TITLE=""
+[[ "$FROM" != "@stdin" ]] || TITLE="$(as_body_trimmed)"
+[[ "$FROM" == "@stdin" ]] || TITLE="$(as_body_trimmed <"$FROM")"
 # a title piped via @stdin is spent once read, so an apply must pipe it again
 STDIN_PIPE=""
 STDIN_NOTE=""
-if [[ "$TITLE" == "@stdin" ]]; then
-  # .note = stdin is read as fd 0, never via /dev/stdin, which a socket stdin refuses (ENXIO)
-  TITLE="$(as_body_trimmed)"
-  STDIN_PIPE="cat ./.temp/title.txt | "
-  STDIN_NOTE="   # pipe the same title in again"
-fi
+[[ "$FROM" == "@stdin" ]] && STDIN_PIPE="cat ./.temp/title.md | " && STDIN_NOTE="   # pipe the same title in again"
+FIX_EMPTY="write the title into '$FROM', then rerun"
+[[ "$FROM" == "@stdin" ]] && FIX_EMPTY="echo 'feat(reef): map the kelp beds' | $(as_comment_cmd_in_mode "$SKILL" "$MODE" "${ORIG_ARGS[@]}")   # pipe a title that is not empty"
 TITLE="$(printf '%s' "$TITLE" | as_pull_title_trimmed)"
-! is_text_wordless "$TITLE" || fail_comment_constraint "the title is empty; a pull needs a title" "rhx $SKILL --title 'feat(reef): map the kelp beds'"
-[[ "$TITLE" != *$'\n'* ]] || fail_comment_constraint "the title holds a newline; a pull title is one line" "put the first line in --title, the rest in the description"
+! is_text_wordless "$TITLE" || fail_comment_constraint "the title from '$FROM' is empty; a pull needs a title" "$FIX_EMPTY"
+[[ "$TITLE" != *$'\n'* ]] || fail_comment_constraint "the title from '$FROM' holds a newline; a pull title is one line" "keep the first line as the title; move the rest into the description"
+check_pull_text_holds_no_secret "$TITLE" title "$FROM"
 
 # find the pull, under the chosen credential
 set_pull_target "$PR" "$REPO_IN" "$SKILL" "$AUTH"
 PR="$COMMENT_PR"
 CURRENT="$(get_one_gh_pull "$PR")" || exit $?
 check_pull_by_self "$CURRENT" "$SKILL" "$STDIN_PIPE" "${ORIG_ARGS[@]}"
-CUR_TITLE="$(printf '%s' "$CURRENT" | as_pull_field_from_json title)"
+OLD_TITLE="$(printf '%s' "$CURRENT" | as_pull_field_from_json title)"
 URL="$(printf '%s' "$CURRENT" | as_pull_url_from_json)"
 AUTHOR="$(printf '%s' "$CURRENT" | as_pull_author_from_json)"
 STATE="$(printf '%s' "$CURRENT" | as_pull_state_from_json)"
@@ -113,18 +116,18 @@ LABEL="$COMMENT_REPO#$PR, title"
 
 # decide the verdict
 VERDICT="would set"
-[[ "$CUR_TITLE" == "$TITLE" ]] && VERDICT="no-op"
+[[ "$OLD_TITLE" == "$TITLE" ]] && VERDICT="no-op"
 
 # .what = emit the result of set: the tree, or the json contract
-#         { mode, verdict, target, pr, url, author, state, title: { current, new, readback } }
+#         { mode, verdict, target, pr, url, author, state, title: { old, new, readback } }
 # .why  = one leaf renders every verdict, so plan, write, and no-op read alike
 emit() {
   local verdict="$1" back="${2:-}" back_given="${3:-false}"
   if [[ "$OUTPUT" == "json" ]]; then
     jq -n --arg mode "$MODE" --arg verdict "$verdict" --arg target "$LABEL" --arg pr "$PR" --arg url "$URL" \
-      --arg author "$AUTHOR" --arg state "$STATE" --arg cur "$CUR_TITLE" --arg new "$TITLE" --arg back "$back" --arg back_given "$back_given" '{
+      --arg author "$AUTHOR" --arg state "$STATE" --arg old "$OLD_TITLE" --arg new "$TITLE" --arg back "$back" --arg back_given "$back_given" '{
         mode: $mode, verdict: $verdict, target: $target, pr: ($pr | tonumber), url: $url, author: $author, state: $state,
-        title: { current: $cur, new: $new, readback: (if $back_given == "true" then $back else null end) }
+        title: { old: $old, new: $new, readback: (if $back_given == "true" then $back else null end) }
       }'
     return 0
   fi
@@ -137,7 +140,7 @@ emit() {
   # a merged pull's squash commit is already written; say so, so a set here is not read as a release-note fix
   [[ "$STATE" == "merged" ]] && echo "   │  └─ note: the squash commit is already written; this edits the pull record only"
   echo "   ├─ url: $URL"
-  echo "   ├─ current: $CUR_TITLE"
+  echo "   ├─ old: $OLD_TITLE"
   echo "   ├─ new: $TITLE"
   if [[ "$back_given" != "true" ]]; then
     echo "   └─ verdict: $verdict"

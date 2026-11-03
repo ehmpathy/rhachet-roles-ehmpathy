@@ -5,4 +5,4 @@
 - rework: clean. B is one meter read before the write
 - confidence: 85%. a human may want words on a public pull metered too
 - where: `git.pull.title.set.sh`, `git.pull.description.set.sh`
-- verdict: open, for the pr review
+- verdict: A kept (commander, #1173 review, vision line 99: "no gate is fine, like comment verbs")

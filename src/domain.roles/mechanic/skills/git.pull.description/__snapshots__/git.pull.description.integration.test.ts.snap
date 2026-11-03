@@ -9,7 +9,7 @@ exports[`git.pull.description given: [case1] a body with the harness claude line
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current
+   ├─ old
    │  ├─ bytes: 60
    │  ├─ sha256: 8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28
    │  └─ text
@@ -48,7 +48,7 @@ exports[`git.pull.description given: [case1] a body with the harness claude line
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current
+   ├─ old
    │  ├─ bytes: 60
    │  └─ sha256: 8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28
    ├─ new
@@ -89,13 +89,13 @@ exports[`git.pull.description given: [case2] get, edit, set: the round trip when
 
 🥥 did you know?
    └─ to edit it
-      ├─ 1. rhx git.pull.description get --pr 7 --in ehmpathy/surf-demo --to ./.temp/body.md
+      ├─ 1. rhx git.pull.description get --into ./.temp/body.md
       ├─ 2. edit ./.temp/body.md
-      └─ 3. rhx git.pull.description set --pr 7 --in ehmpathy/surf-demo --from ./.temp/body.md   # plan; add --mode apply to write
+      └─ 3. rhx git.pull.description set --from ./.temp/body.md   # plan; add --mode apply to write
 "
 `;
 
-exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t1] get --to a file, a section appended, set --from it then: the body holds the section and ends in one footer 1`] = `
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t1] get --into a file, a section appended, set --from it then: the body holds the section and ends in one footer 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.description.set --mode apply
@@ -104,7 +104,7 @@ exports[`git.pull.description given: [case2] get, edit, set: the round trip when
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current
+   ├─ old
    │  ├─ bytes: 60
    │  └─ sha256: 8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28
    ├─ new
@@ -117,7 +117,7 @@ exports[`git.pull.description given: [case2] get, edit, set: the round trip when
 "
 `;
 
-exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t1] get --to a file, a section appended, set --from it then: the get hint names the file, and set plans first 1`] = `
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t1] get --into a file, a section appended, set --from it then: the get hint names the file, and set plans first, on this branch pull 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.description.get
@@ -126,7 +126,7 @@ exports[`git.pull.description given: [case2] get, edit, set: the round trip when
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ to: ./.temp/body.md
+   ├─ into: ./.temp/body.md
    ├─ bytes: 60
    ├─ sha256: 8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28
    └─ text
@@ -138,11 +138,11 @@ exports[`git.pull.description given: [case2] get, edit, set: the round trip when
 🥥 did you know?
    └─ to edit it
       ├─ 1. edit ./.temp/body.md
-      └─ 2. rhx git.pull.description set --pr 7 --in ehmpathy/surf-demo --from ./.temp/body.md   # plan; add --mode apply to write
+      └─ 2. rhx git.pull.description set --from ./.temp/body.md   # plan; add --mode apply to write
 "
 `;
 
-exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t2] the same get --to, then set --from, reruns then: it reports a no-op and writes naught 1`] = `
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t2] the same get --into, then set --from, reruns then: it reports a no-op and writes naught 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.description.set --mode apply
@@ -151,7 +151,7 @@ exports[`git.pull.description given: [case2] get, edit, set: the round trip when
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current
+   ├─ old
    │  ├─ bytes: 90
    │  └─ sha256: aa6da5c97fae9811987629c6323a4d6f2e4f5e45e9d7efe44d1d32f40b75c322
    ├─ new
@@ -175,30 +175,30 @@ no night lessons
 "
 `;
 
-exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t4] get --to names a path outside the repo then: it refuses before any gh call, exit 2, both streams 1`] = `
-"✋ ConstraintError: --to must name a path inside this repo, got '../outside-the-reef.md'
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t4] get --into names a path outside the repo then: it refuses before any gh call, exit 2, both streams 1`] = `
+"✋ ConstraintError: --into must name a path inside this repo, got '../outside-the-reef.md'
 
 🥥 did you know?
    └─ to fix it
-      └─ --to ./.temp/body.md
+      └─ --into ./.temp/body.md
 "
 `;
 
-exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t5] get --to names a file git tracks then: it refuses before any gh call, and the file is untouched 1`] = `
-"✋ ConstraintError: --to names a file git tracks; get never overwrites one: './reef-notes.md'
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t5] get --into names a file git tracks then: it refuses before any gh call, and the file is untouched 1`] = `
+"✋ ConstraintError: --into names a file git tracks; get never overwrites one: './reef-notes.md'
 
 🥥 did you know?
    └─ to fix it
-      └─ --to ./.temp/body.md
+      └─ --into ./.temp/body.md
 "
 `;
 
-exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t6] get --to names a directory then: it refuses before any gh call, and writes no file 1`] = `
-"✋ ConstraintError: --to names a directory, not a file: './tide-pools'
+exports[`git.pull.description given: [case2] get, edit, set: the round trip when: [t6] get --into names a directory then: it refuses before any gh call, and writes no file 1`] = `
+"✋ ConstraintError: --into names a directory, not a file: './tide-pools'
 
 🥥 did you know?
    └─ to fix it
-      └─ --to ./.temp/body.md
+      └─ --into ./.temp/body.md
 "
 `;
 
@@ -265,7 +265,7 @@ exports[`git.pull.description given: [case5] the credential is unusable when: [t
    ├─ author: surfer-kai
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current
+   ├─ old
    │  ├─ bytes: 18
    │  └─ sha256: 84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb
    ├─ new
@@ -287,7 +287,7 @@ exports[`git.pull.description given: [case6] a peer pull, by number when: [t0] s
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current
+   ├─ old
    │  ├─ bytes: 16
    │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    ├─ new
@@ -316,9 +316,9 @@ exports[`git.pull.description given: [case6] a peer pull, by number when: [t1] g
 
 🥥 did you know?
    └─ to edit it
-      ├─ 1. rhx git.pull.description get --pr 8 --in ehmpathy/surf-demo --to ./.temp/body.md
+      ├─ 1. rhx git.pull.description get --pr 8 --into ./.temp/body.md
       ├─ 2. edit ./.temp/body.md
-      └─ 3. rhx git.pull.description set --pr 8 --in ehmpathy/surf-demo --from ./.temp/body.md   # plan; add --mode apply to write
+      └─ 3. rhx git.pull.description set --pr 8 --from ./.temp/body.md   # plan; add --mode apply to write
 "
 `;
 
@@ -331,7 +331,7 @@ exports[`git.pull.description given: [case6] a peer pull, by number when: [t1] g
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current
+   ├─ old
    │  ├─ bytes: 16
    │  ├─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    │  └─ text
@@ -372,9 +372,9 @@ exports[`git.pull.description given: [case6] a peer pull, by number when: [t2] g
 
 🥥 did you know?
    └─ to edit it
-      ├─ 1. rhx git.pull.description get --pr 7 --in ehmpathy/surf-demo --to ./.temp/body.md
+      ├─ 1. rhx git.pull.description get --into ./.temp/body.md
       ├─ 2. edit ./.temp/body.md
-      └─ 3. rhx git.pull.description set --pr 7 --in ehmpathy/surf-demo --from ./.temp/body.md   # plan; add --mode apply to write
+      └─ 3. rhx git.pull.description set --from ./.temp/body.md   # plan; add --mode apply to write
 "
 `;
 
@@ -387,7 +387,7 @@ exports[`git.pull.description given: [case7] a clean body, and a body with every
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current
+   ├─ old
    │  ├─ bytes: 16
    │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    ├─ new
@@ -449,7 +449,7 @@ exports[`git.pull.description given: [case9] the write reads back altered when: 
    ├─ posted sha256:    8bb8c2c0eb2107cdb355186bfd2c7d99166c59cf818dd9a32e921e78bf159893
    ├─ read-back sha256: 8542950e9749134bc89bb5d1cba17ef0bbec46699ce8c0a446ed4464775f97a6
    ├─ state: the description is live, with a body other than the one posted
-   └─ live body: rhx git.pull.description get --pr 7 --in ehmpathy/surf-demo
+   └─ live body: rhx git.pull.description get
 
 🥥 did you know?
    └─ next, pick one
@@ -489,7 +489,7 @@ exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.d
 "
 `;
 
-exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.description <verb>\` when: [t0] get, help, and an unknown verb run via the dispatcher then: get --output json --to names the file in \`to\`, and writes it 1`] = `
+exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.description <verb>\` when: [t0] get, help, and an unknown verb run via the dispatcher then: get --output json --into names the file in \`into\`, and writes it 1`] = `
 {
   "author": "ehm-seaturtle",
   "body": "surf lesson booker
@@ -497,11 +497,11 @@ exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.d
 ---
 🐢🌊 surfed in by seaturtle[bot]",
   "bytes": 60,
+  "into": "./.temp/tide.md",
   "pr": 7,
   "repo": "ehmpathy/surf-demo",
   "sha256": "8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28",
   "state": "open",
-  "to": "./.temp/tide.md",
   "url": "https://github.com/ehmpathy/surf-demo/pull/7",
 }
 `;
@@ -514,11 +514,11 @@ exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.d
 ---
 🐢🌊 surfed in by seaturtle[bot]",
   "bytes": 60,
+  "into": null,
   "pr": 7,
   "repo": "ehmpathy/surf-demo",
   "sha256": "8dd56989cf25f4c296bf9f61a99a274f8db7ad0e160a57ae725a029926677c28",
   "state": "open",
-  "to": null,
   "url": "https://github.com/ehmpathy/surf-demo/pull/7",
 }
 `;
@@ -536,7 +536,7 @@ options:
   --help, -h                   show this help
 
 example:
-  rhx git.pull.description get --to ./.temp/body.md
+  rhx git.pull.description get --into ./.temp/body.md
   rhx git.pull.description set --from ./.temp/body.md --mode apply
 "
 `;
@@ -550,8 +550,8 @@ exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.d
     "stripped the claude code line",
   ],
   "sha256": {
-    "current": "7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa",
     "new": "551d9045a25e477c103b824cd58e3b9442b17950bf41d0f67b4c718b01e7b903",
+    "old": "7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa",
     "readback": "551d9045a25e477c103b824cd58e3b9442b17950bf41d0f67b4c718b01e7b903",
   },
   "state": "open",
@@ -570,7 +570,7 @@ exports[`git.pull.description given: [case13] the strip matches whole attributio
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current
+   ├─ old
    │  ├─ bytes: 16
    │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    ├─ new
@@ -592,7 +592,7 @@ exports[`git.pull.description given: [case13] the strip matches whole attributio
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current
+   ├─ old
    │  ├─ bytes: 16
    │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    ├─ new
@@ -628,7 +628,7 @@ exports[`git.pull.description given: [case14] the cap holds at its edge, footer 
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current
+   ├─ old
    │  ├─ bytes: 16
    │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    ├─ new
@@ -660,7 +660,7 @@ exports[`git.pull.description given: [case15] the body comes from a file when: [
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current
+   ├─ old
    │  ├─ bytes: 16
    │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    ├─ new
@@ -692,7 +692,7 @@ exports[`git.pull.description given: [case16] a closed pull, by number when: [t0
    ├─ author: ehm-seaturtle
    ├─ state: closed
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current
+   ├─ old
    │  ├─ bytes: 16
    │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    ├─ new
@@ -725,7 +725,7 @@ exports[`git.pull.description given: [case18] a body github holds with crlf line
    ├─ author: ehm-seaturtle
    ├─ state: open
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7
-   ├─ current
+   ├─ old
    │  ├─ bytes: 81
    │  └─ sha256: 418fab18eed44c294a6cb6ffaeffad0b7ed896b25400a0fce578cc77c4707ac8
    ├─ new
@@ -747,7 +747,7 @@ exports[`git.pull.description given: [case19] a merged pull, by number when: [t0
    ├─ state: merged
    │  └─ note: the squash commit is already written; this edits the pull record only
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current
+   ├─ old
    │  ├─ bytes: 16
    │  ├─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    │  └─ text
@@ -782,7 +782,7 @@ exports[`git.pull.description given: [case19] a merged pull, by number when: [t1
    ├─ state: merged
    │  └─ note: the squash commit is already written; this edits the pull record only
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
-   ├─ current
+   ├─ old
    │  ├─ bytes: 16
    │  └─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
    ├─ new
@@ -792,5 +792,57 @@ exports[`git.pull.description given: [case19] a merged pull, by number when: [t1
    │  └─ sha256: a3cb596f6149a17fb9e59c264f8c80faf023f71d60483b10eac2e23a639e123c
    └─ verdict: set, read back, hash matches
       └─ read-back sha256: a3cb596f6149a17fb9e59c264f8c80faf023f71d60483b10eac2e23a639e123c
+"
+`;
+
+exports[`git.pull.description given: [case20] a body that holds a secret-shaped value when: [t0] the body holds a private key header on line 3 then: each exits 2 before any gh call, names the shape and line, never the value 1`] = `
+"✋ ConstraintError: the body from '@stdin' holds a secret-shaped value; a pull shows its words to every reader
+   └─ shape: private key, line 3 (the value is not echoed)
+
+🥥 did you know?
+   └─ to fix it
+      └─ remove the value from the body, then rerun; a credential belongs in the keyrack, never in a pull
+"
+`;
+
+exports[`git.pull.description given: [case20] a body that holds a secret-shaped value when: [t1] the body holds a slack token on line 3 then: each exits 2 before any gh call, names the shape and line, never the value 1`] = `
+"✋ ConstraintError: the body from '@stdin' holds a secret-shaped value; a pull shows its words to every reader
+   └─ shape: slack token, line 3 (the value is not echoed)
+
+🥥 did you know?
+   └─ to fix it
+      └─ remove the value from the body, then rerun; a credential belongs in the keyrack, never in a pull
+"
+`;
+
+exports[`git.pull.description given: [case20] a body that holds a secret-shaped value when: [t2] the body holds a github fine-grained token on line 3 then: each exits 2 before any gh call, names the shape and line, never the value 1`] = `
+"✋ ConstraintError: the body from '@stdin' holds a secret-shaped value; a pull shows its words to every reader
+   └─ shape: github token, line 3 (the value is not echoed)
+
+🥥 did you know?
+   └─ to fix it
+      └─ remove the value from the body, then rerun; a credential belongs in the keyrack, never in a pull
+"
+`;
+
+exports[`git.pull.description given: [case21] the get hint keeps the target as the caller named it when: [t0] get --pr 8 --into a file then: the set step names --pr 8, as typed 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.description.get
+   ├─ target: ehmpathy/surf-demo#8, description
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ author: ehm-seaturtle
+   ├─ state: open
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/8
+   ├─ into: ./.temp/body.md
+   ├─ bytes: 16
+   ├─ sha256: 7f9c18acf1b856cc70dc5ea50b5e3cb2ad5e532541d0c1169660e1092630f5aa
+   └─ text
+      wave report sync
+
+🥥 did you know?
+   └─ to edit it
+      ├─ 1. edit ./.temp/body.md
+      └─ 2. rhx git.pull.description set --pr 8 --from ./.temp/body.md   # plan; add --mode apply to write
 "
 `;

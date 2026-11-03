@@ -193,10 +193,10 @@ describe('git.pull.title + git.pull.description (real github api)', () => {
     const titleNew = `${pullBefore.title} · ${RUN}`;
     when('[t0] set to a new title, then set back, then set back again', () => {
       const result = useThen('it runs', async () => {
-        const setNew = run('title', ['--title', titleNew]);
+        const setNew = run('title', ['--from', '@stdin'], titleNew);
         const liveNew = getPullLive();
-        const setBack = run('title', ['--title', pullBefore.title]);
-        const setAgain = run('title', ['--title', pullBefore.title]);
+        const setBack = run('title', ['--from', '@stdin'], pullBefore.title);
+        const setAgain = run('title', ['--from', '@stdin'], pullBefore.title);
         const liveEnd = getPullLive();
         return { setNew, liveNew, setBack, setAgain, liveEnd };
       });

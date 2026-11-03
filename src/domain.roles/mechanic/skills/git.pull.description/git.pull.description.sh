@@ -7,7 +7,7 @@
 #
 # usage:
 #   rhx git.pull.description get
-#   rhx git.pull.description get --to ./.temp/body.md
+#   rhx git.pull.description get --into ./.temp/body.md
 #   rhx git.pull.description set --from ./.temp/body.md --mode apply
 #   rhx git.pull.description --help
 #

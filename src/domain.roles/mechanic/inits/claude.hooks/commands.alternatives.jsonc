@@ -103,7 +103,7 @@
     {
       "heads": ["gh pr edit"],
       "alternatives": [
-        "rhx git.pull.title set --title '<title>'",
+        "rhx git.pull.title set --from ./.temp/title.md",
         "rhx git.pull.description set --from ./.temp/body.md"
       ]
     },
