@@ -5,16 +5,13 @@
 # .why  = one entry point: one permission rule; `help` lists subcommands
 #
 # usage:
-#   rhx git.branch.rebase begin                    # start rebase onto main
-#   rhx git.branch.rebase begin --mode apply       # execute rebase
-#   rhx git.branch.rebase begin --mode apply --unstaged ignore  # set unstaged aside, put back after
-#   rhx git.branch.rebase continue                 # continue after conflicts
-#   rhx git.branch.rebase abort                    # abandon rebase
+#   rhx git.branch.rebase begin [--mode apply] [--unstaged ignore]
+#   rhx git.branch.rebase continue | abort | take | lock
+#   rhx git.branch.rebase help
 #
 # guarantee:
-#   - dispatches to subskill via exec (single process)
-#   - passes all rest args to subskill
-#   - fail-fast on errors
+#   - --unstaged ignore sets unstaged paths aside, puts them back after
+#   - passes rest args to the subskill via exec; fail-fast
 ######################################################################
 set -euo pipefail
 

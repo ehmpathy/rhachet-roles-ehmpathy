@@ -201,7 +201,6 @@ exports[`git.branch.rebase --unstaged given: [case4] a conflicted rebase with am
       │  Auto-merging conflict.txt
       │  CONFLICT (content): Merge conflict in conflict.txt
       │  error: could not apply HASH123... feat(reef): edit conflict file
-      │  Could not apply HASH123... feat(reef): edit conflict file
       │
       └─
 "
@@ -626,7 +625,6 @@ exports[`git.branch.rebase --unstaged given: [case12] the rebase stops mid-repla
       │  feature.txt
       │  Please move or remove them before you merge.
       │  Aborting
-      │  Could not apply HASH123... feat(reef): add feature
       │
       └─
 "
@@ -679,7 +677,6 @@ exports[`git.branch.rebase --unstaged given: [case12] the rebase stops mid-repla
       │  feature.txt
       │  Please move or remove them before you merge.
       │  Aborting
-      │  Could not apply HASH123... feat(reef): add feature
       │
       └─
 "
@@ -822,7 +819,6 @@ exports[`git.branch.rebase --unstaged given: [case17] a held path is edited agai
       │  Auto-merging conflict2.txt
       │  CONFLICT (content): Merge conflict in conflict2.txt
       │  error: could not apply HASH123... feat(reef): edit second conflict file
-      │  Could not apply HASH123... feat(reef): edit second conflict file
       │
       └─
 "
@@ -892,11 +888,7 @@ exports[`git.branch.rebase --unstaged given: [case19] a set-aside step fails (an
          ├─
          │
          │  fatal: Unable to create '/tmp/TEST_REPO/work/.git/index.lock': File exists.
-         │  Another git process seems to be running in this repository, e.g.
-         │  an editor opened by 'git commit'. Please make sure all processes
-         │  are terminated then try again. If it still fails, a git process
-         │  may have crashed in this repository earlier:
-         │  remove the file manually to continue.
+         │  Another git process holds the index lock
          │
          └─
 
@@ -997,7 +989,6 @@ exports[`git.branch.rebase --unstaged given: [case23] continue leaves a fresh un
       │  conflict2.txt
       │  Please commit your changes or stash them before you merge.
       │  Aborting
-      │  Could not apply HASH123... feat(reef): edit second conflict file
       │
       └─
 
@@ -1038,7 +1029,6 @@ exports[`git.branch.rebase --unstaged given: [case24] a held path is in conflict
       │  Auto-merging package.json
       │  CONFLICT (content): Merge conflict in package.json
       │  error: could not apply HASH123... feat(reef): bump package version
-      │  Could not apply HASH123... feat(reef): bump package version
       │
       └─
 "
@@ -1327,7 +1317,6 @@ exports[`git.branch.rebase --unstaged given: [case33] a clean tree (no store) me
       │  feature.txt
       │  Please move or remove them before you merge.
       │  Aborting
-      │  Could not apply HASH123... feat(reef): add feature
       │
       └─
 "
@@ -1391,11 +1380,7 @@ exports[`git.branch.rebase --unstaged given: [case34] git cannot abort while pat
       ├─
       │
       │  error: Unable to create '/tmp/TEST_REPO/work/.git/index.lock': File exists.
-      │  Another git process seems to be running in this repository, e.g.
-      │  an editor opened by 'git commit'. Please make sure all processes
-      │  are terminated then try again. If it still fails, a git process
-      │  may have crashed in this repository earlier:
-      │  remove the file manually to continue.
+      │  Another git process holds the index lock
       │  fatal: could not move back to HASH123
       │
       └─
@@ -1506,11 +1491,7 @@ exports[`git.branch.rebase --unstaged given: [case36] a set-aside step fails mid
          ├─
          │
          │  fatal: Unable to create '/tmp/TEST_REPO/work/.git/index.lock': File exists.
-         │  Another git process seems to be running in this repository, e.g.
-         │  an editor opened by 'git commit'. Please make sure all processes
-         │  are terminated then try again. If it still fails, a git process
-         │  may have crashed in this repository earlier:
-         │  remove the file manually to continue.
+         │  Another git process holds the index lock
          │
          └─
 

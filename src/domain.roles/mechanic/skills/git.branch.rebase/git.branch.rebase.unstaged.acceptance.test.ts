@@ -217,10 +217,12 @@ const asStableOutput = (output: string): string =>
     .replace(/\b[0-9a-f]{7,40}\b/g, 'HASH123')
     .replace(/\[K/g, '')
     .replace(/[‘’]/g, "'")
-    .replace(/^\s*│\s*hint: .*\n/gm, '')
+    .replace(/^\s*│\s*hint:.*\n/gm, '')
+    .replace(/^\s*│\s*Could not apply .*\n/gm, '')
+    .replace(/(?:fatal|error): The pre-rebase hook/g, 'fatal: The pre-rebase hook')
     .replace(
-      /Could not apply ([A-Za-z0-9]+)\.\.\.\s*#?\s*/g,
-      'Could not apply $1... ',
+      /Another git process seems to be .*(?:\n[ │]*(?:an editor opened|are terminated|may have crashed|remove the file manually).*)*/g,
+      'Another git process holds the index lock',
     );
 
 const getStorePath = (input: { workDir: string }): string =>

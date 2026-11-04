@@ -97,7 +97,6 @@ exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey2
       │  Auto-merging conflict.txt
       │  CONFLICT (content): Merge conflict in conflict.txt
       │  error: could not apply HASH123... feat(reef): edit conflict file
-      │  Could not apply HASH123... feat(reef): edit conflict file
       │
       └─
 "
@@ -465,7 +464,6 @@ exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey1
       │  Auto-merging package.json
       │  CONFLICT (content): Merge conflict in package.json
       │  error: could not apply HASH123... feat(reef): name the reef in package.json
-      │  Could not apply HASH123... feat(reef): name the reef in package.json
       │
       └─
 "
