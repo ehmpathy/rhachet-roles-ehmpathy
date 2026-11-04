@@ -1,0 +1,246 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.rebase.sh given: [case1] help subcommand when: [t0] invoked with help then: shows usage with exit 0 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase
+   ├─ subcommands
+   │  ├─ begin      start rebase onto origin/main
+   │  ├─ continue   continue after conflicts settled
+   │  ├─ take       settle conflicts via ours or theirs
+   │  ├─ abort      abandon rebase, restore pre-rebase state
+   │  ├─ lock       lock file operations (refresh)
+   │  └─ help       show this usage
+   └─ examples
+      ├─ rhx git.branch.rebase begin --mode plan
+      ├─ rhx git.branch.rebase begin --mode apply
+      ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+      ├─ rhx git.branch.rebase continue
+      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+      ├─ rhx git.branch.rebase lock refresh
+      └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case2] help flags when: [t0] invoked with --help then: shows usage 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase
+   ├─ subcommands
+   │  ├─ begin      start rebase onto origin/main
+   │  ├─ continue   continue after conflicts settled
+   │  ├─ take       settle conflicts via ours or theirs
+   │  ├─ abort      abandon rebase, restore pre-rebase state
+   │  ├─ lock       lock file operations (refresh)
+   │  └─ help       show this usage
+   └─ examples
+      ├─ rhx git.branch.rebase begin --mode plan
+      ├─ rhx git.branch.rebase begin --mode apply
+      ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+      ├─ rhx git.branch.rebase continue
+      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+      ├─ rhx git.branch.rebase lock refresh
+      └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case2] help flags when: [t1] invoked with -h then: shows usage 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase
+   ├─ subcommands
+   │  ├─ begin      start rebase onto origin/main
+   │  ├─ continue   continue after conflicts settled
+   │  ├─ take       settle conflicts via ours or theirs
+   │  ├─ abort      abandon rebase, restore pre-rebase state
+   │  ├─ lock       lock file operations (refresh)
+   │  └─ help       show this usage
+   └─ examples
+      ├─ rhx git.branch.rebase begin --mode plan
+      ├─ rhx git.branch.rebase begin --mode apply
+      ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+      ├─ rhx git.branch.rebase continue
+      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+      ├─ rhx git.branch.rebase lock refresh
+      └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case2] help flags when: [t2] begin --help then: the subcommand answers with its own usage, exit 0 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase begin
+   ├─ what
+   │  └─ rebase this branch onto origin/main
+   ├─ usage
+   │  └─ rhx git.branch.rebase begin [--mode plan|apply] [--unstaged ignore|include]
+   ├─ args
+   │  ├─ --mode plan          preview what will be rebased (default)
+   │  ├─ --mode apply         execute the rebase
+   │  ├─ --unstaged ignore    set unstaged paths aside, rebase, put them back; continue or abort puts them back after a stop
+   │  └─ --unstaged include   refused when unstaged edits exist: a rebase has no commit to fold them into; commit them first via git.commit.set --unstaged include
+   ├─ note
+   │  └─ on a tree with no unstaged edits, either --unstaged value is a no-op
+   └─ examples
+      ├─ rhx git.branch.rebase begin --mode plan
+      └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case2] help flags when: [t3] continue --help then: the subcommand answers with its own usage, exit 0 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase continue
+   ├─ what
+   │  ├─ continue a rebase once its conflicts are settled
+   │  └─ once the rebase completes, puts back any paths set aside
+   ├─ usage
+   │  └─ rhx git.branch.rebase continue [--unstaged ignore]
+   ├─ args
+   │  └─ --unstaged ignore    set a fresh unstaged edit aside too; put back after
+   └─ examples
+      ├─ rhx git.branch.rebase continue
+      └─ rhx git.branch.rebase continue --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case2] help flags when: [t4] take --help then: the subcommand answers with its own usage, exit 0 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase take
+   ├─ what
+   │  └─ settle conflicts by the side you name, then stage the files
+   ├─ usage
+   │  └─ rhx git.branch.rebase take --whos ours|theirs <paths...>
+   ├─ args
+   │  ├─ --whos    ours (your commit) | theirs (main), required
+   │  └─ paths     file paths or globs, use . for all (required)
+   └─ examples
+      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+      ├─ rhx git.branch.rebase take --whos ours .eslintrc.json
+      └─ rhx git.branch.rebase take --whos theirs .
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case2] help flags when: [t5] abort --help then: the subcommand answers with its own usage, exit 0 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase abort
+   ├─ what
+   │  ├─ abort a rebase and restore to pre-rebase state
+   │  └─ with no rebase in progress, puts back any paths still set aside
+   ├─ usage
+   │  └─ rhx git.branch.rebase abort [--unstaged ignore]
+   ├─ args
+   │  └─ --unstaged ignore    set a fresh unstaged edit aside too; put back after
+   └─ examples
+      ├─ rhx git.branch.rebase abort
+      └─ rhx git.branch.rebase abort --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case2] help flags when: [t6] lock --help then: the subcommand answers with its own usage, exit 0 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase lock
+   ├─ what
+   │  └─ regenerate the lock file mid-rebase, then stage it
+   ├─ usage
+   │  └─ rhx git.branch.rebase lock refresh
+   └─ examples
+      └─ rhx git.branch.rebase lock refresh
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case3] no subcommand when: [t0] invoked without subcommand then: shows error and subcommands, exits non-zero 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase
+   └─ error: subcommand required
+
+🐢 heres the wave...
+
+🐚 git.branch.rebase
+   ├─ subcommands
+   │  ├─ begin      start rebase onto origin/main
+   │  ├─ continue   continue after conflicts settled
+   │  ├─ take       settle conflicts via ours or theirs
+   │  ├─ abort      abandon rebase, restore pre-rebase state
+   │  ├─ lock       lock file operations (refresh)
+   │  └─ help       show this usage
+   └─ examples
+      ├─ rhx git.branch.rebase begin --mode plan
+      ├─ rhx git.branch.rebase begin --mode apply
+      ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+      ├─ rhx git.branch.rebase continue
+      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+      ├─ rhx git.branch.rebase lock refresh
+      └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case4] unknown subcommand when: [t0] invoked with invalid then: shows error with subcommand name, exits non-zero 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase
+   └─ error: unknown subcommand: invalid
+
+🐢 heres the wave...
+
+🐚 git.branch.rebase
+   ├─ subcommands
+   │  ├─ begin      start rebase onto origin/main
+   │  ├─ continue   continue after conflicts settled
+   │  ├─ take       settle conflicts via ours or theirs
+   │  ├─ abort      abandon rebase, restore pre-rebase state
+   │  ├─ lock       lock file operations (refresh)
+   │  └─ help       show this usage
+   └─ examples
+      ├─ rhx git.branch.rebase begin --mode plan
+      ├─ rhx git.branch.rebase begin --mode apply
+      ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+      ├─ rhx git.branch.rebase continue
+      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+      ├─ rhx git.branch.rebase lock refresh
+      └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case10] an unknown argument after a subcommand when: [t0] begin --oops then: it refuses as a constraint, exit 2, and names its usage, on both streams 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: unknown argument: --oops
+      └─ usage: rhx git.branch.rebase begin [--mode plan|apply] [--unstaged ignore|include]
+
+🥥 did you know?
+   ├─ see each arg it takes
+   └─ rhx git.branch.rebase begin --help
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case10] an unknown argument after a subcommand when: [t1] continue --oops then: it refuses as a constraint, exit 2, and names its usage, on both streams 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase continue
+   └─ ✋ ConstraintError: unknown argument: --oops
+      └─ usage: rhx git.branch.rebase continue [--unstaged ignore]
+
+🥥 did you know?
+   ├─ see each arg it takes
+   └─ rhx git.branch.rebase continue --help
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case10] an unknown argument after a subcommand when: [t2] abort --oops then: it refuses as a constraint, exit 2, and names its usage, on both streams 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase abort
+   └─ ✋ ConstraintError: unknown argument: --oops
+      └─ usage: rhx git.branch.rebase abort [--unstaged ignore]
+
+🥥 did you know?
+   ├─ see each arg it takes
+   └─ rhx git.branch.rebase abort --help
+"
+`;

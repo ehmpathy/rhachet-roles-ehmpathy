@@ -230,6 +230,11 @@ jobs:
       - name: install ripgrep (for grepsafe)
         run: command -v rg || (sudo apt-get update && sudo apt-get install -y ripgrep)
 
+      # .why = git.branch.rebase.lock's suites refresh a real pnpm lock and fail
+      #        fast where pnpm is absent; the ubuntu runner ships yarn, not pnpm
+      - name: install pnpm (for git.branch.rebase.lock)
+        uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1 # v4
+
       - name: build
         run: npm run build
 

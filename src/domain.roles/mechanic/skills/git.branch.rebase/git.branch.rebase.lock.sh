@@ -70,6 +70,17 @@ while [[ $# -gt 0 ]]; do
     --skill|--repo|--role)
       shift 2
       ;;
+    --help|-h)
+      print_turtle_header "heres the wave..."
+      print_tree_start "git.branch.rebase lock"
+      echo "   ├─ what"
+      echo "   │  └─ regenerate the lock file mid-rebase, then stage it"
+      echo "   ├─ usage"
+      echo "   │  └─ rhx git.branch.rebase lock refresh"
+      echo "   └─ examples"
+      echo "      └─ rhx git.branch.rebase lock refresh"
+      exit 0
+      ;;
     *)
       # capture subcommand if not yet set
       if [[ -z "$SUBCMD" ]]; then

@@ -4,15 +4,24 @@ exports[`git.branch.rebase.abort given: [case1] no rebase in progress when: [t0]
 "🐢 hold up dude...
 
 🐚 git.branch.rebase abort
-   └─ error: no rebase in progress
+   └─ ✋ ConstraintError: no rebase in progress
 "
 `;
 
 exports[`git.branch.rebase.abort given: [case2] rebase in progress when: [t0] abort rebase then: shows result (simulated rebase state in test) 1`] = `
-"<git diagnostic about abc123def456>
-🐢 hold up dude...
+"🐢 bummer dude...
 
 🐚 git.branch.rebase abort
-   └─ error: abort failed
+   ├─ 💥 MalfunctionError: abort failed
+   └─ git.output
+      ├─
+      │
+      │  <git diagnostic about abc123def456>
+      │
+      └─
+
+🥥 did you know?
+   ├─ once git.output's cause is cleared, retry
+   └─ rhx git.branch.rebase abort
 "
 `;

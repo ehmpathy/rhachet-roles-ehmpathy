@@ -242,13 +242,13 @@ describe('git.branch.rebase.take', () => {
           expect(result.stdout).toContain('done');
           expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
 
-          // verify file has theirs content (feature branch = theirs in rebase)
-          // in rebase: ours = base branch (origin/main), theirs = commit in replay
+          // verify file has theirs content: from the caller's view, theirs = main
           const content = fs.readFileSync(
             path.join(tempDir, 'config.json'),
             'utf-8',
           );
-          expect(content).toContain('feature');
+          expect(content).toContain('main');
+          expect(content).not.toContain('feature');
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
@@ -279,13 +279,13 @@ describe('git.branch.rebase.take', () => {
           expect(result.stdout).toContain('done');
           expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
 
-          // verify file has ours content (main branch = ours in rebase)
-          // in rebase: ours = base branch (origin/main), theirs = commit in replay
+          // verify file has ours content: from the caller's view, ours = your commit
           const content = fs.readFileSync(
             path.join(tempDir, '.eslintrc.json'),
             'utf-8',
           );
-          expect(content).toContain('main');
+          expect(content).toContain('feature');
+          expect(content).not.toContain('main');
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }

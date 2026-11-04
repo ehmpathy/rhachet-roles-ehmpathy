@@ -25,13 +25,8 @@
 #   git.repo.test.sh --what unit --mode apply --thorough   # run full suite
 #   git.repo.test.sh --what integration --mode apply --env prep  # unlock keyrack for prep, set CONFIG=prep
 #
-# acceptance tests require --against and --env:
-#   git.repo.test.sh --what acceptance --against local --env test --mode apply   # local server, test creds
-#   git.repo.test.sh --what acceptance --against local --env prep --mode apply   # local server, prep creds
-#   git.repo.test.sh --what acceptance --against cloud --env prep --mode apply   # deployed prep
-#   git.repo.test.sh --what acceptance --against cloud --env prod --mode apply   # deployed prod (smoke test)
-#
-# note: --env test --against cloud is invalid (test is not deployed to cloud)
+# acceptance requires --against local|cloud and --env test|prep|prod
+#   (cloud + prod = smoke test; cloud + test is invalid, test is not deployed)
 #
 # mode:
 #   plan   - preview matched files (default)
