@@ -219,7 +219,10 @@ const asStableOutput = (output: string): string =>
     .replace(/[‘’]/g, "'")
     .replace(/^\s*│\s*hint:.*\n/gm, '')
     .replace(/^\s*│\s*Could not apply .*\n/gm, '')
-    .replace(/(?:fatal|error): The pre-rebase hook/g, 'fatal: The pre-rebase hook')
+    .replace(
+      /(?:fatal|error): The pre-rebase hook/g,
+      'fatal: The pre-rebase hook',
+    )
     .replace(
       /Another git process seems to be .*(?:\n[ │]*(?:an editor opened|are terminated|may have crashed|remove the file manually).*)*/g,
       'Another git process holds the index lock',
