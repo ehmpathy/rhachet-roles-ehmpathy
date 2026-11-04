@@ -262,6 +262,7 @@ fetch_robot_token() {
 # source shared domain operations (get_behavioral_commits_on_branch, etc.)
 ######################################################################
 source "$SCRIPT_DIR/git.commit.operations.sh"
+set_meter_scope commit
 
 # parse arguments
 MESSAGE=""
@@ -345,7 +346,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --message, -m @stdin   read multiline commit message from stdin (required)"
       echo "                         first line = header, after blank line = body"
       echo "  --mode plan|apply      plan shows preview, apply executes (default: plan)"
-      echo "  --push                 push after commit (requires push permission)"
+      echo "  --push                 push after commit (rides the held commit grant)"
       echo "  --auth as-ehmpath|as-human"
       echo "                         who opens the pr (default: as-ehmpath)"
       echo "                         as-ehmpath = seaturtle bot via ehmpath keyrack token"
@@ -397,10 +398,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      UNKNOWN_OPT_ERR="✋ ConstraintError: unknown option: $1
-usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push]"
-      echo "$UNKNOWN_OPT_ERR"
-      echo "$UNKNOWN_OPT_ERR" >&2
+      emit_usage_refusal --skill git.commit.set --message "unknown option: $1"
       exit 2
       ;;
     *)
@@ -613,11 +611,8 @@ if [[ "$BEHAVIORAL_COMMITS" == "ON_BASE" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
     print_tree_constraint "cannot commit to base branch"
-    echo ""
-    echo "   you are on main - create a feature branch first"
-    echo ""
-    echo "   example:"
-    echo "     git checkout -b feat/my-feature"
+    print_coconut_hint "a commit lands on a feature branch; create a feature branch first" \
+      "git checkout -b feat/my-feature"
   )"
   exit 2
 fi
@@ -722,7 +717,8 @@ if ! check_global_blocker; then
     #    clears a blocker a human set; it is not what clears a damaged file,
     #    and both at once reads as a menu where the reader must pick.
     if [[ "$GLOBAL_BLOCK_CORRUPT" != "true" ]]; then
-      print_instruction "ask your human to lift:" "  \$ git.commit.uses allow --global"
+      print_coconut_hint "a human set the global blocker; ask them to lift it" \
+        "git.commit.uses allow --global"
     fi
     print_global_corrupt_note
   )"
@@ -748,7 +744,7 @@ if ! check_org_blocker; then
     # ⚠️ exclusive, as above: `allow --org` writes a key into a file, which is
     #    no remedy for a file that cannot be parsed to write into.
     if [[ "$ORG_BLOCK_CORRUPT" != "true" ]]; then
-      print_instruction "ask your human to allow:" "  \$ git.commit.uses allow --org <org>"
+      print_org_blocked_hint
     fi
     print_org_corrupt_note
   )"
@@ -758,19 +754,10 @@ if ! check_org_blocker; then
   exit 2
 fi
 
-# check state file exists
-if [[ ! -f "$STATE_FILE" ]]; then
-  emit_both "$(
-    print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.set"
-    print_tree_constraint "no commit quota set"
-    print_instruction "ask your human to grant:" "  \$ git.commit.uses set --quant N --push allow|block"
-  )"
-  exit 2  # blocked by constraints
-fi
-
-# refuse a damaged quota file by name, before any raw read of it
-if ! is_local_meter_readable file="$STATE_FILE"; then
+# read the local grant via the shared reader: damage refuses by name
+LOCAL_GRANT_STATUS=0
+get_one_commit_local_grant file="$STATE_FILE" || LOCAL_GRANT_STATUS=$?
+if [[ "$LOCAL_GRANT_STATUS" -eq 1 ]]; then
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
@@ -780,29 +767,40 @@ if ! is_local_meter_readable file="$STATE_FILE"; then
   exit 1  # malfunction — the file is damaged, not the caller's input
 fi
 
-# read state
-USES=$(jq -r '.uses' "$STATE_FILE")
-PUSH_ALLOWED=$(jq -r '.push' "$STATE_FILE")
-STAGE_ALLOWED=$(jq -r '.stage // "block"' "$STATE_FILE")
-
-# check uses > 0 or "infinite" (plan mode is allowed without uses)
-if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" != "plan" ]]; then
+# no grant on this tree
+if [[ "$LOCAL_GRANT_STATUS" -eq 2 ]]; then
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_constraint "no commit uses left"
-    print_instruction "ask your human to grant more:" "  \$ git.commit.uses set --quant N --push allow|block"
+    print_tree_constraint "no commit quota set"
+    print_coconut_hint "this tree holds no commit grant; ask your human to grant one" \
+      "git.commit.uses set --quant N"
   )"
   exit 2  # blocked by constraints
 fi
 
-# check push permission
-if [[ "$DO_PUSH" == true && "$PUSH_ALLOWED" != "allow" ]]; then
+# a revoked grant: a human typed block / del, so neither commit nor push may run
+if [[ "$COMMIT_HELD" != "true" ]]; then
   emit_both "$(
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
-    print_tree_constraint "push not allowed in current grant"
-    print_instruction "ask your human to grant with --push allow" ""
+    print_tree_constraint "commit grant revoked"
+    print_coconut_hint "a human revoked this grant; ask your human to grant again" \
+      "git.commit.uses set --quant N"
+  )"
+  exit 2  # blocked by constraints
+fi
+
+# a commit needs a live grant (plan mode is allowed without uses). the push
+# that follows rides the held grant, so it needs no check of its own (F16)
+USES="$COMMIT_USES"
+if [[ "$COMMIT_LIVE" != "true" && "$MODE" != "plan" ]]; then
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.commit.set"
+    print_tree_constraint "no commit uses left"
+    print_coconut_hint "the grant is spent; ask your human to grant more" \
+      "git.commit.uses set --quant N"
   )"
   exit 2  # blocked by constraints
 fi
@@ -958,7 +956,15 @@ refuse_commit_for_absent_sponsor() {
   # the render below reads the reader's globals — fail named, never raw
   assert_git_identity_read
 
-  local lead="ask your human to run, in this tree:"
+  # one coconut: the git config fixes (where a half is at fault) lead, then
+  # the two bind forms close the block
+  local affordance="ask your human to bind a sponsor, in this tree"
+  local commands=()
+  if (( ${#GIT_IDENTITY_FAULTS[@]} > 0 )); then
+    affordance="ask your human to fix git config, so commits name them; or to bind a sponsor, in this tree"
+    mapfile -t commands < <(as_git_config_fix_commands "${GIT_IDENTITY_FAULTS[@]}")
+  fi
+  commands+=("$SPONSOR_BIND_VIA_STDIN" "$SPONSOR_BIND_VIA_LITERAL")
 
   emit_both "$(
     print_turtle_header "bummer dude..."
@@ -969,12 +975,7 @@ refuse_commit_for_absent_sponsor() {
     echo ""
     echo "   ⛔ you cannot fix this yourself. a sponsor is bound by a human,"
     echo "      at a terminal."
-    if (( ${#GIT_IDENTITY_FAULTS[@]} > 0 )); then
-      print_instruction "ask your human to fix git config — then commits name them:" \
-        "$(as_git_config_fix_lines "${GIT_IDENTITY_FAULTS[@]}")"
-      lead="or to bind a sponsor, in this tree:"
-    fi
-    print_instruction "$lead" "$SPONSOR_BIND_REMEDY"
+    print_coconut_hint "$affordance" "${commands[@]}"
   )"
   exit 2  # blocked by constraints
 }
@@ -1033,13 +1034,13 @@ if [[ "$AUTH" == "as-ehmpath" && "${NODE_ENV:-}" != "test" ]]; then
   fetch_robot_token
   ROBOT_TOKEN_FETCHED=true
   if [[ -z "$ROBOT_TOKEN" && -n "$TOKEN_FETCH_ERR" ]]; then
-    echo "🐢 heads up: the ehmpath keyrack token wasnt fetched; the commit will" >&2
+    echo "🐢 heads up: the ehmpath keyrack token wasn't fetched; the commit will" >&2
     echo "   author as the default seaturtle. cause: $TOKEN_FETCH_ERR" >&2
   fi
 
   # failfast: an app token must map to the bot identity we hardcode for it,
   # else the squash-merge could silently show a 3rd contributor
-  assert_token_identity_in_sync "$ROBOT_TOKEN" || exit 2
+  assert_token_identity_in_sync "$ROBOT_TOKEN" skill=git.commit.set || exit 2
 fi
 IFS=$'\t' read -r ROBOT_NAME ROBOT_EMAIL < <(get_one_seaturtle_identity "$ROBOT_TOKEN")
 
@@ -1110,11 +1111,9 @@ if [[ "$USES" == "infinite" ]]; then
 else
   NEW_USES=$((USES - 1))
 fi
-if [[ "$PUSH_ALLOWED" == "allow" ]]; then
-  PUSH_DISPLAY="allowed"
-else
-  PUSH_DISPLAY="blocked"
-fi
+
+# a commit only runs on a held grant, and a depletion keeps it held (F16)
+PUSH_DISPLAY="held"
 
 # collect staged files for output
 if [[ "$WILL_INCLUDE_UNSTAGED" == true ]]; then
@@ -1190,11 +1189,7 @@ if [[ "$MODE" == "plan" ]]; then
   else
     echo "      ├─ left: $USES → $NEW_USES"
   fi
-  if [[ "$DO_PUSH" == true && "$NEW_USES" != "infinite" && "$NEW_USES" -le 0 && "$PUSH_ALLOWED" == "allow" ]]; then
-    echo "      └─ push: allowed → blocked (revoked)"
-  else
-    echo "      └─ push: $PUSH_DISPLAY"
-  fi
+  echo "      └─ push: $PUSH_DISPLAY"
   echo ""
   echo "run with --mode apply to execute"
   exit 0
@@ -1216,21 +1211,18 @@ if ! git commit \
   > /dev/null 2>"$COMMIT_STDERR_FILE"; then
   # commit failure rides BOTH streams (stdout for a terminal viewer, stderr for
   # log aggregation) — a failure is never stdout-only, and every other failure
-  # path in this file dual-streams (rule.require.skill-output-streams). build the
-  # framed error once (header + tree + the raw git cause), then emit to each
-  # stream via a portable dual-echo (not `tee /dev/stderr`, absent in some
-  # spawned shells).
-  COMMIT_ERR=$(print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.set"
-    print_tree_malfunction "git commit failed"
-    echo ""
-    # label the raw git output `cause:` so it reads as the root error, not part of
-    # the structured guide — consistent with the keyrack/gh failure guides that
-    # prefix their raw diagnostics the same way (rule.forbid.snapshot-visual-blemishes)
-    echo "cause: $(cat "$COMMIT_STDERR_FILE")")
+  # path in this file dual-streams (rule.require.skill-output-streams). the raw
+  # git output hangs under a `git.output` branch, the same sub.bucket the rebase
+  # family and git.commit.push render (rule.forbid.snapshot-visual-blemishes)
+  COMMIT_GIT_OUTPUT="$(cat "$COMMIT_STDERR_FILE")"
   rm -f "$COMMIT_STDERR_FILE"
-  echo "$COMMIT_ERR"
-  echo "$COMMIT_ERR" >&2
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.commit.set"
+    echo "   ├─ 💥 MalfunctionError: git commit failed"
+    echo "   └─ git.output"
+    print_git_output_tree "$COMMIT_GIT_OUTPUT"
+  )"
   exit 1
 fi
 rm -f "$COMMIT_STDERR_FILE"
@@ -1321,37 +1313,16 @@ if [[ "$DO_PUSH" == true ]]; then
   fi
 fi
 
-# update uses in state file (preserve stage, write "infinite" as string)
-if [[ "$NEW_USES" == "infinite" ]]; then
-  cat > "$STATE_FILE" << EOF
-{
-  "uses": "infinite",
-  "push": "$PUSH_ALLOWED",
-  "stage": "$STAGE_ALLOWED"
-}
-EOF
-else
-  cat > "$STATE_FILE" << EOF
-{
-  "uses": $NEW_USES,
-  "push": "$PUSH_ALLOWED",
-  "stage": "$STAGE_ALLOWED"
-}
-EOF
-fi
-
-# auto-revoke push if uses depleted and push was executed
-if [[ "$DO_PUSH" == true && "$PUSH_RESULT_STATUS" == "pushed" && "$NEW_USES" != "infinite" && "$NEW_USES" -le 0 && "$PUSH_ALLOWED" == "allow" ]]; then
-  PUSH_ALLOWED="block"
-  cat > "$STATE_FILE" << EOF
-{
-  "uses": $NEW_USES,
-  "push": "block",
-  "stage": "$STAGE_ALLOWED"
-}
-EOF
-  PUSH_DISPLAY="blocked (revoked)"
-fi
+# spend one use; the grant stays held, so the crew can push this commit even
+# at 0 left — only a human's block / del revokes (F16). the write also moves a
+# legacy file onto the current shape, so its retired fields fall away
+#
+# .why the trap = a kill between the write and the `mv` would leave the temp
+#        file in .meter/; it keeps the earlier `err_file` cleanup in the set
+STATE_FILE_TEMP="${STATE_FILE}.tmp.$$"
+trap 'rm -f "${err_file:-}" "${STATE_FILE_TEMP:-}"' EXIT
+printf '{\n  "uses": %s,\n  "held": true\n}\n' "$(as_meter_uses_json quant="$NEW_USES")" > "$STATE_FILE_TEMP"
+mv -f "$STATE_FILE_TEMP" "$STATE_FILE"
 
 # output with turtle vibes — cowabunga only when the push actually shipped;
 # a requested-but-failed push still landed the commit, so it reads as righteous
@@ -1401,7 +1372,7 @@ SET_OUTPUT=$(
   # remind to watch CI after push
   if is_push_shipped "$DO_PUSH" "$PUSH_RESULT_STATUS"; then
     echo ""
-    echo "🌊 now lets ride the release wave and catch any wipeouts"
+    echo "🌊 now let's ride the release wave and catch any wipeouts"
     echo "   └─ rhx git.release --watch || rhx show.gh.test.errors"
   fi
 )

@@ -65,9 +65,14 @@ printf 'fix(typo): readme\n\n- fixed typo' | npx rhachet run --skill git.commit.
 
 ## .prerequisites
 
-- human must grant quota: `git.commit.uses set --quant N --push allow|block`
+- human must grant quota: `git.commit.uses set --quant N`
+  - one grant covers commit, stage, rebase, and push to this tree's own branch
+  - a grant at 0 left still pushes; only `block` / `del` revoke it
+  - `set --quant 0` = commit no more, push what you have
+  - a release is a separate meter: `git.release.uses set --quant 1` lets
+    `git.release --mode apply` ship. a commit grant never ships
 - a sponsor: on the human's own machine, `git config user.name` + `user.email`
   name them and no bind is needed. a bind wins over git config; on the clone's
   machine (git config names a seaturtle identity) a human must bind one, at a
   real terminal: `rhx git.commit.sponsor set --who <@stdin|@self|"Name <email>">`
-- for `--push`: requires `--push allow` in quota grant
+- for `--push`: the commit grant is enough; no separate push grant exists

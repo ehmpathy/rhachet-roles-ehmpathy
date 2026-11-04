@@ -1,43 +1,88 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`git.branch.rebase.begin given: [case1] feature branch with commits ahead and behind when: [t0] plan mode (default) then: shows preview or fetch error (no real remote in test) 1`] = `
-"🐢 hold up dude...
+"🐢 bummer dude...
 
 🐚 git.branch.rebase begin
-   └─ error: failed to fetch origin/main
+   └─ 💥 MalfunctionError: failed to fetch origin/main
 
-check your network connection and try again
+🥥 did you know?
+   ├─ check the network connection, then try again
+   └─ rhx git.branch.rebase begin
 "
 `;
 
 exports[`git.branch.rebase.begin given: [case2] feature branch ready to rebase when: [t0] apply mode attempts rebase then: shows result or fetch error (no real remote in test) 1`] = `
-"🐢 hold up dude...
+"🐢 bummer dude...
 
 🐚 git.branch.rebase begin
-   └─ error: failed to fetch origin/main
+   └─ 💥 MalfunctionError: failed to fetch origin/main
 
-check your network connection and try again
+🥥 did you know?
+   ├─ check the network connection, then try again
+   └─ rhx git.branch.rebase begin
 "
 `;
 
 exports[`git.branch.rebase.begin given: [case3] rebase with conflicts when: [t0] apply mode hits conflict then: shows conflict status and files 1`] = `
-"🐢 hold up dude...
+"🐢 hang tight...
 
-🐚 git.branch.rebase begin
-   └─ error: failed to fetch origin/main
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 3
+   │  └─ status: conflict
+   ├─ conflict
+   │  ├─ commit: <sha> fix: add conflict file
+   │  └─ files
+   │     └─ conflict.txt
+   └─ git.output
+      ├─
+      │
+      │  <git output>
+      │
+      └─
 
-check your network connection and try again
+🥥 did you know?
+   ├─ settle the conflicts in the files above, stage them, then continue
+   ├─ rhx git.stage.add <files>
+   └─ rhx git.branch.rebase continue
 "
 `;
 
-exports[`git.branch.rebase.begin given: [case4] no push permission granted when: [t0] attempt rebase then: shows error: push permission required 1`] = `
+exports[`git.branch.rebase.begin given: [case4] no commit grant held when: [t0] attempt rebase after a revoke then: shows error: no commit grant on this tree 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: rebase requires push permission
+   └─ ✋ ConstraintError: no commit grant on this tree
 
-ask your human to grant permission:
-  $ rhx git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ a rebase rides the commit grant; ask your human to grant one
+   └─ rhx git.commit.uses set --quant N
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case4b] the global commit kill switch is on when: [t0] apply on a live grant then: exit 2: a human-set global block halts the rebase too 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: globally blocked
+
+🥥 did you know?
+   ├─ a human has blocked all mechanic operations; ask them to lift it
+   └─ git.commit.uses allow --global
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case4b] the global commit kill switch is on when: [t0] apply on a live grant then: exit 2: a human-set global block halts the rebase too 2`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: globally blocked
+
+🥥 did you know?
+   ├─ a human has blocked all mechanic operations; ask them to lift it
+   └─ git.commit.uses allow --global
 "
 `;
 
@@ -45,7 +90,11 @@ exports[`git.branch.rebase.begin given: [case5] on main branch when: [t0] attemp
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: cannot rebase main/master
+   └─ ✋ ConstraintError: cannot rebase main/master
+
+🥥 did you know?
+   ├─ a rebase moves a feature branch onto main; check one out first
+   └─ git checkout <feature-branch>
 "
 `;
 
@@ -53,19 +102,23 @@ exports[`git.branch.rebase.begin given: [case6] dirty work tree when: [t0] attem
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: unstaged changes found
+   └─ ✋ ConstraintError: unstaged changes found
 
-commit or stash your changes first
+🥥 did you know?
+   ├─ commit your changes first, so the rebase moves them too
+   └─ rhx git.commit.set -m @stdin --unstaged include --mode apply
 "
 `;
 
 exports[`git.branch.rebase.begin given: [case7] branch already up to date when: [t0] attempt rebase then: shows up to date or fetch error (no real remote in test) 1`] = `
-"🐢 hold up dude...
+"🐢 bummer dude...
 
 🐚 git.branch.rebase begin
-   └─ error: failed to fetch origin/main
+   └─ 💥 MalfunctionError: failed to fetch origin/main
 
-check your network connection and try again
+🥥 did you know?
+   ├─ check the network connection, then try again
+   └─ rhx git.branch.rebase begin
 "
 `;
 
@@ -73,29 +126,212 @@ exports[`git.branch.rebase.begin given: [case8] rebase already in progress when:
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: rebase already in progress
+   └─ ✋ ConstraintError: rebase already in progress
 
-to continue: rhx git.branch.rebase continue
-to abort:    rhx git.branch.rebase abort
+🥥 did you know?
+   ├─ finish the rebase underway, or abandon it
+   ├─ rhx git.branch.rebase continue
+   └─ rhx git.branch.rebase abort
 "
 `;
 
 exports[`git.branch.rebase.begin given: [case9] uses is "infinite" when: [t0] apply mode with infinite uses then: does not fail on integer comparison (handles infinite) 1`] = `
-"🐢 hold up dude...
+"🐢 bummer dude...
 
 🐚 git.branch.rebase begin
-   └─ error: failed to fetch origin/main
+   └─ 💥 MalfunctionError: failed to fetch origin/main
 
-check your network connection and try again
+🥥 did you know?
+   ├─ check the network connection, then try again
+   └─ rhx git.branch.rebase begin
 "
 `;
 
 exports[`git.branch.rebase.begin given: [case9] uses is "infinite" when: [t1] plan mode with infinite uses then: shows preview (plan mode is always free) 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ 💥 MalfunctionError: failed to fetch origin/main
+
+🥥 did you know?
+   ├─ check the network connection, then try again
+   └─ rhx git.branch.rebase begin
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case10] the commit quota file is damaged when: [t0] attempt rebase then: refuses as a malfunction on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ 💥 MalfunctionError: commit quota file corrupt
+
+   the file that holds this tree's commit quota cannot be read:
+     .meter/git.commit.uses.jsonc
+
+🥥 did you know?
+   ├─ ask your human to reset the quota, then grant again
+   ├─ git.commit.uses del
+   └─ git.commit.uses set --quant N
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case11] zero commits ahead, main moved forward, a real origin when: [t0] plan mode then: previews a fast-forward 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase begin --mode plan
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ shape: fast-forward
+   │  ├─ ahead: 0 commits
+   │  └─ behind: 2 commits
+   │     ├─ <sha> chore: commit behind 1
+   │     └─ <sha> chore: commit behind 0
+   └─ meter
+      ├─ rebase: spends no use; the held grant suffices
+      └─ push: held
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case11] zero commits ahead, main moved forward, a real origin when: [t1] the branch remote cannot be read then: fails closed as a malfunction on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ 💥 MalfunctionError: could not read origin/feature/test-branch
+
+🥥 did you know?
+   ├─ a fast-forward needs proof it orphans no remote commit; check the remote, then retry
+   └─ git fetch origin feature/test-branch
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case11] zero commits ahead, main moved forward, a real origin when: [t2] the branch remote holds a commit this tree lacks then: refuses the fast-forward as a constraint 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: failed to fetch origin/main
+   └─ ✋ ConstraintError: origin/feature/test-branch holds commits this tree lacks: 1
 
-check your network connection and try again
+🥥 did you know?
+   ├─ a fast-forward onto main would orphan them; pull them in first
+   └─ git pull --ff-only origin feature/test-branch
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction past its guards when: [t0] the global blocker file is damaged then: refuses as a malfunction on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ 💥 MalfunctionError: global blocker file corrupt
+
+🥥 did you know?
+   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction past its guards when: [t0] the global blocker file is damaged then: refuses as a malfunction on both streams 2`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ 💥 MalfunctionError: global blocker file corrupt
+
+🥥 did you know?
+   ├─ the global blocker file cannot be read, so every commit is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction past its guards when: [t1] origin holds neither main nor master then: refuses as a malfunction on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ 💥 MalfunctionError: no main or master branch found on origin
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction past its guards when: [t1] origin holds neither main nor master then: refuses as a malfunction on both streams 2`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ 💥 MalfunctionError: no main or master branch found on origin
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction past its guards when: [t2] the count of commits behind cannot be read then: fails closed as a malfunction on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ 💥 MalfunctionError: could not count commits behind origin/main
+
+🥥 did you know?
+   ├─ the count reads origin/main; fetch it, then retry
+   └─ git fetch origin main
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction past its guards when: [t2] the count of commits behind cannot be read then: fails closed as a malfunction on both streams 2`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ 💥 MalfunctionError: could not count commits behind origin/main
+
+🥥 did you know?
+   ├─ the count reads origin/main; fetch it, then retry
+   └─ git fetch origin main
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction past its guards when: [t3] the rebase fails with no conflict then: names the malfunction and shows the git output 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ 💥 MalfunctionError: rebase failed
+   └─ git.output
+      ├─
+      │
+      │  fatal: pull refused by the test shim
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction past its guards when: [t3] the rebase fails with no conflict then: names the malfunction and shows the git output 2`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ 💥 MalfunctionError: rebase failed
+   └─ git.output
+      ├─
+      │
+      │  fatal: pull refused by the test shim
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case13] a call the skill does not know how to read when: [t0] begin is called with an unknown mode then: exit 2, the refusal rides both streams, before any fetch 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: unknown mode 'bogus' (valid modes: plan, apply)
+
+🥥 did you know?
+   ├─ see every form git.branch.rebase begin takes, with examples
+   └─ rhx git.branch.rebase begin --help
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case13] a call the skill does not know how to read when: [t1] begin is called with an unknown argument then: exit 2, the refusal rides both streams, before any fetch 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: unknown argument: --bogus
+
+🥥 did you know?
+   ├─ see every form git.branch.rebase begin takes, with examples
+   └─ rhx git.branch.rebase begin --help
 "
 `;

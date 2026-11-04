@@ -4,71 +4,95 @@ exports[`git.branch.rebase.continue given: [case1] no rebase in progress when: [
 "🐢 hold up dude...
 
 🐚 git.branch.rebase continue
-   └─ error: no rebase in progress
+   └─ ✋ ConstraintError: no rebase in progress
+
+🥥 did you know?
+   ├─ start a rebase onto main first
+   └─ rhx git.branch.rebase begin
 "
 `;
 
 exports[`git.branch.rebase.continue given: [case2] rebase in progress with unsettled conflicts when: [t0] attempt continue then: simulated state - see journey test for real conflicts 1`] = `
-"🐢 righteous!
+"🐢 bummer dude...
 
 🐚 git.branch.rebase continue
    ├─ rebase
-   │  └─ status: in progress
-   ├─ left: 1 commits
+   │  └─ status: halted
+   ├─ 💥 MalfunctionError: git rebase --continue failed (exit 1)
    └─ git.output
       ├─
       │
       │  <git diagnostic about abc123def456>
       │
       └─
+
+🥥 did you know?
+   ├─ read the git output above; settle it, or abandon the rebase
+   ├─ git status
+   └─ rhx git.branch.rebase abort
 "
 `;
 
-exports[`git.branch.rebase.continue given: [case3] rebase in progress with more commits left when: [t0] conflicts settled, continue then: shows progress with commits left 1`] = `
-"🐢 righteous!
+exports[`git.branch.rebase.continue given: [case3] rebase in progress with more commits left when: [t0] conflicts settled, continue then: a failed git continue refuses as a malfunction, never as progress 1`] = `
+"🐢 bummer dude...
 
 🐚 git.branch.rebase continue
    ├─ rebase
-   │  └─ status: in progress
-   ├─ left: 1 commits
+   │  └─ status: halted
+   ├─ 💥 MalfunctionError: git rebase --continue failed (exit 1)
    └─ git.output
       ├─
       │
       │  <git diagnostic about abc123def456>
       │
       └─
+
+🥥 did you know?
+   ├─ read the git output above; settle it, or abandon the rebase
+   ├─ git status
+   └─ rhx git.branch.rebase abort
 "
 `;
 
-exports[`git.branch.rebase.continue given: [case4] rebase in progress with final commit when: [t0] conflicts settled, continue to completion then: shows complete with ready to push 1`] = `
-"🐢 righteous!
+exports[`git.branch.rebase.continue given: [case4] rebase in progress with final commit when: [t0] conflicts settled, continue to completion then: a failed git continue on the last commit refuses as a malfunction 1`] = `
+"🐢 bummer dude...
 
 🐚 git.branch.rebase continue
    ├─ rebase
-   │  └─ status: in progress
-   ├─ left: 0 commits
+   │  └─ status: halted
+   ├─ 💥 MalfunctionError: git rebase --continue failed (exit 1)
    └─ git.output
       ├─
       │
       │  <git diagnostic about abc123def456>
       │
       └─
+
+🥥 did you know?
+   ├─ read the git output above; settle it, or abandon the rebase
+   ├─ git status
+   └─ rhx git.branch.rebase abort
 "
 `;
 
 exports[`git.branch.rebase.continue given: [case5] worktree with rebase in progress when: [t0] attempt continue from worktree then: detects rebase state via git rev-parse --git-dir 1`] = `
-"🐢 righteous!
+"🐢 bummer dude...
 
 🐚 git.branch.rebase continue
    ├─ rebase
-   │  └─ status: in progress
-   ├─ left: 1 commits
+   │  └─ status: halted
+   ├─ 💥 MalfunctionError: git rebase --continue failed (exit 1)
    └─ git.output
       ├─
       │
       │  <git diagnostic about abc123def456>
       │
       └─
+
+🥥 did you know?
+   ├─ read the git output above; settle it, or abandon the rebase
+   ├─ git status
+   └─ rhx git.branch.rebase abort
 "
 `;
 
@@ -76,7 +100,11 @@ exports[`git.branch.rebase.continue given: [case6] worktree with no rebase in pr
 "🐢 hold up dude...
 
 🐚 git.branch.rebase continue
-   └─ error: no rebase in progress
+   └─ ✋ ConstraintError: no rebase in progress
+
+🥥 did you know?
+   ├─ start a rebase onto main first
+   └─ rhx git.branch.rebase begin
 "
 `;
 
@@ -89,15 +117,66 @@ exports[`git.branch.rebase.continue given: [case7] rebase in progress with unsta
    ├─ unstaged
    │  └─ files
    │     └─ README.md
-   ├─ next steps
-   │  ├─ git diff
-   │  ├─ rhx git.stage.add <files>
-   │  └─ rhx git.branch.rebase continue
    └─ git.output
       ├─
       │
       │  <git output>
       │
       └─
+
+🥥 did you know?
+   ├─ review the unstaged files, stage them, then continue
+   ├─ git diff
+   ├─ rhx git.stage.add <files>
+   └─ rhx git.branch.rebase continue
+"
+`;
+
+exports[`git.branch.rebase.continue given: [case8] a real rebase that stops at each commit, with no conflict when: [t0] continue moves past one stop to the next then: exit 0: renders the rebase as still in progress 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  └─ status: in progress
+   ├─ left: 1 commits
+   └─ git.output
+      ├─
+      │
+      │  <git output>
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase.continue given: [case9] a real rebase that stops at its one commit, with no conflict when: [t0] continue moves past the last stop then: exit 0: renders the rebase complete, ready to push 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 1 ✓
+   │  └─ status: complete
+   ├─ meter
+   │  └─ push: held
+   └─ git.output
+      ├─
+      │
+      │  <git output>
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase.continue given: [case10] an argument the skill does not know when: [t0] continue is called with --bogus then: exit 2, the refusal rides both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase continue
+   └─ ✋ ConstraintError: unknown argument: --bogus
+
+🥥 did you know?
+   ├─ see every form git.branch.rebase continue takes, with examples
+   └─ rhx git.branch.rebase continue --help
 "
 `;

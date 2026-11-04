@@ -9,10 +9,12 @@ import { ROLE_MECHANIC } from './getMechanicRole';
 describe('getMechanicRole', () => {
   given('[case1] the mechanic role definition', () => {
     when('[t0] hooks property is accessed', () => {
-      then('onBrain.onBoot contains at least 2 hooks', () => {
-        expect(
-          ROLE_MECHANIC.hooks?.onBrain?.onBoot?.length,
-        ).toBeGreaterThanOrEqual(2);
+      // .why = an exact count, not a floor: the two onBoot hooks are the
+      //        permissions notice and the post-compact verify reminder; no
+      //        self-boot hook remains (see [t1]). a dropped hook or a re-added
+      //        self-boot hook each turn this red
+      then('onBrain.onBoot holds exactly the 2 declared hooks', () => {
+        expect(ROLE_MECHANIC.hooks?.onBrain?.onBoot?.length).toEqual(2);
       });
 
       then('onBrain.onTool contains at least 7 hooks', () => {
@@ -34,6 +36,13 @@ describe('getMechanicRole', () => {
         const hook = findHook('notify-permissions');
         expect(hook).toBeDefined();
         expect(hook?.timeout).toEqual('PT10S');
+      });
+
+      then('trust-but-verify hook is present on PostCompact', () => {
+        const hook = findHook('postcompact.trust-but-verify');
+        expect(hook).toBeDefined();
+        expect(hook?.timeout).toEqual('PT30S');
+        expect(hook?.filter?.what).toEqual('PostCompact');
       });
 
       then('no hook boots a role via `roles boot --role`', () => {

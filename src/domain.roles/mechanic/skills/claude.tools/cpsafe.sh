@@ -82,11 +82,7 @@ while [[ $# -gt 0 ]]; do
       exit 0
       ;;
     --*)
-      echo "error: unknown option: $1"
-      echo "usage: cpsafe.sh <from> <into>"
-      echo "       cpsafe.sh --from <source> --into <destination>"
-      echo "       cpsafe.sh --literal <from> <into>"
-      echo "see: cpsafe.sh --help"
+      emit_constraint_frame --skill cpsafe --diagnosis "unknown option: $1"
       exit 2
       ;;
     *)
@@ -100,11 +96,11 @@ done
 # if named args used, both must be provided (no mix with positional)
 if [[ "$NAMED_ARG_USED" == true ]]; then
   if [[ -z "$FROM" ]]; then
-    echo "error: --from is required when --into is specified"
+    emit_constraint_frame --skill cpsafe --diagnosis "--from is required when --into is specified"
     exit 2
   fi
   if [[ -z "$INTO" ]]; then
-    echo "error: --into is required when --from is specified"
+    emit_constraint_frame --skill cpsafe --diagnosis "--into is required when --from is specified"
     exit 2
   fi
 else
@@ -119,22 +115,18 @@ fi
 
 # validate required args
 if [[ -z "$FROM" ]]; then
-  echo "error: source path is required"
-  echo "usage: cpsafe.sh <from> <into>"
-  echo "       cpsafe.sh --from <source> --into <destination>"
+  emit_constraint_frame --skill cpsafe --diagnosis "source path is required"
   exit 2
 fi
 
 if [[ -z "$INTO" ]]; then
-  echo "error: destination path is required"
-  echo "usage: cpsafe.sh <from> <into>"
-  echo "       cpsafe.sh --from <source> --into <destination>"
+  emit_constraint_frame --skill cpsafe --diagnosis "destination path is required"
   exit 2
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "error: not in a git repository"
+  emit_constraint_frame --skill cpsafe --diagnosis "not in a git repository"
   exit 2
 fi
 
@@ -162,11 +154,11 @@ if [[ "$IS_GLOB" == "true" ]]; then
 else
   # literal path: validate directly
   if [[ ! -e "$FROM" ]]; then
-    echo "error: source does not exist: $FROM"
+    emit_constraint_frame --skill cpsafe --diagnosis "source does not exist: $FROM"
     exit 2
   fi
   if [[ -d "$FROM" ]]; then
-    echo "error: source must be a file, not a directory: $FROM"
+    emit_constraint_frame --skill cpsafe --diagnosis "source must be a file, not a directory: $FROM"
     exit 2
   fi
   if [[ -f "$FROM" ]]; then
@@ -206,42 +198,34 @@ fi
 # if multiple files, dest must be a directory
 if [[ $FILE_COUNT -gt 1 ]]; then
   if [[ -e "$INTO" && ! -d "$INTO" ]]; then
-    echo "error: destination must be a directory when copying multiple files"
+    emit_constraint_frame --skill cpsafe --diagnosis "destination must be a directory when the source holds multiple files"
     exit 2
   fi
-  # ensure dest exists as directory
-  mkdir -p "$INTO"
+  # .note = the dest dir is created in the copy loop, after every guard passed
 fi
 
-# print header
-print_turtle_header "sweet"
-print_tree_start "cpsafe"
-print_tree_branch "from" "$FROM"
-print_tree_branch "into" "$INTO"
-print_tree_branch "files" "$FILE_COUNT"
-print_tree_leaf "copied"
-
-# copy each file with incremental output
-COPIED_COUNT=0
+# validate every source + destination before the header and before any copy,
+# so a refusal never follows a "sweet" frame and never lands half the files
+FROM_ABS_ALL=()
+INTO_ABS_ALL=()
 for i in "${!FILES[@]}"; do
   FILE="${FILES[$i]}"
-  IS_LAST=$([[ $((i + 1)) -eq $FILE_COUNT ]] && echo "true" || echo "false")
 
   # get absolute source path
   FROM_ABS=$(realpath "$FILE")
 
   # validate source is within repo
   if [[ "$FROM_ABS" != "$REPO_ROOT" && "$FROM_ABS" != "$REPO_ROOT/"* ]]; then
-    echo "error: source must be within the git repository"
-    echo "  repo root: $REPO_ROOT"
-    echo "  source:    $FROM_ABS"
+    emit_constraint_frame --skill cpsafe --diagnosis "source must be within the git repository
+repo root: $REPO_ROOT
+source: $FROM_ABS"
     exit 2
   fi
 
   # determine destination path
   if [[ $FILE_COUNT -gt 1 ]] || [[ -d "$INTO" ]]; then
     # multiple files or dest is directory: copy into directory
-    INTO_ABS="$(realpath "$INTO")/$(basename "$FILE")"
+    INTO_ABS="$(realpath -m "$INTO")/$(basename "$FILE")"
   else
     # single file to single dest
     INTO_DIR=$(dirname "$INTO")
@@ -255,11 +239,33 @@ for i in "${!FILES[@]}"; do
 
   # validate dest is within repo
   if [[ "$INTO_ABS" != "$REPO_ROOT" && "$INTO_ABS" != "$REPO_ROOT/"* ]]; then
-    echo "error: destination must be within the git repository"
-    echo "  repo root: $REPO_ROOT"
-    echo "  dest:      $INTO_ABS"
+    emit_constraint_frame --skill cpsafe --diagnosis "destination must be within the git repository
+repo root: $REPO_ROOT
+destination: $INTO_ABS"
     exit 2
   fi
+
+  # refuse a write into a human-held grant (.meter/, .branch/.bind/)
+  refuse_if_human_grant --skill cpsafe --path "$INTO_ABS" --root "$REPO_ROOT"
+
+  FROM_ABS_ALL+=("$FROM_ABS")
+  INTO_ABS_ALL+=("$INTO_ABS")
+done
+
+# print header
+print_turtle_header "sweet"
+print_tree_start "cpsafe"
+print_tree_branch "from" "$FROM"
+print_tree_branch "into" "$INTO"
+print_tree_branch "files" "$FILE_COUNT"
+print_tree_leaf "copied"
+
+# copy each file with incremental output
+COPIED_COUNT=0
+for i in "${!FILES[@]}"; do
+  IS_LAST=$([[ $((i + 1)) -eq $FILE_COUNT ]] && echo "true" || echo "false")
+  FROM_ABS="${FROM_ABS_ALL[$i]}"
+  INTO_ABS="${INTO_ABS_ALL[$i]}"
 
   # create parent directories if needed
   INTO_ABS_DIR=$(dirname "$INTO_ABS")

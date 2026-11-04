@@ -103,11 +103,22 @@ get_all_local_repos() {
 ######################################################################
 # get_all_cloud_repos — enumerate repos from github org
 # args: org name
-# returns: list of org/repo slugs (one per line)
+# returns: list of org/repo slugs (one per line), exit 0
+#          exit 3 = gh holds no credential (the caller names the login)
+#          exit 1 = gh found no such org; an empty list
+#
+# .why = an auth refusal read as "no cloud repos" hides the one fix the caller
+#        needs; local results still list, but the skip is named
 ######################################################################
 get_all_cloud_repos() {
   local org="$1"
-  gh repo list "$org" --json nameWithOwner --jq '.[].nameWithOwner' 2>/dev/null || true
+  local gh_out
+  if gh_out=$(gh repo list "$org" --json nameWithOwner --jq '.[].nameWithOwner' 2>&1); then
+    echo "$gh_out"
+    return 0
+  fi
+  is_gh_auth_refusal "$gh_out" && return 3
+  return 1
 }
 
 ######################################################################
@@ -130,17 +141,41 @@ refresh_local_repo() {
     return 0
   fi
 
+  # .why no echo here = the caller renders the failure in the family frame,
+  #        with the --refresh off rerun under its coconut
   if ! git fetch origin --quiet 2>/dev/null; then
-    echo "error: failed to fetch from origin" >&2
-    echo "hint: use --refresh off to query stale local refs" >&2
     return 1
   fi
 }
 
 ######################################################################
+# is_gh_auth_refusal — did gh refuse for lack of a credential?
+# args: gh's combined output
+# returns: 0 if the output is gh's no-credential refusal
+#
+# .why = a gh with no login answers every cloud lookup with a refusal; read as
+#        "not found", it hides the one fix the caller needs (gh auth login).
+#        match only the signatures gh emits with no token, so a true 404 still
+#        reads as not found.
+# .note = a copy of git.commit's is_gh_auth_failure, on purpose: this skill
+#         sources no git.commit operations, and the match is one line
+#         (rule.prefer.wet-over-dry). `git.repo.get.integration.test.ts` runs
+#         the REAL gh with no credential, so a gh reword goes red, not silent.
+######################################################################
+# .why = only phrases gh itself prints on a credential refusal; a bare
+#        `authentication` would also match a repo name or an unrelated error
+#        that merely holds the word, and misread a true 404 as a login problem
+# .note = inside a github actions job gh words its refusal differently: "set the
+#         GH_TOKEN environment variable", with no mention of `gh auth login`
+is_gh_auth_refusal() {
+  grep -qiE 'gh auth login|not logged in|requires authentication|bad credentials|http 401|populate the gh_token|set the gh_token environment variable' <<< "$1"
+}
+
+######################################################################
 # lookup_repo — find repo (local-first, cloud fallback)
 # args: org/repo slug
-# returns: "local <path>" or "cloud <url>" or exits with error
+# returns: "local <path>" or "cloud <url>" (exit 0)
+#          exit 1 = not found; exit 3 = gh holds no credential
 ######################################################################
 lookup_repo() {
   local slug="$1"
@@ -154,16 +189,70 @@ lookup_repo() {
     return 0
   fi
 
-  # try cloud
-  local url
-  url=$(gh repo view "$slug" --json url --jq '.url' 2>/dev/null || true)
-  if [[ -n "$url" ]]; then
-    echo "cloud $url"
+  # try cloud; keep gh's own words, so a credential refusal is told from a 404
+  local gh_out
+  if gh_out=$(gh repo view "$slug" --json url --jq '.url' 2>&1) && [[ -n "$gh_out" ]]; then
+    echo "cloud $gh_out"
     return 0
+  fi
+
+  # gh refused for lack of a credential: not a verdict on the repo
+  if is_gh_auth_refusal "$gh_out"; then
+    return 3
   fi
 
   # not found
   return 1
+}
+
+######################################################################
+# emit_lookup_refusal — render why lookup_repo found no repo, then exit 2
+# args: subcommand ("files" | "lines"), slug, lookup exit code
+#
+# .why = both subcommands gate on lookup_repo; one render keeps the auth
+#        refusal and the not-found refusal identical across them
+######################################################################
+emit_lookup_refusal() {
+  local subcommand="$1"
+  local slug="$2"
+  local code="$3"
+  local org="${slug%/*}"
+
+  # gh holds no credential: name the login, since the repo may well exist
+  if [[ "$code" -eq 3 ]]; then
+    emit_both "$(
+      print_turtle_header "bummer dude..."
+      print_tree_start "git.repo.get $subcommand"
+      print_tree_branch "repo: $slug"
+      print_tree_branch "why: not cloned here, and gh holds no github credential to look in the cloud"
+      print_tree_constraint "gh is not logged in"
+      print_coconut_hint \
+        "log gh in, then ask again" \
+        "gh auth login"
+    )"
+    exit 2
+  fi
+
+  # not cloned here, and the cloud has no such repo
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.repo.get $subcommand"
+    print_tree_branch "repo: $slug"
+    print_tree_constraint "repo not found"
+    # .why each subcommand names its own org-wide move, so the same event
+    #        always closes on a next step (rule.forbid.snapshot-visual-blemishes)
+    if [[ "$subcommand" == "lines" ]]; then
+      print_coconut_hint \
+        "you can search the whole org instead" \
+        "rhx git.repo.get lines --repos '$org/*' --words 'pattern'"
+    fi
+    if [[ "$subcommand" != "lines" ]]; then
+      print_coconut_hint \
+        "see which repos the org holds, then ask again" \
+        "rhx git.repo.get repos --repos '$org/*'"
+    fi
+  )"
+  exit 2
 }
 
 ######################################################################
@@ -224,17 +313,21 @@ fail_git_in_tree() {
   #        a slip rather than a choice (rule.forbid.snapshot-visual-blemishes:
   #        same format across similar outputs).
   emit_both "$(
-    print_turtle_header "bummer dude"
+    print_turtle_header "bummer dude..."
     print_tree_start "git.repo.get ${SUBCOMMAND:-<subcommand>}"
     [[ -n "$repo_slug" ]] && print_tree_branch "repo: $repo_slug (local)"
     [[ -n "${TREE_NAME:-}" ]] && print_tree_branch "tree: $TREE_NAME"
     print_tree_branch "path: $path"
-    print_tree_error "could not $attempt this tree"
+    # .why = git failed on a tree the caller named correctly: the system must
+    #        be fixed, so 💥 MalfunctionError + exit 1 (rule.require.exit-code-semantics)
+    print_tree_malfunction "could not $attempt this tree"
+    # .why a paved rerun, never a raw `git -C` call: the permission hook
+    #        blocks raw git against another path, as fail_tree_not_found notes
     print_coconut_hint \
-      "git printed the cause just above; check the tree is intact" \
-      "git -C $path status"
+      "git printed the cause just above; read the committed state while the tree is repaired" \
+      "rhx git.repo.get ${SUBCOMMAND:-files} --in ${repo_slug:-<org/repo>}"
   )"
-  exit 2
+  exit 1
 }
 
 ######################################################################
@@ -355,11 +448,11 @@ fail_path_escapes_tree() {
   local paths_glob="$4"
 
   emit_both "$(
-    print_turtle_header "bummer dude"
+    print_turtle_header "bummer dude..."
     print_tree_start "git.repo.get $subcommand"
     print_tree_branch "repo: $repo_slug (local)"
     print_tree_branch "tree: $tree_name"
-    print_tree_error "--paths resolves outside the worktree"
+    print_tree_constraint "--paths resolves outside the worktree"
     echo ""
     echo "   \"$paths_glob\" walks out of the tree it was scoped to."
     echo "   git.repo.get reads repos, not the whole host filesystem."
@@ -429,11 +522,11 @@ fail_path_gitignored() {
   local paths_glob="$4"
 
   emit_both "$(
-    print_turtle_header "bummer dude"
+    print_turtle_header "bummer dude..."
     print_tree_start "git.repo.get $subcommand"
     print_tree_branch "repo: $repo_slug (local)"
     print_tree_branch "tree: $tree_name"
-    print_tree_error "--paths names a gitignored file"
+    print_tree_constraint "--paths names a gitignored file"
     echo ""
     echo "   \"$paths_glob\" is ignored by that repo's .gitignore."
     echo "   git.repo.get serves a repo's source, not its local scratch"
@@ -456,11 +549,11 @@ fail_path_unreadable_in_tree() {
   local paths_glob="$4"
 
   emit_both "$(
-    print_turtle_header "bummer dude"
+    print_turtle_header "bummer dude..."
     print_tree_start "git.repo.get $subcommand"
     print_tree_branch "repo: $repo_slug (local)"
     print_tree_branch "tree: $tree_name"
-    print_tree_error "--paths named a file that tree cannot serve"
+    print_tree_constraint "--paths named a file that tree cannot serve"
     echo ""
     echo "   \"$paths_glob\" is not a readable file in that tree."
     echo "   it may be absent, a directory, or unreadable to you."
@@ -482,11 +575,11 @@ fail_path_binary_in_tree() {
   local paths_glob="$4"
 
   emit_both "$(
-    print_turtle_header "bummer dude"
+    print_turtle_header "bummer dude..."
     print_tree_start "git.repo.get $subcommand"
     print_tree_branch "repo: $repo_slug (local)"
     print_tree_branch "tree: $tree_name"
-    print_tree_error "--paths names a binary file"
+    print_tree_constraint "--paths names a binary file"
     echo ""
     echo "   \"$paths_glob\" holds bytes that are not text."
     echo "   lines mode renders source, so it will not print raw bytes"
@@ -756,7 +849,7 @@ fail_tree_not_local() {
   local tree_name="$3"
 
   emit_both "$(
-    print_turtle_header "bummer dude"
+    print_turtle_header "bummer dude..."
     print_tree_start "git.repo.get $subcommand"
     print_tree_branch "repo: $repo_slug (cloud)"
     # .why = echo the tree the caller asked for, as every neighbor --tree
@@ -764,7 +857,7 @@ fail_tree_not_local() {
     #        so a reader hit a box shaped unlike its family and had to look
     #        back at their own command to recall the name
     print_tree_branch "tree: $tree_name"
-    print_tree_error "--tree requires a local clone"
+    print_tree_constraint "--tree requires a local clone"
     print_coconut_hint \
       "worktrees only exist locally, so clone the repo first" \
       "gh repo clone $repo_slug $(get_git_root)/$repo_slug"
@@ -783,7 +876,7 @@ fail_tree_not_found() {
   local tree_name="$4"
 
   emit_both "$(
-    print_turtle_header "bummer dude"
+    print_turtle_header "bummer dude..."
     print_tree_start "git.repo.get $subcommand"
     print_tree_branch "repo: $repo_slug (local)"
     # .why = echo the tree the caller asked for, as every other --tree render
@@ -792,9 +885,10 @@ fail_tree_not_found() {
     #        reader compares the two without a scroll back to their own
     #        command (rule.require.errors-name-the-fix)
     print_tree_branch "tree: $tree_name"
-    print_tree_error "no worktree named \"$tree_name\""
-    echo ""
-    echo "   worktrees found:"
+    # .why = the names that DO exist nest under one labeled branch of the tree,
+    #        so the list reads as part of the refusal, never as prose below it
+    #        (rule.forbid.snapshot-visual-blemishes)
+    echo "   ├─ worktrees found"
     # .why = the enumeration is captured with its status BEFORE the loop, not
     #        fed through `done < <(...)`. a process substitution discards the
     #        producer's status, so a git that broke between the lookup and this
@@ -805,22 +899,36 @@ fail_tree_not_found() {
     local worktrees_render worktrees_status=0
     worktrees_render=$(get_all_worktrees "$repo_path") || worktrees_status=$?
 
-    local branch wtpath found=false
+    # collect the rows first, so the last one can take the └─ glyph
+    local branch wtpath
+    local rows=()
     if [[ $worktrees_status -ne 0 ]]; then
-      echo "     (could not be listed — git failed to enumerate them)"
-    else
+      rows+=("(could not be listed — git failed to enumerate them)")
+    fi
+    if [[ $worktrees_status -eq 0 ]]; then
       while IFS='|' read -r branch wtpath; do
         [[ -z "$wtpath" ]] && continue
-        found=true
-        echo "     - ${branch:-(detached)}  →  $wtpath"
+        rows+=("${branch:-(detached)}  →  $wtpath")
       done <<< "$worktrees_render"
-      if [[ "$found" == "false" ]]; then
-        echo "     (none)"
-      fi
     fi
+    [[ ${#rows[@]} -eq 0 ]] && rows+=("(none)")
+    local index
+    for index in "${!rows[@]}"; do
+      if [[ $index -eq $((${#rows[@]} - 1)) ]]; then
+        echo "   │  └─ ${rows[$index]}"
+      else
+        echo "   │  ├─ ${rows[$index]}"
+      fi
+    done
+    print_tree_constraint "no worktree named \"$tree_name\""
+    # 🔴 .why the hint names a `--tree` rerun, never `git -C <path> worktree list` =
+    #        the mechanic's own PreToolUse check-permissions hook blocks that raw git
+    #        call ("no paved path fits this part"), so the hint sent its reader into
+    #        a refusal. the list above already IS that command's output; the move
+    #        left is to rerun with one of its names (rule.require.errors-name-the-fix)
     print_coconut_hint \
-      "you can list the worktrees yourself" \
-      "git -C $repo_path worktree list"
+      "rerun with a name from the list above" \
+      "rhx git.repo.get $subcommand --in $repo_slug --tree <name>"
   )"
   exit 2
 }
@@ -851,11 +959,11 @@ fail_tree_conflict() {
   shift 3
 
   emit_both "$(
-    print_turtle_header "bummer dude"
+    print_turtle_header "bummer dude..."
     print_tree_start "git.repo.get ${SUBCOMMAND:-<subcommand>}"
     [[ -n "$header_branch" ]] && print_tree_branch "$header_branch"
     print_tree_branch "tree: $TREE_NAME"
-    print_tree_error "$error_line"
+    print_tree_constraint "$error_line"
     print_coconut_hint "$affordance" "$@"
   )"
   exit 2
@@ -935,8 +1043,12 @@ cmd_repos() {
   fi
 
   # get cloud repos if scope allows (and org is specific)
+  local cloud_skip=""
   if [[ "$scope" == "all" || "$scope" == "cloud" ]]; then
     if [[ "$org_pattern" != "*" ]]; then
+      local cloud_out="" cloud_code=0
+      cloud_out=$(get_all_cloud_repos "$org_pattern") || cloud_code=$?
+      [[ "$cloud_code" -eq 3 ]] && cloud_skip="gh holds no github credential (run: gh auth login)"
       while IFS= read -r slug; do
         [[ -z "$slug" ]] && continue
         # check if not already in local list
@@ -955,7 +1067,7 @@ cmd_repos() {
             sources+=("cloud")
           fi
         fi
-      done < <(get_all_cloud_repos "$org_pattern")
+      done <<< "$cloud_out"
     fi
   fi
 
@@ -982,12 +1094,14 @@ cmd_repos() {
     print_turtle_header "crickets..."
     print_tree_start "git.repo.get repos"
     print_tree_branch "repos: $REPOS_GLOB"
+    [[ -n "$cloud_skip" ]] && print_tree_branch "cloud: skipped, $cloud_skip"
     echo "   │"
     print_tree_branch "found: 0 repos" true
   else
     print_turtle_header "far out"
     print_tree_start "git.repo.get repos"
     print_tree_branch "repos: $REPOS_GLOB"
+    [[ -n "$cloud_skip" ]] && print_tree_branch "cloud: skipped, $cloud_skip"
     echo "   │"
 
     local git_root
@@ -1270,20 +1384,15 @@ cmd_files() {
 
   # single-repo mode requires --in
   if [[ -z "$REPO_SLUG" ]]; then
-    print_turtle_header "bummer dude"
-    print_tree_start "git.repo.get files"
-    print_tree_error "--in flag is required"
+    emit_usage_refusal --skill "git.repo.get files" --message "--in flag is required"
     exit 2
   fi
 
   # lookup repo
-  local lookup_result
-  if ! lookup_result=$(lookup_repo "$REPO_SLUG"); then
-    print_turtle_header "bummer dude"
-    print_tree_start "git.repo.get files"
-    print_tree_branch "repo: $REPO_SLUG"
-    print_tree_error "repo not found"
-    exit 2
+  local lookup_result lookup_code=0
+  lookup_result=$(lookup_repo "$REPO_SLUG") || lookup_code=$?
+  if [[ "$lookup_code" -ne 0 ]]; then
+    emit_lookup_refusal "files" "$REPO_SLUG" "$lookup_code"
   fi
 
   read -r source location <<< "$lookup_result"
@@ -1299,10 +1408,15 @@ cmd_files() {
   # .note = skipped for --tree; inflight state is local, no fetch needed
   if [[ "$source" == "local" && -z "$tree_path" ]]; then
     if ! refresh_local_repo "$location"; then
-      print_turtle_header "bummer dude"
-      print_tree_start "git.repo.get files"
-      print_tree_branch "repo: $REPO_SLUG"
-      print_tree_error "failed to fetch latest from origin"
+      emit_both "$(
+        print_turtle_header "bummer dude..."
+        print_tree_start "git.repo.get files"
+        print_tree_branch "repo: $REPO_SLUG"
+        print_tree_malfunction "failed to fetch latest from origin"
+        print_coconut_hint \
+          "query the local refs as they stand, with no fetch" \
+          "rhx git.repo.get files --in $REPO_SLUG --refresh off"
+      )"
       exit 1
     fi
   fi
@@ -1414,10 +1528,15 @@ cmd_files() {
 cmd_lines_multi() {
   # multi-repo search requires --words
   if [[ -z "$WORDS_PATTERN" ]]; then
-    print_turtle_header "bummer dude"
-    print_tree_start "git.repo.get lines"
-    print_tree_branch "repos: $REPOS_GLOB"
-    print_tree_error "--words is required for multi-repo search"
+    emit_both "$(
+      print_turtle_header "bummer dude..."
+      print_tree_start "git.repo.get lines"
+      print_tree_branch "repos: $REPOS_GLOB"
+      print_tree_constraint "--words is required for multi-repo search"
+      print_coconut_hint \
+        "a multi-repo ask searches; name the words to find" \
+        "rhx git.repo.get lines --repos '$REPOS_GLOB' --words 'pattern'"
+    )"
     exit 2
   fi
 
@@ -1621,24 +1740,15 @@ cmd_lines() {
 
   # single-repo mode requires --in
   if [[ -z "$REPO_SLUG" ]]; then
-    print_turtle_header "bummer dude"
-    print_tree_start "git.repo.get lines"
-    print_tree_error "--in or --repos flag is required"
+    emit_usage_refusal --skill "git.repo.get lines" --message "--in or --repos flag is required"
     exit 2
   fi
 
   # lookup repo
-  local lookup_result
-  if ! lookup_result=$(lookup_repo "$REPO_SLUG"); then
-    print_turtle_header "bummer dude"
-    print_tree_start "git.repo.get lines"
-    print_tree_branch "repo: $REPO_SLUG"
-    print_tree_error "repo not found"
-    local org="${REPO_SLUG%/*}"
-    print_coconut_hint \
-      "you can search the whole org instead" \
-      "rhx git.repo.get lines --repos '$org/*' --words 'pattern'"
-    exit 2
+  local lookup_result lookup_code=0
+  lookup_result=$(lookup_repo "$REPO_SLUG") || lookup_code=$?
+  if [[ "$lookup_code" -ne 0 ]]; then
+    emit_lookup_refusal "lines" "$REPO_SLUG" "$lookup_code"
   fi
 
   read -r source location <<< "$lookup_result"
@@ -1654,10 +1764,15 @@ cmd_lines() {
   # .note = skipped for --tree; inflight state is local, no fetch needed
   if [[ "$source" == "local" && -z "$tree_path" ]]; then
     if ! refresh_local_repo "$location"; then
-      print_turtle_header "bummer dude"
-      print_tree_start "git.repo.get lines"
-      print_tree_branch "repo: $REPO_SLUG"
-      print_tree_error "failed to fetch latest from origin"
+      emit_both "$(
+        print_turtle_header "bummer dude..."
+        print_tree_start "git.repo.get lines"
+        print_tree_branch "repo: $REPO_SLUG"
+        print_tree_malfunction "failed to fetch latest from origin"
+        print_coconut_hint \
+          "query the local refs as they stand, with no fetch" \
+          "rhx git.repo.get lines --in $REPO_SLUG --refresh off"
+      )"
       exit 1
     fi
   fi
@@ -1796,10 +1911,16 @@ cmd_lines() {
   else
     # read mode - need a specific file
     if [[ -z "$PATHS_GLOB" ]]; then
-      print_turtle_header "bummer dude"
-      print_tree_start "git.repo.get lines"
-      print_tree_branch "repo: $REPO_SLUG ($source)"
-      print_tree_error "--paths is required for read mode (no --words)"
+      emit_both "$(
+        print_turtle_header "bummer dude..."
+        print_tree_start "git.repo.get lines"
+        print_tree_branch "repo: $REPO_SLUG ($source)"
+        print_tree_constraint "--paths is required for read mode (no --words)"
+        print_coconut_hint \
+          "name the file to read, or the words to search" \
+          "rhx git.repo.get lines --in $REPO_SLUG --paths 'path/to/file'" \
+          "rhx git.repo.get lines --in $REPO_SLUG --words 'pattern'"
+      )"
       exit 2
     fi
 
