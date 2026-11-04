@@ -6,7 +6,7 @@ set the title from the `## title` line via `rhx git.pull.title set`, and the bod
 
 ## title
 
-feat(git.release): split git.release.uses from git.commit.uses, plus seven ci fixes
+feat(git.release): split git.release.uses from git.commit.uses, plus eight ci fixes
 
 ## body
 
@@ -47,6 +47,7 @@ this pr also carries what its suites need to run green:
   - `git.repo.get`: gh's github-actions no-credential text reads as "not logged in", never "repo not found"
   - `git.commit.push` [case41]: pins `main` at the base commit, for a runner whose default branch differs
   - `git.release` p2 snapshots mask jq's per-version parse text
+  - `set.package.install` security-block snapshot masks the live npm advisory list (the feed merged and reworded lodash advisories with no code change); explicit assertions still pin the audit failure
   - `.husky/check.timestamps.sh` + its clamp
 - **boot:** the mechanic boot is trimmed back under its 30,000-token cap after the #1180 rebase (29,837): `git.release.uses`, `get.package.docs`, `git.pull.comment.del` move say → ref (F43)
 
