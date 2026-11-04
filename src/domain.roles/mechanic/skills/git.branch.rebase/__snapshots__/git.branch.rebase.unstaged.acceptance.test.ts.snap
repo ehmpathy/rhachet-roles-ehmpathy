@@ -335,11 +335,11 @@ exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey8
 "
 `;
 
-exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey9] a session hook regenerates a held ambient file while the conflict waits; the clone settles via take when: [t1] take --whos theirs conflict.txt then: the conflict is settled and staged 1`] = `
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey9] a session hook regenerates a held ambient file while the conflict waits; the clone settles via take when: [t1] take --whos ours conflict.txt (your commit) then: the conflict is settled and staged 1`] = `
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: theirs (your commit)
+   ├─ whos: ours (your commit)
    ├─ settled
    │  └─ conflict.txt ✓
    └─ done
@@ -469,11 +469,11 @@ exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey1
 "
 `;
 
-exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey11] the held package.json is itself the conflict file; the clone settles it via take when: [t1] take main's side (--whos ours in a rebase) then: the conflict is settled and staged 1`] = `
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey11] the held package.json is itself the conflict file; the clone settles it via take when: [t1] take main's side (--whos theirs) then: the conflict is settled and staged 1`] = `
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: ours (main)
+   ├─ whos: theirs (main)
    ├─ settled
    │  └─ package.json ✓
    └─ done
@@ -589,7 +589,7 @@ exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey1
    ├─ usage
    │  └─ rhx git.branch.rebase take --whos ours|theirs <paths...>
    ├─ args
-   │  ├─ --whos    ours|theirs (required)
+   │  ├─ --whos    ours (your commit) | theirs (main), required
    │  └─ paths     file paths or globs, use . for all (required)
    └─ examples
       ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml

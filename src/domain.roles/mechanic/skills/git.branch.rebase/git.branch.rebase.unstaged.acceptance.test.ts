@@ -778,7 +778,7 @@ describe('git.branch.rebase --unstaged (acceptance, built skill)', () => {
         });
       });
 
-      when('[t1] take --whos theirs conflict.txt', () => {
+      when('[t1] take --whos ours conflict.txt (your commit)', () => {
         const result = useThen('it runs', async () => {
           // the session hook regenerates the held ambient file to new bytes
           fs.writeFileSync(
@@ -787,7 +787,7 @@ describe('git.branch.rebase --unstaged (acceptance, built skill)', () => {
           );
           return runRebase({
             workDir: scene.workDir,
-            args: ['take', '--whos', 'theirs', 'conflict.txt'],
+            args: ['take', '--whos', 'ours', 'conflict.txt'],
           });
         });
         then('the conflict is settled and staged', () => {
@@ -1021,11 +1021,11 @@ describe('git.branch.rebase --unstaged (acceptance, built skill)', () => {
         );
       });
 
-      when("[t1] take main's side (--whos ours in a rebase)", () => {
+      when("[t1] take main's side (--whos theirs)", () => {
         const result = useThen('it runs', async () =>
           runRebase({
             workDir: scene.workDir,
-            args: ['take', '--whos', 'ours', 'package.json'],
+            args: ['take', '--whos', 'theirs', 'package.json'],
           }),
         );
         then('the conflict is settled and staged', () => {

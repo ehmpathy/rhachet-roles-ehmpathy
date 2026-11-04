@@ -242,11 +242,11 @@ exports[`git.branch.rebase journey given: [journey4] take ours yields no diff vs
 "
 `;
 
-exports[`git.branch.rebase journey given: [journey4] take ours yields no diff vs main (defect reproduction) when: [t1] take ours (main version) for the conflict then: file is settled with main content 1`] = `
+exports[`git.branch.rebase journey given: [journey4] take ours yields no diff vs main (defect reproduction) when: [t1] take theirs (main version) for the conflict then: file is settled with main content 1`] = `
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: ours (main)
+   ├─ whos: theirs (main)
    ├─ settled
    │  └─ settings.json ✓
    └─ done

@@ -4,7 +4,7 @@ exports[`git.branch.rebase.take given: [case1] rebase in progress with single no
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: theirs (your commit)
+   ├─ whos: theirs (main)
    ├─ settled
    │  └─ config.json ✓
    └─ done
@@ -19,7 +19,7 @@ exports[`git.branch.rebase.take given: [case2] rebase in progress with single co
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: ours (main)
+   ├─ whos: ours (your commit)
    ├─ settled
    │  └─ .eslintrc.json ✓
    └─ done
@@ -34,7 +34,7 @@ exports[`git.branch.rebase.take given: [case3] rebase in progress with multiple 
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: theirs (your commit)
+   ├─ whos: theirs (main)
    ├─ settled
    │  ├─ a.ts ✓
    │  ├─ b.ts ✓
@@ -91,7 +91,7 @@ exports[`git.branch.rebase.take given: [case9] output format verification when: 
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: theirs (your commit)
+   ├─ whos: theirs (main)
    ├─ settled
    │  └─ test.ts ✓
    └─ done
@@ -106,7 +106,7 @@ exports[`git.branch.rebase.take given: [case10] glob pattern support when: [t0] 
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: theirs (your commit)
+   ├─ whos: theirs (main)
    ├─ settled
    │  ├─ a.lock ✓
    │  └─ b.lock ✓
@@ -130,7 +130,7 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: theirs (your commit)
+   ├─ whos: theirs (main)
    ├─ settled
    │  └─ pnpm-lock.yaml ✓
    ├─ lock file detected, auto-run lock refresh ⚡
@@ -157,7 +157,7 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: theirs (your commit)
+   ├─ whos: theirs (main)
    ├─ settled
    │  └─ package-lock.json ✓
    ├─ lock file detected, auto-run lock refresh ⚡
@@ -197,7 +197,7 @@ exports[`git.branch.rebase.take given: [case12] take lock file auto-runs lock re
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: theirs (your commit)
+   ├─ whos: theirs (main)
    ├─ settled
    │  └─ yarn.lock ✓
    ├─ lock file detected, auto-run lock refresh ⚡
@@ -224,7 +224,7 @@ exports[`git.branch.rebase.take given: [case13] take multiple files with lock (n
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: theirs (your commit)
+   ├─ whos: theirs (main)
    ├─ settled
    │  ├─ README.md ✓
    │  ├─ pnpm-lock.yaml ✓
@@ -253,7 +253,7 @@ exports[`git.branch.rebase.take given: [case14] take non-lock file when: [t0] ta
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: theirs (your commit)
+   ├─ whos: theirs (main)
    ├─ settled
    │  └─ src/index.ts ✓
    └─ done
@@ -268,7 +268,7 @@ exports[`git.branch.rebase.take given: [case15] take lock file with valid packag
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: theirs (your commit)
+   ├─ whos: theirs (main)
    ├─ settled
    │  └─ pnpm-lock.yaml ✓
    ├─ lock file detected, auto-run lock refresh ⚡

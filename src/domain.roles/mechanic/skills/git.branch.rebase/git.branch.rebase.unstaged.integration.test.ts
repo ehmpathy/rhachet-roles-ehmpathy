@@ -1868,7 +1868,7 @@ describe('git.branch.rebase --unstaged', () => {
     '[case24] a held path is in conflict, settled with take, then continue (the clone journey)',
     () => {
       when(
-        "[t0] begin stops on package.json, take main's side (--whos ours in a rebase), continue",
+        "[t0] begin stops on package.json, take main's side (--whos theirs), continue",
         () => {
           then(
             'continue puts the held copy back over the taken version and flags main',
@@ -1890,7 +1890,7 @@ describe('git.branch.rebase --unstaged', () => {
 
                 const take = runRebase({
                   workDir,
-                  args: ['take', '--whos', 'ours', 'package.json'],
+                  args: ['take', '--whos', 'theirs', 'package.json'],
                 });
                 expect(take.status).toBe(0);
                 const done = runRebase({ workDir, args: ['continue'] });

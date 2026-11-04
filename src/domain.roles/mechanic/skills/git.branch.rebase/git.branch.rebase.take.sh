@@ -8,12 +8,14 @@
 #         - enables autonomous rebase flows
 #
 # usage:
-#   rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
-#   rhx git.branch.rebase take --whos ours .eslintrc.json
+#   rhx git.branch.rebase take --whos theirs pnpm-lock.yaml     # main's lock
+#   rhx git.branch.rebase take --whos ours .eslintrc.json       # your commit's file
 #   rhx git.branch.rebase take --whos theirs '*.lock' package.json
 #   rhx git.branch.rebase take --whos theirs .
 #
 # guarantee:
+#   - sides read from the caller's view: ours = your commit, theirs = main
+#     (git's rebase view is the reverse; the skill maps it)
 #   - requires a rebase in progress
 #   - specified files must have conflicts
 #   - non-conflict files are skipped with notice
@@ -39,7 +41,7 @@ show_usage() {
   echo "   ├─ usage"
   echo "   │  └─ rhx git.branch.rebase take --whos ours|theirs <paths...>"
   echo "   ├─ args"
-  echo "   │  ├─ --whos    ours|theirs (required)"
+  echo "   │  ├─ --whos    ours (your commit) | theirs (main), required"
   echo "   │  └─ paths     file paths or globs, use . for all (required)"
   echo "   └─ examples"
   echo "      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml"
@@ -185,8 +187,12 @@ FILES_TO_SETTLE=("${UNIQUE_FILES[@]}")
 declare -a FILES_SUCCESS=()
 declare -a FILES_FAILED=()
 
+# map the caller's side to git's: in a rebase git calls main ours, the replayed commit theirs
+GIT_SIDE="--ours"
+[[ "$WHOS" == "ours" ]] && GIT_SIDE="--theirs"
+
 for file in "${FILES_TO_SETTLE[@]}"; do
-  if git checkout "--$WHOS" "$file" 2>/dev/null; then
+  if git checkout "$GIT_SIDE" "$file" 2>/dev/null; then
     if git add "$file" 2>/dev/null; then
       FILES_SUCCESS+=("$file")
     else
@@ -238,10 +244,10 @@ fi
 
 print_tree_start "git.branch.rebase take"
 
-# name the side: in a rebase, ours is main and theirs is the commit replayed
+# name the side, from the caller's view
 WHOS_LABEL="$WHOS"
-[[ "$WHOS" == "ours" ]] && WHOS_LABEL="ours (main)"
-[[ "$WHOS" == "theirs" ]] && WHOS_LABEL="theirs (your commit)"
+[[ "$WHOS" == "ours" ]] && WHOS_LABEL="ours (your commit)"
+[[ "$WHOS" == "theirs" ]] && WHOS_LABEL="theirs (main)"
 echo "   ├─ whos: $WHOS_LABEL"
 
 # print settled files
