@@ -1,7 +1,7 @@
 yes, rhachet needs the hook event. dispatched upstream as `onPermission`.
 
-- **ask:** `hooks: onPermission event, so a role can declare a PermissionRequest hook` → ehmpathy/rhachet
-- **status:** held QUEUED in `.behavior/v2026_10_18.feat-split-release-uses/.radio/`. the robot token `EHMPATH_BEAVER_GITHUB_TOKEN` is absent; the next push that gets through delivers it.
+- **ask:** https://github.com/ehmpathy/rhachet/issues/700 — `hooks: onPermission event, so a role can declare a PermissionRequest hook`
+- **prior ask:** https://github.com/ehmpathy/rhachet/issues/679 asks for the same event; #700 adds this repo's case and can fold into it
 
 **broken for everyone? no.** main's role never shipped the decider to anyone:
 
