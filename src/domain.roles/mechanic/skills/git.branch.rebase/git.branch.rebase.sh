@@ -2,17 +2,14 @@
 ######################################################################
 # .what = dispatch git.branch.rebase subcommands to their handlers
 #
-# .why  = unified entry point for git.branch.rebase operations:
-#         - single permission rule covers all subcommands
-#         - discoverability via help
-#         - consistent with git's command structure
+# .why  = one entry point: one permission rule; `help` lists subcommands
 #
 # usage:
 #   rhx git.branch.rebase begin                    # start rebase onto main
 #   rhx git.branch.rebase begin --mode apply       # execute rebase
+#   rhx git.branch.rebase begin --mode apply --unstaged ignore  # set unstaged aside, put back after
 #   rhx git.branch.rebase continue                 # continue after conflicts
 #   rhx git.branch.rebase abort                    # abandon rebase
-#   rhx git.branch.rebase help                     # show subcommands
 #
 # guarantee:
 #   - dispatches to subskill via exec (single process)
@@ -43,6 +40,7 @@ show_usage() {
   echo "   └─ examples"
   echo "      ├─ rhx git.branch.rebase begin --mode plan"
   echo "      ├─ rhx git.branch.rebase begin --mode apply"
+  echo "      ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore"
   echo "      ├─ rhx git.branch.rebase continue"
   echo "      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml"
   echo "      ├─ rhx git.branch.rebase lock refresh"
@@ -62,6 +60,12 @@ while [[ $# -gt 0 ]]; do
       shift 2
       ;;
     --help|-h)
+      # after a subcommand, --help belongs to that subcommand's own usage
+      if [[ -n "$SUBCMD" ]]; then
+        ARGS+=("$1")
+        shift
+        continue
+      fi
       show_usage
       exit 0
       ;;

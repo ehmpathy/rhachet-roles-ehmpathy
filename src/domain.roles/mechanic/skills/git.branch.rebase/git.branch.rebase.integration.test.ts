@@ -64,6 +64,8 @@ describe('git.branch.rebase.sh', () => {
         expect(result.stdout).toContain('begin');
         expect(result.stdout).toContain('continue');
         expect(result.stdout).toContain('abort');
+        expect(result.stdout).toContain('--unstaged ignore');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -76,6 +78,7 @@ describe('git.branch.rebase.sh', () => {
         });
         expect(result.status).toEqual(0);
         expect(result.stdout).toContain('subcommands');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
 
@@ -86,8 +89,28 @@ describe('git.branch.rebase.sh', () => {
         });
         expect(result.status).toEqual(0);
         expect(result.stdout).toContain('subcommands');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
+
+    // one when per subcommand: each --help is its own execution path
+    ['begin', 'continue', 'take', 'abort', 'lock'].forEach(
+      (subcommand, index) => {
+        when(`[t${index + 2}] ${subcommand} --help`, () => {
+          then('the subcommand answers with its own usage, exit 0', () => {
+            const result = spawnSync(
+              'bash',
+              [SKILL_PATH, subcommand, '--help'],
+              { encoding: 'utf-8' },
+            );
+            expect(result.status).toEqual(0);
+            expect(result.stdout).toContain(`git.branch.rebase ${subcommand}`);
+            expect(result.stdout).not.toContain('subcommands');
+            expect(result.stdout).toMatchSnapshot();
+          });
+        });
+      },
+    );
   });
 
   given('[case3] no subcommand', () => {
@@ -99,6 +122,7 @@ describe('git.branch.rebase.sh', () => {
         expect(result.status).toEqual(1);
         expect(result.stdout).toContain('subcommand required');
         expect(result.stdout).toContain('subcommands');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -112,6 +136,7 @@ describe('git.branch.rebase.sh', () => {
         expect(result.status).toEqual(1);
         expect(result.stdout).toContain('unknown subcommand: invalid');
         expect(result.stdout).toContain('subcommands');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
@@ -129,8 +154,8 @@ describe('git.branch.rebase.sh', () => {
               encoding: 'utf-8',
             },
           );
-          // exits 1 because push not allowed, but proves dispatch worked
-          expect(result.status).toEqual(1);
+          // exits 2 (a constraint: push not allowed), which proves dispatch worked
+          expect(result.status).toEqual(2);
           expect(result.stdout).toContain('rebase requires push permission');
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -148,8 +173,8 @@ describe('git.branch.rebase.sh', () => {
             cwd: tempDir,
             encoding: 'utf-8',
           });
-          // exits 1 because no rebase in progress, but proves dispatch worked
-          expect(result.status).toEqual(1);
+          // exits 2 (a constraint: no rebase in progress), which proves dispatch worked
+          expect(result.status).toEqual(2);
           expect(result.stdout).toContain('no rebase in progress');
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -167,8 +192,8 @@ describe('git.branch.rebase.sh', () => {
             cwd: tempDir,
             encoding: 'utf-8',
           });
-          // exits 1 because no rebase in progress, but proves dispatch worked
-          expect(result.status).toEqual(1);
+          // exits 2 (a constraint: no rebase in progress), which proves dispatch worked
+          expect(result.status).toEqual(2);
           expect(result.stdout).toContain('no rebase in progress');
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -221,6 +246,41 @@ describe('git.branch.rebase.sh', () => {
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
+      });
+    });
+  });
+
+  given('[case10] an unknown argument after a subcommand', () => {
+    // one when per subcommand: each refusal is its own execution path
+    ['begin', 'continue', 'abort'].forEach((subcommand, index) => {
+      when(`[t${index}] ${subcommand} --oops`, () => {
+        then(
+          'it refuses as a constraint, exit 2, and names its usage, on both streams',
+          () => {
+            const tempDir = setupMinimalRepo();
+            try {
+              const result = spawnSync(
+                'bash',
+                [SKILL_PATH, subcommand, '--oops'],
+                { cwd: tempDir, encoding: 'utf-8' },
+              );
+              expect(result.status).toEqual(2);
+              expect(result.stdout).toContain(
+                '✋ ConstraintError: unknown argument: --oops',
+              );
+              expect(result.stdout).toContain(
+                `usage: rhx git.branch.rebase ${subcommand}`,
+              );
+              expect(result.stdout).toContain(
+                `rhx git.branch.rebase ${subcommand} --help`,
+              );
+              expect(result.stderr).toContain('ConstraintError');
+              expect(result.stdout).toMatchSnapshot();
+            } finally {
+              fs.rmSync(tempDir, { recursive: true, force: true });
+            }
+          },
+        );
       });
     });
   });

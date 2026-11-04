@@ -1,0 +1,1559 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.rebase --unstaged given: [case1] a tree with an unstaged broken symlink retarget and an unstaged file edit (the clamp) when: [t0] begin --mode apply --unstaged ignore then: the rebase completes and both paths read back identical 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case1] a tree with an unstaged broken symlink retarget and an unstaged file edit (the clamp) when: [t1] begin --mode apply with no --unstaged flag then: it refuses, exit 2, names both paths and the cure, on both streams 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: unstaged changes found
+      ├─ settings.of.grove.json
+      └─ settings.of.repo.json
+
+🥥 did you know?
+   ├─ you can set them aside for the rebase; each is put back after
+   └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case2] a tree with unstaged edits when: [t0] begin --unstaged include then: it refuses, exit 2, and names the commit-first cure 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: --unstaged include cannot apply to a rebase
+      ├─ why: a rebase replays commits; it has no commit of its own to fold edits into
+      └─ files
+         ├─ settings.of.grove.json
+         └─ settings.of.repo.json
+
+🥥 did you know?
+   ├─ set them aside for the rebase, each put back after; or, only if every path above belongs in a commit, commit them first
+   ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+   └─ rhx git.commit.set -m @stdin --unstaged include --mode apply
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case2] a tree with unstaged edits when: [t1] begin --unstaged ignore in plan mode then: it lists the paths it would set aside and touches naught 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase begin --mode plan
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ ahead: 1 commit
+   │  │  └─ HASH123 feat(reef): add feature
+   │  └─ behind: 1 commit
+   │     └─ HASH123 chore(reef): main commit
+   ├─ unstaged (to set aside)
+   │  └─ would set aside, then put back
+   │     ├─ settings.of.grove.json
+   │     └─ settings.of.repo.json
+   └─ meter
+      ├─ commits: allowed
+      └─ push: allowed
+
+🥥 did you know?
+   ├─ this is a plan; apply it to rebase
+   └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case2] a tree with unstaged edits when: [t2] begin --unstaged bogus then: it refuses the value, exit 2 1`] = `
+"✋ ConstraintError: --unstaged must be 'ignore' or 'include'
+usage: git.branch.rebase begin [--mode plan|apply] [--unstaged ignore|include]
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case2] a tree with unstaged edits when: [t3] continue --unstaged include then: it refuses the value, exit 2: continue takes ignore only 1`] = `
+"✋ ConstraintError: --unstaged must be 'ignore'
+usage: git.branch.rebase continue [--unstaged ignore]
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case2] a tree with unstaged edits when: [t4] abort --unstaged include then: it refuses the value, exit 2: abort takes ignore only 1`] = `
+"✋ ConstraintError: --unstaged must be 'ignore'
+usage: git.branch.rebase abort [--unstaged ignore]
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case2] a tree with unstaged edits when: [t5] begin --help then: it names --unstaged ignore and shows an example 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase begin
+   ├─ what
+   │  └─ rebase this branch onto origin/main
+   ├─ usage
+   │  └─ rhx git.branch.rebase begin [--mode plan|apply] [--unstaged ignore|include]
+   ├─ args
+   │  ├─ --mode plan          preview what will be rebased (default)
+   │  ├─ --mode apply         execute the rebase
+   │  ├─ --unstaged ignore    set unstaged paths aside, rebase, put them back; continue or abort puts them back after a stop
+   │  └─ --unstaged include   refused when unstaged edits exist: a rebase has no commit to fold them into; commit them first via git.commit.set --unstaged include
+   ├─ note
+   │  └─ on a tree with no unstaged edits, either --unstaged value is a no-op
+   └─ examples
+      ├─ rhx git.branch.rebase begin --mode plan
+      └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case2] a tree with unstaged edits when: [t6] continue --help then: it names --unstaged ignore and shows an example 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase continue
+   ├─ what
+   │  ├─ continue a rebase once its conflicts are settled
+   │  └─ once the rebase completes, puts back any paths set aside
+   ├─ usage
+   │  └─ rhx git.branch.rebase continue [--unstaged ignore]
+   ├─ args
+   │  └─ --unstaged ignore    set a fresh unstaged edit aside too; put back after
+   └─ examples
+      ├─ rhx git.branch.rebase continue
+      └─ rhx git.branch.rebase continue --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case2] a tree with unstaged edits when: [t7] abort --help then: it names --unstaged ignore and shows an example 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase abort
+   ├─ what
+   │  ├─ abort a rebase and restore to pre-rebase state
+   │  └─ with no rebase in progress, puts back any paths still set aside
+   ├─ usage
+   │  └─ rhx git.branch.rebase abort [--unstaged ignore]
+   ├─ args
+   │  └─ --unstaged ignore    set a fresh unstaged edit aside too; put back after
+   └─ examples
+      ├─ rhx git.branch.rebase abort
+      └─ rhx git.branch.rebase abort --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case3] a tree with staged content when: [t0] begin --unstaged ignore then: it refuses before any set-aside, exit 2 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: staged changes found
+      └─ README.md
+
+🥥 did you know?
+   ├─ commit them first; or unstage them, and they become unstaged edits
+   ├─ rhx git.commit.set -m @stdin --mode apply
+   └─ git restore --staged -- README.md
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case4] a conflicted rebase with ambient drift held aside when: [t0] begin stops on the conflict, then continue after the conflict is settled then: the rebase completes and both paths read back identical 1`] = `
+"🐢 hang tight...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 2
+   │  └─ status: conflict
+   ├─ conflict
+   │  ├─ commit: HASH123 feat(reef): edit conflict file
+   │  └─ files
+   │     └─ conflict.txt
+   ├─ unstaged (set aside)
+   │  ├─ held aside until continue or abort puts them back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: held
+   ├─ next steps
+   │  ├─ settle conflicts in files above
+   │  ├─ rhx git.branch.rebase continue
+   │  └─ rhx git.branch.rebase abort
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/2)
+      │  Rebasing (2/2)
+      │  Auto-merging conflict.txt
+      │  CONFLICT (content): Merge conflict in conflict.txt
+      │  error: could not apply HASH123... feat(reef): edit conflict file
+      │  Could not apply HASH123... feat(reef): edit conflict file
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case4] a conflicted rebase with ambient drift held aside when: [t0] begin stops on the conflict, then continue after the conflict is settled then: the rebase completes and both paths read back identical 2`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 2 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  [detached HEAD HASH123] feat(reef): edit conflict file
+      │   Author: Test Human <human@test.com>
+      │   1 file changed, 1 insertion(+), 1 deletion(-)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case4] a conflicted rebase with ambient drift held aside when: [t1] begin stops on the conflict, then abort then: the branch returns to its pre-rebase head and both paths read back identical 1`] = `
+"🐢 no worries dude
+
+🐚 git.branch.rebase abort
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   └─ status: restored to pre-rebase state
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case4] a conflicted rebase with ambient drift held aside when: [t2] a held path is edited again while the conflict waits, then continue then: the held copy supersedes the fresh edit, and the output names it 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 2 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  ├─ a fresh edit at these held paths was superseded by the held copy
+   │  │  ├─ settings.of.repo.json
+   │  │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  [detached HEAD HASH123] feat(reef): edit conflict file
+      │   Author: Test Human <human@test.com>
+      │   1 file changed, 1 insertion(+), 1 deletion(-)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🥥 did you know?
+   ├─ to re-apply a superseded edit, compare the kept edit to the held copy
+   └─ diff /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded/settings.of.repo.json settings.of.repo.json
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case4] a conflicted rebase with ambient drift held aside when: [t3] a path NOT held is edited while the conflict waits, then continue then: continue refuses with the cure; with --unstaged ignore it completes and keeps the edit 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase continue
+   └─ ✋ ConstraintError: unstaged changes found at paths not set aside
+      └─ README.md
+
+🥥 did you know?
+   ├─ stage them if they are resolution work; or set them aside too, put back after (a set-aside edit stays out of the commit)
+   ├─ rhx git.stage.add README.md
+   └─ rhx git.branch.rebase continue --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case4] a conflicted rebase with ambient drift held aside when: [t3] a path NOT held is edited while the conflict waits, then continue then: continue refuses with the cure; with --unstaged ignore it completes and keeps the edit 2`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 2 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  ├─ settings.of.repo.json
+   │  │  └─ README.md
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  [detached HEAD HASH123] feat(reef): edit conflict file
+      │   Author: Test Human <human@test.com>
+      │   1 file changed, 1 insertion(+), 1 deletion(-)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case4] a conflicted rebase with ambient drift held aside when: [t4] a path NOT held is edited while the conflict waits, then abort then: abort refuses with the cure; with --unstaged ignore it restores and keeps the edit 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase abort
+   └─ ✋ ConstraintError: unstaged changes found at paths not set aside
+      └─ README.md
+
+🥥 did you know?
+   ├─ set them aside too; each is put back after the abort
+   └─ rhx git.branch.rebase abort --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case4] a conflicted rebase with ambient drift held aside when: [t4] a path NOT held is edited while the conflict waits, then abort then: abort refuses with the cure; with --unstaged ignore it restores and keeps the edit 2`] = `
+"🐢 no worries dude
+
+🐚 git.branch.rebase abort
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  ├─ settings.of.repo.json
+   │  │  └─ README.md
+   │  └─ status: all put back
+   └─ status: restored to pre-rebase state
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case5] main changed a path that also holds an unstaged edit when: [t0] begin --mode apply --unstaged ignore then: the held copy reads back, and the output flags the path with its fix 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  └─ package.json
+   │  ├─ ⚠️ main also changed these paths; your held copy reverts main's change there
+   │  │  └─ package.json
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🥥 did you know?
+   ├─ to take main's version of a path main also changed, check it out from HEAD
+   ├─ git diff -- package.json
+   └─ git checkout HEAD -- package.json
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case6] paths still set aside with no rebase in progress (a prior run died) when: [t0] begin, continue, then abort then: begin and continue refuse and name abort; abort puts the paths back 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: paths are still set aside from a prior run
+      ├─ settings.of.grove.json
+      └─ settings.of.repo.json
+
+🥥 did you know?
+   ├─ abort puts them back, with no rebase in progress too
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case6] paths still set aside with no rebase in progress (a prior run died) when: [t0] begin, continue, then abort then: begin and continue refuse and name abort; abort puts the paths back 2`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase continue
+   └─ ✋ ConstraintError: no rebase in progress, but paths are still set aside
+      ├─ settings.of.grove.json
+      └─ settings.of.repo.json
+
+🥥 did you know?
+   ├─ abort puts them back, with no rebase in progress too
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case6] paths still set aside with no rebase in progress (a prior run died) when: [t0] begin, continue, then abort then: begin and continue refuse and name abort; abort puts the paths back 3`] = `
+"🐢 no worries dude
+
+🐚 git.branch.rebase abort
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   └─ status: no rebase in progress; held paths put back
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case7] the rebase fails to start (an untracked file sits where main adds one) when: [t0] begin --mode apply --unstaged ignore then: it puts the held paths back at once, deletes the store, and refuses as a constraint (exit 2) 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ ✋ ConstraintError: rebase blocked: a local file sits where main writes one
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  error: The following untracked working tree files would be overwritten by checkout:
+      │  collide.txt
+      │  Please move or remove them before you switch branches.
+      │  Aborting
+      │  error: could not detach HEAD
+      │
+      └─
+
+🥥 did you know?
+   ├─ git.output names the cause; once it is cleared, rerun (the tree is as it was)
+   └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case8] an unstaged deletion and an unstaged mode change when: [t0] begin --mode apply --unstaged ignore then: the deletion stays absent and the mode reads back 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ README.md
+   │  │  └─ package.json
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case9] main changed a held path, the rebase stops, and the path is edited again when: [t0] the conflict is settled, then continue then: the held copy reads back; the output names the superseded edit and flags main 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 2 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  └─ package.json
+   │  ├─ a fresh edit at these held paths was superseded by the held copy
+   │  │  ├─ package.json
+   │  │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
+   │  ├─ ⚠️ main also changed these paths; your held copy reverts main's change there
+   │  │  └─ package.json
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  [detached HEAD HASH123] feat(reef): edit conflict file
+      │   Author: Test Human <human@test.com>
+      │   1 file changed, 1 insertion(+), 1 deletion(-)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🥥 did you know?
+   ├─ to re-apply a superseded edit, compare the kept edit to the held copy
+   └─ diff /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded/package.json package.json
+
+🥥 did you know?
+   ├─ to take main's version of a path main also changed, check it out from HEAD
+   ├─ git diff -- package.json
+   └─ git checkout HEAD -- package.json
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case9] main changed a held path, the rebase stops, and the path is edited again when: [t1] abort instead then: the held copy reads back, and the output names the superseded edit 1`] = `
+"🐢 no worries dude
+
+🐚 git.branch.rebase abort
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  └─ package.json
+   │  ├─ a fresh edit at these held paths was superseded by the held copy
+   │  │  ├─ package.json
+   │  │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
+   │  └─ status: all put back
+   └─ status: restored to pre-rebase state
+
+🥥 did you know?
+   ├─ to re-apply a superseded edit, compare the kept edit to the held copy
+   └─ diff /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded/package.json package.json
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case10] the store cannot be created (a file blocks its path) when: [t0] begin --mode apply --unstaged ignore then: it fails loud as a malfunction, exit 1, and touches no path 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin --mode apply
+   └─ 💥 MalfunctionError: cannot create the set-aside store
+      ├─ store: /tmp/TEST_REPO/work/.git/git.branch.rebase.aside
+      └─ error: mkdir: <host error text>
+
+🥥 did you know?
+   ├─ the store lives in this worktree's git dir; once that dir is writable, rerun
+   └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case11] a put-back fails partway (a held copy cannot be read back) when: [t0] continue completes the rebase, then abort recovers once the copy is restored then: continue fails loud with the path and its error, keeps the store; abort puts back only what is left 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase continue
+   ├─ 💥 MalfunctionError: put-back failed for these paths
+   │  ├─ settings.of.repo.json
+   │  │  └─ error: cp: <host error text>
+   │  └─ store kept whole: /tmp/TEST_REPO/work/.git/git.branch.rebase.aside
+   ├─ rebase: complete ✓, the branch is rebased
+   └─ status: held paths not put back stay in the store
+
+🥥 did you know?
+   ├─ once what blocks each path is cleared, put back what is left; with no rebase in progress, abort only puts paths back
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case11] a put-back fails partway (a held copy cannot be read back) when: [t0] continue completes the rebase, then abort recovers once the copy is restored then: continue fails loud with the path and its error, keeps the store; abort puts back only what is left 2`] = `
+"🐢 no worries dude
+
+🐚 git.branch.rebase abort
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  └─ settings.of.repo.json
+   │  ├─ a fresh edit at these held paths was superseded by the held copy
+   │  │  ├─ settings.of.repo.json
+   │  │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
+   │  └─ status: all put back
+   └─ status: no rebase in progress; held paths put back
+
+🥥 did you know?
+   ├─ to re-apply a superseded edit, compare the kept edit to the held copy
+   └─ diff /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded/settings.of.repo.json settings.of.repo.json
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case12] the rebase stops mid-replay with no conflict (an untracked file blocks a pick) when: [t0] begin stops, then continue once the block is cleared then: the store stays through the stop, and continue puts both paths back 1`] = `
+"🐢 hang tight...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1
+   │  └─ status: stopped (no conflict)
+   ├─ unstaged (set aside)
+   │  ├─ held aside until continue or abort puts them back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: held
+   ├─ next steps
+   │  ├─ clear what stopped it, per git.output below
+   │  ├─ rhx git.branch.rebase continue
+   │  └─ rhx git.branch.rebase abort
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  error: The following untracked working tree files would be overwritten by merge:
+      │  feature.txt
+      │  Please move or remove them before you merge.
+      │  Aborting
+      │  Could not apply HASH123... feat(reef): add feature
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case12] the rebase stops mid-replay with no conflict (an untracked file blocks a pick) when: [t0] begin stops, then continue once the block is cleared then: the store stays through the stop, and continue puts both paths back 2`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 1 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  Rebasing (2/2)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case12] the rebase stops mid-replay with no conflict (an untracked file blocks a pick) when: [t1] continue before the block is cleared then: the rebase stays in progress, and the held paths stay aside and are named 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  └─ status: in progress
+   ├─ left: 0 commits
+   ├─ unstaged (set aside)
+   │  ├─ held aside until continue or abort puts them back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: held
+   └─ git.output
+      ├─
+      │
+      │  Rebasing (2/2)
+      │  error: The following untracked working tree files would be overwritten by merge:
+      │  feature.txt
+      │  Please move or remove them before you merge.
+      │  Aborting
+      │  Could not apply HASH123... feat(reef): add feature
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case13] a concurrent run claims the store while begin fetches when: [t0] begin --mode apply --unstaged ignore then: begin refuses, exit 2, touches no path; abort then clears the unfilled store 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin --mode apply
+   └─ ✋ ConstraintError: another run holds paths aside in this worktree
+
+🥥 did you know?
+   ├─ let that run finish; or, once it has ended, put its paths back
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case13] a concurrent run claims the store while begin fetches when: [t0] begin --mode apply --unstaged ignore then: begin refuses, exit 2, touches no path; abort then clears the unfilled store 2`] = `
+"🐢 no worries dude
+
+🐚 git.branch.rebase abort
+   └─ status: no rebase in progress; an empty set-aside store cleared
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case14] a clean tree (no unstaged edits) when: [t0] begin --mode apply --unstaged include then: the flag is a no-op: the rebase completes as with no flag 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case14] a clean tree (no unstaged edits) when: [t1] begin --mode apply --unstaged ignore then: the flag is a no-op: the rebase completes as with no flag 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case15] two worktrees of one repo, one with paths held aside mid-conflict when: [t0] the other worktree runs begin --mode apply --unstaged ignore then: it rebases cleanly with its own store; the first worktree store is untouched 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/wt.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case16] a branch already up to date, with ambient drift when: [t0] begin --mode apply --unstaged ignore then: it exits before any set-aside; the tree is untouched 1`] = `
+"🐢 already up to date
+
+🐚 git.branch.rebase begin
+   ├─ commits: 1 (ahead)
+   └─ behind: 0
+
+no rebase needed, ready to push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case17] a held path is edited again, and continue stops on a second conflict when: [t0] continue, then continue again once settled then: the second stop names the superseded edit; the last continue puts both paths back 1`] = `
+"🐢 hang tight...
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  └─ status: conflict
+   ├─ conflict
+   │  ├─ commit: HASH123 feat(reef): edit second conflict file
+   │  └─ files
+   │     └─ conflict2.txt
+   ├─ unstaged (set aside)
+   │  ├─ held aside until continue or abort puts them back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  ├─ a fresh edit at these held paths was superseded by the held copy
+   │  │  ├─ settings.of.repo.json
+   │  │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
+   │  └─ status: held
+   ├─ next steps
+   │  ├─ settle conflicts in files above
+   │  ├─ rhx git.branch.rebase continue
+   │  └─ rhx git.branch.rebase abort
+   └─ git.output
+      ├─
+      │
+      │  [detached HEAD HASH123] feat(reef): edit conflict file
+      │   Author: Test Human <human@test.com>
+      │   1 file changed, 1 insertion(+), 1 deletion(-)
+      │  Rebasing (3/3)
+      │  Auto-merging conflict2.txt
+      │  CONFLICT (content): Merge conflict in conflict2.txt
+      │  error: could not apply HASH123... feat(reef): edit second conflict file
+      │  Could not apply HASH123... feat(reef): edit second conflict file
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case17] a held path is edited again, and continue stops on a second conflict when: [t0] continue, then continue again once settled then: the second stop names the superseded edit; the last continue puts both paths back 2`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 3 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  [detached HEAD HASH123] feat(reef): edit second conflict file
+      │   Author: Test Human <human@test.com>
+      │   1 file changed, 1 insertion(+), 1 deletion(-)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case18] the rebase fails to start for a cause other than a file in the way (a pre-rebase hook refuses) when: [t0] begin --mode apply --unstaged ignore then: it puts the held paths back at once, deletes the store, and fails as a malfunction (exit 1) 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ 💥 MalfunctionError: rebase failed to start
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  fatal: The pre-rebase hook refused to rebase.
+      │
+      └─
+
+🥥 did you know?
+   ├─ git.output names the cause; once it is cleared, rerun (the tree is as it was)
+   └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case19] a set-aside step fails (another git process holds the index lock) when: [t0] begin --mode apply --unstaged ignore, then abort once the lock is gone then: begin fails loud, exit 1, store kept, tree untouched; abort puts back and clears the store 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin --mode apply
+   └─ 💥 MalfunctionError: cannot reset the paths set aside
+      ├─ store kept: /tmp/TEST_REPO/work/.git/git.branch.rebase.aside
+      └─ error
+         ├─
+         │
+         │  fatal: Unable to create '/tmp/TEST_REPO/work/.git/index.lock': File exists.
+         │  Another git process seems to be running in this repository, e.g.
+         │  an editor opened by 'git commit'. Please make sure all processes
+         │  are terminated then try again. If it still fails, a git process
+         │  may have crashed in this repository earlier:
+         │  remove the file manually to continue.
+         │
+         └─
+
+🥥 did you know?
+   ├─ each path the store records is whole; abort puts them back
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case19] a set-aside step fails (another git process holds the index lock) when: [t0] begin --mode apply --unstaged ignore, then abort once the lock is gone then: begin fails loud, exit 1, store kept, tree untouched; abort puts back and clears the store 2`] = `
+"🐢 no worries dude
+
+🐚 git.branch.rebase abort
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   └─ status: no rebase in progress; held paths put back
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case20] an empty store remains (a run was killed after its claim, before its first write) when: [t0] begin, continue, then abort then: begin and continue refuse, exit 2, and say the store is empty; abort clears it 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: an empty set-aside store remains from a prior run
+
+🥥 did you know?
+   ├─ abort clears it, with no rebase in progress too
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case20] an empty store remains (a run was killed after its claim, before its first write) when: [t0] begin, continue, then abort then: begin and continue refuse, exit 2, and say the store is empty; abort clears it 2`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase continue
+   └─ ✋ ConstraintError: no rebase in progress, but an empty set-aside store remains
+
+🥥 did you know?
+   ├─ abort clears it, with no rebase in progress too
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case21] a put-back fails at begin after a clean rebase (a held copy moved off) when: [t0] begin --mode apply --unstaged ignore, then abort once the copy is restored then: begin fails loud, exit 1, store kept; abort puts back what is left 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ 💥 MalfunctionError: put-back failed for these paths
+   │  ├─ settings.of.repo.json
+   │  │  └─ error: cp: <host error text>
+   │  └─ store kept whole: /tmp/TEST_REPO/work/.git/git.branch.rebase.aside
+   ├─ rebase: complete ✓, the branch is rebased
+   └─ status: held paths not put back stay in the store
+
+🥥 did you know?
+   ├─ once what blocks each path is cleared, put back what is left; with no rebase in progress, abort only puts paths back
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case22] a put-back fails at abort mid-rebase (a held copy moved off) when: [t0] abort, then abort again once the copy is restored then: the first abort rewinds the branch but fails loud, exit 1, store kept; the second puts back what is left 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase abort
+   ├─ 💥 MalfunctionError: put-back failed for these paths
+   │  ├─ settings.of.repo.json
+   │  │  └─ error: cp: <host error text>
+   │  └─ store kept whole: /tmp/TEST_REPO/work/.git/git.branch.rebase.aside
+   ├─ rebase: aborted; the branch is restored to its pre-rebase state
+   └─ status: held paths not put back stay in the store
+
+🥥 did you know?
+   ├─ once what blocks each path is cleared, put back what is left; with no rebase in progress, abort only puts paths back
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case23] continue leaves a fresh unstaged edit mid-rebase (a post-commit hook writes one) when: [t0] continue, with a held path also edited again then: continue refuses, exit 2, names the edit and the superseded held path 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase continue
+   ├─ ✋ ConstraintError: unstaged changes block continue
+   │  └─ conflict2.txt
+   ├─ a fresh edit at these held paths was superseded by the held copy
+   │  ├─ settings.of.repo.json
+   │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
+   └─ git.output
+      ├─
+      │
+      │  [detached HEAD HASH123] feat(reef): edit conflict file
+      │   Author: Test Human <human@test.com>
+      │   1 file changed, 1 insertion(+), 1 deletion(-)
+      │  Rebasing (3/3)
+      │  error: Your local changes to the following files would be overwritten by merge:
+      │  conflict2.txt
+      │  Please commit your changes or stash them before you merge.
+      │  Aborting
+      │  Could not apply HASH123... feat(reef): edit second conflict file
+      │
+      └─
+
+🥥 did you know?
+   ├─ stage them as resolution work, or set them aside, then continue
+   ├─ rhx git.stage.add conflict2.txt
+   └─ rhx git.branch.rebase continue --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case24] a held path is in conflict, settled with take, then continue (the clone journey) when: [t0] begin stops on package.json, take main's side (--whos ours in a rebase), continue then: continue puts the held copy back over the taken version and flags main 1`] = `
+"🐢 hang tight...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 2
+   │  └─ status: conflict
+   ├─ conflict
+   │  ├─ commit: HASH123 feat(reef): bump package version
+   │  └─ files
+   │     └─ package.json
+   ├─ unstaged (set aside)
+   │  ├─ held aside until continue or abort puts them back
+   │  │  └─ package.json
+   │  └─ status: held
+   ├─ next steps
+   │  ├─ settle conflicts in files above
+   │  ├─ rhx git.branch.rebase continue
+   │  └─ rhx git.branch.rebase abort
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/2)
+      │  Rebasing (2/2)
+      │  Auto-merging package.json
+      │  CONFLICT (content): Merge conflict in package.json
+      │  error: could not apply HASH123... feat(reef): bump package version
+      │  Could not apply HASH123... feat(reef): bump package version
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case24] a held path is in conflict, settled with take, then continue (the clone journey) when: [t0] begin stops on package.json, take main's side (--whos ours in a rebase), continue then: continue puts the held copy back over the taken version and flags main 2`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 2 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  └─ package.json
+   │  ├─ ⚠️ main also changed these paths; your held copy reverts main's change there
+   │  │  └─ package.json
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🥥 did you know?
+   ├─ to take main's version of a path main also changed, check it out from HEAD
+   ├─ git diff -- package.json
+   └─ git checkout HEAD -- package.json
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case25] an unstaged edit at a non-ascii path when: [t0] begin --mode apply --unstaged ignore then: the path is set aside and reads back byte for byte 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 2 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  └─ café.txt
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/2)
+      │  Rebasing (2/2)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case26] an edit lands while begin fetches (after the first unstaged read) when: [t0] begin --mode apply --unstaged ignore then: the late edit is set aside too, the rebase completes, and it reads back 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ README.md
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case27] a held path is edited after a prior run died, then abort recovers when: [t0] abort, with no rebase in progress then: the held copy is put back, and the later edit is kept and named, not lost 1`] = `
+"🐢 no worries dude
+
+🐚 git.branch.rebase abort
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  ├─ a fresh edit at these held paths was superseded by the held copy
+   │  │  ├─ settings.of.repo.json
+   │  │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
+   │  └─ status: all put back
+   └─ status: no rebase in progress; held paths put back
+
+🥥 did you know?
+   ├─ to re-apply a superseded edit, compare the kept edit to the held copy
+   └─ diff /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded/settings.of.repo.json settings.of.repo.json
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case28] a hook edits a held path while begin rebases when: [t0] begin --mode apply --unstaged ignore then: the held copy is put back, and the hook edit is kept and named, not lost 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  ├─ a fresh edit at these held paths was superseded by the held copy
+   │  │  ├─ settings.of.repo.json
+   │  │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🥥 did you know?
+   ├─ to re-apply a superseded edit, compare the kept edit to the held copy
+   └─ diff /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded/settings.of.repo.json settings.of.repo.json
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case29] main deletes a path the clone holds aside when: [t0] begin --mode apply --unstaged ignore then: the edit reads back untracked, flagged, and the hint names a paved delete, not a checkout from HEAD 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  └─ README.md
+   │  ├─ ⚠️ main also changed these paths; your held copy reverts main's change there
+   │  │  └─ README.md
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🥥 did you know?
+   ├─ main deleted these paths; your held copy is untracked. to take main's deletion, remove it
+   └─ rhx rmsafe --literal README.md
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case30] an unstaged typechange each way (a link now a file, a file now a link) when: [t0] begin --mode apply --unstaged ignore then: each path reads back as the type it held 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ README.md
+   │  │  └─ settings.of.grove.json
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case31] an unstaged edit at the nested ambient path shape (a dir name with =) when: [t0] begin --mode apply --unstaged ignore then: the nested path is set aside and reads back byte for byte 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 2 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  └─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/2)
+      │  Rebasing (2/2)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case32] a held path regenerates to the same bytes as its held copy while the conflict waits when: [t0] the conflict is settled, then continue then: the regeneration is no edit: not reported as superseded, and naught is kept 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 2 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  [detached HEAD HASH123] feat(reef): edit conflict file
+      │   Author: Test Human <human@test.com>
+      │   1 file changed, 1 insertion(+), 1 deletion(-)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case33] a clean tree (no store) meets the stop and start-failure renders when: [t0] the rebase stops mid-replay with no conflict then: the stop names continue alone as the next step, with no unstaged branch 1`] = `
+"🐢 hang tight...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1
+   │  └─ status: stopped (no conflict)
+   ├─ next steps
+   │  ├─ clear what stopped it, per git.output below
+   │  └─ rhx git.branch.rebase continue
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  error: The following untracked working tree files would be overwritten by merge:
+      │  feature.txt
+      │  Please move or remove them before you merge.
+      │  Aborting
+      │  Could not apply HASH123... feat(reef): add feature
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case33] a clean tree (no store) meets the stop and start-failure renders when: [t1] a local file sits where main writes one then: it refuses as a constraint (exit 2), with no unstaged branch 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ ✋ ConstraintError: rebase blocked: a local file sits where main writes one
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  error: The following untracked working tree files would be overwritten by checkout:
+      │  collide.txt
+      │  Please move or remove them before you switch branches.
+      │  Aborting
+      │  error: could not detach HEAD
+      │
+      └─
+
+🥥 did you know?
+   ├─ git.output names the cause; once it is cleared, rerun (the tree is as it was)
+   └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case33] a clean tree (no store) meets the stop and start-failure renders when: [t2] a pre-rebase hook refuses then: it fails as a malfunction (exit 1), with no unstaged branch 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ 💥 MalfunctionError: rebase failed to start
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  fatal: The pre-rebase hook refused to rebase.
+      │
+      └─
+
+🥥 did you know?
+   ├─ git.output names the cause; once it is cleared, rerun (the tree is as it was)
+   └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case34] git cannot abort while paths are held aside (another git process holds the index lock) when: [t0] abort, then abort again once the lock is gone then: the first abort fails loud, exit 1, and names the held paths and the kept store; the second puts them back 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase abort
+   ├─ 💥 MalfunctionError: abort failed
+   ├─ unstaged (set aside)
+   │  ├─ still held aside
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ store kept: /tmp/TEST_REPO/work/.git/git.branch.rebase.aside
+   └─ git.output
+      ├─
+      │
+      │  error: Unable to create '/tmp/TEST_REPO/work/.git/index.lock': File exists.
+      │  Another git process seems to be running in this repository, e.g.
+      │  an editor opened by 'git commit'. Please make sure all processes
+      │  are terminated then try again. If it still fails, a git process
+      │  may have crashed in this repository earlier:
+      │  remove the file manually to continue.
+      │  fatal: could not move back to HASH123
+      │
+      └─
+
+🥥 did you know?
+   ├─ once git.output's cause is cleared, retry
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case34] git cannot abort while paths are held aside (another git process holds the index lock) when: [t0] abort, then abort again once the lock is gone then: the first abort fails loud, exit 1, and names the held paths and the kept store; the second puts them back 2`] = `
+"🐢 no worries dude
+
+🐚 git.branch.rebase abort
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   └─ status: restored to pre-rebase state
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case35] a fresh edit at a held path, then git cannot abort (its orig-head is unreadable) when: [t0] abort, then abort again once orig-head is restored then: the first abort fails loud, exit 1, names the superseded edit beside the held paths; the second puts them back 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase abort
+   ├─ 💥 MalfunctionError: abort failed
+   ├─ unstaged (set aside)
+   │  ├─ still held aside
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ store kept: /tmp/TEST_REPO/work/.git/git.branch.rebase.aside
+   ├─ a fresh edit at these held paths was superseded by the held copy
+   │  ├─ settings.of.repo.json
+   │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
+   └─ git.output
+      ├─
+      │
+      │  error: invalid orig-head: 'not-a-commit'
+      │
+      └─
+
+🥥 did you know?
+   ├─ once git.output's cause is cleared, retry
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case35] a fresh edit at a held path, then git cannot abort (its orig-head is unreadable) when: [t0] abort, then abort again once orig-head is restored then: the first abort fails loud, exit 1, names the superseded edit beside the held paths; the second puts them back 2`] = `
+"🐢 no worries dude
+
+🐚 git.branch.rebase abort
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ settings.of.grove.json
+   │  │  └─ settings.of.repo.json
+   │  └─ status: all put back
+   └─ status: restored to pre-rebase state
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case36] a set-aside step fails mid-conflict, under continue when: [t0] a fresh edit at a path not held cannot be set aside (a file sits where its store dir goes) then: continue --unstaged ignore fails loud, exit 1, names the path, and keeps the store 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase continue
+   └─ 💥 MalfunctionError: cannot set aside docs/reef.md
+      ├─ store kept: /tmp/TEST_REPO/work/.git/git.branch.rebase.aside
+      └─ error
+         ├─
+         │
+         │  mkdir: <host error text>
+         │
+         └─
+
+🥥 did you know?
+   ├─ each path the store records is whole; abort puts them back
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case36] a set-aside step fails mid-conflict, under continue when: [t1] a fresh edit at a held path cannot be kept (a file sits where the superseded dir goes) then: continue fails loud, exit 1, names the path, and leaves the fresh edit in place 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase continue
+   └─ 💥 MalfunctionError: cannot keep the fresh edit at settings.of.repo.json
+      ├─ store kept: /tmp/TEST_REPO/work/.git/git.branch.rebase.aside
+      └─ error
+         ├─
+         │
+         │  mkdir: <host error text>
+         │
+         └─
+
+🥥 did you know?
+   ├─ each path the store records is whole; abort puts them back
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case36] a set-aside step fails mid-conflict, under continue when: [t2] the fresh edits at held paths cannot be reset (another git process holds the index lock) then: continue fails loud, exit 1, keeps the fresh edit first, and keeps the store 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase continue
+   └─ 💥 MalfunctionError: cannot reset the fresh edits at held paths
+      ├─ store kept: /tmp/TEST_REPO/work/.git/git.branch.rebase.aside
+      └─ error
+         ├─
+         │
+         │  fatal: Unable to create '/tmp/TEST_REPO/work/.git/index.lock': File exists.
+         │  Another git process seems to be running in this repository, e.g.
+         │  an editor opened by 'git commit'. Please make sure all processes
+         │  are terminated then try again. If it still fails, a git process
+         │  may have crashed in this repository earlier:
+         │  remove the file manually to continue.
+         │
+         └─
+
+🥥 did you know?
+   ├─ each path the store records is whole; abort puts them back
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case37] a set-aside step fails mid-conflict, under abort when: [t0] a fresh edit at a path not held cannot be set aside (a file sits where its store dir goes) then: abort --unstaged ignore fails loud, exit 1, names the path, keeps the store, and git never aborts 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase abort
+   └─ 💥 MalfunctionError: cannot set aside docs/reef.md
+      ├─ store kept: /tmp/TEST_REPO/work/.git/git.branch.rebase.aside
+      └─ error
+         ├─
+         │
+         │  mkdir: <host error text>
+         │
+         └─
+
+🥥 did you know?
+   ├─ each path the store records is whole; abort puts them back
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase --unstaged given: [case37] a set-aside step fails mid-conflict, under abort when: [t1] a fresh edit at a held path cannot be kept (a file sits where the superseded dir goes) then: abort fails loud, exit 1, names the path, leaves the fresh edit, and git never aborts 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase abort
+   └─ 💥 MalfunctionError: cannot keep the fresh edit at settings.of.repo.json
+      ├─ store kept: /tmp/TEST_REPO/work/.git/git.branch.rebase.aside
+      └─ error
+         ├─
+         │
+         │  mkdir: <host error text>
+         │
+         └─
+
+🥥 did you know?
+   ├─ each path the store records is whole; abort puts them back
+   └─ rhx git.branch.rebase abort
+"
+`;

@@ -146,99 +146,131 @@ const runSkill = (
 };
 
 describe('git.branch.rebase.begin', () => {
-  given('[case1] feature branch with commits ahead and behind', () => {
-    when('[t0] plan mode (default)', () => {
-      then('shows preview or fetch error (no real remote in test)', () => {
-        const tempDir = setupRebaseScenario({
-          commitsAhead: 3,
-          commitsBehind: 2,
-          pushAllowed: true,
-        });
+  // .note = cases 1, 2, 3, 7 and 9 hold no origin remote, so each meets the
+  //         fetch failure; the real preview, conflict and up-to-date renders
+  //         are pinned against a real origin in the unstaged and acceptance suites
+  given(
+    '[case1] feature branch ahead and behind, no origin remote to fetch',
+    () => {
+      when('[t0] plan mode (default)', () => {
+        then(
+          'the fetch fails as a malfunction, exit 1, and the retry keeps plan mode',
+          () => {
+            const tempDir = setupRebaseScenario({
+              commitsAhead: 3,
+              commitsBehind: 2,
+              pushAllowed: true,
+            });
 
-        try {
-          const result = runSkill(tempDir);
+            try {
+              const result = runSkill(tempDir);
 
-          // note: in test env without real remote, fetch fails
-          // snapshot captures actual behavior for vibecheck
-          expect(result.stdout).toContain('git.branch.rebase begin');
-          expect(result.stdout).toMatchSnapshot();
-        } finally {
-          fs.rmSync(tempDir, { recursive: true, force: true });
-        }
-      });
-    });
-  });
-
-  given('[case2] feature branch ready to rebase', () => {
-    when('[t0] apply mode attempts rebase', () => {
-      then('shows result or fetch error (no real remote in test)', () => {
-        const tempDir = setupRebaseScenario({
-          commitsAhead: 2,
-          commitsBehind: 0,
-          pushAllowed: true,
-        });
-
-        try {
-          const result = runSkill(tempDir, ['--mode', 'apply']);
-
-          // note: in test env without real remote, fetch fails
-          // snapshot captures actual behavior for vibecheck
-          expect(result.stdout).toContain('git.branch.rebase begin');
-          expect(result.stdout).toMatchSnapshot();
-        } finally {
-          fs.rmSync(tempDir, { recursive: true, force: true });
-        }
-      });
-    });
-  });
-
-  given('[case3] rebase with conflicts', () => {
-    when('[t0] apply mode hits conflict', () => {
-      then('shows conflict status and files', () => {
-        // note: simulating real conflict requires complex setup
-        // this test validates the output format when conflicts detected
-        const tempDir = setupRebaseScenario({
-          commitsAhead: 2,
-          commitsBehind: 2,
-          pushAllowed: true,
-        });
-
-        // create conflicting content on both branches
-        fs.writeFileSync(
-          path.join(tempDir, 'conflict.txt'),
-          'feature version\n',
+              expect(result.status).toBe(1);
+              expect(result.stdout).toContain(
+                '💥 MalfunctionError: failed to fetch origin/main',
+              );
+              expect(result.stdout).toContain(
+                'rhx git.branch.rebase begin --mode plan',
+              );
+              expect(result.stderr).toContain('MalfunctionError');
+              expect(result.stdout).toMatchSnapshot();
+            } finally {
+              fs.rmSync(tempDir, { recursive: true, force: true });
+            }
+          },
         );
-        spawnSync('git', ['add', 'conflict.txt'], { cwd: tempDir });
-        spawnSync('git', ['commit', '-m', 'fix: add conflict file'], {
-          cwd: tempDir,
-        });
-
-        // add same file on origin/main with different content
-        spawnSync('git', ['checkout', 'main'], { cwd: tempDir });
-        fs.writeFileSync(path.join(tempDir, 'conflict.txt'), 'main version\n');
-        spawnSync('git', ['add', 'conflict.txt'], { cwd: tempDir });
-        spawnSync('git', ['commit', '-m', 'fix: main conflict file'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['update-ref', 'refs/remotes/origin/main', 'HEAD'], {
-          cwd: tempDir,
-        });
-        spawnSync('git', ['checkout', 'feature/test-branch'], { cwd: tempDir });
-
-        try {
-          const result = runSkill(tempDir, ['--mode', 'apply']);
-
-          // conflict should show specific output
-          if (result.stdout.includes('conflict')) {
-            expect(result.stdout).toContain('hang tight');
-            expect(result.stdout).toContain('conflict');
-            expect(result.stdout).toContain('settle conflicts');
-          }
-          expect(result.stdout).toMatchSnapshot();
-        } finally {
-          fs.rmSync(tempDir, { recursive: true, force: true });
-        }
       });
+    },
+  );
+
+  given(
+    '[case2] feature branch ready to rebase, no origin remote to fetch',
+    () => {
+      when('[t0] apply mode attempts rebase', () => {
+        then(
+          'the fetch fails as a malfunction, exit 1, and the retry keeps apply mode',
+          () => {
+            const tempDir = setupRebaseScenario({
+              commitsAhead: 2,
+              commitsBehind: 0,
+              pushAllowed: true,
+            });
+
+            try {
+              const result = runSkill(tempDir, ['--mode', 'apply']);
+
+              expect(result.status).toBe(1);
+              expect(result.stdout).toContain(
+                '💥 MalfunctionError: failed to fetch origin/main',
+              );
+              expect(result.stdout).toContain(
+                'rhx git.branch.rebase begin --mode apply',
+              );
+              expect(result.stderr).toContain('MalfunctionError');
+              expect(result.stdout).toMatchSnapshot();
+            } finally {
+              fs.rmSync(tempDir, { recursive: true, force: true });
+            }
+          },
+        );
+      });
+    },
+  );
+
+  given('[case3] branches that conflict, no origin remote to fetch', () => {
+    when('[t0] apply mode', () => {
+      then(
+        'the fetch fails before the rebase starts, exit 1, branch untouched',
+        () => {
+          const tempDir = setupRebaseScenario({
+            commitsAhead: 2,
+            commitsBehind: 2,
+            pushAllowed: true,
+          });
+
+          // create conflicting content on both branches
+          fs.writeFileSync(
+            path.join(tempDir, 'conflict.txt'),
+            'feature version\n',
+          );
+          spawnSync('git', ['add', 'conflict.txt'], { cwd: tempDir });
+          spawnSync('git', ['commit', '-m', 'fix: add conflict file'], {
+            cwd: tempDir,
+          });
+
+          // add same file on origin/main with different content
+          spawnSync('git', ['checkout', 'main'], { cwd: tempDir });
+          fs.writeFileSync(
+            path.join(tempDir, 'conflict.txt'),
+            'main version\n',
+          );
+          spawnSync('git', ['add', 'conflict.txt'], { cwd: tempDir });
+          spawnSync('git', ['commit', '-m', 'fix: main conflict file'], {
+            cwd: tempDir,
+          });
+          spawnSync('git', ['update-ref', 'refs/remotes/origin/main', 'HEAD'], {
+            cwd: tempDir,
+          });
+          spawnSync('git', ['checkout', 'feature/test-branch'], {
+            cwd: tempDir,
+          });
+
+          try {
+            const result = runSkill(tempDir, ['--mode', 'apply']);
+
+            expect(result.status).toBe(1);
+            expect(result.stdout).toContain(
+              '💥 MalfunctionError: failed to fetch origin/main',
+            );
+            expect(
+              fs.existsSync(path.join(tempDir, '.git', 'rebase-merge')),
+            ).toBe(false);
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        },
+      );
     });
   });
 
@@ -253,7 +285,7 @@ describe('git.branch.rebase.begin', () => {
         try {
           const result = runSkill(tempDir);
 
-          expect(result.status).not.toBe(0);
+          expect(result.status).toBe(2);
           expect(result.stdout).toContain('hold up dude');
           expect(result.stdout).toContain('push permission');
           expect(result.stdout).toMatchSnapshot();
@@ -276,7 +308,7 @@ describe('git.branch.rebase.begin', () => {
         try {
           const result = runSkill(tempDir);
 
-          expect(result.status).not.toBe(0);
+          expect(result.status).toBe(2);
           expect(result.stdout).toContain('hold up dude');
           expect(result.stdout).toContain('main');
           expect(result.stdout).toMatchSnapshot();
@@ -299,7 +331,7 @@ describe('git.branch.rebase.begin', () => {
         try {
           const result = runSkill(tempDir);
 
-          expect(result.status).not.toBe(0);
+          expect(result.status).toBe(2);
           expect(result.stdout).toContain('hold up dude');
           expect(result.stdout).toContain('unstaged');
           expect(result.stdout).toMatchSnapshot();
@@ -310,26 +342,30 @@ describe('git.branch.rebase.begin', () => {
     });
   });
 
-  given('[case7] branch already up to date', () => {
+  given('[case7] branch already up to date, no origin remote to fetch', () => {
     when('[t0] attempt rebase', () => {
-      then('shows up to date or fetch error (no real remote in test)', () => {
-        const tempDir = setupRebaseScenario({
-          commitsAhead: 0,
-          commitsBehind: 0,
-          pushAllowed: true,
-        });
+      then(
+        'the fetch fails as a malfunction, exit 1, before the up-to-date check',
+        () => {
+          const tempDir = setupRebaseScenario({
+            commitsAhead: 0,
+            commitsBehind: 0,
+            pushAllowed: true,
+          });
 
-        try {
-          const result = runSkill(tempDir);
+          try {
+            const result = runSkill(tempDir);
 
-          // note: in test env without real remote, fetch fails
-          // snapshot captures actual behavior for vibecheck
-          expect(result.stdout).toContain('git.branch.rebase begin');
-          expect(result.stdout).toMatchSnapshot();
-        } finally {
-          fs.rmSync(tempDir, { recursive: true, force: true });
-        }
-      });
+            expect(result.status).toBe(1);
+            expect(result.stdout).toContain(
+              '💥 MalfunctionError: failed to fetch origin/main',
+            );
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        },
+      );
     });
   });
 
@@ -345,7 +381,7 @@ describe('git.branch.rebase.begin', () => {
         try {
           const result = runSkill(tempDir);
 
-          expect(result.status).not.toBe(0);
+          expect(result.status).toBe(2);
           expect(result.stdout).toContain('rebase');
           expect(result.stdout).toContain('progress');
           expect(result.stdout).toMatchSnapshot();
@@ -382,9 +418,9 @@ describe('git.branch.rebase.begin', () => {
           expect(result.stderr).not.toContain('infinite: unbound variable');
           expect(result.stderr).not.toContain('integer expression expected');
 
-          // note: fetch will fail in test env (no real remote)
-          // but we verify it gets past the "uses" check
-          expect(result.stdout).toContain('git.branch.rebase begin');
+          // past the uses check, the fetch fails: this repo holds no origin remote
+          expect(result.status).toBe(1);
+          expect(result.stdout).toContain('failed to fetch origin/main');
           expect(result.stdout).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
@@ -417,13 +453,186 @@ describe('git.branch.rebase.begin', () => {
           expect(result.stderr).not.toContain('infinite: unbound variable');
           expect(result.stderr).not.toContain('integer expression expected');
 
-          // note: fetch will fail in test env (no real remote)
-          // but we verify it handles "infinite" correctly
-          expect(result.stdout).toContain('git.branch.rebase begin');
+          // past the uses check, the fetch fails: this repo holds no origin remote
+          expect(result.status).toBe(1);
+          expect(result.stdout).toContain('failed to fetch origin/main');
           expect(result.stdout).toMatchSnapshot();
         } finally {
           fs.rmSync(tempDir, { recursive: true, force: true });
         }
+      });
+    });
+  });
+
+  given('[case10] no commit quota file', () => {
+    when('[t0] attempt rebase', () => {
+      then(
+        'it refuses as a constraint, exit 2, and names the grant command',
+        () => {
+          const tempDir = setupRebaseScenario({
+            commitsAhead: 2,
+            pushAllowed: true,
+          });
+          fs.rmSync(path.join(tempDir, '.meter'), {
+            recursive: true,
+            force: true,
+          });
+
+          try {
+            const result = runSkill(tempDir);
+
+            expect(result.status).toBe(2);
+            expect(result.stdout).toContain(
+              '✋ ConstraintError: no commit quota set',
+            );
+            expect(result.stdout).toContain(
+              'rhx git.commit.uses set --quant N --push allow',
+            );
+            expect(result.stderr).toContain('ConstraintError');
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        },
+      );
+    });
+  });
+
+  given('[case11] push allowed but no commit uses left', () => {
+    when('[t0] apply mode', () => {
+      then(
+        'it refuses as a constraint, exit 2, and names the grant command',
+        () => {
+          const tempDir = setupRebaseScenario({
+            commitsAhead: 2,
+            pushAllowed: true,
+          });
+          fs.writeFileSync(
+            path.join(tempDir, '.meter', 'git.commit.uses.jsonc'),
+            JSON.stringify({ uses: 0, push: 'allow' }, null, 2),
+          );
+
+          try {
+            const result = runSkill(tempDir, ['--mode', 'apply']);
+
+            expect(result.status).toBe(2);
+            expect(result.stdout).toContain(
+              '✋ ConstraintError: no commit uses left',
+            );
+            expect(result.stdout).toContain(
+              'rhx git.commit.uses set --quant N --push allow',
+            );
+            expect(result.stderr).toContain('ConstraintError');
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        },
+      );
+    });
+  });
+
+  given('[case12] origin holds neither main nor master', () => {
+    when('[t0] attempt rebase', () => {
+      then('it fails as a malfunction, exit 1, on both streams', () => {
+        const tempDir = setupRebaseScenario({
+          commitsAhead: 2,
+          pushAllowed: true,
+        });
+        spawnSync('git', ['update-ref', '-d', 'refs/remotes/origin/main'], {
+          cwd: tempDir,
+        });
+
+        try {
+          const result = runSkill(tempDir);
+
+          expect(result.status).toBe(1);
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: no main or master branch found on origin',
+          );
+          expect(result.stderr).toContain('MalfunctionError');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+  });
+
+  given('[case13] the fetch fails under --unstaged ignore', () => {
+    when('[t0] apply mode with --unstaged ignore and a dirty tree', () => {
+      then(
+        'it fails before any path is set aside, and the retry keeps --unstaged ignore',
+        () => {
+          const tempDir = setupRebaseScenario({
+            commitsAhead: 2,
+            pushAllowed: true,
+            dirtyWorkTree: true,
+          });
+
+          try {
+            const result = runSkill(tempDir, [
+              '--mode',
+              'apply',
+              '--unstaged',
+              'ignore',
+            ]);
+
+            expect(result.status).toBe(1);
+            expect(result.stdout).toContain(
+              '💥 MalfunctionError: failed to fetch origin/main',
+            );
+            expect(result.stdout).toContain(
+              'rhx git.branch.rebase begin --mode apply --unstaged ignore',
+            );
+            expect(
+              fs.readFileSync(path.join(tempDir, 'README.md'), 'utf-8'),
+            ).toEqual('# Test Repo\n\nmodified content\n');
+            expect(
+              fs.existsSync(
+                path.join(tempDir, '.git', 'git.branch.rebase.aside'),
+              ),
+            ).toBe(false);
+            expect(result.stderr).toContain('MalfunctionError');
+            expect(result.stdout).toMatchSnapshot();
+          } finally {
+            fs.rmSync(tempDir, { recursive: true, force: true });
+          }
+        },
+      );
+    });
+  });
+
+  given('[case14] an invalid --mode', () => {
+    // one when per shape: a wrong value, and the flag with no value
+    [
+      { slug: 'a bogus value', args: ['--mode', 'bogus'] },
+      { slug: 'no value', args: ['--mode'] },
+    ].forEach((variant, index) => {
+      when(`[t${index}] --mode with ${variant.slug}`, () => {
+        then(
+          'it refuses before any act, exit 2, names the valid values, on both streams',
+          () => {
+            const tempDir = setupRebaseScenario({
+              commitsAhead: 2,
+              pushAllowed: true,
+            });
+
+            try {
+              const result = runSkill(tempDir, variant.args);
+
+              expect(result.status).toBe(2);
+              expect(result.stdout).toContain('✋ ConstraintError');
+              expect(result.stdout).toContain('--mode');
+              expect(result.stdout).toContain('plan');
+              expect(result.stdout).toContain('apply');
+              expect(result.stderr).toContain('ConstraintError');
+              expect(result.stdout).toMatchSnapshot();
+            } finally {
+              fs.rmSync(tempDir, { recursive: true, force: true });
+            }
+          },
+        );
       });
     });
   });

@@ -1,0 +1,631 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey1] a clean rebase with ambient drift when: [t0] begin --mode apply with no --unstaged flag then: it refuses, exit 2, names both paths and the cure 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: unstaged changes found
+      ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+      └─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+
+🥥 did you know?
+   ├─ you can set them aside for the rebase; each is put back after
+   └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey1] a clean rebase with ambient drift when: [t1] begin --unstaged ignore in plan mode then: it lists the paths it would set aside and touches naught 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase begin --mode plan
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ ahead: 1 commit
+   │  │  └─ HASH123 feat(reef): add feature
+   │  └─ behind: 1 commit
+   │     └─ HASH123 chore(reef): main commit
+   ├─ unstaged (to set aside)
+   │  └─ would set aside, then put back
+   │     ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │     └─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   └─ meter
+      ├─ commits: allowed
+      └─ push: allowed
+
+🥥 did you know?
+   ├─ this is a plan; apply it to rebase
+   └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey1] a clean rebase with ambient drift when: [t2] begin --mode apply --unstaged ignore then: the rebase completes and both paths read back identical 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  └─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey2] a conflicted rebase with ambient drift, settled and continued when: [t0] begin --mode apply --unstaged ignore then: it stops on the conflict and holds the paths aside 1`] = `
+"🐢 hang tight...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 2
+   │  └─ status: conflict
+   ├─ conflict
+   │  ├─ commit: HASH123 feat(reef): edit conflict file
+   │  └─ files
+   │     └─ conflict.txt
+   ├─ unstaged (set aside)
+   │  ├─ held aside until continue or abort puts them back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  └─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  └─ status: held
+   ├─ next steps
+   │  ├─ settle conflicts in files above
+   │  ├─ rhx git.branch.rebase continue
+   │  └─ rhx git.branch.rebase abort
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/2)
+      │  Rebasing (2/2)
+      │  Auto-merging conflict.txt
+      │  CONFLICT (content): Merge conflict in conflict.txt
+      │  error: could not apply HASH123... feat(reef): edit conflict file
+      │  Could not apply HASH123... feat(reef): edit conflict file
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey2] a conflicted rebase with ambient drift, settled and continued when: [t1] the conflict is settled, then continue then: the rebase completes and both paths read back identical 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 2 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  └─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  [detached HEAD HASH123] feat(reef): edit conflict file
+      │   Author: Test Human <human@test.com>
+      │   1 file changed, 1 insertion(+), 1 deletion(-)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey3] a conflicted rebase with ambient drift, aborted when: [t1] abort then: HEAD is as before and both paths read back identical 1`] = `
+"🐢 no worries dude
+
+🐚 git.branch.rebase abort
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  └─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  └─ status: all put back
+   └─ status: restored to pre-rebase state
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey4] main changed a path the clone holds unstaged when: [t0] begin --mode apply --unstaged ignore then: the held copy reads back, and the output flags the path with its fix 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  │  └─ package.json
+   │  ├─ ⚠️ main also changed these paths; your held copy reverts main's change there
+   │  │  └─ package.json
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🥥 did you know?
+   ├─ to take main's version of a path main also changed, check it out from HEAD
+   ├─ git diff -- package.json
+   └─ git checkout HEAD -- package.json
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey5] an install rewrote package.json and pnpm-lock.yaml beside the actor drift when: [t0] begin --mode apply with no --unstaged flag then: it refuses, exit 2, and names all four paths 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: unstaged changes found
+      ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+      ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+      ├─ package.json
+      └─ pnpm-lock.yaml
+
+🥥 did you know?
+   ├─ you can set them aside for the rebase; each is put back after
+   └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey5] an install rewrote package.json and pnpm-lock.yaml beside the actor drift when: [t1] begin --mode apply --unstaged ignore then: the rebase passes, and the install files and the actor drift read back identical 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  │  ├─ package.json
+   │  │  └─ pnpm-lock.yaml
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey6] an install rewrote package.json and pnpm-lock.yaml, and main released new versions of both when: [t0] begin --mode apply --unstaged ignore then: the rebase passes, the held copies read back, and both install files are flagged with the fix 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  │  ├─ package.json
+   │  │  └─ pnpm-lock.yaml
+   │  ├─ ⚠️ main also changed these paths; your held copy reverts main's change there
+   │  │  ├─ package.json
+   │  │  └─ pnpm-lock.yaml
+   │  └─ status: all put back
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🥥 did you know?
+   ├─ to take main's version of a path main also changed, check it out from HEAD
+   ├─ git diff -- package.json pnpm-lock.yaml
+   └─ git checkout HEAD -- package.json pnpm-lock.yaml
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey7] a fresh edit at a path not held while the conflict waits, then continue --unstaged ignore when: [t0] continue with no --unstaged flag then: it refuses before git acts, exit 2, and names the cure on the same command 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase continue
+   └─ ✋ ConstraintError: unstaged changes found at paths not set aside
+      └─ README.md
+
+🥥 did you know?
+   ├─ stage them if they are resolution work; or set them aside too, put back after (a set-aside edit stays out of the commit)
+   ├─ rhx git.stage.add README.md
+   └─ rhx git.branch.rebase continue --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey7] a fresh edit at a path not held while the conflict waits, then continue --unstaged ignore when: [t1] continue --unstaged ignore then: the fresh edit joins the store, and every path reads back identical 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 2 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  │  └─ README.md
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  [detached HEAD HASH123] feat(reef): edit conflict file
+      │   Author: Test Human <human@test.com>
+      │   1 file changed, 1 insertion(+), 1 deletion(-)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey8] a fresh edit at a path not held while the conflict waits, then abort --unstaged ignore when: [t0] abort with no --unstaged flag then: it refuses before git acts, exit 2, and names the cure on the same command 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase abort
+   └─ ✋ ConstraintError: unstaged changes found at paths not set aside
+      └─ README.md
+
+🥥 did you know?
+   ├─ set them aside too; each is put back after the abort
+   └─ rhx git.branch.rebase abort --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey8] a fresh edit at a path not held while the conflict waits, then abort --unstaged ignore when: [t1] abort --unstaged ignore then: the fresh edit joins the store, and every path reads back identical 1`] = `
+"🐢 no worries dude
+
+🐚 git.branch.rebase abort
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  │  └─ README.md
+   │  └─ status: all put back
+   └─ status: restored to pre-rebase state
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey9] a session hook regenerates a held ambient file while the conflict waits; the clone settles via take when: [t1] take --whos theirs conflict.txt then: the conflict is settled and staged 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: theirs (your commit)
+   ├─ settled
+   │  └─ conflict.txt ✓
+   └─ done
+
+🥥 did you know?
+   ├─ once no conflict remains, continue the rebase; it puts back any path held aside
+   └─ rhx git.branch.rebase continue
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey9] a session hook regenerates a held ambient file while the conflict waits; the clone settles via take when: [t2] continue then: the held copy supersedes the regeneration, which is kept and named, not lost 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 2 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  └─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  ├─ a fresh edit at these held paths was superseded by the held copy
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  [detached HEAD HASH123] feat(reef): edit conflict file
+      │   Author: Test Human <human@test.com>
+      │   1 file changed, 1 insertion(+), 1 deletion(-)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🥥 did you know?
+   ├─ to re-apply a superseded edit, compare the kept edit to the held copy
+   └─ diff /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded/.agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey10] main released a held package.json, and the install rewrites it again while the conflict waits when: [t0] continue then: the held copy reads back, the fresh edit is kept, and main's change is flagged with its fix 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 2 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  │  ├─ package.json
+   │  │  └─ pnpm-lock.yaml
+   │  ├─ a fresh edit at these held paths was superseded by the held copy
+   │  │  ├─ package.json
+   │  │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
+   │  ├─ ⚠️ main also changed these paths; your held copy reverts main's change there
+   │  │  └─ package.json
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  [detached HEAD HASH123] feat(reef): edit conflict file
+      │   Author: Test Human <human@test.com>
+      │   1 file changed, 1 insertion(+), 1 deletion(-)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🥥 did you know?
+   ├─ to re-apply a superseded edit, compare the kept edit to the held copy
+   └─ diff /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded/package.json package.json
+
+🥥 did you know?
+   ├─ to take main's version of a path main also changed, check it out from HEAD
+   ├─ git diff -- package.json
+   └─ git checkout HEAD -- package.json
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey11] the held package.json is itself the conflict file; the clone settles it via take when: [t0] begin --mode apply --unstaged ignore then: it stops on package.json, with the install copy held aside 1`] = `
+"🐢 hang tight...
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 2
+   │  └─ status: conflict
+   ├─ conflict
+   │  ├─ commit: HASH123 feat(reef): name the reef in package.json
+   │  └─ files
+   │     └─ package.json
+   ├─ unstaged (set aside)
+   │  ├─ held aside until continue or abort puts them back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  │  ├─ package.json
+   │  │  └─ pnpm-lock.yaml
+   │  └─ status: held
+   ├─ next steps
+   │  ├─ settle conflicts in files above
+   │  ├─ rhx git.branch.rebase continue
+   │  └─ rhx git.branch.rebase abort
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/2)
+      │  Rebasing (2/2)
+      │  Auto-merging package.json
+      │  CONFLICT (content): Merge conflict in package.json
+      │  error: could not apply HASH123... feat(reef): name the reef in package.json
+      │  Could not apply HASH123... feat(reef): name the reef in package.json
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey11] the held package.json is itself the conflict file; the clone settles it via take when: [t1] take main's side (--whos ours in a rebase) then: the conflict is settled and staged 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase take
+   ├─ whos: ours (main)
+   ├─ settled
+   │  └─ package.json ✓
+   └─ done
+
+🥥 did you know?
+   ├─ once no conflict remains, continue the rebase; it puts back any path held aside
+   └─ rhx git.branch.rebase continue
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey11] the held package.json is itself the conflict file; the clone settles it via take when: [t2] continue then: the held install copy reads back over the taken version, and main is flagged with its fix 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 2 ✓
+   │  └─ status: complete
+   ├─ unstaged (set aside)
+   │  ├─ set aside, put back
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
+   │  │  ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
+   │  │  ├─ package.json
+   │  │  └─ pnpm-lock.yaml
+   │  ├─ ⚠️ main also changed these paths; your held copy reverts main's change there
+   │  │  └─ package.json
+   │  └─ status: all put back
+   ├─ meter
+   │  └─ push: allowed
+   └─ git.output
+      ├─
+      │
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🥥 did you know?
+   ├─ to take main's version of a path main also changed, check it out from HEAD
+   ├─ git diff -- package.json
+   └─ git checkout HEAD -- package.json
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey12] a clean tree, no --unstaged flag when: [t0] begin --mode apply then: the rebase completes, with no set-aside and no store 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase begin --mode apply
+   ├─ rebase
+   │  ├─ target: origin/main
+   │  ├─ commits: 1 ✓
+   │  └─ status: clean
+   └─ git.output
+      ├─
+      │
+      │  From /tmp/TEST_REPO/origin
+      │   * branch            main       -> FETCH_HEAD
+      │  Rebasing (1/1)
+      │  Successfully rebased and updated refs/heads/feat/turtle.
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey13] each subcommand asked for --help when: [t0] begin --help then: the built skill answers with its own usage, exit 0 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase begin
+   ├─ what
+   │  └─ rebase this branch onto origin/main
+   ├─ usage
+   │  └─ rhx git.branch.rebase begin [--mode plan|apply] [--unstaged ignore|include]
+   ├─ args
+   │  ├─ --mode plan          preview what will be rebased (default)
+   │  ├─ --mode apply         execute the rebase
+   │  ├─ --unstaged ignore    set unstaged paths aside, rebase, put them back; continue or abort puts them back after a stop
+   │  └─ --unstaged include   refused when unstaged edits exist: a rebase has no commit to fold them into; commit them first via git.commit.set --unstaged include
+   ├─ note
+   │  └─ on a tree with no unstaged edits, either --unstaged value is a no-op
+   └─ examples
+      ├─ rhx git.branch.rebase begin --mode plan
+      └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey13] each subcommand asked for --help when: [t1] continue --help then: the built skill answers with its own usage, exit 0 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase continue
+   ├─ what
+   │  ├─ continue a rebase once its conflicts are settled
+   │  └─ once the rebase completes, puts back any paths set aside
+   ├─ usage
+   │  └─ rhx git.branch.rebase continue [--unstaged ignore]
+   ├─ args
+   │  └─ --unstaged ignore    set a fresh unstaged edit aside too; put back after
+   └─ examples
+      ├─ rhx git.branch.rebase continue
+      └─ rhx git.branch.rebase continue --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey13] each subcommand asked for --help when: [t2] take --help then: the built skill answers with its own usage, exit 0 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase take
+   ├─ what
+   │  └─ settle conflicts by the side you name, then stage the files
+   ├─ usage
+   │  └─ rhx git.branch.rebase take --whos ours|theirs <paths...>
+   ├─ args
+   │  ├─ --whos    ours|theirs (required)
+   │  └─ paths     file paths or globs, use . for all (required)
+   └─ examples
+      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+      ├─ rhx git.branch.rebase take --whos ours .eslintrc.json
+      └─ rhx git.branch.rebase take --whos theirs .
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey13] each subcommand asked for --help when: [t3] abort --help then: the built skill answers with its own usage, exit 0 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase abort
+   ├─ what
+   │  ├─ abort a rebase and restore to pre-rebase state
+   │  └─ with no rebase in progress, puts back any paths still set aside
+   ├─ usage
+   │  └─ rhx git.branch.rebase abort [--unstaged ignore]
+   ├─ args
+   │  └─ --unstaged ignore    set a fresh unstaged edit aside too; put back after
+   └─ examples
+      ├─ rhx git.branch.rebase abort
+      └─ rhx git.branch.rebase abort --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey13] each subcommand asked for --help when: [t4] lock --help then: the built skill answers with its own usage, exit 0 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase lock
+   ├─ what
+   │  └─ regenerate the lock file mid-rebase, then stage it
+   ├─ usage
+   │  └─ rhx git.branch.rebase lock refresh
+   └─ examples
+      └─ rhx git.branch.rebase lock refresh
+"
+`;

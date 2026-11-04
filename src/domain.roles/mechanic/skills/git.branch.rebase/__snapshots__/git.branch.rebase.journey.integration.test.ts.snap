@@ -10,7 +10,7 @@ exports[`git.branch.rebase journey given: [journey1] clean rebase: 4 commits ont
    │  │  ├─ HASH123 fix(api): feature commit 4
    │  │  ├─ HASH123 fix(api): feature commit 3
    │  │  ├─ HASH123 fix(api): feature commit 2
-   │  │  ├─ HASH123 fix(api): feature commit 1
+   │  │  └─ HASH123 fix(api): feature commit 1
    │  └─ behind: 3 commits
    │     ├─ HASH123 chore: main commit 3
    │     ├─ HASH123 chore: main commit 2
@@ -19,7 +19,9 @@ exports[`git.branch.rebase journey given: [journey1] clean rebase: 4 commits ont
       ├─ commits: allowed
       └─ push: allowed
 
-run with --mode apply to execute
+🥥 did you know?
+   ├─ this is a plan; apply it to rebase
+   └─ rhx git.branch.rebase begin --mode apply
 "
 `;
 
@@ -58,7 +60,7 @@ exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 co
    │  ├─ ahead: 3 commits
    │  │  ├─ HASH123 fix(api): add feature-only file
    │  │  ├─ HASH123 fix(settings): feature settings
-   │  │  ├─ HASH123 fix(config): feature config
+   │  │  └─ HASH123 fix(config): feature config
    │  └─ behind: 2 commits
    │     ├─ HASH123 chore: add settings.yml on main
    │     └─ HASH123 chore: add config.json on main
@@ -66,7 +68,9 @@ exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 co
       ├─ commits: allowed
       └─ push: allowed
 
-run with --mode apply to execute
+🥥 did you know?
+   ├─ this is a plan; apply it to rebase
+   └─ rhx git.branch.rebase begin --mode apply
 "
 `;
 
@@ -242,10 +246,14 @@ exports[`git.branch.rebase journey given: [journey4] take ours yields no diff vs
 "🐢 righteous!
 
 🐚 git.branch.rebase take
-   ├─ whos: ours
+   ├─ whos: ours (main)
    ├─ settled
    │  └─ settings.json ✓
    └─ done
+
+🥥 did you know?
+   ├─ once no conflict remains, continue the rebase; it puts back any path held aside
+   └─ rhx git.branch.rebase continue
 "
 `;
 

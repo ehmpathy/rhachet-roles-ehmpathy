@@ -34,6 +34,8 @@ source "$COMMIT_SKILL_DIR/output.sh"
 show_usage() {
   print_turtle_header "heres the wave..."
   print_tree_start "git.branch.rebase take"
+  echo "   ├─ what"
+  echo "   │  └─ settle conflicts by the side you name, then stage the files"
   echo "   ├─ usage"
   echo "   │  └─ rhx git.branch.rebase take --whos ours|theirs <paths...>"
   echo "   ├─ args"
@@ -235,7 +237,12 @@ else
 fi
 
 print_tree_start "git.branch.rebase take"
-echo "   ├─ whos: $WHOS"
+
+# name the side: in a rebase, ours is main and theirs is the commit replayed
+WHOS_LABEL="$WHOS"
+[[ "$WHOS" == "ours" ]] && WHOS_LABEL="ours (main)"
+[[ "$WHOS" == "theirs" ]] && WHOS_LABEL="theirs (your commit)"
+echo "   ├─ whos: $WHOS_LABEL"
 
 # print settled files
 if [[ $HAS_SUCCESS -gt 0 ]]; then
@@ -315,5 +322,8 @@ elif [[ "$LOCK_REFRESH_FAILED" == "true" ]]; then
   exit 2
 else
   echo "   └─ done"
+  # the rebase is still paused: continue resumes it and puts back any held path
+  print_coconut_hint "once no conflict remains, continue the rebase; it puts back any path held aside" \
+    "rhx git.branch.rebase continue"
   exit 0
 fi
