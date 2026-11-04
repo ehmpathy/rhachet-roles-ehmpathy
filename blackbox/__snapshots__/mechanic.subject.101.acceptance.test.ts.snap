@@ -79,6 +79,8 @@ exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked fr
     "skills/git.commit/git.commit.uses.sh",
     "skills/git.pull.comment/git.pull.comment.del.sh",
     "skills/git.pull.comment/git.pull.comment.sh",
+    "skills/git.pull.description/git.pull.description.sh",
+    "skills/git.pull.title/git.pull.title.sh",
     "skills/permissions.nudges.sh",
     "skills/set.package/set.package.install.sh",
     "skills/set.package/set.package.upgrade.sh",
