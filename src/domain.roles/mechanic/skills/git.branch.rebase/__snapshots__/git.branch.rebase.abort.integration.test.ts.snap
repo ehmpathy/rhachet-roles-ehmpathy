@@ -30,8 +30,8 @@ exports[`git.branch.rebase.abort given: [case3] no rebase in progress, a cutover
 "🐢 hold up dude...
 
 🐚 git.branch.rebase abort
-   ├─ error: no rebase in progress
-   └─ a cutover is in flight here, not a rebase
+   └─ ✋ ConstraintError: no rebase in progress
+      └─ a cutover is in flight here, not a rebase
 
 🥥 did you know?
    ├─ settle the cutover with its own verb: continue once the files are staged, or abort it whole

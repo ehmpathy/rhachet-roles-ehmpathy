@@ -16,8 +16,8 @@ exports[`git.branch.rebase.continue given: [case1] no rebase in progress when: [
 "🐢 hold up dude...
 
 🐚 git.branch.rebase continue
-   ├─ error: no rebase in progress
-   └─ a cutover is in flight here, not a rebase
+   └─ ✋ ConstraintError: no rebase in progress
+      └─ a cutover is in flight here, not a rebase
 
 🥥 did you know?
    ├─ settle the cutover with its own verb: continue once the files are staged, or abort it whole

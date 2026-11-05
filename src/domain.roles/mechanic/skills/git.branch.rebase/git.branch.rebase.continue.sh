@@ -97,7 +97,8 @@ if ! is_rebase_in_progress; then
     print_turtle_header "hold up dude..."
     print_tree_start "git.branch.rebase continue"
     print_no_rebase_error
-    print_coconut_hint "start one first" \
+    # a cutover in flight already names its own moves; else, point to begin
+    [[ -f "$(get_git_dir)/cutover/state.json" ]] || print_coconut_hint "start one first" \
       "rhx git.branch.rebase begin --mode apply"
   )"
   exit 2
