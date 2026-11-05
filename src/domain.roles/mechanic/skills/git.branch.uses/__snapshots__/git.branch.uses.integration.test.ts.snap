@@ -189,11 +189,6 @@ ask your human to lift it:
 "
 `;
 
-exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t1] a blocked COMMIT meter does not block a cutover then: the gate passes 1`] = `
-"GATE_PASSED
-"
-`;
-
 exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t2] the org is not configured then: it refuses with exit 2 and names the org allow 1`] = `
 "🐢 bummer dude...
 
@@ -250,16 +245,6 @@ exports[`git.branch.uses given: [case8] the gate a cutover apply passes through 
 ask your human to reset the quota, then grant again:
   $ rhx git.branch.uses del
   $ rhx git.branch.uses set --quant N
-"
-`;
-
-exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t7] two cutovers are granted then: one pass spends exactly one 1`] = `
-"GATE_PASSED
-"
-`;
-
-exports[`git.branch.uses given: [case8] the gate a cutover apply passes through when: [t8] unlimited is granted then: a pass spends none 1`] = `
-"GATE_PASSED
 "
 `;
 
@@ -328,7 +313,7 @@ exports[`git.branch.uses given: [case11] the local revoke variants and the parse
 
 🐚 git.branch.uses set
    ├─ revoked
-   └─ [2mtip: 'rhx git.branch.uses del' does the same[0m
+   └─ tip: 'rhx git.branch.uses del' does the same
 "
 `;
 
@@ -371,5 +356,27 @@ exports[`git.branch.uses given: [case12] the quota path holds a dir, not a file 
 remove what sits there, then grant again:
   $ rhx rmsafe -r .meter/git.branch.uses.jsonc
   $ rhx git.branch.uses set --quant 2
+"
+`;
+
+exports[`git.branch.uses given: [case13] one writer of the quota at a time when: [t0] a live peer holds the meter lock then: set refuses as busy and writes naught 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.uses set
+   └─ ✋ ConstraintError: the cutover quota is busy: a cutover gates or spends it right now
+
+rerun once it finishes:
+  $ rhx git.branch.uses set --quant 5
+"
+`;
+
+exports[`git.branch.uses given: [case15] the filesystem refuses the lock file itself when: [t0] set --quant 4 then: it fails loud as a malfunction, not busy, and writes naught 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.uses
+   └─ 💥 MalfunctionError: the quota lock file could not be made
+      ├─ lock: <repo>/.meter/git.branch.uses.lock
+      ├─ detail: ln: failed to create hard link: Operation not permitted
+      └─ fix: clear the cause above (space, access, a filesystem without hard links), then rerun
 "
 `;

@@ -39,7 +39,8 @@ show_usage_branches() {
   echo "      ├─ rhx git.branch.cutover begin --from @main --into turtle/wave-report-v2 --pick a1b2c3d --mode apply"
   echo "      ├─ rhx git.branch.cutover begin --from @tree --into turtle/reef-shoals --mode apply"
   echo "      ├─ rhx git.branch.cutover continue"
-  echo "      └─ rhx git.branch.cutover abort"
+  echo "      ├─ rhx git.branch.cutover abort"
+  echo "      └─ every flag of a subcommand: rhx git.branch.cutover begin --help"
 }
 
 # the usage branches as children of a refusal's └─ leaf: one tree, not two

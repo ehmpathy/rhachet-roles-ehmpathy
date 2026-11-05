@@ -52,7 +52,7 @@ ROLE_SLUG="mechanic"
 #
 # .why  = a second copy would fork every repair these readers carry (torn
 #         reads, a directory at the path, a 0-byte file, a non-boolean leaf),
-#         and the next fix would land in one copy only (fulcrum F11).
+#         and the next fix would land in one copy only.
 METER_SLUG="${METER_SLUG:-git.commit.uses}"
 METER_NOUN="${METER_NOUN:-commit}"
 
@@ -871,7 +871,7 @@ guard_git_identity_readable() {
 # .what = exit 1 (malfunction), to both streams, where a leaf reads the
 #         GIT_IDENTITY_* globals before `get_one_git_config_identity` ran
 #
-# .why = the globals are the reader's contract (fulcrum F10). a leaf that
+# .why = the globals are the reader's contract. a leaf that
 #        read them first would hit `set -u` and crash with bash's raw
 #        "unbound variable" — no class, no cause. this names the defect. it
 #        is a skill bug, never caller input, so the class is malfunction.

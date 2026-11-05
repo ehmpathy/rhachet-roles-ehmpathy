@@ -11,6 +11,8 @@
 #
 # guarantee:
 #   - refuses when no cutover is in flight (inv-8)
+#   - a tracked edit made since the halt is saved to a rescue ref before
+#     the reset, and the report names it; a failed save stops the abort
 #   - untracked files are never written, moved, or deleted
 #   - the only branch it deletes is the one this cutover made, unpushed
 #   - spends no git.branch.uses unit
@@ -33,10 +35,11 @@ while [[ $# -gt 0 ]]; do
       fi
       ;;
     --help|-h)
-      echo "usage: git.branch.cutover abort"
+      echo "usage: rhx git.branch.cutover abort"
       echo ""
       echo "undo the whole cutover: back to the source branch, edits restored,"
-      echo "the new branch removed"
+      echo "the new branch removed. an edit made since the halt is saved to a"
+      echo "rescue ref first, and the report names it"
       echo ""
       echo "example:"
       echo "  rhx git.branch.cutover abort"
@@ -65,26 +68,19 @@ if ! is_cutover_in_flight; then
 fi
 guard_state_schema
 
-# HEAD must sit where this cutover left it, on a branch never pushed and
-# with no commit the cutover did not record: abort resets and deletes
+# HEAD must sit where this cutover left it, and abort may delete or
+# reverse only what this cutover made: it resets and deletes
 guard_head_at_cutover_position verb=abort
+guard_abort_deletes_only_own_work
 
-INTO=$(get_state '.into')
-SOURCE_NAME=$(get_state '.source_name')
-SOURCE_SHA=$(get_state '.source_sha')
-BASE_KIND=$(get_state '.base_kind')
-PHASE=$(get_state '.phase')
 TRACKED_COUNT=$(get_state '.tracked | length')
-PARKED=false
-if is_park_expected; then
-  PARKED=true
-fi
 
 # the state expects a park that git lacks: stop before any reset, or the
 # reset would destroy what may be the last copy of the edits
-if [[ "$PARKED" == "true" ]] && ! has_park; then
+if is_park_expected && ! has_park; then
   emit_cutover_malfunction "the park of tracked edits is absent; abort stops before any reset" "$(printf '%s\n' \
-    "expected: $(get_park_ref), for $TRACKED_COUNT tracked edit(s)" \
+    "expected: $(get_park_ref)" \
+    "tracked edits it should hold: $TRACKED_COUNT" \
     "fix: recover what you can by hand (git status, git reflog), then remove $(get_cutover_dir)" | as_tree_children)"
 fi
 
@@ -98,76 +94,29 @@ set_cutover_unexpected_trap "fix: read the step, clear its cause, then rerun rhx
 
 # mark the abort begun before its first write: a rerun after a kill reads
 # the mark, accepts HEAD on the source, and skips each step already done
-set_state_via_jq '.aborting = true'
+set_state_abort_begun
+
+# the rescue commit is the bot's, as begin's and continue's are: a machine
+# with no git identity must still write it
+export GIT_COMMITTER_NAME="$CUTOVER_BOT_NAME"
+export GIT_COMMITTER_EMAIL="$CUTOVER_BOT_EMAIL"
 
 ######################################################################
 # undo: back to the source, then lay the park back down
 #
+# .note = each step is a no-op where a prior run already did it, so a
+#         rerun after a kill converges
 # .note = in phase "claim" no reset has run yet, so the worktree still
 #         holds the edits; the undo is only to drop the refs
 # .note = under @tree no file ever moved and no park exists: the edits
-#         live only in the worktree, so a reset would destroy them. the
-#         switch back alone suffices — both branches sit at one commit
+#         live only in the worktree, so no reset is owed. the switch back
+#         alone suffices — both branches sit at one commit
 ######################################################################
-if [[ "$PHASE" != "claim" ]]; then
-  del_pick_marks
-
-  # the reset clears the new branch's tree, and only while HEAD is on it:
-  # once back on the source, a reset would erase the edits the park laid back
-  if [[ "$BASE_KIND" != "@tree" && "$(get_head_branch || true)" == "$INTO" ]]; then
-    del_worktree_tracked_edits
-  fi
-
-  # back on the source, by name when it had one, unless a prior run got there
-  if ! is_head_at_source "$SOURCE_NAME" "$SOURCE_SHA" "$(get_head_branch || true)"; then
-    if [[ -n "$SOURCE_NAME" ]]; then
-      set_head_branch "$SOURCE_NAME"
-    fi
-    if [[ -z "$SOURCE_NAME" ]]; then
-      set_head_detached "$SOURCE_SHA"
-    fi
-  fi
-
-  # the tracked edits come back, with their stage split, unless a prior run
-  # already laid them back
-  if [[ "$PARKED" == "true" ]] && ! is_worktree_held_by_park; then
-    restore_park
-  fi
-
-  # remove the branch this cutover made; it was never pushed
-  del_local_branch "$INTO"
+if is_cutover_past_claim; then
+  undo_cutover
 fi
 
-# state first, park after: a kill between the two leaves orphan refs, never
-# a state that sends a rerun of abort to reset the edits it just restored
-del_state_then_park
-
-######################################################################
-# report
-######################################################################
-SECTIONS=()
-BACK_ON_NOTE="(untouched)"
-if [[ "$(get_head_sha)" != "$SOURCE_SHA" ]]; then
-  BACK_ON_NOTE="(moved since the cutover began: now @ $(get_short_sha "$(get_head_sha)"))"
-fi
-SECTIONS+=("back on: $(get_source_label "$SOURCE_NAME" "$SOURCE_SHA" "") $BACK_ON_NOTE")
-if [[ "$TRACKED_COUNT" -gt 0 && "$PARKED" == "true" ]]; then
-  SECTIONS+=("tracked edits ($TRACKED_COUNT) ✓ restored from park")
-fi
-SECTIONS+=("untracked: untouched throughout")
-if [[ "$PHASE" != "claim" ]]; then
-  SECTIONS+=("removed: $INTO (made by this cutover, never pushed)")
-fi
-# begin spends its unit once the switch lands, as it enters phase "picks";
-# an undo from before that point owes the meter naught
-if [[ "$PHASE" == "picks" || "$PHASE" == "carry" ]]; then
-  SECTIONS+=("quota: the cutover unit stays spent; abort refunds none")
-fi
-if [[ "$PHASE" == "claim" || "$PHASE" == "cut" ]]; then
-  SECTIONS+=("quota: no unit was spent; the cutover stopped before its switch")
-fi
-
-print_turtle_header "all good, paddled back"
-print_tree_start "git.branch.cutover abort"
-print_tree_sections "${SECTIONS[@]}"
-exit 0
+# the report names each rescue; it is rendered before the state goes. an
+# assignment, so a failed render trips errexit before any clear
+REPORT=$(print_cutover_abort_report)
+close_cutover_with_report "$REPORT"

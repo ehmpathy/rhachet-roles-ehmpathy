@@ -19,5 +19,6 @@
 - **confidence**: 70% — a behavior choice on the carry contract (inv-10): whether a hidden edit is
   refused or carried is the commander's word, not the driver's
 - **where**: `git.branch.cutover.begin.sh` preflight; `git.branch.cutover.operations.sh`
-- **status**: open — held, no code until ruled
-- **verdict**: —
+- **status**: ruled — director
+- **verdict**: (a), ruled by the director, 2026-11-02 22:2xZ (relayed by the foreman). refuse at preflight, exit 2, before the claim or any spend; name each `h`/`S` path whose worktree bytes differ from its index blob. the director rules it: clean rework, no credential, no prod write
+- **built**: `get_hidden_edit_lines` + a begin preflight ahead of the claim; refusal names `assume-unchanged: <path>` / `skip-worktree: <path>` and both `update-index` fixes. clamp case77 (t0 refuse h, t1 refuse S, t2 a flag with no edit cuts over): red unfixed 4/5, green fixed

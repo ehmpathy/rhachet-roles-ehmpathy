@@ -348,6 +348,33 @@ describe('git.branch.rebase.take', () => {
         }
       });
     });
+
+    when('[t1] attempt take while a cutover is in flight', () => {
+      then('names the cutover verbs that own the halt', () => {
+        const tempDir = setupNoRebase();
+
+        try {
+          // a cutover's state file is its contract: <git-dir>/cutover/state.json
+          const cutoverDir = path.join(tempDir, '.git', 'cutover');
+          fs.mkdirSync(cutoverDir, { recursive: true });
+          fs.writeFileSync(path.join(cutoverDir, 'state.json'), '{}');
+
+          const result = runSkill(tempDir, [
+            '--whos',
+            'theirs',
+            'pnpm-lock.yaml',
+          ]);
+
+          expect(result.status).not.toBe(0);
+          expect(result.stdout).toContain('no rebase in progress');
+          expect(result.stdout).toContain('rhx git.branch.cutover continue');
+          expect(result.stdout).toContain('rhx git.branch.cutover abort');
+          expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
   });
 
   given('[case5] rebase in progress but file not in conflict', () => {

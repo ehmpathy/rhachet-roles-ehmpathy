@@ -77,3 +77,11 @@ ask your human to lift the blocker:
   $ git.commit.uses allow --global
 "
 `;
+
+exports[`git.stage.add.sh given: [case9] a modify/delete conflict settled by removal of the file when: [t0] the removed path is staged then: the delete is staged and the conflict clears 1`] = `
+"🐢 gnarly!
+
+🐚 git.stage.add
+   └─ staged: wave.ts
+"
+`;

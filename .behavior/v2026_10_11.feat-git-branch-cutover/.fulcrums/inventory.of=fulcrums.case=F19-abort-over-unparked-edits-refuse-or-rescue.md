@@ -18,5 +18,6 @@
 - **confidence**: 70% — abort's contract changes either way ("refuses" vs "keeps a copy"); the
   commander's word
 - **where**: `git.branch.cutover.abort.sh`; `git.branch.cutover.operations.sh`; `output.sh`
-- **status**: open — held, no code until ruled
-- **verdict**: —
+- **status**: ruled — director
+- **verdict**: (b), ruled by the director, 2026-11-02 22:2xZ (relayed by the foreman). before the reset, snapshot a live worktree that differs from the park to a rescue ref under `refs/worktree/cutover/`, named in the report and kept out of `del_park_refs`. the director rules it: clean rework, no credential, no prod write
+- **built**: `gen_worktree_rescue` snapshots tracked files via a temp index into `refs/worktree/cutover/rescue/<utc stamp>.<pid>`, one name per abort, verified before the reset; the report names it with the way back. clamp case78: red unfixed 3/4, green fixed; case7, 9, 24, 43 resnapped with the rescue line

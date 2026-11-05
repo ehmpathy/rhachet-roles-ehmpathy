@@ -225,10 +225,22 @@ describe('git.branch.cutover', () => {
   /**
    * .what = mask shas so snapshots hold across runs
    */
-  const asSnapshotSafe = (text: string): string =>
-    text
+  const asSnapshotSafe = (text: string): string => {
+    // a rescue ref names the tree it holds; number each distinct tree in
+    // order of first appearance, so two rescues never mask to one name
+    const treesSeen = [
+      ...new Set(
+        [...text.matchAll(/rescue\/([0-9a-f]{40})/g)].map((match) => match[1]),
+      ),
+    ];
+    return text
+      .replace(
+        /rescue\/([0-9a-f]{40})/g,
+        (_, tree: string) => `rescue/<tree${treesSeen.indexOf(tree) + 1}>`,
+      )
       .replace(/\b[0-9a-f]{40}\b/g, '<sha40>')
       .replace(/\b[0-9a-f]{7}\b/g, '<sha>');
+  };
 
   /**
    * .what = mask shas and the scene's temp paths
@@ -277,11 +289,16 @@ describe('git.branch.cutover', () => {
       ['rev-parse', '--abbrev-ref', '--symbolic-full-name', `${branch}@{u}`],
       { cwd: scene.repoDir },
     ).status === 0;
+  // the park refs a cutover owns and clears; a rescue ref (F19) is the
+  // human's to keep or drop, so it is read on its own (case78)
   const getCutoverRefs = (scene: Scene) =>
     spawnSync('git', ['for-each-ref', 'refs/worktree/cutover/'], {
       cwd: scene.repoDir,
       encoding: 'utf-8',
-    }).stdout.trim();
+    })
+      .stdout.split('\n')
+      .filter((line) => line && !line.includes('refs/cutover/rescue/'))
+      .join('\n');
 
   /**
    * .what = a scene whose second pick conflicts with origin/main
@@ -305,6 +322,38 @@ describe('git.branch.cutover', () => {
         },
       ],
     });
+
+  /**
+   * .what = land one git change on origin/main alone, as genScene's main commits do
+   * .why = a rename or a removal on the base is no file write, so commitFile cannot make it
+   */
+  const setOriginMainChange = (
+    scene: Scene,
+    input: { argsList: string[][]; subject: string },
+  ) => {
+    git(scene.repoDir, ['checkout', '-q', 'main']);
+    input.argsList.forEach((args) => git(scene.repoDir, args));
+    git(scene.repoDir, ['commit', '-q', '-m', input.subject]);
+    git(scene.repoDir, ['push', '-q', 'origin', 'main']);
+    git(scene.repoDir, ['reset', '-q', '--hard', scene.seedSha]);
+    git(scene.repoDir, [
+      'update-ref',
+      'refs/remotes/origin/main',
+      scene.seedSha,
+    ]);
+    git(scene.repoDir, ['checkout', '-q', 'turtle/wave-report']);
+  };
+
+  // the rescue refs a scene holds, one refname each
+  const getRescueRefs = (scene: Scene) =>
+    spawnSync(
+      'git',
+      ['for-each-ref', '--format=%(refname)', 'refs/cutover/rescue/'],
+      { cwd: scene.repoDir, encoding: 'utf-8' },
+    )
+      .stdout.trim()
+      .split('\n')
+      .filter(Boolean);
 
   given('[case1] a plan with two picks and a dirty tree', () => {
     const scene = useBeforeAll(async () => {
@@ -1407,7 +1456,7 @@ describe('git.branch.cutover', () => {
       fs.writeFileSync(
         path.join(cutoverDir, 'state.json'),
         JSON.stringify({
-          schema: 1,
+          schema: 3,
           into: 'turtle/reef',
           source_name: 'turtle/wave-report',
           source_sha: scene.featureShas[2],
@@ -1416,11 +1465,17 @@ describe('git.branch.cutover', () => {
           base_sha: scene.featureShas[2],
           phase: 'picks',
           halt: '',
+          halt_snapshot: '',
           pick_index: 0,
           picks: [],
           tracked: [' M readme.md'],
           untracked: [],
           left_behind: [],
+          carry: '',
+          conflicts: [],
+          abort_begun: false,
+          rescue_refs: [],
+          reset_begun: false,
         }),
       );
       return scene;
@@ -1582,7 +1637,7 @@ describe('git.branch.cutover', () => {
       then('it teaches the flags, with copy-paste examples', () => {
         const result = runCutover(scene, ['begin', '--help']);
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('usage: git.branch.cutover begin');
+        expect(result.stdout).toContain('usage: rhx git.branch.cutover begin');
         expect(result.stdout).toContain('examples:');
         expect(result.stdout).toMatchSnapshot();
       });
@@ -2471,6 +2526,9 @@ describe('git.branch.cutover', () => {
       then('it fails loud and says the edits cannot be laid back down', () => {
         expect(result.exitCode).toBe(1);
         expect(result.stdout).toContain(
+          'the park of tracked edits is absent; the carry cannot run',
+        );
+        expect(result.stdout).toContain(
           'the park that held the edits is absent',
         );
         expect(result.stdout).not.toContain('✓ carried');
@@ -2565,7 +2623,7 @@ describe('git.branch.cutover', () => {
           expect(result.stdout).toContain(
             'the cutover state was written under another schema',
           );
-          expect(result.stdout).toContain('schema: absent (this role reads 1)');
+          expect(result.stdout).toContain('schema: absent (this role reads 3)');
           expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
         }
         expect(getBranch(scene)).toEqual('turtle/wave-report-v2');
@@ -3784,7 +3842,7 @@ describe('git.branch.cutover', () => {
           for (const result of outcome.runs) {
             expect(result.stdout).toContain('error: no rebase in progress');
             expect(result.stdout).toContain(
-              'a cutover is in flight here; settle it with its own verb',
+              'a cutover is in flight here, not a rebase',
             );
             expect(result.stdout).toContain('rhx git.branch.cutover continue');
             expect(result.stdout).toContain('rhx git.branch.cutover abort');
@@ -3817,7 +3875,7 @@ describe('git.branch.cutover', () => {
         })) {
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(
-            `no cutover is in flight to ${verb}; a rebase is`,
+            `no cutover is in flight to ${verb}; a rebase is in flight instead`,
           );
           expect(result.stdout).toContain('rhx git.branch.rebase continue');
           expect(result.stdout).toContain('rhx git.branch.rebase abort');
@@ -4145,7 +4203,7 @@ describe('git.branch.cutover', () => {
       fs.writeFileSync(
         path.join(cutoverDir, 'state.json'),
         JSON.stringify({
-          schema: 1,
+          schema: 3,
           into: 'turtle/wave-report-v2',
           source_name: 'turtle/wave-report',
           source_sha: scene.featureShas[2],
@@ -4154,11 +4212,17 @@ describe('git.branch.cutover', () => {
           base_sha: scene.seedSha,
           phase: 'cut',
           halt: '',
+          halt_snapshot: '',
           pick_index: 0,
           picks: [],
           tracked: [],
           untracked: [],
           left_behind: [],
+          carry: '',
+          conflicts: [],
+          abort_begun: false,
+          rescue_refs: [],
+          reset_begun: false,
         }),
       );
       return scene;
@@ -4408,6 +4472,59 @@ describe('git.branch.cutover', () => {
         );
         expect(hasStateFile(scene)).toBe(false);
         expect(getQuota(scene)).toEqual(2);
+      });
+
+      then(
+        'the report names the one pick, with no phantom and no fatal',
+        () => {
+          // .why = the cursor sits past the last pick on this resume; a read
+          //        of an absent pick once came back "null" and invented a second
+          expect(outcome.cont.stdout).toContain('picks (1, in order)');
+          expect(outcome.cont.stdout).not.toContain('picks (2');
+          expect(outcome.cont.stderr).not.toContain('fatal:');
+        },
+      );
+    });
+
+    when('[t2] a zero-pick carry fails, then continue', () => {
+      const scene = useBeforeAll(async () => {
+        const scene = genScene({
+          slug: 'cutover-case63-zero',
+          featureCommits: FEATURE_COMMITS,
+          mainCommits: MAIN_COMMITS_REEF,
+        });
+        fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+        return scene;
+      });
+      const outcome = useBeforeAll(async () => {
+        const failed = runCutoverWithBin(
+          scene,
+          genGitShimBin({
+            slug: 'cutover-case63-zero',
+            failWhen:
+              '[[ "$1" == "cherry-pick" && "$3" == "refs/worktree/cutover/tree" ]]',
+          }),
+          [
+            'begin',
+            '--from',
+            '@main',
+            '--into',
+            'turtle/wave-report-v2',
+            '--mode',
+            'apply',
+          ],
+        );
+        const cont = runCutover(scene, ['continue']);
+        return { failed, cont };
+      });
+
+      then('continue carries the edit and credits no pick', () => {
+        expect(outcome.failed.exitCode).toBe(1);
+        expect(outcome.cont.exitCode).toBe(0);
+        expect(getStatus(scene)).toEqual(' M readme.md');
+        expect(outcome.cont.stdout).not.toContain('picks (');
+        expect(outcome.cont.stderr).not.toContain('fatal:');
+        expect(hasStateFile(scene)).toBe(false);
       });
     });
   });
@@ -4688,6 +4805,7 @@ describe('git.branch.cutover', () => {
           expect(result.stdout).not.toContain('is on a remote');
           expect(getBranch(scene)).toEqual('turtle/wave-report');
           expect(hasBranch(scene, 'turtle/wave-report-v2')).toBe(false);
+          expect(asSnapshotSafe(result.stdout)).toMatchSnapshot();
         });
       });
     },
@@ -4726,6 +4844,7 @@ describe('git.branch.cutover', () => {
         expect(result.stdout).toContain('heres the wave');
         expect(result.stdout).toContain('picks (1, in order)');
         expect(getQuota(scene)).toEqual(3);
+        expect(asSnapshotSafe(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -4736,6 +4855,7 @@ describe('git.branch.cutover', () => {
         expect(result.stdout).not.toContain('unknown subcommand');
         expect(result.stdout).not.toContain('a flag came before');
         expect(result.stdout).toContain('no cutover');
+        expect(asSnapshotSafe(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -4837,7 +4957,10 @@ describe('git.branch.cutover', () => {
       then('the carry halts, and says the new branch lacks the file', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
-          `${FEATURE_COMMITS[0]!.file} (the new branch lacks it; a commit not picked adds it`,
+          `${FEATURE_COMMITS[0]!.file} (the new branch lacks it: added by`,
+        );
+        expect(result.stdout).toContain(
+          `${FEATURE_COMMITS[0]!.subject}, not picked`,
         );
         expect(result.stdout).not.toContain('the new branch deleted it');
         expect(asSnapshotSafe(result.stdout)).toMatchSnapshot();
@@ -5091,6 +5214,14 @@ describe('git.branch.cutover', () => {
           'the quota lock file could not be made',
         );
         expect(outcome.stateAfterFault).toBe(false);
+        expect(
+          asSnapshotSafe(
+            outcome.faulted.stdout.replace(
+              /\S*(\/\.meter\/git\.branch\.uses\.lock)/g,
+              '<repo>$1',
+            ),
+          ),
+        ).toMatchSnapshot();
       });
 
       then('the rerun cuts over, with no in-flight refusal', () => {
@@ -5284,6 +5415,7 @@ describe('git.branch.cutover', () => {
             ).toEqual('# reef v2\n');
             expect(hasBranch(scene, 'turtle/wave-report-v2')).toBe(false);
             expect(hasStateFile(scene)).toBe(false);
+            expect(asSnapshotSafe(outcome.rerun.stdout)).toMatchSnapshot();
           },
         );
       });
@@ -5361,6 +5493,2636 @@ describe('git.branch.cutover', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('fix: --from @tree');
         expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case77] an edit hidden from git status by an index flag', () => {
+    // .why = F18 (ruled (a)): status and diff skip a flagged path, so the park
+    //        never sees its edit and the reset erases it. begin refuses at
+    //        preflight, before the claim or any spend, and names each file
+    const genFlaggedScene = (slug: string, flag: string, edit: boolean) => {
+      const scene = genScene({
+        slug,
+        featureCommits: FEATURE_COMMITS,
+        mainCommits: MAIN_COMMITS_REEF,
+      });
+      git(scene.repoDir, ['update-index', flag, 'readme.md']);
+      if (edit)
+        fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+      return scene;
+    };
+    const runApply = (scene: Scene) =>
+      runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-v2',
+        '--mode',
+        'apply',
+      ]);
+    const getReadme = (scene: Scene) =>
+      fs.readFileSync(path.join(scene.repoDir, 'readme.md'), 'utf-8');
+
+    when('[t0] an assume-unchanged path holds an edit', () => {
+      const scene = useBeforeAll(async () =>
+        genFlaggedScene('cutover-case77-h', '--assume-unchanged', true),
+      );
+      const result = useBeforeAll(async () => runApply(scene));
+
+      then('begin refuses with exit 2 and names the file and the fix', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('assume-unchanged: readme.md');
+        expect(result.stdout).toContain('--no-assume-unchanged');
+      });
+
+      then('the edit, the branch, and the meter are untouched', () => {
+        expect(getReadme(scene)).toEqual('# reef v2\n');
+        expect(getBranch(scene)).toEqual('turtle/wave-report');
+        expect(hasBranch(scene, 'turtle/wave-v2')).toBe(false);
+        expect(hasStateFile(scene)).toBe(false);
+        expect(getQuota(scene)).toBe(3);
+      });
+
+      then('the refusal matches the snapshot', () => {
+        expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] a skip-worktree path holds an edit', () => {
+      const scene = useBeforeAll(async () =>
+        genFlaggedScene('cutover-case77-s', '--skip-worktree', true),
+      );
+      const result = useBeforeAll(async () => runApply(scene));
+
+      then('begin refuses with exit 2 and names the file', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('skip-worktree: readme.md');
+        expect(getReadme(scene)).toEqual('# reef v2\n');
+        expect(getQuota(scene)).toBe(3);
+      });
+    });
+
+    when('[t2] an assume-unchanged path holds no edit', () => {
+      const scene = useBeforeAll(async () =>
+        genFlaggedScene('cutover-case77-clean', '--assume-unchanged', false),
+      );
+      const result = useBeforeAll(async () => runApply(scene));
+
+      then('begin cuts over; the flag alone is no refusal', () => {
+        expect(result.exitCode).toBe(0);
+        expect(getBranch(scene)).toEqual('turtle/wave-v2');
+        expect(getReadme(scene)).toEqual('# reef\n');
+      });
+    });
+  });
+
+  given('[case78] an edit saved mid-halt, then abort', () => {
+    // .why = F19 (ruled (b)): abort's reset erases a tracked edit no park
+    //        holds. before the reset, abort saves the worktree to a rescue
+    //        ref, names it, and keeps it out of the park cleanup
+    const scene = useBeforeAll(async () => {
+      const scene = genConflictScene('cutover-case78');
+      fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        scene.featureShas[1]!,
+        '--mode',
+        'apply',
+      ]);
+      if (halt.exitCode !== 2)
+        throw new Error(`case78 setup: begin did not halt: ${halt.stdout}`);
+      // the human saves work mid-halt, to a tracked file the park lacks
+      fs.writeFileSync(
+        path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+        'org: ehmpathy\nenv: prep\n',
+      );
+      return scene;
+    });
+    when('[t0] abort', () => {
+      const result = useBeforeAll(async () => runCutover(scene, ['abort']));
+      const rescue = useBeforeAll(async () => ({
+        ref: spawnSync(
+          'git',
+          ['for-each-ref', '--format=%(refname)', 'refs/cutover/rescue/'],
+          { cwd: scene.repoDir, encoding: 'utf-8' },
+        ).stdout.trim(),
+      }));
+
+      then('abort exits 0 and names the rescue ref', () => {
+        expect(result.exitCode).toBe(0);
+        expect(rescue.ref).toMatch(/^refs\/cutover\/rescue\//);
+        expect(result.stdout).toContain(`rescue: ${rescue.ref}`);
+        expect(result.stdout).toContain(`git checkout ${rescue.ref} -- <path>`);
+      });
+
+      then('the rescue ref holds the edit saved mid-halt', () => {
+        expect(
+          git(scene.repoDir, ['show', `${rescue.ref}:.agent/keyrack.yml`]),
+        ).toEqual('org: ehmpathy\nenv: prep');
+      });
+
+      then('the park still lays its edit back, and the cutover is gone', () => {
+        expect(getBranch(scene)).toEqual('turtle/wave-report');
+        expect(
+          fs.readFileSync(path.join(scene.repoDir, 'readme.md'), 'utf-8'),
+        ).toEqual('# reef v2\n');
+        expect(hasBranch(scene, 'turtle/wave-report-v2')).toBe(false);
+        expect(hasStateFile(scene)).toBe(false);
+      });
+
+      then('the report matches the snapshot', () => {
+        expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case79] a non-ASCII file is staged with its conflict markers', () => {
+    // .why = i013 r010 b1: git quotes a non-ASCII name unless read with -z,
+    //        and the quoted name matches no pathspec, so the marker guard
+    //        passed and the pick committed its markers under a ✓
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case79',
+        featureCommits: [
+          FEATURE_COMMITS[0]!,
+          {
+            file: 'docs/café.md',
+            content: '# café, from the feature\n',
+            subject: 'cont(wave): add the café note',
+          },
+        ],
+        mainCommits: [
+          {
+            file: 'docs/café.md',
+            content: '# café, from main\n',
+            subject: 'docs(café): add the café note on main',
+          },
+        ],
+      });
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        scene.featureShas[1]!,
+        '--mode',
+        'apply',
+      ]);
+      if (halt.exitCode !== 2)
+        throw new Error(`case79 setup: begin did not halt: ${halt.stdout}`);
+      git(scene.repoDir, ['add', 'docs/café.md']);
+      return scene;
+    });
+
+    when('[t0] continue, then settle for real and continue again', () => {
+      const outcome = useBeforeAll(async () => {
+        const refused = runCutover(scene, ['continue']);
+        const headAfterRefusal = getSubjects(scene, 'HEAD')[0];
+        fs.writeFileSync(
+          path.join(scene.repoDir, 'docs', 'café.md'),
+          '# café, from both\n',
+        );
+        git(scene.repoDir, ['add', 'docs/café.md']);
+        const landed = runCutover(scene, ['continue']);
+        return { refused, headAfterRefusal, landed };
+      });
+
+      then('the first continue refuses and names the file bare', () => {
+        expect(outcome.refused.exitCode).toBe(2);
+        expect(outcome.refused.stdout).toContain(
+          'staged files still hold conflict markers',
+        );
+        expect(outcome.refused.stdout).toContain('docs/café.md');
+        expect(outcome.headAfterRefusal).toEqual(
+          'docs(café): add the café note on main',
+        );
+        expect(asSnapshotSafe(outcome.refused.stdout)).toMatchSnapshot();
+      });
+
+      then('the settled continue lands the pick, with no marker', () => {
+        expect(outcome.landed.exitCode).toBe(0);
+        expect(getSubjects(scene, 'HEAD')[0]).toEqual(
+          'cont(wave): add the café note',
+        );
+        expect(git(scene.repoDir, ['show', 'HEAD:docs/café.md'])).toEqual(
+          '# café, from both',
+        );
+      });
+    });
+  });
+
+  given('[case80] tracked edits to a spaced and a non-ASCII file', () => {
+    // .why = i013 r010 nitpick.2: a quoted name failed the carry foresight's
+    //        lookup, so the plan said "carry will halt" for files that carry
+    //        cleanly, and listed the names quoted
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case80',
+        featureCommits: [
+          {
+            file: 'docs/my notes.md',
+            content: '# notes\n',
+            subject: 'feat(docs): add my notes',
+          },
+          {
+            file: 'docs/café.md',
+            content: '# café\n',
+            subject: 'cont(docs): add the café note',
+          },
+        ],
+        mainCommits: MAIN_COMMITS_REEF,
+      });
+      fs.writeFileSync(
+        path.join(scene.repoDir, 'docs', 'my notes.md'),
+        '# notes v2\n',
+      );
+      fs.writeFileSync(
+        path.join(scene.repoDir, 'docs', 'café.md'),
+        '# café v2\n',
+      );
+      return scene;
+    });
+    when('[t0] begin, plan mode', () => {
+      const result = useBeforeAll(async () =>
+        runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-v2',
+          '--pick',
+          scene.featureShas[0]!,
+          '--pick',
+          scene.featureShas[1]!,
+        ]),
+      );
+
+      then('the plan lists both names bare and foresees no carry halt', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('M docs/my notes.md');
+        expect(result.stdout).toContain('M docs/café.md');
+        expect(result.stdout).not.toContain('\\303');
+        expect(result.stdout).not.toContain('carry will halt');
+      });
+
+      then('the plan matches the snapshot', () => {
+        expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case81] the rescue commit cannot be written', () => {
+    // .why = i013 r011 b1: the rescue ran in $(...), outside errexit and the
+    //        trap, and its read-back passed on two empty values. a failed
+    //        write let the reset run, and the report named a ref git lacks
+    const genHaltedEditScene = (slug: string) => {
+      const scene = genConflictScene(slug);
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        scene.featureShas[1]!,
+        '--mode',
+        'apply',
+      ]);
+      if (halt.exitCode !== 2)
+        throw new Error(`${slug} setup: begin did not halt: ${halt.stdout}`);
+      fs.writeFileSync(
+        path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+        'org: ehmpathy\nenv: prep\n',
+      );
+      return scene;
+    };
+    const getRescueRefs = (scene: Scene) =>
+      spawnSync(
+        'git',
+        ['for-each-ref', '--format=%(refname)', 'refs/cutover/rescue/'],
+        { cwd: scene.repoDir, encoding: 'utf-8' },
+      ).stdout.trim();
+
+    // .mock = a git shim fails commit-tree alone; every other call runs real git
+    // .why  = a full disk or a refused commit cannot be staged from outside
+    when('[t0] commit-tree fails', () => {
+      const scene = useBeforeAll(async () =>
+        genHaltedEditScene('cutover-case81-t0'),
+      );
+      const result = useBeforeAll(async () =>
+        runCutoverWithShim(scene, ['abort'], {
+          binDir: genShimBin({
+            slug: 'cutover-case81-t0-bin',
+            cli: 'git',
+            body: [
+              'if [[ "$1" == "commit-tree" ]]; then exit 1; fi',
+              'exec "$REAL_GIT" "$@"',
+            ],
+          }),
+          env: { REAL_GIT: getRealBin('git') },
+        }),
+      );
+
+      then('abort stops loud, before the reset, and keeps the state', () => {
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('MalfunctionError');
+        expect(result.stdout).not.toContain('rescue: refs/');
+        expect(getRescueRefs(scene)).toEqual('');
+        expect(hasStateFile(scene)).toBe(true);
+      });
+
+      then('the edit saved mid-halt is still on disk', () => {
+        expect(
+          fs.readFileSync(
+            path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+            'utf-8',
+          ),
+        ).toEqual('org: ehmpathy\nenv: prep\n');
+      });
+
+      then('the malfunction matches the snapshot', () => {
+        expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] the repo has no git identity', () => {
+      const scene = useBeforeAll(async () => {
+        const scene = genHaltedEditScene('cutover-case81-t1');
+        git(scene.repoDir, ['config', '--unset', 'user.name']);
+        git(scene.repoDir, ['config', '--unset', 'user.email']);
+        return scene;
+      });
+      const result = useBeforeAll(async () => runCutover(scene, ['abort']));
+      const rescue = useBeforeAll(async () => ({ ref: getRescueRefs(scene) }));
+
+      then('abort still writes the rescue, as the bot, and names it', () => {
+        expect(result.exitCode).toBe(0);
+        expect(rescue.ref).toMatch(/^refs\/cutover\/rescue\//);
+        expect(result.stdout).toContain(`rescue: ${rescue.ref}`);
+        expect(
+          git(scene.repoDir, ['show', `${rescue.ref}:.agent/keyrack.yml`]),
+        ).toEqual('org: ehmpathy\nenv: prep');
+      });
+    });
+  });
+
+  given(
+    '[case82] an edit mid-halt to an assume-unchanged file, then abort',
+    () => {
+      // .why = i013 r011 b2: status skips a flagged path, so the rescue saw a
+      //        clean worktree and abort reset over the edit with no copy. begin
+      //        admits a flag with no edit (case77 t2), so the edit can come later
+      const scene = useBeforeAll(async () => {
+        const scene = genConflictScene('cutover-case82');
+        git(scene.repoDir, [
+          'update-index',
+          '--assume-unchanged',
+          '.agent/keyrack.yml',
+        ]);
+        const halt = runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+          '--pick',
+          scene.featureShas[1]!,
+          '--mode',
+          'apply',
+        ]);
+        if (halt.exitCode !== 2)
+          throw new Error(`case82 setup: begin did not halt: ${halt.stdout}`);
+        // settle the conflict, so the flagged edit is the only change abort meets
+        git(scene.repoDir, ['checkout', '-q', '--ours', '--', 'src/band.ts']);
+        git(scene.repoDir, ['add', 'src/band.ts']);
+        git(scene.repoDir, ['reset', '-q', '--', 'src/band.ts']);
+        git(scene.repoDir, ['checkout', '-q', '--', 'src/band.ts']);
+        fs.writeFileSync(
+          path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+          'org: ehmpathy\nenv: prep\n',
+        );
+        return scene;
+      });
+      when('[t0] abort', () => {
+        const result = useBeforeAll(async () => runCutover(scene, ['abort']));
+        const rescue = useBeforeAll(async () => ({
+          ref: spawnSync(
+            'git',
+            ['for-each-ref', '--format=%(refname)', 'refs/cutover/rescue/'],
+            { cwd: scene.repoDir, encoding: 'utf-8' },
+          ).stdout.trim(),
+        }));
+
+        then('abort keeps a rescue that holds the flagged edit', () => {
+          expect(result.exitCode).toBe(0);
+          expect(rescue.ref).toMatch(/^refs\/cutover\/rescue\//);
+          expect(result.stdout).toContain(`rescue: ${rescue.ref}`);
+          expect(
+            git(scene.repoDir, ['show', `${rescue.ref}:.agent/keyrack.yml`]),
+          ).toEqual('org: ehmpathy\nenv: prep');
+          expect(asSnapshotSafe(result.stdout)).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given('[case83] an abort is killed between its two park reads', () => {
+    // .why = i013 r011 nitpick.4: restore_park lays the files back, then the
+    //        stage split. a kill between the two left all staged, and the
+    //        rerun's skip check passed on the files alone
+    //
+    // .mock = a git shim kill -9s the abort at the stage-split read alone
+    // .why  = a kill at one exact instant cannot be scheduled from outside
+    const scene = useBeforeAll(async () => {
+      const scene = genConflictScene('cutover-case83');
+      fs.writeFileSync(
+        path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+        'org: ehmpathy\nenv: prep\n',
+      );
+      git(scene.repoDir, ['add', '.agent/keyrack.yml']);
+      fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        scene.featureShas[1]!,
+        '--mode',
+        'apply',
+      ]);
+      if (halt.exitCode !== 2)
+        throw new Error(`case83 setup: begin did not halt: ${halt.stdout}`);
+      return scene;
+    });
+    when('[t0] abort is killed at the stage-split read, then rerun', () => {
+      const outcome = useBeforeAll(async () => {
+        const killed = runCutoverWithShim(scene, ['abort'], {
+          binDir: genShimBin({
+            slug: 'cutover-case83-bin',
+            cli: 'git',
+            body: [
+              'if [[ "$1" == "read-tree" && "$2" == *"cutover/index^{tree}" ]]; then',
+              '  kill -9 "$PPID"',
+              '  exit 1',
+              'fi',
+              'exec "$REAL_GIT" "$@"',
+            ],
+          }),
+          env: { REAL_GIT: getRealBin('git') },
+        });
+        const statusAfterKill = getStatus(scene);
+        const rerun = runCutover(scene, ['abort']);
+        return { killed, statusAfterKill, rerun };
+      });
+
+      then('the kill landed after the files came back, all staged', () => {
+        expect(outcome.statusAfterKill).toContain('M  readme.md');
+      });
+
+      then('the rerun lays the stage split back, as begin found it', () => {
+        expect(outcome.rerun.exitCode).toBe(0);
+        expect(getStatus(scene)).toContain('M  .agent/keyrack.yml');
+        expect(getStatus(scene)).toContain(' M readme.md');
+        expect(getBranch(scene)).toEqual('turtle/wave-report');
+        expect(hasStateFile(scene)).toBe(false);
+        expect(asSnapshotSafe(outcome.rerun.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case84] a hidden edit is saved after the preflight read', () => {
+    // .why = i013 r011 nitpick.3: begin re-read tracked edits under the claim,
+    //        but not hidden ones, so a flagged edit saved in between was erased
+    //
+    // .mock = a git shim arms on the preflight `ls-files -v`, then saves the
+    //         flagged edit after the next `git status` (begin's view read)
+    // .why  = an edit at one exact instant cannot be scheduled from outside
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case84',
+        featureCommits: FEATURE_COMMITS,
+        mainCommits: MAIN_COMMITS_REEF,
+      });
+      git(scene.repoDir, ['update-index', '--assume-unchanged', 'readme.md']);
+      return scene;
+    });
+    when('[t0] begin --mode apply, with the edit saved mid-claim', () => {
+      const result = useBeforeAll(async () => {
+        const markerDir = genTempDir({
+          slug: 'cutover-case84-mark',
+          git: false,
+        });
+        return runCutoverWithShim(
+          scene,
+          [
+            'begin',
+            '--from',
+            '@main',
+            '--into',
+            'turtle/wave-v2',
+            '--mode',
+            'apply',
+          ],
+          {
+            binDir: genShimBin({
+              slug: 'cutover-case84-bin',
+              cli: 'git',
+              body: [
+                'verb="$1"; [[ "$verb" == "--literal-pathspecs" ]] && verb="$2"',
+                'if [[ "$verb" == "ls-files" && " $* " == *" -v "* ]]; then touch "$MARK/armed"; fi',
+                'if [[ "$verb" == "status" && -e "$MARK/armed" && ! -e "$MARK/done" ]]; then',
+                '  "$REAL_GIT" "$@"; rc=$?',
+                '  touch "$MARK/done"',
+                "  printf '# reef v2\\n' > readme.md",
+                '  exit $rc',
+                'fi',
+                'exec "$REAL_GIT" "$@"',
+              ],
+            }),
+            env: { REAL_GIT: getRealBin('git'), MARK: markerDir },
+          },
+        );
+      });
+
+      then('begin refuses under the claim, and the edit survives', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('assume-unchanged: readme.md');
+        expect(
+          fs.readFileSync(path.join(scene.repoDir, 'readme.md'), 'utf-8'),
+        ).toEqual('# reef v2\n');
+        expect(getBranch(scene)).toEqual('turtle/wave-report');
+        expect(hasStateFile(scene)).toBe(false);
+        expect(getQuota(scene)).toBe(3);
+        expect(asSnapshotSafe(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case85] abort after a finished cutover', () => {
+    // .why = i013 r010 nitpick.5: the refusal sent a caller who wanted an
+    //        undo to start a second cutover
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case85',
+        featureCommits: FEATURE_COMMITS,
+        mainCommits: MAIN_COMMITS_REEF,
+      });
+      const done = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-v2',
+        '--pick',
+        scene.featureShas[0]!,
+        '--mode',
+        'apply',
+      ]);
+      if (done.exitCode !== 0)
+        throw new Error(`case85 setup: begin did not finish: ${done.stdout}`);
+      return scene;
+    });
+    when('[t0] abort', () => {
+      const result = useBeforeAll(async () => runCutover(scene, ['abort']));
+
+      then('abort refuses, and says no cutover state remains', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('no cutover state remains');
+        expect(result.stdout).toContain('left its source branch untouched');
+        expect(getBranch(scene)).toEqual('turtle/wave-v2');
+      });
+
+      then('the refusal matches the snapshot', () => {
+        expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case86] a file staged new mid-halt, then abort', () => {
+    // .why = i014 r011 b1: the rescue built its index from HEAD's tree, blind
+    //        to a staged add, so abort's reset erased the new file from disk
+    //        and the rescue lacked it
+    const scene = useBeforeAll(async () => {
+      const scene = genConflictScene('cutover-case86');
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        scene.featureShas[1]!,
+        '--mode',
+        'apply',
+      ]);
+      if (halt.exitCode !== 2)
+        throw new Error(`case86 setup: begin did not halt: ${halt.stdout}`);
+      fs.writeFileSync(
+        path.join(scene.repoDir, 'src', 'helper.ts'),
+        'human work, staged\n',
+      );
+      git(scene.repoDir, ['add', 'src/helper.ts']);
+      return scene;
+    });
+    when('[t0] abort', () => {
+      const result = useBeforeAll(async () => runCutover(scene, ['abort']));
+      const rescue = useBeforeAll(async () => {
+        const ref = spawnSync(
+          'git',
+          ['for-each-ref', '--format=%(refname)', 'refs/cutover/rescue/'],
+          { cwd: scene.repoDir, encoding: 'utf-8' },
+        ).stdout.trim();
+        return {
+          ref,
+          tree: git(scene.repoDir, ['rev-parse', `${ref}^{tree}`]),
+        };
+      });
+
+      then('abort names a rescue that holds the staged-new file', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(`rescue: ${rescue.ref}`);
+        expect(
+          git(scene.repoDir, ['show', `${rescue.ref}:src/helper.ts`]),
+        ).toEqual('human work, staged');
+      });
+
+      then('the rescue ref is named by the tree it holds', () => {
+        expect(rescue.ref).toEqual(`refs/cutover/rescue/${rescue.tree}`);
+      });
+
+      then('the abort report matches the snapshot', () => {
+        expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case87] an abort killed after its rescue, before its reset', () => {
+    // .why = i014 r011 b2: the abort mark was read by abort alone, so a
+    //        continue after a killed abort landed the cutover and exited 0
+    // .why = i014 r011 nitpick.1: a rescue named by stamp and pid wrote a twin
+    //        on each rerun over the same worktree
+    //
+    // .mock = a git shim kill -9s the abort at its reset alone
+    // .why  = a kill at one exact instant cannot be scheduled from outside
+    const scene = useBeforeAll(async () => {
+      const scene = genConflictScene('cutover-case87');
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        scene.featureShas[1]!,
+        '--mode',
+        'apply',
+      ]);
+      if (halt.exitCode !== 2)
+        throw new Error(`case87 setup: begin did not halt: ${halt.stdout}`);
+      fs.writeFileSync(
+        path.join(scene.repoDir, 'src', 'band.ts'),
+        'settled by human\n',
+      );
+      git(scene.repoDir, ['add', 'src/band.ts']);
+      return scene;
+    });
+    when(
+      '[t0] abort is killed at its reset, then continue, then abort again',
+      () => {
+        const outcome = useBeforeAll(async () => {
+          const killed = runCutoverWithShim(scene, ['abort'], {
+            binDir: genShimBin({
+              slug: 'cutover-case87-bin',
+              cli: 'git',
+              body: [
+                'if [[ "$1" == "reset" && "$2" == "-q" && "$3" == "--hard" ]]; then',
+                '  kill -9 "$PPID"',
+                '  exit 1',
+                'fi',
+                'exec "$REAL_GIT" "$@"',
+              ],
+            }),
+            env: { REAL_GIT: getRealBin('git') },
+          });
+          const cont = runCutover(scene, ['continue']);
+          const headAfterContinue = getBranch(scene);
+          const rerun = runCutover(scene, ['abort']);
+          const rescueRefs = spawnSync(
+            'git',
+            ['for-each-ref', '--format=%(refname)', 'refs/cutover/rescue/'],
+            { cwd: scene.repoDir, encoding: 'utf-8' },
+          )
+            .stdout.trim()
+            .split('\n')
+            .filter(Boolean);
+          return { killed, cont, headAfterContinue, rerun, rescueRefs };
+        });
+
+        then('continue refuses, and sends the caller back to abort', () => {
+          expect(outcome.cont.exitCode).toBe(2);
+          expect(outcome.cont.stdout).toContain(
+            'an abort of this cutover began and did not finish',
+          );
+          expect(outcome.cont.stdout).toContain('rhx git.branch.cutover abort');
+          expect(outcome.headAfterContinue).toEqual('turtle/wave-report-v2');
+        });
+
+        then('the rerun of abort finishes, with one rescue, no twin', () => {
+          expect(outcome.rerun.exitCode).toBe(0);
+          expect(getBranch(scene)).toEqual('turtle/wave-report');
+          expect(hasStateFile(scene)).toBe(false);
+          expect(outcome.rescueRefs).toHaveLength(1);
+          expect(
+            git(scene.repoDir, [
+              'show',
+              `${outcome.rescueRefs[0]}:src/band.ts`,
+            ]),
+          ).toEqual('settled by human');
+        });
+
+        then('the continue refusal matches the snapshot', () => {
+          expect(
+            asSnapshotSafeIn(scene, outcome.cont.stdout),
+          ).toMatchSnapshot();
+        });
+      },
+    );
+  });
+
+  given('[case88] an abort killed after its reset, at the switch back', () => {
+    // .why = i015 r011 b1: the rescue ref lived in a shell variable, so the
+    //        rerun over a clean tree reported no rescue, and the human never
+    //        learned where the reset sent the edit
+    //
+    // .mock = a git shim kill -9s the abort at its switch back to the source
+    // .why  = a kill at one exact instant cannot be scheduled from outside
+    const scene = useBeforeAll(async () => {
+      const scene = genConflictScene('cutover-case88');
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        scene.featureShas[1]!,
+        '--mode',
+        'apply',
+      ]);
+      if (halt.exitCode !== 2)
+        throw new Error(`case88 setup: begin did not halt: ${halt.stdout}`);
+      fs.writeFileSync(
+        path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+        'org: ehmpathy\nenv: prep\n',
+      );
+      return scene;
+    });
+    when('[t0] abort is killed at the switch back, then rerun', () => {
+      const outcome = useBeforeAll(async () => {
+        const killed = runCutoverWithShim(scene, ['abort'], {
+          binDir: genShimBin({
+            slug: 'cutover-case88-bin',
+            cli: 'git',
+            body: [
+              'if [[ "$1" == "checkout" && "$2" == "-q" && "$3" == "turtle/wave-report" ]]; then',
+              '  kill -9 "$PPID"',
+              '  exit 1',
+              'fi',
+              'exec "$REAL_GIT" "$@"',
+            ],
+          }),
+          env: { REAL_GIT: getRealBin('git') },
+        });
+        const keyrackAfterKill = fs.readFileSync(
+          path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+          'utf-8',
+        );
+        const rerun = runCutover(scene, ['abort']);
+        const rescueRefs = spawnSync(
+          'git',
+          ['for-each-ref', '--format=%(refname)', 'refs/cutover/rescue/'],
+          { cwd: scene.repoDir, encoding: 'utf-8' },
+        )
+          .stdout.trim()
+          .split('\n')
+          .filter(Boolean);
+        return { killed, keyrackAfterKill, rerun, rescueRefs };
+      });
+
+      then('the kill landed after the reset: the edit is off disk', () => {
+        expect(outcome.keyrackAfterKill).toEqual('org: ehmpathy\n');
+        expect(outcome.rescueRefs).toHaveLength(1);
+      });
+
+      then('the rerun finishes and still names the rescue', () => {
+        expect(outcome.rerun.exitCode).toBe(0);
+        expect(outcome.rerun.stdout).toContain(
+          `rescue: ${outcome.rescueRefs[0]}`,
+        );
+        expect(
+          git(scene.repoDir, [
+            'show',
+            `${outcome.rescueRefs[0]}:.agent/keyrack.yml`,
+          ]),
+        ).toEqual('org: ehmpathy\nenv: prep');
+        expect(getBranch(scene)).toEqual('turtle/wave-report');
+        expect(hasStateFile(scene)).toBe(false);
+      });
+
+      then('the rerun report matches the snapshot', () => {
+        expect(asSnapshotSafeIn(scene, outcome.rerun.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case89] a halt with no human edit, then abort', () => {
+    // .why = i015 r011 nitpick.1: every abort after a halt wrote a rescue of
+    //        the cutover's own replay, a ref with naught a human made, and
+    //        that noise hid the rescue that held real work
+    const scene = useBeforeAll(async () => {
+      const scene = genConflictScene('cutover-case89');
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        scene.featureShas[1]!,
+        '--mode',
+        'apply',
+      ]);
+      if (halt.exitCode !== 2)
+        throw new Error(`case89 setup: begin did not halt: ${halt.stdout}`);
+      return scene;
+    });
+    when('[t0] abort', () => {
+      const result = useBeforeAll(async () => runCutover(scene, ['abort']));
+
+      then('abort writes no rescue, and names none', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).not.toContain('rescue:');
+        expect(
+          spawnSync(
+            'git',
+            ['for-each-ref', '--format=%(refname)', 'refs/cutover/rescue/'],
+            { cwd: scene.repoDir, encoding: 'utf-8' },
+          ).stdout.trim(),
+        ).toEqual('');
+      });
+
+      then('the abort report matches the snapshot', () => {
+        expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case90] two aborts over two human edits', () => {
+    // .why = i016 r011 n2: one .rescue_ref slot meant the second rescue
+    //        erased the name of the first, and its edit sat in a ref no
+    //        report named
+    //
+    // .mock = a git shim kill -9s the first abort at its switch back
+    // .why  = a kill at one exact instant cannot be scheduled from outside
+    const scene = useBeforeAll(async () => {
+      const scene = genConflictScene('cutover-case90');
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        scene.featureShas[1]!,
+        '--mode',
+        'apply',
+      ]);
+      if (halt.exitCode !== 2)
+        throw new Error(`case90 setup: begin did not halt: ${halt.stdout}`);
+      fs.writeFileSync(
+        path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+        'org: ehmpathy\nenv: prep\n',
+      );
+      return scene;
+    });
+    when(
+      '[t0] abort is killed at the switch back, a second edit, then abort again',
+      () => {
+        const outcome = useBeforeAll(async () => {
+          const killed = runCutoverWithShim(scene, ['abort'], {
+            binDir: genShimBin({
+              slug: 'cutover-case90-bin',
+              cli: 'git',
+              body: [
+                'if [[ "$1" == "checkout" && "$2" == "-q" && "$3" == "turtle/wave-report" ]]; then',
+                '  kill -9 "$PPID"',
+                '  exit 1',
+                'fi',
+                'exec "$REAL_GIT" "$@"',
+              ],
+            }),
+            env: { REAL_GIT: getRealBin('git') },
+          });
+          // the second human edit, on the tree the first reset left
+          fs.writeFileSync(
+            path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+            'org: ehmpathy\nenv: test\n',
+          );
+          const rerun = runCutover(scene, ['abort']);
+          return { killed, rerun, rescueRefs: getRescueRefs(scene) };
+        });
+
+        then('both rescues stand, each with its own edit', () => {
+          expect(outcome.rescueRefs).toHaveLength(2);
+          const contents = outcome.rescueRefs
+            .map((ref) =>
+              git(scene.repoDir, ['show', `${ref}:.agent/keyrack.yml`]),
+            )
+            .sort();
+          expect(contents).toEqual([
+            'org: ehmpathy\nenv: prep',
+            'org: ehmpathy\nenv: test',
+          ]);
+        });
+
+        then('the rerun finishes and names both rescues', () => {
+          expect(outcome.rerun.exitCode).toBe(0);
+          outcome.rescueRefs.forEach((ref) =>
+            expect(outcome.rerun.stdout).toContain(`rescue: ${ref}`),
+          );
+          expect(getBranch(scene)).toEqual('turtle/wave-report');
+          expect(hasStateFile(scene)).toBe(false);
+        });
+
+        then('the abort report matches the snapshot', () => {
+          expect(
+            asSnapshotSafeIn(scene, outcome.rerun.stdout),
+          ).toMatchSnapshot();
+        });
+      },
+    );
+  });
+
+  given(
+    '[case91] an abort whose park drop fails after the state is cleared',
+    () => {
+      // .why = i016 r011 b1: abort cleared the state, then dropped the park,
+      //        then built its report. a failed park drop tripped the trap, which
+      //        claimed "the cutover state is kept" over a state already gone,
+      //        and the report that names the rescue was never printed
+      //
+      // .mock = a git shim fails the delete of the park ref alone
+      // .why  = a ref delete that fails on demand cannot be staged in real git
+      const scene = useBeforeAll(async () => {
+        const scene = genConflictScene('cutover-case91');
+        fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+        const halt = runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+          '--pick',
+          scene.featureShas[1]!,
+          '--mode',
+          'apply',
+        ]);
+        if (halt.exitCode !== 2)
+          throw new Error(`case91 setup: begin did not halt: ${halt.stdout}`);
+        fs.writeFileSync(
+          path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+          'org: ehmpathy\nenv: prep\n',
+        );
+        return scene;
+      });
+      when('[t0] abort, with the park drop made to fail', () => {
+        const result = useBeforeAll(async () =>
+          runCutoverWithShim(scene, ['abort'], {
+            binDir: genShimBin({
+              slug: 'cutover-case91-bin',
+              cli: 'git',
+              body: [
+                'if [[ "$1" == "update-ref" && "$2" == "-d" && "$3" == "refs/worktree/cutover/tree" ]]; then',
+                '  echo "fatal: cannot lock ref" >&2',
+                '  exit 1',
+                'fi',
+                'exec "$REAL_GIT" "$@"',
+              ],
+            }),
+            env: { REAL_GIT: getRealBin('git') },
+          }),
+        );
+
+        then('abort still prints its report, with the rescue named', () => {
+          const rescueRefs = getRescueRefs(scene);
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('all good, paddled back');
+          expect(rescueRefs).toHaveLength(1);
+          expect(result.stdout).toContain(`rescue: ${rescueRefs[0]}`);
+          expect(result.stdout).not.toContain('the cutover state is kept');
+          expect(asSnapshotSafe(result.stdout)).toMatchSnapshot();
+        });
+
+        then('the orphan park is named on stderr, and the undo stands', () => {
+          expect(result.stderr).toContain('could not be dropped');
+          expect(getBranch(scene)).toEqual('turtle/wave-report');
+          expect(hasStateFile(scene)).toBe(false);
+          expect(
+            fs.readFileSync(path.join(scene.repoDir, 'readme.md'), 'utf-8'),
+          ).toEqual('# reef v2\n');
+        });
+      });
+    },
+  );
+
+  given(
+    '[case92] an abort whose source is checked out in a peer worktree',
+    () => {
+      // .why = i016 r011 n4: abort reset the tree, then its switch back failed
+      //        on the peer's hold, which stranded this tree clean on the new
+      //        branch with the edit only in a rescue
+      const scene = useBeforeAll(async () => {
+        const scene = genConflictScene('cutover-case92');
+        const halt = runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+          '--pick',
+          scene.featureShas[1]!,
+          '--mode',
+          'apply',
+        ]);
+        if (halt.exitCode !== 2)
+          throw new Error(`case92 setup: begin did not halt: ${halt.stdout}`);
+        fs.writeFileSync(
+          path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+          'org: ehmpathy\nenv: prep\n',
+        );
+        const peerDir = genTempDir({ slug: 'cutover-case92-peer', git: false });
+        git(scene.repoDir, [
+          'worktree',
+          'add',
+          '-q',
+          peerDir,
+          'turtle/wave-report',
+        ]);
+        return scene;
+      });
+      when('[t0] abort', () => {
+        const result = useBeforeAll(async () => runCutover(scene, ['abort']));
+
+        then('abort refuses before any reset, and names the peer', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain('checked out in another worktree');
+          expect(getBranch(scene)).toEqual('turtle/wave-report-v2');
+          expect(hasStateFile(scene)).toBe(true);
+          expect(getRescueRefs(scene)).toEqual([]);
+          expect(
+            fs.readFileSync(
+              path.join(scene.repoDir, '.agent', 'keyrack.yml'),
+              'utf-8',
+            ),
+          ).toEqual('org: ehmpathy\nenv: prep\n');
+        });
+
+        then('the refusal matches the snapshot', () => {
+          expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given('[case93] --into the name of a tag', () => {
+    // .why = i016 r010 n6: begin refused an extant branch but made one beside
+    //        a same-named tag, and a bare name then read as the tag
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case93',
+        featureCommits: FEATURE_COMMITS,
+      });
+      git(scene.repoDir, ['tag', 'v2']);
+      return scene;
+    });
+    when('[t0] begin --into v2 --mode apply', () => {
+      const result = useBeforeAll(async () =>
+        runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'v2',
+          '--mode',
+          'apply',
+        ]),
+      );
+
+      then('begin refuses and names the tag; naught changed', () => {
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain('--into v2 shares its name with a tag');
+        expect(hasBranch(scene, 'v2')).toBe(false);
+        expect(getBranch(scene)).toEqual('turtle/wave-report');
+      });
+
+      then('the refusal matches the snapshot', () => {
+        expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case94] a tracked edit to a file the base renamed', () => {
+    // .why = i016 r010 n3: the plan foresaw a carry halt and told the human
+    //        to drop the edit, though the carry follows the rename clean
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case94',
+        featureCommits: FEATURE_COMMITS,
+      });
+      fs.mkdirSync(path.join(scene.repoDir, 'docs'), { recursive: true });
+      setOriginMainChange(scene, {
+        argsList: [['mv', 'readme.md', 'docs/readme.md']],
+        subject: 'chore(docs): move the readme',
+      });
+      fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+      return scene;
+    });
+    when('[t0] begin, plan mode', () => {
+      const plan = useBeforeAll(async () =>
+        runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+        ]),
+      );
+
+      then('the plan foresees no carry halt', () => {
+        expect(plan.exitCode).toBe(0);
+        expect(plan.stdout).not.toContain('carry will halt');
+        expect(asSnapshotSafe(plan.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] begin --mode apply', () => {
+      // declared after the plan, so it runs after it, over the same tree
+      const apply = useBeforeAll(async () => {
+        return runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+          '--mode',
+          'apply',
+        ]);
+      });
+
+      then('apply carries the edit onto the renamed file', () => {
+        expect(apply.exitCode).toBe(0);
+        expect(
+          fs.readFileSync(
+            path.join(scene.repoDir, 'docs', 'readme.md'),
+            'utf-8',
+          ),
+        ).toEqual('# reef v2\n');
+        expect(asSnapshotSafe(apply.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case95] a tracked edit to a file the base removed', () => {
+    // .why = i016 r010 n3: the halt said "a commit not picked adds it" and the
+    //        fix named a commit, though the base removed the file
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case95',
+        featureCommits: FEATURE_COMMITS,
+      });
+      setOriginMainChange(scene, {
+        argsList: [['rm', '-q', 'readme.md']],
+        subject: 'chore(docs): drop the readme',
+      });
+      fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+      return scene;
+    });
+    when('[t0] begin, plan mode', () => {
+      const plan = useBeforeAll(async () =>
+        runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+        ]),
+      );
+
+      then('the plan names the removal on the base as the cause', () => {
+        expect(plan.exitCode).toBe(0);
+        expect(plan.stdout).toContain('readme.md (removed on the base)');
+        expect(plan.stdout).not.toContain('added by');
+      });
+
+      then('the plan matches the snapshot', () => {
+        expect(asSnapshotSafeIn(scene, plan.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] begin --mode apply', () => {
+      // declared after the plan, so it runs after it, over the same tree
+      const apply = useBeforeAll(async () => {
+        return runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+          '--mode',
+          'apply',
+        ]);
+      });
+
+      then('the halt names the removal, never a commit', () => {
+        expect(apply.exitCode).toBe(2);
+        expect(apply.stdout).toContain(
+          'the new branch lacks it: removed on the base',
+        );
+        expect(apply.stdout).not.toContain('a commit not picked adds it');
+      });
+    });
+  });
+
+  // 800 names of ~210 bytes each: ~170 KiB of path text, past one argv
+  // entry's 128 KiB cap
+  const LONG_NAMES = Array.from(
+    { length: 800 },
+    (_, index) => `${'w'.repeat(200)}-${String(index).padStart(4, '0')}.md`,
+  );
+
+  /**
+   * .what = fold each name's 200-char run to one token in the snapshot
+   * .why = the run exists to pass the argv cap; spelled out, it buries the report's shape
+   */
+  const asSnapshotSafeOfLongNames = (text: string): string =>
+    asSnapshotSafe(text).replace(/w{200}/g, '<w×200>');
+
+  given(
+    '[case96] apply over a tree whose untracked list passes 128 KiB',
+    () => {
+      // .why = i016 r010 b1: the lists rode jq argv, so apply died with a raw
+      //        "Argument list too long" (exit 126) after the plan said fine
+      const scene = useBeforeAll(async () => {
+        const scene = genScene({
+          slug: 'cutover-case96',
+          featureCommits: FEATURE_COMMITS,
+        });
+        fs.mkdirSync(path.join(scene.repoDir, 'swell'), { recursive: true });
+        LONG_NAMES.forEach((name) =>
+          fs.writeFileSync(path.join(scene.repoDir, 'swell', name), 'set\n'),
+        );
+        return scene;
+      });
+      when('[t0] begin --mode apply', () => {
+        const result = useBeforeAll(async () =>
+          runCutover(scene, [
+            'begin',
+            '--from',
+            '@main',
+            '--into',
+            'turtle/wave-report-v2',
+            '--mode',
+            'apply',
+          ]),
+        );
+
+        then('apply lands, and the list in the report is bounded', () => {
+          expect(result.stderr).not.toContain('Argument list too long');
+          expect(result.exitCode).toBe(0);
+          expect(getBranch(scene)).toEqual('turtle/wave-report-v2');
+          expect(result.stdout).toContain('untracked (800)');
+          expect(result.stdout.split('\n').length).toBeLessThan(80);
+          expect(asSnapshotSafeOfLongNames(result.stdout)).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given('[case97] apply over a tree whose tracked list passes 128 KiB', () => {
+    // .why = i016 r010 b1: the tracked list rode jq argv too
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case97',
+        featureCommits: FEATURE_COMMITS,
+      });
+      fs.mkdirSync(path.join(scene.repoDir, 'swell'), { recursive: true });
+      LONG_NAMES.forEach((name) =>
+        fs.writeFileSync(path.join(scene.repoDir, 'swell', name), 'set\n'),
+      );
+      git(scene.repoDir, ['add', 'swell']);
+      git(scene.repoDir, ['commit', '-q', '-m', 'cont(wave): add swell sets']);
+      const setsSha = git(scene.repoDir, ['rev-parse', 'HEAD']);
+      LONG_NAMES.forEach((name) =>
+        fs.writeFileSync(path.join(scene.repoDir, 'swell', name), 'set v2\n'),
+      );
+      return { ...scene, setsSha };
+    });
+    when('[t0] begin --pick --mode apply', () => {
+      // the pick adds the files, so the carry lands each edit on the new branch
+      const result = useBeforeAll(async () =>
+        runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+          '--pick',
+          scene.setsSha,
+          '--mode',
+          'apply',
+        ]),
+      );
+
+      then('apply lands, and the list in the report is bounded', () => {
+        expect(result.stderr).not.toContain('Argument list too long');
+        expect(result.exitCode).toBe(0);
+        expect(getBranch(scene)).toEqual('turtle/wave-report-v2');
+        expect(result.stdout).toContain('tracked edits (800)');
+        expect(result.stdout.split('\n').length).toBeLessThan(80);
+        expect(asSnapshotSafeOfLongNames(result.stdout)).toMatchSnapshot();
+      });
+    });
+  });
+
+  given(
+    '[case98] a switch that fails after the reset, over a peer write',
+    () => {
+      // .why = i017 r011 b1: the back-out judged "did the reset run?" by "does
+      //        the tree read clean?". a peer write after the reset read as
+      //        "no reset", so the park was dropped, the edit lost, and the
+      //        message still said "the source and its edits are restored"
+      //
+      // .mock = a git shim writes readme.md, then fails the switch to the new
+      //         branch; every other call runs real git
+      // .why  = a write that lands between the reset and the switch cannot be
+      //         staged from outside a single git process
+      const scene = useBeforeAll(async () => {
+        const scene = genScene({
+          slug: 'cutover-case98',
+          featureCommits: FEATURE_COMMITS,
+        });
+        fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+        return scene;
+      });
+      when('[t0] begin --mode apply, with the switch made to fail', () => {
+        const result = useBeforeAll(async () =>
+          runCutoverWithShim(
+            scene,
+            [
+              'begin',
+              '--from',
+              '@main',
+              '--into',
+              'turtle/wave-report-v2',
+              '--mode',
+              'apply',
+            ],
+            {
+              binDir: genShimBin({
+                slug: 'cutover-case98-bin',
+                cli: 'git',
+                body: [
+                  'if [[ "$1" == "checkout" && "$2" == "-q" && "$3" == "turtle/wave-report-v2" ]]; then',
+                  "  printf '# peer write\\n' > readme.md",
+                  '  echo "error: the checkout was declined" >&2',
+                  '  exit 1',
+                  'fi',
+                  'exec "$REAL_GIT" "$@"',
+                ],
+              }),
+              env: { REAL_GIT: getRealBin('git') },
+            },
+          ),
+        );
+
+        then('the edit is back on the source, and the cut is gone', () => {
+          expect(result.exitCode).toBe(1);
+          expect(result.stdout).toContain(
+            'the switch to turtle/wave-report-v2 failed; the source and its edits are restored',
+          );
+          expect(getBranch(scene)).toEqual('turtle/wave-report');
+          expect(hasBranch(scene, 'turtle/wave-report-v2')).toBe(false);
+          expect(hasStateFile(scene)).toBe(false);
+          expect(
+            fs.readFileSync(path.join(scene.repoDir, 'readme.md'), 'utf-8'),
+          ).toEqual('# reef v2\n');
+        });
+
+        then(
+          'the peer write is kept in a rescue, and the message names it',
+          () => {
+            const rescueRefs = getRescueRefs(scene);
+            expect(rescueRefs).toHaveLength(1);
+            expect(result.stdout).toContain(`rescue: ${rescueRefs[0]}`);
+            expect(
+              git(scene.repoDir, ['show', `${rescueRefs[0]}:readme.md`]),
+            ).toEqual('# peer write');
+          },
+        );
+
+        then('the malfunction matches the snapshot', () => {
+          expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given(
+    '[case99] an upstream found after the switch, over a hook write',
+    () => {
+      // .why = i017 r011 b1, the second post-reset back-out: a post-checkout
+      //        hook sets an upstream on the new branch and writes a tracked
+      //        file. the tree then read "not clean", the park was dropped, and
+      //        the edit was lost behind a message that said naught changed
+      //
+      // .note = a real git hook, no shim: the hook runs inside the switch
+      const scene = useBeforeAll(async () => {
+        const scene = genScene({
+          slug: 'cutover-case99',
+          featureCommits: FEATURE_COMMITS,
+        });
+        const hooksDir = genTempDir({
+          slug: 'cutover-case99-hooks',
+          git: false,
+        });
+        fs.writeFileSync(
+          path.join(hooksDir, 'post-checkout'),
+          [
+            '#!/usr/bin/env bash',
+            '[[ "$(git rev-parse --abbrev-ref HEAD)" == "turtle/wave-report-v2" ]] || exit 0',
+            'git config branch.turtle/wave-report-v2.remote origin',
+            'git config branch.turtle/wave-report-v2.merge refs/heads/main',
+            "printf '# hook write\\n' > readme.md",
+            '',
+          ].join('\n'),
+        );
+        fs.chmodSync(path.join(hooksDir, 'post-checkout'), '755');
+        git(scene.repoDir, ['config', 'core.hooksPath', hooksDir]);
+        fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+        return scene;
+      });
+      when('[t0] begin --mode apply', () => {
+        const result = useBeforeAll(async () =>
+          runCutover(scene, [
+            'begin',
+            '--from',
+            '@main',
+            '--into',
+            'turtle/wave-report-v2',
+            '--mode',
+            'apply',
+          ]),
+        );
+
+        then('the edit is back on the source, and the cut is gone', () => {
+          expect(result.exitCode).toBe(1);
+          expect(result.stdout).toContain(
+            'still resolved an upstream after the cut; the source and its edits are restored',
+          );
+          expect(getBranch(scene)).toEqual('turtle/wave-report');
+          expect(hasBranch(scene, 'turtle/wave-report-v2')).toBe(false);
+          expect(hasStateFile(scene)).toBe(false);
+          expect(
+            fs.readFileSync(path.join(scene.repoDir, 'readme.md'), 'utf-8'),
+          ).toEqual('# reef v2\n');
+        });
+
+        then(
+          'the hook write is kept in a rescue, and the message names it',
+          () => {
+            const rescueRefs = getRescueRefs(scene);
+            expect(rescueRefs).toHaveLength(1);
+            expect(result.stdout).toContain(`rescue: ${rescueRefs[0]}`);
+            expect(
+              git(scene.repoDir, ['show', `${rescueRefs[0]}:readme.md`]),
+            ).toEqual('# hook write');
+            expect(asSnapshotSafe(result.stdout)).toMatchSnapshot();
+          },
+        );
+      });
+    },
+  );
+
+  given('[case100] a begin killed before its switch, then begun again', () => {
+    // .why = i017 r011 n2: begin's in-flight refusal offered "continue", which
+    //        continue then refused for a cutover stopped before its switch
+    //
+    // .mock = a git shim kill -9s begin at its reset alone
+    // .why  = a kill at one exact instant cannot be scheduled from outside
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case100',
+        featureCommits: FEATURE_COMMITS,
+      });
+      fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+      return scene;
+    });
+    when(
+      '[t0] begin is killed at its reset, then begin again, then continue',
+      () => {
+        const outcome = useBeforeAll(async () => {
+          const args = [
+            'begin',
+            '--from',
+            '@main',
+            '--into',
+            'turtle/wave-report-v2',
+            '--mode',
+            'apply',
+          ];
+          const killed = runCutoverWithShim(scene, args, {
+            binDir: genShimBin({
+              slug: 'cutover-case100-bin',
+              cli: 'git',
+              body: [
+                'if [[ "$1" == "reset" && "$2" == "-q" && "$3" == "--hard" ]]; then',
+                '  kill -9 "$PPID"',
+                '  exit 1',
+                'fi',
+                'exec "$REAL_GIT" "$@"',
+              ],
+            }),
+            env: { REAL_GIT: getRealBin('git') },
+          });
+          const again = runCutover(scene, args);
+          const cont = runCutover(scene, ['continue']);
+          return { killed, again, cont };
+        });
+
+        then('the kill left the cutover in flight, before its switch', () => {
+          expect(hasStateFile(scene)).toBe(true);
+          expect(getBranch(scene)).toEqual('turtle/wave-report');
+        });
+
+        then('begin names abort alone, never continue', () => {
+          expect(outcome.again.exitCode).toBe(2);
+          expect(outcome.again.stdout).toContain('stopped before its switch');
+          expect(outcome.again.stdout).toContain(
+            'rhx git.branch.cutover abort',
+          );
+          expect(outcome.again.stdout).not.toContain(
+            'rhx git.branch.cutover continue',
+          );
+        });
+
+        then('continue agrees: it refuses, and names abort', () => {
+          expect(outcome.cont.exitCode).toBe(2);
+          expect(outcome.cont.stdout).toContain('naught to continue');
+        });
+
+        then('the refusal matches the snapshot', () => {
+          expect(
+            asSnapshotSafeIn(scene, outcome.again.stdout),
+          ).toMatchSnapshot();
+        });
+      },
+    );
+  });
+
+  given(
+    '[case101] a rescue made in a linked worktree, then the worktree removed',
+    () => {
+      // .why = i017 r011 n3: a ref under refs/worktree/ dies with its worktree,
+      //        so `git worktree remove` erased the rescue the report told the
+      //        human to keep. rescue refs now live repo-wide
+      //
+      // .mock = a git shim writes readme.md, then fails the switch (case98's shape)
+      // .why  = the shim is the one way to reach a rescue inside begin
+      const scene = useBeforeAll(async () => {
+        const scene = genScene({
+          slug: 'cutover-case101',
+          featureCommits: FEATURE_COMMITS,
+        });
+        const linkedDir = genTempDir({
+          slug: 'cutover-case101-linked',
+          git: false,
+        });
+        git(scene.repoDir, [
+          'worktree',
+          'add',
+          '-q',
+          '-b',
+          'turtle/wave-report-linked',
+          linkedDir,
+          'turtle/wave-report',
+        ]);
+        // the meter is gitignored, so a linked worktree starts with no quota
+        fs.mkdirSync(path.join(linkedDir, '.meter'), { recursive: true });
+        fs.copyFileSync(
+          path.join(scene.repoDir, '.meter', 'git.branch.uses.jsonc'),
+          path.join(linkedDir, '.meter', 'git.branch.uses.jsonc'),
+        );
+        fs.writeFileSync(path.join(linkedDir, 'readme.md'), '# reef v2\n');
+        return { ...scene, linkedDir };
+      });
+      when(
+        '[t0] begin --mode apply in the linked worktree, with the switch made to fail, then the worktree removed',
+        () => {
+          const outcome = useBeforeAll(async () => {
+            const result = runCutoverWithShim(
+              { ...scene, repoDir: scene.linkedDir },
+              [
+                'begin',
+                '--from',
+                '@main',
+                '--into',
+                'turtle/wave-report-v2',
+                '--mode',
+                'apply',
+              ],
+              {
+                binDir: genShimBin({
+                  slug: 'cutover-case101-bin',
+                  cli: 'git',
+                  body: [
+                    'if [[ "$1" == "checkout" && "$2" == "-q" && "$3" == "turtle/wave-report-v2" ]]; then',
+                    "  printf '# peer write\\n' > readme.md",
+                    '  echo "error: the checkout was declined" >&2',
+                    '  exit 1',
+                    'fi',
+                    'exec "$REAL_GIT" "$@"',
+                  ],
+                }),
+                env: { REAL_GIT: getRealBin('git') },
+              },
+            );
+            const rescueRefsInLinked = getRescueRefs({
+              ...scene,
+              repoDir: scene.linkedDir,
+            });
+            git(scene.repoDir, [
+              'worktree',
+              'remove',
+              '--force',
+              scene.linkedDir,
+            ]);
+            const rescueRefsAfterRemove = getRescueRefs(scene);
+            return { result, rescueRefsInLinked, rescueRefsAfterRemove };
+          });
+
+          then('the back-out made one rescue in the linked worktree', () => {
+            expect(outcome.result.exitCode).toBe(1);
+            expect(outcome.rescueRefsInLinked).toHaveLength(1);
+          });
+
+          then(
+            'the rescue outlives the worktree, readable from the main one',
+            () => {
+              expect(outcome.rescueRefsAfterRemove).toEqual(
+                outcome.rescueRefsInLinked,
+              );
+              expect(
+                git(scene.repoDir, [
+                  'show',
+                  `${outcome.rescueRefsAfterRemove[0]}:readme.md`,
+                ]),
+              ).toEqual('# peer write');
+            },
+          );
+        },
+      );
+    },
+  );
+
+  given(
+    '[case102] an unstaged edit carried through a continue, then abort at the second halt',
+    () => {
+      // .why = i018 r011 b1: the halt snapshot called every worktree byte the
+      //        cutover's own. an edit saved unstaged at the first halt rode the
+      //        next pick (`--no-commit`), the second halt snapshotted it, and
+      //        abort judged it "no rescue owed" and erased it under "all good"
+      const scene = useBeforeAll(async () => {
+        const scene = genScene({
+          slug: 'cutover-case102',
+          featureCommits: [
+            {
+              file: 'src/band.ts',
+              content: 'export const band = "feature";\n',
+              subject: 'cont(wave): add band of swell',
+            },
+            {
+              file: 'src/swell.ts',
+              content: 'export const swell = "feature";\n',
+              subject: 'cont(wave): add swell sets',
+            },
+          ],
+          mainCommits: [
+            {
+              file: 'src/band.ts',
+              content: 'export const band = "main";\n',
+              subject: 'feat(band): add band on main',
+            },
+            {
+              file: 'src/swell.ts',
+              content: 'export const swell = "main";\n',
+              subject: 'feat(swell): add swell on main',
+            },
+          ],
+        });
+        const halt1 = runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+          '--pick',
+          scene.featureShas[0]!,
+          '--pick',
+          scene.featureShas[1]!,
+          '--mode',
+          'apply',
+        ]);
+        if (halt1.exitCode !== 2)
+          throw new Error(`case102 setup: begin did not halt: ${halt1.stdout}`);
+
+        // settle pick 1, and save an unrelated edit, unstaged
+        fs.writeFileSync(
+          path.join(scene.repoDir, 'src', 'band.ts'),
+          'export const band = "settled";\n',
+        );
+        git(scene.repoDir, ['add', 'src/band.ts']);
+        fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+
+        const halt2 = runCutover(scene, ['continue']);
+        if (halt2.exitCode !== 2)
+          throw new Error(
+            `case102 setup: continue did not halt: ${halt2.stdout}`,
+          );
+        return { ...scene, halt2 };
+      });
+      when('[t0] abort', () => {
+        const result = useBeforeAll(async () => runCutover(scene, ['abort']));
+
+        then('the second halt names the rescue that continue took', () => {
+          const rescueRefs = getRescueRefs(scene);
+          expect(rescueRefs).toHaveLength(1);
+          expect(scene.halt2.stdout).toContain(`rescue: ${rescueRefs[0]}`);
+          expect(asSnapshotSafeIn(scene, scene.halt2.stdout)).toMatchSnapshot();
+        });
+
+        then('abort keeps a rescue that holds the unstaged edit', () => {
+          const rescueRefs = getRescueRefs(scene);
+          expect(result.exitCode).toBe(0);
+          expect(rescueRefs).toHaveLength(1);
+          expect(result.stdout).toContain(`rescue: ${rescueRefs[0]}`);
+          expect(
+            git(scene.repoDir, ['show', `${rescueRefs[0]}:readme.md`]),
+          ).toEqual('# reef v2');
+        });
+
+        then('the undo stands: back on the source, the state gone', () => {
+          expect(getBranch(scene)).toEqual('turtle/wave-report');
+          expect(hasStateFile(scene)).toBe(false);
+        });
+      });
+    },
+  );
+
+  given('[case103] the base turns a tracked file into a dir', () => {
+    // .why = the source tracks src/tide as a file; main replaced it with
+    //        src/tide/swell.ts. the tracked file is no untracked work, so the
+    //        collision scan must not refuse the flip
+    const scene = useBeforeAll(async () =>
+      genScene({
+        slug: 'cutover-case103',
+        featureCommits: [
+          {
+            file: 'src/tide',
+            content: 'low tide\n',
+            subject: 'feat(tide): add tide note',
+          },
+        ],
+        mainCommits: [
+          {
+            file: 'src/tide/swell.ts',
+            content: 'export const swell = 4;\n',
+            subject: 'feat(tide): add tide swell',
+          },
+        ],
+      }),
+    );
+    const BEGIN = ['begin', '--from', '@main', '--into', 'turtle/tide-v2'];
+
+    when('[t0] plan', () => {
+      then('it plans the cutover, with no collision named', () => {
+        const result = runCutover(scene, BEGIN);
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).not.toContain('src/tide\t');
+        expect(result.stdout).not.toContain('would overwrite');
+      });
+    });
+
+    when('[t1] apply', () => {
+      const result = useBeforeAll(async () =>
+        runCutover(scene, [...BEGIN, '--mode', 'apply']),
+      );
+
+      then('the new branch holds the dir from main', () => {
+        expect(result.exitCode).toBe(0);
+        expect(getBranch(scene)).toEqual('turtle/tide-v2');
+        expect(
+          fs.readFileSync(
+            path.join(scene.repoDir, 'src', 'tide', 'swell.ts'),
+            'utf-8',
+          ),
+        ).toEqual('export const swell = 4;\n');
+      });
+    });
+  });
+
+  given('[case104] the base turns a dir the source tracks into a file', () => {
+    // .why = the reverse flip: the source tracks src/tide/swell.ts; main
+    //        replaced the dir with a file src/tide. the dir on disk holds only
+    //        tracked files, so the collision scan must not refuse it
+    const scene = useBeforeAll(async () =>
+      genScene({
+        slug: 'cutover-case104',
+        featureCommits: [
+          {
+            file: 'src/tide/swell.ts',
+            content: 'export const swell = 4;\n',
+            subject: 'feat(tide): add tide swell',
+          },
+        ],
+        mainCommits: [
+          {
+            file: 'src/tide',
+            content: 'low tide\n',
+            subject: 'feat(tide): add tide note',
+          },
+        ],
+      }),
+    );
+
+    when('[t0] apply', () => {
+      const result = useBeforeAll(async () =>
+        runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/tide-v2',
+          '--mode',
+          'apply',
+        ]),
+      );
+
+      then('the new branch holds the file from main', () => {
+        expect(result.exitCode).toBe(0);
+        expect(getBranch(scene)).toEqual('turtle/tide-v2');
+        expect(
+          fs.readFileSync(path.join(scene.repoDir, 'src', 'tide'), 'utf-8'),
+        ).toEqual('low tide\n');
+      });
+    });
+  });
+
+  given(
+    '[case105] a settle staged beside an unrelated edit and a new file',
+    () => {
+      // .why = continue commits the index under the pick's own author. a path
+      //        staged beyond the pick's files and the halt's conflicts is the
+      //        human's work, never the pick author's: it must stay on disk,
+      //        out of the pick commit
+      const scene = useBeforeAll(async () => {
+        const scene = genScene({
+          slug: 'cutover-case105',
+          featureCommits: [
+            {
+              file: 'src/band.ts',
+              content: 'export const band = "feature";\n',
+              subject: 'cont(wave): add band of swell',
+            },
+          ],
+          mainCommits: [
+            {
+              file: 'src/band.ts',
+              content: 'export const band = "main";\n',
+              subject: 'feat(band): add band on main',
+            },
+          ],
+        });
+        const halt = runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+          '--pick',
+          scene.featureShas[0]!,
+          '--mode',
+          'apply',
+        ]);
+        if (halt.exitCode !== 2)
+          throw new Error(`case105 setup: begin did not halt: ${halt.stdout}`);
+
+        // settle the pick, save an unrelated edit and a new file, stage all
+        fs.writeFileSync(
+          path.join(scene.repoDir, 'src', 'band.ts'),
+          'export const band = "settled";\n',
+        );
+        fs.writeFileSync(path.join(scene.repoDir, 'readme.md'), '# reef v2\n');
+        fs.writeFileSync(path.join(scene.repoDir, 'scratch.txt'), 'kelp\n');
+        git(scene.repoDir, ['add', '-A']);
+        return scene;
+      });
+      when('[t0] continue', () => {
+        const result = useBeforeAll(async () =>
+          runCutover(scene, ['continue']),
+        );
+
+        then('the pick commit holds only the settled pick file', () => {
+          expect(result.exitCode).toBe(0);
+          expect(
+            git(scene.repoDir, ['show', '--name-only', '--format=', 'HEAD']),
+          ).toEqual('src/band.ts');
+        });
+
+        then('the report names each path it unstaged, still on disk', () => {
+          expect(result.stdout).toContain(
+            'unstaged (2) — staged past the pick, kept out of its commit; still on disk',
+          );
+          expect(result.stdout).toContain('readme.md');
+          expect(result.stdout).toContain('scratch.txt');
+          expect(asSnapshotSafeIn(scene, result.stdout)).toMatchSnapshot();
+        });
+
+        then('the unrelated edit and the new file stay on disk', () => {
+          expect(
+            fs.readFileSync(path.join(scene.repoDir, 'readme.md'), 'utf-8'),
+          ).toEqual('# reef v2\n');
+          expect(
+            fs.readFileSync(path.join(scene.repoDir, 'scratch.txt'), 'utf-8'),
+          ).toEqual('kelp\n');
+        });
+      });
+    },
+  );
+
+  given('[case106] a settled doc that holds a setext title underline', () => {
+    // .why = a bare ======= line underlines a title in markdown and rst; the
+    //        marker guard must not read it as an unsettled conflict block
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case106',
+        featureCommits: [
+          {
+            file: 'docs/guide.md',
+            content: '# guide\n\nfeature\n',
+            subject: 'cont(docs): add guide',
+          },
+        ],
+        mainCommits: [
+          {
+            file: 'docs/guide.md',
+            content: '# guide\n\nmain\n',
+            subject: 'feat(docs): add guide on main',
+          },
+        ],
+      });
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        scene.featureShas[0]!,
+        '--mode',
+        'apply',
+      ]);
+      if (halt.exitCode !== 2)
+        throw new Error(`case106 setup: begin did not halt: ${halt.stdout}`);
+
+      // settle with a title underlined by exactly seven = signs
+      fs.writeFileSync(
+        path.join(scene.repoDir, 'docs', 'guide.md'),
+        '# guide\n\nInstall\n=======\n\nfeature\n',
+      );
+      git(scene.repoDir, ['add', 'docs/guide.md']);
+      return scene;
+    });
+    when('[t0] continue', () => {
+      const result = useBeforeAll(async () => runCutover(scene, ['continue']));
+
+      then('continue lands the settle', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).not.toContain('conflict markers');
+        expect(git(scene.repoDir, ['show', 'HEAD:docs/guide.md'])).toContain(
+          'Install\n=======',
+        );
+      });
+    });
+  });
+
+  given('[case107] a pick that renames a file and conflicts elsewhere', () => {
+    // .why = a rename status entry is `R  new\0old\0`. a reader with rename
+    //        detection on parsed `old` as an entry of its own, so AUTHORS read
+    //        as code AU on path HORS: a phantom conflict no settle could clear
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case107',
+        featureCommits: [
+          {
+            file: 'AUTHORS',
+            content: 'kai\n',
+            subject: 'chore(authors): add authors',
+          },
+        ],
+        mainCommits: [
+          {
+            file: 'AUTHORS',
+            content: 'kai\n',
+            subject: 'chore(authors): add authors',
+          },
+          {
+            file: 'src/band.ts',
+            content: 'export const band = "main";\n',
+            subject: 'feat(band): add band on main',
+          },
+        ],
+      });
+
+      // the pick: rename AUTHORS, and add a band that conflicts with main's
+      git(scene.repoDir, ['mv', 'AUTHORS', 'AUTHORS.md']);
+      fs.mkdirSync(path.join(scene.repoDir, 'src'), { recursive: true });
+      fs.writeFileSync(
+        path.join(scene.repoDir, 'src', 'band.ts'),
+        'export const band = "feature";\n',
+      );
+      git(scene.repoDir, ['add', 'src/band.ts']);
+      git(scene.repoDir, [
+        'commit',
+        '-q',
+        '-m',
+        'cont(wave): rename authors, add band',
+      ]);
+      const pickSha = git(scene.repoDir, ['rev-parse', 'HEAD']);
+
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        pickSha,
+        '--mode',
+        'apply',
+      ]);
+      return { ...scene, halt };
+    });
+
+    when('[t0] begin --pick --mode apply', () => {
+      then('the halt names the real conflict alone', () => {
+        expect(scene.halt.exitCode).toBe(2);
+        expect(scene.halt.stdout).toContain('src/band.ts');
+        expect(scene.halt.stdout).not.toContain('HORS');
+      });
+    });
+
+    when('[t1] the real conflict is settled, then continue', () => {
+      const result = useBeforeAll(async () => {
+        fs.writeFileSync(
+          path.join(scene.repoDir, 'src', 'band.ts'),
+          'export const band = "settled";\n',
+        );
+        git(scene.repoDir, ['add', 'src/band.ts']);
+        return runCutover(scene, ['continue']);
+      });
+
+      then('the settle lands with the rename', () => {
+        expect(result.exitCode).toBe(0);
+        expect(
+          git(scene.repoDir, ['show', '--name-only', '--format=', 'HEAD']),
+        ).toContain('AUTHORS.md');
+      });
+    });
+  });
+
+  /**
+   * .what = the exact names a commit touches, read NUL-framed from git
+   */
+  const getCommitPaths = (dir: string, rev: string): string[] =>
+    git(dir, ['show', '--name-only', '-z', '--format=', rev])
+      .split('\0')
+      .map((name) => name.replace(/^\n/, ''))
+      .filter((name) => name.length > 0);
+
+  given(
+    '[case108] strays with a quote, a backslash, a newline, and a rename, staged beside a settle',
+    () => {
+      // .why = a newline-framed read quoted these names, and the quoted form
+      //        matched no path: the stray rode the pick commit while the
+      //        report said it stayed out. a rename split into two names, and
+      //        a name read as a pathspec globbed: `src/*` unstaged the settle
+      const STRAYS = ['stray"q.txt', 'stray\\b.txt', 'stray\nnl.txt', 'src/*'];
+      const scene = useBeforeAll(async () => {
+        const scene = genScene({
+          slug: 'cutover-case108',
+          featureCommits: [
+            {
+              file: 'src/band.ts',
+              content: 'export const band = "feature";\n',
+              subject: 'cont(wave): add band of swell',
+            },
+          ],
+          mainCommits: [
+            {
+              file: 'src/band.ts',
+              content: 'export const band = "main";\n',
+              subject: 'feat(band): add band on main',
+            },
+          ],
+        });
+        const halt = runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+          '--pick',
+          scene.featureShas[0]!,
+          '--mode',
+          'apply',
+        ]);
+        if (halt.exitCode !== 2)
+          throw new Error(`case108 setup: begin did not halt: ${halt.stdout}`);
+
+        // settle the pick; stage three strays with hostile names and a rename
+        fs.writeFileSync(
+          path.join(scene.repoDir, 'src', 'band.ts'),
+          'export const band = "settled";\n',
+        );
+        for (const name of STRAYS)
+          fs.writeFileSync(path.join(scene.repoDir, name), 'kelp\n');
+        git(scene.repoDir, ['mv', 'readme.md', 'readme2.md']);
+        git(scene.repoDir, ['add', '-A']);
+        return scene;
+      });
+      when('[t0] continue', () => {
+        const result = useBeforeAll(async () =>
+          runCutover(scene, ['continue']),
+        );
+
+        then('the pick commit holds only the settled pick file', () => {
+          expect(result.exitCode).toBe(0);
+          expect(git(scene.repoDir, ['log', '-1', '--format=%s'])).toEqual(
+            'cont(wave): add band of swell',
+          );
+          expect(getCommitPaths(scene.repoDir, 'HEAD')).toEqual([
+            'src/band.ts',
+          ]);
+          expect(git(scene.repoDir, ['show', 'HEAD:src/band.ts'])).toEqual(
+            'export const band = "settled";',
+          );
+        });
+
+        then('each stray stays on disk and out of the index', () => {
+          for (const name of STRAYS)
+            expect(
+              fs.readFileSync(path.join(scene.repoDir, name), 'utf-8'),
+            ).toEqual('kelp\n');
+          expect(
+            git(scene.repoDir, ['diff', '--cached', '--name-only', 'HEAD']),
+          ).toEqual('');
+        });
+
+        then('the report names each stray by its real name', () => {
+          expect(result.stdout).toContain('unstaged (6)');
+          expect(result.stdout).toContain('src/*');
+          expect(result.stdout).toContain('stray"q.txt');
+          expect(result.stdout).toContain('stray\\b.txt');
+          expect(result.stdout).toContain('stray\\nnl.txt');
+          expect(result.stdout).toContain('readme.md');
+          expect(result.stdout).toContain('readme2.md');
+        });
+      });
+    },
+  );
+
+  given('[case109] a pick whose own file holds a marker-shaped line', () => {
+    // .why = a brief or fixture can hold `<<<<<<< demo` on its own; a marker
+    //        git wrote is never in the author's version of the file
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case109',
+        featureCommits: [
+          {
+            file: 'docs/demo.md',
+            content: '# demo\n\n<<<<<<< demo\nfeature\n',
+            subject: 'cont(docs): add demo of markers',
+          },
+        ],
+        mainCommits: [
+          {
+            file: 'docs/demo.md',
+            content: '# demo\n\nmain\n',
+            subject: 'feat(docs): add demo on main',
+          },
+        ],
+      });
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        scene.featureShas[0]!,
+        '--mode',
+        'apply',
+      ]);
+      if (halt.exitCode !== 2)
+        throw new Error(`case109 setup: begin did not halt: ${halt.stdout}`);
+
+      // settle, and keep the author's own marker-shaped line
+      fs.writeFileSync(
+        path.join(scene.repoDir, 'docs', 'demo.md'),
+        '# demo\n\n<<<<<<< demo\nsettled\n',
+      );
+      git(scene.repoDir, ['add', 'docs/demo.md']);
+      return scene;
+    });
+    when('[t0] continue', () => {
+      const result = useBeforeAll(async () => runCutover(scene, ['continue']));
+
+      then('continue lands the settle', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).not.toContain('conflict markers');
+        expect(git(scene.repoDir, ['show', 'HEAD:docs/demo.md'])).toContain(
+          '<<<<<<< demo\nsettled',
+        );
+      });
+    });
+  });
+
+  given('[case110] the cutover sources, read as text', () => {
+    // .why = a state write outside a named leaf, or a path read outside the
+    //        NUL leaf, is how each past frame slip and half-write began
+    const readSources = (): { file: string; lines: string[] }[] =>
+      fs
+        .readdirSync(__dirname)
+        .filter((file) => file.endsWith('.sh'))
+        .map((file) => ({
+          file,
+          lines: fs
+            .readFileSync(path.join(__dirname, file), 'utf-8')
+            .split('\n'),
+        }));
+
+    when('[t0] each source is scanned', () => {
+      then('every state write sits inside a set_state_* leaf', () => {
+        const strays: string[] = [];
+        for (const source of readSources()) {
+          let fn: string | null = null;
+          source.lines.forEach((line, index) => {
+            const opened = line.match(/^([a-z_]+)\(\) \{/);
+            if (opened) fn = opened[1]!;
+            if (line.startsWith('}')) fn = null;
+            if (line.trim().startsWith('#')) return;
+            if (!/\bset_state_(lines_)?via_jq\b/.test(line)) return;
+            if (fn?.startsWith('set_state_')) return;
+            strays.push(
+              `${source.file}:${index + 1} (in ${fn ?? 'top level'})`,
+            );
+          });
+        }
+        expect(strays).toEqual([]);
+      });
+
+      then('every git path-list read runs through get_git_paths_nul', () => {
+        const strays: string[] = [];
+        for (const source of readSources()) {
+          source.lines.forEach((line, index) => {
+            if (line.trim().startsWith('#')) return;
+            if (
+              !/--name-only|--name-status|--porcelain=|ls-files -v|ls-files --others/.test(
+                line,
+              )
+            )
+              return;
+            if (line.includes('get_git_paths_nul')) return;
+            strays.push(`${source.file}:${index + 1}`);
+          });
+        }
+        expect(strays).toEqual([]);
+      });
+    });
+  });
+
+  given('[case111] a staged new file the base ignores', () => {
+    // .why = the carry marks each park add intent-to-add; without --force,
+    //        a path the base's .gitignore matches failed that step after the
+    //        unit was spent, and left the state at phase carry
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({
+        slug: 'cutover-case111',
+        featureCommits: FEATURE_COMMITS,
+        mainCommits: [
+          {
+            file: '.gitignore',
+            content: '.meter/\n*.gen.ts\n',
+            subject: 'chore(ignore): ignore generated files',
+          },
+        ],
+      });
+      fs.writeFileSync(
+        path.join(scene.repoDir, 'src', 'x.gen.ts'),
+        'export const x = 1;\n',
+      );
+      git(scene.repoDir, ['add', '-f', 'src/x.gen.ts']);
+      return scene;
+    });
+    when('[t0] begin --mode apply', () => {
+      const result = useBeforeAll(async () =>
+        runCutover(scene, [
+          'begin',
+          '--from',
+          '@main',
+          '--into',
+          'turtle/wave-report-v2',
+          '--mode',
+          'apply',
+        ]),
+      );
+
+      then('begin lands, and the file stays tracked and listed', () => {
+        expect(result.exitCode).toBe(0);
+        expect(hasStateFile(scene)).toBe(false);
+        expect(git(scene.repoDir, ['ls-files', '--', 'src/x.gen.ts'])).toEqual(
+          'src/x.gen.ts',
+        );
+        expect(
+          fs.readFileSync(path.join(scene.repoDir, 'src', 'x.gen.ts'), 'utf-8'),
+        ).toEqual('export const x = 1;\n');
+        expect(result.stdout).toContain('src/x.gen.ts');
+      });
+    });
+  });
+
+  /**
+   * .what = a scene whose begin stops inside the carry's index swap, at its
+   *         intent-to-add step, with the carry marked landed
+   * .mock = a git shim fails the intent-to-add step once
+   * .why  = a kill at that step cannot be scheduled from outside
+   */
+  const genSceneCarryStoppedShort = (slug: string) => {
+    const scene = genScene({
+      slug,
+      featureCommits: FEATURE_COMMITS,
+      mainCommits: MAIN_COMMITS_REEF,
+    });
+    fs.writeFileSync(
+      path.join(scene.repoDir, 'src', 'kelp.ts'),
+      'export const kelp = 1;\n',
+    );
+    git(scene.repoDir, ['add', 'src/kelp.ts']);
+    const stopped = runCutoverWithShim(
+      scene,
+      [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--mode',
+        'apply',
+      ],
+      {
+        binDir: genShimBin({
+          slug: `${slug}-bin`,
+          cli: 'git',
+          body: [
+            'if [[ " $* " == *" --intent-to-add "* ]]; then exit 1; fi',
+            'exec "$REAL_GIT" "$@"',
+          ],
+        }),
+        env: { REAL_GIT: getRealBin('git') },
+      },
+    );
+    if (stopped.exitCode === 0 || !hasStateFile(scene))
+      throw new Error(`${slug} setup: begin did not stop: ${stopped.stdout}`);
+    return scene;
+  };
+
+  given('[case112] a carry stopped after its reset, then continue', () => {
+    // .why = the carry unstaged, then marked intent-to-add, as two steps; a
+    //        stop between them left the park's new file untracked, and both
+    //        verbs refused it as a stranger's. the index now swaps whole
+    const scene = useBeforeAll(async () =>
+      genSceneCarryStoppedShort('cutover-case112'),
+    );
+    when('[t0] continue', () => {
+      const result = useBeforeAll(async () => runCutover(scene, ['continue']));
+
+      then('continue closes the carry, and the file stays tracked', () => {
+        expect(result.exitCode).toBe(0);
+        expect(hasStateFile(scene)).toBe(false);
+        expect(getBranch(scene)).toEqual('turtle/wave-report-v2');
+        expect(git(scene.repoDir, ['ls-files', '--', 'src/kelp.ts'])).toEqual(
+          'src/kelp.ts',
+        );
+        expect(
+          fs.readFileSync(path.join(scene.repoDir, 'src', 'kelp.ts'), 'utf-8'),
+        ).toEqual('export const kelp = 1;\n');
+      });
+    });
+  });
+
+  given('[case113] a carry stopped after its reset, then abort', () => {
+    // .why = the same stop; abort must lay the park back onto the source,
+    //        which git refuses while the park's file sits untracked
+    const scene = useBeforeAll(async () =>
+      genSceneCarryStoppedShort('cutover-case113'),
+    );
+    when('[t0] abort', () => {
+      const result = useBeforeAll(async () => runCutover(scene, ['abort']));
+
+      then('abort returns to the source with the edit restored', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).not.toContain('untracked files sit where');
+        expect(hasStateFile(scene)).toBe(false);
+        expect(getBranch(scene)).toEqual('turtle/wave-report');
+        expect(
+          git(scene.repoDir, ['diff', '--cached', '--name-only', 'HEAD']),
+        ).toEqual('src/kelp.ts');
+        expect(
+          fs.readFileSync(path.join(scene.repoDir, 'src', 'kelp.ts'), 'utf-8'),
+        ).toEqual('export const kelp = 1;\n');
+      });
+    });
+  });
+
+  given('[case114] a pick whose clean edit follows a base rename', () => {
+    // .why = the keep set read the pick's source diff, which names old.ts;
+    //        the merge staged the edit at new.ts, so continue unstaged it as
+    //        the human's and the pick landed without part of its change
+    const OLD = Array.from(
+      { length: 12 },
+      (_, i) => `export const swell${i} = ${i};`,
+    ).join('\n');
+    const scene = useBeforeAll(async () => {
+      const scene = genScene({ slug: 'cutover-case114', featureCommits: [] });
+      const dir = scene.repoDir;
+
+      // old.ts in the shared base
+      git(dir, ['checkout', '-q', 'main']);
+      fs.mkdirSync(path.join(dir, 'src'), { recursive: true });
+      fs.writeFileSync(path.join(dir, 'src', 'old.ts'), `${OLD}\n`);
+      git(dir, ['add', 'src/old.ts']);
+      git(dir, ['commit', '-q', '-m', 'chore(seed): add swell table']);
+      git(dir, ['push', '-q', 'origin', 'main']);
+      const baseSha = git(dir, ['rev-parse', 'HEAD']);
+
+      // the pick: edit old.ts, add a band.ts that conflicts
+      git(dir, ['checkout', '-q', 'turtle/wave-report']);
+      git(dir, ['reset', '-q', '--hard', baseSha]);
+      fs.writeFileSync(
+        path.join(dir, 'src', 'old.ts'),
+        `${OLD.replace('swell0 = 0', 'swell0 = 100')}\n`,
+      );
+      fs.writeFileSync(
+        path.join(dir, 'src', 'band.ts'),
+        'export const band = "feature";\n',
+      );
+      git(dir, ['add', 'src/old.ts', 'src/band.ts']);
+      git(dir, ['commit', '-q', '-m', 'cont(wave): edit old and add band']);
+      const pickSha = git(dir, ['rev-parse', 'HEAD']);
+
+      // main renames old.ts to new.ts and adds its own band.ts
+      git(dir, ['checkout', '-q', 'main']);
+      git(dir, ['mv', 'src/old.ts', 'src/new.ts']);
+      fs.writeFileSync(
+        path.join(dir, 'src', 'band.ts'),
+        'export const band = "main";\n',
+      );
+      git(dir, ['add', 'src/band.ts']);
+      git(dir, ['commit', '-q', '-m', 'feat(swell): rename table, add band']);
+      git(dir, ['push', '-q', 'origin', 'main']);
+      git(dir, ['checkout', '-q', 'turtle/wave-report']);
+
+      const halt = runCutover(scene, [
+        'begin',
+        '--from',
+        '@main',
+        '--into',
+        'turtle/wave-report-v2',
+        '--pick',
+        pickSha,
+        '--mode',
+        'apply',
+      ]);
+      if (halt.exitCode !== 2)
+        throw new Error(`case114 setup: begin did not halt: ${halt.stdout}`);
+
+      // settle band.ts only; the rename follow is the merge's own staged work
+      fs.writeFileSync(
+        path.join(dir, 'src', 'band.ts'),
+        'export const band = "settled";\n',
+      );
+      git(dir, ['add', 'src/band.ts']);
+      return scene;
+    });
+    when('[t0] continue', () => {
+      const result = useBeforeAll(async () => runCutover(scene, ['continue']));
+
+      then('the pick commit holds the settle and the followed edit', () => {
+        expect(result.exitCode).toBe(0);
+        expect(git(scene.repoDir, ['log', '-1', '--format=%s'])).toEqual(
+          'cont(wave): edit old and add band',
+        );
+        expect(getCommitPaths(scene.repoDir, 'HEAD').sort()).toEqual([
+          'src/band.ts',
+          'src/new.ts',
+        ]);
+        expect(git(scene.repoDir, ['show', 'HEAD:src/new.ts'])).toContain(
+          'swell0 = 100',
+        );
+      });
+
+      then('the halt recorded what the replay staged', () => {
+        expect(result.stdout).not.toContain('a copy of an edit made mid-halt');
+      });
+
+      then('no path reads as unstaged, and no rescue is made', () => {
+        expect(result.stdout).not.toContain('unstaged (');
+        expect(
+          git(scene.repoDir, [
+            'for-each-ref',
+            '--format=%(refname)',
+            'refs/cutover/rescue/',
+          ]),
+        ).toEqual('');
+        expect(git(scene.repoDir, ['status', '--porcelain'])).toEqual('');
+      });
+    });
+  });
+
+  given('[case115] a base that adds many files, none on disk', () => {
+    // .why = the collision scan forked git per candidate before its disk
+    //        test, so a plan scaled with every file the base added
+    // .mock = a git shim counts each `ls-files --error-unmatch` call
+    // .why  = a fork count is the deterministic form of the cost
+    const scene = useBeforeAll(async () =>
+      genScene({
+        slug: 'cutover-case115',
+        featureCommits: FEATURE_COMMITS,
+        mainCommits: Array.from({ length: 20 }, (_, i) => ({
+          file: `src/reef/coral${i}.ts`,
+          content: `export const coral${i} = ${i};\n`,
+          subject: `feat(reef): add coral ${i}`,
+        })),
+      }),
+    );
+    when('[t0] begin, plan mode, under a fork count', () => {
+      const marked = useBeforeAll(async () => {
+        const markerDir = genTempDir({
+          slug: 'cutover-case115-mark',
+          git: false,
+        });
+        const result = runCutoverWithShim(
+          scene,
+          ['begin', '--from', '@main', '--into', 'turtle/wave-report-v2'],
+          {
+            binDir: genShimBin({
+              slug: 'cutover-case115-bin',
+              cli: 'git',
+              body: [
+                'if [[ " $* " == *" --error-unmatch "* ]]; then echo x >> "$MARK/forks"; fi',
+                'exec "$REAL_GIT" "$@"',
+              ],
+            }),
+            env: { REAL_GIT: getRealBin('git'), MARK: markerDir },
+          },
+        );
+        return { result, forksFile: path.join(markerDir, 'forks') };
+      });
+
+      then('the plan forks no git per absent candidate', () => {
+        expect(marked.result.exitCode).toBe(0);
+        expect(fs.existsSync(marked.forksFile)).toBe(false);
       });
     });
   });

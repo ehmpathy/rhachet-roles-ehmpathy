@@ -649,10 +649,9 @@ if [[ -n "$BEHAVIORAL_COMMITS" ]]; then
       else
         echo "   use \`cont:\` prefix"
       fi
-      echo ""
-      echo "   or, if that first commit already shipped and this work earns its own release,"
-      echo "   cut a fresh branch from main and carry the work over:"
-      echo "     rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>"
+      print_coconut_hint \
+        "if that first commit already shipped and this work earns its own release, cut a fresh branch from main and carry the work over" \
+        "rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>"
     )"
     exit 2
   fi

@@ -45,19 +45,87 @@ is_cutover_in_flight() {
 }
 
 # read one field: get_state '.into'
+# .note = an absent path reads as empty, never as the string "null", so a
+#         `-n` guard on a read means what it says
 get_state() {
-  jq -r "$1" "$(get_cutover_state_file)"
+  jq -r "($1) | select(. != null)" "$(get_cutover_state_file)"
+}
+
+######################################################################
+# position facts — the phase literals live here alone, so a misspelled
+# literal at a call site cannot fail silent
+#
+# phases, in order: claim → cut → picks → carry
+#   claim = state written, naught moved
+#   cut   = the new branch exists; HEAD still on the source
+#   picks = HEAD switched to the new branch; the unit is spent
+#   carry = picks done; the park is laid back down
+######################################################################
+
+# move the cutover to a phase; a literal outside the four refuses loud
+set_state_phase() {
+  local phase="$1"
+  case "$phase" in
+    claim | cut | picks | carry) ;;
+    *)
+      echo "💥 MalfunctionError: set_state_phase got an unknown phase: $phase" >&2
+      return 1
+      ;;
+  esac
+  set_state_via_jq '.phase = $p' --arg p "$phase"
+}
+
+# has any file or branch moved? (past phase "claim")
+is_cutover_past_claim() {
+  [[ "$(get_state '.phase')" != "claim" ]]
+}
+
+# did the cutover stop before its switch? (phase "claim" or "cut")
+is_cutover_before_switch() {
+  local phase
+  phase=$(get_state '.phase') || return 1
+  [[ "$phase" == "claim" || "$phase" == "cut" ]]
+}
+
+# are the picks done and the park laid back down? (phase "carry")
+is_cutover_in_carry() {
+  [[ "$(get_state '.phase')" == "carry" ]]
+}
+
+# may continue run, past an abort guard? not before the switch unless a
+# halt stands. continue's guard and begin's in-flight steer both read this
+# one leaf, so begin never names a verb continue refuses
+# .note = an abort cut short is refused first, by each caller, with its own
+#         message: is_cutover_abort_begun
+is_continue_legal() {
+  [[ -n "$(get_state '.halt')" ]] && return 0
+  ! is_cutover_before_switch
+}
+
+# is this a cutover with an empty carry? cut from a base other than this tree, no pick
+# landed, no tracked edit rode along: the new branch is the base itself
+is_cutover_empty_carry() {
+  [[ "$(get_state '.base_kind')" != "@tree" ]] \
+    && [[ "$(get_state '[.picks[] | select(.status == "landed")] | length')" -eq 0 ]] \
+    && [[ "$(get_state '.tracked | length')" -eq 0 ]]
+}
+
+# is the cutover unit spent? begin spends it once the switch lands
+is_unit_spent() {
+  local phase
+  phase=$(get_state '.phase') || return 1
+  [[ "$phase" == "picks" || "$phase" == "carry" ]]
 }
 
 ######################################################################
 # .what = refuse a state written under another schema
 #
 # .why  = a halt can outlive a role upgrade by days. a field the new code
-#         reads but the old state lacks comes back from jq as "null", and
-#         a verb that acts on "null" acts on a lie. so the shape is versioned,
+#         reads but the old state lacks comes back empty, and a verb that
+#         acts on an absent fact acts on a lie. so the shape is versioned,
 #         and a mismatch stops loud before any read acts on it
 ######################################################################
-CUTOVER_STATE_SCHEMA=1
+CUTOVER_STATE_SCHEMA=3
 
 guard_state_schema() {
   local schema
@@ -170,28 +238,92 @@ set_state_via_jq() {
   shift
   local file
   file=$(get_cutover_state_file)
-  jq "$@" "$filter" "$file" > "$file.tmp.$$"
-  mv -f "$file.tmp.$$" "$file"
+  # the move rides on jq: a failed filter must never replace the state
+  jq "$@" "$filter" "$file" > "$file.tmp.$$" && mv -f "$file.tmp.$$" "$file" \
+    || { rm -f "$file.tmp.$$"; return 1; }
 }
 
 del_state() {
   rm -rf "$(get_cutover_dir)"
 }
 
+######################################################################
+# state leaves — every write to the state goes through a named leaf
+# below; a test pins that no set_state_via_jq sits outside a set_state_*
+# leaf, so a transition is written in one place and can't half-land
+######################################################################
+
 # move the pick cursor: set_state_pick_index 3
 set_state_pick_index() {
   set_state_via_jq '.pick_index = ($i | tonumber)' --arg i "$1"
 }
 
-# move the pick cursor and clear the halt in one write, so no kill can
-# leave a cursor past a halt it never cleared
+# move the pick cursor and clear every halt field in one write, so no kill
+# can leave a cursor past a halt it never cleared
 set_state_resume_at_pick() {
-  set_state_via_jq '.pick_index = ($i | tonumber) | .halt = ""' --arg i "$1"
+  set_state_via_jq '.pick_index = ($i | tonumber) | .halt = "" | .halt_snapshot = "" | .conflicts = []' --arg i "$1"
+}
+
+# is the cursor at or past the pick count? every pick before it is settled,
+# so a resume there owes the carry alone, never a pick
+is_pick_cursor_past_last() {
+  [[ "$1" -ge "$(get_state '.picks | length')" ]]
+}
+
+# refuse a pick write past the last pick: jq would grow the array
+guard_pick_index_in_range() {
+  [[ "$1" =~ ^[0-9]+$ ]] && ! is_pick_cursor_past_last "$1" && return 0
+  echo "💥 MalfunctionError: a pick write got a cursor past the last pick: ${1:-<none>}" >&2
+  return 1
+}
+
+# note where a pick begins, so a resume can tell landed from empty
+set_state_pick_began() {
+  guard_pick_index_in_range "$1" || return 1
+  set_state_via_jq '.picks[($i | tonumber)].head_before = $h' --arg i "$1" --arg h "$2"
+}
+
+# a pick landed as a new commit: set_state_pick_landed <index> <new sha>
+set_state_pick_landed() {
+  guard_pick_index_in_range "$1" || return 1
+  set_state_via_jq '.picks[($i | tonumber)] |= (.status = "landed" | .new = $n)' --arg i "$1" --arg n "$2"
+}
+
+# a pick dropped, with its reason: set_state_pick_dropped <index> <reason>
+set_state_pick_dropped() {
+  guard_pick_index_in_range "$1" || return 1
+  set_state_via_jq '.picks[($i | tonumber)] |= (.status = "dropped" | .reason = $r)' --arg i "$1" --arg r "$2"
+}
+
+# begin's reset is underway; written just before it
+set_state_reset_begun() {
+  set_state_via_jq '.reset_begun = true'
+}
+
+# an abort is underway; a rerun of abort finishes it
+set_state_abort_begun() {
+  set_state_via_jq '.abort_begun = true'
+}
+
+# the tracked edits begin will park, as display lines
+set_state_tracked() {
+  set_state_lines_via_jq tracked "$1"
+}
+
+# add NUL-framed names to .unstaged, exact, deduped
+set_state_unstaged_add_from_nul() {
+  set_state_via_jq '.unstaged = ((.unstaged // []) + $v[0] | unique)' \
+    --slurpfile v <(as_json_array_from_nul)
+}
+
+# one state path list, NUL-framed, the exact names
+get_state_paths_nul() {
+  jq -j "(.$1 // [])[] | ., \"\\u0000\"" "$(get_cutover_state_file)"
 }
 
 # did this pick's replay begin? (its start HEAD is recorded before the replay)
 has_pick_begun() {
-  [[ -n "$(get_state ".picks[$1].head_before // \"\"")" ]]
+  [[ -n "$(get_state ".picks[$1].head_before")" ]]
 }
 
 ######################################################################
@@ -226,6 +358,8 @@ as_cutover_state_json() {
     esac
     shift
   done
+  # the lists ride a file descriptor, never argv: one argv entry caps at
+  # 128 KiB, and a large tree's path list passes that
   jq -n \
     --arg into "$into" \
     --arg source_name "$source_name" \
@@ -233,19 +367,27 @@ as_cutover_state_json() {
     --arg base_kind "$base_kind" \
     --arg base_label "$base_label" \
     --arg base_sha "$base_sha" \
-    --argjson picks "$(as_picks_state_json "$@")" \
-    --argjson tracked "$(printf '%s\n' "$tracked" | as_json_array)" \
-    --argjson untracked "$(printf '%s\n' "$untracked" | as_json_array)" \
-    --argjson left_behind "$(printf '%s\n' "$left_behind" | as_json_array)" \
+    --slurpfile picks <(as_picks_state_json "$@") \
+    --slurpfile tracked <(printf '%s\n' "$tracked" | as_json_array) \
+    --slurpfile untracked <(printf '%s\n' "$untracked" | as_json_array) \
+    --slurpfile left_behind <(printf '%s\n' "$left_behind" | as_json_array) \
     --argjson schema "$CUTOVER_STATE_SCHEMA" \
     '{
       schema: $schema,
       into: $into, source_name: $source_name, source_sha: $source_sha, base_kind: $base_kind,
       base_label: $base_label, base_sha: $base_sha,
-      phase: "claim", halt: "", pick_index: 0, picks: $picks,
-      tracked: $tracked, untracked: $untracked, left_behind: $left_behind,
-      carry: "", conflicts: [], aborting: false
+      phase: "claim", halt: "", halt_snapshot: "", pick_index: 0, picks: $picks[0],
+      tracked: $tracked[0], untracked: $untracked[0], left_behind: $left_behind[0],
+      carry: "", conflicts: [], abort_begun: false, rescue_refs: [], reset_begun: false,
+      unstaged: []
     }'
+}
+
+# set one state field to a list of lines, as a json array, off argv:
+# set_state_lines_via_jq <field> <lines>
+set_state_lines_via_jq() {
+  local field="$1" lines="$2"
+  set_state_via_jq ".$field = \$v[0]" --slurpfile v <(printf '%s\n' "$lines" | as_json_array)
 }
 
 # pick shas → the queued picks array; head_before is set as each replays
@@ -286,19 +428,223 @@ has_park() {
 #         yet; under @tree no file moves, so no park is ever made
 ######################################################################
 is_park_expected() {
-  [[ "$(get_state '.phase')" != "claim" ]] \
+  is_cutover_past_claim \
     && [[ "$(get_state '.base_kind')" != "@tree" ]] \
     && [[ "$(get_state '.tracked | length')" -gt 0 ]]
 }
 
+# drop both park refs; a ref already absent is a no-op
+# .note = each delete returns on fail: under `||` errexit is off, and a
+#         later step's success must not hide an earlier failure
 del_park_refs() {
   if git rev-parse -q --verify "$(get_park_ref)" > /dev/null; then
-    git update-ref -d "$(get_park_ref)"
+    git update-ref -d "$(get_park_ref)" || return 1
   fi
   if git rev-parse -q --verify "$(get_park_index_ref)" > /dev/null; then
-    git update-ref -d "$(get_park_index_ref)"
+    git update-ref -d "$(get_park_index_ref)" || return 1
   fi
   return 0
+}
+
+######################################################################
+# .what = a temp index at <path> that holds every tracked file as the
+#         worktree has it now, staged adds included
+#
+# .why  = the park and the rescue each read the worktree through one
+#         index; a reader blind to some edit lets a reset erase it. one
+#         leaf, so both see the same set:
+#         - a copy of the real index, so a file staged new stays in
+#         - no assume-unchanged flag, so `add -u` reads a hidden edit
+#         - no skip-worktree flag on a path present on disk; a path absent
+#           (a sparse checkout) keeps its flag and reads as no change
+#         - `add -u` stages each tracked file and settles a conflict entry
+#           to what the worktree holds, so write-tree accepts the index
+#
+# .note = the flags clear in one batch per kind, never one fork per path
+# .note = each step returns on fail: a caller in $(...) runs with errexit off
+######################################################################
+gen_snapshot_index() {
+  local index_temp="$1" entry tag path
+  local -a hidden=() unsparse=()
+  rm -f "$index_temp"
+  cp "$(git rev-parse --git-path index)" "$index_temp" || return 1
+  while IFS= read -r -d '' entry; do
+    tag="${entry:0:1}"
+    path="${entry:2}"
+    if [[ "$tag" =~ [a-z] ]]; then
+      hidden+=("$path")
+    fi
+    if [[ "$tag" == "S" || "$tag" == "s" ]] && [[ -e "$path" ]]; then
+      unsparse+=("$path")
+    fi
+  done < <(get_flagged_index_entries)
+  if [[ ${#hidden[@]} -gt 0 ]]; then
+    printf '%s\0' "${hidden[@]}" \
+      | GIT_INDEX_FILE="$index_temp" git update-index -z --no-assume-unchanged --stdin || return 1
+  fi
+  if [[ ${#unsparse[@]} -gt 0 ]]; then
+    printf '%s\0' "${unsparse[@]}" \
+      | GIT_INDEX_FILE="$index_temp" git update-index -z --no-skip-worktree --stdin || return 1
+  fi
+  GIT_INDEX_FILE="$index_temp" git -c core.fsmonitor=false add -u -- . || return 1
+}
+
+# the tree a snapshot of the live worktree holds (gen_snapshot_index); return 1 on fail
+# .note = the temp index sits in the cutover dir, so del_state sweeps a kill's leftover
+get_worktree_snapshot_tree() {
+  local index tree
+  mkdir -p "$(get_cutover_dir)" || return 1
+  index="$(get_cutover_dir)/snapshot.index"
+  gen_snapshot_index "$index" || { rm -f "$index"; return 1; }
+  tree=$(GIT_INDEX_FILE="$index" git write-tree) || { rm -f "$index"; return 1; }
+  rm -f "$index"
+  [[ -n "$tree" ]] || return 1
+  echo "$tree"
+}
+
+######################################################################
+# .what = record a halt: its kind, its snapshot, its conflicts, and the
+#         pick's status, in one write
+#
+# .why  = the halt is three facts that hold together. the snapshot and
+#         the conflicts are computed first, then one write lands them all,
+#         so no kill can leave a halt with no snapshot or no conflicts.
+#         at a halt the worktree holds the cutover's own replay; abort
+#         rescues only a worktree that has moved since, so a rescue ref
+#         means a human edit, never noise
+#
+# usage: set_state_halted kind=<pick-conflict|carry-conflict> [index=<n>]
+######################################################################
+set_state_halted() {
+  local kind="" index="" arg tree
+  for arg in "$@"; do
+    case "$arg" in
+      kind=*) kind="${arg#kind=}" ;;
+      index=*) index="${arg#index=}" ;;
+    esac
+  done
+  case "$kind" in
+    pick-conflict) guard_pick_index_in_range "$index" || return 1 ;;
+    carry-conflict) index="" ;;
+    *)
+      echo "💥 MalfunctionError: set_state_halted got an unknown kind: $kind" >&2
+      return 1
+      ;;
+  esac
+  tree=$(get_worktree_snapshot_tree) || return 1
+  set_state_via_jq '
+    .halt = $k | .halt_snapshot = $t | .conflicts = $c[0]
+    | if $i == "" then . else .picks[($i | tonumber)] |= (.status = "conflict" | .replayed = $r[0]) end' \
+    --arg k "$kind" --arg t "$tree" --arg i "$index" \
+    --slurpfile c <(get_conflict_paths_nul | as_json_array_from_nul) \
+    --slurpfile r <(get_replayed_paths_nul | as_json_array_from_nul)
+}
+
+######################################################################
+# .what = record the paths a clean replay staged for the pick
+#
+# .why  = the merge can stage paths outside the pick's own diff (a change
+#         that follows a base rename, a directory rename). right after the
+#         replay the index holds the cutover's work alone, so this is the
+#         one moment the pick's true file set can be read
+#
+# usage: set_state_pick_replayed <index>
+######################################################################
+set_state_pick_replayed() {
+  guard_pick_index_in_range "$1" || return 1
+  set_state_via_jq '.picks[($i | tonumber)].replayed = $r[0]' --arg i "$1" \
+    --slurpfile r <(get_replayed_paths_nul | as_json_array_from_nul)
+}
+
+# the paths the index holds beyond HEAD (unmerged ones included), NUL-framed
+get_replayed_paths_nul() {
+  get_git_paths_nul diff --cached --name-only HEAD
+}
+
+# clear every halt field in one write
+set_state_halt_cleared() {
+  set_state_via_jq '.halt = "" | .halt_snapshot = "" | .conflicts = []'
+}
+
+# mark the carry landed and clear the halt, in one write
+set_state_carry_landed() {
+  set_state_via_jq '.carry = "landed" | .halt = "" | .halt_snapshot = "" | .conflicts = []'
+}
+
+######################################################################
+# .what = is a rescue owed for this snapshot? (a transformer on trees)
+#
+# .why  = no rescue when the worktree matches HEAD, or matches the snapshot
+#         the last halt left: naught a human made would be lost
+#
+# usage: is_rescue_owed snapshot=<tree> head=<tree> halt=<tree or empty>
+######################################################################
+is_rescue_owed() {
+  local snapshot="" head="" halt=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      snapshot=*) snapshot="${1#*=}" ;;
+      head=*) head="${1#*=}" ;;
+      halt=*) halt="${1#*=}" ;;
+    esac
+    shift
+  done
+  [[ "$snapshot" != "$head" && "$snapshot" != "$halt" ]]
+}
+
+######################################################################
+# .what = find or create the rescue ref that holds <tree>; echo the ref
+#
+# .why  = the ref is named by the tree it holds: a rerun over the same
+#         worktree finds its rescue and writes no twin
+#
+# .note = the name keeps the raw tree sha: it is the snapshot's identity,
+#         and a sha is what `git show <ref>` and for-each-ref print
+# .note = the read-back must name the very commit: a failed write must
+#         stop abort before its reset
+######################################################################
+gen_rescue_ref() {
+  local tree="$1" commit ref
+  ref="refs/cutover/rescue/$tree"
+  if [[ "$(git rev-parse -q --verify "$ref^{tree}" || true)" != "$tree" ]]; then
+    commit=$(GIT_AUTHOR_NAME="$CUTOVER_BOT_NAME" GIT_AUTHOR_EMAIL="$CUTOVER_BOT_EMAIL" \
+      git commit-tree --no-gpg-sign "$tree" -p HEAD -m "cutover rescue: the worktree before abort's reset") || return 1
+    [[ -n "$commit" ]] || return 1
+    git update-ref "$ref" "$commit" || return 1
+    [[ "$(git rev-parse -q --verify "$ref" || true)" == "$commit" ]] || return 1
+  fi
+  echo "$ref"
+}
+
+# add one rescue ref to .rescue_refs, once: set_state_rescue_ref <ref>
+set_state_rescue_ref() {
+  set_state_via_jq '.rescue_refs = (.rescue_refs + [$r] | unique)' --arg r "$1"
+}
+
+######################################################################
+# .what = save the live worktree's tracked files to a rescue ref, and
+#         add the ref to the state's .rescue_refs
+#
+# .why  = abort's reset erases each tracked edit the park does not hold:
+#         one saved mid-halt, a file staged new, a half-settled conflict
+#         the rescue keeps a copy outside del_park_refs, so the undo stays
+#         the way out and loses naught
+#
+# .note = the refs live in the state, never in a shell variable: an abort
+#         killed after its reset reruns over a clean tree, and only the
+#         state still knows where the edits went
+# .note = a list, never one slot: a second abort over a fresh edit must not
+#         erase the name of the first rescue
+# .note = untracked files are never reset, so they stay out
+######################################################################
+gen_worktree_rescue() {
+  local tree head halt ref
+  tree=$(get_worktree_snapshot_tree) || return 1
+  head=$(git rev-parse 'HEAD^{tree}') || return 1
+  halt=$(get_state '.halt_snapshot') || return 1
+  is_rescue_owed snapshot="$tree" head="$head" halt="$halt" || return 0
+  ref=$(gen_rescue_ref "$tree") || return 1
+  set_state_rescue_ref "$ref"
 }
 
 ######################################################################
@@ -394,8 +740,28 @@ has_branch_upstream() {
 }
 
 # check out a branch by name (its output on fail)
+# .note = a post-checkout hook's failure is the checkout's exit code, though
+#         the switch already ran: HEAD on <branch> means the switch stands
 set_head_branch() {
-  git checkout -q "$1" 2>&1
+  local out rc=0
+  out=$(git checkout -q "$1" 2>&1) || rc=$?
+  [[ "$rc" -eq 0 ]] && return 0
+  [[ "$(get_head_branch || true)" == "$1" ]] && return 0
+  printf '%s\n' "$out"
+  return "$rc"
+}
+
+# the path of a peer worktree that has <branch> checked out, or naught
+get_branch_peer_worktree() {
+  local branch="$1" here line path=""
+  here=$(git rev-parse --show-toplevel) || return 1
+  while IFS= read -r line; do
+    [[ "$line" == "worktree "* ]] && path="${line#worktree }"
+    if [[ "$line" == "branch refs/heads/$branch" && "$path" != "$here" ]]; then
+      echo "$path"
+      return 0
+    fi
+  done < <(git worktree list --porcelain)
 }
 
 # check out a sha, detached
@@ -418,11 +784,6 @@ del_worktree_tracked_edits() {
 # lay a commit's change into the index and worktree, no commit (its output on fail)
 set_index_from_pick() {
   git cherry-pick --no-commit "$1" 2>&1
-}
-
-# unstage every staged change; the worktree keeps the edits
-set_index_to_head() {
-  git reset -q
 }
 
 # does the index hold no change beside HEAD?
@@ -505,10 +866,17 @@ emit_no_cutover_refusal() {
   local op
   op=$(get_foreign_op_in_flight)
   if [[ -n "$op" ]]; then
-    emit_cutover_refusal "no cutover is in flight to $verb; a $op is" "$(
+    emit_cutover_refusal "no cutover is in flight to $verb; a $op is in flight instead" "$(
       echo "└─ fix: settle the $op with its own verb"
       get_foreign_op_settle_lines "$op" | as_tree_children | sed 's/^/   /'
     )"
+  fi
+  # an abort after a finished cutover wants an undo, not a second cutover
+  if [[ "$verb" == "abort" ]]; then
+    emit_cutover_refusal "no cutover is in flight to abort" "$(printf '%s\n' \
+      "no cutover state remains: it finished, or an abort already ran" \
+      "a finished cutover left its source branch untouched; to go back, switch to it" \
+      "to start one: rhx git.branch.cutover begin --from @main --into <branch>" | as_tree_children)"
   fi
   emit_cutover_refusal "no cutover is in flight to $verb" \
     "└─ start one: rhx git.branch.cutover begin --from @main --into <branch>"
@@ -536,7 +904,7 @@ del_pick_marks() {
 ######################################################################
 get_tracked_edit_lines() {
   local line x y code
-  while IFS= read -r line; do
+  while IFS= read -r -d '' line; do
     [[ -z "$line" ]] && continue
     x="${line:0:1}"
     y="${line:1:1}"
@@ -544,12 +912,88 @@ get_tracked_edit_lines() {
     if [[ "$code" == " " ]]; then
       code="$y"
     fi
-    echo "$code ${line:3}"
-  done < <(git status --porcelain=v1 --untracked-files=no --no-renames)
+    printf '%s %s\0' "$code" "${line:3}"
+  done < <(get_git_paths_nul status --porcelain=v1 --untracked-files=no) | as_display_lines_from_nul
 }
 
+######################################################################
+# .what = edits git status cannot see, one line each: "h path" for an
+#         assume-unchanged path, "S path" for a skip-worktree path
+#
+# .why  = status and diff skip a flagged path, so `.tracked` (read from
+#         status) never lists its edit, and begin refuses it rather
+#         than carry an edit the report would not name. the park itself
+#         sees it (gen_snapshot_index clears the flags). a flagged path
+#         with no edit, or absent from disk (a sparse checkout), is left
+#         alone: the reset keeps it as is
+######################################################################
+get_hidden_edit_lines() {
+  local entry tag path
+  while IFS= read -r -d '' entry; do
+    tag="${entry:0:1}"
+    path="${entry:2}"
+    [[ "$tag" =~ ^[a-z]$ || "$tag" == "S" ]] || continue
+    [[ -f "$path" ]] || continue
+    [[ "$(git hash-object -- "$path")" == "$(git rev-parse ":$path" 2> /dev/null)" ]] && continue
+    [[ "$tag" == "S" ]] || tag="h"
+    printf '%s %s\0' "$tag" "$path"
+  done < <(get_flagged_index_entries) | as_display_lines_from_nul
+}
+
+# the index entries that carry an assume-unchanged (lowercase tag) or a
+# skip-worktree (S) flag, NUL-separated; grep filters, so the bash loops
+# that read them walk the few flagged entries, never every tracked file
+get_flagged_index_entries() {
+  get_git_paths_nul ls-files -v | { grep -z -E '^[a-zS] ' || true; }
+}
+
+# the untracked files, as display lines
 get_untracked_files() {
-  git ls-files --others --exclude-standard
+  get_git_paths_nul ls-files --others --exclude-standard | as_display_lines_from_nul
+}
+
+######################################################################
+# .what = one path list from git, NUL-framed end to end
+#
+# .why  = a newline-framed read quotes a name that holds a quote, a
+#         backslash, or a control byte, and splits a rename into two
+#         names; the quoted form matches no path. every path read in the
+#         cutover runs through this leaf, so no reader can forget a flag
+#
+# usage: get_git_paths_nul <diff|diff-tree|status|ls-files> [args...]
+#
+# .note = --no-renames goes ahead of the caller's args, so a caller that
+#         reads renames on purpose (-M) still can
+# .note = --literal-pathspecs: a path arg is a name, never a glob
+######################################################################
+get_git_paths_nul() {
+  local verb="$1"
+  shift
+  case "$verb" in
+    diff | diff-tree | status) git --literal-pathspecs "$verb" -z --no-renames "$@" ;;
+    ls-files) git --literal-pathspecs ls-files -z "$@" ;;
+    *)
+      echo "💥 MalfunctionError: get_git_paths_nul got an unknown verb: $verb" >&2
+      return 1
+      ;;
+  esac
+}
+
+# one name → its display form; a newline or tab shows as an escape
+as_display_name() {
+  local name="${1//$'\n'/\\n}"
+  printf '%s' "${name//$'\t'/\\t}"
+}
+
+# NUL-framed names → display lines; a control byte in a name shows as an
+# escape (\n, \t), so one name is always one line and one count
+as_display_lines_from_nul() {
+  jq -Rrs 'split("\u0000") | map(select(length > 0)) | .[] | gsub("\n"; "\\n") | gsub("\t"; "\\t")'
+}
+
+# NUL-framed names → a json array of the exact names
+as_json_array_from_nul() {
+  jq -Rs 'split("\u0000") | map(select(length > 0))'
 }
 
 ######################################################################
@@ -758,6 +1202,26 @@ get_plan_quota_line() {
 }
 
 ######################################################################
+# .what = the report's quota line: what this cutover spent, and what is left
+#
+# .why  = the plan said "apply spends 1"; the report closes that loop
+#
+# echoes: one line, or naught when the meter cannot be read
+######################################################################
+get_report_quota_line() {
+  local meter uses
+  meter=$(get_branch_meter_file)
+  [[ -f "$meter" ]] || return 0
+  uses=$(jq -r '.uses // empty' "$meter" 2> /dev/null) || return 0
+  [[ -n "$uses" ]] || return 0
+  if [[ "$uses" == "infinite" ]]; then
+    echo "quota: unlimited (none spent)"
+    return 0
+  fi
+  echo "quota: 1 spent, $uses left"
+}
+
+######################################################################
 # .what = commits on the source, ahead of the base, that no pick names
 #
 # .why  = picks are an allowlist; a commit not named stays on the
@@ -825,6 +1289,9 @@ as_bounded_lines() {
 #         staged deletions (a path HEAD tracks that the index dropped).
 #         a candidate collides when aught sits on disk at it, or at one
 #         of its parent dirs as a non-dir. lines are "path<TAB>source"
+#
+# .note = the disk test runs first and git only for paths that sit on
+#         disk, so a base that adds many files costs no fork per path
 ######################################################################
 get_untracked_collision_lines() {
   local base_sha="$1"
@@ -834,52 +1301,56 @@ get_untracked_collision_lines() {
   local candidates=()
   local path sha
 
-  # .note = every read is -z: without it git quotes a non-ascii path
-  #         ("caf\303\251.md"), and the disk test below would miss it
+  # .note = every read runs through get_git_paths_nul: a quoted name
+  #         ("caf\303\251.md") would miss the disk test below
 
   # paths the base tracks that HEAD does not
   while IFS= read -r -d '' path; do
     [[ -n "$path" ]] && candidates+=("$path"$'\t'"also tracked on $base_label @ $(get_short_sha "$base_sha")")
-  done < <(git diff -z --name-only --no-renames --diff-filter=A HEAD "$base_sha")
+  done < <(get_git_paths_nul diff --name-only --diff-filter=A HEAD "$base_sha")
 
   # paths each pick adds
   for sha in "${picks[@]+"${picks[@]}"}"; do
     while IFS= read -r -d '' path; do
       [[ -n "$path" ]] && candidates+=("$path"$'\t'"added by pick $(get_short_sha "$sha")")
-    done < <(git diff-tree -z --no-commit-id --name-only --no-renames -r --diff-filter=A "$sha")
+    done < <(get_git_paths_nul diff-tree --no-commit-id --name-only -r --diff-filter=A "$sha")
   done
 
   # paths HEAD tracks that the index has dropped
   while IFS= read -r -d '' path; do
     [[ -n "$path" ]] && candidates+=("$path"$'\t'"tracked on HEAD, dropped from the index")
-  done < <(git diff -z --cached --name-only --no-renames --diff-filter=D)
+  done < <(get_git_paths_nul diff --cached --name-only --diff-filter=D)
 
   local entry source prefix
   for entry in "${candidates[@]+"${candidates[@]}"}"; do
     path="${entry%%$'\t'*}"
     source="${entry#*$'\t'}"
 
-    # a path the index tracks is a tracked edit, parked — not untracked
-    if git ls-files --error-unmatch -- "$path" > /dev/null 2>&1; then
-      continue
-    fi
-
-    # aught on disk at the path itself
+    # aught on disk at the path itself; a tracked edit there is parked
     if [[ -e "$path" || -L "$path" ]]; then
-      printf '%s\t%s\n' "$path" "$source"
+      is_path_tracked "$path" && continue
+      printf '%s\t%s\n' "$(as_display_name "$path")" "$source"
       continue
     fi
 
-    # a non-dir at one of its parent dirs
+    # an untracked non-dir at one of its parent dirs. a tracked file there
+    # is a file↔dir flip the reset clears, never untracked work
     prefix="$path"
     while [[ "$prefix" == */* ]]; do
       prefix="${prefix%/*}"
       if [[ (-e "$prefix" || -L "$prefix") && ! -d "$prefix" ]]; then
-        printf '%s\t%s\n' "$prefix" "$source"
+        is_path_tracked "$prefix" && break
+        is_path_tracked "$path" && break
+        printf '%s\t%s\n' "$(as_display_name "$prefix")" "$source"
         break
       fi
     done
   done | sort -u
+}
+
+# does the index track this exact path?
+is_path_tracked() {
+  git --literal-pathspecs ls-files --error-unmatch -- "$1" > /dev/null 2>&1
 }
 
 ######################################################################
@@ -944,10 +1415,9 @@ is_park_refs_at() {
 # a temp index beside the real one, with every tracked edit staged; echoes its path
 gen_park_index() {
   local index_temp
-  mkdir -p "$(get_cutover_dir)"
+  mkdir -p "$(get_cutover_dir)" || return 1
   index_temp="$(get_cutover_dir)/park.index"
-  cp "$(git rev-parse --git-path index)" "$index_temp"
-  GIT_INDEX_FILE="$index_temp" git add -u
+  gen_snapshot_index "$index_temp" || return 1
   echo "$index_temp"
 }
 
@@ -996,16 +1466,21 @@ is_park_match_worktree() {
 #         makes this false, and the cut backs out rather than reset it
 #
 # .note = no park: the worktree must hold no tracked edit at all
+# .note = returns 0 held, 1 not held, 2 the check itself failed: callers
+#         run it under `if !`, where errexit is off, so a failed snapshot
+#         must never read as a verdict
 ######################################################################
 is_worktree_held_by_park() {
-  local index_temp rc=0
+  local index_temp park rc=0
   if ! has_park; then
     [[ -z "$(get_tracked_edit_lines)" ]]
     return
   fi
-  index_temp=$(gen_park_index)
-  is_park_match_worktree park="$(git rev-parse "$(get_park_ref)")" index="$index_temp" || rc=$?
+  index_temp=$(gen_park_index) || return 2
+  park=$(git rev-parse "$(get_park_ref)") || { rm -f "$index_temp"; return 2; }
+  is_park_match_worktree park="$park" index="$index_temp" || rc=$?
   rm -f "$index_temp"
+  [[ "$rc" -le 1 ]] || return 2
   return "$rc"
 }
 
@@ -1018,15 +1493,17 @@ is_worktree_held_by_park() {
 #         so the caller picks it or settles the edit before apply
 #
 # usage: printf '%s\n' "$TRACKED_LINES" | get_carry_halt_lines <base sha> <source sha> [<pick sha>...]
-# echoes: "<path> (added by <short sha> <subject>, not picked)" per file
+# echoes: "<path> (<cause>)" per file, cause from get_path_absence_cause
 #
 # .note = a staged-new file (A) the carry adds; a delete (D) of a file
 #         both sides lack merges clean. only a change (M, T) can halt
+# .note = a file the base renamed carries clean (the merge follows the
+#         rename), so it is no halt
 ######################################################################
 get_carry_halt_lines() {
   local base="$1" source="$2"
   shift 2
-  local line code path introducer
+  local line code path cause
   while IFS= read -r line; do
     [[ -n "$line" ]] || continue
     code="${line:0:1}"
@@ -1034,9 +1511,52 @@ get_carry_halt_lines() {
     [[ "$code" == "M" || "$code" == "T" ]] || continue
     git cat-file -e "$base:$path" 2> /dev/null && continue
     is_path_added_by_picks "$path" "$@" && continue
-    introducer=$(git log --diff-filter=A --format='%h %s' -1 "$base..$source" -- "$path")
-    echo "$path (added by ${introducer:-a commit off the base}, not picked)"
+    cause=$(get_path_absence_cause "$path" "$base" "$source")
+    [[ "$cause" == "renamed on the base"* ]] && continue
+    echo "$path ($cause)"
   done
+}
+
+######################################################################
+# .what = why <path> is absent from <base>, one phrase:
+#         "added by <sha> <subject>, not picked" — a left-behind commit adds it
+#         "renamed on the base to <path>"        — the base moved it
+#         "removed on the base"                  — the base deleted it
+#         "absent from the base, cause unknown"  — none of the above found
+#
+# .why  = the fix differs per cause: pick the commit, let the rename carry,
+#         or keep or drop the edit. a halt that names the wrong cause sends
+#         the human to the wrong fix
+#
+# usage: get_path_absence_cause <path> <base sha> <source sha>
+######################################################################
+get_path_absence_cause() {
+  local path="$1" base="$2" source="$3" introducer fork status old new
+  introducer=$(git --literal-pathspecs log --diff-filter=A --format='%h %s' -1 "$base..$source" -- "$path" 2> /dev/null || true)
+  if [[ -n "$introducer" ]]; then
+    echo "added by $introducer, not picked"
+    return 0
+  fi
+  fork=$(git merge-base "$base" "$source" 2> /dev/null || true)
+  if [[ -n "$fork" ]]; then
+    while IFS= read -r -d '' status; do
+      IFS= read -r -d '' old || break
+      new=""
+      if [[ "$status" == R* || "$status" == C* ]]; then
+        IFS= read -r -d '' new || break
+      fi
+      [[ "$old" == "$path" ]] || continue
+      if [[ "$status" == R* ]]; then
+        echo "renamed on the base to $new"
+        return 0
+      fi
+      if [[ "$status" == D ]]; then
+        echo "removed on the base"
+        return 0
+      fi
+    done < <(get_git_paths_nul diff --name-status -M --diff-filter=DR "$fork" "$base" 2> /dev/null || true)
+  fi
+  echo "absent from the base, cause unknown"
 }
 
 # does any of the picks add this path? is_path_added_by_picks <path> [<pick sha>...]
@@ -1044,7 +1564,8 @@ is_path_added_by_picks() {
   local path="$1" pick
   shift
   for pick in "$@"; do
-    [[ -n "$(git diff-tree -r --no-commit-id --name-only --diff-filter=A "$pick" -- "$path")" ]] && return 0
+    get_git_paths_nul diff-tree -r --no-commit-id --name-only --diff-filter=A "$pick" -- "$path" \
+      | has_one_nul_entry && return 0
   done
   return 1
 }
@@ -1062,17 +1583,89 @@ set_park_refs() {
   git update-ref "$(get_park_index_ref)" "$park_index"
 }
 
-######################################################################
-# .what = lay a park back down onto a clean HEAD, with its stage split
-#
-# .why  = abort promises the source tree comes back exactly, the
-#         staged/unstaged split included
-#
-# .note = call on a clean tree whose HEAD is the park's parent (abort)
-######################################################################
-restore_park() {
-  git read-tree -m -u HEAD "$(get_park_ref)"
+# the park's stage split, onto the index alone; the worktree is untouched,
+# so a rerun may repeat it after a kill between set_park_laid_back's two reads
+set_index_from_park() {
   git read-tree "$(get_park_index_ref)^{tree}"
+}
+
+######################################################################
+# .what = abort's undo steps, each a no-op where a prior run already did it
+#
+# .why  = a killed abort reruns over a half-done undo. each step checks its
+#         own end state, so abort reads as a straight list and converges
+######################################################################
+
+# does abort still owe the reset of the new branch's tree?
+# under @tree no file ever moved, and back on the source a reset would
+# erase the park's edits, so a reset is owed only while HEAD is the new branch
+is_reset_owed() {
+  [[ "$(get_state '.base_kind')" != "@tree" ]] \
+    && [[ "$(get_head_branch || true)" == "$(get_state '.into')" ]]
+}
+
+# put HEAD back on the source: by name when it had one, else detached
+set_head_at_source() {
+  local source_name source_sha
+  source_name=$(get_state '.source_name')
+  source_sha=$(get_state '.source_sha')
+  is_head_at_source "$source_name" "$source_sha" "$(get_head_branch || true)" && return 0
+  if [[ -n "$source_name" ]]; then
+    set_head_branch "$source_name" || return 1
+    return 0
+  fi
+  set_head_detached "$source_sha"
+}
+
+# lay the park's files back unless the worktree already holds them, then
+# always lay its stage split: a kill between the two reads leaves the
+# files back and the split owed
+# .note = a tracked edit made on the source since the reset (a peer write
+#         mid back-out) is saved to a rescue ref and cleared first, so the
+#         park lands over HEAD and a rerun never sticks on "not uptodate"
+#         over a clean tree both steps are no-ops
+set_park_laid_back() {
+  is_park_expected || return 0
+  local held_rc=0
+  is_worktree_held_by_park || held_rc=$?
+  [[ "$held_rc" -le 1 ]] || return 1
+  if [[ "$held_rc" -eq 1 ]]; then
+    gen_worktree_rescue || return 1
+    del_worktree_tracked_edits || return 1
+    git read-tree -m -u HEAD "$(get_park_ref)" || return 1
+  fi
+  set_index_from_park
+}
+
+######################################################################
+# .what = undo a cutover past its claim: rescue, reset, back on the
+#         source, the park laid back, the new branch gone
+#
+# .why  = abort and begin's back-out walk one ladder, so neither carries
+#         a weaker copy. each step judges by the fact it produces (HEAD,
+#         the snapshot), never by a proxy such as "the tree reads clean"
+#
+# .note = each step returns on fail: begin calls this under `if !`, where
+#         errexit is off; abort calls it plain, where its trap catches it
+# .note = the state and park stay; the caller drops them only on success
+######################################################################
+undo_cutover() {
+  local into
+  into=$(get_state '.into') || return 1
+  del_pick_marks || return 1
+
+  # save the worktree to a rescue ref, then clear the new branch's tree
+  if is_reset_owed; then
+    gen_worktree_rescue || return 1
+    del_worktree_tracked_edits || return 1
+  fi
+
+  # back on the source, then the tracked edits with their stage split
+  set_head_at_source || return 1
+  set_park_laid_back || return 1
+
+  # remove the branch this cutover made; it was never pushed
+  del_local_branch "$into"
 }
 
 ######################################################################
@@ -1090,6 +1683,9 @@ restore_park() {
 land_settled_pick() {
   local index="$1"
   local sha base_label new_sha empty_reason
+
+  # a write past the last pick would grow the array with a phantom pick
+  guard_pick_index_in_range "$index" || return 1
   sha=$(get_state ".picks[$index].sha")
   base_label=$(get_state '.base_label')
   empty_reason="${2:-its change is already on $base_label}"
@@ -1097,10 +1693,10 @@ land_settled_pick() {
   # HEAD moved past where this pick began: its commit already landed, and
   # a crash came before the state could say so. record it, never drop it
   local head_before
-  head_before=$(get_state ".picks[$index].head_before // \"\"")
+  head_before=$(get_state ".picks[$index].head_before")
   if [[ -n "$head_before" && "$(get_head_sha)" != "$head_before" ]]; then
     del_pick_marks
-    set_state_via_jq ".picks[$index].status = \"landed\" | .picks[$index].new = \$n" --arg n "$(get_head_sha)"
+    set_state_pick_landed "$index" "$(get_head_sha)"
     return 0
   fi
 
@@ -1112,8 +1708,7 @@ land_settled_pick() {
       empty_reason="an earlier pick already carried its change"
     fi
     del_pick_marks
-    set_state_via_jq ".picks[$index].status = \"dropped\" | .picks[$index].reason = \$r" \
-      --arg r "$empty_reason"
+    set_state_pick_dropped "$index" "$empty_reason"
     return 0
   fi
 
@@ -1121,7 +1716,7 @@ land_settled_pick() {
   set_commit_from_pick "$sha"
   del_pick_marks
   new_sha=$(get_head_sha)
-  set_state_via_jq ".picks[$index].status = \"landed\" | .picks[$index].new = \$n" --arg n "$new_sha"
+  set_state_pick_landed "$index" "$new_sha"
 }
 
 # did a pick before <index> land a patch equal to this pick's, one the base lacks?
@@ -1173,20 +1768,19 @@ run_pick_loop() {
     # drop a pick that would carry naught, before any replay
     reason=$(get_pick_drop_reason_preview "$index" "$base_sha" "$base_label" "${picks[@]}")
     if [[ -n "$reason" ]]; then
-      set_state_via_jq ".picks[$index].status = \"dropped\" | .picks[$index].reason = \$r" --arg r "$reason"
+      set_state_pick_dropped "$index" "$reason"
       index=$((index + 1))
       set_state_pick_index "$index"
       continue
     fi
 
     # note where this pick begins, so a resume can tell landed from empty
-    set_state_via_jq ".picks[$index].head_before = \$h" --arg h "$(get_head_sha)"
+    set_state_pick_began "$index" "$(get_head_sha)"
 
     # replay without a commit; the loop owns the commit
     if ! out=$(set_index_from_pick "$sha"); then
-      if [[ -n "$(get_conflict_files)" ]]; then
-        set_state_halt_conflicts
-        set_state_via_jq ".picks[$index].status = \"conflict\" | .halt = \"pick-conflict\""
+      if has_conflict_files; then
+        set_state_halted kind=pick-conflict index="$index"
         PICK_OUTCOME="conflict"
         return 0
       fi
@@ -1195,12 +1789,14 @@ run_pick_loop() {
       return 0
     fi
 
+    # the replay's own file set, so a resume after a kill keeps all of it
+    set_state_pick_replayed "$index"
     land_settled_pick "$index"
     index=$((index + 1))
     set_state_pick_index "$index"
   done
 
-  set_state_via_jq '.halt = ""'
+  set_state_halt_cleared
   PICK_OUTCOME="done"
 }
 
@@ -1211,14 +1807,15 @@ run_pick_loop() {
 #         source HEAD) onto the new HEAD; a clash leaves markers
 #
 # sets CARRY_OUTCOME: done = carried (or naught to carry), conflict =
-#   halted on a carry conflict, failed = the carry failed for another cause
+#   halted on a carry conflict, park-absent = the state expects a park git
+#   lacks, failed = the carry failed for another cause
 #
 # .note = as run_pick_loop: the outcome rides a variable, so errexit stays live
 ######################################################################
 run_carry() {
   local out
   CARRY_OUTCOME=""
-  set_state_via_jq '.phase = "carry"'
+  set_state_phase carry
 
   # the state, not the ref, says whether edits await the carry
   if ! is_park_expected; then
@@ -1228,15 +1825,14 @@ run_carry() {
 
   # the state expects a park that git lacks: fail loud, never report a carry
   if ! has_park; then
-    CARRY_ERROR="the state holds $(get_state '.tracked | length') tracked edit(s), but the park $(get_park_ref) is absent"
-    CARRY_OUTCOME="failed"
+    CARRY_ERROR="the state holds tracked edits ($(get_state '.tracked | length')), but the park $(get_park_ref) is absent"
+    CARRY_OUTCOME="park-absent"
     return 0
   fi
 
   if ! out=$(set_index_from_pick "$(get_park_ref)"); then
-    if [[ -n "$(get_conflict_files)" ]]; then
-      set_state_halt_conflicts
-      set_state_via_jq '.halt = "carry-conflict"'
+    if has_conflict_files; then
+      set_state_halted kind=carry-conflict
       CARRY_OUTCOME="conflict"
       return 0
     fi
@@ -1254,31 +1850,28 @@ run_carry() {
 #
 # .why  = the state can outlive the session by days. a continue that lands
 #         picks onto some other branch, or an abort that resets some other
-#         branch's edits and deletes a branch with work on it, acts on work
-#         the cutover never touched. every check reads git, not the state
+#         branch's edits, acts on work the cutover never touched
 #
-# .note = continue tolerates a commit the state never recorded (a human
-#         who landed the settled pick by hand; land_settled_pick records
-#         it). abort does not: it would drop that commit to the reflog
+# .note = abort's own guards (pushed branch, unrecorded commit, moved
+#         source) live in guard_abort_deletes_only_own_work
 #
 # usage: guard_head_at_cutover_position verb=continue|abort
 ######################################################################
 guard_head_at_cutover_position() {
   local verb="${1#verb=}"
-  local into phase source_name source_sha head_branch
+  local into source_name source_sha head_branch
   into=$(get_state '.into')
-  phase=$(get_state '.phase')
   source_name=$(get_state '.source_name')
   source_sha=$(get_state '.source_sha')
   head_branch=$(get_head_branch || true)
 
   # in phase "claim" no file or branch has moved, so there is naught to misplace
-  [[ "$phase" != "claim" ]] || return 0
+  is_cutover_past_claim || return 0
 
   # HEAD must be the new branch, or, in phase "cut", still the source.
   # an abort that began and was cut short may have switched back already:
   # its rerun accepts HEAD on the source, and finishes the undo
-  if ! is_head_at_cutover_position "$into" "$phase" "$source_name" "$source_sha" "$head_branch" \
+  if ! is_head_at_cutover_position "$into" "$source_name" "$source_sha" "$head_branch" \
     && ! { [[ "$verb" == "abort" ]] && is_cutover_abort_begun \
       && is_head_at_source "$source_name" "$source_sha" "$head_branch"; }; then
     emit_cutover_refusal "HEAD is not where this cutover left it, so $verb would act on other work" "$(printf '%s\n' \
@@ -1286,7 +1879,23 @@ guard_head_at_cutover_position() {
       "found: ${head_branch:-detached at $(get_short_sha "$(get_head_sha)")}" \
       "fix: git switch $(as_shell_word "$into"), then rerun rhx git.branch.cutover $verb" | as_tree_children)"
   fi
-  [[ "$verb" == "abort" ]] || return 0
+}
+
+######################################################################
+# .what = refuse an abort that would delete or reverse work it did not make
+#
+# .why  = abort resets the worktree, deletes the new branch, and lays the
+#         park over the source. each is safe only over what this cutover
+#         made: an unpushed branch, recorded commits, an unmoved source
+######################################################################
+guard_abort_deletes_only_own_work() {
+  local into source_name source_sha
+  into=$(get_state '.into')
+  source_name=$(get_state '.source_name')
+  source_sha=$(get_state '.source_sha')
+
+  # in phase "claim" no file or branch has moved, so there is naught to misplace
+  is_cutover_past_claim || return 0
 
   # abort deletes only a branch that was never pushed
   local remote_refs
@@ -1325,11 +1934,22 @@ guard_head_at_cutover_position() {
       "fix: keep the move on a side branch, point $source_name back, then rerun abort" \
       "run: git branch $(as_shell_word "$source_name.moved") $source_tip && git branch -f $(as_shell_word "$source_name") $source_sha" | as_tree_children)"
   fi
+
+  # abort must switch back to the source after its reset: a source checked
+  # out in a peer worktree would refuse that switch, and strand this tree
+  # clean on the new branch. refuse before any reset
+  local peer
+  peer=$(get_branch_peer_worktree "$source_name") || return 1
+  if [[ -n "$peer" ]]; then
+    emit_cutover_refusal "the source branch $source_name is checked out in another worktree, so abort could not switch back" "$(printf '%s\n' \
+      "held by: $peer" \
+      "fix: switch that worktree off $source_name, then rerun abort" | as_tree_children)"
+  fi
 }
 
 # has an abort of this cutover begun (and been cut short)?
 is_cutover_abort_begun() {
-  [[ "$(get_state '.aborting // false')" == "true" ]]
+  [[ "$(get_state '.abort_begun')" == "true" ]]
 }
 
 # is HEAD on the source: the branch by name, or detached at its sha?
@@ -1344,9 +1964,9 @@ is_head_at_source() {
 
 # is HEAD on the new branch, or (in phase "cut", before the switch) on the source?
 is_head_at_cutover_position() {
-  local into="$1" phase="$2" source_name="$3" source_sha="$4" head_branch="$5"
+  local into="$1" source_name="$2" source_sha="$3" head_branch="$4"
   [[ "$head_branch" == "$into" ]] && return 0
-  [[ "$phase" == "cut" ]] || return 1
+  is_cutover_before_switch || return 1
   is_head_at_source "$source_name" "$source_sha" "$head_branch"
 }
 
@@ -1359,10 +1979,37 @@ get_remote_refs_of_branch() {
 }
 
 # is this sha one the cutover recorded: the base, a landed pick, or a pick's start?
+#
+# .note = one jq predicate, no pipe: under pipefail a reader that exits on
+#         its first match could fail the writer, and the guard refuse falsely
 is_cutover_recorded_sha() {
-  local sha="$1"
-  get_state '[.base_sha] + [.picks[] | .new, .head_before] | map(select(. != "")) | .[]' \
-    | grep -qxF -- "$sha"
+  jq -e --arg sha "$1" \
+    '$sha != "" and any(([.base_sha] + [.picks[] | .new, .head_before])[]; . == $sha)' \
+    "$(get_cutover_state_file)" > /dev/null
+}
+
+######################################################################
+# .what = save the worktree to a rescue ref when it differs from HEAD, as
+#         the drive begins
+#
+# .why  = the drive starts from HEAD plus naught of its own: begin resets,
+#         and continue commits the settled pick first. so any difference is
+#         a tracked edit the human made mid-halt. a pick laid with
+#         `--no-commit` carries that edit along, and the next halt snapshot
+#         would then exempt it from abort's rescue. the copy is taken here,
+#         while it is still plainly the human's
+#
+# .note = under @tree no reset ran and the human's edits stay in place by
+#         design, so there is naught to tell apart; no rescue is taken
+######################################################################
+gen_rescue_before_drive() {
+  local tree head ref
+  [[ "$(get_state '.base_kind')" != "@tree" ]] || return 0
+  tree=$(get_worktree_snapshot_tree) || return 1
+  head=$(git rev-parse 'HEAD^{tree}') || return 1
+  [[ "$tree" != "$head" ]] || return 0
+  ref=$(gen_rescue_ref "$tree") || return 1
+  set_state_rescue_ref "$ref"
 }
 
 ######################################################################
@@ -1376,6 +2023,10 @@ is_cutover_recorded_sha() {
 ######################################################################
 drive_cutover() {
   local header_cmd="$1"
+
+  # save any tracked edit the cutover did not write, before a pick or the
+  # carry folds it into what the next halt snapshot calls its own
+  gen_rescue_before_drive
 
   # replay the picks, in order
   run_pick_loop
@@ -1396,8 +2047,11 @@ drive_cutover() {
     print_cutover_halt "$header_cmd"
     exit 2
   fi
+  # an absent park is named as such; any other failure names its class
+  local carry_failure="the carry of tracked edits failed for a cause other than a conflict"
+  [[ "$CARRY_OUTCOME" != "park-absent" ]] || carry_failure="the park of tracked edits is absent; the carry cannot run"
   if [[ "$CARRY_OUTCOME" != "done" ]]; then
-    emit_cutover_malfunction "the carry of tracked edits failed for a cause other than a conflict" "$(
+    emit_cutover_malfunction "$carry_failure" "$(
       get_carry_failure_lines "${CARRY_ERROR:-}" | as_tree_children)"
   fi
 
@@ -1413,6 +2067,23 @@ drive_cutover() {
 finish_cutover() {
   local header_cmd="$1" report
   report=$(print_cutover_report "$header_cmd")
+  close_cutover_with_report "$report"
+}
+
+######################################################################
+# .what = close a cutover: clear its state and park, print its report,
+#         exit 0
+#
+# .why  = the report is rendered by the caller, before the clear, so no
+#         fault in the clear or the print can lose it; begin, continue,
+#         and abort all close through this one leaf
+#
+# usage: report=$(print_..._report ...); close_cutover_with_report "$report"
+# .note = render into an assignment first: a $(...) inside an argument
+#         escapes errexit, so a failed render would clear behind no report
+######################################################################
+close_cutover_with_report() {
+  local report="$1"
   del_state_then_park
   printf '%s\n' "$report"
   exit 0
@@ -1440,15 +2111,52 @@ on_cutover_unexpected() {
   local status="$1" line="$2" command="$3"
   [[ "$BASH_SUBSHELL" -eq 0 ]] || return 0
   trap - ERR
+  # the step reads as the leaf that failed, in words; the raw command is its detail
+  local step
+  step=$(as_cutover_step_label "${FUNCNAME[1]:-main}")
   # before the cut, naught moved: the exit release drops the claim
-  if [[ "$CUTOVER_CLAIMED" == "1" && "$(get_state '.phase' 2> /dev/null || true)" == "claim" ]]; then
+  if [[ "$CUTOVER_CLAIMED" == "1" ]] && is_cutover_in_flight && ! is_cutover_past_claim 2> /dev/null; then
     emit_cutover_malfunction "an unexpected step failed (exit $status) before the cut; naught changed" "$(printf '%s\n' \
-      "step: $command (line $line)" \
+      "step: $step (line $line)" \
+      "detail: $command" \
       "fix: read the step, clear its cause, then rerun" | as_tree_children)"
   fi
-  emit_cutover_malfunction "an unexpected step failed (exit $status); the cutover state is kept" "$(printf '%s\n' \
-    "step: $command (line $line)" \
-    "$CUTOVER_RECOVER_HINT" | as_tree_children)"
+  # an abort that saved rescues names each: the reset may already have run
+  local rescue_refs ref
+  rescue_refs=$(get_state '.rescue_refs[]' 2> /dev/null || true)
+  emit_cutover_malfunction "an unexpected step failed (exit $status); the cutover state is kept" "$(
+    {
+      printf '%s\n' "step: $step (line $line)" "detail: $command"
+      while IFS= read -r ref; do
+        if [[ -n "$ref" ]]; then
+          printf '%s\n' "rescue: $ref holds the worktree before the reset"
+        fi
+      done <<< "$rescue_refs"
+      printf '%s\n' "$CUTOVER_RECOVER_HINT"
+    } | as_tree_children
+  )"
+}
+
+######################################################################
+# .what = the failed leaf's function name, as words a human reads
+#
+# .why  = the ERR trap knows the raw command (`git commit -q ... -C "$1"`)
+#         and the function it ran in (`set_pick_commit`). the function names
+#         the intent; the command is the detail beneath it
+######################################################################
+as_cutover_step_label() {
+  local fn="$1"
+  if [[ "$fn" == "main" || "$fn" == "source" ]]; then
+    echo "the verb's own flow"
+    return 0
+  fi
+  echo "${fn//_/ }"
+}
+
+# the trap's claim "the cutover state is kept" holds only while it is; a
+# verb disarms the trap the moment it clears the state
+del_cutover_unexpected_trap() {
+  trap - ERR
 }
 
 ######################################################################
@@ -1482,15 +2190,14 @@ finish_carry() {
   # mark first, then unstage: a kill between the two leaves a state that
   # says the edits lay down, so continue reruns this (each step converges)
   # rather than replay the carry onto the edits it already laid
-  set_state_via_jq '.carry = "landed" | .halt = ""'
+  set_state_carry_landed
   del_pick_marks
-  set_index_to_head
-  set_index_intent_for_park_adds
+  set_index_to_head_with_park_intents
 }
 
 # did the carry lay the parked edits down? (an interrupted carry resumes from here)
 is_carry_landed() {
-  [[ "$(get_state '.carry // ""')" == "landed" ]]
+  [[ "$(get_state '.carry')" == "landed" ]]
 }
 
 ######################################################################
@@ -1507,6 +2214,7 @@ is_carry_landed() {
 ######################################################################
 is_pick_landing_owed() {
   local index="$1" halt="$2"
+  is_pick_cursor_past_last "$index" && return 1
   has_pick_begun "$index" || return 1
   [[ -z "$halt" ]] || return 0
   [[ "$(get_head_sha)" != "$(get_state ".picks[$index].head_before")" ]] && return 0
@@ -1531,7 +2239,7 @@ guard_untracked_safe() {
   local writers=()
 
   # before the reset no file has moved; under @tree no file ever moves
-  [[ "$(get_state '.phase')" != "claim" ]] || return 0
+  is_cutover_past_claim || return 0
   [[ "$(get_state '.base_kind')" != "@tree" ]] || return 0
 
   # continue writes the picks still ahead; abort switches back to the source
@@ -1565,9 +2273,28 @@ guard_untracked_safe() {
   )"
 }
 
-# the unmerged paths, one per line; the same read git.branch.rebase makes
+# the unmerged paths, NUL-framed, the exact names
+get_conflict_paths_nul() {
+  get_git_paths_nul diff --name-only --diff-filter=U 2> /dev/null
+}
+
+# does any path stand unmerged?
+has_conflict_files() {
+  get_conflict_paths_nul | has_one_nul_entry
+}
+
+# does stdin hold at least one NUL-framed entry? it drains the rest, so the
+# writer never takes a SIGPIPE that pipefail would read as a miss
+has_one_nul_entry() {
+  local found=1
+  IFS= read -r -d '' _ && found=0
+  cat > /dev/null
+  return "$found"
+}
+
+# the unmerged paths, as display lines
 get_conflict_files() {
-  git diff --name-only --diff-filter=U 2> /dev/null
+  get_conflict_paths_nul | as_display_lines_from_nul
 }
 
 ######################################################################
@@ -1578,7 +2305,9 @@ get_conflict_files() {
 #         "the new branch" is HEAD; "the pick" is the replay (or the park)
 ######################################################################
 get_conflict_file_lines() {
-  local entry code path what
+  local entry code path what base source
+  base=$(get_state '.base_sha' 2> /dev/null || true)
+  source=$(get_state '.source_sha' 2> /dev/null || true)
   while IFS= read -r -d '' entry; do
     code="${entry:0:2}"
     path="${entry:3}"
@@ -1587,13 +2316,13 @@ get_conflict_file_lines() {
       AA) what="both added it" ;;
       DD) what="both deleted it" ;;
       UD) what="the pick deletes it; keep it, or rhx rmsafe it" ;;
-      DU) what="the new branch lacks it; a commit not picked adds it. keep it, or rhx rmsafe it" ;;
+      DU) what="the new branch lacks it: $(get_path_absence_cause "$path" "$base" "$source"). keep it, or rhx rmsafe it" ;;
       AU) what="the new branch added it" ;;
       UA) what="the pick adds it" ;;
       *) continue ;;
     esac
-    echo "$path ($what)"
-  done < <(git status --porcelain=v1 -z)
+    printf '%s (%s)\0' "$path" "$what"
+  done < <(get_git_paths_nul status --porcelain=v1) | as_display_lines_from_nul
 }
 
 ######################################################################
@@ -1602,36 +2331,152 @@ get_conflict_file_lines() {
 #
 # .why  = continue lands what is staged; a file staged with its markers
 #         intact would commit as if settled, under the pick's own name
+#
+# .note = a bare ======= line is a setext title underline in markdown and
+#         rst; an unsettled block always holds <<<<<<< and >>>>>>> too, so
+#         those two alone find it
 ######################################################################
 get_conflict_marker_files() {
-  local path staged
-  while IFS= read -r path; do
+  local path staged own src
+  src=$(get_halt_source_ref)
+  while IFS= read -r -d '' path; do
     [[ -n "$path" ]] || continue
-    staged=$(git diff --cached -U0 --no-color HEAD -- "$path")
-    if grep -qE '^\+(<<<<<<<|>>>>>>>)( |$)|^\+=======$' <<< "$staged"; then
-      echo "$path"
+    staged=$(git --literal-pathspecs diff --cached -U0 --no-color HEAD -- "$path")
+    own=""
+    [[ -z "$src" ]] || own=$(git show "$src:$path" 2> /dev/null || true)
+    if is_marker_added_by_git staged="$staged" own="$own"; then
+      printf '%s\0' "$path"
     fi
-  done < <(get_state '.conflicts // [] | .[]')
-}
-
-# record the files a halt conflicts on, so continue can check each settle
-set_state_halt_conflicts() {
-  set_state_via_jq '.conflicts = $c' --argjson c "$(get_conflict_files | as_json_array)"
+  done < <(get_state_paths_nul conflicts) | as_display_lines_from_nul
 }
 
 ######################################################################
-# .what = mark each file the park added as intent-to-add
+# .what = does a staged diff add a marker line the author's file lacks?
 #
-# .why  = the unstage leaves a new file untracked, so `git status` would
-#         read it as `??` while the report lists it as carried. an
-#         intent-to-add entry keeps it tracked and still unstaged
+# .why  = a brief or fixture can hold a `<<<<<<< demo` line of its own; a
+#         marker git wrote is never in the author's version of the file
+#
+# usage: is_marker_added_by_git staged=<diff -U0 text> own=<author's file>
 ######################################################################
-set_index_intent_for_park_adds() {
-  has_park || return 0
-  local park
-  park=$(get_park_ref)
-  git diff --name-only -z --no-renames --diff-filter=A "$park^" "$park" \
-    | xargs -0 -r git add --intent-to-add --
+is_marker_added_by_git() {
+  local staged="${1#staged=}" own="${2#own=}" markers foreign
+  markers=$(grep -E '^\+(<<<<<<<|>>>>>>>)( |$)' <<< "$staged" | sed 's/^+//' || true)
+  [[ -n "$markers" ]] || return 1
+  foreign=$(grep -vxF -f <(printf '%s\n' "$own") <<< "$markers" || true)
+  [[ -n "$foreign" ]]
+}
+
+# the commit a halt replays: the pick at the cursor, or the park on a carry
+get_halt_source_ref() {
+  if [[ "$(get_state '.halt')" == "carry-conflict" ]]; then
+    get_park_ref
+    return 0
+  fi
+  get_state ".picks[$(get_state '.pick_index')].sha"
+}
+
+######################################################################
+# .what = the staged paths beyond the pick's own files and the halt's
+#         conflicts, NUL-framed, the exact names
+#
+# .why  = continue commits the index under the pick's own author; a path
+#         staged past the pick is the human's work, never the author's.
+#         the pick's own files are what its replay staged (.replayed), read
+#         when the index held the replay alone; a merge can stage paths its
+#         source diff never names, so the diff is only the fallback for a
+#         state an older run wrote
+######################################################################
+get_staged_paths_beyond_pick_nul() {
+  local index="$1" sha
+  sha=$(get_state ".picks[$index].sha")
+  [[ -n "$sha" ]] || return 0
+  jq -nj \
+    --rawfile keep <({
+      get_pick_replayed_paths_nul "$index" "$sha"
+      get_state_paths_nul conflicts
+    }) \
+    --rawfile staged <(get_git_paths_nul diff --cached --name-only HEAD) \
+    '(($staged | split("\u0000")) - ($keep | split("\u0000")))
+      | map(select(length > 0)) | unique | .[] | ., "\u0000"'
+}
+
+# the paths the pick's replay staged; a state with no record falls back to
+# the pick's source diff (--root, so a root-commit pick names its files)
+get_pick_replayed_paths_nul() {
+  local index="$1" sha="$2"
+  if [[ "$(get_state ".picks[$index] | has(\"replayed\")")" == "true" ]]; then
+    get_state_paths_nul "picks[$index].replayed"
+    return 0
+  fi
+  get_git_paths_nul diff-tree --root --no-commit-id --name-only -r "$sha"
+}
+
+######################################################################
+# .what = unstage each path staged beyond the pick; the file stays on disk
+#
+# .why  = the pick commit holds the pick alone. the unstaged edit stays
+#         the human's own, and the drive rescues it before any pick
+#
+# .note = each path is recorded in .unstaged before the unstage, so a
+#         rerun after a kill still names it in the report
+######################################################################
+del_staged_paths_beyond_pick() {
+  local paths_file path
+  paths_file="$(get_cutover_dir)/unstage.paths"
+  get_staged_paths_beyond_pick_nul "$1" > "$paths_file" || { rm -f "$paths_file"; return 1; }
+  if [[ ! -s "$paths_file" ]]; then
+    rm -f "$paths_file"
+    return 0
+  fi
+  set_state_unstaged_add_from_nul < "$paths_file" || { rm -f "$paths_file"; return 1; }
+  while IFS= read -r -d '' path; do
+    git --literal-pathspecs reset -q -- "$path" || { rm -f "$paths_file"; return 1; }
+  done < "$paths_file"
+  rm -f "$paths_file"
+}
+
+######################################################################
+# .what = set the index to HEAD, with each file the park added marked
+#         intent-to-add, in one swap
+#
+# .why  = an unstage alone leaves a new file untracked, so `git status`
+#         reads it as `??` while the report lists it as carried, and a
+#         later verb takes it for a stranger's file. the new index is built
+#         in a temp file under the cutover dir, then renamed over the live
+#         one: a kill or a failed step leaves the old index whole, never a
+#         half with the park's adds untracked
+#
+# .note = --force: a park add the base's .gitignore matches was force-added
+#         by the human, so the carry restores it as tracked, never refuses it
+######################################################################
+set_index_to_head_with_park_intents() {
+  local index_live index_temp park
+  index_live=$(git rev-parse --git-path index)
+  index_temp="$(get_cutover_dir)/index.carry.$$"
+  cp "$index_live" "$index_temp" || { rm -f "$index_temp"; return 1; }
+  GIT_INDEX_FILE="$index_temp" git reset -q || { rm -f "$index_temp"; return 1; }
+  if has_park; then
+    park=$(get_park_ref)
+    get_git_paths_nul diff --name-only --diff-filter=A "$park^" "$park" \
+      | GIT_INDEX_FILE="$index_temp" xargs -0 -r git --literal-pathspecs add --force --intent-to-add -- \
+      || { rm -f "$index_temp"; return 1; }
+  fi
+  mv -f "$index_temp" "$index_live"
+}
+
+######################################################################
+# .what = does continue owe only the carry's close?
+#
+# .why  = a carry halt, a carry marked landed, or a carry whose edits sit
+#         staged has laid every file down; its close touches the index
+#         alone, and a rerun of it converges
+#
+# usage: is_carry_close_owed <halt>
+######################################################################
+is_carry_close_owed() {
+  [[ "$1" == "carry-conflict" ]] && return 0
+  is_cutover_in_carry || return 1
+  is_carry_landed || ! is_index_clean
 }
 
 ######################################################################
@@ -1644,46 +2489,101 @@ set_index_intent_for_park_adds() {
 #         first and a kill in between leaves only orphan park refs. an orphan
 #         is inert: every read of the park asks the state first
 #         (is_park_expected), and the next begin clears the slot
+# .note = once the state is gone the trap's "state is kept" would lie, so
+#         it is disarmed; a park drop that fails leaves an inert orphan,
+#         named on stderr, and never costs the caller its report
 ######################################################################
 del_state_then_park() {
   del_state
-  del_park_refs
+  del_cutover_unexpected_trap
+  del_park_refs 2> /dev/null \
+    || echo "note: the park refs under refs/worktree/cutover/ could not be dropped; they are inert, and the next begin clears them" >&2
+}
+
+# one line per rescue the state names, for a message; naught when none
+get_rescue_lines() {
+  local ref
+  while IFS= read -r ref; do
+    [[ -n "$ref" ]] || continue
+    echo "rescue: $ref holds the worktree before the reset"
+  done < <(get_state '.rescue_refs[]')
 }
 
 ######################################################################
-# .what = undo a cut that spent no unit: back on the source, its edits
-#         in place, the new branch gone, the state and park dropped
+# .what = undo a cut that spent no unit, then report it: back on the
+#         source, its edits in place, the new branch gone, the state and
+#         park dropped, and the caller's message emitted with each rescue
 #
-# .why  = every back-out in phase "cut" walks this one ladder, so no
-#         site can skip a rung (a branch left behind blocks the rerun as
-#         "target extant"; a park left behind is an orphan)
+# .why  = every back-out in phase "cut" walks this one ladder, so no site
+#         can skip a rung (a branch left behind blocks the rerun as "target
+#         extant"; a park left behind is an orphan)
 #
-# usage: back_out_cut <into> <source name, or ""> <source sha>
+# usage: back_out_cut kind=<malfunction|refusal> header=<text> [detail=<lines>] fix=<line>
 #
-# .note = the park lays back only over a worktree with no tracked edit,
-#         which is the state the reset leaves. a worktree that still
-#         holds edits never saw the reset, and is left as is
+# .note = whether the reset ran is a fact in the state, `.reset_begun`,
+#         written just before the reset. the tree cannot tell it (a peer
+#         write or an eol drift reads as "edits" after a reset), and a flag
+#         held by each caller could be passed wrong at a new site. once the
+#         reset began, the back-out is abort's own ladder, `undo_cutover`
+# .note = a back-out that cannot finish keeps the state and the park, and
+#         names abort; the park is dropped only after the edits are back
+# .note = the message is emitted here, after the state is gone, so the
+#         rescue lines it lists are read while the state still holds them
 ######################################################################
 back_out_cut() {
-  local into="$1" source_name="$2" source_sha="$3"
+  local kind="" header="" detail="" fix=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      kind=*) kind="${1#*=}" ;;
+      header=*) header="${1#*=}" ;;
+      detail=*) detail="${1#*=}" ;;
+      fix=*) fix="${1#*=}" ;;
+    esac
+    shift
+  done
+  local into source_name source_sha reset_begun rescue_lines=""
+  into=$(get_state '.into')
+  source_name=$(get_state '.source_name')
+  source_sha=$(get_state '.source_sha')
+  reset_begun=$(get_state '.reset_begun')
 
-  # off the new branch, if the cut already switched to it
-  if [[ "$(get_head_branch || true)" == "$into" ]]; then
-    if [[ -n "$source_name" ]]; then
+  # after the reset: abort's ladder, so the edits come back by snapshot
+  if [[ "$reset_begun" == "true" ]]; then
+    if ! undo_cutover; then
+      emit_cutover_malfunction "the back-out of the cut failed; the cutover state and the park of edits are kept" "$(
+        {
+          get_rescue_lines
+          echo "safe: the edits stay parked at $(get_park_ref)"
+          echo "fix: rhx git.branch.cutover abort"
+        } | as_tree_children
+      )"
+    fi
+    rescue_lines=$(get_rescue_lines)
+  fi
+
+  # before the reset no tracked file moved: off the new branch, if the cut
+  # already switched to it, then drop the branch
+  if [[ "$reset_begun" != "true" ]]; then
+    if [[ "$(get_head_branch || true)" == "$into" && -n "$source_name" ]]; then
       set_head_branch "$source_name" > /dev/null
     fi
-    if [[ -z "$source_name" ]]; then
+    if [[ "$(get_head_branch || true)" == "$into" && -z "$source_name" ]]; then
       set_head_detached "$source_sha" > /dev/null
     fi
+    del_local_branch "$into"
   fi
-
-  # the edits come back, only where the reset took them
-  if has_park && [[ -z "$(get_tracked_edit_lines)" ]]; then
-    restore_park
-  fi
-
-  del_local_branch "$into"
   del_state_then_park
+
+  # the caller's message, with each rescue the undo saved
+  local children
+  children=$(
+    {
+      [[ -z "$detail" ]] || echo "$detail"
+      [[ -z "$rescue_lines" ]] || echo "$rescue_lines"
+      echo "$fix"
+    } | as_tree_children
+  )
+  "emit_cutover_$kind" "$header" "$children"
 }
 
 ######################################################################
@@ -1703,7 +2603,7 @@ CUTOVER_CLAIMED=""
 del_state_if_claim_unspent() {
   [[ "$CUTOVER_CLAIMED" == "1" ]] || return 0
   is_cutover_in_flight || return 0
-  [[ "$(get_state '.phase')" == "claim" ]] || return 0
+  is_cutover_past_claim && return 0
   del_state_then_park
 }
 
@@ -1775,7 +2675,7 @@ get_commit_level_line() {
   fi
   inferred=$(infer_level_from_branch "$into")
   if [[ "$inferred" == "none" ]]; then
-    echo "commit level: none (no bind; the name infers none) — feat or fix may lead"
+    echo "commit level: none set yet — the next commit may lead with feat or fix"
     return 0
   fi
   echo "commit level: $inferred (inferred from the name) — $inferred leads"

@@ -12,4 +12,5 @@
   prefer two commits and grant the second unit for it
 - **where**: `src/domain.roles/mechanic/skills/git.commit/git.commit.operations.sh`
 - **dream**: `dreams/2026_10_21.fix-land-commit-gate-zero-byte-repair-apart.dream.md`
-- **verdict**: —
+- **verdict**: moot. main landed the same `[[ -s ]]` gate on its own; at the rebase onto 421f1f5 the
+  hunk settled to main's side, and this branch no longer carries it. the dream closes with it

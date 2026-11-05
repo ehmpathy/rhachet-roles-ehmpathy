@@ -319,9 +319,9 @@ exports[`git.commit.set.sh given: [case20] continuation commit enforcement when:
 
    use \`cont:\` or \`cont(api):\` prefix
 
-   or, if that first commit already shipped and this work earns its own release,
-   cut a fresh branch from main and carry the work over:
-     rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
+🥥 did you know?
+   ├─ if that first commit already shipped and this work earns its own release, cut a fresh branch from main and carry the work over
+   └─ rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
 "
 `;
 
@@ -336,9 +336,9 @@ exports[`git.commit.set.sh given: [case20] continuation commit enforcement when:
 
    use \`cont:\` or \`cont(api):\` prefix
 
-   or, if that first commit already shipped and this work earns its own release,
-   cut a fresh branch from main and carry the work over:
-     rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
+🥥 did you know?
+   ├─ if that first commit already shipped and this work earns its own release, cut a fresh branch from main and carry the work over
+   └─ rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
 "
 `;
 

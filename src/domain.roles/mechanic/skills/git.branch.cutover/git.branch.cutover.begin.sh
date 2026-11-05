@@ -25,7 +25,7 @@ set -euo pipefail
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SKILL_DIR/git.branch.cutover.operations.sh"
 
-USAGE="usage: git.branch.cutover begin --from <@main|@tree|branch> --into <branch> [--pick <sha>]... [--mode plan|apply]"
+USAGE="usage: rhx git.branch.cutover begin --from <@main|@tree|branch> --into <branch> [--pick <sha>]... [--mode plan|apply]"
 
 ######################################################################
 # guard: within a git repo
@@ -192,6 +192,19 @@ if is_cutover_in_flight; then
   if has_park; then
     HALTED_LINES+=("tracked edits: held aside, safe")
   fi
+  # an abort cut short owns the state: continue refuses it, so name abort alone
+  if is_cutover_abort_begun; then
+    emit_cutover_refusal "a cutover is already in flight, and its abort did not finish" "$(
+      printf '%s\n' "${HALTED_LINES[@]}" "fix: finish the undo: rhx git.branch.cutover abort" | as_tree_children
+    )"
+  fi
+  # a cutover that stopped before its switch has naught to continue: name
+  # abort alone, by the same leaf continue's guard reads
+  if ! is_continue_legal; then
+    emit_cutover_refusal "a cutover is already in flight, stopped before its switch" "$(
+      printf '%s\n' "${HALTED_LINES[@]}" "fix: undo it, then begin again: rhx git.branch.cutover abort" | as_tree_children
+    )"
+  fi
   emit_cutover_refusal "a cutover is already in flight" "$(
     printf '%s\n' "${HALTED_LINES[@]}" "fix: finish or undo it first" | as_tree_children
     echo "   ├─ rhx git.branch.cutover continue"
@@ -317,6 +330,15 @@ if [[ -n "$INTO_NEST_LINES" ]]; then
       "fix: choose a name beside it, e.g. --into $INTO_BESIDE" | as_tree_children)"
 fi
 
+# --into must not share a name with a tag: most git commands would read a
+# bare name as the tag, never as the new branch
+if git show-ref -q --verify "refs/tags/$INTO"; then
+  emit_cutover_refusal "--into $INTO shares its name with a tag" "$(printf '%s\n' \
+    "tag: $INTO @ $(get_short_sha "$(git rev-parse "refs/tags/$INTO^{commit}")")" \
+    "why: most git commands read a bare $INTO as the tag, never as the new branch" \
+    "fix: choose a fresh name, e.g. --into $INTO-branch" | as_tree_children)"
+fi
+
 ######################################################################
 # preflight: picks — real commits, never merges (inv-2, inv-3)
 ######################################################################
@@ -347,6 +369,14 @@ if [[ ${#PICKS_MERGE[@]} -gt 0 ]]; then
     printf '%s\n' "${PICKS_MERGE[@]}" | as_tree_children | sed 's/^/│  /'
     echo "└─ fix: pick the commits the merge brought in, one by one"
   )"
+fi
+
+######################################################################
+# preflight: no edit hides from the park (inv-10)
+######################################################################
+if [[ "$BASE_KIND" != "@tree" ]]; then
+  HIDDEN_LINES=$(get_hidden_edit_lines)
+  [[ -z "$HIDDEN_LINES" ]] || emit_hidden_edit_refusal "$HIDDEN_LINES"
 fi
 
 ######################################################################
@@ -411,7 +441,7 @@ if [[ "$MODE" == "plan" ]]; then
     CARRY_HALT_COUNT=$(get_line_count "$CARRY_HALT_LINES")
     SECTIONS+=("carry will halt ($CARRY_HALT_COUNT) — edits to files the new branch lacks"$'\n'"$( {
       printf '%s\n' "$CARRY_HALT_LINES" | as_bounded_lines 20 "git status --short"
-      echo "fix: --pick the commit named, or commit or drop the edit first"
+      echo "fix: --pick the commit named where one adds it; else commit or drop the edit first"
     } | as_tree_children)")
   fi
 
@@ -449,11 +479,18 @@ guard_cutover_lock
 
 # claim this worktree's one cutover slot: of two begins that raced past
 # the in-flight check, exactly one claims (inv-6)
+# a state that cannot be built stops loud, before the claim: naught moved
+STATE_RC=0
 STATE_JSON=$(as_cutover_state_json \
   into="$INTO" source_name="$SOURCE_NAME" source_sha="$SOURCE_SHA" base_kind="$BASE_KIND" \
   base_label="$BASE_LABEL" base_sha="$BASE_SHA" \
   tracked="$TRACKED_LINES" untracked="$UNTRACKED_LINES" left_behind="$LEFT_BEHIND_LINES" \
-  -- "${PICKS[@]+"${PICKS[@]}"}")
+  -- "${PICKS[@]+"${PICKS[@]}"}" 2>&1) || STATE_RC=$?
+if [[ "$STATE_RC" -ne 0 || -z "$STATE_JSON" ]]; then
+  emit_cutover_malfunction "the cutover state could not be built; naught changed" "$(printf '%s\n' \
+    "detail: $(as_git_error_detail "$STATE_JSON")" \
+    "fix: read the detail, clear its cause, then rerun" | as_tree_children)"
+fi
 if ! set_state_json_exclusive "$STATE_JSON"; then
   emit_cutover_refusal "a cutover is already in flight" "$(printf '%s\n' \
     "why: a peer begin claimed this worktree first" \
@@ -473,7 +510,7 @@ del_park_refs
 # the meter gates under the claim and the meter lock (inv-12): the claim
 # makes this begin the worktree's only spender, and the meter lock keeps a
 # human's `set` from a write between the gate and the spend
-if ! set_branch_meter_lock; then
+if ! set_branch_meter_lock cmd="git.branch.cutover begin"; then
   emit_cutover_refusal "the cutover quota is busy: a grant writes it right now" \
     "└─ fix: rerun once the grant finishes"
 fi
@@ -487,7 +524,14 @@ fi
 # re-read tracked edits under the claim: the preflight view is stale by
 # a fetch and a plan, and an edit saved since then must be parked too
 TRACKED_LINES=$(get_tracked_edit_lines)
-set_state_via_jq '.tracked = $t' --argjson t "$(printf '%s\n' "$TRACKED_LINES" | as_json_array)"
+set_state_tracked "$TRACKED_LINES"
+
+# and a hidden edit saved since the preflight is refused as the preflight
+# would; the claim drops at exit, and no unit is spent before the switch
+if [[ "$BASE_KIND" != "@tree" ]]; then
+  HIDDEN_LINES=$(get_hidden_edit_lines)
+  [[ -z "$HIDDEN_LINES" ]] || emit_hidden_edit_refusal "$HIDDEN_LINES"
+fi
 
 # park + verify tracked edits before any reset (inv-10); @tree moves no file
 if [[ -n "$TRACKED_LINES" && "$BASE_KIND" != "@tree" ]]; then
@@ -504,56 +548,63 @@ if [[ -n "$TRACKED_LINES" && "$BASE_KIND" != "@tree" ]]; then
   fi
 fi
 
-set_state_via_jq '.phase = "cut"'
+set_state_phase cut
 
 ######################################################################
 # apply: cut — the new branch, no upstream, checked out here (inv-7)
 ######################################################################
-# every back-out from here to the spend walks one ladder: back_out_cut
+# every back-out from here to the spend walks one ladder: back_out_cut,
+# which reads from the state whether the reset began (the tree cannot tell)
 if [[ "$BASE_KIND" == "@tree" ]]; then
   if ! CUT_OUT=$(set_branch_cut_here "$INTO"); then
-    back_out_cut "$INTO" "$SOURCE_NAME" "$SOURCE_SHA"
-    emit_cutover_malfunction "the cut of $INTO failed; naught changed" "$(printf '%s\n' \
-      "detail: $(as_git_error_detail "$CUT_OUT")" \
-      "fix: read the detail, clear its cause, then rerun" | as_tree_children)"
+    back_out_cut kind=malfunction \
+      header="the cut of $INTO failed; naught changed" \
+      detail="detail: $(as_git_error_detail "$CUT_OUT")" \
+      fix="fix: read the detail, clear its cause, then rerun"
   fi
 fi
 if [[ "$BASE_KIND" != "@tree" ]]; then
   if ! CUT_OUT=$(set_branch_cut "$INTO" "$BASE_SHA"); then
-    back_out_cut "$INTO" "$SOURCE_NAME" "$SOURCE_SHA"
-    emit_cutover_malfunction "the cut of $INTO failed; naught changed" "$(printf '%s\n' \
-      "detail: $(as_git_error_detail "$CUT_OUT")" \
-      "fix: read the detail, clear its cause, then rerun" | as_tree_children)"
+    back_out_cut kind=malfunction \
+      header="the cut of $INTO failed; naught changed" \
+      detail="detail: $(as_git_error_detail "$CUT_OUT")" \
+      fix="fix: read the detail, clear its cause, then rerun"
   fi
 
   # the reset runs only over a worktree the park holds byte for byte; an
   # edit saved after the park backs the cut out, with naught reset
-  if ! is_worktree_held_by_park; then
-    back_out_cut "$INTO" "$SOURCE_NAME" "$SOURCE_SHA"
-    emit_cutover_refusal "tracked edits changed while the cutover ran; naught changed" "$(printf '%s\n' \
-      "why: an edit was saved after the park, so a reset would lose it" \
-      "fix: let the other editor finish, then rerun the same command" | as_tree_children)"
+  HELD_RC=0
+  is_worktree_held_by_park || HELD_RC=$?
+  if [[ "$HELD_RC" -eq 2 ]]; then
+    back_out_cut kind=malfunction \
+      header="the check of the park against the worktree failed; naught changed" \
+      fix="fix: read git status for the cause, clear it, then rerun the same command"
   fi
+  if [[ "$HELD_RC" -ne 0 ]]; then
+    back_out_cut kind=refusal \
+      header="tracked edits changed while the cutover ran; naught changed" \
+      detail="why: an edit was saved after the park, so a reset would lose it" \
+      fix="fix: let the other editor finish, then rerun the same command"
+  fi
+
+  # record the reset before it runs, so a later back-out restores the edits
+  set_state_reset_begun
   del_worktree_tracked_edits
-  CHECKOUT_RC=0
-  CHECKOUT_OUT=$(set_head_branch "$INTO") || CHECKOUT_RC=$?
-  # a post-checkout hook's failure is the checkout's exit code, though the
-  # switch already ran: HEAD on $INTO means the cut stands, so drive on
-  if [[ "$CHECKOUT_RC" -ne 0 && "$(get_head_branch || true)" != "$INTO" ]]; then
-    back_out_cut "$INTO" "$SOURCE_NAME" "$SOURCE_SHA"
-    emit_cutover_malfunction "the switch to $INTO failed; the source and its edits are restored" "$(printf '%s\n' \
-      "detail: $(as_git_error_detail "$CHECKOUT_OUT")" \
-      "fix: read the detail, clear its cause, then rerun" | as_tree_children)"
+  if ! CHECKOUT_OUT=$(set_head_branch "$INTO"); then
+    back_out_cut kind=malfunction \
+      header="the switch to $INTO failed; the source and its edits are restored" \
+      detail="detail: $(as_git_error_detail "$CHECKOUT_OUT")" \
+      fix="fix: read the detail, clear its cause, then rerun"
   fi
 fi
 
 # the report says "no upstream": prove it before the unit is spent (inv-7)
 if has_branch_upstream "$INTO"; then
   UPSTREAM_SEEN=$(git rev-parse --abbrev-ref "$INTO@{upstream}" 2> /dev/null || echo unknown)
-  back_out_cut "$INTO" "$SOURCE_NAME" "$SOURCE_SHA"
-  emit_cutover_malfunction "$INTO still resolved an upstream after the cut; naught changed" "$(printf '%s\n' \
-    "upstream: $UPSTREAM_SEEN" \
-    "fix: git config --remove-section branch.$INTO, then rerun" | as_tree_children)"
+  back_out_cut kind=malfunction \
+    header="$INTO still resolved an upstream after the cut; the source and its edits are restored" \
+    detail="upstream: $UPSTREAM_SEEN" \
+    fix="fix: git config --remove-section branch.$INTO, then rerun"
 fi
 
 # spend one unit: the branch now stands and is checked out. a cut that
@@ -566,7 +617,7 @@ fi
 #         2026_10_21.fix-cutover-position-table-and-shared-leaves, item 11)
 spend_branch_use
 del_branch_meter_lock
-set_state_via_jq '.phase = "picks"'
+set_state_phase picks
 
 ######################################################################
 # apply: replay the picks, carry the edits, report, clear

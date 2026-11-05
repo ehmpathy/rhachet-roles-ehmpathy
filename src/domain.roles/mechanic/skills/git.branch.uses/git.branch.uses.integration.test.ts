@@ -407,8 +407,8 @@ describe('git.branch.uses', () => {
         writeLocalMeter(sandbox, '{ "uses": 2 }');
         const result = runGate({ sandbox });
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('GATE_PASSED');
-        expect(result.stdout).toMatchSnapshot();
+        // a pass prints naught of its own: the probe's sentinel is the whole stdout
+        expect(result.stdout.trim()).toBe('GATE_PASSED');
       });
     });
 
@@ -478,7 +478,7 @@ describe('git.branch.uses', () => {
         const result = runGate({ sandbox });
         expect(result.exitCode).toBe(0);
         expect(readLocalMeter(sandbox)).toEqual({ uses: 1 });
-        expect(result.stdout).toMatchSnapshot();
+        expect(result.stdout.trim()).toBe('GATE_PASSED');
       });
     });
 
@@ -490,7 +490,7 @@ describe('git.branch.uses', () => {
         const result = runGate({ sandbox });
         expect(result.exitCode).toBe(0);
         expect(readLocalMeter(sandbox)).toEqual({ uses: 'infinite' });
-        expect(result.stdout).toMatchSnapshot();
+        expect(result.stdout.trim()).toBe('GATE_PASSED');
       });
     });
 
@@ -601,7 +601,11 @@ describe('git.branch.uses', () => {
         expect(result.stdout).toContain('revoked');
         expect(result.stdout).toContain('rhx git.branch.uses del');
         expect(readLocalMeter(sandbox)).toEqual({ uses: 0 });
-        expect(result.stdout).toMatchSnapshot();
+        // the shared print_tip dims its line; the snap holds the plain text
+        expect(result.stdout).toContain('\x1b[2mtip:');
+        expect(
+          result.stdout.split('\x1b[2m').join('').split('\x1b[0m').join(''),
+        ).toMatchSnapshot();
       });
     });
 
@@ -703,6 +707,7 @@ describe('git.branch.uses', () => {
         expect(result.stderr).toContain('the cutover quota is busy');
         expect(readLocalMeter(sandbox).uses).toEqual(1);
         expect(fs.readFileSync(lockFile(), 'utf-8')).toEqual(`${holder.pid}\n`);
+        expect(result.stdout).toMatchSnapshot();
       });
     });
 
@@ -849,6 +854,13 @@ describe('git.branch.uses', () => {
             'the quota lock file could not be made',
           );
           expect(readLocalMeter(sandbox).uses).toEqual(1);
+          // the lock path names this run's temp repo; mask it
+          expect(
+            result.stdout.replace(
+              /lock: \S*\/\.meter\//,
+              'lock: <repo>/.meter/',
+            ),
+          ).toMatchSnapshot();
         },
       );
     });

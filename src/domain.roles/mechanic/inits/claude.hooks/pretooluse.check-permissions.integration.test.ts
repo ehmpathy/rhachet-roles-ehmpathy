@@ -1688,31 +1688,32 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
       });
     });
 
-    when('[t6] a hand-cut of a new branch, in each form', () => {
-      const BRANCH_CUTS = [
-        { command: 'git checkout -b turtle/reef', head: 'git checkout -b' },
-        { command: 'git checkout -B turtle/reef', head: 'git checkout -B' },
-        {
-          command: 'git checkout --no-track -b turtle/reef origin/main',
-          head: 'git checkout --no-track',
-        },
-        { command: 'git switch -c turtle/reef', head: 'git switch -c' },
-        { command: 'git switch -C turtle/reef', head: 'git switch -C' },
-        {
-          command: 'git switch --create turtle/reef',
-          head: 'git switch --create',
-        },
-        {
-          command: 'git switch --force-create turtle/reef',
-          head: 'git switch --force-create',
-        },
-        {
-          command: 'git switch --no-track -c turtle/reef origin/main',
-          head: 'git switch --no-track',
-        },
-      ];
-      BRANCH_CUTS.map((cut) =>
-        then(`${cut.command} points to the cutover`, () => {
+    // a hand-cut of a new branch, in each form: one when per form
+    const BRANCH_CUTS = [
+      { command: 'git checkout -b turtle/reef', head: 'git checkout -b' },
+      { command: 'git checkout -B turtle/reef', head: 'git checkout -B' },
+      {
+        command: 'git checkout --no-track -b turtle/reef origin/main',
+        head: 'git checkout --no-track',
+      },
+      { command: 'git switch -c turtle/reef', head: 'git switch -c' },
+      { command: 'git switch -C turtle/reef', head: 'git switch -C' },
+      {
+        command: 'git switch --create turtle/reef',
+        head: 'git switch --create',
+      },
+      {
+        command: 'git switch --force-create turtle/reef',
+        head: 'git switch --force-create',
+      },
+      {
+        command: 'git switch --no-track -c turtle/reef origin/main',
+        head: 'git switch --no-track',
+      },
+    ];
+    BRANCH_CUTS.map((cut, index) =>
+      when(`[t6.${index}] a hand-cut of a new branch: ${cut.command}`, () => {
+        then('it points to the cutover', () => {
           const result = runHook({
             command: cut.command,
             settings: { allow: ['Bash(rhx:*)'] },
@@ -1725,8 +1726,25 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
           expect(result.stderr).toContain(
             'rhx git.branch.cutover begin --from @main --into <branch>',
           );
-        }),
-      );
+          expect(result.stderr).toMatchSnapshot();
+        });
+      }),
+    );
+
+    when('[t7] an in-place cherry-pick', () => {
+      then('it advises the cutover, and names no in-place alternative', () => {
+        const result = runHook({
+          command: 'git cherry-pick abc1234',
+          settings: { allow: ['Bash(rhx:*)'] },
+          clearNudges: true,
+        });
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('no paved in-place pick');
+        expect(result.stderr).toContain(
+          'rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>',
+        );
+        expect(result.stderr).toMatchSnapshot();
+      });
     });
   });
 

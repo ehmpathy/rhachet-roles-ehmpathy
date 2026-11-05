@@ -37,6 +37,15 @@ exports[`git.commit.uses.sh given: [case3] set --quant 0 (revoke) when: [t0] rev
 "
 `;
 
+exports[`git.commit.uses.sh given: [case3] set --quant 0 (revoke) when: [t1] a human revokes all uses at a real terminal then: the tip prints dim, wrapped in the faint escape 1`] = `
+"🐢 groovy, break time
+
+🐚 git.commit.uses set
+   ├─ revoked
+   └─ [2mtip: 'rhx git.commit.uses del' does the same[0m
+"
+`;
+
 exports[`git.commit.uses.sh given: [case3b] set --quant 0 --push allow (push-only mode) when: [t0] push-only access granted then: outputs push only mode without tip 1`] = `
 "🐢 sweet, let it ride
 

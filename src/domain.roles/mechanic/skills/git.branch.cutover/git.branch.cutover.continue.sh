@@ -17,6 +17,8 @@
 #   - refuses while any file is still unmerged, and names each
 #   - refuses while a settled file still holds conflict markers
 #   - refuses before it writes over an untracked file (inv-0)
+#   - unstages each path staged past the pick's files and the halt's
+#     conflicts, keeps it on disk, and names it in the report
 #   - spends no git.branch.uses unit
 ######################################################################
 set -euo pipefail
@@ -37,11 +39,14 @@ while [[ $# -gt 0 ]]; do
       fi
       ;;
     --help|-h)
-      echo "usage: git.branch.cutover continue"
+      echo "usage: rhx git.branch.cutover continue"
       echo ""
       echo "settle the conflicted files, stage them via rhx git.stage.add,"
       echo "then continue to land the rest of the cutover. continue also"
       echo "resumes a cutover a kill or a failed step interrupted"
+      echo ""
+      echo "a path staged past the pick's own files is unstaged, kept on"
+      echo "disk, and named in the report; it never rides the pick commit"
       echo ""
       echo "example:"
       echo "  rhx git.stage.add src/band.ts"
@@ -71,12 +76,20 @@ if ! is_cutover_in_flight; then
 fi
 guard_state_schema
 
+# an abort cut short owns the state: its reset may have run, so a continue
+# would land a half-undone tree. only a rerun of abort may finish it
+if is_cutover_abort_begun; then
+  emit_cutover_refusal "an abort of this cutover began and did not finish, so there is naught to continue" \
+    "└─ fix: finish the undo: rhx git.branch.cutover abort"
+fi
+
 # a cutover stopped before its switch landed naught and spent naught;
 # abort is its whole undo. from the picks on, continue converges, halted
 # or interrupted alike
+# .note = is_continue_legal is the one rule; begin's in-flight steer reads it too
 PHASE=$(get_state '.phase')
 HALT=$(get_state '.halt')
-if [[ -z "$HALT" && ( "$PHASE" == "claim" || "$PHASE" == "cut" ) ]]; then
+if ! is_continue_legal; then
   emit_cutover_refusal "the cutover stopped before its switch (phase: $PHASE), so there is naught to continue" \
     "└─ undo it, then begin again: rhx git.branch.cutover abort"
 fi
@@ -84,23 +97,31 @@ fi
 # every conflicted file must be settled and staged
 UNMERGED=$(get_conflict_file_lines)
 if [[ -n "$UNMERGED" ]]; then
+  # where the stage will refuse, the refusal names the grant beside the fix
+  STAGE_BLOCK=$(get_halt_stage_block)
   emit_cutover_refusal "files are still in conflict" "$(
     echo "├─ files"
     printf '%s\n' "$UNMERGED" | as_tree_children | sed 's/^/│  /'
-    echo "└─ fix: settle each, then rhx git.stage.add <files>, then continue again"
+    if [[ -n "$STAGE_BLOCK" ]]; then
+      echo "├─ $(head -n 1 <<< "$STAGE_BLOCK")"
+      tail -n +2 <<< "$STAGE_BLOCK" | sed 's/^/│  /'
+      echo "└─ fix: settle each; once your human grants the stage, rhx git.stage.add <files>, then continue again"
+    else
+      echo "└─ fix: settle each, then rhx git.stage.add <files>, then continue again"
+    fi
   )"
 fi
 
-# a settled file must hold no conflict marker, or the commit lands it as is
-if [[ -n "$HALT" ]]; then
-  MARKED=$(get_conflict_marker_files)
-  if [[ -n "$MARKED" ]]; then
-    emit_cutover_refusal "staged files still hold conflict markers" "$(
-      echo "├─ files"
-      printf '%s\n' "$MARKED" | as_tree_children | sed 's/^/│  /'
-      echo "└─ fix: remove each <<<<<<< / ======= / >>>>>>> block, stage again, then continue"
-    )"
-  fi
+# a settled file must hold no conflict marker, or the commit lands it as is.
+# the check keys on the recorded conflicts, never on the halt flag: with no
+# conflicts recorded it reads naught
+MARKED=$(get_conflict_marker_files)
+if [[ -n "$MARKED" ]]; then
+  emit_cutover_refusal "staged files still hold conflict markers" "$(
+    echo "├─ files"
+    printf '%s\n' "$MARKED" | as_tree_children | sed 's/^/│  /'
+    echo "└─ fix: remove each <<<<<<< / ======= / >>>>>>> block, stage again, then continue"
+  )"
 fi
 
 # HEAD must sit on the new branch: a continue elsewhere would land the
@@ -123,11 +144,7 @@ set_cutover_unexpected_trap "$(printf '%s\n' \
 # the carry: a halt's settled edits stay, unstaged; an interrupted carry
 # finishes once its edits lay down, else the drive lays them down again
 ######################################################################
-if [[ "$HALT" == "carry-conflict" ]]; then
-  finish_carry
-  finish_cutover "git.branch.cutover continue"
-fi
-if [[ "$PHASE" == "carry" ]] && { is_carry_landed || ! is_index_clean; }; then
+if is_carry_close_owed "$HALT"; then
   finish_carry
   finish_cutover "git.branch.cutover continue"
 fi
@@ -136,6 +153,10 @@ fi
 # the picks: land the work the cursor's pick holds, then drive the rest
 ######################################################################
 INDEX=$(get_state '.pick_index')
+
+# the pick commit lands under the pick's author: unstage any path staged
+# past the pick, so the human's own work stays on disk and out of it
+del_staged_paths_beyond_pick "$INDEX"
 
 # a pick that holds no work (never begun, or begun yet never laid down)
 # is replayed by the drive rather than dropped as empty

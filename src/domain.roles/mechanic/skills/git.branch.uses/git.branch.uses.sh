@@ -20,7 +20,7 @@
 # guarantee:
 #   - local state in .meter/git.branch.uses.jsonc
 #   - global + org state in ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.branch.uses*.jsonc
-#   - the global + org handlers are the commit meter's own (fulcrum F11)
+#   - the global + org handlers are the commit meter's own
 #   - mutations are human-only; get is open
 ######################################################################
 set -euo pipefail

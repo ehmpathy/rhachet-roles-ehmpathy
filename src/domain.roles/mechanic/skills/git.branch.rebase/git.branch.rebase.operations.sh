@@ -46,9 +46,11 @@ print_no_rebase_error() {
   if [[ ! -f "$(get_git_dir)/cutover/state.json" ]]; then
     return 0
   fi
-  echo "      └─ a cutover is in flight here; settle it with its own verb"
-  echo "         ├─ rhx git.branch.cutover continue"
-  echo "         └─ rhx git.branch.cutover abort"
+  echo "      └─ a cutover is in flight here, not a rebase"
+  print_coconut_hint \
+    "settle the cutover with its own verb: continue once the files are staged, or abort it whole" \
+    "rhx git.branch.cutover continue" \
+    "rhx git.branch.cutover abort"
 }
 
 ######################################################################

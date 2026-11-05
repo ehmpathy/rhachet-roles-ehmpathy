@@ -13,7 +13,7 @@
 #
 # guarantee:
 #   - the global + org readers are the commit meter's own, pointed at the
-#     branch meter's files via METER_SLUG / METER_NOUN (fulcrum F11)
+#     branch meter's files via METER_SLUG / METER_NOUN
 #   - pure at source time: constants + functions, no top-level command
 ######################################################################
 
@@ -188,7 +188,12 @@ get_branch_meter_lock_file() {
 }
 
 set_branch_meter_lock() {
-  local lock tries=0 rc
+  local lock tries=0 rc cmd="git.branch.uses" arg
+  for arg in "$@"; do
+    case "$arg" in
+      cmd=*) cmd="${arg#cmd=}" ;;
+    esac
+  done
   lock=$(get_branch_meter_lock_file)
   mkdir -p "$(dirname "$lock")"
   while true; do
@@ -201,7 +206,7 @@ set_branch_meter_lock() {
 
     # the lock file cannot be made: a fault, never contention to wait out
     if [[ "$rc" -eq 3 ]]; then
-      emit_branch_meter_malfunction cmd="git.branch.uses" reason="the quota lock file could not be made" \
+      emit_branch_meter_malfunction cmd="$cmd" reason="the quota lock file could not be made" \
         note=print_pid_lock_fault_note note_arg="file=$lock"
     fi
     tries=$((tries + 1))
@@ -212,13 +217,13 @@ set_branch_meter_lock() {
   done
 }
 
-# the note under a lock-file fault: where it is and why the write failed
+# the note under a lock-file fault: where it is and why the write failed,
+# as children of the MalfunctionError leaf
 print_pid_lock_fault_note() {
   local file="${1#file=}"
-  echo ""
-  echo "   lock: $file"
-  echo "   detail: ${PID_LOCK_ERROR:-unknown}"
-  echo "   fix: clear the cause above (space, access, a filesystem without hard links), then rerun"
+  echo "      ├─ lock: $file"
+  echo "      ├─ detail: ${PID_LOCK_ERROR:-unknown}"
+  echo "      └─ fix: clear the cause above (space, access, a filesystem without hard links), then rerun"
 }
 
 del_branch_meter_lock() {
