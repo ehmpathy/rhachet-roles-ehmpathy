@@ -1354,8 +1354,8 @@ exports[`git.branch.cutover given: [case53] the wrong settle verb for the halt i
 "🐢 hold up dude...
 
 🐚 git.branch.rebase continue
-   ├─ error: no rebase in progress
-   └─ a cutover is in flight here, not a rebase
+   └─ ✋ ConstraintError: no rebase in progress
+      └─ a cutover is in flight here, not a rebase
 
 🥥 did you know?
    ├─ settle the cutover with its own verb: continue once the files are staged, or abort it whole

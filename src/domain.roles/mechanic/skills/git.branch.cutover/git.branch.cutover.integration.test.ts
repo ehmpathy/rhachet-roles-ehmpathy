@@ -3840,7 +3840,10 @@ describe('git.branch.cutover', () => {
         'each says no rebase is in flight and names the cutover verbs',
         () => {
           for (const result of outcome.runs) {
-            expect(result.stdout).toContain('error: no rebase in progress');
+            expect(result.status).toBe(2);
+            expect(result.stdout).toContain(
+              '✋ ConstraintError: no rebase in progress',
+            );
             expect(result.stdout).toContain(
               'a cutover is in flight here, not a rebase',
             );
