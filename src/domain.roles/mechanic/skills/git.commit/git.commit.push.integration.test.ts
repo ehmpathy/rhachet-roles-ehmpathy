@@ -1499,14 +1499,19 @@ exec /usr/bin/git "$@"
       fs.mkdirSync(path.join(skillsCopy, 'git.pull.watch'), {
         recursive: true,
       });
-      fs.readdirSync(__dirname)
-        .filter((name) => name.endsWith('.sh'))
-        .forEach((name) =>
-          fs.copyFileSync(
-            path.join(__dirname, name),
-            path.join(skillsCopy, 'git.commit', name),
-          ),
-        );
+      // the push sources a peer skill dir too (git/ holds the attribution ops)
+      ['git.commit', 'git'].forEach((dir) => {
+        const sourceDir = path.join(__dirname, '..', dir);
+        fs.mkdirSync(path.join(skillsCopy, dir), { recursive: true });
+        fs.readdirSync(sourceDir)
+          .filter((name) => name.endsWith('.sh'))
+          .forEach((name) =>
+            fs.copyFileSync(
+              path.join(sourceDir, name),
+              path.join(skillsCopy, dir, name),
+            ),
+          );
+      });
       // .mock = git.pull.watch.set, as its json contract
       fs.writeFileSync(
         path.join(skillsCopy, 'git.pull.watch', 'git.pull.watch.set.sh'),
