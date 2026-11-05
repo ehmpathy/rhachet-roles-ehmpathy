@@ -62,9 +62,6 @@ always:
       # claude tools — the bulk edit tool; the hooks name the other safe tools when they block
       - skills/claude.tools/sedreplace.sh
 
-      # package docs
-      - skills/get.package.docs.sh
-
       # git commit
       - skills/git.commit/git.commit.push.sh
       - skills/git.commit/git.commit.set.sh
@@ -99,6 +96,9 @@ always:
       - skills/claude.tools/rmsafe.sh
       - skills/claude.tools/symlink.sh
       - skills/claude.tools/teesafe.sh
+
+      # package docs — the say brief rule.require.read-package-docs-before-use names both calls
+      - skills/get.package.docs.sh
 
       # package management — rare, deliberate acts
       - skills/declapract.upgrade.sh
