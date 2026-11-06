@@ -33,6 +33,27 @@ is_rebase_in_progress() {
 }
 
 ######################################################################
+# .what = the "no rebase in progress" leaf, with a pointer to a halted
+#         cutover when one holds this worktree
+#
+# .why  = a cutover halt leaves conflicts that look like a rebase's; the
+#         mechanic who reaches for the rebase verbs learns which verb owns
+#         the halt. the state path is git.branch.cutover's own contract:
+#         <git-dir>/cutover/state.json
+######################################################################
+print_no_rebase_error() {
+  echo "   └─ ✋ ConstraintError: no rebase in progress"
+  if [[ ! -f "$(get_git_dir)/cutover/state.json" ]]; then
+    return 0
+  fi
+  echo "      └─ a cutover is in flight here, not a rebase"
+  print_coconut_hint \
+    "settle the cutover with its own verb: continue once the files are staged, or abort it whole" \
+    "rhx git.branch.cutover continue" \
+    "rhx git.branch.cutover abort"
+}
+
+######################################################################
 # get list of files with unresolved conflicts
 # returns: newline-separated list of file paths
 ######################################################################

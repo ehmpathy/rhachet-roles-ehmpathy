@@ -261,6 +261,10 @@ fetch_robot_token() {
 ######################################################################
 # source shared domain operations (get_behavioral_commits_on_branch, etc.)
 ######################################################################
+# pin the meter: this skill gates on the commit meter alone, so a METER_SLUG
+# left exported in the shell must never point its gate at the cutover meter
+METER_SLUG="git.commit.uses"
+METER_NOUN="commit"
 source "$SCRIPT_DIR/git.commit.operations.sh"
 
 # parse arguments
@@ -645,6 +649,9 @@ if [[ -n "$BEHAVIORAL_COMMITS" ]]; then
       else
         echo "   use \`cont:\` prefix"
       fi
+      print_coconut_hint \
+        "if that first commit already shipped and this work earns its own release, cut a fresh branch from main and carry the work over" \
+        "rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>"
     )"
     exit 2
   fi

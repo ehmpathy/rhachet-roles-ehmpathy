@@ -25,3 +25,17 @@ exports[`git.branch.rebase.abort given: [case2] rebase in progress when: [t0] ab
    └─ rhx git.branch.rebase abort
 "
 `;
+
+exports[`git.branch.rebase.abort given: [case3] no rebase in progress, a cutover in flight when: [t0] attempt abort then: names the cutover verbs that own the halt 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase abort
+   └─ ✋ ConstraintError: no rebase in progress
+      └─ a cutover is in flight here, not a rebase
+
+🥥 did you know?
+   ├─ settle the cutover with its own verb: continue once the files are staged, or abort it whole
+   ├─ rhx git.branch.cutover continue
+   └─ rhx git.branch.cutover abort
+"
+`;

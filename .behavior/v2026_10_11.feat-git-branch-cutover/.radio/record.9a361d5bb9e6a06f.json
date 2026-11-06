@@ -1,0 +1,21 @@
+{
+  "key": "9a361d5bb9e6a06f",
+  "kind": "create",
+  "repo": {
+    "owner": "ehmpathy",
+    "name": "declapract-typescript-ehmpathy"
+  },
+  "exid": null,
+  "title": "fix(cicd-common): install node_modules on a cache miss in every consumer job; resolve pinned deps via pnpm exec",
+  "description": "## the defect\n\nin the `cicd-common` best-practice workflows, a consumer job whose `node_modules` cache restore misses (or times out) never installs. it runs with no `node_modules`, and its bare `npx <pinned dep>` pulls the registry's latest, unpinned.\n\n- `.github/workflows/.install.yml`: the \"node-modules cache check\" is `actions/cache/restore` with `lookup-only: true`; setup node, setup pnpm, `pnpm install --frozen-lockfile`, and the cache save are all gated on that lookup's `cache-hit != 'true'`. a lookup hit skips the install.\n- `.github/workflows/.declastruct.yml`: plan and apply restore `node_modules` on `needs.install.outputs.node-modules-cache-key` with no miss gate and no install behind it; a miss is a warning. then `npx declastruct …`.\n- the same restore-with-no-install shape repeats in `.test.yml` (8 restores) and `.publish-npm.yml`.\n\n## the evidence (ehmpathy/rhachet-roles-ehmpathy PR #1022, run 39537364104)\n\n- attempt 1: install `Cache hit for: Linux-node-v22.21.0-pnpm-4bde0194…` / `Lookup only - skipping download`; plan's restore timed out 5/5 (warning only); `npx declastruct` hit the registry → `ERR_SSL_SSL/TLS_ALERT_BAD_RECORD_MAC`.\n- attempt 2 (`rerun --failed`): the green install job was reused as is; plan: `Cache not found for input keys: Linux-node-v22.21.0-pnpm-4bde0194…` → `npm warn exec … will be installed: declastruct@1.9.2` → `✖ plan failed: Error: Cannot find module 'declastruct-github'` (the repo pins declastruct 1.7.3). `gh cache list --key …4bde0194` is empty (evicted after 7 days unused).\n- not the consumer's code: package.json and pnpm-lock.yaml identical to main.\n\n## the fix shape\n\n- every consumer job that restores `node_modules` installs on its OWN miss, gated on that restore's own output, not on the install job's lookup:\n  ```yaml\n  - name: get node-modules from cache\n    id: node-modules\n    uses: actions/cache/restore@v4\n    with:\n      path: ./node_modules\n      key: ${{ needs.install.outputs.node-modules-cache-key }}\n  - name: setup pnpm on cache miss\n    if: steps.node-modules.outputs.cache-hit != 'true'\n    uses: pnpm/action-setup@v4\n  - name: install on cache miss\n    if: steps.node-modules.outputs.cache-hit != 'true'\n    run: pnpm install --frozen-lockfile\n  ```\n  a miss, an eviction, or a restore timeout then costs an install, never a broken job.\n- plan and apply resolve the pinned local copy: `pnpm exec declastruct …` (or `npx --no-install`), so an absent `node_modules` fails loud and never pulls an unpinned release.\n- optional: drop `lookup-only` in `.install.yml`, or keep it and treat the consumer-side install as the real guarantee.\n\n## the clamp\n\na declapract test in this repo that, for every best-practice workflow:\n- asserts each `actions/cache/restore` of `./node_modules` is followed by an install gated on that same step's `cache-hit != 'true'`\n- asserts no step calls bare `npx <dep pinned in package.json>` (use `pnpm exec`)\nit must fail on today's `.declastruct.yml` and `.test.yml`.",
+  "status": null,
+  "via": "gh.issues",
+  "auth": null,
+  "idem": null,
+  "heldAt": "2026-10-30T13:44:01Z",
+  "heldSeq": 1,
+  "recordStatus": "QUEUED",
+  "reason": "radio.uses:blocked — global",
+  "settledAt": null,
+  "deliveredExid": null
+}

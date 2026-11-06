@@ -47,6 +47,202 @@ exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry the
 "
 `;
 
+exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t6.0] a hand-cut of a new branch: git checkout -b turtle/reef then: it points to the cutover 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git checkout -b turtle/reef
+   └─ paved alternatives for \`git checkout -b\`
+      ├─ rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
+      └─ rhx git.branch.cutover begin --from @tree --into <branch>
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git checkout -b turtle/reef'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t6.1] a hand-cut of a new branch: git checkout -B turtle/reef then: it points to the cutover 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git checkout -B turtle/reef
+   └─ paved alternatives for \`git checkout -B\`
+      ├─ rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
+      └─ rhx git.branch.cutover begin --from @tree --into <branch>
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git checkout -B turtle/reef'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t6.2] a hand-cut of a new branch: git checkout --no-track -b turtle/reef origin/main then: it points to the cutover 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git checkout --no-track -b turtle/reef origin/main
+   └─ paved alternatives for \`git checkout --no-track\`
+      ├─ rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
+      └─ rhx git.branch.cutover begin --from @tree --into <branch>
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git checkout --no-track -b turtle/reef origin/main'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t6.3] a hand-cut of a new branch: git switch -c turtle/reef then: it points to the cutover 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git switch -c turtle/reef
+   └─ paved alternatives for \`git switch -c\`
+      ├─ rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
+      └─ rhx git.branch.cutover begin --from @tree --into <branch>
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git switch -c turtle/reef'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t6.4] a hand-cut of a new branch: git switch -C turtle/reef then: it points to the cutover 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git switch -C turtle/reef
+   └─ paved alternatives for \`git switch -C\`
+      ├─ rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
+      └─ rhx git.branch.cutover begin --from @tree --into <branch>
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git switch -C turtle/reef'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t6.5] a hand-cut of a new branch: git switch --create turtle/reef then: it points to the cutover 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git switch --create turtle/reef
+   └─ paved alternatives for \`git switch --create\`
+      ├─ rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
+      └─ rhx git.branch.cutover begin --from @tree --into <branch>
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git switch --create turtle/reef'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t6.6] a hand-cut of a new branch: git switch --force-create turtle/reef then: it points to the cutover 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git switch --force-create turtle/reef
+   └─ paved alternatives for \`git switch --force-create\`
+      ├─ rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
+      └─ rhx git.branch.cutover begin --from @tree --into <branch>
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git switch --force-create turtle/reef'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t6.7] a hand-cut of a new branch: git switch --no-track -c turtle/reef origin/main then: it points to the cutover 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git switch --no-track -c turtle/reef origin/main
+   └─ paved alternatives for \`git switch --no-track\`
+      ├─ rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
+      └─ rhx git.branch.cutover begin --from @tree --into <branch>
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git switch --no-track -c turtle/reef origin/main'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
+exports[`pretooluse.check-permissions.sh given: [case30] blocked parts carry their paved alternatives when: [t7] an in-place cherry-pick then: it advises the cutover, and names no in-place alternative 1`] = `
+"
+✋ ConstraintError: this command is not paved
+   ├─ blocked: git cherry-pick abc1234
+   └─ no paved in-place pick; to carry commits onto a fresh branch cut from main, run rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>
+
+🐚 pave what recurs
+   ├─ you will use it again? pave it
+   ├─ a future traveler will need it? pave it
+   ├─ a repo beyond this one will need it? pave it, and dispatch a task to teach upstream too
+   └─ where? always start in .agent/repo=.this/role=any/skills/
+
+🥥 did you know?
+   ├─ 1. see all pre-approved commands: rhx permissions.get --for 'git cherry-pick abc1234'
+   ├─ 2. a need that recurs deserves a paved rhx skill — pave it
+   └─ 3. need this exact command once? retry it unchanged — that interrupts the human to ask
+
+"
+`;
+
 exports[`pretooluse.check-permissions.sh given: [case31] a typo of a paved command when: [t0] the head has an adjacent swap then: the render matches snapshot 1`] = `
 "
 ✋ ConstraintError: this command is not paved

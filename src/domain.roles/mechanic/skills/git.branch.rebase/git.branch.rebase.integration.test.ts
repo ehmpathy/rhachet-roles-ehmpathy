@@ -2,7 +2,7 @@ import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { given, then, when } from 'test-fns';
+import { given, then, useThen, when } from 'test-fns';
 
 import { configureTestGitUser } from '@src/.test/configureTestGitUser';
 
@@ -55,16 +55,23 @@ const setupMinimalRepo = (options?: { pushAllowed?: boolean }): string => {
 describe('git.branch.rebase.sh', () => {
   given('[case1] help subcommand', () => {
     when('[t0] invoked with help', () => {
+      const result = useThen('it runs', async () =>
+        spawnSync('bash', [SKILL_PATH, 'help'], { encoding: 'utf-8' }),
+      );
       then('shows usage with exit 0', () => {
-        const result = spawnSync('bash', [SKILL_PATH, 'help'], {
-          encoding: 'utf-8',
-        });
         expect(result.status).toEqual(0);
         expect(result.stdout).toContain('subcommands');
         expect(result.stdout).toContain('begin');
         expect(result.stdout).toContain('continue');
         expect(result.stdout).toContain('abort');
         expect(result.stdout).toContain('--unstaged ignore');
+        expect(result.stdout).toMatchSnapshot();
+      });
+      then('points a spent branch to the cutover verb', () => {
+        expect(result.stdout).toContain('a rebase keeps that history');
+        expect(result.stdout).toContain('rhx git.branch.cutover help');
+      });
+      then('the help tree matches its snapshot', () => {
         expect(result.stdout).toMatchSnapshot();
       });
     });

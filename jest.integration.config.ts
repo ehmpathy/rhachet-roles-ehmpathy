@@ -59,6 +59,12 @@ const config: Config = {
     //   GIT_PULL_REAL_TARGET='<owner/repo>#<n>' npx jest -c jest.integration.config.ts --testMatch '<rootDir>/src/domain.roles/mechanic/skills/git.pull/git.pull.real.integration.test.ts'
     '!**/src/domain.roles/mechanic/skills/git.pull.comment/git.pull.comment.real.integration.test.ts',
     '!**/src/domain.roles/mechanic/skills/git.pull/git.pull.real.integration.test.ts',
+
+    // the set.package real-registry block cases post to the live npm advisory api, whose
+    // count and titles drift; they run only by hand, so drift cannot redden ci (fulcrum F25):
+    //   npx jest -c jest.integration.config.ts --testMatch '<rootDir>/src/domain.roles/mechanic/skills/set.package/set.package.*.real.integration.test.ts'
+    '!**/src/domain.roles/mechanic/skills/set.package/set.package.install.real.integration.test.ts',
+    '!**/src/domain.roles/mechanic/skills/set.package/set.package.upgrade.real.integration.test.ts',
   ],
   setupFilesAfterEnv: ['./jest.integration.env.ts'],
 

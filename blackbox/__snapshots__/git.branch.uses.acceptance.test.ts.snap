@@ -1,0 +1,98 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.uses (acceptance) given: [case1] a linked repo of the ehmpathy org when: [t0] a human grants two cutovers then: it grants them and writes the local meter 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.uses
+
+🐢 radical! let's ride!
+
+🐚 git.branch.uses set
+   └─ granted: 2
+"
+`;
+
+exports[`git.branch.uses (acceptance) given: [case1] a linked repo of the ehmpathy org when: [t1] anyone reads the quota then: it shows the grant, with no human needed 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.uses
+
+🐢 lets check the meter...
+
+🐚 git.branch.uses
+   └─ meter
+      └─ left: 2
+"
+`;
+
+exports[`git.branch.uses (acceptance) given: [case1] a linked repo of the ehmpathy org when: [t2] a mechanic, not a human, tries to grant then: it refuses at exit 2 and leaves the grant as it was 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.uses
+
+🐢 bummer dude...
+
+🐚 git.branch.uses set
+   └─ ✋ ConstraintError: no terminal on this command
+
+   only a human at a real terminal may run this, and this command
+   has none. a clone's tool call has none, and neither does a claude
+   \`!\` command, so the two cannot be told apart here.
+
+run it from your own terminal, with the same args:
+  $ rhx git.branch.uses set ...
+"
+`;
+
+exports[`git.branch.uses (acceptance) given: [case1] a linked repo of the ehmpathy org when: [t3] a human allows the org then: it writes the org file in HOME 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.uses
+
+🐢 shell yeah, back in the water!
+
+🐚 git.branch.uses allow --org ehmpathy
+   └─ ehmpathy: allowed
+"
+`;
+
+exports[`git.branch.uses (acceptance) given: [case1] a linked repo of the ehmpathy org when: [t4] a human blocks all cutovers globally then: it records the global blocker 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.uses
+
+🐢 groovy, bond fire time
+
+🐚 git.branch.uses block --global
+   └─ cutovers blocked globally
+"
+`;
+
+exports[`git.branch.uses (acceptance) given: [case1] a linked repo of the ehmpathy org when: [t5] a human lifts the global blocker then: it lifts the blocker 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.uses
+
+🐢 shell yeah, back in the water!
+
+🐚 git.branch.uses allow --global
+   └─ cutovers resumed globally
+"
+`;
+
+exports[`git.branch.uses (acceptance) given: [case1] a linked repo of the ehmpathy org when: [t6] a human revokes the local grant then: it revokes the grant 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.uses
+
+🐢 groovy, break time
+
+🐚 git.branch.uses del
+   └─ revoked
+"
+`;
+
+exports[`git.branch.uses (acceptance) given: [case1] a linked repo of the ehmpathy org when: [t7] anyone reads the quota after the revoke then: it reads as no grant 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.uses
+
+🐢 lets check the meter...
+
+🐚 git.branch.uses
+   └─ meter
+      └─ left: 0
+"
+`;

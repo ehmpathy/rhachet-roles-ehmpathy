@@ -199,4 +199,29 @@ describe('git.branch.rebase.abort', () => {
       });
     });
   });
+
+  given('[case3] no rebase in progress, a cutover in flight', () => {
+    when('[t0] attempt abort', () => {
+      then('names the cutover verbs that own the halt', () => {
+        const tempDir = setupNoRebase();
+
+        try {
+          // a cutover's state file is its contract: <git-dir>/cutover/state.json
+          const cutoverDir = path.join(tempDir, '.git', 'cutover');
+          fs.mkdirSync(cutoverDir, { recursive: true });
+          fs.writeFileSync(path.join(cutoverDir, 'state.json'), '{}');
+
+          const result = runSkill(tempDir);
+
+          expect(result.status).not.toBe(0);
+          expect(result.stdout).toContain('no rebase in progress');
+          expect(result.stdout).toContain('rhx git.branch.cutover continue');
+          expect(result.stdout).toContain('rhx git.branch.cutover abort');
+          expect(result.stdout).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
+  });
 });

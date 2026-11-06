@@ -396,4 +396,61 @@ describe('git.stage.add.sh', () => {
       });
     });
   });
+
+  // ========================================
+  // conflict settled by delete
+  // ========================================
+
+  given(
+    '[case9] a modify/delete conflict settled by removal of the file',
+    () => {
+      when('[t0] the removed path is staged', () => {
+        then('the delete is staged and the conflict clears', () => {
+          // a repo where main deletes wave.ts and the branch modifies it
+          const tempDir = genTempDir({ slug: 'git-stage-add-test', git: true });
+          configureTestGitUser({ cwd: tempDir });
+          const git = (gitArgs: string[]) =>
+            spawnSync('git', gitArgs, { cwd: tempDir, encoding: 'utf-8' });
+          fs.writeFileSync(path.join(tempDir, 'wave.ts'), 'swell\n');
+          git(['add', 'wave.ts']);
+          git(['commit', '-q', '-m', 'add wave']);
+          git(['checkout', '-q', '-b', 'turtle/wave']);
+          fs.writeFileSync(path.join(tempDir, 'wave.ts'), 'swell v2\n');
+          git(['commit', '-q', '-am', 'edit wave']);
+          git(['checkout', '-q', '-']);
+          git(['rm', '-q', 'wave.ts']);
+          git(['commit', '-q', '-m', 'drop wave']);
+          git(['merge', '-q', 'turtle/wave']);
+          expect(git(['ls-files', '-u', '--', 'wave.ts']).stdout).not.toEqual(
+            '',
+          );
+
+          // the human settles the conflict by removal of the file
+          fs.rmSync(path.join(tempDir, 'wave.ts'));
+          const meterDir = path.join(tempDir, '.meter');
+          fs.mkdirSync(meterDir, { recursive: true });
+          fs.writeFileSync(
+            path.join(meterDir, 'git.commit.uses.jsonc'),
+            JSON.stringify({ uses: 5, push: 'allow', stage: 'allow' }, null, 2),
+          );
+          const tempHome = genTempDir({ slug: 'git-stage-home', git: false });
+          const result = spawnSync('bash', [scriptPath, 'wave.ts'], {
+            cwd: tempDir,
+            encoding: 'utf-8' as const, // node api requires this exact string
+            stdio: ['pipe', 'pipe', 'pipe'],
+            env: { ...process.env, HOME: tempHome },
+          });
+
+          expect(result.status).toBe(0);
+          expect(result.stdout).not.toContain('file not found');
+          expect(git(['ls-files', '-u', '--', 'wave.ts']).stdout).toEqual('');
+          expect(
+            git(['diff', '--cached', '--name-status', '--', 'wave.ts']).stdout,
+          ).toEqual('');
+          expect(git(['ls-files', '--', 'wave.ts']).stdout).toEqual('');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+    },
+  );
 });

@@ -33,6 +33,10 @@ LEVEL_FILE="$BIND_DIR/git.commit.level"
 
 # shared operations — `infer_level_from_branch` lives there, one definition
 # for `bind get` (which shows the level) and `git.commit.set` (which enforces it)
+# pin the meter: a METER_SLUG left exported in the shell must never redirect
+# the shared file's meter paths
+METER_SLUG="git.commit.uses"
+METER_NOUN="commit"
 source "$SCRIPT_DIR/git.commit.operations.sh"
 
 # parse subcommand

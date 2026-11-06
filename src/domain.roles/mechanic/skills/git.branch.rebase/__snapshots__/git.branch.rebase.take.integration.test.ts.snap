@@ -51,7 +51,21 @@ exports[`git.branch.rebase.take given: [case4] no rebase in progress when: [t0] 
 "🐢 hold up dude...
 
 🐚 git.branch.rebase take
-   └─ error: no rebase in progress
+   └─ ✋ ConstraintError: no rebase in progress
+"
+`;
+
+exports[`git.branch.rebase.take given: [case4] no rebase in progress when: [t1] attempt take while a cutover is in flight then: names the cutover verbs that own the halt 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase take
+   └─ ✋ ConstraintError: no rebase in progress
+      └─ a cutover is in flight here, not a rebase
+
+🥥 did you know?
+   ├─ settle the cutover with its own verb: continue once the files are staged, or abort it whole
+   ├─ rhx git.branch.cutover continue
+   └─ rhx git.branch.cutover abort
 "
 `;
 

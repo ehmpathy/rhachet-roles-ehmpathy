@@ -11,14 +11,40 @@ exports[`git.branch.rebase.sh given: [case1] help subcommand when: [t0] invoked 
    │  ├─ abort      abandon rebase, restore pre-rebase state
    │  ├─ lock       lock file operations (refresh)
    │  └─ help       show this usage
-   └─ examples
-      ├─ rhx git.branch.rebase begin --mode plan
-      ├─ rhx git.branch.rebase begin --mode apply
-      ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
-      ├─ rhx git.branch.rebase continue
-      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
-      ├─ rhx git.branch.rebase lock refresh
-      └─ rhx git.branch.rebase abort
+   ├─ examples
+   │  ├─ rhx git.branch.rebase begin --mode plan
+   │  ├─ rhx git.branch.rebase begin --mode apply
+   │  ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+   │  ├─ rhx git.branch.rebase continue
+   │  ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+   │  ├─ rhx git.branch.rebase lock refresh
+   │  └─ rhx git.branch.rebase abort
+   └─ the branch's first feat already shipped? a rebase keeps that history;
+      cut a fresh branch instead: rhx git.branch.cutover help
+"
+`;
+
+exports[`git.branch.rebase.sh given: [case1] help subcommand when: [t0] invoked with help then: the help tree matches its snapshot 1`] = `
+"🐢 heres the wave...
+
+🐚 git.branch.rebase
+   ├─ subcommands
+   │  ├─ begin      start rebase onto origin/main
+   │  ├─ continue   continue after conflicts settled
+   │  ├─ take       settle conflicts via ours or theirs
+   │  ├─ abort      abandon rebase, restore pre-rebase state
+   │  ├─ lock       lock file operations (refresh)
+   │  └─ help       show this usage
+   ├─ examples
+   │  ├─ rhx git.branch.rebase begin --mode plan
+   │  ├─ rhx git.branch.rebase begin --mode apply
+   │  ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+   │  ├─ rhx git.branch.rebase continue
+   │  ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+   │  ├─ rhx git.branch.rebase lock refresh
+   │  └─ rhx git.branch.rebase abort
+   └─ the branch's first feat already shipped? a rebase keeps that history;
+      cut a fresh branch instead: rhx git.branch.cutover help
 "
 `;
 
@@ -33,14 +59,16 @@ exports[`git.branch.rebase.sh given: [case2] help flags when: [t0] invoked with 
    │  ├─ abort      abandon rebase, restore pre-rebase state
    │  ├─ lock       lock file operations (refresh)
    │  └─ help       show this usage
-   └─ examples
-      ├─ rhx git.branch.rebase begin --mode plan
-      ├─ rhx git.branch.rebase begin --mode apply
-      ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
-      ├─ rhx git.branch.rebase continue
-      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
-      ├─ rhx git.branch.rebase lock refresh
-      └─ rhx git.branch.rebase abort
+   ├─ examples
+   │  ├─ rhx git.branch.rebase begin --mode plan
+   │  ├─ rhx git.branch.rebase begin --mode apply
+   │  ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+   │  ├─ rhx git.branch.rebase continue
+   │  ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+   │  ├─ rhx git.branch.rebase lock refresh
+   │  └─ rhx git.branch.rebase abort
+   └─ the branch's first feat already shipped? a rebase keeps that history;
+      cut a fresh branch instead: rhx git.branch.cutover help
 "
 `;
 
@@ -55,14 +83,16 @@ exports[`git.branch.rebase.sh given: [case2] help flags when: [t1] invoked with 
    │  ├─ abort      abandon rebase, restore pre-rebase state
    │  ├─ lock       lock file operations (refresh)
    │  └─ help       show this usage
-   └─ examples
-      ├─ rhx git.branch.rebase begin --mode plan
-      ├─ rhx git.branch.rebase begin --mode apply
-      ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
-      ├─ rhx git.branch.rebase continue
-      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
-      ├─ rhx git.branch.rebase lock refresh
-      └─ rhx git.branch.rebase abort
+   ├─ examples
+   │  ├─ rhx git.branch.rebase begin --mode plan
+   │  ├─ rhx git.branch.rebase begin --mode apply
+   │  ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+   │  ├─ rhx git.branch.rebase continue
+   │  ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+   │  ├─ rhx git.branch.rebase lock refresh
+   │  └─ rhx git.branch.rebase abort
+   └─ the branch's first feat already shipped? a rebase keeps that history;
+      cut a fresh branch instead: rhx git.branch.cutover help
 "
 `;
 
@@ -168,14 +198,16 @@ exports[`git.branch.rebase.sh given: [case3] no subcommand when: [t0] invoked wi
    │  ├─ abort      abandon rebase, restore pre-rebase state
    │  ├─ lock       lock file operations (refresh)
    │  └─ help       show this usage
-   └─ examples
-      ├─ rhx git.branch.rebase begin --mode plan
-      ├─ rhx git.branch.rebase begin --mode apply
-      ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
-      ├─ rhx git.branch.rebase continue
-      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
-      ├─ rhx git.branch.rebase lock refresh
-      └─ rhx git.branch.rebase abort
+   ├─ examples
+   │  ├─ rhx git.branch.rebase begin --mode plan
+   │  ├─ rhx git.branch.rebase begin --mode apply
+   │  ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+   │  ├─ rhx git.branch.rebase continue
+   │  ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+   │  ├─ rhx git.branch.rebase lock refresh
+   │  └─ rhx git.branch.rebase abort
+   └─ the branch's first feat already shipped? a rebase keeps that history;
+      cut a fresh branch instead: rhx git.branch.cutover help
 "
 `;
 
@@ -195,14 +227,16 @@ exports[`git.branch.rebase.sh given: [case4] unknown subcommand when: [t0] invok
    │  ├─ abort      abandon rebase, restore pre-rebase state
    │  ├─ lock       lock file operations (refresh)
    │  └─ help       show this usage
-   └─ examples
-      ├─ rhx git.branch.rebase begin --mode plan
-      ├─ rhx git.branch.rebase begin --mode apply
-      ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
-      ├─ rhx git.branch.rebase continue
-      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
-      ├─ rhx git.branch.rebase lock refresh
-      └─ rhx git.branch.rebase abort
+   ├─ examples
+   │  ├─ rhx git.branch.rebase begin --mode plan
+   │  ├─ rhx git.branch.rebase begin --mode apply
+   │  ├─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+   │  ├─ rhx git.branch.rebase continue
+   │  ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
+   │  ├─ rhx git.branch.rebase lock refresh
+   │  └─ rhx git.branch.rebase abort
+   └─ the branch's first feat already shipped? a rebase keeps that history;
+      cut a fresh branch instead: rhx git.branch.cutover help
 "
 `;
 

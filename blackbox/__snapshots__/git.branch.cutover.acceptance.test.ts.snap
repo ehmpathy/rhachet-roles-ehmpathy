@@ -1,0 +1,211 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.cutover (acceptance) given: [case1] a repo with the mechanic role linked when: [t0] the caller asks for help then: the usage renders, at exit 0, with each subcommand 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.cutover
+
+🐢 heres the wave...
+
+🐚 git.branch.cutover
+   ├─ subcommands
+   │  ├─ begin      cut a fresh branch here and carry the work onto it
+   │  ├─ continue   continue after a conflict is settled
+   │  ├─ abort      undo the whole cutover
+   │  └─ help       show this usage
+   └─ examples
+      ├─ rhx git.branch.cutover begin --from @main --into turtle/wave-report-v2 --pick a1b2c3d
+      ├─ rhx git.branch.cutover begin --from @main --into turtle/wave-report-v2 --pick a1b2c3d --mode apply
+      ├─ rhx git.branch.cutover begin --from @tree --into turtle/reef-shoals --mode apply
+      ├─ rhx git.branch.cutover continue
+      ├─ rhx git.branch.cutover abort
+      └─ every flag of a subcommand: rhx git.branch.cutover begin --help
+"
+`;
+
+exports[`git.branch.cutover (acceptance) given: [case1] a repo with the mechanic role linked when: [t1] the caller continues with no cutover in flight then: it reaches the continue guard, not the dispatcher 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.cutover
+
+🐢 bummer dude...
+
+🐚 git.branch.cutover
+   └─ ✋ ConstraintError: no cutover is in flight to continue
+      └─ start one: rhx git.branch.cutover begin --from @main --into <branch>
+"
+`;
+
+exports[`git.branch.cutover (acceptance) given: [case2] a stale branch whose work must ride onto fresh main when: [t0] the caller previews the cutover, with a tracked edit then: the plan names base, picks, and the edit, and changes naught 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.cutover
+
+🐢 heres the wave...
+
+🐚 git.branch.cutover begin --mode plan
+   ├─ source: turtle/wave-report @ <sha>
+   ├─ base: origin/main @ <sha> (fetched)
+   ├─ into: turtle/wave-report-v2 (new, no upstream)
+   ├─ quota: 5 left (apply spends 1)
+   ├─ picks (2, in order)
+   │  ├─ 1. <sha> feat(wave): add wave report
+   │  └─ 2. <sha> cont(wave): add tide window
+   ├─ left behind on turtle/wave-report (1, not picked)
+   │  └─ <sha> cont(wave): add band of swell
+   └─ tracked edits (1) — will park, verify, and carry, unstaged
+      └─ M src/wave.ts
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.branch.cutover (acceptance) given: [case2] a stale branch whose work must ride onto fresh main when: [t1] the caller applies it then: the report matches its snapshot 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.cutover
+
+🐢 righteous!
+
+🐚 git.branch.cutover begin --mode apply
+   ├─ source: turtle/wave-report @ <sha> (untouched)
+   ├─ base: origin/main @ <sha>
+   ├─ into: turtle/wave-report-v2 (checked out, no upstream)
+   ├─ picks (2, in order)
+   │  ├─ 1. <sha> → <sha> feat(wave): add wave report ✓
+   │  └─ 2. <sha> → <sha> cont(wave): add tide window ✓
+   ├─ left behind on turtle/wave-report (1, not picked)
+   │  └─ <sha> cont(wave): add band of swell
+   ├─ tracked edits (1) ✓ parked, verified, carried, unstaged
+   │  └─ M src/wave.ts
+   ├─ quota: 1 spent, 4 left
+   └─ commit level: set by "feat(wave): add wave report" — the next commit leads with cont:
+
+🥥 did you know?
+   ├─ the new branch lives here alone; commit, then push it when ready
+   ├─ printf 'cont(scope): ...' | rhx git.commit.set -m @stdin --mode apply
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.branch.cutover (acceptance) given: [case3] a pick that conflicts with main when: [t0] the caller applies a cutover that picks the conflicted commit then: it halts at exit 2 and names the file, continue, and abort 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.cutover
+
+🐢 hang tight...
+
+🐚 git.branch.cutover begin --mode apply
+   └─ ✋ ConstraintError: halted: a pick conflicts
+      ├─ into: turtle/wave-report-v2 (checked out, no upstream)
+      ├─ picks (1, in order)
+      │  └─ 1. <sha> ✋ conflict
+      ├─ conflict
+      │  ├─ commit: <sha> cont(wave): add band of swell
+      │  └─ files
+      │     └─ src/band.ts (both added it)
+      ├─ stage: ✋ no stage grant, so rhx git.stage.add will refuse
+      │  └─ ask your human: rhx git.commit.uses set --quant N --push allow|block --stage allow
+      └─ quota: the cutover unit is spent; abort refunds none
+
+🥥 did you know?
+   ├─ settle the files above; once your human grants the stage (see stage: above), stage them, then continue — or undo the whole cutover
+   ├─ rhx git.stage.add <files>
+   ├─ rhx git.branch.cutover continue
+   └─ rhx git.branch.cutover abort
+"
+`;
+
+exports[`git.branch.cutover (acceptance) given: [case3] a pick that conflicts with main when: [t1] the caller continues before the settle then: it refuses and names the file still in conflict 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.cutover
+
+🐢 bummer dude...
+
+🐚 git.branch.cutover
+   └─ ✋ ConstraintError: files are still in conflict
+      ├─ files
+      │  └─ src/band.ts (both added it)
+      ├─ stage: ✋ no stage grant, so rhx git.stage.add will refuse
+      │  └─ ask your human: rhx git.commit.uses set --quant N --push allow|block --stage allow
+      └─ fix: settle each; once your human grants the stage, rhx git.stage.add <files>, then continue again
+"
+`;
+
+exports[`git.branch.cutover (acceptance) given: [case3] a pick that conflicts with main when: [t2] the caller settles, stages, and continues then: the cutover finishes with the settled pick on top of main 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.cutover
+
+🐢 righteous!
+
+🐚 git.branch.cutover continue
+   ├─ source: turtle/wave-report @ <sha> (untouched)
+   ├─ base: origin/main @ <sha>
+   ├─ into: turtle/wave-report-v2 (checked out, no upstream)
+   ├─ picks (1, in order)
+   │  └─ 1. <sha> → <sha> cont(wave): add band of swell ✓
+   ├─ left behind on turtle/wave-report (2, not picked)
+   │  ├─ <sha> feat(wave): add wave report
+   │  └─ <sha> cont(wave): add tide window
+   ├─ quota: 1 spent, 4 left
+   └─ commit level: none set yet — the next commit may lead with feat or fix
+
+🥥 did you know?
+   ├─ the new branch lives here alone; HEAD is authored by <fixture author>, so rhx git.commit.push will refuse it — ask your human to push
+   └─ git push -u origin turtle/wave-report-v2
+"
+`;
+
+exports[`git.branch.cutover (acceptance) given: [case4] a halted cutover the caller undoes when: [t0] the caller aborts then: the caller is back on the source, edit restored, new branch gone 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.cutover
+
+🐢 all good, paddled back
+
+🐚 git.branch.cutover abort
+   ├─ back on: turtle/wave-report @ <sha> (untouched)
+   ├─ tracked edits (1) ✓ restored from park
+   │  └─ M src/wave.ts
+   ├─ untracked: untouched throughout
+   ├─ removed: turtle/wave-report-v2 (made by this cutover, never pushed)
+   └─ quota: the cutover unit stays spent; abort refunds none
+"
+`;
+
+exports[`git.branch.cutover (acceptance) given: [case5] a tracked edit that cannot carry onto main when: [t0] the caller applies a cutover that carries the edit then: it halts at exit 2 on the carry, and names where the edit is held 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.cutover
+
+🐢 hang tight...
+
+🐚 git.branch.cutover begin --mode apply
+   └─ ✋ ConstraintError: halted: the carry of tracked edits conflicts
+      ├─ into: turtle/wave-report-v2 (checked out, no upstream)
+      ├─ picks (1, in order)
+      │  └─ 1. <sha> → <sha> feat(wave): add wave report ✓
+      ├─ tracked edits ✋ conflict on carry
+      │  └─ files
+      │     └─ src/band.ts (both changed it)
+      ├─ safe: original tracked edits held at refs/worktree/cutover/tree
+      ├─ stage: ✋ no stage grant, so rhx git.stage.add will refuse
+      │  └─ ask your human: rhx git.commit.uses set --quant N --push allow|block --stage allow
+      └─ quota: the cutover unit is spent; abort refunds none
+
+🥥 did you know?
+   ├─ settle the files above; once your human grants the stage (see stage: above), stage them, then continue — or undo the whole cutover
+   ├─ rhx git.stage.add <files>
+   ├─ rhx git.branch.cutover continue
+   └─ rhx git.branch.cutover abort
+"
+`;
+
+exports[`git.branch.cutover (acceptance) given: [case5] a tracked edit that cannot carry onto main when: [t1] the caller aborts from the carry halt then: the caller is back on the source with the edit intact, new branch gone 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.cutover
+
+🐢 all good, paddled back
+
+🐚 git.branch.cutover abort
+   ├─ back on: turtle/wave-report @ <sha> (untouched)
+   ├─ tracked edits (1) ✓ restored from park
+   │  └─ M src/band.ts
+   ├─ untracked: untouched throughout
+   ├─ removed: turtle/wave-report-v2 (made by this cutover, never pushed)
+   └─ quota: the cutover unit stays spent; abort refunds none
+"
+`;

@@ -8,6 +8,44 @@ import { given, then, useThen, when } from 'test-fns';
  * .what = integration tests for set.package.install.sh skill
  * .why = verify package install with security audit and reason documentation
  */
+/**
+ * .what = the lodash advisory rows main's live snapshot pinned, in its order
+ * .why  = the security-block render is pinned on a realistic list — long, of
+ *         mixed severity, with backticks and parens in titles — held still in a
+ *         fixture so registry drift cannot redden it. the live block is
+ *         set.package.install.real.integration.test.ts (F25)
+ */
+const LODASH_ADVISORIES_AS_PINNED_ON_MAIN = [
+  { severity: 'moderate', title: 'Prototype Pollution in lodash' },
+  { severity: 'high', title: 'Command Injection in lodash' },
+  { severity: 'high', title: 'Prototype Pollution in lodash' },
+  { severity: 'critical', title: 'Prototype Pollution in lodash' },
+  { severity: 'high', title: 'Prototype Pollution in lodash' },
+  {
+    severity: 'moderate',
+    title: 'Regular Expression Denial of Service (ReDoS) in lodash',
+  },
+  {
+    severity: 'moderate',
+    title: 'Regular Expression Denial of Service (ReDoS) in lodash',
+  },
+  {
+    severity: 'moderate',
+    title:
+      'Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions',
+  },
+  {
+    severity: 'high',
+    title:
+      'lodash vulnerable to Code Injection via `_.template` imports key names',
+  },
+  {
+    severity: 'moderate',
+    title:
+      'lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`',
+  },
+];
+
 describe('set.package.install.sh', () => {
   const scriptPath = path.join(__dirname, 'set.package.install.sh');
 
@@ -19,13 +57,18 @@ describe('set.package.install.sh', () => {
    * .why  = most cases grade the skill's own contract (flag checks, the reason
    *         file, the output), which a real install would slow by seconds per
    *         run and tie to the registry's latest versions
-   * .real = the audit leg is never faked: every case posts to the live npm
-   *         advisory api (case2 proves a real block). the install leg runs real
-   *         in [case15], with no fake bins
+   * .mock = the audit leg, where a case passes fakeBinDir: a fake `curl` answers
+   *         the npm bulk advisory endpoint from the case's own `advisories` fixture
+   * .why  = the live registry gains and rewords advisories over time, so a live
+   *         answer turns a pass case or a snapshot red with no change here
+   * .real = with no fake bins, both legs run live: [case15] is a real pass (audit
+   *         clean, real install); the real block runs by hand, in
+   *         set.package.install.real.integration.test.ts (F25)
    */
   const createTempDir = (options?: {
     withPackageLock?: boolean;
     withPackage?: { name: string; version: string; dev?: boolean };
+    advisories?: Record<string, Array<{ severity: string; title: string }>>;
   }): {
     tempDir: string;
     fakeBinDir: string;
@@ -121,6 +164,43 @@ exit 1
 `,
     );
     fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
+
+    // create fake curl that answers the npm bulk advisory check from a fixture
+    // .why = the live registry gains advisories over time (zod <4.6.6 since
+    //        2026-10-01), so a live check turns a pass case red with no change
+    //        here. the fixture holds the advisories each case declares; the
+    //        default {} means "no advisory", the shape the registry returns
+    fs.writeFileSync(
+      path.join(fakeBinDir, 'advisories.json'),
+      JSON.stringify(options?.advisories ?? {}),
+    );
+    fs.writeFileSync(
+      path.join(fakeBinDir, 'curl'),
+      `#!/bin/bash
+IS_BULK=""
+for arg in "$@"; do
+  [[ "$arg" == *"/-/npm/v1/security/advisories/bulk" ]] && IS_BULK=1
+done
+if [[ -n "$IS_BULK" ]]; then
+  BODY=""
+  PREV=""
+  for arg in "$@"; do
+    [[ "$PREV" == "-d" ]] && BODY="$arg"
+    PREV="$arg"
+  done
+  # answer only for the packages the request names, as the registry does
+  jq -c --argjson req "$BODY" 'with_entries(select(.key as $k | $req | has($k)))' "$(dirname "$0")/advisories.json"
+  exit 0
+fi
+# passthrough for any other call — find real curl outside fakebin
+REAL_CURL=$(PATH="\${PATH#*:}" command -v curl 2>/dev/null || echo "")
+if [[ -n "$REAL_CURL" ]]; then
+  exec "$REAL_CURL" "$@"
+fi
+exit 1
+`,
+    );
+    fs.chmodSync(path.join(fakeBinDir, 'curl'), '755');
 
     return {
       tempDir,
@@ -281,9 +361,15 @@ exit 1
     );
   });
 
-  given('[case2] audit fails (known vulnerable pkg)', () => {
+  given('[case2] audit fails (the registry reports an advisory)', () => {
     when('[t0] install is called with vulnerable package', () => {
-      const { tempDir, fakeBinDir, cleanup } = createTempDir();
+      const { tempDir, fakeBinDir, cleanup } = createTempDir({
+        advisories: {
+          lodash: [
+            { severity: 'high', title: 'Prototype Pollution in lodash' },
+          ],
+        },
+      });
       afterAll(() => cleanup());
       const result = useThen('it runs', async () =>
         runSkill(
@@ -314,6 +400,16 @@ exit 1
 
       then('output shows bummer', () => {
         expect(result.stderr).toContain('bummer dude');
+      });
+
+      then('output names the advisory that blocked it', () => {
+        expect(result.stderr).toContain('audit: FAILED (1 vulnerabilities)');
+        expect(result.stderr).toContain('high: Prototype Pollution in lodash');
+        expect(
+          JSON.parse(
+            fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),
+          ).dependencies.lodash,
+        ).toBeUndefined();
       });
     });
   });
@@ -766,6 +862,10 @@ exit 1
     when('[t0] all output variants', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir({
         withPackage: { name: 'extant-pkg', version: '1.0.0' },
+        // .why = the 10 rows main's live snapshot pinned, verbatim: a long list,
+        //        mixed severities, and titles with backticks and parens. a fixture
+        //        holds them still, so the render stays pinned while the registry moves
+        advisories: { lodash: LODASH_ADVISORIES_AS_PINNED_ON_MAIN },
       });
       afterAll(() => cleanup());
 

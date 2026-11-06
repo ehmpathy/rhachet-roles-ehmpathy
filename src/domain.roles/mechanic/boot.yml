@@ -15,7 +15,6 @@ always:
       - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
       - briefs/practices/lang.tones/rule.forbid.buzzwords.md
       - briefs/practices/lang.tones/rule.forbid.shouts.md
-      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
 
       # foundational terms
       - briefs/practices/lang.terms/define.directives.terms=forbid_avoid_prefer_require.md
@@ -38,6 +37,9 @@ always:
       - briefs/practices/lang.prose/rule.prefer.wickup-touched-prose.md
 
     ref:
+      # tone argument — the why behind rule.im_an.ehmpathy_seaturtle, which stays in say
+      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
+
       # filename enforcement via hooks — ref only (hooks already block violations)
       - briefs/practices/lang.tones/rule.forbid.shouted-readme.md
 
@@ -110,6 +112,11 @@ always:
       - skills/git.commit/git.commit.bind.sh
       - skills/git.commit/git.commit.uses.sh
 
+      # git branch — the cutover, named at the moment of need by git.commit.set and
+      # git.branch.rebase help; its quota, a human-run grant
+      - skills/git.branch.cutover/git.branch.cutover.sh
+      - skills/git.branch.uses/git.branch.uses.sh
+
       # github actions — show.gh.test.errors covers the common case
       - skills/show.gh.action.logs.sh
 
@@ -125,6 +132,17 @@ always:
 
       # permissions: what the nudge has recorded
       - skills/permissions.nudges.sh
+
+    not:
+      # the cutover + meter sub-files: the dispatchers in ref name each subcommand
+      # (`help`); operations + output are sourced libraries no human calls
+      - skills/git.branch.cutover/git.branch.cutover.abort.sh
+      - skills/git.branch.cutover/git.branch.cutover.begin.sh
+      - skills/git.branch.cutover/git.branch.cutover.continue.sh
+      - skills/git.branch.cutover/git.branch.cutover.operations.sh
+      - skills/git.branch.cutover/git.branch.cutover.output.sh
+      - skills/git.branch.uses/git.branch.uses.local.sh
+      - skills/git.branch.uses/git.branch.uses.operations.sh
 
 subject.code.prod:
   briefs:
