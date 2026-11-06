@@ -51,6 +51,7 @@ exports[`git.pull.comment given: [case1] plan is the default, on set and on del 
   "set": {
     "endpoint": "repos/ehmpathy/surf-demo/issues/7/comments",
     "id": null,
+    "ledgerFault": null,
     "method": "POST",
     "mode": "plan",
     "sha256": {
@@ -116,6 +117,38 @@ exports[`git.pull.comment given: [case2] apply posts the exact body when: [t2] t
       ├─ id: 5001
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
       └─ read-back sha256: 8275918b35973e671db782ac065e08a03a7a98112f3c0521b213488953498c81
+"
+`;
+
+exports[`git.pull.comment given: [case2b] an enrolled clone notes each comment it posts in its pr-watch ledger when: [t2] the ledger dir cannot be made then: the ledger fault is named on both streams, with cause and fix 1`] = `
+"💥 MalfunctionError: comment <id> posted, but the pr-watch ledger could not record it; your watch may alert you of it once
+   └─ cause: <the mkdir error, worded per locale>
+
+🥥 did you know?
+   └─ to fix it
+      └─ clear the cause above (no write access, or a file where the ledger dir belongs); the next set then records its id
+"
+`;
+
+exports[`git.pull.comment given: [case2b] an enrolled clone notes each comment it posts in its pr-watch ledger when: [t3] the ledger dir cannot be made, under --output json then: stderr holds the human block, with cause and fix 1`] = `
+"💥 MalfunctionError: comment <id> posted, but the pr-watch ledger could not record it; your watch may alert you of it once
+   └─ cause: <the mkdir error, worded per locale>
+
+🥥 did you know?
+   └─ to fix it
+      └─ clear the cause above (no write access, or a file where the ledger dir belongs); the next set then records its id
+"
+`;
+
+exports[`git.pull.comment given: [case2b] an enrolled clone notes each comment it posts in its pr-watch ledger when: [t4] the watch operations beside the skill will not load then: the load fault reads the same on each run 1`] = `"could not load <tmp>/.skills/git.pull.comment/../git.pull.watch/git.pull.watch.operations.sh: a peer the watch operations source is absent"`;
+
+exports[`git.pull.comment given: [case2b] an enrolled clone notes each comment it posts in its pr-watch ledger when: [t4] the watch operations beside the skill will not load then: the load fault reads the same on each run 2`] = `
+"💥 MalfunctionError: comment <id> posted, but the pr-watch ledger could not record it; your watch may alert you of it once
+   └─ cause: could not load <tmp>/.skills/git.pull.comment/../git.pull.watch/git.pull.watch.operations.sh: a peer the watch operations source is absent
+
+🥥 did you know?
+   └─ to fix it
+      └─ reinstall the mechanic role, so git.pull.watch sits beside git.pull.comment
 "
 `;
 
@@ -1650,6 +1683,7 @@ exports[`git.pull.comment given: [case16] the apply json, the keyed tree reads, 
   "set": {
     "endpoint": "repos/ehmpathy/surf-demo/issues/7/comments",
     "id": 5001,
+    "ledgerFault": null,
     "method": "POST",
     "mode": "apply",
     "sha256": {

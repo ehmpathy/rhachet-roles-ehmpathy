@@ -18,6 +18,10 @@ exports[`getMechanicRole given: [case1] the mechanic role definition when: [t4] 
           "timeout": "PT10S",
         },
         {
+          "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/sessionstart.git-pull-watch.sh",
+          "timeout": "PT45S",
+        },
+        {
           "command": "bash .agent/repo=ehmpathy/role=mechanic/inits/claude.hooks/postcompact.trust-but-verify.sh",
           "filter": {
             "what": "PostCompact",

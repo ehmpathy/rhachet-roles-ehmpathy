@@ -54,6 +54,15 @@ options:
 EOF
 }
 
+# .what = the last line with text in a file, cut to 400 chars; a stand-in when it holds none
+# .why  = a tool's last stderr line is its cause; the fault line names it. bash leads a
+#         source fault with the full file path, so the cut leaves room past it
+as_comment_last_text_line_of_file() {
+  local line
+  line="$(grep -v '^[[:space:]]*$' "$1" 2>/dev/null | tail -n 1 | cut -c1-400 || true)"
+  echo "${line:-no cause given}"
+}
+
 # the caller's argv, kept whole: a plan's hint and a refusal's fix name the exact command
 ORIG_ARGS=("$@")
 
@@ -260,10 +269,12 @@ emit() {
   local id_json="$id" id_label="id"
   if [[ "$OUTPUT" == "json" ]]; then
     jq -n --arg verdict "$verdict" --arg target "$LABEL" --arg method "$METHOD" --arg endpoint "$ENDPOINT" \
-      --arg id "$id_json" --arg url "$url" --arg cur "$CUR_SHA" --arg new "$NEW_SHA" --arg back "$back" --arg mode "$MODE" '{
+      --arg id "$id_json" --arg url "$url" --arg cur "$CUR_SHA" --arg new "$NEW_SHA" --arg back "$back" --arg mode "$MODE" \
+      --arg ledgerFault "${LEDGER_FAULT:-}" '{
         mode: $mode, verdict: $verdict, target: $target, method: $method, endpoint: $endpoint,
         id: (if $id == "" then null else ($id | tonumber) end), url: (if $url == "" then null else $url end),
-        sha256: { current: (if $cur == "" then null else $cur end), new: $new, readback: (if $back == "" then null else $back end) }
+        sha256: { current: (if $cur == "" then null else $cur end), new: $new, readback: (if $back == "" then null else $back end) },
+        ledgerFault: (if $ledgerFault == "" then null else $ledgerFault end)
       }'
     return 0
   fi
@@ -320,6 +331,28 @@ NEW_ID="$(printf '%s' "$RESP" | jq -r '.id // empty')"
 NEW_URL="$(printf '%s' "$RESP" | jq -r '.html_url // empty')"
 [[ -n "$NEW_ID" ]] || fail_comment_malfunction "gh api $METHOD $ENDPOINT returned no id" "response: $RESP"$'\n'"state: the write may have landed; its id is unknown" \
     "rerun the same command: a keyed set finds the comment by its key, so a rerun converges and names the id"
+
+# note the id in this clone's pr-watch ledger, so its watch never echoes the clone's own words
+# .note = the ledger belongs to git.pull.watch; its own operation writes it. the comment has
+#         landed, so a ledger fault never fails the set; the fault is named after the result.
+#         the append lands within ms of the post, well inside one 60s tick, so a tick that
+#         reads the new comment before its id is noted is the one echo this accepts
+LEDGER_FAULT=""
+LEDGER_FIX=""
+WATCH_OPS="$SKILL_DIR/../git.pull.watch/git.pull.watch.operations.sh"
+LEDGER_LOADED=false
+LEDGER_ERR_FILE="$(mktemp)"
+# shellcheck source=../git.pull.watch/git.pull.watch.operations.sh
+[[ -n "${RHACHET_CLONE_SERIAL:-}" ]] && source "$WATCH_OPS" 2>"$LEDGER_ERR_FILE" && LEDGER_LOADED=true
+if [[ -n "${RHACHET_CLONE_SERIAL:-}" && "$LEDGER_LOADED" == false ]]; then
+  LEDGER_FAULT="could not load $WATCH_OPS: $(as_comment_last_text_line_of_file "$LEDGER_ERR_FILE")"
+  LEDGER_FIX="reinstall the mechanic role, so git.pull.watch sits beside git.pull.comment"
+fi
+rm -f "$LEDGER_ERR_FILE"
+if [[ "$LEDGER_LOADED" == true ]] && ! LEDGER_CAUSE="$(set_watch_ledger_id "$RHACHET_CLONE_SERIAL" "$NEW_ID")"; then
+  LEDGER_FAULT="$LEDGER_CAUSE"
+  LEDGER_FIX="clear the cause above (no write access, or a file where the ledger dir belongs); the next set then records its id"
+fi
 [[ -n "$READ_BACK" ]] || READ_BACK="$(get_comment_endpoint "$COMMENT_REPO" "$ONE_KIND" "$NEW_ID")"
 
 # read back, and compare the hash
@@ -336,3 +369,19 @@ fi
 ACTED="posted"
 [[ "$METHOD" == "PATCH" ]] && ACTED="edited"
 emit "$ACTED, read back, hash matches" "$NEW_ID" "$NEW_URL" "$BACK_SHA"
+
+# a ledger fault: the comment stands, the watch will echo it once; name the cause and the fix
+# .note = exit 0: the comment landed, so a nonzero exit would tell a composer the set
+#         failed, and a keyed rerun is a no-op that never retries the ledger (F25)
+# .note = in json mode stdout holds the result object, whose ledgerFault names the fault;
+#         the human block rides stderr
+[[ -n "$LEDGER_FAULT" ]] || exit 0
+LEDGER_BLOCK="$(
+  echo ""
+  echo "💥 MalfunctionError: comment $NEW_ID posted, but the pr-watch ledger could not record it; your watch may alert you of it once"
+  echo "   └─ cause: $LEDGER_FAULT"
+  print_comment_hint "to fix it" "$LEDGER_FIX"
+)"
+echo "$LEDGER_BLOCK" >&2
+[[ "$OUTPUT" == "json" ]] || echo "$LEDGER_BLOCK"
+exit 0

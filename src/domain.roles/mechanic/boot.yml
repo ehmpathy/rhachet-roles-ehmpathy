@@ -64,9 +64,6 @@ always:
       # claude tools — the bulk edit tool; the hooks name the other safe tools when they block
       - skills/claude.tools/sedreplace.sh
 
-      # package docs
-      - skills/get.package.docs.sh
-
       # git commit
       - skills/git.commit/git.commit.push.sh
       - skills/git.commit/git.commit.set.sh
@@ -87,10 +84,9 @@ always:
       # github actions
       - skills/show.gh.test.errors.sh
 
-      # github pr comments: read, upsert by key, delete
+      # github pr comments: read, upsert by key (delete is a ref, below)
       - skills/git.pull.comment/git.pull.comment.get.sh
       - skills/git.pull.comment/git.pull.comment.set.sh
-      - skills/git.pull.comment/git.pull.comment.del.sh
 
       # permissions: the pre-approved commands, on demand
       - skills/permissions.get.sh
@@ -102,6 +98,9 @@ always:
       - skills/claude.tools/rmsafe.sh
       - skills/claude.tools/symlink.sh
       - skills/claude.tools/teesafe.sh
+
+      # package docs — the say brief rule.require.read-package-docs-before-use names both calls
+      - skills/get.package.docs.sh
 
       # package management — rare, deliberate acts
       - skills/declapract.upgrade.sh
@@ -125,6 +124,11 @@ always:
 
       # git pull comment — the spaced-verb dispatcher (git.pull.comment get|set|del)
       - skills/git.pull.comment/git.pull.comment.sh
+      # git pull comment del — a rare act; refuses a human's comment
+      - skills/git.pull.comment/git.pull.comment.del.sh
+
+      # git pull watch — the pr-watch daemon dispatcher (git.pull.watch get|set|del); the boot hook surfaces it
+      - skills/git.pull.watch/git.pull.watch.sh
 
       # git pull title + description — a driver's own pull words, read and set
       - skills/git.pull.title/git.pull.title.sh

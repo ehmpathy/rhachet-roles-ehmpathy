@@ -171,6 +171,9 @@ env.prod:
     //        option under this name — one word per concept
     //        (rule.require.ubiqlang).
     orgStateRaw?: string;
+    // .why = a copy of this skill beside a stub peer skill, so the push can be
+    //        driven against a peer reply the real peer only gives with a live daemon
+    pushPath?: string;
   }): { stdout: string; stderr: string; exitCode: number } => {
     // always exclude token from process.env for deterministic tests
     const { EHMPATHY_SEATURTLE_GITHUB_TOKEN: _token, ...envWithoutToken } =
@@ -202,16 +205,20 @@ env.prod:
     fs.writeFileSync(path.join(effectiveHome, '.bash_aliases.ductwork.sh'), '');
     fs.writeFileSync(path.join(effectiveHome, '.bash_aliases.termwork.sh'), '');
 
-    const result = spawnSync('bash', [pushScriptPath, ...args.pushArgs], {
-      cwd: args.tempDir,
-      encoding: 'utf-8' as BufferEncoding,
-      stdio: ['pipe', 'pipe', 'pipe'],
-      env: {
-        ...envWithoutToken,
-        HOME: effectiveHome,
-        ...args.env,
+    const result = spawnSync(
+      'bash',
+      [args.pushPath ?? pushScriptPath, ...args.pushArgs],
+      {
+        cwd: args.tempDir,
+        encoding: 'utf-8' as BufferEncoding,
+        stdio: ['pipe', 'pipe', 'pipe'],
+        env: {
+          ...envWithoutToken,
+          HOME: effectiveHome,
+          ...args.env,
+        },
       },
-    });
+    );
 
     return {
       stdout: result.stdout ?? '',
@@ -1364,8 +1371,359 @@ exec /usr/bin/git "$@"
         expect(result.stdout).toContain('🌊 now lets ride the release wave');
         expect(result.stdout).toContain('wipeouts');
         expect(result.stdout).toContain('rhx git.release --watch');
+        expect(result.stdout).toContain(
+          'watch: skipped (not an enrolled clone)',
+        );
         expect(result.stdout).toMatchSnapshot();
       });
+    });
+  });
+
+  given('[case18b] an enrolled clone whose pr watch refuses', () => {
+    when(
+      '[t0] push and pr creation succeed; the clone is not in this repo registry',
+      () => {
+        then(
+          'the push still succeeds, and the watch line names the refusal',
+          () => {
+            const tempDir = setupTempRepo({
+              meterState: { uses: 3, push: 'allow' },
+              branch: 'turtle/feature',
+              commits: ['feat: test watch refusal'],
+              commitAuthor: {
+                name: 'seaturtle[bot]',
+                email: 'seaturtle@ehmpath.com',
+              },
+            });
+            const fakeBinDir = path.join(tempDir, '.fakebin');
+            fs.mkdirSync(fakeBinDir, { recursive: true });
+
+            // .mock = fake gh cli - token check, empty pr list, pr create
+            fs.writeFileSync(
+              path.join(fakeBinDir, 'gh'),
+              `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "list" ]]; then
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  echo "https://github.com/test/repo/pull/42"
+  exit 0
+fi
+exit 1
+`,
+            );
+            fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+
+            // .mock = fake git push - returns success
+            fs.writeFileSync(
+              path.join(fakeBinDir, 'git'),
+              `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+            );
+            fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+
+            const result = runPush({
+              tempDir,
+              pushArgs: ['--mode', 'apply'],
+              env: {
+                EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
+                PATH: `${fakeBinDir}:${process.env.PATH}`,
+                RHACHET_CLONE_SERIAL: 'a1a1a1a1-0000-4000-8000-00000000000a',
+              },
+            });
+
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toContain('pr: pr #42 (created)');
+            expect(result.stdout).toMatch(
+              /watch: ✋ ConstraintError: .+; rerun: rhx git\.pull\.watch\.set --pr 42 --mode apply/,
+            );
+            expect(
+              result.stdout.split(fs.realpathSync(tempDir)).join('$REPO'),
+            ).toMatchSnapshot();
+            // the watch fault also lands on stderr, its failure channel
+            expect(result.stderr).toMatch(
+              /watch: ✋ ConstraintError: .+; rerun: rhx git\.pull\.watch\.set --pr 42 --mode apply/,
+            );
+            expect(
+              result.stderr
+                .split('\n')
+                .filter((line) => line.startsWith('watch: '))
+                .join('\n')
+                .split(fs.realpathSync(tempDir))
+                .join('$REPO'),
+            ).toMatchSnapshot();
+          },
+        );
+      },
+    );
+  });
+
+  given('[case18c] an enrolled clone whose pr watch replies', () => {
+    // the push's own `watch:` line on stderr, apart from git and gh noise
+    const asPushWatchStderrLine = (input: { stderr: string }): string =>
+      input.stderr
+        .split('\n')
+        .filter((line) => line.startsWith('watch: '))
+        .join('\n');
+
+    /**
+     * .what = a push from a copy of this skill, beside a stub git.pull.watch.set
+     * .why  = the real set spawns a live daemon; the stub speaks set's json
+     *         contract (`.line` on success, `.error` on refusal), so the push's
+     *         relay of each reply is proven without a daemon left behind
+     * .real = the real set's json reply is pinned in the git.pull.watch suites
+     */
+    const runPushBesideWatch = (input: {
+      watchBody: string;
+      pushArgs: string[];
+      prFound?: string;
+    }) => {
+      const tempDir = setupTempRepo({
+        meterState: { uses: 3, push: 'allow' },
+        branch: 'turtle/feature',
+        commits: ['feat: test watch relay'],
+        commitAuthor: {
+          name: 'seaturtle[bot]',
+          email: 'seaturtle@ehmpath.com',
+        },
+      });
+      const skillsCopy = path.join(tempDir, '.skills');
+      fs.mkdirSync(path.join(skillsCopy, 'git.commit'), { recursive: true });
+      fs.mkdirSync(path.join(skillsCopy, 'git.pull.watch'), {
+        recursive: true,
+      });
+      // the push sources a peer skill dir too (git/ holds the attribution ops)
+      ['git.commit', 'git'].forEach((dir) => {
+        const sourceDir = path.join(__dirname, '..', dir);
+        fs.mkdirSync(path.join(skillsCopy, dir), { recursive: true });
+        fs.readdirSync(sourceDir)
+          .filter((name) => name.endsWith('.sh'))
+          .forEach((name) =>
+            fs.copyFileSync(
+              path.join(sourceDir, name),
+              path.join(skillsCopy, dir, name),
+            ),
+          );
+      });
+      // .mock = git.pull.watch.set, as its json contract
+      fs.writeFileSync(
+        path.join(skillsCopy, 'git.pull.watch', 'git.pull.watch.set.sh'),
+        input.watchBody,
+      );
+      const fakeBinDir = path.join(tempDir, '.fakebin');
+      fs.mkdirSync(fakeBinDir, { recursive: true });
+      // .mock = fake gh cli - token check, pr list (empty, or the found pr), pr create
+      fs.writeFileSync(
+        path.join(fakeBinDir, 'gh'),
+        `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "list" ]]; then
+  ${input.prFound ? `echo "${input.prFound}"` : ':'}
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  ${input.prFound ? 'echo "unexpected pr create; the pr was found" >&2; exit 4' : 'echo "https://github.com/test/repo/pull/42"'}
+  exit 0
+fi
+exit 1
+`,
+      );
+      fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+      // .mock = fake git push - returns success
+      fs.writeFileSync(
+        path.join(fakeBinDir, 'git'),
+        `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+      );
+      fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+      const result = runPush({
+        tempDir,
+        pushArgs: input.pushArgs,
+        pushPath: path.join(skillsCopy, 'git.commit', 'git.commit.push.sh'),
+        env: {
+          EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
+          PATH: `${fakeBinDir}:${process.env.PATH}`,
+          RHACHET_CLONE_SERIAL: 'a1a1a1a1-0000-4000-8000-00000000000a',
+        },
+      });
+      // the argv the stub set was handed, where the stub records it
+      const argvLog = path.join(skillsCopy, 'git.pull.watch', 'argv.log');
+      return {
+        ...result,
+        watchArgv: fs.existsSync(argvLog)
+          ? fs.readFileSync(argvLog, 'utf-8').trim()
+          : null,
+      };
+    };
+    // .mock = set, as its json contract; it records the argv it was handed
+    const WATCH_SET_LINE = `#!/bin/bash
+printf '%s\\n' "$*" >"$(dirname "$0")/argv.log"
+echo '{"line":"set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)"}'
+`;
+
+    when('[t0] the watch is set', () => {
+      const result = useThen('the push runs', async () => ({
+        tree: runPushBesideWatch({
+          watchBody: WATCH_SET_LINE,
+          pushArgs: ['--mode', 'apply'],
+        }),
+        json: runPushBesideWatch({
+          watchBody: WATCH_SET_LINE,
+          pushArgs: ['--mode', 'apply', '--output', 'json'],
+        }),
+      }));
+      then('the tree relays the watch line', () => {
+        expect(result.tree.exitCode).toBe(0);
+        expect(result.tree.stdout).toContain(
+          'watch: set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)',
+        );
+        expect(result.tree.stdout).toMatchSnapshot();
+      });
+      then('a watch that sets stays off stderr', () => {
+        expect(result.tree.stderr).not.toContain('watch:');
+        expect(result.json.stderr).not.toContain('watch:');
+      });
+      then('the json carries the watch line', () => {
+        expect(result.json.exitCode).toBe(0);
+        expect(JSON.parse(result.json.stdout).watch).toEqual(
+          'set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)',
+        );
+      });
+      then('set is handed the created pr', () => {
+        expect(result.tree.watchArgv).toMatch(/--pr 42 /);
+        expect(result.tree.watchArgv).toContain('--mode apply');
+      });
+    });
+
+    when('[t3] the pr was opened before; this push finds it (A6)', () => {
+      const result = useThen('the push runs', async () => ({
+        tree: runPushBesideWatch({
+          watchBody: WATCH_SET_LINE,
+          pushArgs: ['--mode', 'apply'],
+          prFound: '55',
+        }),
+        json: runPushBesideWatch({
+          watchBody: WATCH_SET_LINE,
+          pushArgs: ['--mode', 'apply', '--output', 'json'],
+          prFound: '55',
+        }),
+      }));
+      then('set is handed the found pr, with no create', () => {
+        expect(result.tree.exitCode).toBe(0);
+        expect(result.tree.stdout).toContain('pr #55 (found)');
+        expect(result.tree.watchArgv).toMatch(/--pr 55 /);
+        expect(result.tree.watchArgv).toContain('--mode apply');
+      });
+      then('the tree relays the watch line for the found pr', () => {
+        expect(result.tree.stdout).toContain(
+          'watch: set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)',
+        );
+        expect(result.tree.stdout).toMatchSnapshot();
+      });
+      then('the json carries the watch line for the found pr', () => {
+        expect(result.json.exitCode).toBe(0);
+        expect(JSON.parse(result.json.stdout).watch).toEqual(
+          'set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)',
+        );
+        expect(JSON.parse(result.json.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] the watch crashes before it can reply', () => {
+      const result = useThen('the push runs', async () =>
+        runPushBesideWatch({
+          watchBody: `#!/bin/bash
+echo "git.pull.watch.set.sh: line 9: syntax error near unexpected token" >&2
+exit 2
+`,
+          pushArgs: ['--mode', 'apply'],
+        }),
+      );
+      then(
+        'the push succeeds and names the cause from stderr, with its class',
+        () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(
+            'watch: ✋ ConstraintError: the watch said naught (exit 2); stderr: git.pull.watch.set.sh: line 9: syntax error near unexpected token; rerun: rhx git.pull.watch.set --pr 42 --mode apply',
+          );
+          expect(result.stdout).toMatchSnapshot();
+        },
+      );
+      then('the failed watch line rides stderr too', () => {
+        expect(result.stderr).toContain(
+          'watch: ✋ ConstraintError: the watch said naught (exit 2)',
+        );
+        expect(
+          asPushWatchStderrLine({ stderr: result.stderr }),
+        ).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] the watch reports a malfunction', () => {
+      const result = useThen('the push runs', async () =>
+        runPushBesideWatch({
+          watchBody: `#!/bin/bash
+echo '{"error":{"class":"MalfunctionError","message":"the clone registry is unreadable; no watch was set","lines":[]}}'
+exit 1
+`,
+          pushArgs: ['--mode', 'apply'],
+        }),
+      );
+      then('the line carries the class from the reply', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          'watch: 💥 MalfunctionError: the clone registry is unreadable; no watch was set; rerun: rhx git.pull.watch.set --pr 42 --mode apply',
+        );
+        expect(result.stdout).toMatchSnapshot();
+      });
+      then('the failed watch line rides stderr too', () => {
+        expect(result.stderr).toContain(
+          'watch: 💥 MalfunctionError: the clone registry is unreadable',
+        );
+        expect(
+          asPushWatchStderrLine({ stderr: result.stderr }),
+        ).toMatchSnapshot();
+      });
+    });
+
+    when('[t4] the watch crashes, under --output json', () => {
+      const result = useThen('the push runs', async () =>
+        runPushBesideWatch({
+          watchBody: `#!/bin/bash
+echo "git.pull.watch.set.sh: line 9: syntax error near unexpected token" >&2
+exit 2
+`,
+          pushArgs: ['--mode', 'apply', '--output', 'json'],
+        }),
+      );
+      then(
+        'the push succeeds; the json and stderr each name the failed watch',
+        () => {
+          expect(result.exitCode).toBe(0);
+          expect(JSON.parse(result.stdout).watch).toContain(
+            '✋ ConstraintError: the watch said naught (exit 2)',
+          );
+          expect(result.stderr).toContain(
+            'watch: ✋ ConstraintError: the watch said naught (exit 2)',
+          );
+          expect(
+            asPushWatchStderrLine({ stderr: result.stderr }),
+          ).toMatchSnapshot();
+        },
+      );
     });
   });
 

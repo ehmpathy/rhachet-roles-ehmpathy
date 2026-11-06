@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = push HEAD commit to origin and findsert pr
+# .what = push HEAD to origin, findsert its pr, and watch the pr
 #
 # .why  = push a commit made earlier; git.commit.set composes it via --push
 #
@@ -8,12 +8,14 @@
 #   git.commit.push                  # plan
 #   git.commit.push --mode apply     # push
 #   git.commit.push --output json    # json, to compose
+#   git.commit.push --pr-title-fallback "<title>"   # title when the branch has no commits
 #
 # guarantee:
 #   - pushes only a seaturtle[bot] HEAD, if .meter/git.commit.uses.jsonc grants push
 #   - never pushes to main/master
 #   - opens the pr --auth as-ehmpath (default, keyrack) or as-human (gh login)
 #   - a new pr body ends in one seaturtle line; claude and co-author lines stripped
+#   - an enrolled clone then watches the pr; a failed watch never fails the push
 #   - never decrements uses
 #   - plan by default
 ######################################################################
@@ -716,6 +718,62 @@ fi
 PR_RESULT="ok"
 [[ "$PR_OK" == false ]] && PR_RESULT="error"
 
+# .what = the push tree's `watch:` clause, from git.pull.watch.set's json reply
+# .why  = the push reads one named status; the error class, glyph, and rerun live here once
+# usage: as_push_watch_status <json reply> <exit code> <pr> <last stderr line>
+# .note = a reply with no json (a crash before set could speak) falls back to its last
+#         stderr line, so the real cause is never lost
+as_push_watch_status() {
+  local out="$1" code="$2" pr="$3" err="$4" line class message glyph
+  line="$(printf '%s' "$out" | jq -r '.line // empty' 2>/dev/null || echo "")"
+  [[ "$code" -eq 0 && -n "$line" ]] && { echo "$line"; return 0; }
+  class="$(printf '%s' "$out" | jq -r '.error.class // empty' 2>/dev/null || echo "")"
+  message="$(printf '%s' "$out" | jq -r '.error.message // empty' 2>/dev/null || echo "")"
+  # no class in the reply: exit 2 is a constraint by the family's exit code contract
+  [[ -n "$class" ]] || class="$([[ "$code" -eq 2 ]] && echo ConstraintError || echo MalfunctionError)"
+  glyph="💥"
+  [[ "$class" == "ConstraintError" ]] && glyph="✋"
+  [[ -n "$message" ]] || message="the watch said naught (exit $code)${err:+; stderr: $err}"
+  echo "$glyph $class: $message; rerun: rhx git.pull.watch.set --pr $pr --mode apply"
+}
+
+# .what = the last line of a file with text on it; empty when none
+# .why  = a failed watch's cause is the last line it wrote to stderr
+as_push_last_text_line_of_file() {
+  grep -v '^[[:space:]]*$' "$1" | tail -n 1 || true
+}
+
+# .what = set the watch of one pr, and say how it went, as one line
+# .why  = the peer call, its stderr capture, and its exit read live here, so the
+#         orchestrator reads one sentence: find out how the watch went
+get_push_watch_status() {
+  local pr="$1" out="" code=0 err_file err_tail
+  err_file="$(mktemp)"
+  out=$(bash "$SCRIPT_DIR/../git.pull.watch/git.pull.watch.set.sh" \
+    --pr "$pr" --mode apply --output json 2>"$err_file") || code=$?
+  err_tail="$(as_push_last_text_line_of_file "$err_file")"
+  rm -f "$err_file"
+  as_push_watch_status "$out" "$code" "$pr" "$err_tail"
+}
+
+# watch the pr: an enrolled clone is alerted of its ci, comments, and approval
+# .note = a watch that fails never fails the push; its line names why
+PR_NUMBER="${PR_FOUND:-${NEW_PR:-}}"
+WATCH_STATUS=""
+if [[ -n "$PR_NUMBER" && -z "${RHACHET_CLONE_SERIAL:-}" ]]; then
+  WATCH_STATUS="skipped (not an enrolled clone)"
+fi
+if [[ -n "$PR_NUMBER" && -n "${RHACHET_CLONE_SERIAL:-}" ]]; then
+  WATCH_STATUS="$(get_push_watch_status "$PR_NUMBER")"
+fi
+
+# .what = did the watch fail? its line then opens with an error glyph
+# .why  = a failed watch never fails the push, but its line must still reach
+#         stderr, as every failure does (rule.require.skill-output-streams)
+is_push_watch_fault() {
+  [[ "$WATCH_STATUS" == "✋"* || "$WATCH_STATUS" == "💥"* ]]
+}
+
 # output results
 # json mode emits one machine-readable line and is done; tree mode is the linear
 # default below (no else — the early-exit keeps json off the tree path). a failed
@@ -723,8 +781,11 @@ PR_RESULT="ok"
 # did not open, so downstream automation must not read this as full success.
 if [[ "$OUTPUT" == "json" ]]; then
   PR_STATUS_ESCAPED=$(escape_json_string "$PR_STATUS")
-  PR_JSON=$(printf '{"status":"pushed","push_target":"%s","pr":"%s","pr_status":"%s","auth":"%s","push_revoked":%s}' \
-    "$PUSH_TARGET" "$PR_RESULT" "$PR_STATUS_ESCAPED" "$AUTH" "$PUSH_REVOKED")
+  # watch is null when no pr was opened, so no watch was attempted
+  WATCH_JSON="null"
+  [[ -n "$WATCH_STATUS" ]] && WATCH_JSON="\"$(escape_json_string "$WATCH_STATUS")\""
+  PR_JSON=$(printf '{"status":"pushed","push_target":"%s","pr":"%s","pr_status":"%s","auth":"%s","push_revoked":%s,"watch":%s}' \
+    "$PUSH_TARGET" "$PR_RESULT" "$PR_STATUS_ESCAPED" "$AUTH" "$PUSH_REVOKED" "$WATCH_JSON")
   echo "$PR_JSON"
   # on a failed pr-open, duplicate the error line to stderr so a stderr-only
   # consumer (ci log scan, hook) sees the failure signal too — the tree path
@@ -734,6 +795,8 @@ if [[ "$OUTPUT" == "json" ]]; then
     echo "$PR_JSON" >&2
     exit 2
   fi
+  # the push and pr landed, but the watch failed: its line rides stderr too
+  is_push_watch_fault && echo "watch: $WATCH_STATUS" >&2
   exit 0
 fi
 
@@ -752,6 +815,7 @@ TREE_OUTPUT=$(
     echo "   ├─ pr: $PR_STATUS"
     echo "   ├─ opened: $AUTH_WHO"
   fi
+  [[ -n "$WATCH_STATUS" ]] && echo "   ├─ watch: $WATCH_STATUS"
   echo "   └─ meter"
   echo "$METER_LINE"
   if [[ "$PR_OK" == true ]]; then
@@ -768,3 +832,6 @@ if [[ "$PR_OK" == false ]]; then
   echo "$TREE_OUTPUT" >&2
   exit 2
 fi
+# the push and pr landed, but the watch failed: its line rides stderr too
+is_push_watch_fault && echo "watch: $WATCH_STATUS" >&2
+exit 0
