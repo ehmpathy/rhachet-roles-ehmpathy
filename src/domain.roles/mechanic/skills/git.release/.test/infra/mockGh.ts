@@ -13,11 +13,14 @@ import * as path from 'path';
  * .why  = git.release drives a real github release: pr merge, ci runs, tags,
  *         deploys. a real call would need a live repo, real prs and real ci
  *         runs, would mutate them, and could not reach states like "ci failed
- *         after a rebase" on demand. the rule's "clearly unavoidable" exception
+ *         after a rebase" on demand: the "clearly unavoidable" exception of
+ *         `rule.forbid.integration.mocks`
  * .real = the skill itself runs for real, in a real temp git repo; only the
- *         remote boundary is faked. the real gh, the real keyrack, and the real
- *         git remote are called in
- *         `git.commit/external.contracts.integration.test.ts`
+ *         remote boundary is faked. the real gh calls git.release makes are
+ *         called in `git.release.p9.comment_gate.real.integration.test.ts` (the
+ *         comment read and the automerge disable; by hand, out of ci, as it
+ *         mutates a live pr) and `git.commit/external.contracts.integration.test.ts`
+ *         (gh auth, keyrack, the git remote)
  *
  * features:
  * - dynamic automerge state (mark when enabled, return with-automerge state)
@@ -359,6 +362,14 @@ export const genTagWorkflowJson = (input: {
 // ============================================================================
 
 /**
+ * .what = one bash line that answers the release gate's comment read with "no comments"
+ * .why = a hand-written gh mock that predates the gate lets its pr pass the gate
+ *        as a pr with no comments; interpolate it ahead of the mock's fallthrough
+ */
+export const GH_MOCK_LINE_COMMENTS_ABSENT =
+  '[[ "${1:-}" != "api" ]] || { if [[ "$*" == *graphql* ]]; then echo \'{"data":{"repository":{"pullRequest":{"reviewThreads":{"pageInfo":{"hasNextPage":false,"endCursor":null},"nodes":[]}}}}}\'; else echo \'[]\'; fi; exit 0; }';
+
+/**
  * .what = generate gh mock executable
  * .why = creates a bash mock that responds to gh CLI commands
  */
@@ -546,6 +557,16 @@ fi
 # handle workflow run (rerun)
 if [[ "\$1" == "run" && "\$2" == "rerun" ]]; then
   echo "rerun triggered"
+  exit 0
+fi
+
+# handle the comment read: these prs hold no comments
+if [[ "\$1" == "api" && "\$2" == "graphql" ]]; then
+  echo '{"data":{"repository":{"pullRequest":{"reviewThreads":{"pageInfo":{"hasNextPage":false,"endCursor":null},"nodes":[]}}}}}'
+  exit 0
+fi
+if [[ "\$1" == "api" ]]; then
+  echo '[]'
   exit 0
 fi
 
@@ -1016,8 +1037,23 @@ case "$CMD_KEY" in
     fi
     ;;
 
+  "api --method")
+    # the comment read: scenes hold no comments
+    echo '[]'
+    ;;
+
+  "api graphql")
+    # the review thread read: scenes hold no threads
+    echo '{"data":{"repository":{"pullRequest":{"reviewThreads":{"pageInfo":{"hasNextPage":false,"endCursor":null},"nodes":[]}}}}}'
+    ;;
+
   "pr merge")
     PR_NUM="$3"
+    if echo "$ALL_ARGS" | grep -q -- "--disable-auto"; then
+      rm -f "$STATE_DIR/automerge-enabled-$PR_NUM"
+      echo "auto-merge disabled"
+      exit 0
+    fi
     touch "$STATE_DIR/automerge-enabled-$PR_NUM"
     if [[ "$PR_NUM" == "${featPrNum}" ]]; then
       if has_feat_automerge_enabled "$PR_NUM" && is_passed "$PR_NUM"; then
@@ -1223,8 +1259,11 @@ exec /usr/bin/git "\$@"
  *
  * features:
  * - command keys: "pr list", "pr view", "pr merge", "run list", etc.
- * - ERROR: prefix for exit 1 with stderr
+ * - ERROR: prefix for exit 1 with stderr; also valid as one item of a SEQUENCE:,
+ *   so a later call can fail (e.g. a poll read). a sequence item that must print
+ *   the literal text "ERROR:…" can no longer do so; no suite asks for that
  * - SEQUENCE: prefix for array of responses (stateful)
+ * - PAGES: prefix for a comment read's pages (all with --paginate, else the first)
  * - special cases for "pr list" variants (--state open/merged, .title/.number)
  * - special cases for "run view" variants (--json jobs/startedAt)
  */
@@ -1265,11 +1304,61 @@ if [[ "$CMD_KEY" == "pr view" ]] && [[ "$ALL_ARGS" == *"--json mergeCommit"* ]];
   exit 0
 fi
 
+# handle "pr view --json autoMergeRequest --jq" for the disable re-read
+# default: still on, so a failed disable stays a failure; key "pr view automerge" overrides
+if [[ "$CMD_KEY" == "pr view" ]] && [[ "$ALL_ARGS" == *"--json autoMergeRequest --jq"* ]]; then
+  if [[ "$(echo "$MOCK_RESPONSES" | jq -r 'has("pr view automerge")')" == "true" ]]; then
+    echo "$MOCK_RESPONSES" | jq -r '.["pr view automerge"]'
+  else
+    echo "true"
+  fi
+  exit 0
+fi
+
 # every key-selection branch below asks has(key), never -n on the value:
 # a key set to '' is a real response ("gh ran, found no rows"). see the lookup
 
-# distinguish "pr merge" subvariants: --auto vs direct merge
-if [[ "$CMD_KEY" == "pr merge" ]]; then
+# the comment read: keys "api issue comments", "api review comments", "api graphql"
+# an absent key = a pr with no comments, so a test that never names comments
+# reads the gate as clean
+if [[ "$1" == "api" ]]; then
+  COMMENT_DEFAULT='[]'
+  if [[ "$ALL_ARGS" == *"graphql"* ]]; then
+    CMD_KEY="api graphql"
+    COMMENT_DEFAULT='{"data":{"repository":{"pullRequest":{"reviewThreads":{"pageInfo":{"hasNextPage":false,"endCursor":null},"nodes":[]}}}}}'
+  elif [[ "$ALL_ARGS" == *"/issues/"*"/comments"* ]]; then
+    CMD_KEY="api issue comments"
+  elif [[ "$ALL_ARGS" == *"/pulls/"*"/comments"* ]]; then
+    CMD_KEY="api review comments"
+  fi
+  if [[ "$(echo "$MOCK_RESPONSES" | jq -r --arg key "$CMD_KEY" 'has($key)')" != "true" ]]; then
+    echo "$COMMENT_DEFAULT"
+    exit 0
+  fi
+  # PAGES: prefix = a json array of pages, as real gh serves them: with
+  # --paginate every page prints back to back; without it, only the first
+  COMMENT_VALUE="$(echo "$MOCK_RESPONSES" | jq -r --arg key "$CMD_KEY" '.[$key]')"
+  if [[ "$COMMENT_VALUE" == PAGES:* ]]; then
+    if [[ "$ALL_ARGS" == *"--paginate"* ]]; then
+      echo "\${COMMENT_VALUE#PAGES:}" | jq -c '.[]'
+    else
+      echo "\${COMMENT_VALUE#PAGES:}" | jq -c '.[0]'
+    fi
+    exit 0
+  fi
+fi
+
+# distinguish "pr merge" subvariants: --disable-auto, --auto, direct merge
+if [[ "$CMD_KEY" == "pr merge" && "$ALL_ARGS" == *"--disable-auto"* ]]; then
+  # record the disable, so a test can assert it ran
+  touch "$STATE_DIR/automerge-disabled"
+  if [[ "$(echo "$MOCK_RESPONSES" | jq -r 'has("pr merge disable")')" == "true" ]]; then
+    CMD_KEY="pr merge disable"
+  else
+    echo "auto-merge disabled"
+    exit 0
+  fi
+elif [[ "$CMD_KEY" == "pr merge" ]]; then
   if [[ "$ALL_ARGS" == *"--auto"* ]]; then
     # check for "pr merge auto" key first, fallback to "pr merge"
     if [[ "$(echo "$MOCK_RESPONSES" | jq -r 'has("pr merge auto")')" == "true" ]]; then
@@ -1324,14 +1413,9 @@ HAS_RESPONSE=$(echo "$MOCK_RESPONSES" | jq -r --arg key "$CMD_KEY" 'has($key)')
 RESPONSE=$(echo "$MOCK_RESPONSES" | jq -r --arg key "$CMD_KEY" '.[$key] // empty')
 
 if [[ "$HAS_RESPONSE" == "true" ]]; then
-  # support error responses: prefix "ERROR:" means exit 1 with message to stderr
-  if [[ "$RESPONSE" == ERROR:* ]]; then
-    echo "\${RESPONSE#ERROR:}" >&2
-    exit 1
-  fi
-
   # support stateful sequences: prefix "SEQUENCE:" means array of responses
   # each call returns next item from array (or last if exhausted)
+  # .note = resolved before the ERROR check, so one item of a sequence may fail
   if [[ "$RESPONSE" == SEQUENCE:* ]]; then
     SEQUENCE_JSON="\${RESPONSE#SEQUENCE:}"
     # counter file uses stateDir for isolation
@@ -1346,6 +1430,12 @@ if [[ "$HAS_RESPONSE" == "true" ]]; then
     fi
     echo "$((INDEX + 1))" > "$COUNTER_FILE"
     RESPONSE=$(echo "$SEQUENCE_JSON" | jq -r ".[$INDEX]")
+  fi
+
+  # support error responses: prefix "ERROR:" means exit 1 with message to stderr
+  if [[ "$RESPONSE" == ERROR:* ]]; then
+    echo "\${RESPONSE#ERROR:}" >&2
+    exit 1
   fi
 
   echo "$RESPONSE"

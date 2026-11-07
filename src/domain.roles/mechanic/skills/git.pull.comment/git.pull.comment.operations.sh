@@ -42,20 +42,15 @@ ORGS_HOME=()
 # a key is a short lowercase slug, so its marker parses one way only
 COMMENT_KEY_PATTERN='^[a-z0-9][a-z0-9._-]{0,63}$'
 
-# the key marker: a hidden html comment at the tail of a keyed comment.
-# two grammars, each held once: STRIP finds a marker anywhere, so set removes
-# every stray one; CLAIM finds only a marker on its own last line, so a marker
-# typed or quoted mid-body never claims a key
-COMMENT_KEY_MARKER_REGEX='<!-- rhx:git.pull.comment key=([a-z0-9][a-z0-9._-]*) -->'
-# .note = jq's regex runs in perl syntax, where ^ anchors the string start, not a
-#         line; so the claim names its line start as (?:^|\n), its end as \s*\z
-COMMENT_KEY_CLAIM_REGEX='(?:^|\n)<!-- rhx:git.pull.comment key=([a-z0-9][a-z0-9._-]*) -->\s*\z'
+# .why = the key marker grammars, the reviewThreads query, and the one rule of
+#        what waits on an answer live in rows.sh, which git.release sources too
+# shellcheck source=git.pull.comment.rows.sh
+source "$COMMENT_SKILL_DIR/git.pull.comment.rows.sh"
 
 # jq defs every comment transformer shares; each call passes --arg re and --arg login
 # .why = one definition of "the key of a comment" and "an author is me", so
 #        get, set, and del cannot disagree on either
-COMMENT_JQ_DEFS='
-  def key_of: [(.body // "") | match($re; "g") | .captures[0].string] | last;
+COMMENT_JQ_DEFS="$COMMENT_JQ_KEY_DEFS"'
   def is_login_self($author): ($author // "") as $a
     | $a == $login or $a == ($login + "[bot]") or ($a + "[bot]") == $login;
 '
@@ -585,7 +580,7 @@ get_all_gh_resources() {
   detail="$(cat "$err")"
   rm -f "$err"
   [[ "$rc" == "0" ]] || fail_gh_call "GET $endpoint" "$detail"
-  printf '%s' "$out" | jq -cs 'map(if type == "array" then . else [.] end) | add // []'
+  as_list_from_gh_pages "$out"
 }
 
 # .what = the thread state of every review comment on pr N, as a json map
@@ -594,23 +589,23 @@ get_all_gh_resources() {
 #         graphql holds a thread's resolution; get names it per row, so a reader
 #         sees both open and resolved threads, and which is which
 get_all_review_thread_states() {
-  local pr="$1" owner="${COMMENT_REPO%%/*}" name="${COMMENT_REPO#*/}" err out rc=0 detail
-  local query='query($owner: String!, $name: String!, $pr: Int!, $endCursor: String) {
-    repository(owner: $owner, name: $name) { pullRequest(number: $pr) {
-      reviewThreads(first: 100, after: $endCursor) {
-        pageInfo { hasNextPage endCursor }
-        nodes { isResolved comments(first: 100) { nodes { databaseId } } }
-      } } } }'
+  local pr="$1" owner="${COMMENT_REPO%%/*}" name="${COMMENT_REPO#*/}" err out rc=0 detail states
   err="$(mktemp)"
-  out="$(run_gh_as_auth api graphql --method POST --paginate -f query="$query" -F owner="$owner" -F name="$name" -F pr="$pr" 2>"$err")" || rc=$?
+  out="$(run_gh_as_auth api graphql --method POST --paginate -f query="$COMMENT_REVIEW_THREADS_QUERY" -F owner="$owner" -F name="$name" -F pr="$pr" 2>"$err")" || rc=$?
   detail="$(cat "$err")"
   rm -f "$err"
   [[ "$rc" == "0" ]] || fail_gh_call "graphql reviewThreads of $COMMENT_REPO#$pr" "$detail"
-  printf '%s' "$out" | jq -cs '
-    [ .[] | .data.repository.pullRequest.reviewThreads.nodes[]?
-      | (if .isResolved then "resolved" else "open" end) as $state
-      | .comments.nodes[] | { key: "\(.databaseId)", value: $state } ]
-    | from_entries'
+
+  # fail closed: a page that names no pull request would read every thread "open"
+  err="$(mktemp)"
+  rc=0
+  states="$(as_thread_states_from_graphql "$out" "$pr" 2>"$err")" || rc=$?
+  detail="$(cat "$err")"
+  rm -f "$err"
+  [[ "$rc" == "0" ]] || fail_comment_malfunction "the review thread states of $COMMENT_REPO#$pr could not be read" "$detail" \
+    "rerun the same command: the read is safe to repeat; if it fails again, confirm pr #$pr is on $COMMENT_REPO" \
+    "gh pr view $pr --repo $COMMENT_REPO"
+  printf '%s' "$states"
 }
 
 # .what = write one resource (POST or PATCH) with a body file; prints the response json
@@ -759,7 +754,7 @@ is_author_self() {
 is_comment_by_robot() {
   local body
   body="$(printf '%s' "$1" | jq -j '.body // ""')"
-  [[ "$body" == "🐢"* ]]
+  [[ "$body" == "$COMMENT_SIGNATURE"* ]]
 }
 
 # .what = does this comment json sit on pr N?
@@ -909,11 +904,11 @@ as_body_trimmed() {
 as_body_prefixed() {
   local body
   body="$(cat)"
-  if [[ "$body" == "🐢"* ]]; then
+  if [[ "$body" == "$COMMENT_SIGNATURE"* ]]; then
     printf '%s' "$body"
     return 0
   fi
-  printf '🐢 %s' "$body"
+  printf '%s %s' "$COMMENT_SIGNATURE" "$body"
 }
 
 # .what = the key marker for a key
@@ -927,7 +922,7 @@ as_key_marker() {
 # .note = only a marker on the last line claims: set appends its marker last,
 #         so a stray marker earlier in the text can never claim the comment
 as_key_from_body() {
-  jq -Rsr --arg re "$COMMENT_KEY_CLAIM_REGEX" '[match($re; "g") | .captures[0].string] | last // empty'
+  jq -Rsr --arg re "$COMMENT_KEY_CLAIM_REGEX" "$COMMENT_JQ_KEY_DEFS"'{ body: . } | key_of // empty'
 }
 
 # .what = a body with every key marker removed, then trimmed

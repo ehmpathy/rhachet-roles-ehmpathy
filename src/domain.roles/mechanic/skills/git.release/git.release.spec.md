@@ -224,13 +224,62 @@ rhx git.release
    └─ 🌴 automerge unfound (use --mode apply to add)
 ```
 
+### 8. refuse while a comment waits on an answer
+
+every pr transport shows a `💬` line beside the ci tally. a comment waits when
+`rhx git.pull.comment get --unanswered` lists it: a review thread whose latest
+comment is no signed answer and is not resolved, or a human issue comment with no
+signed answer keyed `answer-<its id>`. bots never count.
+
+| mode | a comment waits |
+|------|-----------------|
+| plan | `💬` rows + hint; never mutates; with automerge on, says github will merge past them; exit unchanged |
+| watch | `💬` rows; if automerge is found, disables it and exits 2 |
+| apply | refuses, exit 2; disables an extant automerge; each watch poll re-reads |
+
+no flag skips the gate, `--retry` included. each row names its own answer
+command, with the key `answer-<its id>`: unique per ask, so a re-asked thread
+gets a fresh answer, never an edit of the old one.
+
+the comment read fails closed: when it fails with automerge on, apply and
+watch turn automerge off before exit 1; plan names the command that would.
+
+the gate is client-side, so a window remains: a comment that lands after
+the last read — between polls, or once the watch ends (a timeout, ctrl-c)
+— is not seen, and automerge left on merges past it. a watch timeout with
+automerge on says so and names `gh pr merge <n> --disable-auto`. github's
+"require conversation resolution" branch rule closes the window for review
+threads server-side.
+
+```bash
+rhx git.release --apply
+```
+
+```
+🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here?"
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+```
+
 ## exit codes
 
 | code | semantics | examples |
 |------|-----------|----------|
 | 0 | success | merged, passed, plan ok |
-| 1 | malfunction | gh error, network, timeout |
-| 2 | constraint | failed, rebase, no PR, dirty |
+| 1 | malfunction | gh error, network, timeout, comment read failed |
+| 2 | constraint | failed, rebase, no PR, dirty, comment unanswered |
 
 ## reference
 

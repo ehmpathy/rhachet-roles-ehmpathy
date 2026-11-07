@@ -71,6 +71,8 @@ if (argv[0] !== 'api') { process.stderr.write('stub gh: only api\n'); process.ex
 if (argv[1] === 'graphql' && state.fail && state.failMethod === 'GRAPHQL') { process.stderr.write(state.fail + '\n'); process.exit(1); }
 // review threads: one thread per root review comment; a root in state.resolved reads resolved
 if (argv[1] === 'graphql' && argv.some((a) => a.includes('reviewThreads'))) {
+  // a blind read: github answers 200 with no pull request, as for a wrong number
+  if (state.threadsBlind) out({ data: { repository: null } });
   const prArg = argv.find((a) => a.startsWith('pr='));
   const pr = Number(prArg ? prArg.slice(3) : 0);
   const reviews = state.comments.filter((c) => c.kind === 'review' && c.pr === pr);
@@ -96,6 +98,8 @@ const view = (c) => ({
   ...(c.kind === 'issue'
     ? { issue_url: 'https://api.github.com/repos/' + repo + '/issues/' + c.pr }
     : { pull_request_url: 'https://api.github.com/repos/' + repo + '/pulls/' + c.pr, in_reply_to_id: c.in_reply_to_id }),
+  // a file-anchored review comment carries its location, as github serves it
+  ...(c.kind === 'review' && c.path !== undefined ? { path: c.path, line: c.line ?? null } : {}),
 });
 const pages = (rows) => {
   const all = [];
@@ -202,6 +206,8 @@ exit 2
     body: string;
     created_at: string;
     in_reply_to_id?: number;
+    path?: string;
+    line?: number | null;
   };
   type Store = {
     repo: string;
@@ -216,6 +222,7 @@ exit 2
     fail: string | null;
     failMethod: 'POST' | 'PATCH' | 'DELETE' | 'GRAPHQL' | null;
     resolved: number[];
+    threadsBlind: boolean;
     prs: Record<
       string,
       {
@@ -319,6 +326,7 @@ exit 2
       fail: null,
       failMethod: null,
       resolved: [],
+      threadsBlind: false,
       prs: {
         '7': {
           title: 'feat(lessons): book a surf lesson',
@@ -3157,6 +3165,23 @@ exit 2
           expect(result.stdout).toMatchSnapshot();
         },
       );
+      const resultUnanswered = useThen('the unanswered view runs', async () =>
+        scene.run('get', ['--pr', '9', '--unanswered']),
+      );
+      then(
+        'the unanswered view says there is no comment to answer, not that each has an answer',
+        () => {
+          expect(resultUnanswered.exitCode).toBe(0);
+          expect(resultUnanswered.stdout).toContain('unanswered: 0');
+          expect(resultUnanswered.stdout).toContain(
+            '└─ (no comments to answer)',
+          );
+          expect(resultUnanswered.stdout).not.toContain(
+            'every comment has an answer',
+          );
+          expect(resultUnanswered.stdout).toMatchSnapshot();
+        },
+      );
     });
     when('[t3] the graphql viewer answers with no login', () => {
       const scene = genScene({ ...SCENE_BARE, store: { loginSelf: '' } });
@@ -3404,7 +3429,7 @@ exit 2
     const scene = genScene({
       ...SCENE_BARE,
       comments: [
-        // thread 901: a human asks, the robot answers → answered
+        // thread 901: a human asks, the robot answers (signed) → answered
         genComment({
           id: 901,
           kind: 'review',
@@ -3416,6 +3441,7 @@ exit 2
           id: 902,
           kind: 'review',
           in_reply_to_id: 901,
+          body: asKeyedBody({ text: 'it holds the tide', key: 'answer' }),
           created_at: '2026-10-24T00:00:02Z',
         }),
         // thread 903: a human asks, no answer → unanswered
@@ -3425,6 +3451,8 @@ exit 2
           author: LOGIN_HUMAN,
           body: 'forbid the dot',
           created_at: '2026-10-24T00:00:03Z',
+          path: 'src/reef/getTide.ts',
+          line: 42,
         }),
         // thread 904: the robot answers, then the human asks again → unanswered
         genComment({
@@ -3433,13 +3461,19 @@ exit 2
           author: LOGIN_HUMAN,
           body: 'not hardcoded?',
           created_at: '2026-10-24T00:00:04Z',
+          path: 'src/reef/setCache.ts',
+          line: 7,
         }),
         genComment({
           id: 905,
           kind: 'review',
           in_reply_to_id: 904,
+          body: asKeyedBody({ text: 'it reads the env', key: 'answer' }),
           created_at: '2026-10-24T00:00:05Z',
+          path: 'src/reef/setCache.ts',
+          line: 7,
         }),
+        // 906: a reply on a line since changed; github serves its path, line null
         genComment({
           id: 906,
           kind: 'review',
@@ -3447,8 +3481,10 @@ exit 2
           author: LOGIN_HUMAN,
           body: 'and the cache?',
           created_at: '2026-10-24T00:00:06Z',
+          path: 'src/reef/setCache.ts',
+          line: null,
         }),
-        // issue rows: a human comment before the robot's latest, then one after
+        // issue 907: a human note, answered by a signed reply keyed answer-907
         genComment({
           id: 907,
           kind: 'issue',
@@ -3459,8 +3495,10 @@ exit 2
         genComment({
           id: 908,
           kind: 'issue',
+          body: asKeyedBody({ text: 'thanks', key: 'answer-907' }),
           created_at: '2026-10-24T00:00:08Z',
         }),
+        // issue 909: a human note, no answer → unanswered
         genComment({
           id: 909,
           kind: 'issue',
@@ -3468,16 +3506,60 @@ exit 2
           body: 'one more note',
           created_at: '2026-10-24T00:00:09Z',
         }),
+        // issue 910: a human note, then an unrelated keyed robot comment → still unanswered
+        genComment({
+          id: 910,
+          kind: 'issue',
+          author: LOGIN_HUMAN,
+          body: 'and the docs?',
+          created_at: '2026-10-24T00:00:10Z',
+        }),
+        genComment({
+          id: 911,
+          kind: 'issue',
+          body: asKeyedBody({ text: 'status: green', key: 'status' }),
+          created_at: '2026-10-24T00:00:11Z',
+        }),
+        // issue 912: a bot's release note → never waits on an answer
+        genComment({
+          id: 912,
+          kind: 'issue',
+          author: 'rhelease[bot]',
+          body: '🐢 released at v1.40.0',
+          created_at: '2026-10-24T00:00:12Z',
+        }),
       ],
     });
     when('[t0] get --unanswered runs', () => {
       const result = useThen('it runs', async () =>
         scene.run('get', ['--pr', '7', '--unanswered', '--output', 'json']),
       );
-      then('it lists the open threads and the newer human issue row', () => {
-        expect(result.exitCode).toBe(0);
+      then(
+        'it lists the open threads and each human issue row with no answer-<id> reply',
+        () => {
+          expect(result.exitCode).toBe(0);
+          const rows = JSON.parse(result.stdout);
+          expect(rows.map((r: { id: number }) => r.id)).toEqual([
+            903, 906, 909, 910,
+          ]);
+        },
+      );
+      then('a re-asked thread is marked asked_again', () => {
         const rows = JSON.parse(result.stdout);
-        expect(rows.map((r: { id: number }) => r.id)).toEqual([903, 906, 909]);
+        const reAsked = rows.find((r: { id: number }) => r.id === 906);
+        expect(reAsked.asked_again).toBe(true);
+      });
+      then('each row carries the key that answers it: answer-<its id>', () => {
+        const rows = JSON.parse(result.stdout);
+        expect(rows.map((r: { answer_key: string }) => r.answer_key)).toEqual([
+          'answer-903',
+          'answer-906',
+          'answer-909',
+          'answer-910',
+        ]);
+      });
+      then('the full json row shape is snapped, parsed', () => {
+        expect(JSON.parse(result.stdout)).toMatchSnapshot();
       });
     });
     when('[t1] get --unanswered runs as a tree', () => {
@@ -3486,7 +3568,7 @@ exit 2
       );
       then('the tree names the target as unanswered', () => {
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('unanswered by ehm-seaturtle');
+        expect(result.stdout).toContain('#7, unanswered');
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -3497,7 +3579,160 @@ exit 2
       then('it exits 2', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('--unanswered reads every comment');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });
+
+  given(
+    '[case22] a review thread read that names no pull request fails closed',
+    () => {
+      const scene = genScene({
+        ...SCENE_BARE,
+        store: { threadsBlind: true },
+        comments: [
+          genComment({
+            id: 951,
+            kind: 'review',
+            author: LOGIN_HUMAN,
+            body: 'forbid the dot',
+          }),
+        ],
+      });
+      when('[t0] get --unanswered runs', () => {
+        const result = useThen('it runs', async () =>
+          scene.run('get', ['--pr', '7', '--unanswered']),
+        );
+        then('it fails as a malfunction, never a list of open threads', () => {
+          expect(result.exitCode).toBe(1);
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: the review thread states of',
+          );
+          expect(result.stdout).toContain(
+            'github found no pull request #7 for the review thread read',
+          );
+          // plain words: no raw response envelope reaches the human
+          expect(result.stdout).not.toContain('{"data"');
+          // the hint ends on a command the human can paste
+          expect(result.stdout).toContain(
+            'gh pr view 7 --repo ehmpathy/surf-demo',
+          );
+          expect(result.stdout).not.toContain('951');
+          expect(result.stderr).toContain('MalfunctionError');
+          expect(result.stdout).toMatchSnapshot();
+        });
+      });
+    },
+  );
+
+  given(
+    '[case23] an answer set writes is an answer the unanswered rule reads',
+    () => {
+      /**
+       * .why = `git.release` refuses on the rule `get --unanswered` runs
+       *        (git.pull.comment.rows.sh), and names `set` as the cure; this
+       *        clamps that the cure it names clears the rule it enforces
+       */
+      const scene = genScene({
+        ...SCENE_BARE,
+        comments: [
+          genComment({
+            id: 961,
+            kind: 'review',
+            author: LOGIN_HUMAN,
+            body: 'why the tide?',
+          }),
+          genComment({
+            id: 962,
+            kind: 'issue',
+            author: LOGIN_HUMAN,
+            body: 'ship it after the docs',
+          }),
+        ],
+      });
+      when(
+        '[t0] each row is answered with the answer_key the rule names',
+        () => {
+          const result = useThen('it runs', async () => {
+            const before = await scene.run('get', [
+              '--pr',
+              '7',
+              '--unanswered',
+              '--output',
+              'json',
+            ]);
+            const rowsWaited: {
+              id: number;
+              kind: string;
+              answer_key: string;
+            }[] = JSON.parse(before.stdout);
+            type RunResult = Awaited<ReturnType<typeof scene.run>>;
+            const setsNone = async (): Promise<RunResult[]> => [];
+
+            // answer each row in turn, the way the refusal's printed command does
+            const sets = await rowsWaited.reduce(
+              async (prior, row) => [
+                ...(await prior),
+                await scene.run('set', [
+                  '--pr',
+                  '7',
+                  ...(row.kind === 'review'
+                    ? ['--reply-to', String(row.id)]
+                    : []),
+                  '--key',
+                  row.answer_key,
+                  '--from',
+                  scene.writeFile(`answer-${row.id}.md`, 'the tide turns'),
+                  '--mode',
+                  'apply',
+                ]),
+              ],
+              setsNone(),
+            );
+            const after = await scene.run('get', [
+              '--pr',
+              '7',
+              '--unanswered',
+              '--output',
+              'json',
+            ]);
+            const afterTree = await scene.run('get', [
+              '--pr',
+              '7',
+              '--unanswered',
+            ]);
+            return { before, sets, after, afterTree };
+          });
+          then('before: both rows wait', () => {
+            expect(result.before.exitCode).toBe(0);
+            expect(
+              JSON.parse(result.before.stdout).map((r: { id: number }) => r.id),
+            ).toEqual([961, 962]);
+          });
+          then('each set applies', () => {
+            expect(result.sets.map((s) => s.exitCode)).toEqual([0, 0]);
+          });
+          then('after: no row waits', () => {
+            expect(result.after.exitCode).toBe(0);
+            expect(JSON.parse(result.after.stdout)).toEqual([]);
+          });
+          then(
+            'after, the tree counts what it read and says each has an answer, never "no comments"',
+            () => {
+              expect(result.afterTree.exitCode).toBe(0);
+              expect(result.afterTree.stdout).toContain(
+                'counts: 1 pr description, 2 issue comments, 2 review comments',
+              );
+              expect(result.afterTree.stdout).toContain('unanswered: 0');
+              expect(result.afterTree.stdout).toContain(
+                '└─ (every comment has an answer)',
+              );
+              expect(result.afterTree.stdout).not.toContain('(no comments)');
+              expect(result.afterTree.stdout).toMatchSnapshot();
+            },
+          );
+        },
+      );
+    },
+  );
 });

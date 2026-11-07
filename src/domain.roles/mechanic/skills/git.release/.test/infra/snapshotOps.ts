@@ -28,13 +28,15 @@ export const asTimeReplaced = (input: string): string => {
 /**
  * .what = replace run IDs in URLs with placeholders
  * .why = run IDs vary between executions
+ * .note = pr numbers stay: each is a fixed fixture, and a mask in the link
+ *         alone would show one pr two ways beside `--pr 42` in the same tree.
+ *         every suite that calls this snaps a pr link with its fixture's own
+ *         number; no snapshot holds a masked `/pull/XX`
  */
 export const asUrlReplaced = (input: string): string => {
   return input
     // replace run IDs in github URLs
-    .replace(/\/runs\/\d+/g, '/runs/XXX')
-    // replace PR numbers in URLs
-    .replace(/\/pull\/\d+/g, '/pull/XX');
+    .replace(/\/runs\/\d+/g, '/runs/XXX');
 };
 
 // ============================================================================

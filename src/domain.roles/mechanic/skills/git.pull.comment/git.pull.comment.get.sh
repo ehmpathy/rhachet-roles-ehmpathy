@@ -35,7 +35,7 @@ usage: git.pull.comment.get [--pr <n>] [--in <owner/name>] [--unanswered | --id 
 options:
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --unanswered                 only the comments that wait on an answer from you
+  --unanswered                 only the unanswered comments (a signed reply or a resolved thread answers one)
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
   --key <k> [--reply-to <id>]  your keyed comment (in that review thread, with --reply-to)
   --kind body                  the pr description alone
@@ -93,23 +93,14 @@ PR="$COMMENT_PR"
 
 # .what = one github json resource (pr or comment) as a row: kind, id, author, key, size, hash, body
 # .why  = the tree and the json read one row shape, whatever endpoint the row came from
+# .note = the row fields come from `as_row` (git.pull.comment.rows.sh), the one
+#         row shape git.release judges too; get adds the size and the hash
 shape() {
-  local kind="$1" json="$2" sha bytes key
+  local kind="$1" json="$2" sha bytes
   sha="$(printf '%s' "$json" | as_sha256_of_json_body)"
   bytes="$(printf '%s' "$json" | as_bytes_of_json_body)"
-  key="$(printf '%s' "$json" | jq -j '.body // ""' | as_key_from_body)"
-  printf '%s' "$json" | jq -c --arg kind "$kind" --arg sha "$sha" --argjson bytes "$bytes" --arg key "$key" '{
-    kind: $kind,
-    id: (if $kind == "body" then null else .id end),
-    author: (.user.login // null),
-    created_at: (.created_at // null),
-    in_reply_to: (.in_reply_to_id // null),
-    key: (if $key == "" then null else $key end),
-    bytes: $bytes,
-    sha256: $sha,
-    url: (.html_url // null),
-    body: (.body // "")
-  }'
+  printf '%s' "$json" | jq -c --arg kind "$kind" --arg re "$COMMENT_KEY_CLAIM_REGEX" \
+    --argjson bytes "$bytes" --arg sha "$sha" "$COMMENT_JQ_ROW_DEFS"'as_row($kind; { bytes: $bytes, sha256: $sha })'
 }
 
 # .what = every comment of a github list as rows, one per line
@@ -135,14 +126,6 @@ as_rows_sorted() {
   jq -cs 'sort_by(if .kind == "body" then "" else .created_at end, (.id // 0))'
 }
 
-# .what = the rows, each review row given its thread state: "open" | "resolved"
-# .why  = a reader must see which review threads still wait on an answer
-# .note = a review row graphql does not name reads "open"; a non-review row reads null
-as_rows_with_thread_state() {
-  printf '%s' "$1" | jq -c --argjson states "$2" '
-    map(.thread = (if .kind == "review" then ($states["\(.id)"] // "open") else null end))'
-}
-
 # .what = the rows of one kind that carry a key, split by author: { own, foreign }
 # .why  = --key reads the current login's comment; a foreign holder is named, never hidden
 # .note = a reply key is scoped to its thread root (reply != null)
@@ -152,24 +135,6 @@ get_rows_with_key() {
     --arg key "$key" --arg kind "$kind" --argjson reply "$reply" "$COMMENT_JQ_DEFS"'
     map(select(.kind == $kind and .key == $key and ($reply == null or .in_reply_to == $reply)))
     | { own: map(select(is_login_self(.author))), foreign: map(select(is_login_self(.author) | not)) }'
-}
-
-# .what = the rows that still wait on an answer from the current login
-# .why  = a reply round starts from "what have i not answered?": a review thread
-#         whose latest comment is not the robot's, and each human issue comment
-#         newer than the robot's latest issue comment
-# .note = the robot's comment = the current login's, with a body that opens with
-#         🐢 (is_comment_by_robot); a review row keeps its thread root in
-#         in_reply_to, or is the root itself, so --reply-to <root> answers it
-as_rows_unanswered() {
-  printf '%s' "$1" | jq -c --arg re "$COMMENT_KEY_CLAIM_REGEX" --arg login "$COMMENT_LOGIN" "$COMMENT_JQ_DEFS"'
-    def is_robot: is_login_self(.author) and (.body | startswith("🐢"));
-    ( [ .[] | select(.kind == "issue" and is_robot) | .created_at ] | max ) as $robot_last
-    | ( [ .[] | select(.kind == "review") ]
-        | group_by(.in_reply_to // .id)
-        | map(sort_by(.created_at, .id) | last | select(is_robot | not)) )
-      + [ .[] | select(.kind == "issue" and (is_robot | not) and ($robot_last == null or .created_at > $robot_last)) ]
-    | sort_by(.created_at, .id)'
 }
 
 # .what = the row counts by kind, as one line
@@ -247,7 +212,7 @@ if [[ -z "$ROWS" ]]; then
 fi
 
 # name the thread state of each review row: open or resolved
-if [[ "$(printf '%s' "$ROWS" | jq '[.[] | select(.kind == "review")] | length')" != "0" ]]; then
+if [[ "$(is_any_review_row "$ROWS")" == "true" ]]; then
   THREAD_STATES="$(get_all_review_thread_states "$PR")" || exit $?
   ROWS="$(as_rows_with_thread_state "$ROWS" "$THREAD_STATES")"
 fi
@@ -280,9 +245,10 @@ if [[ -n "$KEY" ]]; then
   ROWS="$OWN"
 fi
 
-# narrow to the rows that wait on an answer, when asked
+# narrow to the rows that wait on an answer, when asked; the counts still name what was read
+ROWS_READ="$ROWS"
 if [[ "$UNANSWERED" == "true" ]]; then
-  LABEL="$COMMENT_REPO#$PR, unanswered by $COMMENT_LOGIN"
+  LABEL="$COMMENT_REPO#$PR, unanswered"
   ROWS="$(as_rows_unanswered "$ROWS")"
 fi
 
@@ -297,5 +263,17 @@ print_turtle_header "heres the wave..."
 print_tree_start "git.pull.comment.get"
 echo "   ├─ target: $LABEL"
 echo "   ├─ auth: $(get_comment_auth_label) as $COMMENT_LOGIN"
-echo "   ├─ counts: $(as_counts_line "$ROWS")"
+echo "   ├─ counts: $(as_counts_line "$ROWS_READ")"
+
+# the unanswered view: how many wait; an empty list says each has an answer,
+# or, where the pr holds no comment at all, that there is none to answer
+if [[ "$UNANSWERED" == "true" ]]; then
+  echo "   ├─ unanswered: $(as_count_of_rows "$ROWS")"
+  if [[ "$(as_count_of_rows "$ROWS")" == "0" ]]; then
+    COMMENTS_READ="$(printf '%s' "$ROWS_READ" | jq 'map(select(.kind != "body")) | length')"
+    [[ "$COMMENTS_READ" == "0" ]] && echo "   └─ (no comments to answer)" && exit 0
+    echo "   └─ (every comment has an answer)"
+    exit 0
+  fi
+fi
 print_rows_tree "$ROWS"
