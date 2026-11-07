@@ -75,6 +75,8 @@ exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked fr
     "skills/claude.tools/symlink.sh",
     "skills/claude.tools/teesafe.sh",
     "skills/declapract.upgrade.sh",
+    "skills/git.branch.cutover/git.branch.cutover.sh",
+    "skills/git.branch.uses/git.branch.uses.sh",
     "skills/git.commit/git.commit.bind.sh",
     "skills/git.commit/git.commit.uses.sh",
     "skills/git.pull.comment/git.pull.comment.del.sh",
