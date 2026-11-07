@@ -310,6 +310,8 @@ exports[`git.pull.comment given: [case5] a reply key ignores a match in another 
     "in_reply_to": 301,
     "key": "answer",
     "kind": "review",
+    "line": null,
+    "path": null,
     "sha256": "e408551b167e66ba260f3fceb5ee4beb7f510cbd6c4735366de833fb8191e7fd",
     "thread": "open",
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r303",
@@ -682,7 +684,7 @@ options:
 options:
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --unanswered                 only the comments that wait on an answer from you
+  --unanswered                 only the unanswered comments (a signed reply or a resolved thread answers one)
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
   --key <k> [--reply-to <id>]  your keyed comment (in that review thread, with --reply-to)
   --kind body                  the pr description alone
@@ -1151,6 +1153,8 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
     "in_reply_to": null,
     "key": null,
     "kind": "body",
+    "line": null,
+    "path": null,
     "sha256": "84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb",
     "thread": null,
     "url": "https://github.com/ehmpathy/surf-demo/pull/7",
@@ -1164,6 +1168,8 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
     "in_reply_to": null,
     "key": null,
     "kind": "issue",
+    "line": null,
+    "path": null,
     "sha256": "0fcaf722c7fc5acefdc4812b234c9e918be2cc65bf7a20b4e382ab7bddda8087",
     "thread": null,
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-801",
@@ -1177,6 +1183,8 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
     "in_reply_to": null,
     "key": null,
     "kind": "review",
+    "line": null,
+    "path": null,
     "sha256": "9d249c04b0277924b0f1815ebe3619dcdabb07196a877a32e24109b455780fb3",
     "thread": "open",
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r804",
@@ -1192,6 +1200,8 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
     "in_reply_to": null,
     "key": "status",
     "kind": "issue",
+    "line": null,
+    "path": null,
     "sha256": "a18ea7abc1d547909223880b41206eef68cfd37063e3530b615847c3deb61214",
     "thread": null,
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-802",
@@ -1205,6 +1215,8 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
     "in_reply_to": 804,
     "key": null,
     "kind": "review",
+    "line": null,
+    "path": null,
     "sha256": "0ce9b2b392f34c76e765a1ac7ae447176fc10272f7ac0d2c18ebda4d220c08d5",
     "thread": "open",
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r805",
@@ -1218,6 +1230,8 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
     "in_reply_to": null,
     "key": null,
     "kind": "issue",
+    "line": null,
+    "path": null,
     "sha256": "58094382d8457966396b3eacbd29b67f78971d3387ddec687ec535f365425ac8",
     "thread": null,
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-803",
@@ -1238,6 +1252,8 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
     "in_reply_to": null,
     "key": "status",
     "kind": "issue",
+    "line": null,
+    "path": null,
     "sha256": "a18ea7abc1d547909223880b41206eef68cfd37063e3530b615847c3deb61214",
     "thread": null,
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-802",
@@ -1292,6 +1308,8 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
     "in_reply_to": 902,
     "key": "answer",
     "kind": "review",
+    "line": null,
+    "path": null,
     "sha256": "ccfa5e2b3c6cdf06b7cf4d7a47f610ca7205422eca91e38d0983e5f584577cff",
     "thread": "open",
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r904",
@@ -1885,13 +1903,87 @@ exports[`git.pull.comment given: [case20] --pr defaults to the open pull of the 
 "
 `;
 
+exports[`git.pull.comment given: [case21] get --unanswered lists what waits on an answer when: [t0] get --unanswered runs then: the full json row shape is snapped, parsed 1`] = `
+[
+  {
+    "answer_key": "answer-903",
+    "asked_again": false,
+    "author": "surfer-kai",
+    "body": "forbid the dot",
+    "bytes": 14,
+    "created_at": "2026-10-24T<time>",
+    "id": 903,
+    "in_reply_to": null,
+    "key": null,
+    "kind": "review",
+    "line": 42,
+    "path": "src/reef/getTide.ts",
+    "sha256": "3cce24d1eef67d5cd101a325bef29da5a34bd89cc316670b62c6e4db5ca73756",
+    "thread": "open",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r903",
+  },
+  {
+    "answer_key": "answer-906",
+    "asked_again": true,
+    "author": "surfer-kai",
+    "body": "and the cache?",
+    "bytes": 14,
+    "created_at": "2026-10-24T<time>",
+    "id": 906,
+    "in_reply_to": 904,
+    "key": null,
+    "kind": "review",
+    "line": null,
+    "path": "src/reef/setCache.ts",
+    "sha256": "7bf82a3b1e6bbabd80276934a23dd418f0648ff4f36cb6a125b43ca0de7ae2be",
+    "thread": "open",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r906",
+  },
+  {
+    "answer_key": "answer-909",
+    "asked_again": false,
+    "author": "surfer-kai",
+    "body": "one more note",
+    "bytes": 13,
+    "created_at": "2026-10-24T<time>",
+    "id": 909,
+    "in_reply_to": null,
+    "key": null,
+    "kind": "issue",
+    "line": null,
+    "path": null,
+    "sha256": "f56a8e2f95606a42b1c382cc9a1167f764917ca236c9be2ac4d1aee0806cf850",
+    "thread": null,
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-909",
+  },
+  {
+    "answer_key": "answer-910",
+    "asked_again": false,
+    "author": "surfer-kai",
+    "body": "and the docs?",
+    "bytes": 13,
+    "created_at": "2026-10-24T<time>",
+    "id": 910,
+    "in_reply_to": null,
+    "key": null,
+    "kind": "issue",
+    "line": null,
+    "path": null,
+    "sha256": "baf9ffd958adaf3d352aacf28321fb5c8d018f9a6c4193bcaa23c0b19a13255c",
+    "thread": null,
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-910",
+  },
+]
+`;
+
 exports[`git.pull.comment given: [case21] get --unanswered lists what waits on an answer when: [t1] get --unanswered runs as a tree then: the tree names the target as unanswered 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.comment.get
-   ├─ target: ehmpathy/surf-demo#7, unanswered by ehm-seaturtle
+   ├─ target: ehmpathy/surf-demo#7, unanswered
    ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
-   ├─ counts: 0 pr description, 1 issue comments, 2 review comments
+   ├─ counts: 1 pr description, 6 issue comments, 6 review comments
+   ├─ unanswered: 4
    ├─ review comment 903 by surfer-kai at 2026-10-24T<time>  thread=open
    │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r903
    │  ├─ bytes: 14
@@ -1904,11 +1996,50 @@ exports[`git.pull.comment given: [case21] get --unanswered lists what waits on a
    │  ├─ sha256: 7bf82a3b1e6bbabd80276934a23dd418f0648ff4f36cb6a125b43ca0de7ae2be
    │  └─ text
    │     and the cache?
-   └─ issue comment 909 by surfer-kai at 2026-10-24T<time>
-      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-909
+   ├─ issue comment 909 by surfer-kai at 2026-10-24T<time>
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-909
+   │  ├─ bytes: 13
+   │  ├─ sha256: f56a8e2f95606a42b1c382cc9a1167f764917ca236c9be2ac4d1aee0806cf850
+   │  └─ text
+   │     one more note
+   └─ issue comment 910 by surfer-kai at 2026-10-24T<time>
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-910
       ├─ bytes: 13
-      ├─ sha256: f56a8e2f95606a42b1c382cc9a1167f764917ca236c9be2ac4d1aee0806cf850
+      ├─ sha256: baf9ffd958adaf3d352aacf28321fb5c8d018f9a6c4193bcaa23c0b19a13255c
       └─ text
-         one more note
+         and the docs?
+"
+`;
+
+exports[`git.pull.comment given: [case21] get --unanswered lists what waits on an answer when: [t2] get --unanswered with --key then: it exits 2 1`] = `
+"✋ ConstraintError: --unanswered reads every comment; it takes no --id, --key, or --kind
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ drop --unanswered
+      └─ drop --id, --key, and --kind
+"
+`;
+
+exports[`git.pull.comment given: [case22] a review thread read that names no pull request fails closed when: [t0] get --unanswered runs then: it fails as a malfunction, never a list of open threads 1`] = `
+"💥 MalfunctionError: the review thread states of ehmpathy/surf-demo#7 could not be read
+   └─ github found no pull request #7 for the review thread read
+
+🥥 did you know?
+   └─ next, pick one
+      ├─ rerun the same command: the read is safe to repeat; if it fails again, confirm pr #7 is on ehmpathy/surf-demo
+      └─ gh pr view 7 --repo ehmpathy/surf-demo
+"
+`;
+
+exports[`git.pull.comment given: [case23] an answer set writes is an answer the unanswered rule reads when: [t0] each row is answered with the answer_key the rule names then: after, the tree counts what it read and says each has an answer, never "no comments" 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.comment.get
+   ├─ target: ehmpathy/surf-demo#7, unanswered
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ counts: 1 pr description, 2 issue comments, 2 review comments
+   ├─ unanswered: 0
+   └─ (every comment has an answer)
 "
 `;

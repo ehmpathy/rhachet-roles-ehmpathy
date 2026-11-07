@@ -7,6 +7,7 @@ exports[`git.release.p5.watch feature-pr watch given: [case1] pr exists, checks 
 
 🌊 release: feat(ocean): add surfboards
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -24,6 +25,7 @@ exports[`git.release.p5.watch feature-pr watch given: [case2] pr exists, checks 
 
 🌊 release: feat(ocean): add surfboards
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -52,6 +54,7 @@ exports[`git.release.p5.watch feature-pr watch given: [case4] pr exists, checks 
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -65,6 +68,7 @@ exports[`git.release.p5.watch release-pr watch given: [case5] release pr exists,
 
 🌊 release: chore(release): v1.3.0
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -104,6 +108,7 @@ exports[`git.release.p5.watch release-pr watch given: [case7] release pr exists,
    │  └─ 🔴 test
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ publish
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]

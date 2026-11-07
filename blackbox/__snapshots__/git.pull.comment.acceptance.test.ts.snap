@@ -20,7 +20,7 @@ options:
 options:
   --pr <n>                     the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --unanswered                 only the comments that wait on an answer from you
+  --unanswered                 only the unanswered comments (a signed reply or a resolved thread answers one)
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
   --key <k> [--reply-to <id>]  your keyed comment (in that review thread, with --reply-to)
   --kind body                  the pr description alone
@@ -78,5 +78,15 @@ exports[`git.pull.comment, via rhachet given: [case1] a repo with the mechanic r
 🥥 did you know?
    └─ to fix it
       └─ rhx git.pull.comment get --help
+"
+`;
+
+exports[`git.pull.comment, via rhachet given: [case1] a repo with the mechanic role linked when: [t4] get --unanswered meets --key, which it never narrows by then: it refuses with exit 2, before any read, and names the fix 1`] = `
+"✋ ConstraintError: --unanswered reads every comment; it takes no --id, --key, or --kind
+
+🥥 did you know?
+   └─ to fix it, pick one
+      ├─ drop --unanswered
+      └─ drop --id, --key, and --kind
 "
 `;

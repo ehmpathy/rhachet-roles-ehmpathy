@@ -65,6 +65,10 @@ const config: Config = {
     //   npx jest -c jest.integration.config.ts --testMatch '<rootDir>/src/domain.roles/mechanic/skills/set.package/set.package.*.real.integration.test.ts'
     '!**/src/domain.roles/mechanic/skills/set.package/set.package.install.real.integration.test.ts',
     '!**/src/domain.roles/mechanic/skills/set.package/set.package.upgrade.real.integration.test.ts',
+
+    // the git.release comment-gate real-api case aims a --disable-auto at a live pr; same bound:
+    //   npx jest -c jest.integration.config.ts --testMatch '<rootDir>/src/domain.roles/mechanic/skills/git.release/git.release.p9.comment_gate.real.integration.test.ts'
+    '!**/src/domain.roles/mechanic/skills/git.release/git.release.p9.comment_gate.real.integration.test.ts',
   ],
   setupFilesAfterEnv: ['./jest.integration.env.ts'],
 
