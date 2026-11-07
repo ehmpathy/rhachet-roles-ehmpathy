@@ -76,6 +76,8 @@ while [[ $# -gt 0 ]]; do
     --auth)
       shift
       AUTH=""
+      # an explicit mode keeps its mode: no ambient fallback
+      export EHMPATH_AUTH_EXPLICIT=1
       if [[ $# -gt 0 && "$1" != --* ]]; then
         AUTH="$1"
         shift
@@ -524,9 +526,12 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
     # timeout, daemon down, corrupted credential store — is surfaced in the guide
     # detail rather than hidden behind a generic message (rule.forbid.failhide)
     TOKEN_FETCH_ERR_FILE=$(mktemp)
-    GH_PR_TOKEN=$(fetch_github_token 2>"$TOKEN_FETCH_ERR_FILE" || echo "")
+    GH_PR_TOKEN=$(fetch_github_token_or_ambient 2>"$TOKEN_FETCH_ERR_FILE" || echo "")
     TOKEN_FETCH_ERR=$(cat "$TOKEN_FETCH_ERR_FILE")
     rm -f "$TOKEN_FETCH_ERR_FILE"
+
+    # a token reached via fallback carries its one note line; show it
+    [[ -n "$GH_PR_TOKEN" && -n "$TOKEN_FETCH_ERR" ]] && echo "$TOKEN_FETCH_ERR" >&2
 
     # strong identity check on a freshly-fetched token: the same graphql-verified
     # assert git.commit.set runs after its fetch (set.sh), recomposed onto this

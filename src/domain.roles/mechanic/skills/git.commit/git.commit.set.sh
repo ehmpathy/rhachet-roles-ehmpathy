@@ -253,7 +253,7 @@ fetch_robot_token() {
   err_file=$(mktemp)
   trap 'rm -f "${err_file:-}"' EXIT
 
-  ROBOT_TOKEN=$(fetch_github_token 2>"$err_file" || echo "")
+  ROBOT_TOKEN=$(fetch_github_token_or_ambient 2>"$err_file" || echo "")
   TOKEN_FETCH_ERR=$(cat "$err_file")
   rm -f "$err_file"
 }
@@ -306,6 +306,8 @@ while [[ $# -gt 0 ]]; do
       #    curated constraint at exit 2.
       shift
       AUTH=""
+      # an explicit mode keeps its mode: no ambient fallback
+      export EHMPATH_AUTH_EXPLICIT=1
       if [[ $# -gt 0 && "$1" != --* ]]; then
         AUTH="$1"
         shift
@@ -1043,6 +1045,9 @@ if [[ "$AUTH" == "as-ehmpath" && "${NODE_ENV:-}" != "test" ]]; then
     echo "🐢 heads up: the ehmpath keyrack token wasnt fetched; the commit will" >&2
     echo "   author as the default seaturtle. cause: $TOKEN_FETCH_ERR" >&2
   fi
+
+  # a token reached via fallback carries its one note line; show it
+  [[ -n "$ROBOT_TOKEN" && -n "$TOKEN_FETCH_ERR" ]] && echo "$TOKEN_FETCH_ERR" >&2
 
   # failfast: an app token must map to the bot identity we hardcode for it,
   # else the squash-merge could silently show a 3rd contributor

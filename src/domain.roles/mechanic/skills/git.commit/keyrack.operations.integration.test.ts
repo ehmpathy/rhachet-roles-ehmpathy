@@ -360,3 +360,162 @@ exit 1
     });
   });
 });
+
+/**
+ * .what = clamps for fetch_github_token_or_ambient in keyrack.operations.sh
+ * .why = a seat with no ehmpath bot token must fall back to the ambient
+ *        credential (GITHUB_TOKEN, then the gh login) with one note line,
+ *        and an explicit --auth must keep its mode (#1218)
+ * .mock = rhachet (node_modules/.bin/rhachet) and gh, via a temp repo + PATH stub
+ * .why  = the fallback order is driven by which credential is present; a real
+ *         keyrack or gh login cannot be made present or absent on demand
+ */
+describe('keyrack.operations.sh :: fetch_github_token_or_ambient', () => {
+  const operationsPath = path.join(__dirname, 'keyrack.operations.sh');
+  const rhachetWithToken = `#!/usr/bin/env bash
+echo '{"grant":{"key":{"secret":"ghp_botfake"}}}'
+`;
+  const rhachetWithoutToken = `#!/usr/bin/env bash
+echo "error: keyrack is locked" >&2
+exit 1
+`;
+
+  /**
+   * .what = run the getter with a faked rhachet, a stub gh, and a chosen env
+   * .why = each clamp sets which credentials exist on the box
+   */
+  const runFetch = (input: {
+    rhachet: string;
+    ghLoginToken: string | null;
+    ambientToken: string | null;
+    explicit: boolean;
+  }): { token: string; stderr: string } => {
+    const tempDir = genTempDir({ slug: 'keyrack-ambient-test', git: true });
+    const fakeBin = path.join(tempDir, 'node_modules', '.bin');
+    fs.mkdirSync(fakeBin, { recursive: true });
+    fs.writeFileSync(path.join(fakeBin, 'rhachet'), input.rhachet);
+    fs.chmodSync(path.join(fakeBin, 'rhachet'), '755');
+
+    // stub gh: `gh auth token` prints the login token, or fails as logged out
+    const stubDir = path.join(tempDir, 'stub-bin');
+    fs.mkdirSync(stubDir, { recursive: true });
+    const ghBody = input.ghLoginToken
+      ? `echo "${input.ghLoginToken}"`
+      : 'echo "no oauth token found for github.com" >&2; exit 1';
+    fs.writeFileSync(
+      path.join(stubDir, 'gh'),
+      `#!/usr/bin/env bash\n${ghBody}\n`,
+    );
+    fs.chmodSync(path.join(stubDir, 'gh'), '755');
+
+    // env: drop every ambient github credential, then add only what the case owns
+    const {
+      GITHUB_TOKEN: _ambient,
+      GH_TOKEN: _ghToken,
+      EHMPATH_AUTH_EXPLICIT: _explicit,
+      ...envBase
+    } = process.env;
+    const env: NodeJS.ProcessEnv = {
+      ...envBase,
+      PATH: `${stubDir}:${process.env.PATH}`,
+      ...(input.ambientToken ? { GITHUB_TOKEN: input.ambientToken } : {}),
+      ...(input.explicit ? { EHMPATH_AUTH_EXPLICIT: '1' } : {}),
+    };
+
+    const result = spawnSync(
+      'bash',
+      [
+        '-c',
+        `set -euo pipefail; source "${operationsPath}"; fetch_github_token_or_ambient`,
+      ],
+      { cwd: tempDir, env, encoding: 'utf-8' as const },
+    );
+    return {
+      token: (result.stdout ?? '').trim(),
+      stderr: result.stderr ?? '',
+    };
+  };
+
+  given('[case1] the bot token is present', () => {
+    when('[t0] the token is fetched', () => {
+      then('it returns the bot token, with no fallback note', () => {
+        const result = runFetch({
+          rhachet: rhachetWithToken,
+          ghLoginToken: 'gho_loginfake',
+          ambientToken: 'ghp_ambientfake',
+          explicit: false,
+        });
+        expect(result.token).toBe('ghp_botfake');
+        expect(result.stderr).not.toContain('fell back');
+      });
+    });
+  });
+
+  given(
+    '[case2] the bot token is absent, an ambient GITHUB_TOKEN is set',
+    () => {
+      when('[t0] the token is fetched', () => {
+        then('it falls back to GITHUB_TOKEN and says so in one line', () => {
+          const result = runFetch({
+            rhachet: rhachetWithoutToken,
+            ghLoginToken: 'gho_loginfake',
+            ambientToken: 'ghp_ambientfake',
+            explicit: false,
+          });
+          expect(result.token).toBe('ghp_ambientfake');
+          expect(result.stderr.trim()).toBe(
+            '🐚 note: ehmpath bot token not available; fell back to the ambient GITHUB_TOKEN',
+          );
+        });
+      });
+    },
+  );
+
+  given('[case3] the bot token is absent, only a gh login holds', () => {
+    when('[t0] the token is fetched', () => {
+      then('it falls back to the gh login and says so in one line', () => {
+        const result = runFetch({
+          rhachet: rhachetWithoutToken,
+          ghLoginToken: 'gho_loginfake',
+          ambientToken: null,
+          explicit: false,
+        });
+        expect(result.token).toBe('gho_loginfake');
+        expect(result.stderr.trim()).toBe(
+          '🐚 note: ehmpath bot token not available; fell back to the gh login',
+        );
+      });
+    });
+  });
+
+  given('[case4] an explicit --auth, the bot token absent', () => {
+    when('[t0] the token is fetched', () => {
+      then('it does not fall back; the keyrack cause surfaces', () => {
+        const result = runFetch({
+          rhachet: rhachetWithoutToken,
+          ghLoginToken: 'gho_loginfake',
+          ambientToken: 'ghp_ambientfake',
+          explicit: true,
+        });
+        expect(result.token).toBe('');
+        expect(result.stderr).not.toContain('fell back');
+        expect(result.stderr).toContain('keyrack is locked');
+      });
+    });
+  });
+
+  given('[case5] no credential at all', () => {
+    when('[t0] the token is fetched', () => {
+      then('it returns empty and surfaces the keyrack cause', () => {
+        const result = runFetch({
+          rhachet: rhachetWithoutToken,
+          ghLoginToken: null,
+          ambientToken: null,
+          explicit: false,
+        });
+        expect(result.token).toBe('');
+        expect(result.stderr).toContain('keyrack is locked');
+      });
+    });
+  });
+});

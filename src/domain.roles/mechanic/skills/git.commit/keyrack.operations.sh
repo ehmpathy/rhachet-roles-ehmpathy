@@ -114,6 +114,57 @@ fetch_github_token() {
 }
 
 ######################################################################
+# fetch_github_token_or_ambient
+#
+# .what = the ehmpath bot token, else the ambient credential on this box
+# .why  = a seat with no ehmpath keyrack must still push and open its pr.
+#         order: bot token → ambient GITHUB_TOKEN → gh login. one note line
+#         on stderr names the fallback; it never stops the caller.
+# .note = EHMPATH_AUTH_EXPLICIT=1 (set by an explicit --auth) skips the
+#         fallback, so an explicit mode keeps its mode.
+#
+# usage: TOKEN=$(fetch_github_token_or_ambient 2>"$ERR_FILE")
+# returns: token on stdout (empty if none); a note or the keyrack cause on stderr
+######################################################################
+fetch_github_token_or_ambient() {
+  # try the bot token; hold its cause apart until we know it is owed
+  local cause_file token
+  cause_file=$(mktemp)
+  token=$(fetch_github_token 2>"$cause_file")
+
+  # bot token reached, or explicit --auth: no fallback
+  if [[ -n "$token" || "${EHMPATH_AUTH_EXPLICIT:-}" == "1" ]]; then
+    cat "$cause_file" >&2
+    rm -f "$cause_file"
+    echo "$token"
+    return 0
+  fi
+
+  # fall back to the ambient GITHUB_TOKEN
+  if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+    rm -f "$cause_file"
+    echo "🐚 note: ehmpath bot token not available; fell back to the ambient GITHUB_TOKEN" >&2
+    echo "$GITHUB_TOKEN"
+    return 0
+  fi
+
+  # fall back to the gh login (time-bounded; absent gh reads as no login)
+  local gh_token=""
+  gh_token=$(env -u GH_TOKEN timeout "$EXTERNAL_CALL_TIMEOUT" gh auth token 2>/dev/null) || gh_token=""
+  if [[ -n "$gh_token" ]]; then
+    rm -f "$cause_file"
+    echo "🐚 note: ehmpath bot token not available; fell back to the gh login" >&2
+    echo "$gh_token"
+    return 0
+  fi
+
+  # no credential at all: forward the keyrack cause; the caller's guide takes it
+  cat "$cause_file" >&2
+  rm -f "$cause_file"
+  echo ""
+}
+
+######################################################################
 # is_gh_auth_failure
 #
 # .what = judge whether a failed gh pr-op failed for lack of a usable credential
