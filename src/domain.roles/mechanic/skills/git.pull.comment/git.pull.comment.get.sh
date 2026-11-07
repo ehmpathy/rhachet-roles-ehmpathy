@@ -265,13 +265,10 @@ echo "   ├─ target: $LABEL"
 echo "   ├─ auth: $(get_comment_auth_label) as $COMMENT_LOGIN"
 echo "   ├─ counts: $(as_counts_line "$ROWS_READ")"
 
-# the unanswered view: how many wait; an empty list says each has an answer,
-# or, where the pr holds no comment at all, that there is none to answer
+# the unanswered view: how many wait; an empty list says each has an answer
 if [[ "$UNANSWERED" == "true" ]]; then
   echo "   ├─ unanswered: $(as_count_of_rows "$ROWS")"
   if [[ "$(as_count_of_rows "$ROWS")" == "0" ]]; then
-    COMMENTS_READ="$(printf '%s' "$ROWS_READ" | jq 'map(select(.kind != "body")) | length')"
-    [[ "$COMMENTS_READ" == "0" ]] && echo "   └─ (no comments to answer)" && exit 0
     echo "   └─ (every comment has an answer)"
     exit 0
   fi

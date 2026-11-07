@@ -74,16 +74,6 @@ confidence follows authorization. the trigger is an explicit human "release into
 
 this is not a license to release unprompted. it is a mandate to act decisively once the human has spoken.
 
-## .when a comment waits on an answer
-
-`git.release --apply` refuses, exit 2, while a pr comment waits on an answer. this is a gate, like a red check — not a judgment for you to add:
-
-- address each comment first: fix what it asks, or explain why not
-- then answer its row with the `rhx git.pull.comment set` line printed under it — say what you did, never a bare ack
-- re-run the same release command
-
-a comment that asks for a call only a human can make (scope, a product choice) is surfaced to the human, not answered around.
-
 ## .when cicd fails
 
 confidence does not mean you ignore failures. if a gate fails:

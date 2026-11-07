@@ -3165,23 +3165,6 @@ exit 2
           expect(result.stdout).toMatchSnapshot();
         },
       );
-      const resultUnanswered = useThen('the unanswered view runs', async () =>
-        scene.run('get', ['--pr', '9', '--unanswered']),
-      );
-      then(
-        'the unanswered view says there is no comment to answer, not that each has an answer',
-        () => {
-          expect(resultUnanswered.exitCode).toBe(0);
-          expect(resultUnanswered.stdout).toContain('unanswered: 0');
-          expect(resultUnanswered.stdout).toContain(
-            '└─ (no comments to answer)',
-          );
-          expect(resultUnanswered.stdout).not.toContain(
-            'every comment has an answer',
-          );
-          expect(resultUnanswered.stdout).toMatchSnapshot();
-        },
-      );
     });
     when('[t3] the graphql viewer answers with no login', () => {
       const scene = genScene({ ...SCENE_BARE, store: { loginSelf: '' } });

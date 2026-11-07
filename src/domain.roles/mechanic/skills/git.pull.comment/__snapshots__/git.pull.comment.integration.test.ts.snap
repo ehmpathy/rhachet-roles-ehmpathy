@@ -1733,18 +1733,6 @@ exports[`git.pull.comment given: [case16] the apply json, the keyed tree reads, 
 "
 `;
 
-exports[`git.pull.comment given: [case16] the apply json, the keyed tree reads, and the edges when: [t2] get on a pr with an empty description and no comments then: the unanswered view says there is no comment to answer, not that each has an answer 1`] = `
-"🐢 heres the wave...
-
-🐚 git.pull.comment.get
-   ├─ target: ehmpathy/surf-demo#9, unanswered
-   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
-   ├─ counts: 1 pr description, 0 issue comments, 0 review comments
-   ├─ unanswered: 0
-   └─ (no comments to answer)
-"
-`;
-
 exports[`git.pull.comment given: [case16] the apply json, the keyed tree reads, and the edges when: [t3] the graphql viewer answers with no login then: it fails as a malfunction, exit 1, before any rest call 1`] = `
 "💥 MalfunctionError: graphql viewer returned no login
    ├─ response: {"data":{"viewer":{"login":""}}}
