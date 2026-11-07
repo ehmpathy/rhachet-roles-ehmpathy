@@ -325,7 +325,6 @@ describe('boot.yml consistency', () => {
             briefs: [
               'briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md',
               'briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md',
-              'briefs/practices/lang.tones/define.why-seaturtles-love-software.md',
             ],
             skills: [
               'skills/git.commit/git.commit.push.sh',
@@ -336,19 +335,27 @@ describe('boot.yml consistency', () => {
             ],
           };
 
-          // every subject but 101 says each row
+          // the persona's argument boots at ref, a peer of the say rule it backs
+          const briefsHeldOutAtRef = [
+            'briefs/practices/lang.tones/define.why-seaturtles-love-software.md',
+          ];
+
+          // every subject but 101 says each row, and refs each ref row
           const gaps = Object.entries(bootYml)
             .filter(
               ([section]) =>
                 section.startsWith('subject.') && section !== 'subject.101',
             )
-            .flatMap(([section, subject]) =>
-              (['briefs', 'skills'] as const).flatMap((kind) =>
+            .flatMap(([section, subject]) => [
+              ...(['briefs', 'skills'] as const).flatMap((kind) =>
                 rowsHeldOut[kind]
                   .filter((row) => !(subject[kind]?.say ?? []).includes(row))
                   .map((row) => `${section} lacks ${row}`),
               ),
-            );
+              ...briefsHeldOutAtRef
+                .filter((row) => !(subject.briefs?.ref ?? []).includes(row))
+                .map((row) => `${section} lacks ref ${row}`),
+            ]);
           expect(gaps).toEqual([]);
 
           // always holds none, else a 101 seat boots them again
@@ -356,7 +363,11 @@ describe('boot.yml consistency', () => {
             [
               ...(bootYml.always?.[kind]?.say ?? []),
               ...(bootYml.always?.[kind]?.ref ?? []),
-            ].filter((row) => rowsHeldOut[kind].includes(row)),
+            ].filter(
+              (row) =>
+                rowsHeldOut[kind].includes(row) ||
+                briefsHeldOutAtRef.includes(row),
+            ),
           );
           expect(rowsInAlways).toEqual([]);
         },

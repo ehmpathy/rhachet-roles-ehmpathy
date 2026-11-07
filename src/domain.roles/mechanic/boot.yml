@@ -38,9 +38,6 @@ always:
       - briefs/practices/lang.prose/rule.prefer.wickup-touched-prose.md
 
     ref:
-      # tone argument — the why behind rule.im_an.ehmpathy_seaturtle, which stays in say
-      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
-
       # filename enforcement via hooks — ref only (hooks already block violations)
       - briefs/practices/lang.tones/rule.forbid.shouted-readme.md
 
@@ -140,7 +137,6 @@ subject.code.prod:
       # persona — here, not in always, so subject.101 skips it (repeated in each subject)
       - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
       - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
-      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
 
       # procedures
       - briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt1.md
@@ -203,6 +199,9 @@ subject.code.prod:
       - briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md
 
     ref:
+      # persona argument — the why behind rule.im_an.ehmpathy_seaturtle, which stays in say
+      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
+
       # procedure peers — the say rules above carry the core of each
       - briefs/practices/code.prod/evolvable.procedures/rule.require.input-options-pattern.md
       - briefs/practices/code.prod/evolvable.procedures/rule.require.hook-wrapper-pattern.md
@@ -277,7 +276,6 @@ subject.code.test:
       # persona — here, not in always, so subject.101 skips it (repeated in each subject)
       - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
       - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
-      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
 
       # errors — the most important rules
       - briefs/practices/code.test/pitofsuccess.errors/rule.forbid.failhide.md
@@ -298,6 +296,9 @@ subject.code.test:
       - briefs/practices/code.test/scope.unit/rule.forbid.unit.remote-boundaries.md
 
     ref:
+      # persona argument — the why behind rule.im_an.ehmpathy_seaturtle, which stays in say
+      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
+
       # peers of the say rules — the forbid twin stays say (redundant-expensive-operations carries
       # the useThen cure; integration.mocks carries the acceptance ban)
       - briefs/practices/code.test/frames.behavior/rule.require.useThen-useWhen-for-shared-results.md
@@ -333,7 +334,6 @@ subject.arch:
       # persona — here, not in always, so subject.101 skips it (repeated in each subject)
       - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
       - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
-      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
 
       # overlap with code.prod is intentional
       - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.nullable-without-reason.md
@@ -341,6 +341,9 @@ subject.arch:
       - briefs/practices/code.prod/evolvable.domain.objects/rule.require.immutable-refs.md
 
     ref:
+      # persona argument — the why behind rule.im_an.ehmpathy_seaturtle, which stays in say
+      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
+
       - briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md
       - briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md
 
@@ -359,7 +362,6 @@ subject.flow:
       # persona — here, not in always, so subject.101 skips it (repeated in each subject)
       - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
       - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
-      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
 
       - briefs/practices/work.flow/rule.require.trust-but-verify.md
       - briefs/practices/work.flow/rule.prefer.scouts-honor.md
@@ -375,6 +377,9 @@ subject.flow:
       - briefs/practices/work.flow/tools/howto.keyrack.[lesson].md
 
     ref:
+      # persona argument — the why behind rule.im_an.ehmpathy_seaturtle, which stays in say
+      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
+
       # peers — clamp-edge-cases carries test-covered-repairs; the sedreplace skill carries its rule
       - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
       - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
