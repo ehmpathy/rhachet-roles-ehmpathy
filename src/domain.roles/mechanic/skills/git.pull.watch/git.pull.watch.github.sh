@@ -15,6 +15,8 @@
 #   - `gh api` exits 1 on a 304; that reads as unchanged, never as a fault
 #   - a 401 returns 3, so the caller pauses rather than retries blind
 #   - a rate limit returns 4 and an outage 5, so the caller backs off
+#   - a reply whose quota left sits below the yield floor (10% of the limit)
+#     returns 4 too, so the poll never spends the clones' last calls
 #   - the cached etag is stored verbatim, a weak `W/` prefix included
 #   - gh runs with GH_TOKEN set to the ehmpath token; the human login is never read
 #   - each gh call is bounded; a stall reads as unreachable (5), never a hung tick
@@ -64,6 +66,22 @@ is_watch_http_rate_limited() {
   [[ "$err" == *"rate limit"* ]]
 }
 
+# .what = the share of the core quota the poll leaves to the clones, in percent
+# .why  = the daemon's token is the clones' account; their own gh work must
+#         never meet an empty bucket because the poll spent the last of it
+WATCH_QUOTA_FLOOR_PERCENT="${GIT_PULL_WATCH_QUOTA_FLOOR_PERCENT:-10}"
+
+# .what = has the quota left fallen below the yield floor? reads the rate limit
+#         headers of a reply; a reply with no such headers is never below it
+# .note = the header names are github's own
+is_watch_quota_below_floor() {
+  local raw="$1" left limit
+  left="$(as_watch_http_header "$raw" x-ratelimit-remaining)"
+  limit="$(as_watch_http_header "$raw" x-ratelimit-limit)"
+  [[ "$left" =~ ^[0-9]+$ && "$limit" =~ ^[0-9]+$ && "$limit" -gt 0 ]] || return 1
+  [[ $(( left * 100 )) -lt $(( limit * WATCH_QUOTA_FLOOR_PERCENT )) ]]
+}
+
 # .what = the epoch at which a rate limit lifts: retry-after, else the reset
 #         header, else one minute from now
 as_watch_rate_limit_until() {
@@ -74,6 +92,22 @@ as_watch_rate_limit_until() {
   [[ "$after" =~ ^[0-9]+$ ]] && { echo $((now + after)); return 0; }
   [[ "$reset" =~ ^[0-9]+$ && "$reset" -gt "$now" ]] && { echo "$reset"; return 0; }
   echo $((now + 60))
+}
+
+# .what = append one read to the read ledger: epoch, status, and the rate limit
+#         headers github sent with it (calls left, calls used, resource), tab-separated
+# .why  = the cost of the poll is measured, never guessed: a 304 and a 200 each
+#         leave a row, so a window of ticks shows what github charged for them
+# .note = opt-in: writes only where GIT_PULL_WATCH_READS_LOG names a file
+# .note = the header names are github's own
+set_watch_read_ledger() {
+  local raw="$1" status="$2" endpoint="$3"
+  [[ -n "${GIT_PULL_WATCH_READS_LOG:-}" ]] || return 0
+  printf '%s\t%s\t%s\t%s\t%s\t%s\n' "$(date +%s)" "$status" \
+    "$(as_watch_http_header "$raw" x-ratelimit-remaining)" \
+    "$(as_watch_http_header "$raw" x-ratelimit-used)" \
+    "$(as_watch_http_header "$raw" x-ratelimit-resource)" \
+    "$endpoint" >>"$GIT_PULL_WATCH_READS_LOG"
 }
 
 # .what = read one endpoint with an etag; print its body (the cached one on a 304)
@@ -115,11 +149,20 @@ get_watch_github_resource() {
   err="$(cat "$err_file")"
   rm -f "$err_file"
   status="$(as_watch_http_status "$raw")"
+  set_watch_read_ledger "$raw" "${status:-none}" "$endpoint"
 
   # stalled: no reply inside the bound; the tick holds as on an outage
   if [[ $rc -eq 124 ]]; then
     echo "github unreachable: $endpoint (no reply in ${WATCH_GITHUB_READ_MAX_SECONDS}s)" >&2
     return 5
+  fi
+
+  # the yield floor: once the quota left falls below its floor, the poll holds
+  # every read until the reset, as on a rate limit; cursors hold, so no event is lost
+  if [[ "$status" == "200" || "$status" == "304" ]] && is_watch_quota_below_floor "$raw"; then
+    as_watch_rate_limit_until "$raw" >"$cache_dir/ratelimit.until"
+    echo "github quota below the yield floor (${WATCH_QUOTA_FLOOR_PERCENT}%): $endpoint" >&2
+    return 4
   fi
 
   # unchanged: the cache holds the body
@@ -162,6 +205,7 @@ get_watch_github_resource() {
       echo "github unreachable: $endpoint (pages gave no reply in ${WATCH_GITHUB_READ_MAX_SECONDS}s)" >&2
       return 5
     fi
+    [[ $rc -eq 0 ]] && set_watch_read_ledger "" "paged:$(printf '%s' "$pages" | jq -s 'length')" "$endpoint"
     [[ $rc -eq 0 ]] && { body="$(printf '%s' "$pages" | jq -s 'if (.[0] | type) == "array" then add else { check_runs: (map(.check_runs // []) | add) } end')" || rc=$?; }
     if [[ $rc -ne 0 ]]; then
       echo "github paginated read failed: $endpoint $(cat "$cache_dir/$stem.err" 2>/dev/null)" >&2
@@ -175,4 +219,59 @@ get_watch_github_resource() {
   printf '%s' "$(as_watch_http_header "$raw" etag)" >"$etag_file"
   printf '%s' "$body"
   return 0
+}
+
+######################################################################
+# the pr state: every read one tick makes for one pr
+# .note = reads $KEY_DIR (the cache root) and $WATCH_TOKEN, as the daemon sets them
+######################################################################
+
+# .what = read one endpoint into the pr cache; print the path of its body file
+# .why  = bodies can outgrow one argv slot (128k), so jq reads them as files
+get_watch_pr_resource_file() {
+  local cache="$1" endpoint="$2" rc=0
+  get_watch_github_resource "$cache" "$endpoint" "$WATCH_TOKEN" >/dev/null || rc=$?
+  [[ $rc -eq 0 ]] || return $rc
+  echo "$cache/$(as_watch_cache_stem "$endpoint").json"
+}
+
+# .what = the cache dir of one pr
+# .why  = etags and bodies live per pr, so every watcher of it shares one read
+get_watch_pr_cache_dir() {
+  local repo="$1" pr="$2"
+  echo "$KEY_DIR/cache/${repo%%/*}.${repo#*/}.pr=$pr"
+}
+
+# .what = was this pr closed with no merge? (reads a pull json file)
+is_watch_pr_closed_unmerged() {
+  [[ "$(jq -r '(.state == "closed") and (.merged != true)' "$1")" == "true" ]]
+}
+
+# .what = read the github state of one pr into a json file
+# .why  = one read per pr per tick, shared by every watch on it
+# returns: 0 ok · 3 auth refused · 4 rate limited · 5 unreachable · 1 other fault
+get_watch_pr_state() {
+  local repo="$1" pr="$2" out="$3" cache base pull head checks issues reviews_c reviews closed_by="" issue
+  cache="$(get_watch_pr_cache_dir "$repo" "$pr")"
+  base="repos/$repo"
+  pull="$(get_watch_pr_resource_file "$cache" "$base/pulls/$pr")" || return $?
+  head="$(jq -r '.head.sha // empty' "$pull")"
+  checks="$cache/checks.none.json"
+  echo '{"check_runs":[]}' >"$checks"
+  if [[ -n "$head" ]]; then
+    checks="$(get_watch_pr_resource_file "$cache" "$base/commits/$head/check-runs?per_page=100")" || return $?
+  fi
+  issues="$(get_watch_pr_resource_file "$cache" "$base/issues/$pr/comments?per_page=100")" || return $?
+  reviews_c="$(get_watch_pr_resource_file "$cache" "$base/pulls/$pr/comments?per_page=100")" || return $?
+  reviews="$(get_watch_pr_resource_file "$cache" "$base/pulls/$pr/reviews?per_page=100")" || return $?
+
+  # who closed it: only read once the pr is closed without merge
+  if is_watch_pr_closed_unmerged "$pull"; then
+    issue="$(get_watch_pr_resource_file "$cache" "$base/issues/$pr")" || return $?
+    closed_by="$(jq -r '.closed_by.login // empty' "$issue")"
+  fi
+
+  jq -n --slurpfile pull "$pull" --slurpfile checks "$checks" --slurpfile issues "$issues" \
+    --slurpfile reviewComments "$reviews_c" --slurpfile reviews "$reviews" --arg closedBy "$closed_by" \
+    '{ pull: $pull[0], checks: $checks[0], issueComments: $issues[0], reviewComments: $reviewComments[0], reviews: $reviews[0], closedBy: $closedBy }' >"$out"
 }

@@ -441,56 +441,6 @@ del_watch_unreachable() {
   del_watch_outage unreachable "github reachable again"
 }
 
-# .what = read one endpoint into the pr cache; print the path of its body file
-# .why  = bodies can outgrow one argv slot (128k), so jq reads them as files
-get_watch_pr_resource_file() {
-  local cache="$1" endpoint="$2" rc=0
-  get_watch_github_resource "$cache" "$endpoint" "$WATCH_TOKEN" >/dev/null || rc=$?
-  [[ $rc -eq 0 ]] || return $rc
-  echo "$cache/$(as_watch_cache_stem "$endpoint").json"
-}
-
-# .what = the cache dir of one pr
-# .why  = etags and bodies live per pr, so every watcher of it shares one read
-get_watch_pr_cache_dir() {
-  local repo="$1" pr="$2"
-  echo "$KEY_DIR/cache/${repo%%/*}.${repo#*/}.pr=$pr"
-}
-
-# .what = was this pr closed with no merge? (reads a pull json file)
-is_watch_pr_closed_unmerged() {
-  [[ "$(jq -r '(.state == "closed") and (.merged != true)' "$1")" == "true" ]]
-}
-
-# .what = read the github state of one pr into a json file
-# .why  = one read per pr per tick, shared by every watch on it
-# returns: 0 ok · 3 auth refused · 4 rate limited · 5 unreachable · 1 other fault
-get_watch_pr_state() {
-  local repo="$1" pr="$2" out="$3" cache base pull head checks issues reviews_c reviews closed_by="" issue
-  cache="$(get_watch_pr_cache_dir "$repo" "$pr")"
-  base="repos/$repo"
-  pull="$(get_watch_pr_resource_file "$cache" "$base/pulls/$pr")" || return $?
-  head="$(jq -r '.head.sha // empty' "$pull")"
-  checks="$cache/checks.none.json"
-  echo '{"check_runs":[]}' >"$checks"
-  if [[ -n "$head" ]]; then
-    checks="$(get_watch_pr_resource_file "$cache" "$base/commits/$head/check-runs?per_page=100")" || return $?
-  fi
-  issues="$(get_watch_pr_resource_file "$cache" "$base/issues/$pr/comments?per_page=100")" || return $?
-  reviews_c="$(get_watch_pr_resource_file "$cache" "$base/pulls/$pr/comments?per_page=100")" || return $?
-  reviews="$(get_watch_pr_resource_file "$cache" "$base/pulls/$pr/reviews?per_page=100")" || return $?
-
-  # who closed it: only read once the pr is closed without merge
-  if is_watch_pr_closed_unmerged "$pull"; then
-    issue="$(get_watch_pr_resource_file "$cache" "$base/issues/$pr")" || return $?
-    closed_by="$(jq -r '.closed_by.login // empty' "$issue")"
-  fi
-
-  jq -n --slurpfile pull "$pull" --slurpfile checks "$checks" --slurpfile issues "$issues" \
-    --slurpfile reviewComments "$reviews_c" --slurpfile reviews "$reviews" --arg closedBy "$closed_by" \
-    '{ pull: $pull[0], checks: $checks[0], issueComments: $issues[0], reviewComments: $reviewComments[0], reviews: $reviews[0], closedBy: $closedBy }' >"$out"
-}
-
 # .what = diff one watch against its pr state; queue its alert; advance its cursors
 # .why  = the alert lands in the outbox before the cursors move, so a crash
 #         between the two re-sends at most once and never drops one (F6, F7)
