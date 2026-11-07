@@ -1,0 +1,794 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release.p9.comment_gate given: [case1] a pr with one unanswered review thread when: [t0] apply then: refuses, exit 2, and names the thread and the verbs 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case1] a pr with one unanswered review thread when: [t0] apply then: refuses, exit 2, and names the thread and the verbs 2`] = `
+"🐚 git.release · pr #42
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case1] a pr with one unanswered review thread when: [t1] apply with --retry then: still refuses, exit 2: no flag skips the gate 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch --retry
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case1] a pr with one unanswered review thread when: [t2] apply --into prod then: refuses at the feat pr, exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case1] a pr with one unanswered review thread when: [t3] plan then: shows the row and the hint, exit 0 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --mode plan
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ [dim]hint: --apply will refuse until each comment has an answer[/dim]
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case1] a pr with one unanswered review thread when: [t4] watch, automerge unfound then: reports, never mutates automerge, exit per checks 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ 🥥 let's watch
+      ├─ 🫧 no runs inflight
+      └─ ✨ done! Xs in action, Xs watched
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case1] a pr with one unanswered review thread when: [t5] apply with a flag a driver might hope skips the gate then: a typo is refused plain, with no word of a gate it never tried to skip 1`] = `
+"✋ ConstraintError: unknown argument: --wach
+   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case1] a pr with one unanswered review thread when: [t5] apply with a flag a driver might hope skips the gate then: each is refused as unknown, exit 2, before any release act 1`] = `
+"✋ ConstraintError: unknown argument: --force
+   ├─ note: no flag skips the comment gate: answer each unanswered comment, then rerun
+   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case1] a pr with one unanswered review thread when: [t6] apply with --dirty allow, the one flag that loosens a gate then: still refuses on the comment, exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case2] a pr whose every thread holds a signed answer when: [t0] apply then: passes the gate and enables automerge, exit 0 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 all comments answered
+   └─ 🌴 automerge enabled [added] -> and merged already
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case4] a pr whose only comment is a bot release note when: [t2] the pr holds no comment at all then: says there is none to answer, never that each has one 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
+   └─ 🌴 automerge enabled [added] -> and merged already
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case5] a top-level issue comment when: [t0] only an unrelated keyed robot comment follows it then: refuses, and the row names the exact answer key 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ issue 6407563822 · @commander · "also: the readme still names the old flag"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#issuecomment-6407563822
+   │     └─ answer: rhx git.pull.comment set --pr 42 --key answer-6407563822 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case6] a re-asked thread, after one answer when: [t0] apply then: refuses, and the row names a key new to this ask, so the answer posts fresh rather than edits the old one 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 803 · src/reef/getTide.ts:42 · @commander · "and the test for the retry?"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r803
+   │     ├─ answered once, then asked again — the key below is new, so it posts a fresh answer
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 803 --key answer-803 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case7] a thread answered by hand, unsigned when: [t0] apply then: refuses: an unsigned reply is no answer 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 804 · src/reef/getTide.ts:42 · @human · "good call, fixed"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r804
+   │     ├─ a reply with no 🐢 signature — only a signed answer, or a resolved thread, clears it
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 804 --key answer-804 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case8] automerge already on, and a comment waits when: [t0] apply then: disables automerge, refuses, exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge disabled [removed] — 1 comment(s) unanswered
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case8] automerge already on, and a comment waits when: [t1] watch then: disables automerge, refuses, exit 2 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge disabled [removed] — 1 comment(s) unanswered
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case8] automerge already on, and a comment waits when: [t2] plan then: never mutates, exit 0, and says plainly that github will merge past the comments 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --mode plan
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge enabled [found] — github will merge past 1 comment(s) unanswered once checks pass
+   └─ [dim]hint: --watch or --apply turns automerge off; --apply refuses until each comment has an answer[/dim]
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case8] automerge already on, and a comment waits when: [t3] apply, and the disable fails then: malfunction, exit 1, never a silent pass 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   └─ 💥 MalfunctionError: could not disable automerge while 1 comment(s) unanswered
+      ├─ automerge: still on — github will merge past them once checks pass
+      └─ fix: turn it off now: gh pr merge 42 --disable-auto
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case8] automerge already on, and a comment waits when: [t4] apply, the disable fails, and automerge already reads off then: converges: the refusal stands at exit 2, never a false malfunction 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge disabled [removed] — 1 comment(s) unanswered
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case9] a reviewer comments mid-watch when: [t0] apply passes the gate, then a poll finds the new comment then: the poll disables automerge and refuses, exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
+   ├─ 🌴 automerge enabled [added]
+   └─ 🥥 let's watch
+      ├─ 💬 1 comment(s) unanswered
+      │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+      │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+      │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+      ├─ 🌴 automerge disabled [removed] — 1 comment(s) unanswered
+      └─ ✋ ConstraintError: release blocked until each comment has an answer
+         ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+         ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+         ├─ or: anyone with write access marks the review thread resolved on github
+         └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case10] the comment read fails when: [t0] apply then: malfunction, exit 1, never a silent all-answered 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   └─ 💥 MalfunctionError: could not read pr comments
+      ├─ detail: gh: API rate limit exceeded (HTTP 403)
+      └─ fix: rerun once the rate limit resets (gh api rate_limit shows when)
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case10] the comment read fails when: [t0] apply then: malfunction, exit 1, never a silent all-answered 2`] = `
+"🐚 git.release · pr #42
+   └─ 💥 MalfunctionError: could not read pr comments
+      ├─ detail: gh: API rate limit exceeded (HTTP 403)
+      └─ fix: rerun once the rate limit resets (gh api rate_limit shows when)
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case10] the comment read fails when: [t1] plan then: the same malfunction, exit 1 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --mode plan
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   └─ 💥 MalfunctionError: could not read pr comments
+      ├─ detail: gh: API rate limit exceeded (HTTP 403)
+      └─ fix: rerun once the rate limit resets (gh api rate_limit shows when)
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case10] the comment read fails when: [t2] the thread read names no pull request then: malfunction, exit 1, never every thread defaulted to open 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   └─ 💥 MalfunctionError: could not read pr comments
+      ├─ detail: github found no pull request #42 for the review thread read
+      └─ fix: rerun the same command; if it fails again, confirm the pr exists: gh pr view 42
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case10] the comment read fails when: [t2] the thread read names no pull request then: malfunction, exit 1, never every thread defaulted to open 2`] = `
+"🐚 git.release · pr #42
+   └─ 💥 MalfunctionError: could not read pr comments
+      ├─ detail: github found no pull request #42 for the review thread read
+      └─ fix: rerun the same command; if it fails again, confirm the pr exists: gh pr view 42
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case10] the comment read fails when: [t3] the read is refused for its credential (HTTP 401) then: the fix names the token scope, exit 1 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   └─ 💥 MalfunctionError: could not read pr comments
+      ├─ detail: gh: Bad credentials (HTTP 401)
+      └─ fix: give the token read access to pull requests and issues of this repo; see its scopes: gh auth status
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case10] the comment read fails when: [t4] the read fails with no words from gh then: the detail names the exit code, and the fix is a rerun 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   └─ 💥 MalfunctionError: could not read pr comments
+      ├─ detail: gh command failed with exit code 1
+      └─ fix: rerun the same command: the comment read is safe to repeat; if it fails again, check gh auth status
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case11] checks failed, and a comment waits when: [t0] apply with --retry then: reruns the checks, then refuses on the comment, exit 2: retry never carries apply past the gate 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch --retry
+
+🌊 release: feat(reef): add tide sensor
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test-unit
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
+   │        ├─ failed after Xm Ys
+   │        └─ 👌 rerun triggered
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case11] checks failed, and a comment waits when: [t1] apply, no retry then: shows the check hints, then the comment refusal, exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test-unit
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
+   │        └─ failed after Xm Ys
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   ├─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case12] on main, the release pr holds an unanswered comment when: [t0] apply --into prod then: refuses at the release pr, exit 2, never enables automerge 1`] = `
+"🐢 radical!
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: chore(release): v1.3.0 🎉
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ issue 6407563822 · @commander · "also: the readme still names the old flag"
+   │     ├─ https://github.com/ehmpathy/reef/pull/99#issuecomment-6407563822
+   │     └─ answer: rhx git.pull.comment set --pr 99 --key answer-6407563822 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 99 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case13] the comment read fails while automerge is on when: [t0] apply then: fails closed: turns automerge off, then malfunction, exit 1 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   └─ 💥 MalfunctionError: could not read pr comments
+      ├─ detail: gh: HTTP 502: Bad Gateway
+      ├─ automerge: disabled [removed], so github cannot merge past an unread comment
+      └─ fix: rerun the same command: the comment read is safe to repeat; if it fails again, check gh auth status
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case13] the comment read fails while automerge is on when: [t1] plan then: never mutates; names that automerge is still on and the command that turns it off 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --mode plan
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   └─ 💥 MalfunctionError: could not read pr comments
+      ├─ detail: gh: HTTP 502: Bad Gateway
+      ├─ automerge: still on — github may merge past an unread comment
+      ├─ fix: turn it off now: gh pr merge 42 --disable-auto
+      └─ then: rerun the same command: the comment read is safe to repeat; if it fails again, check gh auth status
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case13] the comment read fails while automerge is on when: [t2] apply, and the disable fails too then: malfunction, exit 1, with the command to turn it off 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   └─ 💥 MalfunctionError: could not read pr comments
+      ├─ detail: gh: HTTP 502: Bad Gateway
+      ├─ automerge: still on, and the disable failed
+      ├─ fix: turn it off now: gh pr merge 42 --disable-auto
+      └─ then: rerun the same command: the comment read is safe to repeat; if it fails again, check gh auth status
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case13] the comment read fails while automerge is on when: [t3] watch, and a later poll read fails then: the poll fails closed: turns automerge off, then malfunction, exit 1 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      └─ 💥 MalfunctionError: could not read pr comments
+         ├─ detail: gh: HTTP 502: Bad Gateway
+         ├─ automerge: disabled [removed], so github cannot merge past an unread comment
+         └─ fix: rerun the same command: the comment read is safe to repeat; if it fails again, check gh auth status
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case13] the comment read fails while automerge is on when: [t4] watch, a poll finds a comment, and the disable fails then: malfunction, exit 1, with the command to turn it off 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💬 1 comment(s) unanswered
+      │  └─ issue 6407563822 · @commander · "also: the readme still names the old flag"
+      │     ├─ https://github.com/ehmpathy/reef/pull/42#issuecomment-6407563822
+      │     └─ answer: rhx git.pull.comment set --pr 42 --key answer-6407563822 --from <file>
+      └─ 💥 MalfunctionError: could not disable automerge while 1 comment(s) unanswered
+         ├─ automerge: still on — github will merge past them once checks pass
+         └─ fix: turn it off now: gh pr merge 42 --disable-auto
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case14] several comments wait, of each shape when: [t0] apply then: one row per comment, each with its own exact answer, exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 3 comment(s) unanswered
+   │  ├─ review 805 · src/reef/setSensor.ts · @commander · "suggestion: const sensor = genSensor({ reef });"
+   │  │  ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r805
+   │  │  └─ answer: rhx git.pull.comment set --pr 42 --reply-to 805 --key answer-805 --from <file>
+   │  ├─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here? a retry would double…"
+   │  │  ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r801
+   │  │  └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   │  └─ issue 6407563830 · @commander · "the readme says 'tide' where it means 'swell'"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#issuecomment-6407563830
+   │     └─ answer: rhx git.pull.comment set --pr 42 --key answer-6407563830 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case15] the pr already merged, with a comment unanswered when: [t0] apply then: reports the merge, reads no comments, exit 0 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   └─ 🌴 already merged
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case16] the pr needs a rebase, and a comment waits when: [t0] apply then: shows the rebase, then the comment refusal last, exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ issue 6407563822 · @commander · "also: the readme still names the old flag"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#issuecomment-6407563822
+   │     └─ answer: rhx git.pull.comment set --pr 42 --key answer-6407563822 --from <file>
+   ├─ 🐚 needs rebase
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case16] the pr needs a rebase, and a comment waits when: [t1] apply, and the rebase has conflicts (DIRTY) then: shows the conflict, then the comment refusal last, exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ issue 6407563822 · @commander · "also: the readme still names the old flag"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#issuecomment-6407563822
+   │     └─ answer: rhx git.pull.comment set --pr 42 --key answer-6407563822 --from <file>
+   ├─ 🐚 needs rebase, has conflicts
+   │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case17] plan, with checks failed and a comment unanswered when: [t0] plan then: shows both, the check hints then the apply warn, never refuses, exit 2 for the checks 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --mode plan
+
+🌊 release: feat(reef): add tide sensor
+   ├─ ⚓ 1 check(s) failed
+   │  └─ 🔴 test-unit
+   │        ├─ https://github.com/test/repo/actions/runs/XXX
+   │        └─ failed after Xm Ys
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ issue 6407563822 · @commander · "also: the readme still names the old flag"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#issuecomment-6407563822
+   │     └─ answer: rhx git.pull.comment set --pr 42 --key answer-6407563822 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
+   ├─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
+   └─ [dim]hint: --apply will refuse until each comment has an answer[/dim]
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case18] the watch times out while checks still run when: [t0] watch, automerge on, every comment answered then: exit 2, and says automerge stays on with no gate, plus the command that turns it off 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   ├─ 💬 all comments answered
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ... (Nx more)
+      └─ ⏰ timeout after Xs
+         ├─ automerge: still on — github merges once checks pass, and no gate reads a comment that lands after this exit
+         ├─ fix: to keep the gate, rerun: rhx git.release --watch
+         └─ or, to turn it off: gh pr merge 42 --disable-auto
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case18] the watch times out while checks still run when: [t1] watch, automerge off then: exit 2, and the timeout line alone 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ 💤 1 left, Xs in action, Xs watched
+      ├─ ... (Nx more)
+      └─ ⏰ timeout after Xs
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case19] the unanswered comment sits on the second page when: [t0] apply then: refuses on the page 2 row, exit 2 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 1 comment(s) unanswered
+   │  └─ review 803 · src/reef/getTide.ts:42 · @commander · "and the test for the retry?"
+   │     ├─ https://github.com/ehmpathy/reef/pull/42#discussion_r803
+   │     ├─ answered once, then asked again — the key below is new, so it posts a fresh answer
+   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 803 --key answer-803 --from <file>
+   ├─ 🌴 automerge unfound — held until each comment has an answer
+   └─ ✋ ConstraintError: release blocked until each comment has an answer
+      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ answer: run the rhx git.pull.comment set line each 💬 row names
+      ├─ or: anyone with write access marks the review thread resolved on github
+      └─ then: re-run this same release command
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case19] the unanswered comment sits on the second page when: [t1] the resolved thread is named only on the second graphql page then: every thread page is walked: 801 reads resolved, exit 0 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 👌 all checks passed
+   ├─ 💬 all comments answered
+   └─ 🌴 automerge enabled [added] -> and merged already
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case20] the watch is stopped by a signal mid-run when: [t0] watch, automerge on, every comment answered, then SIGTERM then: says automerge stays on with no gate, names the command, exits 143 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   ├─ 💬 all comments answered
+   ├─ 🌴 automerge enabled [found]
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ 🛑 watch stopped before the merge
+         ├─ automerge: still on — github merges once checks pass, and no gate reads a comment that lands after this exit
+         ├─ fix: to keep the gate, rerun: rhx git.release --watch
+         └─ or, to turn it off: gh pr merge 42 --disable-auto
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case20] the watch is stopped by a signal mid-run when: [t1] watch, automerge off, then SIGINT then: the stop line alone, exits 130 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --watch
+
+🌊 release: feat(reef): add tide sensor
+   ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
+      └─ 🛑 watch stopped before the merge
+"
+`;
+
+exports[`git.release.p9.comment_gate given: [case20] the watch is stopped by a signal mid-run when: [t2] a stop lands before the first poll reads the pr then: the automerge state reads unread, never a silent "off" 1`] = `
+"🌊 release: feat(reef): add tide sensor
+   └─ 🥥 let's watch
+      └─ 🛑 watch stopped before the merge
+         ├─ automerge: unread — this watch stopped before its first poll; if it is on, no gate reads a comment that lands after this exit
+         ├─ fix: to keep the gate, rerun: rhx git.release --watch
+         └─ or, to make sure it is off: gh pr merge 42 --disable-auto
+"
+`;

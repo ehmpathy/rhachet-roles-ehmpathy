@@ -138,6 +138,22 @@ describe('git.pull.comment, via rhachet', () => {
       });
     });
 
+    when('[t4] get --unanswered meets --key, which it never narrows by', () => {
+      const result = useThen('it runs', async () =>
+        runViaRhachet({
+          dir: scene.dir,
+          skill: 'git.pull.comment.get',
+          args: ['--pr', '7', '--unanswered', '--key', 'status'],
+        }),
+      );
+      then('it refuses with exit 2, before any read, and names the fix', () => {
+        expect(result.code).toBe(2);
+        expect(result.stdout).toContain('--unanswered reads every comment');
+        expect(result.stderr).toContain('ConstraintError');
+        expect(asSkillRender(result)).toMatchSnapshot();
+      });
+    });
+
     when('[t3] the dispatcher is called with a spaced verb, or none', () => {
       const result = useThen('they run', async () => ({
         getHelp: runViaRhachet({

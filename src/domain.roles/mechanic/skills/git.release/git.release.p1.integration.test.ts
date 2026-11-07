@@ -10,6 +10,7 @@ import {
   SKILL_SPAWN_TIMEOUT_MS,
 } from './.test/infra/asSkillExitStatus';
 import {
+  GH_MOCK_LINE_COMMENTS_ABSENT,
   setGitReleaseUsesOrgAllowed,
   setGitReleaseUsesPermission,
   writeRhachetMock,
@@ -376,7 +377,7 @@ case "$CMD_KEY" in
     exit 1
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -713,7 +714,7 @@ case "$CMD_KEY" in
     fi
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -860,7 +861,7 @@ case "$CMD_KEY" in
     echo '[{"name": "publish.yml", "conclusion": "success", "status": "completed", "url": "https://github.com/test/repo/actions/runs/789"}]'
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -1135,7 +1136,7 @@ if [[ "$ALL_ARGS" == *"run list"* ]]; then
   exit 0
 fi
 
-echo "mock: unhandled gh $ALL_ARGS" >&2
+${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $ALL_ARGS" >&2
 exit 1
 `;
           fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMock);
@@ -1275,7 +1276,7 @@ if [[ "$ALL_ARGS" == *"run list"* ]]; then
   exit 0
 fi
 
-echo "mock: unhandled gh $ALL_ARGS" >&2
+${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $ALL_ARGS" >&2
 exit 1
 `;
         fs.writeFileSync(path.join(fakeBinDir, 'gh'), ghMock);
@@ -1497,7 +1498,7 @@ case "$CMD_KEY" in
     echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -1668,7 +1669,7 @@ case "$CMD_KEY" in
     echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -1827,7 +1828,7 @@ case "$CMD_KEY" in
     echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -1978,7 +1979,7 @@ case "$CMD_KEY" in
     echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -2131,7 +2132,7 @@ if [[ "$CMD_KEY" == "pr list" ]]; then
   exit 0
 fi
 
-echo "mock: unhandled gh $*" >&2
+${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
 exit 1
 `;
           fs.writeFileSync(ghMockPath, statefulGhMock);
@@ -2216,7 +2217,7 @@ if [[ "$CMD_KEY" == "pr list" ]]; then
   exit 0
 fi
 
-echo "mock: unhandled gh $*" >&2
+${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
 exit 1
 `;
             fs.writeFileSync(ghMockPath, statefulGhMock);
@@ -2314,6 +2315,11 @@ exit 1
           });
 
           expect(result.stderr).toContain("--into must be 'main' or 'prod'");
+          // one shape for every argument error: the class header, on both streams
+          expect(result.stdout).toContain(
+            "✋ ConstraintError: --into must be 'main' or 'prod', got 'invalid'",
+          );
+          expect(result.stderr).toContain('✋ ConstraintError: --into');
           expect(result.stderr).toMatchSnapshot();
           expect(result.status).toEqual(2);
         } finally {
@@ -2359,6 +2365,9 @@ exit 1
           });
 
           expect(result.stderr).toContain('not in a git repository');
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: not in a git repository',
+          );
           expect(result.stderr).toMatchSnapshot();
           expect(result.status).toEqual(2);
         } finally {
@@ -2739,7 +2748,7 @@ case "$CMD_KEY" in
     echo '{"startedAt": "2024-01-01T00:00:00Z", "updatedAt": "2024-01-01T00:02:34Z"}'
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -2878,7 +2887,7 @@ case "$CMD_KEY" in
     echo "auto-merge enabled"
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -3013,7 +3022,7 @@ case "$CMD_KEY" in
     echo "auto-merge enabled"
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -3294,7 +3303,7 @@ case "$CMD_KEY" in
     fi
     ;;
   *)
-    echo "unknown command: $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "unknown command: $*" >&2
     exit 1
     ;;
 esac
@@ -3365,7 +3374,7 @@ case "$CMD_KEY" in
     fi
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -3555,7 +3564,7 @@ case "$CMD_KEY" in
     fi
     ;;
   *)
-    echo "unknown command: $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "unknown command: $*" >&2
     exit 1
     ;;
 esac
@@ -3725,7 +3734,7 @@ case "$CMD_KEY" in
     echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -3888,7 +3897,7 @@ case "$CMD_KEY" in
     echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -4055,7 +4064,7 @@ case "$CMD_KEY" in
     echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -4241,7 +4250,7 @@ case "$CMD_KEY" in
     echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -4383,7 +4392,7 @@ case "$CMD_KEY" in
     echo '{"startedAt": "'$NOW'", "updatedAt": "'$NOW'"}'
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac

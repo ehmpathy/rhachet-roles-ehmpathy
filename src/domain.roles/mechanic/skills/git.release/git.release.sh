@@ -30,6 +30,7 @@
 #     spends one use per apply; a commit grant never ships
 #   - watches CI until complete or timeout (15 min)
 #   - surfaces errors with links and retry hints
+#   - apply refuses (exit 2) while a pr comment waits; no flag skips it
 #
 # note:
 #   - MUST run in FOREGROUND (never background)
@@ -51,6 +52,7 @@ source "$SKILL_DIR/git.release.operations.sh"
 source "$SKILL_DIR/git.release._.get_one_goal_from_input.sh"
 source "$SKILL_DIR/git.release._.get_all_flags_from_input.sh"
 source "$SKILL_DIR/git.release._.get_one_transport_status.sh"
+source "$SKILL_DIR/git.release._.emit_comment_gate.sh"
 source "$SKILL_DIR/git.release._.emit_transport_status.sh"
 source "$SKILL_DIR/git.release._.emit_transport_watch.sh"
 source "$SKILL_DIR/git.release._.emit_one_transport_status_exitcode.sh"
@@ -59,6 +61,18 @@ source "$SKILL_DIR/git.release._.and_then_await.sh"
 ######################################################################
 # argument parse
 ######################################################################
+
+# refuse a bad argument: one shape for every argument error, on both streams
+# $1 = what was wrong; $2 = an optional note, printed as the first branch
+refuse_argument() {
+  local note_line=""
+  [[ -z "${2:-}" ]] || note_line="   ├─ note: $2"$'\n'
+  emit_both "✋ ConstraintError: $1
+${note_line}   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help"
+  exit 2
+}
+
 TO=""  # inferred by get_one_goal_from_input when not specified
 FROM=""  # --from main: skip feature branch requirement
 WHY=""  # --why: required articulation when a non-human uses --from main from a feature branch
@@ -129,12 +143,16 @@ while [[ $# -gt 0 ]]; do
       echo "  apply needs a sponsor's stamp — git.release.uses set --quant 1 — and spends"
       echo "  one use at the arm of the merge; --into prod arms both prs on that one use."
       echo "  a commit grant never ships. see the stamp: rhx git.release.uses get"
+      echo ""
+      echo "  the comment gate: --apply refuses (exit 2) while a pr comment waits on an"
+      echo "  answer; no flag skips it. find them: rhx git.pull.comment get --unanswered"
       exit 0
       ;;
     *)
-      echo "error: unknown argument: $1" >&2
-      echo "usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry]" >&2
-      exit 2
+      # refuse an unknown flag: no bypass runs silently; a flag shaped like a
+      # bypass also learns that none exists, a typo gets the plain refusal
+      [[ "$1" =~ ^--(skip|force|no-|ignore|bypass) ]] && refuse_argument "unknown argument: $1" "no flag skips the comment gate: answer each unanswered comment, then rerun"
+      refuse_argument "unknown argument: $1"
       ;;
   esac
 done
@@ -145,20 +163,17 @@ done
 
 # validate --into value (only if specified)
 if [[ -n "$TO" && "$TO" != "main" && "$TO" != "prod" ]]; then
-  echo "error: --into must be 'main' or 'prod', got '$TO'" >&2
-  exit 2
+  refuse_argument "--into must be 'main' or 'prod', got '$TO'"
 fi
 
 # validate --mode value
 if [[ "$MODE" != "plan" && "$MODE" != "apply" ]]; then
-  echo "error: --mode must be 'plan' or 'apply', got '$MODE'" >&2
-  exit 2
+  refuse_argument "--mode must be 'plan' or 'apply', got '$MODE'"
 fi
 
 # validate --dirty value
 if [[ "$DIRTY" != "block" && "$DIRTY" != "allow" ]]; then
-  echo "error: --dirty must be 'block' or 'allow', got '$DIRTY'" >&2
-  exit 2
+  refuse_argument "--dirty must be 'block' or 'allow', got '$DIRTY'"
 fi
 
 # note: --from accepts "main" or any branch name (e.g., "turtle/feature-x")
@@ -168,7 +183,8 @@ fi
 
 # ensure in git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "error: not in a git repository" >&2
+  emit_both "✋ ConstraintError: not in a git repository
+   └─ fix: run git.release from inside the repo to release"
   exit 2
 fi
 

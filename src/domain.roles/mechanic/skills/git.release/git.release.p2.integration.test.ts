@@ -10,7 +10,10 @@ import {
   asSkillExitStatus,
   SKILL_SPAWN_TIMEOUT_MS,
 } from './.test/infra/asSkillExitStatus';
-import { setGitReleaseUsesOrgAllowed } from './.test/infra/mockGh';
+import {
+  GH_MOCK_LINE_COMMENTS_ABSENT,
+  setGitReleaseUsesOrgAllowed,
+} from './.test/infra/mockGh';
 import { genGitMockExecutable } from './.test/infra/mockGit';
 import { setGitBranchPushed } from './.test/infra/setGitBranchPushed';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
@@ -551,7 +554,7 @@ case "$CMD_KEY" in
     echo "rerun triggered"
     ;;
   *)
-    echo "mock: unhandled gh $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled gh $*" >&2
     exit 1
     ;;
 esac
@@ -3821,7 +3824,7 @@ case "$CMD_KEY" in
     echo "rerun triggered"
     ;;
   *)
-    echo "mock: unhandled $*" >&2
+    ${GH_MOCK_LINE_COMMENTS_ABSENT}; echo "mock: unhandled $*" >&2
     exit 1
     ;;
 esac
