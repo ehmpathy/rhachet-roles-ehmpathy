@@ -74,7 +74,7 @@
 | merged | any | exit immediately | 0 |
 
 **vs --mode apply:**
-- `--watch` only watches, never enables automerge
+- `--watch` watches and never enables automerge; when a comment waits on an answer, it disables an extant automerge (the safe direction) and exits 2
 - `--mode apply` enables automerge (if not set), then watches
 
 ---
@@ -277,7 +277,7 @@ These states are unreachable or nonsensical:
 | clean | apply | proceed normally |
 | clean | --watch | proceed normally |
 
-**note:** dirty check applies only to `--mode apply`. plan and `--watch` modes are read-only and ignore dirty state.
+**note:** dirty check applies only to `--mode apply`. plan and `--watch` never enable automerge, so they ignore dirty state.
 
 ---
 
@@ -346,7 +346,7 @@ apply mode requires git.commit.uses permission (locally or globally).
 | blocked (global) | proceed | proceed | exit 2: hint permission |
 | quota exhausted | proceed | proceed | exit 2: hint permission |
 
-**note:** plan and `--watch` modes never check permissions — they are read-only. only `--mode apply` requires permission because it enables automerge (a mutation).
+**note:** plan and `--watch` modes never check permissions — neither enables automerge. only `--mode apply` requires permission because it enables automerge. the one write `--watch` may make, an automerge disable while a comment waits, moves toward the safe state, so it needs no permission.
 
 ---
 

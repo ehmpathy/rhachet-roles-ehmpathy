@@ -11,6 +11,11 @@
 #   STATUS=$(get_pr_status "$pr_number")
 ######################################################################
 
+# source the one rule of what waits on an answer, shared with git.pull.comment get
+# .note = located from this file's own path, so no caller's SKILL_DIR is read or set
+# shellcheck source=../git.pull.comment/git.pull.comment.rows.sh
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/../git.pull.comment/git.pull.comment.rows.sh"
+
 ######################################################################
 # _gh_with_retry
 # retry gh commands on transient network errors (3x, 5s delay)
@@ -886,4 +891,63 @@ get_release_please_status() {
 
   # extract first run
   echo "$run_json" | jq -c '.[0]'
+}
+
+######################################################################
+# .what = every comment of a pr as rows, each review row with its thread state
+# .why  = the release gate judges the rows `git.pull.comment get` judges, read
+#         under the credential this run already holds
+#
+# usage: get_all_pr_comment_rows "42"
+# returns: json array of rows (git.pull.comment.rows.sh); on a failed read,
+#          exit nonzero with gh's own words on stderr
+# .note  = gh fills {owner}/{repo} from the cwd's repo, in an endpoint and in
+#          a -F value alike; the `gh api` manual's own graphql example passes
+#          -F owner='{owner}' -F name='{repo}' (cli.github.com/manual/gh_api)
+######################################################################
+get_all_pr_comment_rows() {
+  local pr_number="$1"
+  local issue_pages review_pages issue_list review_list rows thread_pages thread_states
+
+  # read both comment lists, every page
+  issue_pages=$(_gh_with_retry gh api --method GET --paginate "repos/{owner}/{repo}/issues/$pr_number/comments") || return 1
+  review_pages=$(_gh_with_retry gh api --method GET --paginate "repos/{owner}/{repo}/pulls/$pr_number/comments") || return 1
+  issue_list=$(as_list_from_gh_pages "$issue_pages") || return 1
+  review_list=$(as_list_from_gh_pages "$review_pages") || return 1
+  rows=$(as_comment_rows_from_gh_lists "$issue_list" "$review_list") || return 1
+
+  # name each review thread open or resolved, only when a review row exists
+  if [[ "$(as_count_of_rows "$review_list")" != "0" ]]; then
+    thread_pages=$(_gh_with_retry gh api graphql --paginate -f query="$COMMENT_REVIEW_THREADS_QUERY" -F owner='{owner}' -F name='{repo}' -F pr="$pr_number") || return 1
+    thread_states=$(as_thread_states_from_graphql "$thread_pages" "$pr_number") || return 1
+    rows=$(as_rows_with_thread_state "$rows" "$thread_states") || return 1
+  fi
+
+  printf '%s' "$rows"
+}
+
+######################################################################
+# .what = drive a pr's automerge to off; idempotent
+# .why  = automerge is server-side: while a comment waits on an answer,
+#         github would merge past the refusal the moment checks land
+#
+# usage: disable_automerge "42"
+# returns: 0 once automerge reads off; nonzero with gh's words on stderr
+# .note  = a disable that fails on a pr already off (a stale read, a
+#          concurrent disable) has reached its goal, so it returns 0
+######################################################################
+disable_automerge() {
+  local pr_number="$1" rc=0 err automerge_on
+
+  # ask github to turn automerge off; hold gh's words until the outcome is known
+  err=$(_gh_with_retry gh pr merge "$pr_number" --disable-auto 2>&1 >/dev/null) || rc=$?
+  [[ "$rc" == "0" ]] && return 0
+
+  # converge: automerge already off is the goal state, not a failure
+  automerge_on=$(_gh_with_retry gh pr view "$pr_number" --json autoMergeRequest --jq '.autoMergeRequest != null' 2>/dev/null) || automerge_on="unknown"
+  [[ "$automerge_on" == "false" ]] && return 0
+
+  # still on, or unreadable: fail with gh's own words
+  echo "$err" >&2
+  return "$rc"
 }

@@ -89,6 +89,7 @@ exports[`git.release.p7.from_main.why_guard given: [case6] --why supplied WITHOU
 
 🌊 release: 
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "

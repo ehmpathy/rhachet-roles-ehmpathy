@@ -1,0 +1,32 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] git.release is asked for --help then: the help is snapped 1`] = `
+"usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+       git.release --from main --into prod   # special-circumstance only
+
+  --into prod    full release to prod (the default, safe way to ship your work)
+  --into main    merge feature branch to main only (stops before prod)
+  --watch        watch CI without automerge
+  --apply        enable automerge and watch (alias for --mode apply)
+  --mode plan    show status only (default)
+  --mode apply   enable automerge and watch
+  --retry        rerun failed workflows before watch
+  --dirty block  fail fast if unstaged changes (default)
+  --dirty allow  allow release even with unstaged changes
+
+  special circumstances only (footgun — prefer --into prod):
+  --from main    skip the feature branch, release whatever is on main
+
+  comment gate: plan and --watch show each unanswered pr comment, one row each;
+  --apply refuses (exit 2) while any is unanswered, and each row prints the
+  rhx git.pull.comment set line that answers it. no flag skips the gate
+"
+`;
+
+exports[`git.release, via rhachet given: [case1] a repo with the mechanic role linked when: [t1] git.release --apply is asked to skip the gate then: the refusal is snapped 1`] = `
+"✋ ConstraintError: unknown argument: --skip-comments
+   ├─ note: no flag skips the comment gate: answer each unanswered comment, then rerun
+   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help
+"
+`;

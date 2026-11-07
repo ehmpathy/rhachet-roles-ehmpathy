@@ -7,6 +7,7 @@ exports[`git.release given: [case1] release to main (plan mode) when: [t0] featu
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -55,6 +56,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t1] PR w
    │  └─ 🔴 test-unit
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        └─ failed after Xm Ys
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -68,6 +70,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t2] PR n
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -81,6 +84,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t2a] PR 
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🐚 needs rebase, has conflicts
    │  └─ [dim]hint: rhx git.branch.rebase begin[/dim]
    └─ 🌴 automerge unfound (use --apply to add)
@@ -94,6 +98,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t3] auto
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    └─ 🌴 automerge enabled [added] -> and merged already
 
 [dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
@@ -109,6 +114,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t4] auto
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
 "
 `;
 
@@ -124,6 +130,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t5] auto
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -140,6 +147,7 @@ exports[`git.release given: [case3a] release to prod from main (plan mode) when:
 
 🌊 release: chore(release): v1.32.0 🎉
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -165,6 +173,7 @@ exports[`git.release given: [case3b] release to prod from feat (plan mode) when:
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -192,6 +201,7 @@ exports[`git.release given: [case3b] release to prod from feat (plan mode) when:
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -295,6 +305,7 @@ exports[`git.release given: [case4a] release to prod from main (apply mode) when
 
 🌊 release: chore(release): v1.32.0 🎉
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    └─ 🌴 automerge enabled [added] -> and merged already
 
 🫧 and then...
@@ -375,6 +386,7 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 2 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -384,6 +396,7 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 
 🌊 release: chore(release): v1.2.3
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       └─ ✨ done! merged!
@@ -405,6 +418,7 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       └─ ✨ done! merged!
@@ -413,6 +427,7 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 
 🌊 release: chore(release): v1.32.0
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    └─ 🌴 automerge enabled [added] -> and merged already
 
 🫧 and then...
@@ -438,6 +453,7 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 
 🌊 release: chore(release): v1.32.0 🎉
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       └─ ✨ done! merged!
@@ -459,6 +475,7 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 3 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -468,6 +485,7 @@ exports[`git.release given: [case4b] release to prod from feat (apply mode) when
 
 🌊 release: chore(release): v1.32.0 🎉
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
       └─ ✨ done! merged!
@@ -493,6 +511,7 @@ exports[`git.release given: [case5] retry behavior when: [t0] --retry without --
    │        ├─ https://github.com/test/repo/actions/runs/XXX
    │        ├─ failed after Xm Ys
    │        └─ 👌 rerun triggered
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --watch to monitor rerun progress[/dim]
 "
@@ -553,21 +572,27 @@ exports[`git.release given: [case6] boundary conditions when: [t0] keyrack locke
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
 "
 `;
 
 exports[`git.release given: [case7] argument validation when: [t0] --into invalid value then: shows error and exits 2 1`] = `
-"error: --into must be 'main' or 'prod', got 'invalid'
+"✋ ConstraintError: --into must be 'main' or 'prod', got 'invalid'
+   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help
 "
 `;
 
 exports[`git.release given: [case7] argument validation when: [t1] --mode invalid value then: shows error and exits 2 1`] = `
-"error: --mode must be 'plan' or 'apply', got 'invalid'
+"✋ ConstraintError: --mode must be 'plan' or 'apply', got 'invalid'
+   ├─ usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
+   └─ see every flag: rhx git.release --help
 "
 `;
 
 exports[`git.release given: [case7] argument validation when: [t2] not in git repo then: shows error and exits 2 1`] = `
-"error: not in a git repository
+"✋ ConstraintError: not in a git repository
+   └─ fix: run git.release from inside the repo to release
 "
 `;
 
@@ -578,6 +603,7 @@ exports[`git.release given: [case7] argument validation when: [t3] no arguments 
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -587,18 +613,22 @@ exports[`git.release given: [case7] argument validation when: [t4] --help flag t
 "usage: git.release [--into main|prod] [--watch] [--apply] [--mode plan|apply] [--retry] [--dirty block|allow]
        git.release --from main --into prod   # special-circumstance only
 
-  --into prod   full release to prod (the default, safe way to ship your work)
-  --into main   merge feature branch to main only (stops before prod)
-  --watch       watch CI without automerge
-  --apply       enable automerge and watch (alias for --mode apply)
-  --mode plan   show status only (default)
-  --mode apply  enable automerge and watch
-  --retry       rerun failed workflows before watch
-  --dirty block fail fast if unstaged changes (default)
-  --dirty allow allow release even with unstaged changes
+  --into prod    full release to prod (the default, safe way to ship your work)
+  --into main    merge feature branch to main only (stops before prod)
+  --watch        watch CI without automerge
+  --apply        enable automerge and watch (alias for --mode apply)
+  --mode plan    show status only (default)
+  --mode apply   enable automerge and watch
+  --retry        rerun failed workflows before watch
+  --dirty block  fail fast if unstaged changes (default)
+  --dirty allow  allow release even with unstaged changes
 
   special circumstances only (footgun — prefer --into prod):
-  --from main   skip the feature branch, release whatever is on main
+  --from main    skip the feature branch, release whatever is on main
+
+  comment gate: plan and --watch show each unanswered pr comment, one row each;
+  --apply refuses (exit 2) while any is unanswered, and each row prints the
+  rhx git.pull.comment set line that answers it. no flag skips the gate
 "
 `;
 
@@ -609,6 +639,7 @@ exports[`git.release given: [case8] --watch flag behavior when: [t0] --watch wit
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -636,6 +667,7 @@ exports[`git.release given: [case8] --watch flag behavior when: [t2.1] --watch w
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -652,6 +684,7 @@ exports[`git.release given: [case8] --watch flag behavior when: [t2] --watch wit
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -668,6 +701,7 @@ exports[`git.release given: [case8] --watch flag behavior when: [t3] --mode appl
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       └─ ✨ done! merged!
@@ -683,6 +717,7 @@ exports[`git.release given: [case8] --watch flag behavior when: [t4] --mode plan
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -697,6 +732,7 @@ exports[`git.release given: [case8] --watch flag behavior when: [t5.1] --watch w
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 💤 await automerge, Xs in action, Xs watched
@@ -711,6 +747,7 @@ exports[`git.release given: [case8] --watch flag behavior when: [t5] --mode plan
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 💤 await automerge, Xs in action, Xs watched
@@ -725,6 +762,7 @@ exports[`git.release given: [case8] watch loop internals when: [t0] checks in pr
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -737,6 +775,7 @@ exports[`git.release given: [case8] watch loop internals when: [t1] apply mode w
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 2 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 💤 1 left, Xs in action, Xs watched
@@ -753,6 +792,7 @@ exports[`git.release given: [case8] watch loop internals when: [t2] rebase requi
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ ✨ done! Xs in action, Xs watched
@@ -768,6 +808,7 @@ exports[`git.release given: [case8] watch loop internals when: [t2a] conflicts d
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ ✨ done! Xs in action, Xs watched
@@ -787,6 +828,7 @@ exports[`git.release given: [case8] watch loop internals when: [t3] both failed 
    │  │     ├─ https://github.com/test/repo/actions/runs/XXX
    │  │     └─ failed after Xm Ys
    │  └─ 🟡 2 check(s) still in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    ├─ [dim]hint: use --retry to rerun failed workflows[/dim]
    └─ [dim]hint: use rhx show.gh.test.errors to see test output[/dim]
@@ -827,6 +869,7 @@ exports[`git.release given: [case9] dirty state detection when: [t2] plan mode i
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
 "
@@ -852,6 +895,7 @@ exports[`git.release given: [case10] and_then_await full flow when: [t0] feature
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
@@ -882,6 +926,7 @@ exports[`git.release given: [case10] and_then_await full flow when: [t1] feature
 
 🌊 release: feat(oceans): add reef protection
    ├─ 🐢 1 check(s) in progress
+   ├─ 💬 no comments to answer
    ├─ 🌴 automerge enabled [found]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight

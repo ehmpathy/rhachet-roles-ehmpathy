@@ -79,6 +79,48 @@ emit_transport_watch() {
 ######################################################################
 _watch_pr_transport() {
   local pr_number="$1"
+  local rc=0
+
+  # a watch stopped by a signal (ctrl-c, a tool timeout) still says whether
+  # automerge outlives it; the trap reads the globals the loop keeps current.
+  # unknown until the first poll reads the pr, so an early stop never claims "off"
+  WATCH_PR_NUMBER="$pr_number"
+  WATCH_AUTOMERGE_SEEN="unknown"
+  trap '_on_watch_pr_signal 130' INT
+  trap '_on_watch_pr_signal 143' TERM
+  trap '_on_watch_pr_signal 129' HUP
+
+  _watch_pr_transport_loop "$pr_number" || rc=$?
+
+  trap - INT TERM HUP
+  return $rc
+}
+
+######################################################################
+# .what = the signal handler of a pr watch
+# .why  = print what automerge does after the exit, then exit as the
+#         signal asks (128 + its number)
+#
+# args:
+#   $1 = exit code (130 INT, 143 TERM, 129 HUP)
+######################################################################
+_on_watch_pr_signal() {
+  local code="$1"
+  trap - INT TERM HUP
+  print_watch_stopped "$WATCH_PR_NUMBER" "$WATCH_AUTOMERGE_SEEN"
+  exit "$code"
+}
+
+######################################################################
+# .what = the poll loop of a pr watch, until merge, failure, or timeout
+# .why  = split from _watch_pr_transport so the signal trap wraps every
+#         return path of the loop once
+#
+# args:
+#   $1 = pr_number
+######################################################################
+_watch_pr_transport_loop() {
+  local pr_number="$1"
   local start_time
   local ci_start_time
   local ci_start_time_set="false"
@@ -88,6 +130,13 @@ _watch_pr_transport() {
   local poll_interval
   local test_iterations=0
   local now_seconds
+  # .note = GIT_RELEASE_WATCH_TIMEOUT is a test knob, as GIT_RELEASE_POLL_INTERVAL is
+  local watch_timeout="${GIT_RELEASE_WATCH_TIMEOUT:-900}"
+  local timeout_label
+  timeout_label=$(format_duration "$watch_timeout")
+  if [[ $(( watch_timeout % 60 )) -eq 0 ]]; then
+    timeout_label="$(( watch_timeout / 60 )) minutes"
+  fi
 
   start_time=$(date +%s)
   ci_start_time="$start_time"
@@ -110,9 +159,9 @@ _watch_pr_transport() {
       fi
     fi
 
-    # timeout after 15 minutes
-    if [[ $elapsed -ge 900 ]]; then
-      print_watch_result "timeout"
+    # timeout after 15 minutes; automerge left on outlives the gate, so say so
+    if [[ $elapsed -ge $watch_timeout ]]; then
+      print_watch_timeout "$pr_number" "$WATCH_AUTOMERGE_SEEN" "$timeout_label"
       return 2
     fi
 
@@ -130,6 +179,7 @@ _watch_pr_transport() {
     # get current status
     local status_json
     status_json=$(get_pr_status "$pr_number")
+    WATCH_AUTOMERGE_SEEN=$(has_automerge "$status_json")
 
     # set ci_start_time from oldest check
     if [[ "$ci_start_time_set" == "false" ]]; then
@@ -166,6 +216,16 @@ _watch_pr_transport() {
       fi
       print_watch_result "done" "$in_action_str in action, $elapsed_str watched"
       return 0
+    fi
+
+    # while automerge is on, re-read comments each poll: a comment that lands
+    # mid-watch must stop github's merge, not ship unanswered
+    if [[ $(has_automerge "$status_json") == "true" ]]; then
+      local gate_result=0
+      _watch_pr_comment_gate "$pr_number" || gate_result=$?
+      if [[ $gate_result -ne 0 ]]; then
+        return $gate_result
+      fi
     fi
 
     # check for failures
@@ -235,6 +295,35 @@ _watch_pr_transport() {
 }
 
 ######################################################################
+# .what = the comment gate inside a pr watch, while automerge is on
+# .why  = automerge merges server-side the moment checks land; a comment
+#         that waits on an answer must turn it off before then
+#
+# args:
+#   $1 = pr_number
+#
+# returns:
+#   0 = every comment answered (watch continues)
+#   1 = malfunction (the read or the disable failed; a failed read
+#       has already turned automerge off where it could)
+#   2 = refused (automerge disabled; a comment waits on an answer)
+######################################################################
+_watch_pr_comment_gate() {
+  local pr_number="$1"
+
+  # the shared gate: quiet while all answered; a blind read turns automerge off (fail closed)
+  emit_comment_gate "$pr_number" "      " "true" "true" "unanswered" || return 1
+  if [[ "$COMMENT_GATE_UNANSWERED" == "0" ]]; then
+    return 0
+  fi
+
+  # a comment waits, and the gate turned automerge off: refuse
+  echo "      ├─ 🌴 automerge disabled [removed] — $COMMENT_GATE_UNANSWERED comment(s) unanswered"
+  print_comment_refusal "      " "$pr_number" "$COMMENT_GATE_REVIEW_WAITS"
+  return 2
+}
+
+######################################################################
 # _watch_tag_transport
 # watch tag workflows until success, failure, or timeout
 #
@@ -264,7 +353,7 @@ _watch_tag_transport() {
   ci_start_time="$start_time"
 
   while true; do
-    # in test mode, "now" is virtual (+5s per poll); see _watch_pr_transport
+    # in test mode, "now" is virtual (+5s per poll); see _watch_pr_transport_loop
     if [[ "${GIT_RELEASE_TEST_MODE:-}" == "true" ]]; then
       now_seconds=$(( start_time + test_iterations * 5 ))
     else
