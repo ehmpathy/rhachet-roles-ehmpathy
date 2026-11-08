@@ -6,10 +6,10 @@
 #         daemon exits on its own once it holds zero watches (F3)
 #
 # usage:
-#   rhx git.pull.watch.del --pr 1220                  # plan (preview)
-#   rhx git.pull.watch.del --pr 1220 --mode apply     # stop the watch
-#   rhx git.pull.watch del --pr 1220 --mode apply
-#   rhx git.pull.watch.del --help                     # every flag
+#   rhx git.pull.watch del --pull 1220                  # plan (preview)
+#   rhx git.pull.watch del --pull 1220 --mode apply     # stop the watch
+#   rhx git.pull.watch del --pull 1220 --mode apply
+#   rhx git.pull.watch del --help                     # every flag
 #
 # guarantee:
 #   - a no-op if this clone has no watch on the pr
@@ -22,7 +22,7 @@ SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=git.pull.watch.operations.sh
 source "$SKILL_DIR/git.pull.watch.operations.sh"
 
-SKILL="git.pull.watch.del"
+SKILL="git.pull.watch del"
 PR=""
 REPO_IN=""
 MODE="plan"
@@ -31,18 +31,18 @@ OUTPUT="tree"
 # .what = print the usage: every flag, its default, an example
 help() {
   cat <<'EOF'
-usage: git.pull.watch.del --pr <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
+usage: git.pull.watch del --pull <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
 options:
-  --pr <n>            the pull request whose watch to stop (required)
+  --pull <n>          the pull request whose watch to stop (required)
   --in <owner/name>   the repo (default: the cwd's github origin)
   --mode plan|apply   plan shows what would happen; apply deletes (default: plan)
   --output tree|json  the output shape (default: tree)
   --help, -h          show this help
 
 example:
-  rhx git.pull.watch.del --pr 1220 --mode apply
+  rhx git.pull.watch del --pull 1220 --mode apply
 EOF
 }
 
@@ -53,7 +53,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --skill|--repo|--role) check_watch_flag_value "$SKILL" "$@"; shift 2 ;;
     --) shift ;;
-    --pr) check_watch_flag_value "$SKILL" "$@"; PR="$2"; shift 2 ;;
+    --pull) check_watch_flag_value "$SKILL" "$@"; PR="$2"; shift 2 ;;
     --in) check_watch_flag_value "$SKILL" "$@"; REPO_IN="$2"; shift 2 ;;
     --mode) check_watch_flag_value "$SKILL" "$@"; MODE="$2"; shift 2 ;;
     --output) check_watch_flag_value "$SKILL" "$@"; OUTPUT="$2"; shift 2 ;;
@@ -123,5 +123,5 @@ echo "   ├─ pr: $WATCH_REPO#$PR"
 echo "   └─ verdict: $VERDICT"
 if [[ "$MODE" == "plan" && ${#RECORDS[@]} -gt 0 ]]; then
   print_watch_coconut "plan writes naught; to stop the watch" \
-    "rhx $SKILL --pr $PR --in $WATCH_REPO --mode apply"
+    "rhx $SKILL --pull $PR --in $WATCH_REPO --mode apply"
 fi

@@ -3,7 +3,7 @@
 exports[`git.pull.watch events given: [case1] a mechanic with no daemon on the box, then a ci failure when: [t0] the mechanic watches the pr then: the output names the watch and the daemon 1`] = `
 "🐢 shell yeah, watched
 
-🐚 git.pull.watch.set --mode apply
+🐚 git.pull.watch set --mode apply
    ├─ pr: ehmpathy/surf-demo#1220
    ├─ clone: @:mechanic
    └─ watch: set → @:mechanic (daemon v<key> pid <pid>, spawned)

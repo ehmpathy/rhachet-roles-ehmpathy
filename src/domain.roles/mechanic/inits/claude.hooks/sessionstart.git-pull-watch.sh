@@ -55,7 +55,7 @@ read -r COUNT UNREADABLE < <(get_watch_record_counts_of_clone "$KEY_DIR" "$RHACH
 if [[ $UNREADABLE -gt 0 ]]; then
   say_both "💥 MalfunctionError: $UNREADABLE pr-watch record(s) of v$KEY are unreadable; a watch of this clone may be unserved"
   say_both "   └─ records: $(as_watch_record_path "$KEY_DIR" "")"
-  say_both "$(print_watch_coconut "to find the watch" "see each watch: rhx git.pull.watch get" "rewatch a pr: rhx git.pull.watch set --pr <n> --mode apply")"
+  say_both "$(print_watch_coconut "to find the watch" "see each watch: rhx git.pull.watch get" "rewatch a pr: rhx git.pull.watch set --pull <n> --mode apply")"
 fi
 [[ $COUNT -gt 0 ]] || exit 0
 

@@ -97,7 +97,7 @@ describe('git.pull.watch delivery', () => {
           const result = useThen('the alert is held', async () => {
             scene.runSkill({
               verb: 'set',
-              args: ['--pr', '1220', '--mode', 'apply'],
+              args: ['--pull', '1220', '--mode', 'apply'],
               root: scene.roots['surf-demo']!,
               serial: SERIAL_A,
             });
@@ -217,7 +217,7 @@ describe('git.pull.watch delivery', () => {
       const result = useThen('the closure is held', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -303,7 +303,7 @@ describe('git.pull.watch delivery', () => {
       const result = useThen('the alert is enqueued', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -354,7 +354,7 @@ describe('git.pull.watch delivery', () => {
           ['1220', '1221'].forEach((pr) =>
             scene.runSkill({
               verb: 'set',
-              args: ['--pr', pr, '--mode', 'apply'],
+              args: ['--pull', pr, '--mode', 'apply'],
               root: scene.roots['surf-demo']!,
               serial: SERIAL_A,
             }),
@@ -562,7 +562,7 @@ describe('git.pull.watch delivery', () => {
       const result = useThen('one paused alert', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -633,7 +633,7 @@ describe('git.pull.watch delivery', () => {
           setPrOpen({ scene, repo: 'ehmpathy/surf-demo', pr: '1222' });
           scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1222', '--mode', 'apply'],
+            args: ['--pull', '1222', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_C,
           });
@@ -679,7 +679,7 @@ describe('git.pull.watch delivery', () => {
       const result = useThen('one paused alert', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -745,7 +745,7 @@ describe('git.pull.watch delivery', () => {
         const result = useThen('the daemon backs off', async () => {
           scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1220', '--mode', 'apply'],
+            args: ['--pull', '1220', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });
@@ -891,7 +891,7 @@ describe('git.pull.watch delivery', () => {
       const result = useThen('one outage note', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -1018,7 +1018,7 @@ describe('git.pull.watch delivery', () => {
         const result = useThen('one token-fault note', async () => {
           scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1220', '--mode', 'apply'],
+            args: ['--pull', '1220', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });
@@ -1135,13 +1135,13 @@ describe('git.pull.watch delivery', () => {
           const result = useThen('the alert reaches clone C', async () => {
             scene.runSkill({
               verb: 'set',
-              args: ['--pr', '1220', '--mode', 'apply'],
+              args: ['--pull', '1220', '--mode', 'apply'],
               root: scene.roots['surf-demo']!,
               serial: SERIAL_A,
             });
             const joined = scene.runSkill({
               verb: 'set',
-              args: ['--pr', '312', '--mode', 'apply'],
+              args: ['--pull', '312', '--mode', 'apply'],
               root: scene.roots['tide-chart']!,
               serial: SERIAL_C,
             });
@@ -1247,7 +1247,7 @@ describe('git.pull.watch delivery', () => {
           JSON.parse(
             scene.runSkill({
               verb: 'set',
-              args: ['--pr', '1220', '--output', 'json'],
+              args: ['--pull', '1220', '--output', 'json'],
               root,
               serial: SERIAL_A,
             }).stdout,
@@ -1263,7 +1263,7 @@ describe('git.pull.watch delivery', () => {
         tree: { stdout: string; stderr: string; status: number };
         json: { stdout: string; stderr: string; status: number };
       }> => {
-        const args = ['--pr', '1220', '--mode', 'apply'];
+        const args = ['--pull', '1220', '--mode', 'apply'];
         const [tree, json] = await Promise.all([
           scene.runSkillAsync({
             verb: input.verb,
@@ -1402,7 +1402,7 @@ describe('git.pull.watch delivery', () => {
       const result = useThen('it refuses', async () =>
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: null,
         }),
@@ -1424,7 +1424,7 @@ describe('git.pull.watch delivery', () => {
       const result = useThen('it refuses', async () =>
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_C,
         }),
@@ -1439,7 +1439,7 @@ describe('git.pull.watch delivery', () => {
     });
 
     when(
-      '[t2] --pr is absent, --mode is not plan | apply, or an arg is unknown',
+      '[t2] --pull is absent, --mode is not plan | apply, or an arg is unknown',
       () => {
         const result = useThen('each refuses', async () => ({
           unknownArgs: (['get', 'set', 'del'] as const).map((verb) =>
@@ -1448,7 +1448,7 @@ describe('git.pull.watch delivery', () => {
               args:
                 verb === 'get'
                   ? ['--wave', 'big']
-                  : ['--pr', '1220', '--wave', 'big'],
+                  : ['--pull', '1220', '--wave', 'big'],
               root: scene.roots['surf-demo']!,
               serial: SERIAL_A,
             }),
@@ -1467,14 +1467,14 @@ describe('git.pull.watch delivery', () => {
           }),
           badMode: scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1220', '--mode', 'yolo'],
+            args: ['--pull', '1220', '--mode', 'yolo'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           }),
         }));
         then('each exits 2 and names the fix', () => {
           expect(result.noPr.status).toEqual(2);
-          expect(result.noPr.stdout).toContain('--pr <n> is required');
+          expect(result.noPr.stdout).toContain('--pull <n> is required');
           expect(result.badMode.status).toEqual(2);
           expect(result.badMode.stdout).toContain(
             '--mode must be one of: plan | apply',
@@ -1511,14 +1511,14 @@ describe('git.pull.watch delivery', () => {
         bare: (['set', 'del'] as const).map((verb) =>
           scene.runSkill({
             verb,
-            args: ['--pr'],
+            args: ['--pull'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           }),
         ),
         swallow: scene.runSkill({
           verb: 'set',
-          args: ['--pr', '--mode', 'apply'],
+          args: ['--pull', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         }),
@@ -1533,9 +1533,9 @@ describe('git.pull.watch delivery', () => {
         [...result.bare, result.swallow].forEach((one) => {
           expect(one.status).toEqual(2);
           expect(one.stdout).toContain(
-            '✋ ConstraintError: --pr needs a value',
+            '✋ ConstraintError: --pull needs a value',
           );
-          expect(one.stderr).toContain('--pr needs a value');
+          expect(one.stderr).toContain('--pull needs a value');
         });
         expect(result.bareOutput.status).toEqual(2);
         expect(result.bareOutput.stdout).toContain('--output needs a value');
@@ -1552,7 +1552,7 @@ describe('git.pull.watch delivery', () => {
         // a plain file where the watches dir belongs: the record write fails
         const plan = scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--output', 'json'],
+          args: ['--pull', '1220', '--output', 'json'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -1564,7 +1564,7 @@ describe('git.pull.watch delivery', () => {
         fs.writeFileSync(path.join(keyDir, 'watches'), 'not a dir');
         const out = scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -1602,7 +1602,7 @@ describe('git.pull.watch delivery', () => {
         });
         const out = scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -1648,12 +1648,12 @@ describe('git.pull.watch delivery', () => {
         });
         const setRefused = run({
           verb: 'set',
-          args: ['--output', 'json', '--pr', 'abc', '--mode', 'apply'],
+          args: ['--output', 'json', '--pull', 'abc', '--mode', 'apply'],
           serial: SERIAL_A,
         });
         const delRefused = run({
           verb: 'del',
-          args: ['--output', 'json', '--pr', '1220', '--mode', 'yolo'],
+          args: ['--output', 'json', '--pull', '1220', '--mode', 'yolo'],
           serial: SERIAL_A,
         });
         scene.setStore((store) => {
@@ -1661,7 +1661,7 @@ describe('git.pull.watch delivery', () => {
         });
         const setFaulted = run({
           verb: 'set',
-          args: ['--output', 'json', '--pr', '1220', '--mode', 'apply'],
+          args: ['--output', 'json', '--pull', '1220', '--mode', 'apply'],
           serial: SERIAL_A,
         });
         scene.setStore((store) => {
@@ -1715,14 +1715,14 @@ describe('git.pull.watch delivery', () => {
               args:
                 verb === 'get'
                   ? ['--output', 'yaml']
-                  : ['--pr', '1220', '--output', 'yaml'],
+                  : ['--pull', '1220', '--output', 'yaml'],
               root: scene.roots['surf-demo']!,
               serial: SERIAL_A,
             }),
           ),
           delNoSerial: scene.runSkill({
             verb: 'del',
-            args: ['--pr', '1220', '--mode', 'apply'],
+            args: ['--pull', '1220', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: null,
           }),
@@ -1752,7 +1752,7 @@ describe('git.pull.watch delivery', () => {
       const result = useThen('it previews', async () =>
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220'],
+          args: ['--pull', '1220'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         }),

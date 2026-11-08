@@ -3,7 +3,7 @@
 exports[`git.pull.watch delivery given: [case7] an alert due while the clone is busy, at a modal, then free when: [t0] test-integration fails while clone say withholds every try then: get marks the watch with its held count 1`] = `
 "🐢 heres the wave...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
@@ -52,7 +52,7 @@ exports[`git.pull.watch delivery given: [case7] an alert due while the clone is 
 exports[`git.pull.watch delivery given: [case7c] a pr that merges while the clone is busy when: [t0] the pr merges while clone say withholds every try then: get marks the watch ended, its last alert held 1`] = `
 "🐢 heres the wave...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
@@ -65,7 +65,7 @@ exports[`git.pull.watch delivery given: [case7c] a pr that merges while the clon
 exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes locked, then returns when: [t0] the clone watches two prs; then github refuses the token (401) then: get marks the daemon paused, with the token state 1`] = `
 "🐢 heres the wave...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago · paused (token expired)
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
@@ -88,7 +88,7 @@ exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes l
 exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes locked, then returns when: [t2] keyrack reads the token locked then: get marks the daemon paused locked, and names the unlock 1`] = `
 "🐢 heres the wave...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago · paused (token locked)
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
@@ -189,7 +189,7 @@ exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes l
 exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the github key when: [t0] the daemon spawns and reads its token then: get marks the daemon paused absent, and names fill then unlock 1`] = `
 "🐢 heres the wave...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago · paused (token absent)
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
@@ -250,7 +250,7 @@ exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the g
 exports[`git.pull.watch delivery given: [case8c] github rate-limits the token, then the limit lifts when: [t0] the clone watches the pr; then github answers 403 with a reset 25s out then: get names the backoff mark, in tree and json 1`] = `
 "🐢 heres the wave...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago · held by: backoff
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
@@ -292,7 +292,7 @@ exports[`git.pull.watch delivery given: [case8c] github rate-limits the token, t
 exports[`git.pull.watch delivery given: [case8d] github stops answers past the note bound when: [t0] the clone watches the pr; then no read gets a reply then: get names the unreachable mark, in tree and json 1`] = `
 "🐢 heres the wave...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago · held by: unreachable
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
@@ -341,7 +341,7 @@ exports[`git.pull.watch delivery given: [case8d] github stops answers past the n
 exports[`git.pull.watch delivery given: [case8e] keyrack itself faults past the note bound when: [t0] the clone watches the pr; then every keyrack read faults then: get names the token-fault mark, in tree and json 1`] = `
 "🐢 heres the wave...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago · held by: tokenfault
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
@@ -391,7 +391,7 @@ exports[`git.pull.watch delivery given: [case8e] keyrack itself faults past the 
 exports[`git.pull.watch delivery given: [case8f] a box whose keyrack blocks the github key when: [t0] the daemon spawns and reads its token then: get marks the daemon paused blocked, and names the unlock 1`] = `
 "🐢 heres the wave...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago · paused (token blocked)
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
@@ -442,7 +442,7 @@ exports[`git.pull.watch delivery given: [case8f] a box whose keyrack blocks the 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t0] a session with no clone serial sets a watch then: it exits 2, a constraint, on both streams 1`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
+🐚 git.pull.watch set
    └─ ✋ ConstraintError: not an enrolled clone; no RHACHET_CLONE_SERIAL in this session
 
 🥥 did you know?
@@ -454,7 +454,7 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t1] a clone that is not in this repo registry sets a watch then: it exits 2 and names the registry 1`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
+🐚 git.pull.watch set
    └─ ✋ ConstraintError: clone c3c3c3c3-0000-4000-8000-00000000000c is absent in the registry of <root:surf-demo>; an alert could not reach it
 
 🥥 did you know?
@@ -463,43 +463,43 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 "
 `;
 
-exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pr is absent, --mode is not plan | apply, or an arg is unknown then: an unknown arg is refused by each verb, with the help command 1`] = `
+exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pull is absent, --mode is not plan | apply, or an arg is unknown then: an unknown arg is refused by each verb, with the help command 1`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ ✋ ConstraintError: unknown arg '--wave'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch.get --help
+      └─ rhx git.pull.watch get --help
 "
 `;
 
-exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pr is absent, --mode is not plan | apply, or an arg is unknown then: an unknown arg is refused by each verb, with the help command 2`] = `
+exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pull is absent, --mode is not plan | apply, or an arg is unknown then: an unknown arg is refused by each verb, with the help command 2`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
+🐚 git.pull.watch set
    └─ ✋ ConstraintError: unknown arg '--wave'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch.set --help
+      └─ rhx git.pull.watch set --help
 "
 `;
 
-exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pr is absent, --mode is not plan | apply, or an arg is unknown then: an unknown arg is refused by each verb, with the help command 3`] = `
+exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pull is absent, --mode is not plan | apply, or an arg is unknown then: an unknown arg is refused by each verb, with the help command 3`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.del
+🐚 git.pull.watch del
    └─ ✋ ConstraintError: unknown arg '--wave'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch.del --help
+      └─ rhx git.pull.watch del --help
 "
 `;
 
-exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pr is absent, --mode is not plan | apply, or an arg is unknown then: an unknown verb is refused, with the verbs named 1`] = `
+exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pull is absent, --mode is not plan | apply, or an arg is unknown then: an unknown verb is refused, with the verbs named 1`] = `
 "🐢 bummer dude...
 
 🐚 git.pull.watch
@@ -511,92 +511,92 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 "
 `;
 
-exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pr is absent, --mode is not plan | apply, or an arg is unknown then: each exits 2 and names the fix 1`] = `
+exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pull is absent, --mode is not plan | apply, or an arg is unknown then: each exits 2 and names the fix 1`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
-   └─ ✋ ConstraintError: --pr <n> is required
+🐚 git.pull.watch set
+   └─ ✋ ConstraintError: --pull <n> is required
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch.set --pr <n> --mode apply
+      └─ rhx git.pull.watch set --pull <n> --mode apply
 "
 `;
 
-exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pr is absent, --mode is not plan | apply, or an arg is unknown then: each exits 2 and names the fix 2`] = `
+exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pull is absent, --mode is not plan | apply, or an arg is unknown then: each exits 2 and names the fix 2`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
+🐚 git.pull.watch set
    └─ ✋ ConstraintError: --mode must be one of: plan | apply; got 'yolo'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch.set --help
+      └─ rhx git.pull.watch set --help
 "
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t3] a plan for a pr the clone did not open then: plan writes naught and names the apply command 1`] = `
 "🐢 heres the wave...
 
-🐚 git.pull.watch.set --mode plan
+🐚 git.pull.watch set --mode plan
    ├─ pr: ehmpathy/surf-demo#1220
    ├─ clone: @:mechanic
    └─ watch: would set → @:mechanic (daemon v<key>)
 
 🥥 did you know?
    └─ plan writes naught; to watch it
-      └─ rhx git.pull.watch.set --pr 1220 --in ehmpathy/surf-demo --mode apply
+      └─ rhx git.pull.watch set --pull 1220 --in ehmpathy/surf-demo --mode apply
 "
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t4] help is asked of each verb then: each exits 0 with usage, options, and an example 1`] = `
-"usage: git.pull.watch.get [--output tree|json]
+"usage: git.pull.watch get [--output tree|json]
 
 options:
   --output tree|json  the output shape (default: tree)
   --help, -h          show this help
 
 example:
-  rhx git.pull.watch.get
+  rhx git.pull.watch get
 "
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t4] help is asked of each verb then: each exits 0 with usage, options, and an example 2`] = `
-"usage: git.pull.watch.set --pr <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
+"usage: git.pull.watch set --pull <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
 options:
-  --pr <n>            the pull request to watch (required)
+  --pull <n>          the pull request to watch (required)
   --in <owner/name>   the repo (default: the cwd's github origin)
   --mode plan|apply   plan shows what would happen; apply watches (default: plan)
   --output tree|json  the output shape (default: tree)
   --help, -h          show this help
 
 example:
-  rhx git.pull.watch.set --pr 1220 --mode apply
+  rhx git.pull.watch set --pull 1220 --mode apply
 "
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t4] help is asked of each verb then: each exits 0 with usage, options, and an example 3`] = `
-"usage: git.pull.watch.del --pr <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
+"usage: git.pull.watch del --pull <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
 options:
-  --pr <n>            the pull request whose watch to stop (required)
+  --pull <n>          the pull request whose watch to stop (required)
   --in <owner/name>   the repo (default: the cwd's github origin)
   --mode plan|apply   plan shows what would happen; apply deletes (default: plan)
   --output tree|json  the output shape (default: tree)
   --help, -h          show this help
 
 example:
-  rhx git.pull.watch.del --pr 1220 --mode apply
+  rhx git.pull.watch del --pull 1220 --mode apply
 "
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t5] the clone registry of the repo root is unreadable then: it exits 1, a malfunction, and names the registry check 1`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
+🐚 git.pull.watch set
    └─ 💥 MalfunctionError: the clone registry of <root:surf-demo> is unreadable; no watch was set
       └─ cause: stub rhachet: registry unreadable
 
@@ -623,40 +623,40 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 
 verbs:
   get                          the daemons on this machine and their watches
-  set --pr <n>                 watch a pr from this clone (plan by default)
-  del --pr <n>                 stop this clone's watch on a pr (plan by default)
+  set --pull <n>               watch a pr from this clone (plan by default)
+  del --pull <n>               stop this clone's watch on a pr (plan by default)
 
 options:
   --help, -h                   show this help; rhx git.pull.watch <verb> --help for a verb's flags
 
 example:
-  rhx git.pull.watch set --pr 1220 --mode apply
+  rhx git.pull.watch set --pull 1220 --mode apply
 "
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t7] a value flag is bare, or swallows the next flag then: each exits 2, a constraint that names the flag 1`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
-   └─ ✋ ConstraintError: --pr needs a value
+🐚 git.pull.watch set
+   └─ ✋ ConstraintError: --pull needs a value
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch.set --help
+      └─ rhx git.pull.watch set --help
 "
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t8] the watch record cannot be written then: it exits 1, a malfunction that names the record, cause, and fix 1`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
+🐚 git.pull.watch set
    └─ 💥 MalfunctionError: the watch record could not be written; no watch was set
       ├─ record: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=1220.clone=a1a1a1a1-0000-4000-8000-00000000000a.json
       └─ cause: set_watch_file_atomic: could not make dir <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches
 
 🥥 did you know?
    └─ to fix it
-      └─ clear the cause (no write access, a full disk, a file where a dir belongs), then rerun: rhx git.pull.watch.set --pr 1220 --mode apply
+      └─ clear the cause (no write access, a full disk, a file where a dir belongs), then rerun: rhx git.pull.watch set --pull 1220 --mode apply
 "
 `;
 
@@ -677,7 +677,7 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t9] a refusal under --output json, per verb then: a malfunction prints one error object with its cause and fix as lines, exit 1 2`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
+🐚 git.pull.watch set
    └─ 💥 MalfunctionError: the clone registry of <root:surf-demo> is unreadable; no watch was set
       └─ cause: stub rhachet: registry unreadable
 
@@ -693,7 +693,7 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
     "class": "ConstraintError",
     "message": "unknown arg '--wave'",
     "lines": [
-      "rhx git.pull.watch.get --help"
+      "rhx git.pull.watch get --help"
     ]
   }
 }
@@ -703,12 +703,12 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t9] a refusal under --output json, per verb then: each constraint prints one error object on stdout, exit 2, and the tree on stderr 2`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ ✋ ConstraintError: unknown arg '--wave'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch.get --help
+      └─ rhx git.pull.watch get --help
 "
 `;
 
@@ -716,9 +716,9 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 "{
   "error": {
     "class": "ConstraintError",
-    "message": "--pr must be a pr number; got 'abc'",
+    "message": "--pull must be a pr number; got 'abc'",
     "lines": [
-      "rhx git.pull.watch.set --pr <n> --mode apply"
+      "rhx git.pull.watch set --pull <n> --mode apply"
     ]
   }
 }
@@ -728,12 +728,12 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t9] a refusal under --output json, per verb then: each constraint prints one error object on stdout, exit 2, and the tree on stderr 4`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
-   └─ ✋ ConstraintError: --pr must be a pr number; got 'abc'
+🐚 git.pull.watch set
+   └─ ✋ ConstraintError: --pull must be a pr number; got 'abc'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch.set --pr <n> --mode apply
+      └─ rhx git.pull.watch set --pull <n> --mode apply
 "
 `;
 
@@ -743,7 +743,7 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
     "class": "ConstraintError",
     "message": "--mode must be one of: plan | apply; got 'yolo'",
     "lines": [
-      "rhx git.pull.watch.del --help"
+      "rhx git.pull.watch del --help"
     ]
   }
 }
@@ -753,55 +753,55 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t9] a refusal under --output json, per verb then: each constraint prints one error object on stdout, exit 2, and the tree on stderr 6`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.del
+🐚 git.pull.watch del
    └─ ✋ ConstraintError: --mode must be one of: plan | apply; got 'yolo'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch.del --help
+      └─ rhx git.pull.watch del --help
 "
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t10] --output is not tree | json, or del has no clone serial then: a bad --output exits 2 on each verb and names the choices 1`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ ✋ ConstraintError: --output must be one of: tree | json; got 'yaml'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch.get --help
+      └─ rhx git.pull.watch get --help
 "
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t10] --output is not tree | json, or del has no clone serial then: a bad --output exits 2 on each verb and names the choices 2`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
+🐚 git.pull.watch set
    └─ ✋ ConstraintError: --output must be one of: tree | json; got 'yaml'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch.set --help
+      └─ rhx git.pull.watch set --help
 "
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t10] --output is not tree | json, or del has no clone serial then: a bad --output exits 2 on each verb and names the choices 3`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.del
+🐚 git.pull.watch del
    └─ ✋ ConstraintError: --output must be one of: tree | json; got 'yaml'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch.del --help
+      └─ rhx git.pull.watch del --help
 "
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t10] --output is not tree | json, or del has no clone serial then: del with no clone serial exits 2, a constraint 1`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.del
+🐚 git.pull.watch del
    └─ ✋ ConstraintError: not an enrolled clone; no RHACHET_CLONE_SERIAL in this session
 
 🥥 did you know?
@@ -813,7 +813,7 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 exports[`git.pull.watch delivery given: [case16b] a daemon lock held past the wait, per verb (entry E3) when: [t0] set, while the lock of its key is held then: it exits 1, a malfunction that names the lock and the fix 1`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
+🐚 git.pull.watch set
    └─ 💥 MalfunctionError: the lock of daemon v<key> timed out
       └─ lock: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.lock
 
@@ -840,7 +840,7 @@ exports[`git.pull.watch delivery given: [case16b] a daemon lock held past the wa
 exports[`git.pull.watch delivery given: [case16b] a daemon lock held past the wait, per verb (entry E3) when: [t1] del, while the lock of its key is held then: it exits 1, a malfunction that says the watch stands 1`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.del
+🐚 git.pull.watch del
    └─ 💥 MalfunctionError: the lock of daemon v<key> timed out; the watch stands
       └─ lock: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.lock
 
@@ -867,7 +867,7 @@ exports[`git.pull.watch delivery given: [case16b] a daemon lock held past the wa
 exports[`git.pull.watch delivery given: [case16b] a daemon lock held past the wait, per verb (entry E3) when: [t2] set, while the watch sits under another key whose lock is held then: it exits 1, a malfunction that says the watch is under both keys 1`] = `
 "🐢 bummer dude...
 
-🐚 git.pull.watch.set
+🐚 git.pull.watch set
    └─ 💥 MalfunctionError: the lock of daemon v<key> timed out; the watch is under both keys
       └─ lock: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.lock
 

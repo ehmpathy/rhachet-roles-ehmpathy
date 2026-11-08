@@ -77,7 +77,7 @@ describe('sessionstart.git-pull-watch.sh', () => {
       const result = useThen('the hook brings it back', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL,
         });
@@ -260,7 +260,7 @@ describe('sessionstart.git-pull-watch.sh', () => {
         // the set records the watch, though its own findsert fails at boot
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL,
           skillDir: copy.skillDir,
@@ -287,7 +287,7 @@ describe('sessionstart.git-pull-watch.sh', () => {
         });
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL,
           skillDir: copy.skillDir,

@@ -75,7 +75,7 @@ describe('git.pull.watch events', () => {
           fs.writeFileSync(ledger, '');
           const out = scene.runSkill({
             verb: 'set',
-            args: ['--pr', PR, '--mode', 'apply'],
+            args: ['--pull', PR, '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL,
           });
@@ -240,7 +240,7 @@ describe('git.pull.watch events', () => {
           const result = useThen('ticks pass', async () => {
             scene.runSkill({
               verb: 'set',
-              args: ['--pr', PR, '--mode', 'apply'],
+              args: ['--pull', PR, '--mode', 'apply'],
               root: scene.roots['surf-demo']!,
               serial: SERIAL,
             });
@@ -287,7 +287,7 @@ describe('git.pull.watch events', () => {
         const result = useThen('the next tick alerts', async () => {
           scene.runSkill({
             verb: 'set',
-            args: ['--pr', PR, '--mode', 'apply'],
+            args: ['--pull', PR, '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL,
           });
@@ -369,7 +369,7 @@ describe('git.pull.watch events', () => {
           const result = useThen('the next tick alerts', async () => {
             scene.runSkill({
               verb: 'set',
-              args: ['--pr', PR, '--mode', 'apply'],
+              args: ['--pull', PR, '--mode', 'apply'],
               root: scene.roots['surf-demo']!,
               serial: SERIAL,
             });
@@ -510,7 +510,7 @@ describe('git.pull.watch events', () => {
       const result = useThen('the next tick alerts', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', PR, '--mode', 'apply'],
+          args: ['--pull', PR, '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL,
         });
@@ -569,7 +569,7 @@ describe('git.pull.watch events', () => {
           const result = useThen('the next tick alerts', async () => {
             scene.runSkill({
               verb: 'set',
-              args: ['--pr', PR, '--mode', 'apply'],
+              args: ['--pull', PR, '--mode', 'apply'],
               root: scene.roots['surf-demo']!,
               serial: SERIAL,
             });
@@ -719,7 +719,7 @@ describe('git.pull.watch events', () => {
         const result = useThen('it succeeds', async () => {
           const out = scene.runSkill({
             verb: 'set',
-            args: ['--pr', PR, '--mode', 'apply'],
+            args: ['--pull', PR, '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL,
           });
@@ -934,7 +934,7 @@ describe('git.pull.watch events', () => {
         const result = useThen('the next tick alerts', async () => {
           scene.runSkill({
             verb: 'set',
-            args: ['--pr', PR, '--mode', 'apply'],
+            args: ['--pull', PR, '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL,
           });
@@ -995,7 +995,7 @@ describe('git.pull.watch events', () => {
         const result = useThen('each tick alerts', async () => {
           scene.runSkill({
             verb: 'set',
-            args: ['--pr', PR, '--mode', 'apply'],
+            args: ['--pull', PR, '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL,
           });

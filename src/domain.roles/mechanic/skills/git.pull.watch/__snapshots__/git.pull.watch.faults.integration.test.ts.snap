@@ -36,7 +36,7 @@ exports[`git.pull.watch faults given: [case4] a watch record that will not parse
 exports[`git.pull.watch faults given: [case4] a watch record that will not parse when: [t0] a human reads the watches with get then: the unreadable record is a row of its own, named by path 1`] = `
 "🐢 heres the wave...
 
-🐚 git.pull.watch.get
+🐚 git.pull.watch get
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
@@ -46,14 +46,14 @@ exports[`git.pull.watch faults given: [case4] a watch record that will not parse
 🥥 did you know?
    └─ a watch record that does not parse is held, never served
       ├─ 1. read it: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=9.clone=c3.json
-      └─ 2. rewrite it from its clone: rhx git.pull.watch set --pr <n> --mode apply
+      └─ 2. rewrite it from its clone: rhx git.pull.watch set --pull <n> --mode apply
 "
 `;
 
 exports[`git.pull.watch faults given: [case5] a set while the daemon is paused when: [t0] the clone, already told of the pause, sets a second pr then: set names the pause on its own line 1`] = `
 "🐢 shell yeah, watched
 
-🐚 git.pull.watch.set --mode apply
+🐚 git.pull.watch set --mode apply
    ├─ pr: ehmpathy/surf-demo#1221
    ├─ clone: @:mechanic
    └─ watch: set → @:mechanic (daemon v<key> pid <pid>, found) · paused: token locked

@@ -85,19 +85,19 @@ describe('git.pull.watch lifecycle', () => {
         // a plan first: it writes naught, so the apply below still spawns
         const plan = scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--output', 'json'],
+          args: ['--pull', '1220', '--output', 'json'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
         const first = scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply', '--output', 'json'],
+          args: ['--pull', '1220', '--mode', 'apply', '--output', 'json'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
         const second = scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1221', '--mode', 'apply', '--output', 'json'],
+          args: ['--pull', '1221', '--mode', 'apply', '--output', 'json'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_B,
         });
@@ -161,7 +161,7 @@ describe('git.pull.watch lifecycle', () => {
       const result = useThen('it succeeds', async () =>
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         }),
@@ -177,7 +177,7 @@ describe('git.pull.watch lifecycle', () => {
       const result = useThen('each clone is alerted', async () => {
         const out = scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply', '--output', 'json'],
+          args: ['--pull', '1220', '--mode', 'apply', '--output', 'json'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_B,
         });
@@ -255,13 +255,13 @@ describe('git.pull.watch lifecycle', () => {
       const result = useThen('both succeed', async () => {
         const first = scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply', '--output', 'json'],
+          args: ['--pull', '1220', '--mode', 'apply', '--output', 'json'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
         const second = scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1221', '--mode', 'apply', '--output', 'json'],
+          args: ['--pull', '1221', '--mode', 'apply', '--output', 'json'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_B,
           skillDir: copy.skillDir,
@@ -347,7 +347,7 @@ describe('git.pull.watch lifecycle', () => {
             asSetJson(
               scene.runSkill({
                 verb: 'set',
-                args: ['--pr', input.pr, '--mode', 'apply', '--output', 'json'],
+                args: ['--pull', input.pr, '--mode', 'apply', '--output', 'json'],
                 root: scene.roots['surf-demo']!,
                 serial: input.serial,
                 skillDir: input.skillDir,
@@ -407,7 +407,7 @@ describe('git.pull.watch lifecycle', () => {
           ['1220', '1221', '1222', '1223'].map((pr) =>
             scene.runSkillAsync({
               verb: 'set',
-              args: ['--pr', pr, '--mode', 'apply', '--output', 'json'],
+              args: ['--pull', pr, '--mode', 'apply', '--output', 'json'],
               root: scene.roots['surf-demo']!,
               serial: SERIAL_A,
             }),
@@ -495,7 +495,7 @@ describe('git.pull.watch lifecycle', () => {
       asSetJson(
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--output', 'json'],
+          args: ['--pull', '1220', '--output', 'json'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         }).stdout,
@@ -536,7 +536,7 @@ describe('git.pull.watch lifecycle', () => {
         const result = useThen('a findsert replaces it', async () => {
           scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1220', '--mode', 'apply'],
+            args: ['--pull', '1220', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });
@@ -558,7 +558,7 @@ describe('git.pull.watch lifecycle', () => {
           });
           const out = scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1220', '--mode', 'apply'],
+            args: ['--pull', '1220', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });
@@ -599,7 +599,7 @@ describe('git.pull.watch lifecycle', () => {
           setPidRecord({ pid: wedged, heartbeatAgeSeconds: 3600 });
           const out = scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1220', '--mode', 'apply'],
+            args: ['--pull', '1220', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });
@@ -627,7 +627,7 @@ describe('git.pull.watch lifecycle', () => {
           setPidRecord({ pid: stranger, heartbeatAgeSeconds: 5 });
           const out = scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1220', '--mode', 'apply'],
+            args: ['--pull', '1220', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });
@@ -673,7 +673,7 @@ describe('git.pull.watch lifecycle', () => {
     const getKeyDirWithWatch = async (): Promise<string> => {
       const out = scene.runSkill({
         verb: 'set',
-        args: ['--pr', '1220', '--mode', 'apply', '--output', 'json'],
+        args: ['--pull', '1220', '--mode', 'apply', '--output', 'json'],
         root: scene.roots['surf-demo']!,
         serial: SERIAL_A,
       });
@@ -729,7 +729,7 @@ describe('git.pull.watch lifecycle', () => {
         expect(result.tree.status).toEqual(0);
         expect(result.tree.stdout).toContain(' · absent · ');
         expect(result.tree.stdout).toContain(
-          'start a fresh one: rhx git.pull.watch set --pr <n> --mode apply',
+          'start a fresh one: rhx git.pull.watch set --pull <n> --mode apply',
         );
         expect(result.tree.stdout).toMatch(
           /read why it stopped: cat .*daemon\.log/,
@@ -845,7 +845,7 @@ describe('git.pull.watch lifecycle', () => {
             ].map((one) =>
               scene.runSkill({
                 verb: 'set',
-                args: ['--pr', one.pr, '--mode', 'apply'],
+                args: ['--pull', one.pr, '--mode', 'apply'],
                 root: scene.roots['surf-demo']!,
                 serial: one.serial,
               }),
@@ -954,7 +954,7 @@ describe('git.pull.watch lifecycle', () => {
             ['1230', '1231'].forEach((pr) =>
               scene.runSkill({
                 verb: 'set',
-                args: ['--pr', pr, '--mode', 'apply'],
+                args: ['--pull', pr, '--mode', 'apply'],
                 root: scene.roots['surf-demo']!,
                 serial: SERIAL_A,
               }),
@@ -1053,13 +1053,13 @@ describe('git.pull.watch lifecycle', () => {
         const result = useThen('the gone root is dropped', async () => {
           scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1220', '--mode', 'apply'],
+            args: ['--pull', '1220', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });
           scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1230', '--mode', 'apply'],
+            args: ['--pull', '1230', '--mode', 'apply'],
             root: scene.roots['reef-demo']!,
             serial: SERIAL_C,
           });
@@ -1145,7 +1145,7 @@ describe('git.pull.watch lifecycle', () => {
       const result = useThen('set plans', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -1159,7 +1159,7 @@ describe('git.pull.watch lifecycle', () => {
         );
         return scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--output', 'json'],
+          args: ['--pull', '1220', '--output', 'json'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -1194,7 +1194,7 @@ describe('git.pull.watch lifecycle', () => {
       const result = useThen('it still alerts', async () => {
         const out = scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply', '--output', 'json'],
+          args: ['--pull', '1220', '--mode', 'apply', '--output', 'json'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
           skillDir: copy.skillDir,
@@ -1256,7 +1256,7 @@ describe('git.pull.watch lifecycle', () => {
       const result = useThen('it fails loud', async () =>
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
           skillDir: copy.skillDir,
@@ -1300,7 +1300,7 @@ describe('git.pull.watch lifecycle', () => {
       const result = useThen('it fails loud', async () =>
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
           skillDir: copy.skillDir,
@@ -1341,7 +1341,7 @@ describe('git.pull.watch lifecycle', () => {
         const set = () =>
           scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1220', '--mode', 'apply'],
+            args: ['--pull', '1220', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });
@@ -1403,7 +1403,7 @@ describe('git.pull.watch lifecycle', () => {
         const before = asSetJson(
           scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1221', '--mode', 'apply', '--output', 'json'],
+            args: ['--pull', '1221', '--mode', 'apply', '--output', 'json'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           }).stdout,
@@ -1412,7 +1412,7 @@ describe('git.pull.watch lifecycle', () => {
         const oldPid = before.daemon.pid!;
         const moved = scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1221', '--mode', 'apply'],
+          args: ['--pull', '1221', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
           skillDir: upgrade.skillDir,
@@ -1469,7 +1469,7 @@ describe('git.pull.watch lifecycle', () => {
       const result = useThen('the watch and the daemon go', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pr', '1220', '--mode', 'apply'],
+          args: ['--pull', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -1502,19 +1502,19 @@ describe('git.pull.watch lifecycle', () => {
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });
-        const plan = run(['--pr', '1220']);
-        const planJson = run(['--pr', '1220', '--output', 'json']);
+        const plan = run(['--pull', '1220']);
+        const planJson = run(['--pull', '1220', '--output', 'json']);
         const noPr = run(['--mode', 'apply']);
-        const badMode = run(['--pr', '1220', '--mode', 'yolo']);
-        const applied = run(['--pr', '1220', '--mode', 'apply']);
+        const badMode = run(['--pull', '1220', '--mode', 'yolo']);
+        const applied = run(['--pull', '1220', '--mode', 'apply']);
         await waitForWatch({
           label: 'daemon exit',
           check: () => !isPidAlive(pid!),
           scene,
         });
-        const again = run(['--pr', '1220', '--mode', 'apply']);
+        const again = run(['--pull', '1220', '--mode', 'apply']);
         const againJson = run([
-          '--pr',
+          '--pull',
           '1220',
           '--mode',
           'apply',
@@ -1553,7 +1553,7 @@ describe('git.pull.watch lifecycle', () => {
           expect(result.plan.stdout).toContain('verdict: would delete');
           expect(result.plan.stdout).toContain('v8.8.8+deadbeef');
           expect(result.plan.stdout).toContain(
-            'rhx git.pull.watch.del --pr 1220 --in ehmpathy/surf-demo --mode apply',
+            'rhx git.pull.watch del --pull 1220 --in ehmpathy/surf-demo --mode apply',
           );
           expect(scene.asMasked(result.plan.stdout)).toMatchSnapshot();
         },
@@ -1566,10 +1566,10 @@ describe('git.pull.watch lifecycle', () => {
         expect(scene.asMasked(result.planJson.stdout)).toMatchSnapshot();
       });
       then(
-        'a call with no --pr or a bad --mode is refused with its fix',
+        'a call with no --pull or a bad --mode is refused with its fix',
         () => {
           expect(result.noPr.status).toEqual(2);
-          expect(result.noPr.stdout).toContain('--pr <n> is required');
+          expect(result.noPr.stdout).toContain('--pull <n> is required');
           expect(result.badMode.status).toEqual(2);
           expect(result.badMode.stdout).toContain(
             '--mode must be one of: plan | apply',
@@ -1614,14 +1614,14 @@ describe('git.pull.watch lifecycle', () => {
         const result = useThen('the delete runs', async () => {
           scene.runSkill({
             verb: 'set',
-            args: ['--pr', '1220', '--mode', 'apply'],
+            args: ['--pull', '1220', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });
           await scene.waitForPrimed();
           return scene.runSkill({
             verb: 'del',
-            args: ['--pr', '1220', '--mode', 'apply', '--output', 'json'],
+            args: ['--pull', '1220', '--mode', 'apply', '--output', 'json'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });

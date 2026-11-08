@@ -1043,13 +1043,13 @@ is_watch_repo_slug() {
   [[ "$1" =~ ^[A-Za-z0-9-]+/[A-Za-z0-9_.-]+$ ]]
 }
 
-# .what = refuse a --pr that is absent or not a pr number
+# .what = refuse a --pull that is absent or not a pr number
 # usage: check_watch_pr_arg <skill> <pr>
 check_watch_pr_arg() {
   local skill="$1" pr="$2"
   [[ "$pr" =~ ^[1-9][0-9]*$ ]] && return 0
-  [[ -n "$pr" ]] || fail_watch_constraint "$skill" "--pr <n> is required" "rhx $skill --pr <n> --mode apply"
-  fail_watch_constraint "$skill" "--pr must be a pr number; got '$pr'" "rhx $skill --pr <n> --mode apply"
+  [[ -n "$pr" ]] || fail_watch_constraint "$skill" "--pull <n> is required" "rhx $skill --pull <n> --mode apply"
+  fail_watch_constraint "$skill" "--pull must be a pr number; got '$pr'" "rhx $skill --pull <n> --mode apply"
 }
 
 # .what = set the clone serial and the repo slug, or refuse with the fix
@@ -1069,12 +1069,12 @@ set_watch_clone_and_repo() {
   WATCH_REPO="$repo_in"
   if [[ -n "$WATCH_REPO" ]]; then
     is_watch_repo_slug "$WATCH_REPO" || fail_watch_constraint "$skill" "--in must be <owner/name>; got '$WATCH_REPO'" \
-      "rhx $skill --pr $pr --in <owner/name> --mode apply"
+      "rhx $skill --pull $pr --in <owner/name> --mode apply"
     return 0
   fi
   WATCH_REPO="$(as_watch_repo_from_remote_url "$(git config --get remote.origin.url 2>/dev/null || echo "")")"
   is_watch_repo_slug "$WATCH_REPO" || fail_watch_constraint "$skill" "no repo: --in <owner/name> absent, and the cwd has no github origin" \
-    "rhx $skill --pr $pr --in <owner/name> --mode apply"
+    "rhx $skill --pull $pr --in <owner/name> --mode apply"
   return 0
 }
 

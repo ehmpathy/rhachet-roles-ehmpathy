@@ -53,6 +53,7 @@ always:
       - briefs/practices/lang.terms/rule.forbid.term-script.md
 
       # supplements and references
+      - briefs/practices/lang.terms/rule.forbid.flag-pr.md
       - briefs/practices/lang.terms/rule.prefer.term-supplier.md
       - briefs/practices/lang.terms/rule.prefer.kind-over-type.md
       - briefs/practices/lang.terms/rule.require.order.noun_adj.md.pt2.md

@@ -6,9 +6,9 @@
 #         by which daemon, and whether that daemon still ticks
 #
 # usage:
-#   rhx git.pull.watch.get
+#   rhx git.pull.watch get
 #   rhx git.pull.watch get --output json
-#   rhx git.pull.watch.get --help
+#   rhx git.pull.watch get --help
 #
 # guarantee:
 #   - read-only: spawns, stops, and writes naught
@@ -20,20 +20,20 @@ SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # shellcheck source=git.pull.watch.operations.sh
 source "$SKILL_DIR/git.pull.watch.operations.sh"
 
-SKILL="git.pull.watch.get"
+SKILL="git.pull.watch get"
 OUTPUT="tree"
 
 # .what = print the usage: every flag, its default, an example
 help() {
   cat <<'EOF'
-usage: git.pull.watch.get [--output tree|json]
+usage: git.pull.watch get [--output tree|json]
 
 options:
   --output tree|json  the output shape (default: tree)
   --help, -h          show this help
 
 example:
-  rhx git.pull.watch.get
+  rhx git.pull.watch get
 EOF
 }
 
@@ -170,7 +170,7 @@ fi
 print_watch_header "heres the wave..." "$SKILL"
 if is_watch_daemons_empty "$DAEMONS"; then
   echo "   └─ no daemons, no watches"
-  print_watch_coconut "to watch a pr" "rhx git.pull.watch set --pr <n> --mode apply"
+  print_watch_coconut "to watch a pr" "rhx git.pull.watch set --pull <n> --mode apply"
   exit 0
 fi
 print_watch_daemons_tree "$DAEMONS"
@@ -179,7 +179,7 @@ print_watch_daemons_tree "$DAEMONS"
 if is_watch_daemons_unwell "$DAEMONS"; then
   print_watch_coconut_steps "a stale, wedged, or absent daemon serves no watch" \
     "read why it stopped: cat $(get_watch_unwell_log_path "$DAEMONS")" \
-    "start a fresh one: rhx git.pull.watch set --pr <n> --mode apply"
+    "start a fresh one: rhx git.pull.watch set --pull <n> --mode apply"
 fi
 
 # a paused daemon reads naught until its token is back; name the fix for its status
@@ -191,5 +191,5 @@ UNREADABLE="$(get_watch_unreadable_record_path "$DAEMONS")"
 if [[ -n "$UNREADABLE" ]]; then
   print_watch_coconut_steps "a watch record that does not parse is held, never served" \
     "read it: cat $UNREADABLE" \
-    "rewrite it from its clone: rhx git.pull.watch set --pr <n> --mode apply"
+    "rewrite it from its clone: rhx git.pull.watch set --pull <n> --mode apply"
 fi

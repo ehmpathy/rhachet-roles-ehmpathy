@@ -734,7 +734,7 @@ as_push_watch_status() {
   glyph="💥"
   [[ "$class" == "ConstraintError" ]] && glyph="✋"
   [[ -n "$message" ]] || message="the watch said naught (exit $code)${err:+; stderr: $err}"
-  echo "$glyph $class: $message; rerun: rhx git.pull.watch.set --pr $pr --mode apply"
+  echo "$glyph $class: $message; rerun: rhx git.pull.watch set --pull $pr --mode apply"
 }
 
 # .what = the last line of a file with text on it; empty when none
@@ -750,7 +750,7 @@ get_push_watch_status() {
   local pr="$1" out="" code=0 err_file err_tail
   err_file="$(mktemp)"
   out=$(bash "$SCRIPT_DIR/../git.pull.watch/git.pull.watch.set.sh" \
-    --pr "$pr" --mode apply --output json 2>"$err_file") || code=$?
+    --pull "$pr" --mode apply --output json 2>"$err_file") || code=$?
   err_tail="$(as_push_last_text_line_of_file "$err_file")"
   rm -f "$err_file"
   as_push_watch_status "$out" "$code" "$pr" "$err_tail"
