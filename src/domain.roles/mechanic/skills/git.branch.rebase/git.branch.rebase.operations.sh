@@ -33,11 +33,32 @@ is_rebase_in_progress() {
 }
 
 ######################################################################
+# .what = the "no rebase in progress" leaf, with a pointer to a halted
+#         cutover when one holds this worktree
+#
+# .why  = a cutover halt leaves conflicts that look like a rebase's; the
+#         mechanic who reaches for the rebase verbs learns which verb owns
+#         the halt. the state path is git.branch.cutover's own contract:
+#         <git-dir>/cutover/state.json
+######################################################################
+print_no_rebase_error() {
+  echo "   └─ ✋ ConstraintError: no rebase in progress"
+  if [[ ! -f "$(get_git_dir)/cutover/state.json" ]]; then
+    return 0
+  fi
+  echo "      └─ a cutover is in flight here, not a rebase"
+  print_coconut_hint \
+    "settle the cutover with its own verb: continue once the files are staged, or abort it whole" \
+    "rhx git.branch.cutover continue" \
+    "rhx git.branch.cutover abort"
+}
+
+######################################################################
 # get list of files with unresolved conflicts
 # returns: newline-separated list of file paths
 ######################################################################
 get_conflict_files() {
-  git diff --name-only --diff-filter=U 2>/dev/null
+  git -c core.quotepath=off diff --name-only --diff-filter=U 2>/dev/null
 }
 
 ######################################################################
@@ -162,24 +183,13 @@ is_base_branch() {
 }
 
 ######################################################################
-# check if work tree has unstaged changes
-# returns: 0 if dirty, 1 if clean
-######################################################################
-is_worktree_dirty() {
-  local changes
-  changes=$(git diff --name-only 2>/dev/null)
-  if [[ -n "$changes" ]]; then
-    return 0  # dirty
-  fi
-  return 1  # clean
-}
-
-######################################################################
 # get list of files with unstaged modifications
 # returns: newline-separated list of file paths
+# .note = core.quotepath=off: a non-ascii path arrives as itself, not as
+#         a quoted octal escape that names no file
 ######################################################################
 get_unstaged_files() {
-  git diff --name-only 2>/dev/null
+  git -c core.quotepath=off diff --name-only 2>/dev/null
 }
 
 ######################################################################
@@ -262,3 +272,64 @@ print_files_tree() {
     fi
   done <<< "$files"
 }
+
+######################################################################
+# get files with staged content
+# returns: newline-separated list of file paths
+######################################################################
+get_staged_files() {
+  git -c core.quotepath=off diff --cached --name-only
+}
+
+######################################################################
+# read named args (key=value) into locals of the caller
+# usage: local held main_changed; read_named_args "$@"
+# .note = a key the caller did not declare is a caller defect: fail loud
+# .note = renders via emit_both (git.commit/output.sh), sourced by each skill
+# .note = its own locals lead with an underscore, which no key may, so a
+#         key never lands on them
+######################################################################
+read_named_args() {
+  local _rna_arg _rna_key
+  for _rna_arg in "$@"; do
+    _rna_key="${_rna_arg%%=*}"
+    if [[ "$_rna_arg" != *=* || ! "$_rna_key" =~ ^[a-z][a-z_]*$ ]] || ! declare -p "$_rna_key" &>/dev/null; then
+      emit_both "$(
+        print_turtle_header "bummer dude..."
+        print_tree_start "git.branch.rebase"
+        echo "   └─ 💥 MalfunctionError: bad named arg '$_rna_arg' (want key=value, with a key the caller declares)"
+        echo "      └─ caller: ${FUNCNAME[1]:-unknown}"
+      )"
+      exit 1
+    fi
+    printf -v "$_rna_key" '%s' "${_rna_arg#*=}"
+  done
+}
+
+######################################################################
+# render a commit count with its noun in the right number
+# args: count= (a whole number)
+# returns: e.g. "1 commit", "3 commits"
+######################################################################
+as_commit_count() {
+  local count
+  read_named_args "$@"
+  [[ "$count" == "1" ]] && { echo "1 commit"; return 0; }
+  echo "$count commits"
+}
+
+######################################################################
+# render a newline list of paths as shell words, each quoted, one line
+# returns: e.g. "package.json settings.of.repo.json"
+# .why = a hint's last line must be a command a human can paste as is
+######################################################################
+as_shell_words() {
+  local list="$1"
+  local path words=()
+  while IFS= read -r path; do
+    [[ -z "$path" ]] && continue
+    words+=("$(printf '%q' "$path")")
+  done <<< "$list"
+  echo "${words[*]}"
+}
+

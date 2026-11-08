@@ -311,6 +311,29 @@ describe('git.branch.rebase.continue', () => {
         }
       });
     });
+
+    when('[t1] attempt continue while a cutover is in flight', () => {
+      then('names the cutover verbs that own the halt', () => {
+        const tempDir = setupNoRebase();
+
+        try {
+          // a cutover's state file is its contract: <git-dir>/cutover/state.json
+          const cutoverDir = path.join(tempDir, '.git', 'cutover');
+          fs.mkdirSync(cutoverDir, { recursive: true });
+          fs.writeFileSync(path.join(cutoverDir, 'state.json'), '{}');
+
+          const result = runSkill(tempDir);
+
+          expect(result.status).not.toBe(0);
+          expect(result.stdout).toContain('no rebase in progress');
+          expect(result.stdout).toContain('rhx git.branch.cutover continue');
+          expect(result.stdout).toContain('rhx git.branch.cutover abort');
+          expect(withHostGitTextScrubbed(result.stdout)).toMatchSnapshot();
+        } finally {
+          fs.rmSync(tempDir, { recursive: true, force: true });
+        }
+      });
+    });
   });
 
   given('[case2] rebase in progress with unsettled conflicts', () => {
@@ -449,7 +472,8 @@ describe('git.branch.rebase.continue', () => {
        *   3. unstaged modifications exist (M files from git diff --name-only)
        *   4. git rebase --continue fails with "You must edit all merge conflicts"
        *
-       * the skill should detect unstaged modifications and surface them
+       * the skill detects unstaged modifications before git acts, and
+       * surfaces them with both cures (set aside, or stage as resolution)
        */
       when('[t0] attempt continue with unstaged modifications', () => {
         then('shows error: unstaged changes block continue', () => {
@@ -470,21 +494,18 @@ describe('git.branch.rebase.continue', () => {
 
             const result = runSkill(tempDir);
 
-            // the skill should detect unstaged modifications
-            // and either:
-            // a) show them clearly in output, or
-            // b) surface the git error about changes that need to be staged
-            // git's half is relayed, whatever its text on this host
-            expect(result.stdout).toMatch(
-              /└─ git\.output\n {6}├─\n {6}│\n {6}│ {2}\S/,
+            // the skill detects the unstaged modification before git acts
+            expect(result.status).toBe(2);
+            expect(result.stdout).toContain('unstaged');
+            expect(result.stdout).toContain('README.md');
+            expect(result.stdout).toContain(
+              'rhx git.branch.rebase continue --unstaged ignore',
             );
+            expect(result.stdout).toContain('rhx git.stage.add README.md');
+            expect(result.stderr).toContain('ConstraintError');
             expect(
               withGitOutputBodyScrubbed(withHostGitTextScrubbed(result.stdout)),
             ).toMatchSnapshot();
-
-            // if the skill properly detects unstaged changes:
-            // expect(result.stdout).toContain('unstaged');
-            // expect(result.status).not.toBe(0);
           } finally {
             fs.rmSync(tempDir, { recursive: true, force: true });
           }

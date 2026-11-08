@@ -1,5 +1,6 @@
 import { spawnSync } from 'child_process';
 import * as fs from 'fs';
+import { ConstraintError } from 'helpful-errors';
 import * as os from 'os';
 import * as path from 'path';
 import { given, then, when } from 'test-fns';
@@ -205,21 +206,22 @@ const runSkill = (
 };
 
 /**
- * .what = check if a command is available
- * .why = skip tests that require unavailable package managers
+ * .what = fail fast when a package manager a test needs is absent
+ * .why = an absent tool must fail loud, never skip the test silently
  */
-const isCommandAvailable = (command: string): boolean => {
-  const result = spawnSync('which', [command], { encoding: 'utf-8' });
-  return result.status === 0;
+const requireCommand = (input: { command: string }): void => {
+  const result = spawnSync('which', [input.command], { encoding: 'utf-8' });
+  if (result.status === 0) return;
+  throw new ConstraintError(`${input.command} is required for this test`, {
+    hint: `install ${input.command} on this host (in ci, the runner ships yarn; .test.yml sets up pnpm)`,
+  });
 };
-
-const isPnpmAvailable = isCommandAvailable('pnpm');
-const isYarnAvailable = isCommandAvailable('yarn');
 
 describe('git.branch.rebase.lock', () => {
   given('[case1] rebase in progress with pnpm-lock.yaml', () => {
     when('[t0] lock refresh with pnpm', () => {
-      then.runIf(isPnpmAvailable)('lock regenerated, staged, exit 0', () => {
+      then('lock regenerated, staged, exit 0', () => {
+        requireCommand({ command: 'pnpm' });
         const tempDir = setupRebaseWithLockFile({
           lockFile: 'pnpm-lock.yaml',
         });
@@ -281,7 +283,8 @@ describe('git.branch.rebase.lock', () => {
 
   given('[case3] rebase in progress with yarn.lock', () => {
     when('[t0] lock refresh with yarn', () => {
-      then.runIf(isYarnAvailable)('lock regenerated, staged, exit 0', () => {
+      then('lock regenerated, staged, exit 0', () => {
+        requireCommand({ command: 'yarn' });
         const tempDir = setupRebaseWithLockFile({
           lockFile: 'yarn.lock',
         });
@@ -350,9 +353,9 @@ describe('git.branch.rebase.lock', () => {
 
   given('[case6] pnpm-lock.yaml extant but pnpm not installed', () => {
     when('[t0] attempt lock refresh', () => {
-      // this test requires mocking PATH to exclude pnpm
-      // can only test if pnpm IS installed (to prove we're mocking its removal)
-      then.runIf(isPnpmAvailable)('shows error: pnpm not found', () => {
+      // the test hides pnpm from PATH; pnpm must be present for the hide to prove aught
+      then('shows error: pnpm not found', () => {
+        requireCommand({ command: 'pnpm' });
         const tempDir = setupRebaseWithLockFile({
           lockFile: 'pnpm-lock.yaml',
         });
@@ -381,9 +384,9 @@ describe('git.branch.rebase.lock', () => {
 
   given('[case7] yarn.lock extant but yarn not installed', () => {
     when('[t0] attempt lock refresh', () => {
-      // this test requires mocking PATH to exclude yarn
-      // can only test if yarn IS installed (to prove we're mocking its removal)
-      then.runIf(isYarnAvailable)('shows error: yarn not found', () => {
+      // the test hides yarn from PATH; yarn must be present for the hide to prove aught
+      then('shows error: yarn not found', () => {
+        requireCommand({ command: 'yarn' });
         const tempDir = setupRebaseWithLockFile({
           lockFile: 'yarn.lock',
         });
@@ -412,7 +415,8 @@ describe('git.branch.rebase.lock', () => {
 
   given('[case8] priority: pnpm > npm when both lock files extant', () => {
     when('[t0] lock refresh (pnpm available)', () => {
-      then.runIf(isPnpmAvailable)('uses pnpm (preferred)', () => {
+      then('uses pnpm (preferred)', () => {
+        requireCommand({ command: 'pnpm' });
         const tempDir = setupRebaseWithLockFile({
           lockFile: 'pnpm-lock.yaml',
         });

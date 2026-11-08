@@ -2,22 +2,69 @@ import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
-import { given, then, when } from 'test-fns';
+import { given, then, useThen, when } from 'test-fns';
 
 /**
  * .what = integration tests for set.package.upgrade.sh skill
  * .why = verify package upgrade with security audit
  */
+/**
+ * .what = the lodash advisory rows main's live snapshot pinned, in its order
+ * .why  = the security-block render is pinned on a realistic list — long, of
+ *         mixed severity, with backticks and parens in titles — held still in a
+ *         fixture so registry drift cannot redden it. the live block is
+ *         set.package.upgrade.real.integration.test.ts (F25)
+ */
+const LODASH_ADVISORIES_AS_PINNED_ON_MAIN = [
+  { severity: 'moderate', title: 'Prototype Pollution in lodash' },
+  { severity: 'high', title: 'Command Injection in lodash' },
+  { severity: 'high', title: 'Prototype Pollution in lodash' },
+  { severity: 'critical', title: 'Prototype Pollution in lodash' },
+  { severity: 'high', title: 'Prototype Pollution in lodash' },
+  {
+    severity: 'moderate',
+    title: 'Regular Expression Denial of Service (ReDoS) in lodash',
+  },
+  {
+    severity: 'moderate',
+    title: 'Regular Expression Denial of Service (ReDoS) in lodash',
+  },
+  {
+    severity: 'moderate',
+    title:
+      'Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions',
+  },
+  {
+    severity: 'high',
+    title:
+      'lodash vulnerable to Code Injection via `_.template` imports key names',
+  },
+  {
+    severity: 'moderate',
+    title:
+      'lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`',
+  },
+];
+
 describe('set.package.upgrade.sh', () => {
   const scriptPath = path.join(__dirname, 'set.package.upgrade.sh');
 
   /**
    * .what = create temp directory with package.json and fake package managers
    * .why = isolate tests from real repo and avoid actual installs
+   *
+   * .mock = the upgrade leg (`pnpm add`, `npm install`, `npm view`) and, where a
+   *         case passes fakeBinDir, the audit leg: a fake `curl` answers the npm
+   *         bulk advisory endpoint from the case's own `advisories` fixture
+   * .why  = the live registry gains and rewords advisories over time, so a live
+   *         answer turns a snapshot red with no change here
+   * .real = set.package.upgrade.real.integration.test.ts runs with no fake bins,
+   *         by hand: the live registry blocks a known vulnerable lodash (F25)
    */
   const createTempDir = (options?: {
     withPackageLock?: boolean;
     withPackage?: { name: string; version: string; dev?: boolean };
+    advisories?: Record<string, Array<{ severity: string; title: string }>>;
   }): {
     tempDir: string;
     fakeBinDir: string;
@@ -112,6 +159,44 @@ exit 1
     );
     fs.chmodSync(path.join(fakeBinDir, 'npm'), '755');
 
+    // create fake curl that answers the npm bulk advisory check from a fixture
+    // .why = the live registry gains and rewords advisories over time (lodash
+    //        went from 10 to 9 entries, 2026-11-04), so a live check turns a
+    //        snapshot red with no change here. the fixture holds the advisories
+    //        each case declares; the default {} means "no advisory", the shape
+    //        the registry returns
+    fs.writeFileSync(
+      path.join(fakeBinDir, 'advisories.json'),
+      JSON.stringify(options?.advisories ?? {}),
+    );
+    fs.writeFileSync(
+      path.join(fakeBinDir, 'curl'),
+      `#!/bin/bash
+IS_BULK=""
+for arg in "$@"; do
+  [[ "$arg" == *"/-/npm/v1/security/advisories/bulk" ]] && IS_BULK=1
+done
+if [[ -n "$IS_BULK" ]]; then
+  BODY=""
+  PREV=""
+  for arg in "$@"; do
+    [[ "$PREV" == "-d" ]] && BODY="$arg"
+    PREV="$arg"
+  done
+  # answer only for the packages the request names, as the registry does
+  jq -c --argjson req "$BODY" 'with_entries(select(.key as $k | $req | has($k)))' "$(dirname "$0")/advisories.json"
+  exit 0
+fi
+# passthrough for any other call — find real curl outside fakebin
+REAL_CURL=$(PATH="\${PATH#*:}" command -v curl 2>/dev/null || echo "")
+if [[ -n "$REAL_CURL" ]]; then
+  exec "$REAL_CURL" "$@"
+fi
+exit 1
+`,
+    );
+    fs.chmodSync(path.join(fakeBinDir, 'curl'), '755');
+
     return {
       tempDir,
       fakeBinDir,
@@ -197,31 +282,29 @@ exit 1
     });
   });
 
-  given('[case2] audit fails', () => {
+  given('[case2] audit fails (the registry reports an advisory)', () => {
     when('[t0] upgrade is called with vulnerable version', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir({
         withPackage: { name: 'lodash', version: '4.17.20' },
+        advisories: {
+          lodash: [
+            { severity: 'high', title: 'Prototype Pollution in lodash' },
+          ],
+        },
       });
       afterAll(() => cleanup());
-
-      then('exit code is 2', () => {
-        const result = runSkill(['--package', 'lodash', '--to', '4.17.0'], {
+      const result = useThen('it runs', async () =>
+        runSkill(['--package', 'lodash', '--to', '4.17.0'], {
           cwd: tempDir,
           fakeBinDir,
-        });
-        // debug: print stderr if test fails
-        if (result.exitCode !== 2) {
-          console.log('DEBUG stderr:', result.stderr);
-          console.log('DEBUG stdout:', result.stdout);
-        }
+        }),
+      );
+
+      then('exit code is 2', () => {
         expect(result.exitCode).toBe(2);
       });
 
       then('version is not changed', () => {
-        runSkill(['--package', 'lodash', '--to', '4.17.0'], {
-          cwd: tempDir,
-          fakeBinDir,
-        });
         const pkgJson = JSON.parse(
           fs.readFileSync(path.join(tempDir, 'package.json'), 'utf-8'),
         );
@@ -229,11 +312,12 @@ exit 1
       });
 
       then('output shows bummer', () => {
-        const result = runSkill(['--package', 'lodash', '--to', '4.17.0'], {
-          cwd: tempDir,
-          fakeBinDir,
-        });
         expect(result.stderr).toContain('bummer dude');
+      });
+
+      then('output names the advisory that blocked it', () => {
+        expect(result.stderr).toContain('audit: FAILED (1 vulnerabilities)');
+        expect(result.stderr).toContain('high: Prototype Pollution in lodash');
       });
     });
   });
@@ -376,6 +460,8 @@ exit 1
     when('[t1] security block', () => {
       const { tempDir, fakeBinDir, cleanup } = createTempDir({
         withPackage: { name: 'lodash', version: '4.17.20' },
+        // .why = the 10 rows main's live snapshot pinned, verbatim, held still
+        advisories: { lodash: LODASH_ADVISORIES_AS_PINNED_ON_MAIN },
       });
       afterAll(() => cleanup());
 

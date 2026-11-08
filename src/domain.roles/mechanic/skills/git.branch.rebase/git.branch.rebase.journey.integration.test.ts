@@ -552,12 +552,12 @@ describe('git.branch.rebase journey', () => {
         });
       });
 
-      when('[t1] take ours (main version) for the conflict', () => {
+      when('[t1] take theirs (main version) for the conflict', () => {
         then('file is settled with main content', () => {
           const result = runRebase(workDir, [
             'take',
             '--whos',
-            'ours',
+            'theirs',
             'settings.json',
           ]);
 

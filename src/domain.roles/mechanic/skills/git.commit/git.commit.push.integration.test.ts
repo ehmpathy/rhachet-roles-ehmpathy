@@ -1102,101 +1102,199 @@ exec /usr/bin/git "$@"
     },
   );
 
-  given('[case17] Co-authored-by trailer stripped from PR body', () => {
-    when('[t0] commit body has Co-authored-by trailer', () => {
-      then('trailer is removed (privacy: no email leak)', () => {
-        // run the same strip logic used in git.commit.push.sh
-        // grep -v returns exit 1 if no lines match, so use || true
-        const inputWithTrailer = `fix(api): validate input
-
-- added schema validation
-- updated tests
-
-Co-authored-by: Human Name <human@example.com>`;
-
-        // use stdin to pass multiline content reliably
-        const result = spawnSync(
-          'bash',
-          [
-            '-c',
-            "{ grep -v '^Co-authored-by:' || true; } | sed -e :a -e '/^\\n*$/{$d;N;ba;}'",
-          ],
-          {
-            input: inputWithTrailer,
-            encoding: 'utf-8' as BufferEncoding,
+  // .note = the strip's own cases live beside it, in
+  //         git/git.attribution.operations.integration.test.ts; case17b below
+  //         proves push signs through that one transformer
+  given(
+    '[case17b] the pr body push opens carries only the seaturtle attribution',
+    () => {
+      /**
+       * .what = the clamp for the pr-body attribution repair (#1165)
+       * .why  = the harness writes `Co-Authored-By:` (capital A, capital B) and a
+       *         `🤖 Generated with [Claude Code](…)` link line into each commit
+       *         body. push copied both onto the public pr: the strip matched
+       *         only `Co-authored-by:` and knew no claude line. this case runs
+       *         the real push, so a revert of the strip turns it red
+       */
+      const runPushWithBody = (input: { body: string }) => {
+        const tempDir = setupTempRepo({
+          meterState: { uses: 3, push: 'allow' },
+          branch: 'turtle/attribution',
+          commits: [input.body],
+          commitAuthor: {
+            name: 'seaturtle[bot]',
+            email: 'seaturtle@ehmpath.com',
           },
+        });
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        const bodyCapturePath = path.join(tempDir, '.pr-body.captured');
+
+        // .mock = fake gh: token check and an empty pr list pass; pr create
+        //         writes the --body it received to a file, so the test reads
+        //         the exact bytes github would get
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+if [[ "$1" == "api" && "$2" == "/user" ]]; then
+  echo '{"login":"ehm-seaturtle"}'
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "list" ]]; then
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  shift 2
+  while [[ $# -gt 0 ]]; do
+    if [[ "$1" == "--body" ]]; then printf '%s' "$2" | tee "${bodyCapturePath}" >/dev/null; fi
+    shift
+  done
+  echo "https://github.com/test/repo/pull/42"
+  exit 0
+fi
+exit 1
+`,
         );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
 
-        expect(result.status).toBe(0);
-        expect(result.stdout).not.toContain('Co-authored-by');
-        expect(result.stdout).not.toContain('human@example.com');
-        expect(result.stdout).toContain('fix(api): validate input');
-        expect(result.stdout).toContain('added schema validation');
-      });
-    });
+        // .mock = fake git push; every other git call runs the real git
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'git'),
+          `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
 
-    when('[t1] commit body has multiple Co-authored-by trailers', () => {
-      then('all trailers are removed', () => {
-        const inputWithTrailers = `feat(auth): add oauth
-
-- added provider
-
-Co-authored-by: Human One <one@example.com>
-Co-authored-by: Human Two <two@example.com>`;
-
-        const result = spawnSync(
-          'bash',
-          [
-            '-c',
-            "{ grep -v '^Co-authored-by:' || true; } | sed -e :a -e '/^\\n*$/{$d;N;ba;}'",
-          ],
-          {
-            input: inputWithTrailers,
-            encoding: 'utf-8' as BufferEncoding,
+        const result = runPush({
+          tempDir,
+          pushArgs: ['--mode', 'apply'],
+          env: {
+            EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
+            PATH: `${fakeBinDir}:${process.env.PATH}`,
           },
-        );
+        });
+        const bodySent = fs.existsSync(bodyCapturePath)
+          ? fs.readFileSync(bodyCapturePath, 'utf-8')
+          : null;
+        return { result, bodySent };
+      };
 
-        expect(result.status).toBe(0);
-        expect(result.stdout).not.toContain('Co-authored-by');
-        expect(result.stdout).not.toContain('one@example.com');
-        expect(result.stdout).not.toContain('two@example.com');
-        expect(result.stdout).toContain('feat(auth): add oauth');
-      });
-    });
+      when(
+        '[t0] the commit body holds the harness claude line and a capitalized trailer',
+        () => {
+          const out = useThen('push opens the pr', async () =>
+            runPushWithBody({
+              body: [
+                'feat(reef): map the kelp beds',
+                '',
+                '- adds the kelp bed map',
+                '',
+                '🤖 Generated with [Claude Code](https://claude.com/claude-code)',
+                '',
+                'Co-Authored-By: Claude <noreply@anthropic.com>',
+                'Co-authored-by: Test Human <human@test.com>',
+              ].join('\n'),
+            }),
+          );
 
-    when(
-      '[t2] commit body mentions Co-authored-by inline (not as trailer)',
-      () => {
-        then('inline mention is preserved, only trailer removed', () => {
-          const inputWithInline = `docs: explain Co-authored-by convention
+          then('push succeeds and the pr opens', () => {
+            expect(out.result.exitCode).toBe(0);
+            expect(out.bodySent).not.toBeNull();
+          });
 
-- describes how Co-authored-by trailers work
-- links to docs
+          then('the body carries no claude line', () => {
+            expect(out.bodySent).not.toMatch(/claude code/i);
+            expect(out.bodySent).not.toContain('🤖');
+          });
 
-Co-authored-by: Human <human@example.com>`;
-
-          const result = spawnSync(
-            'bash',
-            [
-              '-c',
-              "{ grep -v '^Co-authored-by:' || true; } | sed -e :a -e '/^\\n*$/{$d;N;ba;}'",
-            ],
-            {
-              input: inputWithInline,
-              encoding: 'utf-8' as BufferEncoding,
+          then(
+            'the body carries no co-authored-by trailer, in any case',
+            () => {
+              expect(out.bodySent).not.toMatch(/co-authored-by/i);
+              expect(out.bodySent).not.toContain('noreply@anthropic.com');
+              expect(out.bodySent).not.toContain('human@test.com');
             },
           );
 
-          expect(result.status).toBe(0);
-          // inline mention (not at start of line) is preserved
-          expect(result.stdout).toContain('how Co-authored-by trailers work');
-          // trailer at start of line is stripped
-          expect(result.stdout).not.toContain('Co-authored-by: Human');
-          expect(result.stdout).not.toContain('human@example.com');
-        });
-      },
-    );
-  });
+          then('the body keeps its own words', () => {
+            expect(out.bodySent).toContain('feat(reef): map the kelp beds');
+            expect(out.bodySent).toContain('- adds the kelp bed map');
+          });
+
+          then('the body ends with exactly one seaturtle footer', () => {
+            expect(
+              out.bodySent!.endsWith('\n---\n🐢🌊 surfed in by seaturtle[bot]'),
+            ).toBe(true);
+            expect(
+              out.bodySent!.split('surfed in by seaturtle[bot]').length,
+            ).toBe(2);
+            expect(out.bodySent).toMatchSnapshot();
+          });
+        },
+      );
+
+      when(
+        '[t0b] the commit body names co-authored-by in prose, beside a real trailer',
+        () => {
+          const out = useThen('push opens the pr', async () =>
+            runPushWithBody({
+              body: [
+                'docs(reef): explain the kelp credits',
+                '',
+                '- explains how Co-authored-by trailers work',
+                'Co-authored-by: lines with no email are prose, so they stay',
+                '',
+                'Co-authored-by: Test Human <human@test.com>',
+              ].join('\n'),
+            }),
+          );
+
+          then('push keeps the prose and strips only the trailer', () => {
+            expect(out.result.exitCode).toBe(0);
+            expect(out.bodySent).toContain(
+              '- explains how Co-authored-by trailers work',
+            );
+            expect(out.bodySent).toContain(
+              'Co-authored-by: lines with no email are prose, so they stay',
+            );
+            expect(out.bodySent).not.toContain('human@test.com');
+            expect(out.bodySent).toMatchSnapshot();
+          });
+        },
+      );
+
+      when(
+        '[t1] the commit body already ends with the seaturtle footer',
+        () => {
+          const out = useThen('push opens the pr', async () =>
+            runPushWithBody({
+              body: [
+                'feat(reef): chart the tide pools',
+                '',
+                '- adds the tide pool chart',
+                '',
+                '---',
+                '🐢🌊 surfed in by seaturtle[bot]',
+              ].join('\n'),
+            }),
+          );
+
+          then('the footer stands once, never twice', () => {
+            expect(out.result.exitCode).toBe(0);
+            expect(
+              out.bodySent!.split('surfed in by seaturtle[bot]').length,
+            ).toBe(2);
+            expect(out.bodySent!.split('\n---\n').length).toBe(2);
+            expect(out.bodySent).toContain('- adds the tide pool chart');
+            expect(out.bodySent).toMatchSnapshot();
+          });
+        },
+      );
+    },
+  );
 
   given('[case18] CI watch reminder after successful push', () => {
     when('[t0] push and pr creation succeed', () => {
@@ -2560,6 +2658,7 @@ exec /usr/bin/git "$@"
             fs.writeFileSync(
               path.join(fakeBinDir, 'gh'),
               `#!/bin/bash
+echo "$*" >> "${fakeBinDir}/gh.calls.log"
 if [[ -n "$GH_TOKEN" ]]; then
   echo "unexpected GH_TOKEN override under as-human" >&2
   exit 3
@@ -2606,6 +2705,13 @@ exec /usr/bin/git "$@"
             expect(result.stdout).toMatchSnapshot();
             // pin stderr too (expected empty on the found path) to catch drift
             expect(result.stderr).toMatchSnapshot();
+            // a found pull's body is never touched: gh saw only the lookup
+            const ghCalls = fs
+              .readFileSync(path.join(fakeBinDir, 'gh.calls.log'), 'utf-8')
+              .trim()
+              .split('\n');
+            expect(ghCalls.length).toBeGreaterThan(0);
+            ghCalls.forEach((call) => expect(call).toMatch(/^pr list /));
           },
         );
       });

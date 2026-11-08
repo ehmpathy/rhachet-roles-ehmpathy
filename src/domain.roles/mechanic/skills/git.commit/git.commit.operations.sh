@@ -44,9 +44,27 @@ source "$(dirname "${BASH_SOURCE[0]}")/output.sh"
 ######################################################################
 ROLE_REPO="ehmpathy"
 ROLE_SLUG="mechanic"
+
+# .what = which meter the global + org readers and handlers serve
+#
+# .why  = two meters share one copy of the hardened global + org readers and
+#         handlers: `git.commit.uses` (the default) and `git.branch.uses`. a
+#         caller for the branch meter exports `METER_SLUG=git.branch.uses` and
+#         `METER_NOUN=cutover` before it sources this file. the commit family
+#         pins both to the defaults below (git.commit.set.sh, git.commit.push.sh,
+#         git.commit.uses.sh), so a METER_SLUG left exported in the shell can
+#         never aim the commit gate at the branch meter; pinned = default is
+#         what keeps the commit paths and prose byte-identical.
+#
+# .why  = a second copy would fork every repair these readers carry (torn
+#         reads, a directory at the path, a 0-byte file, a non-boolean leaf),
+#         and the next fix would land in one copy only.
+METER_SLUG="${METER_SLUG:-git.commit.uses}"
+METER_NOUN="${METER_NOUN:-commit}"
+
 GLOBAL_METER_DIR="$HOME/.rhachet/storage/repo=$ROLE_REPO/role=$ROLE_SLUG/.meter"
-GLOBAL_METER_FILE="$GLOBAL_METER_DIR/git.commit.uses.jsonc"
-ORG_METER_FILE="$GLOBAL_METER_DIR/git.commit.uses.org.jsonc"
+GLOBAL_METER_FILE="$GLOBAL_METER_DIR/$METER_SLUG.jsonc"
+ORG_METER_FILE="$GLOBAL_METER_DIR/$METER_SLUG.org.jsonc"
 
 ######################################################################
 # .what = a PURE transformer: a path as shown to a human, `~`-rooted where it
@@ -179,7 +197,7 @@ print_global_corrupt_note() {
   # .note = written out in `print_instruction`'s layout, line for line, as its
   #    org twin `print_org_corrupt_body` is; the two stay one shape.
   echo ""
-  echo "until it parses, every commit is blocked. a human may inspect or clear it:"
+  echo "until it parses, every $METER_NOUN is blocked. a human may inspect or clear it:"
   echo "  \$ cat $GLOBAL_METER_FILE_SHOWN"
   echo "  \$ rm -r $GLOBAL_METER_FILE_SHOWN"
 }
@@ -259,7 +277,7 @@ print_org_corrupt_body() {
   #      the reasons, and why it is matched rather than called, are on
   #      `print_global_corrupt_note`.
   echo ""
-  echo "until it parses, every commit is blocked. a human may inspect or clear it:"
+  echo "until it parses, every $METER_NOUN is blocked. a human may inspect or clear it:"
   echo "  \$ cat $ORG_METER_FILE_SHOWN"
   echo "  \$ rm -r $ORG_METER_FILE_SHOWN"
 }
@@ -893,7 +911,7 @@ guard_git_identity_readable() {
 # .what = exit 1 (malfunction), to both streams, where a leaf reads the
 #         GIT_IDENTITY_* globals before `get_one_git_config_identity` ran
 #
-# .why = the globals are the reader's contract (fulcrum F10). a leaf that
+# .why = the globals are the reader's contract. a leaf that
 #        read them first would hit `set -u` and crash with bash's raw
 #        "unbound variable" — no class, no cause. this names the defect. it
 #        is a skill bug, never caller input, so the class is malfunction.
@@ -1235,7 +1253,7 @@ check_global_blocker() {
   blocked_val=$(printf '%s' "$contents" | jq -s -r '.[0].blocked // false')
 
   if [[ "$blocked_val" == "true" ]]; then
-    GLOBAL_BLOCK_REASON="commits blocked globally"
+    GLOBAL_BLOCK_REASON="${METER_NOUN}s blocked globally"
     return 2
   fi
 
@@ -1709,6 +1727,25 @@ print_sponsor_bind_nudge_if_absent() {
     "${hints[@]}" \
     "$SPONSOR_BIND_VIA_STDIN" \
     "$SPONSOR_BIND_VIA_LITERAL"
+}
+
+######################################################################
+# .what = this worktree's explicit commit-level bind (`fix`|`feat`), or ""
+#         when none is bound
+#
+# .why  = the commit domain owns the bind file (git.commit.bind writes it,
+#         git.commit.set enforces it); a peer that reports the level reads
+#         it here, never by its path, so the file can move in one place
+#
+# usage: level=$(get_commit_level_bind)
+######################################################################
+get_commit_level_bind() {
+  local level_file
+  level_file="$(git rev-parse --show-toplevel)/.branch/.bind/git.commit.level"
+  if [[ -f "$level_file" ]]; then
+    cat "$level_file"
+  fi
+  return 0
 }
 
 ######################################################################
@@ -2232,7 +2269,7 @@ check_org_blocker() {
   # if org-specific state exists, use it
   if [[ "$org_state" != "unset" ]]; then
     if [[ "$org_state" == "blocked" ]]; then
-      ORG_BLOCK_REASON="commits blocked for org $org"
+      ORG_BLOCK_REASON="${METER_NOUN}s blocked for org $org"
       return 2
     fi
     return 0  # org is allowed
@@ -2260,7 +2297,7 @@ check_org_blocker() {
   fi
 
   if [[ "$all_state" == "blocked" ]]; then
-    ORG_BLOCK_REASON="commits blocked for org $org (from @all)"
+    ORG_BLOCK_REASON="${METER_NOUN}s blocked for org $org (from @all)"
     return 2
   fi
 

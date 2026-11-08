@@ -1687,6 +1687,65 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         expect(result.stderr).toContain('rhx git.repo.test');
       });
     });
+
+    // a hand-cut of a new branch, in each form: one when per form
+    const BRANCH_CUTS = [
+      { command: 'git checkout -b turtle/reef', head: 'git checkout -b' },
+      { command: 'git checkout -B turtle/reef', head: 'git checkout -B' },
+      {
+        command: 'git checkout --no-track -b turtle/reef origin/main',
+        head: 'git checkout --no-track',
+      },
+      { command: 'git switch -c turtle/reef', head: 'git switch -c' },
+      { command: 'git switch -C turtle/reef', head: 'git switch -C' },
+      {
+        command: 'git switch --create turtle/reef',
+        head: 'git switch --create',
+      },
+      {
+        command: 'git switch --force-create turtle/reef',
+        head: 'git switch --force-create',
+      },
+      {
+        command: 'git switch --no-track -c turtle/reef origin/main',
+        head: 'git switch --no-track',
+      },
+    ];
+    BRANCH_CUTS.map((cut, index) =>
+      when(`[t6.${index}] a hand-cut of a new branch: ${cut.command}`, () => {
+        then('it points to the cutover', () => {
+          const result = runHook({
+            command: cut.command,
+            settings: { allow: ['Bash(rhx:*)'] },
+            clearNudges: true,
+          });
+          expect(result.exitCode).toBe(2);
+          expect(result.stderr).toContain(
+            `paved alternatives for \`${cut.head}\``,
+          );
+          expect(result.stderr).toContain(
+            'rhx git.branch.cutover begin --from @main --into <branch>',
+          );
+          expect(result.stderr).toMatchSnapshot();
+        });
+      }),
+    );
+
+    when('[t7] an in-place cherry-pick', () => {
+      then('it advises the cutover, and names no in-place alternative', () => {
+        const result = runHook({
+          command: 'git cherry-pick abc1234',
+          settings: { allow: ['Bash(rhx:*)'] },
+          clearNudges: true,
+        });
+        expect(result.exitCode).toBe(2);
+        expect(result.stderr).toContain('no paved in-place pick');
+        expect(result.stderr).toContain(
+          'rhx git.branch.cutover begin --from @main --into <branch> --pick <sha>',
+        );
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
   });
 
   given('[case30b] a raw git merge, where a branch needs main', () => {
@@ -2132,6 +2191,22 @@ Co-authored-by: Human <human@example.com>" | rhx git.commit.set -m @stdin`;
         );
         expect(empty).toEqual([]);
       });
+
+      then(
+        'a raw pull edit or comment is steered to the git.pull verbs',
+        () => {
+          const offerFor = (head: string): string[] =>
+            inventory.entries.find((entry) => entry.heads.includes(head))
+              ?.alternatives ?? [];
+          expect(offerFor('gh pr edit')).toEqual([
+            'rhx git.pull.title set --from ./.temp/title.md',
+            'rhx git.pull.description set --from ./.temp/body.md',
+          ]);
+          expect(offerFor('gh pr comment')).toEqual([
+            'rhx git.pull.comment set --key <name> --from <file>',
+          ]);
+        },
+      );
 
       then('a double slash inside a value survives the loader intact', () => {
         // clamp: the loader once stripped `//.*` from every line, so a value like a url

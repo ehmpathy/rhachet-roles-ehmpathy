@@ -182,7 +182,7 @@ SEATURTLE_APP_BOT_EMAIL="${SEATURTLE_APP_BOT_ID}+${SEATURTLE_APP_BOT_NAME}@users
 #         CITE the roster rather than invent one. an org that adds a clone
 #         account updates this block, and every guard follows.
 #
-# 🔴 .note = this is a SINGLE-entry roster today (fulcrum F12 ask 7). a
+# 🔴 .note = this is a single-entry roster. a
 #         second clone identity, once provisioned, is invisible to the
 #         clone's-machine check until a human adds it here — no lint or CI
 #         check enforces the update. see

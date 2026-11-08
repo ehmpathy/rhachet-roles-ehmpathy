@@ -8,12 +8,14 @@
 #         - enables autonomous rebase flows
 #
 # usage:
-#   rhx git.branch.rebase take --whos theirs pnpm-lock.yaml
-#   rhx git.branch.rebase take --whos ours .eslintrc.json
+#   rhx git.branch.rebase take --whos theirs pnpm-lock.yaml     # main's lock
+#   rhx git.branch.rebase take --whos ours .eslintrc.json       # your commit's file
 #   rhx git.branch.rebase take --whos theirs '*.lock' package.json
 #   rhx git.branch.rebase take --whos theirs .
 #
 # guarantee:
+#   - sides read from the caller's view: ours = your commit, theirs = main
+#     (git's rebase view is the reverse; the skill maps it)
 #   - requires a rebase in progress
 #   - specified files must have conflicts
 #   - non-conflict files are skipped with notice
@@ -34,10 +36,12 @@ source "$COMMIT_SKILL_DIR/output.sh"
 show_usage() {
   print_turtle_header "heres the wave..."
   print_tree_start "git.branch.rebase take"
+  echo "   ├─ what"
+  echo "   │  └─ settle conflicts by the side you name, then stage the files"
   echo "   ├─ usage"
   echo "   │  └─ rhx git.branch.rebase take --whos ours|theirs <paths...>"
   echo "   ├─ args"
-  echo "   │  ├─ --whos    ours|theirs (required)"
+  echo "   │  ├─ --whos    ours (your commit) | theirs (main), required"
   echo "   │  └─ paths     file paths or globs, use . for all (required)"
   echo "   └─ examples"
   echo "      ├─ rhx git.branch.rebase take --whos theirs pnpm-lock.yaml"
@@ -79,10 +83,12 @@ done
 
 # guard: must be in a rebase
 if ! is_rebase_in_progress; then
-  print_turtle_header "hold up dude..."
-  print_tree_start "git.branch.rebase take"
-  echo "   └─ error: no rebase in progress"
-  exit 1
+  emit_both "$(
+    print_turtle_header "hold up dude..."
+    print_tree_start "git.branch.rebase take"
+    print_no_rebase_error
+  )"
+  exit 2
 fi
 
 # guard: --whos is required and valid
@@ -183,8 +189,12 @@ FILES_TO_SETTLE=("${UNIQUE_FILES[@]}")
 declare -a FILES_SUCCESS=()
 declare -a FILES_FAILED=()
 
+# map the caller's side to git's: in a rebase git calls main ours, the replayed commit theirs
+GIT_SIDE="--ours"
+[[ "$WHOS" == "ours" ]] && GIT_SIDE="--theirs"
+
 for file in "${FILES_TO_SETTLE[@]}"; do
-  if git checkout "--$WHOS" "$file" 2>/dev/null; then
+  if git checkout "$GIT_SIDE" "$file" 2>/dev/null; then
     if git add "$file" 2>/dev/null; then
       FILES_SUCCESS+=("$file")
     else
@@ -235,7 +245,12 @@ else
 fi
 
 print_tree_start "git.branch.rebase take"
-echo "   ├─ whos: $WHOS"
+
+# name the side, from the caller's view
+WHOS_LABEL="$WHOS"
+[[ "$WHOS" == "ours" ]] && WHOS_LABEL="ours (your commit)"
+[[ "$WHOS" == "theirs" ]] && WHOS_LABEL="theirs (main)"
+echo "   ├─ whos: $WHOS_LABEL"
 
 # print settled files
 if [[ $HAS_SUCCESS -gt 0 ]]; then
@@ -315,5 +330,8 @@ elif [[ "$LOCK_REFRESH_FAILED" == "true" ]]; then
   exit 2
 else
   echo "   └─ done"
+  # the rebase is still paused: continue resumes it and puts back any held path
+  print_coconut_hint "once no conflict remains, continue the rebase; it puts back any path held aside" \
+    "rhx git.branch.rebase continue"
   exit 0
 fi

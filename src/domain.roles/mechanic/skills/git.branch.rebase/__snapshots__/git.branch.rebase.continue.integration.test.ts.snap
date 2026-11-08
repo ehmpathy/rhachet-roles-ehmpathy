@@ -4,7 +4,25 @@ exports[`git.branch.rebase.continue given: [case1] no rebase in progress when: [
 "🐢 hold up dude...
 
 🐚 git.branch.rebase continue
-   └─ error: no rebase in progress
+   └─ ✋ ConstraintError: no rebase in progress
+
+🥥 did you know?
+   ├─ start one first
+   └─ rhx git.branch.rebase begin --mode apply
+"
+`;
+
+exports[`git.branch.rebase.continue given: [case1] no rebase in progress when: [t1] attempt continue while a cutover is in flight then: names the cutover verbs that own the halt 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase continue
+   └─ ✋ ConstraintError: no rebase in progress
+      └─ a cutover is in flight here, not a rebase
+
+🥥 did you know?
+   ├─ settle the cutover with its own verb: continue once the files are staged, or abort it whole
+   ├─ rhx git.branch.cutover continue
+   └─ rhx git.branch.cutover abort
 "
 `;
 
@@ -14,7 +32,7 @@ exports[`git.branch.rebase.continue given: [case2] rebase in progress with unset
 🐚 git.branch.rebase continue
    ├─ rebase
    │  └─ status: in progress
-   ├─ left: 1 commits
+   ├─ left: 1 commit
    └─ git.output
       ├─
       │
@@ -30,7 +48,7 @@ exports[`git.branch.rebase.continue given: [case3] rebase in progress with more 
 🐚 git.branch.rebase continue
    ├─ rebase
    │  └─ status: in progress
-   ├─ left: 1 commits
+   ├─ left: 1 commit
    └─ git.output
       ├─
       │
@@ -62,7 +80,7 @@ exports[`git.branch.rebase.continue given: [case5] worktree with rebase in progr
 🐚 git.branch.rebase continue
    ├─ rebase
    │  └─ status: in progress
-   ├─ left: 1 commits
+   ├─ left: 1 commit
    └─ git.output
       ├─
       │
@@ -76,28 +94,24 @@ exports[`git.branch.rebase.continue given: [case6] worktree with no rebase in pr
 "🐢 hold up dude...
 
 🐚 git.branch.rebase continue
-   └─ error: no rebase in progress
+   └─ ✋ ConstraintError: no rebase in progress
+
+🥥 did you know?
+   ├─ start one first
+   └─ rhx git.branch.rebase begin --mode apply
 "
 `;
 
 exports[`git.branch.rebase.continue given: [case7] rebase in progress with unstaged modifications (no unmerged files) when: [t0] attempt continue with unstaged modifications then: shows error: unstaged changes block continue 1`] = `
-"🐢 hang tight...
+"🐢 hold up dude...
 
 🐚 git.branch.rebase continue
-   ├─ rebase
-   │  └─ status: blocked
-   ├─ unstaged
-   │  └─ files
-   │     └─ README.md
-   ├─ next steps
-   │  ├─ git diff
-   │  ├─ rhx git.stage.add <files>
-   │  └─ rhx git.branch.rebase continue
-   └─ git.output
-      ├─
-      │
-      │  <git output>
-      │
-      └─
+   └─ ✋ ConstraintError: unstaged changes found at paths not set aside
+      └─ README.md
+
+🥥 did you know?
+   ├─ stage them if they are resolution work; or set them aside too, put back after (a set-aside edit stays out of the commit)
+   ├─ rhx git.stage.add README.md
+   └─ rhx git.branch.rebase continue --unstaged ignore
 "
 `;

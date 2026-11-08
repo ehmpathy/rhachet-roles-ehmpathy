@@ -4,15 +4,38 @@ exports[`git.branch.rebase.abort given: [case1] no rebase in progress when: [t0]
 "🐢 hold up dude...
 
 🐚 git.branch.rebase abort
-   └─ error: no rebase in progress
+   └─ ✋ ConstraintError: no rebase in progress
 "
 `;
 
 exports[`git.branch.rebase.abort given: [case2] rebase in progress when: [t0] abort rebase then: shows result (simulated rebase state in test) 1`] = `
-"<git diagnostic about abc123def456>
-🐢 hold up dude...
+"🐢 bummer dude...
 
 🐚 git.branch.rebase abort
-   └─ error: abort failed
+   ├─ 💥 MalfunctionError: abort failed
+   └─ git.output
+      ├─
+      │
+      │  <git diagnostic about abc123def456>
+      │
+      └─
+
+🥥 did you know?
+   ├─ once git.output's cause is cleared, retry
+   └─ rhx git.branch.rebase abort
+"
+`;
+
+exports[`git.branch.rebase.abort given: [case3] no rebase in progress, a cutover in flight when: [t0] attempt abort then: names the cutover verbs that own the halt 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase abort
+   └─ ✋ ConstraintError: no rebase in progress
+      └─ a cutover is in flight here, not a rebase
+
+🥥 did you know?
+   ├─ settle the cutover with its own verb: continue once the files are staged, or abort it whole
+   ├─ rhx git.branch.cutover continue
+   └─ rhx git.branch.cutover abort
 "
 `;

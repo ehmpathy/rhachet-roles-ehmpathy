@@ -230,6 +230,37 @@ describe('git.commit.uses.sh', () => {
         expect(state.uses).toBe(0);
       });
     });
+
+    when('[t1] a human revokes all uses at a real terminal', () => {
+      // .why = the pty stream is its own caller-visible render, apart from
+      //        the piped one [t0] snaps
+      const scene = useThen('the revoke lands at a terminal', async () => {
+        const tempDir = genTempDir({ slug: 'uses-pty-tip', git: true });
+        const result = await spawnInPty({
+          command: 'bash',
+          args: [scriptPath, 'set', '--quant', '0', '--push', 'block'],
+          cwd: tempDir,
+          env: { __I_AM_HUMAN: '' },
+        });
+        return { ...result, tempDir };
+      });
+
+      then('the tip prints dim, wrapped in the faint escape', () => {
+        expect(scene.timedOut).toBe(false);
+        expect(scene.exitCode).toBe(0);
+        expect(scene.output).toContain(
+          "   └─ \x1b[2mtip: 'rhx git.commit.uses del' does the same\x1b[0m",
+        );
+
+        // mask the two volatile classes a pty adds: CR line ends, the temp dir
+        const masked = scene.output
+          .replace(/\r\n/g, '\n')
+          .replace(/\r/g, '')
+          .split(scene.tempDir)
+          .join('<TEMP DIR>');
+        expect(masked).toMatchSnapshot();
+      });
+    });
   });
 
   given('[case3b] set --quant 0 --push allow (push-only mode)', () => {

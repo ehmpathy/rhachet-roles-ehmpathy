@@ -2,30 +2,34 @@
 ######################################################################
 # .what = push HEAD commit to origin and findsert pr
 #
-# .why  = mechanics can push after a commit was already made,
-#         or git.commit.set can compose with this for --push
+# .why  = push a commit made earlier; git.commit.set composes it via --push
 #
 # usage:
-#   git.commit.push                                         # plan mode, tree output
-#   git.commit.push --mode apply                            # execute push
-#   git.commit.push --mode apply --output json              # json output (for composition)
-#   git.commit.push --mode plan --output json --pr-title-fallback "feat: cool feature"
+#   git.commit.push                  # plan
+#   git.commit.push --mode apply     # push
+#   git.commit.push --output json    # json, to compose
 #
 # guarantee:
-#   - only pushes if HEAD commit was authored by seaturtle[bot]
-#   - only pushes if push permission granted in .meter/git.commit.uses.jsonc
+#   - pushes only a seaturtle[bot] HEAD, if .meter/git.commit.uses.jsonc grants push
 #   - never pushes to main/master
-#   - opens the pr under --auth: as-ehmpath (default) needs the ehmpath keyrack
-#     token; as-human uses the ambient gh cli login (no keyrack token needed)
-#   - does NOT decrement uses (that is git.commit.set's job)
-#   - defaults to plan mode (preview only); use --mode apply to execute
+#   - opens the pr --auth as-ehmpath (default, keyrack) or as-human (gh login)
+#   - a new pr body ends in one seaturtle line; claude and co-author lines stripped
+#   - never decrements uses
+#   - plan by default
 ######################################################################
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/output.sh"
+# pin the meter: this skill gates on the commit meter alone, so a METER_SLUG
+# left exported in the shell must never point its gate at the cutover meter
+METER_SLUG="git.commit.uses"
+METER_NOUN="commit"
 source "$SCRIPT_DIR/git.commit.operations.sh"
 source "$SCRIPT_DIR/keyrack.operations.sh"
+# .why = the pr body this push opens is signed by the one attribution declaration
+# shellcheck source=../git/git.attribution.operations.sh
+source "$SCRIPT_DIR/../git/git.attribution.operations.sh"
 
 # robot identity (label for messages; guard accepts any seaturtle identity)
 ROBOT_NAME="seaturtle[bot]"
@@ -607,21 +611,6 @@ run_gh() {
   GH_TOKEN="$GH_PR_TOKEN" gh "$@"
 }
 
-# .what = strip Co-authored-by trailers and blank tail lines from a pr body
-# .why  = the commit message carries Co-authored-by: trailers (the human's git
-#         identity), but the pr BODY must not echo them — they leak the human's
-#         email onto the public pr, and github already renders co-authors from the
-#         commit itself. a named transformer keeps the orchestrator readable
-#         (rule.require.named-transformers): the call site reads intent, not a
-#         grep|sed pipeline to decode.
-# usage: clean=$(get_clean_pr_body "$PR_BODY")
-get_clean_pr_body() {
-  local body="$1"
-  # grep -v drops the trailer lines (exit 1 when none match → || true); the sed
-  # collapses any blank lines the removal leaves at the tail
-  echo "$body" | { grep -v '^Co-authored-by:' || true; } | sed -e :a -e '/^\n*$/{$d;N;ba;}'
-}
-
 # .what = guide the caller when the pr-open credential is unusable under both modes
 # .why  = the vision requires: when both the ehmpath keyrack token AND the human
 #         gh login are unavailable, fail loud with two named fixes (unlock keyrack,
@@ -677,12 +666,8 @@ fi
 # create: only when no pr was found (guarded on the negated condition — no else,
 # so the narrative stays linear per rule.forbid.else-branches)
 if [[ -z "$PR_FOUND" ]]; then
-  # strip Co-authored-by trailers from PR body (privacy: avoid email leak)
-  PR_BODY_CLEAN=$(get_clean_pr_body "$PR_BODY")
-  PR_BODY_FULL="$PR_BODY_CLEAN
-
----
-🐢🌊 surfed in by seaturtle[bot]"
+  # strip foreign attribution, then sign once (git/git.attribution.operations.sh)
+  PR_BODY_FULL=$(as_pr_body_attributed "$PR_BODY")
   [[ "$DEBUG" == "true" ]] && echo "[debug] pr create as $AUTH (token len=${#GH_PR_TOKEN})" >&2
   PR_CREATE_OUTPUT=""
   PR_CREATE_EXIT=0

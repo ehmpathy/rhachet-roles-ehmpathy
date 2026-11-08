@@ -74,14 +74,14 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --help|-h)
-      echo "usage: git.commit.uses --org <org> allow|block|del"
-      echo "       git.commit.uses --org @all allow|block"
-      echo "       git.commit.uses --org get"
-      echo "       git.commit.uses --org <org> get"
+      echo "usage: $METER_SLUG --org <org> allow|block|del"
+      echo "       $METER_SLUG --org @all allow|block"
+      echo "       $METER_SLUG --org get"
+      echo "       $METER_SLUG --org <org> get"
       echo ""
       echo "commands:"
-      echo "  allow        allow commits for this org"
-      echo "  block        block commits for this org"
+      echo "  allow        allow ${METER_NOUN}s for this org"
+      echo "  block        block ${METER_NOUN}s for this org"
       echo "  del          remove org config, defer to @all"
       echo "  get          show org config(s)"
       echo ""
@@ -127,7 +127,7 @@ done
 # validate command
 if [[ -z "$COMMAND" ]]; then
   emit_both "✋ ConstraintError: command required (allow, block, del, or get)
-usage: git.commit.uses --org <org> allow|block|del|get"
+usage: $METER_SLUG --org <org> allow|block|del|get"
   exit 2
 fi
 
@@ -135,7 +135,7 @@ fi
 if [[ "$ORG_NAME" == "all" || "$ORG_NAME" == "ALL" ]]; then
   emit_both "$(
     print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.uses $COMMAND --org $ORG_NAME"
+    print_tree_start "$METER_SLUG $COMMAND --org $ORG_NAME"
     print_tree_constraint "did you mean @all?"
   )"
   exit 2
@@ -147,7 +147,7 @@ fi
 ######################################################################
 case "$COMMAND" in
   allow|block|del)
-    guard_actor_is_human_via_stdin "git.commit.uses $COMMAND --org $ORG_NAME"
+    guard_actor_is_human_via_stdin "$METER_SLUG $COMMAND --org $ORG_NAME"
     ;;
 esac
 
@@ -283,7 +283,7 @@ guard_org_meter_is_readable() {
   #        because they describe the state rather than the command.
   emit_both "$(
     print_turtle_header "bummer dude..."
-    print_tree_start "git.commit.uses $COMMAND --org${ORG_NAME:+ $ORG_NAME}"
+    print_tree_start "$METER_SLUG $COMMAND --org${ORG_NAME:+ $ORG_NAME}"
     print_tree_malfunction "$ORG_CORRUPT_HEADLINE"
     print_org_corrupt_body
   )"
@@ -508,7 +508,7 @@ case "$COMMAND" in
   allow)
     if [[ -z "$ORG_NAME" ]]; then
       emit_both "✋ ConstraintError: org name required for allow
-usage: git.commit.uses --org <org> allow"
+usage: $METER_SLUG --org <org> allow"
       exit 2
     fi
 
@@ -517,7 +517,7 @@ usage: git.commit.uses --org <org> allow"
       write_org_file '{ "orgs": { "@all": "allowed" } }'
 
       print_turtle_header "shell yeah, back in the water!"
-      print_tree_start "git.commit.uses allow --org @all"
+      print_tree_start "$METER_SLUG allow --org @all"
       echo "   ├─ reset: all orgs → allowed"
       echo "   └─ @all: allowed"
     else
@@ -525,20 +525,24 @@ usage: git.commit.uses --org <org> allow"
       set_org_state "$ORG_NAME" "allowed"
 
       print_turtle_header "shell yeah, back in the water!"
-      print_tree_start "git.commit.uses allow --org $ORG_NAME"
+      print_tree_start "$METER_SLUG allow --org $ORG_NAME"
       echo "   └─ $ORG_NAME: allowed"
     fi
 
     # nudge: this lifts an org-level permission, so it is a quota-grant
     # moment for THIS tree same as a local `set` — shared reader, see
     # `print_sponsor_bind_nudge_if_absent` (git.commit.operations.sh).
-    print_sponsor_bind_nudge_if_absent
+    # .why the slug gate = a sponsor signs commits, not cutovers, so the
+    #      nudge belongs to the commit meter alone.
+    if [[ "$METER_SLUG" == "git.commit.uses" ]]; then
+      print_sponsor_bind_nudge_if_absent
+    fi
     ;;
 
   block)
     if [[ -z "$ORG_NAME" ]]; then
       emit_both "✋ ConstraintError: org name required for block
-usage: git.commit.uses --org <org> block"
+usage: $METER_SLUG --org <org> block"
       exit 2
     fi
 
@@ -547,7 +551,7 @@ usage: git.commit.uses --org <org> block"
       write_org_file '{ "orgs": { "@all": "blocked" } }'
 
       print_turtle_header "groovy, bond fire time"
-      print_tree_start "git.commit.uses block --org @all"
+      print_tree_start "$METER_SLUG block --org @all"
       echo "   ├─ reset: all orgs → blocked"
       echo "   └─ @all: blocked"
     else
@@ -555,7 +559,7 @@ usage: git.commit.uses --org <org> block"
       set_org_state "$ORG_NAME" "blocked"
 
       print_turtle_header "groovy, bond fire time"
-      print_tree_start "git.commit.uses block --org $ORG_NAME"
+      print_tree_start "$METER_SLUG block --org $ORG_NAME"
       echo "   └─ $ORG_NAME: blocked"
     fi
     ;;
@@ -563,7 +567,7 @@ usage: git.commit.uses --org <org> block"
   del)
     if [[ -z "$ORG_NAME" ]]; then
       emit_both "✋ ConstraintError: org name required for del
-usage: git.commit.uses --org <org> del"
+usage: $METER_SLUG --org <org> del"
       exit 2
     fi
 
@@ -575,13 +579,13 @@ usage: git.commit.uses --org <org> del"
     del_org_state "$ORG_NAME"
 
     print_turtle_header "righteous!"
-    print_tree_start "git.commit.uses del --org $ORG_NAME"
+    print_tree_start "$METER_SLUG del --org $ORG_NAME"
     echo "   └─ $ORG_NAME: removed (inherits from @all)"
     ;;
 
   get)
     print_turtle_header "lets check the meter..."
-    print_tree_start "git.commit.uses get --org${ORG_NAME:+ $ORG_NAME}"
+    print_tree_start "$METER_SLUG get --org${ORG_NAME:+ $ORG_NAME}"
 
     # ⇒ the SHAPE was gated once, above the dispatch, so every read below is
     #   safe to make. this arm carried its own copy of that gate while the
@@ -635,7 +639,7 @@ usage: git.commit.uses --org <org> del"
 
   *)
     emit_both "✋ ConstraintError: unknown command: $COMMAND
-usage: git.commit.uses --org <org> allow|block|del|get"
+usage: $METER_SLUG --org <org> allow|block|del|get"
     exit 2
     ;;
 esac

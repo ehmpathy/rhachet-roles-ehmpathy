@@ -91,8 +91,7 @@ exports[`git.pull.comment (real github api) given: [case3] the pr description: r
     "message": "the pr description is no comment; git.pull.comment.set writes comments only, each with the 🐢 prefix",
     "details": [],
     "fixes": [
-      "edit the pr description in the github ui",
-      "a pr description verb is tracked in ehmpathy/rhachet-roles-ehmpathy#1165"
+      "rhx git.pull.description set --from <path|@stdin>   # the pr description has its own verb"
     ]
   }
 }

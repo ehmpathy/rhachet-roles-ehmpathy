@@ -9,7 +9,6 @@
 #   rhx git.pull.comment.set --pr 69 --key status --from ./status.md [--mode apply]
 #   rhx git.pull.comment.set --pr 69 --reply-to <id> --key answer --from ./a.md
 #   rhx git.pull.comment.set --pr 69 --id <id> --kind issue|review --from ./a.md
-#   rhx git.pull.comment set --pr 69 --key status --from ./status.md
 #   rhx git.pull.comment.set --help    # every flag
 #
 # guarantee:
@@ -88,12 +87,12 @@ set_comment_output "$OUTPUT"
 check_pr_number "$PR" git.pull.comment.set
 check_auth_arg "$AUTH"
 check_mode_arg "$MODE"
-[[ -n "$FROM" ]] || fail_comment_constraint "--from <path|@stdin> is required" "--from ./reply.md"
+[[ -n "$FROM" ]] || fail_comment_constraint "--from <path|@stdin> is required" "--from ./.temp/reply.md"
 [[ "$FROM" == "@stdin" || -f "$FROM" ]] || fail_comment_constraint "--from '$FROM' is not a file" "name a body file that exists"$'\n'"pipe the body in via --from @stdin"
 
 # refuse the pr description: it is no comment, and every body this verb writes wears 🐢
 [[ "$KIND" != "body" ]] || fail_comment_constraint "the pr description is no comment; git.pull.comment.set writes comments only, each with the 🐢 prefix" \
-  "edit the pr description in the github ui"$'\n'"a pr description verb is tracked in ehmpathy/rhachet-roles-ehmpathy#1165"
+  "rhx git.pull.description set --from <path|@stdin>   # the pr description has its own verb"
 
 # .what = the target a set names: id, key, or thread (a keyed reply); empty if none
 # .why  = three targets, each with its own endpoint; the target is never guessed
@@ -141,9 +140,9 @@ trap 'rm -rf "$WORK"' EXIT
 [[ "$FROM" == "@stdin" ]] || as_body_trimmed <"$FROM" >"$WORK/text.md"
 # a body piped via @stdin is spent once read, so an apply must pipe it again
 STDIN_NOTE=""
-[[ "$FROM" == "@stdin" ]] && STDIN_NOTE="   # pipe the body in again"
+[[ "$FROM" == "@stdin" ]] && STDIN_NOTE="   # pipe the same body in again"
 FIX_EMPTY="write the body into '$FROM', then rerun"
-[[ "$FROM" == "@stdin" ]] && FIX_EMPTY="cat ./reply.md | $(as_comment_cmd_in_mode set "$MODE" "${ORIG_ARGS[@]}")   # pipe a body that is not empty"
+[[ "$FROM" == "@stdin" ]] && FIX_EMPTY="cat ./.temp/reply.md | $(as_comment_cmd_in_mode set "$MODE" "${ORIG_ARGS[@]}")   # pipe a body that is not empty"
 [[ -s "$WORK/text.md" ]] || fail_comment_constraint "the body from '$FROM' is empty" "$FIX_EMPTY"
 
 set_comment_repo "$REPO_IN" git.pull.comment.set

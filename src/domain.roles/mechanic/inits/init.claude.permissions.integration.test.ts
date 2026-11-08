@@ -418,4 +418,64 @@ describe('init.claude.permissions.sh', () => {
       });
     },
   );
+
+  given('[case8] the REAL manifest keeps the cutover grants human-only', () => {
+    /**
+     * .what = the shipped manifest denies every git.branch.uses grant, in the
+     *         npx, rhx, and `--` forms, and allows the cutover verb + `get`.
+     *
+     * .why = the meter is the one gate on `git.branch.cutover --mode apply`. the
+     *        skill trusts this manifest to keep a mechanic from a self-grant, so
+     *        a regen that dropped a deny line would ship green and hand a clone
+     *        unlimited cutovers. same hazard `[case6]` clamps for the sponsor.
+     *
+     * .note = sliced per list: a grant moved from deny to allow is still "in
+     *         the manifest", so a whole-file assert would pass while it opened
+     *         the meter.
+     */
+    const manifest = fs.readFileSync(
+      path.join(__dirname, 'init.claude.permissions.jsonc'),
+      'utf-8',
+    );
+    const sectionDeny = manifest.slice(
+      manifest.indexOf('"deny": ['),
+      manifest.indexOf('"ask": ['),
+    );
+    const sectionAllow = manifest.slice(manifest.indexOf('"allow": ['));
+
+    when('[t0] the deny list is read', () => {
+      then('every grant form is a deny, never an allow', () => {
+        for (const rule of [
+          '"Bash(npx rhachet run --skill git.branch.uses set:*)"',
+          '"Bash(npx rhachet run --skill git.branch.uses -- set:*)"',
+          '"Bash(rhx git.branch.uses set:*)"',
+          '"Bash(rhx git.branch.uses -- set:*)"',
+          '"Bash(npx rhachet run --skill git.branch.uses allow:*)"',
+          '"Bash(npx rhachet run --skill git.branch.uses -- allow:*)"',
+          '"Bash(rhx git.branch.uses allow:*)"',
+          '"Bash(rhx git.branch.uses -- allow:*)"',
+          '"Bash(rhx git.branch.uses --global allow:*)"',
+          '"Bash(npx rhachet run --skill git.branch.uses --global allow:*)"',
+          '"Bash(rhx git.branch.uses --org * allow:*)"',
+          '"Bash(npx rhachet run --skill git.branch.uses --org * allow:*)"',
+          '"Bash(rhx git.branch.uses --org * del:*)"',
+          '"Bash(npx rhachet run --skill git.branch.uses --org * del:*)"',
+        ]) {
+          expect(sectionDeny).toContain(rule);
+          expect(sectionAllow).not.toContain(rule);
+        }
+      });
+    });
+
+    when('[t1] the allow list is read', () => {
+      then('it permits the cutover verb and the quota read', () => {
+        for (const rule of [
+          '"Bash(rhx git.branch.cutover:*)"',
+          '"Bash(npx rhachet run --skill git.branch.cutover:*)"',
+          '"Bash(rhx git.branch.uses get)"',
+        ])
+          expect(sectionAllow).toContain(rule);
+      });
+    });
+  });
 });
