@@ -184,7 +184,7 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
 🥥 did you know?
    └─ a stale, wedged, or absent daemon serves no watch
       ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
-      └─ 2. start a fresh one: rhx git.pull.watch set --pull <n> --mode apply
+      └─ 2. start a fresh one: rhx git.pull.watch set --which <n> --mode apply
 "
 `;
 
@@ -229,7 +229,7 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
 🥥 did you know?
    └─ a stale, wedged, or absent daemon serves no watch
       ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
-      └─ 2. start a fresh one: rhx git.pull.watch set --pull <n> --mode apply
+      └─ 2. start a fresh one: rhx git.pull.watch set --which <n> --mode apply
 "
 `;
 
@@ -274,7 +274,7 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
 🥥 did you know?
    └─ a stale, wedged, or absent daemon serves no watch
       ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
-      └─ 2. start a fresh one: rhx git.pull.watch set --pull <n> --mode apply
+      └─ 2. start a fresh one: rhx git.pull.watch set --which <n> --mode apply
 "
 `;
 
@@ -336,19 +336,26 @@ exports[`git.pull.watch lifecycle given: [case14] an upgrade moves the watch whe
 "
 `;
 
-exports[`git.pull.watch lifecycle given: [case15] a clone stops its watch (entry E5) when: [t0] the clone watches #1220, then deletes the watch then: a call with no --pull or a bad --mode is refused with its fix 1`] = `
+exports[`git.pull.watch lifecycle given: [case14d] a pr with no change past the idle ttl ends its watch when: [t0] the clone watches #1220, and naught changes on it then: the clone is told the watch ended, and how to rewatch 1`] = `
+"🐢 heads up dude...
+
+🐚 git.pull.watch — #1220 quiet for 1 min; watch ended
+   └─ rewatch: rhx git.pull.watch set --which 1220 --mode apply"
+`;
+
+exports[`git.pull.watch lifecycle given: [case15] a clone stops its watch (entry E5) when: [t0] the clone watches #1220, then deletes the watch then: a call with no --which or a bad --mode is refused with its fix 1`] = `
 "🐢 bummer dude...
 
 🐚 git.pull.watch del
-   └─ ✋ ConstraintError: --pull <n> is required
+   └─ ✋ ConstraintError: --which <n> is required
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch del --pull <n> --mode apply
+      └─ rhx git.pull.watch del --which <n> --mode apply
 "
 `;
 
-exports[`git.pull.watch lifecycle given: [case15] a clone stops its watch (entry E5) when: [t0] the clone watches #1220, then deletes the watch then: a call with no --pull or a bad --mode is refused with its fix 2`] = `
+exports[`git.pull.watch lifecycle given: [case15] a clone stops its watch (entry E5) when: [t0] the clone watches #1220, then deletes the watch then: a call with no --which or a bad --mode is refused with its fix 2`] = `
 "🐢 bummer dude...
 
 🐚 git.pull.watch del
@@ -408,7 +415,7 @@ exports[`git.pull.watch lifecycle given: [case15] a clone stops its watch (entry
 
 🥥 did you know?
    └─ to watch a pr
-      └─ rhx git.pull.watch set --pull <n> --mode apply
+      └─ rhx git.pull.watch set --which <n> --mode apply
 "
 `;
 
@@ -422,7 +429,7 @@ exports[`git.pull.watch lifecycle given: [case15] a clone stops its watch (entry
 
 🥥 did you know?
    └─ plan writes naught; to stop the watch
-      └─ rhx git.pull.watch del --pull 1220 --in ehmpathy/surf-demo --mode apply
+      └─ rhx git.pull.watch del --which 1220 --in ehmpathy/surf-demo --mode apply
 "
 `;
 

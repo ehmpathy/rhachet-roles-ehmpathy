@@ -202,34 +202,34 @@ exports[`git.pull.description given: [case2] get, edit, set: the round trip when
 "
 `;
 
-exports[`git.pull.description given: [case4] no pull to target when: [t0] the branch has no open pull then: it exits 2 and names git.commit.push, then --pr, as the fix 1`] = `
-"✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+exports[`git.pull.description given: [case4] no pull to target when: [t0] the branch has no open pull then: it exits 2 and names git.commit.push, then --which, as the fix 1`] = `
+"✋ ConstraintError: --which is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
 
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
-      └─ rhx git.pull.description.get --pr <n> ...   # or name a pull, closed or merged included
+      └─ rhx git.pull.description.get --which <n> ...   # or name a pull, closed or merged included
 "
 `;
 
-exports[`git.pull.description given: [case4] no pull to target when: [t1] --pr names a pull that does not exist then: each exits 2, names the pull, and writes naught 1`] = `
+exports[`git.pull.description given: [case4] no pull to target when: [t1] --which names a pull that does not exist then: each exits 2, names the pull, and writes naught 1`] = `
 "✋ ConstraintError: pull request ehmpathy/surf-demo#9999 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ check --pr and --in
-      ├─ drop --pr to address the pull of this branch
+      ├─ check --which and --in
+      ├─ drop --which to address the pull of this branch
       └─ rerun with --auth as-human
 "
 `;
 
-exports[`git.pull.description given: [case4] no pull to target when: [t1] --pr names a pull that does not exist then: each exits 2, names the pull, and writes naught 2`] = `
+exports[`git.pull.description given: [case4] no pull to target when: [t1] --which names a pull that does not exist then: each exits 2, names the pull, and writes naught 2`] = `
 "✋ ConstraintError: pull request ehmpathy/surf-demo#9999 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ check --pr and --in
-      ├─ drop --pr to address the pull of this branch
+      ├─ check --which and --in
+      ├─ drop --which to address the pull of this branch
       └─ rerun with --auth as-human
 "
 `;
@@ -278,7 +278,7 @@ exports[`git.pull.description given: [case5] the credential is unusable when: [t
 "
 `;
 
-exports[`git.pull.description given: [case6] a peer pull, by number when: [t0] set --pr 8 applies then: pull #8 is set and signed; pull #7 is untouched 1`] = `
+exports[`git.pull.description given: [case6] a peer pull, by number when: [t0] set --which 8 applies then: pull #8 is set and signed; pull #7 is untouched 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.description.set --mode apply
@@ -316,13 +316,13 @@ exports[`git.pull.description given: [case6] a peer pull, by number when: [t1] g
 
 🥥 did you know?
    └─ to edit it
-      ├─ 1. rhx git.pull.description get --pr 8 --into ./.temp/body.md
+      ├─ 1. rhx git.pull.description get --which 8 --into ./.temp/body.md
       ├─ 2. edit ./.temp/body.md
-      └─ 3. rhx git.pull.description set --pr 8 --from ./.temp/body.md   # plan; add --mode apply to write
+      └─ 3. rhx git.pull.description set --which 8 --from ./.temp/body.md   # plan; add --mode apply to write
 "
 `;
 
-exports[`git.pull.description given: [case6] a peer pull, by number when: [t1] get and a plan, by number then: the plan targets pull #8, writes naught, and hints --pr 8 1`] = `
+exports[`git.pull.description given: [case6] a peer pull, by number when: [t1] get and a plan, by number then: the plan targets pull #8, writes naught, and hints --which 8 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.description.set --mode plan
@@ -352,7 +352,7 @@ exports[`git.pull.description given: [case6] a peer pull, by number when: [t1] g
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ cat ./.temp/body.md | rhx git.pull.description.set --pr 8 --from @stdin --mode apply   # pipe the same body in again
+      └─ cat ./.temp/body.md | rhx git.pull.description.set --which 8 --from @stdin --mode apply   # pipe the same body in again
 "
 `;
 
@@ -524,11 +524,11 @@ exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.d
 `;
 
 exports[`git.pull.description given: [case10] the verbs dispatch as \`git.pull.description <verb>\` when: [t0] get, help, and an unknown verb run via the dispatcher then: help names both verbs; set --help names its flags 1`] = `
-"usage: git.pull.description.set --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+"usage: git.pull.description.set --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
   --from <path|@stdin>         the body; written with the seaturtle attribution as its last line
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
@@ -683,7 +683,7 @@ exports[`git.pull.description given: [case15] the body comes from a file when: [
 "
 `;
 
-exports[`git.pull.description given: [case16] a closed pull, by number when: [t0] set --pr 8 applies to a closed pull then: the set works on any state, as github allows 1`] = `
+exports[`git.pull.description given: [case16] a closed pull, by number when: [t0] set --which 8 applies to a closed pull then: the set works on any state, as github allows 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.description.set --mode apply
@@ -711,7 +711,7 @@ exports[`git.pull.description given: [case17] a pull its credential did not open
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ cat ./.temp/body.md | rhx git.pull.description.set --pr 8 --from @stdin --mode plan --auth as-human   # if reef-ranger is that login: plan, then add --mode apply; pipe the same body in again
+      ├─ cat ./.temp/body.md | rhx git.pull.description.set --which 8 --from @stdin --mode plan --auth as-human   # if reef-ranger is that login: plan, then add --mode apply; pipe the same body in again
       └─ ask reef-ranger to set it; this credential may not
 "
 `;
@@ -768,7 +768,7 @@ exports[`git.pull.description given: [case19] a merged pull, by number when: [t0
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ cat ./.temp/body.md | rhx git.pull.description.set --pr 8 --from @stdin --mode apply   # pipe the same body in again
+      └─ cat ./.temp/body.md | rhx git.pull.description.set --which 8 --from @stdin --mode apply   # pipe the same body in again
 "
 `;
 
@@ -825,7 +825,7 @@ exports[`git.pull.description given: [case20] a body that holds a secret-shaped 
 "
 `;
 
-exports[`git.pull.description given: [case21] the get hint keeps the target as the caller named it when: [t0] get --pr 8 --into a file then: the set step names --pr 8, as typed 1`] = `
+exports[`git.pull.description given: [case21] the get hint keeps the target as the caller named it when: [t0] get --which 8 --into a file then: the set step names --which 8, as typed 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.description.get
@@ -843,6 +843,6 @@ exports[`git.pull.description given: [case21] the get hint keeps the target as t
 🥥 did you know?
    └─ to edit it
       ├─ 1. edit ./.temp/body.md
-      └─ 2. rhx git.pull.description set --pr 8 --from ./.temp/body.md   # plan; add --mode apply to write
+      └─ 2. rhx git.pull.description set --which 8 --from ./.temp/body.md   # plan; add --mode apply to write
 "
 `;

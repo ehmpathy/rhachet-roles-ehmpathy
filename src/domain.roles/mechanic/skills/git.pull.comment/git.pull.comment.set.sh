@@ -6,9 +6,9 @@
 #         absent → post, differs → edit, same → no-op. a re-run never doubles
 #
 # usage:
-#   rhx git.pull.comment.set --pr 69 --key status --from ./status.md [--mode apply]
-#   rhx git.pull.comment.set --pr 69 --reply-to <id> --key answer --from ./a.md
-#   rhx git.pull.comment.set --pr 69 --id <id> --kind issue|review --from ./a.md
+#   rhx git.pull.comment.set --which 69 --key status --from ./status.md [--mode apply]
+#   rhx git.pull.comment.set --which 69 --reply-to <id> --key answer --from ./a.md
+#   rhx git.pull.comment.set --which 69 --id <id> --kind issue|review --from ./a.md
 #   rhx git.pull.comment.set --help    # every flag
 #
 # guarantee:
@@ -38,14 +38,14 @@ OUTPUT="tree"
 # .why  = --help is the one authoritative flag list; the file header names none
 help() {
   cat <<'EOF'
-usage: git.pull.comment.set (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+usage: git.pull.comment.set (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
   --key <k>                    a top-level comment, upserted by key: absent → post, differs → edit, same → no-op
   --reply-to <id>              with --key: a reply in that review thread, upserted the same way
   --id <id> --kind <kind>      edit one known comment; kind = issue | review, never guessed
   --from <path|@stdin>         the body; written as '🐢 ' + body, plus a hidden key marker
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
@@ -71,11 +71,11 @@ while [[ $# -gt 0 ]]; do
   # split --flag=value into two args, so both forms parse one way
   [[ "$1" == --*=* ]] && set -- "${1%%=*}" "${1#*=}" "${@:2}"
   check_flag_has_value "$1" "$#" "${2:-}" git.pull.comment.set \
-    --skill --repo --role --pr --key --reply-to --id --kind --from --in --auth --mode --output
+    --skill --repo --role --which --key --reply-to --id --kind --from --in --auth --mode --output
   case "$1" in
     --skill|--repo|--role) shift 2 ;;
     --) shift ;;
-    --pr) PR="${2:-}"; shift 2 ;;
+    --which) PR="${2:-}"; shift 2 ;;
     --key) KEY="${2:-}"; shift 2 ;;
     --reply-to) REPLY_TO="${2:-}"; shift 2 ;;
     --id) ID="${2:-}"; shift 2 ;;
@@ -191,7 +191,7 @@ if [[ "$TARGET" == "key" ]]; then
   ONE_KIND="issue"
 fi
 
-# list the replies of one thread a reply key may match; the thread must sit on --pr
+# list the replies of one thread a reply key may match; the thread must sit on --which
 if [[ "$TARGET" == "thread" ]]; then
   LABEL="$COMMENT_REPO#$PR, reply to review comment $REPLY_TO, key=$KEY"
   check_reply_parent_on_pr "$PR" "$REPLY_TO"

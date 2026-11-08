@@ -8,8 +8,8 @@
 #
 # usage:
 #   rhx git.pull.watch get                              # daemons + watches
-#   rhx git.pull.watch set --pull 1220 --mode apply       # watch a pr
-#   rhx git.pull.watch del --pull 1220 --mode apply       # stop a watch
+#   rhx git.pull.watch set --which 1220 --mode apply       # watch a pr
+#   rhx git.pull.watch del --which 1220 --mode apply       # stop a watch
 #   rhx git.pull.watch --help
 #
 # guarantee:
@@ -38,14 +38,14 @@ help() {
   echo ""
   echo "verbs:"
   echo "  get                          the daemons on this machine and their watches"
-  echo "  set --pull <n>               watch a pr from this clone (plan by default)"
-  echo "  del --pull <n>               stop this clone's watch on a pr (plan by default)"
+  echo "  set --which <n>              watch a pr from this clone (plan by default)"
+  echo "  del --which <n>              stop this clone's watch on a pr (plan by default)"
   echo ""
   echo "options:"
   echo "  --help, -h                   show this help; rhx git.pull.watch <verb> --help for a verb's flags"
   echo ""
   echo "example:"
-  echo "  rhx git.pull.watch set --pull 1220 --mode apply"
+  echo "  rhx git.pull.watch set --which 1220 --mode apply"
 }
 
 VERB=""

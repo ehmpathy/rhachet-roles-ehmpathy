@@ -21,6 +21,13 @@ WATCH_SKILL_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # the tick interval; a test sets it low
 WATCH_TICK_SECONDS="${GIT_PULL_WATCH_TICK_SECONDS:-60}"
 
+# a quiet pr is read less often: the gap doubles per quiet read, up to this cap;
+# any change, a push, or a fresh watch resets it to one tick
+WATCH_POLL_MAX_SECONDS="${GIT_PULL_WATCH_POLL_MAX_SECONDS:-900}"
+
+# a pr with no change for this long ends its watches, so no poll outlives its use (1w)
+WATCH_IDLE_TTL_SECONDS="${GIT_PULL_WATCH_IDLE_TTL_SECONDS:-604800}"
+
 # an outage this long earns one note to each watcher; a test sets it low
 WATCH_UNREACHABLE_NOTE_SECONDS="${GIT_PULL_WATCH_UNREACHABLE_NOTE_SECONDS:-1800}"
 
@@ -341,6 +348,19 @@ get_watch_key() {
   version="$(get_watch_version)"
   [[ -n "$version" ]] || version="0.0.0"
   echo "$version+$(get_watch_code_hash)"
+}
+
+# .what = the daemon key that a repo root's linked mechanic install maps to now, or empty
+# .why  = after an upgrade, the daemon of the new key takes the watches of every
+#         root that runs it, at once, rather than at each clone's next `set`
+# .note = reads the root's own `.agent` link to this skill; a root with no link
+#         (or a broken one) answers empty, and its watches stay where they are
+get_watch_key_of_root() {
+  local root="$1" dir
+  dir="$root/.agent/repo=ehmpathy/role=mechanic/skills/git.pull.watch"
+  [[ -f "$dir/git.pull.watch.operations.sh" ]] || return 0
+  dir="$(cd -P "$dir" 2>/dev/null && pwd)" || return 0
+  (WATCH_SKILL_DIR="$dir" && get_watch_key)
 }
 
 ######################################################################
@@ -902,6 +922,87 @@ as_watch_record_moved() {
 }
 
 ######################################################################
+# poll cadence: a quiet pr is read less often; a pr idle past the ttl ends
+######################################################################
+
+# .what = the cadence dir of one pr: beside its etag cache, under its key
+as_watch_pr_cadence_dir() {
+  local key_dir="$1" repo="$2" pr="$3"
+  echo "$key_dir/cache/${repo%%/*}.${repo#*/}.pr=$pr"
+}
+
+# .what = the gap to the next read of a pr quiet for n reads: one tick, doubled per
+#         quiet read, never past the cap
+# usage: as_watch_poll_gap_seconds <quiet> <tick> <max>
+as_watch_poll_gap_seconds() {
+  local quiet="$1" tick="$2" max="$3" gap i
+  gap="$tick"
+  for ((i = 0; i < quiet && gap < max; i++)); do
+    gap=$((gap * 2))
+  done
+  [[ $gap -gt $max ]] && gap="$max"
+  echo "$gap"
+}
+
+# .what = the fingerprint of every fact an alert reads, from one pr state file
+# .why  = the pull object's etag churns on a quiet pr; the facts do not
+as_watch_pr_state_print() {
+  jq -c '{
+    head: .pull.head.sha, state: .pull.state, merged: .pull.merged,
+    checks: [(.checks.check_runs // [])[] | [.id, .status, .conclusion]],
+    issueComments: [(.issueComments // [])[].id],
+    reviewComments: [(.reviewComments // [])[].id],
+    reviews: [(.reviews // [])[] | [.id, .state]]
+  }' "$1" | as_watch_sha256
+}
+
+# .what = is this pr due for a read? a pr with no cadence yet is always due
+is_watch_pr_due() {
+  local next
+  next="$(cat "$(as_watch_pr_cadence_dir "$1" "$2" "$3")/poll.next" 2>/dev/null || echo "")"
+  [[ "$next" =~ ^[0-9]+$ ]] || return 0
+  [[ "$next" -le "$(get_watch_epoch_now)" ]]
+}
+
+# .what = has this pr gone with no change past the idle ttl?
+is_watch_pr_idle() {
+  local changed
+  changed="$(cat "$(as_watch_pr_cadence_dir "$1" "$2" "$3")/poll.changed" 2>/dev/null || echo "")"
+  [[ "$changed" =~ ^[0-9]+$ ]] || return 1
+  [[ $(( $(get_watch_epoch_now) - changed )) -ge $WATCH_IDLE_TTL_SECONDS ]]
+}
+
+# .what = after a read: note whether the pr changed, then set its next read
+# .why  = a quiet pr earns a longer gap each read; any change snaps it back to one tick
+# usage: set_watch_pr_cadence <key_dir> <repo> <pr> <state_file>
+set_watch_pr_cadence() {
+  local dir now print prior quiet
+  dir="$(as_watch_pr_cadence_dir "$1" "$2" "$3")"
+  mkdir -p "$dir"
+  now="$(get_watch_epoch_now)"
+  print="$(as_watch_pr_state_print "$4")" || return 0
+  prior="$(cat "$dir/poll.print" 2>/dev/null || echo "")"
+  quiet="$(cat "$dir/poll.quiet" 2>/dev/null || echo 0)"
+  [[ "$quiet" =~ ^[0-9]+$ ]] || quiet=0
+  quiet=$((quiet + 1))
+  [[ "$print" != "$prior" ]] && quiet=0
+  # the idle clock starts at the first read, and restarts on each change
+  [[ "$print" != "$prior" || ! -f "$dir/poll.changed" ]] && printf '%s' "$now" | set_watch_file_atomic "$dir/poll.changed"
+  printf '%s' "$print" | set_watch_file_atomic "$dir/poll.print"
+  printf '%s' "$quiet" | set_watch_file_atomic "$dir/poll.quiet"
+  printf '%s' "$((now + $(as_watch_poll_gap_seconds "$quiet" "$WATCH_TICK_SECONDS" "$WATCH_POLL_MAX_SECONDS")))" \
+    | set_watch_file_atomic "$dir/poll.next"
+}
+
+# .what = make a pr due at the next tick, its idle clock restarted
+# .why  = a push or a fresh watch wants news now: ci starts on the new head
+del_watch_pr_cadence() {
+  local dir
+  dir="$(as_watch_pr_cadence_dir "$1" "$2" "$3")"
+  rm -f "$dir/poll.next" "$dir/poll.quiet" "$dir/poll.changed"
+}
+
+######################################################################
 # repo facts
 ######################################################################
 
@@ -1043,13 +1144,13 @@ is_watch_repo_slug() {
   [[ "$1" =~ ^[A-Za-z0-9-]+/[A-Za-z0-9_.-]+$ ]]
 }
 
-# .what = refuse a --pull that is absent or not a pr number
+# .what = refuse a --which that is absent or not a pr number
 # usage: check_watch_pr_arg <skill> <pr>
 check_watch_pr_arg() {
   local skill="$1" pr="$2"
   [[ "$pr" =~ ^[1-9][0-9]*$ ]] && return 0
-  [[ -n "$pr" ]] || fail_watch_constraint "$skill" "--pull <n> is required" "rhx $skill --pull <n> --mode apply"
-  fail_watch_constraint "$skill" "--pull must be a pr number; got '$pr'" "rhx $skill --pull <n> --mode apply"
+  [[ -n "$pr" ]] || fail_watch_constraint "$skill" "--which <n> is required" "rhx $skill --which <n> --mode apply"
+  fail_watch_constraint "$skill" "--which must be a pr number; got '$pr'" "rhx $skill --which <n> --mode apply"
 }
 
 # .what = set the clone serial and the repo slug, or refuse with the fix
@@ -1069,12 +1170,12 @@ set_watch_clone_and_repo() {
   WATCH_REPO="$repo_in"
   if [[ -n "$WATCH_REPO" ]]; then
     is_watch_repo_slug "$WATCH_REPO" || fail_watch_constraint "$skill" "--in must be <owner/name>; got '$WATCH_REPO'" \
-      "rhx $skill --pull $pr --in <owner/name> --mode apply"
+      "rhx $skill --which $pr --in <owner/name> --mode apply"
     return 0
   fi
   WATCH_REPO="$(as_watch_repo_from_remote_url "$(git config --get remote.origin.url 2>/dev/null || echo "")")"
   is_watch_repo_slug "$WATCH_REPO" || fail_watch_constraint "$skill" "no repo: --in <owner/name> absent, and the cwd has no github origin" \
-    "rhx $skill --pull $pr --in <owner/name> --mode apply"
+    "rhx $skill --which $pr --in <owner/name> --mode apply"
   return 0
 }
 

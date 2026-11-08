@@ -7,9 +7,9 @@
 #         comments, approval, and the pr's end, with no director relay
 #
 # usage:
-#   rhx git.pull.watch set --pull 1220                     # plan (preview)
-#   rhx git.pull.watch set --pull 1220 --mode apply        # watch it
-#   rhx git.pull.watch set --pull 1220 --in ehmpathy/<repo> --mode apply
+#   rhx git.pull.watch set --which 1220                     # plan (preview)
+#   rhx git.pull.watch set --which 1220 --mode apply        # watch it
+#   rhx git.pull.watch set --which 1220 --in ehmpathy/<repo> --mode apply
 #   rhx git.pull.watch set --help                        # every flag
 #
 # guarantee:
@@ -33,18 +33,18 @@ OUTPUT="tree"
 # .what = print the usage: every flag, its default, an example
 help() {
   cat <<'EOF'
-usage: git.pull.watch set --pull <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
+usage: git.pull.watch set --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
 options:
-  --pull <n>          the pull request to watch (required)
+  --which <n>         the pull request to watch (required)
   --in <owner/name>   the repo (default: the cwd's github origin)
   --mode plan|apply   plan shows what would happen; apply watches (default: plan)
   --output tree|json  the output shape (default: tree)
   --help, -h          show this help
 
 example:
-  rhx git.pull.watch set --pull 1220 --mode apply
+  rhx git.pull.watch set --which 1220 --mode apply
 EOF
 }
 
@@ -55,7 +55,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --skill|--repo|--role) check_watch_flag_value "$SKILL" "$@"; shift 2 ;;
     --) shift ;;
-    --pull) check_watch_flag_value "$SKILL" "$@"; PR="$2"; shift 2 ;;
+    --which) check_watch_flag_value "$SKILL" "$@"; PR="$2"; shift 2 ;;
     --in) check_watch_flag_value "$SKILL" "$@"; REPO_IN="$2"; shift 2 ;;
     --mode) check_watch_flag_value "$SKILL" "$@"; MODE="$2"; shift 2 ;;
     --output) check_watch_flag_value "$SKILL" "$@"; OUTPUT="$2"; shift 2 ;;
@@ -82,7 +82,7 @@ set_watch_record_or_fail() {
   err="$(set_watch_file_atomic "$record" 2>&1)" && return 0
   fail_watch_malfunction "$SKILL" "the watch record could not be written; no watch was set" \
     "record: $record" "cause: ${err:-no cause given}" \
-    -- "clear the cause (no write access, a full disk, a file where a dir belongs), then rerun: rhx $SKILL --pull $PR --mode apply"
+    -- "clear the cause (no write access, a full disk, a file where a dir belongs), then rerun: rhx $SKILL --which $PR --mode apply"
 }
 
 # .what = the watch verdict: found (this key holds it), moved (another key does), or set
@@ -144,7 +144,7 @@ emit() {
   echo "   ├─ clone: @:$WATCH_SLUG"
   echo "   └─ watch: $line"
   [[ "$MODE" == "plan" ]] && print_watch_coconut "plan writes naught; to watch it" \
-    "rhx $SKILL --pull $PR --in $WATCH_REPO --mode apply"
+    "rhx $SKILL --which $PR --in $WATCH_REPO --mode apply"
   # a watch set on a paused daemon waits; name the fix in place, as get does
   [[ -n "${PAUSE:-}" ]] && print_watch_paused_coconut "$PAUSE"
   return 0
@@ -177,6 +177,9 @@ for one in "${RECORDS_PRIOR[@]+"${RECORDS_PRIOR[@]}"}"; do
   del_watch_record_locked "$one" || fail_watch_malfunction "$SKILL" "the lock of daemon v$(as_watch_key_of_record "$one") timed out; the watch is under both keys" \
     "lock: $(as_watch_key_dir_of_record "$one")/daemon.lock" -- "rerun this command; it moves the watch again"
 done
+
+# a push or a fresh watch wants news now: the pr is due at the next tick, its idle clock restarted
+del_watch_pr_cadence "$KEY_DIR" "$WATCH_REPO" "$PR"
 
 # findsert the daemon of this key
 RC=0

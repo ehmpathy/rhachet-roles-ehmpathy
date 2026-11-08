@@ -170,7 +170,7 @@ fi
 print_watch_header "heres the wave..." "$SKILL"
 if is_watch_daemons_empty "$DAEMONS"; then
   echo "   └─ no daemons, no watches"
-  print_watch_coconut "to watch a pr" "rhx git.pull.watch set --pull <n> --mode apply"
+  print_watch_coconut "to watch a pr" "rhx git.pull.watch set --which <n> --mode apply"
   exit 0
 fi
 print_watch_daemons_tree "$DAEMONS"
@@ -179,7 +179,7 @@ print_watch_daemons_tree "$DAEMONS"
 if is_watch_daemons_unwell "$DAEMONS"; then
   print_watch_coconut_steps "a stale, wedged, or absent daemon serves no watch" \
     "read why it stopped: cat $(get_watch_unwell_log_path "$DAEMONS")" \
-    "start a fresh one: rhx git.pull.watch set --pull <n> --mode apply"
+    "start a fresh one: rhx git.pull.watch set --which <n> --mode apply"
 fi
 
 # a paused daemon reads naught until its token is back; name the fix for its status
@@ -191,5 +191,5 @@ UNREADABLE="$(get_watch_unreadable_record_path "$DAEMONS")"
 if [[ -n "$UNREADABLE" ]]; then
   print_watch_coconut_steps "a watch record that does not parse is held, never served" \
     "read it: cat $UNREADABLE" \
-    "rewrite it from its clone: rhx git.pull.watch set --pull <n> --mode apply"
+    "rewrite it from its clone: rhx git.pull.watch set --which <n> --mode apply"
 fi

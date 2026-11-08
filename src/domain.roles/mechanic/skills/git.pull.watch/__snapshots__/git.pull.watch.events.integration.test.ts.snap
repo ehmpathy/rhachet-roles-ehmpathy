@@ -29,7 +29,7 @@ exports[`git.pull.watch events given: [case2] a watched pr, then a comment from 
    ├─ by: @surfer-kai · comment
    ├─ says: can you also cover the empty wave report?…
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#issuecomment-202
-   └─ next: rhx git.pull.comment get --pr 1220 --in ehmpathy/surf-demo"
+   └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo"
 `;
 
 exports[`git.pull.watch events given: [case2] a watched pr, then a comment from a peer and one from the clone itself when: [t2] a ci bot leaves a review comment then: the bot comment is alerted, labeled bot 1`] = `
@@ -40,7 +40,7 @@ exports[`git.pull.watch events given: [case2] a watched pr, then a comment from 
    ├─ by: @reef-lint[bot] (bot) · review comment
    ├─ says: lint: line too long
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#discussion_r301
-   └─ next: rhx git.pull.comment get --pr 1220 --in ehmpathy/surf-demo"
+   └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo"
 `;
 
 exports[`git.pull.watch events given: [case2] a watched pr, then a comment from a peer and one from the clone itself when: [t3] a peer clone, through the shared bot login, comments then: the comment is alerted, labeled clone, not bot 1`] = `
@@ -51,7 +51,7 @@ exports[`git.pull.watch events given: [case2] a watched pr, then a comment from 
    ├─ by: @ehm-seaturtle[bot] (clone) · comment
    ├─ says: 🐢 reviewed: the wave report case reads clean
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#issuecomment-203
-   └─ next: rhx git.pull.comment get --pr 1220 --in ehmpathy/surf-demo"
+   └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo"
 `;
 
 exports[`git.pull.watch events given: [case2] a watched pr, then a comment from a peer and one from the clone itself when: [t4] a burst: two comments and a ci failure in one tick then: each event is its own section, with its own next line 1`] = `
@@ -68,12 +68,12 @@ exports[`git.pull.watch events given: [case2] a watched pr, then a comment from 
    │  ├─ by: @surfer-kai · comment
    │  ├─ says: one more: the swell table
    │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#issuecomment-204
-   │  └─ next: rhx git.pull.comment get --pr 1220 --in ehmpathy/surf-demo
+   │  └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo
    └─ new comment
       ├─ by: @surfer-nalu · comment
       ├─ says: and the tide chart
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#issuecomment-205
-      └─ next: rhx git.pull.comment get --pr 1220 --in ehmpathy/surf-demo"
+      └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo"
 `;
 
 exports[`git.pull.watch events given: [case2d] a comment whose text holds control bytes when: [t0] a peer pastes a terminal log with escapes into a comment then: the words of the comment and its author survive 1`] = `
@@ -84,7 +84,7 @@ exports[`git.pull.watch events given: [case2d] a comment whose text holds contro
    ├─ by: @surfer-kai · comment
    ├─ says: wipeout on the reef
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#issuecomment-301
-   └─ next: rhx git.pull.comment get --pr 1220 --in ehmpathy/surf-demo"
+   └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo"
 `;
 
 exports[`git.pull.watch events given: [case2e] the shapes github serves for clones, inline comments, and bare change requests when: [t0] a peer clone comments, a reviewer leaves an inline note, and requests changes with no body then: the alert reads as one tree 1`] = `
@@ -108,7 +108,7 @@ exports[`git.pull.watch events given: [case2e] the shapes github serves for clon
    ├─ by: @surfer-kai · review: changes requested
    │  ├─ read: gh api --method GET repos/ehmpathy/surf-demo/pulls/1220/reviews/403 --jq .body
    │  └─ url: https://github.com/ehmpathy/surf-demo/pull/1220#pullrequestreview-403
-   └─ next: rhx git.pull.comment get --pr 1220 --in ehmpathy/surf-demo"
+   └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo"
 `;
 
 exports[`git.pull.watch events given: [case2f] a burst of one kind of event in one tick when: [t0] two jobs fail on one head, between two ticks then: both failures ride one alert, each with its own check line 1`] = `
@@ -155,13 +155,13 @@ exports[`git.pull.watch events given: [case2g] every check conclusion and review
    │  ├─ says: the swell reads two feet high
    │  ├─ read: gh api --method GET repos/ehmpathy/surf-demo/pulls/1220/reviews/501 --jq .body
    │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#pullrequestreview-501
-   │  └─ next: rhx git.pull.comment get --pr 1220 --in ehmpathy/surf-demo
+   │  └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo
    └─ new comment
       ├─ by: @surfer-mano · review: dismissed
       ├─ says: stale ask, the reef moved
       ├─ read: gh api --method GET repos/ehmpathy/surf-demo/pulls/1220/reviews/502 --jq .body
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#pullrequestreview-502
-      └─ next: rhx git.pull.comment get --pr 1220 --in ehmpathy/surf-demo"
+      └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo"
 `;
 
 exports[`git.pull.watch events given: [case2g] every check conclusion and review state github serves when: [t1] two reviewers approve in one tick then: the next move follows the red ci 1`] = `
@@ -187,7 +187,7 @@ exports[`git.pull.watch events given: [case3] a watched pr that a reviewer appro
    ├─ says: please split the wave report fetch
    ├─ read: gh api --method GET repos/ehmpathy/surf-demo/pulls/1220/reviews/401 --jq .body
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#pullrequestreview-401
-   └─ next: rhx git.pull.comment get --pr 1220 --in ehmpathy/surf-demo"
+   └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo"
 `;
 
 exports[`git.pull.watch events given: [case3] a watched pr that a reviewer approves when: [t0] the pr is watched, then a changes-requested review, then an approval then: the approval alert names the reviewer, ci passed, and the release command 1`] = `

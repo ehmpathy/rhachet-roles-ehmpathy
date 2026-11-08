@@ -88,7 +88,7 @@ as_watch_event_next() {
   kind="$(printf '%s' "$event" | jq -r '.kind')"
   ci="$(printf '%s' "$event" | jq -r '.ci // "none"')"
   [[ "$kind" == "ci.failed" ]] && { echo "rhx show.gh.test.errors"; return 0; }
-  [[ "$kind" == "comment.new" ]] && { echo "rhx git.pull.comment get --pr $pr --in $repo"; return 0; }
+  [[ "$kind" == "comment.new" ]] && { echo "rhx git.pull.comment get --which $pr --in $repo"; return 0; }
   [[ "$kind" == "review.approved" && "$ci" == "passed" ]] && { echo "rhx git.release --mode apply"; return 0; }
   [[ "$kind" == "review.approved" && "$ci" == "failed" ]] && { echo "rhx show.gh.test.errors"; return 0; }
   [[ "$kind" == "review.approved" ]] && { echo "rhx git.release --watch"; return 0; }
@@ -184,10 +184,22 @@ as_watch_events_text() {
   return 0
 }
 
+# .what = an idle span in the largest whole unit that fits: days, else minutes
+as_watch_idle_label() {
+  local seconds="$1"
+  [[ $seconds -ge 86400 ]] && { echo "$((seconds / 86400)) days"; return 0; }
+  echo "$(as_watch_minutes_ceil "$seconds") min"
+}
+
 # .what = the closure note of a watch that ended
 # .why  = a close without merge must never read as a ship, so it says so and by whom
 as_watch_closure_text() {
   local pr="$1" end="$2" closed_by="$3"
+  if [[ "$end" == "idle" ]]; then
+    print_watch_alert_header "heads up dude..." "#$pr quiet for $(as_watch_idle_label "$WATCH_IDLE_TTL_SECONDS"); watch ended"
+    echo "   └─ rewatch: rhx git.pull.watch set --which $pr --mode apply"
+    return 0
+  fi
   if [[ "$end" == "merged" ]]; then
     print_watch_alert_header "cowabunga!" "#$pr merged; watch ended"
     return 0

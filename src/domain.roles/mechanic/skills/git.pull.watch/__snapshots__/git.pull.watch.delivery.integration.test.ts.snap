@@ -483,7 +483,7 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 "
 `;
 
-exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pull is absent, --mode is not plan | apply, or an arg is unknown then: an unknown arg is refused by each verb, with the help command 1`] = `
+exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --which is absent, --mode is not plan | apply, or an arg is unknown then: an unknown arg is refused by each verb, with the help command 1`] = `
 "🐢 bummer dude...
 
 🐚 git.pull.watch get
@@ -495,7 +495,7 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 "
 `;
 
-exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pull is absent, --mode is not plan | apply, or an arg is unknown then: an unknown arg is refused by each verb, with the help command 2`] = `
+exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --which is absent, --mode is not plan | apply, or an arg is unknown then: an unknown arg is refused by each verb, with the help command 2`] = `
 "🐢 bummer dude...
 
 🐚 git.pull.watch set
@@ -507,7 +507,7 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 "
 `;
 
-exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pull is absent, --mode is not plan | apply, or an arg is unknown then: an unknown arg is refused by each verb, with the help command 3`] = `
+exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --which is absent, --mode is not plan | apply, or an arg is unknown then: an unknown arg is refused by each verb, with the help command 3`] = `
 "🐢 bummer dude...
 
 🐚 git.pull.watch del
@@ -519,7 +519,7 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 "
 `;
 
-exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pull is absent, --mode is not plan | apply, or an arg is unknown then: an unknown verb is refused, with the verbs named 1`] = `
+exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --which is absent, --mode is not plan | apply, or an arg is unknown then: an unknown verb is refused, with the verbs named 1`] = `
 "🐢 bummer dude...
 
 🐚 git.pull.watch
@@ -531,19 +531,19 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 "
 `;
 
-exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pull is absent, --mode is not plan | apply, or an arg is unknown then: each exits 2 and names the fix 1`] = `
+exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --which is absent, --mode is not plan | apply, or an arg is unknown then: each exits 2 and names the fix 1`] = `
 "🐢 bummer dude...
 
 🐚 git.pull.watch set
-   └─ ✋ ConstraintError: --pull <n> is required
+   └─ ✋ ConstraintError: --which <n> is required
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch set --pull <n> --mode apply
+      └─ rhx git.pull.watch set --which <n> --mode apply
 "
 `;
 
-exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --pull is absent, --mode is not plan | apply, or an arg is unknown then: each exits 2 and names the fix 2`] = `
+exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t2] --which is absent, --mode is not plan | apply, or an arg is unknown then: each exits 2 and names the fix 2`] = `
 "🐢 bummer dude...
 
 🐚 git.pull.watch set
@@ -565,7 +565,7 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 
 🥥 did you know?
    └─ plan writes naught; to watch it
-      └─ rhx git.pull.watch set --pull 1220 --in ehmpathy/surf-demo --mode apply
+      └─ rhx git.pull.watch set --which 1220 --in ehmpathy/surf-demo --mode apply
 "
 `;
 
@@ -582,34 +582,34 @@ example:
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t4] help is asked of each verb then: each exits 0 with usage, options, and an example 2`] = `
-"usage: git.pull.watch set --pull <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
+"usage: git.pull.watch set --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
 options:
-  --pull <n>          the pull request to watch (required)
+  --which <n>         the pull request to watch (required)
   --in <owner/name>   the repo (default: the cwd's github origin)
   --mode plan|apply   plan shows what would happen; apply watches (default: plan)
   --output tree|json  the output shape (default: tree)
   --help, -h          show this help
 
 example:
-  rhx git.pull.watch set --pull 1220 --mode apply
+  rhx git.pull.watch set --which 1220 --mode apply
 "
 `;
 
 exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entries E7, E3) when: [t4] help is asked of each verb then: each exits 0 with usage, options, and an example 3`] = `
-"usage: git.pull.watch del --pull <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
+"usage: git.pull.watch del --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
 options:
-  --pull <n>          the pull request whose watch to stop (required)
+  --which <n>         the pull request whose watch to stop (required)
   --in <owner/name>   the repo (default: the cwd's github origin)
   --mode plan|apply   plan shows what would happen; apply deletes (default: plan)
   --output tree|json  the output shape (default: tree)
   --help, -h          show this help
 
 example:
-  rhx git.pull.watch del --pull 1220 --mode apply
+  rhx git.pull.watch del --which 1220 --mode apply
 "
 `;
 
@@ -643,14 +643,14 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 
 verbs:
   get                          the daemons on this machine and their watches
-  set --pull <n>               watch a pr from this clone (plan by default)
-  del --pull <n>               stop this clone's watch on a pr (plan by default)
+  set --which <n>              watch a pr from this clone (plan by default)
+  del --which <n>              stop this clone's watch on a pr (plan by default)
 
 options:
   --help, -h                   show this help; rhx git.pull.watch <verb> --help for a verb's flags
 
 example:
-  rhx git.pull.watch set --pull 1220 --mode apply
+  rhx git.pull.watch set --which 1220 --mode apply
 "
 `;
 
@@ -658,7 +658,7 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 "🐢 bummer dude...
 
 🐚 git.pull.watch set
-   └─ ✋ ConstraintError: --pull needs a value
+   └─ ✋ ConstraintError: --which needs a value
 
 🥥 did you know?
    └─ to fix it
@@ -676,7 +676,7 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 
 🥥 did you know?
    └─ to fix it
-      └─ clear the cause (no write access, a full disk, a file where a dir belongs), then rerun: rhx git.pull.watch set --pull 1220 --mode apply
+      └─ clear the cause (no write access, a full disk, a file where a dir belongs), then rerun: rhx git.pull.watch set --which 1220 --mode apply
 "
 `;
 
@@ -736,9 +736,9 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 "{
   "error": {
     "class": "ConstraintError",
-    "message": "--pull must be a pr number; got 'abc'",
+    "message": "--which must be a pr number; got 'abc'",
     "lines": [
-      "rhx git.pull.watch set --pull <n> --mode apply"
+      "rhx git.pull.watch set --which <n> --mode apply"
     ]
   }
 }
@@ -749,11 +749,11 @@ exports[`git.pull.watch delivery given: [case16] calls the skill refuses (entrie
 "🐢 bummer dude...
 
 🐚 git.pull.watch set
-   └─ ✋ ConstraintError: --pull must be a pr number; got 'abc'
+   └─ ✋ ConstraintError: --which must be a pr number; got 'abc'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch set --pull <n> --mode apply
+      └─ rhx git.pull.watch set --which <n> --mode apply
 "
 `;
 

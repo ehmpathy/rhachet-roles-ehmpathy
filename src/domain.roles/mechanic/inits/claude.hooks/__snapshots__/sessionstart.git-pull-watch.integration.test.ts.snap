@@ -12,7 +12,7 @@ exports[`sessionstart.git-pull-watch.sh given: [case1] a box with one repo and o
 🥥 did you know?
    └─ to find the watch, pick one
       ├─ see each watch: rhx git.pull.watch get
-      └─ rewatch a pr: rhx git.pull.watch set --pull <n> --mode apply
+      └─ rewatch a pr: rhx git.pull.watch set --which <n> --mode apply
 "
 `;
 

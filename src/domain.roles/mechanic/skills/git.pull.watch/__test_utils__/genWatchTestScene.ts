@@ -292,6 +292,8 @@ export const genWatchTestScene = (input: {
   slug: string;
   repos: string[];
   store: Partial<WatchStore>;
+  /** knobs over the scene defaults, e.g. a poll cap or an idle ttl */
+  env?: Record<string, string>;
 }): WatchScene => {
   const home = fs.realpathSync(
     genTempDir({ slug: `${input.slug}-home`, git: false }),
@@ -393,6 +395,9 @@ export const genWatchTestScene = (input: {
       PATH: `${fakeBin}:${process.env.PATH}`,
       GIT_PULL_WATCH_TICK_SECONDS: '1',
       GIT_PULL_WATCH_UNREACHABLE_NOTE_SECONDS: '4',
+      // every tick reads every pr, unless a case asks for the quiet-pr gap
+      GIT_PULL_WATCH_POLL_MAX_SECONDS: '1',
+      ...input.env,
       FAKE_WATCH_STATE: statePath,
       FAKE_WATCH_SAY_LOG: sayLog,
       FAKE_WATCH_GH_LOG: ghLog,

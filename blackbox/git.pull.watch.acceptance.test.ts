@@ -112,7 +112,7 @@ describe('git.pull.watch, via rhachet', () => {
         setBadMode: runViaRhachet({
           dir: scene.dir,
           skill: 'git.pull.watch.set',
-          args: ['--pull', '7', '--mode', 'yolo'],
+          args: ['--which', '7', '--mode', 'yolo'],
         }),
         delNoPr: runViaRhachet({
           dir: scene.dir,
@@ -123,7 +123,7 @@ describe('git.pull.watch, via rhachet', () => {
       then('each refuses with exit 2 and names the fix, on both streams', () => {
         expect(result.setNoPr.code).toBe(2);
         expect(result.setNoPr.stdout).toContain(
-          '✋ ConstraintError: --pull <n> is required',
+          '✋ ConstraintError: --which <n> is required',
         );
         expect(result.setNoPr.stderr).toContain('ConstraintError');
         expect(result.setBadMode.code).toBe(2);
@@ -131,7 +131,7 @@ describe('git.pull.watch, via rhachet', () => {
           '--mode must be one of: plan | apply',
         );
         expect(result.delNoPr.code).toBe(2);
-        expect(result.delNoPr.stdout).toContain('--pull <n> is required');
+        expect(result.delNoPr.stdout).toContain('--which <n> is required');
       });
       then('each refusal is snapped', () => {
         expect({
@@ -191,7 +191,7 @@ describe('git.pull.watch, via rhachet', () => {
         expect(result.tree.code).toBe(0);
         expect(result.tree.stdout).toContain('no daemons, no watches');
         expect(result.tree.stdout).toContain(
-          'rhx git.pull.watch set --pull <n> --mode apply',
+          'rhx git.pull.watch set --which <n> --mode apply',
         );
         expect(asSkillRender(result.tree)).toMatchSnapshot();
       });
@@ -368,7 +368,7 @@ describe('git.pull.watch, via rhachet', () => {
           runViaRhachet({
             dir: scene.dir,
             skill: 'git.pull.watch.del',
-            args: ['--pull', '1240', '--in', 'ehmpathy/surf-demo', ...args],
+            args: ['--which', '1240', '--in', 'ehmpathy/surf-demo', ...args],
             env: { HOME: home, RHACHET_CLONE_SERIAL: serial },
           });
         const plan = run([]);
@@ -391,7 +391,7 @@ describe('git.pull.watch, via rhachet', () => {
         expect(result.plan.stdout).toContain('verdict: would delete');
         expect(result.plan.stdout).toContain('daemon: v1.0.0+cafe0003');
         expect(result.plan.stdout).toContain(
-          'rhx git.pull.watch del --pull 1240 --in ehmpathy/surf-demo --mode apply',
+          'rhx git.pull.watch del --which 1240 --in ehmpathy/surf-demo --mode apply',
         );
         expect(result.recordAfterPlan).toBe(true);
         expect(asSkillRender(result.plan)).toMatchSnapshot();
@@ -432,15 +432,15 @@ describe('git.pull.watch, via rhachet', () => {
           });
         return {
           noSerial: run({
-            args: ['--pull', '7', '--in', 'ehmpathy/surf-demo', '--mode', 'apply'],
+            args: ['--which', '7', '--in', 'ehmpathy/surf-demo', '--mode', 'apply'],
             serial: '',
           }),
           badIn: run({
-            args: ['--pull', '7', '--in', 'nonsense', '--mode', 'apply'],
+            args: ['--which', '7', '--in', 'nonsense', '--mode', 'apply'],
             serial: 'f0f0f0f0-0000-4000-8000-00000000000f',
           }),
           strangerSerial: run({
-            args: ['--pull', '7', '--in', 'ehmpathy/surf-demo', '--mode', 'apply'],
+            args: ['--which', '7', '--in', 'ehmpathy/surf-demo', '--mode', 'apply'],
             serial: 'f0f0f0f0-0000-4000-8000-00000000000f',
           }),
         };

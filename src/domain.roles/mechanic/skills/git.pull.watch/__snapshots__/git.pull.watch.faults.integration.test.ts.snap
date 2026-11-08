@@ -46,7 +46,7 @@ exports[`git.pull.watch faults given: [case4] a watch record that will not parse
 🥥 did you know?
    └─ a watch record that does not parse is held, never served
       ├─ 1. read it: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=9.clone=c3.json
-      └─ 2. rewrite it from its clone: rhx git.pull.watch set --pull <n> --mode apply
+      └─ 2. rewrite it from its clone: rhx git.pull.watch set --which <n> --mode apply
 "
 `;
 

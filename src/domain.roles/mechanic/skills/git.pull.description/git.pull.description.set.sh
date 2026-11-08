@@ -9,7 +9,7 @@
 # usage:
 #   rhx git.pull.description set --from ./.temp/body.md                           # plan
 #   rhx git.pull.description set --from ./.temp/body.md --mode apply
-#   rhx git.pull.description set --pr 69 --from @stdin --mode apply               # a piped body
+#   rhx git.pull.description set --which 69 --from @stdin --mode apply               # a piped body
 #   rhx git.pull.description.set --help                                           # every flag
 #
 # guarantee:
@@ -39,11 +39,11 @@ OUTPUT="tree"
 # .why  = --help is the one authoritative flag list; the file header names none
 help() {
   cat <<'EOF'
-usage: git.pull.description.set --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+usage: git.pull.description.set --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
   --from <path|@stdin>         the body; written with the seaturtle attribution as its last line
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
@@ -64,11 +64,11 @@ while [[ $# -gt 0 ]]; do
   # split --flag=value into two args, so both forms parse one way
   [[ "$1" == --*=* ]] && set -- "${1%%=*}" "${1#*=}" "${@:2}"
   check_flag_has_value "$1" "$#" "${2:-}" "$SKILL" \
-    --skill --repo --role --pr --from --in --auth --mode --output
+    --skill --repo --role --which --from --in --auth --mode --output
   case "$1" in
     --skill|--repo|--role) shift 2 ;;
     --) shift ;;
-    --pr) PR="${2:-}"; shift 2 ;;
+    --which) PR="${2:-}"; shift 2 ;;
     --from) FROM="${2:-}"; shift 2 ;;
     --in) REPO_IN="${2:-}"; shift 2 ;;
     --auth) AUTH="${2:-}"; shift 2 ;;

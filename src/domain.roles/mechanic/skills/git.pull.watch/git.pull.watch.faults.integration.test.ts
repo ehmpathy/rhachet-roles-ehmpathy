@@ -104,14 +104,14 @@ describe('git.pull.watch faults', () => {
           // manifest-less root alone (a pause then would be the honest answer)
           scene.runSkill({
             verb: 'set',
-            args: ['--pull', '8', '--mode', 'apply'],
+            args: ['--which', '8', '--mode', 'apply'],
             root: scene.roots['zz-reef']!,
             serial: SERIAL_B,
           });
           await scene.waitForPrimed();
           scene.runSkill({
             verb: 'set',
-            args: ['--pull', '7', '--mode', 'apply'],
+            args: ['--which', '7', '--mode', 'apply'],
             root: scene.roots['aa-reef']!,
             serial: SERIAL_A,
           });
@@ -160,7 +160,7 @@ describe('git.pull.watch faults', () => {
         const result = useThen('the daemon ticks past it', async () => {
           scene.runSkill({
             verb: 'set',
-            args: ['--pull', '1220', '--mode', 'apply'],
+            args: ['--which', '1220', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });
@@ -222,7 +222,7 @@ describe('git.pull.watch faults', () => {
       const result = useThen('the daemon ticks through it', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pull', '1220', '--mode', 'apply'],
+          args: ['--which', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -270,7 +270,7 @@ describe('git.pull.watch faults', () => {
       const result = useThen('get runs', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pull', '1220', '--mode', 'apply'],
+          args: ['--which', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -336,7 +336,7 @@ describe('git.pull.watch faults', () => {
       const result = useThen('set runs', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pull', '1220', '--mode', 'apply'],
+          args: ['--which', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -348,7 +348,7 @@ describe('git.pull.watch faults', () => {
         });
         return scene.runSkill({
           verb: 'set',
-          args: ['--pull', '1221', '--mode', 'apply'],
+          args: ['--which', '1221', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -387,7 +387,7 @@ describe('git.pull.watch faults', () => {
       const result = useThen('the daemon ticks past it', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pull', '1220', '--mode', 'apply'],
+          args: ['--which', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -447,7 +447,7 @@ describe('git.pull.watch faults', () => {
             });
             const set = scene.runSkill({
               verb: 'set',
-              args: ['--pull', '1220', '--mode', 'apply'],
+              args: ['--which', '1220', '--mode', 'apply'],
               root: scene.roots['surf-demo']!,
               serial: SERIAL_A,
             });
@@ -524,7 +524,7 @@ describe('git.pull.watch faults', () => {
         const result = useThen('the orphan read ends', async () => {
           scene.runSkill({
             verb: 'set',
-            args: ['--pull', '1220', '--mode', 'apply'],
+            args: ['--which', '1220', '--mode', 'apply'],
             root: scene.roots['surf-demo']!,
             serial: SERIAL_A,
           });
@@ -581,7 +581,7 @@ describe('git.pull.watch faults', () => {
       const result = useThen('set runs', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pull', '1220', '--mode', 'apply'],
+          args: ['--which', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -590,7 +590,7 @@ describe('git.pull.watch faults', () => {
         fs.writeFileSync(record, '{"repo": "ehmpathy/surf-de');
         const set = scene.runSkill({
           verb: 'set',
-          args: ['--pull', '1220', '--mode', 'apply'],
+          args: ['--which', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });
@@ -644,7 +644,7 @@ describe('git.pull.watch faults', () => {
       const result = useThen('the daemon ticks', async () => {
         scene.runSkill({
           verb: 'set',
-          args: ['--pull', '1220', '--mode', 'apply'],
+          args: ['--which', '1220', '--mode', 'apply'],
           root: scene.roots['surf-demo']!,
           serial: SERIAL_A,
         });

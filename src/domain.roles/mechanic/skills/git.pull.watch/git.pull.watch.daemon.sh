@@ -22,6 +22,11 @@
 #     and one past 30 min earns one note per clone (A29, A30)
 #   - a keyrack fault holds the tick and logs its cause; one past 30 min earns
 #     one note per clone, with the cause and the check
+#   - a quiet pr is read less often: the gap doubles per quiet read, up to 15 min;
+#     a change, a push, or a fresh watch snaps it back to one tick
+#   - a pr with no change for a week ends its watches, with a note that names the rewatch
+#   - an older key's watch whose repo root runs this key now is taken, cursors and
+#     held alerts with it, so an upgrade moves every clone at once
 #   - a record is written back only under the key lock and only if it still
 #     stands, so a `del` or a `set` move is never undone by a tick in flight
 ######################################################################
@@ -631,6 +636,93 @@ get_all_watch_records_of_pr() {
   return 0
 }
 
+# .what = is any live watch of this pr not yet primed?
+# .why  = a fresh watch reads its pr at the next tick, whatever the pr's cadence
+is_watch_pr_unprimed() {
+  local repo="$1" pr="$2" record
+  while IFS= read -r record; do
+    [[ -n "$record" && "$(jq -r '.primed // false' "$record")" != "true" ]] && return 0
+  done < <(get_all_watch_records_of_pr "$repo" "$pr")
+  return 1
+}
+
+# .what = end each watch of a pr idle past the ttl; tell its clone how to rewatch
+# .why  = a pr with no change for a week holds a poll for naught; its watch ends,
+#         and the drain deletes it once the note is out, so the daemon can reach zero
+set_watch_idle_ended() {
+  local repo="$1" pr="$2" record watch_id
+  log_watch "$repo#$pr had no change in ${WATCH_IDLE_TTL_SECONDS}s; its watches end"
+  while IFS= read -r -u 4 record; do
+    [[ -n "$record" ]] || continue
+    watch_id="$(jq -r '.watchId // ""' "$record")"
+    set_watch_outbox_entry "$record" "$(as_watch_closure_text "$pr" idle "")" || continue
+    jq '.ended = "idle"' "$record" | set_watch_record_if_same "$KEY_DIR" "$record" "$watch_id" \
+      || log_watch "record write held; $(basename "$record") ends next tick"
+  done 4< <(get_all_watch_records_of_pr "$repo" "$pr")
+}
+
+# .what = the key a repo root runs now, read once per root per tick
+# .note = a newline list of `root<TAB>key`, so bash 3 (macos) needs no assoc array
+WATCH_ROOT_KEYS=""
+get_watch_key_of_root_cached() {
+  local root="$1" row key
+  row="$(printf '%s\n' "$WATCH_ROOT_KEYS" | grep -F -m1 "$root"$'\t' || true)"
+  if [[ -n "$row" ]]; then
+    echo "${row#*$'\t'}"
+    return 0
+  fi
+  key="$(get_watch_key_of_root "$root")"
+  WATCH_ROOT_KEYS="$WATCH_ROOT_KEYS"$'\n'"$root"$'\t'"$key"
+  echo "$key"
+}
+
+# .what = take one watch from an older key into this one, its held alerts with it
+# .why  = under the old key's lock, so the old daemon cannot write it back mid-move;
+#         the cursors ride along, so no event re-alerts (case=14)
+set_watch_record_stolen() {
+  local record="$1" root="$2" slug="$3" watch_id="$4" old_dir target outbox entry
+  old_dir="$(as_watch_key_dir_of_record "$record")"
+  target="$(as_watch_record_path "$KEY_DIR" "$(basename "$record")")"
+  outbox="$(as_watch_outbox_dir "$KEY_DIR")"
+  take_watch_lock "$old_dir" || { log_watch "lock of $old_dir timed out; steal waits a tick"; return 0; }
+  # the old life left, or was renewed, since this tick read it: leave it be
+  if [[ ! -f "$record" || "$(jq -r '.watchId // ""' "$record" 2>/dev/null)" != "$watch_id" ]]; then
+    drop_watch_lock "$old_dir"
+    return 0
+  fi
+  # one key per watch (F9): a twin here already holds it, so the old one only leaves
+  if [[ ! -f "$target" ]]; then
+    as_watch_record_moved "$record" "$root" "$slug" | set_watch_file_atomic "$target" \
+      || { drop_watch_lock "$old_dir"; log_watch "steal of $(basename "$record") failed to write; it stays"; return 0; }
+    mkdir -p "$outbox"
+    while IFS= read -r entry; do
+      [[ -n "$entry" ]] && mv "$entry" "$outbox/"
+    done < <(get_all_watch_outbox_entries_of_record "$record")
+  fi
+  rm -f "$record"
+  drop_watch_lock "$old_dir"
+  log_watch "took $(basename "$record") from v$(as_watch_key_from_dir "$old_dir"): its root runs v$KEY now"
+}
+
+# .what = take every live watch an older key holds whose repo root runs this key now
+# .why  = an upgrade moves its clones at once, not at each clone's next `set`; the
+#         old daemon drops to zero watches and exits
+set_watch_records_stolen() {
+  local dir record root slug watch_id
+  WATCH_ROOT_KEYS=""
+  while IFS= read -r dir; do
+    [[ -n "$dir" && "$dir" != "$KEY_DIR" ]] || continue
+    while IFS= read -r record; do
+      [[ -n "$record" ]] || continue
+      is_watch_ended "$record" && continue
+      IFS=$'\t' read -r root slug watch_id < <(jq -r '[.repoRoot, .cloneSlug, (.watchId // "")] | @tsv' "$record")
+      [[ -d "$root" ]] || continue
+      [[ "$(get_watch_key_of_root_cached "$root")" == "$KEY" ]] || continue
+      set_watch_record_stolen "$record" "$root" "$slug" "$watch_id"
+    done < <(get_all_watch_records "$dir")
+  done < <(get_all_watch_key_dirs)
+}
+
 ######################################################################
 # the tick
 ######################################################################
@@ -639,6 +731,7 @@ get_all_watch_records_of_pr() {
 # .why  = the whole of the daemon's work; the loop below only paces it
 run_watch_tick() {
   set_watch_heartbeat
+  set_watch_records_stolen
   exit_watch_daemon_if_idle
   del_watch_records_of_dead_clones
   exit_watch_daemon_if_idle
@@ -675,6 +768,12 @@ run_watch_tick() {
   local repo pr state_file rc record
   while IFS='|' read -r -u 3 repo pr; do
     [[ -n "$repo" ]] || continue
+    # a pr with no change past the ttl ends its watches; a quiet pr waits its gap
+    if is_watch_pr_idle "$KEY_DIR" "$repo" "$pr"; then
+      set_watch_idle_ended "$repo" "$pr"
+      continue
+    fi
+    is_watch_pr_due "$KEY_DIR" "$repo" "$pr" || is_watch_pr_unprimed "$repo" "$pr" || continue
     state_file="$(mktemp)"
     rc=0
     get_watch_pr_state "$repo" "$pr" "$state_file" || rc=$?
@@ -706,6 +805,7 @@ run_watch_tick() {
     while IFS= read -r -u 4 record; do
       [[ -n "$record" ]] && set_watch_alert_for_record "$record" "$state_file"
     done 4< <(get_all_watch_records_of_pr "$repo" "$pr")
+    set_watch_pr_cadence "$KEY_DIR" "$repo" "$pr" "$state_file"
     rm -f "$state_file"
     set_watch_heartbeat
   done 3< <(get_all_watched_repo_prs)

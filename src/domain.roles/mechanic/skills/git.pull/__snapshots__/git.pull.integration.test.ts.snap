@@ -2,33 +2,33 @@
 
 exports[`git.pull given: [case1] the branch has no open pull when: [t0] each of the four verbs runs then: each verb names itself in its fix, so each render is snapped 1`] = `
 {
-  "descriptionGet": "✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+  "descriptionGet": "✋ ConstraintError: --which is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
 
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
-      └─ rhx git.pull.description.get --pr <n> ...   # or name a pull, closed or merged included
+      └─ rhx git.pull.description.get --which <n> ...   # or name a pull, closed or merged included
 ",
-  "descriptionSet": "✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+  "descriptionSet": "✋ ConstraintError: --which is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
 
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
-      └─ rhx git.pull.description.set --pr <n> ...   # or name a pull, closed or merged included
+      └─ rhx git.pull.description.set --which <n> ...   # or name a pull, closed or merged included
 ",
-  "titleGet": "✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+  "titleGet": "✋ ConstraintError: --which is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
 
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
-      └─ rhx git.pull.title.get --pr <n> ...   # or name a pull, closed or merged included
+      └─ rhx git.pull.title.get --which <n> ...   # or name a pull, closed or merged included
 ",
-  "titleSet": "✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+  "titleSet": "✋ ConstraintError: --which is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
 
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
-      └─ rhx git.pull.title.set --pr <n> ...   # or name a pull, closed or merged included
+      └─ rhx git.pull.title.set --which <n> ...   # or name a pull, closed or merged included
 ",
 }
 `;
@@ -41,9 +41,9 @@ exports[`git.pull given: [case1] the branch has no open pull when: [t1] each of 
       "details": [],
       "fixes": [
         "rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one",
-        "rhx git.pull.description.get --pr <n> ...   # or name a pull, closed or merged included",
+        "rhx git.pull.description.get --which <n> ...   # or name a pull, closed or merged included",
       ],
-      "message": "--pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo",
+      "message": "--which is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo",
     },
   },
   "descriptionSet": {
@@ -52,9 +52,9 @@ exports[`git.pull given: [case1] the branch has no open pull when: [t1] each of 
       "details": [],
       "fixes": [
         "rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one",
-        "rhx git.pull.description.set --pr <n> ...   # or name a pull, closed or merged included",
+        "rhx git.pull.description.set --which <n> ...   # or name a pull, closed or merged included",
       ],
-      "message": "--pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo",
+      "message": "--which is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo",
     },
   },
   "titleGet": {
@@ -63,9 +63,9 @@ exports[`git.pull given: [case1] the branch has no open pull when: [t1] each of 
       "details": [],
       "fixes": [
         "rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one",
-        "rhx git.pull.title.get --pr <n> ...   # or name a pull, closed or merged included",
+        "rhx git.pull.title.get --which <n> ...   # or name a pull, closed or merged included",
       ],
-      "message": "--pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo",
+      "message": "--which is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo",
     },
   },
   "titleSet": {
@@ -74,9 +74,9 @@ exports[`git.pull given: [case1] the branch has no open pull when: [t1] each of 
       "details": [],
       "fixes": [
         "rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one",
-        "rhx git.pull.title.set --pr <n> ...   # or name a pull, closed or merged included",
+        "rhx git.pull.title.set --which <n> ...   # or name a pull, closed or merged included",
       ],
-      "message": "--pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo",
+      "message": "--which is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo",
     },
   },
 }
@@ -113,25 +113,25 @@ exports[`git.pull given: [case1b] each verb refuses bad input before any gh call
 
 exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t1] a flag with no value then: each exits 2, names the input, on both streams, no gh call 1`] = `
 {
-  "descriptionGet": "✋ ConstraintError: --pr needs a value
+  "descriptionGet": "✋ ConstraintError: --which needs a value
 
 🥥 did you know?
    └─ to fix it
       └─ rhx git.pull.description.get --help   # lists each flag and its value
 ",
-  "descriptionSet": "✋ ConstraintError: --pr needs a value
+  "descriptionSet": "✋ ConstraintError: --which needs a value
 
 🥥 did you know?
    └─ to fix it
       └─ rhx git.pull.description.set --help   # lists each flag and its value
 ",
-  "titleGet": "✋ ConstraintError: --pr needs a value
+  "titleGet": "✋ ConstraintError: --which needs a value
 
 🥥 did you know?
    └─ to fix it
       └─ rhx git.pull.title.get --help   # lists each flag and its value
 ",
-  "titleSet": "✋ ConstraintError: --pr needs a value
+  "titleSet": "✋ ConstraintError: --which needs a value
 
 🥥 did you know?
    └─ to fix it
@@ -140,31 +140,31 @@ exports[`git.pull given: [case1b] each verb refuses bad input before any gh call
 }
 `;
 
-exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t2] a non-numeric --pr then: each exits 2, names the input, on both streams, no gh call 1`] = `
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t2] a non-numeric --which then: each exits 2, names the input, on both streams, no gh call 1`] = `
 {
-  "descriptionGet": "✋ ConstraintError: --pr must be a pull request number, got 'seven'
+  "descriptionGet": "✋ ConstraintError: --which must be a pull request number, got 'seven'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.description.get --pr 69 ...   # or omit --pr, for the open pull of the cwd branch
+      └─ rhx git.pull.description.get --which 69 ...   # or omit --which, for the open pull of the cwd branch
 ",
-  "descriptionSet": "✋ ConstraintError: --pr must be a pull request number, got 'seven'
+  "descriptionSet": "✋ ConstraintError: --which must be a pull request number, got 'seven'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.description.set --pr 69 ...   # or omit --pr, for the open pull of the cwd branch
+      └─ rhx git.pull.description.set --which 69 ...   # or omit --which, for the open pull of the cwd branch
 ",
-  "titleGet": "✋ ConstraintError: --pr must be a pull request number, got 'seven'
+  "titleGet": "✋ ConstraintError: --which must be a pull request number, got 'seven'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.title.get --pr 69 ...   # or omit --pr, for the open pull of the cwd branch
+      └─ rhx git.pull.title.get --which 69 ...   # or omit --which, for the open pull of the cwd branch
 ",
-  "titleSet": "✋ ConstraintError: --pr must be a pull request number, got 'seven'
+  "titleSet": "✋ ConstraintError: --which must be a pull request number, got 'seven'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.title.set --pr 69 ...   # or omit --pr, for the open pull of the cwd branch
+      └─ rhx git.pull.title.set --which 69 ...   # or omit --which, for the open pull of the cwd branch
 ",
 }
 `;
@@ -244,64 +244,64 @@ exports[`git.pull given: [case1b] each verb refuses bad input before any gh call
 }
 `;
 
-exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t6] the cwd is on a detached HEAD, with no --pr then: each exits 2 and names the detached HEAD 1`] = `
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t6] the cwd is on a detached HEAD, with no --which then: each exits 2 and names the detached HEAD 1`] = `
 {
-  "descriptionGet": "✋ ConstraintError: --pr is absent, and the cwd has no branch to find a pull for (detached HEAD)
+  "descriptionGet": "✋ ConstraintError: --which is absent, and the cwd has no branch to find a pull for (detached HEAD)
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.description.get --pr <n> ...
+      └─ rhx git.pull.description.get --which <n> ...
 ",
-  "descriptionSet": "✋ ConstraintError: --pr is absent, and the cwd has no branch to find a pull for (detached HEAD)
+  "descriptionSet": "✋ ConstraintError: --which is absent, and the cwd has no branch to find a pull for (detached HEAD)
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.description.set --pr <n> ...
+      └─ rhx git.pull.description.set --which <n> ...
 ",
-  "titleGet": "✋ ConstraintError: --pr is absent, and the cwd has no branch to find a pull for (detached HEAD)
+  "titleGet": "✋ ConstraintError: --which is absent, and the cwd has no branch to find a pull for (detached HEAD)
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.title.get --pr <n> ...
+      └─ rhx git.pull.title.get --which <n> ...
 ",
-  "titleSet": "✋ ConstraintError: --pr is absent, and the cwd has no branch to find a pull for (detached HEAD)
+  "titleSet": "✋ ConstraintError: --which is absent, and the cwd has no branch to find a pull for (detached HEAD)
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.title.set --pr <n> ...
+      └─ rhx git.pull.title.set --which <n> ...
 ",
 }
 `;
 
-exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t7] the branch has two open pulls, with no --pr then: each exits 2, lists both pulls, and writes naught 1`] = `
+exports[`git.pull given: [case1b] each verb refuses bad input before any gh call when: [t7] the branch has two open pulls, with no --which then: each exits 2, lists both pulls, and writes naught 1`] = `
 {
-  "descriptionGet": "✋ ConstraintError: --pr is absent, and branch 'surf/book-lesson' has 2 open pulls on ehmpathy/surf-demo
+  "descriptionGet": "✋ ConstraintError: --which is absent, and branch 'surf/book-lesson' has 2 open pulls on ehmpathy/surf-demo
    └─ open pulls: 7, 9
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.description.get --pr <n> ...   # name one
+      └─ rhx git.pull.description.get --which <n> ...   # name one
 ",
-  "descriptionSet": "✋ ConstraintError: --pr is absent, and branch 'surf/book-lesson' has 2 open pulls on ehmpathy/surf-demo
+  "descriptionSet": "✋ ConstraintError: --which is absent, and branch 'surf/book-lesson' has 2 open pulls on ehmpathy/surf-demo
    └─ open pulls: 7, 9
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.description.set --pr <n> ...   # name one
+      └─ rhx git.pull.description.set --which <n> ...   # name one
 ",
-  "titleGet": "✋ ConstraintError: --pr is absent, and branch 'surf/book-lesson' has 2 open pulls on ehmpathy/surf-demo
+  "titleGet": "✋ ConstraintError: --which is absent, and branch 'surf/book-lesson' has 2 open pulls on ehmpathy/surf-demo
    └─ open pulls: 7, 9
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.title.get --pr <n> ...   # name one
+      └─ rhx git.pull.title.get --which <n> ...   # name one
 ",
-  "titleSet": "✋ ConstraintError: --pr is absent, and branch 'surf/book-lesson' has 2 open pulls on ehmpathy/surf-demo
+  "titleSet": "✋ ConstraintError: --which is absent, and branch 'surf/book-lesson' has 2 open pulls on ehmpathy/surf-demo
    └─ open pulls: 7, 9
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.title.set --pr <n> ...   # name one
+      └─ rhx git.pull.title.set --which <n> ...   # name one
 ",
 }
 `;
@@ -349,7 +349,7 @@ exports[`git.pull given: [case1b] each verb refuses bad input before any gh call
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ rhx git.pull.description.set --pr=7 --from=./.temp/kelp.md --mode apply
+      └─ rhx git.pull.description.set --which=7 --from=./.temp/kelp.md --mode apply
 ",
   "titleSet": "🐢 heres the wave...
 
@@ -365,7 +365,7 @@ exports[`git.pull given: [case1b] each verb refuses bad input before any gh call
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ rhx git.pull.title.set --pr=7 --from=./.temp/title.md --mode apply
+      └─ rhx git.pull.title.set --which=7 --from=./.temp/title.md --mode apply
 ",
 }
 `;
@@ -496,26 +496,26 @@ exports[`git.pull given: [case2c] github fails a read when: [t1] every GET answe
 `;
 
 exports[`git.pull given: [case3] a get under --output text is refused when: [t0] each get runs on a branch with no open pull then: the refusal reads on both streams, with its class and fix 1`] = `
-"✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+"✋ ConstraintError: --which is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
 
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
-      └─ rhx git.pull.title.get --pr <n> ...   # or name a pull, closed or merged included
+      └─ rhx git.pull.title.get --which <n> ...   # or name a pull, closed or merged included
 "
 `;
 
 exports[`git.pull given: [case3] a get under --output text is refused when: [t0] each get runs on a branch with no open pull then: the refusal reads on both streams, with its class and fix 2`] = `
-"✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+"✋ ConstraintError: --which is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
 
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
-      └─ rhx git.pull.description.get --pr <n> ...   # or name a pull, closed or merged included
+      └─ rhx git.pull.description.get --which <n> ...   # or name a pull, closed or merged included
 "
 `;
 
-exports[`git.pull given: [case4] --in names the repo when: [t0] --in names the home-org repo, with --pr 8 then: each lands on pull #8 of the named repo 1`] = `
+exports[`git.pull given: [case4] --in names the repo when: [t0] --in names the home-org repo, with --which 8 then: each lands on pull #8 of the named repo 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.title.set --mode apply
@@ -531,7 +531,7 @@ exports[`git.pull given: [case4] --in names the repo when: [t0] --in names the h
 "
 `;
 
-exports[`git.pull given: [case4] --in names the repo when: [t0] --in names the home-org repo, with --pr 8 then: each lands on pull #8 of the named repo 2`] = `
+exports[`git.pull given: [case4] --in names the repo when: [t0] --in names the home-org repo, with --which 8 then: each lands on pull #8 of the named repo 2`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.description.set --mode apply
@@ -712,10 +712,10 @@ exports[`git.pull given: [case6] the less-trod contract paths of each noun when:
 `;
 
 exports[`git.pull given: [case6] the less-trod contract paths of each noun when: [t3] each get and each noun shows its --help then: each get help names every flag 1`] = `
-"usage: git.pull.title.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
+"usage: git.pull.title.get [--which <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
 
 options:
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
   --output tree|json|text      the output shape (default: tree). via rhx, stdout opens with
@@ -732,10 +732,10 @@ example:
 `;
 
 exports[`git.pull given: [case6] the less-trod contract paths of each noun when: [t3] each get and each noun shows its --help then: each get help names every flag 2`] = `
-"usage: git.pull.description.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
+"usage: git.pull.description.get [--which <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
 
 options:
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
   --output tree|json|text      the output shape (default: tree); text = the body alone.

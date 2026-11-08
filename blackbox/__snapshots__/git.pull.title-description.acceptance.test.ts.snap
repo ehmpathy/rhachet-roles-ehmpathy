@@ -2,10 +2,10 @@
 
 exports[`git.pull.title and git.pull.description, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] each verb is asked for --help then: each help is snapped 1`] = `
 {
-  "descGet": "usage: git.pull.description.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
+  "descGet": "usage: git.pull.description.get [--which <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
 
 options:
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
   --output tree|json|text      the output shape (default: tree); text = the body alone.
@@ -19,11 +19,11 @@ example:
   rhx git.pull.description get --into ./.temp/body.md
   rhx git.pull.description set --from ./.temp/body.md
 ",
-  "descSet": "usage: git.pull.description.set --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+  "descSet": "usage: git.pull.description.set --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
   --from <path|@stdin>         the body; written with the seaturtle attribution as its last line
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
@@ -34,10 +34,10 @@ example:
   rhx git.pull.description get --into ./.temp/body.md
   rhx git.pull.description set --from ./.temp/body.md --mode apply
 ",
-  "titleGet": "usage: git.pull.title.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
+  "titleGet": "usage: git.pull.title.get [--which <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
 
 options:
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
   --output tree|json|text      the output shape (default: tree). via rhx, stdout opens with
@@ -51,11 +51,11 @@ example:
   rhx git.pull.title get --into ./.temp/title.md
   rhx git.pull.title set --from ./.temp/title.md
 ",
-  "titleSet": "usage: git.pull.title.set --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+  "titleSet": "usage: git.pull.title.set --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
   --from <path|@stdin>         the new title, one line; from a file, or piped in
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
@@ -302,7 +302,7 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case3] a l
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ cat ./.temp/body.md | rhx git.pull.description.set --pr 8 --from @stdin --mode plan --auth as-ehmpath   # if reef-ranger is that login: plan, then add --mode apply; pipe the same body in again
+      ├─ cat ./.temp/body.md | rhx git.pull.description.set --which 8 --from @stdin --mode plan --auth as-ehmpath   # if reef-ranger is that login: plan, then add --mode apply; pipe the same body in again
       └─ ask reef-ranger to set it; this credential may not
 ",
   "foreignOrg": "✋ ConstraintError: owner 'seaturtlecorp' is outside the home orgs
@@ -323,8 +323,8 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case3] a l
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ check --pr and --in
-      ├─ drop --pr to address the pull of this branch
+      ├─ check --which and --in
+      ├─ drop --which to address the pull of this branch
       └─ rerun with --auth as-ehmpath
 ",
   "titleEmpty": "✋ ConstraintError: the title from '@stdin' is empty; a pull needs a title
@@ -358,12 +358,12 @@ exports[`git.pull.title and git.pull.description, via rhachet given: [case4] a l
    └─ verdict: set, read back, matches
       └─ read-back: feat(reports): sync the wave report, hourly
 ",
-  "ownAbsent": "✋ ConstraintError: --pr is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
+  "ownAbsent": "✋ ConstraintError: --which is absent, and branch 'surf/no-pull-here' has no open pull on ehmpathy/surf-demo
 
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
-      └─ rhx git.pull.title.get --pr <n> ...   # or name a pull, closed or merged included
+      └─ rhx git.pull.title.get --which <n> ...   # or name a pull, closed or merged included
 ",
   "peerSet": "🐢 heres the wave...
 

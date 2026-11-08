@@ -283,20 +283,20 @@ check_flag_has_value() {
   fi
 }
 
-# .what = check --pr is a pull request number, when given
-# .why  = a bad --pr refuses before any gh call, never as a 404 later; an absent
-#         --pr is fine, since set_comment_pr finds the cwd branch's open pull
+# .what = check --which is a pull request number, when given
+# .why  = a bad --which refuses before any gh call, never as a 404 later; an absent
+#         --which is fine, since set_comment_pr finds the cwd branch's open pull
 check_pr_number() {
   local pr="$1" skill="$2"
   [[ -z "$pr" ]] && return 0
-  [[ "$pr" =~ ^[0-9]+$ ]] || fail_comment_constraint "--pr must be a pull request number, got '$pr'" "rhx $skill --pr 69 ...   # or omit --pr, for the open pull of the cwd branch"
+  [[ "$pr" =~ ^[0-9]+$ ]] || fail_comment_constraint "--which must be a pull request number, got '$pr'" "rhx $skill --which 69 ...   # or omit --which, for the open pull of the cwd branch"
 }
 
 # .what = check --id pairs with --kind issue|review; the kind is never guessed
 # .why  = issue and review ids live on two endpoints; a guess could hit the wrong one
 check_comment_id_kind() {
   local id="$1" kind="$2" skill="$3"
-  [[ "$id" =~ ^[0-9]+$ ]] || fail_comment_constraint "--id must be a numeric comment id, got '${id:-<none>}'" "rhx git.pull.comment.get --pr <n>   # lists the ids"
+  [[ "$id" =~ ^[0-9]+$ ]] || fail_comment_constraint "--id must be a numeric comment id, got '${id:-<none>}'" "rhx git.pull.comment.get --which <n>   # lists the ids"
   [[ "$kind" == "issue" || "$kind" == "review" ]] || fail_comment_constraint "--id needs --kind issue|review, got '${kind:-<none>}'; the kind is never guessed" "rhx $skill ... --id $id --kind issue|review"
 }
 
@@ -405,12 +405,12 @@ set_comment_repo() {
 
 # .what = the target flags a fix command needs to reach this run's target
 # .why  = a hint the caller copies must read the same repo, under the same
-#         credential, from any cwd; `--pr N` alone reads the cwd's repo
+#         credential, from any cwd; `--which N` alone reads the cwd's repo
 # .note = auth arg: as-human adds `--auth as-human`; `none` omits it, for a
 #         fix that names its own --auth. as-ehmpath is the default, so unsaid
 as_comment_cmd_target() {
   local pr="$1" auth="${2:-$COMMENT_AUTH}" out=""
-  [[ -n "$pr" ]] && out="--pr $pr"
+  [[ -n "$pr" ]] && out="--which $pr"
   [[ -n "$COMMENT_REPO" ]] && out="$out --in $COMMENT_REPO"
   [[ "$auth" == "as-human" ]] && out="$out --auth as-human"
   echo "$out"
@@ -523,7 +523,7 @@ fail_gh_call() {
   fi
   # a 404 that reaches here hit a write or a list: the target went absent, or is unseen
   if is_gh_not_found "$detail"; then
-    fail_comment_constraint "github answered 404 on $what: the target is absent, or $COMMENT_AUTH cannot see it" "detail: $first" "check --pr, --in, and --id"$'\n'"rerun with --auth $(as_auth_other "$COMMENT_AUTH")"
+    fail_comment_constraint "github answered 404 on $what: the target is absent, or $COMMENT_AUTH cannot see it" "detail: $first" "check --which, --in, and --id"$'\n'"rerun with --auth $(as_auth_other "$COMMENT_AUTH")"
   fi
   # a 422 is a payload github refuses, e.g. a body past its size cap
   if [[ "$detail" == *"(HTTP 422)"* ]]; then
@@ -645,7 +645,7 @@ set_comment_login() {
   COMMENT_LOGIN="$(get_one_gh_viewer_login)" || exit $?
 }
 
-# .what = set COMMENT_PR: --pr if given, else the one open pull of the cwd branch
+# .what = set COMMENT_PR: --which if given, else the one open pull of the cwd branch
 # .why  = the common case is "comment on the pull of the branch i stand on", so a
 #         bare call targets it; a guess is never made: a detached HEAD, a repo
 #         other than the cwd's origin, or zero or two open pulls each refuse
@@ -658,17 +658,17 @@ set_comment_pr() {
 
   # the cwd branch must sit on the target repo, else its pull is not on it
   origin="$(as_repo_slug_from_remote_url "$(get_git_origin_url)")"
-  [[ -z "$repo_in" || "${repo_in,,}" == "${origin,,}" ]] || fail_comment_constraint "--pr is required with --in $repo_in: the cwd branch sits on '${origin:-no github origin}', not on that repo" "rhx $skill --pr <n> --in $repo_in ..."
-  branch="$(git symbolic-ref --quiet --short HEAD)" || fail_comment_constraint "--pr is absent, and the cwd has no branch to find a pull for (detached HEAD)" "rhx $skill --pr <n> ..."
+  [[ -z "$repo_in" || "${repo_in,,}" == "${origin,,}" ]] || fail_comment_constraint "--which is required with --in $repo_in: the cwd branch sits on '${origin:-no github origin}', not on that repo" "rhx $skill --which <n> --in $repo_in ..."
+  branch="$(git symbolic-ref --quiet --short HEAD)" || fail_comment_constraint "--which is absent, and the cwd has no branch to find a pull for (detached HEAD)" "rhx $skill --which <n> ..."
 
   # the open pulls whose head is this branch, in the repo's own owner
   owner="${COMMENT_REPO%%/*}"
   pulls="$(get_all_gh_resources "repos/$COMMENT_REPO/pulls?state=open&head=$owner:$branch")" || exit $?
   numbers="$(printf '%s' "$pulls" | jq -r '.[].number')"
   count="$(get_count_of_comments "$pulls")"
-  [[ "$count" == "0" ]] && fail_comment_constraint "--pr is absent, and branch '$branch' has no open pull on $COMMENT_REPO" \
-    "rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one"$'\n'"rhx $skill --pr <n> ...   # or name a pull, closed or merged included"
-  [[ "$count" == "1" ]] || fail_comment_constraint "--pr is absent, and branch '$branch' has $count open pulls on $COMMENT_REPO" "open pulls: ${numbers//$'\n'/, }" "rhx $skill --pr <n> ...   # name one"
+  [[ "$count" == "0" ]] && fail_comment_constraint "--which is absent, and branch '$branch' has no open pull on $COMMENT_REPO" \
+    "rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one"$'\n'"rhx $skill --which <n> ...   # or name a pull, closed or merged included"
+  [[ "$count" == "1" ]] || fail_comment_constraint "--which is absent, and branch '$branch' has $count open pulls on $COMMENT_REPO" "open pulls: ${numbers//$'\n'/, }" "rhx $skill --which <n> ...   # name one"
   COMMENT_PR="$numbers"
 }
 
@@ -687,7 +687,7 @@ get_one_gh_pull() {
   local pr="$1" out rc=0
   out="$(get_one_gh_resource "repos/$COMMENT_REPO/pulls/$pr")" || rc=$?
   [[ "$rc" == "3" ]] && fail_comment_constraint "pull request $COMMENT_REPO#$pr is absent, or $COMMENT_LOGIN ($COMMENT_AUTH) cannot see it" \
-    "check --pr and --in"$'\n'"drop --pr to address the pull of this branch"$'\n'"rerun with --auth $(as_auth_other "$COMMENT_AUTH")"
+    "check --which and --in"$'\n'"drop --which to address the pull of this branch"$'\n'"rerun with --auth $(as_auth_other "$COMMENT_AUTH")"
   [[ "$rc" == "0" ]] || exit "$rc"
   printf '%s' "$out"
 }
@@ -763,7 +763,7 @@ is_comment_by_robot() {
 }
 
 # .what = does this comment json sit on pr N?
-# .why  = an id is repo-wide; --pr must not let a write land on another pr
+# .why  = an id is repo-wide; --which must not let a write land on another pr
 is_comment_on_pr() {
   local json="$1" pr="$2"
   printf '%s' "$json" | jq -e --arg pr "$pr" '

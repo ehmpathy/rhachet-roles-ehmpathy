@@ -2,18 +2,18 @@
 
 exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] each verb is asked for --help then: each help is snapped 1`] = `
 {
-  "del": "usage: git.pull.watch del --pull <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
+  "del": "usage: git.pull.watch del --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
 options:
-  --pull <n>          the pull request whose watch to stop (required)
+  --which <n>         the pull request whose watch to stop (required)
   --in <owner/name>   the repo (default: the cwd's github origin)
   --mode plan|apply   plan shows what would happen; apply deletes (default: plan)
   --output tree|json  the output shape (default: tree)
   --help, -h          show this help
 
 example:
-  rhx git.pull.watch del --pull 1220 --mode apply
+  rhx git.pull.watch del --which 1220 --mode apply
 ",
   "get": "usage: git.pull.watch get [--output tree|json]
 
@@ -24,18 +24,18 @@ options:
 example:
   rhx git.pull.watch get
 ",
-  "set": "usage: git.pull.watch set --pull <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
+  "set": "usage: git.pull.watch set --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
 options:
-  --pull <n>          the pull request to watch (required)
+  --which <n>         the pull request to watch (required)
   --in <owner/name>   the repo (default: the cwd's github origin)
   --mode plan|apply   plan shows what would happen; apply watches (default: plan)
   --output tree|json  the output shape (default: tree)
   --help, -h          show this help
 
 example:
-  rhx git.pull.watch set --pull 1220 --mode apply
+  rhx git.pull.watch set --which 1220 --mode apply
 ",
 }
 `;
@@ -45,11 +45,11 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
   "delNoPr": "🐢 bummer dude...
 
 🐚 git.pull.watch del
-   └─ ✋ ConstraintError: --pull <n> is required
+   └─ ✋ ConstraintError: --which <n> is required
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch del --pull <n> --mode apply
+      └─ rhx git.pull.watch del --which <n> --mode apply
 ",
   "setBadMode": "🐢 bummer dude...
 
@@ -63,11 +63,11 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
   "setNoPr": "🐢 bummer dude...
 
 🐚 git.pull.watch set
-   └─ ✋ ConstraintError: --pull <n> is required
+   └─ ✋ ConstraintError: --which <n> is required
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch set --pull <n> --mode apply
+      └─ rhx git.pull.watch set --which <n> --mode apply
 ",
 }
 `;
@@ -99,7 +99,7 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
 
 🥥 did you know?
    └─ to watch a pr
-      └─ rhx git.pull.watch set --pull <n> --mode apply
+      └─ rhx git.pull.watch set --which <n> --mode apply
 "
 `;
 
@@ -186,7 +186,7 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
 🥥 did you know?
    └─ a stale, wedged, or absent daemon serves no watch
       ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=1.0.0+cafe0001/daemon.log
-      └─ 2. start a fresh one: rhx git.pull.watch set --pull <n> --mode apply
+      └─ 2. start a fresh one: rhx git.pull.watch set --which <n> --mode apply
 
 🥥 did you know?
    └─ a paused daemon reads naught; the github token is locked
@@ -195,7 +195,7 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
 🥥 did you know?
    └─ a watch record that does not parse is held, never served
       ├─ 1. read it: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=1.0.0+cafe0001/watches/surf-demo.1221.json
-      └─ 2. rewrite it from its clone: rhx git.pull.watch set --pull <n> --mode apply
+      └─ 2. rewrite it from its clone: rhx git.pull.watch set --which <n> --mode apply
 "
 `;
 
@@ -242,7 +242,7 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
 
 🥥 did you know?
    └─ plan writes naught; to stop the watch
-      └─ rhx git.pull.watch del --pull 1240 --in ehmpathy/surf-demo --mode apply
+      └─ rhx git.pull.watch del --which 1240 --in ehmpathy/surf-demo --mode apply
 "
 `;
 
@@ -254,7 +254,7 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch set --pull 7 --in <owner/name> --mode apply
+      └─ rhx git.pull.watch set --which 7 --in <owner/name> --mode apply
 "
 `;
 

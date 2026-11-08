@@ -1442,14 +1442,14 @@ exec /usr/bin/git "$@"
             expect(result.exitCode).toBe(0);
             expect(result.stdout).toContain('pr: pr #42 (created)');
             expect(result.stdout).toMatch(
-              /watch: ✋ ConstraintError: .+; rerun: rhx git\.pull\.watch set --pull 42 --mode apply/,
+              /watch: ✋ ConstraintError: .+; rerun: rhx git\.pull\.watch set --which 42 --mode apply/,
             );
             expect(
               result.stdout.split(fs.realpathSync(tempDir)).join('$REPO'),
             ).toMatchSnapshot();
             // the watch fault also lands on stderr, its failure channel
             expect(result.stderr).toMatch(
-              /watch: ✋ ConstraintError: .+; rerun: rhx git\.pull\.watch set --pull 42 --mode apply/,
+              /watch: ✋ ConstraintError: .+; rerun: rhx git\.pull\.watch set --which 42 --mode apply/,
             );
             expect(
               result.stderr
@@ -1603,7 +1603,7 @@ echo '{"line":"set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)"}'
         );
       });
       then('set is handed the created pr', () => {
-        expect(result.tree.watchArgv).toMatch(/--pull 42 /);
+        expect(result.tree.watchArgv).toMatch(/--which 42 /);
         expect(result.tree.watchArgv).toContain('--mode apply');
       });
     });
@@ -1624,7 +1624,7 @@ echo '{"line":"set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)"}'
       then('set is handed the found pr, with no create', () => {
         expect(result.tree.exitCode).toBe(0);
         expect(result.tree.stdout).toContain('pr #55 (found)');
-        expect(result.tree.watchArgv).toMatch(/--pull 55 /);
+        expect(result.tree.watchArgv).toMatch(/--which 55 /);
         expect(result.tree.watchArgv).toContain('--mode apply');
       });
       then('the tree relays the watch line for the found pr', () => {
@@ -1657,7 +1657,7 @@ exit 2
         () => {
           expect(result.exitCode).toBe(0);
           expect(result.stdout).toContain(
-            'watch: ✋ ConstraintError: the watch said naught (exit 2); stderr: git.pull.watch.set.sh: line 9: syntax error near unexpected token; rerun: rhx git.pull.watch set --pull 42 --mode apply',
+            'watch: ✋ ConstraintError: the watch said naught (exit 2); stderr: git.pull.watch.set.sh: line 9: syntax error near unexpected token; rerun: rhx git.pull.watch set --which 42 --mode apply',
           );
           expect(result.stdout).toMatchSnapshot();
         },
@@ -1685,7 +1685,7 @@ exit 1
       then('the line carries the class from the reply', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain(
-          'watch: 💥 MalfunctionError: the clone registry is unreadable; no watch was set; rerun: rhx git.pull.watch set --pull 42 --mode apply',
+          'watch: 💥 MalfunctionError: the clone registry is unreadable; no watch was set; rerun: rhx git.pull.watch set --which 42 --mode apply',
         );
         expect(result.stdout).toMatchSnapshot();
       });
