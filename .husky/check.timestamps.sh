@@ -23,6 +23,9 @@ DURATION_PATTERN='P([0-9]+[YMWD])*T([0-9]+[HMS])*[0-9][0-9]:[0-9][0-9]:[0-9][0-9
 # collect staged files (added/copied/modified); skip deletions
 staged=$(git diff --cached --name-only --diff-filter=ACM)
 
+# the merged-in side's commit, when a merge is in flight; empty otherwise
+merge_head=$(git rev-parse -q --verify MERGE_HEAD || true)
+
 # scan each staged file for a raw timestamp
 # note: the here-doc feeds the loop in the current shell (no pipe subshell),
 #       so `exit 2` halts the commit directly and a clean pass falls through
@@ -34,6 +37,13 @@ while IFS= read -r file; do
   case "$file" in
     *.ts | *.sh) continue ;;
   esac
+
+  # skip a file a merge carries in verbatim: its staged blob equals the merged-in side's
+  # blob, so it holds no content authored here (that side's own commit already passed this
+  # check). a file this side changed, or a hand-settled conflict, still differs and is scanned
+  if [ -n "$merge_head" ] && [ "$(git rev-parse -q --verify ":$file" || true)" = "$(git rev-parse -q --verify "MERGE_HEAD:$file" || true)" ]; then
+    continue
+  fi
 
   # read the staged content; fail loud if git cannot read the staged blob
   # (2>&1 captures git's error into the var so the halt message can surface it)

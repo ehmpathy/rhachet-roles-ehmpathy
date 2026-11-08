@@ -1111,4 +1111,561 @@ extends:
       });
     });
   });
+
+  given('[case40] set_commit_meter_state writes the quota file', () => {
+    const readMeter = (tempDir: string): unknown =>
+      JSON.parse(
+        fs.readFileSync(path.join(tempDir, 'git.commit.uses.jsonc'), 'utf-8'),
+      );
+
+    when('[t0] a count, push, and stage are given', () => {
+      then('it writes valid json, and leaves no temp file beside it', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-count' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" uses=2 push=allow stage=block`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(readMeter(tempDir)).toEqual({
+          uses: 2,
+          push: 'allow',
+          stage: 'block',
+        });
+        expect(fs.readdirSync(tempDir)).toEqual(['git.commit.uses.jsonc']);
+      });
+    });
+
+    when('[t1] uses is infinite', () => {
+      then('it writes "infinite" as a string', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-infinite' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" uses=infinite push=block stage=allow`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(readMeter(tempDir)).toEqual({
+          uses: 'infinite',
+          push: 'block',
+          stage: 'allow',
+        });
+      });
+    });
+
+    when('[t2] a value carries a quote', () => {
+      then('jq encodes it, so the file still parses', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-quote' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" uses=1 push='al"low' stage=block`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(readMeter(tempDir)).toEqual({
+          uses: 1,
+          push: 'al"low',
+          stage: 'block',
+        });
+      });
+    });
+
+    when('[t3] uses is empty or no integer', () => {
+      then('it exits 1 loud, and leaves the prior file whole', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-bad-uses' });
+        const meterPath = path.join(tempDir, 'git.commit.uses.jsonc');
+        fs.writeFileSync(meterPath, '{"uses": 3, "push": "allow"}');
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${meterPath}" uses= push=allow stage=block`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: set_commit_meter_state refused its input',
+        );
+        expect(result.stderr).toEqual(result.stdout);
+        expect(fs.readFileSync(meterPath, 'utf-8')).toEqual(
+          '{"uses": 3, "push": "allow"}',
+        );
+        expect(result.stdout).toMatchSnapshot('stdout');
+      });
+    });
+
+    when('[t4] push or stage is empty', () => {
+      then('it exits 1 loud, before any write', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-bad-push' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" uses=1 push= stage=block`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('push is empty');
+        expect(result.stderr).toEqual(result.stdout);
+        expect(fs.readdirSync(tempDir)).toEqual([]);
+        expect(result.stdout.split(tempDir).join('<tmp>')).toMatchSnapshot();
+      });
+    });
+
+    when('[t5] an unknown arg is passed', () => {
+      then('it exits 1 and names the arg', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-bad-arg' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" usse=1 push=allow stage=block`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain("unknown arg 'usse=1'");
+        expect(result.stderr).toEqual(result.stdout);
+        expect(result.stdout.split(tempDir).join('<tmp>')).toMatchSnapshot();
+      });
+    });
+
+    when('[t6] the write fails (the dir is absent)', () => {
+      then('it exits 1 loud, never silent', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-no-dir' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/absent/git.commit.uses.jsonc" uses=1 push=allow stage=block
+      echo "after-write"`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain('could not create a temp file');
+        expect(result.stdout).not.toContain('after-write');
+        expect(result.stderr).toContain('could not create a temp file');
+        expect(result.stdout.split(tempDir).join('<tmp>')).toMatchSnapshot();
+      });
+    });
+
+    when('[t8] uses is below zero (a spend from zero)', () => {
+      then('it exits 1 loud, and writes no file', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-negative' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" uses=-1 push=allow stage=block`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain("uses='-1' is below zero");
+        expect(result.stderr).toEqual(result.stdout);
+        expect(fs.readdirSync(tempDir)).toEqual([]);
+        expect(result.stdout.split(tempDir).join('<tmp>')).toMatchSnapshot();
+      });
+    });
+
+    when('[t7] it is called inside an if (where set -e holds no sway)', () => {
+      then('a refused input still halts the caller', () => {
+        const tempDir = genTempDir({ slug: 'meter-write-in-if' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set -e
+      if set_commit_meter_state file="${tempDir}/git.commit.uses.jsonc" uses=x push=allow stage=block; then echo "branch-ran"; fi
+      echo "after-if"`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).not.toContain('branch-ran');
+        expect(result.stdout).not.toContain('after-if');
+      });
+    });
+  });
+
+  given('[case41] as_commit_uses_after_spend', () => {
+    when('[t0] uses is a count or infinite', () => {
+      then('it spends one, and infinite stays infinite', () => {
+        const tempDir = genTempDir({ slug: 'uses-after-spend' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `echo "$(as_commit_uses_after_spend uses=3)"
+      echo "$(as_commit_uses_after_spend uses=infinite)"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout.trim().split('\n')).toEqual(['2', 'infinite']);
+      });
+    });
+
+    when('[t1] uses is empty or no integer', () => {
+      then('it exits 1 on stderr, never a silent -1', () => {
+        const tempDir = genTempDir({ slug: 'uses-after-spend-bad' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set -e
+      NEW_USES=$(as_commit_uses_after_spend uses=)
+      echo "left=$NEW_USES"`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).not.toContain('left=');
+        expect(result.stderr).toContain(
+          '💥 MalfunctionError: as_commit_uses_after_spend refused its input',
+        );
+        expect(result.stderr).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case42] fetch_robot_token keeps the fetch status', () => {
+    /**
+     * .mock = fetch_github_token, redefined as a bash function after source
+     * .why = a keyrack fetch cannot be made to fail on demand in a hermetic test
+     * .real = external.contracts.integration.test.ts [case2]: the real keyrack
+     *         `get --json`, as fetch_github_token calls it, and the shape it reads
+     */
+    when('[t0] the fetch fails with no stderr and a partial stdout', () => {
+      then('the token is empty, and the cause names the exit status', () => {
+        const tempDir = genTempDir({ slug: 'token-fetch-silent-fail' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `fetch_github_token() { echo "partial"; return 3; }
+      fetch_robot_token
+      echo "token=[$ROBOT_TOKEN]"
+      echo "cause=[$TOKEN_FETCH_ERR]"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('token=[]');
+        expect(result.stdout).toContain(
+          'cause=[token fetch exited 3, with no stderr]',
+        );
+      });
+    });
+
+    when('[t1] the fetch succeeds', () => {
+      then('the token holds, and no cause is set', () => {
+        const tempDir = genTempDir({ slug: 'token-fetch-ok' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `fetch_github_token() { echo "ghs_wave"; }
+      fetch_robot_token
+      echo "token=[$ROBOT_TOKEN]"
+      echo "cause=[$TOKEN_FETCH_ERR]"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('token=[ghs_wave]');
+        expect(result.stdout).toContain('cause=[]');
+      });
+    });
+
+    when('[t2] the fetch exits 0 with no token', () => {
+      then('the cause names the empty token', () => {
+        const tempDir = genTempDir({ slug: 'token-fetch-empty-ok' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `fetch_github_token() { echo ""; }
+      fetch_robot_token
+      echo "cause=[$TOKEN_FETCH_ERR]"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          'cause=[token fetch exited 0, with no token]',
+        );
+      });
+    });
+  });
+
+  given('[case44] set_robot_identity_from_token', () => {
+    /**
+     * .mock = get_one_seaturtle_identity, redefined in [t1] as a bash function
+     * .why = the real reader always emits an identity; only a fake can emit none
+     * .real = [t0] runs the real reader; external.contracts.integration.test.ts
+     *         [case2] runs the real keyrack the token comes from
+     */
+    when('[t0] the token is empty', () => {
+      then('it sets the standard seaturtle identity', () => {
+        const tempDir = genTempDir({ slug: 'robot-identity-standard' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `set_robot_identity_from_token token=""
+      echo "name=[$ROBOT_NAME] email=[$ROBOT_EMAIL]"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('name=[seaturtle[bot]]');
+        expect(result.stdout).not.toContain('email=[]');
+      });
+    });
+
+    when('[t1] the reader emits no identity', () => {
+      then('it exits 1 loud, never a blank author', () => {
+        const tempDir = genTempDir({ slug: 'robot-identity-blank' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `get_one_seaturtle_identity() { return 0; }
+      set_robot_identity_from_token token=""
+      echo "after-set"`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: no seaturtle identity for this token',
+        );
+        expect(result.stderr).toEqual(result.stdout);
+        expect(result.stdout).not.toContain('after-set');
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case46] get_commit_sponsor fails closed', () => {
+    const outputPath = path.join(__dirname, 'output.sh');
+
+    /**
+     * .mock = read_sponsor_state, redefined as a bash function after source
+     * .why = the real reader returns only 0, 1, or 2; only a fake returns another
+     * .real = git.commit.set's sponsor suites run the real reader
+     */
+    when('[t0] the reader returns a status the gate does not know', () => {
+      then('it exits 1 as a malfunction, never reads as bound', () => {
+        const tempDir = genTempDir({ slug: 'sponsor-unknown-status' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      read_sponsor_state() { return 7; }
+      get_commit_sponsor skill="git.commit.set" file="${tempDir}/sponsor.json"
+      echo "after-sponsor"`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain(
+          "💥 MalfunctionError: unknown sponsor read status '7'",
+        );
+        expect(result.stderr).toEqual(result.stdout);
+        expect(result.stdout).not.toContain('after-sponsor');
+        expect(result.stdout.split(tempDir).join('<tmp>')).toMatchSnapshot();
+      });
+    });
+  });
+
+  given(
+    '[case51] refuse_if_commit_gates_fail checks its refuse= tokens',
+    () => {
+      const outputPath = path.join(__dirname, 'output.sh');
+
+      when('[t0] a token is mistyped', () => {
+        then(
+          'it exits 1 before any gate runs; the gate never fails open',
+          () => {
+            const tempDir = genTempDir({ slug: 'gates-refuse-typo' });
+            const result = runFunction({
+              tempDir,
+              functionCall: `source "${outputPath}"
+      refuse_if_commit_gates_fail skill="git.commit.set" state_file="${tempDir}/uses.jsonc" sponsor_file="${tempDir}/sponsor.json" repo_root="${tempDir}" refuse="currupt absent"
+      echo "after-gates"`,
+            });
+
+            expect(result.exitCode).toBe(1);
+            expect(result.stdout).toContain("refuse= holds 'currupt'");
+            expect(result.stdout).not.toContain('after-gates');
+            expect(result.stderr).toContain("refuse= holds 'currupt'");
+            expect(result.stdout.split(tempDir).join('<tmp>')).toMatchSnapshot(
+              'stdout',
+            );
+          },
+        );
+      });
+    },
+  );
+
+  given('[case48] findsert_gitignored_dir converges', () => {
+    when('[t0] the dir is absent', () => {
+      then('it writes the headers, then the rule, and no temp file', () => {
+        const tempDir = genTempDir({ slug: 'gitignored-dir-fresh' });
+        const dir = path.join(tempDir, '.meter');
+        const result = runFunction({
+          tempDir,
+          functionCall: `findsert_gitignored_dir "${dir}" "# state, never committed"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(fs.readFileSync(path.join(dir, '.gitignore'), 'utf-8')).toEqual(
+          '# state, never committed\n*\n',
+        );
+        expect(fs.readdirSync(dir)).toEqual(['.gitignore']);
+      });
+    });
+
+    when('[t1] a .gitignore was cut short before its rule', () => {
+      then('a re-run adds the rule, once', () => {
+        const tempDir = genTempDir({ slug: 'gitignored-dir-partial' });
+        const dir = path.join(tempDir, '.meter');
+        fs.mkdirSync(dir, { recursive: true });
+        fs.writeFileSync(
+          path.join(dir, '.gitignore'),
+          '# state, never committed\n',
+        );
+        const result = runFunction({
+          tempDir,
+          functionCall: `findsert_gitignored_dir "${dir}" "# state, never committed"
+      findsert_gitignored_dir "${dir}" "# state, never committed"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(fs.readFileSync(path.join(dir, '.gitignore'), 'utf-8')).toEqual(
+          '# state, never committed\n*\n',
+        );
+      });
+    });
+  });
+
+  given('[case49] the ops file sourced alone', () => {
+    when(
+      '[t0] the corrupt sponsor render runs with no output.sh source',
+      () => {
+        then('it renders whole, never a command-not-found', () => {
+          const tempDir = genTempDir({ slug: 'ops-alone-render' });
+          const result = runFunction({
+            tempDir,
+            functionCall: `print_sponsor_corrupt_render "git.commit.set"`,
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stderr).not.toContain('command not found');
+          expect(result.stdout).toContain('sponsor state file corrupt');
+        });
+      },
+    );
+  });
+
+  given('[case50] as_path_shown_from_home', () => {
+    when('[t0] the path sits under home, outside it, or home is empty', () => {
+      then(
+        'under is `~`-rooted; outside and empty-home are shown whole',
+        () => {
+          const tempDir = genTempDir({ slug: 'path-shown-home' });
+          const result = runFunction({
+            tempDir,
+            functionCall: `echo "$(as_path_shown_from_home path=/reef/home/.rhachet/m.jsonc home=/reef/home)"
+      echo "$(as_path_shown_from_home path=/lagoon/m.jsonc home=/reef/home)"
+      echo "$(as_path_shown_from_home path=/.rhachet/m.jsonc home=)"`,
+          });
+
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout.trim().split('\n')).toEqual([
+            '~/.rhachet/m.jsonc',
+            '/lagoon/m.jsonc',
+            '/.rhachet/m.jsonc',
+          ]);
+        },
+      );
+    });
+  });
+
+  given('[case45] as_path_shown_from_repo', () => {
+    when('[t0] the path sits inside the root, or outside it', () => {
+      then('inside is shown relative; outside is shown whole', () => {
+        const tempDir = genTempDir({ slug: 'path-shown' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `echo "$(as_path_shown_from_repo path=/reef/repo/.meter/a.jsonc root=/reef/repo)"
+      echo "$(as_path_shown_from_repo path=/lagoon/b.jsonc root=/reef/repo)"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout.trim().split('\n')).toEqual([
+          '.meter/a.jsonc',
+          '/lagoon/b.jsonc',
+        ]);
+      });
+    });
+
+    when('[t1] the root is empty', () => {
+      then('the path is shown whole, its lead slash kept', () => {
+        const tempDir = genTempDir({ slug: 'path-shown-no-root' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `echo "$(as_path_shown_from_repo path=/reef/repo/.meter/a.jsonc root=)"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout.trim()).toEqual('/reef/repo/.meter/a.jsonc');
+      });
+    });
+  });
+
+  given('[case47] print_token_fetch_malfunction', () => {
+    when('[t0] it renders', () => {
+      then('the render rides both stdout and stderr', () => {
+        const tempDir = genTempDir({ slug: 'token-fetch-render' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `print_token_fetch_malfunction cause="keyrack locked"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: the ehmpath keyrack token fetch failed',
+        );
+        expect(result.stderr).toEqual(result.stdout);
+        expect(result.stdout).toMatchSnapshot('stdout');
+      });
+    });
+
+    when('[t1] the cause spans lines, one repeated by the retry', () => {
+      then('each distinct line is one leaf, inside the tree', () => {
+        const tempDir = genTempDir({ slug: 'token-fetch-render-lines' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `print_token_fetch_malfunction cause="$(printf 'rhachet: not found\\nrhachet: not found\\n\\nkeyrack: unlock failed\\nrhachet: not found')"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          [
+            '   ├─ cause',
+            '   │  ├─ rhachet: not found',
+            '   │  └─ keyrack: unlock failed',
+            '   └─ fix: unlock the token before the next commit',
+          ].join('\n'),
+        );
+        expect(result.stdout.split('rhachet: not found').length).toBe(2);
+        expect(result.stderr).toEqual(result.stdout);
+        expect(result.stdout).toMatchSnapshot('stdout');
+      });
+    });
+  });
+
+  given('[case43] refuse_commit_quota fails closed', () => {
+    const outputPath = path.join(__dirname, 'output.sh');
+
+    when('[t0] the status is one it does not know', () => {
+      then('it exits 1 as a malfunction, never reads as healthy', () => {
+        const tempDir = genTempDir({ slug: 'quota-unknown-status' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      refuse_commit_quota skill="git.commit.set" status="drift"
+      echo "after-refuse"`,
+        });
+
+        expect(result.exitCode).toBe(1);
+        expect(result.stdout).toContain(
+          "💥 MalfunctionError: unknown commit quota status 'drift'",
+        );
+        expect(result.stdout).not.toContain('after-refuse');
+        expect(result.stderr).toEqual(result.stdout);
+        expect(result.stdout).toMatchSnapshot('stdout');
+      });
+    });
+
+    when('[t1] the status is ok', () => {
+      then('it is a no-op', () => {
+        const tempDir = genTempDir({ slug: 'quota-ok-status' });
+        const result = runFunction({
+          tempDir,
+          functionCall: `source "${outputPath}"
+      refuse_commit_quota skill="git.commit.set" status="ok"
+      echo "after-refuse"`,
+        });
+
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('after-refuse');
+      });
+    });
+  });
 });
