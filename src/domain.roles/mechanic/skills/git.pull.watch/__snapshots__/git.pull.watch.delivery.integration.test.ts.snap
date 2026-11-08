@@ -41,7 +41,9 @@ exports[`git.pull.watch delivery given: [case7] an alert due while the clone is 
 `;
 
 exports[`git.pull.watch delivery given: [case7] an alert due while the clone is busy, at a modal, then free when: [t1] the clone frees up; the next try is taken then: the alert is delivered once, marked as held 1`] = `
-"🐢 pr watch — ci failed on #1220 (held <n> ticks; you were busy)
+"🐢 bummer dude...
+
+🐚 git.pull.watch — ci failed on #1220 (held <n> ticks; you were busy)
    ├─ pr: ehmpathy/surf-demo#1220
    ├─ check: test-integration (failure)
    ├─ head: sha-122
@@ -60,7 +62,11 @@ exports[`git.pull.watch delivery given: [case7c] a pr that merges while the clon
 "
 `;
 
-exports[`git.pull.watch delivery given: [case7c] a pr that merges while the clone is busy when: [t1] the clone frees up; the next try is taken then: the closure is delivered once, marked as held 1`] = `"🐢 pr watch — #1220 merged; watch ended (held <n> ticks; you were busy)"`;
+exports[`git.pull.watch delivery given: [case7c] a pr that merges while the clone is busy when: [t1] the clone frees up; the next try is taken then: the closure is delivered once, marked as held 1`] = `
+"🐢 cowabunga!
+
+🐚 git.pull.watch — #1220 merged; watch ended (held <n> ticks; you were busy)"
+`;
 
 exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes locked, then returns when: [t0] the clone watches two prs; then github refuses the token (401) then: get marks the daemon paused, with the token state 1`] = `
 "🐢 heres the wave...
@@ -79,7 +85,9 @@ exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes l
 `;
 
 exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes locked, then returns when: [t0] the clone watches two prs; then github refuses the token (401) then: the clone gets one paused alert that names both prs and the refill 1`] = `
-"🐢 bummer dude — pr watch is paused
+"🐢 bummer dude...
+
+🐚 git.pull.watch — paused
    ├─ ✋ ConstraintError: github token expired
    ├─ watches paused: #1220, #1221
    └─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh\`"
@@ -141,7 +149,9 @@ exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes l
 `;
 
 exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes locked, then returns when: [t2] keyrack reads the token locked then: the alert says locked and names the unlock 1`] = `
-"🐢 bummer dude — pr watch is paused
+"🐢 bummer dude...
+
+🐚 git.pull.watch — paused
    ├─ ✋ ConstraintError: github token locked
    ├─ watches paused: #1220, #1221
    └─ fix: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
@@ -232,7 +242,9 @@ exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the g
 `;
 
 exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the github key when: [t0] the daemon spawns and reads its token then: the alert names the human fill step, then the unlock 1`] = `
-"🐢 bummer dude — pr watch is paused
+"🐢 bummer dude...
+
+🐚 git.pull.watch — paused
    ├─ ✋ ConstraintError: github token not filled
    ├─ watches paused: #1220
    └─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN\`, then
@@ -240,7 +252,9 @@ exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the g
 `;
 
 exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the github key when: [t1] a second clone sets its first watch while the pause holds then: the late clone gets one paused alert, for its own pr 1`] = `
-"🐢 bummer dude — pr watch is paused
+"🐢 bummer dude...
+
+🐚 git.pull.watch — paused
    ├─ ✋ ConstraintError: github token not filled
    ├─ watches paused: #1222
    └─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN\`, then
@@ -332,7 +346,9 @@ exports[`git.pull.watch delivery given: [case8d] github stops answers past the n
 `;
 
 exports[`git.pull.watch delivery given: [case8d] github stops answers past the note bound when: [t0] the clone watches the pr; then no read gets a reply then: the clone gets one note that names the pr 1`] = `
-"🐢 bummer dude — pr watch cannot reach github
+"🐢 bummer dude...
+
+🐚 git.pull.watch — cannot reach github
    ├─ 💥 MalfunctionError: github unreachable for 1 min
    ├─ watches held: #1220
    └─ next: naught to do; cursors hold, and alerts resume once github answers"
@@ -381,7 +397,9 @@ exports[`git.pull.watch delivery given: [case8e] keyrack itself faults past the 
 `;
 
 exports[`git.pull.watch delivery given: [case8e] keyrack itself faults past the note bound when: [t0] the clone watches the pr; then every keyrack read faults then: the clone gets one note, with the cause and the check 1`] = `
-"🐢 bummer dude — pr watch cannot read its github token
+"🐢 bummer dude...
+
+🐚 git.pull.watch — cannot read its github token
    ├─ 💥 MalfunctionError: keyrack token read faulted for 1 min
    ├─ cause: stub keyrack: daemon socket refused
    ├─ watches held: #1220
@@ -433,7 +451,9 @@ exports[`git.pull.watch delivery given: [case8f] a box whose keyrack blocks the 
 `;
 
 exports[`git.pull.watch delivery given: [case8f] a box whose keyrack blocks the github key when: [t0] the daemon spawns and reads its token then: the alert says keyrack blocked the token 1`] = `
-"🐢 bummer dude — pr watch is paused
+"🐢 bummer dude...
+
+🐚 git.pull.watch — paused
    ├─ ✋ ConstraintError: github token blocked by keyrack
    ├─ watches paused: #1220
    └─ fix: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"

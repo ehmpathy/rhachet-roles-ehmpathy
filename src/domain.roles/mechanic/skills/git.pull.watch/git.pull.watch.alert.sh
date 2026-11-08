@@ -35,6 +35,26 @@ as_watch_alert_phrase() {
   echo "$count events on #$pr"
 }
 
+# .what = the mascot vibe line of one alert, from its event kinds
+# .why  = the mascot + artifact shape: a 🐢 line sets the mood, then the 🐚
+#         root names what it is about; a red check reads as a bummer, an
+#         approval as a win, all else as a heads up
+as_watch_alert_vibe() {
+  local events="$1" kinds
+  kinds="$(printf '%s' "$events" | jq -r '[.[].kind] | unique | join(",")')"
+  [[ ",$kinds," == *",ci.failed,"* ]] && { echo "bummer dude..."; return 0; }
+  [[ "$kinds" == "review.approved" ]] && { echo "shell yeah!"; return 0; }
+  echo "heads up dude..."
+}
+
+# .what = print the mascot + artifact header: the 🐢 vibe, a gap, the 🐚 root
+# usage: print_watch_alert_header <vibe> <root>
+print_watch_alert_header() {
+  echo "🐢 $1"
+  echo ""
+  echo "🐚 git.pull.watch — $2"
+}
+
 # .what = the leaf lines of one event, one per line, tab-free
 # .why  = one shape per event kind, shared by the flat and the sectioned alert
 # .note = a ci failure names the head it failed on: an alert held while the clone
@@ -109,7 +129,7 @@ as_watch_events_text() {
   local repo="$1" pr="$2" events="$3" kinds_count count
   count="$(printf '%s' "$events" | jq 'length')"
   kinds_count="$(printf '%s' "$events" | jq '[.[].kind] | unique | length')"
-  echo "🐢 pr watch — $(as_watch_alert_phrase "$pr" "$events")"
+  print_watch_alert_header "$(as_watch_alert_vibe "$events")" "$(as_watch_alert_phrase "$pr" "$events")"
 
   # one event: flat leaves, one next line
   if [[ "$count" == "1" ]]; then
@@ -169,10 +189,10 @@ as_watch_events_text() {
 as_watch_closure_text() {
   local pr="$1" end="$2" closed_by="$3"
   if [[ "$end" == "merged" ]]; then
-    echo "🐢 pr watch — #$pr merged; watch ended"
+    print_watch_alert_header "cowabunga!" "#$pr merged; watch ended"
     return 0
   fi
-  echo "🐢 pr watch — #$pr closed without merge; watch ended"
+  print_watch_alert_header "bummer dude..." "#$pr closed without merge; watch ended"
   [[ -n "$closed_by" ]] && echo "   └─ by: @$closed_by"
   return 0
 }
@@ -192,7 +212,7 @@ as_watch_alert_text() {
 # .why  = locked needs an unlock; absent needs a human fill first — each names its fix
 as_watch_paused_text() {
   local status="$1" prs="$2"
-  echo "🐢 bummer dude — pr watch is paused"
+  print_watch_alert_header "bummer dude..." "paused"
   if [[ "$status" == "absent" ]]; then
     echo "   ├─ ✋ ConstraintError: github token not filled"
     echo "   ├─ watches paused: $prs"
@@ -218,7 +238,7 @@ as_watch_paused_text() {
 # .why  = the clone learns its quiet pr may not be quiet, and that it owes no act
 as_watch_unreachable_text() {
   local minutes="$1" prs="$2"
-  echo "🐢 bummer dude — pr watch cannot reach github"
+  print_watch_alert_header "bummer dude..." "cannot reach github"
   echo "   ├─ 💥 MalfunctionError: github unreachable for $minutes min"
   echo "   ├─ watches held: $prs"
   echo "   └─ next: naught to do; cursors hold, and alerts resume once github answers"
@@ -229,21 +249,19 @@ as_watch_unreachable_text() {
 #         else blind the daemon in silence; the note names the cause and the check
 as_watch_token_fault_text() {
   local minutes="$1" cause="$2" root="$3" prs="$4"
-  echo "🐢 bummer dude — pr watch cannot read its github token"
+  print_watch_alert_header "bummer dude..." "cannot read its github token"
   echo "   ├─ 💥 MalfunctionError: keyrack token read faulted for $minutes min"
   echo "   ├─ cause: ${cause:-no reply}"
   echo "   ├─ watches held: $prs"
   echo "   └─ check: cd $root && rhx keyrack get --key ehmpathy.prep.EHMPATHY_SEATURTLE_GITHUB_TOKEN --owner ehmpath --env prep --json"
 }
 
-# .what = mark an alert as held, on its first line
+# .what = mark an alert as held, on its first 🐚 root line
 # .why  = a clone told the alert waited reads it as late, not as new
 as_watch_alert_text_held() {
-  local text="$1" tries="$2" first rest
-  first="$(printf '%s\n' "$text" | head -n 1)"
-  rest="$(printf '%s\n' "$text" | tail -n +2)"
-  printf '%s (held %s ticks; you were busy)\n' "$first" "$tries"
-  [[ -n "$rest" ]] && printf '%s\n' "$rest"
+  local text="$1" tries="$2"
+  printf '%s\n' "$text" | awk -v mark=" (held $tries ticks; you were busy)" \
+    '!done && /^🐚 / { print $0 mark; done = 1; next } { print }'
   return 0
 }
 

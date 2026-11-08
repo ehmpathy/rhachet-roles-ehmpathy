@@ -474,7 +474,9 @@ describe('git.pull.watch events', () => {
           return { say: scene.getSays()[1]! };
         });
         then('both approvals ride one alert, each with its reviewer', () => {
-          expect(result.say.text).toContain('🐢 pr watch — approved #1220');
+          expect(result.say.text).toContain(
+            '🐚 git.pull.watch — approved #1220',
+          );
           expect(result.say.text).toContain('by: @surfer-kai');
           expect(result.say.text).toContain('by: @surfer-mano');
         });
@@ -1058,7 +1060,7 @@ describe('git.pull.watch events', () => {
           'the approval alert names the reviewer, ci passed, and the release command',
           () => {
             expect(result.says[1]!.text).toContain(
-              `🐢 pr watch — approved #${PR}`,
+              `🐢 shell yeah!\n\n🐚 git.pull.watch — approved #${PR}`,
             );
             expect(result.says[1]!.text).toContain('by: @surfer-mano');
             expect(result.says[1]!.text).toContain('ci: passed');

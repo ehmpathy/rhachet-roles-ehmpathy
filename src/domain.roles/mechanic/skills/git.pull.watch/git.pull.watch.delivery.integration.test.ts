@@ -1780,7 +1780,7 @@ describe('git.pull.watch delivery', () => {
       then('each exits 0 with usage, options, and an example', () => {
         result.helps.forEach((one) => {
           expect(one.status).toEqual(0);
-          expect(one.stdout).toContain('usage: git.pull.watch.');
+          expect(one.stdout).toContain('usage: git.pull.watch ');
           expect(one.stdout).toContain('options:');
           expect(one.stdout).toContain('example:');
           expect(one.stdout).toMatchSnapshot();

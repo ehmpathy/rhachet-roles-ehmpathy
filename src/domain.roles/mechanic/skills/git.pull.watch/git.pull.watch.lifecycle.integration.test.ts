@@ -347,7 +347,14 @@ describe('git.pull.watch lifecycle', () => {
             asSetJson(
               scene.runSkill({
                 verb: 'set',
-                args: ['--pull', input.pr, '--mode', 'apply', '--output', 'json'],
+                args: [
+                  '--pull',
+                  input.pr,
+                  '--mode',
+                  'apply',
+                  '--output',
+                  'json',
+                ],
                 root: scene.roots['surf-demo']!,
                 serial: input.serial,
                 skillDir: input.skillDir,
@@ -881,8 +888,8 @@ describe('git.pull.watch lifecycle', () => {
           () => {
             const texts = result.says.map((say) => say.text).sort();
             expect(texts).toEqual([
-              '🐢 pr watch — #1220 merged; watch ended',
-              '🐢 pr watch — #1222 closed without merge; watch ended\n   └─ by: @surfer-mano',
+              '🐢 bummer dude...\n\n🐚 git.pull.watch — #1222 closed without merge; watch ended\n   └─ by: @surfer-mano',
+              '🐢 cowabunga!\n\n🐚 git.pull.watch — #1220 merged; watch ended',
             ]);
             texts.forEach((text) => expect(text).toMatchSnapshot());
           },
@@ -995,7 +1002,7 @@ describe('git.pull.watch lifecycle', () => {
               expect(merged).toHaveLength(1);
               expect(merged[0]!.text).toContain('surfer-kai');
               expect(merged[0]!.text).toContain(
-                '\n\n🐢 pr watch — #1230 merged; watch ended',
+                '\n\n🐢 cowabunga!\n\n🐚 git.pull.watch — #1230 merged; watch ended',
               );
               expect(
                 merged[0]!.text.indexOf('surfer-kai') <
@@ -1010,7 +1017,7 @@ describe('git.pull.watch lifecycle', () => {
             );
             expect(closed).toHaveLength(1);
             expect(closed[0]!.text).toEqual(
-              '🐢 pr watch — #1231 closed without merge; watch ended',
+              '🐢 bummer dude...\n\n🐚 git.pull.watch — #1231 closed without merge; watch ended',
             );
             expect(closed[0]!.text).toMatchSnapshot();
           });
