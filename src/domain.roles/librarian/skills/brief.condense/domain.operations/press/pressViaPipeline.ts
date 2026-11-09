@@ -15,23 +15,29 @@
 
 import type { ConceptKernel } from '../../../../../../domain.operations/kernelize/extractKernels';
 import { countTokens } from '../../../brief.compress/compress.shared';
-import {
-  type CompressionResult,
+import type {
+  CompressionResult,
   compressViaBhrain,
-  type MechanismOrModifier,
+  MechanismOrModifier,
 } from '../../../brief.compress/compress.via.bhrain';
 
 /**
  * .what = compress content through a multi-step pipeline
  * .why = sequential passes with kernel injection achieve better retention
+ * .note = the compressor is injected by the caller, so the pipeline's contract is provable
+ *   with a deterministic fake; the type-only import keeps the brain module (and its
+ *   load-time cache dir) out of this file's import graph
  */
-export const pressViaPipeline = async (input: {
-  content: string;
-  brainSlug: string;
-  pipeline: MechanismOrModifier[][];
-  kernels?: ConceptKernel[];
-  force?: boolean;
-}): Promise<{
+export const pressViaPipeline = async (
+  input: {
+    content: string;
+    brainSlug: string;
+    pipeline: MechanismOrModifier[][];
+    kernels: ConceptKernel[];
+    force: boolean;
+  },
+  context: { compressor: typeof compressViaBhrain },
+): Promise<{
   content: string;
   tokens: { before: number; after: number };
   steps: Array<{
@@ -63,9 +69,10 @@ export const pressViaPipeline = async (input: {
   }
 
   // extract kernel concept strings for prompt injection
-  const kernelStrings = input.kernels?.map((k) => k.concept);
+  const kernelStrings = input.kernels.map((k) => k.concept);
 
   // run each step sequentially
+  // .note = deliberate mutation: each step threads its output into the next, and appends its metrics
   let currentContent = input.content;
   const steps: Array<{
     mechanisms: MechanismOrModifier[];
@@ -76,7 +83,7 @@ export const pressViaPipeline = async (input: {
 
   for (const stepMechanisms of input.pipeline) {
     // compress with current step
-    const result: CompressionResult = await compressViaBhrain({
+    const result: CompressionResult = await context.compressor({
       content: currentContent,
       brainSlug: input.brainSlug,
       mechanisms: stepMechanisms,
