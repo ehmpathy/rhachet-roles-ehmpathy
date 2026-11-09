@@ -1,0 +1,19 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`isBrainLiveScopeAll given: [case4] an env with a typo in BRAIN_LIVE_SCOPE when: [t0] the gate is read with BRAIN_LIVE_SCOPE=true then: it throws a ConstraintError that names the valid value 1`] = `
+"✋ ConstraintError: BRAIN_LIVE_SCOPE must be 'all' or unset
+
+{
+  "value": "true",
+  "hint": "unset it, or set BRAIN_LIVE_SCOPE=all to run the live-brain suites"
+}"
+`;
+
+exports[`isBrainLiveScopeAll given: [case4] an env with a typo in BRAIN_LIVE_SCOPE when: [t1] the gate is read with BRAIN_LIVE_SCOPE=ALL then: it throws a ConstraintError, since the set is case-exact 1`] = `
+"✋ ConstraintError: BRAIN_LIVE_SCOPE must be 'all' or unset
+
+{
+  "value": "ALL",
+  "hint": "unset it, or set BRAIN_LIVE_SCOPE=all to run the live-brain suites"
+}"
+`;
