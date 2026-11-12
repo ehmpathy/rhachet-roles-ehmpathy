@@ -1258,7 +1258,7 @@ describe('git.commit.sponsor.sh', () => {
           );
           expect(result.stdout).toContain('git config user.email is unset.');
           expect(result.stdout).toContain(
-            '$ git config --global user.email "you@example.com"',
+            '├─ git config --global user.email "you@example.com"',
           );
           expect(result.stdout).not.toContain('user.name is unset');
           expect(result.stdout).toMatchSnapshot();
@@ -1287,7 +1287,7 @@ describe('git.commit.sponsor.sh', () => {
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain('git config user.name is unset.');
           expect(result.stdout).toContain(
-            '$ git config --global user.name "Your Name"',
+            '├─ git config --global user.name "Your Name"',
           );
           expect(result.stdout).not.toContain('user.email is unset');
           expect(fs.existsSync(statePathOf(result.tempDir))).toBe(false);
@@ -1401,7 +1401,7 @@ describe('git.commit.sponsor.sh', () => {
             expect(result.stdout).not.toContain('you named:');
             // a real name fixes a placeholder — the fix leads the bind forms
             expect(result.stdout).toContain(
-              '$ git config --global user.name "Your Name"',
+              '├─ git config --global user.name "Your Name"',
             );
             expect(result.stdout).toMatchSnapshot();
           },

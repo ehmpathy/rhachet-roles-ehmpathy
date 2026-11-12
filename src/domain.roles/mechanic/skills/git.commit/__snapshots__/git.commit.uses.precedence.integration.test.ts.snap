@@ -6,8 +6,9 @@ exports[`git.commit.uses precedence matrix given: [global=blocked, org=allowed, 
 🐚 git.commit.push
    └─ ✋ ConstraintError: commits blocked globally
 
-ask your human to lift:
-  $ git.commit.uses allow --global
+🥥 did you know?
+   ├─ a human set the global blocker; ask them to lift it
+   └─ git.commit.uses allow --global
 "
 `;
 
@@ -17,8 +18,9 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=@all-blocke
 🐚 git.commit.push
    └─ ✋ ConstraintError: commits blocked for org ehmpathy (from @all)
 
-ask your human to allow:
-  $ git.commit.uses allow --org <org>
+🥥 did you know?
+   ├─ a human blocked this org; ask them to allow it
+   └─ git.commit.uses allow --org ehmpathy
 "
 `;
 
@@ -32,20 +34,21 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, lo
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
 `;
 
-exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, local=blocked] when: [t0] push is attempted then: blocked by local push config 1`] = `
+exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, local=blocked] when: [t0] push is attempted then: blocked by the revoked local grant 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ ✋ ConstraintError: push not allowed
+   └─ ✋ ConstraintError: no commit grant held
 
-ask your human to grant with --push allow:
-  $ git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ a push rides the commit grant; ask your human to grant one
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -55,8 +58,9 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=blocked, lo
 🐚 git.commit.push
    └─ ✋ ConstraintError: commits blocked for org ehmpathy
 
-ask your human to allow:
-  $ git.commit.uses allow --org <org>
+🥥 did you know?
+   ├─ a human blocked this org; ask them to allow it
+   └─ git.commit.uses allow --org ehmpathy
 "
 `;
 
@@ -64,9 +68,10 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=unset, loca
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ ✋ ConstraintError: no org config for ehmpathy (org permissions not configured)
+   └─ ✋ ConstraintError: no org config for ehmpathy
 
-ask your human to allow:
-  $ git.commit.uses allow --org <org>
+🥥 did you know?
+   ├─ no human has allowed this org yet; ask one to allow it
+   └─ git.commit.uses allow --org ehmpathy
 "
 `;

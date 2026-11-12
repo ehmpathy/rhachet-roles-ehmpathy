@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`teesafe.sh given: [case7] error cases when: [t1] unknown option provided then: exits with error 1`] = `
+"🐢 bummer dude...
+
+🐚 teesafe
+   └─ ✋ ConstraintError: unknown option: --unknown
+
+🥥 did you know?
+   ├─ see every form teesafe takes, with examples
+   └─ rhx teesafe --help
+"
+`;

@@ -308,6 +308,9 @@ describe('teesafe.sh', () => {
 
         expect(result.exitCode).toBe(2);
         expect(result.stderr).toContain('unknown option');
+        // a refusal rides both streams, in the house frame
+        expect(result.stdout).toContain('✋ ConstraintError: unknown option');
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });

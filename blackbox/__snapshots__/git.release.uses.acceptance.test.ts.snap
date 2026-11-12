@@ -1,0 +1,148 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release.uses (acceptance) given: [case1] a linked repo that names its org when: [t0] any actor runs \`rhx git.release.uses get\` then: the shipped skill reads all three levels as blocked 1`] = `
+"🐢 let's check the release meter...
+
+🐚 git.release.uses get
+   ├─ local: unset (blocked)
+   ├─ org: blocked — no org config for ehmpathy
+   ├─ global: not blocked
+   └─ verdict: blocked by local + org
+
+🥥 did you know?
+   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   ├─ rhx git.release.uses set --quant 1
+   └─ rhx git.release.uses allow --org ehmpathy
+"
+`;
+
+exports[`git.release.uses (acceptance) given: [case1] a linked repo that names its org when: [t1] a robot runs \`rhx git.release.uses set --quant 1\` then: it refuses, exit 2, and writes no release stamp 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release.uses set --quant 1
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
+
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.release.uses set --quant 1
+"
+`;
+
+exports[`git.release.uses (acceptance) given: [case2] a human walks the release meter through its grants when: [t0] the human allows releases for the org then: the org grant lands, exit 0 1`] = `
+"🐢 shell yeah, back in the water!
+
+🐚 git.release.uses allow --org ehmpathy
+   └─ ehmpathy: allowed
+
+🥥 did you know?
+   ├─ this lifts the org level alone; global and local still decide whether a tree can ship
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`git.release.uses (acceptance) given: [case2] a human walks the release meter through its grants when: [t1] the human stamps one release, then any actor reads it then: the stamp says ship it, and get reads can ship now 1`] = `
+"🐢 radical! ship it when ready
+
+🐚 git.release.uses set --quant 1
+   └─ local: 1 left
+
+🥥 did you know?
+   ├─ the clone spends one use per apply; to reach prod on one use, it ships feat → main → prod in one apply
+   └─ rhx git.release --into prod --mode apply
+"
+`;
+
+exports[`git.release.uses (acceptance) given: [case2] a human walks the release meter through its grants when: [t1] the human stamps one release, then any actor reads it then: the stamp says ship it, and get reads can ship now 2`] = `
+"🐢 let's check the release meter...
+
+🐚 git.release.uses get
+   ├─ local: 1 left
+   ├─ org: allowed
+   ├─ global: not blocked
+   └─ verdict: can ship now
+"
+`;
+
+exports[`git.release.uses (acceptance) given: [case2] a human walks the release meter through its grants when: [t2] the human allows unlimited releases then: the stamp is unlimited 1`] = `
+"🐢 radical! ship it when ready
+
+🐚 git.release.uses allow
+   └─ local: unlimited
+
+🥥 did you know?
+   ├─ every release from this tree is now unmetered, until a human takes it back
+   └─ rhx git.release.uses block
+"
+`;
+
+exports[`git.release.uses (acceptance) given: [case2] a human walks the release meter through its grants when: [t3] the human blocks releases globally, then any actor reads it then: the global blocker wins over the local stamp 1`] = `
+"🐢 groovy, bonfire time
+
+🐚 git.release.uses block --global
+   └─ releases blocked globally
+
+🥥 did you know?
+   ├─ this halts releases from every tree on this host, until a human lifts it
+   └─ rhx git.release.uses allow --global
+"
+`;
+
+exports[`git.release.uses (acceptance) given: [case2] a human walks the release meter through its grants when: [t3] the human blocks releases globally, then any actor reads it then: the global blocker wins over the local stamp 2`] = `
+"🐢 let's check the release meter...
+
+🐚 git.release.uses get
+   ├─ local: unlimited
+   ├─ org: allowed
+   ├─ global: blocked
+   └─ verdict: blocked by global
+
+🥥 did you know?
+   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   └─ rhx git.release.uses allow --global
+"
+`;
+
+exports[`git.release.uses (acceptance) given: [case2] a human walks the release meter through its grants when: [t4] the human lifts the global blocker then: releases resume globally 1`] = `
+"🐢 shell yeah, back in the water!
+
+🐚 git.release.uses allow --global
+   └─ releases resumed globally
+
+🥥 did you know?
+   ├─ this lifts the global level alone; org and local still decide whether a tree can ship
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`git.release.uses (acceptance) given: [case2] a human walks the release meter through its grants when: [t5] the human blocks the tree, then revokes it then: the stamp is revoked to zero, and get reads it blocked by local 1`] = `
+"🐢 groovy, no ships today
+
+🐚 git.release.uses block
+   └─ local: revoked
+"
+`;
+
+exports[`git.release.uses (acceptance) given: [case2] a human walks the release meter through its grants when: [t5] the human blocks the tree, then revokes it then: the stamp is revoked to zero, and get reads it blocked by local 2`] = `
+"🐢 groovy, no ships today
+
+🐚 git.release.uses del
+   └─ local: revoked
+"
+`;
+
+exports[`git.release.uses (acceptance) given: [case2] a human walks the release meter through its grants when: [t5] the human blocks the tree, then revokes it then: the stamp is revoked to zero, and get reads it blocked by local 3`] = `
+"🐢 let's check the release meter...
+
+🐚 git.release.uses get
+   ├─ local: 0 left
+   ├─ org: allowed
+   ├─ global: not blocked
+   └─ verdict: blocked by local
+
+🥥 did you know?
+   ├─ a human lifts a level from their own terminal; one command per level that blocks
+   └─ rhx git.release.uses set --quant 1
+"
+`;

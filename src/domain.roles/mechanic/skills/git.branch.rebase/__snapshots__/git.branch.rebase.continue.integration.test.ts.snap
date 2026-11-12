@@ -115,3 +115,53 @@ exports[`git.branch.rebase.continue given: [case7] rebase in progress with unsta
    └─ rhx git.branch.rebase continue --unstaged ignore
 "
 `;
+
+exports[`git.branch.rebase.continue given: [case8] a real rebase that stops at each commit, with no conflict when: [t0] continue moves past one stop to the next then: exit 0: renders the rebase as still in progress 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  └─ status: in progress
+   ├─ left: 1 commit
+   └─ git.output
+      ├─
+      │
+      │  <git output>
+      │
+      └─
+"
+`;
+
+exports[`git.branch.rebase.continue given: [case9] a real rebase that stops at its one commit, with no conflict when: [t0] continue moves past the last stop then: exit 0: renders the rebase complete, ready to push 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.rebase continue
+   ├─ rebase
+   │  ├─ commits: 1 ✓
+   │  └─ status: complete
+   ├─ meter
+   │  └─ push: held
+   └─ git.output
+      ├─
+      │
+      │  <git output>
+      │
+      └─
+
+🌊 ready to push
+   └─ rhx git.commit.push
+"
+`;
+
+exports[`git.branch.rebase.continue given: [case10] an argument the skill does not know when: [t0] continue is called with --bogus then: exit 2, the refusal rides both streams 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase continue
+   └─ ✋ ConstraintError: unknown argument: --bogus
+      └─ usage: rhx git.branch.rebase continue [--unstaged ignore]
+
+🥥 did you know?
+   ├─ see each arg it takes
+   └─ rhx git.branch.rebase continue --help
+"
+`;

@@ -31,7 +31,8 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-on-feat] on 
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   └─ 🌴 automerge enabled [added] -> and merged already
+   ├─ 🌴 automerge enabled [added]
+   └─ 🌴 already merged
 
 🫧 and then...
 
@@ -62,7 +63,8 @@ exports[`git.release.p2 --from main behavior given: [case-from-main-on-main] on 
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   └─ 🌴 automerge enabled [added] -> and merged already
+   ├─ 🌴 automerge enabled [added]
+   └─ 🌴 already merged
 
 🫧 and then...
 
@@ -312,6 +314,11 @@ exports[`git.release.p2 argument validation given: [case-arg-help] --help flag w
 
   special circumstances only (footgun — prefer --into prod):
   --from main   skip the feature branch, release whatever is on main
+
+  the release stamp (git.release.uses):
+  apply needs the human's stamp — git.release.uses set --quant 1 — and spends
+  one use at the arm of the merge; --into prod arms both prs on that one use.
+  a commit grant never ships. see the stamp: rhx git.release.uses get
 "
 `;
 
@@ -383,31 +390,136 @@ exports[`git.release.p2 dirty state detection given: [case-dirty-watch] dirty wo
 "
 `;
 
-exports[`git.release.p2 permission requirements given: [case-perm-global-blocked] apply mode with global blocker when: [t0] apply with global blocker set then: exit 2: hint global blocker 1`] = `
+exports[`git.release.p2 permission requirements given: [case-perm-commit-only] a commit grant with no release grant when: [t0] apply with an unlimited commit grant alone then: exit 2: a commit grant never ships 1`] = `
 "🐢 bummer dude...
 
 🐚 git.release --mode apply
+   └─ ✋ ConstraintError: no release grant on this tree
 
-✋ blocked: commits blocked globally
-
-   ask your human to lift:
-   $ git.commit.uses allow --global
+🥥 did you know?
+   ├─ a commit grant never ships; a release needs its own stamp, which only your human can grant
+   └─ git.release.uses set --quant 1
 "
 `;
 
-exports[`git.release.p2 permission requirements given: [case-perm-no-local] apply mode without local permission when: [t0] apply without .meter/git.commit.uses.jsonc then: exit 2: hint permission 1`] = `
+exports[`git.release.p2 permission requirements given: [case-perm-depleted] the release stamp is spent when: [t0] apply with a local release grant of 0 then: exit 2: the stamp is spent, and the file stays at 0 1`] = `
 "🐢 bummer dude...
 
 🐚 git.release --mode apply
+   └─ ✋ ConstraintError: no release uses left
 
-✋ blocked: no commit quota set
-
-   ask your human to grant:
-   $ git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ the stamp is spent; ask your human to grant another
+   └─ git.release.uses set --quant 1
 "
 `;
 
-exports[`git.release.p2 permission requirements given: [case-perm-plan-no-check] plan mode does not check permissions when: [t0] plan without .meter/git.commit.uses.jsonc then: exit 0: plan proceeds without permission check 1`] = `
+exports[`git.release.p2 permission requirements given: [case-perm-global-blocked] apply mode with the global release blocker when: [t0] apply with the release blocker set then: exit 2: hint the global release blocker 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --mode apply
+   └─ ✋ ConstraintError: releases blocked globally
+
+🥥 did you know?
+   ├─ ask your human to lift the global release blocker
+   └─ git.release.uses allow --global
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-global-blocked] apply mode with the global release blocker when: [t1] apply with the global blocker AND no stamp on this tree then: exit 2: one refusal names both levels and both remedies 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --mode apply
+   └─ ✋ ConstraintError: releases blocked at 2 levels
+      ├─ releases blocked globally
+      └─ no release grant on this tree
+
+🥥 did you know?
+   ├─ each level must allow a release; ask your human to grant each
+   ├─ git.release.uses allow --global
+   └─ git.release.uses set --quant 1
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-global-damaged] apply mode with a 0-byte global release blocker when: [t0] apply reads the damaged blocker then: exit 1: fails closed and names the file 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --mode apply
+   └─ 💥 MalfunctionError: release blocker file corrupt
+
+🥥 did you know?
+   ├─ the global blocker file cannot be read, so every release is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.jsonc
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-local-damaged] the local release stamp is damaged when: [t0] apply reads an unparseable local file then: exit 1: fails closed and names the file 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --mode apply
+   └─ 💥 MalfunctionError: release quota file corrupt
+
+   the file that holds this tree's release quota cannot be read:
+     .meter/git.release.uses.jsonc
+
+🥥 did you know?
+   ├─ ask your human to reset the quota, then grant again
+   ├─ git.release.uses del
+   └─ git.release.uses set --quant N
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-no-local] apply mode without a local release grant when: [t0] apply without .meter/git.release.uses.jsonc then: exit 2: hint the release stamp 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --mode apply
+   └─ ✋ ConstraintError: no release grant on this tree
+
+🥥 did you know?
+   ├─ a commit grant never ships; a release needs its own stamp, which only your human can grant
+   └─ git.release.uses set --quant 1
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-org-damaged] the release org meter file is unparseable when: [t0] apply reads the damaged org file then: exit 1: fails closed, names the file, spends no use 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --mode apply
+   └─ 💥 MalfunctionError: org meter file corrupt
+
+🥥 did you know?
+   ├─ the org meter file cannot be read, so every release is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.org.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.release.uses.org.jsonc
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-org-unnamed] the tree has no keyrack.yml to name its org when: [t0] apply with a local release grant then: exit 2: names the keyrack.yml fix, not an org grant 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --mode apply
+   └─ ✋ ConstraintError: .agent/keyrack.yml not found
+
+🥥 did you know?
+   ├─ the org comes from .agent/keyrack.yml; ask a human to add it
+   └─ echo 'org: <org>' > .agent/keyrack.yml
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-org-unset] the tree names an org with no release permission when: [t0] apply with a local release grant then: exit 2: names the org grant to ask for 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --mode apply
+   └─ ✋ ConstraintError: no org config for ehmpathy
+
+🥥 did you know?
+   ├─ ask your human to allow releases for this org
+   └─ git.release.uses allow --org ehmpathy
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-plan-no-check] plan mode previews permissions, never refuses when: [t0] plan without .meter/git.release.uses.jsonc then: exit 0: plan proceeds without permission check 1`] = `
 "🐢 heres the wave...
 
 🐚 git.release --into main --mode plan
@@ -416,6 +528,153 @@ exports[`git.release.p2 permission requirements given: [case-perm-plan-no-check]
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
+
+🐚 release stamp
+   └─ apply would refuse: no release grant on this tree
+
+🥥 did you know?
+   ├─ see each level, and what blocks
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-plan-no-check] plan mode previews permissions, never refuses when: [t1] plan with the global release blocker set then: exit 0: the preview names the global blocker 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --mode plan
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
+
+🐚 release stamp
+   └─ apply would refuse: releases blocked globally
+
+🥥 did you know?
+   ├─ see each level, and what blocks
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-plan-no-check] plan mode previews permissions, never refuses when: [t2] plan with a damaged local release stamp then: exit 0: the preview names the damaged meter file 1`] = `
+"🐢 heres the wave...
+
+🐚 git.release --into main --mode plan
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge unfound (use --apply to add)
+   └─ [dim]hint: use --apply to enable automerge and watch[/dim]
+
+🐚 release stamp
+   └─ apply would refuse: a release meter file is damaged
+
+🥥 did you know?
+   ├─ see each level, and what blocks
+   └─ rhx git.release.uses get
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-release-only] a release grant with no commit grant when: [t0] apply with a release grant of 1 and no commit meter then: exit 0: the release proceeds and spends its one use 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 🌴 automerge enabled [added]
+   └─ 🌴 already merged
+
+[dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
+[dim]   └─ it spends another release use; 0 left[/dim]
+
+🐚 release stamp
+   ├─ release stamp spent: 0 left (a red ci or a timeout does not refund it)
+   └─ --watch and --retry spend none; a red hop needs no new grant to rerun
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-release-only] a release grant with no commit grant when: [t2] the arm itself fails (gh pr merge errors) then: exit non-zero, and the failed arm refunds its use 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   └─ 💥 MalfunctionError: could not arm the merge of pr #42; gh printed the cause on stderr
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-release-only] a release grant with no commit grant when: [t3] a human revokes the stamp mid-apply, then the arm fails then: the revoke stands: the failed arm refunds naught 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ release stamp not refunded: a human changed it since the spend; it stands as written
+   └─ 💥 MalfunctionError: could not arm the merge of pr #42; gh printed the cause on stderr
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-release-only] a release grant with no commit grant when: [t4] the stamp turns damaged mid-apply, then the arm fails then: the refund fails loud as a malfunction, never as a human change 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ 💥 MalfunctionError: could not refund the release use; .meter/git.release.uses.jsonc could not be read (<jq error>)
+   └─ 💥 MalfunctionError: could not arm the merge of pr #42; gh printed the cause on stderr
+
+🐚 release stamp
+   ├─ release stamp spent: 0 left (a red ci or a timeout does not refund it)
+   └─ --watch and --retry spend none; a red hop needs no new grant to rerun
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-release-only] a release grant with no commit grant when: [t4] the stamp turns damaged mid-apply, then the arm fails then: the refund fails loud as a malfunction, never as a human change 2`] = `
+"GraphQL: Resource not accessible by integration (mergePullRequest)
+   ├─ 💥 MalfunctionError: could not refund the release use; .meter/git.release.uses.jsonc could not be read (<jq error>)
+   └─ 💥 MalfunctionError: could not arm the merge of pr #42; gh printed the cause on stderr
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-release-only] a release grant with no commit grant when: [t5] a human removes the stamp mid-apply, then the arm fails then: the removal stands: the failed arm refunds naught 1`] = `
+"🐢 cowabunga!
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(oceans): add reef protection
+   ├─ 👌 all checks passed
+   ├─ release stamp not refunded: it was removed since the spend; it stays removed
+   └─ 💥 MalfunctionError: could not arm the merge of pr #42; gh printed the cause on stderr
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-unpushed] the branch holds commits its pr lacks (F14) when: [t0] apply with two commits not yet pushed then: exit 2: names the count and the push, spends no use 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --mode apply
+   └─ ✋ ConstraintError: 2 unpushed commit(s) on turtle/feature-x
+
+🥥 did you know?
+   ├─ the pr holds only what was pushed; push first, then release
+   ├─ a push rides the commit grant, not the release stamp; if push refuses, ask your human for git.commit.uses set --quant N
+   └─ rhx git.commit.push --mode apply
+"
+`;
+
+exports[`git.release.p2 permission requirements given: [case-perm-unpushed] the branch holds commits its pr lacks (F14) when: [t2] apply with no origin/<branch> ref to count against then: exit 1: a count it cannot read never passes as zero 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --mode apply
+   └─ 💥 MalfunctionError: could not count unpushed commits on turtle/feature-x
+
+🥥 did you know?
+   ├─ the count reads origin/turtle/feature-x, which this tree lacks or cannot read; fetch it, then release
+   └─ git fetch origin turtle/feature-x
 "
 `;
 
@@ -573,7 +832,8 @@ exports[`git.release.p2 to main, from feat given: [case-feat-passed-wout-automer
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   └─ 🌴 automerge enabled [added] -> and merged already
+   ├─ 🌴 automerge enabled [added]
+   └─ 🌴 already merged
 
 [dim]🐚 continue?: rhx git.release --into prod --mode apply[/dim]
 "
@@ -635,8 +895,11 @@ exports[`git.release.p2 to main, from feat given: [case-feat-unfound] feature PR
 "🐢 crickets...
 
 🫧 no open branch pr
-   ├─ turtle/feature-x
-   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
+   └─ turtle/feature-x
+
+🥥 did you know?
+   ├─ push the branch; the push findserts its pr
+   └─ rhx git.commit.push --mode apply
 "
 `;
 
@@ -644,8 +907,11 @@ exports[`git.release.p2 to main, from feat given: [case-feat-unfound] feature PR
 "🐢 crickets...
 
 🫧 no open branch pr
-   ├─ turtle/feature-x
-   └─ [dim]hint: use git.commit.push to push and findsert pr[/dim]
+   └─ turtle/feature-x
+
+🥥 did you know?
+   ├─ push the branch; the push findserts its pr
+   └─ rhx git.commit.push --mode apply
 "
 `;
 
@@ -924,7 +1190,8 @@ exports[`git.release.p2 to prod, from main given: [case-main-passed-wout-automer
 
 🌊 release: chore(release): v1.33.0 🎉
    ├─ 👌 all checks passed
-   └─ 🌴 automerge enabled [added] -> and merged already
+   ├─ 🌴 automerge enabled [added]
+   └─ 🌴 already merged
 
 🫧 and then...
 

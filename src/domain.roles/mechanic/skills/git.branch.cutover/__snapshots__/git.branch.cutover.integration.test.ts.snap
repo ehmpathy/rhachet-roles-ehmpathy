@@ -124,12 +124,12 @@ exports[`git.branch.cutover given: [case6] a pick conflicts, then is settled whe
       │  ├─ commit: <sha> cont(wave): add band of swell
       │  └─ files
       │     └─ src/band.ts (both added it)
-      ├─ stage: ✋ no stage grant, so rhx git.stage.add will refuse
-      │  └─ ask your human: rhx git.commit.uses set --quant N --push allow|block --stage allow
+      ├─ stage: ✋ no live commit grant, so rhx git.stage.add will refuse
+      │  └─ ask your human: rhx git.commit.uses set --quant N
       └─ quota: the cutover unit is spent; abort refunds none
 
 🥥 did you know?
-   ├─ settle the files above; once your human grants the stage (see stage: above), stage them, then continue — or undo the whole cutover
+   ├─ settle the files above; once your human grants a commit (see stage: above), stage them, then continue — or undo the whole cutover
    ├─ rhx git.stage.add <files>
    ├─ rhx git.branch.cutover continue
    └─ rhx git.branch.cutover abort
@@ -143,9 +143,9 @@ exports[`git.branch.cutover given: [case6] a pick conflicts, then is settled whe
    └─ ✋ ConstraintError: files are still in conflict
       ├─ files
       │  └─ src/band.ts (both added it)
-      ├─ stage: ✋ no stage grant, so rhx git.stage.add will refuse
-      │  └─ ask your human: rhx git.commit.uses set --quant N --push allow|block --stage allow
-      └─ fix: settle each; once your human grants the stage, rhx git.stage.add <files>, then continue again
+      ├─ stage: ✋ no live commit grant, so rhx git.stage.add will refuse
+      │  └─ ask your human: rhx git.commit.uses set --quant N
+      └─ fix: settle each; once your human grants a commit, rhx git.stage.add <files>, then continue again
 "
 `;
 
@@ -214,12 +214,12 @@ exports[`git.branch.cutover given: [case9] the carry of tracked edits conflicts 
       │  └─ files
       │     └─ readme.md (both changed it)
       ├─ safe: original tracked edits held at refs/worktree/cutover/tree
-      ├─ stage: ✋ no stage grant, so rhx git.stage.add will refuse
-      │  └─ ask your human: rhx git.commit.uses set --quant N --push allow|block --stage allow
+      ├─ stage: ✋ no live commit grant, so rhx git.stage.add will refuse
+      │  └─ ask your human: rhx git.commit.uses set --quant N
       └─ quota: the cutover unit is spent; abort refunds none
 
 🥥 did you know?
-   ├─ settle the files above; once your human grants the stage (see stage: above), stage them, then continue — or undo the whole cutover
+   ├─ settle the files above; once your human grants a commit (see stage: above), stage them, then continue — or undo the whole cutover
    ├─ rhx git.stage.add <files>
    ├─ rhx git.branch.cutover continue
    └─ rhx git.branch.cutover abort
@@ -431,8 +431,9 @@ exports[`git.branch.cutover given: [case15] the itemized refusals when: [t3] no 
 🐚 git.branch.cutover begin
    └─ ✋ ConstraintError: no cutover quota set
 
-ask your human to grant:
-  $ rhx git.branch.uses set --quant N
+🥥 did you know?
+   ├─ ask your human to grant
+   └─ rhx git.branch.uses set --quant N
 "
 `;
 
@@ -444,7 +445,7 @@ exports[`git.branch.cutover given: [case15] the itemized refusals when: [t3] no 
    ├─ base: origin/main @ <sha> (fetched)
    ├─ into: turtle/wave-report-v2 (new, no upstream)
    ├─ quota: ✋ apply will refuse: no cutover quota set
-   │  └─ ask your human to grant: rhx git.branch.uses set --quant N
+   │  └─ ask your human to grant rhx git.branch.uses set --quant N
    └─ left behind on turtle/wave-report (3, not picked)
       ├─ <sha> feat(wave): add wave report
       ├─ <sha> cont(wave): add swell height
@@ -1100,7 +1101,7 @@ exports[`git.branch.cutover given: [case41] the filesystem refuses the cutover l
 "
 `;
 
-exports[`git.branch.cutover given: [case42] a halt in a tree with no stage grant when: [t0] begin halts, then the human grants stage then: the halt names the absent stage grant and the spent unit 1`] = `
+exports[`git.branch.cutover given: [case42] a halt in a tree with no live commit grant when: [t0] begin halts, then the human grants a commit then: the halt names the absent commit grant and the spent unit 1`] = `
 "🐢 hang tight...
 
 🐚 git.branch.cutover begin --mode apply
@@ -1112,12 +1113,12 @@ exports[`git.branch.cutover given: [case42] a halt in a tree with no stage grant
       │  ├─ commit: <sha> cont(wave): add band of swell
       │  └─ files
       │     └─ src/band.ts (both added it)
-      ├─ stage: ✋ no stage grant, so rhx git.stage.add will refuse
-      │  └─ ask your human: rhx git.commit.uses set --quant N --push allow|block --stage allow
+      ├─ stage: ✋ no live commit grant, so rhx git.stage.add will refuse
+      │  └─ ask your human: rhx git.commit.uses set --quant N
       └─ quota: the cutover unit is spent; abort refunds none
 
 🥥 did you know?
-   ├─ settle the files above; once your human grants the stage (see stage: above), stage them, then continue — or undo the whole cutover
+   ├─ settle the files above; once your human grants a commit (see stage: above), stage them, then continue — or undo the whole cutover
    ├─ rhx git.stage.add <files>
    ├─ rhx git.branch.cutover continue
    └─ rhx git.branch.cutover abort
@@ -1435,7 +1436,7 @@ exports[`git.branch.cutover given: [case57] a halt in a tree whose mechanic ops 
       └─ quota: the cutover unit is spent; abort refunds none
 
 🥥 did you know?
-   ├─ settle the files above; once your human grants the stage (see stage: above), stage them, then continue — or undo the whole cutover
+   ├─ settle the files above; once your human grants a commit (see stage: above), stage them, then continue — or undo the whole cutover
    ├─ rhx git.stage.add <files>
    ├─ rhx git.branch.cutover continue
    └─ rhx git.branch.cutover abort
@@ -1603,7 +1604,7 @@ exports[`git.branch.cutover given: [case66] a plan while cutovers are blocked gl
    ├─ base: origin/main @ <sha> (fetched)
    ├─ into: turtle/wave-report-v2 (new, no upstream)
    ├─ quota: ✋ apply will refuse: cutovers blocked globally
-   │  └─ ask your human to lift it: rhx git.branch.uses allow --global
+   │  └─ ask your human to lift it rhx git.branch.uses allow --global
    └─ left behind on turtle/wave-report (3, not picked)
       ├─ <sha> feat(wave): add wave report
       ├─ <sha> cont(wave): add swell height
@@ -1698,12 +1699,12 @@ exports[`git.branch.cutover given: [case70] a tracked edit to a file a left-behi
       │  └─ files
       │     └─ src/wave.ts (the new branch lacks it: added by <sha> feat(wave): add wave report, not picked. keep it, or rhx rmsafe it)
       ├─ safe: original tracked edits held at refs/worktree/cutover/tree
-      ├─ stage: ✋ no stage grant, so rhx git.stage.add will refuse
-      │  └─ ask your human: rhx git.commit.uses set --quant N --push allow|block --stage allow
+      ├─ stage: ✋ no live commit grant, so rhx git.stage.add will refuse
+      │  └─ ask your human: rhx git.commit.uses set --quant N
       └─ quota: the cutover unit is spent; abort refunds none
 
 🥥 did you know?
-   ├─ settle the files above; once your human grants the stage (see stage: above), stage them, then continue — or undo the whole cutover
+   ├─ settle the files above; once your human grants a commit (see stage: above), stage them, then continue — or undo the whole cutover
    ├─ rhx git.stage.add <files>
    ├─ rhx git.branch.cutover continue
    └─ rhx git.branch.cutover abort
@@ -2206,12 +2207,12 @@ exports[`git.branch.cutover given: [case102] an unstaged edit carried through a 
       │  └─ files
       │     └─ src/swell.ts (both added it)
       ├─ rescue: refs/cutover/rescue/<tree1> — a copy of an edit made mid-halt, still on disk
-      ├─ stage: ✋ no stage grant, so rhx git.stage.add will refuse
-      │  └─ ask your human: rhx git.commit.uses set --quant N --push allow|block --stage allow
+      ├─ stage: ✋ no live commit grant, so rhx git.stage.add will refuse
+      │  └─ ask your human: rhx git.commit.uses set --quant N
       └─ quota: the cutover unit is spent; abort refunds none
 
 🥥 did you know?
-   ├─ settle the files above; once your human grants the stage (see stage: above), stage them, then continue — or undo the whole cutover
+   ├─ settle the files above; once your human grants a commit (see stage: above), stage them, then continue — or undo the whole cutover
    ├─ rhx git.stage.add <files>
    ├─ rhx git.branch.cutover continue
    └─ rhx git.branch.cutover abort

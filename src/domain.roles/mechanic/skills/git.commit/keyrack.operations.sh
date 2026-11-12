@@ -329,11 +329,14 @@ is_one_seaturtle_identity_clone() {
 #     guarantee is broken only by a WRONG id, and the push guard is a
 #     backstop on the author name
 #
-# usage: assert_token_identity_in_sync "$token"
+# usage: assert_token_identity_in_sync "$token" [skill=<caller name>]
 # returns: exit 0 if in sync (or not verifiable), exit 1 on proven mismatch
 ######################################################################
 assert_token_identity_in_sync() {
   local token="${1:-}"
+  # the refusal names the skill that called it, as every refusal tree does
+  local skill="git.commit"
+  [[ "${2:-}" == skill=* ]] && skill="${2#skill=}"
 
   # only app tokens carry an app-bot identity to verify
   [[ "$token" == ghs_* ]] || return 0
@@ -369,15 +372,20 @@ assert_token_identity_in_sync() {
   # guide shape) is intentional — a proven bot-id desync is a loud misconfiguration,
   # and a fail-loud diagnosis outranks format purity on this rare path.
   if [[ "$actual_id" != "$SEATURTLE_APP_BOT_ID" || "$actual_login" != "$SEATURTLE_APP_BOT_NAME" ]]; then
+    # the same turtle header + tree frame as every refusal in the family
     local mismatch_msg
     mismatch_msg=$(
-      echo "✋ ConstraintError: github token identity out of sync with the expected app bot"
-      echo "  expected: $SEATURTLE_APP_BOT_NAME (id $SEATURTLE_APP_BOT_ID)"
-      echo "  actual:   ${actual_login:-<unknown>} (id ${actual_id:-<unknown>})"
+      echo "🐢 bummer dude..."
       echo ""
-      echo "the commit-author email hardcodes the expected bot id; if the token"
-      echo "maps to a different bot, the squash-merge would show a 3rd contributor."
-      echo "fix the token, or update the seaturtle identities in keyrack.operations.sh."
+      echo "🐚 $skill"
+      echo "   ├─ expected: $SEATURTLE_APP_BOT_NAME (id $SEATURTLE_APP_BOT_ID)"
+      echo "   ├─ actual: ${actual_login:-<unknown>} (id ${actual_id:-<unknown>})"
+      echo "   ├─ why: the commit-author email names the expected bot id; another bot adds a 3rd contributor on squash"
+      echo "   └─ ✋ ConstraintError: github token identity out of sync with the expected app bot"
+      echo ""
+      echo "🥥 did you know?"
+      echo "   ├─ a human fixes the token, or updates the seaturtle identities in keyrack.operations.sh"
+      echo "   └─ rhx keyrack status --owner ehmpath"
     )
     echo "$mismatch_msg"
     echo "$mismatch_msg" >&2

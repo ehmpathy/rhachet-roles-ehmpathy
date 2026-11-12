@@ -12,21 +12,19 @@
 #   spend_branch_use
 #
 # guarantee:
-#   - the global + org readers are the commit meter's own, pointed at the
-#     branch meter's files via METER_SLUG / METER_NOUN
-#   - pure at source time: constants + functions, no top-level command
+#   - the global + org readers are the commit meter's own, scoped to the
+#     branch meter's files via `set_meter_scope branch` (F44)
+#   - pure at source time: constants, functions, and the scope call
 ######################################################################
 
 BRANCH_USES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-# .why NOT exported = these name the meter for THIS process alone. an
-#      exported slug would leak into any git.commit.* child and point it at
-#      the branch meter's files
-METER_SLUG="git.branch.uses"
-METER_NOUN="cutover"
-
 source "$BRANCH_USES_DIR/../git.commit/output.sh"
 source "$BRANCH_USES_DIR/../git.commit/git.commit.operations.sh"
+
+# scope the shared readers to the branch meter, for THIS process alone; the
+# scope is no env var, so it cannot leak into a git.commit.* child
+set_meter_scope branch
 
 ######################################################################
 # pid locks — one live holder per lock file
@@ -299,9 +297,9 @@ print_branch_meter_damaged_fix() {
   echo ""
   echo "   the file that holds this tree's cutover quota cannot be read:"
   echo "     $file"
-  print_instruction "ask your human to reset the quota, then grant again:" \
-    "  \$ rhx git.branch.uses del
-  \$ rhx git.branch.uses set --quant N"
+  print_coconut_hint "ask your human to reset the quota, then grant again" \
+    "rhx git.branch.uses del" \
+    "rhx git.branch.uses set --quant N"
 }
 
 ######################################################################
@@ -362,7 +360,7 @@ set_branch_uses_verdict() {
       return 0
     fi
     BRANCH_USES_VERDICT="refused"
-    BRANCH_USES_ASK="ask your human to lift it:"
+    BRANCH_USES_ASK="ask your human to lift it"
     BRANCH_USES_LIFT="rhx git.branch.uses allow --global"
     return 0
   fi
@@ -376,7 +374,7 @@ set_branch_uses_verdict() {
       return 0
     fi
     BRANCH_USES_VERDICT="refused"
-    BRANCH_USES_ASK="ask your human to allow:"
+    BRANCH_USES_ASK="ask your human to allow"
     BRANCH_USES_LIFT="rhx git.branch.uses allow --org <org>"
     return 0
   fi
@@ -390,7 +388,7 @@ set_branch_uses_verdict() {
   if [[ ! -e "$file" ]] || ! content=$(cat "$file" 2> /dev/null); then
     BRANCH_USES_VERDICT="refused"
     BRANCH_USES_REASON="no cutover quota set"
-    BRANCH_USES_ASK="ask your human to grant:"
+    BRANCH_USES_ASK="ask your human to grant"
     BRANCH_USES_LIFT="rhx git.branch.uses set --quant N"
     return 0
   fi
@@ -406,7 +404,7 @@ set_branch_uses_verdict() {
   if [[ "$(printf '%s' "$content" | jq -r '.uses')" == "0" ]]; then
     BRANCH_USES_VERDICT="refused"
     BRANCH_USES_REASON="no cutover uses left"
-    BRANCH_USES_ASK="ask your human to grant more:"
+    BRANCH_USES_ASK="ask your human to grant more"
     BRANCH_USES_LIFT="rhx git.branch.uses set --quant N"
   fi
   return 0
@@ -435,7 +433,7 @@ emit_branch_meter_constraint() {
     print_turtle_header "bummer dude..."
     print_tree_start "$cmd"
     print_tree_constraint "$reason"
-    print_instruction "$ask" "  \$ $lift"
+    print_coconut_hint "$ask" "$lift"
   )"
   exit 2
 }

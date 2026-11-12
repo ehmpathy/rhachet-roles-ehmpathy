@@ -1,0 +1,12 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`compress.via.bhrain — the real brain contract given: [case1] a short brief and the default sitrep brain when: [t0] the skill compresses it with the cache bypassed then: the result shape matches the masked snapshot 1`] = `
+{
+  "compressed": "<string>",
+  "forethought": "<string>",
+  "ratio": "<number>",
+  "rationale": "<string>",
+  "tokensAfter": "<number>",
+  "tokensBefore": "<number>",
+}
+`;

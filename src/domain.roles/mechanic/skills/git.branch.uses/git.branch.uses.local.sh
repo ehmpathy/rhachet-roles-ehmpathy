@@ -175,9 +175,9 @@ usage: git.branch.uses set --quant N"
         echo ""
         echo "   the path that should hold this tree's cutover quota:"
         echo "     ${STATE_FILE#"$REPO_ROOT/"}"
-        print_instruction "remove what sits there, then grant again:" \
-          "  \$ rhx rmsafe -r ${STATE_FILE#"$REPO_ROOT/"}
-  \$ $RETRY_CMD"
+        print_coconut_hint "remove what sits there, then grant again" \
+          "rhx rmsafe -r ${STATE_FILE#"$REPO_ROOT/"}" \
+          "$RETRY_CMD"
       )"
       exit 1
     fi
@@ -193,7 +193,7 @@ usage: git.branch.uses set --quant N"
         print_turtle_header "bummer dude..."
         print_tree_start "git.branch.uses $COMMAND"
         print_tree_constraint "the cutover quota is busy: a cutover gates or spends it right now"
-        print_instruction "rerun once it finishes:" "  \$ $RETRY_CMD"
+        print_coconut_hint "rerun once it finishes" "$RETRY_CMD"
       )"
       exit 2
     fi
