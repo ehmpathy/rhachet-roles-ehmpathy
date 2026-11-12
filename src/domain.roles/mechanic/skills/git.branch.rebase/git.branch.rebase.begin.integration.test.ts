@@ -330,9 +330,7 @@ describe('git.branch.rebase.begin', () => {
           expect(result.status).not.toBe(0);
           expect(result.stdout).toContain('└─ status: conflict');
           expect(result.stdout).toContain('conflict.txt');
-          expect(result.stdout).toContain(
-            'settle the conflicts in the files above, stage them, then continue',
-          );
+          expect(result.stdout).toContain('settle conflicts in files above');
           expect(result.stdout).toContain('└─ rhx git.branch.rebase continue');
           expect(result.stderr).toContain('└─ status: conflict');
           // git's own half is host text, and shas vary per run: mask both
@@ -892,8 +890,7 @@ describe('git.branch.rebase.begin', () => {
       {
         slug: 'an unknown mode',
         args: ['--mode', 'bogus'],
-        message:
-          "✋ ConstraintError: unknown mode 'bogus' (valid modes: plan, apply)",
+        message: "✋ ConstraintError: --mode must be 'plan' or 'apply'",
       },
       {
         slug: 'an unknown argument',
@@ -947,7 +944,9 @@ describe('git.branch.rebase.begin', () => {
             expect(result.stdout).toContain(
               '✋ ConstraintError: no commit grant on this tree',
             );
-            expect(result.stdout).toContain('rhx git.commit.uses set --quant N');
+            expect(result.stdout).toContain(
+              'rhx git.commit.uses set --quant N',
+            );
             expect(result.stderr).toContain('ConstraintError');
             expect(result.stdout).toMatchSnapshot();
           } finally {

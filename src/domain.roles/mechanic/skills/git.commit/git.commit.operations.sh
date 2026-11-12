@@ -95,18 +95,20 @@ METER_NOUN_PLURAL="commits"
 ######################################################################
 # .what = point the global + org gates and their renders at one meter
 #
-# .why  = two meters share one shape: `git.commit.uses` (commit, stage,
-#         rebase, push) and `git.release.uses` (a release). the global and
-#         org readers below carry a long trail of fail-closed repairs; a
-#         second copy per meter would drift from the first. ⇒ one reader,
-#         scoped to a meter by this leaf, so both meters fail closed by
-#         construction
+# .why  = three meters share one shape: `git.commit.uses` (commit, stage,
+#         rebase, push), `git.release.uses` (a release), and `git.branch.uses`
+#         (a cutover). the global and org readers below carry a long trail of
+#         fail-closed repairs; a second copy per meter would drift from the
+#         first. ⇒ one reader, scoped to a meter by this leaf, so every meter
+#         fails closed by construction (F44)
 #
-# .note = a process gates one meter: a commit reads only the commit meter
-#         and a release reads only the release meter (1.vision X1-X3). so a
-#         scope set once at the top of a skill never needs a reset
+# .note = a process gates one meter: a commit reads only the commit meter,
+#         a release only the release meter, a cutover only the branch meter
+#         (1.vision X1-X3). so a scope set once at the top of a skill never
+#         needs a reset; an env var cannot set it, so a value left exported in
+#         the shell never aims one meter's gate at another's files
 #
-# usage: set_meter_scope commit|release
+# usage: set_meter_scope commit|release|branch
 ######################################################################
 set_meter_scope() {
   local kind="$1"
@@ -121,10 +123,15 @@ set_meter_scope() {
       METER_NOUN="release"
       METER_NOUN_PLURAL="releases"
       ;;
+    branch)
+      METER_SKILL="git.branch.uses"
+      METER_NOUN="cutover"
+      METER_NOUN_PLURAL="cutovers"
+      ;;
     *)
       # both streams: a malfunction must show in the terminal and the error log
       emit_skill_defect --skill "git.commit.operations" \
-        --message "set_meter_scope: unknown meter '$kind' (expected commit|release)"
+        --message "set_meter_scope: unknown meter '$kind' (expected commit|release|branch)"
       exit 1
       ;;
   esac
@@ -138,17 +145,17 @@ set_meter_scope() {
 ######################################################################
 # .what = refuse a meter read until a skill has named its meter
 #
-# .why  = the global + org readers serve two meters. a default scope would let
-#         a release path that omits set_meter_scope read the commit meter, the
-#         inversion the split forbids. ⇒ no default: an unscoped read is a
-#         malfunction, exit 1, on both streams
+# .why  = the global + org readers serve three meters. a default scope would
+#         let a release or cutover path that omits set_meter_scope read the
+#         commit meter, the inversion the split forbids. ⇒ no default: an
+#         unscoped read is a malfunction, exit 1, on both streams
 ######################################################################
 assure_meter_scope() {
   if [[ -n "$METER_KIND" ]]; then
     return 0
   fi
   emit_skill_defect --skill "git.commit.operations" \
-    --message "meter read with no scope; call set_meter_scope commit|release first"
+    --message "meter read with no scope; call set_meter_scope commit|release|branch first"
   exit 1
 }
 

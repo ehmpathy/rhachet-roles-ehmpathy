@@ -12,7 +12,7 @@
 #   git.release.uses --global get      # check the release blocker
 #
 # guarantee:
-#   - the dispatcher names the meter via `--meter commit|release`, first arg
+#   - the dispatcher names the meter via `--meter commit|release|branch`, first arg
 #   - blocker stored at ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/
 #     (git.commit.uses.jsonc · git.release.uses.jsonc)
 #   - a global blocker overrides the org and local levels of its own meter only

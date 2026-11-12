@@ -44,16 +44,14 @@ for arg in "$@"; do
   ARGS+=("$arg")
 done
 
-# point the shared handlers at the branch meter. exported, since exec
-# hands them the environment and naught else
-export METER_SLUG="git.branch.uses"
-export METER_NOUN="cutover"
-
-# dispatch: --global > --org > local
+# dispatch: --global > --org > local. the global + org handlers are the
+# commit meter's hardened ones, scoped to the branch meter by `--meter branch`
+# (F44); an arg, never an env var, so a value left exported in the shell
+# cannot aim them at another meter's files
 if [[ "$GLOBAL_MODE" == "true" ]]; then
-  exec "$SCRIPT_DIR/../git.commit/git.commit.uses.global.sh" "${ARGS[@]+"${ARGS[@]}"}"
+  exec "$SCRIPT_DIR/../git.commit/git.commit.uses.global.sh" --meter branch "${ARGS[@]+"${ARGS[@]}"}"
 fi
 if [[ "$ORG_MODE" == "true" ]]; then
-  exec "$SCRIPT_DIR/../git.commit/git.commit.uses.org.sh" "${ARGS[@]+"${ARGS[@]}"}"
+  exec "$SCRIPT_DIR/../git.commit/git.commit.uses.org.sh" --meter branch "${ARGS[@]+"${ARGS[@]}"}"
 fi
 exec "$SCRIPT_DIR/git.branch.uses.local.sh" "${ARGS[@]+"${ARGS[@]}"}"

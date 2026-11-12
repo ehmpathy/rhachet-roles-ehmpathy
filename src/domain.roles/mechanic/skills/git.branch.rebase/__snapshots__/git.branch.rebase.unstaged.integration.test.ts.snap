@@ -65,6 +65,7 @@ exports[`git.branch.rebase --unstaged given: [case2] a tree with unstaged edits 
 🐚 git.branch.rebase begin --mode plan
    ├─ rebase
    │  ├─ target: origin/main
+   │  ├─ shape: replay
    │  ├─ ahead: 1 commit
    │  │  └─ HASH123 feat(reef): add feature
    │  └─ behind: 1 commit
@@ -74,8 +75,8 @@ exports[`git.branch.rebase --unstaged given: [case2] a tree with unstaged edits 
    │     ├─ settings.of.grove.json
    │     └─ settings.of.repo.json
    └─ meter
-      ├─ commits: allowed
-      └─ push: allowed
+      ├─ rebase: spends no use; the held grant suffices
+      └─ push: held
 
 🥥 did you know?
    ├─ this is a plan; apply it to rebase
@@ -219,7 +220,7 @@ exports[`git.branch.rebase --unstaged given: [case4] a conflicted rebase with am
    │  │  └─ settings.of.repo.json
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │
@@ -264,7 +265,7 @@ exports[`git.branch.rebase --unstaged given: [case4] a conflicted rebase with am
    │  │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │
@@ -312,7 +313,7 @@ exports[`git.branch.rebase --unstaged given: [case4] a conflicted rebase with am
    │  │  └─ README.md
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │
@@ -504,7 +505,7 @@ exports[`git.branch.rebase --unstaged given: [case9] main changed a held path, t
    │  │  └─ package.json
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │
@@ -643,7 +644,7 @@ exports[`git.branch.rebase --unstaged given: [case12] the rebase stops mid-repla
    │  │  └─ settings.of.repo.json
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │
@@ -837,7 +838,7 @@ exports[`git.branch.rebase --unstaged given: [case17] a held path is edited agai
    │  │  └─ settings.of.repo.json
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │
@@ -1048,7 +1049,7 @@ exports[`git.branch.rebase --unstaged given: [case24] a held path is in conflict
    │  │  └─ package.json
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │
@@ -1280,7 +1281,7 @@ exports[`git.branch.rebase --unstaged given: [case32] a held path regenerates to
    │  │  └─ settings.of.repo.json
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │

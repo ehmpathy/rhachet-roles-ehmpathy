@@ -23,10 +23,6 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/output.sh"
-# pin the meter: this skill gates on the commit meter alone, so a METER_SLUG
-# left exported in the shell must never point its gate at the cutover meter
-METER_SLUG="git.commit.uses"
-METER_NOUN="commit"
 source "$SCRIPT_DIR/git.commit.operations.sh"
 set_meter_scope commit
 source "$SCRIPT_DIR/keyrack.operations.sh"

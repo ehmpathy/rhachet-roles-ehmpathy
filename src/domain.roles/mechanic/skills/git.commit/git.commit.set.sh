@@ -261,10 +261,6 @@ fetch_robot_token() {
 ######################################################################
 # source shared domain operations (get_behavioral_commits_on_branch, etc.)
 ######################################################################
-# pin the meter: this skill gates on the commit meter alone, so a METER_SLUG
-# left exported in the shell must never point its gate at the cutover meter
-METER_SLUG="git.commit.uses"
-METER_NOUN="commit"
 source "$SCRIPT_DIR/git.commit.operations.sh"
 set_meter_scope commit
 

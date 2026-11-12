@@ -166,9 +166,7 @@ TOTAL_COMMITS=$(get_total_commits)
 export GIT_EDITOR="true"
 
 # capture git output
-# capture the real exit code: `$?` after `|| true` always reads 0
-GIT_EXIT_CODE=0
-GIT_OUTPUT=$(git rebase --continue 2>&1) || GIT_EXIT_CODE=$?
+GIT_OUTPUT=$(git rebase --continue 2>&1) || true
 
 # check if still in progress (more commits to process) or complete
 if ! is_rebase_in_progress; then
@@ -236,24 +234,6 @@ if [[ -n "$UNSTAGED_FILES" ]]; then
       "rhx git.branch.rebase continue --unstaged ignore"
   )"
   exit 2
-fi
-
-# git refused the continue with no conflict and no unstaged file to name
-# (an empty commit, a rejected hook): never render it as progress
-if [[ "$GIT_EXIT_CODE" -ne 0 ]]; then
-  emit_both "$(
-    print_turtle_header "bummer dude..."
-    print_tree_start "git.branch.rebase continue"
-    echo "   ├─ rebase"
-    echo "   │  └─ status: halted"
-    echo "   ├─ 💥 MalfunctionError: git rebase --continue failed (exit $GIT_EXIT_CODE)"
-    echo "   └─ git.output"
-    print_git_output_tree "$GIT_OUTPUT"
-    print_coconut_hint "read the git output above; settle it, or abandon the rebase" \
-      "git status" \
-      "rhx git.branch.rebase abort"
-  )"
-  exit 1
 fi
 
 # in progress but no conflicts or unstaged - show progress

@@ -416,17 +416,18 @@ print_cutover_abort_report() {
 }
 
 ######################################################################
-# .what = the halt's stage section, when this tree holds no stage grant
+# .what = the halt's stage section, when this tree holds no live commit grant
 #
-# .why  = `rhx git.stage.add` reads `.stage` from the commit meter; with
-#         no grant there, the settle step refuses and abort is the one exit
+# .why  = `rhx git.stage.add` rides the live commit grant (held, uses
+#         left); with none, the settle step refuses and abort is the one exit
 #
-# echoes: a section block, or naught when the stage grant is held
+# echoes: a section block, or naught when the commit grant is live
 ######################################################################
 get_halt_stage_block() {
-  local file global_file
-  # the same two gates git.stage.add holds, in its order: the global
-  # blocker first, then this repo's stage grant
+  local global_file
+  # the same two gates git.stage.add holds, in its order: the commit
+  # meter's global blocker first, then this repo's commit grant. the global
+  # path is named outright: this process is scoped to the branch meter
   global_file="$HOME/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.jsonc"
   if [[ -f "$global_file" ]] && [[ "$(jq -r '.blocked // false' "$global_file" 2> /dev/null)" == "true" ]]; then
     printf '%s\n' \
@@ -434,13 +435,13 @@ get_halt_stage_block() {
       "└─ ask your human: rhx git.commit.uses allow --global"
     return 0
   fi
-  file="$(git rev-parse --show-toplevel)/.meter/git.commit.uses.jsonc"
-  if [[ -f "$file" ]] && [[ "$(jq -r '.stage // "block"' "$file" 2> /dev/null)" == "allow" ]]; then
-    return 0
-  fi
+
+  # the one commit-grant reader git.stage.add itself reads (damage = not live)
+  get_one_commit_local_grant file="$(git rev-parse --show-toplevel)/.meter/git.commit.uses.jsonc" || true
+  [[ "$COMMIT_LIVE" != "true" ]] || return 0
   printf '%s\n' \
-    "stage: ✋ no stage grant, so rhx git.stage.add will refuse" \
-    "└─ ask your human: rhx git.commit.uses set --quant N --push allow|block --stage allow"
+    "stage: ✋ no live commit grant, so rhx git.stage.add will refuse" \
+    "└─ ask your human: rhx git.commit.uses set --quant N"
 }
 
 ######################################################################
@@ -505,7 +506,7 @@ print_cutover_halt() {
 
   # where the stage will refuse, the hint names the grant first, before the stage step
   local hint_lead="settle the files above, stage them, then continue — or undo the whole cutover; a file you delete stages the same way"
-  [[ -z "$stage_block" ]] || hint_lead="settle the files above; once your human grants the stage (see stage: above), stage them, then continue — or undo the whole cutover"
+  [[ -z "$stage_block" ]] || hint_lead="settle the files above; once your human grants a commit (see stage: above), stage them, then continue — or undo the whole cutover"
 
   # the sections nest under the constraint leaf; next moves ride the 🥥 hint
   emit_both "$(
