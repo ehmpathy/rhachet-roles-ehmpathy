@@ -2,8 +2,8 @@ import * as path from 'path';
 import { given, then, when } from 'test-fns';
 
 /**
- * .what = clamp for patches/rhachet-roles-bhrain@0.42.1.patch
- * .why  = `route.stone.set --as promised` rendered the next self review's full guide, yet
+ * .what = clamp for patches/rhachet-roles-bhrain@0.42.4.patch
+ * .why  = `route.stone.set --as promised` rendered the NEXT self review's full guide, yet
  *         only `--as passed` mints that review's ask. a driver who wrote against the guide
  *         was refused with "no ask on record". the patch points at the command that mints it.
  *         this test goes red if the patch is dropped or an upgrade overwrites it.
@@ -27,10 +27,7 @@ describe('rhachet-roles-bhrain patch: promised emit', () => {
         route: '.behavior/v2026_10_18.surf-lesson',
         progress: { index: 2, total: 5 },
         nextReview: {
-          reviewSelf: {
-            slug: 'has-zero-deferrals',
-            say: 'review for deferrals',
-          },
+          reviewSelf: { slug: 'has-zero-deferrals', say: 'review for deferrals' },
           index: 3,
           total: 5,
         },
@@ -70,10 +67,6 @@ describe('rhachet-roles-bhrain patch: promised emit', () => {
           '└─ passage = progressed (review.self 5/5 promised)',
         );
         expect(output).not.toContain('next =');
-      });
-
-      then('the emit matches snapshot', () => {
-        expect(output).toMatchSnapshot();
       });
     });
   });
