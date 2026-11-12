@@ -215,23 +215,6 @@ exit 1
   };
 
   /**
-   * .what = mask the live advisory feed in audit output
-   * .why = npm's advisory db merges, rewords, and adds advisories with no code
-   *        change here, so a snapshot of the list drifts on its own
-   */
-  const asStableAuditOutput = (output: string): string => {
-    return asStableOutput(output)
-      .replace(
-        /FAILED \(\d+ vulnerabilit(?:y|ies)\)/g,
-        'FAILED (N vulnerabilities)',
-      )
-      .replace(
-        /^( +)[├└]─ (?:low|moderate|high|critical): .*\n(?:\1[├└]─ (?:low|moderate|high|critical): .*\n)*/gm,
-        '$1└─ <advisories from the live npm feed>\n',
-      );
-  };
-
-  /**
    * .what = run set.package.upgrade.sh
    * .why = standardize invocation and result capture
    */
@@ -711,9 +694,7 @@ exit 1
         });
         expect(result.stderr).toMatch(/audit: FAILED \(\d+ vulnerabilit/);
         expect(result.stderr).toMatch(/(?:high|critical): .*lodash/i);
-        expect(asStableAuditOutput(result.stderr)).toMatchSnapshot(
-          'security-block',
-        );
+        expect(asStableOutput(result.stderr)).toMatchSnapshot('security-block');
       });
     });
 

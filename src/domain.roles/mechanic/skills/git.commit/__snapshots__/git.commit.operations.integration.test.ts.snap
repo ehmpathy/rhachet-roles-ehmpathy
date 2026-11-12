@@ -4,7 +4,7 @@ exports[`git.commit.operations.sh given: [case33] a meter read with no scope whe
 "🐢 bummer dude...
 
 🐚 git.commit.operations
-   └─ 💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release first
+   └─ 💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release|branch first
 
    a defect in the skill, never the caller's input; report it upstream
 "
@@ -14,7 +14,7 @@ exports[`git.commit.operations.sh given: [case33] a meter read with no scope whe
 "🐢 bummer dude...
 
 🐚 git.commit.operations
-   └─ 💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release first
+   └─ 💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release|branch first
 
    a defect in the skill, never the caller's input; report it upstream
 "
@@ -24,7 +24,7 @@ exports[`git.commit.operations.sh given: [case33] a meter read with no scope whe
 "🐢 bummer dude...
 
 🐚 git.commit.operations
-   └─ 💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release first
+   └─ 💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release|branch first
 
    a defect in the skill, never the caller's input; report it upstream
 "
@@ -34,7 +34,7 @@ exports[`git.commit.operations.sh given: [case33] a meter read with no scope whe
 "🐢 bummer dude...
 
 🐚 git.commit.operations
-   └─ 💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release first
+   └─ 💥 MalfunctionError: meter read with no scope; call set_meter_scope commit|release|branch first
 
    a defect in the skill, never the caller's input; report it upstream
 "
@@ -44,7 +44,7 @@ exports[`git.commit.operations.sh given: [case33] a meter read with no scope whe
 "🐢 bummer dude...
 
 🐚 git.commit.operations
-   └─ 💥 MalfunctionError: set_meter_scope: unknown meter 'bogus' (expected commit|release)
+   └─ 💥 MalfunctionError: set_meter_scope: unknown meter 'bogus' (expected commit|release|branch)
 
    a defect in the skill, never the caller's input; report it upstream
 "
@@ -54,7 +54,7 @@ exports[`git.commit.operations.sh given: [case33] a meter read with no scope whe
 "🐢 bummer dude...
 
 🐚 git.commit.operations
-   └─ 💥 MalfunctionError: set_meter_scope: unknown meter 'bogus' (expected commit|release)
+   └─ 💥 MalfunctionError: set_meter_scope: unknown meter 'bogus' (expected commit|release|branch)
 
    a defect in the skill, never the caller's input; report it upstream
 "

@@ -88,6 +88,9 @@ exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 co
    │  ├─ commit: HASH123 fix(config): feature config
    │  └─ files
    │     └─ config.json
+   ├─ next steps
+   │  ├─ settle conflicts in files above
+   │  └─ rhx git.branch.rebase continue
    └─ git.output
       ├─
       │
@@ -104,11 +107,6 @@ exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 co
       │  Could not apply HASH123... fix(config): feature config
       │
       └─
-
-🥥 did you know?
-   ├─ settle the conflicts in the files above, stage them, then continue
-   ├─ rhx git.stage.add <files>
-   └─ rhx git.branch.rebase continue
 "
 `;
 
@@ -122,6 +120,9 @@ exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 co
    │  ├─ commit: HASH123 fix(settings): feature settings
    │  └─ files
    │     └─ settings.yml
+   ├─ next steps
+   │  ├─ settle conflicts in files above
+   │  └─ rhx git.branch.rebase continue
    └─ git.output
       ├─
       │
@@ -139,11 +140,6 @@ exports[`git.branch.rebase journey given: [journey2] multi-conflict rebase: 3 co
       │  Could not apply HASH123... fix(settings): feature settings
       │
       └─
-
-🥥 did you know?
-   ├─ settle the conflicts in the files above, stage them, then continue
-   ├─ rhx git.stage.add <files>
-   └─ rhx git.branch.rebase continue
 "
 `;
 
@@ -184,6 +180,9 @@ exports[`git.branch.rebase journey given: [journey3] abort mid-conflict after mu
    │  ├─ commit: HASH123 fix(api): feature abort-me
    │  └─ files
    │     └─ abort-me.txt
+   ├─ next steps
+   │  ├─ settle conflicts in files above
+   │  └─ rhx git.branch.rebase continue
    └─ git.output
       ├─
       │
@@ -200,11 +199,6 @@ exports[`git.branch.rebase journey given: [journey3] abort mid-conflict after mu
       │  Could not apply HASH123... fix(api): feature abort-me
       │
       └─
-
-🥥 did you know?
-   ├─ settle the conflicts in the files above, stage them, then continue
-   ├─ rhx git.stage.add <files>
-   └─ rhx git.branch.rebase continue
 "
 `;
 
@@ -228,6 +222,9 @@ exports[`git.branch.rebase journey given: [journey4] take ours yields no diff vs
    │  ├─ commit: HASH123 fix(settings): dev mode
    │  └─ files
    │     └─ settings.json
+   ├─ next steps
+   │  ├─ settle conflicts in files above
+   │  └─ rhx git.branch.rebase continue
    └─ git.output
       ├─
       │
@@ -244,11 +241,6 @@ exports[`git.branch.rebase journey given: [journey4] take ours yields no diff vs
       │  Could not apply HASH123... fix(settings): dev mode
       │
       └─
-
-🥥 did you know?
-   ├─ settle the conflicts in the files above, stage them, then continue
-   ├─ rhx git.stage.add <files>
-   └─ rhx git.branch.rebase continue
 "
 `;
 
@@ -335,14 +327,16 @@ exports[`git.branch.rebase journey given: [journey7] plan on a held grant with z
    ├─ rebase
    │  ├─ target: origin/main
    │  ├─ shape: replay
-   │  ├─ ahead: 1 commits
+   │  ├─ ahead: 1 commit
    │  │  └─ HASH123 feat: one
-   │  └─ behind: 1 commits
+   │  └─ behind: 1 commit
    │     └─ HASH123 chore: main a
    └─ meter
       ├─ rebase: spends no use; the held grant suffices
       └─ push: held
 
-run with --mode apply to execute
+🥥 did you know?
+   ├─ this is a plan; apply it to rebase
+   └─ rhx git.branch.rebase begin --mode apply
 "
 `;

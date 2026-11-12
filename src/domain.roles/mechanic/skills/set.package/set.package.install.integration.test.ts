@@ -223,23 +223,6 @@ exit 1
   };
 
   /**
-   * .what = mask the live advisory feed in audit output
-   * .why = npm's advisory db merges, rewords, and adds advisories with no code
-   *        change here, so a snapshot of the list drifts on its own
-   */
-  const asStableAuditOutput = (output: string): string => {
-    return asStableOutput(output)
-      .replace(
-        /FAILED \(\d+ vulnerabilit(?:y|ies)\)/g,
-        'FAILED (N vulnerabilities)',
-      )
-      .replace(
-        /^( +)[├└]─ (?:low|moderate|high|critical): .*\n(?:\1[├└]─ (?:low|moderate|high|critical): .*\n)*/gm,
-        '$1└─ <advisories from the live npm feed>\n',
-      );
-  };
-
-  /**
    * .what = provision the repo's pinned pnpm into a bin dir, via corepack
    * .why = the ci test jobs install no pnpm, so a bare host pnpm is a host dep
    *        (rule.forbid.bare-host-deps); corepack ships with node and fetches
@@ -1333,9 +1316,7 @@ echo '${input.answer ?? '{}'}'
         );
         expect(result.stderr).toMatch(/audit: FAILED \(\d+ vulnerabilit/);
         expect(result.stderr).toMatch(/(?:high|critical): .*lodash/i);
-        expect(asStableAuditOutput(result.stderr)).toMatchSnapshot(
-          'security-block',
-        );
+        expect(asStableOutput(result.stderr)).toMatchSnapshot('security-block');
       });
 
       then('already installed error matches snapshot', () => {

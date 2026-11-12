@@ -17,7 +17,7 @@
 #   git.commit.uses --org get               # show all org configs
 #
 # guarantee:
-#   - the dispatcher names the meter via `--meter commit|release`, first arg
+#   - the dispatcher names the meter via `--meter commit|release|branch`, first arg
 #   - state stored at ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/
 #     (git.commit.uses.org.jsonc · git.release.uses.org.jsonc)
 #   - specific org config overrides @all

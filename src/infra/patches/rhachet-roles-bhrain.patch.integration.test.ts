@@ -27,7 +27,10 @@ describe('rhachet-roles-bhrain patch: promised emit', () => {
         route: '.behavior/v2026_10_18.surf-lesson',
         progress: { index: 2, total: 5 },
         nextReview: {
-          reviewSelf: { slug: 'has-zero-deferrals', say: 'review for deferrals' },
+          reviewSelf: {
+            slug: 'has-zero-deferrals',
+            say: 'review for deferrals',
+          },
           index: 3,
           total: 5,
         },

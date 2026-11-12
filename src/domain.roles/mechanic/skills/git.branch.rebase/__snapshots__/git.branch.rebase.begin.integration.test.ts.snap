@@ -1,26 +1,26 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`git.branch.rebase.begin given: [case1] feature branch with commits ahead and behind when: [t0] plan mode (default) then: shows preview or fetch error (no real remote in test) 1`] = `
+exports[`git.branch.rebase.begin given: [case1] feature branch ahead and behind, no origin remote to fetch when: [t0] plan mode (default) then: the fetch fails as a malfunction, exit 1, and the retry keeps plan mode 1`] = `
 "🐢 bummer dude...
 
 🐚 git.branch.rebase begin
    └─ 💥 MalfunctionError: failed to fetch origin/main
 
 🥥 did you know?
-   ├─ check the network connection, then try again
-   └─ rhx git.branch.rebase begin
+   ├─ check your network connection, then retry
+   └─ rhx git.branch.rebase begin --mode plan
 "
 `;
 
-exports[`git.branch.rebase.begin given: [case2] feature branch ready to rebase when: [t0] apply mode attempts rebase then: shows result or fetch error (no real remote in test) 1`] = `
+exports[`git.branch.rebase.begin given: [case2] feature branch ready to rebase, no origin remote to fetch when: [t0] apply mode attempts rebase then: the fetch fails as a malfunction, exit 1, and the retry keeps apply mode 1`] = `
 "🐢 bummer dude...
 
 🐚 git.branch.rebase begin
    └─ 💥 MalfunctionError: failed to fetch origin/main
 
 🥥 did you know?
-   ├─ check the network connection, then try again
-   └─ rhx git.branch.rebase begin
+   ├─ check your network connection, then retry
+   └─ rhx git.branch.rebase begin --mode apply
 "
 `;
 
@@ -36,17 +36,15 @@ exports[`git.branch.rebase.begin given: [case3] rebase with conflicts when: [t0]
    │  ├─ commit: <sha> fix: add conflict file
    │  └─ files
    │     └─ conflict.txt
+   ├─ next steps
+   │  ├─ settle conflicts in files above
+   │  └─ rhx git.branch.rebase continue
    └─ git.output
       ├─
       │
       │  <git output>
       │
       └─
-
-🥥 did you know?
-   ├─ settle the conflicts in the files above, stage them, then continue
-   ├─ rhx git.stage.add <files>
-   └─ rhx git.branch.rebase continue
 "
 `;
 
@@ -103,22 +101,23 @@ exports[`git.branch.rebase.begin given: [case6] dirty work tree when: [t0] attem
 
 🐚 git.branch.rebase begin
    └─ ✋ ConstraintError: unstaged changes found
+      └─ README.md
 
 🥥 did you know?
-   ├─ commit your changes first, so the rebase moves them too
-   └─ rhx git.commit.set -m @stdin --unstaged include --mode apply
+   ├─ you can set them aside for the rebase; each is put back after
+   └─ rhx git.branch.rebase begin --mode plan --unstaged ignore
 "
 `;
 
-exports[`git.branch.rebase.begin given: [case7] branch already up to date when: [t0] attempt rebase then: shows up to date or fetch error (no real remote in test) 1`] = `
+exports[`git.branch.rebase.begin given: [case7] branch already up to date, no origin remote to fetch when: [t0] attempt rebase then: the fetch fails as a malfunction, exit 1, before the up-to-date check 1`] = `
 "🐢 bummer dude...
 
 🐚 git.branch.rebase begin
    └─ 💥 MalfunctionError: failed to fetch origin/main
 
 🥥 did you know?
-   ├─ check the network connection, then try again
-   └─ rhx git.branch.rebase begin
+   ├─ check your network connection, then retry
+   └─ rhx git.branch.rebase begin --mode plan
 "
 `;
 
@@ -129,7 +128,7 @@ exports[`git.branch.rebase.begin given: [case8] rebase already in progress when:
    └─ ✋ ConstraintError: rebase already in progress
 
 🥥 did you know?
-   ├─ finish the rebase underway, or abandon it
+   ├─ continue it, or abort it
    ├─ rhx git.branch.rebase continue
    └─ rhx git.branch.rebase abort
 "
@@ -142,8 +141,8 @@ exports[`git.branch.rebase.begin given: [case9] uses is "infinite" when: [t0] ap
    └─ 💥 MalfunctionError: failed to fetch origin/main
 
 🥥 did you know?
-   ├─ check the network connection, then try again
-   └─ rhx git.branch.rebase begin
+   ├─ check your network connection, then retry
+   └─ rhx git.branch.rebase begin --mode apply
 "
 `;
 
@@ -154,8 +153,8 @@ exports[`git.branch.rebase.begin given: [case9] uses is "infinite" when: [t1] pl
    └─ 💥 MalfunctionError: failed to fetch origin/main
 
 🥥 did you know?
-   ├─ check the network connection, then try again
-   └─ rhx git.branch.rebase begin
+   ├─ check your network connection, then retry
+   └─ rhx git.branch.rebase begin --mode plan
 "
 `;
 
@@ -190,7 +189,9 @@ exports[`git.branch.rebase.begin given: [case11] zero commits ahead, main moved 
       ├─ rebase: spends no use; the held grant suffices
       └─ push: held
 
-run with --mode apply to execute
+🥥 did you know?
+   ├─ this is a plan; apply it to rebase
+   └─ rhx git.branch.rebase begin --mode apply
 "
 `;
 
@@ -288,13 +289,17 @@ exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction pa
 "🐢 bummer dude...
 
 🐚 git.branch.rebase begin --mode apply
-   ├─ 💥 MalfunctionError: rebase failed
+   ├─ 💥 MalfunctionError: rebase failed to start
    └─ git.output
       ├─
       │
       │  fatal: pull refused by the test shim
       │
       └─
+
+🥥 did you know?
+   ├─ git.output names the cause; once it is cleared, rerun (the tree is as it was)
+   └─ rhx git.branch.rebase begin --mode apply
 "
 `;
 
@@ -302,36 +307,79 @@ exports[`git.branch.rebase.begin given: [case12] the skill hits a malfunction pa
 "🐢 bummer dude...
 
 🐚 git.branch.rebase begin --mode apply
-   ├─ 💥 MalfunctionError: rebase failed
+   ├─ 💥 MalfunctionError: rebase failed to start
    └─ git.output
       ├─
       │
       │  fatal: pull refused by the test shim
       │
       └─
+
+🥥 did you know?
+   ├─ git.output names the cause; once it is cleared, rerun (the tree is as it was)
+   └─ rhx git.branch.rebase begin --mode apply
 "
 `;
 
 exports[`git.branch.rebase.begin given: [case13] a call the skill does not know how to read when: [t0] begin is called with an unknown mode then: exit 2, the refusal rides both streams, before any fetch 1`] = `
-"🐢 bummer dude...
-
-🐚 git.branch.rebase begin
-   └─ ✋ ConstraintError: unknown mode 'bogus' (valid modes: plan, apply)
-
-🥥 did you know?
-   ├─ see every form git.branch.rebase begin takes, with examples
-   └─ rhx git.branch.rebase begin --help
+"✋ ConstraintError: --mode must be 'plan' or 'apply'
+usage: git.branch.rebase begin [--mode plan|apply] [--unstaged ignore|include]
 "
 `;
 
 exports[`git.branch.rebase.begin given: [case13] a call the skill does not know how to read when: [t1] begin is called with an unknown argument then: exit 2, the refusal rides both streams, before any fetch 1`] = `
-"🐢 bummer dude...
+"🐢 hold up dude...
 
 🐚 git.branch.rebase begin
    └─ ✋ ConstraintError: unknown argument: --bogus
+      └─ usage: rhx git.branch.rebase begin [--mode plan|apply] [--unstaged ignore|include]
 
 🥥 did you know?
-   ├─ see every form git.branch.rebase begin takes, with examples
+   ├─ see each arg it takes
    └─ rhx git.branch.rebase begin --help
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case15] no commit quota file when: [t0] attempt rebase then: it refuses as a constraint, exit 2, and names the grant command 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: no commit grant on this tree
+
+🥥 did you know?
+   ├─ a rebase rides the commit grant; ask your human to grant one
+   └─ rhx git.commit.uses set --quant N
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case16] origin holds neither main nor master when: [t0] attempt rebase then: it fails as a malfunction, exit 1, on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ 💥 MalfunctionError: no main or master branch found on origin
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case17] the fetch fails under --unstaged ignore when: [t0] apply mode with --unstaged ignore and a dirty tree then: it fails before any path is set aside, and the retry keeps --unstaged ignore 1`] = `
+"🐢 bummer dude...
+
+🐚 git.branch.rebase begin
+   └─ 💥 MalfunctionError: failed to fetch origin/main
+
+🥥 did you know?
+   ├─ check your network connection, then retry
+   └─ rhx git.branch.rebase begin --mode apply --unstaged ignore
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case18] an invalid --mode when: [t0] --mode with a bogus value then: it refuses before any act, exit 2, names the valid values, on both streams 1`] = `
+"✋ ConstraintError: --mode must be 'plan' or 'apply'
+usage: git.branch.rebase begin [--mode plan|apply] [--unstaged ignore|include]
+"
+`;
+
+exports[`git.branch.rebase.begin given: [case18] an invalid --mode when: [t1] --mode with no value then: it refuses before any act, exit 2, names the valid values, on both streams 1`] = `
+"✋ ConstraintError: --mode must be 'plan' or 'apply'
+usage: git.branch.rebase begin [--mode plan|apply] [--unstaged ignore|include]
 "
 `;
