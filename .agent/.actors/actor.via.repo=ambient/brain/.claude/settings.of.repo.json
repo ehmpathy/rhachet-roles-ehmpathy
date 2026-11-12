@@ -542,7 +542,7 @@
     ]
   },
   "claudeMdExcludes": [
-    "/home/camper/.claude/CLAUDE.md",
+    "/home/vlad/.claude/CLAUDE.md",
     "**/CLAUDE.local.md"
   ]
 }
