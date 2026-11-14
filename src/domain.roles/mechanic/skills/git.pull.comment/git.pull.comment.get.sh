@@ -35,7 +35,7 @@ usage: git.pull.comment.get [--which <n>] [--in <owner/name>] [--unanswered | --
 options:
   --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --unanswered                 only the comments that wait on an answer from you
+  --unanswered                 only the comments that await a reply from you or the pr author
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
   --key <k> [--reply-to <id>]  your keyed comment (in that review thread, with --reply-to)
   --kind body                  the pr description alone
@@ -91,56 +91,10 @@ set_comment_login
 set_comment_pr "$PR" "$REPO_IN" git.pull.comment.get
 PR="$COMMENT_PR"
 
-# .what = one github json resource (pr or comment) as a row: kind, id, author, key, size, hash, body
-# .why  = the tree and the json read one row shape, whatever endpoint the row came from
-shape() {
-  local kind="$1" json="$2" sha bytes key
-  sha="$(printf '%s' "$json" | as_sha256_of_json_body)"
-  bytes="$(printf '%s' "$json" | as_bytes_of_json_body)"
-  key="$(printf '%s' "$json" | jq -j '.body // ""' | as_key_from_body)"
-  printf '%s' "$json" | jq -c --arg kind "$kind" --arg sha "$sha" --argjson bytes "$bytes" --arg key "$key" '{
-    kind: $kind,
-    id: (if $kind == "body" then null else .id end),
-    author: (.user.login // null),
-    created_at: (.created_at // null),
-    in_reply_to: (.in_reply_to_id // null),
-    key: (if $key == "" then null else $key end),
-    bytes: $bytes,
-    sha256: $sha,
-    url: (.html_url // null),
-    body: (.body // "")
-  }'
-}
-
-# .what = every comment of a github list as rows, one per line
-# .why  = a full read shapes issue and review lists the one way `shape` does
-shape_all() {
-  local kind="$1" list="$2" row
-  while IFS= read -r row; do
-    [[ -n "$row" ]] || continue
-    shape "$kind" "$row"
-    echo
-  done < <(printf '%s' "$list" | jq -c '.[]')
-}
-
 # .what = a stream of rows, as one json array
 # .why  = a one-row read and an every-row read hand the tree and json one shape
 as_row_list() {
   jq -cs '.'
-}
-
-# .what = rows in read order: the body first, then by creation time
-# .why  = a pr reads top to bottom; the body opens it
-as_rows_sorted() {
-  jq -cs 'sort_by(if .kind == "body" then "" else .created_at end, (.id // 0))'
-}
-
-# .what = the rows, each review row given its thread state: "open" | "resolved"
-# .why  = a reader must see which review threads still wait on an answer
-# .note = a review row graphql does not name reads "open"; a non-review row reads null
-as_rows_with_thread_state() {
-  printf '%s' "$1" | jq -c --argjson states "$2" '
-    map(.thread = (if .kind == "review" then ($states["\(.id)"] // "open") else null end))'
 }
 
 # .what = the rows of one kind that carry a key, split by author: { own, foreign }
@@ -152,24 +106,6 @@ get_rows_with_key() {
     --arg key "$key" --arg kind "$kind" --argjson reply "$reply" "$COMMENT_JQ_DEFS"'
     map(select(.kind == $kind and .key == $key and ($reply == null or .in_reply_to == $reply)))
     | { own: map(select(is_login_self(.author))), foreign: map(select(is_login_self(.author) | not)) }'
-}
-
-# .what = the rows that still wait on an answer from the current login
-# .why  = a reply round starts from "what have i not answered?": a review thread
-#         whose latest comment is not the robot's, and each human issue comment
-#         newer than the robot's latest issue comment
-# .note = the robot's comment = the current login's, with a body that opens with
-#         🐢 (is_comment_by_robot); a review row keeps its thread root in
-#         in_reply_to, or is the root itself, so --reply-to <root> answers it
-as_rows_unanswered() {
-  printf '%s' "$1" | jq -c --arg re "$COMMENT_KEY_CLAIM_REGEX" --arg login "$COMMENT_LOGIN" "$COMMENT_JQ_DEFS"'
-    def is_robot: is_login_self(.author) and (.body | startswith("🐢"));
-    ( [ .[] | select(.kind == "issue" and is_robot) | .created_at ] | max ) as $robot_last
-    | ( [ .[] | select(.kind == "review") ]
-        | group_by(.in_reply_to // .id)
-        | map(sort_by(.created_at, .id) | last | select(is_robot | not)) )
-      + [ .[] | select(.kind == "issue" and (is_robot | not) and ($robot_last == null or .created_at > $robot_last)) ]
-    | sort_by(.created_at, .id)'
 }
 
 # .what = the row counts by kind, as one line
@@ -214,7 +150,7 @@ if [[ -n "$ID" ]]; then
   [[ "$rc" == "3" ]] && fail_comment_absent "$PR" "no $KIND comment $ID on $COMMENT_REPO" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
   [[ "$rc" == "0" ]] || exit "$rc"
   is_comment_on_pr "$ONE" "$PR" || fail_comment_constraint "$KIND comment $ID is not on $COMMENT_REPO#$PR" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
-  ROWS="$(shape "$KIND" "$ONE" | as_row_list)"
+  ROWS="$(as_comment_row "$KIND" "$ONE" | as_row_list)"
 fi
 
 # read the pr itself, unless one comment was asked
@@ -229,7 +165,7 @@ fi
 # read the body alone
 if [[ "$KIND" == "body" ]]; then
   LABEL="$COMMENT_REPO#$PR, pr description"
-  ROWS="$(shape body "$PULL" | as_row_list)"
+  ROWS="$(as_comment_row body "$PULL" | as_row_list)"
 fi
 
 # read every row: the body, every issue comment, every review comment (open and resolved threads)
@@ -238,18 +174,18 @@ if [[ -z "$ROWS" ]]; then
   REVIEW_ALL="$(get_all_gh_resources "repos/$COMMENT_REPO/pulls/$PR/comments")" || exit $?
   ROWS="$(
     {
-      shape body "$PULL"
+      as_comment_row body "$PULL"
       echo
-      shape_all issue "$ISSUE_ALL"
-      shape_all review "$REVIEW_ALL"
-    } | as_rows_sorted
+      as_comment_rows_of_list issue "$ISSUE_ALL"
+      as_comment_rows_of_list review "$REVIEW_ALL"
+    } | as_comment_rows_sorted
   )"
 fi
 
 # name the thread state of each review row: open or resolved
 if [[ "$(printf '%s' "$ROWS" | jq '[.[] | select(.kind == "review")] | length')" != "0" ]]; then
   THREAD_STATES="$(get_all_review_thread_states "$PR")" || exit $?
-  ROWS="$(as_rows_with_thread_state "$ROWS" "$THREAD_STATES")"
+  ROWS="$(as_comment_rows_with_thread_state "$ROWS" "$THREAD_STATES")"
 fi
 
 # narrow to a key, when asked

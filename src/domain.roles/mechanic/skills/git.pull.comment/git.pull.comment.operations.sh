@@ -987,3 +987,130 @@ check_body_under_cap() {
 as_bytes_of_json_body() {
   jq -j '.body // ""' | as_body_trimmed | as_bytes_count
 }
+
+######################################################################
+# comment rows: one shape for every comment of a pr, and the one rule
+# for "which comments await a reply". get --unanswered and the set hint
+# both read these, and the git.release gate (#1171) is meant to as well,
+# so the three can never disagree
+######################################################################
+
+# .what = one github json resource (pr or comment) as a row: kind, id, author,
+#         author_type, created_at, in_reply_to, path, line, key, size, hash, body
+# .why  = every reader of a pr's comments sees one row shape, whatever endpoint
+#         the row came from
+# .note = path and line are null for a pr description or an issue comment;
+#         line falls back to original_line for an outdated review comment
+as_comment_row() {
+  local kind="$1" json="$2" sha bytes key
+  sha="$(printf '%s' "$json" | as_sha256_of_json_body)"
+  bytes="$(printf '%s' "$json" | as_bytes_of_json_body)"
+  key="$(printf '%s' "$json" | jq -j '.body // ""' | as_key_from_body)"
+  printf '%s' "$json" | jq -c --arg kind "$kind" --arg sha "$sha" --argjson bytes "$bytes" --arg key "$key" '{
+    kind: $kind,
+    id: (if $kind == "body" then null else .id end),
+    author: (.user.login // null),
+    author_type: (.user.type // null),
+    created_at: (.created_at // null),
+    in_reply_to: (.in_reply_to_id // null),
+    path: (.path // null),
+    line: (.line // .original_line // null),
+    key: (if $key == "" then null else $key end),
+    bytes: $bytes,
+    sha256: $sha,
+    url: (.html_url // null),
+    body: (.body // "")
+  }'
+}
+
+# .what = every comment of a github list as rows, one per line
+# .why  = a full read shapes issue and review lists the one way as_comment_row does
+as_comment_rows_of_list() {
+  local kind="$1" list="$2" row
+  while IFS= read -r row; do
+    [[ -n "$row" ]] || continue
+    as_comment_row "$kind" "$row"
+    echo
+  done < <(printf '%s' "$list" | jq -c '.[]')
+}
+
+# .what = a stream of rows in read order, as one json array: the body first,
+#         then by creation time
+# .why  = a pr reads top to bottom; the body opens it
+as_comment_rows_sorted() {
+  jq -cs 'sort_by(if .kind == "body" then "" else .created_at end, (.id // 0))'
+}
+
+# .what = the rows, each review row given its thread state: "open" | "resolved"
+# .why  = a reader must see which review threads still wait on an answer
+# .note = a review row graphql does not name reads "open"; a non-review row reads null
+as_comment_rows_with_thread_state() {
+  printf '%s' "$1" | jq -c --argjson states "$2" '
+    map(.thread = (if .kind == "review" then ($states["\(.id)"] // "open") else null end))'
+}
+
+# .what = every row of pr N: the pr description, every issue comment, every
+#         review comment, each review row with its thread state
+# .why  = the one read behind get and the set hint. the description row names
+#         the pr author, whom the unanswered rule counts as an answerer
+# .note = refusals inside reach fd 3 and exit, as every communicator here does;
+#         a caller that must not fail (the set hint) mutes fd 3 and stderr
+get_all_comment_rows_of_pr() {
+  local pr="$1" pull issue_all review_all rows states rc=0
+  pull="$(get_one_gh_resource "repos/$COMMENT_REPO/pulls/$pr")" || rc=$?
+  [[ "$rc" == "3" ]] && fail_comment_constraint "no pull request $COMMENT_REPO#$pr" "check --pr and --in"
+  [[ "$rc" == "0" ]] || exit "$rc"
+  issue_all="$(get_all_gh_resources "repos/$COMMENT_REPO/issues/$pr/comments")" || exit $?
+  review_all="$(get_all_gh_resources "repos/$COMMENT_REPO/pulls/$pr/comments")" || exit $?
+  rows="$(
+    {
+      as_comment_row body "$pull"
+      echo
+      as_comment_rows_of_list issue "$issue_all"
+      as_comment_rows_of_list review "$review_all"
+    } | as_comment_rows_sorted
+  )"
+  if [[ "$(printf '%s' "$rows" | jq '[.[] | select(.kind == "review")] | length')" != "0" ]]; then
+    states="$(get_all_review_thread_states "$pr")" || exit $?
+    rows="$(as_comment_rows_with_thread_state "$rows" "$states")"
+  fi
+  printf '%s' "$rows"
+}
+
+# .what = the rows that await a reply, oldest first
+# .why  = a reply round starts from "what have i not answered?". one rule, so
+#         get --unanswered, the set hint, and the release gate agree
+# .note = the rule:
+#         - answerer = the robot (the current login, with a body that opens 🐢)
+#           or the pr author (the description row's author), matched with the
+#           slug ≡ slug[bot] equivalence of is_login_self
+#         - a comment by an answerer or an app bot (author_type "Bot") never awaits
+#         - a review thread awaits when it is open and holds a human comment
+#           after its last answerer comment; its row is the first such comment,
+#           the question that opened the wait. --reply-to that id joins the root
+#         - the top-level (issue) conversation is one thread: each human issue
+#           comment newer than the last answerer issue comment awaits, one row each
+#         - order is by creation; an edit never moves a comment
+as_rows_unanswered() {
+  printf '%s' "$1" | jq -c --arg re "$COMMENT_KEY_CLAIM_REGEX" --arg login "$COMMENT_LOGIN" "$COMMENT_JQ_DEFS"'
+    def is_same_login($a; $b): ($a // "") as $x | ($b // "") as $y
+      | $x != "" and $y != "" and ($x == $y or $x == ($y + "[bot]") or ($x + "[bot]") == $y);
+    ( [ .[] | select(.kind == "body") | .author ] | first ) as $pr_author
+    | def is_robot: is_login_self(.author) and ((.body // "") | startswith("🐢"));
+      def is_answerer: is_robot or is_same_login(.author; $pr_author);
+      def is_app_bot: .author_type == "Bot";
+      def is_asker: (is_answerer | not) and (is_app_bot | not);
+    ( [ .[] | select(.kind == "review") ]
+      | group_by(.in_reply_to // .id)
+      | map(
+          sort_by(.created_at, .id)
+          | select(all(.[]; .thread != "resolved"))
+          | ( [ to_entries[] | select(.value | is_answerer) | .key ] | max // -1 ) as $last
+          | [ .[($last + 1):][] | select(is_asker) ] | first
+        )
+      | map(select(. != null)) )
+    + ( [ .[] | select(.kind == "issue") ] as $issues
+        | ( [ $issues[] | select(is_answerer) | .created_at ] | max ) as $answer_last
+        | [ $issues[] | select(is_asker and ($answer_last == null or .created_at > $answer_last)) ] )
+    | sort_by(.created_at, .id)'
+}

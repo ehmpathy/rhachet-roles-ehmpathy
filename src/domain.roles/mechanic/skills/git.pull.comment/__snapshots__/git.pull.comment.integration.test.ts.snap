@@ -81,6 +81,9 @@ exports[`git.pull.comment given: [case2] apply posts the exact body when: [t0] t
       ├─ id: 5001
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
       └─ read-back sha256: 8275918b35973e671db782ac065e08a03a7a98112f3c0521b213488953498c81
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -99,6 +102,9 @@ exports[`git.pull.comment given: [case2] apply posts the exact body when: [t1] t
       ├─ id: 5001
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
       └─ read-back sha256: 8275918b35973e671db782ac065e08a03a7a98112f3c0521b213488953498c81
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -117,6 +123,9 @@ exports[`git.pull.comment given: [case2] apply posts the exact body when: [t2] t
       ├─ id: 5001
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
       └─ read-back sha256: 8275918b35973e671db782ac065e08a03a7a98112f3c0521b213488953498c81
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -167,6 +176,9 @@ exports[`git.pull.comment given: [case3] a reply posts to the thread replies end
       ├─ id: 5001
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r5001
       └─ read-back sha256: a72b5a74cfb01cd9fef00c17631eb68b4cc48bc0ad02dce8dece784074ad98f9
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -202,6 +214,9 @@ exports[`git.pull.comment given: [case4] a key upserts: absent → POST, differs
       ├─ id: 5001
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
       └─ read-back sha256: 574d076c7ada90d57161629fcb07fe1a77d168295d6236381690ff02e48dbbe6
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -225,6 +240,9 @@ exports[`git.pull.comment given: [case4] a key upserts: absent → POST, differs
       ├─ id: 5001
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
       └─ read-back sha256: a84fb2898e13806460627768746cf7165c536dc46157e0fe82cd0ecb4963d198
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -247,6 +265,9 @@ exports[`git.pull.comment given: [case4] a key upserts: absent → POST, differs
    └─ verdict: already there — no-op
       ├─ id: 5001
       └─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -289,6 +310,9 @@ exports[`git.pull.comment given: [case5] a reply key ignores a match in another 
       ├─ id: 5001
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r5001
       └─ read-back sha256: ccfa5e2b3c6cdf06b7cf4d7a47f610ca7205422eca91e38d0983e5f584577cff
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -327,6 +351,9 @@ exports[`git.pull.comment given: [case5] a reply key ignores a match in another 
    └─ verdict: already there — no-op
       ├─ id: 303
       └─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r303
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -334,6 +361,7 @@ exports[`git.pull.comment given: [case5] a reply key ignores a match in another 
 [
   {
     "author": "ehm-seaturtle",
+    "author_type": null,
     "body": "🐢 because
 
 <!-- rhx:git.pull.comment key=answer -->",
@@ -343,6 +371,8 @@ exports[`git.pull.comment given: [case5] a reply key ignores a match in another 
     "in_reply_to": 301,
     "key": "answer",
     "kind": "review",
+    "line": null,
+    "path": null,
     "sha256": "e408551b167e66ba260f3fceb5ee4beb7f510cbd6c4735366de833fb8191e7fd",
     "thread": "open",
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r303",
@@ -715,7 +745,7 @@ options:
 options:
   --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --unanswered                 only the comments that wait on an answer from you
+  --unanswered                 only the comments that await a reply from you or the pr author
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
   --key <k> [--reply-to <id>]  your keyed comment (in that review thread, with --reply-to)
   --kind body                  the pr description alone
@@ -732,7 +762,9 @@ options:
   --from <path|@stdin>         the body; written as '🐢 ' + body, plus a hidden key marker
   --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
+  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan);
+                               after an apply, a 🥥 names each comment on the pr that awaits a reply,
+                               with the command that answers it
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
   --output tree|json           the output shape (default: tree)
   --help, -h                   show this help
@@ -1082,6 +1114,9 @@ exports[`git.pull.comment given: [case12] the target fences: the pr, and the hom
       ├─ id: 711
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-711
       └─ read-back sha256: c250cb364c62af0a5a4f398adbfbd56c4e900e38f52f5c3ecf909cef0fdaa9b1
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -1104,6 +1139,9 @@ exports[`git.pull.comment given: [case12] the target fences: the pr, and the hom
    └─ verdict: already there — no-op
       ├─ id: 711
       └─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-711
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -1177,6 +1215,7 @@ exports[`git.pull.comment given: [case13] get --which reads the body, the issue 
 [
   {
     "author": "surfer-kai",
+    "author_type": null,
     "body": "surf lesson booker",
     "bytes": 18,
     "created_at": "2026-10-24T<time>",
@@ -1184,12 +1223,15 @@ exports[`git.pull.comment given: [case13] get --which reads the body, the issue 
     "in_reply_to": null,
     "key": null,
     "kind": "body",
+    "line": null,
+    "path": null,
     "sha256": "84c901a133ab63b3cec5368b2d42e0347bc83afe9748e82bf9dfaea5204d33bb",
     "thread": null,
     "url": "https://github.com/ehmpathy/surf-demo/pull/7",
   },
   {
     "author": "surfer-kai",
+    "author_type": null,
     "body": "lgtm?",
     "bytes": 5,
     "created_at": "2026-10-24T<time>",
@@ -1197,12 +1239,15 @@ exports[`git.pull.comment given: [case13] get --which reads the body, the issue 
     "in_reply_to": null,
     "key": null,
     "kind": "issue",
+    "line": null,
+    "path": null,
     "sha256": "0fcaf722c7fc5acefdc4812b234c9e918be2cc65bf7a20b4e382ab7bddda8087",
     "thread": null,
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-801",
   },
   {
     "author": "surfer-kai",
+    "author_type": null,
     "body": "why foamboard?",
     "bytes": 14,
     "created_at": "2026-10-24T<time>",
@@ -1210,12 +1255,15 @@ exports[`git.pull.comment given: [case13] get --which reads the body, the issue 
     "in_reply_to": null,
     "key": null,
     "kind": "review",
+    "line": null,
+    "path": null,
     "sha256": "9d249c04b0277924b0f1815ebe3619dcdabb07196a877a32e24109b455780fb3",
     "thread": "open",
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r804",
   },
   {
     "author": "ehm-seaturtle",
+    "author_type": null,
     "body": "🐢 status
 
 <!-- rhx:git.pull.comment key=status -->",
@@ -1225,12 +1273,15 @@ exports[`git.pull.comment given: [case13] get --which reads the body, the issue 
     "in_reply_to": null,
     "key": "status",
     "kind": "issue",
+    "line": null,
+    "path": null,
     "sha256": "a18ea7abc1d547909223880b41206eef68cfd37063e3530b615847c3deb61214",
     "thread": null,
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-802",
   },
   {
     "author": "ehm-seaturtle",
+    "author_type": null,
     "body": "🐢 beginners",
     "bytes": 14,
     "created_at": "2026-10-24T<time>",
@@ -1238,12 +1289,15 @@ exports[`git.pull.comment given: [case13] get --which reads the body, the issue 
     "in_reply_to": 804,
     "key": null,
     "kind": "review",
+    "line": null,
+    "path": null,
     "sha256": "0ce9b2b392f34c76e765a1ac7ae447176fc10272f7ac0d2c18ebda4d220c08d5",
     "thread": "open",
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r805",
   },
   {
     "author": "surfer-kai",
+    "author_type": null,
     "body": "one more",
     "bytes": 8,
     "created_at": "2026-10-24T<time>",
@@ -1251,6 +1305,8 @@ exports[`git.pull.comment given: [case13] get --which reads the body, the issue 
     "in_reply_to": null,
     "key": null,
     "kind": "issue",
+    "line": null,
+    "path": null,
     "sha256": "58094382d8457966396b3eacbd29b67f78971d3387ddec687ec535f365425ac8",
     "thread": null,
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-803",
@@ -1262,6 +1318,7 @@ exports[`git.pull.comment given: [case13] get --which reads the body, the issue 
 [
   {
     "author": "ehm-seaturtle",
+    "author_type": null,
     "body": "🐢 status
 
 <!-- rhx:git.pull.comment key=status -->",
@@ -1271,6 +1328,8 @@ exports[`git.pull.comment given: [case13] get --which reads the body, the issue 
     "in_reply_to": null,
     "key": "status",
     "kind": "issue",
+    "line": null,
+    "path": null,
     "sha256": "a18ea7abc1d547909223880b41206eef68cfd37063e3530b615847c3deb61214",
     "thread": null,
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-802",
@@ -1316,6 +1375,7 @@ exports[`git.pull.comment given: [case13] get --which reads the body, the issue 
 [
   {
     "author": "ehm-seaturtle",
+    "author_type": null,
     "body": "🐢 like so
 
 <!-- rhx:git.pull.comment key=answer -->",
@@ -1325,6 +1385,8 @@ exports[`git.pull.comment given: [case13] get --which reads the body, the issue 
     "in_reply_to": 902,
     "key": "answer",
     "kind": "review",
+    "line": null,
+    "path": null,
     "sha256": "ccfa5e2b3c6cdf06b7cf4d7a47f610ca7205422eca91e38d0983e5f584577cff",
     "thread": "open",
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r904",
@@ -1498,6 +1560,9 @@ exports[`git.pull.comment given: [case15] auth: as-ehmpath needs a token; as-hum
    └─ verdict: already there — no-op
       ├─ id: 1101
       └─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-1101
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 ",
   "viewerBot": "🐢 heres the wave...
 
@@ -1517,6 +1582,9 @@ exports[`git.pull.comment given: [case15] auth: as-ehmpath needs a token; as-hum
    └─ verdict: already there — no-op
       ├─ id: 1102
       └─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-1102
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 ",
 }
 `;
@@ -1620,6 +1688,9 @@ exports[`git.pull.comment given: [case15] auth: as-ehmpath needs a token; as-hum
    └─ verdict: already there — no-op
       ├─ id: 5001
       └─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r5001
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 ",
   "loggedOut": "✋ ConstraintError: github refused the credential (as-human) on the read of the current login
    └─ detail: To get started with GitHub CLI, please run:  gh auth login
@@ -1651,6 +1722,9 @@ exports[`git.pull.comment given: [case15] auth: as-ehmpath needs a token; as-hum
       ├─ id: 5001
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r5001
       └─ read-back sha256: 24fe16adb5d51fc4e6d71533862947d0368052e1d27dd93483a01cd3d9dbe236
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 ",
   "threadForeign": "✋ ConstraintError: key 'answer' on ehmpathy/surf-demo#7 is held by surfer-kai, not by ehm-seaturtle (as-ehmpath)
    └─ held by: review comment 532
@@ -1780,6 +1854,9 @@ exports[`git.pull.comment given: [case17] a review comment edited in place, and 
       ├─ id: 172
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r172
       └─ read-back sha256: a692937b5c357bd93344ad1c23c516c88f6edba36ff4ba7a2d732b69d06446e5
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -1803,6 +1880,9 @@ exports[`git.pull.comment given: [case17] a review comment edited in place, and 
       ├─ id: 173
       ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r173
       └─ read-back sha256: 99e1e940a587ea95faa3048a969229afd4275d2081aec0bba978166b27715f47
+
+🥥 did you know?
+   └─ naught on ehmpathy/surf-demo#7 awaits a reply
 "
 `;
 
@@ -1944,5 +2024,52 @@ exports[`git.pull.comment given: [case21] get --unanswered lists what waits on a
       ├─ sha256: f56a8e2f95606a42b1c382cc9a1167f764917ca236c9be2ac4d1aee0806cf850
       └─ text
          one more note
+"
+`;
+
+exports[`git.pull.comment given: [case22] set names the comments that still await a reply when: [t0] set --reply-to 901 --mode apply then: the output is snapped 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, reply to review comment 901, key=answer-901
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/pulls/7/comments/901/replies
+   ├─ new
+   │  ├─ from: ./answer-901.md
+   │  ├─ bytes: 75
+   │  └─ sha256: 8a99b5ac9349b7f61aec70db28e5e9a0ba4560e68740c2ea9aceba822765dbba
+   └─ verdict: posted, read back, hash matches
+      ├─ id: 5001
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r5001
+      └─ read-back sha256: 8a99b5ac9349b7f61aec70db28e5e9a0ba4560e68740c2ea9aceba822765dbba
+
+🥥 did you know?
+   └─ 3 comments on ehmpathy/surf-demo#7 still await a reply
+      ├─ review 903 by surfer-kai, src/slug.ts:4: "forbid the dot"
+      │  └─ rhx git.pull.comment.set --pr 7 --in ehmpathy/surf-demo --reply-to 903 --key answer-903 --from <file>
+      ├─ review 906 by surfer-kai, src/cache.ts:42: "and the cache?"
+      │  └─ rhx git.pull.comment.set --pr 7 --in ehmpathy/surf-demo --reply-to 906 --key answer-906 --from <file>
+      └─ issue 909 by surfer-kai, top-level: "one more note: bump the docs too"
+         └─ rhx git.pull.comment.set --pr 7 --in ehmpathy/surf-demo --key answer-909 --from <file>
+"
+`;
+
+exports[`git.pull.comment given: [case24] the hint read fails; the set still holds when: [t0] a rate limit hits the read, under --output tree then: the output is snapped 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.comment.set --mode apply
+   ├─ target: ehmpathy/surf-demo#7, top-level comment key=status
+   ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
+   ├─ endpoint: POST repos/ehmpathy/surf-demo/issues/7/comments
+   ├─ new
+   │  ├─ from: ./status.md
+   │  ├─ bytes: 65
+   │  └─ sha256: 3e0a188a0b7f6ee632a2cc5483b30b783c81f2c6b56afbd1ea1da5bc0bb21b95
+   └─ verdict: posted, read back, hash matches
+      ├─ id: 5001
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
+      └─ read-back sha256: 3e0a188a0b7f6ee632a2cc5483b30b783c81f2c6b56afbd1ea1da5bc0bb21b95
+
+⚠️  could not read the comments that await a reply (gh api failed on graphql reviewThreads of ehmpathy/surf-demo#7: gh: API rate limit exceeded for installation (HTTP 403)); run rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --unanswered
 "
 `;
