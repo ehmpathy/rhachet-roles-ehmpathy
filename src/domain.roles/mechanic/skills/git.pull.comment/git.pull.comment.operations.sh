@@ -1134,7 +1134,8 @@ is_review_among_comment_rows() {
 #           the question that opened the wait. --reply-to that id joins the root
 #         - the top-level (issue) conversation is one thread: each human issue
 #           comment newer than the last answerer issue comment awaits, one row each
-#         - order is by creation; an edit never moves a comment
+#         - order is by creation, ties broken by id (github stamps whole
+#           seconds); an edit never moves a comment
 # .note = known hazard, by design: top-level comments carry no reply link, so
 #         any answerer post there (a status note included) clears every earlier
 #         top-level human comment. a top-level question can hide behind a status
@@ -1157,7 +1158,7 @@ as_comment_rows_unanswered() {
         )
       | map(select(. != null)) )
     + ( [ .[] | select(.kind == "issue") ] as $issues
-        | ( [ $issues[] | select(is_answerer) | .created_at ] | max ) as $answer_last
-        | [ $issues[] | select(is_asker and ($answer_last == null or .created_at > $answer_last)) ] )
+        | ( [ $issues[] | select(is_answerer) | [.created_at, .id] ] | max ) as $answer_last
+        | [ $issues[] | select(is_asker and ([.created_at, .id] > $answer_last)) ] )
     | sort_by(.created_at, .id)'
 }

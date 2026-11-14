@@ -4000,4 +4000,50 @@ exit 2
       });
     });
   });
+
+  given('[case28] a top-level ask lands the same second as an answer', () => {
+    // github stamps whole seconds, so the id breaks the tie
+    const genSceneOfPair = (input: { idAnswer: number; idAsk: number }) =>
+      genScene({
+        ...SCENE_BARE,
+        store: { prs: { '7': { ...PR_7_BY_AUTHOR_OTHER } } },
+        comments: [
+          genComment({
+            id: input.idAnswer,
+            kind: 'issue',
+            body: '🐢 status: round one done',
+            created_at: at(5),
+          }),
+          genComment({
+            id: input.idAsk,
+            kind: 'issue',
+            author: LOGIN_HUMAN,
+            body: 'and round two?',
+            created_at: at(5),
+          }),
+        ],
+      });
+    when('[t0] the ask comes after the answer', () => {
+      const scene = genSceneOfPair({ idAnswer: 1101, idAsk: 1102 });
+      const result = useThen('it runs', async () =>
+        scene.run('get', ['--pr', '7', '--unanswered', '--output', 'json']),
+      );
+      then('the ask awaits', () => {
+        expect(result.exitCode).toBe(0);
+        const rows: { id: number }[] = JSON.parse(result.stdout);
+        expect(rows.map((r) => r.id)).toEqual([1102]);
+      });
+    });
+    when('[t1] the ask comes before the answer', () => {
+      const scene = genSceneOfPair({ idAnswer: 1104, idAsk: 1103 });
+      const result = useThen('it runs', async () =>
+        scene.run('get', ['--pr', '7', '--unanswered', '--output', 'json']),
+      );
+      then('the answer clears the ask', () => {
+        expect(result.exitCode).toBe(0);
+        const rows: { id: number }[] = JSON.parse(result.stdout);
+        expect(rows.map((r) => r.id)).toEqual([]);
+      });
+    });
+  });
 });
