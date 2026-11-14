@@ -37,9 +37,7 @@ options:
   --from <path|@stdin>         the body; written as '🐢 ' + body, plus a hidden key marker
   --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan);
-                               after an apply, a 🥥 names each comment on the pr that awaits a reply,
-                               with the command that answers it
+  --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
   --output tree|json           the output shape (default: tree)
   --help, -h                   show this help

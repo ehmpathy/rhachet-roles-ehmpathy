@@ -281,51 +281,6 @@ describe('git.pull.comment (real github api)', () => {
     });
   });
 
-  given(
-    '[case4] a tree set reads the real pr and names what awaits a reply',
-    () => {
-      const keyHint = `${KEY}-hint`;
-      when('[t0] set --mode apply in the tree form, then del', () => {
-        const result = useThen('it runs', async () => {
-          const set = run(
-            'set',
-            ['--key', keyHint, '--from', '@stdin', '--mode', 'apply'],
-            'real-api case: the unanswered hint after a tree set',
-          );
-          const unanswered = run('get', ['--unanswered', '--output', 'json']);
-          const del = run('del', ['--key', keyHint, '--mode', 'apply']);
-          return { set, unanswered, del };
-        });
-        then('the set posts and exits 0', () => {
-          expect(result.set.exitCode).toBe(0);
-          expect(result.set.stdout).toContain(
-            'posted, read back, hash matches',
-          );
-        });
-        then('the hint read held against the real api: a 🥥, no warn', () => {
-          expect(result.set.stdout).toContain('🥥 did you know?');
-          expect(result.set.stdout).toMatch(
-            /naught on ehmpathy\/rhachet-roles-ehmpathy#1039 awaits a reply|still awaits? a reply/,
-          );
-          expect(result.set.stdout).not.toContain('⚠️');
-        });
-        then('the hint names exactly the rows get --unanswered names', () => {
-          expect(result.unanswered.exitCode).toBe(0);
-          const ids: number[] = JSON.parse(result.unanswered.stdout).map(
-            (row: { id: number }) => row.id,
-          );
-          const hintIds = [
-            ...result.set.stdout.matchAll(/─ (?:review|issue) (\d+) by /g),
-          ].map((m) => Number(m[1]));
-          expect(hintIds).toEqual(ids);
-        });
-        then('del clears the case comment', () => {
-          expect(result.del.exitCode).toBe(0);
-        });
-      });
-    },
-  );
-
   given('[case3] the pr description: read, and refused as a write', () => {
     const bodyArgs = [
       '--kind',
