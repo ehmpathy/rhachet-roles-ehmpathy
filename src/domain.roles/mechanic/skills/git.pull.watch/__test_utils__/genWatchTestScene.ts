@@ -60,6 +60,8 @@ export interface WatchStoreClone {
 export interface WatchStore {
   github: {
     token: string;
+    /** the grove's ambient machine token, which github also accepts */
+    tokenAmbient?: string;
     auth: 'ok' | '401';
     /**
      * a fault every read meets: a primary rate limit (403, lifts at rateLimitReset),
@@ -95,6 +97,8 @@ export interface WatchStore {
     string,
     'granted' | 'locked' | 'absent' | 'blocked' | 'fault'
   >;
+  /** the keyrack answer for the grove token, @all.prep.GITHUB_TOKEN (default: absent) */
+  keyrackAmbient?: 'granted' | 'locked' | 'absent' | 'blocked' | 'fault';
 }
 
 /**
@@ -134,7 +138,8 @@ if (state.github.fault === 'badgateway') {
   process.stderr.write('gh: Server Error (HTTP 502)\n');
   process.exit(1);
 }
-if (state.github.auth === '401' || process.env.GH_TOKEN !== state.github.token) {
+const tokensAccepted = [state.github.token, state.github.tokenAmbient].filter(Boolean);
+if (state.github.auth === '401' || !tokensAccepted.includes(process.env.GH_TOKEN)) {
   log(401);
   if (withHeaders) process.stdout.write('HTTP/2.0 401 Unauthorized\nContent-Type: application/json\n\n{"message":"Bad credentials"}');
   process.stderr.write('gh: Bad credentials (HTTP 401)\n');
@@ -207,10 +212,13 @@ if (argv[0] === 'clone' && argv[1] === 'say') {
 }
 if (argv[0] === 'keyrack' && argv[1] === 'get') {
   fs.appendFileSync(process.env.FAKE_WATCH_KEYRACK_LOG, JSON.stringify({ argv, cwd }) + '\n');
-  const keyrack = (state.keyrackByRoot || {})[cwd] || state.keyrack;
+  const slug = argv[argv.indexOf('--key') + 1];
+  const ambient = slug === '@all.prep.GITHUB_TOKEN';
+  const keyrack = ambient ? (state.keyrackAmbient || 'absent') : ((state.keyrackByRoot || {})[cwd] || state.keyrack);
+  const secret = ambient ? state.github.tokenAmbient : state.github.token;
   if (keyrack === 'fault') { process.stderr.write('stub keyrack: daemon socket refused\n'); process.exit(1); }
-  if (keyrack === 'granted') out({ status: 'granted', grant: { slug: 'ehmpathy.prep.EHMPATHY_SEATURTLE_GITHUB_TOKEN', key: { secret: state.github.token } } }, 0);
-  out({ status: keyrack, slug: 'ehmpathy.prep.EHMPATHY_SEATURTLE_GITHUB_TOKEN' }, 2);
+  if (keyrack === 'granted') out({ status: 'granted', grant: { slug, key: { secret } } }, 0);
+  out({ status: keyrack, slug }, 2);
 }
 process.stderr.write('stub rhachet: unknown command ' + argv.join(' ') + '\n');
 process.exit(1);
@@ -331,6 +339,7 @@ export const genWatchTestScene = (input: {
   const store: WatchStore = {
     github: {
       token: 'ghs_fake_ehmpath_token',
+      tokenAmbient: 'ghs_fake_grove_token',
       auth: 'ok',
       prs: {},
       checks: {},
@@ -341,6 +350,7 @@ export const genWatchTestScene = (input: {
     },
     clones: input.store.clones ?? {},
     keyrack: input.store.keyrack ?? 'granted',
+    keyrackAmbient: input.store.keyrackAmbient ?? 'absent',
   };
   fs.writeFileSync(statePath, JSON.stringify(store, null, 2));
   [sayLog, ghLog, keyrackLog].forEach((file) => fs.writeFileSync(file, ''));

@@ -151,12 +151,34 @@ describe('git.pull.watch, against the real rhachet', () => {
         'the real reply parses to a status a human can act on, not a fault',
         () => {
           expect(result.status).toEqual(0);
-          // the full slug reads from any root; outside a manifest it reads
-          // absent (R3). `fault` would mean the real reply no longer parses
-          expect(result.stdout).toContain('status=absent');
+          // the full slug reads from any root: absent where this host holds no
+          // such key, locked where it holds one not yet unlocked. `fault` would
+          // mean the real reply no longer parses
+          const status = result.stdout.match(/status=(\w+)/)?.[1];
+          expect(['absent', 'locked']).toContain(status);
           expect(result.stdout).toContain('token=empty');
         },
       );
+    });
+
+    when('[t0b] the daemon reads the grove token from the real keyrack', () => {
+      const result = useThen('it reads', async () => {
+        const root = genBareRepo('watch-real-rhachet-case3-t0b');
+        return runWatchShell({
+          root,
+          snippet: [
+            `out="$(run_watch_rhachet "${root}" 30 keyrack get --key "$WATCH_TOKEN_SLUG_AMBIENT" --owner ehmpath --env prep --allow-dangerous --json 2>/dev/null)" || true`,
+            `echo "status=$(as_watch_token_state "$out" | cut -f1)"`,
+          ].join('\n'),
+        });
+      });
+      then('the real keyrack takes the @all slug, and its reply parses', () => {
+        expect(result.status).toEqual(0);
+        // granted, absent, or locked by host; `fault` would mean keyrack
+        // refused the slug or its reply no longer parses
+        const status = result.stdout.match(/status=(\w+)/)?.[1];
+        expect(['granted', 'absent', 'locked']).toContain(status);
+      });
     });
 
     when('[t1] the bare key name is read there, as the daemon once did', () => {

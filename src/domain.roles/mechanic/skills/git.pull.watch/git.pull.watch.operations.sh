@@ -22,8 +22,8 @@ WATCH_SKILL_DIR="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WATCH_TICK_SECONDS="${GIT_PULL_WATCH_TICK_SECONDS:-60}"
 
 # a quiet pr is read less often: the gap doubles per quiet read, up to this cap;
-# any change, a push, or a fresh watch resets it to one tick
-WATCH_POLL_MAX_SECONDS="${GIT_PULL_WATCH_POLL_MAX_SECONDS:-900}"
+# any change, a push, or a fresh watch resets it to one tick (30 min)
+WATCH_POLL_MAX_SECONDS="${GIT_PULL_WATCH_POLL_MAX_SECONDS:-1800}"
 
 # a pr with no change for this long ends its watches, so no poll outlives its use (1w)
 WATCH_IDLE_TTL_SECONDS="${GIT_PULL_WATCH_IDLE_TTL_SECONDS:-604800}"
@@ -158,12 +158,14 @@ print_watch_paused_coconut() {
   if [[ "$status" == "absent" ]]; then
     echo "   └─ a paused daemon reads naught; the github token is not filled"
     echo "      ├─ 1. a human runs: rhx keyrack fill $key"
-    echo "      └─ 2. rhx keyrack unlock $key"
+    echo "      ├─ 2. rhx keyrack unlock $key"
+    echo "      └─ or, for the whole grove: rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN"
     return 0
   fi
   if [[ "$status" == "expired" ]]; then
     echo "   └─ a paused daemon reads naught; github refused the token"
-    echo "      └─ a human runs: rhx keyrack fill $key --refresh"
+    echo "      ├─ a human runs: rhx keyrack fill $key --refresh"
+    echo "      └─ or, where the grove token served: rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN"
     return 0
   fi
   echo "   └─ a paused daemon reads naught; the github token is $status"

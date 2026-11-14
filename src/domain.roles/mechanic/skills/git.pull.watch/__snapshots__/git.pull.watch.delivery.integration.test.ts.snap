@@ -80,7 +80,8 @@ exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes l
 
 🥥 did you know?
    └─ a paused daemon reads naught; github refused the token
-      └─ a human runs: rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh
+      ├─ a human runs: rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh
+      └─ or, where the grove token served: rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN
 "
 `;
 
@@ -90,7 +91,8 @@ exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes l
 🐚 git.pull.watch — paused
    ├─ ✋ ConstraintError: github token expired
    ├─ watches paused: #1220, #1221
-   └─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh\`"
+   └─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh\`
+      └─ or, where the grove token served: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
 `;
 
 exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes locked, then returns when: [t2] keyrack reads the token locked then: get marks the daemon paused locked, and names the unlock 1`] = `
@@ -208,7 +210,8 @@ exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the g
 🥥 did you know?
    └─ a paused daemon reads naught; the github token is not filled
       ├─ 1. a human runs: rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-      └─ 2. rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+      ├─ 2. rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+      └─ or, for the whole grove: rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN
 "
 `;
 
@@ -248,7 +251,8 @@ exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the g
    ├─ ✋ ConstraintError: github token not filled
    ├─ watches paused: #1220
    └─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN\`, then
-      └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+      ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+      └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
 `;
 
 exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the github key when: [t1] a second clone sets its first watch while the pause holds then: the late clone gets one paused alert, for its own pr 1`] = `
@@ -258,7 +262,8 @@ exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the g
    ├─ ✋ ConstraintError: github token not filled
    ├─ watches paused: #1222
    └─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN\`, then
-      └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+      ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+      └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
 `;
 
 exports[`git.pull.watch delivery given: [case8c] github rate-limits the token, then the limit lifts when: [t0] the clone watches the pr; then github answers 403 with a reset 25s out then: get names the backoff mark, in tree and json 1`] = `

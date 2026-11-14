@@ -229,7 +229,8 @@ as_watch_paused_text() {
     echo "   ├─ ✋ ConstraintError: github token not filled"
     echo "   ├─ watches paused: $prs"
     echo "   └─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN\`, then"
-    echo "      └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+    echo "      ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+    echo "      └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
     return 0
   fi
   # github refused the token: an unlock cannot clear it; a human sets one github accepts
@@ -237,6 +238,7 @@ as_watch_paused_text() {
     echo "   ├─ ✋ ConstraintError: github token expired"
     echo "   ├─ watches paused: $prs"
     echo "   └─ fix: a human runs \`rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN --refresh\`"
+    echo "      └─ or, where the grove token served: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
     return 0
   fi
   local cause="github token locked"

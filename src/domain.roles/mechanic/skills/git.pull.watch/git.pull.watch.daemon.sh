@@ -15,14 +15,15 @@
 #   - at boot, exits if another live daemon of its key holds the pid record (F1)
 #   - runs from its own copy, cwd in the state dir; reads no spawner file (F10)
 #   - exits once it holds zero watches, under the lock (F3)
-#   - reads github with the ehmpath keyrack token only; the human login never (F11)
+#   - reads github with a keyrack token only: the ehmpath seaturtle token, else,
+#     where it is not set, the grove's @all.prep.GITHUB_TOKEN; the human login never (F11)
 #   - an alert sits in the outbox before its cursors advance, so a crash re-sends
 #     at most once and never drops one (F6, F7)
 #   - a rate limit holds every read until it lifts; an outage holds the cursors,
 #     and one past 30 min earns one note per clone (A29, A30)
 #   - a keyrack fault holds the tick and logs its cause; one past 30 min earns
 #     one note per clone, with the cause and the check
-#   - a quiet pr is read less often: the gap doubles per quiet read, up to 15 min;
+#   - a quiet pr is read less often: the gap doubles per quiet read, up to 30 min;
 #     a change, a push, or a fresh watch snaps it back to one tick
 #   - a pr with no change for a week ends its watches, with a note that names the rewatch
 #   - an older key's watch whose repo root runs this key now is taken, cursors and
@@ -599,10 +600,31 @@ get_watch_token_of_any_root() {
     fi
   done < <(get_all_watch_repo_roots)
   WATCH_TOKEN=""
+  WATCH_TOKEN_SOURCE=""
   WATCH_TOKEN_STATUS="${status:-fault}"
   WATCH_TOKEN_FAULT="$fault"
   [[ -n "$status" ]] || WATCH_TOKEN_FAULT="no watched repo root stands"
   WATCH_TOKEN_ROOT="$from"
+
+  # the seaturtle token is not set on any root: the grove's machine token serves
+  # .note = only on absent; a locked or blocked seaturtle token is a human's to act on
+  [[ "$WATCH_TOKEN_STATUS" == "absent" ]] || return 0
+  get_watch_token_ambient "$from" || WATCH_TOKEN_STATUS="absent"
+  set_watch_heartbeat
+  return 0
+}
+
+# .what = log the key the token came from, once per change
+# .why  = a daemon on the grove token reads as a different identity than the
+#         seaturtle; the log names which, so a 401 or a quota is traced to its key
+WATCH_TOKEN_SOURCE_LOGGED=""
+set_watch_token_source_logged() {
+  [[ "$WATCH_TOKEN_SOURCE" == "$WATCH_TOKEN_SOURCE_LOGGED" ]] && return 0
+  WATCH_TOKEN_SOURCE_LOGGED="$WATCH_TOKEN_SOURCE"
+  [[ "$WATCH_TOKEN_SOURCE" == "ambient" ]] \
+    && log_watch "token: $WATCH_TOKEN_SLUG_AMBIENT, the grove token (the seaturtle token is not set)" \
+    && return 0
+  log_watch "token: $WATCH_TOKEN_SLUG"
 }
 
 # .what = how well one token status tells a human what to do; higher wins
@@ -760,6 +782,7 @@ run_watch_tick() {
     set_watch_outbox_drained
     return 0
   fi
+  set_watch_token_source_logged
 
   # one github read per pr, shared by its watchers
   # .note = a pause lifts only once github accepts the token; a granted keyrack

@@ -661,6 +661,116 @@ describe('git.pull.watch delivery', () => {
     );
   });
 
+  given(
+    '[case8g] a grove with no seaturtle token, but the grove token filled',
+    () => {
+      const scene = genWatchTestScene({
+        slug: 'watch-case8g',
+        repos: ['surf-demo'],
+        store: { keyrack: 'absent', keyrackAmbient: 'granted' },
+      });
+      scene.setStore((store) => {
+        store.clones[scene.roots['surf-demo']!] = [
+          { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+        ];
+      });
+      setPrOpen({ scene, repo: 'ehmpathy/surf-demo', pr: '1220' });
+      afterAll(() => scene.stopAllDaemons());
+
+      when('[t0] the clone watches #1220, and a peer comments on it', () => {
+        const result = useThen('the comment is alerted', async () => {
+          const set = JSON.parse(
+            scene.runSkill({
+              verb: 'set',
+              args: ['--which', '1220', '--mode', 'apply', '--output', 'json'],
+              root: scene.roots['surf-demo']!,
+              serial: SERIAL_A,
+            }).stdout,
+          ) as { daemon: { key: string } };
+          await scene.waitForPrimed();
+          scene.setStore((store) => {
+            store.github.issueComments['ehmpathy/surf-demo#1220'] = [
+              {
+                id: 801,
+                body: 'max it to 30min on idles',
+                user: { login: 'surfer-kai', type: 'User' },
+                html_url:
+                  'https://github.com/ehmpathy/surf-demo/pull/1220#issuecomment-801',
+              },
+            ];
+          });
+          const says = await waitForWatch({
+            label: 'comment alert via the grove token',
+            check: () => (scene.getSays().length > 0 ? scene.getSays() : null),
+            scene,
+          });
+          const log = fs.readFileSync(
+            path.join(
+              scene.getStateRoot(),
+              `v=${set.daemon.key}`,
+              'daemon.log',
+            ),
+            'utf-8',
+          );
+          return { says, ghCalls: scene.getGhCalls(), log };
+        });
+        then('the clone hears the comment, and no pause', () => {
+          expect(result.says).toHaveLength(1);
+          expect(result.says[0]!.text).toContain('max it to 30min on idles');
+          expect(result.says[0]!.text).not.toContain('paused');
+        });
+        then('every github read carries the grove token', () => {
+          expect(result.ghCalls.length).toBeGreaterThan(0);
+          result.ghCalls.forEach((call) =>
+            expect(call.token).toEqual('ghs_fake_grove_token'),
+          );
+        });
+        then('the daemon log names the grove token as its source', () => {
+          expect(result.log).toContain(
+            'token: @all.prep.GITHUB_TOKEN, the grove token (the seaturtle token is not set)',
+          );
+        });
+      });
+    },
+  );
+
+  given('[case8h] a grove with both the seaturtle and grove tokens', () => {
+    const scene = genWatchTestScene({
+      slug: 'watch-case8h',
+      repos: ['surf-demo'],
+      store: { keyrack: 'granted', keyrackAmbient: 'granted' },
+    });
+    scene.setStore((store) => {
+      store.clones[scene.roots['surf-demo']!] = [
+        { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+      ];
+    });
+    setPrOpen({ scene, repo: 'ehmpathy/surf-demo', pr: '1220' });
+    afterAll(() => scene.stopAllDaemons());
+
+    when('[t0] the daemon reads the watched pr', () => {
+      const result = useThen('the pr is read', async () => {
+        scene.runSkill({
+          verb: 'set',
+          args: ['--which', '1220', '--mode', 'apply'],
+          root: scene.roots['surf-demo']!,
+          serial: SERIAL_A,
+        });
+        await scene.waitForPrimed();
+        return { ghCalls: scene.getGhCalls() };
+      });
+      then(
+        'every github read carries the seaturtle token, never the grove one',
+        () => {
+          expect(result.ghCalls.length).toBeGreaterThan(0);
+          result.ghCalls.forEach((call) =>
+            expect(call.token).toEqual('ghs_fake_ehmpath_token'),
+          );
+        },
+      );
+    });
+  });
+
   given('[case8f] a box whose keyrack blocks the github key', () => {
     const scene = genWatchTestScene({
       slug: 'watch-case8f',

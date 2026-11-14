@@ -89,6 +89,35 @@ const holdLock = (keyDir: string): (() => void) => {
 };
 
 describe('git.pull.watch.operations', () => {
+  given('[case0] the quiet-pr gap, at the default cap', () => {
+    when('[t0] a pr stays quiet read after read, on the default tick', () => {
+      then('the gap doubles from one tick, and caps at 30 min', () => {
+        const home = genTempDir({ slug: 'watch-ops-case0-t0' });
+        const run = runOps({
+          home,
+          snippet: [
+            'unset GIT_PULL_WATCH_POLL_MAX_SECONDS GIT_PULL_WATCH_TICK_SECONDS',
+            `source "${OPS}"`,
+            'echo "max=$WATCH_POLL_MAX_SECONDS"',
+            'for quiet in 0 1 2 3 4 5 6 9; do as_watch_poll_gap_seconds "$quiet" "$WATCH_TICK_SECONDS" "$WATCH_POLL_MAX_SECONDS"; done',
+          ].join('\n'),
+        });
+        expect(run.status).toEqual(0);
+        expect(run.stdout.trim().split('\n')).toEqual([
+          'max=1800',
+          '60',
+          '120',
+          '240',
+          '480',
+          '960',
+          '1800',
+          '1800',
+          '1800',
+        ]);
+      });
+    });
+  });
+
   given('[case1] a tick writes back a watch record it read', () => {
     when(
       '[t0] the record still stands, with the watchId it was read with',
