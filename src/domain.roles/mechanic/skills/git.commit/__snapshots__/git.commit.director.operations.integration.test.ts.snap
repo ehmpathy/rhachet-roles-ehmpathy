@@ -1,0 +1,236 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t0] git.commit.set, no uses left (a commit-only tree) renders its fix then: the render matches the snapshot 1`] = `
+"
+a director governs this tree; ask your director to grant more. the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push block --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t1] git.commit.set --push, no uses left (a commit-only tree) renders its fix then: the render matches the snapshot 1`] = `
+"
+a director governs this tree; ask your director to grant more. the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t2] git.commit.set, no uses left (stage granted) renders its fix then: the render matches the snapshot 1`] = `
+"
+a director governs this tree; ask your director to grant more. the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --stage allow --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t3] git.commit.set, no quota set renders its fix then: the render matches the snapshot 1`] = `
+"
+a director governs this tree; ask your director to grant a quota. the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push <allow|block> --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t4] git.commit.set, push not allowed renders its fix then: the render matches the snapshot 1`] = `
+"
+a director governs this tree; ask your director to grant push. the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t5] git.commit.push, push not allowed renders its fix then: the render matches the snapshot 1`] = `
+"
+a director governs this tree; ask your director to grant push. the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t6] git.branch.rebase begin, no quota set renders its fix then: the render matches the snapshot 1`] = `
+"
+a director governs this tree; ask your director to grant a quota. the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t7] git.branch.rebase begin, push not allowed renders its fix then: the render matches the snapshot 1`] = `
+"
+a director governs this tree; ask your director to grant push. the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t8] git.branch.rebase begin, no uses left renders its fix then: the render matches the snapshot 1`] = `
+"
+a director governs this tree; ask your director to grant more. the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t9] git.release, no quota set renders its fix then: the render matches the snapshot 1`] = `
+"
+   a director governs this tree; ask your director to grant a quota. the director runs:
+   $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push <allow|block> --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t10] git.release, no uses left (push allowed) renders its fix then: the render matches the snapshot 1`] = `
+"
+   a director governs this tree; ask your director to grant more. the director runs:
+   $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t11] git.stage.add, no quota set renders its fix then: the render matches the snapshot 1`] = `
+"
+a director governs this tree; ask your director to grant stage. the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push <allow|block> --stage allow --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case3] a tree a director governs (director=charter) when: [t12] git.stage.add, stage not allowed (a commit-only tree) renders its fix then: the render matches the snapshot 1`] = `
+"
+a director governs this tree; ask your director to grant stage. the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push block --stage allow --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t0] git.commit.set, no uses left (a commit-only tree) renders its fix then: the render matches the snapshot 1`] = `
+"
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push block --why '<why>'
+else, ask your human to grant more:
+  $ git.commit.uses set --quant N --push allow|block
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t1] git.commit.set --push, no uses left (a commit-only tree) renders its fix then: the render matches the snapshot 1`] = `
+"
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+else, ask your human to grant more:
+  $ git.commit.uses set --quant N --push allow|block
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t2] git.commit.set, no uses left (stage granted) renders its fix then: the render matches the snapshot 1`] = `
+"
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --stage allow --why '<why>'
+else, ask your human to grant more:
+  $ git.commit.uses set --quant N --push allow|block
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t3] git.commit.set, no quota set renders its fix then: the render matches the snapshot 1`] = `
+"
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push <allow|block> --why '<why>'
+else, ask your human to grant:
+  $ git.commit.uses set --quant N --push allow|block
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t4] git.commit.set, push not allowed renders its fix then: the render matches the snapshot 1`] = `
+"
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+else, ask your human to grant with --push allow
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t5] git.commit.push, push not allowed renders its fix then: the render matches the snapshot 1`] = `
+"
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+else, ask your human to grant with --push allow:
+  $ git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t6] git.branch.rebase begin, no quota set renders its fix then: the render matches the snapshot 1`] = `
+"
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+else, ask your human to grant permission:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t7] git.branch.rebase begin, push not allowed renders its fix then: the render matches the snapshot 1`] = `
+"
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+else, ask your human to grant permission:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t8] git.branch.rebase begin, no uses left renders its fix then: the render matches the snapshot 1`] = `
+"
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+else, ask your human to grant more:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t9] git.release, no quota set renders its fix then: the render matches the snapshot 1`] = `
+"
+   whether a director governs this tree cannot be read; ask your director, else your human.
+   the director runs:
+   $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push <allow|block> --why '<why>'
+   else, ask your human to grant:
+   $ git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t10] git.release, no uses left (push allowed) renders its fix then: the render matches the snapshot 1`] = `
+"
+   whether a director governs this tree cannot be read; ask your director, else your human.
+   the director runs:
+   $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+   else, ask your human to grant more:
+   $ git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t11] git.stage.add, no quota set renders its fix then: the render matches the snapshot 1`] = `
+"
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push <allow|block> --stage allow --why '<why>'
+else, ask your human to grant stage permission:
+  $ git.commit.uses set --quant N --push allow|block --stage allow
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case4] a director marker that cannot be read (director=unreadable) when: [t12] git.stage.add, stage not allowed (a commit-only tree) renders its fix then: the render matches the snapshot 1`] = `
+"
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push block --stage allow --why '<why>'
+else, ask your human to grant stage permission:
+  $ git.commit.uses set --quant N --push allow|block --stage allow
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case8] the json-mode push refusal (git.commit.push --output json) when: [t1] a director governs the tree then: the fix matches the snapshot 1`] = `
+"a director governs this tree; ask your director to grant push. the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh given: [case8] the json-mode push refusal (git.commit.push --output json) when: [t2] the director state cannot be read then: the fix matches the snapshot 1`] = `
+"whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree svc-quotes.beav.fix-ask-for-details-survives-crash --quota <n> --push allow --why '<why>'
+else, ask your human to grant with --push allow:
+  $ git.commit.uses set --quant N --push allow
+"
+`;

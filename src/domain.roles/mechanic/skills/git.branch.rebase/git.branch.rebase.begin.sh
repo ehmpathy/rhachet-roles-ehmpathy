@@ -31,6 +31,7 @@ COMMIT_SKILL_DIR="$(cd "$SKILL_DIR/../git.commit" && pwd)"
 
 # source shared utils
 source "$COMMIT_SKILL_DIR/output.sh"
+source "$COMMIT_SKILL_DIR/git.commit.director.operations.sh"
 source "$SKILL_DIR/git.branch.rebase.operations.sh"
 source "$SKILL_DIR/git.branch.rebase.aside.operations.sh"
 
@@ -100,17 +101,54 @@ while [[ $# -gt 0 ]]; do
 done
 
 ######################################################################
+# .what = the fix under a quota refusal, by who holds this tree's grant
+#
+# .why  = a driver under a director must ask its director, never a human;
+#         a tree no director governs keeps the extant coconut hint, byte for byte
+#
+# usage: print_rebase_quota_fix refusal=<kind> hint="..." [wants_push=true]
+######################################################################
+print_rebase_quota_fix() {
+  local refusal="" hint="" wants_push="false" arg
+  for arg in "$@"; do
+    case "$arg" in
+      refusal=*) refusal="${arg#refusal=}" ;;
+      hint=*) hint="${arg#hint=}" ;;
+      wants_push=*) wants_push="${arg#wants_push=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
+    esac
+  done
+
+  # read the tree's director state now, only because a refusal renders
+  local director
+  director="$(get_one_tree_director_state_for_render repo_root="$REPO_ROOT")"
+
+  # no director governs this tree: the extant human hint, unchanged
+  if [[ "$director" == "none" ]]; then
+    print_coconut_hint "$hint" "rhx git.commit.uses set --quant N --push allow"
+    return 0
+  fi
+
+  # a director governs this tree, or its state cannot be read: the director grant
+  print_quota_grant_fix repo_root="$REPO_ROOT" director="$director" \
+    refusal="$refusal" meter_file="$STATE_FILE" wants_push="$wants_push" \
+    human_lead="${hint}:" \
+    human_cmd="  \$ rhx git.commit.uses set --quant N --push allow"
+}
+
+######################################################################
 # guards
 ######################################################################
 
 # guard: meter state file must exist
+# .note = rebase force-pushes its result, so each grant it asks for carries push
 if [[ ! -f "$STATE_FILE" ]]; then
   emit_both "$(
     print_turtle_header "hold up dude..."
     print_tree_start "git.branch.rebase begin"
     echo "   └─ ✋ ConstraintError: no commit quota set"
-    print_coconut_hint "ask your human to grant permission" \
-      "rhx git.commit.uses set --quant N --push allow"
+    print_rebase_quota_fix refusal=quota-absent wants_push=true \
+      hint="ask your human to grant permission"
   )"
   exit 2
 fi
@@ -125,8 +163,8 @@ if [[ "$PUSH_ALLOWED" != "allow" ]]; then
     print_turtle_header "hold up dude..."
     print_tree_start "git.branch.rebase begin"
     echo "   └─ ✋ ConstraintError: rebase requires push permission"
-    print_coconut_hint "ask your human to grant permission" \
-      "rhx git.commit.uses set --quant N --push allow"
+    print_rebase_quota_fix refusal=push-blocked \
+      hint="ask your human to grant permission"
   )"
   exit 2
 fi
@@ -137,8 +175,8 @@ if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" == "apply" ]]; then
     print_turtle_header "hold up dude..."
     print_tree_start "git.branch.rebase begin"
     echo "   └─ ✋ ConstraintError: no commit uses left"
-    print_coconut_hint "ask your human to grant more" \
-      "rhx git.commit.uses set --quant N --push allow"
+    print_rebase_quota_fix refusal=uses-out wants_push=true \
+      hint="ask your human to grant more"
   )"
   exit 2
 fi
@@ -257,7 +295,8 @@ git fetch origin "$DEFAULT_BRANCH" 2>/dev/null || {
 # get rebase info
 ######################################################################
 COMMITS_TO_REBASE=$(get_commits_to_rebase "origin/$DEFAULT_BRANCH")
-COMMIT_COUNT=$(echo "$COMMITS_TO_REBASE" | grep -c . || echo "0")
+# .note = grep -c prints its own 0 on no match (exit 1); `|| true` keeps that one 0
+COMMIT_COUNT=$(echo "$COMMITS_TO_REBASE" | grep -c . || true)
 BEHIND_COUNT=$(get_behind_count "origin/$DEFAULT_BRANCH")
 COMMITS_BEHIND=$(get_commits_behind "origin/$DEFAULT_BRANCH")
 

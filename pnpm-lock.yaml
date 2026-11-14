@@ -130,8 +130,8 @@ importers:
         specifier: 0.24.0
         version: 0.24.0(rhachet-brains-openrouter@0.1.4(rhachet@1.51.0(zod@4.3.4)))(rhachet-brains-xai@0.3.3(rhachet@1.51.0(zod@4.3.4)))(rhachet-roles-bhrain@0.42.4(@types/node@22.15.21)(rhachet-brains-openrouter@0.1.4(rhachet@1.51.0(zod@4.3.4)))(rhachet@1.51.0(zod@4.3.4))(with-simple-cache@0.16.2))(rhachet@1.51.0(zod@4.3.4))(with-simple-cache@0.16.2)
       rhachet-roles-ehmpathy:
-        specifier: 1.40.0
-        version: 1.40.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))
+        specifier: 1.42.0
+        version: 1.42.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))
       rhachet-roles-rhachet:
         specifier: 0.1.7
         version: 0.1.7(rhachet@1.51.0(zod@4.3.4))
@@ -1585,7 +1585,9 @@ packages:
   '@smithy/core@3.25.1':
     resolution: {integrity: sha512-zpDbpXBCBsxfLtG2GEUyfgvHvSFrw5CwDZSNzL0v52gx/c3oPlPbm+7W7num8xs6vyiUBn+bvYPHcQDOXZynCQ==}
     engines: {node: '>=18.0.0'}
-    deprecated: Deprecated due to a bug in custom logger data redaction. See https://github.com/aws/aws-sdk-js-v3/issues/8393.
+    deprecated: |-
+      Deprecated due to a bug in custom logger data redaction. Upgrade to the latest version. If you used a custom logger with this
+        version, review your logs and rotate any credentials or other secrets. See https://github.com/aws/aws-sdk-js-v3/issues/8393.
 
   '@smithy/fetch-http-handler@5.5.1':
     resolution: {integrity: sha512-96JrD1q71anokymx9Iblb+zKmNQYNstlV/25A9ZYIJ2A0rp1r7/GZAIm0bDWSmVvz3DpNOCZuabzsiL+w0UHhw==}
@@ -4111,8 +4113,8 @@ packages:
       rhachet-brains-xai: '>=0.3.3'
       rhachet-roles-bhrain: '>=0.39.0'
 
-  rhachet-roles-ehmpathy@1.40.0:
-    resolution: {integrity: sha512-HlhT1rQHKxA+oQlGi9O4hXgaFUrfAKy8RdMHnUBCmxRLFSuAJ4IGs3fDx6yzU7IWtUPaepR/fmUfdhWB5AbySw==}
+  rhachet-roles-ehmpathy@1.42.0:
+    resolution: {integrity: sha512-ywkHUNurFwSUSRijlyqSthoS8Zfy7x+1PRmzC1FCSFwK5YIUyThx2zWWG416iEmZSVLj6sGd6uoiJ6YCNHglAA==}
     engines: {node: '>=8.0.0'}
 
   rhachet-roles-rhachet@0.1.7:
@@ -7559,7 +7561,7 @@ snapshots:
       helpful-errors: 1.5.3
       joi: 17.4.0
       rhachet: 1.51.0(zod@4.3.4)
-      rhachet-roles-ehmpathy: 1.40.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))
+      rhachet-roles-ehmpathy: 1.42.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))
       type-fns: 1.21.0
       uuid-fns: 1.1.3
     transitivePeerDependencies:
@@ -9305,7 +9307,7 @@ snapshots:
     transitivePeerDependencies:
       - with-simple-cache
 
-  rhachet-roles-ehmpathy@1.40.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5)):
+  rhachet-roles-ehmpathy@1.42.0(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5)):
     dependencies:
       '@atjsh/llmlingua-2': 2.0.3(@huggingface/transformers@3.8.1)(@tensorflow/tfjs@4.22.0(seedrandom@3.0.5))(js-tiktoken@1.0.21)
       '@ehmpathy/as-command': 1.0.5
