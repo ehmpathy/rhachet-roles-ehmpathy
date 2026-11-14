@@ -150,7 +150,7 @@ if [[ -n "$ID" ]]; then
   [[ "$rc" == "3" ]] && fail_comment_absent "$PR" "no $KIND comment $ID on $COMMENT_REPO" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
   [[ "$rc" == "0" ]] || exit "$rc"
   is_comment_on_pr "$ONE" "$PR" || fail_comment_constraint "$KIND comment $ID is not on $COMMENT_REPO#$PR" "rhx git.pull.comment.get $(as_comment_cmd_target "$PR")   # lists the ids"
-  ROWS="$(as_comment_row "$KIND" "$ONE" | as_row_list)"
+  ROWS="$(as_comment_row kind="$KIND" json="$ONE" | as_row_list)"
 fi
 
 # read the pr itself, unless one comment was asked
@@ -165,28 +165,18 @@ fi
 # read the body alone
 if [[ "$KIND" == "body" ]]; then
   LABEL="$COMMENT_REPO#$PR, pr description"
-  ROWS="$(as_comment_row body "$PULL" | as_row_list)"
+  ROWS="$(as_comment_row kind=body json="$PULL" | as_row_list)"
 fi
 
 # read every row: the body, every issue comment, every review comment (open and resolved threads)
 if [[ -z "$ROWS" ]]; then
   ISSUE_ALL="$(get_all_gh_resources "repos/$COMMENT_REPO/issues/$PR/comments")" || exit $?
   REVIEW_ALL="$(get_all_gh_resources "repos/$COMMENT_REPO/pulls/$PR/comments")" || exit $?
-  ROWS="$(
-    {
-      as_comment_row body "$PULL"
-      echo
-      as_comment_rows_of_list issue "$ISSUE_ALL"
-      as_comment_rows_of_list review "$REVIEW_ALL"
-    } | as_comment_rows_sorted
-  )"
+  ROWS="$(as_comment_rows_of_pr pull="$PULL" issues="$ISSUE_ALL" reviews="$REVIEW_ALL")"
 fi
 
 # name the thread state of each review row: open or resolved
-if [[ "$(printf '%s' "$ROWS" | jq '[.[] | select(.kind == "review")] | length')" != "0" ]]; then
-  THREAD_STATES="$(get_all_review_thread_states "$PR")" || exit $?
-  ROWS="$(as_comment_rows_with_thread_state "$ROWS" "$THREAD_STATES")"
-fi
+ROWS="$(get_all_comment_rows_with_thread_state rows="$ROWS" pr="$PR")" || exit $?
 
 # narrow to a key, when asked
 if [[ -n "$KEY" ]]; then
@@ -218,8 +208,8 @@ fi
 
 # narrow to the rows that wait on an answer, when asked
 if [[ "$UNANSWERED" == "true" ]]; then
-  LABEL="$COMMENT_REPO#$PR, unanswered by $COMMENT_LOGIN"
-  ROWS="$(as_rows_unanswered "$ROWS")"
+  LABEL="$COMMENT_REPO#$PR, comments that await a reply from $COMMENT_LOGIN or the pr author"
+  ROWS="$(as_comment_rows_unanswered "$ROWS")"
 fi
 
 # emit json

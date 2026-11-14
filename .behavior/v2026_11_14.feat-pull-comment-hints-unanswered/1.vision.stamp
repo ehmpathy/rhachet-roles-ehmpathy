@@ -20,9 +20,9 @@
    │  │       └─ taken: .behavior/v2026_11_14.feat-pull-comment-hints-unanswered/.reviews/peer/1.vision._.review.i003.f1cf8eac4d317abc5f.r002._.taken.by_self.experience-coverage.md
    │  └─ judges
    │      ├─ j1: $rhachet run --repo bhrain --skill route.stone.judge --mechanism reviewed? --stone $stone --route $route --allow-blockers 0 --allow-nitpicks 7
-   │      │   └─ finished 2.1s ✓
+   │      │   └─ finished 1.7s ✓
    │      └─ j2: $rhachet run --repo bhrain --skill route.stone.judge --mechanism approved? --stone $stone --route $route
-   │          └─ finished 1.5s ✓
+   │          └─ finished 1.7s ✓
    │
    └─ the way continues, run
       └─ rhx route.drive

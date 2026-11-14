@@ -87,14 +87,16 @@ if (argv[1] === 'graphql' && state.fail && state.failMethod === 'GRAPHQL') { pro
 // a failure on the review-thread read alone: the write holds, the hint read breaks
 if (argv[1] === 'graphql' && argv.some((a) => a.includes('reviewThreads')) && state.failThreads) { process.stderr.write(state.failThreads + '\n'); process.exit(1); }
 // review threads: one thread per root review comment; a root in state.resolved reads resolved
+// state.threadCommentCap mirrors github's comments(first: N) cap: later comments go unnamed
 if (argv[1] === 'graphql' && argv.some((a) => a.includes('reviewThreads'))) {
   const prArg = argv.find((a) => a.startsWith('pr='));
   const pr = Number(prArg ? prArg.slice(3) : 0);
   const reviews = state.comments.filter((c) => c.kind === 'review' && c.pr === pr);
   const roots = reviews.filter((c) => !c.in_reply_to_id);
+  const cap = state.threadCommentCap || Infinity;
   const nodes = roots.map((root) => ({
     isResolved: (state.resolved || []).includes(root.id),
-    comments: { nodes: reviews.filter((c) => c.id === root.id || c.in_reply_to_id === root.id).map((c) => ({ databaseId: c.id })) },
+    comments: { nodes: reviews.filter((c) => c.id === root.id || c.in_reply_to_id === root.id).slice(0, cap).map((c) => ({ databaseId: c.id })) },
   }));
   out({ data: { repository: { pullRequest: { reviewThreads: { pageInfo: { hasNextPage: false, endCursor: null }, nodes } } } } });
 }
@@ -163,9 +165,10 @@ const one = (kind, id) => {
   }
 };
 // github answers 404 for the comments of a pr that does not exist
+// state.listHides mirrors a list that lags a write: those ids read back by id, yet no list holds them
 const listOf = (kind, pr) => {
   if (!state.prs[pr]) notFound();
-  return state.comments.filter((c) => c.kind === kind && c.pr === Number(pr)).map(view);
+  return state.comments.filter((c) => c.kind === kind && c.pr === Number(pr) && !(state.listHides || []).includes(c.id)).map(view);
 };
 if (rest[0] === 'issues' && rest[1] === 'comments') one('issue', rest[2]);
 if (rest[0] === 'pulls' && rest[1] === 'comments') one('review', rest[2]);
@@ -239,6 +242,8 @@ exit 2
     failMethod: 'POST' | 'PATCH' | 'DELETE' | 'GRAPHQL' | null;
     failThreads: string | null;
     resolved: number[];
+    threadCommentCap: number | null;
+    listHides: number[];
     prs: Record<
       string,
       {
@@ -343,6 +348,8 @@ exit 2
       failMethod: null,
       failThreads: null,
       resolved: [],
+      threadCommentCap: null,
+      listHides: [],
       prs: {
         '7': {
           title: 'feat(lessons): book a surf lesson',
@@ -3798,9 +3805,11 @@ exit 2
       const result = useThen('it runs', async () =>
         scene.run('get', ['--which', '7', '--unanswered']),
       );
-      then('the tree names the target as unanswered', () => {
+      then('the tree names both answerers: the login and the pr author', () => {
         expect(result.exitCode).toBe(0);
-        expect(result.stdout).toContain('unanswered by ehm-seaturtle');
+        expect(result.stdout).toContain(
+          'comments that await a reply from ehm-seaturtle or the pr author',
+        );
         expect(result.stdout).toMatchSnapshot();
       });
     });
@@ -3977,6 +3986,9 @@ exit 2
         expect(result.stdout).toContain('already there — no-op');
         expect(asHintIds(result.stdout)).toEqual([903, 906, 909]);
       });
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
+      });
     });
     when('[t2] the same set runs as a plan', () => {
       const result = useThen('it runs', async () =>
@@ -4055,12 +4067,66 @@ exit 2
     });
   });
 
+  given('[case25] the hint commands carry the auth the set ran under', () => {
+    const scene = genScene({
+      ...SCENE_BARE,
+      token: null,
+      store: { prs: { '7': { ...PR_7_BY_AUTHOR_OTHER } }, clock: 40 },
+      comments: [
+        // a peer asks; neither the gh login nor the pr author has answered
+        genComment({
+          id: 951,
+          kind: 'review',
+          author: LOGIN_PEER,
+          body: 'why cap the swell at 12ft?',
+          path: 'src/swell.ts',
+          line: 7,
+          created_at: at(1),
+        }),
+      ],
+    });
+    when('[t0] set --auth as-human --mode apply', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('set', [
+          '--pr',
+          '7',
+          '--key',
+          'status',
+          '--from',
+          scene.writeFile('status.md', 'paddle out at dawn'),
+          '--auth',
+          'as-human',
+          '--mode',
+          'apply',
+        ]),
+      );
+      then(
+        'the hint command names --auth as-human, so a paste answers as the same login',
+        () => {
+          expect(result.exitCode).toBe(0);
+          expect(asHintIds(result.stdout)).toEqual([951]);
+          expect(result.stdout).toContain(
+            '1 comment on ehmpathy/surf-demo#7 still awaits a reply',
+          );
+          expect(result.stdout).toContain(
+            'rhx git.pull.comment.set --pr 7 --in ehmpathy/surf-demo --auth as-human --reply-to 951 --key answer-951 --from <file>',
+          );
+        },
+      );
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+  });
+
   given('[case23] the rule edges: who answers, and what is closed', () => {
     const scene = genScene({
       ...SCENE_BARE,
       store: {
         prs: { '7': { ...PR_7_BY_AUTHOR_OTHER } },
-        resolved: [705],
+        resolved: [705, 715],
+        // github names at most N comments per thread; I's re-ask sits past the cap
+        threadCommentCap: 2,
         clock: 40,
       },
       comments: [
@@ -4178,6 +4244,29 @@ exit 2
           body: 'release note',
           created_at: at(14),
         }),
+        // I: resolved, yet its last comment sits past github's per-thread cap,
+        // so graphql names no state for it; the thread still awaits naught
+        genComment({
+          id: 715,
+          kind: 'review',
+          author: LOGIN_HUMAN,
+          body: 'trim the wax?',
+          created_at: at(15),
+        }),
+        genComment({
+          id: 716,
+          kind: 'review',
+          in_reply_to_id: 715,
+          created_at: at(16),
+        }),
+        genComment({
+          id: 717,
+          kind: 'review',
+          in_reply_to_id: 715,
+          author: LOGIN_HUMAN,
+          body: 'and the fins?',
+          created_at: at(17),
+        }),
       ],
     });
     when('[t0] set --key status --mode apply', () => {
@@ -4207,6 +4296,9 @@ exit 2
         expect(result.stdout).toContain(
           'review 708 by surfer-kai, review thread: "which case?"',
         );
+      });
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
       });
     });
     when('[t1] get --unanswered --output json', () => {
@@ -4272,9 +4364,13 @@ exit 2
         );
         expect(result.stderr).toContain(warns[0]);
       });
+      then('the warn names the class, so a reader knows who must act', () => {
+        const warn = result.stdout.split('\n').find((l) => l.startsWith('⚠️'));
+        expect(warn).toMatch(/\((ConstraintError|MalfunctionError): /);
+      });
       then('no refusal block leaks, on either stream', () => {
-        expect(result.stdout + result.stderr).not.toContain('MalfunctionError');
-        expect(result.stdout + result.stderr).not.toContain('ConstraintError');
+        const lines = (result.stdout + '\n' + result.stderr).split('\n');
+        expect(lines.filter((l) => /^(✋|💥) /.test(l))).toEqual([]);
       });
       then('the output is snapped', () => {
         expect(result.stdout).toMatchSnapshot();
@@ -4294,11 +4390,16 @@ exit 2
       );
       then('still exit 0, still one warn line, no refusal block', () => {
         expect(result.exitCode).toBe(0);
-        expect(
-          result.stdout.split('\n').filter((l) => l.startsWith('⚠️')),
-        ).toHaveLength(1);
-        expect(result.stdout + result.stderr).not.toContain('ConstraintError');
-        expect(result.stdout + result.stderr).not.toContain('MalfunctionError');
+        const warns = result.stdout
+          .split('\n')
+          .filter((l) => l.startsWith('⚠️'));
+        expect(warns).toHaveLength(1);
+        expect(warns[0]).toMatch(/\((ConstraintError|MalfunctionError): /);
+        const lines = (result.stdout + '\n' + result.stderr).split('\n');
+        expect(lines.filter((l) => /^(✋|💥) /.test(l))).toEqual([]);
+      });
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
       });
     });
     when('[t2] the read fails under --output json', () => {
@@ -4318,11 +4419,20 @@ exit 2
         const json = JSON.parse(result.stdout);
         expect(json.verdict).toBe('posted, read back, hash matches');
       });
-      then('the warn line is on stderr only', () => {
-        expect(result.stdout).not.toContain('⚠️');
-        expect(result.stderr).toContain(
-          '⚠️  could not read the comments that await a reply',
-        );
+      then(
+        'the json form carries no hint and no warn, on either stream',
+        () => {
+          expect(result.stdout + result.stderr).not.toContain('⚠️');
+          expect(result.stdout + result.stderr).not.toContain('a reply');
+        },
+      );
+      then('the json form makes no hint read at all', () => {
+        // the graphql thread read would fail here; json never reaches it
+        expect(
+          scene
+            .getCalls()
+            .filter((c) => c.argv.join(' ').includes('reviewThreads')),
+        ).toEqual([]);
       });
     });
     when('[t3] the read holds under --output json', () => {
@@ -4334,14 +4444,108 @@ exit 2
       const result = useThen('it runs', async () =>
         scene.run('set', argsApply(scene, ['--output', 'json'])),
       );
-      then('stdout holds the json alone; the hint goes to stderr', () => {
+      then('stdout holds the json alone; stderr holds no hint', () => {
         expect(result.exitCode).toBe(0);
         expect(JSON.parse(result.stdout).verdict).toBe(
           'posted, read back, hash matches',
         );
-        expect(result.stderr).toContain(
-          '1 comment on ehmpathy/surf-demo#7 still awaits a reply',
-        );
+        expect(result.stderr).not.toContain('a reply');
+      });
+    });
+  });
+
+  given('[case26] the list lags the write it just accepted', () => {
+    const scene = genScene({
+      ...SCENE_BARE,
+      // the first write gets id 5001; no list holds it, though it reads back by id
+      store: {
+        prs: { '7': { ...PR_7_BY_AUTHOR_OTHER } },
+        listHides: [5001],
+        clock: 40,
+      },
+      comments: [
+        genComment({
+          id: 961,
+          kind: 'review',
+          author: LOGIN_PEER,
+          body: 'why the dawn patrol?',
+          path: 'src/tide.ts',
+          line: 3,
+          created_at: at(1),
+        }),
+      ],
+    });
+    when('[t0] set --reply-to 961 answers the only open thread', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('set', [
+          '--pr',
+          '7',
+          '--reply-to',
+          '961',
+          '--key',
+          'answer-961',
+          '--from',
+          scene.writeFile('answer.md', 'the swell peaks at dawn'),
+          '--mode',
+          'apply',
+        ]),
+      );
+      then(
+        'the hint reads naught: the written reply counts though no list holds it',
+        () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('posted, read back, hash matches');
+          expect(asHintIds(result.stdout)).toEqual([]);
+          expect(result.stdout).toContain(
+            'naught on ehmpathy/surf-demo#7 awaits a reply',
+          );
+        },
+      );
+    });
+  });
+
+  given('[case27] an edit answers while another thread still awaits', () => {
+    const scene = genScene({
+      ...SCENE_BARE,
+      store: { prs: { '7': { ...PR_7_BY_AUTHOR_OTHER } }, clock: 40 },
+      comments: [
+        genComment({
+          id: 971,
+          author: LOGIN_SELF,
+          body: asKeyedBody({ text: 'round one underway', key: 'status' }),
+          created_at: at(1),
+        }),
+        genComment({
+          id: 972,
+          kind: 'review',
+          author: LOGIN_PEER,
+          body: 'rinse the wetsuit?',
+          path: 'src/gear.ts',
+          line: 21,
+          created_at: at(2),
+        }),
+      ],
+    });
+    when('[t0] set --key status with a new body edits in place', () => {
+      const result = useThen('it runs', async () =>
+        scene.run('set', [
+          '--pr',
+          '7',
+          '--key',
+          'status',
+          '--from',
+          scene.writeFile('status.md', 'round two underway'),
+          '--mode',
+          'apply',
+        ]),
+      );
+      then('the set edits, and the hint names the open thread', () => {
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('edited, read back, hash matches');
+        expect(asHintIds(result.stdout)).toEqual([972]);
+      });
+      then('the output is snapped', () => {
+        expect(result.stdout).toMatchSnapshot();
       });
     });
   });

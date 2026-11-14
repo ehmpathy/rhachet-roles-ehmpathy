@@ -13,3 +13,5 @@
 | F9 | a comment by an app bot (`user.type == "Bot"`) never awaits | clean | best-guessed; vision approved | 82% |
 | F10 | review summary bodies (`pulls/{n}/reviews`) stay out; dream caught for #1171 | clean | ruled: stands (director, S1) | 70% |
 | F11 | any top-level post by an answerer clears every earlier top-level human comment (literal) | clean | ruled: stands (director, S1) | 65% |
+| F12 | the hint render: naught as a 🥥 leaf; a failed read on one ⚠️ line with class + retry command | clean | best-guessed; peer-disputed | 70% |
+| F13 | a failed hint read never fails the set: one classed warn line, exit 0 | clean | best-guessed per the wish; peer-disputed | 85% |
