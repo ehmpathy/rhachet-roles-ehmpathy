@@ -43,4 +43,6 @@ assert prose the port shifts.
 
 ## .verdict
 
-open.
+taken: A, approved by the foreman (2026-11-14). `set_meter_scope` with a `branch` scope is the only
+shape that fails closed for all three meters. the stray-env tests stay as clamps: `git.branch.uses`
+[case9] and `git.commit.set` export `METER_SLUG` and prove it cannot redirect the meter.

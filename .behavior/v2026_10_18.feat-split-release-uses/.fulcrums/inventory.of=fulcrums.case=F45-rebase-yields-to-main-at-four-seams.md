@@ -43,4 +43,7 @@ empty commit) renders as progress again, the defect the tip's guard closed. main
 
 ## .verdict
 
-open.
+taken: main at all four seams, approved by the foreman (2026-11-14). a rebase must not settle main's
+open F11 as a side effect, so the halted guard stays out. the soft spot is bounded: the in-progress
+render still prints the git output, so a rejected hook's text shows. the swallowed exit goes to the
+F11 owner as a dream: `.dream/v2026_11_14.fix.rebase-continue-swallows-git-exit.md`.
