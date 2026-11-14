@@ -255,7 +255,7 @@ const SCENES = [
     args: ['--mode', 'apply'],
     stdin: undefined,
     staged: false,
-    exitCode: 1,
+    exitCode: 2,
     ask: 'grant a quota',
     flags: '--push allow',
   },
@@ -266,7 +266,7 @@ const SCENES = [
     args: ['--mode', 'apply'],
     stdin: undefined,
     staged: false,
-    exitCode: 1,
+    exitCode: 2,
     ask: 'grant push',
     flags: '--push allow',
   },
@@ -278,7 +278,7 @@ const SCENES = [
     args: ['--mode', 'apply'],
     stdin: undefined,
     staged: false,
-    exitCode: 1,
+    exitCode: 2,
     ask: 'grant push',
     flags: '--push allow',
   },
@@ -289,7 +289,7 @@ const SCENES = [
     args: ['--mode', 'apply'],
     stdin: undefined,
     staged: false,
-    exitCode: 1,
+    exitCode: 2,
     ask: 'grant more',
     flags: '--push allow',
   },
@@ -358,7 +358,7 @@ const SCENES = [
     args: ['--mode', 'apply'],
     stdin: undefined,
     staged: false,
-    exitCode: 1,
+    exitCode: 2,
     ask: 'grant more',
     flags: '--push allow --stage allow',
   },
@@ -382,7 +382,7 @@ const SCENES = [
     args: [],
     stdin: undefined,
     staged: false,
-    exitCode: 1,
+    exitCode: 2,
     ask: 'grant push',
     flags: '--push allow',
   },
@@ -820,7 +820,7 @@ describe('git.commit.director.operations.sh, through every real quota refusal', 
 
       when('[t0] the driver meets the refusal', () => {
         then('it names one grant, with the push the rebase needs', () => {
-          expect(journey.refused.exitCode).toBe(1);
+          expect(journey.refused.exitCode).toBe(2);
           expect(journey.refused.stdout).toContain(
             asGrantLine({ flags: '--push allow' }),
           );
