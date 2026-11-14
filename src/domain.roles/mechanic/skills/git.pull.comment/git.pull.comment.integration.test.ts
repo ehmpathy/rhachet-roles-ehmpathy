@@ -410,8 +410,10 @@ exit 2
     };
     return {
       tempDir,
+      home,
       run,
       runPull,
+      runSkill,
       getStore,
       getCalls,
       getWrites,
@@ -445,7 +447,7 @@ exit 2
     when('[t0] set --key plans a new comment', () => {
       const result = useThen('it runs', async () =>
         scene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'status',
@@ -464,7 +466,7 @@ exit 2
     });
     when('[t1] del --key plans a delete', () => {
       const result = useThen('it runs', async () =>
-        scene.run('del', ['--pr', '7', '--key', 'old-status']),
+        scene.run('del', ['--which', '7', '--key', 'old-status']),
       );
       then('it exits 0 and says it would delete', () => {
         expect(result.exitCode).toBe(0);
@@ -479,7 +481,7 @@ exit 2
     when('[t2] set and del plan with --output json', () => {
       const result = useThen('they run', async () => ({
         set: scene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'status',
@@ -489,7 +491,7 @@ exit 2
           'json',
         ]),
         del: scene.run('del', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'old-status',
@@ -519,7 +521,7 @@ exit 2
       const scene = genScene(SCENE_BARE);
       const result = useThen('it runs', async () =>
         scene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'status',
@@ -544,7 +546,7 @@ exit 2
         scene.run(
           'set',
           [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
@@ -572,7 +574,7 @@ exit 2
           scene.run(
             'set',
             [
-              '--pr',
+              '--which',
               '7',
               '--key',
               'status',
@@ -594,6 +596,264 @@ exit 2
       },
     );
   });
+
+  given(
+    '[case2b] an enrolled clone notes each comment it posts in its pr-watch ledger',
+    () => {
+      const SERIAL = 'a1a1a1a1-0000-4000-8000-00000000000a';
+      // the ledger path comes from the watch skill's own operation, so the test reads where the daemon reads
+      const getLedger = (home: string): string[] => {
+        const file = spawnSync(
+          'bash',
+          [
+            '-c',
+            'source "$1" && get_watch_ledger_file "$2"',
+            '_',
+            path.join(
+              __dirname,
+              '../git.pull.watch/git.pull.watch.operations.sh',
+            ),
+            SERIAL,
+          ],
+          { encoding: 'utf-8', env: { ...process.env, HOME: home } },
+        ).stdout.trim();
+        return fs.existsSync(file)
+          ? fs
+              .readFileSync(file, 'utf-8')
+              .split('\n')
+              .filter((line) => line)
+          : [];
+      };
+      when('[t0] the clone posts a keyed comment', () => {
+        const scene = genScene(SCENE_BARE);
+        const result = useThen('it runs', async () =>
+          scene.run(
+            'set',
+            [
+              '--which',
+              '7',
+              '--key',
+              'status',
+              '--from',
+              '@stdin',
+              '--mode',
+              'apply',
+            ],
+            { stdin: 'waves are up', env: { RHACHET_CLONE_SERIAL: SERIAL } },
+          ),
+        );
+        then('the posted id lands in the ledger of this clone', () => {
+          expect(result.exitCode).toBe(0);
+          const posted = scene.getStore().comments[0]!;
+          expect(getLedger(scene.home)).toEqual([String(posted.id)]);
+        });
+      });
+      when('[t1] a session with no clone serial posts', () => {
+        const scene = genScene(SCENE_BARE);
+        const result = useThen('it runs', async () =>
+          scene.run(
+            'set',
+            [
+              '--which',
+              '7',
+              '--key',
+              'status',
+              '--from',
+              '@stdin',
+              '--mode',
+              'apply',
+            ],
+            { stdin: 'waves are up' },
+          ),
+        );
+        then('no ledger is written', () => {
+          expect(result.exitCode).toBe(0);
+          expect(getLedger(scene.home)).toEqual([]);
+        });
+      });
+      when('[t2] the ledger dir cannot be made', () => {
+        const scene = genScene(SCENE_BARE);
+        const result = useThen('it runs', async () => {
+          // a plain file where the ledger dir belongs: mkdir -p fails
+          const watchDir = path.join(
+            scene.home,
+            '.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch',
+          );
+          fs.mkdirSync(watchDir, { recursive: true });
+          fs.writeFileSync(path.join(watchDir, 'ledger'), 'not a dir');
+          return scene.run(
+            'set',
+            [
+              '--which',
+              '7',
+              '--key',
+              'status',
+              '--from',
+              '@stdin',
+              '--mode',
+              'apply',
+            ],
+            { stdin: 'waves are up', env: { RHACHET_CLONE_SERIAL: SERIAL } },
+          );
+        });
+        then('the comment still posts, exit 0', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('posted, read back, hash matches');
+        });
+        then(
+          'the ledger fault is named on both streams, with cause and fix',
+          () => {
+            [result.stdout, result.stderr].forEach((stream) => {
+              expect(stream).toContain('💥 MalfunctionError: comment ');
+              expect(stream).toContain(
+                'the pr-watch ledger could not record it',
+              );
+              expect(stream).toContain('└─ cause: ');
+              expect(stream).toContain('🥥 did you know?');
+              expect(stream).toContain('└─ to fix it');
+            });
+            const block = result.stderr
+              .slice(result.stderr.indexOf('💥 MalfunctionError: comment'))
+              .split(scene.home)
+              .join('$HOME')
+              .replace(/comment \d+ posted/, 'comment <id> posted')
+              .replace(
+                /cause: .*/,
+                'cause: <the mkdir error, worded per locale>',
+              );
+            expect(result.stderr).toContain('ledger');
+            expect(block).toMatchSnapshot();
+          },
+        );
+      });
+      when('[t3] the ledger dir cannot be made, under --output json', () => {
+        const scene = genScene(SCENE_BARE);
+        const result = useThen('it runs', async () => {
+          // a plain file where the ledger dir belongs: mkdir -p fails
+          const watchDir = path.join(
+            scene.home,
+            '.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch',
+          );
+          fs.mkdirSync(watchDir, { recursive: true });
+          fs.writeFileSync(path.join(watchDir, 'ledger'), 'not a dir');
+          return scene.run(
+            'set',
+            [
+              '--which',
+              '7',
+              '--key',
+              'status',
+              '--from',
+              '@stdin',
+              '--mode',
+              'apply',
+              '--output',
+              'json',
+            ],
+            { stdin: 'waves are up', env: { RHACHET_CLONE_SERIAL: SERIAL } },
+          );
+        });
+        then(
+          'stdout is one json result whose ledgerFault names the cause',
+          () => {
+            expect(result.exitCode).toBe(0);
+            const parsed = JSON.parse(result.stdout);
+            expect(parsed.verdict).toEqual('posted, read back, hash matches');
+            expect(parsed.ledgerFault).toMatch(/mkdir/);
+          },
+        );
+        then('stderr holds the human block, with cause and fix', () => {
+          expect(result.stderr).toContain('💥 MalfunctionError: comment ');
+          expect(result.stderr).toContain('🥥 did you know?');
+          const masked = result.stderr
+            .slice(result.stderr.indexOf('💥 MalfunctionError: comment'))
+            .split(scene.home)
+            .join('$HOME')
+            .replace(/comment \d+ posted/, 'comment <id> posted')
+            .replace(
+              /cause: .*/,
+              'cause: <the mkdir error, worded per locale>',
+            );
+          expect(masked).toMatchSnapshot();
+        });
+      });
+      when('[t4] the watch operations beside the skill will not load', () => {
+        const scene = genScene(SCENE_BARE);
+        const result = useThen('it runs', async () => {
+          // a copy of this skill, beside a watch operations file that will not parse
+          const skills = path.join(scene.tempDir, '.skills');
+          fs.mkdirSync(path.join(skills, 'git.pull.comment'), {
+            recursive: true,
+          });
+          fs.mkdirSync(path.join(skills, 'git.pull.watch'), {
+            recursive: true,
+          });
+          // this skill sources git.commit beside it, so that dir rides along whole
+          ['git.pull.comment', 'git.commit'].forEach((dir) => {
+            const from = path.join(__dirname, '..', dir);
+            fs.mkdirSync(path.join(skills, dir), { recursive: true });
+            fs.readdirSync(from)
+              .filter((name) => name.endsWith('.sh'))
+              .forEach((name) =>
+                fs.copyFileSync(
+                  path.join(from, name),
+                  path.join(skills, dir, name),
+                ),
+              );
+          });
+          fs.writeFileSync(
+            path.join(skills, 'git.pull.watch', 'git.pull.watch.operations.sh'),
+            // a load that fails as a sourced peer would: one line on stderr, a nonzero return
+            'echo "a peer the watch operations source is absent" >&2\nreturn 3\n',
+          );
+          return scene.runSkill(
+            path.join(skills, 'git.pull.comment', 'git.pull.comment.set.sh'),
+            [
+              '--which',
+              '7',
+              '--key',
+              'status',
+              '--from',
+              '@stdin',
+              '--mode',
+              'apply',
+              '--output',
+              'json',
+            ],
+            { stdin: 'waves are up', env: { RHACHET_CLONE_SERIAL: SERIAL } },
+          );
+        });
+        then('the comment still posts, and the fault names the cause', () => {
+          expect(result.exitCode).toBe(0);
+          const parsed = JSON.parse(result.stdout);
+          expect(parsed.verdict).toEqual('posted, read back, hash matches');
+          expect(parsed.ledgerFault).toContain('could not load');
+          expect(parsed.ledgerFault).toContain(
+            'a peer the watch operations source is absent',
+          );
+          expect(result.stderr).toContain('reinstall the mechanic role');
+        });
+        then('the load fault reads the same on each run', () => {
+          // the temp dir and the home differ per run; the words do not
+          const asMasked = (text: string): string =>
+            text
+              .split(scene.tempDir)
+              .join('<tmp>')
+              .split(scene.home)
+              .join('$HOME')
+              .replace(/comment \d+ posted/, 'comment <id> posted');
+          expect(
+            asMasked(JSON.parse(result.stdout).ledgerFault),
+          ).toMatchSnapshot();
+          // from the header on, as the t2 and t3 ledger-fault snaps are framed
+          const stderrBlock = result.stderr.slice(
+            result.stderr.indexOf('💥 MalfunctionError:'),
+          );
+          expect(asMasked(stderrBlock)).toMatchSnapshot();
+        });
+      });
+    },
+  );
 
   given('[case3] a reply posts to the thread replies endpoint', () => {
     const scene = genScene({
@@ -622,7 +882,7 @@ exit 2
     when('[t0] set --reply-to 203 --key answer --mode apply', () => {
       const result = useThen('it runs', async () =>
         scene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--reply-to',
           '203',
@@ -678,7 +938,7 @@ exit 2
       });
       const result = useThen('they run', async () => ({
         absent: elsewhere.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--reply-to',
           '999',
@@ -690,7 +950,7 @@ exit 2
           'apply',
         ]),
         otherPr: elsewhere.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--reply-to',
           '211',
@@ -726,7 +986,7 @@ exit 2
       const scene = genScene(SCENE_BARE);
       const apply = (text: string) =>
         scene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'status',
@@ -774,7 +1034,7 @@ exit 2
         const result = useThen('it runs', async () => {
           const before = scene.getWrites().length;
           const run = scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
@@ -821,7 +1081,7 @@ exit 2
     when('[t0] set --reply-to 302 --key answer --mode apply', () => {
       const result = useThen('it runs', async () =>
         scene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--reply-to',
           '302',
@@ -849,7 +1109,7 @@ exit 2
     when('[t1] del --reply-to 302 --key answer --mode apply', () => {
       const result = useThen('it runs', async () =>
         scene.run('del', [
-          '--pr',
+          '--which',
           '7',
           '--reply-to',
           '302',
@@ -875,7 +1135,7 @@ exit 2
       const result = useThen('it runs', async () => {
         const before = scene.getWrites().length;
         const run = scene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--reply-to',
           '303',
@@ -904,7 +1164,7 @@ exit 2
     when('[t3] get --key answer --reply-to 303, a reply', () => {
       const result = useThen('it runs', async () =>
         scene.run('get', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'answer',
@@ -937,7 +1197,7 @@ exit 2
     when('[t0] set --key status --mode apply as-ehmpath', () => {
       const result = useThen('it runs', async () =>
         scene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'status',
@@ -961,20 +1221,27 @@ exit 2
     });
     when('[t1] get --key status reads a key another author holds', () => {
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--key', 'status']),
+        scene.run('get', ['--which', '7', '--key', 'status']),
       );
       then('it exits 2 and names the holder, never "absent"', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(`held by ${LOGIN_HUMAN}`);
         expect(result.stdout).toContain(
-          'rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue',
+          'rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 401 --kind issue',
         );
         expect(result.stdout).toMatchSnapshot();
       });
     });
     when('[t2] del --key status --mode apply as-ehmpath', () => {
       const result = useThen('it runs', async () =>
-        scene.run('del', ['--pr', '7', '--key', 'status', '--mode', 'apply']),
+        scene.run('del', [
+          '--which',
+          '7',
+          '--key',
+          'status',
+          '--mode',
+          'apply',
+        ]),
       );
       then(
         'it exits 2, names the holder and the --auth fix, deletes naught',
@@ -982,7 +1249,7 @@ exit 2
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(`held by ${LOGIN_HUMAN}`);
           expect(result.stdout).toContain(
-            `rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if ${LOGIN_HUMAN} is that login: plan, then add --mode apply`,
+            `rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if ${LOGIN_HUMAN} is that login: plan, then add --mode apply`,
           );
           expect(scene.getWrites()).toEqual([]);
           expect(result.stdout).toMatchSnapshot();
@@ -992,7 +1259,7 @@ exit 2
     when('[t3] del --id 401 --kind issue --mode apply as-ehmpath', () => {
       const result = useThen('it runs', async () =>
         scene.run('del', [
-          '--pr',
+          '--which',
           '7',
           '--id',
           '401',
@@ -1008,7 +1275,7 @@ exit 2
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(`is by ${LOGIN_HUMAN}`);
           expect(result.stdout).toContain(
-            `rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if ${LOGIN_HUMAN} is that login: plan, then add --mode apply; else only ${LOGIN_HUMAN} can delete it`,
+            `rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if ${LOGIN_HUMAN} is that login: plan, then add --mode apply; else only ${LOGIN_HUMAN} can delete it`,
           );
           expect(scene.getWrites()).toEqual([]);
           expect(scene.getStore().comments.map((c) => c.id)).toEqual([401]);
@@ -1035,7 +1302,7 @@ exit 2
     when('[t0] set --key status --mode apply', () => {
       const result = useThen('it runs', async () =>
         scene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'status',
@@ -1050,7 +1317,7 @@ exit 2
         expect(result.stdout).toContain('501');
         expect(result.stdout).toContain('502');
         expect(result.stdout).toContain(
-          'rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue',
+          'rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 502 --kind issue',
         );
         expect(scene.getWrites()).toEqual([]);
         expect(result.stdout).toMatchSnapshot();
@@ -1058,13 +1325,20 @@ exit 2
     });
     when('[t1] del --key status --mode apply', () => {
       const result = useThen('it runs', async () =>
-        scene.run('del', ['--pr', '7', '--key', 'status', '--mode', 'apply']),
+        scene.run('del', [
+          '--which',
+          '7',
+          '--key',
+          'status',
+          '--mode',
+          'apply',
+        ]),
       );
       then('it exits 2, names both ids, deletes neither', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain('501');
         expect(result.stdout).toContain(
-          'rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply',
+          'rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply',
         );
         expect(scene.getWrites()).toEqual([]);
         expect(scene.getStore().comments.map((c) => c.id)).toEqual([501, 502]);
@@ -1073,13 +1347,13 @@ exit 2
     });
     when('[t2] get --key status', () => {
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--key', 'status']),
+        scene.run('get', ['--which', '7', '--key', 'status']),
       );
       then('it exits 2 and names both ids, as set and del do', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain("key 'status' matches 2 comments");
         expect(result.stdout).toContain(
-          'rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply',
+          'rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply',
         );
         expect(result.stdout).toMatchSnapshot();
       });
@@ -1096,9 +1370,9 @@ exit 2
         ],
       });
       const result = useThen('get and set run', async () => ({
-        get: sceneQuote.run('get', ['--pr', '7', '--key', 'tide']),
+        get: sceneQuote.run('get', ['--which', '7', '--key', 'tide']),
         set: sceneQuote.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'tide',
@@ -1140,7 +1414,7 @@ exit 2
           }),
         ],
       });
-      const thread = ['--pr', '7', '--key', 'answer', '--reply-to', '521'];
+      const thread = ['--which', '7', '--key', 'answer', '--reply-to', '521'];
       const result = useThen('get, set, and del run', async () => ({
         get: sceneThread.run('get', thread),
         set: sceneThread.run('set', [
@@ -1160,7 +1434,7 @@ exit 2
             expect(one.exitCode).toBe(2);
             expect(one.stdout).toContain("key 'answer' matches 2 comments");
             expect(one.stdout).toContain(
-              'rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply',
+              'rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply',
             );
           });
           expect(result.writes).toBe(0);
@@ -1181,7 +1455,7 @@ exit 2
       when('[t0] set --from with no target', () => {
         const result = useThen('it runs', async () =>
           scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--from',
             scene.writeFile('status.md', 'unkeyed'),
@@ -1199,7 +1473,7 @@ exit 2
       when('[t1] --from names a file that is absent', () => {
         const result = useThen('it runs', async () =>
           scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
@@ -1219,7 +1493,7 @@ exit 2
         const result = useThen('it runs', async () =>
           scene.run(
             'set',
-            ['--pr', '7', '--key', 'status', '--from', '@stdin'],
+            ['--which', '7', '--key', 'status', '--from', '@stdin'],
             {
               stdin: '\r\n\n',
             },
@@ -1252,7 +1526,7 @@ exit 2
       when('[t0] del an id that is absent', () => {
         const result = useThen('it runs', async () =>
           scene.run('del', [
-            '--pr',
+            '--which',
             '7',
             '--id',
             '999',
@@ -1272,7 +1546,7 @@ exit 2
       when('[t1] del an id that is present', () => {
         const result = useThen('it runs', async () =>
           scene.run('del', [
-            '--pr',
+            '--which',
             '7',
             '--id',
             '601',
@@ -1302,7 +1576,7 @@ exit 2
         });
         const result = useThen('it runs', async () =>
           held.run('del', [
-            '--pr',
+            '--which',
             '7',
             '--id',
             '602',
@@ -1322,7 +1596,7 @@ exit 2
       when('[t3] del an id on a pr the credential cannot see', () => {
         const result = useThen('it runs', async () =>
           scene.run('del', [
-            '--pr',
+            '--which',
             '9',
             '--id',
             '999',
@@ -1348,7 +1622,7 @@ exit 2
         const result = useThen('it runs', async () => {
           const before = scene.getWrites().length;
           const run = scene.run('del', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'absent-key',
@@ -1368,7 +1642,7 @@ exit 2
         const result = useThen('they run', async () => ({
           writesBefore: scene.getWrites().length,
           set: scene.run('set', [
-            '--pr',
+            '--which',
             '9',
             '--key',
             'status',
@@ -1378,7 +1652,7 @@ exit 2
             'apply',
           ]),
           del: scene.run('del', [
-            '--pr',
+            '--which',
             '9',
             '--key',
             'status',
@@ -1409,9 +1683,9 @@ exit 2
         () => {
           const result = useThen('they run', async () => ({
             writesBefore: scene.getWrites().length,
-            get: scene.run('get', ['--pr', '9']),
+            get: scene.run('get', ['--which', '9']),
             setKey: scene.run('set', [
-              '--pr',
+              '--which',
               '9',
               '--key',
               'status',
@@ -1444,7 +1718,14 @@ exit 2
               ...SCENE_BARE,
               comments: [genComment({ id: 1301, body: 'still here' })],
             });
-            const swapped = ['--pr', '7', '--id', '1301', '--kind', 'review'];
+            const swapped = [
+              '--which',
+              '7',
+              '--id',
+              '1301',
+              '--kind',
+              'review',
+            ];
             return {
               delSwap: sceneSwap.run('del', [...swapped, '--mode', 'apply']),
               getSwap: sceneSwap.run('get', swapped),
@@ -1456,7 +1737,7 @@ exit 2
                 'apply',
               ]),
               delThread: sceneSwap.run('del', [
-                '--pr',
+                '--which',
                 '7',
                 '--key',
                 'status',
@@ -1466,7 +1747,7 @@ exit 2
                 'apply',
               ]),
               getThread: sceneSwap.run('get', [
-                '--pr',
+                '--which',
                 '7',
                 '--key',
                 'status',
@@ -1524,7 +1805,7 @@ exit 2
     when('[t0] github stores a different body than the one posted', () => {
       const result = useThen('it runs', async () =>
         scene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'status',
@@ -1551,16 +1832,16 @@ exit 2
       const scene = genScene(SCENE_BARE);
       when('[t0] get, set, del each get --id with no --kind', () => {
         const result = useThen('they run', async () => ({
-          get: scene.run('get', ['--pr', '7', '--id', '101']),
+          get: scene.run('get', ['--which', '7', '--id', '101']),
           set: scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--id',
             '101',
             '--from',
             scene.writeFile('a.md', 'a'),
           ]),
-          del: scene.run('del', ['--pr', '7', '--id', '101']),
+          del: scene.run('del', ['--which', '7', '--id', '101']),
         }));
         then(
           'each exits 2, says the kind is never guessed, calls no gh',
@@ -1594,7 +1875,7 @@ exit 2
               );
               expect(one.stdout).toContain('\noptions:\n');
               expect(one.stdout).toContain('--auth as-ehmpath|as-human');
-              expect(one.stdout).toContain('--pr <n>');
+              expect(one.stdout).toContain('--which <n>');
               expect(one.stdout).toContain('--help, -h');
             });
             expect(scene.getCalls()).toEqual([]);
@@ -1609,20 +1890,20 @@ exit 2
       when('[t2] each check meets a bad input', () => {
         const bare = genScene({ ...SCENE_BARE, origin: null });
         const result = useThen('they run', async () => ({
-          pr: scene.run('get', ['--pr', 'seven']),
-          key: scene.run('del', ['--pr', '7', '--key', 'Round 2']),
+          pr: scene.run('get', ['--which', 'seven']),
+          key: scene.run('del', ['--which', '7', '--key', 'Round 2']),
           mode: scene.run('del', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
             '--mode',
             'go',
           ]),
-          output: scene.run('get', ['--pr', '7', '--output', 'yaml']),
-          auth: scene.run('get', ['--pr', '7', '--auth', 'as-robot']),
+          output: scene.run('get', ['--which', '7', '--output', 'yaml']),
+          auth: scene.run('get', ['--which', '7', '--auth', 'as-robot']),
           idAndKey: scene.run('del', [
-            '--pr',
+            '--which',
             '7',
             '--id',
             '101',
@@ -1631,7 +1912,7 @@ exit 2
             '--key',
             'status',
           ]),
-          noRepo: bare.run('get', ['--pr', '7']),
+          noRepo: bare.run('get', ['--which', '7']),
         }));
         then(
           'each exits 2 with a ConstraintError and a fix; calls no gh',
@@ -1655,9 +1936,9 @@ exit 2
       when('[t3] each verb meets a flag set it cannot use', () => {
         const body = scene.writeFile('b.md', 'b');
         const result = useThen('they run', async () => ({
-          getUnknownArg: scene.run('get', ['--pr', '7', '--wave']),
+          getUnknownArg: scene.run('get', ['--which', '7', '--wave']),
           getIdAndKey: scene.run('get', [
-            '--pr',
+            '--which',
             '7',
             '--id',
             '1',
@@ -1666,18 +1947,18 @@ exit 2
             '--key',
             'status',
           ]),
-          getReplyNoKey: scene.run('get', ['--pr', '7', '--reply-to', '5']),
+          getReplyNoKey: scene.run('get', ['--which', '7', '--reply-to', '5']),
           getReplyNotNumber: scene.run('get', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'answer',
             '--reply-to',
             'x',
           ]),
-          getKindNoId: scene.run('get', ['--pr', '7', '--kind', 'issue']),
+          getKindNoId: scene.run('get', ['--which', '7', '--kind', 'issue']),
           getBodyWithKey: scene.run('get', [
-            '--pr',
+            '--which',
             '7',
             '--kind',
             'body',
@@ -1685,17 +1966,17 @@ exit 2
             'status',
           ]),
           getIdNotNumber: scene.run('get', [
-            '--pr',
+            '--which',
             '7',
             '--id',
             'abc',
             '--kind',
             'issue',
           ]),
-          setUnknownArg: scene.run('set', ['--pr', '7', '--wave']),
-          setNoFrom: scene.run('set', ['--pr', '7', '--key', 'status']),
+          setUnknownArg: scene.run('set', ['--which', '7', '--wave']),
+          setNoFrom: scene.run('set', ['--which', '7', '--key', 'status']),
           setKindNoId: scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--kind',
             'issue',
@@ -1703,7 +1984,7 @@ exit 2
             body,
           ]),
           setBodyWithKey: scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--kind',
             'body',
@@ -1713,7 +1994,7 @@ exit 2
             body,
           ]),
           setIdWithKey: scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--id',
             '1',
@@ -1725,7 +2006,7 @@ exit 2
             body,
           ]),
           setKeyWithKind: scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
@@ -1735,7 +2016,7 @@ exit 2
             body,
           ]),
           setReplyNotNumber: scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'answer',
@@ -1744,9 +2025,9 @@ exit 2
             '--from',
             body,
           ]),
-          delUnknownArg: scene.run('del', ['--pr', '7', '--wave']),
+          delUnknownArg: scene.run('del', ['--which', '7', '--wave']),
           delIdWithReply: scene.run('del', [
-            '--pr',
+            '--which',
             '7',
             '--id',
             '1',
@@ -1755,10 +2036,10 @@ exit 2
             '--reply-to',
             '5',
           ]),
-          delKindNoId: scene.run('del', ['--pr', '7', '--kind', 'issue']),
-          delNoTarget: scene.run('del', ['--pr', '7']),
+          delKindNoId: scene.run('del', ['--which', '7', '--kind', 'issue']),
+          delNoTarget: scene.run('del', ['--which', '7']),
           delReplyNotNumber: scene.run('del', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'answer',
@@ -1786,9 +2067,9 @@ exit 2
       });
       when('[t4] a refusal under --output json', () => {
         const result = useThen('they run', async () => ({
-          pr: scene.run('get', ['--pr', 'seven', '--output', 'json']),
+          pr: scene.run('get', ['--which', 'seven', '--output', 'json']),
           key: scene.run('del', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'Round 2',
@@ -1818,14 +2099,14 @@ exit 2
       });
       when('[t5] a --flag at the end of the line, with no value', () => {
         const result = useThen('they run', async () => ({
-          get: scene.run('get', ['--pr']),
-          set: scene.run('set', ['--pr', '7', '--key', 'status', '--from']),
-          del: scene.run('del', ['--pr', '7', '--key', 'status', '--mode']),
+          get: scene.run('get', ['--which']),
+          set: scene.run('set', ['--which', '7', '--key', 'status', '--from']),
+          del: scene.run('del', ['--which', '7', '--key', 'status', '--mode']),
         }));
         then(
           'each exits 2, names the flag, and calls no gh; never a silent exit 1',
           () => {
-            expect(result.get.stdout).toContain('--pr needs a value');
+            expect(result.get.stdout).toContain('--which needs a value');
             expect(result.set.stdout).toContain('--from needs a value');
             expect(result.del.stdout).toContain('--mode needs a value');
             [result.get, result.set, result.del].forEach((one) => {
@@ -1845,17 +2126,17 @@ exit 2
         '[t6] a --flag followed by a --flag, and the --flag=value form',
         () => {
           const result = useThen('they run', async () => ({
-            swallowed: scene.run('get', ['--pr', '--kind', 'body']),
+            swallowed: scene.run('get', ['--which', '--kind', 'body']),
             unknownLast: scene.run('set', [
-              '--pr',
+              '--which',
               '7',
               '--key',
               'status',
               '--apply',
             ]),
-            getEquals: scene.run('get', ['--pr=7', '--kind=body']),
+            getEquals: scene.run('get', ['--which=7', '--kind=body']),
             setEquals: scene.run('set', [
-              '--pr=7',
+              '--which=7',
               '--key=status',
               `--from=${scene.writeFile('status.md', 'surf is up')}`,
               '--mode=plan',
@@ -1863,7 +2144,7 @@ exit 2
           }));
           then('a --flag never swallows the next --flag as its value', () => {
             expect(result.swallowed.exitCode).toBe(2);
-            expect(result.swallowed.stdout).toContain('--pr needs a value');
+            expect(result.swallowed.stdout).toContain('--which needs a value');
             expect(result.swallowed.stdout).toMatchSnapshot();
           });
           then(
@@ -1900,7 +2181,7 @@ exit 2
       });
       const result = useThen('it runs', async () =>
         scene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--id',
           '701',
@@ -1924,7 +2205,7 @@ exit 2
     when('[t1] --in names an owner outside the home orgs', () => {
       const scene = genScene(SCENE_BARE);
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--in', 'seaturtlecorp/reef']),
+        scene.run('get', ['--which', '7', '--in', 'seaturtlecorp/reef']),
       );
       then(
         'it exits 2, names each home org on its own line, calls no gh',
@@ -1951,7 +2232,7 @@ exit 2
         origin: 'https://github.com/seaturtlecorp/reef.git',
       });
       const result = useThen('it runs', async () =>
-        scene.run('del', ['--pr', '7', '--key', 'status']),
+        scene.run('del', ['--which', '7', '--key', 'status']),
       );
       then('it exits 2 and calls no gh', () => {
         expect(result.exitCode).toBe(2);
@@ -1963,7 +2244,7 @@ exit 2
     when('[t3] --in names a home org in other case', () => {
       const scene = genScene(SCENE_BARE);
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--in', 'Ehmpathy/surf-demo']),
+        scene.run('get', ['--which', '7', '--in', 'Ehmpathy/surf-demo']),
       );
       then(
         'the fence lets it through, since github owners are case-blind',
@@ -1989,7 +2270,7 @@ exit 2
       });
       const setById = (input: { id: string; text: string }) =>
         scene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--id',
           input.id,
@@ -2063,7 +2344,7 @@ exit 2
   });
 
   given(
-    '[case13] get --pr reads the body, the issue rows, and the review rows',
+    '[case13] get --which reads the body, the issue rows, and the review rows',
     () => {
       const scene = genScene({
         ...SCENE_BARE,
@@ -2101,9 +2382,9 @@ exit 2
           }),
         ],
       });
-      when('[t0] get --pr 7', () => {
+      when('[t0] get --which 7', () => {
         const result = useThen('it runs', async () =>
-          scene.run('get', ['--pr', '7']),
+          scene.run('get', ['--which', '7']),
         );
         then('it shows all six rows, every page', () => {
           expect(result.exitCode).toBe(0);
@@ -2115,9 +2396,9 @@ exit 2
           expect(result.stdout).toMatchSnapshot();
         });
       });
-      when('[t1] get --pr 7 --output json', () => {
+      when('[t1] get --which 7 --output json', () => {
         const result = useThen('it runs', async () =>
-          scene.run('get', ['--pr', '7', '--output', 'json']),
+          scene.run('get', ['--which', '7', '--output', 'json']),
         );
         then('the rows sort body first, then by created time', () => {
           expect(result.exitCode).toBe(0);
@@ -2136,10 +2417,10 @@ exit 2
           expect(rows).toMatchSnapshot();
         });
       });
-      when('[t2] get --pr 7 --key status', () => {
+      when('[t2] get --which 7 --key status', () => {
         const result = useThen('it runs', async () =>
           scene.run('get', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
@@ -2155,9 +2436,9 @@ exit 2
           expect(rows).toMatchSnapshot();
         });
       });
-      when('[t3] get --pr 7 --id 805 --kind review', () => {
+      when('[t3] get --which 7 --id 805 --kind review', () => {
         const result = useThen('it runs', async () =>
-          scene.run('get', ['--pr', '7', '--id', '805', '--kind', 'review']),
+          scene.run('get', ['--which', '7', '--id', '805', '--kind', 'review']),
         );
         then('it shows the one row, with its thread', () => {
           expect(result.exitCode).toBe(0);
@@ -2169,32 +2450,35 @@ exit 2
           expect(result.stdout).toMatchSnapshot();
         });
       });
-      when('[t4] get --pr 7 --id 999 --kind issue, an absent id', () => {
+      when('[t4] get --which 7 --id 999 --kind issue, an absent id', () => {
         const result = useThen('it runs', async () =>
-          scene.run('get', ['--pr', '7', '--id', '999', '--kind', 'issue']),
+          scene.run('get', ['--which', '7', '--id', '999', '--kind', 'issue']),
         );
         then('it exits 2 and names the list command', () => {
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(`no issue comment 999 on ${REPO}`);
-          expect(result.stdout).toContain('rhx git.pull.comment.get --pr 7');
+          expect(result.stdout).toContain('rhx git.pull.comment.get --which 7');
           expect(result.stdout).toMatchSnapshot();
         });
       });
-      when('[t5] get --pr 7 --key absent-key, a key no comment carries', () => {
-        const result = useThen('it runs', async () =>
-          scene.run('get', ['--pr', '7', '--key', 'absent-key']),
-        );
-        then('it exits 2 and names the list command, with the repo', () => {
-          expect(result.exitCode).toBe(2);
-          expect(result.stdout).toContain(
-            `no comment carries key 'absent-key' on ${REPO}#7`,
+      when(
+        '[t5] get --which 7 --key absent-key, a key no comment carries',
+        () => {
+          const result = useThen('it runs', async () =>
+            scene.run('get', ['--which', '7', '--key', 'absent-key']),
           );
-          expect(result.stdout).toContain(
-            `rhx git.pull.comment.get --pr 7 --in ${REPO}   # lists every row`,
-          );
-          expect(result.stdout).toMatchSnapshot();
-        });
-      });
+          then('it exits 2 and names the list command, with the repo', () => {
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain(
+              `no comment carries key 'absent-key' on ${REPO}#7`,
+            );
+            expect(result.stdout).toContain(
+              `rhx git.pull.comment.get --which 7 --in ${REPO}   # lists every row`,
+            );
+            expect(result.stdout).toMatchSnapshot();
+          });
+        },
+      );
       when(
         '[t7] get --in --auth as-human for an absent key, from the cwd of another repo',
         () => {
@@ -2205,7 +2489,7 @@ exit 2
           });
           const result = useThen('it runs', async () =>
             elsewhere.run('get', [
-              '--pr',
+              '--which',
               '7',
               '--in',
               REPO,
@@ -2220,7 +2504,7 @@ exit 2
             () => {
               expect(result.exitCode).toBe(2);
               expect(result.stdout).toContain(
-                `rhx git.pull.comment.get --pr 7 --in ${REPO} --auth as-human   # lists every row`,
+                `rhx git.pull.comment.get --which 7 --in ${REPO} --auth as-human   # lists every row`,
               );
               expect(result.stdout).toMatchSnapshot();
             },
@@ -2259,7 +2543,7 @@ exit 2
         });
         const result = useThen('it runs', async () =>
           threads.run('get', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'answer',
@@ -2288,7 +2572,7 @@ exit 2
       const scene = genScene(SCENE_BARE);
       when('[t2] comment del --kind body', () => {
         const result = useThen('it runs', async () =>
-          scene.run('del', ['--pr', '7', '--kind', 'body']),
+          scene.run('del', ['--which', '7', '--kind', 'body']),
         );
         then(
           'it exits 2: github offers no delete; the fix names git.pull.description set',
@@ -2308,7 +2592,7 @@ exit 2
         const result = useThen('it runs', async () => {
           const before = scene.getWrites().length;
           const run = scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--kind',
             'body',
@@ -2334,10 +2618,14 @@ exit 2
       });
       when('[t7] the verbs run as `git.pull.comment <verb>`', () => {
         const result = useThen('they run', async () => ({
-          commentGet: scene.runPull('git.pull.comment', ['get', '--pr', '8']),
-          commentGetDotted: scene.run('get', ['--pr', '8']),
+          commentGet: scene.runPull('git.pull.comment', [
+            'get',
+            '--which',
+            '8',
+          ]),
+          commentGetDotted: scene.run('get', ['--which', '8']),
           bare: scene.runPull('git.pull.comment', []),
-          unknown: scene.runPull('git.pull.comment', ['put', '--pr', '7']),
+          unknown: scene.runPull('git.pull.comment', ['put', '--which', '7']),
           help: scene.runPull('git.pull.comment', ['--help']),
           verbHelp: scene.runPull('git.pull.comment', ['del', '--help']),
         }));
@@ -2389,7 +2677,7 @@ exit 2
       });
       const del = (id: number, kind: 'issue' | 'review') =>
         scene.run('del', [
-          '--pr',
+          '--which',
           '7',
           '--id',
           String(id),
@@ -2474,10 +2762,10 @@ exit 2
           genComment({ id: 1904, author: LOGIN_HUMAN, body: 'top-level ask' }),
         ],
       });
-      when('[t0] get --pr 7, tree and json', () => {
+      when('[t0] get --which 7, tree and json', () => {
         const result = useThen('they run', async () => ({
-          tree: scene.run('get', ['--pr', '7']),
-          json: scene.run('get', ['--pr', '7', '--output', 'json']),
+          tree: scene.run('get', ['--which', '7']),
+          json: scene.run('get', ['--which', '7', '--output', 'json']),
         }));
         then('each review row names its thread: resolved or open', () => {
           expect(result.json.exitCode).toBe(0);
@@ -2508,7 +2796,7 @@ exit 2
     when('[t0] as-ehmpath with no token reachable', () => {
       const scene = genScene({ ...SCENE_BARE, token: null });
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7']),
+        scene.run('get', ['--which', '7']),
       );
       then('it exits 2, names both fixes, calls no gh', () => {
         expect(result.exitCode).toBe(2);
@@ -2524,7 +2812,7 @@ exit 2
     when('[t1] as-ehmpath with the token', () => {
       const scene = genScene(SCENE_BARE);
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--kind', 'body']),
+        scene.run('get', ['--which', '7', '--kind', 'body']),
       );
       then('gh runs with GH_TOKEN set to the keyrack token', () => {
         expect(result.exitCode).toBe(0);
@@ -2542,7 +2830,7 @@ exit 2
       const result = useThen('it runs', async () =>
         scene.run(
           'get',
-          ['--pr', '7', '--kind', 'body', '--auth', 'as-human'],
+          ['--which', '7', '--kind', 'body', '--auth', 'as-human'],
           { env: { GH_TOKEN: 'stray', GITHUB_TOKEN: 'stray' } },
         ),
       );
@@ -2566,7 +2854,7 @@ exit 2
     when('[t3] github fails the call: 401, 403, a rate limit, a 5xx', () => {
       const runWithFail = (fail: string, extra: string[]) =>
         genScene({ ...SCENE_BARE, store: { fail } }).run('get', [
-          '--pr',
+          '--which',
           '7',
           '--kind',
           'body',
@@ -2654,7 +2942,7 @@ exit 2
           });
           const setSame = (scene: ReturnType<typeof genScene>) => {
             const run = scene.run('set', [
-              '--pr',
+              '--which',
               '7',
               '--key',
               'status',
@@ -2690,7 +2978,7 @@ exit 2
     when('[t5] as-ehmpath with a token in the env, none in keyrack', () => {
       const scene = genScene({ ...SCENE_BARE, token: null });
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--kind', 'body'], {
+        scene.run('get', ['--which', '7', '--kind', 'body'], {
           env: { EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'env-token' },
         }),
       );
@@ -2711,7 +2999,7 @@ exit 2
             ...SCENE_BARE,
             token: null,
             store: { fail: 'gh: Bad credentials (HTTP 401)' },
-          }).run('get', ['--pr', '7', '--kind', 'body'], {
+          }).run('get', ['--which', '7', '--kind', 'body'], {
             env: { EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'stale-token' },
           });
           expect(refused.exitCode).toBe(2);
@@ -2738,7 +3026,7 @@ exit 2
           },
         });
         const post = postScene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'status',
@@ -2753,7 +3041,7 @@ exit 2
           store: { fail: 'gh: Not Found (HTTP 404)', failMethod: 'PATCH' },
         });
         const patch = patchScene.run('set', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'status',
@@ -2768,7 +3056,7 @@ exit 2
           store: { fail: 'gh: Not Found (HTTP 404)', failMethod: 'DELETE' },
         });
         const del = delScene.run('del', [
-          '--pr',
+          '--which',
           '7',
           '--id',
           '1201',
@@ -2810,7 +3098,7 @@ exit 2
         const from = scene.writeFile('huge.md', '🌊'.repeat(65600));
         const run = (mode: string) =>
           scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
@@ -2855,7 +3143,7 @@ exit 2
             comments: [root],
           });
           const reply = [
-            '--pr',
+            '--which',
             '7',
             '--reply-to',
             '531',
@@ -2886,7 +3174,7 @@ exit 2
             ],
           });
           const mirror = sceneMirror.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
@@ -2913,7 +3201,7 @@ exit 2
             ],
           });
           const threadForeign = sceneThread.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--reply-to',
             '531',
@@ -2933,7 +3221,7 @@ exit 2
               fail: 'To get started with GitHub CLI, please run:  gh auth login',
               failMethod: 'GRAPHQL',
             },
-          }).run('get', ['--pr', '7', '--auth', 'as-human']);
+          }).run('get', ['--which', '7', '--auth', 'as-human']);
 
           return {
             posted,
@@ -3020,7 +3308,7 @@ exit 2
         const scene = genScene(SCENE_BARE);
         const result = useThen('they run', async () => {
           const set = scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
@@ -3032,7 +3320,7 @@ exit 2
             'json',
           ]);
           const del = scene.run('del', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
@@ -3042,7 +3330,7 @@ exit 2
             'json',
           ]);
           const again = scene.run('del', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
@@ -3103,9 +3391,9 @@ exit 2
         ],
       });
       const result = useThen('they run', async () => ({
-        key: scene.run('get', ['--pr', '7', '--key', 'status']),
+        key: scene.run('get', ['--which', '7', '--key', 'status']),
         reply: scene.run('get', [
-          '--pr',
+          '--which',
           '7',
           '--key',
           'answer',
@@ -3144,7 +3432,7 @@ exit 2
         },
       });
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '9']),
+        scene.run('get', ['--which', '9']),
       );
       then(
         'it counts the description alone, and marks its text (empty)',
@@ -3161,7 +3449,7 @@ exit 2
     when('[t3] the graphql viewer answers with no login', () => {
       const scene = genScene({ ...SCENE_BARE, store: { loginSelf: '' } });
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7']),
+        scene.run('get', ['--which', '7']),
       );
       then('it fails as a malfunction, exit 1, before any rest call', () => {
         expect(result.exitCode).toBe(1);
@@ -3214,7 +3502,7 @@ exit 2
         });
         const result = useThen('it runs', async () =>
           scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--reply-to',
             '171',
@@ -3252,7 +3540,7 @@ exit 2
           });
           const result = useThen('it runs', async () =>
             scene.run('set', [
-              '--pr',
+              '--which',
               '7',
               '--id',
               '173',
@@ -3279,7 +3567,7 @@ exit 2
         const scene = genScene({ ...SCENE_BARE, store: { noId: true } });
         const result = useThen('it runs', async () =>
           scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
@@ -3304,7 +3592,7 @@ exit 2
         const scene = genScene({ ...SCENE_BARE, store: { dropWrite: true } });
         const result = useThen('it runs', async () =>
           scene.run('set', [
-            '--pr',
+            '--which',
             '7',
             '--key',
             'status',
@@ -3327,7 +3615,7 @@ exit 2
     },
   );
 
-  given('[case20] --pr defaults to the open pull of the cwd branch', () => {
+  given('[case20] --which defaults to the open pull of the cwd branch', () => {
     /**
      * .what = a scene whose cwd sits on a named branch
      */
@@ -3341,7 +3629,7 @@ exit 2
       });
       return scene;
     };
-    when('[t0] the branch has one open pull, and --pr is absent', () => {
+    when('[t0] the branch has one open pull, and --which is absent', () => {
       const scene = genSceneOnBranch({ branch: 'surf/book-lesson' });
       const result = useThen('it runs', async () =>
         scene.run('get', ['--output', 'json']),
@@ -3364,7 +3652,7 @@ exit 2
         ).toBe(true);
       });
     });
-    when('[t1] the branch has no open pull, and --pr is absent', () => {
+    when('[t1] the branch has no open pull, and --which is absent', () => {
       const scene = genSceneOnBranch({ branch: 'surf/no-pull' });
       const result = useThen('it runs', async () =>
         scene.run('set', [
@@ -3393,7 +3681,7 @@ exit 2
       then('it exits 2: the cwd branch is no pull of that repo', () => {
         expect(result.exitCode).toBe(2);
         expect(result.stdout).toContain(
-          '--pr is required with --in ehmpathy/other-reef',
+          '--which is required with --in ehmpathy/other-reef',
         );
         expect(result.stdout).toMatchSnapshot();
       });
@@ -3472,7 +3760,7 @@ exit 2
     });
     when('[t0] get --unanswered runs', () => {
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--unanswered', '--output', 'json']),
+        scene.run('get', ['--which', '7', '--unanswered', '--output', 'json']),
       );
       then('it lists the open threads and the newer human issue row', () => {
         expect(result.exitCode).toBe(0);
@@ -3482,7 +3770,7 @@ exit 2
     });
     when('[t1] get --unanswered runs as a tree', () => {
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--unanswered']),
+        scene.run('get', ['--which', '7', '--unanswered']),
       );
       then('the tree names the target as unanswered', () => {
         expect(result.exitCode).toBe(0);
@@ -3492,7 +3780,7 @@ exit 2
     });
     when('[t2] get --unanswered with --key', () => {
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--unanswered', '--key', 'status']),
+        scene.run('get', ['--which', '7', '--unanswered', '--key', 'status']),
       );
       then('it exits 2', () => {
         expect(result.exitCode).toBe(2);

@@ -148,7 +148,7 @@ describe('git.pull.description', () => {
           expect(result.get.stdout).toContain(
             '2. rhx git.pull.description set --from ./.temp/body.md   # plan; add --mode apply to write',
           );
-          expect(result.get.stdout).not.toContain('--pr 7');
+          expect(result.get.stdout).not.toContain('--which 7');
           expect(result.get.stdout).not.toContain('--output text >');
           expect(result.get.stdout).toMatchSnapshot();
         },
@@ -280,25 +280,25 @@ describe('git.pull.description', () => {
         scene.run(skill('git.pull.description.get'), []),
       );
       then(
-        'it exits 2 and names git.commit.push, then --pr, as the fix',
+        'it exits 2 and names git.commit.push, then --which, as the fix',
         () => {
           expect(result.exitCode).toBe(2);
           expect(result.stdout).toContain(
             "branch 'surf/no-pull-here' has no open pull",
           );
           expect(result.stdout).toContain('rhx git.commit.push --mode apply');
-          expect(result.stdout).toContain('--pr <n>');
+          expect(result.stdout).toContain('--which <n>');
           expect(result.stdout).toMatchSnapshot();
         },
       );
     });
-    when('[t1] --pr names a pull that does not exist', () => {
+    when('[t1] --which names a pull that does not exist', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('both verbs run', async () => ({
-        get: scene.run(skill('git.pull.description.get'), ['--pr', '9999']),
+        get: scene.run(skill('git.pull.description.get'), ['--which', '9999']),
         set: scene.run(
           skill('git.pull.description.set'),
-          ['--pr', '9999', '--from', '@stdin', '--mode', 'apply'],
+          ['--which', '9999', '--from', '@stdin', '--mode', 'apply'],
           { stdin: 'a body' },
         ),
       }));
@@ -312,7 +312,7 @@ describe('git.pull.description', () => {
           'pull request ehmpathy/surf-demo#9999 is absent',
         );
         expect(result.set.stdout).toContain(
-          'drop --pr to address the pull of this branch',
+          'drop --which to address the pull of this branch',
         );
         expect(scene.getWrites()).toHaveLength(0);
         expect(result.get.stdout).toMatchSnapshot();
@@ -393,12 +393,12 @@ describe('git.pull.description', () => {
   });
 
   given('[case6] a peer pull, by number', () => {
-    when('[t0] set --pr 8 applies', () => {
+    when('[t0] set --which 8 applies', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('it runs', async () =>
         scene.run(
           skill('git.pull.description.set'),
-          ['--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          ['--which', '8', '--from', '@stdin', '--mode', 'apply'],
           { stdin: `wave report sync, nightly\n\n${HARNESS_CLAUDE_LINE}` },
         ),
       );
@@ -417,10 +417,10 @@ describe('git.pull.description', () => {
     when('[t1] get and a plan, by number', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('both run', async () => ({
-        get: scene.run(skill('git.pull.description.get'), ['--pr', '8']),
+        get: scene.run(skill('git.pull.description.get'), ['--which', '8']),
         plan: scene.run(
           skill('git.pull.description.set'),
-          ['--pr', '8', '--from', '@stdin'],
+          ['--which', '8', '--from', '@stdin'],
           { stdin: 'wave report sync, nightly' },
         ),
       }));
@@ -430,13 +430,16 @@ describe('git.pull.description', () => {
         expect(result.get.stdout).toContain('wave report sync');
         expect(result.get.stdout).toMatchSnapshot();
       });
-      then('the plan targets pull #8, writes naught, and hints --pr 8', () => {
-        expect(result.plan.exitCode).toBe(0);
-        expect(result.plan.stdout).toContain('target: ehmpathy/surf-demo#8');
-        expect(result.plan.stdout).toContain('--pr 8');
-        expect(scene.getWrites()).toHaveLength(0);
-        expect(result.plan.stdout).toMatchSnapshot();
-      });
+      then(
+        'the plan targets pull #8, writes naught, and hints --which 8',
+        () => {
+          expect(result.plan.exitCode).toBe(0);
+          expect(result.plan.stdout).toContain('target: ehmpathy/surf-demo#8');
+          expect(result.plan.stdout).toContain('--which 8');
+          expect(scene.getWrites()).toHaveLength(0);
+          expect(result.plan.stdout).toMatchSnapshot();
+        },
+      );
     });
     when('[t2] get reads a pull whose body is empty', () => {
       const scene = genGitPullScene({
@@ -474,7 +477,7 @@ describe('git.pull.description', () => {
       const result = useThen('it runs', async () =>
         scene.run(
           skill('git.pull.description.set'),
-          ['--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          ['--which', '8', '--from', '@stdin', '--mode', 'apply'],
           { stdin: 'tide chart for the reef' },
         ),
       );
@@ -493,7 +496,7 @@ describe('git.pull.description', () => {
         const result = useThen('it runs', async () =>
           scene.run(
             skill('git.pull.description.set'),
-            ['--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+            ['--which', '8', '--from', '@stdin', '--mode', 'apply'],
             {
               stdin: [
                 'tide chart for the reef',
@@ -711,7 +714,7 @@ describe('git.pull.description', () => {
       const result = useThen('it runs', async () =>
         scene.run(
           skill('git.pull.description.set'),
-          ['--pr', '8', '--from', '@stdin'],
+          ['--which', '8', '--from', '@stdin'],
           { stdin: 'wave report sync, with the tide table' },
         ),
       );
@@ -741,7 +744,7 @@ describe('git.pull.description', () => {
       const result = useThen('it runs', async () =>
         scene.run(
           skill('git.pull.description.set'),
-          ['--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          ['--which', '8', '--from', '@stdin', '--mode', 'apply'],
           { stdin: 'wave report sync, with the tide table' },
         ),
       );
@@ -777,15 +780,15 @@ describe('git.pull.description', () => {
         },
       });
       const result = useThen('get, plan, and apply run', async () => ({
-        get: scene.run(skill('git.pull.description.get'), ['--pr', '8']),
+        get: scene.run(skill('git.pull.description.get'), ['--which', '8']),
         plan: scene.run(
           skill('git.pull.description.set'),
-          ['--pr', '8', '--from', '@stdin'],
+          ['--which', '8', '--from', '@stdin'],
           { stdin: 'my words now' },
         ),
         apply: scene.run(
           skill('git.pull.description.set'),
-          ['--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          ['--which', '8', '--from', '@stdin', '--mode', 'apply'],
           { stdin: 'my words now' },
         ),
       }));
@@ -802,7 +805,7 @@ describe('git.pull.description', () => {
           `ehmpathy/surf-demo#8 was opened by ${PULL_SCENE_LOGIN_FOREIGN}`,
         );
         expect(result.apply.stdout).toContain(
-          'cat ./.temp/body.md | rhx git.pull.description.set --pr 8 --from @stdin --mode plan --auth as-human',
+          'cat ./.temp/body.md | rhx git.pull.description.set --which 8 --from @stdin --mode plan --auth as-human',
         );
         expect(scene.getWrites()).toHaveLength(0);
         expect(scene.getStore().prs['8']!.body).toBe('wave report sync');
@@ -821,7 +824,7 @@ describe('git.pull.description', () => {
         const result = useThen('it runs', async () =>
           scene.run(
             skill('git.pull.description.set'),
-            ['--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+            ['--which', '8', '--from', '@stdin', '--mode', 'apply'],
             {
               stdin: `## .what\n\n${prose}\n\na Co-authored-by: trailer leaks an email`,
             },
@@ -847,7 +850,7 @@ describe('git.pull.description', () => {
         const result = useThen('it runs', async () =>
           scene.run(
             skill('git.pull.description.set'),
-            ['--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+            ['--which', '8', '--from', '@stdin', '--mode', 'apply'],
             { stdin: `tide chart\n\n${fence}\n\n${HARNESS_CLAUDE_LINE}` },
           ),
         );
@@ -867,7 +870,7 @@ describe('git.pull.description', () => {
         const result = useThen('it runs', async () =>
           scene.run(
             skill('git.pull.description.set'),
-            ['--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+            ['--which', '8', '--from', '@stdin', '--mode', 'apply'],
             {
               stdin: `tide chart for the reef\n\n---\n\n${HARNESS_CLAUDE_LINE}`,
             },
@@ -893,7 +896,7 @@ describe('git.pull.description', () => {
       const result = useThen('it runs', async () =>
         scene.run(
           skill('git.pull.description.set'),
-          ['--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          ['--which', '8', '--from', '@stdin', '--mode', 'apply'],
           { stdin: BODY_AT_CAP },
         ),
       );
@@ -912,7 +915,7 @@ describe('git.pull.description', () => {
       const result = useThen('it runs', async () =>
         scene.run(
           skill('git.pull.description.set'),
-          ['--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          ['--which', '8', '--from', '@stdin', '--mode', 'apply'],
           { stdin: `${BODY_AT_CAP}a` },
         ),
       );
@@ -936,7 +939,7 @@ describe('git.pull.description', () => {
       );
       const result = useThen('it runs', async () =>
         scene.run(skill('git.pull.description.set'), [
-          '--pr',
+          '--which',
           '8',
           '--from',
           bodyPath,
@@ -973,7 +976,7 @@ describe('git.pull.description', () => {
   });
 
   given('[case16] a closed pull, by number', () => {
-    when('[t0] set --pr 8 applies to a closed pull', () => {
+    when('[t0] set --which 8 applies to a closed pull', () => {
       const scene = genGitPullScene({
         ...PULL_SCENE_BARE,
         store: {
@@ -990,7 +993,7 @@ describe('git.pull.description', () => {
       const result = useThen('it runs', async () =>
         scene.run(
           skill('git.pull.description.set'),
-          ['--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          ['--which', '8', '--from', '@stdin', '--mode', 'apply'],
           { stdin: 'wave report sync, archived' },
         ),
       );
@@ -1064,7 +1067,7 @@ describe('git.pull.description', () => {
         scene.run(
           skill('git.pull.description.set'),
           [
-            '--pr',
+            '--which',
             '8',
             '--from',
             '@stdin',
@@ -1172,20 +1175,20 @@ describe('git.pull.description', () => {
   });
 
   given('[case21] the get hint keeps the target as the caller named it', () => {
-    when('[t0] get --pr 8 --into a file', () => {
+    when('[t0] get --which 8 --into a file', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('it runs', async () =>
         scene.run(skill('git.pull.description.get'), [
-          '--pr',
+          '--which',
           '8',
           '--into',
           './.temp/body.md',
         ]),
       );
-      then('the set step names --pr 8, as typed', () => {
+      then('the set step names --which 8, as typed', () => {
         expect(result.exitCode).toBe(0);
         expect(result.stdout).toContain(
-          '2. rhx git.pull.description set --pr 8 --from ./.temp/body.md   # plan; add --mode apply to write',
+          '2. rhx git.pull.description set --which 8 --from ./.temp/body.md   # plan; add --mode apply to write',
         );
         expect(result.stdout).toMatchSnapshot();
       });

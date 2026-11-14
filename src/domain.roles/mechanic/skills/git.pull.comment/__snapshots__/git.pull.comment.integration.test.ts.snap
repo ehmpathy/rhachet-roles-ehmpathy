@@ -15,7 +15,7 @@ exports[`git.pull.comment given: [case1] plan is the default, on set and on del 
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ rhx git.pull.comment.set --pr 7 --key status --from ./status.md --mode apply
+      └─ rhx git.pull.comment.set --which 7 --key status --from ./status.md --mode apply
 "
 `;
 
@@ -35,7 +35,7 @@ exports[`git.pull.comment given: [case1] plan is the default, on set and on del 
 
 🥥 did you know?
    └─ plan deletes naught; to delete it
-      └─ rhx git.pull.comment.del --pr 7 --key old-status --mode apply
+      └─ rhx git.pull.comment.del --which 7 --key old-status --mode apply
 "
 `;
 
@@ -51,6 +51,7 @@ exports[`git.pull.comment given: [case1] plan is the default, on set and on del 
   "set": {
     "endpoint": "repos/ehmpathy/surf-demo/issues/7/comments",
     "id": null,
+    "ledgerFault": null,
     "method": "POST",
     "mode": "plan",
     "sha256": {
@@ -119,6 +120,38 @@ exports[`git.pull.comment given: [case2] apply posts the exact body when: [t2] t
 "
 `;
 
+exports[`git.pull.comment given: [case2b] an enrolled clone notes each comment it posts in its pr-watch ledger when: [t2] the ledger dir cannot be made then: the ledger fault is named on both streams, with cause and fix 1`] = `
+"💥 MalfunctionError: comment <id> posted, but the pr-watch ledger could not record it; your watch may alert you of it once
+   └─ cause: <the mkdir error, worded per locale>
+
+🥥 did you know?
+   └─ to fix it
+      └─ clear the cause above (no write access, or a file where the ledger dir belongs); the next set then records its id
+"
+`;
+
+exports[`git.pull.comment given: [case2b] an enrolled clone notes each comment it posts in its pr-watch ledger when: [t3] the ledger dir cannot be made, under --output json then: stderr holds the human block, with cause and fix 1`] = `
+"💥 MalfunctionError: comment <id> posted, but the pr-watch ledger could not record it; your watch may alert you of it once
+   └─ cause: <the mkdir error, worded per locale>
+
+🥥 did you know?
+   └─ to fix it
+      └─ clear the cause above (no write access, or a file where the ledger dir belongs); the next set then records its id
+"
+`;
+
+exports[`git.pull.comment given: [case2b] an enrolled clone notes each comment it posts in its pr-watch ledger when: [t4] the watch operations beside the skill will not load then: the load fault reads the same on each run 1`] = `"could not load <tmp>/.skills/git.pull.comment/../git.pull.watch/git.pull.watch.operations.sh: a peer the watch operations source is absent"`;
+
+exports[`git.pull.comment given: [case2b] an enrolled clone notes each comment it posts in its pr-watch ledger when: [t4] the watch operations beside the skill will not load then: the load fault reads the same on each run 2`] = `
+"💥 MalfunctionError: comment <id> posted, but the pr-watch ledger could not record it; your watch may alert you of it once
+   └─ cause: could not load <tmp>/.skills/git.pull.comment/../git.pull.watch/git.pull.watch.operations.sh: a peer the watch operations source is absent
+
+🥥 did you know?
+   └─ to fix it
+      └─ reinstall the mechanic role, so git.pull.watch sits beside git.pull.comment
+"
+`;
+
 exports[`git.pull.comment given: [case3] a reply posts to the thread replies endpoint when: [t0] set --reply-to 203 --key answer --mode apply then: it POSTs to pulls/7/comments/203/replies 1`] = `
 "🐢 heres the wave...
 
@@ -143,13 +176,13 @@ exports[`git.pull.comment given: [case3] a reply posts to the thread replies end
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+      └─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo   # lists the ids
 ",
   "otherPr": "✋ ConstraintError: review comment 211 is not on ehmpathy/surf-demo#7
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+      └─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo   # lists the ids
 ",
 }
 `;
@@ -237,7 +270,7 @@ exports[`git.pull.comment given: [case4] a key upserts: absent → POST, differs
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ rhx git.pull.comment.set --pr 7 --key status --from ./status.md --mode apply
+      └─ rhx git.pull.comment.set --which 7 --key status --from ./status.md --mode apply
 "
 `;
 
@@ -324,7 +357,7 @@ exports[`git.pull.comment given: [case6] a key held by another author refuses wh
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rerun with --auth as-human   # if surfer-kai is that login
-      ├─ rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if surfer-kai is that login: plan, then add --mode apply, then rerun
+      ├─ rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if surfer-kai is that login: plan, then add --mode apply, then rerun
       └─ pick another --key
 "
 `;
@@ -335,7 +368,7 @@ exports[`git.pull.comment given: [case6] a key held by another author refuses wh
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue
+      └─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 401 --kind issue
 "
 `;
 
@@ -345,7 +378,7 @@ exports[`git.pull.comment given: [case6] a key held by another author refuses wh
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if surfer-kai is that login: plan, then add --mode apply
+      ├─ rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if surfer-kai is that login: plan, then add --mode apply
       └─ pick another --key
 "
 `;
@@ -355,7 +388,7 @@ exports[`git.pull.comment given: [case6] a key held by another author refuses wh
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if surfer-kai is that login: plan, then add --mode apply; else only surfer-kai can delete it
+      └─ rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 401 --kind issue --auth as-human   # if surfer-kai is that login: plan, then add --mode apply; else only surfer-kai can delete it
 "
 `;
 
@@ -366,9 +399,9 @@ exports[`git.pull.comment given: [case7] two own matches on one key refuse when:
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 501 --kind issue   # read it first
-      ├─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue   # read it first
-      └─ rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply   # the newest goes: the oldest is the one a reader already linked to
+      ├─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 501 --kind issue   # read it first
+      ├─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 502 --kind issue   # read it first
+      └─ rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply   # the newest goes: the oldest is the one a reader already linked to
 "
 `;
 
@@ -379,9 +412,9 @@ exports[`git.pull.comment given: [case7] two own matches on one key refuse when:
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 501 --kind issue   # read it first
-      ├─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue   # read it first
-      └─ rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply   # the newest goes: the oldest is the one a reader already linked to
+      ├─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 501 --kind issue   # read it first
+      ├─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 502 --kind issue   # read it first
+      └─ rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply   # the newest goes: the oldest is the one a reader already linked to
 "
 `;
 
@@ -392,9 +425,9 @@ exports[`git.pull.comment given: [case7] two own matches on one key refuse when:
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 501 --kind issue   # read it first
-      ├─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue   # read it first
-      └─ rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply   # the newest goes: the oldest is the one a reader already linked to
+      ├─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 501 --kind issue   # read it first
+      ├─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 502 --kind issue   # read it first
+      └─ rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 502 --kind issue --mode apply   # the newest goes: the oldest is the one a reader already linked to
 "
 `;
 
@@ -404,7 +437,7 @@ exports[`git.pull.comment given: [case7] two own matches on one key refuse when:
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo   # lists every row and its key
+      └─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo   # lists every row and its key
 ",
   "set": "🐢 heres the wave...
 
@@ -420,7 +453,7 @@ exports[`git.pull.comment given: [case7] two own matches on one key refuse when:
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ rhx git.pull.comment.set --pr 7 --key tide --from ./tide.md --mode apply
+      └─ rhx git.pull.comment.set --which 7 --key tide --from ./tide.md --mode apply
 ",
 }
 `;
@@ -433,9 +466,9 @@ exports[`git.pull.comment given: [case7] two own matches on one key refuse when:
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 522 --kind review   # read it first
-      ├─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 523 --kind review   # read it first
-      └─ rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply   # the newest goes: the oldest is the one a reader already linked to
+      ├─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 522 --kind review   # read it first
+      ├─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 523 --kind review   # read it first
+      └─ rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply   # the newest goes: the oldest is the one a reader already linked to
 ",
   "get": "✋ ConstraintError: key 'answer' matches 2 comments by ehm-seaturtle on ehmpathy/surf-demo#7
    ├─ review comment 522 by ehm-seaturtle, created 2026-10-24T<time>
@@ -443,9 +476,9 @@ exports[`git.pull.comment given: [case7] two own matches on one key refuse when:
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 522 --kind review   # read it first
-      ├─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 523 --kind review   # read it first
-      └─ rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply   # the newest goes: the oldest is the one a reader already linked to
+      ├─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 522 --kind review   # read it first
+      ├─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 523 --kind review   # read it first
+      └─ rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply   # the newest goes: the oldest is the one a reader already linked to
 ",
   "set": "✋ ConstraintError: key 'answer' matches 2 comments by ehm-seaturtle on ehmpathy/surf-demo#7
    ├─ review comment 522 by ehm-seaturtle, created 2026-10-24T<time>
@@ -453,9 +486,9 @@ exports[`git.pull.comment given: [case7] two own matches on one key refuse when:
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 522 --kind review   # read it first
-      ├─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 523 --kind review   # read it first
-      └─ rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply   # the newest goes: the oldest is the one a reader already linked to
+      ├─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 522 --kind review   # read it first
+      ├─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 523 --kind review   # read it first
+      └─ rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 523 --kind review --mode apply   # the newest goes: the oldest is the one a reader already linked to
 ",
 }
 `;
@@ -465,9 +498,9 @@ exports[`git.pull.comment given: [case8] set refuses before any gh call: no targ
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.comment.set --pr 7 --key <slug> --from <file>   # a keyed comment
-      ├─ rhx git.pull.comment.set --pr 7 --reply-to <id> --key <slug> --from <file>   # a reply in a review thread
-      └─ rhx git.pull.comment.set --pr 7 --id <id> --kind issue|review --from <file>   # edit one known comment
+      ├─ rhx git.pull.comment.set --which 7 --key <slug> --from <file>   # a keyed comment
+      ├─ rhx git.pull.comment.set --which 7 --reply-to <id> --key <slug> --from <file>   # a reply in a review thread
+      └─ rhx git.pull.comment.set --which 7 --id <id> --kind issue|review --from <file>   # edit one known comment
 "
 `;
 
@@ -486,7 +519,7 @@ exports[`git.pull.comment given: [case8] set refuses before any gh call: no targ
 
 🥥 did you know?
    └─ to fix it
-      └─ cat ./.temp/reply.md | rhx git.pull.comment.set --pr 7 --key status --from @stdin --mode plan   # pipe a body that is not empty
+      └─ cat ./.temp/reply.md | rhx git.pull.comment.set --which 7 --key status --from @stdin --mode plan   # pipe a body that is not empty
 "
 `;
 
@@ -532,8 +565,8 @@ exports[`git.pull.comment given: [case9] del converges: absent is a no-op, prese
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ check --pr and --in
-      ├─ drop --pr to address the pull of this branch
+      ├─ check --which and --in
+      ├─ drop --which to address the pull of this branch
       └─ rerun with --auth as-human
 "
 `;
@@ -554,16 +587,16 @@ exports[`git.pull.comment given: [case9] del converges: absent is a no-op, prese
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ check --pr and --in
-      ├─ drop --pr to address the pull of this branch
+      ├─ check --which and --in
+      ├─ drop --which to address the pull of this branch
       └─ rerun with --auth as-human
 ",
   "set": "✋ ConstraintError: pull request ehmpathy/surf-demo#9 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ check --pr and --in
-      ├─ drop --pr to address the pull of this branch
+      ├─ check --which and --in
+      ├─ drop --which to address the pull of this branch
       └─ rerun with --auth as-human
 ",
 }
@@ -575,16 +608,16 @@ exports[`git.pull.comment given: [case9] del converges: absent is a no-op, prese
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ check --pr and --in
-      ├─ drop --pr to address the pull of this branch
+      ├─ check --which and --in
+      ├─ drop --which to address the pull of this branch
       └─ rerun with --auth as-human
 ",
   "setKey": "✋ ConstraintError: pull request ehmpathy/surf-demo#9 is absent, or ehm-seaturtle (as-ehmpath) cannot see it
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ check --pr and --in
-      ├─ drop --pr to address the pull of this branch
+      ├─ check --which and --in
+      ├─ drop --which to address the pull of this branch
       └─ rerun with --auth as-human
 ",
 }
@@ -602,7 +635,7 @@ exports[`git.pull.comment given: [case9] del converges: absent is a no-op, prese
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+      └─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo   # lists the ids
 ",
   "getSwap": "✋ ConstraintError: no review comment 1301, but issue comment 1301 sits on ehmpathy/surf-demo#7
 
@@ -614,7 +647,7 @@ exports[`git.pull.comment given: [case9] del converges: absent is a no-op, prese
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+      └─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo   # lists the ids
 ",
   "setSwap": "✋ ConstraintError: no review comment 1301, but issue comment 1301 sits on ehmpathy/surf-demo#7
 
@@ -631,7 +664,7 @@ exports[`git.pull.comment given: [case10] a read-back hash mismatch fails as a m
    ├─ read-back sha256: c7525004d6d5f357bc73917d61b6316192574c3a3486ed95ff9c74398d913851
    ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-5001
    ├─ state: the comment is live, with a body other than the one posted
-   └─ live body: rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --id 5001 --kind issue
+   └─ live body: rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --id 5001 --kind issue
 
 🥥 did you know?
    └─ next
@@ -664,23 +697,23 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
 
 exports[`git.pull.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t1] get, set, del each get --help then: each exits 0 with a usage line and its options; calls no gh 1`] = `
 {
-  "del": "usage: git.pull.comment.del (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+  "del": "usage: git.pull.comment.del (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
   --key <k>                    your keyed top-level comment; a no-op if absent
   --reply-to <id>              with --key: your keyed reply in that review thread
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply deletes and confirms absent (default: plan)
   --auth as-ehmpath|as-human   who deletes (default: as-ehmpath); a human's comment is refused
   --output tree|json           the output shape (default: tree)
   --help, -h                   show this help
 ",
-  "get": "usage: git.pull.comment.get [--pr <n>] [--in <owner/name>] [--unanswered | --id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--auth as-ehmpath|as-human] [--output tree|json]
+  "get": "usage: git.pull.comment.get [--which <n>] [--in <owner/name>] [--unanswered | --id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --unanswered                 only the comments that wait on an answer from you
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
@@ -690,14 +723,14 @@ options:
   --output tree|json           the output shape (default: tree)
   --help, -h                   show this help
 ",
-  "set": "usage: git.pull.comment.set (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+  "set": "usage: git.pull.comment.set (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
   --key <k>                    a top-level comment, upserted by key: absent → post, differs → edit, same → no-op
   --reply-to <id>              with --key: a reply in that review thread, upserted the same way
   --id <id> --kind <kind>      edit one known comment; kind = issue | review, never guessed
   --from <path|@stdin>         the body; written as '🐢 ' + body, plus a hidden key marker
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
@@ -745,11 +778,11 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
    └─ to fix it
       └─ --output tree (the default)
 ",
-  "pr": "✋ ConstraintError: --pr must be a pull request number, got 'seven'
+  "pr": "✋ ConstraintError: --which must be a pull request number, got 'seven'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 69 ...   # or omit --pr, for the open pull of the cwd branch
+      └─ rhx git.pull.comment.get --which 69 ...   # or omit --which, for the open pull of the cwd branch
 ",
 }
 `;
@@ -773,13 +806,13 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7   # lists the ids and keys
+      └─ rhx git.pull.comment.get --which 7   # lists the ids and keys
 ",
   "delReplyNotNumber": "✋ ConstraintError: --reply-to must be a numeric review comment id, got 'x'
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7   # lists the ids
+      └─ rhx git.pull.comment.get --which 7   # lists the ids
 ",
   "delUnknownArg": "✋ ConstraintError: unknown arg '--wave'
 
@@ -804,7 +837,7 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr <n>   # lists the ids
+      └─ rhx git.pull.comment.get --which <n>   # lists the ids
 ",
   "getKindNoId": "✋ ConstraintError: --kind issue pairs with --id; alone, only --kind body reads one target
 
@@ -823,7 +856,7 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7   # lists the ids
+      └─ rhx git.pull.comment.get --which 7   # lists the ids
 ",
   "getUnknownArg": "✋ ConstraintError: unknown arg '--wave'
 
@@ -867,7 +900,7 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7   # lists the ids
+      └─ rhx git.pull.comment.get --which 7   # lists the ids
 ",
   "setUnknownArg": "✋ ConstraintError: unknown arg '--wave'
 
@@ -895,9 +928,9 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
       "class": "ConstraintError",
       "details": [],
       "fixes": [
-        "rhx git.pull.comment.get --pr 69 ...   # or omit --pr, for the open pull of the cwd branch",
+        "rhx git.pull.comment.get --which 69 ...   # or omit --which, for the open pull of the cwd branch",
       ],
-      "message": "--pr must be a pull request number, got 'seven'",
+      "message": "--which must be a pull request number, got 'seven'",
     },
   },
 }
@@ -911,7 +944,7 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
    └─ to fix it
       └─ rhx git.pull.comment.del --help   # lists each flag and its value
 ",
-  "get": "✋ ConstraintError: --pr needs a value
+  "get": "✋ ConstraintError: --which needs a value
 
 🥥 did you know?
    └─ to fix it
@@ -955,13 +988,13 @@ exports[`git.pull.comment given: [case11] every verb checks its input before any
 
 🥥 did you know?
    └─ plan writes naught; to write it
-      └─ rhx git.pull.comment.set --pr=7 --key=status --from=./status.md --mode apply
+      └─ rhx git.pull.comment.set --which=7 --key=status --from=./status.md --mode apply
 ",
 }
 `;
 
 exports[`git.pull.comment given: [case11] every verb checks its input before any gh call, and shows --help when: [t6] a --flag followed by a --flag, and the --flag=value form then: a --flag never swallows the next --flag as its value 1`] = `
-"✋ ConstraintError: --pr needs a value
+"✋ ConstraintError: --which needs a value
 
 🥥 did you know?
    └─ to fix it
@@ -983,7 +1016,7 @@ exports[`git.pull.comment given: [case12] the target fences: the pr, and the hom
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+      └─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo   # lists the ids
 "
 `;
 
@@ -1088,11 +1121,11 @@ exports[`git.pull.comment given: [case12] the target fences: the pr, and the hom
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+      └─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo   # lists the ids
 "
 `;
 
-exports[`git.pull.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t0] get --pr 7 then: it shows all six rows, every page 1`] = `
+exports[`git.pull.comment given: [case13] get --which reads the body, the issue rows, and the review rows when: [t0] get --which 7 then: it shows all six rows, every page 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.comment.get
@@ -1140,7 +1173,7 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
 "
 `;
 
-exports[`git.pull.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t1] get --pr 7 --output json then: the rows sort body first, then by created time 1`] = `
+exports[`git.pull.comment given: [case13] get --which reads the body, the issue rows, and the review rows when: [t1] get --which 7 --output json then: the rows sort body first, then by created time 1`] = `
 [
   {
     "author": "surfer-kai",
@@ -1225,7 +1258,7 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
 ]
 `;
 
-exports[`git.pull.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t2] get --pr 7 --key status then: it returns the one own keyed row 1`] = `
+exports[`git.pull.comment given: [case13] get --which reads the body, the issue rows, and the review rows when: [t2] get --which 7 --key status then: it returns the one own keyed row 1`] = `
 [
   {
     "author": "ehm-seaturtle",
@@ -1245,7 +1278,7 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
 ]
 `;
 
-exports[`git.pull.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t3] get --pr 7 --id 805 --kind review then: it shows the one row, with its thread 1`] = `
+exports[`git.pull.comment given: [case13] get --which reads the body, the issue rows, and the review rows when: [t3] get --which 7 --id 805 --kind review then: it shows the one row, with its thread 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.comment.get
@@ -1261,25 +1294,25 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
 "
 `;
 
-exports[`git.pull.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t4] get --pr 7 --id 999 --kind issue, an absent id then: it exits 2 and names the list command 1`] = `
+exports[`git.pull.comment given: [case13] get --which reads the body, the issue rows, and the review rows when: [t4] get --which 7 --id 999 --kind issue, an absent id then: it exits 2 and names the list command 1`] = `
 "✋ ConstraintError: no issue comment 999 on ehmpathy/surf-demo
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo   # lists the ids
+      └─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo   # lists the ids
 "
 `;
 
-exports[`git.pull.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t5] get --pr 7 --key absent-key, a key no comment carries then: it exits 2 and names the list command, with the repo 1`] = `
+exports[`git.pull.comment given: [case13] get --which reads the body, the issue rows, and the review rows when: [t5] get --which 7 --key absent-key, a key no comment carries then: it exits 2 and names the list command, with the repo 1`] = `
 "✋ ConstraintError: no comment carries key 'absent-key' on ehmpathy/surf-demo#7
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo   # lists every row and its key
+      └─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo   # lists every row and its key
 "
 `;
 
-exports[`git.pull.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t6] get --key answer --reply-to, scoped to one thread then: it returns the keyed reply of thread 902 alone 1`] = `
+exports[`git.pull.comment given: [case13] get --which reads the body, the issue rows, and the review rows when: [t6] get --key answer --reply-to, scoped to one thread then: it returns the keyed reply of thread 902 alone 1`] = `
 [
   {
     "author": "ehm-seaturtle",
@@ -1299,12 +1332,12 @@ exports[`git.pull.comment given: [case13] get --pr reads the body, the issue row
 ]
 `;
 
-exports[`git.pull.comment given: [case13] get --pr reads the body, the issue rows, and the review rows when: [t7] get --in --auth as-human for an absent key, from the cwd of another repo then: the fix names --in and --auth as-human, so a copy reaches the same target as the same login 1`] = `
+exports[`git.pull.comment given: [case13] get --which reads the body, the issue rows, and the review rows when: [t7] get --in --auth as-human for an absent key, from the cwd of another repo then: the fix names --in and --auth as-human, so a copy reaches the same target as the same login 1`] = `
 "✋ ConstraintError: no comment carries key 'absent-key' on ehmpathy/surf-demo#7
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 7 --in ehmpathy/surf-demo --auth as-human   # lists every row and its key
+      └─ rhx git.pull.comment.get --which 7 --in ehmpathy/surf-demo --auth as-human   # lists every row and its key
 "
 `;
 
@@ -1535,7 +1568,7 @@ exports[`git.pull.comment given: [case15] auth: as-ehmpath needs a token; as-hum
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ check --pr, --in, and --id
+      ├─ check --which, --in, and --id
       └─ rerun with --auth as-human
 ",
   "post": "✋ ConstraintError: github refused the payload on POST repos/ehmpathy/surf-demo/issues/7/comments
@@ -1601,7 +1634,7 @@ exports[`git.pull.comment given: [case15] auth: as-ehmpath needs a token; as-hum
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rerun with --auth as-ehmpath   # if ehm-seaturtle is that login
-      ├─ rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 541 --kind issue --auth as-ehmpath   # if ehm-seaturtle is that login: plan, then add --mode apply, then rerun
+      ├─ rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 541 --kind issue --auth as-ehmpath   # if ehm-seaturtle is that login: plan, then add --mode apply, then rerun
       └─ pick another --key
 ",
   "posted": "🐢 heres the wave...
@@ -1625,7 +1658,7 @@ exports[`git.pull.comment given: [case15] auth: as-ehmpath needs a token; as-hum
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rerun with --auth as-human   # if surfer-kai is that login
-      ├─ rhx git.pull.comment.del --pr 7 --in ehmpathy/surf-demo --id 532 --kind review --auth as-human   # if surfer-kai is that login: plan, then add --mode apply, then rerun
+      ├─ rhx git.pull.comment.del --which 7 --in ehmpathy/surf-demo --id 532 --kind review --auth as-human   # if surfer-kai is that login: plan, then add --mode apply, then rerun
       └─ pick another --key
 ",
 }
@@ -1650,6 +1683,7 @@ exports[`git.pull.comment given: [case16] the apply json, the keyed tree reads, 
   "set": {
     "endpoint": "repos/ehmpathy/surf-demo/issues/7/comments",
     "id": 5001,
+    "ledgerFault": null,
     "method": "POST",
     "mode": "apply",
     "sha256": {
@@ -1800,14 +1834,14 @@ exports[`git.pull.comment given: [case18] del deletes only what the robot wrote;
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.comment.set --pr 7 --in ehmpathy/surf-demo --reply-to 1801 --key <slug> --from <file>   # answer it instead, for a review comment
+      ├─ rhx git.pull.comment.set --which 7 --in ehmpathy/surf-demo --reply-to 1801 --key <slug> --from <file>   # answer it instead, for a review comment
       └─ a human deletes it in the github ui, if it must go
 ",
   "humanReview": "✋ ConstraintError: review comment 1804 is a human's comment: its body does not open with 🐢, which every git.pull.comment.set body wears; del deletes only what the robot wrote
 
 🥥 did you know?
    └─ to fix it, pick one
-      ├─ rhx git.pull.comment.set --pr 7 --in ehmpathy/surf-demo --reply-to 1804 --key <slug> --from <file>   # answer it instead, for a review comment
+      ├─ rhx git.pull.comment.set --which 7 --in ehmpathy/surf-demo --reply-to 1804 --key <slug> --from <file>   # answer it instead, for a review comment
       └─ a human deletes it in the github ui, if it must go
 ",
   "robot": "🐢 heres the wave...
@@ -1826,7 +1860,7 @@ exports[`git.pull.comment given: [case18] del deletes only what the robot wrote;
 }
 `;
 
-exports[`git.pull.comment given: [case19] get reads every review thread, open and resolved, and names which when: [t0] get --pr 7, tree and json then: the tree shows both states 1`] = `
+exports[`git.pull.comment given: [case19] get reads every review thread, open and resolved, and names which when: [t0] get --which 7, tree and json then: the tree shows both states 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.comment.get
@@ -1866,22 +1900,22 @@ exports[`git.pull.comment given: [case19] get reads every review thread, open an
 "
 `;
 
-exports[`git.pull.comment given: [case20] --pr defaults to the open pull of the cwd branch when: [t1] the branch has no open pull, and --pr is absent then: it exits 2, names the branch, writes naught 1`] = `
-"✋ ConstraintError: --pr is absent, and branch 'surf/no-pull' has no open pull on ehmpathy/surf-demo
+exports[`git.pull.comment given: [case20] --which defaults to the open pull of the cwd branch when: [t1] the branch has no open pull, and --which is absent then: it exits 2, names the branch, writes naught 1`] = `
+"✋ ConstraintError: --which is absent, and branch 'surf/no-pull' has no open pull on ehmpathy/surf-demo
 
 🥥 did you know?
    └─ to fix it, pick one
       ├─ rhx git.commit.push --mode apply   # if this branch has no pull yet, a push opens one
-      └─ rhx git.pull.comment.set --pr <n> ...   # or name a pull, closed or merged included
+      └─ rhx git.pull.comment.set --which <n> ...   # or name a pull, closed or merged included
 "
 `;
 
-exports[`git.pull.comment given: [case20] --pr defaults to the open pull of the cwd branch when: [t2] --in names a repo other than the cwd origin then: it exits 2: the cwd branch is no pull of that repo 1`] = `
-"✋ ConstraintError: --pr is required with --in ehmpathy/other-reef: the cwd branch sits on 'ehmpathy/surf-demo', not on that repo
+exports[`git.pull.comment given: [case20] --which defaults to the open pull of the cwd branch when: [t2] --in names a repo other than the cwd origin then: it exits 2: the cwd branch is no pull of that repo 1`] = `
+"✋ ConstraintError: --which is required with --in ehmpathy/other-reef: the cwd branch sits on 'ehmpathy/surf-demo', not on that repo
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.del --pr <n> --in ehmpathy/other-reef ...
+      └─ rhx git.pull.comment.del --which <n> --in ehmpathy/other-reef ...
 "
 `;
 

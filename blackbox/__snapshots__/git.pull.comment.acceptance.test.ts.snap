@@ -2,23 +2,23 @@
 
 exports[`git.pull.comment, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] each verb is asked for --help then: each help is snapped 1`] = `
 {
-  "del": "usage: git.pull.comment.del (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+  "del": "usage: git.pull.comment.del (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
   --key <k>                    your keyed top-level comment; a no-op if absent
   --reply-to <id>              with --key: your keyed reply in that review thread
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply deletes and confirms absent (default: plan)
   --auth as-ehmpath|as-human   who deletes (default: as-ehmpath); a human's comment is refused
   --output tree|json           the output shape (default: tree)
   --help, -h                   show this help
 ",
-  "get": "usage: git.pull.comment.get [--pr <n>] [--in <owner/name>] [--unanswered | --id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--auth as-ehmpath|as-human] [--output tree|json]
+  "get": "usage: git.pull.comment.get [--which <n>] [--in <owner/name>] [--unanswered | --id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --unanswered                 only the comments that wait on an answer from you
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
@@ -28,14 +28,14 @@ options:
   --output tree|json           the output shape (default: tree)
   --help, -h                   show this help
 ",
-  "set": "usage: git.pull.comment.set (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+  "set": "usage: git.pull.comment.set (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
   --key <k>                    a top-level comment, upserted by key: absent → post, differs → edit, same → no-op
   --reply-to <id>              with --key: a reply in that review thread, upserted the same way
   --id <id> --kind <kind>      edit one known comment; kind = issue | review, never guessed
   --from <path|@stdin>         the body; written as '🐢 ' + body, plus a hidden key marker
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)

@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`sessionstart.git-pull-watch.sh given: [case1] a box with one repo and one clone when: [t2] the clone holds a watch whose daemon was killed then: it exits 0 and names the daemon it replaced 1`] = `
+"🐢 pr watch: daemon v<key> pid <pid>, replaced stale pid <pid>, for 1 watch(es)
+"
+`;
+
+exports[`sessionstart.git-pull-watch.sh given: [case1] a box with one repo and one clone when: [t4] a watch record under the key will not parse then: the fault tree reads the same on each run 1`] = `
+"💥 MalfunctionError: 1 pr-watch record(s) of v<key> are unreadable; a watch of this clone may be unserved
+   └─ records: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/
+
+🥥 did you know?
+   └─ to find the watch, pick one
+      ├─ see each watch: rhx git.pull.watch get
+      └─ rewatch a pr: rhx git.pull.watch set --which <n> --mode apply
+"
+`;
+
+exports[`sessionstart.git-pull-watch.sh given: [case1] a box with one repo and one clone when: [t5] the clone holds a watch, and no daemon record stands then: it exits 0 and names the daemon it spawned 1`] = `
+"🐢 pr watch: daemon v<key> pid <pid>, spawned, for 1 watch(es)
+"
+`;
+
+exports[`sessionstart.git-pull-watch.sh given: [case2] a hook that cannot serve its watches when: [t0] the skill beside the hook is absent then: the fault tree reads the same on each run 1`] = `
+"💥 MalfunctionError: sessionstart.git-pull-watch.sh could not load <bare>/dist/inits/claude.hooks/../../skills/git.pull.watch/git.pull.watch.operations.sh; pr watches are unserved
+   ├─ cause: <the load error, at its temp path>
+   └─ fix: repair the cause, or reinstall the mechanic role
+"
+`;
+
+exports[`sessionstart.git-pull-watch.sh given: [case2] a hook that cannot serve its watches when: [t1] the clone holds a watch whose daemon cannot boot then: it exits 0, and names the boot death with its cause 1`] = `
+"💥 MalfunctionError: pr-watch daemon v<key> could not start: it died at boot; 1 watch(es) unserved
+   ├─ cause: boot defect: the copy is corrupt
+   └─ log: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
+
+🥥 did you know?
+   └─ to fix it
+      └─ fix the cause, then rerun: rhx git.pull.watch get
+"
+`;
+
+exports[`sessionstart.git-pull-watch.sh given: [case2] a hook that cannot serve its watches when: [t2] the clone holds a watch whose daemon lock is held then: it exits 0, and names the lock, not an empty log 1`] = `
+"💥 MalfunctionError: pr-watch daemon v<key> could not start: its lock timed out; 1 watch(es) unserved
+   └─ lock: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.lock
+
+🥥 did you know?
+   └─ to fix it
+      └─ rerun once the holder is done: rhx git.pull.watch get
+"
+`;

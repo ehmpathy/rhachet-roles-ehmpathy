@@ -64,10 +64,10 @@ describe('git.pull', () => {
         'each verb names itself in its fix, so each render is snapped',
         () => {
           expect(result.verbs.titleGet.stdout).toContain(
-            'rhx git.pull.title.get --pr <n>',
+            'rhx git.pull.title.get --which <n>',
           );
           expect(result.verbs.descriptionSet.stdout).toContain(
-            'rhx git.pull.description.set --pr <n>',
+            'rhx git.pull.description.set --which <n>',
           );
           expect({
             titleGet: result.verbs.titleGet.stdout,
@@ -119,13 +119,13 @@ describe('git.pull', () => {
       },
       {
         description: 'a flag with no value',
-        args: ['--pr'],
-        words: '--pr needs a value',
+        args: ['--which'],
+        words: '--which needs a value',
       },
       {
-        description: 'a non-numeric --pr',
-        args: ['--pr', 'seven'],
-        words: "--pr must be a pull request number, got 'seven'",
+        description: 'a non-numeric --which',
+        args: ['--which', 'seven'],
+        words: "--which must be a pull request number, got 'seven'",
       },
       {
         description: 'a bad --auth',
@@ -187,7 +187,7 @@ describe('git.pull', () => {
         }).toMatchSnapshot();
       });
     });
-    when('[t6] the cwd is on a detached HEAD, with no --pr', () => {
+    when('[t6] the cwd is on a detached HEAD, with no --which', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('they run', async () => {
         spawnSync('git', ['commit', '--allow-empty', '-m', 'tide'], {
@@ -210,7 +210,7 @@ describe('git.pull', () => {
         }).toMatchSnapshot();
       });
     });
-    when('[t7] the branch has two open pulls, with no --pr', () => {
+    when('[t7] the branch has two open pulls, with no --which', () => {
       const scene = genGitPullScene({
         ...PULL_SCENE_BARE,
         store: {
@@ -272,20 +272,20 @@ describe('git.pull', () => {
         );
         return {
           titleGet: scene.run(skill('title', 'get'), [
-            '--pr=7',
+            '--which=7',
             '--output=json',
           ]),
           titleSet: scene.run(skill('title', 'set'), [
-            '--pr=7',
+            '--which=7',
             '--from=./.temp/title.md',
             '--mode=plan',
           ]),
           descriptionGet: scene.run(skill('description', 'get'), [
-            '--pr=7',
+            '--which=7',
             '--output=json',
           ]),
           descriptionSet: scene.run(skill('description', 'set'), [
-            '--pr=7',
+            '--which=7',
             '--from=./.temp/kelp.md',
             '--mode=plan',
           ]),
@@ -438,7 +438,7 @@ describe('git.pull', () => {
   });
 
   given('[case4] --in names the repo', () => {
-    when('[t0] --in names the home-org repo, with --pr 8', () => {
+    when('[t0] --in names the home-org repo, with --which 8', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('both sets run', async () => ({
         title: scene.run(
@@ -446,7 +446,7 @@ describe('git.pull', () => {
           [
             '--in',
             'ehmpathy/surf-demo',
-            '--pr',
+            '--which',
             '8',
             '--from',
             '@stdin',
@@ -460,7 +460,7 @@ describe('git.pull', () => {
           [
             '--in',
             'ehmpathy/surf-demo',
-            '--pr',
+            '--which',
             '8',
             '--from',
             '@stdin',
@@ -491,7 +491,12 @@ describe('git.pull', () => {
     when('[t1] --in names an owner outside the home orgs', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('the four verbs run', async () => ({
-        verbs: runFourVerbs(scene, ['--in', 'seaturtlecorp/reef', '--pr', '8']),
+        verbs: runFourVerbs(scene, [
+          '--in',
+          'seaturtlecorp/reef',
+          '--which',
+          '8',
+        ]),
       }));
       then('each exits 2 at the fence and calls no gh', () => {
         Object.values(result.verbs).forEach((run) => {
@@ -512,7 +517,7 @@ describe('git.pull', () => {
           verbs: runFourVerbs(scene, [
             '--in',
             'seaturtlecorp/reef',
-            '--pr',
+            '--which',
             '8',
             '--output',
             'json',
@@ -551,12 +556,12 @@ describe('git.pull', () => {
       const result = useThen('both sets run via the dispatcher', async () => ({
         title: scene.run(
           dispatcher('title'),
-          ['set', '--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          ['set', '--which', '8', '--from', '@stdin', '--mode', 'apply'],
           { stdin: 'feat(reports): sync the wave report, dispatched' },
         ),
         description: scene.run(
           dispatcher('description'),
-          ['set', '--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          ['set', '--which', '8', '--from', '@stdin', '--mode', 'apply'],
           { stdin: 'wave report sync, dispatched' },
         ),
       }));
@@ -583,12 +588,12 @@ describe('git.pull', () => {
       const result = useThen('both plans run', async () => ({
         title: scene.run(
           skill('title', 'set'),
-          ['--pr', '8', '--from', '@stdin', '--output', 'json'],
+          ['--which', '8', '--from', '@stdin', '--output', 'json'],
           { stdin: 'feat(reports): sync the wave report, planned' },
         ),
         description: scene.run(
           skill('description', 'set'),
-          ['--pr', '8', '--from', '@stdin', '--output', 'json'],
+          ['--which', '8', '--from', '@stdin', '--output', 'json'],
           { stdin: 'wave report sync, planned' },
         ),
       }));
@@ -612,13 +617,13 @@ describe('git.pull', () => {
         title: scene.run(skill('title', 'get'), [
           '--in',
           'ehmpathy/surf-demo',
-          '--pr',
+          '--which',
           '8',
         ]),
         description: scene.run(skill('description', 'get'), [
           '--in',
           'ehmpathy/surf-demo',
-          '--pr',
+          '--which',
           '8',
         ]),
       }));
@@ -664,7 +669,7 @@ describe('git.pull', () => {
         [result.titleGet, result.descriptionGet].forEach((run) => {
           expect(run.exitCode).toBe(0);
           [
-            '--pr',
+            '--which',
             '--in',
             '--auth',
             '--output tree|json|text',
