@@ -109,53 +109,97 @@ exports[`git.commit.director.operations.sh, through every real quota refusal giv
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: no commit quota set
+   └─ ✋ ConstraintError: no commit quota set
 
-ask your human to grant permission:
-  $ rhx git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ ask your human to grant permission
+   └─ rhx git.commit.uses set --quant N --push allow
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.5] git.branch.rebase begin, no quota set, with no director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.5] git.branch.rebase begin, no quota set, with no director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: no commit quota set
+
+🥥 did you know?
+   ├─ ask your human to grant permission
+   └─ rhx git.commit.uses set --quant N --push allow
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.6] git.branch.rebase begin, push not allowed, with no director when: [t0] the skill refuses then: its bytes match the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: rebase requires push permission
+   └─ ✋ ConstraintError: rebase requires push permission
 
-ask your human to grant permission:
-  $ rhx git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ ask your human to grant permission
+   └─ rhx git.commit.uses set --quant N --push allow
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.6] git.branch.rebase begin, push not allowed, with no director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.6] git.branch.rebase begin, push not allowed, with no director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: rebase requires push permission
+
+🥥 did you know?
+   ├─ ask your human to grant permission
+   └─ rhx git.commit.uses set --quant N --push allow
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.7] git.branch.rebase begin, no uses left and push not allowed, with no director when: [t0] the skill refuses then: its bytes match the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: rebase requires push permission
+   └─ ✋ ConstraintError: rebase requires push permission
 
-ask your human to grant permission:
-  $ rhx git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ ask your human to grant permission
+   └─ rhx git.commit.uses set --quant N --push allow
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.7] git.branch.rebase begin, no uses left and push not allowed, with no director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.7] git.branch.rebase begin, no uses left and push not allowed, with no director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: rebase requires push permission
+
+🥥 did you know?
+   ├─ ask your human to grant permission
+   └─ rhx git.commit.uses set --quant N --push allow
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.8] git.branch.rebase begin, no uses left, with no director when: [t0] the skill refuses then: its bytes match the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: no commit uses left
+   └─ ✋ ConstraintError: no commit uses left
 
-ask your human to grant more:
-  $ rhx git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ ask your human to grant more
+   └─ rhx git.commit.uses set --quant N --push allow
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.8] git.branch.rebase begin, no uses left, with no director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.8] git.branch.rebase begin, no uses left, with no director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: no commit uses left
+
+🥥 did you know?
+   ├─ ask your human to grant more
+   └─ rhx git.commit.uses set --quant N --push allow
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.9] git.release --mode apply, no quota set, with no director when: [t0] the skill refuses then: its bytes match the snapshot 1`] = `
 "🐢 bummer dude...
@@ -234,14 +278,25 @@ exports[`git.commit.director.operations.sh, through every real quota refusal giv
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: no commit uses left
+   └─ ✋ ConstraintError: no commit uses left
 
-ask your human to grant more:
-  $ rhx git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ ask your human to grant more
+   └─ rhx git.commit.uses set --quant N --push allow
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.14] git.branch.rebase begin, no uses left, stage already granted, with no director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.14] git.branch.rebase begin, no uses left, stage already granted, with no director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: no commit uses left
+
+🥥 did you know?
+   ├─ ask your human to grant more
+   └─ rhx git.commit.uses set --quant N --push allow
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.15] git.commit.set in plan mode, no quota set, with no director when: [t0] the skill refuses then: its bytes match the snapshot 1`] = `
 "🐢 bummer dude...
@@ -269,14 +324,25 @@ exports[`git.commit.director.operations.sh, through every real quota refusal giv
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: rebase requires push permission
+   └─ ✋ ConstraintError: rebase requires push permission
 
-ask your human to grant permission:
-  $ rhx git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ ask your human to grant permission
+   └─ rhx git.commit.uses set --quant N --push allow
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.16] git.branch.rebase begin in plan mode, push not allowed, with no director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case1.16] git.branch.rebase begin in plan mode, push not allowed, with no director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: rebase requires push permission
+
+🥥 did you know?
+   ├─ ask your human to grant permission
+   └─ rhx git.commit.uses set --quant N --push allow
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.0] git.commit.set, no uses left, a commit-only tree, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
 "🐢 bummer dude...
@@ -385,52 +451,88 @@ a director governs this tree; ask your director to grant push. the director runs
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.5] git.branch.rebase begin, no quota set, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
-
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.5] git.branch.rebase begin, no quota set, under a director when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.5] git.branch.rebase begin, no quota set, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: no commit quota set
+   └─ ✋ ConstraintError: no commit quota set
 
 a director governs this tree; ask your director to grant a quota. the director runs:
   $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.6] git.branch.rebase begin, push not allowed, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.5] git.branch.rebase begin, no quota set, under a director when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: no commit quota set
+
+a director governs this tree; ask your director to grant a quota. the director runs:
+  $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
+"
+`;
+
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.6] git.branch.rebase begin, push not allowed, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: rebase requires push permission
+
+a director governs this tree; ask your director to grant push. the director runs:
+  $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.6] git.branch.rebase begin, push not allowed, under a director when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: rebase requires push permission
+   └─ ✋ ConstraintError: rebase requires push permission
 
 a director governs this tree; ask your director to grant push. the director runs:
   $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.7] git.branch.rebase begin, no uses left and push not allowed, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.7] git.branch.rebase begin, no uses left and push not allowed, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: rebase requires push permission
+
+a director governs this tree; ask your director to grant push. the director runs:
+  $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.7] git.branch.rebase begin, no uses left and push not allowed, under a director when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: rebase requires push permission
+   └─ ✋ ConstraintError: rebase requires push permission
 
 a director governs this tree; ask your director to grant push. the director runs:
   $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.8] git.branch.rebase begin, no uses left, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.8] git.branch.rebase begin, no uses left, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: no commit uses left
+
+a director governs this tree; ask your director to grant more. the director runs:
+  $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.8] git.branch.rebase begin, no uses left, under a director when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: no commit uses left
+   └─ ✋ ConstraintError: no commit uses left
 
 a director governs this tree; ask your director to grant more. the director runs:
   $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
@@ -510,13 +612,22 @@ a director governs this tree; ask your director to grant push. the director runs
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.14] git.branch.rebase begin, no uses left, stage already granted, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.14] git.branch.rebase begin, no uses left, stage already granted, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: no commit uses left
+
+a director governs this tree; ask your director to grant more. the director runs:
+  $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --stage allow --why '<why>'
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.14] git.branch.rebase begin, no uses left, stage already granted, under a director when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: no commit uses left
+   └─ ✋ ConstraintError: no commit uses left
 
 a director governs this tree; ask your director to grant more. the director runs:
   $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --stage allow --why '<why>'
@@ -545,13 +656,22 @@ a director governs this tree; ask your director to grant a quota. the director r
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.16] git.branch.rebase begin in plan mode, push not allowed, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.16] git.branch.rebase begin in plan mode, push not allowed, under a director when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: rebase requires push permission
+
+a director governs this tree; ask your director to grant push. the director runs:
+  $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case2.16] git.branch.rebase begin in plan mode, push not allowed, under a director when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: rebase requires push permission
+   └─ ✋ ConstraintError: rebase requires push permission
 
 a director governs this tree; ask your director to grant push. the director runs:
   $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
@@ -690,13 +810,25 @@ else, ask your human to grant with --push allow:
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.5] git.branch.rebase begin, no quota set, director state unreadable when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.5] git.branch.rebase begin, no quota set, director state unreadable when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: no commit quota set
+
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
+else, ask your human to grant permission:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.5] git.branch.rebase begin, no quota set, director state unreadable when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: no commit quota set
+   └─ ✋ ConstraintError: no commit quota set
 
 whether a director governs this tree cannot be read; ask your director, else your human.
 the director runs:
@@ -706,13 +838,25 @@ else, ask your human to grant permission:
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.6] git.branch.rebase begin, push not allowed, director state unreadable when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.6] git.branch.rebase begin, push not allowed, director state unreadable when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: rebase requires push permission
+
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
+else, ask your human to grant permission:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.6] git.branch.rebase begin, push not allowed, director state unreadable when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: rebase requires push permission
+   └─ ✋ ConstraintError: rebase requires push permission
 
 whether a director governs this tree cannot be read; ask your director, else your human.
 the director runs:
@@ -722,13 +866,25 @@ else, ask your human to grant permission:
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.7] git.branch.rebase begin, no uses left and push not allowed, director state unreadable when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.7] git.branch.rebase begin, no uses left and push not allowed, director state unreadable when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: rebase requires push permission
+
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
+else, ask your human to grant permission:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.7] git.branch.rebase begin, no uses left and push not allowed, director state unreadable when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: rebase requires push permission
+   └─ ✋ ConstraintError: rebase requires push permission
 
 whether a director governs this tree cannot be read; ask your director, else your human.
 the director runs:
@@ -738,13 +894,25 @@ else, ask your human to grant permission:
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.8] git.branch.rebase begin, no uses left, director state unreadable when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.8] git.branch.rebase begin, no uses left, director state unreadable when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: no commit uses left
+
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
+else, ask your human to grant more:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.8] git.branch.rebase begin, no uses left, director state unreadable when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: no commit uses left
+   └─ ✋ ConstraintError: no commit uses left
 
 whether a director governs this tree cannot be read; ask your director, else your human.
 the director runs:
@@ -842,13 +1010,25 @@ else, ask your human to grant with --push allow:
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.14] git.branch.rebase begin, no uses left, stage already granted, director state unreadable when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.14] git.branch.rebase begin, no uses left, stage already granted, director state unreadable when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: no commit uses left
+
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --stage allow --why '<why>'
+else, ask your human to grant more:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.14] git.branch.rebase begin, no uses left, stage already granted, director state unreadable when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: no commit uses left
+   └─ ✋ ConstraintError: no commit uses left
 
 whether a director governs this tree cannot be read; ask your director, else your human.
 the director runs:
@@ -886,13 +1066,25 @@ else, ask your human to grant:
 "
 `;
 
-exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.16] git.branch.rebase begin in plan mode, push not allowed, director state unreadable when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `""`;
+exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.16] git.branch.rebase begin in plan mode, push not allowed, director state unreadable when: [t0] the skill refuses then: its stderr matches the snapshot, as each surface emits 1`] = `
+"🐢 hold up dude...
+
+🐚 git.branch.rebase begin
+   └─ ✋ ConstraintError: rebase requires push permission
+
+whether a director governs this tree cannot be read; ask your director, else your human.
+the director runs:
+  $ rhx git.crew.grant --tree reef.beav.fix-kelp --quota <n> --push allow --why '<why>'
+else, ask your human to grant permission:
+  $ rhx git.commit.uses set --quant N --push allow
+"
+`;
 
 exports[`git.commit.director.operations.sh, through every real quota refusal given: [case3.16] git.branch.rebase begin in plan mode, push not allowed, director state unreadable when: [t0] the skill refuses then: its whole frame matches the snapshot 1`] = `
 "🐢 hold up dude...
 
 🐚 git.branch.rebase begin
-   └─ error: rebase requires push permission
+   └─ ✋ ConstraintError: rebase requires push permission
 
 whether a director governs this tree cannot be read; ask your director, else your human.
 the director runs:
