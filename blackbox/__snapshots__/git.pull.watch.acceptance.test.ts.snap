@@ -135,6 +135,8 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
           "repoRoot": "/home/turtle/git/surf-demo.beav.feat-wave",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         },
         {
@@ -160,6 +162,8 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
           "repoRoot": "/home/turtle/git/surf-demo.beav.feat-wave",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         }
       ]
