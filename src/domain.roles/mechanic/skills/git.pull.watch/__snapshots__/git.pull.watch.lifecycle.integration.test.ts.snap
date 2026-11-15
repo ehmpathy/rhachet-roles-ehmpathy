@@ -56,6 +56,8 @@ exports[`git.pull.watch lifecycle given: [case4] two clones on one version share
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         },
         {
@@ -66,6 +68,8 @@ exports[`git.pull.watch lifecycle given: [case4] two clones on one version share
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         }
       ]
@@ -163,6 +167,8 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         }
       ]
@@ -208,6 +214,8 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         }
       ]
@@ -253,6 +261,8 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         }
       ]

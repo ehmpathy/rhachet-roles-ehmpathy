@@ -173,6 +173,15 @@ export const ROLE_MECHANIC: Role = Role.build({
           filter: { what: 'WebFetch', when: 'after' },
         },
       ],
+      onTalk: [
+        // .note = prints each pr-watch alert the daemon could not say into this
+        //         clone (`clone say` refused it), then clears it; silent when
+        //         naught is held. its lock wait (10s) fits under the timeout
+        {
+          command: asHookCommand('userpromptsubmit.git-pull-watch'),
+          timeout: 'PT15S',
+        },
+      ],
       // .note = lint onStop removed: 60s blocks session end, too expensive
       // .todo = revisit when brain.hooks.onPush lands
     },

@@ -279,15 +279,27 @@ as_watch_alert_text_held() {
   return 0
 }
 
+# .what = the one-line cause of a `clone say` refusal: its json message, else its last line
+# .why  = `get` and the prompt hook name why an alert waits, not just that it waits
+as_watch_say_cause() {
+  local said="$1" cause
+  cause="$(printf '%s' "$said" | jq -r 'select(type == "object") | .message // empty' 2>/dev/null | head -n 1 || true)"
+  [[ -n "$cause" ]] || cause="$(printf '%s\n' "$said" | grep -v '^[[:space:]]*$' | tail -n 1 || true)"
+  printf '%s' "${cause:0:200}"
+}
+
 # .what = deliver one alert into a clone, by serial, from its repo root
 # .why  = only `clone say` knows if a clone can take text now; its json verdict
 #         decides done, hold, or drop (F16)
 # returns: 0 = taken (released, enqueued, exited) · 1 = hold for a retry · 3 = clone dead
+# sets: WATCH_SAY_CAUSE, the refusal's one-line cause, on a hold
 # .note = a failure record carries reachState; only DEAD drops the watch.
 #         withheld, buffered, absent, unreadable, DEAF, a wedged socket, no
 #         answer within the bound: all hold
+WATCH_SAY_CAUSE=""
 send_watch_alert() {
   local repo_root="$1" serial="$2" text="$3" out_file err_file rc=0 said
+  WATCH_SAY_CAUSE=""
   out_file="$(mktemp)"
   err_file="$(mktemp)"
   printf '%s' "$text" | run_watch_rhachet "$repo_root" "$WATCH_SAY_MAX_SECONDS" \
@@ -295,6 +307,7 @@ send_watch_alert() {
   [[ $rc -eq 124 ]] && echo "clone say gave no answer in ${WATCH_SAY_MAX_SECONDS}s" >>"$err_file"
   said="$(cat "$out_file" "$err_file")"
   rm -f "$out_file" "$err_file"
+  WATCH_SAY_CAUSE="$(as_watch_say_cause "$said")"
 
   # taken
   [[ $rc -eq 0 ]] && return 0

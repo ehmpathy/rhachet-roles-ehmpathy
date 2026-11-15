@@ -31,6 +31,8 @@ exports[`git.pull.watch delivery given: [case7] an alert due while the clone is 
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 1,
+          "heldTicks": 2,
+          "heldCause": "the say was withheld",
           "ended": null
         }
       ]
@@ -131,6 +133,8 @@ exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes l
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         },
         {
@@ -141,6 +145,8 @@ exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes l
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         }
       ]
@@ -179,6 +185,8 @@ exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes l
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         },
         {
@@ -189,6 +197,8 @@ exports[`git.pull.watch delivery given: [case8] a live daemon whose token goes l
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         }
       ]
@@ -235,6 +245,8 @@ exports[`git.pull.watch delivery given: [case8b] a box whose keyrack lacks the g
           "repoRoot": "<root:surf-demo>",
           "primed": false,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         }
       ]
@@ -299,6 +311,8 @@ exports[`git.pull.watch delivery given: [case8c] github rate-limits the token, t
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         }
       ]
@@ -341,6 +355,8 @@ exports[`git.pull.watch delivery given: [case8d] github stops answers past the n
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         }
       ]
@@ -392,6 +408,8 @@ exports[`git.pull.watch delivery given: [case8e] keyrack itself faults past the 
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         }
       ]
@@ -446,6 +464,8 @@ exports[`git.pull.watch delivery given: [case8f] a box whose keyrack blocks the 
           "repoRoot": "<root:surf-demo>",
           "primed": false,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         }
       ]

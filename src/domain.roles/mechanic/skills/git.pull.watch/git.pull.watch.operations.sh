@@ -25,6 +25,9 @@ WATCH_TICK_SECONDS="${GIT_PULL_WATCH_TICK_SECONDS:-60}"
 # any change, a push, or a fresh watch resets it to one tick (30 min)
 WATCH_POLL_MAX_SECONDS="${GIT_PULL_WATCH_POLL_MAX_SECONDS:-1800}"
 
+# an alert held this many ticks is named in `get` with its cause; a test sets it low
+WATCH_HELD_NAMED_TICKS="${GIT_PULL_WATCH_HELD_NAMED_TICKS:-10}"
+
 # a pr with no change for this long ends its watches, so no poll outlives its use (1w)
 WATCH_IDLE_TTL_SECONDS="${GIT_PULL_WATCH_IDLE_TTL_SECONDS:-604800}"
 

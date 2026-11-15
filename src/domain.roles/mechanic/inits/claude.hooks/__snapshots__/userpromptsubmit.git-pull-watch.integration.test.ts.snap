@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`userpromptsubmit.git-pull-watch.sh given: [case1] a clone whose screen clone say refuses, for good when: [t2] the next prompt in the refused clone then: it prints the alert once, with why it waited 1`] = `
+"🐢 heads up dude...
+
+🐚 git.pull.watch — new comment on #1220 (held <n> ticks; clone say refused: the say was withheld)
+   ├─ pr: ehmpathy/surf-demo#1220
+   ├─ by: @surfer-kai · comment
+   ├─ says: so where are we at?
+   ├─ url: https://github.com/ehmpathy/surf-demo/pull/1220#issuecomment-901
+   └─ next: rhx git.pull.comment get --which 1220 --in ehmpathy/surf-demo
+
+"
+`;

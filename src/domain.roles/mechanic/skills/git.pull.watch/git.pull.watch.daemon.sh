@@ -496,12 +496,25 @@ get_watch_record_advanced() {
     '.cursors = $cursors | .primed = true | if $prEnd != "" then .ended = $prEnd else . end' "$record"
 }
 
+# .what = note one more refused try on a held alert, and the refusal's cause
+# .why  = under the key lock, and only if the entry still stands: the prompt hook
+#         may have printed and removed it mid-send, and a write-back would revive it
+set_watch_outbox_entry_held() {
+  local entry="$1" tries="$2" cause="$3"
+  take_watch_lock "$KEY_DIR" || { log_watch "lock timed out; $(basename "$entry") keeps its try count"; return 0; }
+  if [[ -f "$entry" ]]; then
+    jq --argjson tries "$tries" --arg cause "$cause" \
+      '.tries = $tries | if $cause != "" then .cause = $cause else . end' "$entry" | set_watch_file_atomic "$entry"
+  fi
+  drop_watch_lock "$KEY_DIR"
+}
+
 # .what = deliver each outbox entry, oldest first; drop the watches whose clone died
 # .why  = a refused alert waits for the clone, never forced (F8); oldest first
 #         keeps the clone's read in the order events happened
 # .note = a watch marked ended is deleted once its outbox is empty
 set_watch_outbox_drained() {
-  local entry stem record root serial watch_id text tries rc held=""
+  local entry stem record root serial watch_id text tries rc held="" held_cause=""
   # .note = the entries ride fd 4, so no read in the loop can drain them from stdin
   while IFS= read -r -u 4 entry; do
     [[ -f "$entry" ]] || continue
@@ -518,7 +531,7 @@ set_watch_outbox_drained() {
     # a clone that held one alert this tick holds the rest too: its later alerts
     # wait in order, and a wedged clone costs one bound per tick, not one per alert
     if [[ $'\n'"$held"$'\n' == *$'\n'"$serial"$'\n'* ]]; then
-      jq --argjson tries "$((tries + 1))" '.tries = $tries' "$entry" | set_watch_file_atomic "$entry"
+      set_watch_outbox_entry_held "$entry" "$((tries + 1))" "$held_cause"
       continue
     fi
     [[ "$tries" != "0" ]] && text="$(as_watch_alert_text_held "$text" "$tries")"
@@ -536,8 +549,9 @@ set_watch_outbox_drained() {
       continue
     fi
     held="$held"$'\n'"$serial"
+    held_cause="$WATCH_SAY_CAUSE"
     tries=$((tries + 1))
-    jq --argjson tries "$tries" '.tries = $tries' "$entry" | set_watch_file_atomic "$entry"
+    set_watch_outbox_entry_held "$entry" "$tries" "$held_cause"
     [[ $((tries % 10)) -eq 0 ]] && log_watch "alert for $stem held $tries ticks"
   done 4< <(get_all_watch_outbox_entries)
 

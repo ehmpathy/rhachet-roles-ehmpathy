@@ -52,10 +52,18 @@ done
 check_watch_enum_arg "$SKILL" --output "$OUTPUT" tree json
 WATCH_OUTPUT="$OUTPUT"
 
-# .what = how many alerts one watch holds, unsent
-# .note = a glob with no match counts 0; the outbox dir lands only with the first alert
-get_watch_held_count() {
-  get_all_watch_outbox_entries_of_record "$1" | grep -c . || true
+# .what = the alerts one watch holds, unsent: how many, the most ticks one waited, and why
+# .why  = "11 held" alone hides a clone that can never take a say; the cause names it
+# .note = a glob with no match holds none; the outbox dir lands only with the first alert
+# .note = an entry that does not parse counts as held, with no ticks and no cause
+get_watch_held_json() {
+  local entry
+  while IFS= read -r entry; do
+    [[ -n "$entry" ]] || continue
+    jq -c '{ tries: (.tries // 0), cause: (.cause // null) }' "$entry" 2>/dev/null \
+      || echo '{"tries":0,"cause":null}'
+  done < <(get_all_watch_outbox_entries_of_record "$1") \
+    | jq -s -c '{ held: length, heldTicks: ([.[].tries] | max // 0), heldCause: ([.[].cause | select(. != null)] | last // null) }'
 }
 
 # .what = one watch's summary row, read from its record, as compact json
@@ -64,7 +72,7 @@ get_watch_held_count() {
 get_watch_summary_json() {
   local record="$1" held="$2"
   jq -c --argjson held "$held" \
-    '{ repo, pr, cloneSerial, cloneSlug, repoRoot, primed, held: $held, ended: (.ended // null) }' "$record" 2>/dev/null \
+    '{ repo, pr, cloneSerial, cloneSlug, repoRoot, primed } + $held + { ended: (.ended // null) }' "$record" 2>/dev/null \
     || jq -n -c --arg record "$record" '{ unreadable: true, record: $record }'
 }
 
@@ -82,7 +90,7 @@ get_watch_daemon_marks_json() {
 get_all_watch_summaries_json() {
   local dir="$1" record
   while IFS= read -r record; do
-    [[ -n "$record" ]] && get_watch_summary_json "$record" "$(get_watch_held_count "$record")"
+    [[ -n "$record" ]] && get_watch_summary_json "$record" "$(get_watch_held_json "$record")"
   done < <(get_all_watch_records "$dir") | jq -s -c '.'
 }
 
@@ -139,7 +147,10 @@ get_watch_unwell_log_path() {
 # .what = print one tree block per key: daemon line, home, then each watch
 # .why  = the tree shape lives in one render, so the orchestrator reads as narrative
 print_watch_daemons_tree() {
-  jq -r '
+  jq -r --argjson named "$WATCH_HELD_NAMED_TICKS" '
+  def held: if .held == 0 then ""
+    elif .heldTicks >= $named then " · \(.held) held, \(.heldTicks) ticks: \(.heldCause // "no cause given")"
+    else " · \(.held) held" end;
   def tick: if .lastTickSecondsAgo == null then "never ticked" else "last tick \(.lastTickSecondsAgo)s ago" end;
   def pid: if .pid == null then "no pid" else "pid \(.pid)" end;
   to_entries as $all
@@ -155,7 +166,7 @@ print_watch_daemons_tree() {
        ($d.watches | to_entries[] | .key as $j | .value as $w
          | (if $j == ($d.watches | length) - 1 then "└─" else "├─" end) as $wb
          | if $w.unreadable then "\($under)   \($wb) unreadable record: \($w.record)"
-           else "\($under)   \($wb) \($w.repo)#\($w.pr) → @:\($w.cloneSlug) (\($w.repoRoot | split("/") | last))\(if $w.held > 0 then " · \($w.held) held" else "" end)\(if ($w.ended // null) != null then " · ended" else "" end)\(if $w.primed then "" else " · not yet primed" end)" end)
+           else "\($under)   \($wb) \($w.repo)#\($w.pr) → @:\($w.cloneSlug) (\($w.repoRoot | split("/") | last))\($w | held)\(if ($w.ended // null) != null then " · ended" else "" end)\(if $w.primed then "" else " · not yet primed" end)" end)
      end)
 ' <<<"$1"
 }
@@ -185,6 +196,13 @@ fi
 # a paused daemon reads naught until its token is back; name the fix for its status
 PAUSED="$(jq -r '[.[] | select(.paused != null)][0].paused // empty' <<<"$DAEMONS")"
 [[ -n "$PAUSED" ]] && print_watch_paused_coconut "$PAUSED"
+
+# an alert held this long will not reach its clone by a say; name where it lands
+if [[ "$(jq --argjson named "$WATCH_HELD_NAMED_TICKS" 'any(.[].watches[]; (.heldTicks // 0) >= $named)' <<<"$DAEMONS")" == "true" ]]; then
+  print_watch_coconut_steps "a held alert waits for its clone; the clone hears it at its next prompt" \
+    "the next prompt in that clone prints each held alert, oldest first, then clears it" \
+    "to see why the say refuses: rhx clone say --help"
+fi
 
 # a record that does not parse holds its watch; name the file and the cure
 UNREADABLE="$(get_watch_unreadable_record_path "$DAEMONS")"

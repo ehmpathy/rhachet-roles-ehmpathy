@@ -20,6 +20,8 @@ exports[`git.pull.watch faults given: [case4] a watch record that will not parse
           "repoRoot": "<root:surf-demo>",
           "primed": true,
           "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
           "ended": null
         },
         {
