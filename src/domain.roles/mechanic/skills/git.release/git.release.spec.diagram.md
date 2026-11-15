@@ -260,9 +260,18 @@
                               └──────┬──────┘
                                      │
                                      │ --mode apply
-                                     │ (gh pr merge --auto)
-                                     │
                                      ▼
+                              ┌──────────────────┐     no fresh human approval
+                              │  REVIEW GATE     │──────────────────────────────▶ ✋ exit 2
+                              │  (feature pr     │     (prior automerge disabled first)
+                              │   only; release  │
+                              │   pr ungated)    │──────────────────────────────▶ 💥 exit 1
+                              └────────┬─────────┘     reviews or head unread
+                                       │ approved at head H
+                                       │ gh pr merge --auto --match-head-commit H
+                                       │ (release pr: unpinned)
+                                       │ head moved since H ───────────────────▶ ✋ exit 2
+                                       ▼
                               ┌─────────────┐
                               │   ADDED     │
                               │             │

@@ -26,7 +26,7 @@ if [[ $(needs_rebase "$status_json") == "true" ]]; then
 fi
 
 # malfunction error: gh command failed
-if ! enable_automerge "$pr_number"; then
+if ! enable_automerge pr_number="$pr_number" head_sha="$head_sha"; then
   # error already went to stderr from gh
   exit 1
 fi

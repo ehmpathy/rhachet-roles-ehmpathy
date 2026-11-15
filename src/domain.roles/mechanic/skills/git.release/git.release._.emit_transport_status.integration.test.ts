@@ -1,6 +1,6 @@
 import { given, then, when } from 'test-fns';
 
-import { genGhMockExecutable } from './.test/infra/mockGh';
+import { genGhMockExecutable, MOCK_FEAT_HEAD_SHA } from './.test/infra/mockGh';
 import { runOperation, setupTestEnv } from './.test/infra/setupTestEnv';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
@@ -254,7 +254,7 @@ describe('emit_transport_status', () => {
         const result = runOperation(env, {
           operation: 'emit_transport_status',
           functionName: 'emit_transport_status',
-          args: ['pr', '42', 'true', 'false', 'false', ''],
+          args: ['pr', '42', 'true', 'false', 'false', '', MOCK_FEAT_HEAD_SHA],
         });
 
         const output = asSnapshotReadyWithAnsi(result.stdout);
@@ -264,6 +264,36 @@ describe('emit_transport_status', () => {
         env.cleanup();
       });
     });
+
+    when(
+      '[t1] emit_transport_status is called with apply=true and no head',
+      () => {
+        then('fails loud: a merge with no head named is never written', () => {
+          const env = setupTestEnv();
+          genGhMockExecutable({
+            mockBinDir: env.mockBinDir,
+            stateDir: env.stateDir,
+            options: {
+              priorReleaseTitle: 'chore(release): v1.2.0',
+              featPr: 'passed:wout-automerge',
+            },
+          });
+
+          const result = runOperation(env, {
+            operation: 'emit_transport_status',
+            functionName: 'emit_transport_status',
+            args: ['pr', '42', 'true', 'false', 'false', ''],
+          });
+
+          expect(result.status).toBe(1);
+          expect(result.stderr).toContain(
+            'enable_automerge on pr #42 got no head_sha',
+          );
+
+          env.cleanup();
+        });
+      },
+    );
   });
 
   // ============================================================================

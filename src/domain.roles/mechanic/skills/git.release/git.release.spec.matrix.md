@@ -350,6 +350,30 @@ apply mode requires git.commit.uses permission (locally or globally).
 
 ---
 
+## review gate and automerge lease
+
+a commit quota grants commits and pushes, never a merge. apply on an unmerged feature pr reads its reviews first.
+
+| feature pr reviews | plan | --watch | apply |
+|--------------------|------|---------|-------|
+| human APPROVED on the head | proceed | proceed | pin merge to the head, hold lease, watch |
+| none, bot-only, comments-only, changes requested, dismissed | proceed | proceed | exit 2: names the pr, asks for a human review; disarms any automerge |
+| approval on an older commit | proceed | proceed | exit 2: the head needs a fresh review |
+| reviews or head unread | proceed | proceed | exit 1: naught merged |
+
+| while the lease holds (apply, gate approved, not yet merged) | outcome |
+|---------------------------------------------------------------|---------|
+| head moved after the gate | exit 2, automerge disarmed |
+| approval revoked on the same head (changes requested, dismissed) | exit 2, automerge disarmed, cause named |
+| head moved before the pinned merge call | exit 2, naught merged |
+| checks red, timeout, rebase needed | exit 2, automerge disarmed |
+| any other exit: gh error, kill, ctrl-c, SIGTERM, SIGHUP | exit trap disarms automerge |
+| disarm fails | exit 1, names `gh pr merge N --disable-auto` |
+
+**note:** no flag lifts the gate. the release pr (main → prod) is not gated; its feature pr was. each poll (5–15s) re-reads the head and re-runs the judge, so drift or a revoked approval is disarmed within one poll interval. a repo with no required checks can merge a push inside that window, and SIGKILL cannot be trapped; only an org ruleset closes those.
+
+---
+
 ## argument validation
 
 ### input validation (exit 2 = constraint)

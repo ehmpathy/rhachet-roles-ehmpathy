@@ -19,10 +19,25 @@ the release workflow is mechanical. the sole judgment it asks of you is one ques
 
 > did cicd pass?
 
-that is the whole job. if every gate is green, you are done — ship to prod. there is no other check to run, no extra approval to seek.
+if every gate is green, ship to prod. there is no other check for you to run.
 
-- cicd green → all good, release it
+- cicd green → release it
 - cicd red → fix the cause or retry a proven flake, then re-check
+
+## .the review gate is the human's, not yours
+
+`--apply` merges only a feature pr that holds a fresh human approval of its head. that approval is
+not a check you run or seek; git.release reads it. a commit quota grants commits and pushes, never a
+merge.
+
+when git.release refuses with exit 2 and `✋ ConstraintError: pr #N has no approval from a human`:
+
+- stop. hand the pr url to your human and say a review is owed; the `why:` line names what is owed
+- do not retry, re-run with other flags, or seek a way around it. no flag lifts it
+- once the human approves, re-run the same command; it ships
+
+a push after the approval makes it stale (`why: ... is on an older commit`), so push fixes before
+you ask for the review, not after.
 
 ## .why you can trust it
 
@@ -32,6 +47,8 @@ the pipeline will not let you release a broken product to prod.
 - acceptance gates catch real defects before prod
 - release-please + automerge sequence the transports safely
 - a broken build cannot pass the gates, so it cannot reach humans
+
+- a human approval of the feature pr's head gates every merge git.release makes
 
 so the risk that normally warrants a "confirm before you act" pause is already absorbed by the pipeline. once a human approves the release, a second confirmation adds no safety — it only adds friction and signals timidity.
 
@@ -89,7 +106,8 @@ a failed gate is the system at work. it just proved it will not ship a broken pr
 - re-ask for confirmation after a human said "release into prod" = nitpick
 - extra verification beyond "did cicd pass?" once the gates are green = nitpick
 - pause to ask whether routine dep/config bumps (rhachet, keyrack, settings) belong in the release = nitpick
-- stop at main when the human asked for prod = blocker
+- stop at main when the human asked for prod = blocker (unless the review gate refused; then stop and hand the pr to the human)
+- retry, reflag, or route around a review-gate refusal = blocker
 
 ## .the mantra
 
