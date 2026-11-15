@@ -1,7 +1,7 @@
 # pr.title-body — #1205
 
-held here until a paved `git.pull.title` / `git.pull.description` verb ships (#1173). set both from
-this file verbatim: the title is the `## title` line, the body is all of `## body`. no human sets it.
+the source of #1205's title and body, set verbatim via `git.pull.title set` and
+`git.pull.description set`: the title is the `## title` line, the body is all of `## body`.
 
 ## title
 
@@ -43,6 +43,10 @@ a conflict stops loud (exit 2), names each file, and prints the next moves as pa
   `skills/` drop from the boot, budget unchanged (F13, F16)
 - `.github/workflows/.test.yml`: pnpm on the integration and acceptance runners, for the real lock
   refresh journeys
+- `.husky/check.timestamps.sh`: the pre-commit stamp scan skips a staged file whose blob equals
+  `MERGE_HEAD`'s, so a catchup merge commit can carry main's files; a stamp authored on this side,
+  or a hand edit of a carried file, still halts. clamped by `check.timestamps.integration.test.ts`
+  (red with the skip off, green with it on)
 - `package.json` + `pnpm-lock.yaml`: routine rhachet and role package bumps from commit `2259f19`,
   kept in place since a split needs a force push (F23)
 - `.agent/.actors/.../settings.of.grove.json`: a regenerated home path (`/home/camper`); a
