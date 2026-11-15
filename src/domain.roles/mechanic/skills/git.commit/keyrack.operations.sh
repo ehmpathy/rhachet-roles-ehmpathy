@@ -350,6 +350,33 @@ is_one_seaturtle_identity_clone() {
 }
 
 ######################################################################
+# get_all_seaturtle_identity_logins
+#
+# .what = the github logins of every seaturtle identity, as a json array
+# .why  = the LOGIN twin of the three predicates above, so the roster keeps
+#         one owner on this half too. a pr review names its author by login
+#         only; `ehm-seaturtle` reads `type: User` there, so no attribute
+#         marks it a robot, and only the roster can. a caller that listed
+#         these constants itself would be a second decision point that a new
+#         roster entry would miss.
+# .note = `seaturtle[bot]` is a commit-author NAME; the standard identity
+#         reviews through whatever account holds its pat, so this entry is
+#         belt-and-braces, never the sole mark. any `[bot]` login is already
+#         excluded by is_pr_approved_by_human. the app bot's login was read
+#         live (graphql viewer under a ghs_ token → `ehm-a-seaturtle[bot]`)
+#
+# usage: robot_logins=$(get_all_seaturtle_identity_logins)
+# returns: json array of logins, e.g. ["ehm-seaturtle","seaturtle[bot]",...]
+######################################################################
+get_all_seaturtle_identity_logins() {
+  jq -cn \
+    --arg clone "$SEATURTLE_CLONE_LOGIN" \
+    --arg standard "$SEATURTLE_STANDARD_NAME" \
+    --arg appbot "$SEATURTLE_APP_BOT_NAME" \
+    '[$clone, $standard, $appbot]'
+}
+
+######################################################################
 # assert_token_identity_in_sync
 #
 # .what = fail loud if an app token's live bot account does not match the

@@ -126,7 +126,7 @@ while [[ $# -gt 0 ]]; do
       echo "  --dirty block fail fast if unstaged changes (default)"
       echo "  --dirty allow allow release even with unstaged changes"
       echo ""
-      echo "  apply needs a human's APPROVED review on the feature pr (no flag lifts it)"
+      echo "  apply needs a human's approval review on the feature pr (no flag lifts it)"
       echo ""
       echo "  special circumstances only (footgun — prefer --into prod):"
       echo "  --from main   skip the feature branch, release whatever is on main"
@@ -722,13 +722,24 @@ if [[ "$GOAL_FROM" != "main" ]]; then
 
   # guard: a merge needs a human approval; apply mode only, no flag lifts it
   # .note = an already-merged pr has naught left to gate
+  # .note = the head read here is the one the gate judges AND the one the
+  #         merge pins (--match-head-commit); a push after the gate cannot merge
+  feat_head_sha=""
   if [[ "$MODE" == "apply" && $(is_pr_merged "$status_json") != "true" ]]; then
+    feat_head_sha=$(get_pr_head_sha pr_number="$pr_number") || feat_head_sha=""
     guard_result=0
-    guard_pr_has_human_approval "$pr_number" "$status_json" \
-      "🐚 git.release ${from_clause}--into $GOAL_INTO --mode apply --watch${retry_flag}" || guard_result=$?
+    guard_pr_has_human_approval \
+      pr_number="$pr_number" \
+      head_sha="$feat_head_sha" \
+      status_json="$status_json" \
+      command_line="🐚 git.release ${from_clause}--into $GOAL_INTO --mode apply --watch${retry_flag}" \
+      || guard_result=$?
     if [[ $guard_result -ne 0 ]]; then
       exit $guard_result
     fi
+
+    # approved: from here until a merge is seen, any exit disarms automerge
+    hold_automerge_lease pr_number="$pr_number"
   fi
 
   # print turtle header
@@ -750,11 +761,16 @@ if [[ "$GOAL_FROM" != "main" ]]; then
   # emit status via decomposed operation
   # note: use `|| status_result=$?` pattern to capture non-zero returns under set -e
   status_result=0
-  emit_transport_status "pr" "$pr_number" "$FLAG_APPLY" "$RETRY" "$WATCH" "$status_json" || status_result=$?
+  emit_transport_status "pr" "$pr_number" "$FLAG_APPLY" "$RETRY" "$WATCH" "$status_json" "$feat_head_sha" || status_result=$?
 
   # check for malfunction (exit 1) - propagate failloud
   if [[ $status_result -eq 1 ]]; then
     exit 1
+  fi
+
+  # the pinned head moved after the gate: refused, and no --retry lifts it
+  if [[ $status_result -eq 4 ]]; then
+    exit 2
   fi
 
   # if status returned constraint (exit 2), decide next action
@@ -779,13 +795,15 @@ if [[ "$GOAL_FROM" != "main" ]]; then
   skip_watch="false"
   if [[ $status_result -eq 3 ]]; then
     skip_watch="true"
+    drop_automerge_lease
   fi
 
   # watch if requested (watch/apply after retry is valid per blueprint)
   if [[ "$WATCH" == "true" || "$FLAG_APPLY" == "true" ]] && [[ "$skip_watch" != "true" ]]; then
     # note: use `|| watch_result=$?` pattern to capture non-zero returns under set -e
     watch_result=0
-    emit_transport_watch "pr" "$pr_number" || watch_result=$?
+    # .note = in apply mode the watch holds an automerge lease on the gated head
+    emit_transport_watch "pr" "$pr_number" "$feat_head_sha" || watch_result=$?
 
     if [[ $watch_result -ne 0 ]]; then
       exit $watch_result
@@ -794,6 +812,8 @@ if [[ "$GOAL_FROM" != "main" ]]; then
     # note: emit_transport_watch returns 0 when:
     # - PR is merged (success) → continue to next transport
     # - checks pass without automerge (success) → exit 0, hint already shown
+    # either way no automerge stays armed, so the lease is done
+    drop_automerge_lease
   fi
 
   # if not bound for prod, done here
@@ -955,11 +975,17 @@ if [[ "$GOAL_INTO" == "prod" ]]; then
   # emit status via decomposed operation
   # note: use `|| status_result=$?` pattern to capture non-zero returns under set -e
   status_result=0
-  emit_transport_status "pr" "$release_pr" "$FLAG_APPLY" "$RETRY" "$WATCH" "$release_status_json" || status_result=$?
+  # .note = the release pr carries no review gate (F1), so its merge is explicitly unpinned
+  emit_transport_status "pr" "$release_pr" "$FLAG_APPLY" "$RETRY" "$WATCH" "$release_status_json" "@unpinned" || status_result=$?
 
   # check for malfunction (exit 1) - propagate failloud
   if [[ $status_result -eq 1 ]]; then
     exit 1
+  fi
+
+  # a refused merge never falls through to the watch (unpinned today, so unreachable)
+  if [[ $status_result -eq 4 ]]; then
+    exit 2
   fi
 
   # if status returned constraint (exit 2), decide next action

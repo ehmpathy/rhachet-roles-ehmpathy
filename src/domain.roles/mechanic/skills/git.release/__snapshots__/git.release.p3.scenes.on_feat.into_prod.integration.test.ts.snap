@@ -415,10 +415,11 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 💤 Xs in await
    └─ ✨ found! after Xs
 
-🌊 release: 
+🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    ├─ 🌴 automerge enabled [added]
    └─ 🥥 let's watch
+      ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 1 left, Xs in action, Xs watched
       ├─ 💤 await automerge, Xs in action, Xs watched
@@ -449,7 +450,7 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 💤 Xs in await
    └─ ✨ found! after Xs
 
-🌊 release: 
+🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ [dim]hint: use --apply to enable automerge and watch[/dim]
@@ -469,12 +470,12 @@ exports[`git.release.p3.scenes.on_feat.into_prod scene.2: on feat branch, into p
    ├─ 💤 Xs in await
    └─ ✨ found! after Xs
 
-🌊 release: 
+🌊 release: chore(release): v1.3.0
    ├─ 👌 all checks passed
    ├─ 🌴 automerge unfound (use --apply to add)
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
-      └─ ✨ done! Xs in action, Xs watched
+      └─ ✨ done! Xm Ys in action, Xs watched
 "
 `;
 

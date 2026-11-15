@@ -1,0 +1,157 @@
+/**
+ * .what = the review gate's read, against the real github api, under the real
+ *         seaturtle token: no gh mock, no fixture reviews
+ *
+ * .why  = every other review-gate suite fakes `gh`, so none of them can prove
+ *         the two facts the gate stands on: that the skill's own token may read
+ *         pr reviews, and that the rest endpoint still returns the fields the
+ *         decision reads (`user.login`, `user.type`, `author_association`,
+ *         `state`, `submitted_at`). a token without pull-request read, or a
+ *         renamed field, would turn every apply into a refusal (or worse, the
+ *         filter into a pass). this suite reads one real pr whose reviews are
+ *         settled history
+ *
+ * .note = the subject is ehmpathy/rhachet-roles-ehmpathy#1022: merged, with an
+ *         APPROVED review by a human member and a COMMENTED review by the
+ *         seaturtle clone account. a merged pr's reviews do not change
+ */
+
+import { spawnSync } from 'child_process';
+import * as path from 'path';
+import { ConstraintError } from 'helpful-errors';
+import { genTempDir, given, then, useThen, when } from 'test-fns';
+
+// one real api call, with gh's own retry wrapper around it
+jest.setTimeout(60000);
+
+const SKILL_DIR = path.join(
+  __dirname,
+  '../../../../../dist/domain.roles/mechanic/skills/git.release',
+);
+const OPERATIONS_PATH = path.join(SKILL_DIR, 'git.release.operations.sh');
+
+const SUBJECT_REPO = 'https://github.com/ehmpathy/rhachet-roles-ehmpathy';
+const SUBJECT_PR = '1022';
+
+/**
+ * .what = the seaturtle token the skill itself would use
+ * .why  = the claim under test is "the skill's token can read reviews"; any
+ *         other token would prove a different claim. absent → fail loud
+ */
+const getSeaturtleToken = (): string => {
+  const token = process.env.EHMPATHY_SEATURTLE_GITHUB_TOKEN;
+  if (!token)
+    throw new ConstraintError(
+      'EHMPATHY_SEATURTLE_GITHUB_TOKEN is required for the real review read',
+      { hint: 'rhx keyrack unlock --owner ehmpath --env test' },
+    );
+  return token;
+};
+
+/**
+ * .what = run one function from the built git.release operations, for real
+ * .why  = exercises the shipped bash, not a copy of its jq; gh resolves
+ *         `{owner}/{repo}` from the cwd's origin remote, as it does in the skill
+ */
+const runOperation = (input: {
+  cwd: string;
+  call: string;
+  stdin: string | null;
+}): { stdout: string; stderr: string; status: number | null } => {
+  const result = spawnSync(
+    'bash',
+    ['-c', `source "${OPERATIONS_PATH}"; ${input.call}`],
+    {
+      cwd: input.cwd,
+      env: {
+        ...process.env,
+        SKILL_DIR,
+        GH_TOKEN: getSeaturtleToken(),
+      },
+      input: input.stdin ?? undefined,
+      encoding: 'utf-8',
+    },
+  );
+  return {
+    stdout: result.stdout ?? '',
+    stderr: result.stderr ?? '',
+    status: result.status,
+  };
+};
+
+describe('git.release.p10.reviews.real_boundary', () => {
+  given(
+    `[case1] the real github api, ${SUBJECT_REPO}#${SUBJECT_PR}, read under the seaturtle token`,
+    () => {
+      when('[t0] get_pr_reviews reads the pr', () => {
+        const read = useThen('the read runs once', async () => {
+          const cwd = genTempDir({ slug: 'p10-real-reviews', git: true });
+          spawnSync('git', ['remote', 'add', 'origin', SUBJECT_REPO], { cwd });
+          const result = runOperation({
+            cwd,
+            call: `get_pr_reviews ${SUBJECT_PR}`,
+            stdin: null,
+          });
+          return { cwd, result };
+        });
+
+        then('it exits 0: the skill token may read pr reviews', () => {
+          expect(read.result.stderr).toEqual('');
+          expect(read.result.status).toEqual(0);
+        });
+
+        then('every row carries the five fields the decision reads', () => {
+          const reviews = JSON.parse(read.result.stdout) as Array<
+            Record<string, unknown>
+          >;
+          expect(reviews.length).toBeGreaterThan(0);
+          reviews.forEach((row) =>
+            expect(Object.keys(row).sort()).toEqual(
+              ['association', 'login', 'state', 'submitted_at', 'type'].sort(),
+            ),
+          );
+        });
+
+        then('the human approval reads as a User with repo authority', () => {
+          const reviews = JSON.parse(read.result.stdout) as Array<{
+            login: string | null;
+            type: string | null;
+            association: string;
+            state: string;
+          }>;
+          const approvals = reviews.filter(
+            (row) => row.state === 'APPROVED' && row.type === 'User',
+          );
+          expect(approvals.length).toBeGreaterThan(0);
+          approvals.forEach((row) =>
+            expect(['OWNER', 'MEMBER', 'COLLABORATOR']).toContain(
+              row.association,
+            ),
+          );
+        });
+
+        then('the clone account reads as type User, so only the roster can mark it', () => {
+          const reviews = JSON.parse(read.result.stdout) as Array<{
+            login: string | null;
+            type: string | null;
+          }>;
+          const cloneRows = reviews.filter(
+            (row) => row.login === 'ehm-seaturtle',
+          );
+          expect(cloneRows.length).toBeGreaterThan(0);
+          cloneRows.forEach((row) => expect(row.type).toEqual('User'));
+        });
+
+        then('is_pr_approved_by_human decides the real rows as approved', () => {
+          const decided = runOperation({
+            cwd: read.cwd,
+            call: 'is_pr_approved_by_human "$(cat)"',
+            stdin: read.result.stdout,
+          });
+          expect(decided.status).toEqual(0);
+          expect(decided.stdout.trim()).toEqual('true');
+        });
+      });
+    },
+  );
+});
