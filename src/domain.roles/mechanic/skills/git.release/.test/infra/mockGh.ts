@@ -44,6 +44,39 @@ export type PrState =
 export type TagState = 'unfound' | 'inflight' | 'passed' | 'failed';
 
 /**
+ * .what = one review as the gate reads it (rest /pulls/{n}/reviews, flattened)
+ * .why = lets a scene declare who reviewed and what they decided
+ */
+export interface ReviewFixture {
+  login: string;
+  type: 'User' | 'Bot';
+  association: 'OWNER' | 'MEMBER' | 'COLLABORATOR' | 'CONTRIBUTOR' | 'NONE';
+  state: 'APPROVED' | 'CHANGES_REQUESTED' | 'COMMENTED' | 'DISMISSED';
+  submitted_at: string;
+}
+
+/**
+ * .what = the default review set: one human member approved
+ * .why = every extant apply scene predates the review gate and assumes a mergeable pr
+ */
+export const REVIEWS_APPROVED_BY_HUMAN: ReviewFixture[] = [
+  {
+    login: 'reef-keeper',
+    type: 'User',
+    association: 'MEMBER',
+    state: 'APPROVED',
+    submitted_at: '2026-01-01T00:00:00Z',
+  },
+];
+
+/**
+ * .what = render reviews as `gh api --paginate --jq '.[] | {...}'` prints them
+ * .why = one json object per line, the shape get_pr_reviews_json then slurps
+ */
+export const asGhReviewLines = (reviews: ReviewFixture[]): string =>
+  reviews.map((review) => JSON.stringify(review)).join('\n');
+
+/**
  * .what = scene config for test scenarios
  * .why = declarative specification of mock behavior
  */
@@ -113,6 +146,13 @@ export interface Scene {
    * workflow status for release workflow on timeout
    */
   awaitWorkflowStatus?: 'failed' | 'in_progress' | 'passed' | 'not_found';
+  /**
+   * reviews on the feature PR, or 'read-fails' to make the reviews call exit 1
+   * default: REVIEWS_APPROVED_BY_HUMAN
+   */
+  featPrReviews?: ReviewFixture[] | 'read-fails';
+  /** make `gh pr merge --disable-auto` exit 1 */
+  disableAutoFails?: boolean;
 }
 
 export interface MockGhOptions {
@@ -509,6 +549,12 @@ if [[ "\$1" == "pr" && "\$2" == "view" ]]; then
   exit 0
 fi
 
+# handle review read for the gate (default: one human member approved)
+if [[ "\$1" == "api" ]] && [[ "\$*" == *"/reviews"* ]]; then
+  echo '${asGhReviewLines(REVIEWS_APPROVED_BY_HUMAN)}'
+  exit 0
+fi
+
 # handle pr merge (enable automerge)
 if [[ "\$1" == "pr" && "\$2" == "merge" ]]; then
   echo "automerge enabled"
@@ -632,6 +678,14 @@ export const genSceneGhMock = (input: {
 
   // escape single quotes for bash
   const esc = (s: string) => s.replace(/'/g, "'\"'\"'");
+
+  // reviews on the feature pr (default: one human member approved)
+  const featPrReviewsReadFails = scene.featPrReviews === 'read-fails';
+  const featPrReviewLines = asGhReviewLines(
+    scene.featPrReviews === undefined || scene.featPrReviews === 'read-fails'
+      ? REVIEWS_APPROVED_BY_HUMAN
+      : scene.featPrReviews,
+  );
 
   return `#!/bin/bash
 set -euo pipefail
@@ -1016,8 +1070,29 @@ case "$CMD_KEY" in
     fi
     ;;
 
+  "api -X")
+    # review read for the gate (gh api -X GET --paginate .../pulls/N/reviews --jq ...)
+    if echo "$ALL_ARGS" | grep -q "/reviews"; then
+      ${featPrReviewsReadFails ? `echo "HTTP 502: Bad Gateway (mock)" >&2
+      exit 1` : `cat <<'REVIEWS_EOF'
+${featPrReviewLines}
+REVIEWS_EOF`}
+      exit 0
+    fi
+    echo "mock: unhandled gh $*" >&2
+    exit 1
+    ;;
+
   "pr merge")
     PR_NUM="$3"
+    # disable automerge: the gate's refusal path
+    if echo "$ALL_ARGS" | grep -q -- "--disable-auto"; then
+      ${scene.disableAutoFails ? `echo "GraphQL: could not disable auto-merge (mock)" >&2
+      exit 1` : `rm -f "$STATE_DIR/automerge-enabled-$PR_NUM"
+      touch "$STATE_DIR/automerge-disabled-$PR_NUM"
+      echo "auto-merge disabled"
+      exit 0`}
+    fi
     touch "$STATE_DIR/automerge-enabled-$PR_NUM"
     if [[ "$PR_NUM" == "${featPrNum}" ]]; then
       if has_feat_automerge_enabled "$PR_NUM" && is_passed "$PR_NUM"; then
@@ -1268,8 +1343,25 @@ fi
 # every key-selection branch below asks has(key), never -n on the value:
 # a key set to '' is a real response ("gh ran, found no rows"). see the lookup
 
-# distinguish "pr merge" subvariants: --auto vs direct merge
-if [[ "$CMD_KEY" == "pr merge" ]]; then
+# review read for the gate: "api reviews" key if taught, else one human member approved
+if [[ "$1" == "api" ]] && [[ "$ALL_ARGS" == *"/reviews"* ]]; then
+  if [[ "$(echo "$MOCK_RESPONSES" | jq -r 'has("api reviews")')" == "true" ]]; then
+    CMD_KEY="api reviews"
+  else
+    echo '${asGhReviewLines(REVIEWS_APPROVED_BY_HUMAN)}'
+    exit 0
+  fi
+fi
+
+# distinguish "pr merge" subvariants: --disable-auto vs --auto vs direct merge
+if [[ "$CMD_KEY" == "pr merge" ]] && [[ "$ALL_ARGS" == *"--disable-auto"* ]]; then
+  if [[ "$(echo "$MOCK_RESPONSES" | jq -r 'has("pr merge disable")')" == "true" ]]; then
+    CMD_KEY="pr merge disable"
+  else
+    echo "auto-merge disabled"
+    exit 0
+  fi
+elif [[ "$CMD_KEY" == "pr merge" ]]; then
   if [[ "$ALL_ARGS" == *"--auto"* ]]; then
     # check for "pr merge auto" key first, fallback to "pr merge"
     if [[ "$(echo "$MOCK_RESPONSES" | jq -r 'has("pr merge auto")')" == "true" ]]; then

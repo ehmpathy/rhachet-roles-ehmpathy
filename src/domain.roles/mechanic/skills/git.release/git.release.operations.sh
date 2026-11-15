@@ -197,13 +197,13 @@ get_latest_merged_release_pr_info() {
 # get PR status details (checks, automerge, merge state, title)
 #
 # usage: get_pr_status "42"
-# returns: JSON with statusCheckRollup, autoMergeRequest, mergeStateStatus, state, title
+# returns: JSON with statusCheckRollup, autoMergeRequest, mergeStateStatus, state, title, url
 ######################################################################
 get_pr_status() {
   local pr_number="$1"
   local result
 
-  result=$(_gh_with_retry gh pr view "$pr_number" --json statusCheckRollup,autoMergeRequest,mergeStateStatus,state,title)
+  result=$(_gh_with_retry gh pr view "$pr_number" --json statusCheckRollup,autoMergeRequest,mergeStateStatus,state,title,url)
   echo "$result"
 }
 
@@ -464,6 +464,87 @@ enable_automerge() {
   # actual error - failloud
   echo "$output" >&2
   return $exit_code
+}
+
+######################################################################
+# disable_automerge
+# turn off automerge on a PR via gh pr merge --disable-auto
+#
+# .why  = a pr that may not merge must not keep an automerge an earlier
+#         run left on; github would merge it once checks pass
+#
+# usage: disable_automerge "42"
+# returns: 0 on success, non-zero on failure (failloud to stderr)
+######################################################################
+disable_automerge() {
+  local pr_number="$1"
+
+  _gh_with_retry gh pr merge "$pr_number" --disable-auto > /dev/null
+}
+
+######################################################################
+# get_pr_reviews_json
+# read every review on a PR, flattened to the fields the gate decides on
+#
+# .why  = the rest endpoint carries user.type and author_association,
+#         which `gh pr view --json reviews` does not
+# .note = under --paginate, --jq runs once per page; so --jq only flattens
+#         each page to items, and `jq -s` gathers all pages into one array
+#
+# usage: get_pr_reviews_json "42"
+# returns: JSON array of { login, type, association, state, submitted_at }
+#          non-zero on query failure (failloud to stderr)
+######################################################################
+get_pr_reviews_json() {
+  local pr_number="$1"
+  local items
+
+  items=$(_gh_with_retry gh api -X GET --paginate "repos/{owner}/{repo}/pulls/$pr_number/reviews" \
+    --jq '.[] | {login: .user.login, type: .user.type, association: .author_association, state: .state, submitted_at: .submitted_at}') || return $?
+
+  echo "$items" | jq -s '.'
+}
+
+######################################################################
+# is_pr_approved_by_human
+# decide whether a PR holds an approval from a human with repo authority
+#
+# .what = approved iff, among reviews by authorized humans, some login's
+#         latest decisive review is APPROVED and none's is CHANGES_REQUESTED
+# .why  = a commit quota grants commits and pushes, never a merge; only a
+#         person who can answer for the change may approve it
+#
+# human     = not `type: Bot`, no `[bot]` in login, not a seaturtle roster login
+# authority = author_association OWNER, MEMBER, or COLLABORATOR
+# decisive  = APPROVED, CHANGES_REQUESTED, DISMISSED (COMMENTED is not)
+# latest    = by submitted_at, per login
+#
+# usage: is_pr_approved_by_human "$reviews_json"
+# returns: "true" or "false"
+######################################################################
+is_pr_approved_by_human() {
+  local reviews_json="$1"
+  local robot_logins
+
+  # robot roster from keyrack.operations.sh: accounts no attribute can mark
+  robot_logins=$(jq -cn \
+    --arg clone "$SEATURTLE_CLONE_LOGIN" \
+    --arg standard "$SEATURTLE_STANDARD_NAME" \
+    --arg appbot "$SEATURTLE_APP_BOT_NAME" \
+    '[$clone, $standard, $appbot]')
+
+  echo "$reviews_json" | jq -r --argjson robots "$robot_logins" '
+    [ .[]
+      | select(.type != "Bot")
+      | select((.login | contains("[bot]")) | not)
+      | select(.login as $l | ($robots | index($l)) | not)
+      | select(.association == "OWNER" or .association == "MEMBER" or .association == "COLLABORATOR")
+      | select(.state == "APPROVED" or .state == "CHANGES_REQUESTED" or .state == "DISMISSED")
+    ]
+    | group_by(.login)
+    | map(sort_by(.submitted_at) | last | .state)
+    | (any(. == "APPROVED") and all(. != "CHANGES_REQUESTED"))
+  '
 }
 
 ######################################################################
