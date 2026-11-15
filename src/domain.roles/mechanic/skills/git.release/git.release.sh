@@ -28,6 +28,9 @@
 # guarantee:
 #   - apply mode requires a git.release.uses stamp (global ∧ org ∧ local),
 #     spends one use per apply; a commit grant never ships
+#   - apply mode refuses (exit 2) a feature pr with no APPROVED review from a
+#     human with repo authority; bots, robots, outsiders do not count; no flag
+#     lifts it. an automerge left on by an earlier run is disabled on refusal
 #   - watches CI until complete or timeout (15 min)
 #   - surfaces errors with links and retry hints
 #
@@ -55,6 +58,7 @@ source "$SKILL_DIR/git.release._.emit_transport_status.sh"
 source "$SKILL_DIR/git.release._.emit_transport_watch.sh"
 source "$SKILL_DIR/git.release._.emit_one_transport_status_exitcode.sh"
 source "$SKILL_DIR/git.release._.and_then_await.sh"
+source "$SKILL_DIR/git.release._.guard_pr_has_human_approval.sh"
 
 ######################################################################
 # argument parse
@@ -121,6 +125,8 @@ while [[ $# -gt 0 ]]; do
       echo "  --retry       rerun failed workflows before watch"
       echo "  --dirty block fail fast if unstaged changes (default)"
       echo "  --dirty allow allow release even with unstaged changes"
+      echo ""
+      echo "  apply needs a human's APPROVED review on the feature pr (no flag lifts it)"
       echo ""
       echo "  special circumstances only (footgun — prefer --into prod):"
       echo "  --from main   skip the feature branch, release whatever is on main"
@@ -705,16 +711,28 @@ if [[ "$GOAL_FROM" != "main" ]]; then
   # get pr status for display
   status_json=$(get_pr_status "$pr_number")
 
+  # build --from clause if explicit branch specified
+  from_clause=""
+  if [[ "$GOAL_FROM" != "feat" && "$GOAL_FROM" != "main" ]]; then
+    from_clause="--from $GOAL_FROM "
+  fi
+
+  retry_flag=""
+  if [[ "$RETRY" == "true" ]]; then retry_flag=" --retry"; fi
+
+  # guard: a merge needs a human approval; apply mode only, no flag lifts it
+  # .note = an already-merged pr has naught left to gate
+  if [[ "$MODE" == "apply" && $(is_pr_merged "$status_json") != "true" ]]; then
+    guard_result=0
+    guard_pr_has_human_approval "$pr_number" "$status_json" \
+      "🐚 git.release ${from_clause}--into $GOAL_INTO --mode apply --watch${retry_flag}" || guard_result=$?
+    if [[ $guard_result -ne 0 ]]; then
+      exit $guard_result
+    fi
+  fi
+
   # print turtle header
   if [[ "$TURTLE_PRINTED" == "false" ]]; then
-    # build --from clause if explicit branch specified
-    from_clause=""
-    if [[ "$GOAL_FROM" != "feat" && "$GOAL_FROM" != "main" ]]; then
-      from_clause="--from $GOAL_FROM "
-    fi
-
-    retry_flag=""
-    if [[ "$RETRY" == "true" ]]; then retry_flag=" --retry"; fi
     if [[ "$MODE" == "apply" ]]; then
       print_turtle_header "cowabunga!"
       echo "🐚 git.release ${from_clause}--into $GOAL_INTO --mode apply --watch${retry_flag}"

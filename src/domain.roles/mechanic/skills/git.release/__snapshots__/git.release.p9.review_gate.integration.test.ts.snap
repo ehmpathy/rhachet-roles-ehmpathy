@@ -1,0 +1,50 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.release.p9.review_gate given: [case1] feature pr #42, checks passed, no reviews when: [t0] --into main --apply then: exit 2, names the pr, says a human approval is owed, naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ a merge needs a human's APPROVED review; a commit quota grants commits, never a merge
+   └─ ask your human to review: pr #42
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case1] feature pr #42, checks passed, no reviews when: [t1] --into prod --apply --dirty allow then: exit 2; --dirty allow does not lift; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into prod --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ a merge needs a human's APPROVED review; a commit quota grants commits, never a merge
+   └─ ask your human to review: pr #42
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case5] the review read fails when: [t0] --apply, no automerge on then: exit 1; MalfunctionError; naught merged 1`] = `
+"🐢 bummer dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ 💥 MalfunctionError: could not read the reviews on pr #42
+   ├─ without them, no human approval can be confirmed; naught was merged
+   └─ retry in a moment; if it persists, check the token can read pull requests
+"
+`;
+
+exports[`git.release.p9.review_gate given: [case7] unreviewed pr with automerge already on (an earlier run) when: [t0] --into main --apply then: automerge disabled, then exit 2; naught merged 1`] = `
+"🐢 hold up dude...
+
+🐚 git.release --into main --mode apply --watch
+
+🌊 release: feat(ocean): add surfboards
+   ├─ ✋ ConstraintError: pr #42 has no approval from a human
+   ├─ a merge needs a human's APPROVED review; a commit quota grants commits, never a merge
+   ├─ automerge was on; disabled, so github cannot merge it
+   └─ ask your human to review: pr #42
+"
+`;
