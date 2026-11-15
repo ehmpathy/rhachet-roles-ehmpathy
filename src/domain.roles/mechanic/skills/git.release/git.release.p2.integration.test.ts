@@ -671,7 +671,15 @@ const runSkill = (
   args: string[],
   env: { tempDir: string; fakeBinDir: string },
 ): { stdout: string; stderr: string; status: number } => {
-  // reviews read answers a human approval; the review gate is clamped in p9
+  /**
+   * .mock = gh reviews + head reads, via writeReviewsApprovedShim (.test/infra/mockGh.ts),
+   *         ahead of this suite's extant gh mock on PATH
+   * .why  = these cases clamp other release paths, not the review gate; a real
+   *         --apply would merge a real pr, so the reviews read answers a human
+   *         approval, the default a real reviewed pr holds
+   * .real = git.release.external.contracts.integration.test.ts (the real gh
+   *         reads); the gate's refusals live in git.release.p9.review_gate
+   */
   const { shimDir } = writeReviewsApprovedShim({
     tempDir: env.tempDir,
     mockBinDir: env.fakeBinDir,

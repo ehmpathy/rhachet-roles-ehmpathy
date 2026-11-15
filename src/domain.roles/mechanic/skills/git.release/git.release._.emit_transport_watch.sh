@@ -50,7 +50,8 @@ emit_transport_watch() {
     status_json=$(get_pr_status "$transport_ref") || status_json=""
     if [[ -z "$status_json" ]]; then
       print_watch_header
-      echo "      └─ 💥 MalfunctionError: could not read the status of pr #$transport_ref; the watch stops here"
+      _emit_watch_fault msg="      ├─ 💥 MalfunctionError: could not read the status of pr #$transport_ref before the first poll; the watch stops here"
+      _emit_watch_fault msg="      └─ retry in a moment; if it persists, check the token can read pull requests"
       return 1
     fi
     if [[ $(is_pr_merged "$status_json") == "true" ]]; then
@@ -103,6 +104,12 @@ _watch_pr_transport() {
   local test_iterations=0
   local now_seconds
 
+  # timeout after 15 minutes; GIT_RELEASE_WATCH_TIMEOUT_SECONDS shortens it, as
+  # GIT_RELEASE_POLL_INTERVAL sets the poll, so a test can reach the timeout exit
+  local watch_timeout_seconds="${GIT_RELEASE_WATCH_TIMEOUT_SECONDS:-900}"
+  local watch_timeout_label="15 minutes"
+  if [[ "$watch_timeout_seconds" != "900" ]]; then watch_timeout_label="${watch_timeout_seconds}s"; fi
+
   start_time=$(date +%s)
   ci_start_time="$start_time"
 
@@ -124,10 +131,10 @@ _watch_pr_transport() {
       fi
     fi
 
-    # timeout after 15 minutes
-    if [[ $elapsed -ge 900 ]]; then
+    # timeout
+    if [[ $elapsed -ge $watch_timeout_seconds ]]; then
       _release_automerge_lease pr_number="$pr_number" lease_head_sha="$lease_head_sha" || lease_result=1
-      print_watch_result "timeout"
+      print_watch_result "timeout" "$watch_timeout_label"
       if [[ $lease_result -ne 0 ]]; then return 1; fi
       return 2
     fi
@@ -149,7 +156,8 @@ _watch_pr_transport() {
     local status_json
     status_json=$(get_pr_status "$pr_number") || status_json=""
     if [[ -z "$status_json" ]]; then
-      echo "      └─ 💥 MalfunctionError: could not read the status of pr #$pr_number; the watch stops here"
+      _emit_watch_fault msg="      ├─ 💥 MalfunctionError: could not read the status of pr #$pr_number mid-watch; the watch stops here"
+      _emit_watch_fault msg="      └─ retry in a moment; if it persists, check the token can read pull requests"
       return 1
     fi
 
@@ -268,6 +276,25 @@ _watch_pr_transport() {
 }
 
 ######################################################################
+# _emit_watch_fault
+# .what = print a watch fault line (refusal, malfunction) to stdout and stderr
+# .why  = a fault is output (the tree on stdout) and an error (stderr), per
+#         rule.require.skill-output-streams; local to this file, so the watch
+#         renders the same whether or not the review gate file is sourced
+######################################################################
+_emit_watch_fault() {
+  local msg="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      msg=*) msg="${arg#msg=}" ;;
+    esac
+  done
+
+  echo "$msg"
+  echo "$msg" >&2
+}
+
+######################################################################
 # hold_automerge_lease / drop_automerge_lease
 # .what = bind the automerge lease to the process: from the gate's approval
 #         until a merge is seen, any exit (error, set -e abort, ctrl-c,
@@ -292,9 +319,9 @@ hold_automerge_lease() {
     esac
   done
   trap '_on_exit_release_automerge_lease' EXIT
-  trap '_on_signal_release_automerge_lease 130' INT
-  trap '_on_signal_release_automerge_lease 143' TERM
-  trap '_on_signal_release_automerge_lease 129' HUP
+  trap '_on_signal_release_automerge_lease 130 SIGINT' INT
+  trap '_on_signal_release_automerge_lease 143 SIGTERM' TERM
+  trap '_on_signal_release_automerge_lease 129 SIGHUP' HUP
 }
 drop_automerge_lease() {
   AUTOMERGE_LEASE_PR=""
@@ -323,10 +350,11 @@ _on_exit_release_automerge_lease() {
   local msg
   if disable_automerge pr_number="$pr_number"; then
     echo ""
-    echo "🌴 automerge disarmed on pr #$pr_number, so a later push cannot merge unreviewed (--apply re-arms it)"
+    echo "🌴 automerge disabled on pr #$pr_number, so a later push cannot merge unreviewed (--apply enables it again)"
     return 0
   fi
-  msg="⚠️ automerge is still on for pr #$pr_number and could not be disabled; disable it by hand now: gh pr merge $pr_number --disable-auto"
+  msg="💥 MalfunctionError: automerge is still on for pr #$pr_number and could not be disabled
+   └─ disable it by hand now: gh pr merge $pr_number --disable-auto"
   echo ""
   echo "$msg"
   echo "$msg" >&2
@@ -340,12 +368,13 @@ _on_exit_release_automerge_lease() {
 ######################################################################
 _on_signal_release_automerge_lease() {
   local signal_exit_code="$1"
+  local signal_name="$2"
 
   # a second ctrl-c mid-disarm must not abandon it
   trap '' INT TERM HUP
   if [[ -n "$AUTOMERGE_LEASE_PR" ]]; then
     echo ""
-    echo "🌴 disarm automerge on pr #$AUTOMERGE_LEASE_PR before exit..."
+    echo "🌴 interrupted ($signal_name); disable automerge on pr #$AUTOMERGE_LEASE_PR before exit..."
   fi
   _on_exit_release_automerge_lease || true
   exit "$signal_exit_code"
@@ -381,10 +410,12 @@ _release_automerge_lease() {
   # disarm, then settle the lease; a failed disarm keeps it, so the exit trap retries
   if disable_automerge pr_number="$pr_number"; then
     drop_automerge_lease
-    echo "      ├─ 🌴 automerge disarmed, so a later push cannot merge unreviewed (--apply re-arms it)"
+    echo "      ├─ 🌴 automerge disabled on pr #$pr_number, so a later push cannot merge unreviewed (--apply enables it again)"
     return 0
   fi
-  echo "      ├─ ⚠️ automerge is still on and could not be disabled; disable it by hand now: gh pr merge $pr_number --disable-auto"
+  # a status line, not the error: the exit trap retries once, and if that
+  # fails too, it prints the MalfunctionError with the hand fix
+  _emit_watch_fault msg="      ├─ 🌴 the disable of automerge on pr #$pr_number failed; one more try at exit"
   return 1
 }
 
@@ -411,7 +442,7 @@ _check_automerge_lease() {
   local head_now="" lease_result=0
   head_now=$(get_pr_head_sha pr_number="$pr_number") || head_now=""
   if [[ -z "$head_now" ]]; then
-    echo "      ├─ 💥 MalfunctionError: could not read the head commit of pr #$pr_number"
+    _emit_watch_fault msg="      ├─ 💥 MalfunctionError: could not read the head commit of pr #$pr_number"
     _release_automerge_lease pr_number="$pr_number" lease_head_sha="$lease_head_sha" || true
     echo "      └─ retry in a moment; if it persists, check the token can read pull requests"
     return 1
@@ -424,7 +455,8 @@ _check_automerge_lease() {
   fi
 
   # moved → disarm, refuse
-  echo "      ├─ ✋ ConstraintError: the head of pr #$pr_number moved after the review gate (approved ${lease_head_sha:0:7}, head now ${head_now:0:7})"
+  _emit_watch_fault msg="      ├─ ✋ ConstraintError: the head of pr #$pr_number moved after the review gate read it"
+  _emit_watch_fault msg="      ├─ why: the approval covers ${lease_head_sha:0:7}; the head is now ${head_now:0:7}"
   _release_automerge_lease pr_number="$pr_number" lease_head_sha="$lease_head_sha" || lease_result=1
   echo "      └─ re-run --apply; the gate judges the new head"
   if [[ $lease_result -ne 0 ]]; then return 1; fi
@@ -459,7 +491,7 @@ _check_automerge_lease_verdict() {
     verdict_now=$(is_pr_approved_by_human reviews_json="$reviews_now" head_sha="$head_now") || verdict_now=""
   fi
   if [[ -z "$verdict_now" ]]; then
-    echo "      ├─ 💥 MalfunctionError: could not re-read the reviews of pr #$pr_number"
+    _emit_watch_fault msg="      ├─ 💥 MalfunctionError: could not re-read the reviews of pr #$pr_number"
     _release_automerge_lease pr_number="$pr_number" lease_head_sha="$lease_head_sha" || true
     echo "      └─ retry in a moment; if it persists, check the token can read pull requests"
     return 1
@@ -470,8 +502,13 @@ _check_automerge_lease_verdict() {
 
   # approval lost → disarm, refuse, name the cause
   cause_now=$(get_review_gate_cause reviews_json="$reviews_now" head_sha="$head_now") || cause_now="no review from a human with repo authority approved it"
-  echo "      ├─ ✋ ConstraintError: pr #$pr_number lost its human approval after the review gate"
-  echo "      ├─ why: $cause_now"
+  # the gate's "no reviews yet" fits a pr never reviewed; here the gate saw an
+  # approval, so an empty set now means the reviews are gone
+  if [[ "$cause_now" == "no reviews yet" ]]; then
+    cause_now="the reviews on pr #$pr_number are gone; the approval the gate saw no longer exists"
+  fi
+  _emit_watch_fault msg="      ├─ ✋ ConstraintError: pr #$pr_number lost its human approval after the review gate"
+  _emit_watch_fault msg="      ├─ why: $cause_now"
   _release_automerge_lease pr_number="$pr_number" lease_head_sha="$lease_head_sha" || lease_result=1
   echo "      └─ ask your human to review again, then re-run --apply"
   if [[ $lease_result -ne 0 ]]; then return 1; fi

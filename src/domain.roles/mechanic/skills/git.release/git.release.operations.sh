@@ -605,9 +605,16 @@ enable_automerge() {
   local output
   local exit_code
 
+  # which path wrote the merge: auto (automerge on), or direct (free-tier fallback);
+  # a global, read by emit_transport_status to render the path it took
+  ENABLE_AUTOMERGE_VIA="auto"
+
   # a merge with no head named must not be written; fail loud
   if [[ -z "$head_sha" ]]; then
-    echo "💥 MalfunctionError: enable_automerge on pr #$pr_number got no head_sha (pass a sha, or @unpinned for the release pr)" >&2
+    # closes the caller's status tree, as _emit_head_moved_refusal does
+    local fault_msg="   └─ 💥 MalfunctionError: enable_automerge on pr #$pr_number got no head_sha (pass a sha, or @unpinned for the release pr)"
+    echo "$fault_msg"
+    echo "$fault_msg" >&2
     return 1
   fi
   local pin_args=()
@@ -632,7 +639,7 @@ enable_automerge() {
 
   # head moved after the gate read it: github refused the pinned merge
   if _is_gh_output_head_moved "$output"; then
-    _emit_head_moved_refusal pr_number="$pr_number"
+    _emit_head_moved_refusal pr_number="$pr_number" head_sha="$head_sha"
     return 2
   fi
 
@@ -647,17 +654,19 @@ enable_automerge() {
 
     if [[ $direct_exit_code -eq 0 ]]; then
       # direct merge succeeded
+      ENABLE_AUTOMERGE_VIA="direct"
       return 0
     fi
 
     # check for "clean status" on direct merge too
     if echo "$direct_output" | grep -qi "clean status"; then
+      ENABLE_AUTOMERGE_VIA="direct"
       return 0
     fi
 
     # head moved after the gate read it, on the direct merge too
     if _is_gh_output_head_moved "$direct_output"; then
-      _emit_head_moved_refusal pr_number="$pr_number"
+      _emit_head_moved_refusal pr_number="$pr_number" head_sha="$head_sha"
       return 2
     fi
 
@@ -690,15 +699,19 @@ _is_gh_output_head_moved() {
 #         re-run, so the gate judges the new head
 ######################################################################
 _emit_head_moved_refusal() {
-  local pr_number="" arg
+  local pr_number="" head_sha="" arg
   for arg in "$@"; do
     case "$arg" in
       pr_number=*) pr_number="${arg#pr_number=}" ;;
+      head_sha=*) head_sha="${arg#head_sha=}" ;;
     esac
   done
 
+  # header, why, fix: the same shape as the watch's head-moved refusal
   local msg
-  msg="   └─ ✋ ConstraintError: the head of pr #$pr_number moved after the review gate read it; naught was merged. re-run, and the gate judges the new head"
+  msg="   ├─ ✋ ConstraintError: the head of pr #$pr_number moved after the review gate read it; naught was merged
+   ├─ why: the approval covers ${head_sha:0:7}; github refused the merge of any other head
+   └─ re-run, and the gate judges the new head"
   echo "$msg"
   echo "$msg" >&2
 }
@@ -788,6 +801,9 @@ get_pr_head_sha() {
   head_sha=$(_gh_with_retry gh api -X GET "repos/{owner}/{repo}/pulls/$pr_number" --jq '.head.sha') || return $?
 
   # an empty head cannot be compared against; fail closed
+  # .note = stderr only, on purpose: callers capture stdout as the sha, so a
+  #         stdout line would read as a head. each caller renders the
+  #         qualified 💥 header to both streams
   if [[ -z "$head_sha" ]]; then
     echo "pr #$pr_number has no head sha" >&2
     return 1
@@ -827,7 +843,7 @@ _jq_review_gate_rules() {
       if .login == null then "the account was deleted"
       elif .type == "Bot" or (.login | contains("[bot]")) then "it is a bot"
       elif (.login as $l | ($robots | index($l)) != null) then "it is a robot account"
-      else "no authority on the repo (" + (.association | ascii_downcase) + ")"
+      else "no authority on the repo (association: " + (.association | ascii_downcase) + ")"
       end;
   '
 }

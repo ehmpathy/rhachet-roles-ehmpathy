@@ -172,6 +172,12 @@ export interface Scene {
   featPrReviewsAfterGate?: ReviewFixture[];
   /** make `gh pr merge --disable-auto` exit 1 */
   disableAutoFails?: boolean;
+  /**
+   * the repo refuses automerge (free tier): `gh pr merge --auto` exits 1 with
+   * "auto merge is not allowed", so the skill falls back to a direct merge
+   * default: false
+   */
+  automergeUnavailable?: boolean;
   /** make the feature pr head read (`.head.sha`) exit 1 */
   featPrHeadReadFails?: boolean;
   /**
@@ -200,6 +206,23 @@ export interface Scene {
   featPrViewBreaksAfterViews?: number;
   /** each feature pr `pr view` read sleeps this many seconds (to hold a watch open for a signal) */
   featPrViewSleepSeconds?: number;
+  /**
+   * the feature pr checks never finish and it never merges (to reach the watch timeout)
+   * default: false
+   */
+  featPrStaysInflight?: boolean;
+  /**
+   * the feature pr head read exits 1 after this many reads (gh down mid-watch);
+   * the gate reads once, so 1 = the first watch poll's head read breaks
+   * default: never
+   */
+  featPrHeadReadBreaksAfterReads?: number;
+  /**
+   * the feature pr reviews read exits 1 after this many reads (gh down mid-watch);
+   * the gate reads once, so 1 = the first watch poll's re-read breaks
+   * default: never
+   */
+  featPrReviewsReadBreaksAfterReads?: number;
 }
 
 export interface MockGhOptions {
@@ -868,6 +891,9 @@ has_release_automerge_enabled() {
 # this ensures watch sees "passed with automerge" before merge
 should_auto_merge_feat() {
   local pr_num="$1"
+  if [[ "${scene.featPrStaysInflight ? 'true' : 'false'}" == "true" ]]; then
+    return 1
+  fi
   if ! has_feat_automerge_enabled "$pr_num"; then
     return 1
   fi
@@ -1163,9 +1189,16 @@ case "$CMD_KEY" in
     #         wrongly put on the release pr would refuse, never pass on #${featPrNum}'s approval
     if echo "$ALL_ARGS" | grep -q "/pulls/${featPrNum}/reviews"; then
       ${featPrReviewsReadFails ? `echo "HTTP 502: Bad Gateway (mock)" >&2
-      exit 1` : scene.featPrReviewsAfterGate ? `REVIEW_READS=$(( $(cat "$STATE_DIR/review-reads" 2>/dev/null || echo 0) + 1 ))
+      exit 1` : `REVIEW_READS=$(( $(cat "$STATE_DIR/review-reads" 2>/dev/null || echo 0) + 1 ))
       echo "$REVIEW_READS" > "$STATE_DIR/review-reads"
-      if [[ "$REVIEW_READS" -gt 1 ]]; then
+      # gh down mid-watch: the re-read breaks, past a count
+      if [[ "$REVIEW_READS" -gt ${scene.featPrReviewsReadBreaksAfterReads ?? 999999} ]]; then
+        echo "HTTP 502: Bad Gateway (mock)" >&2
+        exit 1
+      fi
+      ${
+        scene.featPrReviewsAfterGate
+          ? `if [[ "$REVIEW_READS" -gt 1 ]]; then
         cat <<'REVIEWS_EOF'
 ${asGhReviewLines(scene.featPrReviewsAfterGate)}
 REVIEWS_EOF
@@ -1173,9 +1206,11 @@ REVIEWS_EOF
         cat <<'REVIEWS_EOF'
 ${featPrReviewLines}
 REVIEWS_EOF
-      fi` : `cat <<'REVIEWS_EOF'
+      fi`
+          : `cat <<'REVIEWS_EOF'
 ${featPrReviewLines}
-REVIEWS_EOF`}
+REVIEWS_EOF`
+      }`}
       exit 0
     fi
     if echo "$ALL_ARGS" | grep -q "/reviews"; then
@@ -1186,6 +1221,11 @@ REVIEWS_EOF`}
       ${scene.featPrHeadReadFails ? `echo "HTTP 502: Bad Gateway (mock)" >&2
       exit 1` : `HEAD_READS=$(( $(cat "$STATE_DIR/head-reads" 2>/dev/null || echo 0) + 1 ))
       echo "$HEAD_READS" > "$STATE_DIR/head-reads"
+      # gh down mid-watch: the head read breaks, past a count
+      if [[ "$HEAD_READS" -gt ${scene.featPrHeadReadBreaksAfterReads ?? 999999} ]]; then
+        echo "HTTP 502: Bad Gateway (mock)" >&2
+        exit 1
+      fi
       if [[ "$HEAD_READS" -gt ${scene.featPrHeadMovesAfterReads ?? 999999} ]]; then
         echo "${MOCK_PUSHED_HEAD_SHA}"
       else
@@ -1207,6 +1247,11 @@ REVIEWS_EOF`}
       echo "auto-merge disabled"
       exit 0`}
     fi
+    # free tier: the repo refuses automerge, so the skill falls back to a direct merge
+    ${scene.automergeUnavailable ? `if echo "$ALL_ARGS" | grep -q -- "--auto"; then
+      echo "GraphQL: Auto merge is not allowed for this repository (enablePullRequestAutoMerge) (mock)" >&2
+      exit 1
+    fi` : ''}
     # head pin: github refuses a merge pinned to a head that moved
     if [[ "$PR_NUM" == "${featPrNum}" ]] && echo "$ALL_ARGS" | grep -q -- "--match-head-commit"; then
       PINNED_HEAD=$(echo "$ALL_ARGS" | grep -oP -- '--match-head-commit \\K\\S+')

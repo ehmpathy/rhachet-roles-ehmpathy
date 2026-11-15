@@ -64,9 +64,11 @@ the `why:` line names what is owed: no reviews, changes requested, an approval o
 (push fixes before the review), a dismissed review, only comments, or an approval that does not
 count (a bot, a robot account, no repo authority).
 
-while an apply watch runs, it holds the approved head: if the head moves, or the watch ends short
-of a merge (checks red, rebase needed, timeout), it disarms automerge, so no unreviewed push can
-merge. `--apply` re-arms it after the gate re-judges the head.
+while an apply watch runs, it holds the approved head. each poll re-checks the head and the
+reviews: a moved head or a lost approval (changes requested, dismissed) disarms automerge and
+refuses. any other exit short of a merge (checks red, rebase needed, timeout, a gh fault, ctrl-c,
+SIGTERM) disarms it too, so no unreviewed push can merge. `--apply` re-arms it after the gate
+re-judges the head.
 
 ## .default: `--into prod`
 

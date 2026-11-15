@@ -118,8 +118,15 @@ _render_review_gate_refusal() {
   print_release_header "$(get_pr_title "$status_json")"
   echo "   ├─ ✋ ConstraintError: pr #$pr_number has no approval from a human"
   echo "   ├─ why: $cause"
-  echo "   ├─ a merge needs a human's approval review; a commit quota grants commits, never a merge"
-  _render_automerge_line automerge_state="$automerge_state"
+  echo "   ├─ rule: a merge needs a human's approval review; a commit quota grants commits, never a merge"
+  _render_failed_checks_line status_json="$status_json"
+  _render_automerge_line pr_number="$pr_number" automerge_state="$automerge_state"
+
+  # one order: red checks are fixed first, so the human reviews code that passes
+  if [[ "$(_count_failed_checks status_json="$status_json")" -gt 0 ]]; then
+    echo "   └─ fix the failed checks (rhx show.gh.test.errors), then ask your human to review: ${url:-pr #$pr_number}"
+    return 0
+  fi
   echo "   └─ ask your human to review: ${url:-pr #$pr_number}"
 }
 
@@ -156,7 +163,7 @@ _render_review_gate_malfunction() {
   # the next move: a hand disable when automerge is stuck on, else a retry
   local hint="retry in a moment; if it persists, check the token can read pull requests"
   if [[ "$automerge_state" == "still-on" ]]; then
-    hint="disable it by hand now: gh pr merge $pr_number --disable-auto"
+    hint="automerge is still on, so github may merge it; disable it by hand now: gh pr merge $pr_number --disable-auto"
   fi
 
   print_turtle_header "bummer dude..."
@@ -164,8 +171,11 @@ _render_review_gate_malfunction() {
   echo ""
   print_release_header "$(get_pr_title "$status_json")"
   echo "   ├─ $cause"
-  echo "   ├─ $consequence"
-  _render_automerge_line automerge_state="$automerge_state"
+  echo "   ├─ why: $consequence"
+  # when the header already names the stuck automerge, say it once
+  if [[ "$read_state" != "ok" ]]; then
+    _render_automerge_line pr_number="$pr_number" automerge_state="$automerge_state"
+  fi
   echo "   └─ $hint"
 }
 
@@ -176,19 +186,59 @@ _render_review_gate_malfunction() {
 #         an unknown state says so, never reads as "off"
 ######################################################################
 _render_automerge_line() {
-  local automerge_state="" arg
+  local pr_number="" automerge_state="" arg
   for arg in "$@"; do
     case "$arg" in
+      pr_number=*) pr_number="${arg#pr_number=}" ;;
       automerge_state=*) automerge_state="${arg#automerge_state=}" ;;
     esac
   done
 
+  # the same words as the lease's line: one fact, one sentence
   case "$automerge_state" in
     off) ;;
-    disabled) echo "   ├─ automerge was on; disabled, so github cannot merge it" ;;
+    disabled) echo "   ├─ 🌴 automerge disabled on pr #$pr_number, so a later push cannot merge unreviewed (--apply enables it again)" ;;
     still-on) echo "   ├─ ⚠️ automerge is still on and could not be disabled; github may merge it" ;;
     *) echo "   ├─ ⚠️ automerge state unknown ($automerge_state); check the pr by hand" ;;
   esac
+}
+
+######################################################################
+# _render_failed_checks_line
+# .what = one tree line that names red checks on a refused pr, if any
+# .why  = the gate fires before the failure tree; without this line the
+#         human reviews a pr whose checks are red, and meets them a round late
+######################################################################
+_render_failed_checks_line() {
+  local status_json="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      status_json=*) status_json="${arg#status_json=}" ;;
+    esac
+  done
+
+  local failed
+  failed=$(_count_failed_checks status_json="$status_json")
+  if [[ "$failed" -gt 0 ]]; then
+    echo "   ├─ ⚓ $failed check(s) failed too"
+  fi
+}
+
+######################################################################
+# _count_failed_checks
+# .what = the number of failed checks on a pr status; 0 when unread
+######################################################################
+_count_failed_checks() {
+  local status_json="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      status_json=*) status_json="${arg#status_json=}" ;;
+    esac
+  done
+
+  local failed
+  failed=$(parse_check_counts "$status_json" | grep -oP 'failed:\K\d+') || failed=0
+  echo "${failed:-0}"
 }
 
 ######################################################################

@@ -1,3 +1,5 @@
+import * as fs from 'fs';
+import * as path from 'path';
 import { given, then, when } from 'test-fns';
 
 import { genGhMockExecutable } from './.test/infra/mockGh';
@@ -204,6 +206,51 @@ describe('emit_transport_watch', () => {
 
         env.cleanup();
       });
+    });
+  });
+
+  // ============================================================================
+  // case 5b: the status read fails, no lease (release pr, --watch alone)
+  // ============================================================================
+  given('[case5b] the pr status read fails, with no lease head', () => {
+    when('[t0] emit_transport_watch is called for a pr', () => {
+      then(
+        'exit 1, a MalfunctionError on both streams; never a silent done',
+        () => {
+          // .why = an unread status once read as "done!" (exit 0) on every
+          //        pr watch, the release pr included; it now fails closed
+          //        whether or not the review gate holds a lease
+          const env = setupTestEnv();
+          /**
+           * .mock = gh that cannot read any pr (an outage)
+           * .why  = the fault is the case; a real outage cannot be summoned
+           * .real = git.release.external.contracts: real gh, no credential, fails closed
+           */
+          fs.writeFileSync(
+            path.join(env.mockBinDir, 'gh'),
+            '#!/bin/bash\necho "gh: api unreachable (mock)" >&2\nexit 1\n',
+            { mode: 0o755 },
+          );
+
+          const result = runOperation(env, {
+            operation: 'emit_transport_watch',
+            functionName: 'emit_transport_watch',
+            args: ['pr', '100', ''],
+          });
+
+          expect(result.status).toBe(1);
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: could not read the status of pr #100 before the first poll',
+          );
+          expect(result.stderr).toContain(
+            'could not read the status of pr #100',
+          );
+          expect(result.stdout).not.toContain('done!');
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+
+          env.cleanup();
+        },
+      );
     });
   });
 

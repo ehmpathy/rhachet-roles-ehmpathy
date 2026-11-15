@@ -165,16 +165,29 @@ emit_transport_status() {
     local post_status
     post_status=$(get_pr_status "$transport_ref") || post_status=""
     if [[ -z "$post_status" ]]; then
-      echo "   └─ 💥 MalfunctionError: automerge armed on pr #$transport_ref, then its status could not be read"
+      # a fault is output and an error: both streams (rule.require.skill-output-streams)
+      local fault_msg="   ├─ 💥 MalfunctionError: automerge enabled on pr #$transport_ref, then its status could not be read"
+      local hint_msg="   └─ retry in a moment; if it persists, check the token can read pull requests"
+      echo "$fault_msg"
+      echo "$hint_msg"
+      echo "$fault_msg" >&2
+      echo "$hint_msg" >&2
       return 1
     fi
+    # the free-tier fallback merges directly; the tree says which path ran
+    local merge_via="${ENABLE_AUTOMERGE_VIA:-auto}"
     if [[ $(is_pr_merged "$post_status") == "true" ]]; then
       # one leaf: the arm and the instant merge are one event
+      if [[ "$merge_via" == "direct" ]]; then
+        echo "   └─ 🌴 automerge unavailable on this repo; merged directly [direct] -> and merged already"
+        return 3
+      fi
       echo "   └─ 🌴 automerge enabled [added] -> and merged already"
       return 3  # 3 = already merged, caller should skip watch
     fi
 
     automerge_added="true"
+    if [[ "$merge_via" == "direct" ]]; then automerge_added="direct"; fi
   fi
 
   # emit automerge line
@@ -239,7 +252,9 @@ _emit_automerge_line() {
   local flag_apply="$3"
   local is_last="${4:-false}"
 
-  if [[ "$automerge_added" == "true" ]]; then
+  if [[ "$automerge_added" == "direct" ]]; then
+    print_automerge_status "direct" "" "$is_last"
+  elif [[ "$automerge_added" == "true" ]]; then
     print_automerge_status "enabled" "just added" "$is_last"
   elif [[ "$automerge_status" == "found" ]]; then
     print_automerge_status "enabled" "" "$is_last"
