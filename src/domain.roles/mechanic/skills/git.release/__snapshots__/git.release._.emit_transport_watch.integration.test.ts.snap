@@ -1,0 +1,8 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`emit_transport_watch given: [case5b] the pr status read fails, with no lease head when: [t0] emit_transport_watch is called for a pr then: exit 1, a MalfunctionError on both streams; never a silent done 1`] = `
+"   └─ 🥥 let's watch
+      ├─ 💥 MalfunctionError: could not read the status of pr #100 before the first poll; the watch stops here
+      └─ retry in a moment; if it persists, check the token can read pull requests
+"
+`;

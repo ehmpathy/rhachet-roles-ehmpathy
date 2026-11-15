@@ -20,3 +20,9 @@
 | F16 | the gate and the lease disarm any automerge on the pr, not only the clone's | clean | best-guessed, awaits the commander | 85% |
 | F17 | the lease stays in the watch file under its current names; the move rides with F12 | clean | best-guessed, awaits the commander | 80% |
 | F18 | the gate's call site and operations keep the skill's extant idioms (inline mode check, per-function parser, per-renderer prologue) | clean | best-guessed, awaits the commander | 80% |
+| F19 | three conditional skips outside this pr's diff (`skipIf(CI)` ×2, `runIf(gh auth)`) stay out of it, under their extant dream | dirty | best-guessed, awaits the commander | 85% |
+| F20 | the gate's next-move lines stay inline tree branches, as every extant git.release hint does; no `🥥 did you know?` block | clean | best-guessed, awaits the commander | 75% |
+| F21 | the apply header (`🐢 cowabunga!`, printed before the outcome) stays as main has it; a fix that names the outcome is a caught dream | dirty | best-guessed, awaits the commander | 80% |
+| F22 | an unread pr status fails closed on every pr watch (release pr and `--watch` too), not only under the gate's lease; the p3 into_prod fixture's empty-body release pr becomes a real one | clean | best-guessed, awaits the commander | 80% |
+| F23 | the free-tier direct merge names its path (`merged directly [direct]`), so the locked p1 `[case2][t5]` line changes | clean | best-guessed, awaits the commander | 85% |
+| F24 | two shared renders stay out of this pr: the timeout tree's order, and an approval line on a green apply (caught as a dream) | dirty | best-guessed, awaits the commander | 80% |

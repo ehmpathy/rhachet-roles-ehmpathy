@@ -14,9 +14,11 @@ import { genTempDir, given, then, useThen, when } from 'test-fns';
  *         (rule.require.external-contract-integration-tests).
  *
  * .note = no credential is needed, on purpose, so the suite runs on every host
- *         and in ci. it drives the real service into the lack-of-creds state
- *         the rule requires at minimum. the positive read (a real approval on
- *         a real pr) needs a repo secret, and waits in
+ *         and in ci. case1 drives the real gh into the lack-of-creds state;
+ *         case3 reads a real approval on a real pr of this public repo, with
+ *         no credential, and runs the gate's filter and verdict over it. the
+ *         one read left unproven live is gh's own authed call (it needs the
+ *         repo secret EHMPATHY_SEATURTLE_GITHUB_TOKEN, absent in ci); it waits in
  *         .dream/2026_09_26.add-real-gh-contract-test-for-git-release.dream.md
  */
 describe('external contracts — the real reviews read behind the git.release gate', () => {
@@ -198,8 +200,8 @@ describe('external contracts — the real reviews read behind the git.release ga
             `source "${path.join(skillDir, '../git.commit/keyrack.operations.sh')}"`,
             `items=$(echo "$PAYLOAD" | jq -c "$GH_REVIEW_ITEMS_JQ" | jq -s '.')`,
             `echo "$items"`,
-            `is_pr_approved_by_human reviews_json="$items" head_sha="${HEAD}"`,
-            `is_pr_approved_by_human reviews_json="$items" head_sha="0000000000000000000000000000000000000000"`,
+            `echo "approved on head: $(is_pr_approved_by_human reviews_json="$items" head_sha="${HEAD}")"`,
+            `echo "approved on a head the review does not cover: $(is_pr_approved_by_human reviews_json="$items" head_sha="0000000000000000000000000000000000000000")"`,
           ].join('\n'),
           env: { ...process.env, PAYLOAD: payloadRecorded },
         }),
@@ -223,10 +225,176 @@ describe('external contracts — the real reviews read behind the git.release ga
         'a human member approval of the head is approved; of another head, not',
         () => {
           const lines = result.stdout.trim().split('\n');
-          expect(lines.slice(-2)).toEqual(['true', 'false']);
+          expect(lines.slice(-2)).toEqual([
+            'approved on head: true',
+            'approved on a head the review does not cover: false',
+          ]);
           expect(result.exitCode).toBe(0);
         },
       );
+
+      then('the frozen-payload transcript matches the snapshot', () => {
+        // the payload is frozen, so the filtered items + verdicts are stable;
+        // submitted_at is masked (the timestamp hook forbids raw stamps in
+        // snapshots) and pinned exact by the toEqual above
+        expect(
+          result.stdout.replace(
+            /"submitted_at": "[^"]+"/g,
+            '"submitted_at": "<masked>"',
+          ),
+        ).toMatchSnapshot();
+      });
+    });
+  });
+
+  given('[case3] the live reviews of a merged pr of this public repo', () => {
+    // .what = a real GET of the real endpoint, then the shipped --jq filter and
+    //         verdict over the live payload
+    // .why  = proves the success shape github sends today (user.login,
+    //         user.type, author_association, state, commit_id) still yields an
+    //         approval; a rename upstream turns this red, where case2 replays
+    //         a frozen string
+    // .note = this repo is public, so the reviews endpoint answers with no
+    //         credential. a token, where the host has one, only lifts the rate
+    //         limit; ci holds none (EHMPATHY_SEATURTLE_GITHUB_TOKEN is absent
+    //         there). pr #1022 is merged, so its reviews no longer change
+    const PR = 1022;
+    const HEAD = '94357083284d5c0ae4807561b295eb2c83a0e970';
+
+    /**
+     * .what = fetch the live reviews json; fail loud on any non-200
+     * .why  = a rate limit or outage must never read as a pass
+     */
+    const fetchReviewsLive = async (): Promise<string> => {
+      const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN ?? null;
+      const response = await fetch(
+        `https://api.github.com/repos/ehmpathy/rhachet-roles-ehmpathy/pulls/${PR}/reviews?per_page=100`,
+        {
+          headers: {
+            accept: 'application/vnd.github+json',
+            'user-agent': 'rhachet-roles-ehmpathy.git.release.contract-test',
+            ...(token ? { authorization: `Bearer ${token}` } : {}),
+          },
+        },
+      );
+      const body = await response.text();
+      if (response.status !== 200)
+        throw new MalfunctionError('the live reviews read did not answer 200', {
+          status: response.status,
+          body: body.slice(0, 300),
+          hint: 'a 403 with "rate limit" means the unauthenticated quota (60/hr per ip) ran out; retry later, or export GH_TOKEN',
+        });
+      return body;
+    };
+
+    when(
+      '[t0] the shipped --jq filter and verdict run over the live payload',
+      () => {
+        const result = useThen('the gate decides on live data', async () => {
+          const payloadLive = await fetchReviewsLive();
+          return runGateBash({
+            body: [
+              `source "${path.join(skillDir, '../git.commit/keyrack.operations.sh')}"`,
+              `items=$(echo "$PAYLOAD" | jq -c "$GH_REVIEW_ITEMS_JQ" | jq -s '.')`,
+              `echo "$items"`,
+              `echo "approved on head: $(is_pr_approved_by_human reviews_json="$items" head_sha="${HEAD}")"`,
+              `echo "approved on a head the review does not cover: $(is_pr_approved_by_human reviews_json="$items" head_sha="0000000000000000000000000000000000000000")"`,
+            ].join('\n'),
+            env: { ...process.env, PAYLOAD: payloadLive },
+          });
+        });
+
+        then('every live item carries each field the gate decides on', () => {
+          const items: Array<Record<string, unknown>> = JSON.parse(
+            result.stdout.split('\n').slice(0, -3).join('\n'),
+          );
+          expect(items.length).toBeGreaterThan(0);
+          items.forEach((item) => {
+            expect(Object.keys(item).sort()).toEqual(
+              [
+                'association',
+                'commit_id',
+                'login',
+                'state',
+                'submitted_at',
+                'type',
+              ].sort(),
+            );
+            expect(typeof item.state).toEqual('string');
+            expect(typeof item.association).toEqual('string');
+            expect(item.commit_id).toMatch(/^[0-9a-f]{40}$/);
+          });
+        });
+
+        then('a live human approval exists on the merged head', () => {
+          const items: Array<Record<string, unknown>> = JSON.parse(
+            result.stdout.split('\n').slice(0, -3).join('\n'),
+          );
+          expect(
+            items.some(
+              (item) =>
+                item.state === 'APPROVED' &&
+                item.type === 'User' &&
+                item.commit_id === HEAD,
+            ),
+          ).toBe(true);
+        });
+
+        then('the gate approves that head, and refuses any other head', () => {
+          const lines = result.stdout.trim().split('\n');
+          expect(lines.slice(-2)).toEqual([
+            'approved on head: true',
+            'approved on a head the review does not cover: false',
+          ]);
+          expect(result.exitCode).toBe(0);
+        });
+
+        then('the verdict tail matches the snapshot', () => {
+          // the live items may grow; the verdicts on a merged head may not
+          // a header names the live source, so the snap says which pr answered
+          const lines = result.stdout.trim().split('\n');
+          expect(
+            [
+              `pr #${PR} (live reviews, head ${HEAD.slice(0, 7)})`,
+              ...lines.slice(-2),
+            ].join('\n'),
+          ).toMatchSnapshot();
+        });
+      },
+    );
+
+    when('[t1] the live pr is read where get_pr_head_sha reads it', () => {
+      // .why = get_pr_head_sha runs `--jq '.head.sha'` on GET /pulls/N; the
+      //        gate, the pin, and the lease all trust that one field
+      const result = useThen('the live pr answers', async () => {
+        const token = process.env.GH_TOKEN ?? process.env.GITHUB_TOKEN ?? null;
+        const response = await fetch(
+          `https://api.github.com/repos/ehmpathy/rhachet-roles-ehmpathy/pulls/${PR}`,
+          {
+            headers: {
+              accept: 'application/vnd.github+json',
+              'user-agent': 'rhachet-roles-ehmpathy.git.release.contract-test',
+              ...(token ? { authorization: `Bearer ${token}` } : {}),
+            },
+          },
+        );
+        const body = await response.text();
+        if (response.status !== 200)
+          throw new MalfunctionError('the live pr read did not answer 200', {
+            status: response.status,
+            body: body.slice(0, 300),
+            hint: 'a 403 with "rate limit" means the unauthenticated quota (60/hr per ip) ran out; retry later, or export GH_TOKEN',
+          });
+        return runGateBash({
+          body: `echo "$PAYLOAD" | jq -r '.head.sha'`,
+          env: { ...process.env, PAYLOAD: body },
+        });
+      });
+
+      then('.head.sha is the 40-hex head the approval covers', () => {
+        expect(result.stdout.trim()).toEqual(HEAD);
+        expect(result.exitCode).toBe(0);
+      });
     });
   });
 });

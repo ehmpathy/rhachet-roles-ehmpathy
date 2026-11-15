@@ -22,6 +22,18 @@ import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
  * .why = clamps ehmpathy/rhachet-roles-ehmpathy#1339 — sdk-aws-lambda#79
  *        merged with zero reviews via `git.release --into prod --apply --dirty allow`
  * .vision = .behavior/v2026_11_15.fix-release-refuses-unreviewed-pr/1.vision.yield.md
+ *
+ * .mock = gh (and git push, rhachet keyrack), via a fake bin on PATH
+ *         (writeSceneGhMock in .test/infra/mockGh.ts); the skill itself is real
+ * .why  = each case needs a pr state github cannot be made to hold on demand
+ *         (a robot approval, a stale approval, a push mid-watch, a review read
+ *         that fails), and a real --apply would merge a real pr: the very harm
+ *         this gate exists to stop
+ * .real = git.release.external.contracts.integration.test.ts: the real gh
+ *         reviews read with no credential (fails closed), and a live read of
+ *         a real approval on a real pr through the shipped --jq filter +
+ *         verdict. the live merge pin against a moved head needs a sandbox
+ *         write grant a human holds; it is itemized as fulcrum F13
  */
 
 jest.setTimeout(150000);
@@ -245,6 +257,69 @@ const run = (input: {
 // ============================================================================
 
 describe('git.release.p9.review_gate', () => {
+  given('[case0] the incident replay, in one repo (E0)', () => {
+    when(
+      '[t0] route complete, --into prod --apply --dirty allow on an unreviewed pr; then a human approves; then the same command again',
+      () => {
+        then(
+          'the first run is refused with naught merged; the re-run ships to prod',
+          () => {
+            const sceneProd: Scene = {
+              branch: 'feat',
+              featPr: 'inflight',
+              transitions: true,
+              releasePr: 'passed:wout-automerge',
+              tagWorkflows: 'passed',
+            };
+            const args = ['--into', 'prod', '--apply', '--dirty', 'allow'];
+            const env = setupScene({
+              scene: { ...sceneProd, featPrReviews: REVIEWS_NONE },
+              slug: 'p9-c0-t0',
+            });
+            try {
+              // the incident: an unreviewed pr, a lift flag, a commit quota
+              const refused = runSkill({ args, env, envExtra: {} });
+              expect(refused.status).toEqual(2);
+              expect(refused.stdout).toContain(
+                '✋ ConstraintError: pr #42 has no approval from a human',
+              );
+              expect(isMergeCalled(refused.ghCalls)).toBe(false);
+
+              // the human approves on github: the same pr now holds an approval
+              const stateDirAfter = path.join(env.tempDir, '.mock-state-after');
+              fs.mkdirSync(stateDirAfter, { recursive: true });
+              writeSceneGhMock({
+                scene: sceneProd,
+                mockBinDir: env.fakeBinDir,
+                stateDir: stateDirAfter,
+              });
+
+              // the clone re-runs the same command; it ships
+              const shipped = runSkill({
+                args,
+                env: { ...env, stateDir: stateDirAfter },
+                envExtra: {},
+              });
+              expect(shipped.status).toEqual(0);
+              expect(shipped.stdout).not.toContain('no approval from a human');
+              expect(
+                getMergeCallsForPr({ ghCalls: shipped.ghCalls, prNumber: 42 }),
+              ).toHaveLength(1);
+              expect(shipped.stdout).toContain('publish.yml');
+              expect(
+                asSnapshotReadyWithAnsi(
+                  `${refused.stdout}\n--- after the human approves ---\n\n${shipped.stdout}`,
+                ),
+              ).toMatchSnapshot();
+            } finally {
+              env.cleanup();
+            }
+          },
+        );
+      },
+    );
+  });
+
   given('[case1] feature pr #42, checks passed, no reviews', () => {
     const scene: Scene = {
       branch: 'feat',
@@ -304,6 +379,7 @@ describe('git.release.p9.review_gate', () => {
         });
         expect(result.status).toEqual(2);
         expect(isMergeCalled(result.ghCalls)).toBe(false);
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -318,6 +394,7 @@ describe('git.release.p9.review_gate', () => {
         expect(isMergeCalled(result.ghCalls)).toBe(false);
         expect(result.stdout).not.toContain("let's watch");
         expect(result.stdout).not.toContain('💤');
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -329,7 +406,9 @@ describe('git.release.p9.review_gate', () => {
           args: ['--into', 'prod', '--apply', '--retry'],
         });
         expect(result.status).toEqual(2);
+        expect(result.stdout).toContain('pr #42 has no approval from a human');
         expect(isMergeCalled(result.ghCalls)).toBe(false);
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -348,6 +427,7 @@ describe('git.release.p9.review_gate', () => {
           expect(result.stdout).not.toContain('no approval from a human');
           expect(isMergeCalled(result.ghCalls)).toBe(true);
           expect(isDisableCalled(result.ghCalls)).toBe(false);
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         });
       });
     },
@@ -392,19 +472,19 @@ describe('git.release.p9.review_gate', () => {
         desc: 'outsider human on a public repo (association NONE)',
         reviews: [review({ login: 'drive-by-surfer', association: 'NONE' })],
         expectCause:
-          'why: the approval by @drive-by-surfer does not count: no authority on the repo (none)',
+          'why: the approval by @drive-by-surfer does not count: no authority on the repo (association: none)',
       },
       {
         slug: 'p9-c3-contributor',
         desc: 'past contributor with no current role',
         reviews: [review({ login: 'old-wave', association: 'CONTRIBUTOR' })],
         expectCause:
-          'why: the approval by @old-wave does not count: no authority on the repo (contributor)',
+          'why: the approval by @old-wave does not count: no authority on the repo (association: contributor)',
       },
     ];
 
-    cases.forEach((thisCase) => {
-      when(`[t0] --apply, approved by ${thisCase.desc}`, () => {
+    cases.forEach((thisCase, index) => {
+      when(`[t${index}] --apply, approved by ${thisCase.desc}`, () => {
         then(
           'exit 2; names why the approval does not count; naught merged',
           () => {
@@ -443,6 +523,7 @@ describe('git.release.p9.review_gate', () => {
         expect(result.status).toEqual(0);
         expect(result.stdout).not.toContain('no approval from a human');
         expect(isReviewReadCalled(result.ghCalls)).toBe(false);
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -452,6 +533,7 @@ describe('git.release.p9.review_gate', () => {
         expect(result.stdout).not.toContain('no approval from a human');
         expect(isReviewReadCalled(result.ghCalls)).toBe(false);
         expect(isMergeCalled(result.ghCalls)).toBe(false);
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -495,7 +577,7 @@ describe('git.release.p9.review_gate', () => {
         expect(result.stdout).toContain(
           '💥 MalfunctionError: could not read the reviews on pr #42',
         );
-        expect(result.stdout).toContain('automerge was on; disabled');
+        expect(result.stdout).toContain('automerge disabled on pr #42');
         expect(isMergeCalled(result.ghCalls)).toBe(false);
         expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
@@ -542,6 +624,7 @@ describe('git.release.p9.review_gate', () => {
           expect(result.status).toEqual(0);
           expect(isReviewReadCalled(result.ghCalls)).toBe(false);
           expect(result.stdout).not.toContain('MalfunctionError');
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         },
       );
     });
@@ -711,8 +794,8 @@ describe('git.release.p9.review_gate', () => {
       },
     ];
 
-    cases.forEach((thisCase) => {
-      when(`[t0] --apply, ${thisCase.desc}`, () => {
+    cases.forEach((thisCase, index) => {
+      when(`[t${index}] --apply, ${thisCase.desc}`, () => {
         then(
           thisCase.expectCause === null
             ? 'proceeds to merge'
@@ -730,6 +813,7 @@ describe('git.release.p9.review_gate', () => {
             if (thisCase.expectCause === null) {
               expect(result.status).toEqual(0);
               expect(isMergeCalled(result.ghCalls)).toBe(true);
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
               return;
             }
             expect(result.status).toEqual(2);
@@ -759,7 +843,7 @@ describe('git.release.p9.review_gate', () => {
           expect(result.status).toEqual(2);
           expect(isDisableCalled(result.ghCalls)).toBe(true);
           expect(result.stdout).toContain(
-            'automerge was on; disabled, so github cannot merge it',
+            'automerge disabled on pr #42, so a later push cannot merge unreviewed',
           );
           expect(isMergeCalled(result.ghCalls)).toBe(false);
           expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
@@ -804,6 +888,7 @@ describe('git.release.p9.review_gate', () => {
           });
           expect(isDisableCalled(result.ghCalls)).toBe(false);
           expect(result.stdout).not.toContain('no approval from a human');
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         });
       });
     },
@@ -812,7 +897,7 @@ describe('git.release.p9.review_gate', () => {
   given('[case8] the gate against other pr states', () => {
     when('[t0] checks failed, no reviews, --into main --apply', () => {
       then(
-        'the gate fires first: exit 2, the refusal, not the failure tree',
+        'the gate fires first: exit 2, the refusal names the red checks too',
         () => {
           const result = run({
             scene: {
@@ -827,10 +912,44 @@ describe('git.release.p9.review_gate', () => {
           expect(result.stdout).toContain(
             '✋ ConstraintError: pr #42 has no approval from a human',
           );
+          expect(result.stdout).toMatch(/├─ ⚓ \d+ check\(s\) failed too/);
+          expect(result.stdout).toContain(
+            '└─ fix the failed checks (rhx show.gh.test.errors), then ask your human to review:',
+          );
           expect(isMergeCalled(result.ghCalls)).toBe(false);
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         },
       );
     });
+
+    when(
+      '[t0a] an explicit --from <feature branch>, no reviews, --into main --apply',
+      () => {
+        then(
+          'the gate fires the same: exit 2, the refusal echoes --from',
+          () => {
+            // .why = an explicit --from names the feature path too; no
+            //        spelling of the source may route around the gate
+            const result = run({
+              scene: {
+                branch: 'feat',
+                featPr: 'passed:wout-automerge',
+                featPrReviews: REVIEWS_NONE,
+              },
+              slug: 'p9-c8-t0a',
+              args: ['--from', 'turtle/feature-x', '--into', 'main', '--apply'],
+            });
+            expect(result.status).toEqual(2);
+            expect(result.stdout).toContain(
+              '✋ ConstraintError: pr #42 has no approval from a human',
+            );
+            expect(result.stdout).toContain('--from turtle/feature-x');
+            expect(isMergeCalled(result.ghCalls)).toBe(false);
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+          },
+        );
+      },
+    );
 
     when('[t1] already merged, no reviews, --into main --apply', () => {
       then('naught left to gate: no review read, no refusal', () => {
@@ -845,6 +964,7 @@ describe('git.release.p9.review_gate', () => {
         });
         expect(isReviewReadCalled(result.ghCalls)).toBe(false);
         expect(result.stdout).not.toContain('no approval from a human');
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
   });
@@ -903,10 +1023,78 @@ describe('git.release.p9.review_gate', () => {
                 call.includes('--match-head-commit'),
               ),
             ).toBe(false);
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           },
         );
       },
     );
+
+    when(
+      '[t1] the repo refuses automerge (free tier), --into prod --apply',
+      () => {
+        then(
+          'the release pr falls back to a direct merge, unpinned; the tree names it',
+          () => {
+            // .why = the release pr passes @unpinned; its fallback must stay
+            //        unpinned, or every prod release on a free-tier repo stalls
+            const result = run({
+              scene: {
+                branch: 'feat',
+                featPr: 'passed:wout-automerge',
+                releasePr: 'passed:wout-automerge',
+                tagWorkflows: 'passed',
+                automergeUnavailable: true,
+              },
+              slug: 'p9-c9-t1',
+              args: ['--into', 'prod', '--apply'],
+            });
+            expect(result.status).toEqual(0);
+            const releaseMerges = getMergeCallsForPr({
+              ghCalls: result.ghCalls,
+              prNumber: 100,
+            });
+            expect(releaseMerges).toHaveLength(2);
+            expect(releaseMerges[0]).toContain('--auto');
+            expect(releaseMerges[1]).not.toContain('--auto');
+            releaseMerges.forEach((call) =>
+              expect(call).not.toContain('--match-head-commit'),
+            );
+            const featMerges = getMergeCallsForPr({
+              ghCalls: result.ghCalls,
+              prNumber: 42,
+            });
+            featMerges.forEach((call) =>
+              expect(call).toContain(
+                `--match-head-commit ${MOCK_FEAT_HEAD_SHA}`,
+              ),
+            );
+            expect(result.stdout).toContain('merged directly [direct]');
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+          },
+        );
+      },
+    );
+  });
+
+  given('[case10] a caller marked as human (F4: no exemption)', () => {
+    when('[t0] __I_AM_HUMAN=true, no reviews, --into main --apply', () => {
+      then('exit 2; the human marker does not lift the gate', () => {
+        const result = run({
+          scene: {
+            branch: 'feat',
+            featPr: 'passed:wout-automerge',
+            featPrReviews: REVIEWS_NONE,
+          },
+          slug: 'p9-c10-t0',
+          args: ['--into', 'main', '--apply'],
+          envExtra: { __I_AM_HUMAN: 'true' },
+        });
+        expect(result.status).toEqual(2);
+        expect(result.stdout).toContain('why: no reviews yet');
+        expect(isMergeCalled(result.ghCalls)).toBe(false);
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+      });
+    });
   });
 
   given('[case11] the merge is pinned to the head the gate judged', () => {
@@ -926,6 +1114,7 @@ describe('git.release.p9.review_gate', () => {
         expect(featMerges[0]).toContain(
           `--match-head-commit ${MOCK_FEAT_HEAD_SHA}`,
         );
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -948,6 +1137,12 @@ describe('git.release.p9.review_gate', () => {
           expect(result.stdout).toContain(
             '✋ ConstraintError: the head of pr #42 moved after the review gate read it; naught was merged',
           );
+          expect(result.stdout).toContain(
+            `why: the approval covers ${MOCK_FEAT_HEAD_SHA.slice(0, 7)}; github refused the merge of any other head`,
+          );
+          expect(result.stdout).toContain(
+            're-run, and the gate judges the new head',
+          );
           expect(result.stderr).toContain('moved after the review gate');
           expect(result.stdout).not.toContain('automerge enabled');
           expect(result.stdout).not.toContain('done!');
@@ -969,6 +1164,7 @@ describe('git.release.p9.review_gate', () => {
         });
         expect(result.status).toEqual(2);
         expect(result.stdout).toContain('moved after the review gate');
+        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
 
@@ -992,6 +1188,75 @@ describe('git.release.p9.review_gate', () => {
         expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
       });
     });
+
+    when(
+      '[t4] the repo refuses automerge (free tier), approved, --into main --apply',
+      () => {
+        then('the direct-merge fallback carries the same pin; merged', () => {
+          // .why = the fallback is a second merge call; a pin dropped there
+          //        would ship any head on a free-tier repo
+          const result = run({
+            scene: {
+              branch: 'feat',
+              featPr: 'passed:wout-automerge',
+              automergeUnavailable: true,
+            },
+            slug: 'p9-c11-t4',
+            args: ['--into', 'main', '--apply'],
+          });
+          expect(result.status).toEqual(0);
+          const featMerges = getMergeCallsForPr({
+            ghCalls: result.ghCalls,
+            prNumber: 42,
+          });
+          expect(featMerges).toHaveLength(2);
+          expect(featMerges[0]).toContain('--auto');
+          expect(featMerges[1]).not.toContain('--auto');
+          featMerges.forEach((call) =>
+            expect(call).toContain(`--match-head-commit ${MOCK_FEAT_HEAD_SHA}`),
+          );
+          expect(result.stdout).toContain(
+            'automerge unavailable on this repo; merged directly [direct]',
+          );
+          expect(result.stdout).not.toContain('automerge enabled [added]');
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+        });
+      },
+    );
+
+    when(
+      '[t5] free tier, and a push moves the head before the direct merge, --into main --apply',
+      () => {
+        then('exit 2; the direct merge is refused; naught merged', () => {
+          const result = run({
+            scene: {
+              branch: 'feat',
+              featPr: 'passed:wout-automerge',
+              automergeUnavailable: true,
+              featPrHeadAtMerge: 'pushedc0de0pushedc0de0pushedc0de0pushed0',
+            },
+            slug: 'p9-c11-t5',
+            args: ['--into', 'main', '--apply'],
+          });
+          expect(result.status).toEqual(2);
+          const featMerges = getMergeCallsForPr({
+            ghCalls: result.ghCalls,
+            prNumber: 42,
+          });
+          expect(featMerges).toHaveLength(2);
+          expect(featMerges[1]).not.toContain('--auto');
+          expect(featMerges[1]).toContain(
+            `--match-head-commit ${MOCK_FEAT_HEAD_SHA}`,
+          );
+          expect(result.stdout).toContain(
+            '✋ ConstraintError: the head of pr #42 moved after the review gate read it; naught was merged',
+          );
+          expect(result.stderr).toContain('moved after the review gate');
+          expect(result.stdout).not.toContain('done!');
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+        });
+      },
+    );
   });
 
   given(
@@ -1013,13 +1278,52 @@ describe('git.release.p9.review_gate', () => {
             });
             expect(result.status).toEqual(2);
             expect(result.stdout).toContain(
-              '✋ ConstraintError: the head of pr #42 moved after the review gate (approved feedc0d, head now b0a7c0d)',
+              '✋ ConstraintError: the head of pr #42 moved after the review gate read it',
             );
-            expect(result.stdout).toContain('automerge disarmed');
+            expect(result.stdout).toContain(
+              'why: the approval covers feedc0d; the head is now b0a7c0d',
+            );
+            expect(result.stderr).toContain(
+              '✋ ConstraintError: the head of pr #42 moved after the review gate read it',
+            );
+            expect(result.stdout).toContain('automerge disabled');
             expect(isDisableCalled(result.ghCalls)).toBe(true);
             expect(result.stdout).not.toContain('done!');
             expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           });
+        },
+      );
+
+      when(
+        '[t0a] a push moves the head after automerge is armed, and the disable fails',
+        () => {
+          then(
+            'exit 1, not 2: the stuck automerge outranks the refusal',
+            () => {
+              const result = run({
+                scene: {
+                  branch: 'feat',
+                  featPr: 'inflight',
+                  transitions: true,
+                  featPrHeadMovesAfterReads: 1,
+                  disableAutoFails: true,
+                },
+                slug: 'p9-c12-t0a',
+                args: ['--into', 'main', '--apply'],
+              });
+              expect(result.status).toEqual(1);
+              expect(result.stdout).toContain(
+                '✋ ConstraintError: the head of pr #42 moved after the review gate read it',
+              );
+              expect(result.stdout).toContain(
+                '💥 MalfunctionError: automerge is still on for pr #42 and could not be disabled',
+              );
+              expect(result.stdout).toContain(
+                'disable it by hand now: gh pr merge 42 --disable-auto',
+              );
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+            },
+          );
         },
       );
 
@@ -1042,7 +1346,7 @@ describe('git.release.p9.review_gate', () => {
               expect(result.status).toEqual(2);
               expect(result.stdout).toContain('check(s) failed');
               expect(result.stdout).toContain(
-                'automerge disarmed, so a later push cannot merge unreviewed',
+                'automerge disabled on pr #42, so a later push cannot merge unreviewed',
               );
               expect(isDisableCalled(result.ghCalls)).toBe(true);
               expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
@@ -1067,8 +1371,17 @@ describe('git.release.p9.review_gate', () => {
               args: ['--into', 'main', '--apply'],
             });
             expect(result.status).toEqual(1);
-            expect(result.stdout).toContain('automerge is still on');
-            expect(result.stdout).toContain('gh pr merge 42 --disable-auto');
+            expect(result.stdout).toContain(
+              '💥 MalfunctionError: automerge is still on for pr #42 and could not be disabled',
+            );
+            expect(result.stdout).toContain(
+              '└─ disable it by hand now: gh pr merge 42 --disable-auto',
+            );
+            expect(result.stdout).not.toContain('⚠️');
+            expect(result.stderr).toContain(
+              '💥 MalfunctionError: automerge is still on for pr #42',
+            );
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           });
         },
       );
@@ -1088,9 +1401,127 @@ describe('git.release.p9.review_gate', () => {
           expect(result.status).toEqual(2);
           expect(isDisableCalled(result.ghCalls)).toBe(false);
           expect(isReviewReadCalled(result.ghCalls)).toBe(false);
-          expect(result.stdout).not.toContain('automerge disarmed');
+          expect(result.stdout).not.toContain('automerge disabled');
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         });
       });
+
+      when(
+        '[t4] checks stay in progress past the watch timeout, --into main --apply',
+        () => {
+          then(
+            'the watch disarms automerge before the timeout exit; exit 2',
+            () => {
+              const result = run({
+                scene: {
+                  branch: 'feat',
+                  featPr: 'inflight',
+                  featPrStaysInflight: true,
+                },
+                slug: 'p9-c12-t4',
+                args: ['--into', 'main', '--apply'],
+                envExtra: { GIT_RELEASE_WATCH_TIMEOUT_SECONDS: '20' },
+              });
+              expect(result.status).toEqual(2);
+              expect(result.stdout).toContain('timeout');
+              expect(result.stdout).toContain(
+                'automerge disabled on pr #42, so a later push cannot merge unreviewed',
+              );
+              expect(isDisableCalled(result.ghCalls)).toBe(true);
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+            },
+          );
+        },
+      );
+
+      when(
+        '[t5] the status read fails right after automerge is armed, --into main --apply',
+        () => {
+          then(
+            'exit 1; MalfunctionError on both streams; the exit trap disarms',
+            () => {
+              const result = run({
+                scene: {
+                  branch: 'feat',
+                  featPr: 'passed:wout-automerge',
+                  featPrViewBreaksAfterViews: 1,
+                },
+                slug: 'p9-c12-t5',
+                args: ['--into', 'main', '--apply'],
+              });
+              expect(result.status).toEqual(1);
+              expect(result.stdout).toContain(
+                '💥 MalfunctionError: automerge enabled on pr #42, then its status could not be read',
+              );
+              expect(result.stderr).toContain(
+                '💥 MalfunctionError: automerge enabled on pr #42, then its status could not be read',
+              );
+              expect(isMergeCalled(result.ghCalls)).toBe(true);
+              expect(isDisableCalled(result.ghCalls)).toBe(true);
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+            },
+          );
+        },
+      );
+
+      when(
+        '[t6] the head read fails on a watch poll, --into main --apply',
+        () => {
+          then('exit 1; MalfunctionError names the head read; disarmed', () => {
+            const result = run({
+              scene: {
+                branch: 'feat',
+                featPr: 'inflight',
+                transitions: true,
+                featPrHeadReadBreaksAfterReads: 1,
+              },
+              slug: 'p9-c12-t6',
+              args: ['--into', 'main', '--apply'],
+            });
+            expect(result.status).toEqual(1);
+            expect(result.stdout).toContain(
+              '💥 MalfunctionError: could not read the head commit of pr #42',
+            );
+            expect(result.stderr).toContain(
+              '💥 MalfunctionError: could not read the head commit of pr #42',
+            );
+            expect(isDisableCalled(result.ghCalls)).toBe(true);
+            expect(result.stdout).not.toContain('done!');
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+          });
+        },
+      );
+
+      when(
+        '[t7] the reviews re-read fails on a watch poll, --into main --apply',
+        () => {
+          then(
+            'exit 1; MalfunctionError names the reviews re-read; disarmed',
+            () => {
+              const result = run({
+                scene: {
+                  branch: 'feat',
+                  featPr: 'inflight',
+                  transitions: true,
+                  featPrReviewsReadBreaksAfterReads: 1,
+                },
+                slug: 'p9-c12-t7',
+                args: ['--into', 'main', '--apply'],
+              });
+              expect(result.status).toEqual(1);
+              expect(result.stdout).toContain(
+                '💥 MalfunctionError: could not re-read the reviews of pr #42',
+              );
+              expect(result.stderr).toContain(
+                '💥 MalfunctionError: could not re-read the reviews of pr #42',
+              );
+              expect(isDisableCalled(result.ghCalls)).toBe(true);
+              expect(result.stdout).not.toContain('done!');
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+            },
+          );
+        },
+      );
     },
   );
 
@@ -1113,8 +1544,43 @@ describe('git.release.p9.review_gate', () => {
           expect(isMergeCalled(result.ghCalls)).toBe(true);
           expect(isDisableCalled(result.ghCalls)).toBe(true);
           expect(result.stdout).toContain(
-            'automerge disarmed on pr #42, so a later push cannot merge unreviewed',
+            'could not read the status of pr #42 before the first poll',
           );
+          expect(result.stdout).toContain(
+            'automerge disabled on pr #42, so a later push cannot merge unreviewed',
+          );
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+        });
+      });
+
+      when('[t0a] gh breaks on a poll inside the watch loop', () => {
+        then('exit 1, the mid-watch line, and the exit trap disarms', () => {
+          // .why = the in-loop status read is a second site; the pre-loop
+          //        read in [t0] does not reach it
+          const result = run({
+            scene: {
+              branch: 'feat',
+              featPr: 'inflight',
+              transitions: true,
+              featPrViewBreaksAfterViews: 3,
+            },
+            slug: 'p9-c13-t0a',
+            args: ['--into', 'main', '--apply'],
+          });
+          expect(result.status).toEqual(1);
+          expect(isMergeCalled(result.ghCalls)).toBe(true);
+          expect(isDisableCalled(result.ghCalls)).toBe(true);
+          expect(result.stdout).toContain(
+            '💥 MalfunctionError: could not read the status of pr #42 mid-watch',
+          );
+          expect(result.stderr).toContain(
+            'could not read the status of pr #42 mid-watch',
+          );
+          expect(result.stdout).not.toContain('before the first poll');
+          expect(result.stdout).toContain(
+            'automerge disabled on pr #42, so a later push cannot merge unreviewed',
+          );
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         });
       });
 
@@ -1134,57 +1600,102 @@ describe('git.release.p9.review_gate', () => {
             expect(result.status).toEqual(2);
             expect(result.stdout).toContain('check(s) failed');
             expect(isDisableCalled(result.ghCalls)).toBe(true);
-            expect(result.stdout).toContain('automerge disarmed on pr #42');
+            expect(result.stdout).toContain('automerge disabled on pr #42');
             expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
           });
         },
       );
 
-      when('[t2] SIGTERM mid-watch after automerge is armed', () => {
-        then('the signal trap disarms before the run dies', () => {
-          // .why = a harness timeout or ctrl-c must not leave automerge armed
-          const scene = setupScene({
-            scene: {
-              branch: 'feat',
-              featPr: 'inflight',
-              transitions: true,
-              // views land at ~3s, ~6s, ~9s: the 8s kill falls inside the first watch poll, after the arm
-              featPrViewSleepSeconds: 3,
-            },
-            slug: 'p9-c13-t2',
-          });
-          try {
-            const result = spawnSync(
-              'bash',
-              [SKILL_PATH, '--into', 'main', '--apply'],
-              {
-                cwd: scene.tempDir,
-                env: {
-                  ...process.env,
-                  PATH: /* .mock = gh, git, rhachet — contract in .test/infra/mockGh.ts */ `${scene.fakeBinDir}:${process.env.PATH}`,
-                  TERM: 'dumb',
-                  HOME: scene.tempDir,
-                  EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
-                  GIT_RELEASE_TEST_MODE: 'true',
+      [
+        { signal: 'INT', exitCode: 130, label: 'ctrl-c (SIGINT)' },
+        { signal: 'TERM', exitCode: 143, label: 'a harness timeout (SIGTERM)' },
+        { signal: 'HUP', exitCode: 129, label: 'a closed terminal (SIGHUP)' },
+      ].forEach(({ signal, exitCode, label }, index) =>
+        when(
+          `[t2.${index}] ${label} mid-watch after automerge is armed`,
+          () => {
+            then('the signal trap disarms before the run dies', () => {
+              // .why = no signal a human or harness sends may leave automerge armed
+              const scene = setupScene({
+                scene: {
+                  branch: 'feat',
+                  featPr: 'inflight',
+                  transitions: true,
+                  // each view sleeps 3s, so the signal lands inside the post-arm read
+                  featPrViewSleepSeconds: 3,
                 },
-                encoding: 'utf-8',
-                timeout: 8000,
-                killSignal: 'SIGTERM',
-              },
-            );
-            const debugLog = path.join(scene.stateDir, 'gh-debug.log');
-            const ghCalls = fs
-              .readFileSync(debugLog, 'utf-8')
-              .split('\n')
-              .filter(Boolean);
-            expect(result.signal ?? result.status).not.toEqual(0);
-            expect(isMergeCalled(ghCalls)).toBe(true);
-            expect(isDisableCalled(ghCalls)).toBe(true);
-          } finally {
-            scene.cleanup();
-          }
-        });
-      });
+                slug: `p9-c13-t2-${signal.toLowerCase()}`,
+              });
+              try {
+                // .note = the wrapper waits for the merge call in the gh log,
+                //         then signals the run's whole process group, as a
+                //         terminal does on ctrl-c; `set -m` gives the run its
+                //         own group, so the wrapper keeps the pipe open while
+                //         the trap writes. no fixed timer: host speed cannot
+                //         land the signal before the arm
+                const result = spawnSync(
+                  'bash',
+                  [
+                    '-c',
+                    [
+                      'set -m',
+                      'bash "$0" --into main --apply &',
+                      'pid=$!',
+                      'for _ in $(seq 1 600); do',
+                      '  if grep "^GH: pr merge" "$GH_LOG" 2>/dev/null | grep -qv -- "--disable-auto"; then break; fi',
+                      '  sleep 0.1',
+                      'done',
+                      'sleep 1',
+                      'kill -s "$SIG" -- "-$pid"',
+                      'wait "$pid"',
+                    ].join('\n'),
+                    SKILL_PATH,
+                  ],
+                  {
+                    cwd: scene.tempDir,
+                    env: {
+                      ...process.env,
+                      PATH: /* .mock = gh, git, rhachet — contract in .test/infra/mockGh.ts */ `${scene.fakeBinDir}:${process.env.PATH}`,
+                      TERM: 'dumb',
+                      HOME: scene.tempDir,
+                      EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
+                      GIT_RELEASE_TEST_MODE: 'true',
+                      GH_LOG: path.join(scene.stateDir, 'gh-debug.log'),
+                      SIG: signal,
+                    },
+                    encoding: 'utf-8',
+                    timeout: SKILL_SPAWN_TIMEOUT_MS,
+                  },
+                );
+                const debugLog = path.join(scene.stateDir, 'gh-debug.log');
+                const ghCalls = fs
+                  .readFileSync(debugLog, 'utf-8')
+                  .split('\n')
+                  .filter(Boolean);
+                expect(result.status).toEqual(exitCode);
+                expect(isMergeCalled(ghCalls)).toBe(true);
+                expect(isDisableCalled(ghCalls)).toBe(true);
+                expect(result.stdout).toContain(
+                  `🌴 interrupted (SIG${signal}); disable automerge on pr #42 before exit...`,
+                );
+                expect(result.stdout).toContain(
+                  '🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed',
+                );
+                // .note = the tree before the signal depends on host speed, so
+                //         the snapshot holds only the tail from the trap on
+                const stdoutFromTrap = result.stdout.slice(
+                  result.stdout.indexOf('🌴 interrupted'),
+                );
+                expect(
+                  asSnapshotReadyWithAnsi(stdoutFromTrap),
+                ).toMatchSnapshot();
+              } finally {
+                scene.cleanup();
+              }
+            });
+          },
+        ),
+      );
     },
   );
 
@@ -1216,6 +1727,9 @@ describe('git.release.p9.review_gate', () => {
               '✋ ConstraintError: pr #42 lost its human approval after the review gate',
             );
             expect(result.stdout).toContain('why: ');
+            expect(result.stderr).toContain(
+              '✋ ConstraintError: pr #42 lost its human approval after the review gate',
+            );
             expect(isMergeCalled(result.ghCalls)).toBe(true);
             expect(isDisableCalled(result.ghCalls)).toBe(true);
             expect(result.stdout).not.toContain('done!');
@@ -1243,6 +1757,7 @@ describe('git.release.p9.review_gate', () => {
           expect(result.stdout).toContain('was dismissed');
           expect(isDisableCalled(result.ghCalls)).toBe(true);
           expect(result.stdout).not.toContain('done!');
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         });
       });
 
@@ -1260,29 +1775,109 @@ describe('git.release.p9.review_gate', () => {
           });
           expect(result.status).toEqual(2);
           expect(result.stdout).toContain('lost its human approval');
+          expect(result.stdout).toContain(
+            'why: the reviews on pr #42 are gone; the approval the gate saw no longer exists',
+          );
+          expect(result.stdout).not.toContain('no reviews yet');
           expect(isDisableCalled(result.ghCalls)).toBe(true);
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
         });
       });
+
+      when(
+        '[t3] the approval is dismissed mid-watch, and the disable fails',
+        () => {
+          then(
+            'exit 1, not 2: the stuck automerge outranks the refusal',
+            () => {
+              const result = run({
+                scene: {
+                  branch: 'feat',
+                  featPr: 'inflight',
+                  transitions: true,
+                  featPrReviewsAfterGate: [review({ state: 'DISMISSED' })],
+                  disableAutoFails: true,
+                },
+                slug: 'p9-c14-t3',
+                args: ['--into', 'main', '--apply'],
+              });
+              expect(result.status).toEqual(1);
+              expect(result.stdout).toContain(
+                'pr #42 lost its human approval after the review gate',
+              );
+              expect(result.stdout).toContain(
+                '💥 MalfunctionError: automerge is still on for pr #42 and could not be disabled',
+              );
+              expect(result.stdout).toContain(
+                'disable it by hand now: gh pr merge 42 --disable-auto',
+              );
+              expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+            },
+          );
+        },
+      );
     },
   );
 
-  given('[case10] a caller marked as human (F4: no exemption)', () => {
-    when('[t0] __I_AM_HUMAN=true, no reviews, --into main --apply', () => {
-      then('exit 2; the human marker does not lift the gate', () => {
-        const result = run({
-          scene: {
-            branch: 'feat',
-            featPr: 'passed:wout-automerge',
-            featPrReviews: REVIEWS_NONE,
-          },
-          slug: 'p9-c10-t0',
-          args: ['--into', 'main', '--apply'],
-          envExtra: { __I_AM_HUMAN: 'true' },
+  given(
+    '[case15] a clone meets the refusal and reads its own brief (E24)',
+    () => {
+      // .why = a brief that says "no approval to seek" invites a workaround;
+      //        the briefs the clone boots must say stop and hand the pr up
+      const BRIEFS_DIR = path.join(
+        __dirname,
+        '../../../../../dist/domain.roles/mechanic/briefs/practices/work.flow/release',
+      );
+      const readBrief = (input: { name: string }): string =>
+        fs.readFileSync(path.join(BRIEFS_DIR, input.name), 'utf-8');
+
+      when(
+        '[t0] the booted .min of the release confidence rule is read',
+        () => {
+          then('it names the refusal, says stop, and forbids a retry', () => {
+            const brief = readBrief({
+              name: 'rule.require.git-release-confidence.md.min',
+            });
+            expect(brief).toContain('no approval from a human');
+            expect(brief).toContain('stop, hand the pr url to your human');
+            expect(brief).toContain('no retry, no reflag');
+            expect(brief).toContain(
+              'route around a review gate refusal = blocker',
+            );
+          });
+        },
+      );
+
+      when('[t1] the full release confidence rule is read', () => {
+        then('it says stop, hand up the url, and re-run once approved', () => {
+          const brief = readBrief({
+            name: 'rule.require.git-release-confidence.md',
+          });
+          expect(brief).toContain('stop. hand the pr url to your human');
+          expect(brief).toContain(
+            'once the human approves, re-run the same command',
+          );
+          expect(brief).toContain(
+            'retry, reflag, or route around a review-gate refusal = blocker',
+          );
         });
-        expect(result.status).toEqual(2);
-        expect(result.stdout).toContain('why: no reviews yet');
-        expect(isMergeCalled(result.ghCalls)).toBe(false);
       });
-    });
-  });
+
+      when('[t2] the git.release howto is read', () => {
+        then(
+          'its review gate usecase says stop and that no flag lifts it',
+          () => {
+            const brief = readBrief({ name: 'howto.git-release.[lesson].md' });
+            expect(brief).toContain('## .usecase 3: the review gate refuses');
+            expect(brief).toContain(
+              'stop; hand the url to your human and say a review is owed',
+            );
+            expect(brief).toContain(
+              'do not retry or reflag; no flag lifts the gate',
+            );
+          },
+        );
+      });
+    },
+  );
 });

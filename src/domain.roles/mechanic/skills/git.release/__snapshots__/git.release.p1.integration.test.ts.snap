@@ -124,7 +124,7 @@ exports[`git.release given: [case2] release to main (apply mode) when: [t5] auto
 
 🌊 release: feat(oceans): add reef protection
    ├─ 👌 all checks passed
-   ├─ 🌴 automerge enabled [added]
+   ├─ 🌴 automerge unavailable on this repo; merged directly [direct]
    └─ 🥥 let's watch
       ├─ 🫧 no runs inflight
       └─ ✨ done! Xs in action, Xs watched
@@ -759,7 +759,7 @@ exports[`git.release given: [case8] watch loop internals when: [t2] rebase requi
    └─ 🥥 let's watch
       ├─ ✨ done! Xs in action, Xs watched
       ├─ 🐚 but, needs rebase now
-      ├─ 🌴 automerge disarmed, so a later push cannot merge unreviewed (--apply re-arms it)
+      ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
       └─ [dim]hint: rhx git.branch.rebase begin[/dim]
 "
 `;
@@ -775,7 +775,7 @@ exports[`git.release given: [case8] watch loop internals when: [t2a] conflicts d
    └─ 🥥 let's watch
       ├─ ✨ done! Xs in action, Xs watched
       ├─ 🐚 but, needs rebase now, has conflicts
-      ├─ 🌴 automerge disarmed, so a later push cannot merge unreviewed (--apply re-arms it)
+      ├─ 🌴 automerge disabled on pr #42, so a later push cannot merge unreviewed (--apply enables it again)
       └─ [dim]hint: rhx git.branch.rebase begin[/dim]
 "
 `;

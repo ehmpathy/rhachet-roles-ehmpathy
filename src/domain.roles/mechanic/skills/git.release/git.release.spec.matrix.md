@@ -363,10 +363,10 @@ a commit quota grants commits and pushes, never a merge. apply on an unmerged fe
 
 | while the lease holds (apply, gate approved, not yet merged) | outcome |
 |---------------------------------------------------------------|---------|
-| head moved after the gate | exit 2, automerge disarmed |
-| approval revoked on the same head (changes requested, dismissed) | exit 2, automerge disarmed, cause named |
+| head moved after the gate | exit 2, automerge disabled |
+| approval revoked on the same head (changes requested, dismissed) | exit 2, automerge disabled, cause named |
 | head moved before the pinned merge call | exit 2, naught merged |
-| checks red, timeout, rebase needed | exit 2, automerge disarmed |
+| checks red, timeout, rebase needed | exit 2, automerge disabled |
 | any other exit: gh error, kill, ctrl-c, SIGTERM, SIGHUP | exit trap disarms automerge |
 | disarm fails | exit 1, names `gh pr merge N --disable-auto` |
 
