@@ -1467,6 +1467,34 @@ export const writeSimpleGhMock = (input: {
 };
 
 /**
+ * .what = write a gh shim that answers the reviews read with a human approval,
+ *         and hands every other gh call to the test's own gh mock
+ * .why = suites whose inline gh mocks predate the review gate still reach the
+ *        merge path; the gate itself is clamped in p9, so here a human approval
+ *        is the default, the same default genGhMockExecutable and genSimpleGhMock carry
+ * .note = put the returned dir AHEAD of the test's mock bin dir on PATH
+ */
+export const writeReviewsApprovedShim = (input: {
+  tempDir: string;
+  mockBinDir: string;
+}): { shimDir: string } => {
+  const shimDir = path.join(input.tempDir, '.fakebin-reviews');
+  fs.mkdirSync(shimDir, { recursive: true });
+  const shim = `#!/bin/bash
+# reviews read → a human approval; all else → the test's gh mock
+if [[ "$1" == "api" && "$*" == *"/reviews"* ]]; then
+  echo '${asGhReviewLines(REVIEWS_APPROVED_BY_HUMAN)}'
+  exit 0
+fi
+exec "${path.join(input.mockBinDir, 'gh')}" "$@"
+`;
+  const shimPath = path.join(shimDir, 'gh');
+  fs.writeFileSync(shimPath, shim);
+  fs.chmodSync(shimPath, '755');
+  return { shimDir };
+};
+
+/**
  * .what = write rhachet keyrack mock to disk
  * .why = keyrack.operations.sh requires rhachet at node_modules/.bin/rhachet
  *

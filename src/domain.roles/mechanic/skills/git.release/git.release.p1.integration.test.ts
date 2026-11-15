@@ -11,6 +11,7 @@ import {
 } from './.test/infra/asSkillExitStatus';
 import {
   writeGitCommitUsesPermission,
+  writeReviewsApprovedShim,
   writeRhachetMock,
   writeSimpleGhMock,
 } from './.test/infra/mockGh';
@@ -83,11 +84,16 @@ const runSkill = (
 ): { stdout: string; stderr: string; status: number } => {
   // note: pass EHMPATHY_SEATURTLE_GITHUB_TOKEN via env
   // keyrack returns env var value if already set, so no real keyrack fetch needed
+  // reviews read answers a human approval; the review gate is clamped in p9
+  const { shimDir } = writeReviewsApprovedShim({
+    tempDir: env.tempDir,
+    mockBinDir: env.fakeBinDir,
+  });
   const result = spawnSync('bash', [SKILL_PATH, ...args], {
     cwd: env.tempDir,
     env: {
       ...process.env,
-      PATH: /* .mock = gh, git, rhachet — contract in .test/infra/mockGh.ts */ `${env.fakeBinDir}:${process.env.PATH}`,
+      PATH: /* .mock = gh, git, rhachet — contract in .test/infra/mockGh.ts */ `${shimDir}:${env.fakeBinDir}:${process.env.PATH}`,
       TERM: 'dumb',
       HOME: env.tempDir,
       EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
@@ -2260,7 +2266,7 @@ exit 1
               cwd: tempDir,
               env: {
                 ...process.env,
-                PATH: `${fakeBinDir}:${process.env.PATH}`,
+                PATH: `${writeReviewsApprovedShim({ tempDir, mockBinDir: fakeBinDir }).shimDir}:${fakeBinDir}:${process.env.PATH}`,
                 TERM: 'dumb',
                 HOME: tempDir,
                 EHMPATHY_SEATURTLE_GITHUB_TOKEN: '', // explicitly empty
@@ -2328,7 +2334,7 @@ exit 1
             cwd: tempDir,
             env: {
               ...process.env,
-              PATH: `${fakeBinDir}:${process.env.PATH}`,
+              PATH: `${writeReviewsApprovedShim({ tempDir, mockBinDir: fakeBinDir }).shimDir}:${fakeBinDir}:${process.env.PATH}`,
               TERM: 'dumb',
             },
             encoding: 'utf-8',
@@ -2441,7 +2447,7 @@ esac
             cwd: tempDir,
             env: {
               ...process.env,
-              PATH: `${fakeBinDir}:${process.env.PATH}`,
+              PATH: `${writeReviewsApprovedShim({ tempDir, mockBinDir: fakeBinDir }).shimDir}:${fakeBinDir}:${process.env.PATH}`,
               TERM: 'dumb',
             },
             encoding: 'utf-8',
@@ -2785,7 +2791,7 @@ exit 1
               cwd: tempDir,
               env: {
                 ...process.env,
-                PATH: `${fakeBinDir}:${process.env.PATH}`,
+                PATH: `${writeReviewsApprovedShim({ tempDir, mockBinDir: fakeBinDir }).shimDir}:${fakeBinDir}:${process.env.PATH}`,
                 TERM: 'dumb',
                 HOME: tempDir,
                 EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
@@ -2920,7 +2926,7 @@ exit 1
               cwd: tempDir,
               env: {
                 ...process.env,
-                PATH: `${fakeBinDir}:${process.env.PATH}`,
+                PATH: `${writeReviewsApprovedShim({ tempDir, mockBinDir: fakeBinDir }).shimDir}:${fakeBinDir}:${process.env.PATH}`,
                 TERM: 'dumb',
                 HOME: tempDir,
                 EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
@@ -3049,7 +3055,7 @@ exit 1
               cwd: tempDir,
               env: {
                 ...process.env,
-                PATH: `${fakeBinDir}:${process.env.PATH}`,
+                PATH: `${writeReviewsApprovedShim({ tempDir, mockBinDir: fakeBinDir }).shimDir}:${fakeBinDir}:${process.env.PATH}`,
                 TERM: 'dumb',
                 HOME: tempDir,
                 EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',

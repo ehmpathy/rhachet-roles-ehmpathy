@@ -9,6 +9,7 @@ import {
   asSkillExitStatus,
   SKILL_SPAWN_TIMEOUT_MS,
 } from './.test/infra/asSkillExitStatus';
+import { writeReviewsApprovedShim } from './.test/infra/mockGh';
 import { genGitMockExecutable } from './.test/infra/mockGit';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
@@ -661,11 +662,16 @@ const runSkill = (
   args: string[],
   env: { tempDir: string; fakeBinDir: string },
 ): { stdout: string; stderr: string; status: number } => {
+  // reviews read answers a human approval; the review gate is clamped in p9
+  const { shimDir } = writeReviewsApprovedShim({
+    tempDir: env.tempDir,
+    mockBinDir: env.fakeBinDir,
+  });
   const result = spawnSync('bash', [SKILL_PATH, ...args], {
     cwd: env.tempDir,
     env: {
       ...process.env,
-      PATH: /* .mock = gh, git, rhachet — contract in .test/infra/mockGh.ts */ `${env.fakeBinDir}:${process.env.PATH}`,
+      PATH: /* .mock = gh, git, rhachet — contract in .test/infra/mockGh.ts */ `${shimDir}:${env.fakeBinDir}:${process.env.PATH}`,
       TERM: 'dumb',
       HOME: env.tempDir,
       EHMPATHY_SEATURTLE_GITHUB_TOKEN: 'fake-token',
