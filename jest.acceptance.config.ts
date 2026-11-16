@@ -29,6 +29,10 @@ const config: Config = {
   // .agent/ holds no tracked tests; it holds each actor's brain dir, whose
   // plugin caches ship their own foreign test suites
   testMatch: ['**/*.acceptance.test.ts', '!**/.yalc/**', '!**/.agent/**'],
+  // testMatch hides .agent/ tests, but the haste map still sees its files: a
+  // .snap there (e.g. one rmsafe sent to .agent/.cache/ trash) reads as an
+  // obsolete snapshot and fails the run. keep .agent/ out of the haste map too
+  modulePathIgnorePatterns: ['<rootDir>/.agent/'],
   setupFilesAfterEnv: ['./jest.acceptance.env.ts'],
 
   // use 50% of threads to leave headroom for other processes

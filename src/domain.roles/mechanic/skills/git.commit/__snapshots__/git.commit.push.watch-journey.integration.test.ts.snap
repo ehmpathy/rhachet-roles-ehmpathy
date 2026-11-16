@@ -1,0 +1,28 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.commit.push → git.pull.watch journey given: [case1] an enrolled clone on a feature branch of surf-demo when: [t0] the clone pushes, then test-unit fails on the pr then: one alert lands in the clone, with the failed check 1`] = `
+"🐢 bummer dude...
+
+🐚 git.pull.watch — ci failed on #1230
+   ├─ pr: ehmpathy/surf-demo#1230
+   ├─ check: test-unit (failure)
+   ├─ head: sha-123
+   ├─ url: https://github.com/ehmpathy/surf-demo/runs/931
+   └─ next: rhx show.gh.test.errors"
+`;
+
+exports[`git.commit.push → git.pull.watch journey given: [case1] an enrolled clone on a feature branch of surf-demo when: [t0] the clone pushes, then test-unit fails on the pr then: the push opens the pr and names the watch it set 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/wave-report ✓
+   ├─ pr: pr #1230 (created)
+   ├─ opened: as-human (gh cli login, fallback)
+   ├─ watch: set → @:mechanic (daemon v<key> pid <pid>, spawned)
+   └─ meter
+      └─ push: allowed
+
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;

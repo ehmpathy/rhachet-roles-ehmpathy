@@ -19,7 +19,7 @@ exports[`git.pull.comment (real github api) given: [case1] a keyed comment on a 
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.comment.get --pr 1039 --in ehmpathy/rhachet-roles-ehmpathy --auth as-human   # lists every row and its key
+      └─ rhx git.pull.comment.get --which 1039 --in ehmpathy/rhachet-roles-ehmpathy --auth as-human   # lists every row and its key
 ",
   "getFirst": "[
   {

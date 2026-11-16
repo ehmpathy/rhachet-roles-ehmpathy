@@ -66,6 +66,10 @@ const config: Config = {
     '!**/src/domain.roles/mechanic/skills/set.package/set.package.install.real.integration.test.ts',
     '!**/src/domain.roles/mechanic/skills/set.package/set.package.upgrade.real.integration.test.ts',
   ],
+  // testMatch hides .agent/ tests, but the haste map still sees its files: a
+  // .snap there (e.g. one rmsafe sent to .agent/.cache/ trash) reads as an
+  // obsolete snapshot and fails the run. keep .agent/ out of the haste map too
+  modulePathIgnorePatterns: ['<rootDir>/.agent/'],
   setupFilesAfterEnv: ['./jest.integration.env.ts'],
 
   // use 50% of threads to leave headroom for other processes

@@ -6,7 +6,7 @@
 #
 # usage:
 #   rhx git.pull.title get                             # this branch's pull
-#   rhx git.pull.title get --pr 69                     # a pull by number
+#   rhx git.pull.title get --which 69                     # a pull by number
 #   rhx git.pull.title get --into ./.temp/title.md     # the bare title, into a file to edit
 #   rhx git.pull.title.get --help                      # every flag
 #
@@ -30,10 +30,10 @@ INTO=""
 # .why  = --help is the one authoritative flag list; the file header names none
 help() {
   cat <<'EOF'
-usage: git.pull.title.get [--pr <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
+usage: git.pull.title.get [--which <n>] [--in <owner/name>] [--auth as-ehmpath|as-human] [--output tree|json|text] [--into <path>]
 
 options:
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --auth as-ehmpath|as-human   who reads (default: as-ehmpath)
   --output tree|json|text      the output shape (default: tree). via rhx, stdout opens with
@@ -54,11 +54,11 @@ while [[ $# -gt 0 ]]; do
   # split --flag=value into two args, so both forms parse one way
   [[ "$1" == --*=* ]] && set -- "${1%%=*}" "${1#*=}" "${@:2}"
   check_flag_has_value "$1" "$#" "${2:-}" "$SKILL" \
-    --skill --repo --role --pr --in --auth --output --into
+    --skill --repo --role --which --in --auth --output --into
   case "$1" in
     --skill|--repo|--role) shift 2 ;;
     --) shift ;;
-    --pr) PR="${2:-}"; shift 2 ;;
+    --which) PR="${2:-}"; shift 2 ;;
     --in) REPO_IN="${2:-}"; shift 2 ;;
     --auth) AUTH="${2:-}"; shift 2 ;;
     --output) OUTPUT="${2:-}"; shift 2 ;;

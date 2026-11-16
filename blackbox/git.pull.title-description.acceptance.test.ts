@@ -182,7 +182,7 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
         runViaRhachet({
           dir: scene.dir,
           skill: 'git.pull.description.set',
-          args: ['--pr', '7', '--from', '@stdin'],
+          args: ['--which', '7', '--from', '@stdin'],
           stdin:
             '🤖 Generated with [Claude Code](https://claude.com/claude-code)\n',
         }),
@@ -205,7 +205,7 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
         runViaRhachet({
           dir: scene.dir,
           skill: 'git.pull.description.get',
-          args: ['--pr', '7', '--into', '../outside-the-reef.md'],
+          args: ['--which', '7', '--into', '../outside-the-reef.md'],
         }),
       );
       then('it refuses with exit 2 and names the fix, on both streams', () => {
@@ -517,10 +517,10 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
             env: scene.stub.env,
           });
         const runs = {
-          noPull: run('git.pull.title', ['get', '--pr', '99']),
+          noPull: run('git.pull.title', ['get', '--which', '99']),
           foreignAuthor: run('git.pull.description', [
             'set',
-            '--pr',
+            '--which',
             '8',
             '--from',
             '@stdin',
@@ -529,7 +529,7 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
           ], 'a body for a pull a reef ranger opened'),
           foreignOrg: run('git.pull.title', [
             'get',
-            '--pr',
+            '--which',
             '8',
             '--in',
             'seaturtlecorp/surf-demo',
@@ -648,12 +648,12 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
         const ownAbsent = run('git.pull.title', ['get']);
         const peerSet = run(
           'git.pull.title',
-          ['set', '--pr', '7', '--in', 'ehmpathy/surf-demo', '--from', '@stdin', '--mode', 'apply'],
+          ['set', '--which', '7', '--in', 'ehmpathy/surf-demo', '--from', '@stdin', '--mode', 'apply'],
           'feat(lessons): book a dawn patrol lesson\n',
         );
         const mergedSet = run(
           'git.pull.title',
-          ['set', '--pr', '8', '--from', '@stdin', '--mode', 'apply'],
+          ['set', '--which', '8', '--from', '@stdin', '--mode', 'apply'],
           'feat(reports): sync the wave report, hourly\n',
         );
         return {
@@ -672,7 +672,7 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
         expect(result.ownAbsent.stdout).toContain('rhx git.commit.push --mode apply');
         expect(result.ownAbsent.stderr).toContain('ConstraintError');
       });
-      then('a peer pull set by --pr and --in lands', () => {
+      then('a peer pull set by --which and --in lands', () => {
         expect(result.peerSet.code).toBe(0);
         expect(result.peerSet.stdout).toContain('target: ehmpathy/surf-demo#7, title');
         expect(result.store.prs['7']!.title).toBe(
@@ -704,7 +704,7 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
           skill: 'git.pull.description',
           args: [
             'set',
-            '--pr',
+            '--which',
             '7',
             '--from',
             '@stdin',
@@ -764,7 +764,7 @@ describe('git.pull.title and git.pull.description, via rhachet', () => {
         runViaRhachet({
           dir: scene.dir,
           skill: 'git.pull.title',
-          args: ['get', '--pr', '7', '--auth', 'as-human'],
+          args: ['get', '--which', '7', '--auth', 'as-human'],
           env: scene.stub.env,
         }),
       );

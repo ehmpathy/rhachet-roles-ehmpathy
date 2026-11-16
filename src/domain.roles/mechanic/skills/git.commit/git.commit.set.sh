@@ -249,13 +249,15 @@ is_push_failed() {
 #        the trap and overwrites the real exit code (measured: a refusal's
 #        `exit 2` came out as `1`).
 fetch_robot_token() {
-  local err_file
+  local err_file status_file
   err_file=$(mktemp)
-  trap 'rm -f "${err_file:-}"' EXIT
+  status_file=$(mktemp)
+  trap 'rm -f "${err_file:-}" "${status_file:-}"' EXIT
 
-  ROBOT_TOKEN=$(fetch_github_token 2>"$err_file" || echo "")
+  ROBOT_TOKEN=$(fetch_github_token status_file="$status_file" 2>"$err_file" || echo "")
   TOKEN_FETCH_ERR=$(cat "$err_file")
-  rm -f "$err_file"
+  ROBOT_TOKEN_STATUS=$(cat "$status_file")
+  rm -f "$err_file" "$status_file"
 }
 
 ######################################################################
@@ -1031,6 +1033,7 @@ fi
 #         read hundreds of lines below (the plan tree and `--author`), so the
 #         move costs the happy path no work at all.
 ROBOT_TOKEN=""
+ROBOT_TOKEN_STATUS=""
 ROBOT_TOKEN_FETCHED=false
 if [[ "$AUTH" == "as-ehmpath" && "${NODE_ENV:-}" != "test" ]]; then
   # capture the keyrack error rather than discard it: a fetch miss soft-fails to
@@ -1264,6 +1267,8 @@ if [[ "$DO_PUSH" == true ]]; then
   if [[ "$ROBOT_TOKEN_FETCHED" == true ]]; then
     export SEATURTLE_PR_TOKEN_PREFETCHED=1
     export SEATURTLE_PR_TOKEN_VALUE="$ROBOT_TOKEN"
+    # the keyrack status rides along, so push.sh names the right fix (fill vs unlock)
+    export SEATURTLE_PR_TOKEN_STATUS="$ROBOT_TOKEN_STATUS"
   fi
   # capture the delegated exit code (not masked by a `|| echo`) so a failed
   # push/pr-open can propagate below — push.sh still emits its json error

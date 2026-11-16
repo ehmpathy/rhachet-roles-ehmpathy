@@ -73,7 +73,7 @@ describe('git.pull.comment (real github api)', () => {
         path.join(__dirname, `git.pull.comment.${verb}.sh`),
         '--in',
         REPO,
-        '--pr',
+        '--which',
         PR,
         '--auth',
         'as-human',

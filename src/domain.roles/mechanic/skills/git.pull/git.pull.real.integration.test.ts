@@ -136,7 +136,7 @@ describe('git.pull.title + git.pull.description (real github api)', () => {
         path.join(skillsDir, `git.pull.${noun}`, `git.pull.${noun}.set.sh`),
         '--in',
         REPO,
-        '--pr',
+        '--which',
         PR,
         '--auth',
         'as-human',

@@ -434,6 +434,7 @@ describe('getMechanicRole · every registered hook is reachable', () => {
         const hooks = [
           ...(ROLE_MECHANIC.hooks?.onBrain?.onBoot ?? []),
           ...(ROLE_MECHANIC.hooks?.onBrain?.onTool ?? []),
+          ...(ROLE_MECHANIC.hooks?.onBrain?.onTalk ?? []),
         ];
         return { commands: hooks.map((hook) => hook.command) };
       });

@@ -6,9 +6,9 @@
 #         is also its own skill, so both forms run one code path
 #
 # usage:
-#   rhx git.pull.comment get --pr 69
-#   rhx git.pull.comment set --pr 69 --key status --from ./status.md
-#   rhx git.pull.comment del --pr 69 --key status
+#   rhx git.pull.comment get --which 69
+#   rhx git.pull.comment set --which 69 --key status --from ./status.md
+#   rhx git.pull.comment del --which 69 --key status
 #   rhx git.pull.comment --help
 #
 # guarantee:

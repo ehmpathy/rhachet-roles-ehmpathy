@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`sessionstart.git-pull-watch, via the linked role given: [case1] a repo with the mechanic role linked, on a box with no watches when: [t2] the clone holds a watch record that will not parse then: the fault tree reads the same on each run 1`] = `
+"🐢 bummer dude...
+
+🐚 sessionstart.git-pull-watch
+   └─ 💥 MalfunctionError: 1 pr-watch record(s) of v<key> are unreadable; a watch of this clone may be unserved
+      └─ records: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v<key>/watches/
+
+🥥 did you know?
+   └─ to find the watch, pick one
+      ├─ see each watch: rhx git.pull.watch get
+      └─ rewatch a pr: rhx git.pull.watch set --which <n> --mode apply
+"
+`;
