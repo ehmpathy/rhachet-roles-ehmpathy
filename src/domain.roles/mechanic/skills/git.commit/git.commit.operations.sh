@@ -3012,15 +3012,21 @@ as_commit_message_with_sponsor() {
 # .why the exit status is kept = a failed fetch must never read as an empty
 #        token with no cause. a failure that wrote no stderr still names its
 #        exit status in TOKEN_FETCH_ERR, and any partial stdout is dropped.
+#
+# .why ROBOT_TOKEN_STATUS = the keyrack status of the get (granted | locked |
+#        absent | blocked, or empty); push.sh reads it to name the right fix
+#        (fill vs unlock)
 fetch_robot_token() {
-  local err_file
+  local err_file status_file
   err_file=$(mktemp)
-  trap 'rm -f "${err_file:-}"' EXIT
+  status_file=$(mktemp)
+  trap 'rm -f "${err_file:-}" "${status_file:-}"' EXIT
 
   local fetch_status=0
-  ROBOT_TOKEN=$(fetch_github_token 2>"$err_file") || fetch_status=$?
+  ROBOT_TOKEN=$(fetch_github_token status_file="$status_file" 2>"$err_file") || fetch_status=$?
   TOKEN_FETCH_ERR=$(cat "$err_file")
-  rm -f "$err_file"
+  ROBOT_TOKEN_STATUS=$(cat "$status_file")
+  rm -f "$err_file" "$status_file"
 
   # a failed fetch yields no token, and always a cause
   if [[ "$fetch_status" -ne 0 ]]; then
@@ -3102,7 +3108,7 @@ set_robot_identity_from_token() {
 ######################################################################
 # .what = the robot identity a commit is authored as
 #
-# .sets = ROBOT_NAME, ROBOT_EMAIL, ROBOT_TOKEN, ROBOT_TOKEN_FETCHED
+# .sets = ROBOT_NAME, ROBOT_EMAIL, ROBOT_TOKEN, ROBOT_TOKEN_STATUS, ROBOT_TOKEN_FETCHED
 #
 # .why  = the commit is always authored as seaturtle[bot]; the token only
 #         picks WHICH seaturtle (app bot vs standard) so the commit author
@@ -3127,6 +3133,7 @@ get_commit_robot_identity() {
   done
 
   ROBOT_TOKEN=""
+  ROBOT_TOKEN_STATUS=""
   ROBOT_TOKEN_FETCHED=false
   if [[ "$auth" == "as-ehmpath" && "${NODE_ENV:-}" != "test" ]]; then
     # capture the keyrack error rather than discard it: a fetch miss soft-fails to
