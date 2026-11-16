@@ -4112,30 +4112,26 @@ exit 1
         { cwd: tempDir },
       );
 
-      // an unrelated branch on origin that HEAD does not stack on
-      spawnSync('git', ['checkout', '-q', '-b', 'turtle/elsewhere', 'main'], {
-        cwd: tempDir,
-      });
-      fs.writeFileSync(path.join(tempDir, 'elsewhere.txt'), 'kelp');
-      spawnSync('git', ['add', 'elsewhere.txt'], { cwd: tempDir });
-      spawnSync('git', ['commit', '-q', '-m', 'feat(kelp): elsewhere'], {
-        cwd: tempDir,
-      });
-      const elsewhereSha = spawnSync('git', ['rev-parse', 'HEAD'], {
-        cwd: tempDir,
-        encoding: 'utf-8',
-      }).stdout.trim();
+      // an unrelated branch on origin that HEAD does not stack on: a commit off
+      // the setup commit, made with commit-tree so HEAD and the checkout never
+      // move (a ci git may name its default branch other than main)
+      const elsewhereSha = spawnSync(
+        'git',
+        [
+          'commit-tree',
+          'HEAD~2^{tree}',
+          '-p',
+          'HEAD~2',
+          '-m',
+          'feat(kelp): elsewhere',
+        ],
+        { cwd: tempDir, encoding: 'utf-8' },
+      ).stdout.trim();
       spawnSync(
         'git',
         ['update-ref', 'refs/remotes/origin/turtle/elsewhere', elsewhereSha],
         { cwd: tempDir },
       );
-      spawnSync('git', ['checkout', '-q', 'turtle/feature-part-2'], {
-        cwd: tempDir,
-      });
-      spawnSync('git', ['branch', '-q', '-D', 'turtle/elsewhere'], {
-        cwd: tempDir,
-      });
 
       const fakeBinDir = path.join(tempDir, '.fakebin');
       fs.mkdirSync(fakeBinDir, { recursive: true });
