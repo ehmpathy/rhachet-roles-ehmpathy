@@ -2341,6 +2341,7 @@ describe('git.package.patch.sh', () => {
           });
           expect(opened.exitCode).toEqual(0);
           editIsNumber({ dir: scene.dir });
+          // CI=true makes a bare pnpm install frozen; the seal's lockfile settle must still land
           const sealed = runSkill({
             cwd: scene.dir,
             args: [
@@ -2354,8 +2355,12 @@ describe('git.package.patch.sh', () => {
               '--mode',
               'apply',
             ],
+            env: { CI: 'true' },
           });
-          expect(sealed.exitCode).toEqual(0);
+          if (sealed.exitCode !== 0)
+            throw new MalfunctionError('commit is-number failed', {
+              stdout: sealed.stdout,
+            });
           return sealed;
         });
 
