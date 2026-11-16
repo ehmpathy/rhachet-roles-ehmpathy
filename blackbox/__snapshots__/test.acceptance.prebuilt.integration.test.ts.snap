@@ -1,0 +1,80 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`test.acceptance.prebuilt.sh given: [case1] a repo with a built dist/ when: [t0] the crew runs it with --scope and --resnap then: the argv carries the config, the update flag, and the scope 1`] = `
+"🐢 lets ride...
+
+🐚 test.acceptance.prebuilt
+   └─ run: npx jest -c ./jest.acceptance.config.ts --forceExit --verbose --runInBand --passWithNoTests --updateSnapshot blackbox/reef.acceptance.test.ts
+
+jest argv: -c ./jest.acceptance.config.ts --forceExit --verbose --runInBand --passWithNoTests --updateSnapshot blackbox/reef.acceptance.test.ts
+"
+`;
+
+exports[`test.acceptance.prebuilt.sh given: [case1] a repo with a built dist/ when: [t1] the call carries the rhx --skill, --repo and --role flags then: the skill drops them, and jest never sees them 1`] = `
+"🐢 lets ride...
+
+🐚 test.acceptance.prebuilt
+   └─ run: npx jest -c ./jest.acceptance.config.ts --forceExit --verbose --runInBand --passWithNoTests blackbox/reef.acceptance.test.ts
+
+jest argv: -c ./jest.acceptance.config.ts --forceExit --verbose --runInBand --passWithNoTests blackbox/reef.acceptance.test.ts
+"
+`;
+
+exports[`test.acceptance.prebuilt.sh given: [case1] a repo with a built dist/ when: [t2] an unknown flag is given then: it is refused on both streams, exit 2, before jest runs 1`] = `
+"🐢 bummer dude...
+
+🐚 test.acceptance.prebuilt
+   └─ ✋ ConstraintError: unknown flag --wave (flags: --scope, --resnap)
+
+🥥 did you know?
+   └─ rhx test.acceptance.prebuilt --scope <file> [--resnap]
+"
+`;
+
+exports[`test.acceptance.prebuilt.sh given: [case1] a repo with a built dist/ when: [t3] help is asked for then: it prints its usage, exit 0 1`] = `
+"######################################################################
+# .what = run the acceptance suite against the dist/ already built,
+#         with no \`npm run build\` before it
+#
+# .why  = \`npm run test:acceptance\` rebuilds first, and its last build
+#         step (\`rhachet repo introspect\`) can refuse for reasons
+#         unrelated to the suite. this runs the same jest config over
+#         a dist/ refreshed by \`npm run build:compile\` and
+#         \`npm run build:complete:dist\`, so a crew can still prove (and
+#         snap) the acceptance journeys locally
+#
+# usage:
+#   test.acceptance.prebuilt.sh --scope git.package.patch          # run one file
+#   test.acceptance.prebuilt.sh --scope git.package.patch --resnap # update snapshots
+#
+# guarantee:
+#   - runs from the git root
+#   - never builds; refreshes naught; fails if dist/ is absent
+#   - jest output streams to stdout; on failure it is also sent to stderr
+#   - exit code = jest's exit code
+######################################################################
+"
+`;
+
+exports[`test.acceptance.prebuilt.sh given: [case1] a repo with a built dist/ when: [t4] jest fails then: its exit code passes through, and the output reaches both streams 1`] = `
+"🐢 lets ride...
+
+🐚 test.acceptance.prebuilt
+   └─ run: npx jest -c ./jest.acceptance.config.ts --forceExit --verbose --runInBand --passWithNoTests blackbox/reef.acceptance.test.ts
+
+jest argv: -c ./jest.acceptance.config.ts --forceExit --verbose --runInBand --passWithNoTests blackbox/reef.acceptance.test.ts
+
+🐢 bummer dude... jest exited 1
+"
+`;
+
+exports[`test.acceptance.prebuilt.sh given: [case2] a repo with no built dist/ when: [t0] the crew runs it then: it is refused on both streams, exit 2, and names the build 1`] = `
+"🐢 bummer dude...
+
+🐚 test.acceptance.prebuilt
+   └─ ✋ ConstraintError: dist/index.js is absent
+
+🥥 did you know?
+   └─ npm run build:compile && npm run build:complete:dist
+"
+`;
