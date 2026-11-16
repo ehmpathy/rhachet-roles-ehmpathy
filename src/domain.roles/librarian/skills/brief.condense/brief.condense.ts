@@ -27,7 +27,10 @@ import {
   extractKernelsWithConsensus,
 } from '../../../../domain.operations/kernelize/extractKernels';
 import { countTokens } from '../brief.compress/compress.shared';
-import type { MechanismOrModifier } from '../brief.compress/compress.via.bhrain';
+import {
+  compressViaBhrain,
+  type MechanismOrModifier,
+} from '../brief.compress/compress.via.bhrain';
 import { pressViaPipeline } from './domain.operations/press/pressViaPipeline';
 import { assertStability } from './domain.operations/supply/assertStability';
 import { checkRetention } from './domain.operations/verify/checkRetention';
@@ -126,13 +129,16 @@ export const condenseFile = async (input: {
 
   for (let i = 0; i < input.attempts; i++) {
     // press: apply compression pipeline
-    const pressResult = await pressViaPipeline({
-      content: input.content,
-      brainSlug: input.brainSlug,
-      pipeline: input.pipeline,
-      kernels: sourceKernels,
-      force: input.force || i > 0, // force for subsequent attempts to bypass cache
-    });
+    const pressResult = await pressViaPipeline(
+      {
+        content: input.content,
+        brainSlug: input.brainSlug,
+        pipeline: input.pipeline,
+        kernels: sourceKernels,
+        force: input.force || i > 0, // force for subsequent attempts to bypass cache
+      },
+      { compressor: compressViaBhrain },
+    );
 
     // verify: check kernel retention
     const retentionResult = await checkRetention({
