@@ -30,9 +30,7 @@
 #   - --watch watches without automerge
 #   - apply mode enables automerge and watches
 #   - apply mode requires git.commit.uses permission (locally or globally)
-#   - apply mode refuses (exit 2) a feature pr with no APPROVED review from a
-#     human with repo authority; bots, robots, outsiders do not count; no flag
-#     lifts it. an automerge left on by an earlier run is disabled on refusal
+#   - apply refuses (exit 2) a pr no human approved; bots never count; no flag lifts it
 #   - watches CI until complete or timeout (15 min)
 #   - surfaces errors with links and retry hints
 #   - --into prod is the default, safe path; --from main is special-circumstance only

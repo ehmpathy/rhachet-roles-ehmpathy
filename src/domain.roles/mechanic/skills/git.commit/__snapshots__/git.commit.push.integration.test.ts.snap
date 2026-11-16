@@ -935,6 +935,7 @@ exports[`git.commit.push.sh given: [case41] --base opens a stacked pr on the sli
    ├─ push: origin/turtle/feature-part-2 ✓
    ├─ pr: pr #88 (created, base: turtle/feature-part-1)
    ├─ opened: as-human (gh cli login, fallback)
+   ├─ watch: skipped (not an enrolled clone)
    └─ meter
       └─ push: allowed
 
@@ -950,6 +951,7 @@ exports[`git.commit.push.sh given: [case41] --base opens a stacked pr on the sli
    ├─ push: origin/turtle/feature-part-2 ✓
    ├─ pr: pr #55 (found, base: main → turtle/feature-part-1)
    ├─ opened: as-human (gh cli login, fallback)
+   ├─ watch: skipped (not an enrolled clone)
    └─ meter
       └─ push: allowed
 
