@@ -1,0 +1,198 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.branch.catchup take given: [case23] a merge in flight with two text conflicts when: [t0] take --whos main src/a.md then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  └─ src/a.md ✓
+   ├─ still in conflict
+   │  └─ src/b.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle the rest:   rhx git.stage.add <file>
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      └─ then:              rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup take given: [case23] a merge in flight with two text conflicts when: [t1] take --whos branch src/b.md then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: branch
+   ├─ settled
+   │  └─ src/b.md ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup take given: [case23] a merge in flight with two text conflicts when: [t2] take again, with no file left in conflict then: matches snapshot 1`] = `
+"✋ ConstraintError: no file in conflict
+
+🐚 git.branch.catchup take
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup take given: [case23b] a path that matches no conflicted file when: [t0] take --whos main src/a.md src/absent.md then: matches snapshot 1`] = `
+"✋ ConstraintError: a path matches no conflicted file
+
+🐚 git.branch.catchup take
+   ├─ unmatched
+   │  └─ src/absent.md
+   ├─ note: paths are read from the repo root, wherever take runs
+   └─ in conflict
+      ├─ src/a.md
+      └─ src/b.md
+"
+`;
+
+exports[`git.branch.catchup take given: [case23b] a path that matches no conflicted file when: [t1] take --whos ours src/a.md then: matches snapshot 1`] = `
+"✋ ConstraintError: --whos must be main or branch (got: ours)
+
+🐚 git.branch.catchup take
+   ├─ main     origin/main's version of the file
+   ├─ branch   this branch's version of the file
+   └─ usage: rhx git.branch.catchup take --whos <main|branch> <paths…>
+"
+`;
+
+exports[`git.branch.catchup take given: [case23b] a path that matches no conflicted file when: [t2] take --whos main, with no path then: matches snapshot 1`] = `
+"✋ ConstraintError: no paths given
+
+🐚 git.branch.catchup take
+   └─ usage: rhx git.branch.catchup take --whos <main|branch> <paths…>
+"
+`;
+
+exports[`git.branch.catchup take given: [case23b] a path that matches no conflicted file when: [t3] take with an unknown flag then: matches snapshot 1`] = `
+"✋ ConstraintError: unknown argument: --force
+
+🐚 git.branch.catchup take
+   └─ usage: rhx git.branch.catchup take --whos <main|branch> <paths…>
+"
+`;
+
+exports[`git.branch.catchup take given: [case23c] conflicts on two files where one name holds the other when: [t0] take --whos main 'x y.txt' x then: matches snapshot: the spaced name renders whole 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  ├─ x ✓
+   │  └─ x y.txt ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup take given: [case23d] a conflict left, and stage is blocked when: [t0] take --whos main src/a.md then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  └─ src/a.md ✓
+   ├─ still in conflict
+   │  └─ src/b.md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle the rest:   a human grants stage first
+      │  └─ a human runs: rhx git.commit.uses set --quant N --push allow --stage allow
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      └─ then:              rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup take given: [case23e] take run from a subdirectory when: [t0] take --whos main . from src/ then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  ├─ src/a.md ✓
+   │  └─ src/b.md ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup take given: [case23f] conflicts on a non-ASCII path and a glob-shaped path when: [t0] take --whos main src/café.md then: matches snapshot: the non-ASCII name renders raw, never quoted 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  └─ src/café.md ✓
+   ├─ still in conflict
+   │  └─ src/a[1].md
+   └─ next
+      ├─ remove the <<<<<<< ======= >>>>>>> lines from each file
+      ├─ settle the rest:   rhx git.stage.add <file>
+      ├─ or take a side:    rhx git.branch.catchup take --whos <main|branch> <file>
+      └─ then:              rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup take given: [case23f] conflicts on a non-ASCII path and a glob-shaped path when: [t1] take --whos branch . then: matches snapshot: the glob-shaped name renders as one file 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: branch
+   ├─ settled
+   │  └─ src/a[1].md ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup take given: [case23g] a conflict on a bracketed path, as a route dir holds when: [t0] take --whos main app/[id]/page.tsx, by name as printed then: matches snapshot: the bracketed name renders raw 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  └─ app/[id]/page.tsx ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup take given: [case25] main deleted a file the branch modified when: [t0] take --whos main src/tide.md then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: main
+   ├─ settled
+   │  └─ src/tide.md ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup take given: [case25b] main deleted a file the branch modified; keep the branch when: [t0] take --whos branch src/tide.md then: matches snapshot 1`] = `
+"🐢 righteous!
+
+🐚 git.branch.catchup take
+   ├─ whos: branch
+   ├─ settled
+   │  └─ src/tide.md ✓
+   └─ next: rhx git.branch.catchup continue
+"
+`;
+
+exports[`git.branch.catchup take given: [case26] no merge in flight when: [t0] take --whos main readme.md then: matches snapshot 1`] = `
+"✋ ConstraintError: no merge in flight
+
+🐚 git.branch.catchup take
+   ├─ state: no catch-up merge is in flight
+   └─ fix: start one with rhx git.branch.catchup begin
+"
+`;
+
+exports[`git.branch.catchup take given: [case26c] a hand merge of another branch in flight when: [t0] take --whos main docs.md then: matches snapshot 1`] = `
+"✋ ConstraintError: the merge in flight is not a catch-up from origin/main
+
+🐚 git.branch.catchup take
+   ├─ MERGE_HEAD: HASH123 (not on origin/main)
+   ├─ why: this verb commits only a merge of origin/main
+   └─ fix: back it out with rhx git.branch.catchup abort, then begin
+"
+`;
