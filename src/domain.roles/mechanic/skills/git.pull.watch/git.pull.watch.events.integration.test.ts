@@ -328,6 +328,31 @@ describe('git.pull.watch events', () => {
         });
       },
     );
+
+    when('[t1] a reviewer leaves a suggestion with no prose', () => {
+      const result = useThen('the next tick alerts', async () => {
+        scene.setStore((store) => {
+          store.github.issueComments[`${REPO}#${PR}`]!.push({
+            id: 302,
+            body: '```suggestion\nconst waveHeight = 2;\n```',
+            user: { login: 'surfer-kai', type: 'User' },
+            html_url:
+              'https://github.com/ehmpathy/surf-demo/pull/1220#issuecomment-302',
+          });
+        });
+        const says = await waitForWatch({
+          label: 'suggestion alert',
+          check: () => (scene.getSays().length > 1 ? scene.getSays() : null),
+          scene,
+        });
+        return { text: says[1]!.text };
+      });
+      then('the excerpt names a suggestion, never its bare fence', () => {
+        expect(result.text).toContain('says: (a suggestion)…');
+        expect(result.text).not.toContain('```');
+        expect(result.text).not.toContain('waveHeight');
+      });
+    });
   });
 
   given(
@@ -540,6 +565,41 @@ describe('git.pull.watch events', () => {
           'check: test-integration (failure)',
         );
         expect(scene.asMasked(result.says[0]!.text)).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] a push fails twelve jobs at once', () => {
+      const result = useThen('the next tick alerts', async () => {
+        scene.setStore((store) => {
+          store.github.prs[`${REPO}#${PR}`]!.headSha = 'sha-two';
+          store.github.checks['sha-two'] = Array.from(
+            { length: 12 },
+            (_, index) => ({
+              id: 90 + index,
+              name: `test-shard-${index + 1}`,
+              status: 'completed' as const,
+              conclusion: 'failure',
+              html_url: `https://github.com/ehmpathy/surf-demo/runs/${90 + index}`,
+            }),
+          );
+        });
+        const says = await waitForWatch({
+          label: 'twelve-check alert',
+          check: () => (scene.getSays().length > 1 ? scene.getSays() : null),
+          scene,
+        });
+        return { text: says[1]!.text };
+      });
+      then('the header counts all twelve, and the head shows once', () => {
+        expect(result.text).toContain('12 checks failed on #');
+        expect(result.text.match(/head: /g)).toHaveLength(1);
+        expect(result.text).toContain('├─ head: sha-two');
+      });
+      then('the first five checks show, then a count of the rest', () => {
+        expect(result.text).toContain('check: test-shard-5 (failure)');
+        expect(result.text).not.toContain('check: test-shard-6 (failure)');
+        expect(result.text).toContain('+ 7 more: rhx show.gh.test.errors');
+        expect(scene.asMasked(result.text)).toMatchSnapshot();
       });
     });
   });

@@ -120,6 +120,18 @@ print_watch_branches() {
   return 0
 }
 
+# .what = the most failed checks one alert lists by name; the rest read as a count
+WATCH_ALERT_CHECKS_SHOWN_MAX="${GIT_PULL_WATCH_ALERT_CHECKS_SHOWN_MAX:-5}"
+
+# .what = the one head every ci failure of a burst shares, else empty
+# .why  = a burst on one push names its head once, not once per check
+as_watch_ci_head_shared() {
+  local events="$1"
+  printf '%s' "$events" | jq -r '
+    if (all(.[]; .kind == "ci.failed")) and ([.[].head // "?"] | unique | length) == 1
+    then (.[0].head // "?") else empty end'
+}
+
 # .what = the text of one event alert (no closure)
 # .why  = all of one tick's events on one pr ride one alert (A9)
 # .note = one event → its leaves sit flat under the pr; several events of one
@@ -145,18 +157,27 @@ as_watch_events_text() {
   fi
 
   # several events of one kind: a section per event, so each field sits under its own event
+  # .note = a ci burst names its shared head once and shows the first few checks; the
+  #         rest are one command away, so twelve red jobs stay one screen
   if [[ "$kinds_count" == "1" ]]; then
     echo "   ├─ pr: $repo#$pr"
-    local event last="" leaves=() leaf
+    local event last="" leaves=() leaf head_shared="" shown=0 cap=0
+    head_shared="$(as_watch_ci_head_shared "$events")"
+    [[ -n "$head_shared" ]] && echo "   ├─ head: $head_shared"
+    [[ -n "$head_shared" ]] && cap="$WATCH_ALERT_CHECKS_SHOWN_MAX"
     while IFS= read -r event; do
       last="$event"
+      shown=$((shown + 1))
+      [[ $cap -gt 0 && $shown -gt $cap ]] && continue
       leaves=()
       while IFS= read -r leaf; do
+        [[ -n "$head_shared" && "$leaf" == "head: "* ]] && continue
         leaves+=("$leaf")
       done < <(as_watch_event_leaves "$event" "$repo" "$pr")
       echo "   ├─ ${leaves[0]}"
       print_watch_branches "   │  " "${leaves[@]:1}"
     done < <(printf '%s' "$events" | jq -c '.[]')
+    [[ $cap -gt 0 && $count -gt $cap ]] && echo "   ├─ + $((count - cap)) more: rhx show.gh.test.errors"
     echo "   └─ next: $(as_watch_event_next "$last" "$repo" "$pr")"
     return 0
   fi
@@ -246,6 +267,7 @@ as_watch_paused_text() {
   echo "   ├─ ✋ ConstraintError: $cause"
   echo "   ├─ watches paused: $prs"
   echo "   └─ fix: rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+  echo "      └─ or, for the whole grove: \`rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN\`"
 }
 
 # .what = the outage note: github has not answered for a while; cursors hold

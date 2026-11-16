@@ -68,6 +68,8 @@ export interface WatchStore {
      * a secondary one (403, lifts retryAfter seconds out), no reply, or a 502
      */
     fault?: 'ratelimit' | 'secondary' | 'down' | 'badgateway' | null;
+    /** a fault only the reads of one pr meet, keyed `owner/name#pr`: no reply, or a 404 */
+    faultByPr?: Record<string, 'down' | 'notfound'>;
     rateLimitReset?: number;
     retryAfter?: number;
     prs: Record<
@@ -119,6 +121,10 @@ const at = rest.indexOf('-H');
 const ifNone = at >= 0 ? rest[at + 1].replace(/^If-None-Match: /, '') : null;
 const endpoint = rest.filter((a, i) => !a.startsWith('-') && rest[i - 1] !== '--method' && rest[i - 1] !== '-H')[0];
 const notFound = () => { log(404); if (withHeaders) process.stdout.write('HTTP/2.0 404 Not Found\n\n{}'); process.stderr.write('gh: Not Found (HTTP 404)\n'); process.exit(1); };
+const prOfRead = (endpoint.match(/^repos\/([^/]+\/[^/]+)\/(?:pulls|issues)\/(\d+)/) || []).slice(1).join('#');
+const faultOfPr = (state.github.faultByPr || {})[prOfRead] || null;
+if (faultOfPr === 'down') { log('down'); process.stderr.write('dial tcp: lookup api.github.com: no such host\n'); process.exit(1); }
+if (faultOfPr === 'notfound') notFound();
 if (state.github.fault === 'down') { log('down'); process.stderr.write('dial tcp: lookup api.github.com: no such host\n'); process.exit(1); }
 if (state.github.fault === 'ratelimit') {
   log(403);

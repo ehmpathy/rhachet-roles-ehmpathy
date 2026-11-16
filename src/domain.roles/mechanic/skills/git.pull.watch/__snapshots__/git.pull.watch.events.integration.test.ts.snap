@@ -116,12 +116,31 @@ exports[`git.pull.watch events given: [case2f] a burst of one kind of event in o
 
 🐚 git.pull.watch — 2 checks failed on #1220
    ├─ pr: ehmpathy/surf-demo#1220
+   ├─ head: sha-one
    ├─ check: test-unit (failure)
-   │  ├─ head: sha-one
    │  └─ url: https://github.com/ehmpathy/surf-demo/runs/81
    ├─ check: test-integration (failure)
-   │  ├─ head: sha-one
    │  └─ url: https://github.com/ehmpathy/surf-demo/runs/82
+   └─ next: rhx show.gh.test.errors"
+`;
+
+exports[`git.pull.watch events given: [case2f] a burst of one kind of event in one tick when: [t1] a push fails twelve jobs at once then: the first five checks show, then a count of the rest 1`] = `
+"🐢 bummer dude...
+
+🐚 git.pull.watch — 12 checks failed on #1220
+   ├─ pr: ehmpathy/surf-demo#1220
+   ├─ head: sha-two
+   ├─ check: test-shard-1 (failure)
+   │  └─ url: https://github.com/ehmpathy/surf-demo/runs/90
+   ├─ check: test-shard-2 (failure)
+   │  └─ url: https://github.com/ehmpathy/surf-demo/runs/91
+   ├─ check: test-shard-3 (failure)
+   │  └─ url: https://github.com/ehmpathy/surf-demo/runs/92
+   ├─ check: test-shard-4 (failure)
+   │  └─ url: https://github.com/ehmpathy/surf-demo/runs/93
+   ├─ check: test-shard-5 (failure)
+   │  └─ url: https://github.com/ehmpathy/surf-demo/runs/94
+   ├─ + 7 more: rhx show.gh.test.errors
    └─ next: rhx show.gh.test.errors"
 `;
 

@@ -1456,6 +1456,41 @@ describe('git.pull.watch lifecycle', () => {
         expect(isPidAlive(result.oldPid)).toEqual(false);
       });
     });
+
+    when('[t1] the clone plans a watch of #1221 from this version', () => {
+      const result = useThen('the plan names the move', async () =>
+        scene.runSkill({
+          verb: 'set',
+          args: ['--which', '1221'],
+          root: scene.roots['surf-demo']!,
+          serial: SERIAL_A,
+        }),
+      );
+      then('the plan says it would move from v8.8.8, and writes naught', () => {
+        expect(result.status).toEqual(0);
+        expect(result.stdout).toMatch(/watch: would move v8\.8\.8\+\S+ → v/);
+        expect(scene.getAllWatchRecords()[0]!.key).toMatch(/^8\.8\.8\+/);
+        expect(scene.asMasked(result.stdout)).toMatchSnapshot();
+      });
+    });
+
+    when('[t2] the clone applies that move, with json output', () => {
+      const result = useThen('the watch moves back', async () => {
+        const out = scene.runSkill({
+          verb: 'set',
+          args: ['--which', '1221', '--mode', 'apply', '--output', 'json'],
+          root: scene.roots['surf-demo']!,
+          serial: SERIAL_A,
+        });
+        return { out, json: JSON.parse(out.stdout) };
+      });
+      then('the json names the move and the key it came from', () => {
+        expect(result.json.watch.verdict).toEqual('moved');
+        expect(result.json.watch.from).toMatch(/^8\.8\.8\+/);
+        expect(result.json.line).toMatch(/^moved v8\.8\.8\+\S+ → v/);
+        expect(scene.asMasked(result.out.stdout)).toMatchSnapshot();
+      });
+    });
   });
 
   given(

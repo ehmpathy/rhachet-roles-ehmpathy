@@ -463,7 +463,8 @@ exports[`git.commit.push.sh given: [case24] --auth as-ehmpath guides to as-human
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
 🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
+   ├─ 1. a human fills the absent ehmpath keyrack token, then unlocks it, so the seaturtle can open the pr:
+   │     $ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
@@ -478,7 +479,8 @@ exports[`git.commit.push.sh given: [case24] --auth as-ehmpath guides to as-human
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
 🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
+   ├─ 1. a human fills the absent ehmpath keyrack token, then unlocks it, so the seaturtle can open the pr:
+   │     $ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
@@ -488,7 +490,7 @@ cause: <keyrack error, masked>"
 `;
 
 exports[`git.commit.push.sh given: [case25] --auth as-ehmpath keyrack failure in json mode emits a json error on stdout when: [t0] json output, push succeeds, keyrack token unavailable then: stdout carries a machine-readable error, stderr carries the guide 1`] = `
-"{"status":"error","error":"ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human (or unlock keyrack)"}
+"{"status":"error","error":"ehmpath keyrack token absent — retry: rhx git.commit.push --mode apply --auth as-human (or a human fills the keyrack token)"}
 "
 `;
 
@@ -499,7 +501,8 @@ exports[`git.commit.push.sh given: [case25] --auth as-ehmpath keyrack failure in
    └─ ✋ ConstraintError: ehmpath keyrack token not available
 
 🥥 your commit is pushed; to open its pr, either:
-   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
+   ├─ 1. a human fills the absent ehmpath keyrack token, then unlocks it, so the seaturtle can open the pr:
+   │     $ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
@@ -824,6 +827,37 @@ exports[`git.commit.push.sh given: [case38] --auth as-ehmpath surfaces the exact
 cause: fake keyrack: get unreachable (host manifest absent)
 fake keyrack: unlock unreachable (host manifest absent)
 fake keyrack: get unreachable (host manifest absent)
+"
+`;
+
+exports[`git.commit.push.sh given: [case38b] --auth as-ehmpath names the fix that fits the keyrack status when: [t0] keyrack replies status absent then: the guide names a human fill, then the unlock 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ ✋ ConstraintError: ehmpath keyrack token not available
+
+🥥 your commit is pushed; to open its pr, either:
+   ├─ 1. a human fills the absent ehmpath keyrack token, then unlocks it, so the seaturtle can open the pr:
+   │     $ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   │
+   └─ 2. or open the pr with the human's github login:
+         $ rhx git.commit.push --mode apply --auth as-human
+"
+`;
+
+exports[`git.commit.push.sh given: [case38b] --auth as-ehmpath names the fix that fits the keyrack status when: [t1] keyrack replies status locked then: the guide names the unlock alone, no fill 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ ✋ ConstraintError: ehmpath keyrack token not available
+
+🥥 your commit is pushed; to open its pr, either:
+   ├─ 1. unlock the ehmpath keyrack, so the seaturtle can open the pr:
+   │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+   │
+   └─ 2. or open the pr with the human's github login:
+         $ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 

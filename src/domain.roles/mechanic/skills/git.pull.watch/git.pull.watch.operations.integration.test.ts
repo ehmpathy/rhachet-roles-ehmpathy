@@ -805,4 +805,56 @@ describe('git.pull.watch.operations', () => {
       );
     });
   });
+
+  given('[case9] a record written before a field was added', () => {
+    when('[t0] the record moves to a new key', () => {
+      const result = useThen('the moved record is read', async () => {
+        const home = genTempDir({ slug: 'watch-ops-case9-t0' });
+        const record = path.join(home, 'old.json');
+        // an older shape: no schema, and a cursor set that lacks reviewIdMax
+        fs.writeFileSync(
+          record,
+          JSON.stringify({
+            repo: 'ehmpathy/surf-demo',
+            pr: 1220,
+            cloneSerial: 'a1',
+            cloneSlug: 'mechanic',
+            repoRoot: '/tmp/old-root',
+            watchId: 'w-old',
+            setAt: '2026-11-01T00:00:00Z',
+            primed: true,
+            ended: 'merged',
+            cursors: {
+              headSha: 'sha-one',
+              checkRunIdsSeen: [81],
+              issueCommentIdMax: 601,
+              reviewCommentIdMax: 0,
+            },
+          }),
+        );
+        const run = runOps({
+          home,
+          snippet: `as_watch_record_moved "${record}" /tmp/new-root mechanic`,
+        });
+        return { run, moved: JSON.parse(run.stdout) };
+      });
+      then('the field the old record lacked reads its default', () => {
+        expect(result.run.status).toEqual(0);
+        expect(result.moved.schema).toEqual(1);
+        expect(result.moved.cursors.reviewIdMax).toEqual(0);
+      });
+      then('every value the old record held rides along', () => {
+        expect(result.moved.cursors.headSha).toEqual('sha-one');
+        expect(result.moved.cursors.checkRunIdsSeen).toEqual([81]);
+        expect(result.moved.cursors.issueCommentIdMax).toEqual(601);
+        expect(result.moved.primed).toEqual(true);
+        expect(result.moved.setAt).toEqual('2026-11-01T00:00:00Z');
+      });
+      then('the root, life id, and end mark are renewed', () => {
+        expect(result.moved.repoRoot).toEqual('/tmp/new-root');
+        expect(result.moved.watchId).not.toEqual('w-old');
+        expect(result.moved.ended).toBeUndefined();
+      });
+    });
+  });
 });

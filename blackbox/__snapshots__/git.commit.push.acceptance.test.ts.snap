@@ -1,0 +1,21 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.commit.push, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] the push is asked for --help then: the help is snapped 1`] = `
+"usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback "..."] [--debug]
+
+options:
+  --mode plan|apply            plan shows preview, apply executes (default: plan)
+  --auth as-ehmpath|as-human   who opens the pr (default: as-ehmpath)
+                               as-ehmpath = seaturtle bot via ehmpath keyrack token
+                               as-human   = the gh cli login (fallback on keyrack failure)
+  --output tree|json           tree for standalone, json for composition (default: tree)
+  --pr-title-fallback "..."    fallback pr title when no commits on branch yet
+  --debug                      show verbose debug output
+  --help, -h                   show this help
+"
+`;
+
+exports[`git.commit.push, via rhachet given: [case1] a repo with the mechanic role linked when: [t1] the push is handed an unknown --mode then: the refusal is snapped 1`] = `
+"✋ ConstraintError: --mode must be 'plan' or 'apply'
+"
+`;

@@ -350,6 +350,8 @@ subject.flow:
       - briefs/practices/work.flow/diagnose/howto.bisect.[lesson].md
       - briefs/practices/work.flow/diagnose/howto.logservation.[lesson].md
       - briefs/practices/work.flow/release/howto.git-release.[lesson].md
+      # the pr watch — each alert names its next command; this maps alert → act on demand
+      - briefs/practices/work.flow/tools/howto.git-pull-watch.[lesson].md
       - briefs/practices/work.flow/tools/howto.fix-declapract-upgrade-failures.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.allowlist-examples.[lesson].md
       - briefs/practices/work.flow/tools/rule.prefer.jq.[demo].md

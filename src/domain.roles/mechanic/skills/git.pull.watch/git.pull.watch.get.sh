@@ -26,6 +26,8 @@ OUTPUT="tree"
 # .what = print the usage: every flag, its default, an example
 help() {
   cat <<'EOF'
+git.pull.watch get: show each pr-watch daemon on this machine, and the watches it serves
+
 usage: git.pull.watch get [--output tree|json]
 
 options:
@@ -66,14 +68,30 @@ get_watch_held_json() {
     | jq -s -c '{ held: length, heldTicks: ([.[].tries] | max // 0), heldCause: ([.[].cause | select(. != null)] | last // null) }'
 }
 
+# .what = the read fault of one watch's pr: { since, rc, cause }, or null
+# .why  = one pr that fails each tick must show on its own row, not hide behind a pr
+#         that reads fine; the daemon keeps the clock in the pr's cache dir
+get_watch_read_fault_json() {
+  local record="$1" key_dir stem
+  key_dir="$(dirname "$(dirname "$record")")"
+  stem="$(basename "$record" .json)"
+  stem="${stem%%.clone=*}"
+  jq -c '{ since, rc, cause }' "$key_dir/cache/$stem/read.fault" 2>/dev/null || echo null
+}
+
 # .what = one watch's summary row, read from its record, as compact json
-# .note = a record that does not parse is a row of its own, named by path: the
-#         screen a human reads to diagnose a watch must never drop one, nor abort
+# .note = a record that does not parse is a row of its own, named by path, in the
+#         same shape with null fields: the screen a human reads to diagnose a watch
+#         must never drop one, nor abort, and a composer reads one row shape
 get_watch_summary_json() {
-  local record="$1" held="$2"
-  jq -c --argjson held "$held" \
-    '{ repo, pr, cloneSerial, cloneSlug, repoRoot, primed } + $held + { ended: (.ended // null) }' "$record" 2>/dev/null \
-    || jq -n -c --arg record "$record" '{ unreadable: true, record: $record }'
+  local record="$1" held="$2" fault
+  fault="$(get_watch_read_fault_json "$record")"
+  jq -c --argjson held "$held" --argjson fault "$fault" --arg record "$record" \
+    '{ repo, pr, cloneSerial, cloneSlug, repoRoot, primed } + $held
+      + { ended: (.ended // null), readFault: $fault, unreadable: false, record: $record }' "$record" 2>/dev/null \
+    || jq -n -c --argjson held "$held" --arg record "$record" \
+      '{ repo: null, pr: null, cloneSerial: null, cloneSlug: null, repoRoot: null, primed: null } + $held
+        + { ended: null, readFault: null, unreadable: true, record: $record }'
 }
 
 # .what = the daemon marks one key holds now: backoff, unreachable, tokenfault
@@ -129,28 +147,22 @@ is_watch_daemons_empty() {
   [[ "$(jq 'length' <<<"$1")" == "0" ]]
 }
 
-# .what = does any daemon in the array need a hand: stale, wedged, or absent with watches?
-is_watch_daemons_unwell() {
-  [[ "$(jq 'any(.[]; .state == "stale" or .state == "wedged" or .state == "absent")' <<<"$1")" == "true" ]]
-}
-
 # .what = the path of the first watch record that does not parse; empty if none
 get_watch_unreadable_record_path() {
   jq -r '[.[].watches[] | select(.unreadable == true)][0].record // empty' <<<"$1"
 }
 
-# .what = the daemon.log path of the first unwell daemon
-get_watch_unwell_log_path() {
-  jq -r '[.[] | select(.state == "stale" or .state == "wedged" or .state == "absent")][0].home | sub("/bin$"; "/daemon.log")' <<<"$1"
-}
-
 # .what = print one tree block per key: daemon line, home, then each watch
 # .why  = the tree shape lives in one render, so the orchestrator reads as narrative
 print_watch_daemons_tree() {
-  jq -r --argjson named "$WATCH_HELD_NAMED_TICKS" '
+  jq -r --argjson named "$WATCH_HELD_NAMED_TICKS" --argjson now "$(get_watch_epoch_now)" '
   def held: if .held == 0 then ""
     elif .heldTicks >= $named then " · \(.held) held, \(.heldTicks) ticks: \(.heldCause // "no cause given")"
     else " · \(.held) held" end;
+  def fault: if (.readFault // null) == null then ""
+    else " · read fault \((($now - .readFault.since) / 60) | ceil) min: \(.readFault.cause // "no cause given")" end;
+  def root: (.repoRoot | split("/") | last) as $dir
+    | if $dir == (.repo | split("/") | last) then "" else " (root: \($dir))" end;
   def tick: if .lastTickSecondsAgo == null then "never ticked" else "last tick \(.lastTickSecondsAgo)s ago" end;
   def pid: if .pid == null then "no pid" else "pid \(.pid)" end;
   to_entries as $all
@@ -166,7 +178,7 @@ print_watch_daemons_tree() {
        ($d.watches | to_entries[] | .key as $j | .value as $w
          | (if $j == ($d.watches | length) - 1 then "└─" else "├─" end) as $wb
          | if $w.unreadable then "\($under)   \($wb) unreadable record: \($w.record)"
-           else "\($under)   \($wb) \($w.repo)#\($w.pr) → @:\($w.cloneSlug) (\($w.repoRoot | split("/") | last))\($w | held)\(if ($w.ended // null) != null then " · ended" else "" end)\(if $w.primed then "" else " · not yet primed" end)" end)
+           else "\($under)   \($wb) \($w.repo)#\($w.pr) → @:\($w.cloneSlug)\($w | root)\($w | held)\($w | fault)\(if ($w.ended // null) != null then " · ended" else "" end)\(if $w.primed then "" else " · not yet primed" end)" end)
      end)
 ' <<<"$1"
 }
@@ -186,28 +198,36 @@ if is_watch_daemons_empty "$DAEMONS"; then
 fi
 print_watch_daemons_tree "$DAEMONS"
 
-# a daemon that is stale, wedged, or gone leaves its watches unserved; name the cure
-if is_watch_daemons_unwell "$DAEMONS"; then
-  print_watch_coconut_steps "a stale, wedged, or absent daemon serves no watch" \
-    "read why it stopped: cat $(get_watch_unwell_log_path "$DAEMONS")" \
-    "start a fresh one: rhx git.pull.watch set --which <n> --mode apply"
-fi
+# every cure the render owes, one per unwell part, under one coconut header
+CURES=()
 
-# a paused daemon reads naught until its token is back; name the fix for its status
-PAUSED="$(jq -r '[.[] | select(.paused != null)][0].paused // empty' <<<"$DAEMONS")"
-[[ -n "$PAUSED" ]] && print_watch_paused_coconut "$PAUSED"
+# a daemon that is stale, wedged, or gone leaves its watches unserved; each names its own log
+while IFS=$'\t' read -r key state log; do
+  [[ -n "$key" ]] || continue
+  CURES+=("daemon v$key is $state; it serves no watch"$'\n'"1. read why it stopped: cat $log"$'\n'"2. start a fresh one: rhx git.pull.watch set --which <n> --mode apply")
+done < <(jq -r '.[] | select(.state == "stale" or .state == "wedged" or .state == "absent") | [.key, .state, (.home | sub("/bin$"; "/daemon.log"))] | @tsv' <<<"$DAEMONS")
+
+# a live daemon that is paused reads naught until its token is back; a stale or absent
+# one needs a fresh start first, so an unlock alone would not revive it
+while IFS= read -r paused; do
+  [[ -n "$paused" ]] || continue
+  CURES+=("$(as_watch_paused_cure_lines "$paused")")
+done < <(jq -r '[.[] | select(.paused != null and .state == "live") | .paused] | unique[]' <<<"$DAEMONS")
 
 # an alert held this long will not reach its clone by a say; name where it lands
 if [[ "$(jq --argjson named "$WATCH_HELD_NAMED_TICKS" 'any(.[].watches[]; (.heldTicks // 0) >= $named)' <<<"$DAEMONS")" == "true" ]]; then
-  print_watch_coconut_steps "a held alert waits for its clone; the clone hears it at its next prompt" \
-    "the next prompt in that clone prints each held alert, oldest first, then clears it" \
-    "to see why the say refuses: rhx clone say --help"
+  CURES+=("a held alert waits for its clone; the clone hears it at its next prompt"$'\n'"the next prompt in that clone prints each held alert, oldest first, then clears it"$'\n'"to see why the say refuses: rhx clone say --help")
+fi
+
+# a pr whose reads fail keeps its cursors; name where the cause is logged
+if [[ "$(jq 'any(.[].watches[]; (.readFault // null) != null)' <<<"$DAEMONS")" == "true" ]]; then
+  CURES+=("a read fault holds the cursors of that pr; alerts resume once a read succeeds"$'\n'"each fault line is in the daemon log: cat $(jq -r '[.[] | select(any(.watches[]; (.readFault // null) != null))][0].home | sub("/bin$"; "/daemon.log")' <<<"$DAEMONS")")
 fi
 
 # a record that does not parse holds its watch; name the file and the cure
 UNREADABLE="$(get_watch_unreadable_record_path "$DAEMONS")"
 if [[ -n "$UNREADABLE" ]]; then
-  print_watch_coconut_steps "a watch record that does not parse is held, never served" \
-    "read it: cat $UNREADABLE" \
-    "rewrite it from its clone: rhx git.pull.watch set --which <n> --mode apply"
+  CURES+=("a watch record that does not parse is held, never served"$'\n'"1. read it: cat $UNREADABLE"$'\n'"2. rewrite it from its clone: rhx git.pull.watch set --which <n> --mode apply")
 fi
+
+[[ ${#CURES[@]} -eq 0 ]] || print_watch_coconut_cures "${CURES[@]}"

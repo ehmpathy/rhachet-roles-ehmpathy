@@ -1,3 +1,4 @@
+import { spawnSync } from 'child_process';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -70,6 +71,51 @@ describe('sessionstart.git-pull-watch, via the linked role', () => {
               .filter((name) => name.endsWith('daemon.pid'))
           : [];
         expect(pids).toEqual([]);
+      });
+    });
+
+    when('[t2] the clone holds a watch record that will not parse', () => {
+      const result = useThen('the hook runs', async () => {
+        // the key dir of the linked skill, as its own operations name it
+        const ops = path.join(
+          scene.dir,
+          '.agent/repo=ehmpathy/role=mechanic/skills/git.pull.watch/git.pull.watch.operations.sh',
+        );
+        const keyDir = spawnSync(
+          'bash',
+          ['-c', 'source "$1" && get_watch_key_dir "$(get_watch_key)"', '_', ops],
+          { encoding: 'utf-8', env: { ...process.env, HOME: scene.home } },
+        ).stdout.trim();
+        fs.mkdirSync(path.join(keyDir, 'watches'), { recursive: true });
+        fs.writeFileSync(
+          path.join(keyDir, 'watches/ehmpathy.surf-demo.pr=9.clone=c3.json'),
+          '{"repo": "ehmpathy/surf-de',
+        );
+        return invokeHook({
+          hookName: 'sessionstart.git-pull-watch.sh',
+          stdin: '{}',
+          cwd: scene.dir,
+          env: {
+            HOME: scene.home,
+            RHACHET_CLONE_SERIAL: 'a1a1a1a1-0000-4000-8000-0000000000ac',
+          },
+        });
+      });
+      then('it exits 0, so the session lives, and names the record', () => {
+        expect(result.code).toBe(0);
+        expect(result.stdout).toContain(
+          '💥 MalfunctionError: 1 pr-watch record(s) of v',
+        );
+        expect(result.stdout).toContain('rhx git.pull.watch get');
+        expect(result.stderr).toContain('are unreadable');
+      });
+      then('the fault tree reads the same on each run', () => {
+        expect(
+          result.stdout
+            .split(scene.home)
+            .join('<home>')
+            .replace(/v=?[0-9][^\s/;]*\+[0-9a-f]{8}/g, 'v<key>'),
+        ).toMatchSnapshot();
       });
     });
   });

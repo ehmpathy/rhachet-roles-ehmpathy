@@ -57,7 +57,7 @@ const runViaRhachet = (input: {
 const asSkillRender = (input: { stdout: string }): string => {
   // biome-ignore lint/suspicious/noControlCharactersInRegex: strip ansi color codes
   const plain = input.stdout.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '');
-  const at = plain.search(/🐢|✋|^usage: /mu);
+  const at = plain.search(/🐢|✋|^git\.pull\.watch \w+: |^usage: /mu);
   return plain.slice(Math.max(0, at));
 };
 
@@ -288,22 +288,27 @@ describe('git.pull.watch, via rhachet', () => {
         );
         expect(result.tree.stdout).toContain('· paused (token locked)');
         expect(result.tree.stdout).toContain(
-          'ehmpathy/surf-demo#1220 → @:mechanic (surf-demo.beav.feat-wave)',
+          'ehmpathy/surf-demo#1220 → @:mechanic (root: surf-demo.beav.feat-wave)',
         );
         expect(result.tree.stdout).toContain('unreadable record: ');
         expect(result.tree.stdout).toContain(
           'daemon v1.0.1+cafe0002 · absent · no pid · never ticked',
         );
         expect(result.tree.stdout).toContain(
-          'ehmpathy/surf-demo#1230 → @:mechanic-two (surf-demo.beav.feat-wave)',
+          'ehmpathy/surf-demo#1230 → @:mechanic-two (root: surf-demo.beav.feat-wave)',
         );
       });
-      then('the tree names the cure for each unwell part', () => {
+      then('the tree names the cure for each unwell part, under one coconut', () => {
+        expect(result.tree.stdout.match(/🥥 did you know\?/g)).toHaveLength(1);
         expect(result.tree.stdout).toContain(
-          'a stale, wedged, or absent daemon serves no watch',
+          'daemon v1.0.0+cafe0001 is stale; it serves no watch',
         );
         expect(result.tree.stdout).toContain(
-          'a paused daemon reads naught; the github token is locked',
+          'daemon v1.0.1+cafe0002 is absent; it serves no watch',
+        );
+        // the stale daemon is paused too, but an unlock cannot revive a dead pid
+        expect(result.tree.stdout).not.toContain(
+          'a paused daemon reads naught',
         );
         expect(result.tree.stdout).toContain(
           'a watch record that does not parse is held, never served',
@@ -469,7 +474,7 @@ describe('git.pull.watch, via rhachet', () => {
       then('a serial the registry lacks is refused, exit 2', () => {
         expect(result.strangerSerial.code).toBe(2);
         expect(result.strangerSerial.stdout).toContain(
-          'clone f0f0f0f0-0000-4000-8000-00000000000f is absent in the registry of',
+          'RHACHET_CLONE_SERIAL=f0f0f0f0-0000-4000-8000-00000000000f is no clone of',
         );
         expect(
           asMasked(asSkillRender(result.strangerSerial)),

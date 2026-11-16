@@ -7,8 +7,8 @@ exports[`git.pull.watch lifecycle given: [case4] two clones on one version share
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
-         ├─ ehmpathy/surf-demo#1220 → @:mechanic (<root:surf-demo>)
-         └─ ehmpathy/surf-demo#1221 → @:reviewer (<root:surf-demo>)
+         ├─ ehmpathy/surf-demo#1220 → @:mechanic (root: <root:surf-demo>)
+         └─ ehmpathy/surf-demo#1221 → @:reviewer (root: <root:surf-demo>)
 "
 `;
 
@@ -58,7 +58,10 @@ exports[`git.pull.watch lifecycle given: [case4] two clones on one version share
           "held": 0,
           "heldTicks": 0,
           "heldCause": null,
-          "ended": null
+          "ended": null,
+          "readFault": null,
+          "unreadable": false,
+          "record": "<home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=1220.clone=a1a1a1a1-0000-4000-8000-00000000000a.json"
         },
         {
           "repo": "ehmpathy/surf-demo",
@@ -70,7 +73,10 @@ exports[`git.pull.watch lifecycle given: [case4] two clones on one version share
           "held": 0,
           "heldTicks": 0,
           "heldCause": null,
-          "ended": null
+          "ended": null,
+          "readFault": null,
+          "unreadable": false,
+          "record": "<home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=1221.clone=b2b2b2b2-0000-4000-8000-00000000000b.json"
         }
       ]
     }
@@ -122,7 +128,7 @@ exports[`git.pull.watch lifecycle given: [case4] two clones on one version share
     "verdict": null,
     "prior": null
   },
-  "line": "would set → @:mechanic (daemon v<key>)"
+  "line": "would set → @:mechanic (daemon v<key>; apply spawns it if none lives)"
 }
 "
 `;
@@ -169,7 +175,10 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
           "held": 0,
           "heldTicks": 0,
           "heldCause": null,
-          "ended": null
+          "ended": null,
+          "readFault": null,
+          "unreadable": false,
+          "record": "<home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=1220.clone=a1a1a1a1-0000-4000-8000-00000000000a.json"
         }
       ]
     }
@@ -185,10 +194,10 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
    └─ daemon v<key> · absent · no pid · last tick <n>s ago
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
-         └─ ehmpathy/surf-demo#1220 → @:mechanic (<root:surf-demo>)
+         └─ ehmpathy/surf-demo#1220 → @:mechanic (root: <root:surf-demo>)
 
 🥥 did you know?
-   └─ a stale, wedged, or absent daemon serves no watch
+   └─ daemon v<key> is absent; it serves no watch
       ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
       └─ 2. start a fresh one: rhx git.pull.watch set --which <n> --mode apply
 "
@@ -216,7 +225,10 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
           "held": 0,
           "heldTicks": 0,
           "heldCause": null,
-          "ended": null
+          "ended": null,
+          "readFault": null,
+          "unreadable": false,
+          "record": "<home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=1220.clone=a1a1a1a1-0000-4000-8000-00000000000a.json"
         }
       ]
     }
@@ -232,10 +244,10 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
    └─ daemon v<key> · stale · pid <pid> · last tick <n>s ago
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
-         └─ ehmpathy/surf-demo#1220 → @:mechanic (<root:surf-demo>)
+         └─ ehmpathy/surf-demo#1220 → @:mechanic (root: <root:surf-demo>)
 
 🥥 did you know?
-   └─ a stale, wedged, or absent daemon serves no watch
+   └─ daemon v<key> is stale; it serves no watch
       ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
       └─ 2. start a fresh one: rhx git.pull.watch set --which <n> --mode apply
 "
@@ -263,7 +275,10 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
           "held": 0,
           "heldTicks": 0,
           "heldCause": null,
-          "ended": null
+          "ended": null,
+          "readFault": null,
+          "unreadable": false,
+          "record": "<home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=1220.clone=a1a1a1a1-0000-4000-8000-00000000000a.json"
         }
       ]
     }
@@ -279,10 +294,10 @@ exports[`git.pull.watch lifecycle given: [case9b] get shows a daemon that serves
    └─ daemon v<key> · wedged · pid <pid> · last tick <n>s ago
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
-         └─ ehmpathy/surf-demo#1220 → @:mechanic (<root:surf-demo>)
+         └─ ehmpathy/surf-demo#1220 → @:mechanic (root: <root:surf-demo>)
 
 🥥 did you know?
-   └─ a stale, wedged, or absent daemon serves no watch
+   └─ daemon v<key> is wedged; it serves no watch
       ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
       └─ 2. start a fresh one: rhx git.pull.watch set --which <n> --mode apply
 "
@@ -346,6 +361,44 @@ exports[`git.pull.watch lifecycle given: [case14] an upgrade moves the watch whe
 "
 `;
 
+exports[`git.pull.watch lifecycle given: [case14] an upgrade moves the watch when: [t1] the clone plans a watch of #1221 from this version then: the plan says it would move from v8.8.8, and writes naught 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.watch set --mode plan
+   ├─ pr: ehmpathy/surf-demo#1221
+   ├─ clone: @:mechanic
+   └─ watch: would move v<key> → v<key>
+
+🥥 did you know?
+   └─ plan writes naught; to watch it
+      └─ rhx git.pull.watch set --which 1221 --in ehmpathy/surf-demo --mode apply
+"
+`;
+
+exports[`git.pull.watch lifecycle given: [case14] an upgrade moves the watch when: [t2] the clone applies that move, with json output then: the json names the move and the key it came from 1`] = `
+"{
+  "mode": "apply",
+  "repo": "ehmpathy/surf-demo",
+  "pr": 1221,
+  "clone": {
+    "serial": "a1a1a1a1-0000-4000-8000-00000000000a",
+    "slug": "mechanic"
+  },
+  "watch": {
+    "verdict": "moved",
+    "from": "<key>"
+  },
+  "daemon": {
+    "key": "<key>",
+    "pid": "<pid>",
+    "verdict": "spawned",
+    "prior": null
+  },
+  "line": "moved v<key> → v<key> (daemon pid <pid>, spawned)"
+}
+"
+`;
+
 exports[`git.pull.watch lifecycle given: [case14d] a pr with no change past the idle ttl ends its watch when: [t0] the clone watches #1220, and naught changes on it then: the clone is told the watch ended, and how to rewatch 1`] = `
 "🐢 heads up dude...
 
@@ -382,7 +435,11 @@ exports[`git.pull.watch lifecycle given: [case15] a clone stops its watch (entry
 
 🐚 git.pull.watch del --mode apply
    ├─ pr: ehmpathy/surf-demo#1220
-   └─ verdict: absent — no-op
+   └─ verdict: absent — no-op; no watch by this clone on ehmpathy/surf-demo#1220, under any key
+
+🥥 did you know?
+   └─ to see each watch this box holds
+      └─ rhx git.pull.watch get
 "
 `;
 

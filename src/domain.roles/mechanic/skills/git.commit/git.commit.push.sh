@@ -187,27 +187,39 @@ emit_error() {
 # .note = keyrack leads by default (the vision's preferred bias); under as-human
 #         the caller already opted out of keyrack, so the mode fix leads and
 #         keyrack becomes the "instead" alternative.
+# .note = the keyrack fix follows keyrack's status: a locked key needs an
+#         unlock; an absent key cannot be unlocked, so a human fills it first,
+#         then the unlock. each fix carries a `then` command, `-` when none.
+# .note = fields split on \x1f, not a tab: a tab is IFS whitespace, so `read`
+#         would fold an empty field into its neighbor
 # args = fix2_label, fix2_cmd
+# returns: prefer_label prefer_cmd prefer_then alt_label alt_cmd alt_then, \x1f-split
 ######################################################################
 get_ordered_pr_fixes() {
-  local fix2_label="$1" fix2_cmd="$2"
+  local fix2_label="$1" fix2_cmd="$2" sep=$'\x1f'
   local keyrack_label="unlock the ehmpath keyrack, so the seaturtle can open the pr"
   # name the specific key (rule.require.narrow-keyrack-unlocks): a bare unlock
   # would prompt for every declared key (e.g. aws sso), so scope the hint to the
   # one github token this path needs.
   local keyrack_cmd="rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+  local keyrack_then="-"
+
+  # an absent key: a human fills it, then the unlock (an unlock alone is a dead end)
+  if [[ "${KEYRACK_TOKEN_STATUS:-}" == "absent" ]]; then
+    keyrack_label="a human fills the absent ehmpath keyrack token, then unlocks it, so the seaturtle can open the pr"
+    keyrack_then="$keyrack_cmd"
+    keyrack_cmd="rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+  fi
 
   # under as-human the caller already opted out of keyrack, so the mode fix leads
-  # (trailing newline lets the caller's `read` return 0 under set -e)
+  # (the final newline lets the caller's `read` return 0 under set -e)
   if [[ "$AUTH" == "as-human" ]]; then
-    printf '%s\t%s\t%s\t%s\n' \
-      "$fix2_label" "$fix2_cmd" "$keyrack_label instead" "$keyrack_cmd"
+    printf '%s\n' "${fix2_label}${sep}${fix2_cmd}${sep}-${sep}${keyrack_label} instead${sep}${keyrack_cmd}${sep}${keyrack_then}"
     return
   fi
 
   # otherwise keyrack (the preferred default) leads and the mode fix is the alt
-  printf '%s\t%s\t%s\t%s\n' \
-    "$keyrack_label" "$keyrack_cmd" "$fix2_label" "$fix2_cmd"
+  printf '%s\n' "${keyrack_label}${sep}${keyrack_cmd}${sep}${keyrack_then}${sep}${fix2_label}${sep}${fix2_cmd}${sep}-"
 }
 
 ######################################################################
@@ -229,8 +241,8 @@ emit_pr_open_guide() {
   local error_line="$1" fix2_label="$2" fix2_cmd="$3" json_error="$4" detail="${5:-}"
 
   # order the two fixes (pure decision, delegated to the transformer)
-  local prefer_label prefer_cmd alt_label alt_cmd
-  IFS=$'\t' read -r prefer_label prefer_cmd alt_label alt_cmd \
+  local prefer_label prefer_cmd prefer_then alt_label alt_cmd alt_then
+  IFS=$'\x1f' read -r prefer_label prefer_cmd prefer_then alt_label alt_cmd alt_then \
     < <(get_ordered_pr_fixes "$fix2_label" "$fix2_cmd")
 
   # render as a tree guide (the keyrack.yml-not-found guide shape): a generic
@@ -245,9 +257,12 @@ emit_pr_open_guide() {
     echo "🥥 your commit is pushed; to open its pr, either:"
     echo "   ├─ 1. ${prefer_label}:"
     echo "   │     \$ ${prefer_cmd}"
+    [[ "$prefer_then" != "-" ]] && echo "   │     \$ ${prefer_then}"
     echo "   │"
     echo "   └─ 2. or ${alt_label}:"
     echo "         \$ ${alt_cmd}"
+    [[ "$alt_then" != "-" ]] && echo "         \$ ${alt_then}"
+    true
   )
   # the human-readable guide always rides stderr; stdout carries the
   # mode-appropriate failure — a json error object in json mode (machine-safe
@@ -516,6 +531,7 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
   # possibly-divergent one. default GH_PR_TOKEN to the threaded value; only fetch
   # when not threaded (a standalone invocation) — single if, no else.
   GH_PR_TOKEN="${SEATURTLE_PR_TOKEN_VALUE:-}"
+  KEYRACK_TOKEN_STATUS="${SEATURTLE_PR_TOKEN_STATUS:-}"
   TOKEN_FETCH_ERR=""
   if [[ "${SEATURTLE_PR_TOKEN_PREFETCHED:-}" != "1" ]]; then
     # standalone: fetch via the shared communicator (the same operation
@@ -526,9 +542,11 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
     # timeout, daemon down, corrupted credential store — is surfaced in the guide
     # detail rather than hidden behind a generic message (rule.forbid.failhide)
     TOKEN_FETCH_ERR_FILE=$(mktemp)
-    GH_PR_TOKEN=$(fetch_github_token 2>"$TOKEN_FETCH_ERR_FILE" || echo "")
+    TOKEN_STATUS_FILE=$(mktemp)
+    GH_PR_TOKEN=$(fetch_github_token status_file="$TOKEN_STATUS_FILE" 2>"$TOKEN_FETCH_ERR_FILE" || echo "")
     TOKEN_FETCH_ERR=$(cat "$TOKEN_FETCH_ERR_FILE")
-    rm -f "$TOKEN_FETCH_ERR_FILE"
+    KEYRACK_TOKEN_STATUS=$(cat "$TOKEN_STATUS_FILE")
+    rm -f "$TOKEN_FETCH_ERR_FILE" "$TOKEN_STATUS_FILE"
 
     # strong identity check on a freshly-fetched token: the same graphql-verified
     # assert git.commit.set runs after its fetch (set.sh), recomposed onto this
@@ -551,6 +569,8 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
     # would fail-fast on the now-empty stage). name the concrete command so the
     # guide's advice actually ships it.
     TOKEN_JSON_ERROR="ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human (or unlock keyrack)"
+    # an absent key cannot be unlocked; only a human fill helps, so say so
+    [[ "$KEYRACK_TOKEN_STATUS" == "absent" ]] && TOKEN_JSON_ERROR="ehmpath keyrack token absent — retry: rhx git.commit.push --mode apply --auth as-human (or a human fills the keyrack token)"
     # surface the real fetch cause (network timeout, locked keyrack, daemon down)
     # as a stderr detail line in BOTH modes, so the human learns WHY the fetch
     # failed instead of a generic message (rule.forbid.failhide). it rides stderr —

@@ -22,9 +22,23 @@ exports[`git.pull.watch faults given: [case4] a watch record that will not parse
           "held": 0,
           "heldTicks": 0,
           "heldCause": null,
-          "ended": null
+          "ended": null,
+          "readFault": null,
+          "unreadable": false,
+          "record": "<home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=1220.clone=a1a1a1a1-0000-4000-8000-00000000000a.json"
         },
         {
+          "repo": null,
+          "pr": null,
+          "cloneSerial": null,
+          "cloneSlug": null,
+          "repoRoot": null,
+          "primed": null,
+          "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
+          "ended": null,
+          "readFault": null,
           "unreadable": true,
           "record": "<home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=9.clone=c3.json"
         }
@@ -42,7 +56,7 @@ exports[`git.pull.watch faults given: [case4] a watch record that will not parse
    └─ daemon v<key> · live · pid <pid> · last tick <n>s ago
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
       └─ watches
-         ├─ ehmpathy/surf-demo#1220 → @:mechanic (<root:surf-demo>)
+         ├─ ehmpathy/surf-demo#1220 → @:mechanic (root: <root:surf-demo>)
          └─ unreadable record: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/watches/ehmpathy.surf-demo.pr=9.clone=c3.json
 
 🥥 did you know?
@@ -62,6 +76,7 @@ exports[`git.pull.watch faults given: [case5] a set while the daemon is paused w
 
 🥥 did you know?
    └─ a paused daemon reads naught; the github token is locked
-      └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+      ├─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
+      └─ or, for the whole grove: rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN
 "
 `;

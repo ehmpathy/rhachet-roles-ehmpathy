@@ -250,6 +250,16 @@ describe('git.pull.watch delivery', () => {
         expect(result.listed.daemons[0].watches[0].ended).not.toBeNull();
         expect(scene.asMasked(result.tree.stdout)).toMatchSnapshot();
       });
+      then('the ended json row reads the same on each run', () => {
+        const row = result.listed.daemons[0].watches[0];
+        expect(
+          JSON.parse(
+            scene.asMasked(
+              JSON.stringify({ ...row, ended: row.ended ? '<ended>' : null }),
+            ),
+          ),
+        ).toMatchSnapshot();
+      });
     });
 
     when('[t1] the clone frees up; the next try is taken', () => {
@@ -279,6 +289,73 @@ describe('git.pull.watch delivery', () => {
       });
     });
   });
+
+  given(
+    '[case7d] a failure and a merge in one tick, while the clone is busy',
+    () => {
+      const scene = genWatchTestScene({
+        slug: 'watch-case7d',
+        repos: ['surf-demo'],
+        store: {},
+      });
+      scene.setStore((store) => {
+        store.clones[scene.roots['surf-demo']!] = [
+          {
+            serial: SERIAL_A,
+            slug: 'mechanic',
+            reachState: 'LIVE',
+            say: 'withheld',
+          },
+        ];
+      });
+      setPrOpen({ scene, repo: 'ehmpathy/surf-demo', pr: '1220' });
+      afterAll(() => scene.stopAllDaemons());
+
+      when('[t0] the alert is held a tick, then the clone frees up', () => {
+        const result = useThen('the combined alert lands once', async () => {
+          scene.runSkill({
+            verb: 'set',
+            args: ['--which', '1220', '--mode', 'apply'],
+            root: scene.roots['surf-demo']!,
+            serial: SERIAL_A,
+          });
+          await scene.waitForPrimed();
+          setCheckFailed({ scene, pr: '1220', id: 81, name: 'test-unit' });
+          scene.setStore((store) => {
+            store.github.prs['ehmpathy/surf-demo#1220']!.state = 'closed';
+            store.github.prs['ehmpathy/surf-demo#1220']!.merged = true;
+          });
+          await waitForWatch({
+            label: 'one withheld try',
+            check: () => scene.getSays().length >= 1,
+            scene,
+          });
+          scene.setStore((store) => {
+            store.clones[scene.roots['surf-demo']!]![0]!.say = 'released';
+          });
+          await waitForWatch({
+            label: 'the watch ends',
+            check: () => scene.getAllWatchRecords().length === 0,
+            scene,
+          });
+          return {
+            says: scene.getSays().filter((say) => say.verdict === 'released'),
+          };
+        });
+        then('the events lead, the closure follows, one held mark atop', () => {
+          expect(result.says).toHaveLength(1);
+          expect(result.says[0]!.text).toContain('check: test-unit (failure)');
+          expect(result.says[0]!.text).toContain('#1220 merged; watch ended');
+          expect(result.says[0]!.text.match(/you were busy/g)).toHaveLength(1);
+          expect(
+            scene
+              .asMasked(result.says[0]!.text)
+              .replace(/held \d+ ticks/, 'held <n> ticks'),
+          ).toMatchSnapshot();
+        });
+      });
+    },
+  );
 
   given('[case7b] an alert due while clone say enqueues it mid-turn', () => {
     const scene = genWatchTestScene({
@@ -486,7 +563,12 @@ describe('git.pull.watch delivery', () => {
           'locked',
         );
         expect(scene.asMasked(result.listedTree.stdout)).toMatchSnapshot();
-        expect(scene.asMasked(result.listedJson.stdout)).toMatchSnapshot();
+        // a read fault's clock is an epoch; it differs per run
+        expect(
+          scene
+            .asMasked(result.listedJson.stdout)
+            .replace(/"since": \d+/g, '"since": "<epoch>"'),
+        ).toMatchSnapshot();
       });
       then('the alert says locked and names the unlock', () => {
         expect(result.says[1]!.text).toContain('github token locked');
@@ -727,7 +809,7 @@ describe('git.pull.watch delivery', () => {
         });
         then('the daemon log names the grove token as its source', () => {
           expect(result.log).toContain(
-            'token: @all.prep.GITHUB_TOKEN, the grove token (the seaturtle token is not set)',
+            'token: @all.prep.GITHUB_TOKEN, the grove token (the seaturtle token is not granted)',
           );
         });
       });
@@ -770,6 +852,57 @@ describe('git.pull.watch delivery', () => {
       );
     });
   });
+
+  (['locked', 'blocked'] as const).forEach((seaturtle) =>
+    given(
+      `[case8i.${seaturtle}] a seaturtle token ${seaturtle}, and the grove token filled`,
+      () => {
+        const scene = genWatchTestScene({
+          slug: `watch-case8i-${seaturtle}`,
+          repos: ['surf-demo'],
+          store: { keyrack: seaturtle, keyrackAmbient: 'granted' },
+        });
+        scene.setStore((store) => {
+          store.clones[scene.roots['surf-demo']!] = [
+            { serial: SERIAL_A, slug: 'mechanic', reachState: 'LIVE' },
+          ];
+        });
+        setPrOpen({ scene, repo: 'ehmpathy/surf-demo', pr: '1220' });
+        afterAll(() => scene.stopAllDaemons());
+
+        when('[t0] the clone watches #1220, and a check fails', () => {
+          const result = useThen('the failure is alerted', async () => {
+            scene.runSkill({
+              verb: 'set',
+              args: ['--which', '1220', '--mode', 'apply'],
+              root: scene.roots['surf-demo']!,
+              serial: SERIAL_A,
+            });
+            await scene.waitForPrimed();
+            setCheckFailed({ scene, pr: '1220', id: 811, name: 'test-unit' });
+            const says = await waitForWatch({
+              label: `ci alert via the grove token, seaturtle ${seaturtle}`,
+              check: () =>
+                scene.getSays().length > 0 ? scene.getSays() : null,
+              scene,
+            });
+            return { says, ghCalls: scene.getGhCalls() };
+          });
+          then('the clone hears the failure, and no pause', () => {
+            expect(result.says).toHaveLength(1);
+            expect(result.says[0]!.text).toContain('test-unit');
+            expect(result.says[0]!.text).not.toContain('paused');
+          });
+          then('every github read carries the grove token', () => {
+            expect(result.ghCalls.length).toBeGreaterThan(0);
+            result.ghCalls.forEach((call) =>
+              expect(call.token).toEqual('ghs_fake_grove_token'),
+            );
+          });
+        });
+      },
+    ),
+  );
 
   given('[case8f] a box whose keyrack blocks the github key', () => {
     const scene = genWatchTestScene({
@@ -830,7 +963,12 @@ describe('git.pull.watch delivery', () => {
           'blocked',
         );
         expect(scene.asMasked(result.listedTree.stdout)).toMatchSnapshot();
-        expect(scene.asMasked(result.listedJson.stdout)).toMatchSnapshot();
+        // a read fault's clock is an epoch; it differs per run
+        expect(
+          scene
+            .asMasked(result.listedJson.stdout)
+            .replace(/"since": \d+/g, '"since": "<epoch>"'),
+        ).toMatchSnapshot();
       });
     });
   });
@@ -1036,7 +1174,12 @@ describe('git.pull.watch delivery', () => {
           'unreachable',
         ]);
         expect(scene.asMasked(result.listedTree.stdout)).toMatchSnapshot();
-        expect(scene.asMasked(result.listedJson.stdout)).toMatchSnapshot();
+        // a read fault's clock is an epoch; it differs per run
+        expect(
+          scene
+            .asMasked(result.listedJson.stdout)
+            .replace(/"since": \d+/g, '"since": "<epoch>"'),
+        ).toMatchSnapshot();
       });
       then('the clone gets one note that names the pr', () => {
         expect(result.says).toHaveLength(1);
@@ -1539,11 +1682,12 @@ describe('git.pull.watch delivery', () => {
           serial: SERIAL_C,
         }),
       );
-      then('it exits 2 and names the registry', () => {
+      then('it exits 2, names the serial var, and the list command', () => {
         expect(result.status).toEqual(2);
         expect(result.stdout).toContain(
-          `clone ${SERIAL_C} is absent in the registry of`,
+          `RHACHET_CLONE_SERIAL=${SERIAL_C} is no clone of`,
         );
+        expect(result.stdout).toContain('npx rhachet clone list --output json');
         expect(scene.asMasked(result.stdout)).toMatchSnapshot();
       });
     });

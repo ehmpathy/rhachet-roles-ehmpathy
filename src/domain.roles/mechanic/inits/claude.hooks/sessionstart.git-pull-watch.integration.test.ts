@@ -180,6 +180,98 @@ describe('sessionstart.git-pull-watch.sh', () => {
     });
   });
 
+  given('[case3] a clone whose watch sits under an older key', () => {
+    const scene = genWatchTestScene({
+      slug: 'watch-boot-older',
+      repos: ['surf-demo'],
+      store: {},
+    });
+    scene.setStore((store) => {
+      store.clones[scene.roots['surf-demo']!] = [
+        { serial: SERIAL, slug: 'mechanic', reachState: 'LIVE' },
+      ];
+      store.github.prs['ehmpathy/surf-demo#1220'] = {
+        state: 'open',
+        merged: false,
+        headSha: 'sha-1220',
+        closedBy: null,
+      };
+    });
+    afterAll(() => scene.stopAllDaemons());
+
+    when(
+      '[t0] the watch was set under v5.5.5, then the box rebooted onto this key',
+      () => {
+        const result = useThen('the hook runs', async () => {
+          const older = genWatchSkillCopy({
+            slug: 'watch-boot-older',
+            version: '5.5.5',
+          });
+          scene.runSkill({
+            verb: 'set',
+            args: ['--which', '1220', '--mode', 'apply'],
+            root: scene.roots['surf-demo']!,
+            serial: SERIAL,
+            skillDir: older.skillDir,
+          });
+          const [killed] = getAllWatchDaemonPids({ home: scene.home });
+          scene.stopAllDaemons();
+          await waitForWatch({
+            label: 'older daemon stopped',
+            check: () => !isPidAlive(killed!),
+          });
+          // the upgrade: the root's mechanic link now names this install
+          const link = path.join(
+            scene.roots['surf-demo']!,
+            '.agent',
+            'repo=ehmpathy',
+            'role=mechanic',
+            'skills',
+            'git.pull.watch',
+          );
+          fs.mkdirSync(path.dirname(link), { recursive: true });
+          fs.symlinkSync(
+            path.join(__dirname, '../../skills/git.pull.watch'),
+            link,
+          );
+          const hook = scene.runScript({
+            path: HOOK,
+            args: [],
+            root: scene.roots['surf-demo']!,
+            serial: SERIAL,
+          });
+          await waitForWatch({
+            label: 'the watch moved off the older key',
+            check: () =>
+              scene
+                .getAllWatchRecords()
+                .every((one) => !one.key.startsWith('5.5.5+')),
+          });
+          return {
+            hook,
+            pids: getAllWatchDaemonPids({ home: scene.home }),
+            records: scene.getAllWatchRecords(),
+          };
+        });
+        then('it exits 0 and names the watch under the older key', () => {
+          expect(result.hook.status).toEqual(0);
+          expect(result.hook.stdout).toContain(', spawned');
+          expect(result.hook.stdout).toContain(
+            'for 1 watch(es), 1 under an older key, taken at its first tick',
+          );
+          expect(scene.asMasked(result.hook.stdout)).toMatchSnapshot();
+        });
+        then('one daemon runs, of this key', () => {
+          expect(result.pids).toHaveLength(1);
+        });
+        then('the watch now sits under this key', () => {
+          expect(result.records).toHaveLength(1);
+          expect(result.records[0]!.key).not.toMatch(/^5\.5\.5\+/);
+        });
+      },
+    );
+  });
+
   given('[case2] a hook that cannot serve its watches', () => {
     const scene = genWatchTestScene({
       slug: 'watch-boot-faults',

@@ -31,6 +31,8 @@ OUTPUT="tree"
 # .what = print the usage: every flag, its default, an example
 help() {
   cat <<'EOF'
+git.pull.watch del: stop this clone's watch on one pr; its daemon exits once it holds no watch
+
 usage: git.pull.watch del --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
@@ -82,6 +84,8 @@ for one in "${RECORDS[@]+"${RECORDS[@]}"}"; do
 done
 
 # .what = the del verdict, from how many records stand and the mode
+# .note = `absent — no-op` is the verdict every git.pull.* del speaks (git.pull.comment
+#         del ships it), so a composer reads one word across the family
 # usage: as_watch_del_verdict <count> <plan|apply>
 as_watch_del_verdict() {
   [[ "$1" -gt 0 ]] || { echo "absent — no-op"; return 0; }
@@ -120,8 +124,14 @@ print_watch_header "$HEADER" "$SKILL --mode $MODE"
 echo "   ├─ pr: $WATCH_REPO#$PR"
 [[ ${#KEYS[@]} -eq 1 ]] && echo "   ├─ daemon: $(as_watch_keys_label "${KEYS[@]}")"
 [[ ${#KEYS[@]} -gt 1 ]] && echo "   ├─ daemons: $(as_watch_keys_label "${KEYS[@]}")"
+# a no-op names what it searched, so a mistyped pr does not read as calm as a true no-op
+if [[ ${#RECORDS[@]} -eq 0 ]]; then
+  echo "   └─ verdict: absent — no-op; no watch by this clone on $WATCH_REPO#$PR, under any key"
+  print_watch_coconut "to see each watch this box holds" "rhx git.pull.watch get"
+  exit 0
+fi
 echo "   └─ verdict: $VERDICT"
-if [[ "$MODE" == "plan" && ${#RECORDS[@]} -gt 0 ]]; then
+if [[ "$MODE" == "plan" ]]; then
   print_watch_coconut "plan writes naught; to stop the watch" \
     "rhx $SKILL --which $PR --in $WATCH_REPO --mode apply"
 fi

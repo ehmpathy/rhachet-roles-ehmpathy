@@ -2,7 +2,9 @@
 
 exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] each verb is asked for --help then: each help is snapped 1`] = `
 {
-  "del": "usage: git.pull.watch del --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
+  "del": "git.pull.watch del: stop this clone's watch on one pr; its daemon exits once it holds no watch
+
+usage: git.pull.watch del --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
 options:
@@ -15,7 +17,9 @@ options:
 example:
   rhx git.pull.watch del --which 1220 --mode apply
 ",
-  "get": "usage: git.pull.watch get [--output tree|json]
+  "get": "git.pull.watch get: show each pr-watch daemon on this machine, and the watches it serves
+
+usage: git.pull.watch get [--output tree|json]
 
 options:
   --output tree|json  the output shape (default: tree)
@@ -24,7 +28,9 @@ options:
 example:
   rhx git.pull.watch get
 ",
-  "set": "usage: git.pull.watch set --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
+  "set": "git.pull.watch set: watch one pr for this clone; ci failures, comments, and approvals reach it as alerts
+
+usage: git.pull.watch set --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
 options:
@@ -49,7 +55,7 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
 
 🥥 did you know?
    └─ to fix it
-      └─ rhx git.pull.watch del --which <n> --mode apply
+      └─ rhx git.pull.watch del --which <n>
 ",
   "setBadMode": "🐢 bummer dude...
 
@@ -137,9 +143,23 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
           "held": 0,
           "heldTicks": 0,
           "heldCause": null,
-          "ended": null
+          "ended": null,
+          "readFault": null,
+          "unreadable": false,
+          "record": "<home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=1.0.0+cafe0001/watches/surf-demo.1220.json"
         },
         {
+          "repo": null,
+          "pr": null,
+          "cloneSerial": null,
+          "cloneSlug": null,
+          "repoRoot": null,
+          "primed": null,
+          "held": 0,
+          "heldTicks": 0,
+          "heldCause": null,
+          "ended": null,
+          "readFault": null,
           "unreadable": true,
           "record": "<home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=1.0.0+cafe0001/watches/surf-demo.1221.json"
         }
@@ -164,7 +184,10 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
           "held": 0,
           "heldTicks": 0,
           "heldCause": null,
-          "ended": null
+          "ended": null,
+          "readFault": null,
+          "unreadable": false,
+          "record": "<home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=1.0.1+cafe0002/watches/surf-demo.1230.json"
         }
       ]
     }
@@ -173,30 +196,27 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
 "
 `;
 
-exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic role linked when: [t4] get reads a box that holds watches, and unwell daemons then: the tree names the cure for each unwell part 1`] = `
+exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic role linked when: [t4] get reads a box that holds watches, and unwell daemons then: the tree names the cure for each unwell part, under one coconut 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.watch get
    ├─ daemon v1.0.0+cafe0001 · stale · pid 999999999 · last tick <n>s ago · paused (token locked)
    │  ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=1.0.0+cafe0001/bin
    │  └─ watches
-   │     ├─ ehmpathy/surf-demo#1220 → @:mechanic (surf-demo.beav.feat-wave)
+   │     ├─ ehmpathy/surf-demo#1220 → @:mechanic (root: surf-demo.beav.feat-wave)
    │     └─ unreadable record: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=1.0.0+cafe0001/watches/surf-demo.1221.json
    └─ daemon v1.0.1+cafe0002 · absent · no pid · never ticked
       ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=1.0.1+cafe0002/bin
       └─ watches
-         └─ ehmpathy/surf-demo#1230 → @:mechanic-two (surf-demo.beav.feat-wave)
+         └─ ehmpathy/surf-demo#1230 → @:mechanic-two (root: surf-demo.beav.feat-wave)
 
 🥥 did you know?
-   └─ a stale, wedged, or absent daemon serves no watch
-      ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=1.0.0+cafe0001/daemon.log
-      └─ 2. start a fresh one: rhx git.pull.watch set --which <n> --mode apply
-
-🥥 did you know?
-   └─ a paused daemon reads naught; the github token is locked
-      └─ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
-
-🥥 did you know?
+   ├─ daemon v1.0.0+cafe0001 is stale; it serves no watch
+   │  ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=1.0.0+cafe0001/daemon.log
+   │  └─ 2. start a fresh one: rhx git.pull.watch set --which <n> --mode apply
+   ├─ daemon v1.0.1+cafe0002 is absent; it serves no watch
+   │  ├─ 1. read why it stopped: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=1.0.1+cafe0002/daemon.log
+   │  └─ 2. start a fresh one: rhx git.pull.watch set --which <n> --mode apply
    └─ a watch record that does not parse is held, never served
       ├─ 1. read it: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=1.0.0+cafe0001/watches/surf-demo.1221.json
       └─ 2. rewrite it from its clone: rhx git.pull.watch set --which <n> --mode apply
@@ -222,7 +242,11 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
 
 🐚 git.pull.watch del --mode apply
    ├─ pr: ehmpathy/surf-demo#1240
-   └─ verdict: absent — no-op
+   └─ verdict: absent — no-op; no watch by this clone on ehmpathy/surf-demo#1240, under any key
+
+🥥 did you know?
+   └─ to see each watch this box holds
+      └─ rhx git.pull.watch get
 "
 `;
 
@@ -266,11 +290,12 @@ exports[`git.pull.watch, via rhachet given: [case1] a repo with the mechanic rol
 "🐢 bummer dude...
 
 🐚 git.pull.watch set
-   └─ ✋ ConstraintError: clone f0f0f0f0-0000-4000-8000-00000000000f is absent in the registry of <repo>; an alert could not reach it
+   └─ ✋ ConstraintError: RHACHET_CLONE_SERIAL=f0f0f0f0-0000-4000-8000-00000000000f is no clone of <repo>; an alert could not reach it
 
 🥥 did you know?
-   └─ to fix it
-      └─ run this from the repo root where the clone was enrolled
+   └─ to fix it, pick one
+      ├─ see the clones of this root: cd <repo> && npx rhachet clone list --output json
+      └─ or run this from the repo root where the clone was enrolled
 "
 `;
 

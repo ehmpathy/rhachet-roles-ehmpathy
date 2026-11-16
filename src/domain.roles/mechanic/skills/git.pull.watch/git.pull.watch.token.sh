@@ -70,8 +70,8 @@ get_watch_token() {
 WATCH_TOKEN_SLUG_AMBIENT="@all.prep.GITHUB_TOKEN"
 
 # .what = read the grove's ambient machine token; on a grant, it becomes the token
-# .why  = where the seaturtle token is not set, the machine token every clone of
-#         the grove shares still reads github; never the human login (F11)
+# .why  = where the seaturtle token is absent, locked, or blocked, the machine token
+#         every clone of the grove shares still reads github; never the human login (F11)
 # .note = returns 1 and leaves the token state as it was, where not granted, so the
 #         pause still names the seaturtle fix
 get_watch_token_ambient() {

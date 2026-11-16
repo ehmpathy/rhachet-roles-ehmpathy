@@ -154,25 +154,65 @@ print_watch_coconut_block() {
 #         as the paused alert does, so a human never hunts for the command
 # usage: print_watch_paused_coconut <absent|expired|locked|blocked>
 print_watch_paused_coconut() {
+  local lines=() line
+  while IFS= read -r line; do
+    lines+=("$line")
+  done < <(as_watch_paused_cure_lines "$1")
+  print_watch_coconut_block "${lines[@]}"
+}
+
+# .what = the cure of a pause, one line each: its label, then each move
+# .why  = `get` folds it under one coconut beside the other cures; a paused alert
+#         prints it as a block of its own
+as_watch_paused_cure_lines() {
   local status="$1"
   local key="--owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
-  echo ""
-  echo "🥥 did you know?"
+  local grove="rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN"
   if [[ "$status" == "absent" ]]; then
-    echo "   └─ a paused daemon reads naught; the github token is not filled"
-    echo "      ├─ 1. a human runs: rhx keyrack fill $key"
-    echo "      ├─ 2. rhx keyrack unlock $key"
-    echo "      └─ or, for the whole grove: rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN"
+    echo "a paused daemon reads naught; the github token is not filled"
+    echo "1. a human runs: rhx keyrack fill $key"
+    echo "2. rhx keyrack unlock $key"
+    echo "or, for the whole grove: $grove"
     return 0
   fi
   if [[ "$status" == "expired" ]]; then
-    echo "   └─ a paused daemon reads naught; github refused the token"
-    echo "      ├─ a human runs: rhx keyrack fill $key --refresh"
-    echo "      └─ or, where the grove token served: rhx keyrack set --owner ehmpath --org @all --env prep --key GITHUB_TOKEN"
+    echo "a paused daemon reads naught; github refused the token"
+    echo "a human runs: rhx keyrack fill $key --refresh"
+    echo "or, where the grove token served: $grove"
     return 0
   fi
-  echo "   └─ a paused daemon reads naught; the github token is $status"
-  echo "      └─ rhx keyrack unlock $key"
+  echo "a paused daemon reads naught; the github token is $status"
+  echo "rhx keyrack unlock $key"
+  echo "or, for the whole grove: $grove"
+}
+
+# .what = print several cures under one coconut header: each label a branch, its moves below
+# .why  = three unwell parts in one render read as three headers; one header with a
+#         labeled branch per cure reads as one list
+# usage: print_watch_coconut_cures <cure> [cure...]   # each cure: label, then moves, newline-joined
+print_watch_coconut_cures() {
+  local n=$# i=0 cure label lines=() line branch under j
+  echo ""
+  echo "🥥 did you know?"
+  for cure in "$@"; do
+    i=$((i + 1))
+    branch="├─"
+    under="│  "
+    [[ $i -eq $n ]] && { branch="└─"; under="   "; }
+    lines=()
+    while IFS= read -r line; do
+      lines+=("$line")
+    done <<<"$cure"
+    label="${lines[0]}"
+    echo "   $branch $label"
+    j=0
+    for line in "${lines[@]:1}"; do
+      j=$((j + 1))
+      [[ $j -lt $((${#lines[@]} - 1)) ]] && echo "   $under├─ $line"
+      [[ $j -eq $((${#lines[@]} - 1)) ]] && echo "   $under└─ $line"
+    done
+  done
+  return 0
 }
 
 # .what = refuse with a ConstraintError tree, both streams, exit 2
@@ -888,7 +928,23 @@ del_watch_record_locked() {
     [[ -n "$entry" ]] && rm -f "$entry"
   done < <(get_all_watch_outbox_entries_of_record "$record")
   rm -f "$record"
+  del_watch_pr_cache_if_unwatched "$record"
   drop_watch_lock "$key_dir"
+}
+
+# .what = remove a pr's cache dir (etags, bodies, cadence) once no record of that pr stands
+# .why  = the cache of a pr no clone watches would else stay on disk for the life of the key
+# .note = the caller holds the key lock; the record stem `<owner>.<name>.pr=<n>.clone=<x>`
+#         leads with the cache dir's own name
+del_watch_pr_cache_if_unwatched() {
+  local record="$1" key_dir stem other
+  key_dir="$(as_watch_key_dir_of_record "$record")"
+  stem="$(basename "$record" .json)"
+  stem="${stem%%.clone=*}"
+  for other in "$(dirname "$record")/$stem.clone="*.json; do
+    [[ -f "$other" ]] && return 0
+  done
+  rm -rf "${key_dir:?}/cache/$stem"
 }
 
 # .what = a token unique to one watch life: epoch, pid, random
@@ -910,6 +966,7 @@ as_watch_record_json() {
   [[ -n "$set_at" ]] || set_at="$(get_watch_iso_now)"
   jq -n --arg repo "$repo" --argjson pr "$pr" --arg serial "$serial" \
     --arg slug "$slug" --arg root "$repo_root" --arg at "$set_at" --arg id "$(gen_watch_id)" '{
+      schema: 1,
       repo: $repo, pr: $pr, cloneSerial: $serial, cloneSlug: $slug, repoRoot: $root,
       watchId: $id, setAt: $at, primed: false,
       cursors: { headSha: null, checkRunIdsSeen: [], issueCommentIdMax: 0, reviewCommentIdMax: 0, reviewIdMax: 0 }
@@ -920,10 +977,14 @@ as_watch_record_json() {
 # .why  = the cursors ride along, so no event re-alerts under the new key (case=14);
 #         a new watchId tells a tick in flight on the old record it is not this life;
 #         an ended mark stays behind, since a `set` asks for a live watch
+# .note = the old record merges onto a fresh-record template, so a field a later
+#         schema adds reads its default, never null; the old values win where both hold one
 as_watch_record_moved() {
-  local record="$1" root="$2" slug="$3"
-  jq --arg root "$root" --arg slug "$slug" --arg id "$(gen_watch_id)" \
-    '.repoRoot = $root | .cloneSlug = $slug | .watchId = $id | del(.ended)' "$record"
+  local record="$1" root="$2" slug="$3" template
+  template="$(as_watch_record_json "$(jq -r '.repo' "$record")" "$(jq -r '.pr' "$record")" \
+    "$(jq -r '.cloneSerial' "$record")" "$slug" "$root")"
+  jq --argjson template "$template" --arg root "$root" --arg slug "$slug" --arg id "$(gen_watch_id)" \
+    '$template * . | .schema = $template.schema | .repoRoot = $root | .cloneSlug = $slug | .watchId = $id | del(.ended)' "$record"
 }
 
 ######################################################################
@@ -1149,13 +1210,20 @@ is_watch_repo_slug() {
   [[ "$1" =~ ^[A-Za-z0-9-]+/[A-Za-z0-9_.-]+$ ]]
 }
 
+# .what = the mode flag a fix hint echoes: ` --mode apply` for an apply caller, else naught
+# .why  = a plan-minded caller's fix should stay a plan; it reads the verb's own MODE
+as_watch_hint_mode() {
+  [[ "${MODE:-plan}" == "apply" ]] && { echo " --mode apply"; return 0; }
+  echo ""
+}
+
 # .what = refuse a --which that is absent or not a pr number
 # usage: check_watch_pr_arg <skill> <pr>
 check_watch_pr_arg() {
   local skill="$1" pr="$2"
   [[ "$pr" =~ ^[1-9][0-9]*$ ]] && return 0
-  [[ -n "$pr" ]] || fail_watch_constraint "$skill" "--which <n> is required" "rhx $skill --which <n> --mode apply"
-  fail_watch_constraint "$skill" "--which must be a pr number; got '$pr'" "rhx $skill --which <n> --mode apply"
+  [[ -n "$pr" ]] || fail_watch_constraint "$skill" "--which <n> is required" "rhx $skill --which <n>$(as_watch_hint_mode)"
+  fail_watch_constraint "$skill" "--which must be a pr number; got '$pr'" "rhx $skill --which <n>$(as_watch_hint_mode)"
 }
 
 # .what = set the clone serial and the repo slug, or refuse with the fix
@@ -1175,12 +1243,12 @@ set_watch_clone_and_repo() {
   WATCH_REPO="$repo_in"
   if [[ -n "$WATCH_REPO" ]]; then
     is_watch_repo_slug "$WATCH_REPO" || fail_watch_constraint "$skill" "--in must be <owner/name>; got '$WATCH_REPO'" \
-      "rhx $skill --which $pr --in <owner/name> --mode apply"
+      "rhx $skill --which $pr --in <owner/name>$(as_watch_hint_mode)"
     return 0
   fi
   WATCH_REPO="$(as_watch_repo_from_remote_url "$(git config --get remote.origin.url 2>/dev/null || echo "")")"
   is_watch_repo_slug "$WATCH_REPO" || fail_watch_constraint "$skill" "no repo: --in <owner/name> absent, and the cwd has no github origin" \
-    "rhx $skill --which $pr --in <owner/name> --mode apply"
+    "rhx $skill --which $pr --in <owner/name>$(as_watch_hint_mode)"
   return 0
 }
 
@@ -1205,9 +1273,17 @@ set_watch_verb_context() {
       "cause: $(get_watch_clone_list_fault "$WATCH_REPO_ROOT")" \
       -- "check: cd $WATCH_REPO_ROOT && npx rhachet clone list --output json"
   fi
-  if [[ "$reach" == "absent" || "$reach" == "DEAD" ]]; then
-    fail_watch_constraint "$skill" "clone $WATCH_SERIAL is $reach in the registry of $WATCH_REPO_ROOT; an alert could not reach it" \
-      "run this from the repo root where the clone was enrolled"
+  # .note = the refusal names the env var that carries the serial, and the command that
+  #         lists the clones this root holds, so the fix is a paste, not a hunt
+  if [[ "$reach" == "absent" ]]; then
+    fail_watch_constraint "$skill" "RHACHET_CLONE_SERIAL=$WATCH_SERIAL is no clone of $WATCH_REPO_ROOT; an alert could not reach it" \
+      "see the clones of this root: cd $WATCH_REPO_ROOT && npx rhachet clone list --output json" \
+      "or run this from the repo root where the clone was enrolled"
+  fi
+  if [[ "$reach" == "DEAD" ]]; then
+    fail_watch_constraint "$skill" "RHACHET_CLONE_SERIAL=$WATCH_SERIAL is a dead clone of $WATCH_REPO_ROOT; an alert could not reach it" \
+      "see the clones of this root: cd $WATCH_REPO_ROOT && npx rhachet clone list --output json" \
+      "or run this from a live enrolled clone"
   fi
   WATCH_SLUG="$(as_watch_clone_slug_or_serial "$list" "$WATCH_SERIAL")"
 

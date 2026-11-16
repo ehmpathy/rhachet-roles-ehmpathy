@@ -2662,6 +2662,127 @@ exec /usr/bin/git "$@"
   );
 
   given(
+    '[case38b] --auth as-ehmpath names the fix that fits the keyrack status',
+    () => {
+      /**
+       * .what = drive the token fetch against a fake keyrack that replies with
+       *         one json status, the way the real keyrack does (json on stdout,
+       *         exit 2 when not granted)
+       * .why  = an absent key cannot be unlocked, so the guide must name a human
+       *         fill for it; a locked key still needs the unlock alone
+       */
+      const runWithKeyrackStatus = (input: { status: string }) => {
+        const tempDir = setupTempRepo({
+          meterState: { uses: 3, push: 'allow' },
+          branch: 'turtle/feature',
+          commits: ['feat: keyrack status names the fix'],
+          commitAuthor: {
+            name: 'seaturtle[bot]',
+            email: 'seaturtle@ehmpath.com',
+          },
+          fakeRhachet: `#!/bin/bash
+# fake keyrack: every get replies with one json status; unlock does naught
+if [[ "$2" == "get" ]]; then
+  echo '{"status":"${input.status}","slug":"ehmpathy.prep.EHMPATHY_SEATURTLE_GITHUB_TOKEN"}'
+  exit 2
+fi
+exit 1
+`,
+        });
+
+        // .mock = fake git push success so we reach the token step
+        const fakeBinDir = path.join(tempDir, '.fakebin');
+        fs.mkdirSync(fakeBinDir, { recursive: true });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'git'),
+          `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+        const env = {
+          PATH: `${fakeBinDir}:${process.env.PATH}`,
+          EHMPATHY_SEATURTLE_GITHUB_TOKEN: '',
+        };
+
+        return {
+          tree: runPush({
+            tempDir,
+            pushArgs: ['--mode', 'apply', '--auth', 'as-ehmpath'],
+            env,
+          }),
+          json: runPush({
+            tempDir,
+            pushArgs: [
+              '--mode',
+              'apply',
+              '--auth',
+              'as-ehmpath',
+              '--output',
+              'json',
+            ],
+            env,
+          }),
+        };
+      };
+
+      when('[t0] keyrack replies status absent', () => {
+        const result = useThen('the push runs', async () =>
+          runWithKeyrackStatus({ status: 'absent' }),
+        );
+        then('it exits 2 with the pr-open guide', () => {
+          expect(result.tree.exitCode).toBe(2);
+          expect(result.tree.stdout).toContain('keyrack token not available');
+        });
+        then('the guide names a human fill, then the unlock', () => {
+          expect(result.tree.stdout).toContain(
+            'a human fills the absent ehmpath keyrack token, then unlocks it',
+          );
+          expect(result.tree.stdout).toContain(
+            '$ rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN',
+          );
+          expect(result.tree.stdout).toContain(
+            '$ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN',
+          );
+          // the fill comes first: an unlock of an absent key is a dead end
+          expect(result.tree.stdout.indexOf('keyrack fill')).toBeLessThan(
+            result.tree.stdout.indexOf('keyrack unlock'),
+          );
+          expect(result.tree.stdout).toMatchSnapshot();
+        });
+        then('the json error names the fill', () => {
+          expect(result.json.exitCode).toBe(2);
+          const parsed = JSON.parse(result.json.stdout);
+          expect(parsed.status).toEqual('error');
+          expect(parsed.error).toContain('a human fills the keyrack token');
+        });
+      });
+
+      when('[t1] keyrack replies status locked', () => {
+        const result = useThen('the push runs', async () =>
+          runWithKeyrackStatus({ status: 'locked' }),
+        );
+        then('the guide names the unlock alone, no fill', () => {
+          expect(result.tree.exitCode).toBe(2);
+          expect(result.tree.stdout).toContain(
+            'unlock the ehmpath keyrack, so the seaturtle can open the pr',
+          );
+          expect(result.tree.stdout).not.toContain('keyrack fill');
+          expect(result.tree.stdout).toMatchSnapshot();
+        });
+        then('the json error names the unlock', () => {
+          const parsed = JSON.parse(result.json.stdout);
+          expect(parsed.error).toContain('(or unlock keyrack)');
+        });
+      });
+    },
+  );
+
+  given(
     '[case38] --auth as-ehmpath surfaces the exact keyrack cause in the guide',
     () => {
       when(

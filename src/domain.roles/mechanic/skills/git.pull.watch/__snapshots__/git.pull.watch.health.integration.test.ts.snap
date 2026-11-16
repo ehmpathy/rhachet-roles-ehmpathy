@@ -1,0 +1,17 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.pull.watch read health given: [case1] two clones, each on its own pr, one pr goes dark when: [t0] #1220 gets no reply past the note bound; #1221 reads fine then: get names the read fault on the row of #1220 alone 1`] = `
+"🐢 heres the wave...
+
+🐚 git.pull.watch get
+   └─ daemon v<key> · live · pid <pid> · last tick <n>s ago
+      ├─ home: <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/bin
+      └─ watches
+         ├─ ehmpathy/surf-demo#1220 → @:mechanic (root: <root:surf-demo>) · read fault 1 min: github unreachable: repos/ehmpathy/surf-demo/pulls/1220 (status: none) dial tcp: lookup api.github.com: no such host
+         └─ ehmpathy/surf-demo#1221 → @:mechanic-b (root: <root:surf-demo>)
+
+🥥 did you know?
+   └─ a read fault holds the cursors of that pr; alerts resume once a read succeeds
+      └─ each fault line is in the daemon log: cat <home>/.rhachet/storage/repo=ehmpathy/role=mechanic/skill=git.pull.watch/v=<key>/daemon.log
+"
+`;

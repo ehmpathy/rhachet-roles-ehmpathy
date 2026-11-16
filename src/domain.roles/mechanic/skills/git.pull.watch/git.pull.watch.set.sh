@@ -33,6 +33,8 @@ OUTPUT="tree"
 # .what = print the usage: every flag, its default, an example
 help() {
   cat <<'EOF'
+git.pull.watch set: watch one pr for this clone; ci failures, comments, and approvals reach it as alerts
+
 usage: git.pull.watch set --which <n> [--in <owner/name>] [--mode plan|apply] [--output tree|json]
 needs: an enrolled clone (rhx enroll sets RHACHET_CLONE_SERIAL)
 
@@ -152,7 +154,7 @@ emit() {
 
 # plan: say what would happen, write naught
 if [[ "$MODE" == "plan" ]]; then
-  PLAN_LINE="would set → @:$WATCH_SLUG (daemon v$WATCH_KEY)"
+  PLAN_LINE="would set → @:$WATCH_SLUG (daemon v$WATCH_KEY; apply spawns it if none lives)"
   [[ "$WATCH_VERDICT" == "found" ]] && PLAN_LINE="found → @:$WATCH_SLUG (daemon v$WATCH_KEY)"
   [[ "$WATCH_VERDICT" == "moved" ]] && PLAN_LINE="would move v$WATCH_FROM → v$WATCH_KEY"
   emit "$PLAN_LINE"
