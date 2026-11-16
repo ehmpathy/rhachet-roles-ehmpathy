@@ -3976,7 +3976,7 @@ exit 2
     });
     when('[t0] get --unanswered', () => {
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--unanswered']),
+        scene.run('get', ['--which', '7', '--unanswered']),
       );
       then('the tree names 708, 709, and 713; not the +1', () => {
         expect(result.exitCode).toBe(0);
@@ -3991,7 +3991,7 @@ exit 2
     });
     when('[t1] get --unanswered --output json', () => {
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--unanswered', '--output', 'json']),
+        scene.run('get', ['--which', '7', '--unanswered', '--output', 'json']),
       );
       then('the ids are 708, 709, and 713', () => {
         expect(result.exitCode).toBe(0);
@@ -4026,7 +4026,7 @@ exit 2
     when('[t0] the ask comes after the answer', () => {
       const scene = genSceneOfPair({ idAnswer: 1101, idAsk: 1102 });
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--unanswered', '--output', 'json']),
+        scene.run('get', ['--which', '7', '--unanswered', '--output', 'json']),
       );
       then('the ask awaits', () => {
         expect(result.exitCode).toBe(0);
@@ -4037,7 +4037,7 @@ exit 2
     when('[t1] the ask comes before the answer', () => {
       const scene = genSceneOfPair({ idAnswer: 1104, idAsk: 1103 });
       const result = useThen('it runs', async () =>
-        scene.run('get', ['--pr', '7', '--unanswered', '--output', 'json']),
+        scene.run('get', ['--which', '7', '--unanswered', '--output', 'json']),
       );
       then('the answer clears the ask', () => {
         expect(result.exitCode).toBe(0);
