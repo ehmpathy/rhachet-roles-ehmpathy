@@ -5,8 +5,8 @@
 # .why  = clear a twin or a stale comment; apply confirms it is gone
 #
 # usage:
-#   rhx git.pull.comment.del --pr 69 --id <id> --kind issue|review [--mode apply]
-#   rhx git.pull.comment.del --pr 69 --key status [--reply-to <id>]
+#   rhx git.pull.comment.del --which 69 --id <id> --kind issue|review [--mode apply]
+#   rhx git.pull.comment.del --which 69 --key status [--reply-to <id>]
 #   rhx git.pull.comment.del --help    # every flag
 #
 # guarantee:
@@ -33,13 +33,13 @@ OUTPUT="tree"
 # .why  = --help is the one authoritative flag list; the file header names none
 help() {
   cat <<'EOF'
-usage: git.pull.comment.del (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) [--pr <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+usage: git.pull.comment.del (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
   --key <k>                    your keyed top-level comment; a no-op if absent
   --reply-to <id>              with --key: your keyed reply in that review thread
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --mode plan|apply            plan shows preview, apply deletes and confirms absent (default: plan)
   --auth as-ehmpath|as-human   who deletes (default: as-ehmpath); a human's comment is refused
@@ -56,11 +56,11 @@ while [[ $# -gt 0 ]]; do
   # split --flag=value into two args, so both forms parse one way
   [[ "$1" == --*=* ]] && set -- "${1%%=*}" "${1#*=}" "${@:2}"
   check_flag_has_value "$1" "$#" "${2:-}" git.pull.comment.del \
-    --skill --repo --role --pr --id --key --reply-to --kind --in --auth --mode --output
+    --skill --repo --role --which --id --key --reply-to --kind --in --auth --mode --output
   case "$1" in
     --skill|--repo|--role) shift 2 ;;
     --) shift ;;
-    --pr) PR="${2:-}"; shift 2 ;;
+    --which) PR="${2:-}"; shift 2 ;;
     --id) ID="${2:-}"; shift 2 ;;
     --key) KEY="${2:-}"; shift 2 ;;
     --reply-to) REPLY_TO="${2:-}"; shift 2 ;;

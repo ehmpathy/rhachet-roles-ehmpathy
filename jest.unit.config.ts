@@ -35,6 +35,10 @@ const config: Config = {
     // whose plugin caches ship their own foreign test suites
     '!**/.agent/**',
   ],
+  // testMatch hides .agent/ tests, but the haste map still sees its files: a
+  // .snap there (e.g. one rmsafe sent to .agent/.cache/ trash) reads as an
+  // obsolete snapshot and fails the run. keep .agent/ out of the haste map too
+  modulePathIgnorePatterns: ['<rootDir>/.agent/'],
   setupFilesAfterEnv: ['./jest.unit.env.ts'],
 
   // use 50% of threads to leave headroom for other processes

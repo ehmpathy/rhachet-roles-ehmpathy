@@ -36,8 +36,39 @@
 #         break that contract.
 EXTERNAL_CALL_TIMEOUT="${EXTERNAL_CALL_TIMEOUT:-30}"
 
+######################################################################
+# as_keyrack_status
+#
+# .what = the `.status` of one `keyrack get --json` reply
+# .why  = keyrack names why a key was not granted (locked | absent | blocked),
+#         and only that word tells which fix helps: an unlock for a locked key,
+#         a human fill for an absent one
+# .note = keyrack prints its json reply on stdout even when it exits non-zero
+#         (an absent key exits 2), so read it whatever the exit code
+#
+# usage: status=$(as_keyrack_status "$json")
+# returns: the status word, or empty if the reply does not parse
+######################################################################
+as_keyrack_status() {
+  printf '%s' "${1:-}" | jq -r '.status // empty' 2>/dev/null || true
+}
+
+######################################################################
+# fetch_github_token
+#
+# .note = optional named arg `status_file=<path>`: the keyrack status of the
+#         last get (granted | locked | absent | blocked, or empty if it did not
+#         parse) is written there. a caller reads it to name the right fix;
+#         the token itself still rides stdout, so `$( )` callers lose naught
+######################################################################
 fetch_github_token() {
   local token=""
+  local status_file="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      status_file=*) status_file="${arg#status_file=}" ;;
+    esac
+  done
 
   # find repo root for rhachet path
   local repo_root
@@ -65,6 +96,10 @@ fetch_github_token() {
     --allow-dangerous \
     --json 2>>"$stderr_file") || keyrack_exit=$?
 
+  # the status of the get, read whatever its exit code
+  local keyrack_status
+  keyrack_status=$(as_keyrack_status "$keyrack_stdout")
+
   # primary attempt: parse the token when the keyrack get succeeded
   if [[ $keyrack_exit -eq 0 ]]; then
     token=$(echo "$keyrack_stdout" | jq -r '.grant.key.secret // empty')
@@ -86,6 +121,7 @@ fetch_github_token() {
       --env prep \
       --allow-dangerous \
       --json 2>>"$stderr_file") || fallback_exit=$?
+    keyrack_status=$(as_keyrack_status "$fallback_stdout")
 
     # parse the retry token when the fallback get succeeded (guard-clause, no else)
     if [[ $fallback_exit -eq 0 ]]; then
@@ -109,6 +145,9 @@ fetch_github_token() {
       | tr -d '\000-\010\013\014\016-\037' >&2
   fi
   rm -f "$stderr_file"
+
+  # hand the status of the last get to a caller that asked for it
+  [[ -n "$status_file" ]] && printf '%s' "$keyrack_status" >"$status_file"
 
   echo "$token"
 }

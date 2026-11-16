@@ -98,7 +98,7 @@ describe('git.pull.comment, via rhachet', () => {
         runViaRhachet({
           dir: scene.dir,
           skill: 'git.pull.comment.set',
-          args: ['--pr', '7', '--key', 'status', '--from', './absent.md'],
+          args: ['--which', '7', '--key', 'status', '--from', './absent.md'],
         }),
       );
       then('it refuses with exit 2 and names the fix, on both streams', () => {
@@ -116,12 +116,12 @@ describe('git.pull.comment, via rhachet', () => {
         get: runViaRhachet({
           dir: scene.dir,
           skill: 'git.pull.comment.get',
-          args: ['--pr', '7', '--id', '5'],
+          args: ['--which', '7', '--id', '5'],
         }),
         del: runViaRhachet({
           dir: scene.dir,
           skill: 'git.pull.comment.del',
-          args: ['--pr', '7', '--kind', 'body'],
+          args: ['--which', '7', '--kind', 'body'],
         }),
       }));
       then('each refuses with exit 2 and names the fix', () => {

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ######################################################################
-# .what = push HEAD commit to origin and findsert pr
+# .what = push HEAD to origin, findsert its pr, and watch the pr
 #
 # .why  = push a commit made earlier; git.commit.set composes it via --push
 #
@@ -8,12 +8,14 @@
 #   git.commit.push                  # plan
 #   git.commit.push --mode apply     # push
 #   git.commit.push --output json    # json, to compose
+#   git.commit.push --pr-title-fallback "<title>"   # title when the branch has no commits
 #
 # guarantee:
 #   - pushes only a seaturtle[bot] HEAD, if .meter/git.commit.uses.jsonc grants push
 #   - never pushes to main/master
 #   - opens the pr --auth as-ehmpath (default, keyrack) or as-human (gh login)
 #   - a new pr body ends in one seaturtle line; claude and co-author lines stripped
+#   - an enrolled clone then watches the pr; a failed watch never fails the push
 #   - never decrements uses
 #   - plan by default
 ######################################################################
@@ -185,27 +187,39 @@ emit_error() {
 # .note = keyrack leads by default (the vision's preferred bias); under as-human
 #         the caller already opted out of keyrack, so the mode fix leads and
 #         keyrack becomes the "instead" alternative.
+# .note = the keyrack fix follows keyrack's status: a locked key needs an
+#         unlock; an absent key cannot be unlocked, so a human fills it first,
+#         then the unlock. each fix carries a `then` command, `-` when none.
+# .note = fields split on \x1f, not a tab: a tab is IFS whitespace, so `read`
+#         would fold an empty field into its neighbor
 # args = fix2_label, fix2_cmd
+# returns: prefer_label prefer_cmd prefer_then alt_label alt_cmd alt_then, \x1f-split
 ######################################################################
 get_ordered_pr_fixes() {
-  local fix2_label="$1" fix2_cmd="$2"
+  local fix2_label="$1" fix2_cmd="$2" sep=$'\x1f'
   local keyrack_label="unlock the ehmpath keyrack, so the seaturtle can open the pr"
   # name the specific key (rule.require.narrow-keyrack-unlocks): a bare unlock
   # would prompt for every declared key (e.g. aws sso), so scope the hint to the
   # one github token this path needs.
   local keyrack_cmd="rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+  local keyrack_then="-"
+
+  # an absent key: a human fills it, then the unlock (an unlock alone is a dead end)
+  if [[ "${KEYRACK_TOKEN_STATUS:-}" == "absent" ]]; then
+    keyrack_label="a human fills the absent ehmpath keyrack token, then unlocks it, so the seaturtle can open the pr"
+    keyrack_then="$keyrack_cmd"
+    keyrack_cmd="rhx keyrack fill --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN"
+  fi
 
   # under as-human the caller already opted out of keyrack, so the mode fix leads
-  # (trailing newline lets the caller's `read` return 0 under set -e)
+  # (the final newline lets the caller's `read` return 0 under set -e)
   if [[ "$AUTH" == "as-human" ]]; then
-    printf '%s\t%s\t%s\t%s\n' \
-      "$fix2_label" "$fix2_cmd" "$keyrack_label instead" "$keyrack_cmd"
+    printf '%s\n' "${fix2_label}${sep}${fix2_cmd}${sep}-${sep}${keyrack_label} instead${sep}${keyrack_cmd}${sep}${keyrack_then}"
     return
   fi
 
   # otherwise keyrack (the preferred default) leads and the mode fix is the alt
-  printf '%s\t%s\t%s\t%s\n' \
-    "$keyrack_label" "$keyrack_cmd" "$fix2_label" "$fix2_cmd"
+  printf '%s\n' "${keyrack_label}${sep}${keyrack_cmd}${sep}${keyrack_then}${sep}${fix2_label}${sep}${fix2_cmd}${sep}-"
 }
 
 ######################################################################
@@ -227,8 +241,8 @@ emit_pr_open_guide() {
   local error_line="$1" fix2_label="$2" fix2_cmd="$3" json_error="$4" detail="${5:-}"
 
   # order the two fixes (pure decision, delegated to the transformer)
-  local prefer_label prefer_cmd alt_label alt_cmd
-  IFS=$'\t' read -r prefer_label prefer_cmd alt_label alt_cmd \
+  local prefer_label prefer_cmd prefer_then alt_label alt_cmd alt_then
+  IFS=$'\x1f' read -r prefer_label prefer_cmd prefer_then alt_label alt_cmd alt_then \
     < <(get_ordered_pr_fixes "$fix2_label" "$fix2_cmd")
 
   # render as a tree guide (the keyrack.yml-not-found guide shape): a generic
@@ -243,9 +257,12 @@ emit_pr_open_guide() {
     echo "🥥 your commit is pushed; to open its pr, either:"
     echo "   ├─ 1. ${prefer_label}:"
     echo "   │     \$ ${prefer_cmd}"
+    [[ "$prefer_then" != "-" ]] && echo "   │     \$ ${prefer_then}"
     echo "   │"
     echo "   └─ 2. or ${alt_label}:"
     echo "         \$ ${alt_cmd}"
+    [[ "$alt_then" != "-" ]] && echo "         \$ ${alt_then}"
+    true
   )
   # the human-readable guide always rides stderr; stdout carries the
   # mode-appropriate failure — a json error object in json mode (machine-safe
@@ -514,6 +531,7 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
   # possibly-divergent one. default GH_PR_TOKEN to the threaded value; only fetch
   # when not threaded (a standalone invocation) — single if, no else.
   GH_PR_TOKEN="${SEATURTLE_PR_TOKEN_VALUE:-}"
+  KEYRACK_TOKEN_STATUS="${SEATURTLE_PR_TOKEN_STATUS:-}"
   TOKEN_FETCH_ERR=""
   if [[ "${SEATURTLE_PR_TOKEN_PREFETCHED:-}" != "1" ]]; then
     # standalone: fetch via the shared communicator (the same operation
@@ -524,9 +542,11 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
     # timeout, daemon down, corrupted credential store — is surfaced in the guide
     # detail rather than hidden behind a generic message (rule.forbid.failhide)
     TOKEN_FETCH_ERR_FILE=$(mktemp)
-    GH_PR_TOKEN=$(fetch_github_token 2>"$TOKEN_FETCH_ERR_FILE" || echo "")
+    TOKEN_STATUS_FILE=$(mktemp)
+    GH_PR_TOKEN=$(fetch_github_token status_file="$TOKEN_STATUS_FILE" 2>"$TOKEN_FETCH_ERR_FILE" || echo "")
     TOKEN_FETCH_ERR=$(cat "$TOKEN_FETCH_ERR_FILE")
-    rm -f "$TOKEN_FETCH_ERR_FILE"
+    KEYRACK_TOKEN_STATUS=$(cat "$TOKEN_STATUS_FILE")
+    rm -f "$TOKEN_FETCH_ERR_FILE" "$TOKEN_STATUS_FILE"
 
     # strong identity check on a freshly-fetched token: the same graphql-verified
     # assert git.commit.set runs after its fetch (set.sh), recomposed onto this
@@ -549,6 +569,8 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
     # would fail-fast on the now-empty stage). name the concrete command so the
     # guide's advice actually ships it.
     TOKEN_JSON_ERROR="ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human (or unlock keyrack)"
+    # an absent key cannot be unlocked; only a human fill helps, so say so
+    [[ "$KEYRACK_TOKEN_STATUS" == "absent" ]] && TOKEN_JSON_ERROR="ehmpath keyrack token absent — retry: rhx git.commit.push --mode apply --auth as-human (or a human fills the keyrack token)"
     # surface the real fetch cause (network timeout, locked keyrack, daemon down)
     # as a stderr detail line in BOTH modes, so the human learns WHY the fetch
     # failed instead of a generic message (rule.forbid.failhide). it rides stderr —
@@ -716,6 +738,62 @@ fi
 PR_RESULT="ok"
 [[ "$PR_OK" == false ]] && PR_RESULT="error"
 
+# .what = the push tree's `watch:` clause, from git.pull.watch.set's json reply
+# .why  = the push reads one named status; the error class, glyph, and rerun live here once
+# usage: as_push_watch_status <json reply> <exit code> <pr> <last stderr line>
+# .note = a reply with no json (a crash before set could speak) falls back to its last
+#         stderr line, so the real cause is never lost
+as_push_watch_status() {
+  local out="$1" code="$2" pr="$3" err="$4" line class message glyph
+  line="$(printf '%s' "$out" | jq -r '.line // empty' 2>/dev/null || echo "")"
+  [[ "$code" -eq 0 && -n "$line" ]] && { echo "$line"; return 0; }
+  class="$(printf '%s' "$out" | jq -r '.error.class // empty' 2>/dev/null || echo "")"
+  message="$(printf '%s' "$out" | jq -r '.error.message // empty' 2>/dev/null || echo "")"
+  # no class in the reply: exit 2 is a constraint by the family's exit code contract
+  [[ -n "$class" ]] || class="$([[ "$code" -eq 2 ]] && echo ConstraintError || echo MalfunctionError)"
+  glyph="💥"
+  [[ "$class" == "ConstraintError" ]] && glyph="✋"
+  [[ -n "$message" ]] || message="the watch said naught (exit $code)${err:+; stderr: $err}"
+  echo "$glyph $class: $message; rerun: rhx git.pull.watch set --which $pr --mode apply"
+}
+
+# .what = the last line of a file with text on it; empty when none
+# .why  = a failed watch's cause is the last line it wrote to stderr
+as_push_last_text_line_of_file() {
+  grep -v '^[[:space:]]*$' "$1" | tail -n 1 || true
+}
+
+# .what = set the watch of one pr, and say how it went, as one line
+# .why  = the peer call, its stderr capture, and its exit read live here, so the
+#         orchestrator reads one sentence: find out how the watch went
+get_push_watch_status() {
+  local pr="$1" out="" code=0 err_file err_tail
+  err_file="$(mktemp)"
+  out=$(bash "$SCRIPT_DIR/../git.pull.watch/git.pull.watch.set.sh" \
+    --which "$pr" --mode apply --output json 2>"$err_file") || code=$?
+  err_tail="$(as_push_last_text_line_of_file "$err_file")"
+  rm -f "$err_file"
+  as_push_watch_status "$out" "$code" "$pr" "$err_tail"
+}
+
+# watch the pr: an enrolled clone is alerted of its ci, comments, and approval
+# .note = a watch that fails never fails the push; its line names why
+PR_NUMBER="${PR_FOUND:-${NEW_PR:-}}"
+WATCH_STATUS=""
+if [[ -n "$PR_NUMBER" && -z "${RHACHET_CLONE_SERIAL:-}" ]]; then
+  WATCH_STATUS="skipped (not an enrolled clone)"
+fi
+if [[ -n "$PR_NUMBER" && -n "${RHACHET_CLONE_SERIAL:-}" ]]; then
+  WATCH_STATUS="$(get_push_watch_status "$PR_NUMBER")"
+fi
+
+# .what = did the watch fail? its line then opens with an error glyph
+# .why  = a failed watch never fails the push, but its line must still reach
+#         stderr, as every failure does (rule.require.skill-output-streams)
+is_push_watch_fault() {
+  [[ "$WATCH_STATUS" == "✋"* || "$WATCH_STATUS" == "💥"* ]]
+}
+
 # output results
 # json mode emits one machine-readable line and is done; tree mode is the linear
 # default below (no else — the early-exit keeps json off the tree path). a failed
@@ -723,8 +801,11 @@ PR_RESULT="ok"
 # did not open, so downstream automation must not read this as full success.
 if [[ "$OUTPUT" == "json" ]]; then
   PR_STATUS_ESCAPED=$(escape_json_string "$PR_STATUS")
-  PR_JSON=$(printf '{"status":"pushed","push_target":"%s","pr":"%s","pr_status":"%s","auth":"%s","push_revoked":%s}' \
-    "$PUSH_TARGET" "$PR_RESULT" "$PR_STATUS_ESCAPED" "$AUTH" "$PUSH_REVOKED")
+  # watch is null when no pr was opened, so no watch was attempted
+  WATCH_JSON="null"
+  [[ -n "$WATCH_STATUS" ]] && WATCH_JSON="\"$(escape_json_string "$WATCH_STATUS")\""
+  PR_JSON=$(printf '{"status":"pushed","push_target":"%s","pr":"%s","pr_status":"%s","auth":"%s","push_revoked":%s,"watch":%s}' \
+    "$PUSH_TARGET" "$PR_RESULT" "$PR_STATUS_ESCAPED" "$AUTH" "$PUSH_REVOKED" "$WATCH_JSON")
   echo "$PR_JSON"
   # on a failed pr-open, duplicate the error line to stderr so a stderr-only
   # consumer (ci log scan, hook) sees the failure signal too — the tree path
@@ -734,6 +815,8 @@ if [[ "$OUTPUT" == "json" ]]; then
     echo "$PR_JSON" >&2
     exit 2
   fi
+  # the push and pr landed, but the watch failed: its line rides stderr too
+  is_push_watch_fault && echo "watch: $WATCH_STATUS" >&2
   exit 0
 fi
 
@@ -752,6 +835,7 @@ TREE_OUTPUT=$(
     echo "   ├─ pr: $PR_STATUS"
     echo "   ├─ opened: $AUTH_WHO"
   fi
+  [[ -n "$WATCH_STATUS" ]] && echo "   ├─ watch: $WATCH_STATUS"
   echo "   └─ meter"
   echo "$METER_LINE"
   if [[ "$PR_OK" == true ]]; then
@@ -768,3 +852,6 @@ if [[ "$PR_OK" == false ]]; then
   echo "$TREE_OUTPUT" >&2
   exit 2
 fi
+# the push and pr landed, but the watch failed: its line rides stderr too
+is_push_watch_fault && echo "watch: $WATCH_STATUS" >&2
+exit 0

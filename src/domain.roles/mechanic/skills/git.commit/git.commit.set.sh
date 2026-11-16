@@ -947,6 +947,8 @@ if [[ "$DO_PUSH" == true ]]; then
   if [[ "$ROBOT_TOKEN_FETCHED" == true ]]; then
     export SEATURTLE_PR_TOKEN_PREFETCHED=1
     export SEATURTLE_PR_TOKEN_VALUE="$ROBOT_TOKEN"
+    # the keyrack status rides along, so push.sh names the right fix (fill vs unlock)
+    export SEATURTLE_PR_TOKEN_STATUS="$ROBOT_TOKEN_STATUS"
   fi
   # capture the delegated exit code (not masked by a `|| echo`) so a failed
   # push/pr-open can propagate below — push.sh still emits its json error

@@ -1,0 +1,95 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`chmodsafe.sh given: [case1] .sh files inside the repo when: [t0] one --path and one --glob are named then: each file gains +x, and each is named 1`] = `
+"🐢 shell yeah
+
+🐚 chmodsafe
+   └─ +x skills/surf/paddle.sh
+"
+`;
+
+exports[`chmodsafe.sh given: [case1] .sh files inside the repo when: [t0] one --path and one --glob are named then: each file gains +x, and each is named 2`] = `
+"🐢 shell yeah
+
+🐚 chmodsafe
+   ├─ +x skills/surf/paddle.sh
+   └─ +x skills/surf/wave.sh
+"
+`;
+
+exports[`chmodsafe.sh given: [case2] --help when: [t0] it is asked for then: usage, options, and an example print 1`] = `
+"usage: rhx chmodsafe --path <file.sh> [--path ...] | --glob '<pattern>.sh'
+
+options:
+  --path <file.sh>   one .sh file inside this repo (repeatable)
+  --glob <pattern>   every .sh file the pattern matches (quote it)
+
+example:
+  rhx chmodsafe --glob 'src/domain.roles/mechanic/skills/git.pull.watch/*.sh'
+"
+`;
+
+exports[`chmodsafe.sh given: [case3] a call it must refuse when: [t0] each bad input is named then: each exits 2 with a ConstraintError and the usage, on both streams 1`] = `
+"✋ ConstraintError: unknown arg '--wave'
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx chmodsafe --path <file.sh> [--path ...] | --glob '<pattern>.sh'
+"
+`;
+
+exports[`chmodsafe.sh given: [case3] a call it must refuse when: [t0] each bad input is named then: each names its cause 1`] = `
+"✋ ConstraintError: not a .sh file: skills/surf/readme.md
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx chmodsafe --path <file.sh> [--path ...] | --glob '<pattern>.sh'
+"
+`;
+
+exports[`chmodsafe.sh given: [case3] a call it must refuse when: [t0] each bad input is named then: each refusal reads as pinned 1`] = `
+{
+  "bare": "✋ ConstraintError: --path needs a value
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx chmodsafe --path <file.sh> [--path ...] | --glob '<pattern>.sh'
+",
+  "emptyGlob": "✋ ConstraintError: --glob 'skills/reef/*.sh' matched no files
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx chmodsafe --path <file.sh> [--path ...] | --glob '<pattern>.sh'
+",
+  "link": "✋ ConstraintError: not a regular file: skills/surf/link.sh
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx chmodsafe --path <file.sh> [--path ...] | --glob '<pattern>.sh'
+",
+  "mixed": "✋ ConstraintError: not a .sh file: skills/surf/readme.md
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx chmodsafe --path <file.sh> [--path ...] | --glob '<pattern>.sh'
+",
+  "none": "✋ ConstraintError: name at least one --path or --glob
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx chmodsafe --path <file.sh> [--path ...] | --glob '<pattern>.sh'
+",
+  "notRepo": "✋ ConstraintError: not in a git repository; cd into the repo whose files you mark
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx chmodsafe --path <file.sh> [--path ...] | --glob '<pattern>.sh'
+",
+  "outside": "✋ ConstraintError: outside the repo: <elsewhere>/reef.sh
+
+🥥 did you know?
+   └─ to fix it
+      └─ rhx chmodsafe --path <file.sh> [--path ...] | --glob '<pattern>.sh'
+",
+}
+`;

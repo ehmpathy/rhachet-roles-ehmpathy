@@ -5,9 +5,9 @@
 # .why  = see what is there, and which rows carry your keys, before a write
 #
 # usage:
-#   rhx git.pull.comment.get --pr 69 [--output json]
-#   rhx git.pull.comment.get --pr 69 --id <id> --kind issue|review
-#   rhx git.pull.comment.get --pr 69 --key status [--reply-to <id>]
+#   rhx git.pull.comment.get --which 69 [--output json]
+#   rhx git.pull.comment.get --which 69 --id <id> --kind issue|review
+#   rhx git.pull.comment.get --which 69 --key status [--reply-to <id>]
 #   rhx git.pull.comment.get --help    # every flag; --auth as-ehmpath|as-human on all three verbs
 ######################################################################
 set -euo pipefail
@@ -30,10 +30,10 @@ UNANSWERED="false"
 # .why  = --help is the one authoritative flag list; the file header names none
 help() {
   cat <<'EOF'
-usage: git.pull.comment.get [--pr <n>] [--in <owner/name>] [--unanswered | --id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--auth as-ehmpath|as-human] [--output tree|json]
+usage: git.pull.comment.get [--which <n>] [--in <owner/name>] [--unanswered | --id <id> --kind issue|review | --key <k> [--reply-to <id>] | --kind body] [--auth as-ehmpath|as-human] [--output tree|json]
 
 options:
-  --pr <n>                     the pull request (default: the open pull of the cwd branch)
+  --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
   --unanswered                 only the comments that wait on an answer from you
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
@@ -50,12 +50,12 @@ while [[ $# -gt 0 ]]; do
   # split --flag=value into two args, so both forms parse one way
   [[ "$1" == --*=* ]] && set -- "${1%%=*}" "${1#*=}" "${@:2}"
   check_flag_has_value "$1" "$#" "${2:-}" git.pull.comment.get \
-    --skill --repo --role --pr --id --key --reply-to --kind --in --auth --output
+    --skill --repo --role --which --id --key --reply-to --kind --in --auth --output
   case "$1" in
     --skill|--repo|--role) shift 2 ;;
     --) shift ;;
     --unanswered) UNANSWERED="true"; shift ;;
-    --pr) PR="${2:-}"; shift 2 ;;
+    --which) PR="${2:-}"; shift 2 ;;
     --id) ID="${2:-}"; shift 2 ;;
     --key) KEY="${2:-}"; shift 2 ;;
     --reply-to) REPLY_TO="${2:-}"; shift 2 ;;
@@ -222,7 +222,7 @@ if [[ -z "$ID" ]]; then
   rc=0
   PULL="$(get_one_gh_resource "repos/$COMMENT_REPO/pulls/$PR")" || rc=$?
   # a 404 here is the pr itself: the shared visibility refusal names it
-  [[ "$rc" == "3" ]] && fail_comment_absent "$PR" "no pull request $COMMENT_REPO#$PR" "check --pr and --in"
+  [[ "$rc" == "3" ]] && fail_comment_absent "$PR" "no pull request $COMMENT_REPO#$PR" "check --which and --in"
   [[ "$rc" == "0" ]] || exit "$rc"
 fi
 

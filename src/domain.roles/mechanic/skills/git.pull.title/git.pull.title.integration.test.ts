@@ -132,7 +132,7 @@ describe('git.pull.title', () => {
           expect(result.stdout).toContain(
             'rhx git.pull.title set --from ./.temp/title.md   # plan',
           );
-          expect(result.stdout).not.toContain('--pr 7');
+          expect(result.stdout).not.toContain('--which 7');
           expect(result.stdout).toMatchSnapshot();
         });
       });
@@ -210,12 +210,12 @@ describe('git.pull.title', () => {
   });
 
   given('[case6] a peer pull, by number', () => {
-    when('[t0] set --pr 8 applies', () => {
+    when('[t0] set --which 8 applies', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('it runs', async () =>
         runSet(scene, {
           title: 'feat(reports): sync the wave report nightly',
-          args: ['--pr', '8', '--mode', 'apply'],
+          args: ['--which', '8', '--mode', 'apply'],
         }),
       );
       then('pull #8 is retitled; pull #7 is untouched', () => {
@@ -228,7 +228,7 @@ describe('git.pull.title', () => {
         expect(result.stdout).toMatchSnapshot();
       });
     });
-    when('[t1] set --pr 8 applies to a closed pull', () => {
+    when('[t1] set --which 8 applies to a closed pull', () => {
       const scene = genGitPullScene({
         ...PULL_SCENE_BARE,
         store: {
@@ -245,7 +245,7 @@ describe('git.pull.title', () => {
       const result = useThen('it runs', async () =>
         runSet(scene, {
           title: 'feat(reports): sync the wave report, archived',
-          args: ['--pr', '8', '--mode', 'apply'],
+          args: ['--which', '8', '--mode', 'apply'],
         }),
       );
       then('the set works on any state, as github allows', () => {
@@ -259,13 +259,13 @@ describe('git.pull.title', () => {
   });
 
   given('[case4] no pull to target', () => {
-    when('[t0] --pr names a pull that does not exist', () => {
+    when('[t0] --which names a pull that does not exist', () => {
       const scene = genGitPullScene(PULL_SCENE_BARE);
       const result = useThen('both verbs run', async () => ({
-        get: scene.run(skill('git.pull.title.get'), ['--pr', '9999']),
+        get: scene.run(skill('git.pull.title.get'), ['--which', '9999']),
         set: runSet(scene, {
           title: 'x',
-          args: ['--pr', '9999', '--mode', 'apply'],
+          args: ['--which', '9999', '--mode', 'apply'],
         }),
       }));
       then('each exits 2, names the pull, and writes naught', () => {
@@ -431,11 +431,11 @@ describe('git.pull.title', () => {
       const result = useThen('plan and apply run', async () => ({
         plan: runSet(scene, {
           title: 'feat(reports): mine now',
-          args: ['--pr', '8'],
+          args: ['--which', '8'],
         }),
         apply: runSet(scene, {
           title: 'feat(reports): mine now',
-          args: ['--pr', '8', '--mode', 'apply'],
+          args: ['--which', '8', '--mode', 'apply'],
         }),
       }));
       then('each exits 2, names the author, and writes naught', () => {
@@ -595,10 +595,10 @@ describe('git.pull.title', () => {
         },
       });
       const result = useThen('plan and apply run', async () => ({
-        plan: runSet(scene, { title: TITLE_NEW, args: ['--pr', '8'] }),
+        plan: runSet(scene, { title: TITLE_NEW, args: ['--which', '8'] }),
         apply: runSet(scene, {
           title: TITLE_NEW,
-          args: ['--pr', '8', '--mode', 'apply'],
+          args: ['--which', '8', '--mode', 'apply'],
         }),
       }));
       then('the plan names the state merged, not closed', () => {

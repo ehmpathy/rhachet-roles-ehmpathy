@@ -20,6 +20,13 @@ process.env.GIT_CONFIG_SYSTEM = '/dev/null';
 process.env.GIT_TERMINAL_PROMPT = '0';
 
 /**
+ * .what = drop the clone identity of the session that runs the tests
+ * .why = a test that inherits it acts as that clone: a test push would watch a
+ *        pr and spawn a real pr-watch daemon; a test sets a serial on purpose
+ */
+delete process.env.RHACHET_CLONE_SERIAL;
+
+/**
  * .what = fail fast if repo git config has placeholder test user identity
  * .why = prevents commits from being attributed to 'Test User' instead of actual human
  */

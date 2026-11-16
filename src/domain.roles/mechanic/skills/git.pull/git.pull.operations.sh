@@ -38,7 +38,7 @@ check_pull_get_output_arg() {
 #         then the pull number (COMMENT_PR)
 # .why  = each step reads the one before it, so the order lives here, once,
 #         rather than in each of the four verbs
-# .note = args: --pr value, --in value, the skill name, --auth value
+# .note = args: --which value, --in value, the skill name, --auth value
 set_pull_target() {
   local pr_in="$1" repo_in="$2" skill="$3" auth="$4"
   set_comment_repo "$repo_in" "$skill"
@@ -99,12 +99,12 @@ set_pull_field_into_file() {
 }
 
 # .what = the target flags of a hint, as the caller named them
-# .why  = a verb with no --pr acts on this branch's pull, so its hint does too;
-#         --pr and --in ride the hint only when the caller typed them
-# .note = args: the --pr value, the --in value, as given. as-human adds --auth as-human
+# .why  = a verb with no --which acts on this branch's pull, so its hint does too;
+#         --which and --in ride the hint only when the caller typed them
+# .note = args: the --which value, the --in value, as given. as-human adds --auth as-human
 as_pull_cmd_target() {
   local pr_in="$1" repo_in="$2" out=""
-  [[ -n "$pr_in" ]] && out="--pr $pr_in"
+  [[ -n "$pr_in" ]] && out="--which $pr_in"
   [[ -n "$repo_in" ]] && out="${out:+$out }--in $repo_in"
   [[ "$COMMENT_AUTH" == "as-human" ]] && out="${out:+$out }--auth as-human"
   echo "$out"
