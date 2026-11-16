@@ -657,11 +657,13 @@ has_lockfile_patch_entry() {
 ######################################################################
 # .what = settle the tree via pnpm install, so the lockfile and the live
 #         copies match the manifest's patchedDependencies
+# .note = --no-frozen-lockfile: under CI=true pnpm freezes a bare install, which
+#         refuses the very lockfile update this settle exists to make
 # .note = prints pnpm's output; returns pnpm's status
 ######################################################################
 set_install_via_pnpm() {
   local root="$1"
-  (cd "$root" && pnpm install --config.confirmModulesPurge=false </dev/null 2>&1)
+  (cd "$root" && pnpm install --no-frozen-lockfile --config.confirmModulesPurge=false </dev/null 2>&1)
 }
 
 ######################################################################
