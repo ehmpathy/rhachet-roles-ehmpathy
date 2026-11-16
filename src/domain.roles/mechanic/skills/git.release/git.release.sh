@@ -28,9 +28,7 @@
 # guarantee:
 #   - apply mode requires a git.release.uses stamp (global ∧ org ∧ local),
 #     spends one use per apply; a commit grant never ships
-#   - apply mode refuses (exit 2) a feature pr with no APPROVED review from a
-#     human with repo authority; bots, robots, outsiders do not count; no flag
-#     lifts it. an automerge left on by an earlier run is disabled on refusal
+#   - apply refuses (exit 2) a pr no human approved; bots never count; no flag lifts it
 #   - watches CI until complete or timeout (15 min)
 #   - surfaces errors with links and retry hints
 #

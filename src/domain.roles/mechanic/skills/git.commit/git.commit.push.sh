@@ -9,15 +9,13 @@
 #   git.commit.push --mode apply     # push
 #   git.commit.push --output json    # json, to compose
 #   git.commit.push --pr-title-fallback "<title>"   # title when the branch has no commits
-#   git.commit.push --base turtle/s1 --mode apply   # a stacked pr, on the slice below
 #
 # guarantee:
 #   - pushes only a seaturtle[bot] HEAD, while .meter/git.commit.uses.jsonc
 #     holds the commit grant (even at 0 left); a push never ships — a release
 #     needs git.release.uses
 #   - never pushes to main/master
-#   - --base opens the pr on that branch, or moves a found pr onto it; the base
-#     must be on origin and an ancestor of HEAD, else exit 2 before the push
+#   - --base opens or moves the pr onto a base below HEAD on origin, else exit 2
 #   - opens the pr --auth as-ehmpath (default, keyrack) or as-human (gh login)
 #   - a new pr body ends in one seaturtle line; claude and co-author lines stripped
 #   - an enrolled clone then watches the pr; a failed watch never fails the push
