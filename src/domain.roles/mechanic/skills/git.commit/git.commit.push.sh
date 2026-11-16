@@ -9,10 +9,13 @@
 #   git.commit.push --mode apply     # push
 #   git.commit.push --output json    # json, to compose
 #   git.commit.push --pr-title-fallback "<title>"   # title when the branch has no commits
+#   git.commit.push --base turtle/s1 --mode apply   # a stacked pr, on the slice below
 #
 # guarantee:
 #   - pushes only a seaturtle[bot] HEAD, if .meter/git.commit.uses.jsonc grants push
 #   - never pushes to main/master
+#   - --base opens the pr on that branch, or moves a found pr onto it; the base
+#     must be on origin and an ancestor of HEAD, else exit 2 before the push
 #   - opens the pr --auth as-ehmpath (default, keyrack) or as-human (gh login)
 #   - a new pr body ends in one seaturtle line; claude and co-author lines stripped
 #   - an enrolled clone then watches the pr; a failed watch never fails the push
@@ -50,6 +53,8 @@ STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 MODE="plan"
 OUTPUT="tree"
 PR_TITLE_FALLBACK=""
+BASE=""
+BASE_FLAG="false"
 DEBUG="false"
 AUTH="$AUTH_DEFAULT" # shared default from git.commit.operations.sh
 
@@ -90,12 +95,20 @@ while [[ $# -gt 0 ]]; do
         shift
       fi
       ;;
+    --base)
+      shift
+      BASE_FLAG="true"
+      if [[ $# -gt 0 && "$1" != --* ]]; then
+        BASE="$1"
+        shift
+      fi
+      ;;
     --debug)
       DEBUG="true"
       shift
       ;;
     --help|-h)
-      echo "usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback \"...\"] [--debug]"
+      echo "usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--base <branch>] [--pr-title-fallback \"...\"] [--debug]"
       echo ""
       echo "options:"
       echo "  --mode plan|apply            plan shows preview, apply executes (default: plan)"
@@ -103,6 +116,9 @@ while [[ $# -gt 0 ]]; do
       echo "                               as-ehmpath = seaturtle bot via ehmpath keyrack token"
       echo "                               as-human   = the gh cli login (fallback on keyrack failure)"
       echo "  --output tree|json           tree for standalone, json for composition (default: tree)"
+      echo "  --base <branch>              open the pr on this branch, or move a found pr onto it"
+      echo "                               (default: the repo's default branch); for a stack of prs"
+      echo "                               it names the slice below, which must be on origin"
       echo "  --pr-title-fallback \"...\"    fallback pr title when no commits on branch yet"
       echo "  --debug                      show verbose debug output"
       echo "  --help, -h                   show this help"
@@ -424,11 +440,59 @@ if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
 fi
 
 ######################################################################
+# GUARD --base (a stacked pr's base must be on origin, below HEAD)
+######################################################################
+# .what = refuse a --base that github would reject or that would show a wrong diff
+# .why  = checked before the push, so a bad base leaves the remote untouched; the
+#         hint rides both streams, as the branch guard's does
+emit_base_refusal() {
+  local message="$1" hint="$2"
+  emit_error class=constraint message="$message"
+  if [[ "$OUTPUT" == "tree" ]]; then
+    echo "$hint"
+    echo "$hint" >&2
+  fi
+  exit 2  # blocked by constraints
+}
+
+if [[ "$BASE_FLAG" == "true" ]]; then
+  # reject a bare --base: an empty base would silently fall back to main
+  if [[ -z "$BASE" ]]; then
+    emit_base_refusal "--base needs a branch name" \
+      "   └─ name the slice below, e.g. --base turtle/feature-part-1"
+  fi
+
+  # reject this branch as its own base
+  if [[ "$BASE" == "$CURRENT_BRANCH" ]]; then
+    emit_base_refusal "--base cannot be this branch ($CURRENT_BRANCH)" \
+      "   └─ name the branch this one stacks on"
+  fi
+
+  # reject a base github does not have
+  git rev-parse --verify --quiet "refs/remotes/origin/$BASE" > /dev/null \
+    || emit_base_refusal "--base origin/$BASE not found" \
+      "   └─ push $BASE first (or fetch, if it was pushed elsewhere), then retry"
+
+  # reject a base that HEAD does not stack on: the pr diff would hold its commits
+  git merge-base --is-ancestor "origin/$BASE" HEAD \
+    || emit_base_refusal "--base origin/$BASE is not an ancestor of HEAD" \
+      "   └─ this branch must stack on $BASE; rebase onto it, or name the branch it was cut from"
+fi
+
+######################################################################
 # COMPUTE PR TITLE (from first behavioral commit on branch)
 ######################################################################
 # find the first behavioral commit (fix/feat) - this is stable regardless
 # of how many cont: commits are added later
 BEHAVIORAL_COMMIT_HASH=$(get_first_behavioral_commit_hash)
+
+# with --base, the pr holds only the commits above the base, so its title comes
+# from the first behavioral commit there (the ancestor lookup reads local
+# branches only, and would reach past a base that exists only on origin)
+if [[ -n "$BASE" ]]; then
+  COMMITS_ABOVE_BASE=$(git log --reverse --format='%H %s' "origin/$BASE..HEAD" 2>/dev/null || echo "")
+  BEHAVIORAL_COMMIT_HASH=$(awk '$2 ~ /^(fix|feat)(\([^)]+\))?:/ { print $1; exit }' <<< "$COMMITS_ABOVE_BASE")
+fi
 
 # extract PR title and body from the behavioral commit
 PR_TITLE=""
@@ -461,14 +525,22 @@ if [[ "$MODE" == "plan" ]]; then
   if [[ "$OUTPUT" == "json" ]]; then
     # escape quotes in pr title for valid json
     PR_TITLE_ESCAPED=$(echo "$PR_TITLE" | sed 's/"/\\"/g')
-    printf '{"status":"planned","push_target":"%s","pr_title":"%s","pr_action":"findsert","auth":"%s"}\n' \
-      "$PUSH_TARGET" "$PR_TITLE_ESCAPED" "$AUTH"
+    # the base field rides only when --base was given, so the default shape holds
+    BASE_JSON=""
+    if [[ -n "$BASE" ]]; then
+      BASE_JSON=",\"pr_base\":\"$(escape_json_string "$BASE")\""
+    fi
+    printf '{"status":"planned","push_target":"%s","pr_title":"%s","pr_action":"findsert"%s,"auth":"%s"}\n' \
+      "$PUSH_TARGET" "$PR_TITLE_ESCAPED" "$BASE_JSON" "$AUTH"
   else
     print_turtle_header "heres the wave..."
     print_tree_start "git.commit.push --mode plan"
     echo "   ├─ push: $PUSH_TARGET"
     echo "   ├─ pr"
     echo "   │  ├─ title: $PR_TITLE"
+    if [[ -n "$BASE" ]]; then
+      echo "   │  ├─ base: $BASE"
+    fi
     echo "   │  ├─ action: findsert"
     echo "   │  └─ opened: $AUTH_WHO"
     echo "   └─ meter"
@@ -685,6 +757,35 @@ if [[ -n "$PR_FOUND" ]]; then
   PR_STATUS="pr #$PR_FOUND (found)"
 fi
 
+# found + --base: the tool owns the base, so a found pr moves onto it (upsert);
+# a pr already on the base is left as is
+if [[ -n "$PR_FOUND" && -n "$BASE" ]]; then
+  PR_BASE_EXIT=0
+  PR_BASE_NOW=$(run_gh pr view "$PR_FOUND" --json baseRefName --jq '.baseRefName' 2>&1) || PR_BASE_EXIT=$?
+  [[ "$DEBUG" == "true" ]] && echo "[debug] pr base exit=$PR_BASE_EXIT, now: '$PR_BASE_NOW'" >&2
+  PR_STATUS="pr #$PR_FOUND (found, base: $BASE)"
+  if [[ $PR_BASE_EXIT -ne 0 ]]; then
+    PR_STATUS="pr #$PR_FOUND (found; base unread: $PR_BASE_NOW)"
+    PR_OK=false
+  fi
+  if [[ $PR_BASE_EXIT -eq 0 && "$PR_BASE_NOW" != "$BASE" ]]; then
+    PR_EDIT_EXIT=0
+    PR_EDIT_OUTPUT=$(run_gh pr edit "$PR_FOUND" --base "$BASE" 2>&1) || PR_EDIT_EXIT=$?
+    [[ "$DEBUG" == "true" ]] && echo "[debug] pr edit base exit=$PR_EDIT_EXIT: $PR_EDIT_OUTPUT" >&2
+    PR_STATUS="pr #$PR_FOUND (found, base: $PR_BASE_NOW → $BASE)"
+    if [[ $PR_EDIT_EXIT -ne 0 ]]; then
+      PR_STATUS="pr #$PR_FOUND (found; base move $PR_BASE_NOW → $BASE failed: $PR_EDIT_OUTPUT)"
+      PR_OK=false
+    fi
+  fi
+fi
+
+# the base args for a new pr; empty means the repo's default branch
+PR_BASE_ARGS=()
+if [[ -n "$BASE" ]]; then
+  PR_BASE_ARGS=(--base "$BASE")
+fi
+
 # create: only when no pr was found (guarded on the negated condition — no else,
 # so the narrative stays linear per rule.forbid.else-branches)
 if [[ -z "$PR_FOUND" ]]; then
@@ -696,6 +797,7 @@ if [[ -z "$PR_FOUND" ]]; then
   PR_CREATE_OUTPUT=$(run_gh pr create \
     --title "$PR_TITLE" \
     --body "$PR_BODY_FULL" \
+    ${PR_BASE_ARGS[@]+"${PR_BASE_ARGS[@]}"} \
     2>&1) || PR_CREATE_EXIT=$?
   [[ "$DEBUG" == "true" ]] && echo "[debug] pr create exit=$PR_CREATE_EXIT" >&2
   [[ "$DEBUG" == "true" ]] && echo "[debug] pr create output: $PR_CREATE_OUTPUT" >&2
@@ -704,6 +806,9 @@ if [[ -z "$PR_FOUND" ]]; then
     NEW_PR=$(echo "$PR_CREATE_OUTPUT" | grep -oE '[0-9]+$' || echo "")
     if [[ -n "$NEW_PR" ]]; then
       PR_STATUS="pr #$NEW_PR (created)"
+      if [[ -n "$BASE" ]]; then
+        PR_STATUS="pr #$NEW_PR (created, base: $BASE)"
+      fi
     else
       PR_STATUS="pr created (url: $PR_CREATE_OUTPUT)"
     fi

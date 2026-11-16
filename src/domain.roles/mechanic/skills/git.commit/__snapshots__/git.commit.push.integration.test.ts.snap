@@ -142,31 +142,6 @@ ask your human to reset the quota, then grant again:
 "
 `;
 
-exports[`git.commit.push.sh given: [case14c] the LOCAL quota file is damaged when: [t0] the file is truncated mid-write then: it names the class, the file, and the fix, on both streams: stderr 1`] = `
-"🐢 bummer dude...
-
-🐚 git.commit.push
-   └─ 💥 MalfunctionError: commit quota file corrupt
-
-   the file that holds this tree's commit quota cannot be read:
-     .meter/git.commit.uses.jsonc
-
-ask your human to reset the quota, then grant again:
-  $ git.commit.uses del
-  $ git.commit.uses set --quant N --push allow|block
-"
-`;
-
-exports[`git.commit.push.sh given: [case14d] a value flag is the last arg, with no value when: [t0] \`--mode\` is last then: a curated constraint, never a raw shift crash: stderr 1`] = `
-"✋ ConstraintError: --mode must be 'plan' or 'apply'
-"
-`;
-
-exports[`git.commit.push.sh given: [case14d] a value flag is the last arg, with no value when: [t0] \`--mode\` is last then: a curated constraint, never a raw shift crash: stdout 1`] = `
-"✋ ConstraintError: --mode must be 'plan' or 'apply'
-"
-`;
-
 exports[`git.commit.push.sh given: [case15] as-ehmpath keyrack locked → guide to as-human (sad path) when: [t0] keyrack.yml exists but no host manifest then: the commit is pushed, then a guide names the as-human fallback 1`] = `
 "🐢 bummer dude...
 
@@ -677,7 +652,7 @@ exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-ope
 exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-open source when: [t2] --auth json plan then: json carries the auth mode 2`] = `""`;
 
 exports[`git.commit.push.sh given: [case31] --help short-circuits before any keyrack fetch when: [t0] a fake rhachet records if it is ever called then: --help exits 0 with usage and never touches keyrack 1`] = `
-"usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback "..."] [--debug]
+"usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--base <branch>] [--pr-title-fallback "..."] [--debug]
 
 options:
   --mode plan|apply            plan shows preview, apply executes (default: plan)
@@ -685,6 +660,9 @@ options:
                                as-ehmpath = seaturtle bot via ehmpath keyrack token
                                as-human   = the gh cli login (fallback on keyrack failure)
   --output tree|json           tree for standalone, json for composition (default: tree)
+  --base <branch>              open the pr on this branch, or move a found pr onto it
+                               (default: the repo's default branch); for a stack of prs
+                               it names the slice below, which must be on origin
   --pr-title-fallback "..."    fallback pr title when no commits on branch yet
   --debug                      show verbose debug output
   --help, -h                   show this help
@@ -905,5 +883,88 @@ exports[`git.commit.push.sh given: [case40] the git push transport itself fails 
 cause: To github.com:test/repo.git
  ! [rejected]        HEAD -> turtle/feature (non-fast-forward)
 error: failed to push some refs to 'github.com:test/repo.git'
+"
+`;
+
+exports[`git.commit.push.sh given: [case41] --base opens a stacked pr on the slice below when: [t0] plan mode with a valid base then: the plan names the base and pushes naught 1`] = `
+"🐢 heres the wave...
+
+🐚 git.commit.push --mode plan
+   ├─ push: origin/turtle/feature-part-2
+   ├─ pr
+   │  ├─ title: feat(reef): slice two
+   │  ├─ base: turtle/feature-part-1
+   │  ├─ action: findsert
+   │  └─ opened: as-human (gh cli login, fallback)
+   └─ meter
+      └─ push: allowed
+
+run with --mode apply to execute
+"
+`;
+
+exports[`git.commit.push.sh given: [case41] --base opens a stacked pr on the slice below when: [t2] apply, no pr yet then: the pr opens on the base, and its title is this slice 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/feature-part-2 ✓
+   ├─ pr: pr #88 (created, base: turtle/feature-part-1)
+   ├─ opened: as-human (gh cli login, fallback)
+   └─ meter
+      └─ push: allowed
+
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;
+
+exports[`git.commit.push.sh given: [case41] --base opens a stacked pr on the slice below when: [t4] apply, a pr is found on main then: the found pr moves onto the base 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/feature-part-2 ✓
+   ├─ pr: pr #55 (found, base: main → turtle/feature-part-1)
+   ├─ opened: as-human (gh cli login, fallback)
+   └─ meter
+      └─ push: allowed
+
+🌊 now lets ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;
+
+exports[`git.commit.push.sh given: [case41] --base opens a stacked pr on the slice below when: [t7] a bare --base, apply mode then: refused on both streams, exit 2, no push and no gh call 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ ✋ ConstraintError: --base needs a branch name
+   └─ name the slice below, e.g. --base turtle/feature-part-1
+"
+`;
+
+exports[`git.commit.push.sh given: [case41] --base opens a stacked pr on the slice below when: [t8] --base names this branch, apply mode then: refused on both streams, exit 2, no push and no gh call 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ ✋ ConstraintError: --base cannot be this branch (turtle/feature-part-2)
+   └─ name the branch this one stacks on
+"
+`;
+
+exports[`git.commit.push.sh given: [case41] --base opens a stacked pr on the slice below when: [t9] --base is not on origin, apply mode then: refused on both streams, exit 2, no push and no gh call 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ ✋ ConstraintError: --base origin/turtle/feature-part-0 not found
+   └─ push turtle/feature-part-0 first (or fetch, if it was pushed elsewhere), then retry
+"
+`;
+
+exports[`git.commit.push.sh given: [case41] --base opens a stacked pr on the slice below when: [t10] --base is not an ancestor of HEAD, apply mode then: refused on both streams, exit 2, no push and no gh call 1`] = `
+"🐢 bummer dude...
+
+🐚 git.commit.push
+   └─ ✋ ConstraintError: --base origin/turtle/elsewhere is not an ancestor of HEAD
+   └─ this branch must stack on turtle/elsewhere; rebase onto it, or name the branch it was cut from
 "
 `;
