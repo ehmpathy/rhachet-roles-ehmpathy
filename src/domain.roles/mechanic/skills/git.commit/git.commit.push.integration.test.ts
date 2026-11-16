@@ -4072,4 +4072,345 @@ exit 1
       });
     },
   );
+
+  given('[case42] --base opens a stacked pr on the slice below', () => {
+    /**
+     * .what = a repo on turtle/feature-part-2, whose parent commit is on
+     *         origin/turtle/feature-part-1 (the slice below), plus a fake gh and
+     *         a fake git push that each log their calls
+     * .why  = the base guard reads real refs (rev-parse, merge-base), so only gh
+     *         and the push transport are faked
+     *
+     * .mock = fake gh: GH_PR_FOUND sets what `pr list` returns, GH_PR_BASE what
+     *         `pr view` returns, GH_EDIT_FAILS makes `pr edit` fail
+     * .why  = no real github in a temp repo; the real gh contract lives in
+     *         external.contracts.integration.test.ts
+     */
+    const setupStackedRepo = (): {
+      tempDir: string;
+      fakeBinDir: string;
+      readCalls: (tool: 'gh' | 'git') => string[];
+    } => {
+      const tempDir = setupTempRepo({
+        meterState: { uses: 3, push: 'allow' },
+        branch: 'turtle/feature-part-2',
+        commits: ['feat(reef): slice one', 'feat(reef): slice two'],
+        commitAuthor: {
+          name: 'seaturtle[bot]',
+          email: 'seaturtle@ehmpath.com',
+        },
+      });
+
+      // the slice below sits on origin at HEAD~1
+      const parentSha = spawnSync('git', ['rev-parse', 'HEAD~1'], {
+        cwd: tempDir,
+        encoding: 'utf-8',
+      }).stdout.trim();
+      spawnSync(
+        'git',
+        ['update-ref', 'refs/remotes/origin/turtle/feature-part-1', parentSha],
+        { cwd: tempDir },
+      );
+
+      // an unrelated branch on origin that HEAD does not stack on
+      spawnSync('git', ['checkout', '-q', '-b', 'turtle/elsewhere', 'main'], {
+        cwd: tempDir,
+      });
+      fs.writeFileSync(path.join(tempDir, 'elsewhere.txt'), 'kelp');
+      spawnSync('git', ['add', 'elsewhere.txt'], { cwd: tempDir });
+      spawnSync('git', ['commit', '-q', '-m', 'feat(kelp): elsewhere'], {
+        cwd: tempDir,
+      });
+      const elsewhereSha = spawnSync('git', ['rev-parse', 'HEAD'], {
+        cwd: tempDir,
+        encoding: 'utf-8',
+      }).stdout.trim();
+      spawnSync(
+        'git',
+        ['update-ref', 'refs/remotes/origin/turtle/elsewhere', elsewhereSha],
+        { cwd: tempDir },
+      );
+      spawnSync('git', ['checkout', '-q', 'turtle/feature-part-2'], {
+        cwd: tempDir,
+      });
+      spawnSync('git', ['branch', '-q', '-D', 'turtle/elsewhere'], {
+        cwd: tempDir,
+      });
+
+      const fakeBinDir = path.join(tempDir, '.fakebin');
+      fs.mkdirSync(fakeBinDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(fakeBinDir, 'gh'),
+        `#!/bin/bash
+printf '%q ' "$@" >> "${fakeBinDir}/gh.calls.log"
+echo >> "${fakeBinDir}/gh.calls.log"
+if [[ "$1" == "pr" && "$2" == "list" ]]; then
+  echo "\${GH_PR_FOUND:-}"
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "view" ]]; then
+  echo "\${GH_PR_BASE:-main}"
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "edit" ]]; then
+  if [[ -n "\${GH_EDIT_FAILS:-}" ]]; then
+    echo "GraphQL: base branch protected" >&2
+    exit 1
+  fi
+  echo "https://github.com/test/repo/pull/\${GH_PR_FOUND}"
+  exit 0
+elif [[ "$1" == "pr" && "$2" == "create" ]]; then
+  echo "https://github.com/test/repo/pull/88"
+  exit 0
+fi
+exit 1
+`,
+      );
+      fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+      fs.writeFileSync(
+        path.join(fakeBinDir, 'git'),
+        `#!/bin/bash
+if [[ "$1" == "push" ]]; then
+  echo "$*" >> "${fakeBinDir}/git.calls.log"
+  echo "To github.com:test/repo.git"
+  exit 0
+fi
+exec /usr/bin/git "$@"
+`,
+      );
+      fs.chmodSync(path.join(fakeBinDir, 'git'), '755');
+
+      const readCalls = (tool: 'gh' | 'git'): string[] => {
+        const logPath = path.join(fakeBinDir, `${tool}.calls.log`);
+        if (!fs.existsSync(logPath)) return [];
+        // one call per line (gh args are %q-quoted, so a multi-line body stays on its line)
+        return fs
+          .readFileSync(logPath, 'utf-8')
+          .trim()
+          .split('\n')
+          .map((call) => call.trim());
+      };
+      return { tempDir, fakeBinDir, readCalls };
+    };
+
+    const runStacked = (input: {
+      repo: ReturnType<typeof setupStackedRepo>;
+      pushArgs: string[];
+      env?: Record<string, string>;
+    }) =>
+      runPush({
+        tempDir: input.repo.tempDir,
+        pushArgs: input.pushArgs,
+        env: {
+          PATH: `${input.repo.fakeBinDir}:${process.env.PATH}`,
+          ...input.env,
+        },
+      });
+
+    when('[t0] plan mode with a valid base', () => {
+      then('the plan names the base and pushes naught', () => {
+        const repo = setupStackedRepo();
+        const result = runStacked({
+          repo,
+          pushArgs: ['--base', 'turtle/feature-part-1', '--auth', 'as-human'],
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('base: turtle/feature-part-1');
+        expect(repo.readCalls('git')).toEqual([]);
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t1] plan mode under --output json', () => {
+      then('the json carries pr_base', () => {
+        const repo = setupStackedRepo();
+        const result = runStacked({
+          repo,
+          pushArgs: [
+            '--base',
+            'turtle/feature-part-1',
+            '--auth',
+            'as-human',
+            '--output',
+            'json',
+          ],
+        });
+        expect(result.exitCode).toBe(0);
+        expect(JSON.parse(result.stdout).pr_base).toBe('turtle/feature-part-1');
+      });
+    });
+
+    when('[t2] apply, no pr yet', () => {
+      then('the pr opens on the base, and its title is this slice', () => {
+        const repo = setupStackedRepo();
+        const result = runStacked({
+          repo,
+          pushArgs: [
+            '--base',
+            'turtle/feature-part-1',
+            '--auth',
+            'as-human',
+            '--mode',
+            'apply',
+          ],
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          'pr: pr #88 (created, base: turtle/feature-part-1)',
+        );
+        const createCall = repo
+          .readCalls('gh')
+          .find((call) => call.startsWith('pr create'));
+        expect(createCall).toContain('--base turtle/feature-part-1');
+        // the title is this slice's commit, never the slice below (%q escapes spaces)
+        expect(createCall).toMatch(/--title feat\\\(reef\\\):\\ slice\\ two /);
+        expect(createCall).not.toMatch(/slice\\ one/);
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t3] apply, no --base given', () => {
+      then('pr create carries no --base (the default holds)', () => {
+        const repo = setupStackedRepo();
+        const result = runStacked({
+          repo,
+          pushArgs: ['--auth', 'as-human', '--mode', 'apply'],
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain('pr: pr #88 (created)');
+        const createCall = repo
+          .readCalls('gh')
+          .find((call) => call.startsWith('pr create'));
+        expect(createCall).not.toContain('--base');
+      });
+    });
+
+    when('[t4] apply, a pr is found on main', () => {
+      then('the found pr moves onto the base', () => {
+        const repo = setupStackedRepo();
+        const result = runStacked({
+          repo,
+          pushArgs: [
+            '--base',
+            'turtle/feature-part-1',
+            '--auth',
+            'as-human',
+            '--mode',
+            'apply',
+          ],
+          env: { GH_PR_FOUND: '55', GH_PR_BASE: 'main' },
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          'pr: pr #55 (found, base: main → turtle/feature-part-1)',
+        );
+        expect(repo.readCalls('gh')).toContain(
+          'pr edit 55 --base turtle/feature-part-1',
+        );
+        expect(
+          repo.readCalls('gh').some((call) => call.startsWith('pr create')),
+        ).toBe(false);
+        expect(result.stdout).toMatchSnapshot();
+      });
+    });
+
+    when('[t5] apply, a pr is found already on the base', () => {
+      then('the pr is left as is, with no edit', () => {
+        const repo = setupStackedRepo();
+        const result = runStacked({
+          repo,
+          pushArgs: [
+            '--base',
+            'turtle/feature-part-1',
+            '--auth',
+            'as-human',
+            '--mode',
+            'apply',
+          ],
+          env: { GH_PR_FOUND: '55', GH_PR_BASE: 'turtle/feature-part-1' },
+        });
+        expect(result.exitCode).toBe(0);
+        expect(result.stdout).toContain(
+          'pr: pr #55 (found, base: turtle/feature-part-1)',
+        );
+        expect(
+          repo.readCalls('gh').some((call) => call.startsWith('pr edit')),
+        ).toBe(false);
+      });
+    });
+
+    when('[t6] apply, the base move fails', () => {
+      then('the push stands, the pr status names the failure, exit 2', () => {
+        const repo = setupStackedRepo();
+        const result = runStacked({
+          repo,
+          pushArgs: [
+            '--base',
+            'turtle/feature-part-1',
+            '--auth',
+            'as-human',
+            '--mode',
+            'apply',
+          ],
+          env: { GH_PR_FOUND: '55', GH_PR_BASE: 'main', GH_EDIT_FAILS: '1' },
+        });
+        expect(result.exitCode).toBe(2);
+        expect(result.stdout).toContain(
+          'base move main → turtle/feature-part-1 failed',
+        );
+        expect(result.stderr).toContain(
+          'base move main → turtle/feature-part-1 failed',
+        );
+        expect(repo.readCalls('git')).toHaveLength(1);
+      });
+    });
+
+    const refusals: {
+      slug: string;
+      base: string[];
+      error: string;
+    }[] = [
+      {
+        slug: '[t7] a bare --base',
+        base: ['--base'],
+        error: '--base needs a branch name',
+      },
+      {
+        slug: '[t8] --base names this branch',
+        base: ['--base', 'turtle/feature-part-2'],
+        error: '--base cannot be this branch (turtle/feature-part-2)',
+      },
+      {
+        slug: '[t9] --base is not on origin',
+        base: ['--base', 'turtle/feature-part-0'],
+        error: '--base origin/turtle/feature-part-0 not found',
+      },
+      {
+        slug: '[t10] --base is not an ancestor of HEAD',
+        base: ['--base', 'turtle/elsewhere'],
+        error: '--base origin/turtle/elsewhere is not an ancestor of HEAD',
+      },
+    ];
+    refusals.forEach((refusal) =>
+      when(`${refusal.slug}, apply mode`, () => {
+        then('refused on both streams, exit 2, no push and no gh call', () => {
+          const repo = setupStackedRepo();
+          const result = runStacked({
+            repo,
+            pushArgs: [
+              ...refusal.base,
+              '--auth',
+              'as-human',
+              '--mode',
+              'apply',
+            ],
+          });
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(refusal.error);
+          expect(result.stderr).toContain(refusal.error);
+          expect(repo.readCalls('git')).toEqual([]);
+          expect(repo.readCalls('gh')).toEqual([]);
+          expect(result.stdout).toMatchSnapshot();
+        });
+      }),
+    );
+  });
 });
