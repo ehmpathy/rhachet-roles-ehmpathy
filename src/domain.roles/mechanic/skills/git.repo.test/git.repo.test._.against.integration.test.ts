@@ -4,6 +4,10 @@ import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
 import { maskSpinnerTicks } from '../../../../.test/maskSpinnerTicks';
+import { setGroveIsolation } from '../../../../.test/setGroveIsolation';
+
+// isolate the grove: a private slot pool, so runs never queue on the box's pool
+setGroveIsolation();
 
 /**
  * .what = integration tests for git.repo.test --against and --env flags
@@ -30,7 +34,13 @@ describe('git.repo.test --against', () => {
   }): { stdout: string; stderr: string; exitCode: number; tempDir: string } => {
     const tempDir = genTempDir({ slug: 'git-repo-test-against', git: true });
 
-    // create mock rhx for keyrack commands (acceptance tests require keyrack)
+    /**
+     * .mock = keyrack (`rhx keyrack unlock` / `source`), via a fake rhx on PATH
+     * .why = these cases test the --against / --env gate of the skill, not keyrack; the CI
+     *        runner holds no ehmpath keyrack host, and a real unlock would decide the outcome
+     *        by the host's credentials rather than by the flags under test
+     * .real = the dogfood run: this repo runs its suites via `rhx git.repo.test`, which unlocks the real keyrack; a CI case is #1191
+     */
     let envPath = process.env.PATH ?? '';
     if (args.mockRhxKeyrack) {
       const fakeBinDir = path.join(tempDir, '.fakebin');
@@ -163,12 +173,23 @@ module.exports = {
         expect(result.exitCode).toBe(0);
       });
 
-      then('output shows passed', () => {
-        expect(result.stdout).toContain('passed');
+      // the temp repo holds only the routed npm command; a wrong route fails as absent
+      then('output shows the run passed', () => {
+        expect(result.stdout).toContain('🎉 passed');
+      });
+
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
       });
 
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      // a refusal goes to both streams (rule.require.skill-output-streams), so on a refusal
+      // this snapshot matches the stdout one by design; each guards its own stream
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -201,8 +222,18 @@ module.exports = {
         expect(result.stdout).toContain('unlocked ehmpath/prep');
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      // a refusal goes to both streams (rule.require.skill-output-streams), so on a refusal
+      // this snapshot matches the stdout one by design; each guards its own stream
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -235,8 +266,18 @@ module.exports = {
         expect(result.stdout).toContain('unlocked ehmpath/prod');
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      // a refusal goes to both streams (rule.require.skill-output-streams), so on a refusal
+      // this snapshot matches the stdout one by design; each guards its own stream
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -265,12 +306,23 @@ module.exports = {
         expect(result.exitCode).toBe(0);
       });
 
-      then('output shows passed', () => {
-        expect(result.stdout).toContain('passed');
+      // the temp repo holds only the routed npm command; a wrong route fails as absent
+      then('output shows the run passed', () => {
+        expect(result.stdout).toContain('🎉 passed');
+      });
+
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
       });
 
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      // a refusal goes to both streams (rule.require.skill-output-streams), so on a refusal
+      // this snapshot matches the stdout one by design; each guards its own stream
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -303,8 +355,18 @@ module.exports = {
         expect(result.stdout).toContain('unlocked ehmpath/prod');
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      // a refusal goes to both streams (rule.require.skill-output-streams), so on a refusal
+      // this snapshot matches the stdout one by design; each guards its own stream
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -330,8 +392,18 @@ module.exports = {
         );
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      // a refusal goes to both streams (rule.require.skill-output-streams), so on a refusal
+      // this snapshot matches the stdout one by design; each guards its own stream
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -357,8 +429,18 @@ module.exports = {
         );
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      // a refusal goes to both streams (rule.require.skill-output-streams), so on a refusal
+      // this snapshot matches the stdout one by design; each guards its own stream
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -389,8 +471,18 @@ module.exports = {
         expect(result.stdout).toContain('--env test is not deployed to cloud');
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      // a refusal goes to both streams (rule.require.skill-output-streams), so on a refusal
+      // this snapshot matches the stdout one by design; each guards its own stream
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -415,8 +507,18 @@ module.exports = {
         );
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      // a refusal goes to both streams (rule.require.skill-output-streams), so on a refusal
+      // this snapshot matches the stdout one by design; each guards its own stream
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -444,8 +546,18 @@ module.exports = {
         expect(result.stdout).toContain('use --against local|cloud instead');
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      // a refusal goes to both streams (rule.require.skill-output-streams), so on a refusal
+      // this snapshot matches the stdout one by design; each guards its own stream
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });
@@ -476,8 +588,18 @@ module.exports = {
         expect(result.stdout).toContain("--against must be 'local' or 'cloud'");
       });
 
+      then('stderr is empty on success, else holds the error', () => {
+        expect(result.stderr === '').toEqual(result.exitCode === 0);
+      });
+
       then('output matches snapshot', () => {
         expect(sanitizeOutput(result.stdout)).toMatchSnapshot();
+      });
+
+      // a refusal goes to both streams (rule.require.skill-output-streams), so on a refusal
+      // this snapshot matches the stdout one by design; each guards its own stream
+      then('stderr matches snapshot', () => {
+        expect(sanitizeOutput(result.stderr)).toMatchSnapshot();
       });
     });
   });

@@ -3,6 +3,11 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { genTempDir, given, then, useThen, when } from 'test-fns';
 
+import { setGroveIsolation } from '../../../../.test/setGroveIsolation';
+
+// isolate the grove: a private slot pool, so runs never queue on the box's pool
+setGroveIsolation();
+
 /**
  * .what = verify git.repo.test.sh always runs tests via nice
  * .why = nice -n 5 prevents test suites from CPU starvation on the host.
@@ -63,7 +68,15 @@ describe('git.repo.test.sh nice', () => {
       `describe('example', () => { it('passes', () => {}); });`,
     );
 
-    // mock jest --listTests
+    /**
+     * .mock = jest --listTests, npm/pnpm, and keyrack, via fakes on PATH and in node_modules/.bin
+     * .why = this suite reads one fact: the nice level the skill launches its suite under. only a
+     *        fake npm can record its own nice level; a real one would also need a jest install and
+     *        an ehmpath keyrack host the CI runner lacks, and neither bears on the nice level
+     * .real = the nice level itself is real: the fake npm reads it from its own process. the grove
+     *         suite drives the real skill with real signals, flock, and process trees; the real
+     *         keyrack unlock in CI is ehmpathy/rhachet-roles-ehmpathy#1191
+     */
     const jestBinDir = path.join(tempDir, 'node_modules', '.bin');
     fs.mkdirSync(jestBinDir, { recursive: true });
     fs.writeFileSync(
