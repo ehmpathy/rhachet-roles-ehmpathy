@@ -9,7 +9,7 @@
 #
 # usage:
 #   rhx git.package.patch begin  --package rhachet --mode apply
-#   rhx git.package.patch commit --package rhachet --why '<why>' --upstream <url> --mode apply
+#   rhx git.package.patch commit --package rhachet --why '<why>' --upstream '<issue-url>' --mode apply
 #   rhx git.package.patch help
 #
 # guarantee:
@@ -21,6 +21,7 @@ set -euo pipefail
 
 SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SKILL_DIR/output.sh"
+trap 'on_exit_render_crash "git.package.patch"' EXIT
 
 ######################################################################
 # show usage
@@ -34,7 +35,7 @@ show_usage() {
   print_tree_child "help     show this usage" false true
   print_tree_branch "examples" true
   print_tree_child "rhx git.package.patch begin --package rhachet --mode apply" true false
-  print_tree_child "rhx git.package.patch commit --package rhachet --why '<why>' --upstream <url> --mode apply" true true
+  print_tree_child "rhx git.package.patch commit --package rhachet --why 'keep the stop hook quiet on a clean tree' --upstream https://github.com/ehmpathy/rhachet/issues/580 --mode apply" true true
 }
 
 ######################################################################
@@ -77,7 +78,8 @@ case "$SUBCMD" in
     exit 0
     ;;
   begin|commit)
-    # forward every rest arg; the `+` form keeps an empty list legal under set -u on bash 3.2 (macos)
+    # forward every rest arg; the `+` form keeps an empty list legal under set -u
+    # .note = the subskills need bash >= 4.3 (mapfile, a nameref), as other mechanic skills do
     exec "$SKILL_DIR/git.package.patch.$SUBCMD.sh" "${ARGS[@]+"${ARGS[@]}"}"
     ;;
   "")
@@ -86,6 +88,6 @@ case "$SUBCMD" in
     ;;
   *)
     refuse_constraint "git.package.patch" "unknown subcommand: $SUBCMD" \
-      "use one of: begin, commit, help"
+      "use one of: begin, commit, help"$'\n'"rhx git.package.patch help"
     ;;
 esac

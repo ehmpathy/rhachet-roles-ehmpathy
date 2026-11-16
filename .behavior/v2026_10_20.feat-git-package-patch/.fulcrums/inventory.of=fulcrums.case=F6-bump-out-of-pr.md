@@ -29,6 +29,9 @@ the bump may be meant to ride with this branch; i did not author it and cannot a
 
 - dream: `.dream/v2026_10_20.fix.rhachet-1.50-actor-migration-commits-a-host-link.md`
 - the hand-added lines: `.agent/.actors/actor.via.slug=.default/brain/.claude/settings.json`
+- also left out, as worktree drift this round did not author: the `100644 → 100755` mode change on
+  `.husky/check.timestamps.sh` and the `.agent/repo=.this/role=any/boot.yml` edit. the index and the
+  pushed branch hold `.husky/check.timestamps.sh` at `100644`, unchanged from main
 
 ## .verdict
 

@@ -341,6 +341,7 @@ subject.flow:
       - briefs/practices/work.flow/tools/rule.require.externalized-knowledge.md
       - briefs/practices/work.flow/tools/rule.require.read-package-docs-before-use.md
       - briefs/practices/work.flow/tools/howto.git-commit-set.[lesson].md
+      - briefs/practices/work.flow/tools/howto.git-package-patch.[lesson].md
       - briefs/practices/work.flow/tools/howto.keyrack.[lesson].md
 
     ref:

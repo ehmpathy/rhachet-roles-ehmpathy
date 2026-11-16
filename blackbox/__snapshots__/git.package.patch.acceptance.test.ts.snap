@@ -1,0 +1,225 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`git.package.patch (acceptance) given: [case1] a linked repo with is-number@7.0.0 on disk when: [t0] the crew runs \`rhx git.package.patch begin --package is-number\` then: rhachet finds the verb, and begin plans the edit dir, exit 0 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+
+🐢 heres the wave...
+
+🐚 git.package.patch begin
+   ├─ package: is-number@7.0.0
+   ├─ prior patch: none
+   ├─ would open edit dir: node_modules/.pnpm_patches/is-number@7.0.0
+   └─ mode: plan (naught changed)
+
+🥥 did you know?
+   ├─ rerun with --mode apply to open it
+   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case1] a linked repo with is-number@7.0.0 on disk when: [t1.1] the crew runs commit with no --upstream then: it is refused as a constraint, exit 2, on both streams 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+
+🐢 bummer dude...
+
+🐚 git.package.patch commit
+   └─ ✋ ConstraintError: --upstream is required
+
+🥥 did you know?
+   ├─ add --upstream '<issue-url>' — an issue or pr url where the real fix is queued
+   └─ rhx git.package.patch commit --package is-number --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream '<issue-url>' --mode apply
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case1] a linked repo with is-number@7.0.0 on disk when: [t1.2] the crew runs commit before any begin then: it is refused: no open edit dir, and begin is the named next step 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+
+🐢 bummer dude...
+
+🐚 git.package.patch commit
+   └─ ✋ ConstraintError: no open edit dir at node_modules/.pnpm_patches/is-number@7.0.0
+
+🥥 did you know?
+   ├─ open one first
+   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case1] a linked repo with is-number@7.0.0 on disk when: [t1.2] the crew runs commit before any begin then: its stderr, as rhachet hands it back, matches snapshot 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+   └─ ✋ blocked by constraints
+
+🐢 bummer dude...
+
+🐚 git.package.patch commit
+   └─ ✋ ConstraintError: no open edit dir at node_modules/.pnpm_patches/is-number@7.0.0
+
+🥥 did you know?
+   ├─ open one first
+   └─ rhx git.package.patch begin --package is-number@7.0.0 --mode apply
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case1] a linked repo with is-number@7.0.0 on disk when: [t1.3] the crew passes a global flag, -g then: it is refused as an unknown flag, exit 2, on both streams 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+
+🐢 bummer dude...
+
+🐚 git.package.patch begin
+   └─ ✋ ConstraintError: unknown flag -g
+
+🥥 did you know?
+   ├─ drop -g; this verb patches the current tree only (flags: --package, --edit-dir, --mode)
+   └─ rhx git.package.patch begin --package is-number --mode apply
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case1] a linked repo with is-number@7.0.0 on disk when: [t1] the crew runs commit with no --why then: it is refused as a constraint, exit 2, on both streams 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+
+🐢 bummer dude...
+
+🐚 git.package.patch commit
+   └─ ✋ ConstraintError: --why is required
+
+🥥 did you know?
+   ├─ add --why '<why this patch is needed>', or pipe it via --why @stdin
+   └─ rhx git.package.patch commit --package is-number --why '<why>' --upstream https://github.com/ehmpathy/rhachet-roles-ehmpathy/issues/926 --mode apply
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case1] a linked repo with is-number@7.0.0 on disk when: [t2] the crew runs \`rhx git.package.patch help\` then: the help names every subcommand, exit 0 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+
+🐢 heres the wave...
+
+🐚 git.package.patch
+   ├─ subcommands
+   │  ├─ begin    open an edit dir for a dependency, inside the tree
+   │  ├─ commit   seal the edits into a patch + a LOCAL PATCH note
+   │  └─ help     show this usage
+   └─ examples
+      ├─ rhx git.package.patch begin --package rhachet --mode apply
+      └─ rhx git.package.patch commit --package rhachet --why 'keep the stop hook quiet on a clean tree' --upstream https://github.com/ehmpathy/rhachet/issues/580 --mode apply
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case2] a linked repo with is-number@7.0.0 installed by pnpm when: [t0] the crew opens, edits, and seals a patch through rhachet then: the begin and seal renders match snapshot 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+
+🐢 shell yeah!
+
+🐚 git.package.patch begin
+   ├─ package: is-number@7.0.0
+   ├─ prior patch: none
+   └─ edit dir: node_modules/.pnpm_patches/is-number@7.0.0
+
+🥥 did you know?
+   ├─ edit the files in the dir, then seal them
+   └─ rhx git.package.patch commit --package is-number@7.0.0 --why '<why>' --upstream '<issue-url>' --mode apply
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case2] a linked repo with is-number@7.0.0 installed by pnpm when: [t0] the crew opens, edits, and seals a patch through rhachet then: the begin and seal renders match snapshot 2`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+
+🐢 shell yeah!
+
+🐚 git.package.patch commit
+   ├─ package: is-number@7.0.0
+   ├─ patch: patches/is-number@7.0.0.patch (written)
+   ├─ entry: patchedDependencies[is-number@7.0.0] in pnpm-workspace.yaml
+   ├─ note: patches/is-number@7.0.0.patch.note.md
+   │  ├─ who: test-fns <test-fns@test.local>
+   │  ├─ when: <date>
+   │  ├─ why: reef fix: treat a numeric string with whitespace as not a number
+   │  └─ upstream: https://github.com/jonschlinkert/is-number/issues/42
+   ├─ edit dir: removed
+   └─ changed, stage all of these
+      ├─ patches/is-number@7.0.0.patch
+      ├─ patches/is-number@7.0.0.patch.note.md
+      ├─ pnpm-workspace.yaml
+      └─ pnpm-lock.yaml
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case2] a linked repo with is-number@7.0.0 installed by pnpm when: [t1] the crew reruns the same commit after the seal then: it is a no-op: already sealed, naught changed 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+
+🐢 righteous!
+
+🐚 git.package.patch commit
+   ├─ package: is-number@7.0.0
+   ├─ patch: patches/is-number@7.0.0.patch
+   ├─ note: patches/is-number@7.0.0.patch.note.md
+   └─ state: already sealed with this note; naught changed
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case2] a linked repo with is-number@7.0.0 installed by pnpm when: [t2] the crew names an --edit-dir outside the tree then: it names the inside-tree rule on both streams, and opens naught 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+
+🐢 bummer dude...
+
+🐚 git.package.patch begin
+   ├─ ✋ ConstraintError: --edit-dir must sit inside the tree
+   └─ given: ../reef-outside
+
+🥥 did you know?
+   ├─ omit --edit-dir to use the in-tree default, node_modules/.pnpm_patches/<name>@<version>
+   └─ rhx git.package.patch begin --package is-number --mode apply
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case2] a linked repo with is-number@7.0.0 installed by pnpm when: [t3] a rebase drops the lockfile record, and the same commit reruns then: it names the lost record and pnpm install, never "already sealed" 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+
+🐢 bummer dude...
+
+🐚 git.package.patch commit
+   └─ ✋ ConstraintError: patches/is-number@7.0.0.patch and its note are present, but the lockfile record is absent, so pnpm does not apply it
+
+🥥 did you know?
+   ├─ run pnpm install, so pnpm-lock.yaml records patches/is-number@7.0.0.patch, then rerun this same commit
+   └─ rhx git.package.patch commit --package is-number@7.0.0 --why 'reef fix: treat a numeric string with whitespace as not a number' --upstream https://github.com/jonschlinkert/is-number/issues/42 --mode apply
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case3] a linked repo whose is-number pnpm never installed when: [t0] the crew opens an edit dir in apply mode then: the malfunction render, on both streams as rhachet hands it back, matches snapshot 1`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+
+🐢 bummer dude...
+
+🐚 git.package.patch begin
+   ├─ 💥 MalfunctionError: pnpm patch failed
+   └─ detail
+      <pnpm detail>
+"
+`;
+
+exports[`git.package.patch (acceptance) given: [case3] a linked repo whose is-number pnpm never installed when: [t0] the crew opens an edit dir in apply mode then: the malfunction render, on both streams as rhachet hands it back, matches snapshot 2`] = `
+"
+🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.package.patch
+   └─ 💥 failed with an error
+
+🐢 bummer dude...
+
+🐚 git.package.patch begin
+   ├─ 💥 MalfunctionError: pnpm patch failed
+   └─ detail
+      <pnpm detail>
+"
+`;

@@ -73,6 +73,8 @@ print_coconut_hint() {
 # .why  = the caller must fix the input; the fix is always named
 #
 # usage: refuse_constraint <root> <message> <fix> [detail lines...]
+# .note = a fix of several lines renders one coconut line per line; the
+#         last line is the command a human copies
 ######################################################################
 refuse_constraint() {
   local root="$1"
@@ -95,7 +97,9 @@ refuse_constraint() {
       [[ $index -eq $count ]] && glyph="└─"
       echo "   $glyph $line"
     done
-    print_coconut_hint "$fix"
+    local fix_lines
+    mapfile -t fix_lines <<<"$fix"
+    print_coconut_hint "${fix_lines[@]}"
   )
   REFUSAL_RENDERED="true"
   emit_to_both_streams "$block"
@@ -107,6 +111,8 @@ refuse_constraint() {
 # .why  = under set -e an unguarded failure would exit 1 with naught on
 #         either stream (rule.require.skill-output-streams); a refusal
 #         sets REFUSAL_RENDERED, so its exit passes through untouched
+# .note = a crash is a malfunction, so it exits 1 whatever code the
+#         failed command carried (rule.require.exit-code-semantics)
 #
 # usage: trap 'on_exit_render_crash "<root>"' EXIT
 ######################################################################
@@ -120,7 +126,7 @@ on_exit_render_crash() {
     echo "   └─ 💥 MalfunctionError: $1 crashed (exit $code)"
   )
   emit_to_both_streams "$block"
-  exit "$code"
+  exit 1
 }
 
 ######################################################################
@@ -153,12 +159,15 @@ as_indented_block() {
 # .what = emit a MalfunctionError to stdout + stderr, exit 1
 # .why  = the system failed (pnpm, fs); show its own error verbatim
 #
-# usage: refuse_malfunction <root> <message> <detail>
+# usage: refuse_malfunction <root> <message> <detail> [hint]
+# .note = a hint of several lines renders as a coconut block after the
+#         detail; its last line is the command a human copies
 ######################################################################
 refuse_malfunction() {
   local root="$1"
   local message="$2"
   local detail="$3"
+  local hint="${4:-}"
   local block
   block=$(
     print_turtle_header "bummer dude..."
@@ -166,6 +175,11 @@ refuse_malfunction() {
     echo "   ├─ 💥 MalfunctionError: $message"
     echo "   └─ detail"
     as_indented_block "$detail" "$DETAIL_INDENT"
+    if [[ -n "$hint" ]]; then
+      local hint_lines
+      mapfile -t hint_lines <<<"$hint"
+      print_coconut_hint "${hint_lines[@]}"
+    fi
   )
   REFUSAL_RENDERED="true"
   emit_to_both_streams "$block"
