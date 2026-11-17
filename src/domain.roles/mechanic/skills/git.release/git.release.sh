@@ -26,18 +26,14 @@
 #   - --from main, no --into: --into prod
 #
 # guarantee:
-#   - plan mode is default (safe preview)
-#   - --watch never enables automerge
-#   - apply mode enables automerge and watches
-#   - apply mode requires git.commit.uses permission (locally or globally)
+#   - plan mode is default (safe preview); --watch never enables automerge
+#   - apply enables automerge and watches; needs git.commit.uses permission
 #   - watches CI until complete or timeout (15 min)
 #   - surfaces errors with links and retry hints
-#   - a pr comment that waits on an answer: apply refuses (exit 2), automerge
-#     goes off, no flag skips it; a failed read fails closed
+#   - apply refuses (exit 2) while a pr comment waits; no flag skips it
 #
 # note:
-#   - MUST run in FOREGROUND (never background)
-#   - watches CI interactively, requires TTY for spinner
+#   - MUST run in FOREGROUND (never background), with a TTY for the spinner
 ######################################################################
 set -euo pipefail
 
