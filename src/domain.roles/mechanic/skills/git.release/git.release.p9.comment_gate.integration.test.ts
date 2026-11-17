@@ -315,7 +315,7 @@ describe('git.release.p9.comment_gate', () => {
           '✋ ConstraintError: release blocked until each comment has an answer',
         );
         expect(result.stdout).toContain(
-          'rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>',
+          'rhx git.pull.comment set --which 42 --reply-to 801 --key answer-801 --from <file>',
         );
         expect(result.stdout).not.toContain("let's watch");
         expect(result.stderr).toContain('✋ ConstraintError');
@@ -429,29 +429,77 @@ describe('git.release.p9.comment_gate', () => {
     );
   });
 
-  given('[case2] a pr whose every thread holds a signed answer', () => {
-    const mockResponses = {
-      'pr list': '42',
-      'pr view': `SEQUENCE:${JSON.stringify([
-        PR_PASSED_WOUT_AUTOMERGE,
-        PR_MERGED,
-      ])}`,
-      'pr merge': 'auto-merge enabled',
-      'api review comments': JSON.stringify([REVIEW_ASK, REVIEW_ANSWER]),
-      'api graphql': asThreadsPage([{ isResolved: false, ids: [801, 802] }]),
-    };
-
-    when('[t0] apply', () => {
-      then('passes the gate and enables automerge, exit 0', () => {
-        const result = runCase(mockResponses, ['--into', 'main', '--apply']);
-        expect(result.status).toEqual(0);
-        expect(result.stdout).toContain('💬 all comments answered');
-        expect(result.stdout).toContain('🌴 automerge enabled');
-        expect(result.stdout).not.toContain('ConstraintError');
-        expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+  given(
+    '[case2] a pr whose every thread holds a signed answer, with no reply from its reviewer since',
+    () => {
+      /**
+       * .why = rhachet #713 merged 90s after five crew thread answers, before
+       *        the reviewer read one. an answer the reviewer has not read is no
+       *        close: the thread waits on the reviewer until they mark it resolved
+       */
+      when('[t0] apply, the thread still open', () => {
+        then(
+          'refuses, exit 2, and names the reviewer the thread waits on',
+          () => {
+            const result = runCase(
+              {
+                'pr list': '42',
+                'pr view': PR_PASSED_WOUT_AUTOMERGE,
+                'api review comments': JSON.stringify([
+                  REVIEW_ASK,
+                  REVIEW_ANSWER,
+                ]),
+                'api graphql': asThreadsPage([
+                  { isResolved: false, ids: [801, 802] },
+                ]),
+              },
+              ['--into', 'main', '--apply'],
+            );
+            expect(result.status).toEqual(2);
+            expect(result.stdout).toContain('💬 1 comment(s) unanswered');
+            expect(result.stdout).toContain('review 801');
+            expect(result.stdout).toContain(
+              'a 🐢 answer is posted, with no reply from @commander since — unread',
+            );
+            expect(result.stdout).toContain('waits on @commander');
+            // no crew verb cures it, so none is offered for this row
+            expect(result.stdout).not.toContain('--reply-to 801 --key');
+            expect(result.stdout).not.toContain('🌴 automerge enabled');
+            expect(result.stderr).toContain('ConstraintError');
+            expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+          },
+        );
       });
-    });
-  });
+
+      when('[t1] apply, the reviewer marked the thread resolved', () => {
+        then('passes the gate and enables automerge, exit 0', () => {
+          const result = runCase(
+            {
+              'pr list': '42',
+              'pr view': `SEQUENCE:${JSON.stringify([
+                PR_PASSED_WOUT_AUTOMERGE,
+                PR_MERGED,
+              ])}`,
+              'pr merge': 'auto-merge enabled',
+              'api review comments': JSON.stringify([
+                REVIEW_ASK,
+                REVIEW_ANSWER,
+              ]),
+              'api graphql': asThreadsPage([
+                { isResolved: true, ids: [801, 802] },
+              ]),
+            },
+            ['--into', 'main', '--apply'],
+          );
+          expect(result.status).toEqual(0);
+          expect(result.stdout).toContain('💬 all comments answered');
+          expect(result.stdout).toContain('🌴 automerge enabled');
+          expect(result.stdout).not.toContain('ConstraintError');
+          expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
+        });
+      });
+    },
+  );
 
   given('[case3] a pr whose only thread is resolved, with no reply', () => {
     when('[t0] apply', () => {
@@ -555,7 +603,7 @@ describe('git.release.p9.comment_gate', () => {
           'issue 6407563822 · @commander · "also: the readme still names the old flag"',
         );
         expect(result.stdout).toContain(
-          'rhx git.pull.comment set --pr 42 --key answer-6407563822 --from <file>',
+          'rhx git.pull.comment set --which 42 --key answer-6407563822 --from <file>',
         );
         // an issue comment has no resolved state, so that cure is never offered
         expect(result.stdout).not.toContain('resolved on github');
@@ -963,7 +1011,7 @@ describe('git.release.p9.comment_gate', () => {
         expect(result.stdout).toContain(
           '✋ ConstraintError: release blocked until each comment has an answer',
         );
-        expect(result.stdout).toContain('--pr 99 --key answer-6407563822');
+        expect(result.stdout).toContain('--which 99 --key answer-6407563822');
         expect(result.stdout).toContain('/pull/99#issuecomment-6407563822');
         expect(result.stdout).not.toContain('/pull/42');
         expect(asSnapshotReadyWithAnsi(result.stdout)).toMatchSnapshot();
@@ -1272,7 +1320,7 @@ describe('git.release.p9.comment_gate', () => {
                 REVIEW_ANSWER,
               ]),
               'api graphql': asThreadsPage([
-                { isResolved: false, ids: [801, 802] },
+                { isResolved: true, ids: [801, 802] },
               ]),
             },
             ['--into', 'main', '--watch'],
@@ -1326,7 +1374,7 @@ describe('git.release.p9.comment_gate', () => {
                   REVIEW_ANSWER,
                 ]),
                 'api graphql': asThreadsPage([
-                  { isResolved: false, ids: [801, 802] },
+                  { isResolved: true, ids: [801, 802] },
                 ]),
               },
               ['--into', 'main', '--watch'],

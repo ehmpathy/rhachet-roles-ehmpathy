@@ -35,7 +35,7 @@ usage: git.pull.comment.get [--which <n>] [--in <owner/name>] [--unanswered | --
 options:
   --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --unanswered                 only the unanswered comments (a signed reply or a resolved thread answers one)
+  --unanswered                 only the comments that wait (a signed answer clears an issue comment; a review thread waits until resolved)
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
   --key <k> [--reply-to <id>]  your keyed comment (in that review thread, with --reply-to)
   --kind body                  the pr description alone
@@ -160,6 +160,7 @@ print_rows_tree() {
           + (if $c.in_reply_to then "  reply-to=\($c.in_reply_to)" else "" end)
           + (if $c.thread then "  thread=\($c.thread)" else "" end)
           + (if $c.key then "  key=\($c.key)" else "" end)
+          + (if $c.waits_on == "reviewer" then "  waits-on=reviewer (answered \($c.answer_id), no reply since)" else "" end)
           + "\n" + $pad + "├─ url: \($c.url // "?")"
           + "\n" + $pad + "├─ bytes: \($c.bytes)"
           + "\n" + $pad + "├─ sha256: \($c.sha256)"

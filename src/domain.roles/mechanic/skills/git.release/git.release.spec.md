@@ -264,10 +264,10 @@ rhx git.release --apply
    ├─ 👌 all checks passed
    ├─ 💬 1 comment(s) unanswered
    │  └─ review 801 · src/reef/getTide.ts:42 · @commander · "why not a findsert here?"
-   │     └─ answer: rhx git.pull.comment set --pr 42 --reply-to 801 --key answer-801 --from <file>
+   │     └─ answer: rhx git.pull.comment set --which 42 --reply-to 801 --key answer-801 --from <file>
    ├─ 🌴 automerge unfound — held until each comment has an answer
    └─ ✋ ConstraintError: release blocked until each comment has an answer
-      ├─ read: rhx git.pull.comment get --pr 42 --unanswered
+      ├─ read: rhx git.pull.comment get --which 42 --unanswered
       ├─ answer: run the rhx git.pull.comment set line each 💬 row names
       ├─ or: anyone with write access marks the review thread resolved on github
       └─ then: re-run this same release command
