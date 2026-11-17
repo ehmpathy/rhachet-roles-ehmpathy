@@ -135,6 +135,17 @@ always:
       - skills/git.branch.uses/git.branch.uses.local.sh
       - skills/git.branch.uses/git.branch.uses.operations.sh
 
+      # the pr-watch sub-files: the dispatcher in ref names get|set|del; the daemon, alert,
+      # github, token, and operations files run under the daemon, never by hand
+      - skills/git.pull.watch/git.pull.watch.alert.sh
+      - skills/git.pull.watch/git.pull.watch.daemon.sh
+      - skills/git.pull.watch/git.pull.watch.del.sh
+      - skills/git.pull.watch/git.pull.watch.get.sh
+      - skills/git.pull.watch/git.pull.watch.github.sh
+      - skills/git.pull.watch/git.pull.watch.operations.sh
+      - skills/git.pull.watch/git.pull.watch.set.sh
+      - skills/git.pull.watch/git.pull.watch.token.sh
+
 subject.code.prod:
   briefs:
     say:
