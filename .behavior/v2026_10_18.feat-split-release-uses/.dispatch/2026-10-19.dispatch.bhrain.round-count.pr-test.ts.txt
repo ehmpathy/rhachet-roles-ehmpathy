@@ -1,0 +1,178 @@
+import * as fs from 'fs';
+import * as path from 'path';
+import { genTempDir, given, then, when } from 'test-fns';
+
+/**
+ * .what = clamp for patches/rhachet-roles-bhrain@0.42.1.patch (getOneRoundCountBurntByScopeDrop)
+ * .why  = a round counts toward budget only if its own scope trace shows no matched target
+ *         dropped. on route v2026_10_18.feat-split-release-uses, rounds i001-i003 of both
+ *         1.vision lanes each read 1 of 13 matched files and exhausted the 3/3 budget.
+ *         read-only: the raw meter, the givens, and the traces stay as written
+ */
+describe('rhachet-roles-bhrain patch: a scope-drop round does not count toward budget', () => {
+  // load the installed (patched) dist; deep paths sit outside the package exports
+  const { getAllRouteStoneGuardReviewPeerMeters } = require(
+    path.join(
+      process.cwd(),
+      'node_modules/rhachet-roles-bhrain/dist/domain.operations/route/guard/review/peer/meter/getAllRouteStoneGuardReviewPeerMeters.js',
+    ),
+  );
+
+  const stone = '1.vision';
+  const slug = 'dimensional-decomposition';
+  const routeRel = '.behavior/v2026_10_18.feat-split-release-uses';
+
+  // the 13 files the lane matched; the burnt rounds kept only the yield
+  const demos = [
+    'case=1.grant-each-alone',
+    'case=10.rebase-conflict-mark-done',
+    'case=2.release-on-its-own-meter',
+    'case=3.rebase-zero-ahead',
+    'case=4.rebase-then-push',
+    'case=5.revoke-one-leaves-two',
+    'case=6.kill-switch-and-damage',
+    'case=7.robot-cannot-grant',
+    'case=8.upgraded-tree',
+    'case=9.crew-day-dense-journey',
+    'case=_',
+    'dimensions',
+  ].map((leaf) => `${routeRel}/1.vision.experience.${leaf}.md`);
+  const yieldFile = `${routeRel}/1.vision.yield.md`;
+  const matched = [...demos, yieldFile];
+
+  // the three burnt rounds, by their real iteration and hash
+  const roundsBurnt = [
+    { iteration: 'i001', hash: 'ad1e648a7861b9d0f6' },
+    { iteration: 'i002', hash: 'ad66b8a0ea33416627' },
+    { iteration: 'i003', hash: '160f578d013e8cce09' },
+  ];
+
+  /**
+   * .what = writes one round to a temp route, as the guard and the review write it:
+   *         its scope trace under .log/ and its given under .reviews/peer/
+   */
+  const genRound = (input: {
+    repoRoot: string;
+    iteration: string;
+    hash: string;
+    dropped: string[];
+  }): void => {
+    const logDir = `.log/bhrain/review/${input.iteration}.pid1.test`;
+    fs.mkdirSync(path.join(input.repoRoot, logDir), { recursive: true });
+    fs.writeFileSync(
+      path.join(input.repoRoot, logDir, 'input.scope.debug.json'),
+      JSON.stringify({
+        resolution: {
+          targetFilesFromPaths: matched,
+          targetFilesDropped: input.dropped,
+          targetFiles: matched.filter((file) => !input.dropped.includes(file)),
+        },
+      }),
+    );
+    const reviewsDir = path.join(input.repoRoot, routeRel, '.reviews/peer');
+    fs.mkdirSync(reviewsDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(
+        reviewsDir,
+        `${stone}._.review.${input.iteration}.${input.hash}.r001._.given.by_peer.${slug}.md`,
+      ),
+      [
+        '├─ stdout',
+        '│  ├─',
+        '│  │',
+        '│  │  🔍 review',
+        `│  │     ├─ logs: ${logDir}`,
+        '│  │     └─ summary',
+        '│  │        ├─ 0 blockers',
+        '│  │        └─ 1 nitpick 🟠',
+        '│  │',
+        '│  └─',
+        '└─ tallied',
+        '   ├─ 0 blockers',
+        '   └─ 1 nitpick',
+      ].join('\n'),
+    );
+  };
+
+  /**
+   * .what = appends meter lines to the temp route, as the guard's spend writes them
+   */
+  const genMeterLines = (input: { repoRoot: string; rounds: number[] }): void => {
+    const metersPath = path.join(input.repoRoot, routeRel, '.route/reviewPeerMeters.jsonl');
+    fs.mkdirSync(path.dirname(metersPath), { recursive: true });
+    fs.writeFileSync(
+      metersPath,
+      input.rounds
+        .map((rounds) => JSON.stringify({ stone, reviewer: { slug }, rounds }))
+        .join('\n') + '\n',
+    );
+  };
+
+  // read the effective and raw meter for the lane
+  const getRounds = async (input: { repoRoot: string; raw: boolean }) => {
+    const meters = await getAllRouteStoneGuardReviewPeerMeters({
+      route: path.join(input.repoRoot, routeRel),
+      stone,
+      raw: input.raw,
+    });
+    return meters.find((m: { reviewer: { slug: string } }) => m.reviewer.slug === slug)?.rounds;
+  };
+
+  given('[case1] i001-i003: three rounds that each dropped 12 of the 13 matched files', () => {
+    const repoRoot = genTempDir({ slug: 'bhrain-round-count-burnt', git: true });
+    for (const round of roundsBurnt) genRound({ repoRoot, ...round, dropped: demos });
+    genMeterLines({ repoRoot, rounds: [1, 2, 3] });
+
+    when('[t0] the meter is read', () => {
+      then('raw reads 3 of 3, as written', async () => {
+        expect(await getRounds({ repoRoot, raw: true })).toEqual(3);
+      });
+
+      then('effective reads 0 of 3: none of the three counts', async () => {
+        expect(await getRounds({ repoRoot, raw: false })).toEqual(0);
+      });
+    });
+  });
+
+  given('[case2] the burnt three, then one fresh clean round (i004 kept all 13)', () => {
+    const repoRoot = genTempDir({ slug: 'bhrain-round-count-fresh', git: true });
+    for (const round of roundsBurnt) genRound({ repoRoot, ...round, dropped: demos });
+    genRound({ repoRoot, iteration: 'i004', hash: 'f00dfeedc0ffee0001', dropped: [] });
+    genMeterLines({ repoRoot, rounds: [1, 2, 3, 4] });
+
+    when('[t0] the meter is read', () => {
+      then('the fresh clean round counts: effective reads 1', async () => {
+        expect(await getRounds({ repoRoot, raw: false })).toEqual(1);
+      });
+
+      then('raw reads 4, the spend wrote raw + 1', async () => {
+        expect(await getRounds({ repoRoot, raw: true })).toEqual(4);
+      });
+    });
+  });
+
+  given('[case3] three clean rounds, each kept all 13', () => {
+    const repoRoot = genTempDir({ slug: 'bhrain-round-count-clean', git: true });
+    for (const round of roundsBurnt) genRound({ repoRoot, ...round, dropped: [] });
+    genMeterLines({ repoRoot, rounds: [1, 2, 3] });
+
+    when('[t0] the meter is read', () => {
+      then('no false un-count: effective reads 3 of 3', async () => {
+        expect(await getRounds({ repoRoot, raw: false })).toEqual(3);
+      });
+    });
+  });
+
+  given('[case4] the burnt three, a meter reset to 0, then one clean round', () => {
+    const repoRoot = genTempDir({ slug: 'bhrain-round-count-reset', git: true });
+    for (const round of roundsBurnt) genRound({ repoRoot, ...round, dropped: demos });
+    genRound({ repoRoot, iteration: 'i004', hash: 'f00dfeedc0ffee0001', dropped: [] });
+    genMeterLines({ repoRoot, rounds: [1, 2, 3, 0, 1] });
+
+    when('[t0] the meter is read', () => {
+      then('the burnt givens sit outside the window: effective reads 1', async () => {
+        expect(await getRounds({ repoRoot, raw: false })).toEqual(1);
+      });
+    });
+  });
+});

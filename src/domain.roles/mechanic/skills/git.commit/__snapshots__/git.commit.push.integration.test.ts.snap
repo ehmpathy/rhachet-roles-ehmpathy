@@ -10,7 +10,7 @@ exports[`git.commit.push.sh given: [case1] plan mode on feature branch when: [t0
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -22,30 +22,33 @@ exports[`git.commit.push.sh given: [case2] author guard in apply mode when: [t0]
 🐚 git.commit.push
    └─ ✋ ConstraintError: HEAD commit not authored by seaturtle[bot]
 
-push only works for commits made by seaturtle[bot].
-use git.commit.set to create a proper commit first.
+🥥 did you know?
+   ├─ a push carries only commits made by seaturtle[bot]; commit through the skill first
+   └─ rhx git.commit.set -m @stdin --mode apply
 "
 `;
 
-exports[`git.commit.push.sh given: [case5] push not allowed when: [t0] no meter state file then: exits with push not allowed 1`] = `
+exports[`git.commit.push.sh given: [case5] no commit grant held when: [t0] no meter state file then: exits with no commit grant held 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ ✋ ConstraintError: push not allowed
+   └─ ✋ ConstraintError: no commit grant held
 
-ask your human to grant with --push allow:
-  $ git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ a push rides the commit grant; ask your human to grant one
+   └─ git.commit.uses set --quant N
 "
 `;
 
-exports[`git.commit.push.sh given: [case5] push not allowed when: [t1] meter has push: block then: exits with push not allowed 1`] = `
+exports[`git.commit.push.sh given: [case5] no commit grant held when: [t1] the commit grant was revoked then: exits with no commit grant held 1`] = `
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ ✋ ConstraintError: push not allowed
+   └─ ✋ ConstraintError: no commit grant held
 
-ask your human to grant with --push allow:
-  $ git.commit.uses set --quant N --push allow
+🥥 did you know?
+   ├─ a push rides the commit grant; ask your human to grant one
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -59,7 +62,7 @@ exports[`git.commit.push.sh given: [case9] stacked branch pr title when: [t0] br
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -71,12 +74,10 @@ exports[`git.commit.push.sh given: [case12] keyrack not configured (sad path) wh
 🐚 git.commit.push
    └─ ✋ ConstraintError: .agent/keyrack.yml not found
 
-🥥 to fix this, ask a human to either:
-   ├─ 1. add .agent/keyrack.yml with their org:
-   │     $ echo 'org: ehmpathy' > .agent/keyrack.yml
-   │
-   └─ 2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
-         $ npx rhachet run --init keyrack.ehmpath
+🥥 did you know?
+   ├─ ask a human to name the org in .agent/keyrack.yml, or to add the ehmpath keyrack so ehmpaths can unlock their own keys
+   ├─ echo 'org: ehmpathy' > .agent/keyrack.yml
+   └─ npx rhachet run --init keyrack.ehmpath
 "
 `;
 
@@ -86,16 +87,14 @@ exports[`git.commit.push.sh given: [case12] keyrack not configured (sad path) wh
 🐚 git.commit.push
    └─ ✋ ConstraintError: .agent/keyrack.yml not found
 
-🥥 to fix this, ask a human to either:
-   ├─ 1. add .agent/keyrack.yml with their org:
-   │     $ echo 'org: ehmpathy' > .agent/keyrack.yml
-   │
-   └─ 2. or add the ehmpath keyrack, so ehmpaths like us can unlock our own keys:
-         $ npx rhachet run --init keyrack.ehmpath
+🥥 did you know?
+   ├─ ask a human to name the org in .agent/keyrack.yml, or to add the ehmpath keyrack so ehmpaths can unlock their own keys
+   ├─ echo 'org: ehmpathy' > .agent/keyrack.yml
+   └─ npx rhachet run --init keyrack.ehmpath
 "
 `;
 
-exports[`git.commit.push.sh given: [case14] push-only auto-revoke plan display when: [t0] uses 0 with push allowed (push-only mode) then: plan shows push: allowed to blocked (revoked) 1`] = `
+exports[`git.commit.push.sh given: [case14] a depleted grant stays held for push (plan) when: [t0] uses 0, grant held then: plan proceeds and shows push: held 1`] = `
 "🐢 heres the wave...
 
 🐚 git.commit.push --mode plan
@@ -105,13 +104,13 @@ exports[`git.commit.push.sh given: [case14] push-only auto-revoke plan display w
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed → blocked (revoked)
+      └─ push: held
 
 run with --mode apply to execute
 "
 `;
 
-exports[`git.commit.push.sh given: [case14b] push-only auto-revoke in apply mode when: [t0] uses 0, push allowed, stage allowed; the push ships then: the tree reports the revoke 1`] = `
+exports[`git.commit.push.sh given: [case14b] a depleted grant stays held for push (apply) when: [t0] uses 0, grant held; the push ships then: the tree reports the grant held, no revoke 1`] = `
 "🐢 cowabunga!
 
 🐚 git.commit.push
@@ -120,9 +119,9 @@ exports[`git.commit.push.sh given: [case14b] push-only auto-revoke in apply mode
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: allowed → blocked (revoked)
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -136,9 +135,10 @@ exports[`git.commit.push.sh given: [case14c] the LOCAL quota file is damaged whe
    the file that holds this tree's commit quota cannot be read:
      .meter/git.commit.uses.jsonc
 
-ask your human to reset the quota, then grant again:
-  $ git.commit.uses del
-  $ git.commit.uses set --quant N --push allow|block
+🥥 did you know?
+   ├─ ask your human to reset the quota, then grant again
+   ├─ git.commit.uses del
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -151,9 +151,10 @@ exports[`git.commit.push.sh given: [case14c] the LOCAL quota file is damaged whe
    the file that holds this tree's commit quota cannot be read:
      .meter/git.commit.uses.jsonc
 
-ask your human to reset the quota, then grant again:
-  $ git.commit.uses del
-  $ git.commit.uses set --quant N --push allow|block
+🥥 did you know?
+   ├─ ask your human to reset the quota, then grant again
+   ├─ git.commit.uses del
+   └─ git.commit.uses set --quant N
 "
 `;
 
@@ -164,6 +165,26 @@ exports[`git.commit.push.sh given: [case14d] a value flag is the last arg, with 
 
 exports[`git.commit.push.sh given: [case14d] a value flag is the last arg, with no value when: [t0] \`--mode\` is last then: a curated constraint, never a raw shift crash: stdout 1`] = `
 "✋ ConstraintError: --mode must be 'plan' or 'apply'
+"
+`;
+
+exports[`git.commit.push.sh given: [case14e] a legacy push block grant (F6, F20) when: [t0] uses 5, push block; the push ships then: the tree names the retired fields and the release stamp 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/push-legacy-grant ✓
+   ├─ pr: pr #42 (created)
+   ├─ opened: as-ehmpath (ehmpath keyrack)
+   ├─ watch: skipped (not an enrolled clone)
+   └─ meter
+      └─ push: held
+
+🌊 now let's ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -264,9 +285,9 @@ exports[`git.commit.push.sh given: [case18] CI watch reminder after successful p
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -280,10 +301,14 @@ exports[`git.commit.push.sh given: [case18b] an enrolled clone whose pr watch re
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: ✋ ConstraintError: no repo: --in <owner/name> absent, and the cwd has no github origin; rerun: rhx git.pull.watch set --which 42 --mode apply
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -298,10 +323,14 @@ exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch re
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -316,10 +345,14 @@ exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch re
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: ✋ ConstraintError: the watch said naught (exit 2); stderr: git.pull.watch.set.sh: line 9: syntax error near unexpected token; rerun: rhx git.pull.watch set --which 42 --mode apply
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -334,10 +367,14 @@ exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch re
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: 💥 MalfunctionError: the clone registry is unreadable; no watch was set; rerun: rhx git.pull.watch set --which 42 --mode apply
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -346,7 +383,6 @@ exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch re
   "auth": "as-ehmpath",
   "pr": "ok",
   "pr_status": "pr #55 (found)",
-  "push_revoked": false,
   "push_target": "origin/turtle/feature",
   "status": "pushed",
   "watch": "set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)",
@@ -362,10 +398,14 @@ exports[`git.commit.push.sh given: [case18c] an enrolled clone whose pr watch re
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: set → @:mechanic (daemon v1.40.0+abcd1234 pid 4242, spawned)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
+
+🥥 did you know?
+   ├─ this grant carries the retired push / stage fields; push now rides the commit grant, and a release needs its own
+   └─ git.release.uses set --quant 1   # ask your human, to ship
 "
 `;
 
@@ -381,7 +421,7 @@ exports[`git.commit.push.sh given: [case19] local main behind origin/main (PR #2
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -423,8 +463,9 @@ exports[`git.commit.push.sh given: [case21] global blocker guard when: [t0] glob
 🐚 git.commit.push
    └─ ✋ ConstraintError: commits blocked globally
 
-ask your human to lift:
-  $ git.commit.uses allow --global
+🥥 did you know?
+   ├─ a human set the global blocker; ask them to lift it
+   └─ git.commit.uses allow --global
 "
 `;
 
@@ -447,9 +488,9 @@ exports[`git.commit.push.sh given: [case23] --auth as-human apply opens the pr v
    ├─ opened: as-human (gh cli login, fallback)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -545,26 +586,26 @@ HTTP 401: Bad credentials
 `;
 
 exports[`git.commit.push.sh given: [case27] a non-auth gh failure does NOT fire the two-fix guide when: [t0] pr create fails for a branch-protection reason (not auth) then: the generic failure is surfaced, the auth guide stays silent 1`] = `
-"🐢 bummer dude, pushed but the pr didnt open
+"🐢 bummer dude, pushed but the pr didn't open
 
 🐚 git.commit.push
    ├─ push: origin/turtle/feature ✓
    ├─ pr: pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)
    ├─ opened: as-human (gh cli login, fallback)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
 exports[`git.commit.push.sh given: [case27] a non-auth gh failure does NOT fire the two-fix guide when: [t0] pr create fails for a branch-protection reason (not auth) then: the generic failure is surfaced, the auth guide stays silent 2`] = `
-"🐢 bummer dude, pushed but the pr didnt open
+"🐢 bummer dude, pushed but the pr didn't open
 
 🐚 git.commit.push
    ├─ push: origin/turtle/feature ✓
    ├─ pr: pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)
    ├─ opened: as-human (gh cli login, fallback)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 "
 `;
 
@@ -577,9 +618,9 @@ exports[`git.commit.push.sh given: [case28] --auth as-human, the pr already exis
    ├─ opened: as-human (gh cli login, fallback)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -624,12 +665,10 @@ exports[`git.commit.push.sh given: [case29b] the ORG meter file is corrupt, and 
 🐚 git.commit.push
    └─ 💥 MalfunctionError: org meter file corrupt
 
-   the org meter file cannot be read:
-     ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
-
-until it parses, every commit is blocked. a human may inspect or clear it:
-  $ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
-  $ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+🥥 did you know?
+   ├─ the org meter file cannot be read, so every commit is blocked; a human may read it, then clear it
+   ├─ cat ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
+   └─ rm -r ~/.rhachet/storage/repo=ehmpathy/role=mechanic/.meter/git.commit.uses.org.jsonc
 "
 `;
 
@@ -643,7 +682,7 @@ exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-ope
    │  ├─ action: findsert
    │  └─ opened: as-human (gh cli login, fallback)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -661,7 +700,7 @@ exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-ope
    │  ├─ action: findsert
    │  └─ opened: as-ehmpath (ehmpath keyrack)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
 run with --mode apply to execute
 "
@@ -732,9 +771,9 @@ exports[`git.commit.push.sh given: [case33] a threaded (prefetched) token is reu
    ├─ opened: as-ehmpath (ehmpath keyrack)
    ├─ watch: skipped (not an enrolled clone)
    └─ meter
-      └─ push: allowed
+      └─ push: held
 
-🌊 now lets ride the release wave and catch any wipeouts
+🌊 now let's ride the release wave and catch any wipeouts
    └─ rhx git.release --watch || rhx show.gh.test.errors
 "
 `;
@@ -745,14 +784,14 @@ exports[`git.commit.push.sh given: [case35] identity-sync guard fires when the t
 "🐢 bummer dude...
 
 🐚 git.commit.push
+   ├─ authored by: seaturtle[bot]
+   ├─ pr opener: ehm-a-seaturtle[bot]
+   ├─ why: a pr opened now would show a 3rd contributor on squash
    └─ ✋ ConstraintError: pr-open identity out of sync with the commit author
 
-the commit was authored by: seaturtle[bot]
-but the keyrack token opens the pr as: ehm-a-seaturtle[bot]
-opening the pr now would show a 3rd contributor on squash.
-
-fix: open the pr with the human's github login instead — the commit is already pushed
-  rhx git.commit.push --mode apply --auth as-human
+🥥 did you know?
+   ├─ the commit is already pushed; open the pr with the human's github login instead
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
@@ -760,39 +799,54 @@ exports[`git.commit.push.sh given: [case35] identity-sync guard fires when the t
 "🐢 bummer dude...
 
 🐚 git.commit.push
+   ├─ authored by: seaturtle[bot]
+   ├─ pr opener: ehm-a-seaturtle[bot]
+   ├─ why: a pr opened now would show a 3rd contributor on squash
    └─ ✋ ConstraintError: pr-open identity out of sync with the commit author
+
+🥥 did you know?
+   ├─ the commit is already pushed; open the pr with the human's github login instead
+   └─ rhx git.commit.push --mode apply --auth as-human
 "
 `;
 
 exports[`git.commit.push.sh given: [case36] a non-auth pr-open failure in json mode duplicates the error to stderr when: [t0] pr create fails for a non-auth reason under --output json then: stdout carries the json error AND stderr carries the same line 1`] = `
-"{"status":"pushed","push_target":"origin/turtle/feature","pr":"error","pr_status":"pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)","auth":"as-human","push_revoked":false,"watch":null}
+"{"status":"pushed","push_target":"origin/turtle/feature","pr":"error","pr_status":"pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)","auth":"as-human","watch":null}
 "
 `;
 
 exports[`git.commit.push.sh given: [case36] a non-auth pr-open failure in json mode duplicates the error to stderr when: [t0] pr create fails for a non-auth reason under --output json then: stdout carries the json error AND stderr carries the same line 2`] = `
-"{"status":"pushed","push_target":"origin/turtle/feature","pr":"error","pr_status":"pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)","auth":"as-human","push_revoked":false,"watch":null}
+"{"status":"pushed","push_target":"origin/turtle/feature","pr":"error","pr_status":"pr creation failed: GraphQL: Changes must be made through a pull request; required status checks are expected (createPullRequest)","auth":"as-human","watch":null}
 "
 `;
 
 exports[`git.commit.push.sh given: [case37] a standalone as-ehmpath fetch runs the strong graphql identity assert when: [t0] the freshly-fetched ghs_ token maps to a DIFFERENT app bot id then: the graphql-verified assert fails loud (exit 2), gh never opens a pr 1`] = `
-"✋ ConstraintError: github token identity out of sync with the expected app bot
-  expected: ehm-a-seaturtle[bot] (id 295111357)
-  actual:   impostor[bot] (id 999999)
+"🐢 bummer dude...
 
-the commit-author email hardcodes the expected bot id; if the token
-maps to a different bot, the squash-merge would show a 3rd contributor.
-fix the token, or update the seaturtle identities in keyrack.operations.sh.
+🐚 git.commit.push
+   ├─ expected: ehm-a-seaturtle[bot] (id 295111357)
+   ├─ actual: impostor[bot] (id 999999)
+   ├─ why: the commit-author email names the expected bot id; another bot adds a 3rd contributor on squash
+   └─ ✋ ConstraintError: github token identity out of sync with the expected app bot
+
+🥥 did you know?
+   ├─ a human fixes the token, or updates the seaturtle identities in keyrack.operations.sh
+   └─ rhx keyrack status --owner ehmpath
 "
 `;
 
 exports[`git.commit.push.sh given: [case37] a standalone as-ehmpath fetch runs the strong graphql identity assert when: [t0] the freshly-fetched ghs_ token maps to a DIFFERENT app bot id then: the graphql-verified assert fails loud (exit 2), gh never opens a pr 2`] = `
-"✋ ConstraintError: github token identity out of sync with the expected app bot
-  expected: ehm-a-seaturtle[bot] (id 295111357)
-  actual:   impostor[bot] (id 999999)
+"🐢 bummer dude...
 
-the commit-author email hardcodes the expected bot id; if the token
-maps to a different bot, the squash-merge would show a 3rd contributor.
-fix the token, or update the seaturtle identities in keyrack.operations.sh.
+🐚 git.commit.push
+   ├─ expected: ehm-a-seaturtle[bot] (id 295111357)
+   ├─ actual: impostor[bot] (id 999999)
+   ├─ why: the commit-author email names the expected bot id; another bot adds a 3rd contributor on squash
+   └─ ✋ ConstraintError: github token identity out of sync with the expected app bot
+
+🥥 did you know?
+   ├─ a human fixes the token, or updates the seaturtle identities in keyrack.operations.sh
+   └─ rhx keyrack status --owner ehmpath
 "
 `;
 
@@ -888,11 +942,15 @@ exports[`git.commit.push.sh given: [case40] the git push transport itself fails 
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ 💥 MalfunctionError: git push failed
-
-cause: To github.com:test/repo.git
- ! [rejected]        HEAD -> turtle/feature (non-fast-forward)
-error: failed to push some refs to 'github.com:test/repo.git'
+   ├─ 💥 MalfunctionError: git push failed
+   └─ git.output
+      ├─
+      │
+      │  To github.com:test/repo.git
+      │   ! [rejected]        HEAD -> turtle/feature (non-fast-forward)
+      │  error: failed to push some refs to 'github.com:test/repo.git'
+      │
+      └─
 "
 `;
 
@@ -900,10 +958,32 @@ exports[`git.commit.push.sh given: [case40] the git push transport itself fails 
 "🐢 bummer dude...
 
 🐚 git.commit.push
-   └─ 💥 MalfunctionError: git push failed
-
-cause: To github.com:test/repo.git
- ! [rejected]        HEAD -> turtle/feature (non-fast-forward)
-error: failed to push some refs to 'github.com:test/repo.git'
+   ├─ 💥 MalfunctionError: git push failed
+   └─ git.output
+      ├─
+      │
+      │  To github.com:test/repo.git
+      │   ! [rejected]        HEAD -> turtle/feature (non-fast-forward)
+      │  error: failed to push some refs to 'github.com:test/repo.git'
+      │
+      └─
 "
 `;
+
+exports[`git.commit.push.sh given: [case41] a published branch, rewritten by a rebase, against a real bare origin when: [t0] apply mode pushes the rewritten history then: the lease-guarded force push lands the rewrite on origin, exit 0 1`] = `
+"🐢 cowabunga!
+
+🐚 git.commit.push
+   ├─ push: origin/turtle/feature ✓
+   ├─ pr: pr #78 (created)
+   ├─ opened: as-human (gh cli login, fallback)
+   ├─ watch: skipped (not an enrolled clone)
+   └─ meter
+      └─ push: held
+
+🌊 now let's ride the release wave and catch any wipeouts
+   └─ rhx git.release --watch || rhx show.gh.test.errors
+"
+`;
+
+exports[`git.commit.push.sh given: [case41] a published branch, rewritten by a rebase, against a real bare origin when: [t0] apply mode pushes the rewritten history then: the lease-guarded force push lands the rewrite on origin, exit 0 2`] = `""`;

@@ -2,6 +2,8 @@ import { existsSync, readFileSync } from 'fs';
 import * as path from 'path';
 import { given, then, useBeforeAll, when } from 'test-fns';
 
+import { getOneRepoSettingsPath } from '../../.test/getOneRepoSettingsPath';
+
 /**
  * .what = every permission the mechanic role declares is present where the engine reads it
  * .why = the role declares its allow/deny lists in `init.claude.permissions.jsonc`, and claude
@@ -63,7 +65,9 @@ describe('getMechanicRole · declared permissions reach the engine', () => {
           readFileSync(
             // the repo-owned settings rhachet generates; `settings.json` links to the
             // human's own grove settings, which carry no role permissions
-            path.join(repoRoot, '.claude', 'settings.of.repo.json'),
+            getOneRepoSettingsPath({
+              claudeDir: path.join(repoRoot, '.claude'),
+            }),
             'utf-8',
           ),
         ).permissions;

@@ -105,7 +105,7 @@ if [[ -n "$UNMERGED" ]]; then
     if [[ -n "$STAGE_BLOCK" ]]; then
       echo "├─ $(head -n 1 <<< "$STAGE_BLOCK")"
       tail -n +2 <<< "$STAGE_BLOCK" | sed 's/^/│  /'
-      echo "└─ fix: settle each; once your human grants the stage, rhx git.stage.add <files>, then continue again"
+      echo "└─ fix: settle each; once your human grants a commit, rhx git.stage.add <files>, then continue again"
     else
       echo "└─ fix: settle each, then rhx git.stage.add <files>, then continue again"
     fi

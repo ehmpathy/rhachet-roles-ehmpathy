@@ -5,6 +5,7 @@ exports[`git.repo.get.sh given: [case1] repos with local clones when: [t0] --rep
 
 🐚 git.repo.get repos
    ├─ repos: testorg/*
+   ├─ cloud: skipped, gh holds no github credential (run: gh auth login)
    │
    ├─ testorg
    │  ├─ a                    ~/git/testorg/a (local)
@@ -21,6 +22,7 @@ exports[`git.repo.get.sh given: [case2] repos with no matches when: [t0] --repos
 
 🐚 git.repo.get repos
    ├─ repos: nonexistent-org-xyz-12345/*
+   ├─ cloud: skipped, gh holds no github credential (run: gh auth login)
    │
    └─ found: 0 repos
 "
@@ -92,12 +94,30 @@ exports[`git.repo.get.sh given: [case6] files with path filter when: [t0] --path
 "
 `;
 
-exports[`git.repo.get.sh given: [case7] files in unknown repo when: [t0] --in unknown/repo then: shows bummer dude error and matches snapshot 1`] = `
-"🐢 bummer dude
+exports[`git.repo.get.sh given: [case7] files in a repo not cloned here when: [t0] the cloud answers that no such repo exists then: refuses as not found, on both streams 1`] = `
+"🐢 bummer dude...
 
 🐚 git.repo.get files
    ├─ repo: unknown-org-xyz/unknown-repo-abc
-   └─ error: repo not found
+   └─ ✋ ConstraintError: repo not found
+
+🥥 did you know?
+   ├─ see which repos the org holds, then ask again
+   └─ rhx git.repo.get repos --repos 'unknown-org-xyz/*'
+"
+`;
+
+exports[`git.repo.get.sh given: [case7] files in a repo not cloned here when: [t1] the real gh holds no github credential then: names the login, not a repo that may well exist 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.get files
+   ├─ repo: ehmpathy/rhachet-roles-ehmpathy
+   ├─ why: not cloned here, and gh holds no github credential to look in the cloud
+   └─ ✋ ConstraintError: gh is not logged in
+
+🥥 did you know?
+   ├─ log gh in, then ask again
+   └─ gh auth login
 "
 `;
 
@@ -316,27 +336,79 @@ exports[`git.repo.get.sh given: [case15] repos without --repos flag when: [t0] n
 `;
 
 exports[`git.repo.get.sh given: [case16] absent required flags when: [t0] files without --in then: exits with error and matches snapshot 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get files
-   └─ error: --in flag is required
+   └─ ✋ ConstraintError: --in flag is required
+
+🥥 did you know?
+   ├─ see every form git.repo.get files takes, with examples
+   └─ rhx git.repo.get files --help
 "
 `;
 
 exports[`git.repo.get.sh given: [case16] absent required flags when: [t1] lines without --in or --repos then: exits with error and matches snapshot 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get lines
-   └─ error: --in or --repos flag is required
+   └─ ✋ ConstraintError: --in or --repos flag is required
+
+🥥 did you know?
+   ├─ see every form git.repo.get lines takes, with examples
+   └─ rhx git.repo.get lines --help
 "
 `;
 
 exports[`git.repo.get.sh given: [case16] absent required flags when: [t2] lines without --paths or --words then: exits with error and matches snapshot 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get lines
    ├─ repo: testorg/short (local)
-   └─ error: --paths is required for read mode (no --words)
+   └─ ✋ ConstraintError: --paths is required for read mode (no --words)
+
+🥥 did you know?
+   ├─ name the file to read, or the words to search
+   ├─ rhx git.repo.get lines --in testorg/short --paths 'path/to/file'
+   └─ rhx git.repo.get lines --in testorg/short --words 'pattern'
+"
+`;
+
+exports[`git.repo.get.sh given: [case16] absent required flags when: [t3] lines --repos without --words then: refuses on both streams, names the search form 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.get lines
+   ├─ repos: testorg/*
+   └─ ✋ ConstraintError: --words is required for multi-repo search
+
+🥥 did you know?
+   ├─ a multi-repo ask searches; name the words to find
+   └─ rhx git.repo.get lines --repos 'testorg/*' --words 'pattern'
+"
+`;
+
+exports[`git.repo.get.sh given: [case16b] the fetch from origin fails under --refresh on when: [t0] files --in a local clone whose fetch fails then: refuses as a malfunction, exit 1, on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.get files
+   ├─ repo: testorg/short
+   └─ 💥 MalfunctionError: failed to fetch latest from origin
+
+🥥 did you know?
+   ├─ query the local refs as they stand, with no fetch
+   └─ rhx git.repo.get files --in testorg/short --refresh off
+"
+`;
+
+exports[`git.repo.get.sh given: [case16b] the fetch from origin fails under --refresh on when: [t1] lines --in a local clone whose fetch fails then: refuses as a malfunction, exit 1, on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.get lines
+   ├─ repo: testorg/short
+   └─ 💥 MalfunctionError: failed to fetch latest from origin
+
+🥥 did you know?
+   ├─ query the local refs as they stand, with no fetch
+   └─ rhx git.repo.get lines --in testorg/short --refresh off
 "
 `;
 
@@ -443,6 +515,42 @@ examples:
 "
 `;
 
+exports[`git.repo.get.sh given: [case21] unknown argument when: [t0] --unknown-flag is passed then: exits with error 2 and shows message 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.get
+   └─ ✋ ConstraintError: unknown argument: --unknown-flag
+
+🥥 did you know?
+   ├─ see every form git.repo.get takes, with examples
+   └─ rhx git.repo.get --help
+"
+`;
+
+exports[`git.repo.get.sh given: [case22] unknown subcommand when: [t0] invalid subcommand is passed then: exits with error 2 and shows message 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.get
+   └─ ✋ ConstraintError: unknown subcommand: invalidcmd (valid subcommands: repos, files, lines)
+
+🥥 did you know?
+   ├─ see every form git.repo.get takes, with examples
+   └─ rhx git.repo.get --help
+"
+`;
+
+exports[`git.repo.get.sh given: [case23] no subcommand when: [t0] only flags are passed without subcommand then: exits with error 2 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.get
+   └─ ✋ ConstraintError: no subcommand specified
+
+🥥 did you know?
+   ├─ see every form git.repo.get takes, with examples
+   └─ rhx git.repo.get --help
+"
+`;
+
 exports[`git.repo.get.sh given: [case25] lines read with --tree (inflight state) when: [t0] --tree names a worktree with an uncommitted edit then: shows the UNCOMMITTED content and labels it inflight 1`] = `
 "🐢 far out
 
@@ -513,30 +621,29 @@ exports[`git.repo.get.sh given: [case27] files with --tree when: [t0] --tree is 
 `;
 
 exports[`git.repo.get.sh given: [case28] --tree that matched no worktree when: [t0] an unknown tree name is given then: fails loud and names the fix 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get files
    ├─ repo: testorg/short (local)
    ├─ tree: no-such-tree-xyz
-   └─ error: no worktree named "no-such-tree-xyz"
-
-   worktrees found:
-     - main  →  <gitroot>/testorg/short
-     - feat/inflight  →  <gitroot>/testorg/_worktrees/short.vlad.feat-inflight
+   ├─ worktrees found
+   │  ├─ main  →  <gitroot>/testorg/short
+   │  └─ feat/inflight  →  <gitroot>/testorg/_worktrees/short.vlad.feat-inflight
+   └─ ✋ ConstraintError: no worktree named "no-such-tree-xyz"
 
 🥥 did you know?
-   ├─ you can list the worktrees yourself
-   └─ git -C <gitroot>/testorg/short worktree list
+   ├─ rerun with a name from the list above
+   └─ rhx git.repo.get files --in testorg/short --tree <name>
 "
 `;
 
 exports[`git.repo.get.sh given: [case29] --tree combined with --repos when: [t0] both flags are passed then: fails loud, since a worktree belongs to one repo 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get lines
    ├─ repos: testorg/*
    ├─ tree: feat/inflight
-   └─ error: --tree cannot be combined with --repos
+   └─ ✋ ConstraintError: --tree cannot be combined with --repos
 
 🥥 did you know?
    ├─ a worktree belongs to one repo, so select that repo with --in
@@ -545,12 +652,12 @@ exports[`git.repo.get.sh given: [case29] --tree combined with --repos when: [t0]
 `;
 
 exports[`git.repo.get.sh given: [case30] --tree on a repo with no local clone when: [t0] the repo resolves cloud-only then: fails loud — worktrees only exist locally 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get files
    ├─ repo: cloudorg/cloud-repo (cloud)
    ├─ tree: feat/whatever
-   └─ error: --tree requires a local clone
+   └─ ✋ ConstraintError: --tree requires a local clone
 
 🥥 did you know?
    ├─ worktrees only exist locally, so clone the repo first
@@ -611,12 +718,12 @@ exports[`git.repo.get.sh given: [case31] a BRAND-NEW file in the worktree (untra
 `;
 
 exports[`git.repo.get.sh given: [case31] a BRAND-NEW file in the worktree (untracked) when: [t2] the gitignored file is asked for by --paths directly then: read mode refuses it too — one flag, one sense 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get lines
    ├─ repo: testorg/short (local)
    ├─ tree: feat/inflight
-   └─ error: --paths names a gitignored file
+   └─ ✋ ConstraintError: --paths names a gitignored file
 
    "scratch.local" is ignored by that repo's .gitignore.
    git.repo.get serves a repo's source, not its local scratch
@@ -646,12 +753,12 @@ exports[`git.repo.get.sh given: [case31] a BRAND-NEW file in the worktree (untra
 `;
 
 exports[`git.repo.get.sh given: [case32] --tree combined with --ref when: [t0] both source selectors are passed then: fails loud rather than silently pick one 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get lines
    ├─ ref: origin/main
    ├─ tree: feat/inflight
-   └─ error: --tree cannot be combined with --ref
+   └─ ✋ ConstraintError: --tree cannot be combined with --ref
 
 🥥 did you know?
    ├─ they name two different sources, so pick one
@@ -661,11 +768,11 @@ exports[`git.repo.get.sh given: [case32] --tree combined with --ref when: [t0] b
 `;
 
 exports[`git.repo.get.sh given: [case33] --tree on the repos subcommand when: [t0] --tree is passed to a repo enumeration then: fails loud rather than silently drop it 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get repos
    ├─ tree: feat/inflight
-   └─ error: --tree has no sense on the repos subcommand
+   └─ ✋ ConstraintError: --tree has no sense on the repos subcommand
 
 🥥 did you know?
    ├─ a worktree is a tree of one repo, so ask for its files or lines instead
@@ -675,12 +782,12 @@ exports[`git.repo.get.sh given: [case33] --tree on the repos subcommand when: [t
 `;
 
 exports[`git.repo.get.sh given: [case34] --paths that tries to escape the worktree when: [t0] --paths walks up out of the tree with ../ then: refuses — the sanctioned tool is not a way to read the host 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get lines
    ├─ repo: testorg/short (local)
    ├─ tree: feat/inflight
-   └─ error: --paths resolves outside the worktree
+   └─ ✋ ConstraintError: --paths resolves outside the worktree
 
    "../../../../../outside-secret.txt" walks out of the tree it was scoped to.
    git.repo.get reads repos, not the whole host filesystem.
@@ -692,11 +799,11 @@ exports[`git.repo.get.sh given: [case34] --paths that tries to escape the worktr
 `;
 
 exports[`git.repo.get.sh given: [case37] --tree with no --in to name its repo when: [t0] lines --tree --words, with no --in then: fails loud rather than silently drop the tree 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get lines
    ├─ tree: feat/inflight
-   └─ error: --tree requires --in to name its repo
+   └─ ✋ ConstraintError: --tree requires --in to name its repo
 
 🥥 did you know?
    ├─ a worktree belongs to one repo, so name the repo the tree belongs to
@@ -705,42 +812,42 @@ exports[`git.repo.get.sh given: [case37] --tree with no --in to name its repo wh
 `;
 
 exports[`git.repo.get.sh given: [case38] git itself fails partway through a --tree read when: [t0] \`git ls-files\` fails while the tree is listed then: rethrows rather than render an honest-looking empty list 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get files
    ├─ repo: testorg/short (local)
    ├─ tree: feat/inflight
    ├─ path: <gitroot>/testorg/_worktrees/short.vlad.feat-inflight
-   └─ error: could not list the files of this tree
+   └─ 💥 MalfunctionError: could not list the files of this tree
 
 🥥 did you know?
-   ├─ git printed the cause just above; check the tree is intact
-   └─ git -C <gitroot>/testorg/_worktrees/short.vlad.feat-inflight status
+   ├─ git printed the cause just above; read the committed state while the tree is repaired
+   └─ rhx git.repo.get files --in testorg/short
 "
 `;
 
 exports[`git.repo.get.sh given: [case38] git itself fails partway through a --tree read when: [t1] \`git worktree list\` fails while the tree is found then: reports a repo fault, not a bad --tree name 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get files
    ├─ repo: testorg/short (local)
    ├─ tree: feat/inflight
    ├─ path: <gitroot>/testorg/short
-   └─ error: could not list the worktrees of this tree
+   └─ 💥 MalfunctionError: could not list the worktrees of this tree
 
 🥥 did you know?
-   ├─ git printed the cause just above; check the tree is intact
-   └─ git -C <gitroot>/testorg/short status
+   ├─ git printed the cause just above; read the committed state while the tree is repaired
+   └─ rhx git.repo.get files --in testorg/short
 "
 `;
 
 exports[`git.repo.get.sh given: [case40] --tree --paths names a file the tree cannot serve when: [t0] the file is absent from the worktree then: fails loud — never an empty read dressed as a clean one 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get lines
    ├─ repo: testorg/short (local)
    ├─ tree: feat/inflight
-   └─ error: --paths named a file that tree cannot serve
+   └─ ✋ ConstraintError: --paths named a file that tree cannot serve
 
    "src/absent-file-xyz.ts" is not a readable file in that tree.
    it may be absent, a directory, or unreadable to you.
@@ -766,12 +873,12 @@ exports[`git.repo.get.sh given: [case41] --tree --paths names a file that is pre
 `;
 
 exports[`git.repo.get.sh given: [case42] a binary file in the tree when: [t0] the binary is read by --paths through --tree then: refuses rather than render bytes as source lines 1`] = `
-"🐢 bummer dude
+"🐢 bummer dude...
 
 🐚 git.repo.get lines
    ├─ repo: testorg/short (local)
    ├─ tree: feat/inflight
-   └─ error: --paths names a binary file
+   └─ ✋ ConstraintError: --paths names a binary file
 
    "src/logo.png" holds bytes that are not text.
    lines mode renders source, so it will not print raw bytes
@@ -780,5 +887,43 @@ exports[`git.repo.get.sh given: [case42] a binary file in the tree when: [t0] th
 🥥 did you know?
    ├─ the file list confirms it is there, without a byte of it on screen
    └─ rhx git.repo.get files --in testorg/short --tree feat/inflight --paths 'src/logo.png'
+"
+`;
+
+exports[`git.repo.get.sh given: [case43] lines in a repo not cloned here when: [t0] the cloud answers that no such repo exists then: refuses as not found, on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.get lines
+   ├─ repo: unknown-org-xyz/unknown-repo-abc
+   └─ ✋ ConstraintError: repo not found
+
+🥥 did you know?
+   ├─ you can search the whole org instead
+   └─ rhx git.repo.get lines --repos 'unknown-org-xyz/*' --words 'pattern'
+"
+`;
+
+exports[`git.repo.get.sh given: [case43] lines in a repo not cloned here when: [t1] the real gh holds no github credential then: names the login, not a repo that may well exist 1`] = `
+"🐢 bummer dude...
+
+🐚 git.repo.get lines
+   ├─ repo: ehmpathy/rhachet-roles-ehmpathy
+   ├─ why: not cloned here, and gh holds no github credential to look in the cloud
+   └─ ✋ ConstraintError: gh is not logged in
+
+🥥 did you know?
+   ├─ log gh in, then ask again
+   └─ gh auth login
+"
+`;
+
+exports[`git.repo.get.sh given: [case44] repos for an org while the real gh holds no github credential when: [t0] the org is enumerated then: the cloud skip is named, never passed off as no repos 1`] = `
+"🐢 crickets...
+
+🐚 git.repo.get repos
+   ├─ repos: ehmpathy/*
+   ├─ cloud: skipped, gh holds no github credential (run: gh auth login)
+   │
+   └─ found: 0 repos
 "
 `;

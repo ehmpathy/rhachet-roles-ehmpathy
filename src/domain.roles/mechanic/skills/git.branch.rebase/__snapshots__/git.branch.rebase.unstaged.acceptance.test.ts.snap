@@ -20,6 +20,7 @@ exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey1
 🐚 git.branch.rebase begin --mode plan
    ├─ rebase
    │  ├─ target: origin/main
+   │  ├─ shape: replay
    │  ├─ ahead: 1 commit
    │  │  └─ HASH123 feat(reef): add feature
    │  └─ behind: 1 commit
@@ -29,8 +30,8 @@ exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey1
    │     ├─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.grove.json
    │     └─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
    └─ meter
-      ├─ commits: allowed
-      └─ push: allowed
+      ├─ rebase: spends no use; the held grant suffices
+      └─ push: held
 
 🥥 did you know?
    ├─ this is a plan; apply it to rebase
@@ -115,7 +116,7 @@ exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey2
    │  │  └─ .agent/.actors/actor.via.repo=ambient/brain/.claude/settings.of.repo.json
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │
@@ -292,7 +293,7 @@ exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey7
    │  │  └─ README.md
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │
@@ -366,7 +367,7 @@ exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey9
    │  │  └─ the latest fresh edit at each path kept in: /tmp/TEST_REPO/work/.git/git.branch.rebase.superseded
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │
@@ -406,7 +407,7 @@ exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey1
    │  │  └─ package.json
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │
@@ -501,7 +502,7 @@ exports[`git.branch.rebase --unstaged (acceptance, built skill) given: [journey1
    │  │  └─ package.json
    │  └─ status: all put back
    ├─ meter
-   │  └─ push: allowed
+   │  └─ push: held
    └─ git.output
       ├─
       │

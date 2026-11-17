@@ -32,9 +32,12 @@ printf '...' | rhx git.commit.set -m @stdin --mode apply --push
 # immediately watch release
 rhx git.release --watch || rhx show.gh.test.errors
 
-# if passed, enable automerge
-rhx git.release --mode apply
+# if passed, and the human said release, ship to prod
+rhx git.release --into prod --mode apply --watch
 ```
+
+`--watch` reads no meter and spends naught. `--mode apply` spends one use of the human's release
+stamp (`git.release.uses`); a push rides the commit grant, never the stamp.
 
 ## .enforcement
 

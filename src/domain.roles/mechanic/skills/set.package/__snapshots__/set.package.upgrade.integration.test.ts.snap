@@ -1,10 +1,80 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`set.package.upgrade.sh given: [case7] the audit connection stalls on every attempt when: [t0] upgrade is called then: the audit fails closed as a malfunction on both streams, and naught upgrades: network-error 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.upgrade
+   ├─ package: test-fns
+   ├─ to: X.Y.Z
+   └─ 💥 MalfunctionError: security audit could not run (network error, after 3 attempts)
+
+upgrade blocked. the audit fails closed; retry once the registry answers.
+"
+`;
+
+exports[`set.package.upgrade.sh given: [case8] an argument the skill does not know when: [t0] upgrade is called with --bogus then: exit 2, a ConstraintError in the family frame on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.upgrade
+   └─ ✋ ConstraintError: unknown argument: --bogus
+"
+`;
+
+exports[`set.package.upgrade.sh given: [case9] a dist-tag the registry does not know when: [t0] upgrade is called with --to @nonesuch then: exit 2, the unexpanded tag named on both streams: expand-failed 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.upgrade
+   ├─ package: test-fns
+   └─ ✋ ConstraintError: could not expand version: @nonesuch
+"
+`;
+
+exports[`set.package.upgrade.sh given: [case10] the package manager fails the add when: [t0] upgrade is called then: the failure is named on both streams, with the cause: upgrade-failed 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.upgrade
+   ├─ package: test-fns
+   └─ ✋ ConstraintError: upgrade failed (pnpm exit 1: ERR_PNPM_FETCH_404  GET https://registry.npmjs.org/test-fns: Not Found)
+"
+`;
+
+exports[`set.package.upgrade.sh given: [case11] the registry answers with a body the audit cannot read when: [t0] the body is invalid-response then: the audit fails closed as a malfunction on both streams, and naught upgrades: invalid-response 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.upgrade
+   ├─ package: test-fns
+   ├─ to: X.Y.Z
+   └─ 💥 MalfunctionError: security audit could not run (invalid response from the registry)
+
+upgrade blocked. the audit fails closed; retry once the registry answers.
+"
+`;
+
+exports[`set.package.upgrade.sh given: [case11] the registry answers with a body the audit cannot read when: [t1] the body is unparsable-response then: the audit fails closed as a malfunction on both streams, and naught upgrades: unparsable-response 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.upgrade
+   ├─ package: test-fns
+   ├─ to: X.Y.Z
+   └─ 💥 MalfunctionError: security audit could not run (registry response could not be parsed)
+
+upgrade blocked. the audit fails closed; retry once the registry answers.
+"
+`;
+
+exports[`set.package.upgrade.sh given: [case12] a host with no jq when: [t0] upgrade is called then: exit 2, a ConstraintError in the family frame on both streams 1`] = `
+"🐢 bummer dude...
+
+🐚 set.package.upgrade
+   └─ ✋ ConstraintError: jq is required but not installed
+"
+`;
+
 exports[`set.package.upgrade.sh given: [snapshots] output formats when: [t0] success and error variants then: absent --package error matches snapshot: absent-package 1`] = `
 "🐢 bummer dude...
 
 🐚 set.package.upgrade
-   └─ error: --package is required
+   └─ ✋ ConstraintError: --package is required
 "
 `;
 
@@ -13,7 +83,7 @@ exports[`set.package.upgrade.sh given: [snapshots] output formats when: [t0] suc
 
 🐚 set.package.upgrade
    ├─ package: test-fns
-   └─ error: --to is required
+   └─ ✋ ConstraintError: --to is required
 "
 `;
 
@@ -60,6 +130,10 @@ exports[`set.package.upgrade.sh given: [snapshots] output formats when: [t2] not
 
 🐚 set.package.upgrade
    ├─ package: not-installed-pkg
-   └─ error: package not installed. use set.package.install instead.
+   └─ ✋ ConstraintError: package not installed
+
+🥥 did you know?
+   ├─ install it instead, with a reason
+   └─ rhx set.package.install --package not-installed-pkg --at X.Y.Z --for prod --reason '...'
 "
 `;

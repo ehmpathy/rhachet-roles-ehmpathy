@@ -1,0 +1,10 @@
+# rule.require.watch-release-after-push
+
+after every push (`git.commit.set --push` or `git.commit.push`), watch the release cycle at once and surface any ci failure; no fire-and-forget, and no wait for the human to ask:
+```sh
+rhx git.release --watch || rhx show.gh.test.errors
+```
+it watches ci until done; on a fail it shows the test errors. green, and the human said release → `rhx git.release --into prod --mode apply --watch`
+`--watch` reads no meter and spends naught. `--mode apply` spends one use of the human's release stamp (`git.release.uses`); a push rides the commit grant, never the stamp
+enforcement: push with no release watch after = blocker
+

@@ -3,7 +3,7 @@
 # .what = begin a rebase onto origin/main
 #
 # .why  = mechanics can rebase their feature branch onto main
-#         when push permission is granted
+#         on the commit grant alone — the push that follows rides it too
 #
 # usage:
 #   rhx git.branch.rebase begin                    # plan mode (preview)
@@ -13,8 +13,10 @@
 #                                                  # rebase, put them back
 #
 # guarantee:
-#   - requires quota from git.commit.uses (rebase = commit)
-#   - requires push permission via .meter/git.commit.uses.jsonc
+#   - apply requires a held commit grant (.meter/git.commit.uses.jsonc),
+#     even at 0 left; checked before any other guard, even on a
+#     fast-forward (F9)
+#   - spends no use: a rebase writes no commit of its own
 #   - cannot rebase main/master
 #   - refuses staged content (exit 2); the index is never touched
 #   - refuses unstaged edits unless --unstaged ignore (exit 2)
@@ -31,8 +33,10 @@ COMMIT_SKILL_DIR="$(cd "$SKILL_DIR/../git.commit" && pwd)"
 
 # source shared utils
 source "$COMMIT_SKILL_DIR/output.sh"
+source "$COMMIT_SKILL_DIR/git.commit.operations.sh"
 source "$SKILL_DIR/git.branch.rebase.operations.sh"
 source "$SKILL_DIR/git.branch.rebase.aside.operations.sh"
+set_meter_scope commit
 
 ######################################################################
 # meter state
@@ -103,52 +107,70 @@ done
 # guards
 ######################################################################
 
-# guard: meter state file must exist
-if [[ ! -f "$STATE_FILE" ]]; then
+# guard: the global commit kill switch halts a rebase too, via the shared
+# hardened reader (a damaged blocker file blocks; it never reads as clear)
+GLOBAL_BLOCK_STATUS=0
+GLOBAL_BLOCK_CORRUPT=false
+check_global_blocker || GLOBAL_BLOCK_STATUS=$?
+if is_blocker_corrupt status="$GLOBAL_BLOCK_STATUS" corrupt="$GLOBAL_BLOCK_CORRUPT"; then
   emit_both "$(
-    print_turtle_header "hold up dude..."
+    print_turtle_header "bummer dude..."
     print_tree_start "git.branch.rebase begin"
-    echo "   └─ ✋ ConstraintError: no commit quota set"
-    print_coconut_hint "ask your human to grant permission" \
-      "rhx git.commit.uses set --quant N --push allow"
+    print_tree_malfunction "global blocker file corrupt"
+    print_global_corrupt_note
+  )"
+  exit 1
+fi
+if is_blocker_set status="$GLOBAL_BLOCK_STATUS"; then
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.branch.rebase begin"
+    print_tree_constraint "globally blocked"
+    print_coconut_hint "a human has blocked all mechanic operations; ask them to lift it" \
+      "git.commit.uses allow --global"
   )"
   exit 2
 fi
 
-# read meter state
-USES=$(jq -r '.uses' "$STATE_FILE")
-PUSH_ALLOWED=$(jq -r '.push' "$STATE_FILE")
+# read the commit grant via the shared reader
+LOCAL_GRANT_STATUS=0
+get_one_commit_local_grant file="$STATE_FILE" || LOCAL_GRANT_STATUS=$?
 
-# guard: push permission required
-if [[ "$PUSH_ALLOWED" != "allow" ]]; then
+# guard: a damaged quota file is refused by name
+if [[ "$LOCAL_GRANT_STATUS" -eq 1 ]]; then
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.branch.rebase begin"
+    print_tree_malfunction "commit quota file corrupt"
+    print_local_meter_damaged_fix file="${STATE_FILE#"$REPO_ROOT/"}"
+  )"
+  exit 1
+fi
+
+# guard: a commit grant must exist and be held
+if [[ "$LOCAL_GRANT_STATUS" -eq 2 || "$COMMIT_HELD" != "true" ]]; then
   emit_both "$(
     print_turtle_header "hold up dude..."
     print_tree_start "git.branch.rebase begin"
-    echo "   └─ ✋ ConstraintError: rebase requires push permission"
-    print_coconut_hint "ask your human to grant permission" \
-      "rhx git.commit.uses set --quant N --push allow"
+    print_tree_constraint "no commit grant on this tree"
+    print_coconut_hint "a rebase rides the commit grant; ask your human to grant one" \
+      "rhx git.commit.uses set --quant N"
   )"
   exit 2
 fi
 
-# guard: uses > 0 for apply mode (plan is free, infinite is allowed)
-if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" == "apply" ]]; then
-  emit_both "$(
-    print_turtle_header "hold up dude..."
-    print_tree_start "git.branch.rebase begin"
-    echo "   └─ ✋ ConstraintError: no commit uses left"
-    print_coconut_hint "ask your human to grant more" \
-      "rhx git.commit.uses set --quant N --push allow"
-  )"
-  exit 2
-fi
+# .note = a held grant suffices, even at 0 left: the rebase spends no use and
+#         makes no new commit, the same as a push (F9, F16). so a crew that spent
+#         its last use can still rebase onto main with no second grant
 
 # guard: cannot rebase main/master
 if is_base_branch; then
   emit_both "$(
     print_turtle_header "hold up dude..."
     print_tree_start "git.branch.rebase begin"
-    echo "   └─ ✋ ConstraintError: cannot rebase main/master"
+    print_tree_constraint "cannot rebase main/master"
+    print_coconut_hint "a rebase moves a feature branch onto main; check one out first" \
+      "git checkout <feature-branch>"
   )"
   exit 2
 fi
@@ -257,12 +279,23 @@ git fetch origin "$DEFAULT_BRANCH" 2>/dev/null || {
 # get rebase info
 ######################################################################
 COMMITS_TO_REBASE=$(get_commits_to_rebase "origin/$DEFAULT_BRANCH")
-COMMIT_COUNT=$(echo "$COMMITS_TO_REBASE" | grep -c . || echo "0")
-BEHIND_COUNT=$(get_behind_count "origin/$DEFAULT_BRANCH")
+# grep -c prints 0 and exits 1 on no match: `|| true` keeps that one 0
+COMMIT_COUNT=$(echo "$COMMITS_TO_REBASE" | grep -c . || true)
+if ! BEHIND_COUNT=$(get_behind_count "origin/$DEFAULT_BRANCH"); then
+  emit_both "$(
+    print_turtle_header "bummer dude..."
+    print_tree_start "git.branch.rebase begin"
+    print_tree_malfunction "could not count commits behind origin/$DEFAULT_BRANCH"
+    print_coconut_hint "the count reads origin/$DEFAULT_BRANCH; fetch it, then retry" \
+      "git fetch origin $DEFAULT_BRANCH"
+  )"
+  exit 1
+fi
 COMMITS_BEHIND=$(get_commits_behind "origin/$DEFAULT_BRANCH")
 
-# guard: already up to date
-if [[ "$COMMIT_COUNT" -eq 0 ]]; then
+# guard: already up to date. a branch with zero commits of its own that sits
+# behind main still moves: the rebase fast-forwards it on the commit grant
+if [[ "$COMMIT_COUNT" -eq 0 && "$BEHIND_COUNT" -eq 0 ]]; then
   print_turtle_header "already up to date"
   print_tree_start "git.branch.rebase begin"
   echo "   └─ no commits to rebase"
@@ -280,6 +313,36 @@ if [[ "$BEHIND_COUNT" -eq 0 ]]; then
   exit 0
 fi
 
+# guard: a 0-ahead fast-forward must not orphan commits that sit only on the
+# branch's remote; the push after it would drop them (F7)
+if [[ "$COMMIT_COUNT" -eq 0 ]]; then
+  CURRENT_BRANCH=$(get_current_branch)
+
+  # a remote we cannot read is no proof of zero: fail closed
+  REMOTE_AHEAD_COUNT=""
+  if ! REMOTE_AHEAD_COUNT=$(get_remote_branch_ahead_count_after_fetch); then
+    emit_both "$(
+      print_turtle_header "bummer dude..."
+      print_tree_start "git.branch.rebase begin"
+      print_tree_malfunction "could not read origin/$CURRENT_BRANCH"
+      print_coconut_hint "a fast-forward needs proof it orphans no remote commit; check the remote, then retry" \
+        "git fetch origin $CURRENT_BRANCH"
+    )"
+    exit 1
+  fi
+
+  if [[ "$REMOTE_AHEAD_COUNT" -gt 0 ]]; then
+    emit_both "$(
+      print_turtle_header "hold up dude..."
+      print_tree_start "git.branch.rebase begin"
+      print_tree_constraint "origin/$CURRENT_BRANCH holds commits this tree lacks: $REMOTE_AHEAD_COUNT"
+      print_coconut_hint "a fast-forward onto main would orphan them; pull them in first" \
+        "git pull --ff-only origin $CURRENT_BRANCH"
+    )"
+    exit 2
+  fi
+fi
+
 ######################################################################
 # plan mode: preview
 ######################################################################
@@ -288,6 +351,9 @@ if [[ "$MODE" == "plan" ]]; then
   print_tree_start "git.branch.rebase begin --mode plan"
   echo "   ├─ rebase"
   echo "   │  ├─ target: origin/$DEFAULT_BRANCH"
+  REBASE_SHAPE="replay"
+  [[ "$COMMIT_COUNT" -eq 0 ]] && REBASE_SHAPE="fast-forward"
+  echo "   │  ├─ shape: $REBASE_SHAPE"
 
   # show commits ahead (to be rebased)
   echo "   │  ├─ ahead: $(as_commit_count count="$COMMIT_COUNT")"
@@ -324,9 +390,11 @@ if [[ "$MODE" == "plan" ]]; then
     echo "   │  └─ would set aside, then put back"
     print_files_tree "   │     " "$UNSTAGED_FILES"
   fi
+  # a rebase spends no use and writes no commit, so a held grant suffices even
+  # at 0 left (F9); the plan must not ask for a grant apply never needs
   echo "   └─ meter"
-  echo "      ├─ commits: allowed"
-  echo "      └─ push: allowed"
+  echo "      ├─ rebase: spends no use; the held grant suffices"
+  echo "      └─ push: held"
   print_coconut_hint "this is a plan; apply it to rebase" \
     "rhx git.branch.rebase begin --mode apply${UNSTAGED:+ --unstaged $UNSTAGED}"
   exit 0
@@ -374,6 +442,15 @@ if [[ "$MODE" == "apply" ]]; then
     print_git_output_tree "$GIT_OUTPUT"
     print_aside_hint main_changed="$MAIN_CHANGED" superseded="$SUPERSEDED"
     echo ""
+
+    # a fast-forward of a branch with no commits of its own leaves naught to push:
+    # HEAD is main's tip, which the pr already holds
+    if [[ "$COMMIT_COUNT" -eq 0 ]]; then
+      echo "🌊 naught to push"
+      echo "   └─ the branch now sits on origin/$DEFAULT_BRANCH, with no commits of its own"
+      exit 0
+    fi
+
     echo "🌊 ready to push"
     echo "   └─ rhx git.commit.push"
     exit 0
@@ -392,24 +469,28 @@ if [[ "$MODE" == "apply" ]]; then
       SETTLE_STEP="clear what stopped it, per git.output below"
     fi
 
-    print_turtle_header "hang tight..."
-    print_tree_start "git.branch.rebase begin --mode apply"
-    echo "   ├─ rebase"
-    echo "   │  ├─ target: origin/$DEFAULT_BRANCH"
-    echo "   │  ├─ commits: $COMMIT_COUNT"
-    echo "   │  └─ status: $STOP_STATUS"
-    if [[ -n "$CONFLICT_FILES" ]]; then
-      echo "   ├─ conflict"
-      if [[ -n "$CONFLICT_COMMIT" ]]; then
-        echo "   │  ├─ commit: $CONFLICT_COMMIT"
+    # a halt on conflict exits non-zero, so it rides both streams, as every
+    # other refusal in this file does (rule.require.skill-output-streams)
+    emit_both "$(
+      print_turtle_header "hang tight..."
+      print_tree_start "git.branch.rebase begin --mode apply"
+      echo "   ├─ rebase"
+      echo "   │  ├─ target: origin/$DEFAULT_BRANCH"
+      echo "   │  ├─ commits: $COMMIT_COUNT"
+      echo "   │  └─ status: $STOP_STATUS"
+      if [[ -n "$CONFLICT_FILES" ]]; then
+        echo "   ├─ conflict"
+        if [[ -n "$CONFLICT_COMMIT" ]]; then
+          echo "   │  ├─ commit: $CONFLICT_COMMIT"
+        fi
+        echo "   │  └─ files"
+        print_files_tree "   │     " "$CONFLICT_FILES"
       fi
-      echo "   │  └─ files"
-      print_files_tree "   │     " "$CONFLICT_FILES"
-    fi
-    print_aside_held_branch superseded=""
-    print_rebase_next_steps settle_step="$SETTLE_STEP"
-    echo "   └─ git.output"
-    print_git_output_tree "$GIT_OUTPUT"
+      print_aside_held_branch superseded=""
+      print_rebase_next_steps settle_step="$SETTLE_STEP"
+      echo "   └─ git.output"
+      print_git_output_tree "$GIT_OUTPUT"
+    )"
     exit 1
   fi
 

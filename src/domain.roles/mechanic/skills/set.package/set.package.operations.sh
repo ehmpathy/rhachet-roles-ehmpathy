@@ -7,7 +7,7 @@
 #
 # usage:
 #   source "$SCRIPT_DIR/set.package.operations.sh"
-#   _check_dependencies
+#   _check_dependencies --skill set.package.install
 #   VERSION=$(_expand_version "zod" "@latest")
 #   _check_security "zod" "3.22.4"
 ######################################################################
@@ -15,20 +15,29 @@
 ######################################################################
 # verify required dependencies are available
 # fails fast if jq, curl, or npm are absent
+# usage: _check_dependencies --skill set.package.install
+# .note = renders via output.sh, which the caller sources
 ######################################################################
 _check_dependencies() {
-  if ! command -v jq &>/dev/null; then
-    echo "error: jq is required but not installed" >&2
-    return 1
-  fi
-  if ! command -v curl &>/dev/null; then
-    echo "error: curl is required but not installed" >&2
-    return 1
-  fi
-  if ! command -v npm &>/dev/null; then
-    echo "error: npm is required but not installed" >&2
-    return 1
-  fi
+  local skill=""
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      --skill) skill="$2"; shift 2 ;;
+      *) shift ;;
+    esac
+  done
+
+  local tool
+  for tool in jq curl npm; do
+    if ! command -v "$tool" &>/dev/null; then
+      # the family frame, on both streams (rule.require.skill-output-streams)
+      OUTPUT_STREAM="both"
+      print_turtle_header "bummer dude..."
+      print_tree_start "$skill"
+      print_error "$tool is required but not installed"
+      return 1
+    fi
+  done
 }
 
 ######################################################################
@@ -55,7 +64,8 @@ _expand_version() {
     local actual
     actual=$(npm view "${package}@${tag}" version 2>/dev/null)
     if [[ -z "$actual" ]]; then
-      echo "error: could not find version for ${package}@${tag}" >&2
+      # .note = stdout here is the captured version; the caller renders the
+      #         refusal on both streams
       return 1
     fi
     echo "$actual"
@@ -66,8 +76,9 @@ _expand_version() {
 
 ######################################################################
 # check package security via npm bulk advisory endpoint
-# returns 0 if safe, 1 if vulnerable
-# outputs vulnerability details on failure
+# returns 0 if safe, 1 if vulnerable, 2 if the audit could not run
+# outputs vulnerability details (exit 1) or the cause (exit 2) on stdout,
+# for the caller to capture and render on both streams
 ######################################################################
 _check_security() {
   local package="$1"
@@ -82,23 +93,33 @@ _check_security() {
   # may return a compressed body regardless; without this curl hands back raw
   # compressed bytes, whose null bytes bash `$(...)` strips, so the json arrives
   # truncated and jq rejects it as an invalid response (rule.require.solve-at-cause)
-  local response
-  local curl_status
-  response=$(curl -s --compressed -X POST \
-    -H "Content-Type: application/json" \
-    -d "$body" \
-    "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk" 2>/dev/null) || curl_status=$?
+  # bound each attempt and retry on a fresh connection: an unbounded call that
+  # meets a stalled connection waits forever, and the caller sees a silent hang.
+  # every attempt failed = the audit fails closed (never skips)
+  local response=""
+  local curl_status=""
+  local attempt
+  for attempt in 1 2 3; do
+    curl_status=""
+    response=$(curl -s --compressed --connect-timeout 10 --max-time 30 -X POST \
+      -H "Content-Type: application/json" \
+      -d "$body" \
+      "https://registry.npmjs.org/-/npm/v1/security/advisories/bulk" 2>/dev/null) || curl_status=$?
+    if [[ -z "$curl_status" && -n "$response" ]]; then
+      break
+    fi
+  done
 
   # check for curl error or empty response
   if [[ -n "${curl_status:-}" || -z "$response" ]]; then
-    echo "error: security check failed (network error)" >&2
-    return 1
+    echo "network error, after 3 attempts"
+    return 2
   fi
 
   # check if response is valid JSON
   if ! echo "$response" | jq -e . >/dev/null 2>&1; then
-    echo "error: security check failed (invalid response)" >&2
-    return 1
+    echo "invalid response from the registry"
+    return 2
   fi
 
   # check if response is empty object (safe)
@@ -108,8 +129,8 @@ _check_security() {
     return 0
   fi
   if [[ "$vuln_count" == "error" ]]; then
-    echo "error: security check failed (parse error)" >&2
-    return 1
+    echo "registry response could not be parsed"
+    return 2
   fi
 
   # parse vulnerabilities - capture in variable to avoid pipefail issues

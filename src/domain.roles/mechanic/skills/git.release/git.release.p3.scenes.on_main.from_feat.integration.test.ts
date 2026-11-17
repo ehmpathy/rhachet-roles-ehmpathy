@@ -9,7 +9,11 @@ import {
   asSkillExitStatus,
   SKILL_SPAWN_TIMEOUT_MS,
 } from './.test/infra/asSkillExitStatus';
-import { type Scene, writeSceneGhMock } from './.test/infra/mockGh';
+import {
+  type Scene,
+  setGitReleaseUsesOrgAllowed,
+  writeSceneGhMock,
+} from './.test/infra/mockGh';
 import { asSnapshotReadyWithAnsi } from './.test/infra/snapshotOps';
 
 /**
@@ -84,10 +88,11 @@ exit 1
   spawnSync('git', ['branch', '-M', 'main'], { cwd: tempDir });
 
   const meterDir = path.join(tempDir, '.meter');
+  setGitReleaseUsesOrgAllowed({ tempDir });
   fs.mkdirSync(meterDir, { recursive: true });
   fs.writeFileSync(
-    path.join(meterDir, 'git.commit.uses.jsonc'),
-    JSON.stringify({ uses: 'infinite', push: 'allow', stage: 'allow' }),
+    path.join(meterDir, 'git.release.uses.jsonc'),
+    JSON.stringify({ uses: 'infinite' }),
   );
 
   return {

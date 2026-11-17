@@ -175,6 +175,11 @@ describe('symlink.sh', () => {
         });
 
         expect(result.stderr).toContain('--mode is required');
+        // a refusal rides both streams, in the house frame
+        expect(result.stdout).toContain(
+          '✋ ConstraintError: --mode is required',
+        );
+        expect(result.stdout).toMatchSnapshot();
       });
     });
 
@@ -249,8 +254,10 @@ describe('symlink.sh', () => {
             '--at ./link.txt --to ./target.txt --mode relative --idem findsert',
         });
 
-        expect(result.stderr).toContain('existing:');
+        expect(result.stderr).toContain('found:');
         expect(result.stderr).toContain('requested:');
+        // a refusal rides both streams (rule.require.skill-output-streams)
+        expect(result.stdout).toContain('found:');
       });
     });
 

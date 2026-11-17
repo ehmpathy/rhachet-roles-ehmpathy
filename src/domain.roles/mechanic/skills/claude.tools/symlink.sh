@@ -31,6 +31,10 @@
 ######################################################################
 set -euo pipefail
 
+# load the shared refusal leaves (the human-grant guard)
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SKILL_DIR/output.sh"
+
 # parse named arguments
 AT=""
 TO=""
@@ -97,42 +101,41 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     *)
-      echo "error: unknown argument: $1" >&2
-      echo "usage: symlink.sh --at <path> --to <target> --mode <relative|absolute>" >&2
+      emit_constraint_frame --skill symlink --diagnosis "unknown argument: $1"
       exit 2
       ;;
   esac
 done
 
-# validate required args
+# validate required args; every refusal rides both streams in the house frame
 if [[ -z "$AT" ]]; then
-  echo "error: --at is required" >&2
+  emit_constraint_frame --skill symlink --diagnosis "--at is required"
   exit 2
 fi
 
 if [[ -z "$TO" ]]; then
-  echo "error: --to is required" >&2
+  emit_constraint_frame --skill symlink --diagnosis "--to is required"
   exit 2
 fi
 
 if [[ -z "$MODE" ]]; then
-  echo "error: --mode is required (relative | absolute)" >&2
+  emit_constraint_frame --skill symlink --diagnosis "--mode is required (relative | absolute)"
   exit 2
 fi
 
 if [[ "$MODE" != "relative" && "$MODE" != "absolute" ]]; then
-  echo "error: --mode must be 'relative' or 'absolute', got '$MODE'" >&2
+  emit_constraint_frame --skill symlink --diagnosis "--mode must be 'relative' or 'absolute', got '$MODE'"
   exit 2
 fi
 
 if [[ -n "$IDEM" && "$IDEM" != "findsert" && "$IDEM" != "upsert" ]]; then
-  echo "error: --idem must be 'findsert' or 'upsert', got '$IDEM'" >&2
+  emit_constraint_frame --skill symlink --diagnosis "--idem must be 'findsert' or 'upsert', got '$IDEM'"
   exit 2
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
-  echo "error: not in a git repository" >&2
+  emit_constraint_frame --skill symlink --diagnosis "not in a git repository"
   exit 2
 fi
 
@@ -145,22 +148,29 @@ AT_ABS=$(realpath -m -s "$AT")
 
 # validate --at is within repo (exact match OR slash-prefixed; prevents /repo from match of /repo-evil)
 if [[ "$AT_ABS" != "$REPO_ROOT" && "$AT_ABS" != "$REPO_ROOT/"* ]]; then
-  echo "error: --at must be within the git repository" >&2
-  echo "  repo root: $REPO_ROOT" >&2
-  echo "  --at:      $AT_ABS" >&2
+  emit_constraint_frame --skill symlink --diagnosis "--at must be within the git repository
+repo root: $REPO_ROOT
+--at: $AT_ABS"
   exit 2
 fi
+
+# refuse a link placed into a human-held grant (.meter/, .branch/.bind/)
+refuse_if_human_grant --skill symlink --path "$AT_ABS" --root "$(realpath "$REPO_ROOT")"
 
 # resolve --to to absolute path (for comparison and absolute mode)
 TO_ABS=$(realpath -m "$TO")
 
 # validate --to is within repo (exact match OR slash-prefixed; prevents /repo from match of /repo-evil)
 if [[ "$TO_ABS" != "$REPO_ROOT" && "$TO_ABS" != "$REPO_ROOT/"* ]]; then
-  echo "error: --to must be within the git repository" >&2
-  echo "  repo root: $REPO_ROOT" >&2
-  echo "  --to:      $TO_ABS" >&2
+  emit_constraint_frame --skill symlink --diagnosis "--to must be within the git repository
+repo root: $REPO_ROOT
+--to: $TO_ABS"
   exit 2
 fi
+
+# refuse a link that points into a human-held grant: a later write through
+# the link (sed -i, tee) would land in .meter/ under a name that hides it
+refuse_if_human_grant --skill symlink --path "$TO_ABS" --root "$(realpath "$REPO_ROOT")"
 
 # compute target path based on mode
 AT_DIR=$(dirname "$AT_ABS")
@@ -185,12 +195,18 @@ if [[ -e "$AT_ABS" || -L "$AT_ABS" ]]; then
     fi
 
     if [[ -z "$IDEM" ]]; then
-      # no --idem: error with hint
-      echo "error: symlink already exists at $AT" >&2
-      echo "  points to: $EXISTING_TARGET" >&2
-      echo "" >&2
-      echo "hint: use --idem findsert to succeed if target matches" >&2
-      echo "hint: use --idem upsert to overwrite regardless" >&2
+      # no --idem: refuse, and name both idempotent forms under the coconut
+      emit_refusal_to_streams --mode vibes --vibes "$(
+        print_turtle_header "bummer dude..."
+        print_tree_start "symlink"
+        print_tree_leaf "✋ ConstraintError: symlink already exists at $AT"
+        print_tree_file_line "points to: $EXISTING_TARGET" true
+        echo ""
+        echo "🥥 did you know?"
+        echo "   ├─ findsert succeeds where the target matches; upsert overwrites regardless"
+        echo "   ├─ rhx symlink --at '$AT' --to '$TO' --mode $MODE --idem findsert"
+        echo "   └─ rhx symlink --at '$AT' --to '$TO' --mode $MODE --idem upsert"
+      )"
       exit 2
     elif [[ "$IDEM" == "findsert" ]]; then
       # findsert: compare targets
@@ -198,9 +214,9 @@ if [[ -e "$AT_ABS" || -L "$AT_ABS" ]]; then
         echo "symlink already exists with correct target"
         exit 0
       else
-        echo "error: symlink exists but points to different target" >&2
-        echo "  existing:  $EXISTING_TARGET (resolves to $EXISTING_RESOLVED)" >&2
-        echo "  requested: $TARGET_PATH (resolves to $TO_ABS)" >&2
+        emit_constraint_frame --skill symlink --diagnosis "symlink exists but points to different target
+found: $EXISTING_TARGET (resolves to $EXISTING_RESOLVED)
+requested: $TARGET_PATH (resolves to $TO_ABS)"
         exit 2
       fi
     elif [[ "$IDEM" == "upsert" ]]; then
@@ -209,10 +225,8 @@ if [[ -e "$AT_ABS" || -L "$AT_ABS" ]]; then
     fi
   else
     # it's a regular file (or directory)
-    echo "error: non-symlink file exists at $AT" >&2
-    echo "  type: $(file -b "$AT_ABS")" >&2
-    echo "" >&2
-    echo "refusing to delete non-symlink files" >&2
+    emit_constraint_frame --skill symlink --diagnosis "non-symlink file exists at $AT; refused to delete it
+type: $(file -b "$AT_ABS")"
     exit 2
   fi
 fi

@@ -25,10 +25,11 @@ import { genArtifactGitFile } from 'rhachet-artifact-git';
 import { createCache } from 'simple-on-disk-cache';
 import { parseArgs } from 'util';
 import { withSimpleCacheAsync } from 'with-simple-cache';
-import { withRetry, withTimeout } from 'wrapper-fns';
+import { withTimeout } from 'wrapper-fns';
 import { z } from 'zod';
 
 import { getAllBrainAtoms } from '@src/domain.operations/brain/getAllBrainAtoms';
+import { getOneSitrepViaAsks } from '@src/domain.operations/sitrep/getOneSitrepViaAsks';
 
 import { countTokens } from './compress.shared';
 import { isSitrepPlaceholder } from './isSitrepPlaceholder';
@@ -310,7 +311,7 @@ const assureSitrepNotPlaceholder = <T extends { output: { sitrep: string } }>(
   if (isSitrepPlaceholder({ sitrep: response.output.sitrep }))
     throw new MalfunctionError('brain returned a placeholder sitrep', {
       sitrep: response.output.sitrep,
-      hint: 'the ask retries once; a repeat means the brain cannot compress this brief',
+      hint: 'the throw spends one ask; once every ask is spent, the brain cannot compress this brief',
     });
   return response;
 };
@@ -374,44 +375,49 @@ const _compressViaBhrain = async (input: {
 
   // ask brain to distill via specified mechanisms (passed via role.briefs)
   // note: lang tone briefs doubled for emphasis (brain sometimes ignores them)
-  // note: a placeholder sitrep ('...') throws inside the retry, so the ask runs again
-  const { output } = await withRetry(
-    withTimeout(
-      async () =>
-        assureSitrepNotPlaceholder(
-          await contextBrain.brain.choice.ask({
-            role: {
-              briefs: [
-                ...methodologyBriefArtifacts,
-                lowercaseBrief,
-                turtleBrief,
-                lowercaseBrief,
-                turtleBrief,
-              ],
-            },
-            prompt,
-            schema: {
-              output: z.object({
-                forethought: z
-                  .string()
-                  .describe(
-                    'what is this brief about? what is its purpose? who is the audience?',
-                  ),
-                rationale: z
-                  .string()
-                  .describe(
-                    'what content is decision-critical and must be kept? what can be cut? which examples to keep vs discard?',
-                  ),
-                sitrep: z
-                  .string()
-                  .describe('the compressed brief as raw markdown'),
-              }),
-            },
-          }),
-        ),
-      { threshold: { seconds: 60 } },
-    ),
-  )();
+  // note: a word-free sitrep ('...') throws inside the ask, which spends one attempt
+  const askForSitrep = withTimeout(
+    async () =>
+      assureSitrepNotPlaceholder(
+        await contextBrain.brain.choice.ask({
+          role: {
+            briefs: [
+              ...methodologyBriefArtifacts,
+              lowercaseBrief,
+              turtleBrief,
+              lowercaseBrief,
+              turtleBrief,
+            ],
+          },
+          prompt,
+          schema: {
+            output: z.object({
+              forethought: z
+                .string()
+                .describe(
+                  'what is this brief about? what is its purpose? who is the audience?',
+                ),
+              rationale: z
+                .string()
+                .describe(
+                  'what content is decision-critical and must be kept? what can be cut? which examples to keep vs discard?',
+                ),
+              sitrep: z
+                .string()
+                .describe('the compressed brief as raw markdown'),
+            }),
+          },
+        }),
+      ),
+    { threshold: { seconds: 60 } },
+  );
+
+  // .why = up to four asks: a degenerate sitrep recurs on about half of the asks
+  //        on deepseek/flash, and one retry alone still lets one run in four fail
+  const { output } = await getOneSitrepViaAsks({
+    ask: askForSitrep,
+    attempts: 4,
+  });
 
   const compressed = output.sitrep;
   const { forethought, rationale } = output;

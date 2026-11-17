@@ -1,0 +1,9 @@
+# rule.require.failloud
+
+an error carries its proper class and full context, so it is diagnosed at once, names who fixes it, and its exit code drives retry
+- caller fixes → `ConstraintError` (exit 2): `throw new ConstraintError('customer lacks phone', { customerId, hint: 'add phone via setCustomerPhone' })`
+- server fixes → `MalfunctionError` (exit 1): `throw new MalfunctionError('database connection failed', { host, error: originalError.message })`
+👎 `throw new Error('failed')`
+see: rule.require.qualified-error-headers (name the class in the header a human reads) · rule.require.exit-code-semantics
+enforcement: error with no proper class = blocker; error with no context = blocker
+

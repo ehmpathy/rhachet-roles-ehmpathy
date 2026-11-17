@@ -1,0 +1,8 @@
+# rule.require.failfast (tests)
+
+a test that lacks a required resource fails fast and loud, never skips silently. absent resource = unacceptable
+👎 `if (!hasApiKey) return;` — passes with no verification
+👍 caller must fix → `throw new ConstraintError('API key required for this test', { hint: 'run: rhx keyrack unlock --owner ehmpath --env test' })` (exit 2)
+👍 server must fix → `throw new MalfunctionError('test database unavailable', { host, hint: 'check if test db container is up' })` (exit 1)
+enforcement: silent skip on absent resource = blocker
+

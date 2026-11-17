@@ -30,14 +30,13 @@ exports[`git.branch.uses (acceptance) given: [case1] a linked repo of the ehmpat
 🐢 bummer dude...
 
 🐚 git.branch.uses set
-   └─ ✋ ConstraintError: no terminal on this command
+   ├─ ✋ ConstraintError: no terminal on this command
+   ├─ only a human at a real terminal may run this
+   └─ a clone's tool call has no terminal, nor does a \`!\` command typed into claude, so the guard cannot tell them apart
 
-   only a human at a real terminal may run this, and this command
-   has none. a clone's tool call has none, and neither does a claude
-   \`!\` command, so the two cannot be told apart here.
-
-run it from your own terminal, with the same args:
-  $ rhx git.branch.uses set ...
+🥥 did you know?
+   ├─ a human runs it from their own terminal
+   └─ rhx git.branch.uses set
 "
 `;
 
@@ -56,7 +55,7 @@ exports[`git.branch.uses (acceptance) given: [case1] a linked repo of the ehmpat
 "
 🪨 run solid skill repo=ehmpathy/role=mechanic/skill=git.branch.uses
 
-🐢 groovy, bond fire time
+🐢 groovy, bonfire time
 
 🐚 git.branch.uses block --global
    └─ cutovers blocked globally

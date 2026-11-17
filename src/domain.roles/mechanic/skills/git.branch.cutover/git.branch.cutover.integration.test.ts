@@ -3012,15 +3012,15 @@ describe('git.branch.cutover', () => {
     return { lead, ...result };
   };
 
-  given('[case42] a halt in a tree with no stage grant', () => {
-    // .why = the settle step stages via git.stage.add, which reads its own
-    //        grant; the halt must say so, and say that abort refunds naught
+  given('[case42] a halt in a tree with no live commit grant', () => {
+    // .why = the settle step stages via git.stage.add, which rides the live
+    //        commit grant; the halt must say so, and that abort refunds naught
     const scene = useBeforeAll(async () => {
       const scene = genConflictScene('cutover-case42');
       return scene;
     });
 
-    when('[t0] begin halts, then the human grants stage', () => {
+    when('[t0] begin halts, then the human grants a commit', () => {
       const outcome = useBeforeAll(async () => {
         const halt = runCutover(scene, [
           'begin',
@@ -3035,7 +3035,7 @@ describe('git.branch.cutover', () => {
         ]);
         fs.writeFileSync(
           path.join(scene.repoDir, '.meter', 'git.commit.uses.jsonc'),
-          JSON.stringify({ uses: 0, push: 'block', stage: 'allow' }),
+          JSON.stringify({ uses: 1, held: true }),
         );
         fs.writeFileSync(
           path.join(scene.repoDir, 'src', 'band.ts'),
@@ -3057,13 +3057,13 @@ describe('git.branch.cutover', () => {
         return { halt, stage, cont };
       });
 
-      then('the halt names the absent stage grant and the spent unit', () => {
+      then('the halt names the absent commit grant and the spent unit', () => {
         expect(outcome.halt.exitCode).toBe(2);
         expect(outcome.halt.stdout).toContain(
-          'stage: ✋ no stage grant, so rhx git.stage.add will refuse',
+          'stage: ✋ no live commit grant, so rhx git.stage.add will refuse',
         );
         expect(outcome.halt.stdout).toContain(
-          'git.commit.uses set --quant N --push allow|block --stage allow',
+          'ask your human: rhx git.commit.uses set --quant N',
         );
         expect(outcome.halt.stdout).toContain(
           'quota: the cutover unit is spent; abort refunds none',

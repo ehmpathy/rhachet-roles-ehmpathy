@@ -67,9 +67,7 @@ while [[ $# -gt 0 ]]; do
       shift
       ;;
     --*)
-      echo "error: unknown option: $1" >&2
-      echo "usage: cmd | teesafe.sh <file>" >&2
-      echo "       cmd | teesafe.sh --into <file> [--idem findsert|upsert|append]" >&2
+      emit_constraint_frame --skill teesafe --diagnosis "unknown option: $1"
       exit 2
       ;;
     *)
@@ -87,21 +85,19 @@ fi
 
 # validate required args
 if [[ -z "$INTO" ]]; then
-  echo "error: destination file is required" >&2
-  echo "usage: cmd | teesafe.sh <file>" >&2
-  echo "       cmd | teesafe.sh --into <file> [--idem findsert|upsert|append]" >&2
+  emit_constraint_frame --skill teesafe --diagnosis "destination file is required"
   exit 2
 fi
 
 # validate --idem if provided
 if [[ -n "$IDEM" && "$IDEM" != "findsert" && "$IDEM" != "upsert" && "$IDEM" != "append" ]]; then
-  echo "error: --idem must be 'findsert', 'upsert', or 'append'" >&2
+  emit_constraint_frame --skill teesafe --diagnosis "--idem must be 'findsert', 'upsert', or 'append'"
   exit 2
 fi
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
-  echo "error: not in a git repository" >&2
+  emit_constraint_frame --skill teesafe --diagnosis "not in a git repository"
   exit 2
 fi
 
@@ -119,11 +115,14 @@ fi
 
 # validate dest is within repo
 if [[ "$INTO_ABS" != "$REPO_ROOT" && "$INTO_ABS" != "$REPO_ROOT/"* ]]; then
-  echo "error: destination must be within the git repository" >&2
-  echo "  repo root: $REPO_ROOT" >&2
-  echo "  dest:      $INTO_ABS" >&2
+  emit_constraint_frame --skill teesafe --diagnosis "destination must be within the git repository
+repo root: $REPO_ROOT
+destination: $INTO_ABS"
   exit 2
 fi
+
+# refuse a write into a human-held grant (.meter/, .branch/.bind/)
+refuse_if_human_grant --skill teesafe --path "$INTO_ABS" --root "$REPO_ROOT"
 
 # create parent directories if needed
 INTO_ABS_DIR=$(dirname "$INTO_ABS")
@@ -146,8 +145,8 @@ case "$IDEM" in
         exit 0
       else
         # different content, error
-        echo "error: file exists with different content (findsert mode)" >&2
-        echo "  dest: $INTO_ABS" >&2
+        emit_constraint_frame --skill teesafe --diagnosis "file exists with different content (findsert mode)
+destination: $INTO_ABS"
         exit 2
       fi
     fi
