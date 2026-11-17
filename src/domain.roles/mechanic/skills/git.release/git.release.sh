@@ -33,8 +33,7 @@
 #   - apply refuses (exit 2) while a pr comment waits; no flag skips it
 #
 # note:
-#   - MUST run in FOREGROUND (never background)
-#   - watches CI interactively, requires TTY for spinner
+#   - MUST run in FOREGROUND (never background), with a TTY for the spinner
 ######################################################################
 set -euo pipefail
 

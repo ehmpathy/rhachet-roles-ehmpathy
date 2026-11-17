@@ -20,7 +20,7 @@ options:
 options:
   --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --unanswered                 only the unanswered comments (a signed reply or a resolved thread answers one)
+  --unanswered                 only the comments that wait on an answer from you
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
   --key <k> [--reply-to <id>]  your keyed comment (in that review thread, with --reply-to)
   --kind body                  the pr description alone
