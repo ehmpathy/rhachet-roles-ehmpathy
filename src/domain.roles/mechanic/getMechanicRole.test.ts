@@ -9,12 +9,12 @@ import { ROLE_MECHANIC } from './getMechanicRole';
 describe('getMechanicRole', () => {
   given('[case1] the mechanic role definition', () => {
     when('[t0] hooks property is accessed', () => {
-      // .why = an exact count, not a floor: the two onBoot hooks are the
-      //        permissions notice and the post-compact verify reminder; no
-      //        self-boot hook remains (see [t1]). a dropped hook or a re-added
-      //        self-boot hook each turn this red
-      then('onBrain.onBoot holds exactly the 2 declared hooks', () => {
-        expect(ROLE_MECHANIC.hooks?.onBrain?.onBoot?.length).toEqual(2);
+      // .why = an exact count, not a floor: the three onBoot hooks are the
+      //        permissions notice, the pr-watch daemon revive, and the
+      //        post-compact verify reminder; no self-boot hook remains (see [t1]).
+      //        a dropped hook or a re-added self-boot hook each turn this red
+      then('onBrain.onBoot holds exactly the 3 declared hooks', () => {
+        expect(ROLE_MECHANIC.hooks?.onBrain?.onBoot?.length).toEqual(3);
       });
 
       then('onBrain.onTool contains at least 7 hooks', () => {

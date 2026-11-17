@@ -1,0 +1,7 @@
+# rule.require.commit-scopes
+
+every commit carries a scope: `type(scope): message` — the scope locates the change (module, feature, domain), groups the changelog, speeds review
+👍 `fix(invoice): handle negative line items` · `feat(auth): add oauth provider` · `chore(deps): bump typescript to 5.4`
+👎 `fix: handle negative line items`
+enforcement: commit with no scope = blocker
+

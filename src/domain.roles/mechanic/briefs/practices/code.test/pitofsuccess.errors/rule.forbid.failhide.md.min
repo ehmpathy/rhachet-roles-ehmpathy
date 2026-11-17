@@ -1,0 +1,8 @@
+# rule.forbid.failhide (tests)
+
+a test verifies on every code path; a silent pass-through is worse than no test — it buys false confidence
+forbidden: `if (!cond) { expect(true).toBe(true) }` (fake verify) · `if (!hasResource) { return }` (silent skip) · `expect([0, 1, 2]).toContain(exitCode)` (errors read as valid) · `expect.any(Object)` (dodges the check) · an empty test body · a snapshot with no explicit assertion
+cure: absent resource → `throw new ConstraintError(...)` · infra fault → `throw new MalfunctionError(...)` · snapshot + assertion → `expect(result.status).toBe('ok'); expect(result).toMatchSnapshot();`
+skips (`it.skip`, `given.runIf`, `then.skipIf`) are no cure: an absent resource fails loud
+enforcement: failhide pattern = blocker
+

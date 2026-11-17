@@ -1,0 +1,8 @@
+# rule.require.failloud (tests)
+
+a test error names its context and an actionable hint, so the developer knows exactly how to fix it
+- caller must fix → `ConstraintError` (exit 2): `throw new ConstraintError('API key required for this test', { hint: 'run: rhx keyrack unlock --owner ehmpath --env test', env: 'EHMPATHY_API_KEY' })`
+- server must fix → `MalfunctionError` (exit 1): `throw new MalfunctionError('test database connection failed', { host, error: originalError.message, hint: 'check docker-compose is up' })`
+👎 `throw new Error('test failed')`
+enforcement: error with no context = blocker; error with no hint = nitpick
+
