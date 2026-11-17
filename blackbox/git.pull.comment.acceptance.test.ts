@@ -143,7 +143,7 @@ describe('git.pull.comment, via rhachet', () => {
         runViaRhachet({
           dir: scene.dir,
           skill: 'git.pull.comment.get',
-          args: ['--pr', '7', '--unanswered', '--key', 'status'],
+          args: ['--which', '7', '--unanswered', '--key', 'status'],
         }),
       );
       then('it refuses with exit 2, before any read, and names the fix', () => {

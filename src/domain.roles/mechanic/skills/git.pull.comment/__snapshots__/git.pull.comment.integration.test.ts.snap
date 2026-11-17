@@ -717,7 +717,7 @@ options:
 options:
   --which <n>                  the pull request (default: the open pull of the cwd branch)
   --in <owner/name>            the repo (default: the cwd's github origin); a home org only
-  --unanswered                 only the unanswered comments (a signed reply or a resolved thread answers one)
+  --unanswered                 only the comments that wait (a signed answer clears an issue comment; a review thread waits until resolved)
   --id <id> --kind <kind>      one comment, by id; kind = issue | review, never guessed
   --key <k> [--reply-to <id>]  your keyed comment (in that review thread, with --reply-to)
   --kind body                  the pr description alone
@@ -1940,6 +1940,25 @@ exports[`git.pull.comment given: [case20] --which defaults to the open pull of t
 exports[`git.pull.comment given: [case21] get --unanswered lists what waits on an answer when: [t0] get --unanswered runs then: the full json row shape is snapped, parsed 1`] = `
 [
   {
+    "answer_id": 902,
+    "answer_key": null,
+    "asked_again": false,
+    "author": "surfer-kai",
+    "body": "why so?",
+    "bytes": 7,
+    "created_at": "2026-10-24T<time>",
+    "id": 901,
+    "in_reply_to": null,
+    "key": null,
+    "kind": "review",
+    "line": null,
+    "path": null,
+    "sha256": "6e1d316f4159ce6e9f63de17cafc856457f3f88999f5ba4d11fa5751f25804c7",
+    "thread": "open",
+    "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r901",
+    "waits_on": "reviewer",
+  },
+  {
     "answer_key": "answer-903",
     "asked_again": false,
     "author": "surfer-kai",
@@ -1955,6 +1974,7 @@ exports[`git.pull.comment given: [case21] get --unanswered lists what waits on a
     "sha256": "3cce24d1eef67d5cd101a325bef29da5a34bd89cc316670b62c6e4db5ca73756",
     "thread": "open",
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r903",
+    "waits_on": "crew",
   },
   {
     "answer_key": "answer-906",
@@ -1972,6 +1992,7 @@ exports[`git.pull.comment given: [case21] get --unanswered lists what waits on a
     "sha256": "7bf82a3b1e6bbabd80276934a23dd418f0648ff4f36cb6a125b43ca0de7ae2be",
     "thread": "open",
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#discussion_r906",
+    "waits_on": "crew",
   },
   {
     "answer_key": "answer-909",
@@ -1989,6 +2010,7 @@ exports[`git.pull.comment given: [case21] get --unanswered lists what waits on a
     "sha256": "f56a8e2f95606a42b1c382cc9a1167f764917ca236c9be2ac4d1aee0806cf850",
     "thread": null,
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-909",
+    "waits_on": "crew",
   },
   {
     "answer_key": "answer-910",
@@ -2006,6 +2028,7 @@ exports[`git.pull.comment given: [case21] get --unanswered lists what waits on a
     "sha256": "baf9ffd958adaf3d352aacf28321fb5c8d018f9a6c4193bcaa23c0b19a13255c",
     "thread": null,
     "url": "https://github.com/ehmpathy/surf-demo/pull/7#issuecomment-910",
+    "waits_on": "crew",
   },
 ]
 `;
@@ -2017,7 +2040,13 @@ exports[`git.pull.comment given: [case21] get --unanswered lists what waits on a
    ├─ target: ehmpathy/surf-demo#7, unanswered
    ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
    ├─ counts: 1 pr description, 6 issue comments, 6 review comments
-   ├─ unanswered: 4
+   ├─ unanswered: 5
+   ├─ review comment 901 by surfer-kai at 2026-10-24T<time>  thread=open  waits-on=reviewer (answered 902, no reply since)
+   │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r901
+   │  ├─ bytes: 7
+   │  ├─ sha256: 6e1d316f4159ce6e9f63de17cafc856457f3f88999f5ba4d11fa5751f25804c7
+   │  └─ text
+   │     why so?
    ├─ review comment 903 by surfer-kai at 2026-10-24T<time>  thread=open
    │  ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r903
    │  ├─ bytes: 14
@@ -2066,14 +2095,19 @@ exports[`git.pull.comment given: [case22] a review thread read that names no pul
 "
 `;
 
-exports[`git.pull.comment given: [case23] an answer set writes is an answer the unanswered rule reads when: [t0] each row is answered with the answer_key the rule names then: after, the tree counts what it read and says each has an answer, never "no comments" 1`] = `
+exports[`git.pull.comment given: [case23] an answer set writes is an answer the unanswered rule reads when: [t0] each row is answered with the answer_key the rule names then: after, the tree counts what it read and names the row that waits on its reviewer 1`] = `
 "🐢 heres the wave...
 
 🐚 git.pull.comment.get
    ├─ target: ehmpathy/surf-demo#7, unanswered
    ├─ auth: as-ehmpath (ehmpath keyrack) as ehm-seaturtle
    ├─ counts: 1 pr description, 2 issue comments, 2 review comments
-   ├─ unanswered: 0
-   └─ (every comment has an answer)
+   ├─ unanswered: 1
+   └─ review comment 961 by surfer-kai at 2026-10-24T<time>  thread=open  waits-on=reviewer (answered 5001, no reply since)
+      ├─ url: https://github.com/ehmpathy/surf-demo/pull/7#discussion_r961
+      ├─ bytes: 13
+      ├─ sha256: a56a88870913cd95bca165350c92d1e4dcb04064824a6af9d1b7c91d9a73e42e
+      └─ text
+         why the tide?
 "
 `;

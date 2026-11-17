@@ -155,9 +155,11 @@ print_comment_status() {
       | if length > 48 then (.[0:48] | sub("\\s+\\S*$"; "")) + "…" else . end;
     def place: if .path then " · \(.path)\(if .line then ":\(.line)" else "" end)" else "" end;
     def row_title: "\(.kind) \(.id)\(place) · @\(.author // "?") · \"\(words)\"";
-    def row_cure: if .kind == "review"
-      then "answer: rhx git.pull.comment set --pr \($pr) --reply-to \(.id) --key \(.answer_key) --from <file>"
-      else "answer: rhx git.pull.comment set --pr \($pr) --key \(.answer_key) --from <file>" end;
+    def row_cure: if .waits_on == "reviewer"
+      then "waits on @\(.author // "?"): they mark the thread resolved on github (a reply from them hands it back to you)"
+      elif .kind == "review"
+      then "answer: rhx git.pull.comment set --which \($pr) --reply-to \(.id) --key \(.answer_key) --from <file>"
+      else "answer: rhx git.pull.comment set --which \($pr) --key \(.answer_key) --from <file>" end;
     length as $n
     | to_entries[]
     | (.key == $n - 1) as $last
@@ -165,7 +167,8 @@ print_comment_status() {
     | ($ind + (if $last then "   " else "│  " end)) as $pad
     | ($ind + (if $last then "└─ " else "├─ " end) + ($c | row_title)),
       (if $c.url then $pad + "├─ " + $c.url else empty end),
-      (if $c.asked_again then $pad + "├─ answered once, then asked again — the key below is new, so it posts a fresh answer"
+      (if $c.waits_on == "reviewer" then $pad + "├─ a 🐢 answer is posted, with no reply from @\($c.author // "?") since — unread"
+       elif $c.asked_again then $pad + "├─ answered once, then asked again — the key below is new, so it posts a fresh answer"
        elif ($c.kind == "review" and $c.in_reply_to != null) then $pad + "├─ a reply with no 🐢 signature — only a signed answer, or a resolved thread, clears it"
        else empty end),
       ($pad + "└─ " + ($c | row_cure))'
@@ -206,7 +209,7 @@ print_comment_refusal() {
     resolve_line="@I@   ├─ or: anyone with write access marks the review thread resolved on github"$'\n'
   fi
   emit_gate_block "$indent" "$pr_number" "@I@└─ ✋ ConstraintError: release blocked until each comment has an answer
-@I@   ├─ read: rhx git.pull.comment get --pr $pr_number --unanswered
+@I@   ├─ read: rhx git.pull.comment get --which $pr_number --unanswered
 @I@   ├─ answer: run the rhx git.pull.comment set line each 💬 row names
 ${resolve_line}@I@   └─ then: re-run this same release command"
 }

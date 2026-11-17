@@ -119,9 +119,15 @@ as_rows_with_thread_state() {
 #         - an answer = a signed comment: its body opens with 🐢 and ends with
 #           the key claim that `git.pull.comment set` writes. the signature, not
 #           the login, judges it, so every mode and every credential agree
-#         - a review thread waits when its latest comment is no answer and the
-#           thread is not resolved; a bot's comment that is no answer is dropped
-#           first, so a bot neither asks nor buries a human's question
+#         - an open review thread waits on the crew when its latest comment is
+#           no answer; a bot's comment that is no answer is dropped first, so
+#           a bot neither asks nor buries a human's question
+#         - an open review thread whose latest comment is an answer waits on
+#           its reviewer: no reply from them since, so they have not read it.
+#           the row is the reviewer's last ask (waits_on "reviewer", no
+#           answer_key: no crew verb cures it). their mark of the thread
+#           as resolved closes it; a reply from them is a fresh ask, which
+#           hands the thread back to the crew (asked_again)
 #         - a human issue comment waits until an answer keyed `answer-<its id>`
 #           exists; an unrelated keyed comment answers no one
 # .note = a review row keeps its thread root in in_reply_to, or is the root
@@ -140,12 +146,17 @@ as_rows_unanswered() {
       | map( (map(select(is_answer or (is_bot | not))) | sort_by(.created_at, .id)) as $thread
         | select(($thread | length) > 0)
         | ($thread | last) as $latest
-        | select(($latest | is_answer | not) and $latest.thread != "resolved")
-        | $latest + { asked_again: ($thread | any(is_answer)), answer_key: ($latest | answer_key_of) } ) ) as $reviews
+        | select($latest.thread != "resolved")
+        | ( [ $thread[] | select(is_answer | not) ] | last ) as $ask
+        | if ($latest | is_answer | not)
+          then $latest + { waits_on: "crew", asked_again: ($thread | any(is_answer)), answer_key: ($latest | answer_key_of) }
+          elif $ask != null
+          then $ask + { waits_on: "reviewer", asked_again: false, answer_key: null, answer_id: $latest.id }
+          else empty end ) ) as $reviews
     | ( [ .[] | select(.kind == "issue" and is_answer) | .key ] ) as $keys
     | ( [ .[] | select(.kind == "issue" and (is_answer | not) and (is_bot | not))
           | (answer_key_of) as $k | select($keys | index([$k]) | not)
-          | . + { asked_again: false, answer_key: $k } ] ) as $issues
+          | . + { waits_on: "crew", asked_again: false, answer_key: $k } ] ) as $issues
     | $reviews + $issues | sort_by(.created_at, .id)'
 }
 

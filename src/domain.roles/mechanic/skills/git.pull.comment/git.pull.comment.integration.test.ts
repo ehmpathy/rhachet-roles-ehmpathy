@@ -3811,8 +3811,17 @@ exit 2
           expect(result.exitCode).toBe(0);
           const rows = JSON.parse(result.stdout);
           expect(rows.map((r: { id: number }) => r.id)).toEqual([
-            903, 906, 909, 910,
+            901, 903, 906, 909, 910,
           ]);
+        },
+      );
+      then(
+        'an open thread whose latest comment is an answer waits on its reviewer',
+        () => {
+          const rows = JSON.parse(result.stdout);
+          const unread = rows.find((r: { id: number }) => r.id === 901);
+          expect(unread.waits_on).toBe('reviewer');
+          expect(unread.answer_key).toBe(null);
         },
       );
       then('a re-asked thread is marked asked_again', () => {
@@ -3823,6 +3832,7 @@ exit 2
       then('each row carries the key that answers it: answer-<its id>', () => {
         const rows = JSON.parse(result.stdout);
         expect(rows.map((r: { answer_key: string }) => r.answer_key)).toEqual([
+          null,
           'answer-903',
           'answer-906',
           'answer-909',
@@ -3872,7 +3882,7 @@ exit 2
       });
       when('[t0] get --unanswered runs', () => {
         const result = useThen('it runs', async () =>
-          scene.run('get', ['--pr', '7', '--unanswered']),
+          scene.run('get', ['--which', '7', '--unanswered']),
         );
         then('it fails as a malfunction, never a list of open threads', () => {
           expect(result.exitCode).toBe(1);
@@ -3926,7 +3936,7 @@ exit 2
         () => {
           const result = useThen('it runs', async () => {
             const before = await scene.run('get', [
-              '--pr',
+              '--which',
               '7',
               '--unanswered',
               '--output',
@@ -3945,7 +3955,7 @@ exit 2
               async (prior, row) => [
                 ...(await prior),
                 await scene.run('set', [
-                  '--pr',
+                  '--which',
                   '7',
                   ...(row.kind === 'review'
                     ? ['--reply-to', String(row.id)]
@@ -3961,14 +3971,14 @@ exit 2
               setsNone(),
             );
             const after = await scene.run('get', [
-              '--pr',
+              '--which',
               '7',
               '--unanswered',
               '--output',
               'json',
             ]);
             const afterTree = await scene.run('get', [
-              '--pr',
+              '--which',
               '7',
               '--unanswered',
             ]);
@@ -3983,21 +3993,28 @@ exit 2
           then('each set applies', () => {
             expect(result.sets.map((s) => s.exitCode)).toEqual([0, 0]);
           });
-          then('after: no row waits', () => {
-            expect(result.after.exitCode).toBe(0);
-            expect(JSON.parse(result.after.stdout)).toEqual([]);
-          });
           then(
-            'after, the tree counts what it read and says each has an answer, never "no comments"',
+            'after: the issue comment clears; the review thread waits on its reviewer, unread',
+            () => {
+              expect(result.after.exitCode).toBe(0);
+              const rows = JSON.parse(result.after.stdout);
+              expect(
+                rows.map((r: { id: number; waits_on: string }) => [
+                  r.id,
+                  r.waits_on,
+                ]),
+              ).toEqual([[961, 'reviewer']]);
+            },
+          );
+          then(
+            'after, the tree counts what it read and names the row that waits on its reviewer',
             () => {
               expect(result.afterTree.exitCode).toBe(0);
               expect(result.afterTree.stdout).toContain(
                 'counts: 1 pr description, 2 issue comments, 2 review comments',
               );
-              expect(result.afterTree.stdout).toContain('unanswered: 0');
-              expect(result.afterTree.stdout).toContain(
-                '└─ (every comment has an answer)',
-              );
+              expect(result.afterTree.stdout).toContain('unanswered: 1');
+              expect(result.afterTree.stdout).toContain('waits-on=reviewer');
               expect(result.afterTree.stdout).not.toContain('(no comments)');
               expect(result.afterTree.stdout).toMatchSnapshot();
             },
