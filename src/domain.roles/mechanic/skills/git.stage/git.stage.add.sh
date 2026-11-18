@@ -120,7 +120,7 @@ if [[ ! -f "$STATE_FILE" ]]; then
   print_tree_start "git.stage.add"
   print_tree_error "stage not allowed"
   echo ""
-  echo "ask your human to grant stage permission:"
+  echo "ask your sponsor to grant stage permission:"
   echo "  \$ git.commit.uses set --quant N --push allow|block --stage allow"
   exit 2
 fi
@@ -131,7 +131,7 @@ if [[ "$STAGE_ALLOWED" != "allow" ]]; then
   print_tree_start "git.stage.add"
   print_tree_error "stage not allowed"
   echo ""
-  echo "ask your human to grant stage permission:"
+  echo "ask your sponsor to grant stage permission:"
   echo "  \$ git.commit.uses set --quant N --push allow|block --stage allow"
   exit 2
 fi

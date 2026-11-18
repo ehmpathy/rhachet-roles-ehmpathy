@@ -109,7 +109,7 @@ if [[ ! -f "$STATE_FILE" ]]; then
     print_turtle_header "hold up dude..."
     print_tree_start "git.branch.rebase begin"
     echo "   └─ ✋ ConstraintError: no commit quota set"
-    print_coconut_hint "ask your human to grant permission" \
+    print_coconut_hint "ask your sponsor to grant permission" \
       "rhx git.commit.uses set --quant N --push allow"
   )"
   exit 2
@@ -125,7 +125,7 @@ if [[ "$PUSH_ALLOWED" != "allow" ]]; then
     print_turtle_header "hold up dude..."
     print_tree_start "git.branch.rebase begin"
     echo "   └─ ✋ ConstraintError: rebase requires push permission"
-    print_coconut_hint "ask your human to grant permission" \
+    print_coconut_hint "ask your sponsor to grant permission" \
       "rhx git.commit.uses set --quant N --push allow"
   )"
   exit 2
@@ -137,7 +137,7 @@ if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" == "apply" ]]; then
     print_turtle_header "hold up dude..."
     print_tree_start "git.branch.rebase begin"
     echo "   └─ ✋ ConstraintError: no commit uses left"
-    print_coconut_hint "ask your human to grant more" \
+    print_coconut_hint "ask your sponsor to grant more" \
       "rhx git.commit.uses set --quant N --push allow"
   )"
   exit 2
@@ -257,7 +257,8 @@ git fetch origin "$DEFAULT_BRANCH" 2>/dev/null || {
 # get rebase info
 ######################################################################
 COMMITS_TO_REBASE=$(get_commits_to_rebase "origin/$DEFAULT_BRANCH")
-COMMIT_COUNT=$(echo "$COMMITS_TO_REBASE" | grep -c . || echo "0")
+# .note = grep -c prints its own 0 on no match (exit 1); `|| true` keeps that one 0
+COMMIT_COUNT=$(echo "$COMMITS_TO_REBASE" | grep -c . || true)
 BEHIND_COUNT=$(get_behind_count "origin/$DEFAULT_BRANCH")
 COMMITS_BEHIND=$(get_commits_behind "origin/$DEFAULT_BRANCH")
 

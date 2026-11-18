@@ -12,8 +12,7 @@
 #   - detail 2" | rhx git.commit.set -m @stdin                    # plan (preview)
 #   echo "..." | rhx git.commit.set -m @stdin --mode apply        # apply (commit)
 #   echo "..." | rhx git.commit.set -m @stdin --mode apply --push # apply + push
-#   echo "..." | rhx git.commit.set -m @stdin --unstaged include  # include untracked
-#   echo "..." | rhx git.commit.set -m @stdin --unstaged ignore   # ignore untracked
+#   echo "..." | rhx git.commit.set -m @stdin --unstaged include|ignore  # untracked
 #
 # message format:
 #   first line = commit header (required)
@@ -25,7 +24,7 @@
 #     if one exists, else this machine's git config where it names a human
 #   - refuses with exit 2 where neither answers (never guesses one; never
 #     reads gh)
-#   - forbids adhoc Co-authored-by in input message (skill sets it automatically)
+#   - forbids adhoc Co-authored-by in the message (the skill sets it)
 #   - requires quota from git.commit.uses
 #   - push only if allowed and requested
 #   - fails fast if unstaged changes exist (unless --unstaged ignore|include)
@@ -77,7 +76,13 @@ STATE_FILE="$METER_DIR/git.commit.uses.jsonc"
 #          this change authored in the same diff.
 ######################################################################
 render_body_as_tree_lines() {
-  local body="$1"
+  local body="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      body=*) body="${arg#body=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
+    esac
+  done
   local lines
   readarray -t lines <<< "$body"
   local count=${#lines[@]}
@@ -129,7 +134,13 @@ render_body_as_tree_lines() {
 #        authored now pick a glyph, never a whole line.
 ######################################################################
 render_files_as_tree_lines() {
-  local files="$1"
+  local files="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      files=*) files="${arg#files=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
+    esac
+  done
   local lines
   readarray -t lines <<< "$files"
   local count=${#lines[@]}
@@ -156,7 +167,13 @@ render_files_as_tree_lines() {
 # helper: extract commit prefix (fix, feat, chore, etc.) from header
 ######################################################################
 get_commit_prefix() {
-  local header="$1"
+  local header="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      header=*) header="${arg#header=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
+    esac
+  done
   if [[ "$header" =~ ^([a-z]+)[\(:] ]]; then
     echo "${BASH_REMATCH[1]}"
   else
@@ -168,7 +185,13 @@ get_commit_prefix() {
 # helper: check if header has a scope (e.g., fix(api): not fix:)
 ######################################################################
 has_scope() {
-  local header="$1"
+  local header="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      header=*) header="${arg#header=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
+    esac
+  done
   # extract scope via sed - returns non-empty if scope present
   # e.g., "fix(api): msg" → "api", "fix: msg" → ""
   local scope
@@ -201,8 +224,14 @@ has_scope() {
 #        of a render can flip it. clamp: set `[case2]` and `[case30]` assert
 #        no wave reminder on a failed push.
 is_push_shipped() {
-  local do_push="$1"
-  local push_result_status="$2"
+  local do_push="" push_result_status="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      do_push=*) do_push="${arg#do_push=}" ;;
+      push_result_status=*) push_result_status="${arg#push_result_status=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
+    esac
+  done
   [[ "$do_push" == true && "$push_result_status" == "pushed" ]]
 }
 
@@ -219,8 +248,14 @@ is_push_shipped() {
 #        push.sh's raw `.status`, so the pair can never disagree
 #        (rule.forbid.inline-decode-friction).
 is_push_failed() {
-  local do_push="$1"
-  local push_result_status="$2"
+  local do_push="" push_result_status="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      do_push=*) do_push="${arg#do_push=}" ;;
+      push_result_status=*) push_result_status="${arg#push_result_status=}" ;;
+      *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
+    esac
+  done
   [[ "$do_push" == true && "$push_result_status" != "pushed" ]]
 }
 
@@ -507,7 +542,7 @@ if [[ -z "$EFFECTIVE_LEVEL" ]]; then
 fi
 
 # extract commit prefix from header
-COMMIT_PREFIX=$(get_commit_prefix "$HEADER")
+COMMIT_PREFIX=$(get_commit_prefix header="$HEADER")
 
 # skip validation for chore, docs, refactor, test, ci, build, perf, style prefixes
 case "$COMMIT_PREFIX" in
@@ -677,7 +712,7 @@ else
   fi
 
   # guard: first commit must have a scope
-  if ! has_scope "$HEADER"; then
+  if ! has_scope header="$HEADER"; then
     emit_both "$(
       print_turtle_header "bummer dude..."
       print_tree_start "git.commit.set"
@@ -773,7 +808,7 @@ if [[ ! -f "$STATE_FILE" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
     print_tree_constraint "no commit quota set"
-    print_instruction "ask your human to grant:" "  \$ git.commit.uses set --quant N --push allow|block"
+    print_instruction "ask your sponsor to grant:" "  \$ git.commit.uses set --quant N --push allow|block"
   )"
   exit 2  # blocked by constraints
 fi
@@ -800,7 +835,7 @@ if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" != "plan" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
     print_tree_constraint "no commit uses left"
-    print_instruction "ask your human to grant more:" "  \$ git.commit.uses set --quant N --push allow|block"
+    print_instruction "ask your sponsor to grant more:" "  \$ git.commit.uses set --quant N --push allow|block"
   )"
   exit 2  # blocked by constraints
 fi
@@ -811,7 +846,7 @@ if [[ "$DO_PUSH" == true && "$PUSH_ALLOWED" != "allow" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
     print_tree_constraint "push not allowed in current grant"
-    print_instruction "ask your human to grant with --push allow" ""
+    print_instruction "ask your sponsor to grant with --push allow" ""
   )"
   exit 2  # blocked by constraints
 fi
@@ -1170,7 +1205,7 @@ if [[ "$MODE" == "plan" ]]; then
   echo "   ├─ commit"
   echo "   │  ├─ header: $HEADER"
   echo "   │  ├─ body"
-  render_body_as_tree_lines "$BODY"
+  render_body_as_tree_lines body="$BODY"
   echo "   │  ├─ author"
   echo "   │  │  ├─ name: $ROBOT_NAME"
   echo "   │  │  └─ email: $ROBOT_EMAIL"
@@ -1179,7 +1214,7 @@ if [[ "$MODE" == "plan" ]]; then
   echo "   │  │  ├─ email: $SPONSOR_EMAIL"
   echo "   │  │  └─ from: $SPONSOR_PROVENANCE"
   echo "   │  └─ files"
-  render_files_as_tree_lines "$STAGED_FILES"
+  render_files_as_tree_lines files="$STAGED_FILES"
   if [[ "$DO_PUSH" == true ]]; then
     PUSH_TARGET=$(echo "$PUSH_PLAN_JSON" | jq -r '.push_target')
     PUSH_PR_TITLE=$(echo "$PUSH_PLAN_JSON" | jq -r '.pr_title')
@@ -1386,7 +1421,7 @@ SET_OUTPUT=$(
   echo "   ├─ commit"
   echo "   │  ├─ header: $HEADER"
   echo "   │  ├─ body"
-  render_body_as_tree_lines "$BODY"
+  render_body_as_tree_lines body="$BODY"
   echo "   │  ├─ author"
   echo "   │  │  ├─ name: $ROBOT_NAME"
   echo "   │  │  └─ email: $ROBOT_EMAIL"
@@ -1411,7 +1446,7 @@ SET_OUTPUT=$(
   echo "      └─ push: $PUSH_DISPLAY"
 
   # remind to watch CI after push
-  if is_push_shipped "$DO_PUSH" "$PUSH_RESULT_STATUS"; then
+  if is_push_shipped do_push="$DO_PUSH" push_result_status="$PUSH_RESULT_STATUS"; then
     echo ""
     echo "🌊 now lets ride the release wave and catch any wipeouts"
     echo "   └─ rhx git.release --watch || rhx show.gh.test.errors"
@@ -1420,12 +1455,12 @@ SET_OUTPUT=$(
 
 # stdout always; on a delegated push/pr-open failure, duplicate to stderr too
 echo "$SET_OUTPUT"
-is_push_failed "$DO_PUSH" "$PUSH_RESULT_STATUS" && echo "$SET_OUTPUT" >&2
+is_push_failed do_push="$DO_PUSH" push_result_status="$PUSH_RESULT_STATUS" && echo "$SET_OUTPUT" >&2
 
 # propagate a delegated push/pr-open failure as a non-zero exit — the commit
 # landed, but a composed `git.commit.set … --push` must not report success when
 # the push did not complete, or a chained caller (&&, ci, watch-release) would
 # believe work shipped when none did
-if is_push_failed "$DO_PUSH" "$PUSH_RESULT_STATUS"; then
+if is_push_failed do_push="$DO_PUSH" push_result_status="$PUSH_RESULT_STATUS"; then
   exit "$PUSH_EXIT"
 fi

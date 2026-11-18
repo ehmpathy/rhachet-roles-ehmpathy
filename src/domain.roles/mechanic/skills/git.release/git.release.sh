@@ -284,7 +284,7 @@ if [[ "$MODE" == "apply" ]]; then
     echo ""
     echo "✋ blocked: no commit quota set"
     echo ""
-    echo "   ask your human to grant:"
+    echo "   ask your sponsor to grant:"
     echo "   $ git.commit.uses set --quant N --push allow"
     exit 2
   fi
@@ -297,7 +297,7 @@ if [[ "$MODE" == "apply" ]]; then
     echo ""
     echo "✋ blocked: no commit uses left"
     echo ""
-    echo "   ask your human to grant more:"
+    echo "   ask your sponsor to grant more:"
     echo "   $ git.commit.uses set --quant N --push allow"
     exit 2
   fi

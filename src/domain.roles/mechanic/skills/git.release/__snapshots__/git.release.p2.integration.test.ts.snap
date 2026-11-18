@@ -402,7 +402,7 @@ exports[`git.release.p2 permission requirements given: [case-perm-no-local] appl
 
 ✋ blocked: no commit quota set
 
-   ask your human to grant:
+   ask your sponsor to grant:
    $ git.commit.uses set --quant N --push allow
 "
 `;

@@ -33,7 +33,7 @@ exports[`git.commit.push.sh given: [case5] push not allowed when: [t0] no meter 
 🐚 git.commit.push
    └─ ✋ ConstraintError: push not allowed
 
-ask your human to grant with --push allow:
+ask your sponsor to grant with --push allow:
   $ git.commit.uses set --quant N --push allow
 "
 `;
@@ -44,8 +44,18 @@ exports[`git.commit.push.sh given: [case5] push not allowed when: [t1] meter has
 🐚 git.commit.push
    └─ ✋ ConstraintError: push not allowed
 
-ask your human to grant with --push allow:
+ask your sponsor to grant with --push allow:
   $ git.commit.uses set --quant N --push allow
+"
+`;
+
+exports[`git.commit.push.sh given: [case7] json output plan mode when: [t1] plan mode with --output json, title has a backslash and a quote then: outputs valid json with the title intact 1`] = `
+"{"status":"planned","push_target":"origin/turtle/feature","pr_title":"feat: reef \\\\ path \\"kelp\\"","pr_action":"findsert","auth":"as-ehmpath"}
+"
+`;
+
+exports[`git.commit.push.sh given: [case7] json output plan mode when: [t2] plan mode with --output json, title has a lead dash then: outputs valid json with the title intact 1`] = `
+"{"status":"planned","push_target":"origin/turtle/feature","pr_title":"-n feat: dash-led tide","pr_action":"findsert","auth":"as-ehmpath"}
 "
 `;
 

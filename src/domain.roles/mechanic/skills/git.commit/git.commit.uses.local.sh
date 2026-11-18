@@ -392,7 +392,7 @@ EOF
       print_global_corrupt_note
       print_coconut_hint \
         "no quota is granted on this tree, so commits will refuse" \
-        "git.commit.uses set --quant N --push allow|block   # ask your human"
+        "git.commit.uses set --quant N --push allow|block   # ask your sponsor"
       exit 0
     fi
 

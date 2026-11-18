@@ -43,7 +43,7 @@ exports[`git.branch.rebase.begin given: [case4] no push permission granted when:
    └─ ✋ ConstraintError: rebase requires push permission
 
 🥥 did you know?
-   ├─ ask your human to grant permission
+   ├─ ask your sponsor to grant permission
    └─ rhx git.commit.uses set --quant N --push allow
 "
 `;
@@ -125,7 +125,7 @@ exports[`git.branch.rebase.begin given: [case10] no commit quota file when: [t0]
    └─ ✋ ConstraintError: no commit quota set
 
 🥥 did you know?
-   ├─ ask your human to grant permission
+   ├─ ask your sponsor to grant permission
    └─ rhx git.commit.uses set --quant N --push allow
 "
 `;
@@ -137,7 +137,7 @@ exports[`git.branch.rebase.begin given: [case11] push allowed but no commit uses
    └─ ✋ ConstraintError: no commit uses left
 
 🥥 did you know?
-   ├─ ask your human to grant more
+   ├─ ask your sponsor to grant more
    └─ rhx git.commit.uses set --quant N --push allow
 "
 `;
