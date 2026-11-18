@@ -10,22 +10,7 @@ exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked fr
     "briefs/practices/code.prod/pitofsuccess.typedefs/rule.require.assure-via-type-checks.md",
     "briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md",
   ],
-  "fromAlways": [
-    "briefs/practices/lang.terms/define.exec-vs-apply.md",
-    "briefs/practices/lang.terms/define.prodcode-testcode.terms=prodcode_vs_testcode.md",
-    "briefs/practices/lang.terms/rule.forbid.flag-pr.md",
-    "briefs/practices/lang.terms/rule.forbid.term-dryrun.md",
-    "briefs/practices/lang.terms/rule.forbid.term-script.md",
-    "briefs/practices/lang.terms/rule.forbid.term=dryrun.md",
-    "briefs/practices/lang.terms/rule.forbid.term=existing.md",
-    "briefs/practices/lang.terms/rule.forbid.term=helpers.md",
-    "briefs/practices/lang.terms/rule.forbid.term=normalize.md",
-    "briefs/practices/lang.terms/rule.forbid.term=resolve.md",
-    "briefs/practices/lang.terms/rule.prefer.kind-over-type.md",
-    "briefs/practices/lang.terms/rule.prefer.term-supplier.md",
-    "briefs/practices/lang.terms/rule.require.order.noun_adj.md.pt2.md",
-    "briefs/practices/lang.tones/rule.forbid.shouted-readme.md",
-  ],
+  "fromAlways": [],
 }
 `;
 
@@ -41,65 +26,14 @@ exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked fr
     "briefs/practices/code.prod/pitofsuccess.typedefs/rule.forbid.as-cast.md.min",
     "briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md.min",
   ],
-  "fromAlways": [
-    "briefs/practices/lang.prose/define.simplified-technical-english.md.min",
-    "briefs/practices/lang.prose/define.wick-dense.md.min",
-    "briefs/practices/lang.prose/rule.avoid.articles-copulas.md.min",
-    "briefs/practices/lang.prose/rule.avoid.passive-voice.md.min",
-    "briefs/practices/lang.prose/rule.forbid.chronological-accretion.md.min",
-    "briefs/practices/lang.prose/rule.forbid.rambles.md.min",
-    "briefs/practices/lang.prose/rule.prefer.active-simple-tense.md.min",
-    "briefs/practices/lang.prose/rule.prefer.one-instruction-per-sentence.md.min",
-    "briefs/practices/lang.prose/rule.prefer.short-sentences.md.min",
-    "briefs/practices/lang.prose/rule.prefer.wickup-touched-prose.md.min",
-    "briefs/practices/lang.prose/rule.require.brevity.md.min",
-    "briefs/practices/lang.terms/define.directives.terms=forbid_avoid_prefer_require.md.min",
-    "briefs/practices/lang.terms/rule.forbid.gerunds.md.min",
-    "briefs/practices/lang.terms/rule.require.order.noun_adj.md.min",
-    "briefs/practices/lang.terms/rule.require.treestruct.md.min",
-    "briefs/practices/lang.terms/rule.require.ubiqlang.md.min",
-    "briefs/practices/lang.tones/rule.forbid.buzzwords.md.min",
-    "briefs/practices/lang.tones/rule.forbid.shouts.md.min",
-    "briefs/practices/lang.tones/rule.prefer.lowercase.md.min",
-    "briefs/practices/lang.tones/rule.require.term-human.md.min",
-  ],
+  "fromAlways": [],
 }
 `;
 
 exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked from the package when: [t0] a seat boots --subject 101 then: the skill paths a seat reads match the snapshot, say apart from ref 1`] = `
 {
-  "ref": [
-    "skills/cicd.deflake.sh",
-    "skills/claude.tools/cpsafe.sh",
-    "skills/claude.tools/mvsafe.sh",
-    "skills/claude.tools/rmsafe.sh",
-    "skills/claude.tools/symlink.sh",
-    "skills/claude.tools/teesafe.sh",
-    "skills/declapract.upgrade.sh",
-    "skills/get.package.docs.sh",
-    "skills/git.branch.cutover/git.branch.cutover.sh",
-    "skills/git.branch.uses/git.branch.uses.sh",
-    "skills/git.commit/git.commit.bind.sh",
-    "skills/git.commit/git.commit.uses.sh",
-    "skills/git.pull.comment/git.pull.comment.del.sh",
-    "skills/git.pull.comment/git.pull.comment.sh",
-    "skills/git.pull.description/git.pull.description.sh",
-    "skills/git.pull.title/git.pull.title.sh",
-    "skills/git.pull.watch/git.pull.watch.sh",
-    "skills/permissions.nudges.sh",
-    "skills/set.package/set.package.install.sh",
-    "skills/set.package/set.package.upgrade.sh",
-    "skills/show.gh.action.logs.sh",
-  ],
-  "say": [
-    "skills/claude.tools/sedreplace.sh",
-    "skills/git.commit/git.commit.set.sh",
-    "skills/git.pull.comment/git.pull.comment.get.sh",
-    "skills/git.pull.comment/git.pull.comment.set.sh",
-    "skills/git.repo.test/git.repo.test.sh",
-    "skills/git.stage/git.stage.add.sh",
-    "skills/permissions.get.sh",
-  ],
+  "ref": [],
+  "say": [],
 }
 `;
 
@@ -107,7 +41,7 @@ exports[`mechanic subject.101 given: [case1] a repo with role=mechanic linked fr
 "🧢 roles cost --repo ehmpathy --role mechanic --subject 101
    ├─ tokens  = <n> (full emitted payload, o200k_base)
    ├─ budget  = 30,000 tokens (<pct>% used)
-   ├─ batches = 36 say · 2 ref
+   ├─ batches = 9 say · 1 ref
    ├─ chrome  = <n> tokens (<pct>%) — stats blocks, xml, join seams
    │
    └─ where the tokens go

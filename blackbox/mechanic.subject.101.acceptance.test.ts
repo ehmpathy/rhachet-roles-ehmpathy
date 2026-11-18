@@ -290,11 +290,11 @@ describe('mechanic subject.101', () => {
       });
 
       then(
-        'the subject.101 header explains the union that readout shows',
+        'the subject.101 header explains why the readout holds no always row',
         () => {
-          // a reader who meets ≈12k here finds the reason above the section
-          expect(rows.header).toContain('always ∪ 101');
-          expect(rows.header).toContain('SUBJECT_BUDGETS');
+          // a reader who meets ≈2.6k here finds the opt-out, and where the cap lives, above the section
+          expect(rows.header).toContain('sheds `always`');
+          expect(rows.header).toContain('boot.budget.integration.test.ts');
         },
       );
     });

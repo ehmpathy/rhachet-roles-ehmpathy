@@ -116,8 +116,8 @@ const getOneBootCostInPlace = (input: {
 
 /**
  * .what = the subjects that carry their own cap, apart from the role's whole-boot budget
- * .why = rhachet refuses a `budget:` inside a section and unions `always` into every subject, so a
- *        subject's own cap cannot live in boot.yml; it lives here
+ * .why = rhachet refuses a `budget:` inside a section, so a subject's own cap cannot live in
+ *        boot.yml; it lives here
  */
 const SUBJECT_BUDGETS = [
   { slugRole: 'mechanic', slugSubject: '101', tokens: 10_000 },
@@ -469,7 +469,7 @@ describe('boot.budget', () => {
               slugSubject: cap.slugSubject,
             });
 
-            // cost the slice alone, and the union rhachet boots for `--subject`
+            // cost the slice alone, and the boot a seat reads from the role's own spec at `--subject`
             const pathToSpecSlice = genOneSubjectSliceSpec({
               specSlice,
               dirRoleRel: dirname(pathToRoleSpec),
@@ -481,7 +481,7 @@ describe('boot.budget', () => {
                 slugSubject: cap.slugSubject,
                 timeoutMs: TIMEOUT_MS_COST,
               }),
-              union: getOneBootCost({
+              seat: getOneBootCost({
                 pathToSpec: pathToRoleSpec,
                 slugSubject: cap.slugSubject,
                 timeoutMs: TIMEOUT_MS_COST,
@@ -490,12 +490,12 @@ describe('boot.budget', () => {
           });
 
           then('its slice fits within its cap', () => {
-            // the union is what `roles cost --subject` reads, since rhachet adds always to every
-            // subject; it is logged for the reader, and serves as the control below
+            // the seat cost is what `roles cost --subject` reads from the role's own spec; it is
+            // logged for the reader, and serves as the control below
             console.log(
               [
                 `${cap.slugRole} subject.${cap.slugSubject}: ${costs.slice.tokens.toLocaleString()} / ${cap.tokens.toLocaleString()} tokens (section alone)`,
-                `${cap.slugRole} subject.${cap.slugSubject}: ${costs.union.tokens.toLocaleString()} tokens with always (the union rhachet boots)`,
+                `${cap.slugRole} subject.${cap.slugSubject}: ${costs.seat.tokens.toLocaleString()} tokens (the boot a seat reads)`,
               ].join('\n'),
             );
 
@@ -511,33 +511,24 @@ describe('boot.budget', () => {
             // control: the slice measured aught, and `always` was truly cut from it
             expect(costs.slice.tokens).toBeGreaterThan(0);
 
-            // snap the slice at the nearest thousand, so a drift under the cap still shows; the union
-            // is a control only (logged above), so an `always` edit does not churn this snapshot
+            // snap the slice at the nearest thousand, so a drift under the cap still shows; the seat
+            // cost is a control only (logged above), so an `always` edit does not churn this snapshot
             expect({
               slice: `${asTokensRounded({ tokens: costs.slice.tokens })} / ${asTokensRounded({ tokens: cap.tokens })} tokens (section alone)`,
             }).toMatchSnapshot();
-
-            // tripwire: once rhachet stops its union of `always`, the cap belongs in boot.yml
-            if (costs.slice.tokens >= costs.union.tokens)
-              throw new ConstraintError(
-                'rhachet no longer unions always into a subject; the cap belongs in boot.yml',
-                {
-                  slugSubject: cap.slugSubject,
-                  hint: 'declare the cap as `budget:` in boot.yml, then drop this row from SUBJECT_BUDGETS',
-                },
-              );
           });
 
-          then('the union a seat boots fits within its cap too', () => {
-            // a seat focused on the subject boots always ∪ section, so `always` stays lean enough
-            // for the union to fit; on breach, move a row out of `always` into every other subject
+          then('the boot a seat reads sheds always, so it reads no more than the slice', () => {
+            // the subject declares `inherit: { always: false }`; were `always` absorbed, the seat
+            // would read ~19k more than the slice, so a dropped opt-out fails here
             const breach = asSubjectCapBreach({
               slugRole: cap.slugRole,
               slugSubject: cap.slugSubject,
-              tokens: costs.union.tokens,
+              tokens: costs.seat.tokens,
               cap: cap.tokens,
             });
             expect(breach).toBeNull();
+            expect(costs.seat.tokens).toBeLessThanOrEqual(costs.slice.tokens);
           });
         });
 

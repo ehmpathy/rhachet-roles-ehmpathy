@@ -5,15 +5,14 @@
 #         another first — raise this cap only as a deliberate, reviewed call
 budget:
   tokens: 30_000
-# .note = `always` holds what every seat needs, subject.101 included. the seaturtle persona and the
-#         skills to release, merge, and browse other repos boot in every other subject instead,
-#         repeated in each (wet over dry), so a default or single-subject boot holds them as before
 always:
   briefs:
     say:
-      # tone
+      # identity & tone
+      - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
       - briefs/practices/lang.tones/rule.prefer.lowercase.md
       - briefs/practices/lang.tones/rule.require.term-human.md
+      - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
       - briefs/practices/lang.tones/rule.forbid.buzzwords.md
       - briefs/practices/lang.tones/rule.forbid.shouts.md
 
@@ -38,6 +37,9 @@ always:
       - briefs/practices/lang.prose/rule.prefer.wickup-touched-prose.md
 
     ref:
+      # tone argument — the why behind rule.im_an.ehmpathy_seaturtle, which stays in say
+      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
+
       # filename enforcement via hooks — ref only (hooks already block violations)
       - briefs/practices/lang.tones/rule.forbid.shouted-readme.md
 
@@ -64,13 +66,24 @@ always:
       - skills/claude.tools/sedreplace.sh
 
       # git commit
+      - skills/git.commit/git.commit.push.sh
       - skills/git.commit/git.commit.set.sh
 
+      # git branch
+      - skills/git.branch.rebase/git.branch.rebase.sh
+
+      # git release
+      - skills/git.release/git.release.sh
+
       # git repo
+      - skills/git.repo.get/git.repo.get.sh
       - skills/git.repo.test/git.repo.test.sh
 
       # git stage
       - skills/git.stage/git.stage.add.sh
+
+      # github actions
+      - skills/show.gh.test.errors.sh
 
       # github pr comments: read, upsert by key (delete is a ref, below)
       - skills/git.pull.comment/git.pull.comment.get.sh
@@ -110,8 +123,9 @@ always:
       # cicd — a route, run on purpose
       - skills/cicd.deflake.sh
 
-      # git pull comment — the spaced-verb dispatcher (git.pull.comment get|set|del), and del, a rare deliberate act
+      # git pull comment — the spaced-verb dispatcher (git.pull.comment get|set|del)
       - skills/git.pull.comment/git.pull.comment.sh
+      # git pull comment del — a rare act; refuses a human's comment
       - skills/git.pull.comment/git.pull.comment.del.sh
 
       # git pull watch — the pr-watch daemon dispatcher (git.pull.watch get|set|del); the boot hook surfaces it
@@ -149,10 +163,6 @@ always:
 subject.code.prod:
   briefs:
     say:
-      # persona — here, not in always, so subject.101 skips it (repeated in each subject)
-      - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
-      - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
-
       # procedures
       - briefs/practices/code.prod/evolvable.procedures/rule.require.input-context-pattern.md.pt1.md
       - briefs/practices/code.prod/evolvable.procedures/rule.require.arrow-only.md
@@ -214,9 +224,6 @@ subject.code.prod:
       - briefs/practices/code.prod/evolvable.domain.objects/ref.package.domain-objects.[ref].md
 
     ref:
-      # persona argument — the why behind rule.im_an.ehmpathy_seaturtle, which stays in say
-      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
-
       # procedure peers — the say rules above carry the core of each
       - briefs/practices/code.prod/evolvable.procedures/rule.require.input-options-pattern.md
       - briefs/practices/code.prod/evolvable.procedures/rule.require.hook-wrapper-pattern.md
@@ -276,22 +283,9 @@ subject.code.prod:
       # lint
       - briefs/practices/code.prod/pitofsuccess.lint/rule.forbid.dpdm-exclude-change.md
 
-  skills:
-    say:
-      # push, merge, release, other repos — here, not in always, so subject.101 skips them
-      - skills/git.commit/git.commit.push.sh
-      - skills/git.branch.rebase/git.branch.rebase.sh
-      - skills/git.release/git.release.sh
-      - skills/git.repo.get/git.repo.get.sh
-      - skills/show.gh.test.errors.sh
-
 subject.code.test:
   briefs:
     say:
-      # persona — here, not in always, so subject.101 skips it (repeated in each subject)
-      - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
-      - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
-
       # errors — the most important rules
       - briefs/practices/code.test/pitofsuccess.errors/rule.forbid.failhide.md
       - briefs/practices/code.test/pitofsuccess.errors/rule.require.failfast.md
@@ -311,9 +305,6 @@ subject.code.test:
       - briefs/practices/code.test/scope.unit/rule.forbid.unit.remote-boundaries.md
 
     ref:
-      # persona argument — the why behind rule.im_an.ehmpathy_seaturtle, which stays in say
-      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
-
       # peers of the say rules — the forbid twin stays say (redundant-expensive-operations carries
       # the useThen cure; integration.mocks carries the acceptance ban)
       - briefs/practices/code.test/frames.behavior/rule.require.useThen-useWhen-for-shared-results.md
@@ -334,50 +325,21 @@ subject.code.test:
       - briefs/practices/code.test/pitofsuccess.portability/rule.forbid.test-assets-dunder.md
       - briefs/practices/code.test/pitofsuccess.portability/rule.require.blackbox-via-selflink.md
 
-  skills:
-    say:
-      # push, merge, release, other repos — here, not in always, so subject.101 skips them
-      - skills/git.commit/git.commit.push.sh
-      - skills/git.branch.rebase/git.branch.rebase.sh
-      - skills/git.release/git.release.sh
-      - skills/git.repo.get/git.repo.get.sh
-      - skills/show.gh.test.errors.sh
-
 subject.arch:
   briefs:
     say:
-      # persona — here, not in always, so subject.101 skips it (repeated in each subject)
-      - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
-      - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
-
       # overlap with code.prod is intentional
       - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.nullable-without-reason.md
       - briefs/practices/code.prod/evolvable.domain.objects/rule.forbid.undefined-attributes.md
       - briefs/practices/code.prod/evolvable.domain.objects/rule.require.immutable-refs.md
 
     ref:
-      # persona argument — the why behind rule.im_an.ehmpathy_seaturtle, which stays in say
-      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
-
       - briefs/practices/code.prod/evolvable.architecture/rule.prefer.wet-over-dry.md
       - briefs/practices/code.prod/evolvable.repo.structure/rule.require.directional-deps.md
-
-  skills:
-    say:
-      # push, merge, release, other repos — here, not in always, so subject.101 skips them
-      - skills/git.commit/git.commit.push.sh
-      - skills/git.branch.rebase/git.branch.rebase.sh
-      - skills/git.release/git.release.sh
-      - skills/git.repo.get/git.repo.get.sh
-      - skills/show.gh.test.errors.sh
 
 subject.flow:
   briefs:
     say:
-      # persona — here, not in always, so subject.101 skips it (repeated in each subject)
-      - briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md
-      - briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md
-
       - briefs/practices/work.flow/rule.require.trust-but-verify.md
       - briefs/practices/work.flow/rule.prefer.scouts-honor.md
       - briefs/practices/work.flow/diagnose/rule.require.clamp-edge-cases.md
@@ -392,9 +354,6 @@ subject.flow:
       - briefs/practices/work.flow/tools/howto.keyrack.[lesson].md
 
     ref:
-      # persona argument — the why behind rule.im_an.ehmpathy_seaturtle, which stays in say
-      - briefs/practices/lang.tones/define.why-seaturtles-love-software.md
-
       # peers — clamp-edge-cases carries test-covered-repairs; the sedreplace skill carries its rule
       - briefs/practices/work.flow/diagnose/rule.require.test-covered-repairs.md
       - briefs/practices/work.flow/refactor/rule.prefer.sedreplace-for-renames.md
@@ -409,25 +368,14 @@ subject.flow:
       - briefs/practices/work.flow/tools/rule.prefer.jq.[demo].md
       - briefs/practices/work.flow/tools/rule.prefer.terraform.md.pt2.md
 
-  skills:
-    say:
-      # push, merge, release, other repos — here, not in always, so subject.101 skips them
-      - skills/git.commit/git.commit.push.sh
-      - skills/git.branch.rebase/git.branch.rebase.sh
-      - skills/git.release/git.release.sh
-      - skills/git.repo.get/git.repo.get.sh
-      - skills/show.gh.test.errors.sh
-
 # .what = the basics: the rules an in-seat cure must meet that no hook enforces
 # .why  = a seat outside mechanic (e.g. a director) enrolls mechanic::101 for the hooks, plus these
 #         few cues, without the full role's boot
-# .note = rhachet unions `always` into every subject and refuses a budget inside a section, so a
-#         101 seat boots always ∪ 101, and boot.budget.integration.test.ts caps both the section
-#         alone and that union. to keep the union under its cap, `always` holds only what a 101
-#         seat needs; the rest boots in every other subject. once rhachet lets a subject opt out of
-#         `always` and accepts a section budget, declare `budget:` here and drop the row from that
-#         test's SUBJECT_BUDGETS
+# .note = sheds `always`: a 101 seat boots this section alone. rhachet refuses a budget inside a
+#         section, so boot.budget.integration.test.ts caps it at 10k
 subject.101:
+  inherit:
+    always: false
   briefs:
     say:
       # errors — a cure that limps past bad state, or hides it, reports a false green

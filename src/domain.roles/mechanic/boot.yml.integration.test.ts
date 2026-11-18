@@ -317,59 +317,20 @@ describe('boot.yml consistency', () => {
       );
 
       then(
-        'say the rows held out of always in every subject but 101, and never in always',
+        'shed always in subject.101 alone, so every other subject boots always as before',
         () => {
-          // a 101 seat cures tools and commits its route; it never releases or merges, and it is not
-          // the seaturtle. each other subject repeats these rows, so its own boot holds them as before
-          const rowsHeldOut = {
-            briefs: [
-              'briefs/practices/lang.tones/rule.im_an.ehmpathy_seaturtle.md',
-              'briefs/practices/lang.tones/rule.prefer.chill-nature-emojis.md',
-            ],
-            skills: [
-              'skills/git.commit/git.commit.push.sh',
-              'skills/git.branch.rebase/git.branch.rebase.sh',
-              'skills/git.release/git.release.sh',
-              'skills/git.repo.get/git.repo.get.sh',
-              'skills/show.gh.test.errors.sh',
-            ],
-          };
+          // a 101 seat boots its section apart from `always`; a dropped opt-out would load ~19k
+          // of always into every director seat
+          expect(bootYml['subject.101']?.inherit).toEqual({ always: false });
 
-          // the persona's argument boots at ref, a peer of the say rule it backs
-          const briefsHeldOutAtRef = [
-            'briefs/practices/lang.tones/define.why-seaturtles-love-software.md',
-          ];
-
-          // every subject but 101 says each row, and refs each ref row
-          const gaps = Object.entries(bootYml)
+          // no other subject sheds always, so the full role and each other focus boot unchanged
+          const sectionsShed = Object.entries(bootYml)
             .filter(
-              ([section]) =>
-                section.startsWith('subject.') && section !== 'subject.101',
+              ([section, subject]) =>
+                section !== 'subject.101' && subject.inherit !== undefined,
             )
-            .flatMap(([section, subject]) => [
-              ...(['briefs', 'skills'] as const).flatMap((kind) =>
-                rowsHeldOut[kind]
-                  .filter((row) => !(subject[kind]?.say ?? []).includes(row))
-                  .map((row) => `${section} lacks ${row}`),
-              ),
-              ...briefsHeldOutAtRef
-                .filter((row) => !(subject.briefs?.ref ?? []).includes(row))
-                .map((row) => `${section} lacks ref ${row}`),
-            ]);
-          expect(gaps).toEqual([]);
-
-          // always holds none, else a 101 seat boots them again
-          const rowsInAlways = (['briefs', 'skills'] as const).flatMap((kind) =>
-            [
-              ...(bootYml.always?.[kind]?.say ?? []),
-              ...(bootYml.always?.[kind]?.ref ?? []),
-            ].filter(
-              (row) =>
-                rowsHeldOut[kind].includes(row) ||
-                briefsHeldOutAtRef.includes(row),
-            ),
-          );
-          expect(rowsInAlways).toEqual([]);
+            .map(([section]) => section);
+          expect(sectionsShed).toEqual([]);
         },
       );
 
@@ -395,10 +356,14 @@ describe('boot.yml consistency', () => {
             .filter(([section]) => section !== 'budget')
             .flatMap(([section, subject]) => [
               ...Object.keys(subject)
-                .filter((key) => !['briefs', 'skills'].includes(key))
+                .filter(
+                  (key) =>
+                    !['briefs', 'skills'].includes(key) &&
+                    !(key === 'inherit' && section.startsWith('subject.')),
+                )
                 .map(
                   (key) =>
-                    `${section}.${key} — a section reads only briefs, skills`,
+                    `${section}.${key} — a section reads only briefs, skills (and a subject, inherit)`,
                 ),
               ...(['briefs', 'skills'] as const).flatMap((kind) =>
                 Object.keys(subject[kind] ?? {})

@@ -6,6 +6,7 @@ import { parse as parseYaml } from 'yaml';
  * .why = shared contract for every parse/collect/find operation below
  */
 export interface BootYmlSubject {
+  inherit?: { always?: boolean };
   briefs?: { say?: string[]; ref?: string[] };
   skills?: { say?: string[]; ref?: string[] };
 }
