@@ -16,6 +16,8 @@
 #   - plan by default; apply reads back + hash-checks
 #   - refuses a new comment with no --key, a foreign or twin key (exit 2)
 #   - refuses the pr description; it is no comment
+#   - into a public repo, holds the write with a nudge until --promise
+#     text-to-public-repo-is-anonymized; a private or internal repo passes
 ######################################################################
 set -euo pipefail
 
@@ -33,12 +35,13 @@ REPO_IN=""
 AUTH="$AUTH_DEFAULT"
 MODE="plan"
 OUTPUT="tree"
+PROMISE=""
 
 # .what = print the usage tree: every flag, its default, and an example
 # .why  = --help is the one authoritative flag list; the file header names none
 help() {
   cat <<'EOF'
-usage: git.pull.comment.set (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+usage: git.pull.comment.set (--key <k> [--reply-to <id>] | --id <id> --kind issue|review) --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--promise text-to-public-repo-is-anonymized]
 
 options:
   --key <k>                    a top-level comment, upserted by key: absent → post, differs → edit, same → no-op
@@ -50,6 +53,12 @@ options:
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
   --output tree|json           the output shape (default: tree)
+  --promise text-to-public-repo-is-anonymized
+                               owed on a write into a public repo: you checked the
+                               comment holds no private org, repo, route, pr or
+                               issue number, internal name, or business detail.
+                               absent, a public write halts with a nudge (exit 2);
+                               a private or internal repo needs none
   --help, -h                   show this help
 EOF
 }
@@ -71,8 +80,9 @@ while [[ $# -gt 0 ]]; do
   # split --flag=value into two args, so both forms parse one way
   [[ "$1" == --*=* ]] && set -- "${1%%=*}" "${1#*=}" "${@:2}"
   check_flag_has_value "$1" "$#" "${2:-}" git.pull.comment.set \
-    --skill --repo --role --which --key --reply-to --id --kind --from --in --auth --mode --output
+    --skill --repo --role --which --key --reply-to --id --kind --from --in --auth --mode --output --promise
   case "$1" in
+    --promise) PROMISE="${2:-}"; shift 2 ;;
     --skill|--repo|--role) shift 2 ;;
     --) shift ;;
     --which) PR="${2:-}"; shift 2 ;;
@@ -96,6 +106,7 @@ set_comment_output "$OUTPUT"
 check_pr_number "$PR" git.pull.comment.set
 check_auth_arg "$AUTH"
 check_mode_arg "$MODE"
+check_promise_arg "$PROMISE"
 [[ -n "$FROM" ]] || fail_comment_constraint "--from <path|@stdin> is required" "--from ./.temp/reply.md"
 [[ "$FROM" == "@stdin" || -f "$FROM" ]] || fail_comment_constraint "--from '$FROM' is not a file" "name a body file that exists"$'\n'"pipe the body in via --from @stdin"
 
@@ -318,6 +329,13 @@ if [[ "$VERDICT" == "no-op" ]]; then
   emit "already there — no-op" "${ID:-$PR}" "$CUR_URL"
   exit 0
 fi
+
+# hold a write into a public repo until the caller promises the text is anonymized;
+# plan too, so the nudge shows before apply. a no-op above sends no text, so it passes
+STDIN_PIPE=""
+[[ "$FROM" == "@stdin" ]] && STDIN_PIPE="cat ./.temp/reply.md | "
+check_text_promise "$PROMISE" "the comment holds" \
+  "$(as_cmd_with_promise_text_public "$(as_comment_cmd_in_mode set "$MODE" "${ORIG_ARGS[@]}")" "$STDIN_PIPE" "$STDIN_NOTE")"
 
 # plan: say what would happen, write naught
 if [[ "$MODE" == "plan" ]]; then

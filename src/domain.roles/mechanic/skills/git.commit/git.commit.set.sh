@@ -30,6 +30,8 @@
 #   - push only if allowed and requested
 #   - fails fast if unstaged changes exist (unless --unstaged ignore|include)
 #   - defaults to plan mode (preview only); use --mode apply to execute
+#   - with --push into a public repo, holds before the commit with a nudge
+#     until --promise text-to-public-repo-is-anonymized; private or internal pass
 ######################################################################
 set -euo pipefail
 
@@ -266,12 +268,23 @@ fetch_robot_token() {
 source "$SCRIPT_DIR/git.commit.operations.sh"
 set_meter_scope commit
 
+# .why = the public-repo text promise: its value, the visibility rule, the nudge
+# shellcheck source=../git/git.promise.operations.sh
+source "$SCRIPT_DIR/../git/git.promise.operations.sh"
+
+# the caller's argv, kept whole: the push nudge's rerun line names the exact command
+ORIG_ARGS=("$@")
+
 # parse arguments
 MESSAGE=""
+MESSAGE_FROM_STDIN=false
 DO_PUSH=false
 UNSTAGED=""
 MODE="plan"
-PROMISE=""
+# --promise repeats: each value is one promise, and each is checked where it is owed
+PROMISES=()
+PROMISE_NETNEW=false
+PROMISE_TEXT_PUBLIC_GIVEN=false
 AUTH="$AUTH_DEFAULT" # shared default from git.commit.operations.sh
 
 while [[ $# -gt 0 ]]; do
@@ -286,6 +299,7 @@ while [[ $# -gt 0 ]]; do
         if [[ "$1" == "@stdin" ]]; then
           # read message from stdin
           MESSAGE=$(cat)
+          MESSAGE_FROM_STDIN=true
         else
           MESSAGE="$1"
         fi
@@ -335,11 +349,14 @@ while [[ $# -gt 0 ]]; do
       #    malformed input on this parser is a constraint at exit 2. the
       #    same guard `--who` already carries in git.commit.sponsor.sh, for
       #    this identical reason.
+      #    a bare flag records an empty promise, which the check below refuses
       shift
+      PROMISE_VALUE=""
       if [[ $# -gt 0 && "$1" != --* ]]; then
-        PROMISE="$1"
+        PROMISE_VALUE="$1"
         shift
       fi
+      PROMISES+=("$PROMISE_VALUE")
       ;;
     --help|-h)
       echo "usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--mode plan|apply] [--push] [--auth as-ehmpath|as-human]"
@@ -362,6 +379,14 @@ while [[ $# -gt 0 ]]; do
       echo "  --promise is-netnew-behavior"
       echo "                         confirm a feat: commit is net-new behavior"
       echo "                         (answers the nudge on a no-level branch)"
+      echo "  --promise text-to-public-repo-is-anonymized"
+      echo "                         owed with --push into a public repo: you checked the"
+      echo "                         commit messages, which become the pr title and"
+      echo "                         description, hold no private org, repo, route, pr or"
+      echo "                         issue number, internal name, or business detail."
+      echo "                         absent, a public --push halts with a nudge (exit 2),"
+      echo "                         before the commit; a private or internal repo needs none"
+      echo "                         (--promise repeats: pass both when both are owed)"
       echo "  --help, -h             show this help"
       # .why = a MANDATORY precondition belongs on the help surface, not only
       #        in the refusal that fires once it is unmet. a human who reads
@@ -473,6 +498,15 @@ validate_enum_arg "$AUTH" "--auth" \
 validate_enum_arg "$MODE" "--mode" \
   "usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--mode plan|apply]" \
   plan apply
+# each --promise names one promise this skill knows, or it is refused before any call
+# .note = the ${a[@]+...} form: an empty array under `set -u` is unbound in bash 3.2
+for PROMISE_VALUE in ${PROMISES[@]+"${PROMISES[@]}"}; do
+  validate_enum_arg "$PROMISE_VALUE" "--promise" \
+    "usage: echo 'header\n\n- body' | git.commit.set -m @stdin [--promise is-netnew-behavior] [--promise $PROMISE_TEXT_PUBLIC]" \
+    is-netnew-behavior "$PROMISE_TEXT_PUBLIC"
+  if [[ "$PROMISE_VALUE" == "is-netnew-behavior" ]]; then PROMISE_NETNEW=true; fi
+  if is_promise_text_public "$PROMISE_VALUE"; then PROMISE_TEXT_PUBLIC_GIVEN=true; fi
+done
 
 # guard: bound level constraint with inference + hard-nudge
 LEVEL_FILE="$REPO_ROOT/.branch/.bind/git.commit.level"
@@ -552,7 +586,7 @@ case "$COMMIT_PREFIX" in
       # no level (none): hard-nudge on feat, allow fix
       if [[ "$COMMIT_PREFIX" == "feat" ]]; then
         # check for --promise is-netnew-behavior
-        if [[ "$PROMISE" != "is-netnew-behavior" ]]; then
+        if [[ "$PROMISE_NETNEW" != "true" ]]; then
           emit_both "$(
             print_turtle_header "hold up, dude..."
             print_tree_start "git.commit.set"
@@ -1050,6 +1084,22 @@ if [[ "$AUTH" == "as-ehmpath" && "${NODE_ENV:-}" != "test" ]]; then
 fi
 IFS=$'\t' read -r ROBOT_NAME ROBOT_EMAIL < <(get_one_seaturtle_identity "$ROBOT_TOKEN")
 
+# guard: a --push into a public repo waits on the anonymized promise, before any
+# stage or commit: the commit messages become public text once pushed (F1, F6).
+# the promise skips the read; the caller already checked the text (F5)
+if [[ "$DO_PUSH" == true && "$PROMISE_TEXT_PUBLIC_GIVEN" != true ]]; then
+  # a message piped via @stdin is spent once read, so the rerun pipes it again
+  SET_RERUN_PIPE=""
+  SET_RERUN_NOTE=""
+  if [[ "$MESSAGE_FROM_STDIN" == true ]]; then
+    SET_RERUN_PIPE="cat ./.temp/commit.md | "
+    SET_RERUN_NOTE="   # pipe the same message in again"
+  fi
+  hold_push_text_until_promised \
+    auth="$AUTH" token="$ROBOT_TOKEN" output=tree \
+    rerun="$(as_cmd_with_promise_text_public "$(as_shell_cmd_without_passthrough "rhx git.commit.set" "${ORIG_ARGS[@]}")" "$SET_RERUN_PIPE" "$SET_RERUN_NOTE")"
+fi
+
 # detect work outside the index (unstaged mods + untracked files)
 HAS_UNSTAGED_MODS=false
 HAS_UNTRACKED=false
@@ -1142,8 +1192,10 @@ if [[ "$MODE" == "plan" ]]; then
     # json-mode invocation's stderr is discarded: on the failure path below we
     # re-invoke push.sh in tree mode, whose guide already rides BOTH streams, so
     # the cause is never hidden (rule.forbid.failhide).
+    # .note = the push gets the promise: set's own guard above already held a
+    #         public repo until the caller gave it, or found the repo private
     PUSH_PLAN_EXIT=0
-    PUSH_PLAN_JSON=$("$SCRIPT_DIR/git.commit.push.sh" --mode plan --output json --auth "$AUTH" --pr-title-fallback "$HEADER" 2>/dev/null) || PUSH_PLAN_EXIT=$?
+    PUSH_PLAN_JSON=$("$SCRIPT_DIR/git.commit.push.sh" --mode plan --output json --auth "$AUTH" --pr-title-fallback "$HEADER" --promise "$PROMISE_TEXT_PUBLIC" 2>/dev/null) || PUSH_PLAN_EXIT=$?
     if [[ -z "$PUSH_PLAN_JSON" ]]; then
       PUSH_PLAN_JSON='{"status":"error","error":"push plan failed"}'
     fi
@@ -1155,7 +1207,7 @@ if [[ "$MODE" == "plan" ]]; then
       # there is no extra guide to surface. we do NOT re-echo push.sh's json-mode
       # stderr here — in plan mode it only duplicates the tree's error line and
       # would glue a raw json blob onto the human tree on stderr.
-      "$SCRIPT_DIR/git.commit.push.sh" --mode plan --auth "$AUTH" --pr-title-fallback "$HEADER" || true
+      "$SCRIPT_DIR/git.commit.push.sh" --mode plan --auth "$AUTH" --pr-title-fallback "$HEADER" --promise "$PROMISE_TEXT_PUBLIC" || true
       exit 2
     fi
   fi
@@ -1261,7 +1313,7 @@ if [[ "$DO_PUSH" == true ]]; then
   # capture the delegated exit code (not masked by a `|| echo`) so a failed
   # push/pr-open can propagate below — push.sh still emits its json error
   # object on stdout even when it exits non-zero (e.g. the keyrack guide)
-  PUSH_RESULT_JSON=$("$SCRIPT_DIR/git.commit.push.sh" --mode apply --output json --auth "$AUTH" 2>"$PUSH_STDERR_FILE") || PUSH_EXIT=$?
+  PUSH_RESULT_JSON=$("$SCRIPT_DIR/git.commit.push.sh" --mode apply --output json --auth "$AUTH" --promise "$PROMISE_TEXT_PUBLIC" 2>"$PUSH_STDERR_FILE") || PUSH_EXIT=$?
   # guard: if push.sh emitted no json at all (hard crash), synthesize one
   if [[ -z "$PUSH_RESULT_JSON" ]]; then
     PUSH_RESULT_JSON='{"status":"error","error":"push failed"}'

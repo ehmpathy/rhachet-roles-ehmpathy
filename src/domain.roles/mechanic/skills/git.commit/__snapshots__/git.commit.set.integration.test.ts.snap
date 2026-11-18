@@ -699,7 +699,7 @@ exports[`git.commit.set.sh given: [case30] apply + push, keyrack fails, guide su
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 
 🐢 righteous!
 
@@ -733,7 +733,7 @@ exports[`git.commit.set.sh given: [case30] apply + push, keyrack fails, guide su
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 
 🐢 righteous!
 
@@ -796,7 +796,7 @@ exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, th
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 
 🐢 righteous!
 
@@ -830,7 +830,7 @@ exports[`git.commit.set.sh given: [case32] the vision day-in-the-life: guide, th
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 
 🐢 righteous!
 
@@ -906,6 +906,14 @@ options:
   --promise is-netnew-behavior
                          confirm a feat: commit is net-new behavior
                          (answers the nudge on a no-level branch)
+  --promise text-to-public-repo-is-anonymized
+                         owed with --push into a public repo: you checked the
+                         commit messages, which become the pr title and
+                         description, hold no private org, repo, route, pr or
+                         issue number, internal name, or business detail.
+                         absent, a public --push halts with a nudge (exit 2),
+                         before the commit; a private or internal repo needs none
+                         (--promise repeats: pass both when both are owed)
   --help, -h             show this help
 
 requires:
@@ -1428,5 +1436,17 @@ exports[`git.commit.set.sh given: [case53] the LOCAL quota file is damaged when:
    ├─ ask your human to reset the quota, then grant again
    ├─ git.commit.uses del
    └─ git.commit.uses set --quant N
+"
+`;
+
+exports[`git.commit.set.sh given: [case60] a --push into a public repo waits on the anonymized promise when: [t0] apply --push with no promise into a public repo then: it exits 2 with the nudge, whose rerun pipes the message again 1`] = `
+"🐢 hold up — this text goes to a public repo
+   ├─ repo: ehmpathy/surf-demo (public)
+   ├─ check the commit messages, which become the pr title and description, hold none of:
+   │  ├─ a private org, repo, route path, or pr / issue numbers
+   │  ├─ internal endpoint, service, table or product names
+   │  └─ customer, revenue or other business detail
+   └─ once checked, re-run with:
+      └─ cat ./.temp/commit.md | rhx git.commit.set -m @stdin --mode apply --push --auth as-human --promise text-to-public-repo-is-anonymized   # pipe the same message in again
 "
 `;

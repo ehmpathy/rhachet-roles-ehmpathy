@@ -665,4 +665,184 @@ describe('git.pull.title', () => {
       });
     });
   });
+
+  given(
+    '[case30] a title set into a public repo waits on the anonymized promise',
+    () => {
+      const PROMISE = 'text-to-public-repo-is-anonymized';
+      const SCENE_PUBLIC = {
+        ...PULL_SCENE_BARE,
+        store: { visibility: 'public' as const },
+      };
+      // the visibility read: a GET of the repo itself, which a promise skips
+      const countVisibilityReads = (
+        scene: ReturnType<typeof genGitPullScene>,
+      ) =>
+        scene
+          .getCalls()
+          .filter((call) => call.argv.includes('repos/ehmpathy/surf-demo'))
+          .length;
+
+      when('[t0] apply with no promise', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          runSet(scene, { title: TITLE_NEW, args: ['--mode', 'apply'] }),
+        );
+        then('it exits 2 with the nudge, and the title stands', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '🐢 hold up — this text goes to a public repo',
+          );
+          expect(result.stdout).toContain('check the title holds none of:');
+          expect(result.stderr).toContain(
+            '🐢 hold up — this text goes to a public repo',
+          );
+          expect(result.stdout).toContain(
+            `cat ./.temp/title.md | rhx git.pull.title.set --from @stdin --mode apply --promise ${PROMISE}   # pipe the same title in again`,
+          );
+          expect(result.stdout).toMatchSnapshot();
+          expect(scene.getWrites()).toHaveLength(0);
+          expect(scene.getStore().prs['7']!.title).toBe(
+            'feat(lessons): book a surf lesson',
+          );
+        });
+      });
+
+      when('[t1] apply with the promise', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          runSet(scene, {
+            title: TITLE_NEW,
+            args: ['--mode', 'apply', '--promise', PROMISE],
+          }),
+        );
+        then('it writes once, as today, with no visibility read', () => {
+          expect(result.exitCode).toBe(0);
+          expect(scene.getStore().prs['7']!.title).toBe(TITLE_NEW);
+          expect(scene.getWrites()).toHaveLength(1);
+          expect(countVisibilityReads(scene)).toBe(0);
+        });
+      });
+
+      when('[t2] plan with no promise', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          runSet(scene, { title: TITLE_NEW, args: [] }),
+        );
+        then('plan shows the nudge too', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '🐢 hold up — this text goes to a public repo',
+          );
+          expect(scene.getWrites()).toHaveLength(0);
+        });
+      });
+
+      when('[t3] apply with no promise, --output json', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          runSet(scene, {
+            title: TITLE_NEW,
+            args: ['--mode', 'apply', '--output', 'json'],
+          }),
+        );
+        then('stdout is one constraint object that names the rerun', () => {
+          expect(result.exitCode).toBe(2);
+          const parsed = JSON.parse(result.stdout);
+          expect(parsed.error.class).toEqual('ConstraintError');
+          expect(parsed.error.fixes[0]).toContain(`--promise ${PROMISE}`);
+          expect(result.stderr).toContain('🐢 hold up');
+          expect(scene.getWrites()).toHaveLength(0);
+        });
+      });
+
+      when('[t4] apply with no promise into a private or internal repo', () => {
+        const result = useThen('it runs', async () => {
+          const viaPrivate = genGitPullScene({
+            ...PULL_SCENE_BARE,
+            store: { visibility: 'private' },
+          });
+          const viaInternal = genGitPullScene({
+            ...PULL_SCENE_BARE,
+            store: { visibility: 'internal' },
+          });
+          return {
+            private: runSet(viaPrivate, {
+              title: TITLE_NEW,
+              args: ['--mode', 'apply'],
+            }),
+            internal: runSet(viaInternal, {
+              title: TITLE_NEW,
+              args: ['--mode', 'apply'],
+            }),
+            writes:
+              viaPrivate.getWrites().length + viaInternal.getWrites().length,
+          };
+        });
+        then('each writes as today', () => {
+          expect(result.private.exitCode).toBe(0);
+          expect(result.internal.exitCode).toBe(0);
+          expect(result.writes).toBe(2);
+        });
+      });
+
+      when('[t5] apply with no promise, and the visibility read fails', () => {
+        const scene = genGitPullScene({
+          ...PULL_SCENE_BARE,
+          store: { visibilityFail: 'gh: Bad Gateway (HTTP 502)' },
+        });
+        const result = useThen('it runs', async () =>
+          runSet(scene, { title: TITLE_NEW, args: ['--mode', 'apply'] }),
+        );
+        then('it holds the repo as public, with the cause', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '(visibility unreadable, held as public)',
+          );
+          expect(result.stdout).toContain('cause: gh: Bad Gateway (HTTP 502)');
+          expect(scene.getWrites()).toHaveLength(0);
+        });
+      });
+
+      when('[t6] a --promise of another value', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          runSet(scene, {
+            title: TITLE_NEW,
+            args: ['--mode', 'apply', '--promise', 'is-netnew-behavior'],
+          }),
+        );
+        then('it is refused before any gh call', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(`--promise must be ${PROMISE}`);
+          expect(scene.getCalls()).toHaveLength(0);
+        });
+      });
+
+      when('[t7] the title already reads so', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          runSet(scene, {
+            title: 'feat(lessons): book a surf lesson',
+            args: ['--mode', 'apply'],
+          }),
+        );
+        then('a no-op sends no text, so it passes with no promise', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('already there — no-op');
+        });
+      });
+
+      when('[t8] set --help', () => {
+        const scene = genGitPullScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          scene.run(skill('git.pull.title.set'), ['--help']),
+        );
+        then('the help names the promise', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(`--promise ${PROMISE}`);
+        });
+      });
+    },
+  );
 });

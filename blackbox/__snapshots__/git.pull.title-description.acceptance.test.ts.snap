@@ -19,7 +19,7 @@ example:
   rhx git.pull.description get --into ./.temp/body.md
   rhx git.pull.description set --from ./.temp/body.md
 ",
-  "descSet": "usage: git.pull.description.set --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+  "descSet": "usage: git.pull.description.set --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--promise text-to-public-repo-is-anonymized]
 
 options:
   --from <path|@stdin>         the body; written with the seaturtle attribution as its last line
@@ -28,6 +28,12 @@ options:
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
   --output tree|json           the output shape (default: tree)
+  --promise text-to-public-repo-is-anonymized
+                               owed on a write into a public repo: you checked the
+                               description holds no private org, repo, route, pr or
+                               issue number, internal name, or business detail.
+                               absent, a public write halts with a nudge (exit 2);
+                               a private or internal repo needs none
   --help, -h                   show this help
 
 example:
@@ -51,7 +57,7 @@ example:
   rhx git.pull.title get --into ./.temp/title.md
   rhx git.pull.title set --from ./.temp/title.md
 ",
-  "titleSet": "usage: git.pull.title.set --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json]
+  "titleSet": "usage: git.pull.title.set --from <path|@stdin> [--which <n>] [--in <owner/name>] [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--promise text-to-public-repo-is-anonymized]
 
 options:
   --from <path|@stdin>         the new title, one line; from a file, or piped in
@@ -60,6 +66,12 @@ options:
   --mode plan|apply            plan shows preview, apply writes and reads back (default: plan)
   --auth as-ehmpath|as-human   who writes (default: as-ehmpath)
   --output tree|json           the output shape (default: tree)
+  --promise text-to-public-repo-is-anonymized
+                               owed on a write into a public repo: you checked the
+                               title holds no private org, repo, route, pr or issue
+                               number, internal name, or business detail. absent,
+                               a public write halts with a nudge (exit 2); a
+                               private or internal repo needs none
   --help, -h                   show this help
 
 example:

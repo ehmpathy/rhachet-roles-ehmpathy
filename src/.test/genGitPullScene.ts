@@ -52,8 +52,14 @@ if (argv[0] !== 'api') fail('stub gh: only api');
 if (argv[1] === 'graphql') out({ data: { viewer: { login: asHuman ? state.loginHuman : state.loginSelf } } });
 const methodAt = argv.indexOf('--method');
 const method = methodAt >= 0 ? argv[methodAt + 1] : 'GET';
+const endpoint = argv.slice(1).filter((a, i, all) => !a.startsWith('--') && all[i - 1] !== '--method' && all[i - 1] !== '--input' && all[i - 1] !== '--jq')[0];
+// the repo itself: its visibility, read via --jq .visibility; only visibilityFail fails this read
+if (endpoint.toLowerCase() === ('repos/' + state.repo).toLowerCase() && method === 'GET') {
+  if (state.visibilityFail) fail(state.visibilityFail);
+  writeAll(1, state.visibility + '\n');
+  process.exit(0);
+}
 if (state.fail && (!state.failMethod || state.failMethod === method)) fail(state.fail);
-const endpoint = argv.slice(1).filter((a, i, all) => !a.startsWith('--') && all[i - 1] !== '--method' && all[i - 1] !== '--input')[0];
 const base = 'repos/' + state.repo + '/';
 if (!endpoint.toLowerCase().startsWith(base.toLowerCase())) fail('gh: Not Found (HTTP 404)');
 const rest = endpoint.slice(base.length);
@@ -101,6 +107,11 @@ export type PullSceneStore = {
   humanLoggedOut: boolean;
   fail: string | null;
   failMethod: 'GET' | 'PATCH' | null;
+  // the repo's visibility, as github answers it; private by default, so a case
+  // meets the public-repo text promise only where it asks to
+  visibility: 'public' | 'private' | 'internal';
+  // a failure of the visibility read alone (network, auth), e.g. 'HTTP 502'
+  visibilityFail: string | null;
   prs: Record<
     string,
     {
@@ -184,6 +195,8 @@ export const setGitPullStubInto = (input: {
     humanLoggedOut: false,
     fail: null,
     failMethod: null,
+    visibility: 'private',
+    visibilityFail: null,
     prs: {
       '7': {
         title: 'feat(lessons): book a surf lesson',
