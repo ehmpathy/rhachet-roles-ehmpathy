@@ -69,6 +69,10 @@ describe('git.commit.set.sh', () => {
     branch?: string | null; // null = stay on main, string = use that branch name, undefined = 'fix/test-branch'
     env?: Record<string, string>; // extra env for the subprocess (e.g. fake PATH, empty keyrack token)
     fakeRhachet?: string; // shadow node_modules/.bin/rhachet (the keyrack communicator) with this bash body
+    // .why = a --push run meets the public-repo text gate before its other steps,
+    //        so it gives the promise unless the case tests the gate itself;
+    //        'absent' sends none, so the gate reads visibility
+    promise?: 'given' | 'absent';
   }): {
     stdout: string;
     stderr: string;
@@ -243,6 +247,9 @@ describe('git.commit.set.sh', () => {
       if (msg !== '@stdin' && !msg.includes('\n\n')) {
         finalArgs[messageIdx + 1] = `${msg}\n\n- test change`;
       }
+    }
+    if (finalArgs.includes('--push') && args.promise !== 'absent') {
+      finalArgs.push('--promise', 'text-to-public-repo-is-anonymized');
     }
 
     // always use isolated HOME to prevent global blocker from effects
@@ -982,8 +989,9 @@ exit 1
               // the guide fired and named the concrete idempotent retry command
               expect(first.exitCode).toBe(2);
               expect(first.stderr).toContain('keyrack token not available');
+              // the retry keeps the public-repo promise, so it is not held again
               expect(first.stderr).toContain(
-                'rhx git.commit.push --mode apply --auth as-human',
+                'rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized',
               );
               // lock BOTH streams of attempt 1: the composed set tree (commit
               // landed + push: ✋ ConstraintError) on stdout, the guide on stderr — the first
@@ -996,7 +1004,15 @@ exit 1
               // does not dead-end on the now-empty stage
               const retry = spawnSync(
                 'bash',
-                [pushScriptPath, '--mode', 'apply', '--auth', 'as-human'],
+                [
+                  pushScriptPath,
+                  '--mode',
+                  'apply',
+                  '--auth',
+                  'as-human',
+                  '--promise',
+                  'text-to-public-repo-is-anonymized',
+                ],
                 {
                   cwd: first.tempDir,
                   encoding: 'utf-8' as BufferEncoding,
@@ -1616,6 +1632,8 @@ exit 1`,
             '--message',
             'feat(test): new feature\n\n- add feature',
             '--push',
+            '--promise',
+            'text-to-public-repo-is-anonymized',
           ],
           {
             cwd: tempDir,
@@ -1748,6 +1766,8 @@ exit 1`,
             '--message',
             'cont: third commit\n\n- add third feature',
             '--push',
+            '--promise',
+            'text-to-public-repo-is-anonymized',
           ],
           {
             cwd: tempDir,
@@ -1902,6 +1922,8 @@ exit 1`,
             '--message',
             'cont: B3 third on branch-b\n\n- add B3 feature',
             '--push',
+            '--promise',
+            'text-to-public-repo-is-anonymized',
           ],
           {
             cwd: tempDir,
@@ -2367,6 +2389,8 @@ exit 1`,
             '--message',
             'fix(test): last use\n\n- last commit before revoke',
             '--push',
+            '--promise',
+            'text-to-public-repo-is-anonymized',
           ],
           {
             cwd: tempDir,
@@ -5863,6 +5887,220 @@ exec /usr/bin/git "$@"
           //    the moment one does, `[t0]` above is the test that goes red
           expect(onLaptop).not.toContain('source: self');
           expect(onLaptop).not.toContain('source: supplied');
+        });
+      });
+    },
+  );
+
+  given(
+    '[case60] a --push into a public repo waits on the anonymized promise',
+    () => {
+      const PROMISE = 'text-to-public-repo-is-anonymized';
+      const MESSAGE = 'fix(reef): map the kelp beds\n\n- add the kelp map';
+
+      /**
+       * .what = a gh stub that logs each call and answers `repo view` with a visibility
+       * .mock = gh: github cannot be set public or private on demand per case
+       */
+      const genFakeGh = (input: { visibility: string }) => {
+        const fakeBinDir = genTempDir({
+          slug: 'git-commit-set-gate-bin',
+          git: false,
+        });
+        fs.writeFileSync(
+          path.join(fakeBinDir, 'gh'),
+          `#!/bin/bash
+echo "$*" >> "${fakeBinDir}/gh.calls.log"
+if [[ "$1" == "repo" && "$2" == "view" ]]; then echo "ehmpathy/surf-demo ${input.visibility}"; exit 0; fi
+exit 1`,
+        );
+        fs.chmodSync(path.join(fakeBinDir, 'gh'), '755');
+        const getCalls = (): string[] => {
+          const log = path.join(fakeBinDir, 'gh.calls.log');
+          if (!fs.existsSync(log)) return [];
+          return fs
+            .readFileSync(log, 'utf-8')
+            .split('\n')
+            .filter((line) => line.length > 0);
+        };
+        return { env: { PATH: `${fakeBinDir}:${process.env.PATH}` }, getCalls };
+      };
+      const getHeadSubject = (cwd: string): string =>
+        spawnSync('git', ['log', '-1', '--format=%s'], {
+          cwd,
+          encoding: 'utf-8', // note: library api requires this term
+        }).stdout.trim();
+
+      when('[t0] apply --push with no promise into a public repo', () => {
+        const gh = genFakeGh({ visibility: 'PUBLIC' });
+        const result = useThen('it runs', async () =>
+          runInTempGitRepo({
+            files: { 'reef.txt': 'kelp' },
+            meterState: { uses: 3, push: 'allow' },
+            commitArgs: [
+              '-m',
+              '@stdin',
+              '--mode',
+              'apply',
+              '--push',
+              '--auth',
+              'as-human',
+            ],
+            stdin: MESSAGE,
+            env: gh.env,
+            promise: 'absent',
+          }),
+        );
+        then(
+          'it exits 2 with the nudge, whose rerun pipes the message again',
+          () => {
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain(
+              '🐢 hold up — this text goes to a public repo',
+            );
+            expect(result.stderr).toContain(
+              '🐢 hold up — this text goes to a public repo',
+            );
+            expect(result.stdout).toContain(
+              `cat ./.temp/commit.md | rhx git.commit.set -m @stdin --mode apply --push --auth as-human --promise ${PROMISE}   # pipe the same message in again`,
+            );
+            expect(result.stdout).toMatchSnapshot();
+          },
+        );
+        then(
+          'it holds before the commit: no commit made, no quota spent',
+          () => {
+            expect(getHeadSubject(result.tempDir)).not.toEqual(
+              'fix(reef): map the kelp beds',
+            );
+            const meter = JSON.parse(
+              fs.readFileSync(
+                path.join(result.tempDir, '.meter', 'git.commit.uses.jsonc'),
+                'utf-8',
+              ),
+            );
+            expect(meter.uses).toBe(3);
+          },
+        );
+      });
+
+      when('[t1] plan --push with the promise into a public repo', () => {
+        const gh = genFakeGh({ visibility: 'PUBLIC' });
+        const result = useThen('it runs', async () =>
+          runInTempGitRepo({
+            files: { 'reef.txt': 'kelp' },
+            meterState: { uses: 3, push: 'allow' },
+            commitArgs: ['-m', MESSAGE, '--push'],
+            env: gh.env,
+            promise: 'given',
+          }),
+        );
+        then(
+          'it plans the commit and push, as today, and reads no visibility',
+          () => {
+            expect(result.exitCode).toBe(0);
+            expect(result.stdout).toContain('heres the wave');
+            expect(result.stdout).not.toContain('hold up');
+            expect(
+              gh.getCalls().filter((call) => call.startsWith('repo view')),
+            ).toEqual([]);
+          },
+        );
+      });
+
+      when('[t2] apply with no --push into a public repo', () => {
+        const gh = genFakeGh({ visibility: 'PUBLIC' });
+        const result = useThen('it runs', async () =>
+          runInTempGitRepo({
+            files: { 'reef.txt': 'kelp' },
+            meterState: { uses: 3, push: 'allow' },
+            commitArgs: ['-m', MESSAGE, '--mode', 'apply'],
+            env: gh.env,
+            promise: 'absent',
+          }),
+        );
+        then('a local commit sends no text, so it is not gated', () => {
+          expect(result.exitCode).toBe(0);
+          expect(getHeadSubject(result.tempDir)).toEqual(
+            'fix(reef): map the kelp beds',
+          );
+          expect(gh.getCalls()).toEqual([]);
+        });
+      });
+
+      when('[t3] plan --push with no promise into a private repo', () => {
+        const gh = genFakeGh({ visibility: 'PRIVATE' });
+        const result = useThen('it runs', async () =>
+          runInTempGitRepo({
+            files: { 'reef.txt': 'kelp' },
+            meterState: { uses: 3, push: 'allow' },
+            commitArgs: ['-m', MESSAGE, '--push', '--auth', 'as-human'],
+            env: gh.env,
+            promise: 'absent',
+          }),
+        );
+        then('it plans as today, with no nudge', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).not.toContain('hold up');
+          expect(
+            gh.getCalls().filter((call) => call.startsWith('repo view')),
+          ).toHaveLength(1);
+        });
+      });
+
+      when('[t4] a feat on a no-level branch, with both promises', () => {
+        const gh = genFakeGh({ visibility: 'PUBLIC' });
+        const result = useThen('it runs', async () =>
+          runInTempGitRepo({
+            files: { 'reef.txt': 'kelp' },
+            meterState: { uses: 3, push: 'allow' },
+            branch: 'turtle/reef-map',
+            commitArgs: [
+              '-m',
+              'feat(reef): map the kelp beds\n\n- add the kelp map',
+              '--push',
+              '--promise',
+              'is-netnew-behavior',
+            ],
+            env: gh.env,
+            promise: 'given',
+          }),
+        );
+        then('both promises hold at once, and the plan proceeds', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain('heres the wave');
+          expect(result.stdout).not.toContain('feat requires confirmation');
+          expect(result.stdout).not.toContain('hold up');
+        });
+      });
+
+      when('[t5] a --promise of an unknown value', () => {
+        const gh = genFakeGh({ visibility: 'PUBLIC' });
+        const result = useThen('it runs', async () =>
+          runInTempGitRepo({
+            files: { 'reef.txt': 'kelp' },
+            meterState: { uses: 3, push: 'allow' },
+            commitArgs: ['-m', MESSAGE, '--push', '--promise', 'text-is-fine'],
+            env: gh.env,
+            promise: 'absent',
+          }),
+        );
+        then('it is refused, and names both known promises', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            `--promise must be 'is-netnew-behavior' or '${PROMISE}'`,
+          );
+          expect(gh.getCalls()).toEqual([]);
+        });
+      });
+
+      when('[t6] --help', () => {
+        const result = useThen('it runs', async () =>
+          runInTempGitRepo({ commitArgs: ['--help'], promise: 'absent' }),
+        );
+        then('the help names the promise', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).toContain(`--promise ${PROMISE}`);
         });
       });
     },

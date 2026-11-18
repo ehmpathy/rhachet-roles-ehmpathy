@@ -2473,3 +2473,90 @@ print_local_meter_damaged_fix() {
     "  \$ git.commit.uses del
   \$ git.commit.uses set --quant N --push allow|block"
 }
+
+######################################################################
+# the public-repo text promise, for the skills that push
+# .note = the value, the visibility rule, and the nudge text live in
+#         ../git/git.promise.operations.sh; each push skill sources it
+######################################################################
+
+# .what = the origin's owner/name; empty when origin is not on github
+# .why  = a visibility read that fails still names the repo it held
+get_origin_github_slug() {
+  local url
+  url="$(git remote get-url origin 2>/dev/null || echo "")"
+  url="${url%.git}"
+  [[ "$url" == *github.com[:/]* ]] || return 0
+  printf '%s' "${url##*github.com[:/]}"
+}
+
+# .what = read the repo's visibility, as `gh pr create` resolves the repo;
+#         sets PR_REPO, PR_REPO_VISIBILITY, PR_REPO_VISIBILITY_CAUSE
+# .why  = the pr opens where gh resolves it, so the read asks gh the same way.
+#         a read that fails reads unreadable, which holds as public (fail safe)
+# .note = the read runs under the skill's own credential (fulcrum F5): as-ehmpath
+#         reads with the seaturtle token, as-human with the human's gh login, never
+#         an inherited token. as-ehmpath with no token cannot read, so it holds
+# usage: set_pr_repo_visibility auth=as-ehmpath|as-human token="<token or empty>"
+set_pr_repo_visibility() {
+  local auth="" token="" out="" rc=0 err arg
+  for arg in "$@"; do
+    case "$arg" in
+      auth=*) auth="${arg#auth=}" ;;
+      token=*) token="${arg#token=}" ;;
+    esac
+  done
+  err="$(mktemp)"
+  if [[ "$auth" == "as-ehmpath" && -z "$token" ]]; then
+    rc=1
+    echo "the ehmpath keyrack token is not available to read it; unlock the keyrack, or rerun with the promise" >"$err"
+  fi
+  if [[ "$auth" == "as-ehmpath" && -n "$token" ]]; then
+    out="$(GH_TOKEN="$token" gh repo view --json nameWithOwner,visibility --jq '.nameWithOwner + " " + .visibility' 2>"$err")" || rc=$?
+  fi
+  if [[ "$auth" != "as-ehmpath" ]]; then
+    out="$(env -u GH_TOKEN -u GITHUB_TOKEN gh repo view --json nameWithOwner,visibility --jq '.nameWithOwner + " " + .visibility' 2>"$err")" || rc=$?
+  fi
+  PR_REPO_VISIBILITY_CAUSE="$(head -n 1 "$err")"
+  rm -f "$err"
+  [[ "$rc" == "0" ]] || out=""
+  PR_REPO="${out%% *}"
+  [[ -n "$PR_REPO" ]] || PR_REPO="$(get_origin_github_slug)"
+  [[ -n "$PR_REPO" ]] || PR_REPO="origin"
+  PR_REPO_VISIBILITY="$(as_repo_visibility "${out#* }")"
+  [[ "$rc" == "0" && "$PR_REPO_VISIBILITY" == "unreadable" ]] && PR_REPO_VISIBILITY_CAUSE="github answered no visibility"
+  return 0
+}
+
+# .what = hold a push into a public repo with the nudge, exit 2; return 0 when
+#         the repo is private or internal
+# .why  = the commit messages become the pr title and description, and the
+#         push itself sends them, so the whole push waits on the promise (F1)
+# .note = output=json puts one machine object on stdout and the nudge on
+#         stderr; output=tree puts the nudge on both streams
+# usage: hold_push_text_until_promised auth=... token="..." output=tree|json rerun="<line>"
+hold_push_text_until_promised() {
+  local auth="" token="" output="tree" rerun="" arg nudge
+  for arg in "$@"; do
+    case "$arg" in
+      auth=*) auth="${arg#auth=}" ;;
+      token=*) token="${arg#token=}" ;;
+      output=*) output="${arg#output=}" ;;
+      rerun=*) rerun="${arg#rerun=}" ;;
+    esac
+  done
+  set_pr_repo_visibility auth="$auth" token="$token"
+  is_repo_visibility_ungated "$PR_REPO_VISIBILITY" && return 0
+  nudge="$(as_promise_nudge "$PR_REPO" "$PR_REPO_VISIBILITY" \
+    "the commit messages, which become the pr title and description, hold" \
+    "$rerun" "$PR_REPO_VISIBILITY_CAUSE")"
+  if [[ "$output" == "json" ]]; then
+    echo "$nudge" >&2
+    jq -cn --arg repo "$PR_REPO" --arg visibility "$PR_REPO_VISIBILITY" --arg fix "$rerun" \
+      '{ status: "error", error: "this text goes to a public repo; check it holds naught private, then rerun with the promise", repo: $repo, visibility: $visibility, fix: $fix }'
+    exit 2
+  fi
+  echo "$nudge"
+  echo "$nudge" >&2
+  exit 2
+}

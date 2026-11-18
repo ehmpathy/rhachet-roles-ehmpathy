@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`git.commit.push, via rhachet given: [case1] a repo with the mechanic role linked when: [t0] the push is asked for --help then: the help is snapped 1`] = `
-"usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback "..."] [--debug]
+"usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback "..."] [--promise text-to-public-repo-is-anonymized] [--debug]
 
 options:
   --mode plan|apply            plan shows preview, apply executes (default: plan)
@@ -10,6 +10,13 @@ options:
                                as-human   = the gh cli login (fallback on keyrack failure)
   --output tree|json           tree for standalone, json for composition (default: tree)
   --pr-title-fallback "..."    fallback pr title when no commits on branch yet
+  --promise text-to-public-repo-is-anonymized
+                               owed on a push into a public repo: you checked the
+                               commit messages, which become the pr title and
+                               description, hold no private org, repo, route, pr or
+                               issue number, internal name, or business detail.
+                               absent, a public push halts with a nudge (exit 2);
+                               a private or internal repo needs none
   --debug                      show verbose debug output
   --help, -h                   show this help
 "

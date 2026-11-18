@@ -29,6 +29,10 @@ source "$COMMENT_SKILL_DIR/../git.commit/git.commit.operations.sh"
 #        print_tree_start, print_coconut_hint, is_arg_in_enum)
 # shellcheck source=../git.commit/output.sh
 source "$COMMENT_SKILL_DIR/../git.commit/output.sh"
+# .why = the public-repo text promise: one value, one rule, one nudge across
+#        every writer of pr text (comment, title, description, push)
+# shellcheck source=../git/git.promise.operations.sh
+source "$COMMENT_SKILL_DIR/../git/git.promise.operations.sh"
 
 # .why = fd 3 holds the real stdout, so a refusal raised inside a $(...)
 #        capture still reaches the caller's terminal rather than a variable
@@ -323,6 +327,16 @@ check_output_arg() {
 # .why  = one --auth vocabulary across the mechanic's github verbs
 check_auth_arg() {
   is_arg_in_enum "$1" "${AUTH_VALID_VALUES[@]}" || fail_comment_constraint "--auth must be $(get_enum_choice_list "${AUTH_VALID_VALUES[@]}"), got '$1'" "--auth $AUTH_DEFAULT (the default)"
+}
+
+# .what = check --promise, when given: only the public-repo text promise
+# .why  = a typo or another skill's promise must never pass as this one; the
+#         refusal names the one value, before any gh call
+check_promise_arg() {
+  local promise="$1"
+  [[ -z "$promise" ]] && return 0
+  is_promise_text_public "$promise" || fail_comment_constraint "--promise must be $PROMISE_TEXT_PUBLIC, got '$promise'" \
+    "--promise $PROMISE_TEXT_PUBLIC   # once the text holds naught private"
 }
 
 ######################################################################
@@ -637,6 +651,56 @@ del_one_gh_resource() {
   [[ "$rc" == "0" ]] && return 0
   is_gh_not_found "$detail" && return 3
   fail_gh_call "DELETE $endpoint" "$detail"
+}
+
+# .what = set REPO_VISIBILITY (public | private | internal | unreadable) of
+#         COMMENT_REPO, and REPO_VISIBILITY_CAUSE when the read failed
+# .why  = the text promise gate decides on it. any failure (network, auth,
+#         404) cannot prove the repo private, so it reads unreadable, which
+#         the gate holds as public; the cause rides the nudge, never hidden
+# .note = a global, never a $(...) capture, so both values survive the call
+REPO_VISIBILITY=""
+REPO_VISIBILITY_CAUSE=""
+set_repo_visibility() {
+  local err out rc=0
+  err="$(mktemp)"
+  out="$(run_gh_as_auth api --method GET "repos/$COMMENT_REPO" --jq '.visibility' 2>"$err")" || rc=$?
+  REPO_VISIBILITY_CAUSE="$(head -n 1 "$err")"
+  rm -f "$err"
+  [[ "$rc" == "0" ]] || out=""
+  REPO_VISIBILITY="$(as_repo_visibility "$out")"
+  [[ "$rc" == "0" && "$REPO_VISIBILITY" == "unreadable" ]] && REPO_VISIBILITY_CAUSE="github answered no visibility"
+  return 0
+}
+
+# .what = hold a write of text into a public repo until the caller promises
+#         the text is anonymized; a private or internal repo passes
+# .why  = once sent, an edit keeps the original in the public history, so the
+#         one safe moment to check is before the send. a promise skips the
+#         read: with it, every visibility leads to the same write
+# .note = args: the --promise value, the subject phrase (e.g. "the comment
+#         holds"), the rerun line. exits 2 with the nudge on both streams;
+#         under --output json, stdout holds the family's refusal object
+check_text_promise() {
+  local promise="$1" subject="$2" rerun="$3" block
+  [[ -n "$promise" ]] && return 0
+  set_repo_visibility
+  is_repo_visibility_ungated "$REPO_VISIBILITY" && return 0
+  block="$(as_promise_nudge "$COMMENT_REPO" "$REPO_VISIBILITY" "$subject" "$rerun" "$REPO_VISIBILITY_CAUSE")"
+  if [[ "$COMMENT_OUTPUT" != "json" ]]; then
+    emit_both "$block" >&3
+    exit 2
+  fi
+  printf '%s\n' "$block" >&2
+  jq -n --arg repo "$COMMENT_REPO" --arg visibility "$REPO_VISIBILITY" --arg fix "$rerun" '{
+    error: {
+      class: "ConstraintError",
+      message: "this text goes to a public repo; check it holds naught private, then rerun with the promise",
+      details: ["repo: \($repo) (\($visibility))"],
+      fixes: [$fix]
+    }
+  }' >&3
+  exit 2
 }
 
 # .what = set COMMENT_LOGIN to the current credential's login

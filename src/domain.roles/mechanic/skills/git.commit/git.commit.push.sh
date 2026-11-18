@@ -18,6 +18,8 @@
 #   - an enrolled clone then watches the pr; a failed watch never fails the push
 #   - never decrements uses
 #   - plan by default
+#   - into a public repo, holds the whole push with a nudge until --promise
+#     text-to-public-repo-is-anonymized; a private or internal repo passes
 ######################################################################
 set -euo pipefail
 
@@ -32,6 +34,9 @@ source "$SCRIPT_DIR/keyrack.operations.sh"
 # .why = the pr body this push opens is signed by the one attribution declaration
 # shellcheck source=../git/git.attribution.operations.sh
 source "$SCRIPT_DIR/../git/git.attribution.operations.sh"
+# .why = the public-repo text promise: its value, the visibility rule, the nudge
+# shellcheck source=../git/git.promise.operations.sh
+source "$SCRIPT_DIR/../git/git.promise.operations.sh"
 
 # robot identity (label for messages; guard accepts any seaturtle identity)
 ROBOT_NAME="seaturtle[bot]"
@@ -52,6 +57,11 @@ OUTPUT="tree"
 PR_TITLE_FALLBACK=""
 DEBUG="false"
 AUTH="$AUTH_DEFAULT" # shared default from git.commit.operations.sh
+PROMISE=""
+PROMISE_GIVEN="false"
+
+# the caller's argv, kept whole: the nudge's rerun line names the exact command
+ORIG_ARGS=("$@")
 
 # 🔴 each value arm shifts ONE, then takes a value only if one is really there.
 #    a bare `shift 2` (or `"$2"` under `set -u`) crashes raw at exit 1 when the
@@ -90,12 +100,21 @@ while [[ $# -gt 0 ]]; do
         shift
       fi
       ;;
+    --promise)
+      shift
+      PROMISE=""
+      PROMISE_GIVEN="true"
+      if [[ $# -gt 0 && "$1" != --* ]]; then
+        PROMISE="$1"
+        shift
+      fi
+      ;;
     --debug)
       DEBUG="true"
       shift
       ;;
     --help|-h)
-      echo "usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback \"...\"] [--debug]"
+      echo "usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback \"...\"] [--promise text-to-public-repo-is-anonymized] [--debug]"
       echo ""
       echo "options:"
       echo "  --mode plan|apply            plan shows preview, apply executes (default: plan)"
@@ -104,6 +123,13 @@ while [[ $# -gt 0 ]]; do
       echo "                               as-human   = the gh cli login (fallback on keyrack failure)"
       echo "  --output tree|json           tree for standalone, json for composition (default: tree)"
       echo "  --pr-title-fallback \"...\"    fallback pr title when no commits on branch yet"
+      echo "  --promise text-to-public-repo-is-anonymized"
+      echo "                               owed on a push into a public repo: you checked the"
+      echo "                               commit messages, which become the pr title and"
+      echo "                               description, hold no private org, repo, route, pr or"
+      echo "                               issue number, internal name, or business detail."
+      echo "                               absent, a public push halts with a nudge (exit 2);"
+      echo "                               a private or internal repo needs none"
       echo "  --debug                      show verbose debug output"
       echo "  --help, -h                   show this help"
       exit 0
@@ -134,6 +160,13 @@ done
 validate_enum_arg "$MODE" "--mode" "" plan apply
 validate_enum_arg "$OUTPUT" "--output" "" tree json
 validate_enum_arg "$AUTH" "--auth" "" "${AUTH_VALID_VALUES[@]}"
+# a --promise names the one promise this skill knows, or it is refused before any call
+if [[ "$PROMISE_GIVEN" == "true" ]]; then
+  validate_enum_arg "$PROMISE" "--promise" "" "$PROMISE_TEXT_PUBLIC"
+fi
+# a retry this skill prints keeps the promise the caller gave, so it is not held again
+PROMISE_RETRY_TAIL=""
+[[ -n "$PROMISE" ]] && PROMISE_RETRY_TAIL=" --promise $PROMISE"
 
 # human-readable label for the pr-open auth source (shared with git.commit.set
 # so the composed success tree names the same credential — see get_auth_who_label)
@@ -424,6 +457,24 @@ if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == "master" ]]; then
 fi
 
 ######################################################################
+# GATE: text into a public repo waits on the anonymized promise
+######################################################################
+
+# the promise skips the read: the caller already checked the text (fulcrum F5).
+# the whole push waits, not only the pr: commit messages are public text too (F1)
+if [[ -z "$PROMISE" ]]; then
+  # as-ehmpath reads with the seaturtle token: threaded from git.commit.set, else fetched
+  VISIBILITY_TOKEN=""
+  if [[ "$AUTH" == "as-ehmpath" ]]; then
+    VISIBILITY_TOKEN="${SEATURTLE_PR_TOKEN_VALUE:-}"
+    [[ "${SEATURTLE_PR_TOKEN_PREFETCHED:-}" == "1" ]] || VISIBILITY_TOKEN="$(fetch_github_token 2>/dev/null || echo "")"
+  fi
+  hold_push_text_until_promised \
+    auth="$AUTH" token="$VISIBILITY_TOKEN" output="$OUTPUT" \
+    rerun="$(as_cmd_with_promise_text_public "$(as_shell_cmd_without_passthrough "rhx git.commit.push" ${ORIG_ARGS[@]+"${ORIG_ARGS[@]}"})")"
+fi
+
+######################################################################
 # COMPUTE PR TITLE (from first behavioral commit on branch)
 ######################################################################
 # find the first behavioral commit (fix/feat) - this is stable regardless
@@ -568,9 +619,9 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
     # pushed, so the idempotent retry is git.commit.push (not git.commit.set, which
     # would fail-fast on the now-empty stage). name the concrete command so the
     # guide's advice actually ships it.
-    TOKEN_JSON_ERROR="ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human (or unlock keyrack)"
+    TOKEN_JSON_ERROR="ehmpath keyrack token unavailable — retry: rhx git.commit.push --mode apply --auth as-human${PROMISE_RETRY_TAIL} (or unlock keyrack)"
     # an absent key cannot be unlocked; only a human fill helps, so say so
-    [[ "$KEYRACK_TOKEN_STATUS" == "absent" ]] && TOKEN_JSON_ERROR="ehmpath keyrack token absent — retry: rhx git.commit.push --mode apply --auth as-human (or a human fills the keyrack token)"
+    [[ "$KEYRACK_TOKEN_STATUS" == "absent" ]] && TOKEN_JSON_ERROR="ehmpath keyrack token absent — retry: rhx git.commit.push --mode apply --auth as-human${PROMISE_RETRY_TAIL} (or a human fills the keyrack token)"
     # surface the real fetch cause (network timeout, locked keyrack, daemon down)
     # as a stderr detail line in BOTH modes, so the human learns WHY the fetch
     # failed instead of a generic message (rule.forbid.failhide). it rides stderr —
@@ -581,7 +632,7 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
     emit_pr_open_guide \
       "ehmpath keyrack token not available" \
       "open the pr with the human's github login" \
-      "rhx git.commit.push --mode apply --auth as-human" \
+      "rhx git.commit.push --mode apply --auth as-human${PROMISE_RETRY_TAIL}" \
       "$TOKEN_JSON_ERROR" \
       "$TOKEN_CAUSE"
   fi
@@ -607,7 +658,7 @@ if [[ "$AUTH" == "as-ehmpath" ]]; then
         echo "opening the pr now would show a 3rd contributor on squash."
         echo ""
         echo "fix: open the pr with the human's github login instead — the commit is already pushed"
-        echo "  rhx git.commit.push --mode apply --auth as-human"
+        echo "  rhx git.commit.push --mode apply --auth as-human${PROMISE_RETRY_TAIL}"
       fi
       exit 2  # caller must fix: identities diverged
     fi

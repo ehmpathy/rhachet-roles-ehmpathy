@@ -178,7 +178,7 @@ exports[`git.commit.push.sh given: [case15] as-ehmpath keyrack locked → guide 
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -193,7 +193,7 @@ exports[`git.commit.push.sh given: [case15] as-ehmpath keyrack locked → guide 
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -208,7 +208,7 @@ exports[`git.commit.push.sh given: [case16] keyrack.yml does not declare request
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -223,7 +223,7 @@ exports[`git.commit.push.sh given: [case16] keyrack.yml does not declare request
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -398,7 +398,7 @@ exports[`git.commit.push.sh given: [case20] both keyrack sources locked → guid
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -413,7 +413,7 @@ exports[`git.commit.push.sh given: [case20] both keyrack sources locked → guid
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -468,7 +468,7 @@ exports[`git.commit.push.sh given: [case24] --auth as-ehmpath guides to as-human
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -484,13 +484,13 @@ exports[`git.commit.push.sh given: [case24] --auth as-ehmpath guides to as-human
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 
 cause: <keyrack error, masked>"
 `;
 
 exports[`git.commit.push.sh given: [case25] --auth as-ehmpath keyrack failure in json mode emits a json error on stdout when: [t0] json output, push succeeds, keyrack token unavailable then: stdout carries a machine-readable error, stderr carries the guide 1`] = `
-"{"status":"error","error":"ehmpath keyrack token absent — retry: rhx git.commit.push --mode apply --auth as-human (or a human fills the keyrack token)"}
+"{"status":"error","error":"ehmpath keyrack token absent — retry: rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized (or a human fills the keyrack token)"}
 "
 `;
 
@@ -506,7 +506,7 @@ exports[`git.commit.push.sh given: [case25] --auth as-ehmpath keyrack failure in
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 
 cause: <keyrack error, masked>"
 `;
@@ -677,7 +677,7 @@ exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-ope
 exports[`git.commit.push.sh given: [case30] --auth plan mode reflects the pr-open source when: [t2] --auth json plan then: json carries the auth mode 2`] = `""`;
 
 exports[`git.commit.push.sh given: [case31] --help short-circuits before any keyrack fetch when: [t0] a fake rhachet records if it is ever called then: --help exits 0 with usage and never touches keyrack 1`] = `
-"usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback "..."] [--debug]
+"usage: git.commit.push [--mode plan|apply] [--auth as-ehmpath|as-human] [--output tree|json] [--pr-title-fallback "..."] [--promise text-to-public-repo-is-anonymized] [--debug]
 
 options:
   --mode plan|apply            plan shows preview, apply executes (default: plan)
@@ -686,6 +686,13 @@ options:
                                as-human   = the gh cli login (fallback on keyrack failure)
   --output tree|json           tree for standalone, json for composition (default: tree)
   --pr-title-fallback "..."    fallback pr title when no commits on branch yet
+  --promise text-to-public-repo-is-anonymized
+                               owed on a push into a public repo: you checked the
+                               commit messages, which become the pr title and
+                               description, hold no private org, repo, route, pr or
+                               issue number, internal name, or business detail.
+                               absent, a public push halts with a nudge (exit 2);
+                               a private or internal repo needs none
   --debug                      show verbose debug output
   --help, -h                   show this help
 "
@@ -704,7 +711,7 @@ exports[`git.commit.push.sh given: [case32] EXTERNAL_CALL_TIMEOUT bounds a stall
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -719,7 +726,7 @@ exports[`git.commit.push.sh given: [case32] EXTERNAL_CALL_TIMEOUT bounds a stall
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -752,7 +759,7 @@ but the keyrack token opens the pr as: ehm-a-seaturtle[bot]
 opening the pr now would show a 3rd contributor on squash.
 
 fix: open the pr with the human's github login instead — the commit is already pushed
-  rhx git.commit.push --mode apply --auth as-human
+  rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -807,7 +814,7 @@ exports[`git.commit.push.sh given: [case38] --auth as-ehmpath surfaces the exact
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -822,7 +829,7 @@ exports[`git.commit.push.sh given: [case38] --auth as-ehmpath surfaces the exact
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 
 cause: fake keyrack: get unreachable (host manifest absent)
 fake keyrack: unlock unreachable (host manifest absent)
@@ -842,7 +849,7 @@ exports[`git.commit.push.sh given: [case38b] --auth as-ehmpath names the fix tha
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -857,7 +864,7 @@ exports[`git.commit.push.sh given: [case38b] --auth as-ehmpath names the fix tha
    │     $ rhx keyrack unlock --owner ehmpath --env prep --key EHMPATHY_SEATURTLE_GITHUB_TOKEN
    │
    └─ 2. or open the pr with the human's github login:
-         $ rhx git.commit.push --mode apply --auth as-human
+         $ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
 "
 `;
 
@@ -905,5 +912,43 @@ exports[`git.commit.push.sh given: [case40] the git push transport itself fails 
 cause: To github.com:test/repo.git
  ! [rejected]        HEAD -> turtle/feature (non-fast-forward)
 error: failed to push some refs to 'github.com:test/repo.git'
+"
+`;
+
+exports[`git.commit.push.sh given: [case90] a push into a public repo waits on the anonymized promise when: [t0] apply with no promise into a public repo then: it exits 2 with the nudge on both streams 1`] = `
+"🐢 hold up — this text goes to a public repo
+   ├─ repo: ehmpathy/surf-demo (public)
+   ├─ check the commit messages, which become the pr title and description, hold none of:
+   │  ├─ a private org, repo, route path, or pr / issue numbers
+   │  ├─ internal endpoint, service, table or product names
+   │  └─ customer, revenue or other business detail
+   └─ once checked, re-run with:
+      └─ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
+"
+`;
+
+exports[`git.commit.push.sh given: [case90] a push into a public repo waits on the anonymized promise when: [t5] apply with no promise, and the visibility read fails then: it holds the repo as public, names the cause, and pushes naught 1`] = `
+"🐢 hold up — this text goes to a public repo
+   ├─ repo: origin (visibility unreadable, held as public)
+   │  └─ cause: HTTP 502: Bad Gateway
+   ├─ check the commit messages, which become the pr title and description, hold none of:
+   │  ├─ a private org, repo, route path, or pr / issue numbers
+   │  ├─ internal endpoint, service, table or product names
+   │  └─ customer, revenue or other business detail
+   └─ once checked, re-run with:
+      └─ rhx git.commit.push --mode apply --auth as-human --promise text-to-public-repo-is-anonymized
+"
+`;
+
+exports[`git.commit.push.sh given: [case90] a push into a public repo waits on the anonymized promise when: [t9] as-ehmpath, the keyrack locked, a private repo, no promise then: the read cannot run under the seaturtle token, so it holds as public 1`] = `
+"🐢 hold up — this text goes to a public repo
+   ├─ repo: origin (visibility unreadable, held as public)
+   │  └─ cause: the ehmpath keyrack token is not available to read it; unlock the keyrack, or rerun with the promise
+   ├─ check the commit messages, which become the pr title and description, hold none of:
+   │  ├─ a private org, repo, route path, or pr / issue numbers
+   │  ├─ internal endpoint, service, table or product names
+   │  └─ customer, revenue or other business detail
+   └─ once checked, re-run with:
+      └─ rhx git.commit.push --mode apply --auth as-ehmpath --promise text-to-public-repo-is-anonymized
 "
 `;
