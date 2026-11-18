@@ -60,20 +60,33 @@ as_repo_visibility_label() {
 }
 
 # .what = the caller's rerun line: the command plus the promise, piped again if piped
-# .note = args: the command (the caller's own argv, rendered), a pipe prefix
-#         (empty unless the text came via @stdin), a tail note (empty, or the
-#         "pipe the same text in again" note)
+# .note = cmd = the caller's own argv, rendered; pipe = a prefix, empty unless the
+#         text came via @stdin; note = a tail, empty or the "pipe the same text
+#         in again" note
+# usage: as_cmd_with_promise_text_public cmd="<line>" [pipe="<prefix>"] [note="<tail>"]
 as_cmd_with_promise_text_public() {
-  local cmd="$1" pipe="${2:-}" note="${3:-}"
+  local cmd="" pipe="" note="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      cmd=*) cmd="${arg#cmd=}" ;;
+      pipe=*) pipe="${arg#pipe=}" ;;
+      note=*) note="${arg#note=}" ;;
+    esac
+  done
   printf '%s%s --promise %s%s' "$pipe" "$cmd" "$PROMISE_TEXT_PUBLIC" "$note"
 }
 
-# .what = one argv word, quoted for a shell only when it needs it
-# .why  = a rerun line must paste back as the same command
+# .what = one arg as a shell word a human can read and paste: bare when plain,
+#         else in single quotes (an inner ' closes, escapes, and reopens)
+# .why  = printf %q pastes, yet reads as `feat\(reef\):\ map`; a hint is for a human.
+#         the one copy for the pull and commit families; both source this file
 as_shell_word() {
-  local word="$1"
-  [[ "$word" =~ ^[A-Za-z0-9_./:=@,+-]+$ ]] && { printf '%s' "$word"; return 0; }
-  printf "'%s'" "${word//\'/\'\\\'\'}"
+  local arg="$1" q="'"
+  if [[ "$arg" =~ ^[A-Za-z0-9_./:@=+,%-]+$ ]]; then
+    printf '%s' "$arg"
+    return 0
+  fi
+  printf "'%s'" "${arg//$q/$q\\$q$q}"
 }
 
 # .what = a command line from its head and the caller's argv; rhachet's
@@ -94,10 +107,20 @@ as_shell_cmd_without_passthrough() {
 # .what = the soft nudge a write into a public repo shows before its promise
 # .why  = the check is concrete only when the caller is told what to look for,
 #         in the text this skill sends, and the exact line that continues
-# .note = args: the repo, its visibility, the subject phrase (e.g. "the comment
-#         holds"), the rerun line, the cause of an unreadable read (may be empty)
+# .note = subject = the phrase for the text this skill sends (e.g. "the comment
+#         holds"); cause = why an unreadable read failed (may be empty)
+# usage: as_promise_nudge repo= visibility= subject= rerun= [cause=]
 as_promise_nudge() {
-  local repo="$1" visibility="$2" subject="$3" rerun="$4" cause="${5:-}"
+  local repo="" visibility="" subject="" rerun="" cause="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      repo=*) repo="${arg#repo=}" ;;
+      visibility=*) visibility="${arg#visibility=}" ;;
+      subject=*) subject="${arg#subject=}" ;;
+      rerun=*) rerun="${arg#rerun=}" ;;
+      cause=*) cause="${arg#cause=}" ;;
+    esac
+  done
   echo "🐢 hold up — this text goes to a public repo"
   echo "   ├─ repo: $repo ($(as_repo_visibility_label "$visibility"))"
   [[ "$visibility" != "public" && -n "$cause" ]] && echo "   │  └─ cause: $cause"

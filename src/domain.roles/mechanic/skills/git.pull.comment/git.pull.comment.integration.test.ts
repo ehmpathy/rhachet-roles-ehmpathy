@@ -4131,6 +4131,164 @@ exit 2
           expect(result.stdout).toContain('public');
         });
       });
+
+      when('[t14] a reply with no promise', () => {
+        const scene = genScene({
+          ...SCENE_PUBLIC,
+          comments: [
+            genComment({
+              id: 203,
+              kind: 'review',
+              author: LOGIN_HUMAN,
+              body: 'nit: typo',
+            }),
+          ],
+        });
+        const result = useThen('it runs', async () =>
+          scene.run('set', [
+            '--which',
+            '7',
+            '--reply-to',
+            '203',
+            '--key',
+            'answer',
+            '--from',
+            scene.writeFile('answer.md', 'fixed the typo\n'),
+            '--mode',
+            'apply',
+          ]),
+        );
+        then('the reply is held too, and the thread stands', () => {
+          expect(result.exitCode).toBe(2);
+          expect(result.stdout).toContain(
+            '🐢 hold up — this text goes to a public repo',
+          );
+          expect(result.stdout).toContain(
+            `rhx git.pull.comment.set --which 7 --reply-to 203 --key answer --from ./answer.md --mode apply --promise ${PROMISE}`,
+          );
+          expect(scene.getWrites()).toEqual([]);
+          expect(scene.getStore().comments).toHaveLength(1);
+        });
+      });
+
+      when('[t15] a --promise of another value, in plan and in json', () => {
+        const scene = genScene(SCENE_PUBLIC);
+        const resultPlan = useThen('it runs in plan', async () =>
+          scene.run('set', [
+            '--which',
+            '7',
+            '--key',
+            'status',
+            '--from',
+            scene.writeFile('status.md', 'waves are up\n'),
+            '--promise',
+            'task-to-public-repo-is-anonymized',
+          ]),
+        );
+        const resultJson = useThen('it runs in json', async () =>
+          scene.run('set', [
+            ...argsApply(scene.writeFile('status.md', 'waves are up\n')),
+            '--promise',
+            'task-to-public-repo-is-anonymized',
+            '--output',
+            'json',
+          ]),
+        );
+        then('plan refuses the same, before any gh call', () => {
+          expect(resultPlan.exitCode).toBe(2);
+          expect(resultPlan.stdout).toContain(`--promise must be ${PROMISE}`);
+        });
+        then('json refuses with one constraint object', () => {
+          expect(resultJson.exitCode).toBe(2);
+          const parsed = JSON.parse(resultJson.stdout);
+          expect(parsed.error.class).toEqual('ConstraintError');
+          expect(JSON.stringify(parsed)).toContain(PROMISE);
+        });
+        then('neither run calls gh', () => {
+          expect(scene.getCalls()).toEqual([]);
+        });
+      });
+
+      when('[t16] a plan for a comment that already reads so', () => {
+        const scene = genScene({
+          ...SCENE_PUBLIC,
+          comments: [
+            genComment({
+              id: 101,
+              body: asKeyedBody({ text: 'waves are up', key: 'status' }),
+            }),
+          ],
+        });
+        const result = useThen('it runs', async () =>
+          scene.run('set', [
+            '--which',
+            '7',
+            '--key',
+            'status',
+            '--from',
+            scene.writeFile('status.md', 'waves are up\n'),
+          ]),
+        );
+        then('the plan reports no change, with no nudge', () => {
+          expect(result.exitCode).toBe(0);
+          expect(result.stdout).not.toContain('hold up');
+          expect(getVisibilityReads(scene.getCalls())).toEqual([]);
+          expect(scene.getWrites()).toEqual([]);
+        });
+      });
+
+      when('[t17] apply as-human with no promise', () => {
+        const scene = genScene(SCENE_PUBLIC);
+        const result = useThen('it runs', async () =>
+          scene.run('set', [
+            ...argsApply(scene.writeFile('status.md', 'waves are up\n')),
+            '--auth',
+            'as-human',
+          ]),
+        );
+        then(
+          'the rerun line keeps --auth as-human, as the caller typed it',
+          () => {
+            expect(result.exitCode).toBe(2);
+            expect(result.stdout).toContain(
+              `rhx git.pull.comment.set --which 7 --key status --from ./status.md --auth as-human --mode apply --promise ${PROMISE}`,
+            );
+            expect(scene.getWrites()).toEqual([]);
+          },
+        );
+      });
+
+      when(
+        '[t18] apply under --output json, and the visibility read fails',
+        () => {
+          const scene = genScene({
+            ...SCENE_BARE,
+            store: {
+              visibility: 'private',
+              visibilityFail: 'gh: Bad Gateway (HTTP 502)',
+            },
+          });
+          const result = useThen('it runs', async () =>
+            scene.run('set', [
+              ...argsApply(scene.writeFile('status.md', 'waves are up\n')),
+              '--output',
+              'json',
+            ]),
+          );
+          then(
+            'the details read as the tree does: the held label and the cause',
+            () => {
+              expect(result.exitCode).toBe(2);
+              const parsed = JSON.parse(result.stdout);
+              expect(parsed.error.details).toEqual([
+                `repo: ${REPO} (visibility unreadable, held as public)`,
+                'cause: gh: Bad Gateway (HTTP 502)',
+              ]);
+              expect(scene.getWrites()).toEqual([]);
+            },
+          );
+        },
+      );
     },
   );
 });

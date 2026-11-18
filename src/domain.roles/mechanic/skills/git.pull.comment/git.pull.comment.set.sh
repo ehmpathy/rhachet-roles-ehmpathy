@@ -334,8 +334,8 @@ fi
 # plan too, so the nudge shows before apply. a no-op above sends no text, so it passes
 STDIN_PIPE=""
 [[ "$FROM" == "@stdin" ]] && STDIN_PIPE="cat ./.temp/reply.md | "
-check_text_promise "$PROMISE" "the comment holds" \
-  "$(as_cmd_with_promise_text_public "$(as_comment_cmd_in_mode set "$MODE" "${ORIG_ARGS[@]}")" "$STDIN_PIPE" "$STDIN_NOTE")"
+check_text_promise promise="$PROMISE" subject="the comment holds" \
+  rerun="$(as_cmd_with_promise_text_public cmd="$(as_comment_cmd_in_mode set "$MODE" "${ORIG_ARGS[@]}")" pipe="$STDIN_PIPE" note="$STDIN_NOTE")"
 
 # plan: say what would happen, write naught
 if [[ "$MODE" == "plan" ]]; then

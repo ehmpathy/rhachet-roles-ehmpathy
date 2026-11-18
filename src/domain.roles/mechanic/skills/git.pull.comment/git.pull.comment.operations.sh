@@ -182,18 +182,6 @@ as_comment_cmd_in_mode() {
   echo "${out[*]} --mode $mode"
 }
 
-# .what = one arg as a shell word a human can read and paste: bare when plain,
-#         else in single quotes (an inner ' closes, escapes, and reopens)
-# .why  = printf %q pastes, yet reads as `feat\(reef\):\ map`; a hint is for a human
-as_shell_word() {
-  local arg="$1" q="'"
-  if [[ "$arg" =~ ^[A-Za-z0-9_./:@=+,%-]+$ ]]; then
-    printf '%s' "$arg"
-    return 0
-  fi
-  printf "'%s'" "${arg//$q/$q\\$q$q}"
-}
-
 # .what = render one refusal: a header, detail leaves, then a 🥥 hint with the fixes
 # .why  = every refusal of the family shares this one shape. under --output json,
 #         stdout gets one json object and stderr the tree, so a json caller parses
@@ -352,16 +340,6 @@ get_git_origin_url() {
   [[ "$rc" == "0" || "$rc" == "1" ]] || fail_comment_malfunction "git config could not read remote.origin.url" "exit: $rc" \
     "rerun with --in <owner/name>, which skips the origin read"
   printf '%s' "$url"
-}
-
-# .what = owner/name from a github remote url, or empty
-# .why  = ssh, ssh://, and https remotes all name one repo
-as_repo_slug_from_remote_url() {
-  local url="$1" repo=""
-  [[ "$url" =~ ^git@github\.com:([^/]+/[^/]+)$ ]] && repo="${BASH_REMATCH[1]}"
-  [[ "$url" =~ ^ssh://git@github\.com/([^/]+/[^/]+)$ ]] && repo="${BASH_REMATCH[1]}"
-  [[ "$url" =~ ^https://([^@/]+@)?github\.com/([^/]+/[^/]+)$ ]] && repo="${BASH_REMATCH[2]}"
-  echo "${repo%.git}"
 }
 
 # .what = the home orgs of this machine: each ~/git/<org>/ dir that holds a
@@ -678,25 +656,38 @@ set_repo_visibility() {
 # .why  = once sent, an edit keeps the original in the public history, so the
 #         one safe moment to check is before the send. a promise skips the
 #         read: with it, every visibility leads to the same write
-# .note = args: the --promise value, the subject phrase (e.g. "the comment
-#         holds"), the rerun line. exits 2 with the nudge on both streams;
-#         under --output json, stdout holds the family's refusal object
+# .note = subject = the phrase for the text this skill sends (e.g. "the comment
+#         holds"). exits 2 with the nudge on both streams; under --output json,
+#         stdout holds the family's refusal object
+# usage: check_text_promise promise="<--promise value>" subject="..." rerun="<line>"
 check_text_promise() {
-  local promise="$1" subject="$2" rerun="$3" block
+  local promise="" subject="" rerun="" block cause="" arg
+  for arg in "$@"; do
+    case "$arg" in
+      promise=*) promise="${arg#promise=}" ;;
+      subject=*) subject="${arg#subject=}" ;;
+      rerun=*) rerun="${arg#rerun=}" ;;
+    esac
+  done
   [[ -n "$promise" ]] && return 0
   set_repo_visibility
   is_repo_visibility_ungated "$REPO_VISIBILITY" && return 0
-  block="$(as_promise_nudge "$COMMENT_REPO" "$REPO_VISIBILITY" "$subject" "$rerun" "$REPO_VISIBILITY_CAUSE")"
+  block="$(as_promise_nudge repo="$COMMENT_REPO" visibility="$REPO_VISIBILITY" \
+    subject="$subject" rerun="$rerun" cause="$REPO_VISIBILITY_CAUSE")"
   if [[ "$COMMENT_OUTPUT" != "json" ]]; then
     emit_both "$block" >&3
     exit 2
   fi
   printf '%s\n' "$block" >&2
-  jq -n --arg repo "$COMMENT_REPO" --arg visibility "$REPO_VISIBILITY" --arg fix "$rerun" '{
+  # the json details read as the tree's repo line does: one label, and the cause of an unreadable read
+  [[ "$REPO_VISIBILITY" == "public" ]] || cause="$REPO_VISIBILITY_CAUSE"
+  # .note = `label` is a jq keyword, so the arg is named `visibility_label`
+  jq -n --arg repo "$COMMENT_REPO" --arg visibility_label "$(as_repo_visibility_label "$REPO_VISIBILITY")" \
+    --arg cause "$cause" --arg fix "$rerun" '{
     error: {
       class: "ConstraintError",
       message: "this text goes to a public repo; check it holds naught private, then rerun with the promise",
-      details: ["repo: \($repo) (\($visibility))"],
+      details: (["repo: \($repo) (\($visibility_label))"] + (if $cause == "" then [] else ["cause: \($cause)"] end)),
       fixes: [$fix]
     }
   }' >&3

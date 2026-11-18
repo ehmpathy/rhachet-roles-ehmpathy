@@ -462,15 +462,16 @@ fi
 # the promise skips the read: the caller already checked the text (fulcrum F5).
 # the whole push waits, not only the pr: commit messages are public text too (F1)
 if [[ -z "$PROMISE" ]]; then
-  # as-ehmpath reads with the seaturtle token: threaded from git.commit.set, else fetched
+  # as-ehmpath reads with the seaturtle token: threaded from git.commit.set, else fetched.
+  # a failed fetch leaves it empty, which the gate holds and names (case=10): never a write
   VISIBILITY_TOKEN=""
   if [[ "$AUTH" == "as-ehmpath" ]]; then
     VISIBILITY_TOKEN="${SEATURTLE_PR_TOKEN_VALUE:-}"
     [[ "${SEATURTLE_PR_TOKEN_PREFETCHED:-}" == "1" ]] || VISIBILITY_TOKEN="$(fetch_github_token 2>/dev/null || echo "")"
   fi
-  hold_push_text_until_promised \
+  guard_push_text_promised \
     auth="$AUTH" token="$VISIBILITY_TOKEN" output="$OUTPUT" \
-    rerun="$(as_cmd_with_promise_text_public "$(as_shell_cmd_without_passthrough "rhx git.commit.push" ${ORIG_ARGS[@]+"${ORIG_ARGS[@]}"})")"
+    rerun="$(as_cmd_with_promise_text_public cmd="$(as_shell_cmd_without_passthrough "rhx git.commit.push" ${ORIG_ARGS[@]+"${ORIG_ARGS[@]}"})")"
 fi
 
 ######################################################################
