@@ -29,7 +29,6 @@ METER_SLUG="git.commit.uses"
 METER_NOUN="commit"
 source "$SCRIPT_DIR/git.commit.operations.sh"
 source "$SCRIPT_DIR/keyrack.operations.sh"
-source "$SCRIPT_DIR/git.commit.director.operations.sh"
 # .why = the pr body this push opens is signed by the one attribution declaration
 # shellcheck source=../git/git.attribution.operations.sh
 source "$SCRIPT_DIR/../git/git.attribution.operations.sh"
@@ -151,12 +150,11 @@ AUTH_WHO=$(get_auth_who_label "$AUTH")
 #        caller uses next — constraint for 2, malfunction for 1.
 ######################################################################
 emit_error() {
-  local class="" message="" fix="" arg
+  local class="" message="" arg
   for arg in "$@"; do
     case "$arg" in
       class=*) class="${arg#class=}" ;;
       message=*) message="${arg#message=}" ;;
-      fix=*) fix="${arg#fix=}" ;;
       *) emit_both "💥 MalfunctionError: ${FUNCNAME[0]} got an unknown arg: ${arg%%=*}"; exit 1 ;;
     esac
   done
@@ -173,11 +171,6 @@ emit_error() {
     fi)
   if [[ "$OUTPUT" == "json" ]]; then
     output=$(printf '{"status":"error","error":"%s"}\n' "$(escape_json_string "$message")")
-  fi
-  # a json refusal with a fix carries it in a `fix` field; with none, main's bytes
-  if [[ "$OUTPUT" == "json" && -n "$fix" ]]; then
-    output=$(printf '{"status":"error","error":"%s","fix":"%s"}\n' \
-      "$(escape_json_string "$message")" "$(escape_json_string "$fix")")
   fi
   # output to both stdout and stderr
   echo "$output"
@@ -398,21 +391,9 @@ if [[ -f "$STATE_FILE" ]]; then
   USES=$(jq -r '.uses' "$STATE_FILE")
 fi
 if [[ "$PUSH_ALLOWED" != "allow" ]]; then
-  # json: the director fix rides a `fix` field; with no director, main's bytes.
-  # tree: the fix renders below the error, so the error carries none
-  PUSH_GRANT_FIX=""
-  if [[ "$OUTPUT" == "json" ]]; then
-    PUSH_GRANT_FIX="$(get_one_quota_grant_fix_for_json repo_root="$REPO_ROOT" \
-      refusal=push-blocked meter_file="$STATE_FILE" \
-      human_lead="ask your human to grant with --push allow:" \
-      human_cmd="  \$ git.commit.uses set --quant N --push allow")"
-  fi
-  emit_error class=constraint message="push not allowed" fix="$PUSH_GRANT_FIX"
+  emit_error class=constraint message="push not allowed"
   if [[ "$OUTPUT" == "tree" ]]; then
-    print_quota_grant_fix repo_root="$REPO_ROOT" refusal=push-blocked \
-      meter_file="$STATE_FILE" \
-      human_lead="ask your human to grant with --push allow:" \
-      human_cmd="  \$ git.commit.uses set --quant N --push allow"
+    print_instruction "ask your sponsor to grant with --push allow:" "  \$ git.commit.uses set --quant N --push allow"
   fi
   exit 2  # blocked by constraints
 fi

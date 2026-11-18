@@ -2,7 +2,7 @@
 
 | case | title | rework | risk | status | confidence |
 |---|---|---|---|---|---|
-| F1 | how a tree is known to have a director | dirty | **high**: a cross-repo contract (nheuron writes, this repo reads); a miss re-creates the incident, a false hit tells a human to ask a director that does not exist | unresolved — sorted WHAT (it sets which trees get the director line); one ranked ask to the commander, lean A (charter granted in the tree) | 60% on the lean |
+| F1 | how a tree is known to have a director | dirty | **high**: a cross-repo contract (nheuron writes, this repo reads); a miss re-creates the incident, a false hit tells a human to ask a director that does not exist | ruled (commander, 2026-11-18): no detection at all; every refusal says "ask your sponsor"; the director layer is removed (S13) | 100% (ruled) |
 | F2 | refusals in scope | clean | **medium**: three refusals × four surfaces, json mode on push included; each needs a variant and a clamp | ruled: widen to push-not-allowed and no-quota-set, set and push included | 100% (ruled) |
 | F3 | amend the briefs that say a human grants quota | clean | **low**: a two-line brief edit; `.min` must match its source | ruled: amend this repo's brief in this pr; bhrain → reseed dream | 100% (ruled) |
 | F4 | skip detection, name both granters | clean | **low**: not built | ruled: no; keep detection | 100% (ruled) |

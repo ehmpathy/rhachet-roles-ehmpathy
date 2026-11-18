@@ -126,7 +126,7 @@ exports[`git.commit.uses.sh given: [case7] get when no state file when: [t0] no 
 
 🥥 did you know?
    ├─ no quota is granted on this tree, so commits will refuse
-   └─ git.commit.uses set --quant N --push allow|block   # ask your human
+   └─ git.commit.uses set --quant N --push allow|block   # ask your sponsor
 "
 `;
 
@@ -284,7 +284,7 @@ exports[`git.commit.uses.sh given: [case19] get shows local + global state when:
 
 🥥 did you know?
    ├─ no quota is granted on this tree, so commits will refuse
-   └─ git.commit.uses set --quant N --push allow|block   # ask your human
+   └─ git.commit.uses set --quant N --push allow|block   # ask your sponsor
 "
 `;
 
@@ -323,7 +323,7 @@ until it parses, every commit is blocked. a human may inspect or clear it:
 
 🥥 did you know?
    ├─ no quota is granted on this tree, so commits will refuse
-   └─ git.commit.uses set --quant N --push allow|block   # ask your human
+   └─ git.commit.uses set --quant N --push allow|block   # ask your sponsor
 "
 `;
 

@@ -35,7 +35,6 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/output.sh"
 source "$SCRIPT_DIR/keyrack.operations.sh"
-source "$SCRIPT_DIR/git.commit.director.operations.sh"
 
 # ensure we're in a git repo
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
@@ -809,10 +808,7 @@ if [[ ! -f "$STATE_FILE" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
     print_tree_constraint "no commit quota set"
-    print_quota_grant_fix repo_root="$REPO_ROOT" refusal=quota-absent \
-      meter_file="$STATE_FILE" wants_push="$DO_PUSH" \
-      human_lead="ask your human to grant:" \
-      human_cmd="  \$ git.commit.uses set --quant N --push allow|block"
+    print_instruction "ask your sponsor to grant:" "  \$ git.commit.uses set --quant N --push allow|block"
   )"
   exit 2  # blocked by constraints
 fi
@@ -839,10 +835,7 @@ if [[ "$USES" != "infinite" && "$USES" -le 0 && "$MODE" != "plan" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
     print_tree_constraint "no commit uses left"
-    print_quota_grant_fix repo_root="$REPO_ROOT" refusal=uses-out \
-      meter_file="$STATE_FILE" wants_push="$DO_PUSH" \
-      human_lead="ask your human to grant more:" \
-      human_cmd="  \$ git.commit.uses set --quant N --push allow|block"
+    print_instruction "ask your sponsor to grant more:" "  \$ git.commit.uses set --quant N --push allow|block"
   )"
   exit 2  # blocked by constraints
 fi
@@ -853,10 +846,7 @@ if [[ "$DO_PUSH" == true && "$PUSH_ALLOWED" != "allow" ]]; then
     print_turtle_header "bummer dude..."
     print_tree_start "git.commit.set"
     print_tree_constraint "push not allowed in current grant"
-    print_quota_grant_fix repo_root="$REPO_ROOT" refusal=push-blocked \
-      meter_file="$STATE_FILE" \
-      human_lead="ask your human to grant with --push allow" \
-      human_cmd=""
+    print_instruction "ask your sponsor to grant with --push allow" ""
   )"
   exit 2  # blocked by constraints
 fi

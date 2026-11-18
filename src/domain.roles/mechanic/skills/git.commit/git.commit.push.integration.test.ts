@@ -516,7 +516,7 @@ exit 1`,
         expect(parsed.status).toBe('error');
         expect(parsed.error).toContain('push not allowed');
 
-        // no director governs this tree: main's json bytes, no fix field
+        // the json refusal carries no fix field
         expect(parsed.fix).toBeUndefined();
         expect(result.stdout.trim()).toEqual(
           '{"status":"error","error":"push not allowed"}',

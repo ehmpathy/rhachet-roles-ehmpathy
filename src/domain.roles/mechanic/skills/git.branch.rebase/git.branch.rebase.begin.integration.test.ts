@@ -522,6 +522,10 @@ describe('git.branch.rebase.begin', () => {
             expect(result.stdout).toContain(
               'rhx git.commit.uses set --quant N --push allow',
             );
+
+            // the refusal names the sponsor (a human or a director), never a human alone
+            expect(result.stdout).toContain('ask your sponsor to grant more');
+            expect(result.stdout).not.toContain('ask your human');
             expect(result.stderr).toContain('ConstraintError');
             expect(result.stdout).toMatchSnapshot();
           } finally {

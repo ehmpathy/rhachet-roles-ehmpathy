@@ -44,7 +44,7 @@ exports[`git.commit.uses precedence matrix given: [global=unset, org=allowed, lo
 🐚 git.commit.push
    └─ ✋ ConstraintError: push not allowed
 
-ask your human to grant with --push allow:
+ask your sponsor to grant with --push allow:
   $ git.commit.uses set --quant N --push allow
 "
 `;

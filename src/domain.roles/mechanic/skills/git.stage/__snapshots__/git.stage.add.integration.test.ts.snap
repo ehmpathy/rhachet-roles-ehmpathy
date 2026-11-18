@@ -32,7 +32,7 @@ exports[`git.stage.add.sh given: [case3] stage without permission when: [t0] sta
 🐚 git.stage.add
    └─ error: stage not allowed
 
-ask your human to grant stage permission:
+ask your sponsor to grant stage permission:
   $ git.commit.uses set --quant N --push allow|block --stage allow
 "
 `;

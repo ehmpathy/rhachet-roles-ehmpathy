@@ -33,7 +33,7 @@ exports[`git.commit.push.sh given: [case5] push not allowed when: [t0] no meter 
 🐚 git.commit.push
    └─ ✋ ConstraintError: push not allowed
 
-ask your human to grant with --push allow:
+ask your sponsor to grant with --push allow:
   $ git.commit.uses set --quant N --push allow
 "
 `;
@@ -44,7 +44,7 @@ exports[`git.commit.push.sh given: [case5] push not allowed when: [t1] meter has
 🐚 git.commit.push
    └─ ✋ ConstraintError: push not allowed
 
-ask your human to grant with --push allow:
+ask your sponsor to grant with --push allow:
   $ git.commit.uses set --quant N --push allow
 "
 `;

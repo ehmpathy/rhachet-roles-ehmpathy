@@ -8,6 +8,6 @@ options: `--mode plan` (default) | `apply` · `--push` (push + findsert pr) · `
 
 ## prerequisite
 
-quota: a director governs the tree → ask it, even if a refusal names a human (it runs `git.crew.grant`). else your human: `git.commit.uses set --quant N --push allow|block`
+quota: ask your sponsor to grant it: `git.commit.uses set --quant N --push allow|block`
 
 sponsor: git config names the human on their machine; a bind overrides it. where it names a seaturtle, a human binds one in a real terminal: `rhx git.commit.sponsor set --who <@stdin|@self|"Name <email>">`

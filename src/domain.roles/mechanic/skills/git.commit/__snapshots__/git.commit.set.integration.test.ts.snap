@@ -72,7 +72,7 @@ exports[`git.commit.set.sh given: [case3] no uses left when: [t0] apply mode wit
 🐚 git.commit.set
    └─ ✋ ConstraintError: no commit uses left
 
-ask your human to grant more:
+ask your sponsor to grant more:
   $ git.commit.uses set --quant N --push allow|block
 "
 `;
@@ -109,7 +109,7 @@ exports[`git.commit.set.sh given: [case4] push not allowed when: [t0] push is bl
 🐚 git.commit.set
    └─ ✋ ConstraintError: push not allowed in current grant
 
-ask your human to grant with --push allow
+ask your sponsor to grant with --push allow
 "
 `;
 

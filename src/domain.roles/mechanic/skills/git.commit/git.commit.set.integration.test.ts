@@ -1046,6 +1046,10 @@ exit 1
         expect(result.stdout).toContain(
           'git.commit.uses set --quant N --push allow|block',
         );
+
+        // the refusal names the sponsor (a human or a director), never a human alone
+        expect(result.stdout).toContain('ask your sponsor to grant more:');
+        expect(result.stdout).not.toContain('ask your human');
         expect(result.stdout).toMatchSnapshot();
       });
 
