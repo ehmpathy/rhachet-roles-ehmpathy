@@ -44,6 +44,14 @@ if cicd fails at any step:
 3. push the fix
 4. watch again: `rhx git.release --watch`
 
+if `--apply` refuses with `✋ ConstraintError: release blocked until each comment has an answer` (exit 2):
+1. find them: `rhx git.pull.comment get --which <pr> --unanswered`
+2. address each comment: fix what it asks, or explain why not
+3. answer each with the `rhx git.pull.comment set` line the refusal names for its kind
+4. re-run the same release command
+
+an answered thread still open waits on its reviewer, who marks it resolved on github.
+
 ## .default: `--into prod`
 
 to ship your work, the default and safe command is:
