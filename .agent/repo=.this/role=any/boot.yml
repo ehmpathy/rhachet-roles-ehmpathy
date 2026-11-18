@@ -10,6 +10,7 @@ always:
       - briefs/rule.require.jest-tests-for-skills.[rule].md
       - briefs/rule.require.skill-output-streams.[rule].md
       - briefs/rule.require.forbid-pole-on-boot-choice.[rule].md
+      - briefs/rule.forbid.broken-role-composition-order.[rule].md
 
     ref:
       # howtos — fetch when needed

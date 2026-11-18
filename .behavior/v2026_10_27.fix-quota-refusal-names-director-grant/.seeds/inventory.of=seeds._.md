@@ -13,4 +13,5 @@
 | S10 | land-the-mask-fix | quota 1 more; commit the asStableOutput fix, push, watch; sha + verdict by 11:00 CT |
 | S11 | land-the-done-checkpoint | quota 1; commit the green-ci yield row, push, watch; #1206 held for F1 |
 | S12 | land-the-flakes-note | quota 1; commit the ci-flakes note, push, watch; one rerun of injectionEnd if it alone is red |
+| S13 | ask-your-sponsor | F1: no detection, no director line; every refusal says "ask your sponsor"; ehmpathy names naught above it; unlimited-commit grants and an architect rule dispatched upstream; a `.this` rule forbids broken role composition order |
 | S6 | record-verdicts-with-risk | each verdict into its fulcrum entry; a risk column in the summary; hold for approval |
