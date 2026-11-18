@@ -7,7 +7,7 @@ when a human says "release into prod", act: stage all changes, drive the normal 
 
 ## .the only judgment
 did cicd pass? green → ship. red → fix the cause or retry a proven flake (`rhx show.gh.test.errors`), then re-check. never leave main dirty
-exit 2, no human approval → hand the pr url to your human; never retry
+exit 2 `no approval from a human` → stop, hand the pr url to your human. no retry, no reflag
 
 ## .why
 the gates absorb the risk: full suite + acceptance before merge, so a broken build cannot reach prod. a second confirm adds friction, not safety

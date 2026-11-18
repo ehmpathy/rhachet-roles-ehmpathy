@@ -13,7 +13,7 @@
 # guarantee:
 #   - pushes only a seaturtle[bot] HEAD, if .meter/git.commit.uses.jsonc grants push
 #   - never pushes to main/master
-#   - --base opens or moves the pr onto a base below HEAD on origin, else exit 2
+#   - --base opens or moves the pr onto a base below HEAD, else exit 2
 #   - opens the pr --auth as-ehmpath (default, keyrack) or as-human (gh login)
 #   - a new pr body ends in one seaturtle line; claude and co-author lines stripped
 #   - an enrolled clone then watches the pr; a failed watch never fails the push
